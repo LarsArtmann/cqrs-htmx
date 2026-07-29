@@ -1,326 +1,803 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Identity Model Extraction — Pareto Plan</title>
-<style>
-:root {
-  --surface: #0e0e10;
-  --surface-raised: #18181d;
-  --surface-sunken: #16161a;
-  --text: #f4f4f0;
-  --text-muted: rgba(244,244,240,0.72);
-  --text-faint: rgba(244,244,240,0.45);
-  --border: rgba(244,244,240,0.12);
-  --border-strong: rgba(244,244,240,0.25);
-  --accent: #ffb347;
-  --problem: #ff6b6b;
-  --solution: #6eb5ff;
-  --warning: #f4d35e;
-  --radius: 0px;
-  --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { background: var(--surface); color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.6; }
-section[id] { scroll-margin-top: 60px; }
-a { color: var(--solution); text-decoration: none; }
-a:hover { text-decoration: underline; }
-code { font-family: var(--mono); font-size: 0.86em; background: var(--surface-sunken); padding: 0.12em 0.4em; color: var(--warning); }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Identity Model Extraction — Pareto Plan</title>
+    <style>
+      :root {
+        --surface: #0e0e10;
+        --surface-raised: #18181d;
+        --surface-sunken: #16161a;
+        --text: #f4f4f0;
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: rgba(244, 244, 240, 0.12);
+        --border-strong: rgba(244, 244, 240, 0.25);
+        --accent: #ffb347;
+        --problem: #ff6b6b;
+        --solution: #6eb5ff;
+        --warning: #f4d35e;
+        --radius: 0px;
+        --font:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        --mono: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      section[id] {
+        scroll-margin-top: 60px;
+      }
+      a {
+        color: var(--solution);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.86em;
+        background: var(--surface-sunken);
+        padding: 0.12em 0.4em;
+        color: var(--warning);
+      }
 
-.container { max-width: 1100px; margin: 0 auto; padding: 0 2rem 4rem; }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 2rem 4rem;
+      }
 
-/* Nav */
-nav { position: sticky; top: 0; background: rgba(14,14,16,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); z-index: 50; padding: 0.6rem 0; }
-nav .container { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: center; justify-content: space-between; padding-top: 0; padding-bottom: 0; }
-nav .title { font-size: 0.9rem; font-weight: 700; }
-nav .links { display: flex; gap: 1rem; flex-wrap: wrap; }
-nav a { font-size: 0.82rem; color: var(--text-muted); }
+      /* Nav */
+      nav {
+        position: sticky;
+        top: 0;
+        background: rgba(14, 14, 16, 0.92);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+        z-index: 50;
+        padding: 0.6rem 0;
+      }
+      nav .container {
+        display: flex;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+      nav .title {
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+      nav .links {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      nav a {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+      }
 
-/* Header */
-header { margin: 2.5rem 0 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
-header .eyebrow { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); font-weight: 700; margin-bottom: 0.6rem; }
-header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.15; background: linear-gradient(135deg, var(--solution), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.7rem; }
-header .subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 65ch; }
-header .meta { display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--text-faint); font-family: var(--mono); margin-top: 1rem; }
+      /* Header */
+      header {
+        margin: 2.5rem 0 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      header .eyebrow {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        font-weight: 700;
+        margin-bottom: 0.6rem;
+      }
+      header h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1.15;
+        background: linear-gradient(135deg, var(--solution), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.7rem;
+      }
+      header .subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 65ch;
+      }
+      header .meta {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        font-size: 0.82rem;
+        color: var(--text-faint);
+        font-family: var(--mono);
+        margin-top: 1rem;
+      }
 
-/* TL;DR */
-.tldr { background: linear-gradient(135deg, rgba(110,181,255,0.06), rgba(255,179,71,0.05)); border: 1px solid var(--border); border-left: 4px solid var(--accent); padding: 1.4rem 1.6rem; margin-bottom: 2.5rem; }
-.tldr .label { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); font-weight: 700; margin-bottom: 0.5rem; }
-.tldr p { font-size: 1rem; }
-.tldr strong { color: var(--warning); }
+      /* TL;DR */
+      .tldr {
+        background: linear-gradient(135deg, rgba(110, 181, 255, 0.06), rgba(255, 179, 71, 0.05));
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--accent);
+        padding: 1.4rem 1.6rem;
+        margin-bottom: 2.5rem;
+      }
+      .tldr .label {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      .tldr p {
+        font-size: 1rem;
+      }
+      .tldr strong {
+        color: var(--warning);
+      }
 
-/* Stat cards */
-.dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
-.metric-card { background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem; text-align: center; }
-.metric-card .value { font-size: 1.8rem; font-weight: 800; color: var(--accent); line-height: 1; }
-.metric-card .label { font-size: 0.74rem; color: var(--text-faint); margin-top: 0.45rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.metric-card.good .value { color: #34d399; }
-.metric-card.blue .value { color: var(--solution); }
-.metric-card.warn .value { color: var(--warning); }
+      /* Stat cards */
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+      }
+      .metric-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem;
+        text-align: center;
+      }
+      .metric-card .value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .metric-card .label {
+        font-size: 0.74rem;
+        color: var(--text-faint);
+        margin-top: 0.45rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .metric-card.good .value {
+        color: #34d399;
+      }
+      .metric-card.blue .value {
+        color: var(--solution);
+      }
+      .metric-card.warn .value {
+        color: var(--warning);
+      }
 
-/* Sections */
-section { margin-bottom: 3rem; }
-h2 { font-size: 1.45rem; font-weight: 700; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
-h2 .anchor { color: var(--text-faint); font-size: 0.9rem; font-weight: 400; }
-h3 { font-size: 1.1rem; font-weight: 600; margin: 1.4rem 0 0.7rem; color: var(--solution); }
-p { margin-bottom: 0.7rem; color: var(--text-muted); }
-p.lead { color: var(--text); }
+      /* Sections */
+      section {
+        margin-bottom: 3rem;
+      }
+      h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border);
+      }
+      h2 .anchor {
+        color: var(--text-faint);
+        font-size: 0.9rem;
+        font-weight: 400;
+      }
+      h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 1.4rem 0 0.7rem;
+        color: var(--solution);
+      }
+      p {
+        margin-bottom: 0.7rem;
+        color: var(--text-muted);
+      }
+      p.lead {
+        color: var(--text);
+      }
 
-/* Tier banner */
-.tier-banner { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.2rem; background: var(--surface-raised); border: 1px solid var(--border); margin-bottom: 1.2rem; }
-.tier-badge { font-size: 0.72rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; padding: 0.3rem 0.7rem; white-space: nowrap; font-weight: 700; }
-.tier-badge.t1 { color: #34d399; background: rgba(52,211,153,0.12); }
-.tier-badge.t4 { color: var(--solution); background: rgba(110,181,255,0.12); }
-.tier-badge.t20 { color: var(--warning); background: rgba(244,211,94,0.12); }
-.tier-banner .impact { font-size: 0.88rem; color: var(--text-muted); }
+      /* Tier banner */
+      .tier-banner {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.2rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        margin-bottom: 1.2rem;
+      }
+      .tier-badge {
+        font-size: 0.72rem;
+        font-family: var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.3rem 0.7rem;
+        white-space: nowrap;
+        font-weight: 700;
+      }
+      .tier-badge.t1 {
+        color: #34d399;
+        background: rgba(52, 211, 153, 0.12);
+      }
+      .tier-badge.t4 {
+        color: var(--solution);
+        background: rgba(110, 181, 255, 0.12);
+      }
+      .tier-badge.t20 {
+        color: var(--warning);
+        background: rgba(244, 211, 94, 0.12);
+      }
+      .tier-banner .impact {
+        font-size: 0.88rem;
+        color: var(--text-muted);
+      }
 
-/* Task table */
-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.88rem; }
-th { text-align: left; padding: 0.7rem 0.8rem; border-bottom: 2px solid var(--border-strong); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); }
-td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); color: var(--text-muted); vertical-align: top; }
-td.task-id { font-family: var(--mono); color: var(--text-faint); white-space: nowrap; }
-td.task-name { color: var(--text); font-weight: 500; }
-td .tag { font-size: 0.7rem; font-family: var(--mono); padding: 0.15rem 0.45rem; border-radius: 2px; }
-.tag.high { color: #34d399; background: rgba(52,211,153,0.1); }
-.tag.med { color: var(--warning); background: rgba(244,211,94,0.1); }
-.tag.low { color: var(--text-faint); background: var(--surface-sunken); }
+      /* Task table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.5rem;
+        font-size: 0.88rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.7rem 0.8rem;
+        border-bottom: 2px solid var(--border-strong);
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-faint);
+      }
+      td {
+        padding: 0.6rem 0.8rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-muted);
+        vertical-align: top;
+      }
+      td.task-id {
+        font-family: var(--mono);
+        color: var(--text-faint);
+        white-space: nowrap;
+      }
+      td.task-name {
+        color: var(--text);
+        font-weight: 500;
+      }
+      td .tag {
+        font-size: 0.7rem;
+        font-family: var(--mono);
+        padding: 0.15rem 0.45rem;
+        border-radius: 2px;
+      }
+      .tag.high {
+        color: #34d399;
+        background: rgba(52, 211, 153, 0.1);
+      }
+      .tag.med {
+        color: var(--warning);
+        background: rgba(244, 211, 94, 0.1);
+      }
+      .tag.low {
+        color: var(--text-faint);
+        background: var(--surface-sunken);
+      }
 
-/* Callout */
-.callout { background: var(--surface-raised); border: 1px solid var(--border); border-left: 4px solid var(--solution); padding: 1.1rem 1.4rem; margin: 1.4rem 0; }
-.callout .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--solution); font-weight: 700; margin-bottom: 0.4rem; }
-.callout.warn { border-left-color: var(--warning); }
-.callout.warn .label { color: var(--warning); }
-.callout p { margin: 0; }
+      /* Callout */
+      .callout {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--solution);
+        padding: 1.1rem 1.4rem;
+        margin: 1.4rem 0;
+      }
+      .callout .label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--solution);
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+      }
+      .callout.warn {
+        border-left-color: var(--warning);
+      }
+      .callout.warn .label {
+        color: var(--warning);
+      }
+      .callout p {
+        margin: 0;
+      }
 
-/* Dependency graph */
-.dep-graph { background: var(--surface-sunken); border: 1px solid var(--border); padding: 1.2rem; margin: 1rem 0; font-family: var(--mono); font-size: 0.82rem; line-height: 1.8; color: var(--text-muted); overflow-x: auto; }
-.dep-graph .arrow { color: var(--accent); }
+      /* Dependency graph */
+      .dep-graph {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--mono);
+        font-size: 0.82rem;
+        line-height: 1.8;
+        color: var(--text-muted);
+        overflow-x: auto;
+      }
+      .dep-graph .arrow {
+        color: var(--accent);
+      }
 
-footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 0.82rem; font-family: var(--mono); }
-</style>
-</head>
-<body>
-<nav>
-  <div class="container">
-    <div class="title">cqrs-htmx &middot; planning</div>
-    <div class="links">
-      <a href="#tldr">TL;DR</a>
-      <a href="#tier1">Tier 1 (1%)</a>
-      <a href="#tier2">Tier 2 (4%)</a>
-      <a href="#tier3">Tier 3 (20%)</a>
-      <a href="#deps">Dependencies</a>
-    </div>
-  </div>
-</nav>
-
-<div class="container">
-  <header>
-    <div class="eyebrow">Pareto Execution Plan &middot; Architecture</div>
-    <h1>Extract <code style="background:transparent;color:inherit;padding:0;font-size:inherit">identity-model</code> Domain Module</h1>
-    <p class="subtitle">
-      A pure Go type/domain-model module for event-sourced identity management:
-      Users, Tenants/Orgs, Sessions, Auth &mdash; zero infrastructure dependencies.
-    </p>
-    <div class="meta">
-      <span><strong>Date:</strong> 2026-07-23</span>
-      <span><strong>Module:</strong> identity-model/v4</span>
-      <span><strong>Scope:</strong> Domain types only (no HTTP, no SQL, no Casbin)</span>
-    </div>
-  </header>
-
-  <!-- TL;DR -->
-  <section id="tldr">
-    <div class="tldr">
-      <div class="label">TL;DR</div>
-      <p>
-        Extract all pure domain types from <code>usermgmt</code> into a new
-        <strong><code>identity-model</code></strong> Go module within the workspace.
-        This module contains <strong>only types</strong>: identifiers, value objects,
-        event payloads, command structs, aggregate states, fold functions, auth domain
-        types, session types, error sentinels, and interface contracts. Zero dependencies
-        on HTTP frameworks, SQL drivers, or Casbin. The existing <code>usermgmt</code>
-        module will depend on <code>identity-model</code> and re-export types for
-        backward compatibility.
-      </p>
-    </div>
-
-    <div class="dashboard">
-      <div class="metric-card good">
-        <div class="value">~15</div>
-        <div class="label">source files extracted</div>
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-faint);
+        font-size: 0.82rem;
+        font-family: var(--mono);
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="container">
+        <div class="title">cqrs-htmx &middot; planning</div>
+        <div class="links">
+          <a href="#tldr">TL;DR</a>
+          <a href="#tier1">Tier 1 (1%)</a>
+          <a href="#tier2">Tier 2 (4%)</a>
+          <a href="#tier3">Tier 3 (20%)</a>
+          <a href="#deps">Dependencies</a>
+        </div>
       </div>
-      <div class="metric-card blue">
-        <div class="value">0</div>
-        <div class="label">infra dependencies</div>
+    </nav>
+
+    <div class="container">
+      <header>
+        <div class="eyebrow">Pareto Execution Plan &middot; Architecture</div>
+        <h1>
+          Extract
+          <code style="background: transparent; color: inherit; padding: 0; font-size: inherit"
+            >identity-model</code
+          >
+          Domain Module
+        </h1>
+        <p class="subtitle">
+          A pure Go type/domain-model module for event-sourced identity management: Users,
+          Tenants/Orgs, Sessions, Auth &mdash; zero infrastructure dependencies.
+        </p>
+        <div class="meta">
+          <span><strong>Date:</strong> 2026-07-23</span>
+          <span><strong>Module:</strong> identity-model/v4</span>
+          <span><strong>Scope:</strong> Domain types only (no HTTP, no SQL, no Casbin)</span>
+        </div>
+      </header>
+
+      <!-- TL;DR -->
+      <section id="tldr">
+        <div class="tldr">
+          <div class="label">TL;DR</div>
+          <p>
+            Extract all pure domain types from <code>usermgmt</code> into a new
+            <strong><code>identity-model</code></strong> Go module within the workspace. This module
+            contains <strong>only types</strong>: identifiers, value objects, event payloads,
+            command structs, aggregate states, fold functions, auth domain types, session types,
+            error sentinels, and interface contracts. Zero dependencies on HTTP frameworks, SQL
+            drivers, or Casbin. The existing <code>usermgmt</code> module will depend on
+            <code>identity-model</code> and re-export types for backward compatibility.
+          </p>
+        </div>
+
+        <div class="dashboard">
+          <div class="metric-card good">
+            <div class="value">~15</div>
+            <div class="label">source files extracted</div>
+          </div>
+          <div class="metric-card blue">
+            <div class="value">0</div>
+            <div class="label">infra dependencies</div>
+          </div>
+          <div class="metric-card warn">
+            <div class="value">6</div>
+            <div class="label">go-cqrs-lite deps</div>
+          </div>
+          <div class="metric-card good">
+            <div class="value">4</div>
+            <div class="label">aggregates modeled</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- What Gets Extracted -->
+      <section>
+        <h2>What Gets Extracted <span class="anchor">&mdash; domain model inventory</span></h2>
+
+        <div class="dep-graph">
+          identity-model/ ├── <span style="color: var(--solution)">doc.go</span> &mdash; package
+          documentation ├── <span style="color: var(--solution)">id.go</span> &mdash; UserID,
+          TenantID, BotID, ActorID, ActorKind ├──
+          <span style="color: var(--solution)">email.go</span> &mdash; Email value object ├──
+          <span style="color: var(--solution)">credential.go</span> &mdash; WebAuthnCredential +
+          credentialCore ├── <span style="color: var(--solution)">external_account.go</span> &mdash;
+          ExternalAccount + externalAccountCore ├──
+          <span style="color: var(--solution)">constants.go</span> &mdash; event/command/aggregate
+          type constants ├── <span style="color: var(--solution)">events.go</span> &mdash; all
+          *Payload structs (user/membership/tenant/bot) ├──
+          <span style="color: var(--solution)">commands.go</span> &mdash; all *Cmd structs +
+          constructors ├── <span style="color: var(--solution)">state.go</span> &mdash; UserState,
+          MembershipState, TenantState, BotState ├──
+          <span style="color: var(--solution)">fold.go</span> &mdash; foldUser, foldMembership,
+          foldTenant, foldBot ├── <span style="color: var(--solution)">session.go</span> &mdash;
+          Session, SessionOrigin, DirectLogin, Impersonation ├──
+          <span style="color: var(--solution)">membership.go</span> &mdash; Membership domain type
+          ├── <span style="color: var(--solution)">authz_types.go</span> &mdash; Role, Action,
+          Effect, Policy, GroupPolicy, etc. ├──
+          <span style="color: var(--solution)">authz_model.go</span> &mdash; defaultModel,
+          defaultPolicies, defaultRoleHierarchy ├──
+          <span style="color: var(--solution)">errors.go</span> &mdash; domain error sentinels (no
+          HTTP status) ├── <span style="color: var(--solution)">crypto.go</span> &mdash;
+          GenerateToken, HashToken, VerifyToken ├──
+          <span style="color: var(--solution)">random.go</span> &mdash; randomBase64URLString
+          utility ├── <span style="color: var(--solution)">interfaces.go</span> &mdash;
+          TOTPProvider, WebAuthnProvider, OAuth2Provider ├──
+          <span style="color: var(--solution)">store_interfaces.go</span> &mdash;
+          WebAuthnSessionStore, VerificationTokenStore, etc. └──
+          <span style="color: var(--accent)">*_test.go</span> &mdash; domain model tests
+        </div>
+
+        <div class="callout">
+          <div class="label">Key design decision: errors.go decoupled from HTTP</div>
+          <p>
+            The current <code>usermgmt/errors.go</code> uses
+            <code>cqrshtmx.WithHTTPStatus()</code> to attach HTTP status codes to domain errors. The
+            pure domain model defines errors using only
+            <code>errorfamily</code> (Rejection/Conflict/Transient classification). HTTP status
+            mapping is the infrastructure layer's concern &mdash; <code>usermgmt</code>
+            retains the status-mapping wrappers for backward compatibility.
+          </p>
+        </div>
+      </section>
+
+      <!-- Tier 1: 1% = 51% -->
+      <section id="tier1">
+        <div class="tier-banner">
+          <span class="tier-badge t1">TIER 1 &middot; 1% &rarr; 51%</span>
+          <span class="impact"
+            >Module scaffold + core identifiers + event/command constants + payloads</span
+          >
+        </div>
+        <h2>Foundation <span class="anchor">&mdash; the module exists and compiles</span></h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="task-id">1.1</td>
+              <td class="task-name">
+                Create <code>identity-model/</code> directory + <code>go.mod</code> +
+                <code>doc.go</code>
+              </td>
+              <td><span class="tag high">Critical</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">1.2</td>
+              <td class="task-name">
+                Extract identifier types (<code>id.go</code>: UserID, TenantID, BotID, ActorID,
+                ActorKind)
+              </td>
+              <td><span class="tag high">Critical</span></td>
+              <td>15 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">1.3</td>
+              <td class="task-name">
+                Extract event/command/aggregate constants (<code>constants.go</code>)
+              </td>
+              <td><span class="tag high">Critical</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">1.4</td>
+              <td class="task-name">Extract all event payloads (<code>events.go</code>)</td>
+              <td><span class="tag high">Critical</span></td>
+              <td>15 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">1.5</td>
+              <td class="task-name">Extract all command structs (<code>commands.go</code>)</td>
+              <td><span class="tag high">Critical</span></td>
+              <td>15 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">1.6</td>
+              <td class="task-name">Add to <code>go.work</code>, run <code>go build</code></td>
+              <td><span class="tag high">Critical</span></td>
+              <td>5 min</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Tier 2: 4% = 64% -->
+      <section id="tier2">
+        <div class="tier-banner">
+          <span class="tier-badge t4">TIER 2 &middot; 4% &rarr; 64%</span>
+          <span class="impact"
+            >Aggregate states + fold functions + value objects + sessions + auth types +
+            errors</span
+          >
+        </div>
+        <h2>Domain Completeness <span class="anchor">&mdash; the full type system</span></h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="task-id">2.1</td>
+              <td class="task-name">
+                Extract value objects (Email, WebAuthnCredential, ExternalAccount)
+              </td>
+              <td><span class="tag high">High</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.2</td>
+              <td class="task-name">
+                Extract aggregate states (<code>state.go</code>: UserState, MembershipState,
+                TenantState, BotState)
+              </td>
+              <td><span class="tag high">High</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.3</td>
+              <td class="task-name">
+                Extract fold functions (<code>fold.go</code>: foldUser, foldMembership, foldTenant,
+                foldBot)
+              </td>
+              <td><span class="tag high">High</span></td>
+              <td>15 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.4</td>
+              <td class="task-name">
+                Extract session types (<code>session.go</code>: Session, SessionOrigin, DirectLogin,
+                Impersonation)
+              </td>
+              <td><span class="tag high">High</span></td>
+              <td>15 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.5</td>
+              <td class="task-name">
+                Extract crypto + random utilities (<code>crypto.go</code>, <code>random.go</code>)
+              </td>
+              <td><span class="tag med">Medium</span></td>
+              <td>5 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.6</td>
+              <td class="task-name">Extract Membership domain type (<code>membership.go</code>)</td>
+              <td><span class="tag med">Medium</span></td>
+              <td>5 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.7</td>
+              <td class="task-name">
+                Extract auth domain types (<code>authz_types.go</code>: Role, Action, Effect,
+                Policy, GroupPolicy, etc.)
+              </td>
+              <td><span class="tag high">High</span></td>
+              <td>15 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.8</td>
+              <td class="task-name">
+                Extract auth model config (<code>authz_model.go</code>: defaultModel, policies,
+                hierarchy)
+              </td>
+              <td><span class="tag med">Medium</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.9</td>
+              <td class="task-name">
+                Extract domain errors (<code>errors.go</code> &mdash; decoupled from HTTP)
+              </td>
+              <td><span class="tag high">High</span></td>
+              <td>15 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.10</td>
+              <td class="task-name">
+                Extract auth strategy interfaces (<code>interfaces.go</code>)
+              </td>
+              <td><span class="tag med">Medium</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">2.11</td>
+              <td class="task-name">Extract store interfaces (<code>store_interfaces.go</code>)</td>
+              <td><span class="tag med">Medium</span></td>
+              <td>10 min</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Tier 3: 20% = 80% -->
+      <section id="tier3">
+        <div class="tier-banner">
+          <span class="tier-badge t20">TIER 3 &middot; 20% &rarr; 80%</span>
+          <span class="impact">Tests + wiring + backward compatibility + workspace validation</span>
+        </div>
+        <h2>
+          Integration &amp; Validation
+          <span class="anchor">&mdash; it works in the real system</span>
+        </h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Task</th>
+              <th>Impact</th>
+              <th>Effort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="task-id">3.1</td>
+              <td class="task-name">
+                Write domain model unit tests (ID parsing, email validation, fold functions,
+                sessions)
+              </td>
+              <td><span class="tag high">High</span></td>
+              <td>30 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">3.2</td>
+              <td class="task-name">
+                Add <code>identity-model</code> as dependency of <code>usermgmt</code> (replace
+                directive)
+              </td>
+              <td><span class="tag high">Critical</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">3.3</td>
+              <td class="task-name">
+                Re-export types from <code>usermgmt</code> via type aliases for backward compat
+              </td>
+              <td><span class="tag high">Critical</span></td>
+              <td>20 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">3.4</td>
+              <td class="task-name">Run <code>go build ./...</code> across workspace</td>
+              <td><span class="tag high">Critical</span></td>
+              <td>5 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">3.5</td>
+              <td class="task-name">Run <code>go test ./...</code> across workspace</td>
+              <td><span class="tag high">Critical</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">3.6</td>
+              <td class="task-name">Run <code>golangci-lint</code> on identity-model</td>
+              <td><span class="tag med">Medium</span></td>
+              <td>10 min</td>
+            </tr>
+            <tr>
+              <td class="task-id">3.7</td>
+              <td class="task-name">Write <code>README.md</code> for identity-model</td>
+              <td><span class="tag low">Low</span></td>
+              <td>10 min</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Dependencies -->
+      <section id="deps">
+        <h2>Dependency Graph <span class="anchor">&mdash; what identity-model depends on</span></h2>
+        <div class="dep-graph">
+          identity-model/v4
+          <span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-branded-id
+          <span style="color: var(--text-fast)">(branded IDs: TenantID, BotID)</span>
+          <span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-cqrs-lite/id/v4
+          <span style="color: var(--text-faint)">(UserID alias)</span>
+          <span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-cqrs-lite/event/v4
+          <span style="color: var(--text-faint)">(event.Type, AggregateType)</span>
+          <span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-cqrs-lite/command/v4
+          <span style="color: var(--text-faint)">(command.Type, BasicCommand)</span>
+          <span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-cqrs-lite/codec/v4
+          <span style="color: var(--text-faint)">(payload decode)</span>
+          <span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-error-family
+          <span style="color: var(--text-faint)">(error classification)</span>
+          <span class="arrow">&mdash;&rarr;</span> github.com/oklog/ulid/v2
+          <span style="color: var(--text-faint)">(ULID parsing for UserID)</span>
+
+          <span style="color: #34d399"
+            >NO casbin &middot; NO sqlite/postgres &middot; NO cqrs-htmx/v4 root &middot; NO
+            HTTP</span
+          >
+        </div>
+
+        <div class="callout warn">
+          <div class="label">Backward compatibility strategy</div>
+          <p>
+            <code>usermgmt</code> will import <code>identity-model</code> and provide type aliases
+            (<code>type UserID = model.UserID</code>) so existing consumers see zero API breakage.
+            The <code>errors.go</code> in usermgmt will wrap the domain errors from identity-model
+            with HTTP status codes, preserving the current behavior. No consumer code changes
+            needed.
+          </p>
+        </div>
+      </section>
+
+      <footer>
+        <span>cqrs-htmx/identity-model &middot; Pareto Plan &middot; 2026-07-23</span>
+      </footer>
+
+      <div
+        style="
+          margin: 2rem 0;
+          padding: 1rem 1.5rem;
+          border-left: 3px solid var(--accent, #6366f1);
+          background: var(--surface-raised, #18181d);
+          border-radius: 0 8px 8px 0;
+        "
+      >
+        <p style="margin: 0; color: var(--text-muted, #888); font-size: 0.9rem">
+          <strong>Resolution (2026-07-24, v4.5.0):</strong> All tiers executed.
+          identity-model/v4.1.0 shipped with all domain types, fold functions, constants, Authz
+          engine (Casbin as first-class dep, ADR-0044), and upcaster registry. usermgmt wired via
+          type aliases. See status reports <code>2026-07-23_18-12</code> through
+          <code>2026-07-23_21-27</code>.
+        </p>
       </div>
-      <div class="metric-card warn">
-        <div class="value">6</div>
-        <div class="label">go-cqrs-lite deps</div>
-      </div>
-      <div class="metric-card good">
-        <div class="value">4</div>
-        <div class="label">aggregates modeled</div>
-      </div>
     </div>
-  </section>
-
-  <!-- What Gets Extracted -->
-  <section>
-    <h2>What Gets Extracted <span class="anchor">&mdash; domain model inventory</span></h2>
-
-    <div class="dep-graph">
-identity-model/
-├── <span style="color:var(--solution)">doc.go</span>                    &mdash; package documentation
-├── <span style="color:var(--solution)">id.go</span>                     &mdash; UserID, TenantID, BotID, ActorID, ActorKind
-├── <span style="color:var(--solution)">email.go</span>                  &mdash; Email value object
-├── <span style="color:var(--solution)">credential.go</span>             &mdash; WebAuthnCredential + credentialCore
-├── <span style="color:var(--solution)">external_account.go</span>       &mdash; ExternalAccount + externalAccountCore
-├── <span style="color:var(--solution)">constants.go</span>              &mdash; event/command/aggregate type constants
-├── <span style="color:var(--solution)">events.go</span>                  &mdash; all *Payload structs (user/membership/tenant/bot)
-├── <span style="color:var(--solution)">commands.go</span>               &mdash; all *Cmd structs + constructors
-├── <span style="color:var(--solution)">state.go</span>                  &mdash; UserState, MembershipState, TenantState, BotState
-├── <span style="color:var(--solution)">fold.go</span>                   &mdash; foldUser, foldMembership, foldTenant, foldBot
-├── <span style="color:var(--solution)">session.go</span>                &mdash; Session, SessionOrigin, DirectLogin, Impersonation
-├── <span style="color:var(--solution)">membership.go</span>             &mdash; Membership domain type
-├── <span style="color:var(--solution)">authz_types.go</span>            &mdash; Role, Action, Effect, Policy, GroupPolicy, etc.
-├── <span style="color:var(--solution)">authz_model.go</span>            &mdash; defaultModel, defaultPolicies, defaultRoleHierarchy
-├── <span style="color:var(--solution)">errors.go</span>                 &mdash; domain error sentinels (no HTTP status)
-├── <span style="color:var(--solution)">crypto.go</span>                 &mdash; GenerateToken, HashToken, VerifyToken
-├── <span style="color:var(--solution)">random.go</span>                 &mdash; randomBase64URLString utility
-├── <span style="color:var(--solution)">interfaces.go</span>             &mdash; TOTPProvider, WebAuthnProvider, OAuth2Provider
-├── <span style="color:var(--solution)">store_interfaces.go</span>       &mdash; WebAuthnSessionStore, VerificationTokenStore, etc.
-└── <span style="color:var(--accent)">*_test.go</span>                 &mdash; domain model tests
-    </div>
-
-    <div class="callout">
-      <div class="label">Key design decision: errors.go decoupled from HTTP</div>
-      <p>
-        The current <code>usermgmt/errors.go</code> uses <code>cqrshtmx.WithHTTPStatus()</code>
-        to attach HTTP status codes to domain errors. The pure domain model defines errors
-        using only <code>errorfamily</code> (Rejection/Conflict/Transient classification).
-        HTTP status mapping is the infrastructure layer's concern &mdash; <code>usermgmt</code>
-        retains the status-mapping wrappers for backward compatibility.
-      </p>
-    </div>
-  </section>
-
-  <!-- Tier 1: 1% = 51% -->
-  <section id="tier1">
-    <div class="tier-banner">
-      <span class="tier-badge t1">TIER 1 &middot; 1% &rarr; 51%</span>
-      <span class="impact">Module scaffold + core identifiers + event/command constants + payloads</span>
-    </div>
-    <h2>Foundation <span class="anchor">&mdash; the module exists and compiles</span></h2>
-
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Task</th><th>Impact</th><th>Effort</th></tr>
-      </thead>
-      <tbody>
-        <tr><td class="task-id">1.1</td><td class="task-name">Create <code>identity-model/</code> directory + <code>go.mod</code> + <code>doc.go</code></td><td><span class="tag high">Critical</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">1.2</td><td class="task-name">Extract identifier types (<code>id.go</code>: UserID, TenantID, BotID, ActorID, ActorKind)</td><td><span class="tag high">Critical</span></td><td>15 min</td></tr>
-        <tr><td class="task-id">1.3</td><td class="task-name">Extract event/command/aggregate constants (<code>constants.go</code>)</td><td><span class="tag high">Critical</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">1.4</td><td class="task-name">Extract all event payloads (<code>events.go</code>)</td><td><span class="tag high">Critical</span></td><td>15 min</td></tr>
-        <tr><td class="task-id">1.5</td><td class="task-name">Extract all command structs (<code>commands.go</code>)</td><td><span class="tag high">Critical</span></td><td>15 min</td></tr>
-        <tr><td class="task-id">1.6</td><td class="task-name">Add to <code>go.work</code>, run <code>go build</code></td><td><span class="tag high">Critical</span></td><td>5 min</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- Tier 2: 4% = 64% -->
-  <section id="tier2">
-    <div class="tier-banner">
-      <span class="tier-badge t4">TIER 2 &middot; 4% &rarr; 64%</span>
-      <span class="impact">Aggregate states + fold functions + value objects + sessions + auth types + errors</span>
-    </div>
-    <h2>Domain Completeness <span class="anchor">&mdash; the full type system</span></h2>
-
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Task</th><th>Impact</th><th>Effort</th></tr>
-      </thead>
-      <tbody>
-        <tr><td class="task-id">2.1</td><td class="task-name">Extract value objects (Email, WebAuthnCredential, ExternalAccount)</td><td><span class="tag high">High</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">2.2</td><td class="task-name">Extract aggregate states (<code>state.go</code>: UserState, MembershipState, TenantState, BotState)</td><td><span class="tag high">High</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">2.3</td><td class="task-name">Extract fold functions (<code>fold.go</code>: foldUser, foldMembership, foldTenant, foldBot)</td><td><span class="tag high">High</span></td><td>15 min</td></tr>
-        <tr><td class="task-id">2.4</td><td class="task-name">Extract session types (<code>session.go</code>: Session, SessionOrigin, DirectLogin, Impersonation)</td><td><span class="tag high">High</span></td><td>15 min</td></tr>
-        <tr><td class="task-id">2.5</td><td class="task-name">Extract crypto + random utilities (<code>crypto.go</code>, <code>random.go</code>)</td><td><span class="tag med">Medium</span></td><td>5 min</td></tr>
-        <tr><td class="task-id">2.6</td><td class="task-name">Extract Membership domain type (<code>membership.go</code>)</td><td><span class="tag med">Medium</span></td><td>5 min</td></tr>
-        <tr><td class="task-id">2.7</td><td class="task-name">Extract auth domain types (<code>authz_types.go</code>: Role, Action, Effect, Policy, GroupPolicy, etc.)</td><td><span class="tag high">High</span></td><td>15 min</td></tr>
-        <tr><td class="task-id">2.8</td><td class="task-name">Extract auth model config (<code>authz_model.go</code>: defaultModel, policies, hierarchy)</td><td><span class="tag med">Medium</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">2.9</td><td class="task-name">Extract domain errors (<code>errors.go</code> &mdash; decoupled from HTTP)</td><td><span class="tag high">High</span></td><td>15 min</td></tr>
-        <tr><td class="task-id">2.10</td><td class="task-name">Extract auth strategy interfaces (<code>interfaces.go</code>)</td><td><span class="tag med">Medium</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">2.11</td><td class="task-name">Extract store interfaces (<code>store_interfaces.go</code>)</td><td><span class="tag med">Medium</span></td><td>10 min</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- Tier 3: 20% = 80% -->
-  <section id="tier3">
-    <div class="tier-banner">
-      <span class="tier-badge t20">TIER 3 &middot; 20% &rarr; 80%</span>
-      <span class="impact">Tests + wiring + backward compatibility + workspace validation</span>
-    </div>
-    <h2>Integration &amp; Validation <span class="anchor">&mdash; it works in the real system</span></h2>
-
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Task</th><th>Impact</th><th>Effort</th></tr>
-      </thead>
-      <tbody>
-        <tr><td class="task-id">3.1</td><td class="task-name">Write domain model unit tests (ID parsing, email validation, fold functions, sessions)</td><td><span class="tag high">High</span></td><td>30 min</td></tr>
-        <tr><td class="task-id">3.2</td><td class="task-name">Add <code>identity-model</code> as dependency of <code>usermgmt</code> (replace directive)</td><td><span class="tag high">Critical</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">3.3</td><td class="task-name">Re-export types from <code>usermgmt</code> via type aliases for backward compat</td><td><span class="tag high">Critical</span></td><td>20 min</td></tr>
-        <tr><td class="task-id">3.4</td><td class="task-name">Run <code>go build ./...</code> across workspace</td><td><span class="tag high">Critical</span></td><td>5 min</td></tr>
-        <tr><td class="task-id">3.5</td><td class="task-name">Run <code>go test ./...</code> across workspace</td><td><span class="tag high">Critical</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">3.6</td><td class="task-name">Run <code>golangci-lint</code> on identity-model</td><td><span class="tag med">Medium</span></td><td>10 min</td></tr>
-        <tr><td class="task-id">3.7</td><td class="task-name">Write <code>README.md</code> for identity-model</td><td><span class="tag low">Low</span></td><td>10 min</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- Dependencies -->
-  <section id="deps">
-    <h2>Dependency Graph <span class="anchor">&mdash; what identity-model depends on</span></h2>
-    <div class="dep-graph">
-identity-model/v4
-<span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-branded-id     <span style="color:var(--text-fast)">(branded IDs: TenantID, BotID)</span>
-<span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-cqrs-lite/id/v4       <span style="color:var(--text-faint)">(UserID alias)</span>
-<span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-cqrs-lite/event/v4    <span style="color:var(--text-faint)">(event.Type, AggregateType)</span>
-<span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-cqrs-lite/command/v4  <span style="color:var(--text-faint)">(command.Type, BasicCommand)</span>
-<span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-cqrs-lite/codec/v4   <span style="color:var(--text-faint)">(payload decode)</span>
-<span class="arrow">&mdash;&rarr;</span> github.com/larsartmann/go-error-family         <span style="color:var(--text-faint)">(error classification)</span>
-<span class="arrow">&mdash;&rarr;</span> github.com/oklog/ulid/v2                       <span style="color:var(--text-faint)">(ULID parsing for UserID)</span>
-
-<span style="color:#34d399">NO casbin &middot; NO sqlite/postgres &middot; NO cqrs-htmx/v4 root &middot; NO HTTP</span>
-    </div>
-
-    <div class="callout warn">
-      <div class="label">Backward compatibility strategy</div>
-      <p>
-        <code>usermgmt</code> will import <code>identity-model</code> and provide type aliases
-        (<code>type UserID = model.UserID</code>) so existing consumers see zero API breakage.
-        The <code>errors.go</code> in usermgmt will wrap the domain errors from identity-model
-        with HTTP status codes, preserving the current behavior. No consumer code changes needed.
-      </p>
-    </div>
-  </section>
-
-  <footer>
-    <span>cqrs-htmx/identity-model &middot; Pareto Plan &middot; 2026-07-23</span>
-  </footer>
-
-  <div style="margin: 2rem 0; padding: 1rem 1.5rem; border-left: 3px solid var(--accent, #6366f1); background: var(--surface-raised, #18181d); border-radius: 0 8px 8px 0;">
-    <p style="margin: 0; color: var(--text-muted, #888); font-size: 0.9rem;">
-      <strong>Resolution (2026-07-24, v4.5.0):</strong> All tiers executed. identity-model/v4.1.0 shipped
-      with all domain types, fold functions, constants, Authz engine (Casbin as first-class dep, ADR-0044),
-      and upcaster registry. usermgmt wired via type aliases. See status reports
-      <code>2026-07-23_18-12</code> through <code>2026-07-23_21-27</code>.
-    </p>
-  </div>
-</div>
-</body>
+  </body>
 </html>

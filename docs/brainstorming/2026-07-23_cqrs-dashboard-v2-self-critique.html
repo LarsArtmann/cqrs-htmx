@@ -6,86 +6,570 @@
     <title>CQRS Dashboard v2 — Self-Critique + Execution Plan</title>
     <style>
       :root {
-        --color-paper: #f4f4f0; --color-paper-2: #ffffff; --color-paper-3: #e8e8e2;
-        --color-ink: #111111; --color-red: #e63946; --color-blue: #1d3557; --color-yellow: #f4d35e;
-        --color-hairline: rgba(17,17,17,0.14); --color-hairline-strong: rgba(17,17,17,0.3);
-        --surface: var(--color-paper); --surface-raised: var(--color-paper-2); --surface-sunken: var(--color-paper-3);
-        --text: var(--color-ink); --text-muted: rgba(17,17,17,0.72); --text-faint: rgba(17,17,17,0.5);
-        --border: var(--color-hairline); --border-strong: var(--color-hairline-strong);
-        --accent: var(--color-red); --problem: var(--color-red); --solution: var(--color-blue); --warning: var(--color-yellow);
-        --radius: 0px; --font-heading: ui-sans-serif, system-ui, sans-serif; --font-body: ui-sans-serif, system-ui, sans-serif;
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, sans-serif;
+        --font-body: ui-sans-serif, system-ui, sans-serif;
         --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, monospace;
       }
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; } section[id], [id] { scroll-margin-top: 60px; }
-      body { background: var(--surface); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.65; }
-      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      .top-bar { background: var(--text); color: var(--surface); padding: 0.6rem 2rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; display: flex; justify-content: space-between; }
-      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
-      .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none; }
-      .sidebar nav { display: flex; flex-direction: column; }
-      .sidebar .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--text); }
-      .sidebar a { font-size: 0.86rem; color: var(--text); text-decoration: none; padding: 0.5rem 0.75rem; border-left: 4px solid transparent; font-weight: 600; transition: all 0.15s; line-height: 1.4; }
-      .sidebar a:hover, .sidebar a.active { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--accent); }
-      .main { flex: 1; min-width: 0; }
-      h1,h2,h3,h4 { font-family: var(--font-heading); font-weight: 900; letter-spacing: -0.02em; }
-      h1 { font-size: clamp(1.9rem,4.5vw,2.8rem); line-height: 1.05; margin: 0 0 0.6rem; }
-      h2 { font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 3px solid var(--text); display: flex; align-items: baseline; gap: 0.7rem; }
-      h2 .num { font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent); font-weight: 700; }
-      h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 700; } h4 { font-size: 1rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; } ul, ol { margin: 0 0 1rem 1.5rem; } li { margin: 0.3rem 0; }
-      .hero { padding: 1.5rem 0 2rem; margin-bottom: 1.5rem; border-bottom: 3px solid var(--text); }
-      .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.9rem; }
-      .subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 70ch; margin: 0 0 1rem; }
-      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-      .tag { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.6rem; background: var(--surface-sunken); border: 1px solid var(--border-strong); }
-      .tag.amber { background: var(--warning); border-color: var(--warning); } .tag.teal { background: var(--solution); border-color: var(--solution); color: var(--surface); }
-      .hero-shapes { position: relative; height: 90px; margin-bottom: 1.2rem; }
-      .hero-shapes .circle { position: absolute; top: 0; right: 180px; width: 64px; height: 64px; background: var(--problem); border-radius: 50%; }
-      .hero-shapes .square { position: absolute; top: 26px; right: 90px; width: 56px; height: 56px; background: var(--solution); }
-      .hero-shapes .tri { position: absolute; top: 8px; right: 0; width: 0; height: 0; border-left: 32px solid transparent; border-right: 32px solid transparent; border-bottom: 56px solid var(--warning); }
-      .hero-shapes .bar { position: absolute; bottom: 0; right: 230px; width: 100px; height: 14px; background: var(--text); }
-      .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 0; margin: 1.5rem 0 2rem; border: 3px solid var(--text); }
-      .score-card { padding: 1.3rem 1rem; text-align: center; border-right: 3px solid var(--text); background: var(--surface-raised); }
-      .score-card:last-child { border-right: none; }
-      .score { font-family: var(--font-heading); font-size: 2.6rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
-      .score-card .label { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.5rem; }
-      .score-good { background: var(--solution); color: var(--surface); } .score-warn { background: var(--warning); } .score-bad { background: var(--problem); color: var(--surface); }
-      .card { background: var(--surface-raised); border: 2px solid var(--text); padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong); }
-      .card-problem { border-left-color: var(--problem); } .card-solution { border-left-color: var(--solution); } .card-warning { border-left-color: var(--warning); }
-      .issue { background: var(--surface-raised); border: 2px solid var(--text); padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong); }
-      .issue-critical { border-left-color: var(--problem); } .issue-important { border-left-color: var(--warning); } .issue-nice { border-left-color: var(--solution); }
-      .issue h3 { margin-bottom: 0.3rem; } .issue .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin: 0.2rem 0 0.6rem; }
-      .issue p:last-child { margin-bottom: 0; }
-      .severity { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.22rem 0.6rem; margin-bottom: 0.6rem; color: var(--surface); }
-      .severity-critical { background: var(--problem); } .severity-important { background: var(--warning); color: var(--text); } .severity-nice { background: var(--solution); }
-      .callout { margin: 0.8rem 0 0; padding: 0.8rem 1rem; border: 1px solid var(--border-strong); border-left: 4px solid var(--border-strong); background: var(--surface-sunken); font-size: 0.92rem; }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      .callout-teal { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised)); }
-      .callout-amber { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised)); }
-      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
-      .strength { display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; padding: 0.75rem 0; border-bottom: 2px solid var(--border); }
-      .strength .check { font-family: var(--font-mono); font-weight: 900; color: var(--solution); font-size: 1.3rem; }
-      .strength .text strong { display: block; margin-bottom: 0.15rem; } .strength .text span { color: var(--text-muted); font-size: 0.92rem; }
-      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.92rem; border: 2px solid var(--text); }
-      th { text-align: left; padding: 0.6rem 0.9rem; background: var(--text); color: var(--surface); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-      td { padding: 0.6rem 0.9rem; border-top: 1px solid var(--border); }
-      tr:nth-child(even) td { background: var(--surface-sunken); }
-      pre { background: var(--text); color: var(--surface); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65; overflow-x: auto; border: 2px solid var(--text); }
-      code { font-family: var(--font-mono); } p code, li code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
-      .tok-keyword,.tok-type { color: var(--warning); } .tok-string { color: #95e1d3; } .tok-comment { color: rgba(244,244,240,0.45); font-style: italic; }
-      .tok-func,.tok-builtin { color: #6eb5ff; } .tok-number { color: var(--warning); } .tok-generic { color: var(--problem); }
-      .dep-tree { background: var(--surface-sunken); border: 2px solid var(--text); padding: 1rem 1.2rem; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; white-space: pre; overflow-x: auto; }
-      .dep-tree .root { color: var(--accent); font-weight: 700; } .dep-tree .ok { color: var(--solution); } .dep-tree .unwanted { color: var(--problem); }
-      .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; margin: 1rem 0; }
-      .migration-step { display: grid; grid-template-columns: 56px 1fr; gap: 1rem; margin: 1rem 0; padding: 1.1rem; background: var(--surface-raised); border: 2px solid var(--text); border-left: 6px solid var(--accent); }
-      .migration-num { font-family: var(--font-mono); font-weight: 900; font-size: 1.8rem; color: var(--accent); line-height: 1; }
-      .migration-content h4 { margin-bottom: 0.2rem; } .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.94rem; }
-      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 3px solid var(--text); font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono); }
-      .badge { display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.55rem; border: 1px solid var(--text); }
-      .badge-critical { background: var(--problem); color: var(--surface); } .badge-high { background: var(--warning); } .badge-medium { background: var(--surface-sunken); }
-      @media (min-width: 1024px) { .sidebar { display: block; } }
-      @media (max-width: 768px) { .layout { flex-direction: column; padding: 1rem; } .grid-2 { grid-template-columns: 1fr; } .scorecard { grid-template-columns: repeat(2,1fr); } .migration-step { grid-template-columns: 1fr; } .hero-shapes { display: none; } }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+      }
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 1rem 1.5rem;
+      }
+      li {
+        margin: 0.3rem 0;
+      }
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child {
+        border-right: none;
+      }
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      .score-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn {
+        background: var(--warning);
+      }
+      .score-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
+      }
+      .callout-amber {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
+      }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword,
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func,
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -109,12 +593,17 @@
       </aside>
       <main class="main">
         <header class="hero">
-          <div class="hero-shapes"><div class="bar"></div><div class="circle"></div><div class="square"></div><div class="tri"></div></div>
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
           <div class="eyebrow">Self-Critique + Improved Plan &middot; 2026-07-23</div>
           <h1>CQRS Dashboard v2</h1>
           <p class="subtitle">
-            Brutal review of the first design report. Deeper research into reusable code.
-            Proper type models. A concrete, Pareto-sorted execution plan with small, independently
+            Brutal review of the first design report. Deeper research into reusable code. Proper
+            type models. A concrete, Pareto-sorted execution plan with small, independently
             committable steps.
           </p>
           <div class="meta">
@@ -125,19 +614,36 @@
         </header>
 
         <section id="scorecard" class="scorecard">
-          <div class="score-card score-bad"><div class="score">10</div><div class="label">Mistakes in v1</div></div>
-          <div class="score-card score-good"><div class="score">80%</div><div class="label">UI from templ-components</div></div>
-          <div class="score-card"><div class="score">6</div><div class="label">API gaps found</div></div>
-          <div class="score-card score-warn"><div class="score">15</div><div class="label">Execution steps</div></div>
+          <div class="score-card score-bad">
+            <div class="score">10</div>
+            <div class="label">Mistakes in v1</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">80%</div>
+            <div class="label">UI from templ-components</div>
+          </div>
+          <div class="score-card">
+            <div class="score">6</div>
+            <div class="label">API gaps found</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">15</div>
+            <div class="label">Execution steps</div>
+          </div>
         </section>
 
         <!-- ==================== SELF-CRITIQUE ==================== -->
         <section id="critique">
           <h2><span class="num">00</span>What I Got Wrong in v1</h2>
-          <p>Brutal honesty. The first report was directionally correct but missed major reuse opportunities and had type-safety violations.</p>
+          <p>
+            Brutal honesty. The first report was directionally correct but missed major reuse
+            opportunities and had type-safety violations.
+          </p>
 
           <div class="issue issue-critical">
-            <span class="severity severity-critical">Critical miss &middot; Massive reuse opportunity</span>
+            <span class="severity severity-critical"
+              >Critical miss &middot; Massive reuse opportunity</span
+            >
             <h3>Did not discover templ-components has a full dashboard component library</h3>
             <div class="where">templ-components/ (already a dependency of adminui!)</div>
             <p>
@@ -148,23 +654,25 @@
               <code>layout.AppShell</code> (sidebar + header + content),
               <code>display.DataTable</code> (sortable, paginated tables),
               <code>display.StatCard</code> (metric cards with trend),
-              <code>navigation.Pagination</code> + <code>navigation.LoadMore</code> (cursor pagination),
-              <code>display.RelativeTime</code> (live timestamps),
+              <code>navigation.Pagination</code> + <code>navigation.LoadMore</code> (cursor
+              pagination), <code>display.RelativeTime</code> (live timestamps),
               <code>display.CopyButton</code>, <code>display.Modal</code> (confirm dialogs),
               <code>display.StatusBadge</code>, <code>display.EmptyState</code>,
-              <code>display.DefinitionGrid</code> (metadata), <code>forms.FilterDropdown</code>,
-              and <strong>100+ icons</strong> including CQRS-relevant ones
-              (<code>QueueList</code>, <code>Bolt</code>, <code>ArrowPath</code>, <code>BugAnt</code>).
+              <code>display.DefinitionGrid</code> (metadata), <code>forms.FilterDropdown</code>, and
+              <strong>100+ icons</strong> including CQRS-relevant ones (<code>QueueList</code>,
+              <code>Bolt</code>, <code>ArrowPath</code>, <code>BugAnt</code>).
             </p>
             <div class="callout callout-teal">
               <strong>Fix</strong>
-              The dashboard should COMPOSE templ-components, not build parallel components. Only
-              a JSON viewer needs to be built from scratch (no component exists for that).
+              The dashboard should COMPOSE templ-components, not build parallel components. Only a
+              JSON viewer needs to be built from scratch (no component exists for that).
             </div>
           </div>
 
           <div class="issue issue-critical">
-            <span class="severity severity-critical">Critical miss &middot; Wrong implementation path</span>
+            <span class="severity severity-critical"
+              >Critical miss &middot; Wrong implementation path</span
+            >
             <h3>Only mentioned InMemoryStreamReader — missed the SQL-backed reader</h3>
             <div class="where">storage/sql_aggregate_reader.go</div>
             <p>
@@ -189,9 +697,9 @@
             <div class="callout callout-teal">
               <strong>Fix</strong>
               Payload display should use a <code>PayloadRenderer</code> interface that returns
-              formatted bytes (JSON pretty-print), not decoded Go types. State reconstruction
-              should use a typed registration system with generics where possible. See the
-              Type Model section.
+              formatted bytes (JSON pretty-print), not decoded Go types. State reconstruction should
+              use a typed registration system with generics where possible. See the Type Model
+              section.
             </div>
           </div>
 
@@ -213,9 +721,9 @@
             <p>
               v1 completely missed the <code>scheduling</code> module — deadline timers are a
               dashboard-worthy concept ("show me all pending timers"). Also missed that
-              <code>catalog/docserver</code> already serves HTTP docs (OpenAPI UI, AsyncAPI UI,
-              D2 diagrams, health check) — these could be mounted alongside the dashboard for
-              a unified ops experience.
+              <code>catalog/docserver</code> already serves HTTP docs (OpenAPI UI, AsyncAPI UI, D2
+              diagrams, health check) — these could be mounted alongside the dashboard for a unified
+              ops experience.
             </p>
           </div>
 
@@ -225,10 +733,10 @@
             <div class="where">v1 Panel 1 wireframe: "1,247 Events"</div>
             <p>
               No <code>Count</code> method exists on <code>event.Store</code>, <code>Journal</code>,
-              or <code>Bundle</code>. The <code>listing.Page</code> type explicitly documents:
-              "No TotalCount — append-only logs make counts stale and expensive." The overview
-              page's "total events" stat card is currently impossible without loading all events
-              or adding a count query. This is a real API gap that needs solving.
+              or <code>Bundle</code>. The <code>listing.Page</code> type explicitly documents: "No
+              TotalCount — append-only logs make counts stale and expensive." The overview page's
+              "total events" stat card is currently impossible without loading all events or adding
+              a count query. This is a real API gap that needs solving.
             </p>
           </div>
 
@@ -238,10 +746,10 @@
             <div class="where">v1 Panel 2: "filters by aggregate type, event type, time range"</div>
             <p>
               <code>SeekableJournal.ReadFrom(ctx, afterEventID, limit)</code> only does cursor
-              pagination — <strong>no filtering</strong> by type, aggregate type, or time range.
-              The SQL implementation does <code>WHERE id &gt; ? ORDER BY occurred_at ASC LIMIT ?</code>.
-              Client-side filtering on paginated results is broken (you'd filter within a page,
-              not across pages). This needs either a new interface method or a raw SQL path.
+              pagination — <strong>no filtering</strong> by type, aggregate type, or time range. The
+              SQL implementation does <code>WHERE id &gt; ? ORDER BY occurred_at ASC LIMIT ?</code>.
+              Client-side filtering on paginated results is broken (you'd filter within a page, not
+              across pages). This needs either a new interface method or a raw SQL path.
             </p>
           </div>
 
@@ -260,76 +768,263 @@
         <!-- ==================== REUSABLE CODE ==================== -->
         <section id="reusable">
           <h2><span class="num">01</span>Reusable Code Already Available</h2>
-          <p>Before building anything, here is what already exists and should be composed, not reimplemented.</p>
+          <p>
+            Before building anything, here is what already exists and should be composed, not
+            reimplemented.
+          </p>
 
           <h3>From templ-components (the big win)</h3>
           <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Dashboard need</th><th>templ-component</th><th>Props highlight</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>Full dashboard layout</td><td><code>recipes.Dashboard</code></td><td>Title, Subtitle, Sidebar, Header, StatCards, Charts</td></tr>
-              <tr><td>Sidebar + header shell</td><td><code>layout.AppShell</code></td><td>Grid-blowout protection, mobile drawer</td></tr>
-              <tr><td>Sortable data tables</td><td><code>display.DataTable</code></td><td>Columns, sort, pagination slot, empty state, compact mode</td></tr>
-              <tr><td>Stat / metric cards</td><td><code>display.StatCard</code></td><td>Value, Label, Change, Trend, Icon, Href/HTMX</td></tr>
-              <tr><td>Status badges</td><td><code>display.StatusBadge</code></td><td>Auto-maps status strings to colors</td></tr>
-              <tr><td>Page-number pagination</td><td><code>navigation.Pagination</code></td><td>CurrentPage, TotalPages, BaseURL, MaxVisible</td></tr>
-              <tr><td>Cursor pagination (LoadMore)</td><td><code>navigation.LoadMore</code></td><td>HTMX-based, for SeekableJournal</td></tr>
-              <tr><td>Live timestamps</td><td><code>display.RelativeTime</code></td><td>Server-rendered + JS auto-refresh</td></tr>
-              <tr><td>Copy-to-clipboard</td><td><code>display.CopyButton</code></td><td>CSP-safe, for IDs</td></tr>
-              <tr><td>Confirmation dialogs</td><td><code>display.Modal</code></td><td>Native dialog, focus trap, Escape close</td></tr>
-              <tr><td>Empty states</td><td><code>display.EmptyState</code></td><td>Icon + title + description + action</td></tr>
-              <tr><td>Metadata display</td><td><code>display.DefinitionGrid</code></td><td>Term-detail pairs</td></tr>
-              <tr><td>Filter dropdowns</td><td><code>forms.FilterDropdown</code></td><td>HTMX auto-submit on change</td></tr>
-              <tr><td>Search input</td><td><code>forms.Input</code> (type=search)</td><td>HTMX trigger support</td></tr>
-              <tr><td>Progress bar</td><td><code>feedback.ProgressBar</code></td><td>Indeterminate mode for projection lag</td></tr>
-              <tr><td>Breadcrumbs</td><td><code>navigation.Breadcrumbs</code></td><td>Auto-active detection</td></tr>
-              <tr><td>Icons</td><td><code>icons.Icon(name, class)</code></td><td>100+ icons, CQRS-relevant: QueueList, Bolt, ArrowPath, BugAnt</td></tr>
-            </tbody>
-          </table>
+            <table>
+              <thead>
+                <tr>
+                  <th>Dashboard need</th>
+                  <th>templ-component</th>
+                  <th>Props highlight</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Full dashboard layout</td>
+                  <td><code>recipes.Dashboard</code></td>
+                  <td>Title, Subtitle, Sidebar, Header, StatCards, Charts</td>
+                </tr>
+                <tr>
+                  <td>Sidebar + header shell</td>
+                  <td><code>layout.AppShell</code></td>
+                  <td>Grid-blowout protection, mobile drawer</td>
+                </tr>
+                <tr>
+                  <td>Sortable data tables</td>
+                  <td><code>display.DataTable</code></td>
+                  <td>Columns, sort, pagination slot, empty state, compact mode</td>
+                </tr>
+                <tr>
+                  <td>Stat / metric cards</td>
+                  <td><code>display.StatCard</code></td>
+                  <td>Value, Label, Change, Trend, Icon, Href/HTMX</td>
+                </tr>
+                <tr>
+                  <td>Status badges</td>
+                  <td><code>display.StatusBadge</code></td>
+                  <td>Auto-maps status strings to colors</td>
+                </tr>
+                <tr>
+                  <td>Page-number pagination</td>
+                  <td><code>navigation.Pagination</code></td>
+                  <td>CurrentPage, TotalPages, BaseURL, MaxVisible</td>
+                </tr>
+                <tr>
+                  <td>Cursor pagination (LoadMore)</td>
+                  <td><code>navigation.LoadMore</code></td>
+                  <td>HTMX-based, for SeekableJournal</td>
+                </tr>
+                <tr>
+                  <td>Live timestamps</td>
+                  <td><code>display.RelativeTime</code></td>
+                  <td>Server-rendered + JS auto-refresh</td>
+                </tr>
+                <tr>
+                  <td>Copy-to-clipboard</td>
+                  <td><code>display.CopyButton</code></td>
+                  <td>CSP-safe, for IDs</td>
+                </tr>
+                <tr>
+                  <td>Confirmation dialogs</td>
+                  <td><code>display.Modal</code></td>
+                  <td>Native dialog, focus trap, Escape close</td>
+                </tr>
+                <tr>
+                  <td>Empty states</td>
+                  <td><code>display.EmptyState</code></td>
+                  <td>Icon + title + description + action</td>
+                </tr>
+                <tr>
+                  <td>Metadata display</td>
+                  <td><code>display.DefinitionGrid</code></td>
+                  <td>Term-detail pairs</td>
+                </tr>
+                <tr>
+                  <td>Filter dropdowns</td>
+                  <td><code>forms.FilterDropdown</code></td>
+                  <td>HTMX auto-submit on change</td>
+                </tr>
+                <tr>
+                  <td>Search input</td>
+                  <td><code>forms.Input</code> (type=search)</td>
+                  <td>HTMX trigger support</td>
+                </tr>
+                <tr>
+                  <td>Progress bar</td>
+                  <td><code>feedback.ProgressBar</code></td>
+                  <td>Indeterminate mode for projection lag</td>
+                </tr>
+                <tr>
+                  <td>Breadcrumbs</td>
+                  <td><code>navigation.Breadcrumbs</code></td>
+                  <td>Auto-active detection</td>
+                </tr>
+                <tr>
+                  <td>Icons</td>
+                  <td><code>icons.Icon(name, class)</code></td>
+                  <td>100+ icons, CQRS-relevant: QueueList, Bolt, ArrowPath, BugAnt</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <p><strong>Only gap: JSON/code viewer.</strong> No component exists. Must build a <code>JSONViewer</code> wrapper.</p>
+          <p>
+            <strong>Only gap: JSON/code viewer.</strong> No component exists. Must build a
+            <code>JSONViewer</code> wrapper.
+          </p>
 
           <h3>From go-cqrs-lite (introspection + infrastructure)</h3>
           <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Need</th><th>Existing code</th><th>File</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>SQL-backed aggregate listing</td><td><code>storage.SQLStreamReader</code></td><td>storage/sql_aggregate_reader.go</td></tr>
-              <tr><td>Stream projection (feeds listing table)</td><td><code>storage.StreamProjection</code></td><td>storage/aggregate_projection.go</td></tr>
-              <tr><td>In-memory listing fallback</td><td><code>listing.InMemoryStreamReader</code></td><td>listing/in_memory.go</td></tr>
-              <tr><td>HTTP API docs serving</td><td><code>catalog/docserver.DocsServer</code></td><td>catalog/docserver/</td></tr>
-              <tr><td>D2 diagram endpoint</td><td><code>catalog/docserver.D2Handler</code></td><td>catalog/docserver/</td></tr>
-              <tr><td>Health check endpoint</td><td><code>catalog/docserver.HealthCheckHandler</code></td><td>catalog/docserver/</td></tr>
-              <tr><td>SSE infrastructure</td><td><code>cqrshtmx.Broadcaster</code>, <code>SSEStream</code>, <code>JournalSSEStore</code></td><td>cqrs-htmx root</td></tr>
-              <tr><td>HTMX script embedding</td><td><code>cqrshtmx.HTMXScriptHandler()</code></td><td>cqrs-htmx root</td></tr>
-              <tr><td>CSRF helpers</td><td><code>cqrshtmx.CSRFTokenFormField</code>, <code>CSRFTokenHTMLMeta</code></td><td>cqrs-htmx root</td></tr>
-              <tr><td>HTMX partial detection</td><td><code>cqrshtmx.RenderPartial(r)</code></td><td>cqrs-htmx root</td></tr>
-              <tr><td>Middleware chain</td><td><code>cqrshtmx.Chain</code>, <code>SecurityHeadersMiddleware</code></td><td>cqrs-htmx root</td></tr>
-              <tr><td>Bundle capability detection</td><td><code>Bundle.DebugStructured() map[string]bool</code></td><td>stack/debug.go</td></tr>
-            </tbody>
-          </table>
+            <table>
+              <thead>
+                <tr>
+                  <th>Need</th>
+                  <th>Existing code</th>
+                  <th>File</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>SQL-backed aggregate listing</td>
+                  <td><code>storage.SQLStreamReader</code></td>
+                  <td>storage/sql_aggregate_reader.go</td>
+                </tr>
+                <tr>
+                  <td>Stream projection (feeds listing table)</td>
+                  <td><code>storage.StreamProjection</code></td>
+                  <td>storage/aggregate_projection.go</td>
+                </tr>
+                <tr>
+                  <td>In-memory listing fallback</td>
+                  <td><code>listing.InMemoryStreamReader</code></td>
+                  <td>listing/in_memory.go</td>
+                </tr>
+                <tr>
+                  <td>HTTP API docs serving</td>
+                  <td><code>catalog/docserver.DocsServer</code></td>
+                  <td>catalog/docserver/</td>
+                </tr>
+                <tr>
+                  <td>D2 diagram endpoint</td>
+                  <td><code>catalog/docserver.D2Handler</code></td>
+                  <td>catalog/docserver/</td>
+                </tr>
+                <tr>
+                  <td>Health check endpoint</td>
+                  <td><code>catalog/docserver.HealthCheckHandler</code></td>
+                  <td>catalog/docserver/</td>
+                </tr>
+                <tr>
+                  <td>SSE infrastructure</td>
+                  <td>
+                    <code>cqrshtmx.Broadcaster</code>, <code>SSEStream</code>,
+                    <code>JournalSSEStore</code>
+                  </td>
+                  <td>cqrs-htmx root</td>
+                </tr>
+                <tr>
+                  <td>HTMX script embedding</td>
+                  <td><code>cqrshtmx.HTMXScriptHandler()</code></td>
+                  <td>cqrs-htmx root</td>
+                </tr>
+                <tr>
+                  <td>CSRF helpers</td>
+                  <td><code>cqrshtmx.CSRFTokenFormField</code>, <code>CSRFTokenHTMLMeta</code></td>
+                  <td>cqrs-htmx root</td>
+                </tr>
+                <tr>
+                  <td>HTMX partial detection</td>
+                  <td><code>cqrshtmx.RenderPartial(r)</code></td>
+                  <td>cqrs-htmx root</td>
+                </tr>
+                <tr>
+                  <td>Middleware chain</td>
+                  <td><code>cqrshtmx.Chain</code>, <code>SecurityHeadersMiddleware</code></td>
+                  <td>cqrs-htmx root</td>
+                </tr>
+                <tr>
+                  <td>Bundle capability detection</td>
+                  <td><code>Bundle.DebugStructured() map[string]bool</code></td>
+                  <td>stack/debug.go</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           <h3>From adminui/ (exact patterns to replicate)</h3>
           <div class="strengths">
-            <div class="strength"><div class="check">+</div><div class="text"><strong>go:embed asset serving</strong><span><code>assetHandler(name, contentType)</code> with static ETag + cache. Reuse verbatim.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>guard() auth pattern</strong><span>Extract user from context, run authorizer, pass to handler. Copy the pattern.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>renderPage vs renderPartial</strong><span><code>cqrshtmx.RenderPartial(r)</code> decides full page vs fragment. Reuse.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>triggerToast + redirect</strong><span>HTMX-aware toast/redirect helpers. Copy from render.go.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Mount(mux, pattern)</strong><span>StripPrefix pattern. Copy the mounting approach.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>pageData + page() builder</strong><span>Nav, CSRF, base path, accent color. Adapt for dashboard.</span></div></div>
-            <div class="strength"><div class="check">+</div><div class="text"><strong>Test harness</strong><span>newTestPanel with injected user + httptest. Copy the test approach.</span></div></div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>go:embed asset serving</strong
+                ><span
+                  ><code>assetHandler(name, contentType)</code> with static ETag + cache. Reuse
+                  verbatim.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>guard() auth pattern</strong
+                ><span
+                  >Extract user from context, run authorizer, pass to handler. Copy the
+                  pattern.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>renderPage vs renderPartial</strong
+                ><span
+                  ><code>cqrshtmx.RenderPartial(r)</code> decides full page vs fragment.
+                  Reuse.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>triggerToast + redirect</strong
+                ><span>HTMX-aware toast/redirect helpers. Copy from render.go.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Mount(mux, pattern)</strong
+                ><span>StripPrefix pattern. Copy the mounting approach.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>pageData + page() builder</strong
+                ><span>Nav, CSRF, base path, accent color. Adapt for dashboard.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Test harness</strong
+                ><span>newTestPanel with injected user + httptest. Copy the test approach.</span>
+              </div>
+            </div>
           </div>
         </section>
 
         <!-- ==================== TYPE MODEL ==================== -->
         <section id="type-model">
           <h2><span class="num">02</span>Type Model Improvements</h2>
-          <p>The v1 report violated the project's own type-safety principles. Here is the corrected design.</p>
+          <p>
+            The v1 report violated the project's own type-safety principles. Here is the corrected
+            design.
+          </p>
 
           <h3>Capabilities — typed panel registry, not bool flags</h3>
           <pre><code><span class="tok-comment">// Each panel is a typed registration, not a bool flag.</span>
@@ -391,9 +1086,10 @@
           <div class="callout callout-teal">
             <strong>Why this is better</strong>
             <code>StateFold[S]</code> uses generics so consumers get compile-time type safety on
-            their state type. The dashboard internally type-erases to <code>func(any,
-            event.Event) (any, error)</code> for storage, but the consumer-facing API is fully
-            typed. <code>any</code> appears only in internal storage, not in the public API.
+            their state type. The dashboard internally type-erases to
+            <code>func(any, event.Event) (any, error)</code> for storage, but the consumer-facing
+            API is fully typed. <code>any</code> appears only in internal storage, not in the public
+            API.
           </div>
 
           <h3>Event filter — typed, not loose query params</h3>
@@ -417,32 +1113,83 @@
 
           <table>
             <thead>
-              <tr><th>Concern</th><th>Library</th><th>Status</th><th>Why</th></tr>
+              <tr>
+                <th>Concern</th>
+                <th>Library</th>
+                <th>Status</th>
+                <th>Why</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>UI components</td><td><strong>templ-components</strong> (in-house)</td><td class="yes">Already a dep</td><td>Dashboard recipe, DataTable, StatCard, Pagination, 100+ icons</td></tr>
-              <tr><td>Templating</td><td><strong>a-h/templ</strong></td><td class="yes">Already a dep</td><td>Type-safe HTML, generates Go</td></tr>
-              <tr><td>HTMX</td><td><strong>HTMX v2</strong> (embedded)</td><td class="yes">Already a dep</td><td>SSE, partial swaps, OOB</td></tr>
-              <tr><td>CQRS introspection</td><td><strong>go-cqrs-lite</strong></td><td class="yes">Core dep</td><td>All store/journal/listing interfaces</td></tr>
-              <tr><td>HTTP patterns</td><td><strong>cqrs-htmx</strong></td><td class="yes">Parent module</td><td>SSE, CSRF, authz, middleware chain</td></tr>
-              <tr><td>Error handling</td><td><strong>go-error-family</strong></td><td class="yes">Already a dep</td><td>5-family taxonomy for error display</td></tr>
-              <tr><td>API docs</td><td><strong>catalog/docserver</strong></td><td>Optional mount</td><td>OpenAPI/AsyncAPI UI + D2 + health</td></tr>
-              <tr><td>JSON highlighting</td><td>Build minimal <code>JSONViewer</code></td><td>Build (small)</td><td>No Go library needed — just <code>json.MarshalIndent</code> + templ <code>&lt;pre&gt;</code></td></tr>
+              <tr>
+                <td>UI components</td>
+                <td><strong>templ-components</strong> (in-house)</td>
+                <td class="yes">Already a dep</td>
+                <td>Dashboard recipe, DataTable, StatCard, Pagination, 100+ icons</td>
+              </tr>
+              <tr>
+                <td>Templating</td>
+                <td><strong>a-h/templ</strong></td>
+                <td class="yes">Already a dep</td>
+                <td>Type-safe HTML, generates Go</td>
+              </tr>
+              <tr>
+                <td>HTMX</td>
+                <td><strong>HTMX v2</strong> (embedded)</td>
+                <td class="yes">Already a dep</td>
+                <td>SSE, partial swaps, OOB</td>
+              </tr>
+              <tr>
+                <td>CQRS introspection</td>
+                <td><strong>go-cqrs-lite</strong></td>
+                <td class="yes">Core dep</td>
+                <td>All store/journal/listing interfaces</td>
+              </tr>
+              <tr>
+                <td>HTTP patterns</td>
+                <td><strong>cqrs-htmx</strong></td>
+                <td class="yes">Parent module</td>
+                <td>SSE, CSRF, authz, middleware chain</td>
+              </tr>
+              <tr>
+                <td>Error handling</td>
+                <td><strong>go-error-family</strong></td>
+                <td class="yes">Already a dep</td>
+                <td>5-family taxonomy for error display</td>
+              </tr>
+              <tr>
+                <td>API docs</td>
+                <td><strong>catalog/docserver</strong></td>
+                <td>Optional mount</td>
+                <td>OpenAPI/AsyncAPI UI + D2 + health</td>
+              </tr>
+              <tr>
+                <td>JSON highlighting</td>
+                <td>Build minimal <code>JSONViewer</code></td>
+                <td>Build (small)</td>
+                <td>
+                  No Go library needed — just <code>json.MarshalIndent</code> + templ
+                  <code>&lt;pre&gt;</code>
+                </td>
+              </tr>
             </tbody>
           </table>
 
           <div class="callout callout-amber">
             <strong>Anti-library stance</strong>
             Do NOT add a JS charting library (Chart.js, ECharts). The dashboard is server-rendered
-            HTMX. If charts are needed later, use server-generated SVG sparklines in templ — zero
-            JS dependencies. The project values minimal dependencies.
+            HTMX. If charts are needed later, use server-generated SVG sparklines in templ — zero JS
+            dependencies. The project values minimal dependencies.
           </div>
         </section>
 
         <!-- ==================== GAPS FOUND ==================== -->
         <section id="gaps-found">
           <h2><span class="num">04</span>API Gaps Discovered During Research</h2>
-          <p>These gaps in go-cqrs-lite block dashboard features. Each needs a small upstream addition.</p>
+          <p>
+            These gaps in go-cqrs-lite block dashboard features. Each needs a small upstream
+            addition.
+          </p>
 
           <div class="issue issue-critical">
             <span class="severity severity-critical">Gap &middot; Blocks overview page</span>
@@ -451,20 +1198,22 @@
             <p>
               The overview page needs "total events" but no count method exists. Options: (a) add
               <code>Count(ctx) (int64, error)</code> to a new <code>EventCounter</code> interface,
-              (b) use a dedicated count projection, (c) accept that the overview shows "recent"
-              not "total." Option (a) is cleanest — SQL stores already have the data.
+              (b) use a dedicated count projection, (c) accept that the overview shows "recent" not
+              "total." Option (a) is cleanest — SQL stores already have the data.
             </p>
           </div>
 
           <div class="issue issue-critical">
-            <span class="severity severity-critical">Gap &middot; Blocks event browser filtering</span>
+            <span class="severity severity-critical"
+              >Gap &middot; Blocks event browser filtering</span
+            >
             <h3>No filtered journal access</h3>
             <div class="where">SeekableJournal.ReadFrom</div>
             <p>
-              Event browser needs filtering by type/aggregate/time. <code>ReadFrom</code> only
-              does cursor pagination. Options: (a) add a <code>FilteredJournal</code> interface
-              with filter params, (b) add a raw SQL path in the dashboard for SQL stores, (c)
-              client-side filter within loaded pages (works for small stores only).
+              Event browser needs filtering by type/aggregate/time. <code>ReadFrom</code> only does
+              cursor pagination. Options: (a) add a <code>FilteredJournal</code> interface with
+              filter params, (b) add a raw SQL path in the dashboard for SQL stores, (c) client-side
+              filter within loaded pages (works for small stores only).
             </p>
           </div>
 
@@ -482,7 +1231,9 @@
 
         <!-- ==================== EXECUTION PLAN ==================== -->
         <section id="plan">
-          <h2><span class="num">05</span>Execution Plan — Small, Independently Committable Steps</h2>
+          <h2>
+            <span class="num">05</span>Execution Plan — Small, Independently Committable Steps
+          </h2>
           <p>
             Each step is a single commit. Each step compiles and passes tests. Each step delivers
             visible value. Sorted by Pareto (impact / effort).
@@ -490,149 +1241,432 @@
 
           <h3>Foundation (must come first)</h3>
 
-          <div class="migration-step"><div class="migration-num">1</div><div class="migration-content">
-            <h4>Create module skeleton</h4>
-            <p><code>dashboardui/go.mod</code>, <code>go.work</code> entry, package declaration. Direct deps: templ, cqrs-htmx/v4, go-cqrs-lite/event/v4. No code yet — just the module shell. Verify: <code>go build ./...</code> succeeds.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>Create module skeleton</h4>
+              <p>
+                <code>dashboardui/go.mod</code>, <code>go.work</code> entry, package declaration.
+                Direct deps: templ, cqrs-htmx/v4, go-cqrs-lite/event/v4. No code yet — just the
+                module shell. Verify: <code>go build ./...</code> succeeds.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">2</div><div class="migration-content">
-            <h4>Config + Dashboard struct + capability detection</h4>
-            <p><code>config.go</code>: Config struct (optional interfaces), <code>withDefaults()</code>, typed Panel registry, capability detection from provided interfaces. <code>dashboard.go</code>: Dashboard struct, <code>New(cfg)</code>, <code>FromBundle(bundle, cfg)</code>. Verify: unit test that capability detection returns correct panels for given interfaces.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>Config + Dashboard struct + capability detection</h4>
+              <p>
+                <code>config.go</code>: Config struct (optional interfaces),
+                <code>withDefaults()</code>, typed Panel registry, capability detection from
+                provided interfaces. <code>dashboard.go</code>: Dashboard struct,
+                <code>New(cfg)</code>, <code>FromBundle(bundle, cfg)</code>. Verify: unit test that
+                capability detection returns correct panels for given interfaces.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">3</div><div class="migration-content">
-            <h4>Layout + routing + asset serving + render helpers</h4>
-            <p><code>handler.go</code>: Handler, routes(), Mount(), guard(). <code>render.go</code>: renderPage/renderPartial (copy from adminui). <code>assets.go</code>: go:embed for CSS/JS, reuse <code>cqrshtmx.HTMXScriptHandler()</code>. <code>layout.templ</code>: compose <code>layout.AppShell</code> or <code>recipes.Dashboard</code> from templ-components. <code>models.go</code>: pageData, navItem. Verify: mount in test, GET / returns 200 with sidebar.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>Layout + routing + asset serving + render helpers</h4>
+              <p>
+                <code>handler.go</code>: Handler, routes(), Mount(), guard().
+                <code>render.go</code>: renderPage/renderPartial (copy from adminui).
+                <code>assets.go</code>: go:embed for CSS/JS, reuse
+                <code>cqrshtmx.HTMXScriptHandler()</code>. <code>layout.templ</code>: compose
+                <code>layout.AppShell</code> or <code>recipes.Dashboard</code> from
+                templ-components. <code>models.go</code>: pageData, navItem. Verify: mount in test,
+                GET / returns 200 with sidebar.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">4</div><div class="migration-content">
-            <h4>Overview page (summary cards + health)</h4>
-            <p><code>handler_overview.go</code>: dashboard() handler. Renders StatCards for available metrics. Shows <code>Bundle.HealthCheck()</code> / <code>DebugStructured()</code>. Shows projection health strip from <code>Host.Status()</code> (if available). Verify: overview renders with real data from a memory bundle.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>Overview page (summary cards + health)</h4>
+              <p>
+                <code>handler_overview.go</code>: dashboard() handler. Renders StatCards for
+                available metrics. Shows <code>Bundle.HealthCheck()</code> /
+                <code>DebugStructured()</code>. Shows projection health strip from
+                <code>Host.Status()</code> (if available). Verify: overview renders with real data
+                from a memory bundle.
+              </p>
+            </div>
+          </div>
 
           <h3>Core panels (Phase 1 — 80% value)</h3>
 
-          <div class="migration-step"><div class="migration-num">5</div><div class="migration-content">
-            <h4>Event Stream Browser — list + pagination</h4>
-            <p><code>handler_events.go</code>: eventsIndex() using <code>SeekableJournal.ReadFrom</code> with cursor pagination. <code>events.templ</code>: <code>display.DataTable</code> with columns (time, ID, type, stream, version). <code>navigation.LoadMore</code> for cursor pagination. Verify: browse events from a test store, paginate.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">5</div>
+            <div class="migration-content">
+              <h4>Event Stream Browser — list + pagination</h4>
+              <p>
+                <code>handler_events.go</code>: eventsIndex() using
+                <code>SeekableJournal.ReadFrom</code> with cursor pagination.
+                <code>events.templ</code>: <code>display.DataTable</code> with columns (time, ID,
+                type, stream, version). <code>navigation.LoadMore</code> for cursor pagination.
+                Verify: browse events from a test store, paginate.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">6</div><div class="migration-content">
-            <h4>Event detail view + payload renderer</h4>
-            <p><code>handler_events.go</code>: eventDetail(). <code>payload.go</code>: <code>PayloadRenderer</code> interface + <code>DefaultPayloadRenderer</code> (JSON/CBOR pretty-print). <code>event_detail.templ</code>: <code>display.DefinitionGrid</code> for metadata, <code>JSONViewer</code> for payload. Verify: click event, see decoded payload + full metadata.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">6</div>
+            <div class="migration-content">
+              <h4>Event detail view + payload renderer</h4>
+              <p>
+                <code>handler_events.go</code>: eventDetail(). <code>payload.go</code>:
+                <code>PayloadRenderer</code> interface +
+                <code>DefaultPayloadRenderer</code> (JSON/CBOR pretty-print).
+                <code>event_detail.templ</code>: <code>display.DefinitionGrid</code> for metadata,
+                <code>JSONViewer</code> for payload. Verify: click event, see decoded payload + full
+                metadata.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">7</div><div class="migration-content">
-            <h4>Aggregate Browser</h4>
-            <p><code>handler_aggregates.go</code>: aggregatesIndex() using <code>StreamReader.ListWithStatus</code>. Filter by type + tombstone. Click aggregate → detail with event timeline (<code>EventSource.Load</code>). Auto-detect <code>storage.SQLStreamReader</code> vs <code>listing.InMemoryStreamReader</code>. Verify: browse aggregates, filter, click into one.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">7</div>
+            <div class="migration-content">
+              <h4>Aggregate Browser</h4>
+              <p>
+                <code>handler_aggregates.go</code>: aggregatesIndex() using
+                <code>StreamReader.ListWithStatus</code>. Filter by type + tombstone. Click
+                aggregate → detail with event timeline (<code>EventSource.Load</code>). Auto-detect
+                <code>storage.SQLStreamReader</code> vs <code>listing.InMemoryStreamReader</code>.
+                Verify: browse aggregates, filter, click into one.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">8</div><div class="migration-content">
-            <h4>Projection Dashboard</h4>
-            <p><code>handler_projections.go</code>: projectionsIndex() using <code>Host.Status()</code> + <code>Host.LagPerProjection()</code>. <code>projections.templ</code>: DataTable with StatusBadge per projection. Reset button behind <code>ReadOnly = false</code> + Modal confirmation. Verify: see projection status, reset one.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">8</div>
+            <div class="migration-content">
+              <h4>Projection Dashboard</h4>
+              <p>
+                <code>handler_projections.go</code>: projectionsIndex() using
+                <code>Host.Status()</code> + <code>Host.LagPerProjection()</code>.
+                <code>projections.templ</code>: DataTable with StatusBadge per projection. Reset
+                button behind <code>ReadOnly = false</code> + Modal confirmation. Verify: see
+                projection status, reset one.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">9</div><div class="migration-content">
-            <h4>Dead-Letter Queue Viewer</h4>
-            <p><code>handler_dlq.go</code>: dlqIndex() using <code>DeadLetterStoreAdmin.ListPaged</code> + <code>Count</code>. Detail view with full event + error. Replay button (<code>Host.ReplayDeadLetters</code>) + delete/purge behind ReadOnly. Verify: inject poison event, see it, replay it.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">9</div>
+            <div class="migration-content">
+              <h4>Dead-Letter Queue Viewer</h4>
+              <p>
+                <code>handler_dlq.go</code>: dlqIndex() using
+                <code>DeadLetterStoreAdmin.ListPaged</code> + <code>Count</code>. Detail view with
+                full event + error. Replay button (<code>Host.ReplayDeadLetters</code>) +
+                delete/purge behind ReadOnly. Verify: inject poison event, see it, replay it.
+              </p>
+            </div>
+          </div>
 
           <h3>Phase 2 — Differentiators</h3>
 
-          <div class="migration-step"><div class="migration-num">10</div><div class="migration-content">
-            <h4>SSE live updates</h4>
-            <p><code>sse.go</code>: SSE hub for event tail + projection status changes. Uses <code>cqrshtmx.Broadcaster</code> + <code>SSEStream</code>. Subscribe to <code>event.Bus</code> (if available) to push new events. Verify: create events while dashboard open, see them appear live.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">10</div>
+            <div class="migration-content">
+              <h4>SSE live updates</h4>
+              <p>
+                <code>sse.go</code>: SSE hub for event tail + projection status changes. Uses
+                <code>cqrshtmx.Broadcaster</code> + <code>SSEStream</code>. Subscribe to
+                <code>event.Bus</code> (if available) to push new events. Verify: create events
+                while dashboard open, see them appear live.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">11</div><div class="migration-content">
-            <h4>Command/Query Audit Log</h4>
-            <p><code>handler_audit.go</code>: commandsIndex() + queriesIndex() from SeekableCommandJournal/SeekableQueryJournal. DataTable + detail view. Cross-link command causation to events. Verify: dispatch commands, see them, click through.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">11</div>
+            <div class="migration-content">
+              <h4>Command/Query Audit Log</h4>
+              <p>
+                <code>handler_audit.go</code>: commandsIndex() + queriesIndex() from
+                SeekableCommandJournal/SeekableQueryJournal. DataTable + detail view. Cross-link
+                command causation to events. Verify: dispatch commands, see them, click through.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">12</div><div class="migration-content">
-            <h4>Time-Travel Inspector</h4>
-            <p><code>handler_timetravel.go</code>: version slider using <code>LoadToVersion</code>. State reconstruction via <code>RegisterState[S]</code>. Diff view between versions. Verify: scrub through aggregate history, see state at each version.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">12</div>
+            <div class="migration-content">
+              <h4>Time-Travel Inspector</h4>
+              <p>
+                <code>handler_timetravel.go</code>: version slider using <code>LoadToVersion</code>.
+                State reconstruction via <code>RegisterState[S]</code>. Diff view between versions.
+                Verify: scrub through aggregate history, see state at each version.
+              </p>
+            </div>
+          </div>
 
           <h3>Phase 3 — Polish</h3>
 
-          <div class="migration-step"><div class="migration-num">13</div><div class="migration-content">
-            <h4>Correlation Trace</h4>
-            <p><code>handler_trace.go</code>: walk journal for events sharing correlation ID. Visualize command → event → derived command chain using <code>deriver.SourceEventIDKey</code> metadata. Verify: trace a multi-step saga.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">13</div>
+            <div class="migration-content">
+              <h4>Correlation Trace</h4>
+              <p>
+                <code>handler_trace.go</code>: walk journal for events sharing correlation ID.
+                Visualize command → event → derived command chain using
+                <code>deriver.SourceEventIDKey</code> metadata. Verify: trace a multi-step saga.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">14</div><div class="migration-content">
-            <h4>Snapshot Inspector + Search/filter</h4>
-            <p><code>handler_snapshots.go</code>: snapshot list per aggregate. Event search input (<code>forms.Input</code>) + filter dropdowns. Verify: view/delete snapshots.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">14</div>
+            <div class="migration-content">
+              <h4>Snapshot Inspector + Search/filter</h4>
+              <p>
+                <code>handler_snapshots.go</code>: snapshot list per aggregate. Event search input
+                (<code>forms.Input</code>) + filter dropdowns. Verify: view/delete snapshots.
+              </p>
+            </div>
+          </div>
 
-          <div class="migration-step"><div class="migration-num">15</div><div class="migration-content">
-            <h4>README + demo example + integration test</h4>
-            <p><code>README.md</code>: quick start, mounting patterns, screenshots. <code>examples/dashboard-demo/</code>: runnable demo with seeded data. Full integration test. Verify: <code>go run ./examples/dashboard-demo</code> shows working dashboard.</p>
-          </div></div>
+          <div class="migration-step">
+            <div class="migration-num">15</div>
+            <div class="migration-content">
+              <h4>README + demo example + integration test</h4>
+              <p>
+                <code>README.md</code>: quick start, mounting patterns, screenshots.
+                <code>examples/dashboard-demo/</code>: runnable demo with seeded data. Full
+                integration test. Verify: <code>go run ./examples/dashboard-demo</code> shows
+                working dashboard.
+              </p>
+            </div>
+          </div>
         </section>
 
         <!-- ==================== PARETO MATRIX ==================== -->
         <section id="pareto">
           <h2><span class="num">06</span>Pareto Matrix — Impact vs Effort</h2>
-          <p>Sorted by impact/effort ratio (highest first). This is the recommended execution order.</p>
+          <p>
+            Sorted by impact/effort ratio (highest first). This is the recommended execution order.
+          </p>
 
           <table>
             <thead>
-              <tr><th>#</th><th>Step</th><th>Impact</th><th>Effort</th><th>Ratio</th><th>Unlocks</th></tr>
+              <tr>
+                <th>#</th>
+                <th>Step</th>
+                <th>Impact</th>
+                <th>Effort</th>
+                <th>Ratio</th>
+                <th>Unlocks</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td>1</td><td>Module skeleton</td><td><span class="badge badge-medium">Medium</span></td><td><span class="badge badge-low">Tiny</span></td><td class="yes">Very High</td><td>Everything</td></tr>
-              <tr><td>2</td><td>Config + capability detection</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-medium">Medium</span></td><td class="yes">High</td><td>All panels</td></tr>
-              <tr><td>5</td><td>Event Stream Browser (list)</td><td><span class="badge badge-critical">Critical</span></td><td><span class="badge badge-medium">Medium</span></td><td class="yes">Very High</td><td>The crown jewel</td></tr>
-              <tr><td>6</td><td>Event detail + payload</td><td><span class="badge badge-critical">Critical</span></td><td><span class="badge badge-medium">Medium</span></td><td class="yes">Very High</td><td>Event inspection</td></tr>
-              <tr><td>4</td><td>Overview page</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-low">Small</span></td><td class="yes">Very High</td><td>First impression</td></tr>
-              <tr><td>8</td><td>Projection Dashboard</td><td><span class="badge badge-critical">Critical</span></td><td><span class="badge badge-low">Small</span></td><td class="yes">Very High</td><td>Ops value</td></tr>
-              <tr><td>9</td><td>Dead-Letter Queue</td><td><span class="badge badge-critical">Critical</span></td><td><span class="badge badge-medium">Medium</span></td><td class="yes">High</td><td>Debugging</td></tr>
-              <tr><td>3</td><td>Layout + routing + assets</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-medium">Medium</span></td><td class="yes">High</td><td>Visual shell</td></tr>
-              <tr><td>7</td><td>Aggregate Browser</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-medium">Medium</span></td><td class="yes">High</td><td>Aggregate drill-down</td></tr>
-              <tr><td>10</td><td>SSE live updates</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-medium">Medium</span></td><td>Medium</td><td>Real-time feel</td></tr>
-              <tr><td>12</td><td>Time-Travel Inspector</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-high">Large</span></td><td>Medium</td><td>Unique differentiator</td></tr>
-              <tr><td>11</td><td>Command/Query Audit</td><td><span class="badge badge-medium">Medium</span></td><td><span class="badge badge-medium">Medium</span></td><td>Medium</td><td>Audit trail</td></tr>
-              <tr><td>13</td><td>Correlation Trace</td><td><span class="badge badge-medium">Medium</span></td><td><span class="badge badge-high">Large</span></td><td>Low</td><td>Debugging saga</td></tr>
-              <tr><td>14</td><td>Snapshots + Search</td><td><span class="badge badge-low">Low</span></td><td><span class="badge badge-medium">Medium</span></td><td>Low</td><td>Snapshot mgmt</td></tr>
-              <tr><td>15</td><td>README + demo + tests</td><td><span class="badge badge-high">High</span></td><td><span class="badge badge-medium">Medium</span></td><td>High</td><td>Adoption</td></tr>
+              <tr>
+                <td>1</td>
+                <td>Module skeleton</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td><span class="badge badge-low">Tiny</span></td>
+                <td class="yes">Very High</td>
+                <td>Everything</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Config + capability detection</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td class="yes">High</td>
+                <td>All panels</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Event Stream Browser (list)</td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td class="yes">Very High</td>
+                <td>The crown jewel</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Event detail + payload</td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td class="yes">Very High</td>
+                <td>Event inspection</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Overview page</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td><span class="badge badge-low">Small</span></td>
+                <td class="yes">Very High</td>
+                <td>First impression</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Projection Dashboard</td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td><span class="badge badge-low">Small</span></td>
+                <td class="yes">Very High</td>
+                <td>Ops value</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Dead-Letter Queue</td>
+                <td><span class="badge badge-critical">Critical</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td class="yes">High</td>
+                <td>Debugging</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Layout + routing + assets</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td class="yes">High</td>
+                <td>Visual shell</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Aggregate Browser</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td class="yes">High</td>
+                <td>Aggregate drill-down</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>SSE live updates</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Medium</td>
+                <td>Real-time feel</td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>Time-Travel Inspector</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td><span class="badge badge-high">Large</span></td>
+                <td>Medium</td>
+                <td>Unique differentiator</td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>Command/Query Audit</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Medium</td>
+                <td>Audit trail</td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>Correlation Trace</td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td><span class="badge badge-high">Large</span></td>
+                <td>Low</td>
+                <td>Debugging saga</td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td>Snapshots + Search</td>
+                <td><span class="badge badge-low">Low</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>Low</td>
+                <td>Snapshot mgmt</td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>README + demo + tests</td>
+                <td><span class="badge badge-high">High</span></td>
+                <td><span class="badge badge-medium">Medium</span></td>
+                <td>High</td>
+                <td>Adoption</td>
+              </tr>
             </tbody>
           </table>
 
           <div class="callout callout-amber">
             <strong>Recommended execution order</strong>
-            Steps 1→2→3→4 (foundation) then 5→6 (event browser) then 8→9 (projections + DLQ)
-            then 7 (aggregates) then 10 (SSE) then 15 (docs). This delivers the 80% value in
-            ~9 commits. Steps 11-14 are differentiators and polish.
+            Steps 1→2→3→4 (foundation) then 5→6 (event browser) then 8→9 (projections + DLQ) then 7
+            (aggregates) then 10 (SSE) then 15 (docs). This delivers the 80% value in ~9 commits.
+            Steps 11-14 are differentiators and polish.
           </div>
         </section>
 
         <footer class="footer">
-          <p>Generated 2026-07-23 &middot; Self-critique of v1 report &middot; All API references verified against source &middot; templ-components inventory confirmed against v1.1.0</p>
+          <p>
+            Generated 2026-07-23 &middot; Self-critique of v1 report &middot; All API references
+            verified against source &middot; templ-components inventory confirmed against v1.1.0
+          </p>
         </footer>
       </main>
     </div>
     <script>
-      (function(){if(!("IntersectionObserver"in window))return;var n=document.querySelector("[data-nav]");if(!n)return;var l=n.querySelectorAll('a[href^="#"]');var i=Array.from(l).map(function(l){return l.getAttribute("href").slice(1)});var s=i.map(function(i){return document.getElementById(i)}).filter(Boolean);if(!s.length)return;var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){l.forEach(function(li){li.classList.toggle("active",li.getAttribute("href")==="#"+en.target.id)})}})},{rootMargin:"-80px 0px -60% 0px",threshold:0});s.forEach(function(s){o.observe(s)})})();
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var n = document.querySelector("[data-nav]");
+        if (!n) return;
+        var l = n.querySelectorAll('a[href^="#"]');
+        var i = Array.from(l).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var s = i
+          .map(function (i) {
+            return document.getElementById(i);
+          })
+          .filter(Boolean);
+        if (!s.length) return;
+        var o = new IntersectionObserver(
+          function (e) {
+            e.forEach(function (en) {
+              if (en.isIntersecting) {
+                l.forEach(function (li) {
+                  li.classList.toggle("active", li.getAttribute("href") === "#" + en.target.id);
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        s.forEach(function (s) {
+          o.observe(s);
+        });
+      })();
     </script>
 
     <style>
-      .built-update{margin:2rem auto 3rem;max-width:900px;padding:1.25rem 1.5rem;border:1px solid rgba(128,128,128,0.5);border-radius:10px;color:inherit}
-      .built-update__title{margin:0 0 .35rem;font-weight:700}
-      .built-update__body{margin:0}
+      .built-update {
+        margin: 2rem auto 3rem;
+        max-width: 900px;
+        padding: 1.25rem 1.5rem;
+        border: 1px solid rgba(128, 128, 128, 0.5);
+        border-radius: 10px;
+        color: inherit;
+      }
+      .built-update__title {
+        margin: 0 0 0.35rem;
+        font-weight: 700;
+      }
+      .built-update__body {
+        margin: 0;
+      }
     </style>
     <div class="built-update">
       <p class="built-update__title">Update 2026-07-26 &mdash; BUILT.</p>
       <p class="built-update__body">
         The revised 15-step plan from this critique was executed: <code>dashboardui/v4</code>
         shipped in v4.5.0 (<code>dashboardui/v4.0.0</code>) with templ-components v0.16.0,
-        SQL-backed stream reading, capability detection, and the time-travel inspector.
-        The "API gaps" (EventCounter / filtered journal) were worked around via the
+        SQL-backed stream reading, capability detection, and the time-travel inspector. The "API
+        gaps" (EventCounter / filtered journal) were worked around via the
         <code>Capabilities</code> struct + journal-scan fallbacks rather than new upstream
-        interfaces. See <code>FEATURES.md</code> &rarr; dashboardui. Remaining debt
-        (<code>handlers.go</code> split, dead code, SSE reconnect replay, coverage) is in
-        <code>TODO_LIST.md</code>.
+        interfaces. See <code>FEATURES.md</code> &rarr; dashboardui. Remaining debt (<code
+          >handlers.go</code
+        >
+        split, dead code, SSE reconnect replay, coverage) is in <code>TODO_LIST.md</code>.
       </p>
     </div>
   </body>
