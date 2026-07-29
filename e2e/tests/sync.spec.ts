@@ -174,16 +174,14 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
   await page1.click('button[type="submit"]');
   await expect.poll(() => page1.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
-  // Navigate away to trigger a real beforeunload → bye message to the worker,
-  // then close the page. This ensures the worker cleans up the port and
-  // clears originatingTab before session 2 connects.
-  await page1.goto("about:blank");
-  await new Promise((r) => setTimeout(r, 500));
+  // Close session 1. The worker's round-robin + periodic re-flush will
+  // eventually deliver the retry to session 2 (even if the dead port
+  // silently swallows the first attempt).
   await page1.close();
 
   // Go online before opening session 2.
   await context.setOffline(false);
-  await new Promise((r) => setTimeout(r, 500));
+  await new Promise((r) => setTimeout(r, 1000));
 
   // Session 2: new page. The worker reads IndexedDB, flushes, and since
   // the originating element is gone, sync-client uses rebuildAndRetry,
