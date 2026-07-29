@@ -33,12 +33,12 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Request) {
-	streamType, streamID := streamPathValues(r)
-
 	ref, events, ok := d.loadStreamFromRequest(w, r)
 	if !ok {
 		return
 	}
+
+	streamType, streamID := string(ref.Type), ref.ID.String()
 
 	p := d.page("Aggregate: "+streamType+"/"+truncate(streamID, titleIDWidth), "/aggregates", r)
 

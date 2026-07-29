@@ -266,7 +266,7 @@ func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) handleMe(w http.ResponseWriter, r *http.Request) {
-	user, ok := requireUser(w, r)
+	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
 	}
@@ -325,18 +325,16 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{errorKey: message})
 }
 
-// requireUser extracts the authenticated user from the request context. If no
-// user is present it writes a 401 and returns false; the caller must return
-// immediately. Centralises the auth guard used by credential and profile
-// handlers.
-func requireUser(w http.ResponseWriter, r *http.Request) (*User, bool) {
-	user, ok := UserFromContext(r.Context())
-	if !ok || user == nil {
-		writeError(w, http.StatusUnauthorized, "not authenticated")
-		return nil, false
+// requirePathValue reads a URL path parameter and writes a 400 Bad Request
+// if it is empty. Returns the value and true on success, or "" and false on
+// failure (caller must return immediately).
+func requirePathValue(w http.ResponseWriter, r *http.Request, key, errMsg string) (string, bool) {
+	val := r.PathValue(key)
+	if val == "" {
+		writeError(w, http.StatusBadRequest, errMsg)
+		return "", false
 	}
-
-	return user, true
+	return val, true
 }
 
 // errorStatus derives the HTTP status for an error. Each usermgmt sentinel

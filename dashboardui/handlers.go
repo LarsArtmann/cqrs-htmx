@@ -31,11 +31,6 @@ func (d *Dashboard) loadStreamFromRequest(
 
 	return ref, events, true
 }
-
-func streamPathValues(r *http.Request) (string, string) {
-	return r.PathValue("type"), r.PathValue("id")
-}
-
 // latestVersion returns the last event version, or "0" for an empty stream.
 func latestVersion(events []event.Event) string {
 	if len(events) == 0 {
