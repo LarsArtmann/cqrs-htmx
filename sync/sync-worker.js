@@ -124,14 +124,13 @@
     return list;
   }
 
-  // Picks the best port for a command: the originating tab if alive, else
-  // round-robin across all alive ports.
-  function pickPort(commandId, portList) {
+  // Picks the best port for a command via round-robin across all ports.
+  // Note: originatingTab tracking is used for bye cleanup only, not for
+  // port selection — a port may be dead without the worker knowing (postMessage
+  // to a dead port doesn't throw in some browsers). Round-robin ensures the
+  // retry eventually reaches an alive port on subsequent flush cycles.
+  function pickPort(_commandId, portList) {
     if (portList.length === 0) return null;
-    const tabId = originatingTab.get(commandId);
-    if (tabId && ports.has(tabId)) {
-      return ports.get(tabId);
-    }
     rrIndex = rrIndex % portList.length;
     return portList[rrIndex++];
   }
@@ -354,6 +353,15 @@
       if (flushPending) {
         flushPending = false;
         flush();
+      } else {
+        // If commands remain (e.g., a retry was sent to a dead port that
+        // silently dropped the message), schedule a follow-up flush so
+        // round-robin eventually delivers to an alive port.
+        pendingCount().then((remaining) => {
+          if (remaining > 0) {
+            setTimeout(() => flush(), 2000);
+          }
+        });
       }
     });
   }
@@ -426,7 +434,26 @@
           envelope: cmd.envelope,
         });
       } catch (e) {
-        // Port died — cleaned up on next broadcast
+        // Port is dead — clean up and try round-robin
+        let deadTabId = null;
+        ports.forEach((p, id) => {
+          if (p === port) deadTabId = id;
+        });
+        if (deadTabId) ports.delete(deadTabId);
+        originatingTab.delete(cmd.commandId);
+        const remaining = alivePorts();
+        if (remaining.length > 0) {
+          rrIndex = rrIndex % remaining.length;
+          try {
+            remaining[rrIndex++].postMessage({
+              type: "retry",
+              commandId: cmd.commandId,
+              envelope: cmd.envelope,
+            });
+          } catch (e2) {
+            // All ports dead — leave in IDB for next spawn
+          }
+        }
       }
     }, delay);
   }
