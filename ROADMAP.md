@@ -5,12 +5,12 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-07-28 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Lint:** 0 issues across all 15 modules | **Coverage gates:** root 93.4% (gate 90%), usermgmt 80.9% (gate 74%), identity-model 74.9% (no gate — see TODO_LIST)
+**Updated:** 2026-07-29 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Lint:** 0 issues across all 15 modules | **Coverage gates:** root 93.7% (gate 90%), usermgmt 80.9% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 72.5% (gate 60%)
 
 ## Current State
 
 - **Version:** v4.6.1 (15 modules: root + identity-model + usermgmt + 3 auth sub-modules + adminui + loginpage + dashboardui + integration_test + 5 examples). v4.6.0 released 2026-07-26; v4.6.1 released 2026-07-27 (dependency bumps, identity-model metadata, slices.Contains refactor). All inter-module version refs resolved to clean tags (`e274540` + subsequent releases).
-- **Coverage:** 93.4% root, 80.9% usermgmt, 74.9% identity-model (no gate yet — see TODO_LIST), 88.2% totp, 89.2% webauthn, 88.3% oauth2, 69.0% adminui, 80.1% loginpage, dashboardui at gate threshold. Race-safe. CI gates: root 90%, usermgmt 74%, auth 80%, adminui 66%, loginpage 79%, dashboardui 55% (see `nix run .#coverage-gate`). identity-model is the only module without a coverage gate.
+- **Coverage:** 93.7% root, 80.9% usermgmt, 74.9% identity-model (gate 70%), 88.2% totp, 89.2% webauthn, 88.3% oauth2, 69.0% adminui, 80.1% loginpage, 72.5% dashboardui (gate 60%). Race-safe. CI gates: root 90%, usermgmt 74%, identity-model 70%, auth 80%, adminui 66%, loginpage 79%, dashboardui 60% (see `nix run .#coverage-gate`). All 9 modules have coverage gates.
 - **Lint:** All 15 modules lint-clean (0 issues each). Achieved via the SA1019 deprecation migration (`id.AggregateID` → `id.StreamID` across all modules), dead-code removal (`renderStatCardsTempl`, `notImplemented`, `eventRow`), and targeted `.golangci.yml` exclusions for intentional patterns (builder-pattern partial init, re-export wrappers, generated `_templ.go`). Some exclusions are flagged as lazy shortcuts for future audit (see TODO_LIST "Audit `.golangci.yml` exclusions"). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 - **ErrorFamily:** 0 violations across all modules.
 - **Dependencies:** go-cqrs-lite v4.2.0 (storage/memory and snapshot at v4.1.0), go-error-family v0.10.0, go-branded-id v0.5.0, go-sse v0.3.0, httputil v0.6.1, templ-components v1.2.0. Casbin v3 is a first-class dependency of identity-model (ADR-0044). Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps.

@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-07-28 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.4% root (gate 90%), 80.9% usermgmt (gate 74%), 74.9% identity-model (no gate yet), 55% dashboardui (gate 55%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 15 modules
+**Updated:** 2026-07-29 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.7% root (gate 90%), 80.9% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 72.5% dashboardui (gate 60%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 15 modules
 
 ## Status legend
 
@@ -351,7 +351,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | HTML Rendering        | 🟢 `FULLY_FUNCTIONAL`     | Renders HTML via Go string-building (`writeHTML`; no templ dependency — the dead `renderTempl` path was removed in v4.6.0). Compiled CSS embedded via `go:embed`. Conditional `<script>` includes (HTMX, SSE) based on config.                                                                                                                                                        |
 | Auth Integration      | 🟢 `FULLY_FUNCTIONAL`     | Read-only by default. Configurable authorizer hook.                                                                                                                                                                                                                                                                                                                                   |
 | File Structure        | 🟢 `FULLY_FUNCTIONAL`     | `handlers.go` split into 7 domain files (`handlers_events.go`, `handlers_aggregates.go`, `handlers_projections.go`, `handlers_dlq.go`, `handlers_audit.go`, `handlers_timetravel.go`, `handlers_snapshots.go`) in v4.6.1. Dead code (`notImplemented`, `renderStatCardsTempl`) removed in v4.6.0.                                                                                     |
-| Test Coverage         | 🟡 `PARTIALLY_FUNCTIONAL` | 4 test files (`dashboard_test.go`, `handlers_extra_test.go`, `handlers_helpers_test.go`, `sse_replay_test.go`; 29 tests). Covers SSE reconnect replay, payload rendering, CSRF, DLQ/projection index handlers, guard helpers. **Still missing:** DLQ replay/delete/purge handler tests, projection reset handler test, time-travel detail test, snapshot delete test (see TODO_LIST). |
+| Test Coverage         | 🟢 `FULLY_FUNCTIONAL`     | 6 test files (`dashboard_test.go`, `handlers_extra_test.go`, `handlers_helpers_test.go`, `handlers_write_test.go`, `handlers_index_test.go`, `sse_replay_test.go`; ~50 tests). Covers SSE reconnect replay, payload rendering, CSRF, DLQ replay/delete/purge/projection reset/time-travel detail/snapshot delete handlers, DLQ/projection index handlers, time-travel/snapshots index views, guard helpers. dashboardui coverage at 72.5% (gate 60%). |
 
 ---
 
@@ -376,12 +376,12 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Metric        | Root  | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | integration_test |
 | ------------- | ----- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | ---------------- |
-| Coverage      | 93.4% | 80.9%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | 55% (gate)  | —                |
-| CI gate       | 90%   | 74%      | (not set)      | 80%   | 80%      | 80%    | 66%     | 79%       | 55%         | —                |
-| Tests passing | ~160  | ~602     | ~109           | 3     | 16       | 21     | ~75     | ~36       | 29          | ~29              |
+| Coverage      | 93.7% | 80.9%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 69.0%   | 80.1%     | 72.5%       | —                |
+| CI gate       | 90%   | 74%      | 70%             | 80%   | 80%      | 80%    | 66%     | 79%       | 60%         | —                |
+| Tests passing | ~160  | ~602     | ~109           | 3     | 16       | 21     | ~75     | ~36       | ~50          | ~29              |
 | Lint issues   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | ErrorFamily   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | Go modules    | 1     | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1                |
 
 > _Recompute live: `nix run .#coverage-gate`, `nix run .#lint`, `nix run .#errorfamily`. Lint counts are uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module._
-> _Lint: the 7 non-root non-dashboardui non-usermgmt modules pass clean. Root (~610, dominated by varnamelen 405 + exhaustruct 61), usermgmt (~330, dominated by staticcheck SA1019 271 — the `id.NewAggregateID` deprecation), and dashboardui (~150) currently fail `nix run .#lint` on pre-existing style nits and deprecation warnings — these are tracked, non-release-blocking (v4.5.0 and v4.6.0 shipped with them). The `nix run .#lint` wrapper caps varnamelen at 50 (`max-issues-per-linter: 50` in `.golangci.yml`) and stops at the root module's failure, so the real count is higher and submodule failures are only visible via per-module runs._
+> _Lint: All 15 modules pass clean (0 issues each). The SA1019 deprecation migration is complete. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module._
