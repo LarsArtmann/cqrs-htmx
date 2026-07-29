@@ -120,10 +120,12 @@ func (a *App) DispatchWSCommand(
 	}
 
 	var dispatchErr error
+
 	withDispatchTimeout(a, ctx, func(dispatchCtx context.Context) {
 		if dispatchErr = a.commands.Dispatch(dispatchCtx, cmd); dispatchErr != nil {
 			dispatchErr = a.wrapWSDispatchErr(dispatchCtx, r, dispatchErr,
 				"cqrshtmx.ws.dispatch_command_failed", "dispatch command %s", cmdType)
+
 			return
 		}
 
@@ -176,11 +178,13 @@ func (a *App) DispatchWSQuery(
 		result      any
 		dispatchErr error
 	)
+
 	withDispatchTimeout(a, ctx, func(dispatchCtx context.Context) {
 		result, dispatchErr = a.queries.Dispatch(dispatchCtx, qry)
 		if dispatchErr != nil {
 			dispatchErr = a.wrapWSDispatchErr(dispatchCtx, r, dispatchErr,
 				"cqrshtmx.ws.dispatch_query_failed", "dispatch query %s", qryType)
+
 			return
 		}
 
@@ -213,6 +217,7 @@ func (a *App) wsCallContext(r *http.Request) context.Context {
 func withDispatchTimeout(a *App, ctx context.Context, fn func(context.Context)) {
 	dispatchCtx, cancel := a.timeoutCtx(ctx, nil)
 	defer cancel()
+
 	fn(dispatchCtx)
 }
 
