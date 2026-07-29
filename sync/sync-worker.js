@@ -525,6 +525,15 @@
         }
         return;
       }
+
+      if (data.type === "flush") {
+        // Tab detected connectivity return (window online event).
+        // The SharedWorker scope may not receive online/offline events
+        // reliably, so the tab explicitly requests a flush.
+        online = true;
+        flush();
+        return;
+      }
     };
   };
 

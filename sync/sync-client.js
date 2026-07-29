@@ -231,6 +231,20 @@
           }
         }
       });
+
+      // When the page detects connectivity return, tell the worker to flush.
+      // The window online/offline events fire reliably in the page context
+      // (unlike in the SharedWorker scope, which may not receive them in
+      // some browsers or test environments like Playwright).
+      window.addEventListener("online", () => {
+        if (syncWorker) {
+          try {
+            syncWorker.port.postMessage({ type: "flush" });
+          } catch (e) {
+            // Worker gone — nothing to flush
+          }
+        }
+      });
     } catch (e) {
       // SharedWorker unavailable — online path unaffected (graceful degradation)
     }
