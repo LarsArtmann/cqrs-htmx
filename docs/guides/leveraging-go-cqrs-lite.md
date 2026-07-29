@@ -100,8 +100,12 @@ qryDisp.Use(middleware.QueryTracing(tracer))
 ```go
 import cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 
-handler := cqrsprom.Setup()           // returns the http.Handler for /metrics
-mux.Handle("/metrics", handler)
+provider, err := cqrsprom.Setup()
+if err != nil {
+    return fmt.Errorf("prometheus setup: %w", err)
+}
+defer provider.Shutdown(context.Background())
+mux.Handle("/metrics", provider.Handler())
 ```
 
 > **Recommendation:** document path (b)+(c) in your app; cqrs-htmx stays dep-free, but consumers get first-class tracing + metrics by pulling two upstream modules.
@@ -116,8 +120,9 @@ go-cqrs-lite's `scheduling` module provides **durable timers** that survive rest
 import "github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 
 timerStore := scheduling.NewMemoryTimerStore[event]() // or storage.SQLTimerStore[T] for persistence
-scheduler := scheduling.New(timerStore, func(ctx context.Context, t event) {
+scheduler := scheduling.New(timerStore, func(ctx context.Context, t scheduling.Timer[event]) error {
     // fire a command when the deadline elapses, e.g. svc.ExpireSession(...)
+    return nil
 }, scheduling.WithPollInterval(time.Second))
 defer scheduler.Close()
 ```
@@ -131,13 +136,23 @@ defer scheduler.Close()
 Already exposed via `usermgmt.ServiceConfig` seams — no work needed, but worth knowing the full surface:
 
 ```go
-svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
-    // At-rest: wrap the event store with AES-256-GCM / XChaCha20-Poly1305
-    StoreWrapper: encryption.NewEncryptedStore(store, encryption.NewAES256GCM(key)),
+import (
+    "github.com/larsartmann/go-cqrs-lite/encryption/v4"
+    "github.com/larsartmann/go-cqrs-lite/signing/v4"
+)
 
-    // In-transit: sign on publish, verify on handle (HMAC-SHA256 / Ed25519)
-    PublishMiddleware: []event.PublishMiddleware{signing.SignMiddleware(signing.NewHMAC(hmacKey))},
-    HandlerMiddleware: []event.Middleware{signing.VerifyMiddleware(signing.NewHMAC(hmacKey))},
+cipher, err := encryption.NewAES256GCM(key)       // AES-256-GCM at-rest encryption
+if err != nil { /* handle */ }
+encryptedStore, err := encryption.NewEncryptedStore(store, cipher)
+if err != nil { /* handle */ }
+
+signer, err := signing.NewHMAC(hmacKey)             // HMAC-SHA256 in-transit signing
+if err != nil { /* handle */ }
+
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
+    StoreWrapper:      encryptedStore,
+    PublishMiddleware: []event.PublishMiddleware{signing.SignMiddleware(signer)},
+    HandlerMiddleware: []event.Middleware{signing.VerifyMiddleware(signer)},
 })
 ```
 
@@ -155,10 +170,12 @@ import (
     "github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
 )
 
-b := simple.New()
-simple.Command(b, "CreateItem", createItemRequest{}, simple.WithOperation("POST", "/items"))
+b := simple.New("My Service", "1.0.0")
+simple.Command[createItemRequest](b, "CreateItem", simple.WithOperation("POST", "/items"))
 // ...register events/queries...
-docs := docserver.NewDocsServer(docserver.Config{ /* catalog from b.Build() */ })
+
+catalogProvider := func() *catalog.Catalog { return b.Build() }
+docs := docserver.NewDocsServer(catalogProvider, docserver.Config{})
 docs.Mount(mux) // serves OpenAPI/AsyncAPI HTML + D2 + health
 ```
 
@@ -196,10 +213,13 @@ go-cqrs-lite's `deriver` module is the functional saga primitive: react to an ev
 ```go
 import "github.com/larsartmann/go-cqrs-lite/deriver/v4"
 
-d := deriver.OnEvent("UserDeleted", func(ctx context.Context, e event.Event) ([]command.Command, error) {
+// Deriver is a function type with chainable combinators.
+d := deriver.Deriver(func(ctx context.Context, e event.Event) ([]command.Command, error) {
     return []command.Command{buildCancelSubscriptionsCmd(e)}, nil
 })
-// d.AsHandler(cmdDispatcher) wires into bus.SubscribeAll
+
+// Filter to a specific event type, make it idempotent, wire into the bus.
+bus.SubscribeAll(d.Filter("UserDeleted").Idempotent().AsHandler(cmdDispatcher))
 ```
 
 > Not for sagas needing compensation (use a process manager there).
@@ -215,8 +235,13 @@ go-cqrs-lite's `schema.VersionedSeekableJournal` wraps any journal and upcasts *
 ```go
 import "github.com/larsartmann/go-cqrs-lite/schema/v4"
 
-vs := schema.NewVersionedSeekableJournal(journal)
-vs.Register(schema.NewUpcaster("UserRegistered", 1, func(raw []byte) ([]byte, error) { /* v1→v2 */ }))
+upcaster := schema.NewUpcaster("UserRegistered", 1, func(evt event.Event) (event.Event, error) {
+    // v1→v2: mutate the event payload, return the upgraded event
+    return evt, nil
+})
+
+vs, err := schema.NewVersionedSeekableJournal(journal, upcaster)
+if err != nil { /* handle */ }
 // pass `vs` to projectionhost.New(...) instead of the raw journal
 ```
 
