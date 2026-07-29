@@ -174,7 +174,7 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
   await page1.click('button[type="submit"]');
   await expect.poll(() => page1.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
-  await page1.close();
+  await page1.close({ runBeforeUnload: true });
 
   // Go online before opening session 2.
   await context.setOffline(false);
