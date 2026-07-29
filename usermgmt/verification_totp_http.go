@@ -119,7 +119,8 @@ func (h *AuthHandler) decodeAuthJSON(w http.ResponseWriter, r *http.Request, tar
 }
 
 func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http.Request) {
-	h.withAuthContext(w, r, h.verificationLimiter, "too many verification requests", func(user *User, ctx context.Context) {
+	h.withAuthContext(w, r, h.verificationLimiter,
+		"too many verification requests", func(user *User, ctx context.Context) {
 		token, err := h.service.SendVerificationEmail(ctx, user.ID)
 		if err != nil {
 			writeDispatchError(w, r, err)

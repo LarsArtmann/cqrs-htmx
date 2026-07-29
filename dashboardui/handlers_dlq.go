@@ -40,7 +40,7 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
-	d.withProjectionHost(w, func(host *projectionhost.Host) {
+	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // captures r for path values
 		proj := r.PathValue("projection")
 
 		result, err := host.ReplayDeadLetters(r.Context(), proj)
@@ -58,7 +58,7 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) {
+	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // captures r for path values
 		proj := r.PathValue("projection")
 
 		eventID := r.PathValue("eventID")
@@ -75,7 +75,7 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
-	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) {
+	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // captures r for path values
 		proj := r.PathValue("projection")
 		if err := store.Purge(r.Context(), proj); err != nil {
 			triggerToast(w, "err", "Purge failed: "+err.Error())
