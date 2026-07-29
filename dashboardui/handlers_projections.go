@@ -59,7 +59,7 @@ func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store pro
 }
 
 func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Request) {
-	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // captures r for path values
+	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
 		name := r.PathValue("name")
 		if err := host.Reset(r.Context(), name); err != nil {
 			triggerToast(w, "err", "Reset failed: "+err.Error())
