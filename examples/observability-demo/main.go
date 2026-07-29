@@ -44,37 +44,58 @@ type pingRequest struct {
 
 func main() {
 	logger := slog.Default()
-	ctx := context.Background()
 
-	// --- 1. OTel tracing with stdout exporter ---
+	handler, promProvider, otelProvider, err := newHandler(logger)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "setup: %v\n", err)
+		os.Exit(1)
+	}
+	defer otelProvider.Shutdown(context.Background())
+	defer promProvider.Shutdown(context.Background())
+
+	addr := ":8099"
+	fmt.Printf("observability-demo on http://localhost%s\n", addr)
+	fmt.Println("  POST /ping     — dispatch a command (traces + metrics emitted)")
+	fmt.Println("  GET  /metrics  — Prometheus metrics endpoint")
+
+	server := &http.Server{
+		Addr:              addr,
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	_ = server.ListenAndServe()
+}
+
+// newHandler builds the full HTTP handler with OTel tracing + Prometheus metrics
+// wired through dispatch middleware. Returns the handler and both providers for
+// graceful shutdown.
+func newHandler(logger *slog.Logger) (http.Handler, *cqrsprom.Provider, *cqrsotel.Provider, error) {
 	otelProvider, err := cqrsotel.Setup(
 		cqrsotel.WithService("observability-demo", "1.0.0", "local"),
 		cqrsotel.WithStdoutExporter(os.Stdout),
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "otel setup: %v\n", err)
-		os.Exit(1)
+		return nil, nil, nil, fmt.Errorf("otel setup: %w", err)
 	}
-	defer otelProvider.Shutdown(ctx)
 
 	tracer := cqrsotel.NewTracer("observability-demo")
 
-	// --- 2. Prometheus metrics ---
 	promProvider, err := cqrsprom.Setup(cqrsprom.WithViews(cqrsotel.NewCQRSViews()...))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "prometheus setup: %v\n", err)
-		os.Exit(1)
+		return nil, nil, nil, fmt.Errorf("prometheus setup: %w", err)
 	}
-	defer promProvider.Shutdown(ctx)
+
+	// Override the global meter provider so cqrsotel.NewMeter instruments
+	// export to Prometheus. cqrsotel.Setup registered its own meter provider
+	// globally, but it has no reader — the Prometheus provider has one.
+	otel.SetMeterProvider(promProvider.AsMeterProvider())
 
 	meter := cqrsotel.NewMeter("observability-demo")
 	metricsRecorder, err := middleware.NewOTelMetricsRecorder(meter)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "metrics recorder: %v\n", err)
-		os.Exit(1)
+		return nil, nil, nil, fmt.Errorf("metrics recorder: %w", err)
 	}
 
-	// --- 3. Command dispatcher with full middleware stack ---
 	cmdDisp := command.NewDispatcher()
 	cmdDisp.Use(middleware.CommandRecovery())
 	cmdDisp.Use(middleware.CommandRetry(middleware.DefaultRetryConfig(), middleware.WithLogger(logger)))
@@ -90,7 +111,6 @@ func main() {
 
 	app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: cmdDisp})
 
-	// --- 4. HTTP server ---
 	mux := http.NewServeMux()
 	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
 	mux.Handle("GET /metrics", promProvider.Handler())
@@ -101,15 +121,6 @@ func main() {
 		cqrshtmx.WithSuccessStatus(http.StatusNoContent),
 	))
 
-	addr := ":8099"
-	fmt.Printf("observability-demo on http://localhost%s\n", addr)
-	fmt.Println("  POST /ping     — dispatch a command (traces + metrics emitted)")
-	fmt.Println("  GET  /metrics  — Prometheus metrics endpoint")
-
-	server := &http.Server{
-		Addr:              addr,
-		Handler:           cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware)(mux),
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-	_ = server.ListenAndServe()
+	handler := cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware)(mux)
+	return handler, promProvider, otelProvider, nil
 }
