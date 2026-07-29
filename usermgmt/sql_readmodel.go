@@ -66,26 +66,24 @@ func userViewMapper() storage.ViewMapper[UserView] {
 }
 
 func NewSQLiteUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
-	store, err := newViewStoreOrFail(
-		storage.NewSQLiteViewStore[UserView, UserID],
-		db,
-		userViewMapper(),
-		"usermgmt.sql_readmodel.create",
-		"create sqlite user view store",
-	)
-	if err != nil {
-		return nil, err
-	}
-	return newSQLUserReadModel(store), nil
+	return buildSQLUserReadModel(db, storage.NewSQLiteViewStore[UserView, UserID], "create sqlite user view store")
 }
 
 func NewSQLUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
+	return buildSQLUserReadModel(db, storage.NewSQLViewStore[UserView, UserID], "create sql user view store")
+}
+
+// buildSQLUserReadModel constructs a SQLUserReadModel from a SQLite or generic
+// SQL view store. The dialect is selected by passing the matching
+// storage.New(NewSQLite|NewSQL)ViewStore as create.
+func buildSQLUserReadModel(
+	db *sql.DB,
+	create viewStoreCreator[UserView, UserID],
+	errMsg string,
+) (*SQLUserReadModel, error) {
 	store, err := newViewStoreOrFail(
-		storage.NewSQLViewStore[UserView, UserID],
-		db,
-		userViewMapper(),
-		"usermgmt.sql_readmodel.create",
-		"create sql user view store",
+		create, db, userViewMapper(),
+		"usermgmt.sql_readmodel.create", errMsg,
 	)
 	if err != nil {
 		return nil, err
