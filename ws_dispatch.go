@@ -119,16 +119,18 @@ func (a *App) DispatchWSCommand(
 		return err
 	}
 
-	return withDispatchTimeout(a, ctx, func(dispatchCtx context.Context) error {
-		if dispatchErr := a.commands.Dispatch(dispatchCtx, cmd); dispatchErr != nil {
-			return a.wrapWSDispatchErr(dispatchCtx, r, dispatchErr,
+	var dispatchErr error
+	withDispatchTimeout(a, ctx, func(dispatchCtx context.Context) {
+		if dispatchErr = a.commands.Dispatch(dispatchCtx, cmd); dispatchErr != nil {
+			dispatchErr = a.wrapWSDispatchErr(dispatchCtx, r, dispatchErr,
 				"cqrshtmx.ws.dispatch_command_failed", "dispatch command %s", cmdType)
+			return
 		}
 
 		a.afterDispatchHook(dispatchCtx, r, nil)
-
-		return nil
 	})
+
+	return dispatchErr
 }
 
 // DispatchWSQuery decodes a WebSocket message into a query, dispatches it,
@@ -170,17 +172,22 @@ func (a *App) DispatchWSQuery(
 		return nil, err
 	}
 
-	return withDispatchTimeout(a, ctx, func(dispatchCtx context.Context) (any, error) {
-		result, dispatchErr := a.queries.Dispatch(dispatchCtx, qry)
+	var (
+		result      any
+		dispatchErr error
+	)
+	withDispatchTimeout(a, ctx, func(dispatchCtx context.Context) {
+		result, dispatchErr = a.queries.Dispatch(dispatchCtx, qry)
 		if dispatchErr != nil {
-			return nil, a.wrapWSDispatchErr(dispatchCtx, r, dispatchErr,
+			dispatchErr = a.wrapWSDispatchErr(dispatchCtx, r, dispatchErr,
 				"cqrshtmx.ws.dispatch_query_failed", "dispatch query %s", qryType)
+			return
 		}
 
 		a.afterDispatchHook(dispatchCtx, r, nil)
-
-		return result, nil
 	})
+
+	return result, dispatchErr
 }
 
 // wsContext returns the request context if r is non-nil, otherwise context.Background.
@@ -203,10 +210,10 @@ func (a *App) wsCallContext(r *http.Request) context.Context {
 // withDispatchTimeout wraps fn with a dispatch timeout context, calling
 // cancel on return. It is the closure counterpart to timeoutCtx for WS
 // dispatch methods.
-func withDispatchTimeout[T any](a *App, ctx context.Context, fn func(context.Context) T) T {
+func withDispatchTimeout(a *App, ctx context.Context, fn func(context.Context)) {
 	dispatchCtx, cancel := a.timeoutCtx(ctx, nil)
 	defer cancel()
-	return fn(dispatchCtx)
+	fn(dispatchCtx)
 }
 
 // decodeWSMessage runs the shared decode → wrap → nil-check pipeline used by

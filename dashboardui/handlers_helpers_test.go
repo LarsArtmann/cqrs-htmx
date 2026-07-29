@@ -24,12 +24,17 @@ func (fakeDeadLetterStore) Delete(ctx context.Context, projectionName, eventID s
 }
 func (fakeDeadLetterStore) Purge(ctx context.Context, projectionName string) error { return nil }
 
-func TestRequireProjectionHost_Missing(t *testing.T) {
+func TestWithProjectionHost_Missing(t *testing.T) {
 	d := &Dashboard{cfg: Config{}}
 
 	w := httptest.NewRecorder()
-	if d.requireProjectionHost(w) {
-		t.Fatal("expected requireProjectionHost to return false")
+	called := false
+	d.withProjectionHost(w, func(host *projectionhost.Host) {
+		called = true
+	})
+
+	if called {
+		t.Fatal("expected fn to not be called")
 	}
 
 	if w.Code != http.StatusBadRequest {
@@ -41,12 +46,18 @@ func TestRequireProjectionHost_Missing(t *testing.T) {
 	}
 }
 
-func TestRequireProjectionHost_Present(t *testing.T) {
-	d := &Dashboard{cfg: Config{ProjectionHost: &projectionhost.Host{}}}
+func TestWithProjectionHost_Present(t *testing.T) {
+	host := &projectionhost.Host{}
+	d := &Dashboard{cfg: Config{ProjectionHost: host}}
 
 	w := httptest.NewRecorder()
-	if !d.requireProjectionHost(w) {
-		t.Fatal("expected requireProjectionHost to return true")
+	var received *projectionhost.Host
+	d.withProjectionHost(w, func(h *projectionhost.Host) {
+		received = h
+	})
+
+	if received != host {
+		t.Fatal("expected fn to receive the configured projection host")
 	}
 
 	if w.Code != http.StatusOK {
@@ -54,12 +65,17 @@ func TestRequireProjectionHost_Present(t *testing.T) {
 	}
 }
 
-func TestRequireDeadLetterStore_Missing(t *testing.T) {
+func TestWithDeadLetterStore_Missing(t *testing.T) {
 	d := &Dashboard{cfg: Config{}}
 
 	w := httptest.NewRecorder()
-	if d.requireDeadLetterStore(w) {
-		t.Fatal("expected requireDeadLetterStore to return false")
+	called := false
+	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) {
+		called = true
+	})
+
+	if called {
+		t.Fatal("expected fn to not be called")
 	}
 
 	if w.Code != http.StatusBadRequest {
@@ -71,12 +87,18 @@ func TestRequireDeadLetterStore_Missing(t *testing.T) {
 	}
 }
 
-func TestRequireDeadLetterStore_Present(t *testing.T) {
-	d := &Dashboard{cfg: Config{DeadLetterStore: fakeDeadLetterStore{}}}
+func TestWithDeadLetterStore_Present(t *testing.T) {
+	store := fakeDeadLetterStore{}
+	d := &Dashboard{cfg: Config{DeadLetterStore: store}}
 
 	w := httptest.NewRecorder()
-	if !d.requireDeadLetterStore(w) {
-		t.Fatal("expected requireDeadLetterStore to return true")
+	var received projectionhost.DeadLetterStore
+	d.withDeadLetterStore(w, func(s projectionhost.DeadLetterStore) {
+		received = s
+	})
+
+	if received != store {
+		t.Fatal("expected fn to receive the configured dead letter store")
 	}
 
 	if w.Code != http.StatusOK {
