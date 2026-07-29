@@ -91,6 +91,15 @@ func (h *AuthHandler) withTimeout(r *http.Request) (context.Context, context.Can
 	return r.Context(), func() {}
 }
 
+// withTimeoutCtx wraps fn with a timeout-bound context, calling cancel on
+// return. It is the closure counterpart to withTimeout for handlers that
+// need only a context (no rate-limiting or current-user preflight).
+func (h *AuthHandler) withTimeoutCtx(r *http.Request, fn func(ctx context.Context)) {
+	ctx, cancel := h.withTimeout(r)
+	defer cancel()
+	fn(ctx)
+}
+
 // decodeAuthJSON decodes a JSON request body into target, applying
 // maxAuthBodySize and returning a 400 Bad Request with ErrValidation
 // on failure. Returns true on success; the handler should return on false.
@@ -110,18 +119,14 @@ func (h *AuthHandler) decodeAuthJSON(w http.ResponseWriter, r *http.Request, tar
 }
 
 func (h *AuthHandler) handleSendVerificationEmail(w http.ResponseWriter, r *http.Request) {
-	user, ctx, cancel, ok := h.authContext(w, r, h.verificationLimiter, "too many verification requests")
-	if !ok {
-		return
-	}
-	defer cancel()
-
-	token, err := h.service.SendVerificationEmail(ctx, user.ID)
-	if err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]string{"token": token})
+	h.withAuthContext(w, r, h.verificationLimiter, "too many verification requests", func(user *User, ctx context.Context) {
+		token, err := h.service.SendVerificationEmail(ctx, user.ID)
+		if err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"token": token})
+	})
 }
 
 func (h *AuthHandler) handleVerifyEmail(w http.ResponseWriter, r *http.Request) {
@@ -132,29 +137,24 @@ func (h *AuthHandler) handleVerifyEmail(w http.ResponseWriter, r *http.Request) 
 	if !h.decodeAuthJSON(w, r, &req) {
 		return
 	}
-	ctx, cancel := h.withTimeout(r)
-	defer cancel()
-
-	if err := h.service.VerifyEmail(ctx, req.Token); err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusVerified})
+	h.withTimeoutCtx(r, func(ctx context.Context) {
+		if err := h.service.VerifyEmail(ctx, req.Token); err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{statusKey: statusVerified})
+	})
 }
 
 func (h *AuthHandler) handleTOTPSetup(w http.ResponseWriter, r *http.Request) {
-	user, ctx, cancel, ok := h.authContext(w, r, h.totpLimiter, "too many TOTP requests")
-	if !ok {
-		return
-	}
-	defer cancel()
-
-	resp, err := h.service.EnableTOTP(ctx, user.ID)
-	if err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, resp)
+	h.withAuthContext(w, r, h.totpLimiter, "too many TOTP requests", func(user *User, ctx context.Context) {
+		resp, err := h.service.EnableTOTP(ctx, user.ID)
+		if err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, resp)
+	})
 }
 
 func (h *AuthHandler) handleTOTPSetupVerify(w http.ResponseWriter, r *http.Request) {
@@ -175,22 +175,18 @@ func (h *AuthHandler) handleTOTPCode(
 	verify func(context.Context, UserID, string) error,
 	status string,
 ) {
-	user, ctx, cancel, ok := h.authContext(w, r, h.totpLimiter, "too many TOTP requests")
-	if !ok {
-		return
-	}
-	defer cancel()
+	h.withAuthContext(w, r, h.totpLimiter, "too many TOTP requests", func(user *User, ctx context.Context) {
+		var req totpCodeRequest
+		if !h.decodeAuthJSON(w, r, &req) {
+			return
+		}
 
-	var req totpCodeRequest
-	if !h.decodeAuthJSON(w, r, &req) {
-		return
-	}
-
-	if err := verify(ctx, user.ID, req.Code); err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]string{statusKey: status})
+		if err := verify(ctx, user.ID, req.Code); err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{statusKey: status})
+	})
 }
 
 func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) {
@@ -242,6 +238,24 @@ func (h *AuthHandler) authContext(
 	}
 	ctx, cancel := h.withTimeout(r)
 	return user, ctx, cancel, true
+}
+
+// withAuthContext wraps the authContext preflight (rate-limit, current user,
+// timeout) in a closure. On preflight failure the response is already written
+// and fn is not called. Mirrors the withImportExportContext pattern.
+func (h *AuthHandler) withAuthContext(
+	w http.ResponseWriter,
+	r *http.Request,
+	limiter *cqrshtmx.RateLimiter,
+	limitMsg string,
+	fn func(user *User, ctx context.Context),
+) {
+	user, ctx, cancel, ok := h.authContext(w, r, limiter, limitMsg)
+	if !ok {
+		return
+	}
+	defer cancel()
+	fn(user, ctx)
 }
 
 func (h *AuthHandler) handleExportUsers(w http.ResponseWriter, r *http.Request) {
