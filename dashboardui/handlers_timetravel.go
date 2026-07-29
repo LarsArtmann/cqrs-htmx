@@ -14,12 +14,7 @@ import (
 // ===== Time-Travel =====
 
 func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Request) {
-	p := d.page("Time Travel", "/time-travel", r)
-
-	listings := d.listStreams(r)
-
-	html := d.renderTimeTravelIndex(p, listings)
-	renderPage(w, r, html)
+	d.renderStreamIndex(w, r, "Time Travel", "/time-travel", d.renderTimeTravelIndex)
 }
 
 func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamListing) string {
