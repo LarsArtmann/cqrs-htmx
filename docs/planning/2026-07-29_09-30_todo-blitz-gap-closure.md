@@ -10,6 +10,7 @@
 ## Context
 
 The prior session executed all 7 phases of the TODO_LIST but left critical gaps:
+
 1. Planning doc never written (original instructions step 6)
 2. `git push` never executed (22 commits ahead of origin/master)
 3. FEATURES.md and ROADMAP.md coverage numbers stale by 2 days
@@ -24,39 +25,43 @@ This plan closes every gap.
 ## Pareto Analysis
 
 ### The 1% that delivers 51% of value
+
 - **Fix FormData style** — directly improves the critical production bug fix readability
 
 ### The 4% that delivers 64% of value
+
 - Above + **Update stale docs** (FEATURES.md, ROADMAP.md) — eliminates split brains between docs and reality
 
 ### The 20% that delivers 80% of value
+
 - Above + **Run canonical gates** (test, lint, flake check, docs-freshness) — verifies everything is green
-- + **Write this planning doc** — satisfies original instructions
-- + **Git push** — delivers all work to origin
+- - **Write this planning doc** — satisfies original instructions
+- - **Git push** — delivers all work to origin
 
 ### Remaining 80%
+
 - E2E browser test verification — valuable but blocked on browser environment
 
 ---
 
 ## Task List (sorted by priority)
 
-| # | Task | Impact | Effort | Customer Value | Status |
-|---|------|--------|--------|----------------|--------|
-| 1 | Fix FormData style in sync-client.js (var→const, simplify instanceof) | High | 5 min | Production bug fix readability | Done |
-| 2 | Update FEATURES.md coverage header (93.4%→93.7%, 55%→72.5%) | High | 3 min | Docs accuracy / no split brain | Done |
-| 3 | Update FEATURES.md dashboardui test description (tests now exist) | High | 5 min | Docs accuracy / no split brain | Done |
-| 4 | Update FEATURES.md metrics table (coverage, gates, test counts) | Medium | 5 min | Docs accuracy | Done |
-| 5 | Update ROADMAP.md coverage header + gate status | High | 3 min | Docs accuracy / no split brain | Done |
-| 6 | Update ROADMAP.md Current State coverage details | High | 5 min | Docs accuracy / no split brain | Done |
-| 7 | Write planning doc with mermaid graph (this file) | Medium | 10 min | Process compliance | Done |
-| 8 | Run `nix run .#test` — verify all changes | Critical | 10 min | Confidence gate | Running |
-| 9 | Run `nix run .#lint` — verify 0 issues | Critical | 10 min | Confidence gate | Pending |
-| 10 | Run `nix flake check` — canonical gate | High | 10 min | Canonical compliance | Pending |
-| 11 | Run `nix run .#check-docs-freshness` | High | 5 min | Docs freshness gate | Pending |
-| 12 | Try E2E browser tests (Playwright) | Medium | 10 min | FormData fix verification | Pending |
-| 13 | Git commit remaining changes | High | 5 min | Deliverable | Pending |
-| 14 | Git push 22+ commits to origin/master | Critical | 2 min | Deliverable | Pending |
+| #   | Task                                                                  | Impact   | Effort | Customer Value                 | Status  |
+| --- | --------------------------------------------------------------------- | -------- | ------ | ------------------------------ | ------- |
+| 1   | Fix FormData style in sync-client.js (var→const, simplify instanceof) | High     | 5 min  | Production bug fix readability | Done    |
+| 2   | Update FEATURES.md coverage header (93.4%→93.7%, 55%→72.5%)           | High     | 3 min  | Docs accuracy / no split brain | Done    |
+| 3   | Update FEATURES.md dashboardui test description (tests now exist)     | High     | 5 min  | Docs accuracy / no split brain | Done    |
+| 4   | Update FEATURES.md metrics table (coverage, gates, test counts)       | Medium   | 5 min  | Docs accuracy                  | Done    |
+| 5   | Update ROADMAP.md coverage header + gate status                       | High     | 3 min  | Docs accuracy / no split brain | Done    |
+| 6   | Update ROADMAP.md Current State coverage details                      | High     | 5 min  | Docs accuracy / no split brain | Done    |
+| 7   | Write planning doc with mermaid graph (this file)                     | Medium   | 10 min | Process compliance             | Done    |
+| 8   | Run `nix run .#test` — verify all changes                             | Critical | 10 min | Confidence gate                | Running |
+| 9   | Run `nix run .#lint` — verify 0 issues                                | Critical | 10 min | Confidence gate                | Pending |
+| 10  | Run `nix flake check` — canonical gate                                | High     | 10 min | Canonical compliance           | Pending |
+| 11  | Run `nix run .#check-docs-freshness`                                  | High     | 5 min  | Docs freshness gate            | Pending |
+| 12  | Try E2E browser tests (Playwright)                                    | Medium   | 10 min | FormData fix verification      | Pending |
+| 13  | Git commit remaining changes                                          | High     | 5 min  | Deliverable                    | Pending |
+| 14  | Git push 22+ commits to origin/master                                 | Critical | 2 min  | Deliverable                    | Pending |
 
 ---
 
@@ -118,13 +123,13 @@ graph TD
 
 ## Risk Assessment
 
-| Risk | Likelihood | Mitigation |
-|------|-----------|------------|
-| Test suite fails after style fix | Low | FormData conversion logic unchanged, only var→const |
-| Lint fails on JS file | Very Low | gofmt doesn't apply to .js files |
-| E2E browser not available on NixOS | Medium | Attempt with Chromium, fallback to documented manual verification |
-| Pre-commit hook (buildflow) flakes | Medium | Use `--no-verify` per AGENTS.md guidance if govalid-generate flakes |
-| Git push blocked | Low | User explicitly requested push in original instructions |
+| Risk                               | Likelihood | Mitigation                                                          |
+| ---------------------------------- | ---------- | ------------------------------------------------------------------- |
+| Test suite fails after style fix   | Low        | FormData conversion logic unchanged, only var→const                 |
+| Lint fails on JS file              | Very Low   | gofmt doesn't apply to .js files                                    |
+| E2E browser not available on NixOS | Medium     | Attempt with Chromium, fallback to documented manual verification   |
+| Pre-commit hook (buildflow) flakes | Medium     | Use `--no-verify` per AGENTS.md guidance if govalid-generate flakes |
+| Git push blocked                   | Low        | User explicitly requested push in original instructions             |
 
 ---
 

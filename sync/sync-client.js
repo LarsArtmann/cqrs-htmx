@@ -418,7 +418,9 @@
       let params = cfg.parameters;
       if (params instanceof FormData) {
         const plain = {};
-        params.forEach((val, key) => { plain[key] = val; });
+        params.forEach((val, key) => {
+          plain[key] = val;
+        });
         params = plain;
       }
       envelope = {
