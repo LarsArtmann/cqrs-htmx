@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 )
@@ -25,15 +26,14 @@ func (h *AuthHandler) handleOAuth2Begin(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ctx, cancel := h.withTimeout(r)
-	defer cancel()
-
-	resp, err := h.service.BeginOAuthLogin(ctx, provider)
-	if err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, resp)
+	h.withTimeoutCtx(r, func(ctx context.Context) {
+		resp, err := h.service.BeginOAuthLogin(ctx, provider)
+		if err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, resp)
+	})
 }
 
 func (h *AuthHandler) handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
@@ -53,21 +53,20 @@ func (h *AuthHandler) handleOAuth2Callback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	ctx, cancel := h.withTimeout(r)
-	defer cancel()
+	h.withTimeoutCtx(r, func(ctx context.Context) {
+		resp, err := h.service.FinishOAuthLogin(ctx, provider, code, state)
+		if err != nil {
+			h.oauth2Error(w, r, errorStatus(err), err.Error())
+			return
+		}
 
-	resp, err := h.service.FinishOAuthLogin(ctx, provider, code, state)
-	if err != nil {
-		h.oauth2Error(w, r, errorStatus(err), err.Error())
-		return
-	}
-
-	h.setSessionCookie(w, resp.Session.Token)
-	if h.oauth2SuccessURL != "" {
-		http.Redirect(w, r, h.oauth2SuccessURL, http.StatusFound)
-		return
-	}
-	writeJSON(w, http.StatusOK, resp)
+		h.setSessionCookie(w, resp.Session.Token)
+		if h.oauth2SuccessURL != "" {
+			http.Redirect(w, r, h.oauth2SuccessURL, http.StatusFound)
+			return
+		}
+		writeJSON(w, http.StatusOK, resp)
+	})
 }
 
 func (h *AuthHandler) handleOAuth2Unlink(w http.ResponseWriter, r *http.Request) {
@@ -76,14 +75,13 @@ func (h *AuthHandler) handleOAuth2Unlink(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	ctx, cancel := h.withTimeout(r)
-	defer cancel()
-
-	if err := h.service.UnlinkExternalAccount(ctx, user.ID, provider); err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusUnlinked})
+	h.withTimeoutCtx(r, func(ctx context.Context) {
+		if err := h.service.UnlinkExternalAccount(ctx, user.ID, provider); err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{statusKey: statusUnlinked})
+	})
 }
 
 // oauth2Error writes an OAuth2 error response. When oauth2ErrorURL is configured,

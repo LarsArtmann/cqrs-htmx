@@ -40,59 +40,53 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
-	if !d.requireProjectionHost(w) {
-		return
-	}
+	d.withProjectionHost(w, func(host *projectionhost.Host) {
+		proj := r.PathValue("projection")
 
-	proj := r.PathValue("projection")
+		result, err := host.ReplayDeadLetters(r.Context(), proj)
+		if err != nil {
+			triggerToast(w, "err", "Replay failed: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
 
-	result, err := d.cfg.ProjectionHost.ReplayDeadLetters(r.Context(), proj)
-	if err != nil {
-		triggerToast(w, "err", "Replay failed: "+err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-		return
-	}
-
-	msg := fmt.Sprintf("Replayed %d, %d still failing", len(result.Replayed), len(result.StillFailing))
-	triggerToast(w, "ok", msg)
-	redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+		msg := fmt.Sprintf("Replayed %d, %d still failing", len(result.Replayed), len(result.StillFailing))
+		triggerToast(w, "ok", msg)
+		redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+	})
 }
 
 func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	if !d.requireDeadLetterStore(w) {
-		return
-	}
+	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) {
+		proj := r.PathValue("projection")
 
-	proj := r.PathValue("projection")
+		eventID := r.PathValue("eventID")
+		if err := store.Delete(r.Context(), proj, eventID); err != nil {
+			triggerToast(w, "err", "Delete failed: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
 
-	eventID := r.PathValue("eventID")
-	if err := d.cfg.DeadLetterStore.Delete(r.Context(), proj, eventID); err != nil {
-		triggerToast(w, "err", "Delete failed: "+err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-		return
-	}
-
-	triggerToast(w, "ok", "Dead letter deleted")
-	redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+		triggerToast(w, "ok", "Dead letter deleted")
+		redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+	})
 }
 
 func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
-	if !d.requireDeadLetterStore(w) {
-		return
-	}
+	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) {
+		proj := r.PathValue("projection")
+		if err := store.Purge(r.Context(), proj); err != nil {
+			triggerToast(w, "err", "Purge failed: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
 
-	proj := r.PathValue("projection")
-	if err := d.cfg.DeadLetterStore.Purge(r.Context(), proj); err != nil {
-		triggerToast(w, "err", "Purge failed: "+err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-		return
-	}
-
-	triggerToast(w, "ok", "Dead letters purged")
-	redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+		triggerToast(w, "ok", "Dead letters purged")
+		redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+	})
 }
 
 func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.DeadLetterEntry) string {
