@@ -36,11 +36,19 @@ func membershipViewMapper() storage.ViewMapper[MembershipView] {
 }
 
 func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
-	return buildSQLMembershipReadModel(db, storage.NewSQLiteViewStore[MembershipView, id.StreamID], "create sqlite membership view store")
+	return buildSQLMembershipReadModel(
+		db,
+		storage.NewSQLiteViewStore[MembershipView, id.StreamID],
+		"create sqlite membership view store",
+	)
 }
 
 func NewSQLMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
-	return buildSQLMembershipReadModel(db, storage.NewSQLViewStore[MembershipView, id.StreamID], "create sql membership view store")
+	return buildSQLMembershipReadModel(
+		db,
+		storage.NewSQLViewStore[MembershipView, id.StreamID],
+		"create sql membership view store",
+	)
 }
 
 func buildSQLMembershipReadModel(
@@ -124,7 +132,11 @@ func tenantViewMapper() storage.ViewMapper[TenantView] {
 }
 
 func NewSQLiteTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
-	return buildSQLTenantReadModel(db, storage.NewSQLiteViewStore[TenantView, TenantID], "create sqlite tenant view store")
+	return buildSQLTenantReadModel(
+		db,
+		storage.NewSQLiteViewStore[TenantView, TenantID],
+		"create sqlite tenant view store",
+	)
 }
 
 func NewSQLTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
