@@ -70,7 +70,7 @@ type immutableJSONServer struct {
 }
 
 func serveImmutableJSON(w http.ResponseWriter, r *http.Request, etag string, data []byte) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	w.Header().Set("ETag", etag)
 

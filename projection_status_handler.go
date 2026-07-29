@@ -63,7 +63,7 @@ func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc
 
 		etag := `"` + hashTag(data) + `"`
 
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("ETag", etag)
 
