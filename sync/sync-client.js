@@ -392,10 +392,10 @@
       // postMessage cannot clone FormData (structured clone algorithm does not
       // support it). Convert to a plain {key: value} object before sending to
       // the SharedWorker. Without this, offline commands are silently lost.
-      var params = cfg.parameters;
-      if (params && typeof params.forEach === "function" && !(params instanceof Object && params.constructor === Object)) {
-        var plain = {};
-        params.forEach(function(val, key) { plain[key] = val; });
+      let params = cfg.parameters;
+      if (params instanceof FormData) {
+        const plain = {};
+        params.forEach((val, key) => { plain[key] = val; });
         params = plain;
       }
       envelope = {
