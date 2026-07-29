@@ -29,7 +29,7 @@ _(None open. Previous P1 items completed: identity-model coverage gate added to 
 ## P3 — Technical Debt & Future
 
 - [ ] **MySQL event-store support.** Currently Postgres + SQLite only (dropped in v3.0.0 when `SQLEventStore` was delegated to `go-cqrs-lite/storage`, which has no MySQL dialect). `SQLSessionStore` already supports MySQL. Requires adding a MySQL dialect to `go-cqrs-lite/storage` (external repo).
-- [~] **Offline sync E2E browser testing.** The SharedWorker IndexedDB queue (`sync/sync-worker.js`) is unit-verified and E2E infrastructure is built (`e2e/` directory: Go test server, Playwright config, 4 test scenarios in `sync.spec.ts`). A **production bug** in `sync-client.js` (FormData serialization — `cfg.parameters` is a `FormData` object in HTMX 2.x that `postMessage` cannot clone) was fixed in this session (syncVersion bumped to `1.2.0`). The E2E tests need to be re-run in a browser environment to verify the fix resolves the enqueue failure. Remaining: verify tests pass with Chromium, add `e2e/README.md`, integrate into flake.nix/CI.
+- [~] **Offline sync E2E browser testing.** The SharedWorker IndexedDB queue (`sync/sync-worker.js`) is unit-verified and E2E infrastructure is built (`e2e/` directory: Go test server, Playwright config, 4 test scenarios in `sync.spec.ts`). All 4 E2E tests now pass (offline enqueue, online flush, cross-session recovery, multiple commands). syncVersion at `1.3.0`. Remaining: add `e2e/README.md`, integrate into flake.nix/CI.
 
 ---
 
