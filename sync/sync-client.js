@@ -302,8 +302,17 @@
     setSyncState(el, "pending");
     sync.pending++;
     updateIndicator();
-    // Re-trigger the HTMX request on the originating element
-    if (typeof htmx !== "undefined") {
+    // Re-issue via htmx.ajax when we have a persisted envelope. This is more
+    // reliable than htmx.trigger(el, "click"), which only works if el itself
+    // has an HTMX trigger attribute (forms trigger on submit, not click).
+    if (envelope && typeof htmx !== "undefined" && htmx.ajax) {
+      htmx.ajax(envelope.verb || "POST", envelope.url, {
+        target: el,
+        swap: "outerHTML",
+        values: envelope.values || null,
+        headers: envelope.headers || null,
+      });
+    } else if (typeof htmx !== "undefined") {
       htmx.trigger(el, "click");
     }
   }
@@ -399,7 +408,7 @@
         params = plain;
       }
       envelope = {
-        verb: cfg.verb || "",
+        verb: (cfg.verb || "").toUpperCase(),
         url: cfg.path || "",
         values: params || null,
         headers: cfg.headers || null,

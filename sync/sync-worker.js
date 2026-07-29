@@ -472,13 +472,11 @@
         // Notify the tab of current online status immediately.
         port.postMessage({ type: online ? "online" : "offline" });
 
-        // If online, flush so a reconnecting tab immediately re-flights
-        // persisted commands from a previous worker lifetime.
-        if (online) {
-          flush();
-        } else {
-          broadcastPendingCount();
-        }
+        // Always flush on connect. A newly loaded tab is online by definition,
+        // and pending commands from a previous session should be retried immediately.
+        // The online variable may be stale in some browser contexts (e.g. Playwright
+        // SharedWorker scope doesn't always receive connectivity events).
+        flush();
         return;
       }
 
