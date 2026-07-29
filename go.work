@@ -10,6 +10,7 @@ use (
 	./examples/catalog-demo
 	./examples/dashboard-demo
 	./examples/datastar-demo
+	./examples/middleware-demo
 	./identity-model
 	./integration_test
 	./loginpage
