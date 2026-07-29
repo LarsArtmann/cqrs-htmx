@@ -35,9 +35,9 @@ import (
 
 // pingCmd implements command.Command. The JSON body decodes directly into Msg.
 type pingCmd struct {
-	id   id.CommandID
-	sid  id.StreamID
-	Msg  string `json:"msg"`
+	id  id.CommandID
+	sid id.StreamID
+	Msg string `json:"msg"`
 }
 
 func (c *pingCmd) Type() command.Type { return "Ping" }
