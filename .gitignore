@@ -115,3 +115,4 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 # <<< buildflow-managed (.gitignore) <<<
+examples/observability-demo/observability-demo
