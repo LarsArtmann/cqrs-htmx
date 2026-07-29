@@ -91,12 +91,7 @@ func paginate[T any](items []T, page, pageSize int) []T {
 }
 
 func (h *AuthHandler) handleDeleteCredential(w http.ResponseWriter, r *http.Request) {
-	user, ok := h.currentUser(w, r)
-	if !ok {
-		return
-	}
-
-	encodedID, ok := requirePathValue(w, r, "id", "credential id is required")
+	user, encodedID, ok := h.currentUserWithPathValue(w, r, "id", "credential id is required")
 	if !ok {
 		return
 	}

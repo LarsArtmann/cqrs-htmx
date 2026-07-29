@@ -53,6 +53,23 @@ func (h *AuthHandler) currentUser(w http.ResponseWriter, r *http.Request) (*User
 	return user, true
 }
 
+// currentUserWithPathValue combines the auth guard (currentUser) with a path
+// value validation guard (requirePathValue). Returns the user and path value,
+// or zero values and false on failure (caller must return immediately).
+func (h *AuthHandler) currentUserWithPathValue(
+	w http.ResponseWriter, r *http.Request, key, errMsg string,
+) (*User, string, bool) {
+	user, ok := h.currentUser(w, r)
+	if !ok {
+		return nil, "", false
+	}
+	val, ok := requirePathValue(w, r, key, errMsg)
+	if !ok {
+		return nil, "", false
+	}
+	return user, val, true
+}
+
 func (h *AuthHandler) checkRateLimit(
 	w http.ResponseWriter, r *http.Request, rl *cqrshtmx.RateLimiter, msg string,
 ) bool {
