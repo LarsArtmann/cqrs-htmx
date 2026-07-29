@@ -44,14 +44,29 @@
         --radius: 0px;
         --radius-sm: 0px;
 
-        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
       }
 
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      section[id], [id] { scroll-margin-top: 60px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
 
       body {
         background: var(--surface);
@@ -63,8 +78,13 @@
         -moz-osx-font-smoothing: grayscale;
       }
 
-      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      a:focus-visible { outline-offset: -1px; }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
 
       .top-bar {
         background: var(--text);
@@ -80,264 +100,653 @@
         align-items: center;
       }
 
-      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
-      .sidebar {
-        width: 220px; flex-shrink: 0; position: sticky; top: 1rem;
-        align-self: flex-start; height: calc(100vh - 2rem); overflow-y: auto; display: none;
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
       }
-      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
       .sidebar .label {
-        font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent);
-        margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--text);
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
       }
       .sidebar a {
-        font-size: 0.86rem; color: var(--text); text-decoration: none;
-        padding: 0.5rem 0.75rem; border-left: 4px solid transparent; font-weight: 600;
-        transition: all 0.15s ease; line-height: 1.4;
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
       }
-      .sidebar a:hover, .sidebar a.active {
+      .sidebar a:hover,
+      .sidebar a.active {
         border-left-color: var(--accent);
         background: color-mix(in srgb, var(--accent) 8%, transparent);
         color: var(--accent);
       }
-      .main { flex: 1; min-width: 0; }
-
-      h1, h2, h3, h4 {
-        font-family: var(--font-heading); font-weight: 900;
-        letter-spacing: -0.02em; color: var(--text);
+      .main {
+        flex: 1;
+        min-width: 0;
       }
-      h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height: 1.05; margin: 0 0 0.6rem; }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
       h2 {
-        font-size: 1.5rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem;
-        border-bottom: 3px solid var(--text); display: flex; align-items: baseline; gap: 0.7rem;
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
       }
       h2 .num {
-        font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent);
-        font-weight: 700; letter-spacing: 0.04em;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
       }
-      h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 700; }
-      h4 { font-size: 1rem; margin: 0 0 0.3rem; font-weight: 700; }
-      p { margin: 0 0 1rem; }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
 
-      .hero { padding: 1.5rem 0 2rem; margin-bottom: 1.5rem; border-bottom: 3px solid var(--text); }
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
       .eyebrow {
-        font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); margin-bottom: 0.9rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
       }
-      .subtitle { font-size: 1.1rem; color: var(--text-muted); max-width: 70ch; margin: 0 0 1rem; }
-      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
       .tag {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
-        letter-spacing: 0.04em; padding: 0.25rem 0.6rem; background: var(--surface-sunken);
-        color: var(--text); border: 1px solid var(--border-strong);
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
       }
-      .tag.amber { background: var(--warning); border-color: var(--warning); color: var(--text); }
-      .tag.teal { background: var(--solution); border-color: var(--solution); color: var(--surface); }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
 
-      .hero-shapes { position: relative; height: 90px; margin-bottom: 1.2rem; }
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
       .hero-shapes .circle {
-        position: absolute; top: 0; right: 180px; width: 64px; height: 64px;
-        background: var(--problem); border-radius: 50%;
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
       }
       .hero-shapes .square {
-        position: absolute; top: 26px; right: 90px; width: 56px; height: 56px; background: var(--solution);
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
       }
       .hero-shapes .tri {
-        position: absolute; top: 8px; right: 0; width: 0; height: 0;
-        border-left: 32px solid transparent; border-right: 32px solid transparent;
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
         border-bottom: 56px solid var(--warning);
       }
       .hero-shapes .bar {
-        position: absolute; bottom: 0; right: 230px; width: 100px; height: 14px; background: var(--text);
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
       }
 
-      .scorecard, .stat-grid {
-        display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 0; margin: 1.5rem 0 2rem; border: 3px solid var(--text);
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
       }
-      .score-card, .stat-card {
-        padding: 1.3rem 1rem; text-align: center; border-right: 3px solid var(--text);
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
         background: var(--surface-raised);
       }
-      .score-card:last-child, .stat-card:last-child { border-right: none; }
-      .score, .stat-value {
-        font-family: var(--font-heading); font-size: 2.6rem; font-weight: 900;
-        line-height: 1; letter-spacing: -0.04em;
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
       }
-      .score-card .label, .stat-label {
-        font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.5rem;
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
       }
-      .score-good, .stat-good { background: var(--solution); color: var(--surface); }
-      .score-warn, .stat-warn { background: var(--warning); color: var(--text); }
-      .score-bad, .stat-bad { background: var(--problem); color: var(--surface); }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
 
       .card {
-        background: var(--surface-raised); border: 2px solid var(--text);
-        padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong);
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
       }
-      .card-problem { border-left-color: var(--problem); }
-      .card-solution { border-left-color: var(--solution); }
-      .card-warning { border-left-color: var(--warning); }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
 
       .issue {
-        background: var(--surface-raised); border: 2px solid var(--text);
-        padding: 1.2rem 1.4rem; margin-bottom: 1rem; border-left: 8px solid var(--border-strong);
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
       }
-      .issue-critical { border-left-color: var(--problem); }
-      .issue-important { border-left-color: var(--warning); }
-      .issue-nice { border-left-color: var(--solution); }
-      .issue h3 { margin-bottom: 0.3rem; }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
       .issue .where {
-        font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
         margin: 0.2rem 0 0.6rem;
       }
-      .issue p:last-child { margin-bottom: 0; }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
 
       .severity {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.62rem;
-        font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-        padding: 0.22rem 0.6rem; margin-bottom: 0.6rem; color: var(--surface);
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
       }
-      .severity-critical { background: var(--problem); }
-      .severity-important { background: var(--warning); color: var(--text); }
-      .severity-nice { background: var(--solution); }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
 
       .badge {
-        display: inline-block; font-family: var(--font-mono); font-size: 0.62rem;
-        font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-        padding: 0.2rem 0.55rem; border: 1px solid var(--text); color: var(--text);
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
       }
-      .badge-critical { background: var(--problem); color: var(--surface); }
-      .badge-high { background: var(--warning); }
-      .badge-medium { background: var(--surface-sunken); }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
 
       .callout {
-        margin: 0.8rem 0 0; padding: 0.8rem 1rem; border: 1px solid var(--border-strong);
-        border-left: 4px solid var(--border-strong); background: var(--surface-sunken);
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
         font-size: 0.92rem;
       }
-      .callout strong { display: inline-block; margin-right: 0.4rem; }
-      .callout-teal, .callout-solution {
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
         border-left-color: var(--solution);
         background: color-mix(in srgb, var(--solution) 10%, var(--surface-raised));
       }
-      .callout-amber, .callout-warning {
+      .callout-amber,
+      .callout-warning {
         border-left-color: var(--warning);
         background: color-mix(in srgb, var(--warning) 18%, var(--surface-raised));
       }
 
-      .strengths { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
       .strength {
-        display: grid; grid-template-columns: auto 1fr; gap: 0.9rem;
-        padding: 0.75rem 0; border-bottom: 2px solid var(--border);
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
       }
       .strength .check {
-        font-family: var(--font-mono); font-weight: 900; color: var(--solution);
-        font-size: 1.3rem; line-height: 1.3;
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
       }
-      .strength .text strong { display: block; margin-bottom: 0.15rem; }
-      .strength .text span { color: var(--text-muted); font-size: 0.92rem; }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
 
-      .table-wrap { overflow-x: auto; }
+      .table-wrap {
+        overflow-x: auto;
+      }
       table {
-        width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem;
-        font-size: 0.92rem; border: 2px solid var(--text);
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
       }
       th {
-        text-align: left; padding: 0.6rem 0.9rem; background: var(--text); color: var(--surface);
-        font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700;
-        letter-spacing: 0.08em; text-transform: uppercase; border-right: 1px solid var(--border-strong);
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
       }
-      th:last-child { border-right: none; }
-      td { padding: 0.6rem 0.9rem; border-top: 1px solid var(--border); border-right: 1px solid var(--border); }
-      td:last-child { border-right: none; }
-      tr:nth-child(even) td { background: var(--surface-sunken); }
-      table.compare td.yes { color: var(--solution); font-weight: 700; }
-      table.compare td.no { color: var(--problem); font-weight: 700; }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
 
       pre {
-        background: var(--text); color: var(--surface); padding: 1rem 1.2rem; margin: 1rem 0;
-        font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.65;
-        overflow-x: auto; border: 2px solid var(--text);
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
       }
-      code { font-family: var(--font-mono); }
-      p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
-      .tok-keyword { color: var(--warning); }
-      .tok-type { color: var(--warning); }
-      .tok-string { color: #95e1d3; }
-      .tok-comment { color: rgba(244, 244, 240, 0.45); font-style: italic; }
-      .tok-func { color: #6eb5ff; }
-      .tok-number { color: var(--warning); }
-      .tok-generic { color: var(--problem); }
-      .tok-builtin { color: #6eb5ff; }
-      .tok-punct { color: rgba(244, 244, 240, 0.7); }
-      .tok-attr { color: var(--warning); }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
 
       .dep-tree {
-        background: var(--surface-sunken); border: 2px solid var(--text); padding: 1rem 1.2rem;
-        margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem;
-        line-height: 1.7; white-space: pre; overflow-x: auto;
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
       }
-      .dep-tree .root { color: var(--accent); font-weight: 700; }
-      .dep-tree .ok { color: var(--solution); }
-      .dep-tree .unwanted { color: var(--problem); }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
 
       .diagram {
-        display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
-        padding: 1rem; margin: 1rem 0; background: var(--surface-raised); border: 2px solid var(--text);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
       }
       .node {
-        display: inline-block; padding: 0.4rem 0.75rem; font-family: var(--font-mono);
-        font-size: 0.8rem; font-weight: 700; background: var(--surface-sunken); border: 1px solid var(--text);
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
       }
-      .node-core { background: var(--accent); color: var(--surface); }
-      .node-problem { background: var(--problem); color: var(--surface); }
-      .node-good { background: var(--solution); color: var(--surface); }
-      .arrow { color: var(--text-faint); font-family: var(--font-mono); }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
 
-      .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0; }
-      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
 
       .toc {
-        background: var(--surface-raised); border: 2px solid var(--text);
-        border-left: 6px solid var(--accent); padding: 1rem 1.3rem; margin: 1rem 0 1.5rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
       }
-      .toc h3 { margin-bottom: 0.5rem; }
-      .toc ul { list-style: none; padding: 0; }
-      .toc li { margin: 0.25rem 0; }
-      .toc a { color: var(--text); text-decoration: none; font-size: 0.92rem; font-weight: 600; }
-      .toc a:hover { color: var(--accent); }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
 
       .migration-step {
-        display: grid; grid-template-columns: 56px 1fr; gap: 1rem; margin: 1rem 0;
-        padding: 1.1rem; background: var(--surface-raised); border: 2px solid var(--text);
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
         border-left: 6px solid var(--accent);
       }
       .migration-num {
-        font-family: var(--font-mono); font-weight: 900; font-size: 1.8rem;
-        color: var(--accent); line-height: 1;
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
       }
-      .migration-content h4 { margin-bottom: 0.2rem; }
-      .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.94rem; }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
 
       .footer {
-        margin-top: 2rem; padding-top: 1rem; border-top: 3px solid var(--text);
-        font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono);
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
       }
 
-      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
       @media (max-width: 768px) {
-        .layout { flex-direction: column; padding: 1rem; }
-        .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; }
-        .grid-2, .grid-3 { grid-template-columns: 1fr; }
-        .scorecard, .stat-grid { grid-template-columns: repeat(2, 1fr); }
-        .score-card:nth-child(2), .stat-card:nth-child(2) { border-right: none; }
-        .score-card:nth-child(1), .stat-card:nth-child(1),
-        .score-card:nth-child(2), .stat-card:nth-child(2) { border-bottom: 3px solid var(--text); }
-        .migration-step { grid-template-columns: 1fr; }
-        .hero-shapes { display: none; }
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
       }
     </style>
   </head>
@@ -446,39 +855,54 @@
             No design exists yet. This report fills that gap.
           </p>
 
-          <p>The problem is concrete. A developer using go-cqrs-lite today who wants to answer any
-          of these questions has no tooling:</p>
+          <p>
+            The problem is concrete. A developer using go-cqrs-lite today who wants to answer any of
+            these questions has no tooling:
+          </p>
 
           <div class="grid-2">
             <div class="card card-problem">
               <h4>"What events does aggregate X have?"</h4>
-              <p>Must write a one-off script calling <code>store.Load(ctx, ref)</code> and
-              <code>fmt.Println</code> the results. No UI to browse event timelines.</p>
+              <p>
+                Must write a one-off script calling <code>store.Load(ctx, ref)</code> and
+                <code>fmt.Println</code> the results. No UI to browse event timelines.
+              </p>
             </div>
             <div class="card card-problem">
               <h4>"Is projection Y keeping up?"</h4>
-              <p>Must call <code>host.Status()</code> and <code>host.LagDuration()</code>
-              programmatically. No dashboard to see lag at a glance.</p>
+              <p>
+                Must call <code>host.Status()</code> and
+                <code>host.LagDuration()</code> programmatically. No dashboard to see lag at a
+                glance.
+              </p>
             </div>
             <div class="card card-problem">
               <h4>"What command caused this event?"</h4>
-              <p>Command causation metadata exists (<code>metadata.command.type</code>,
-              <code>metadata.command.id</code>) but there is no UI to trace the causal chain.</p>
+              <p>
+                Command causation metadata exists (<code>metadata.command.type</code>,
+                <code>metadata.command.id</code>) but there is no UI to trace the causal chain.
+              </p>
             </div>
             <div class="card card-problem">
               <h4>"What's in the dead-letter queue?"</h4>
-              <p>Must call <code>dlqStore.List(ctx, projectionName)</code> manually. No UI to
-              inspect or replay poisoned messages.</p>
+              <p>
+                Must call <code>dlqStore.List(ctx, projectionName)</code> manually. No UI to inspect
+                or replay poisoned messages.
+              </p>
             </div>
             <div class="card card-problem">
               <h4>"What did the system look like at version 42?"</h4>
-              <p>Time-travel queries (<code>LoadToVersion</code>, <code>LoadToTimestamp</code>)
-              exist in the API but there is no UI to scrub through aggregate history.</p>
+              <p>
+                Time-travel queries (<code>LoadToVersion</code>, <code>LoadToTimestamp</code>) exist
+                in the API but there is no UI to scrub through aggregate history.
+              </p>
             </div>
             <div class="card card-problem">
               <h4>"How many User aggregates exist?"</h4>
-              <p>The <code>listing.StreamReader</code> interface exists for exactly this, but
-              there is no UI to browse, filter, or search aggregates.</p>
+              <p>
+                The <code>listing.StreamReader</code> interface exists for exactly this, but there
+                is no UI to browse, filter, or search aggregates.
+              </p>
             </div>
           </div>
 
@@ -529,108 +953,108 @@
         <section id="market">
           <h2><span class="num">02</span>Market Research</h2>
           <p>
-            Six systems were studied to understand the state of the art in CQRS/ES admin UIs.
-            The findings directly inform the feature design below.
+            Six systems were studied to understand the state of the art in CQRS/ES admin UIs. The
+            findings directly inform the feature design below.
           </p>
 
           <h3>Capability Comparison</h3>
           <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Capability</th>
-                <th>EventStoreDB</th>
-                <th>Axon Platform</th>
-                <th>Marten + CritterWatch</th>
-                <th>Eventuous (.NET)</th>
-                <th>Go CQRS (all)</th>
-                <th>go-cqrs-lite (today)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Stream/event browser</td>
-                <td class="yes">Full UI</td>
-                <td class="no">Limited</td>
-                <td class="yes">Explorer</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-              <tr>
-                <td>Event inspection (payload + metadata)</td>
-                <td class="yes">Full</td>
-                <td class="no">Limited</td>
-                <td class="yes">Full body</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-              <tr>
-                <td>Projection management</td>
-                <td class="yes">CRUD + debug</td>
-                <td class="yes">Lifecycle</td>
-                <td class="yes">Full lifecycle</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-              <tr>
-                <td>Dead-letter queue viewer</td>
-                <td class="yes">Replay parked</td>
-                <td class="yes">Retry/delete</td>
-                <td class="yes">Full explorer</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-              <tr>
-                <td>Subscription/projection lag</td>
-                <td class="yes">Config view</td>
-                <td class="yes">Segments + latency</td>
-                <td class="yes">Grid + stall detection</td>
-                <td>OTel only</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-              <tr>
-                <td>Replay / reset</td>
-                <td class="yes">Reset + parked replay</td>
-                <td class="yes">Reset + progress</td>
-                <td class="yes">Rebuild + rewind</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-              <tr>
-                <td>Time-travel</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-              <tr>
-                <td>Correlation tracing</td>
-                <td class="no">None</td>
-                <td class="yes">Via metrics</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-              <tr>
-                <td>Command/query audit log</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-                <td class="no">None</td>
-              </tr>
-            </tbody>
-          </table>
+            <table>
+              <thead>
+                <tr>
+                  <th>Capability</th>
+                  <th>EventStoreDB</th>
+                  <th>Axon Platform</th>
+                  <th>Marten + CritterWatch</th>
+                  <th>Eventuous (.NET)</th>
+                  <th>Go CQRS (all)</th>
+                  <th>go-cqrs-lite (today)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Stream/event browser</td>
+                  <td class="yes">Full UI</td>
+                  <td class="no">Limited</td>
+                  <td class="yes">Explorer</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+                <tr>
+                  <td>Event inspection (payload + metadata)</td>
+                  <td class="yes">Full</td>
+                  <td class="no">Limited</td>
+                  <td class="yes">Full body</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+                <tr>
+                  <td>Projection management</td>
+                  <td class="yes">CRUD + debug</td>
+                  <td class="yes">Lifecycle</td>
+                  <td class="yes">Full lifecycle</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+                <tr>
+                  <td>Dead-letter queue viewer</td>
+                  <td class="yes">Replay parked</td>
+                  <td class="yes">Retry/delete</td>
+                  <td class="yes">Full explorer</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+                <tr>
+                  <td>Subscription/projection lag</td>
+                  <td class="yes">Config view</td>
+                  <td class="yes">Segments + latency</td>
+                  <td class="yes">Grid + stall detection</td>
+                  <td>OTel only</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+                <tr>
+                  <td>Replay / reset</td>
+                  <td class="yes">Reset + parked replay</td>
+                  <td class="yes">Reset + progress</td>
+                  <td class="yes">Rebuild + rewind</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+                <tr>
+                  <td>Time-travel</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+                <tr>
+                  <td>Correlation tracing</td>
+                  <td class="no">None</td>
+                  <td class="yes">Via metrics</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+                <tr>
+                  <td>Command/query audit log</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                  <td class="no">None</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           <div class="callout callout-amber">
@@ -648,35 +1072,44 @@
               <div class="check">+</div>
               <div class="text">
                 <strong>One-call mount (CritterWatch pattern)</strong>
-                <span>SignalR-connected dashboard drops into any ASP.NET app with one line. Our
-                <code>adminui/</code> already follows this pattern &mdash; <code>dashboardui/</code>
-                must too.</span>
+                <span
+                  >SignalR-connected dashboard drops into any ASP.NET app with one line. Our
+                  <code>adminui/</code> already follows this pattern &mdash;
+                  <code>dashboardui/</code> must too.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Live tailing via SSE (EventStoreDB)</strong>
-                <span>The stream browser pauses/resumes live event arrivals. cqrs-htmx already has
-                full SSE support (<code>Broadcaster</code>, <code>SSEStream</code>,
-                <code>JournalSSEStore</code>).</span>
+                <span
+                  >The stream browser pauses/resumes live event arrivals. cqrs-htmx already has full
+                  SSE support (<code>Broadcaster</code>, <code>SSEStream</code>,
+                  <code>JournalSSEStore</code>).</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>DLQ with replay + edit-and-replay (CritterWatch)</strong>
-                <span>The killer feature: inspect a poisoned message, see the full stack trace,
-                edit the JSON, and replay &mdash; all from the UI. go-cqrs-lite has
-                <code>Host.ReplayDeadLetters()</code> already.</span>
+                <span
+                  >The killer feature: inspect a poisoned message, see the full stack trace, edit
+                  the JSON, and replay &mdash; all from the UI. go-cqrs-lite has
+                  <code>Host.ReplayDeadLetters()</code> already.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Projection health grid (CritterWatch)</strong>
-                <span>All projections in one table with status, lag, progress percentage, stall
-                detection. <code>projectionhost.Host.Status()</code> returns exactly this data.</span>
+                <span
+                  >All projections in one table with status, lag, progress percentage, stall
+                  detection. <code>projectionhost.Host.Status()</code> returns exactly this
+                  data.</span
+                >
               </div>
             </div>
           </div>
@@ -686,9 +1119,10 @@
         <section id="api-surface">
           <h2><span class="num">03</span>Introspection API &mdash; Already Complete</h2>
           <p>
-            The most important finding: <strong>go-cqrs-lite already exposes every interface the
-            dashboard needs.</strong> Zero new core APIs need to be built. The dashboard is purely
-            a consumer of existing interfaces.
+            The most important finding:
+            <strong>go-cqrs-lite already exposes every interface the dashboard needs.</strong> Zero
+            new core APIs need to be built. The dashboard is purely a consumer of existing
+            interfaces.
           </p>
 
           <h3>Event inspection</h3>
@@ -797,8 +1231,8 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
           <div class="callout callout-teal">
             <strong>Bottom line</strong>
             Every single piece of data the dashboard needs is already exposed through a clean,
-            interface-segregated API. The dashboard is a pure consumer &mdash; no new core APIs,
-            no new store methods, no changes to go-cqrs-lite.
+            interface-segregated API. The dashboard is a pure consumer &mdash; no new core APIs, no
+            new store methods, no changes to go-cqrs-lite.
           </div>
         </section>
 
@@ -810,42 +1244,59 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
           <div class="grid-3">
             <div class="card card-problem">
               <h4>Option A: go-cqrs-lite module</h4>
-              <p><strong>Rejected.</strong> go-cqrs-lite is "library, not framework" &mdash; no
-              transport, no HTTP, no templ, no HTMX. A dashboard is fundamentally an HTTP UI.
-              Adding it here would violate the core design principle and pollute the dependency
-              tree of a pure library.</p>
+              <p>
+                <strong>Rejected.</strong> go-cqrs-lite is "library, not framework" &mdash; no
+                transport, no HTTP, no templ, no HTMX. A dashboard is fundamentally an HTTP UI.
+                Adding it here would violate the core design principle and pollute the dependency
+                tree of a pure library.
+              </p>
             </div>
             <div class="card card-solution">
               <h4>Option B: dashboardui/ in cqrs-htmx</h4>
-              <p><strong>Recommended.</strong> cqrs-htmx is the HTTP/HTMX layer. It already has
-              <code>adminui/</code> following this exact pattern. The dashboard depends on
-              cqrs-htmx (HTMX, SSE, templ, routing) AND go-cqrs-lite (introspection interfaces).
-              Placing it here follows the established architecture.</p>
+              <p>
+                <strong>Recommended.</strong> cqrs-htmx is the HTTP/HTMX layer. It already has
+                <code>adminui/</code> following this exact pattern. The dashboard depends on
+                cqrs-htmx (HTMX, SSE, templ, routing) AND go-cqrs-lite (introspection interfaces).
+                Placing it here follows the established architecture.
+              </p>
             </div>
             <div class="card card-warning">
               <h4>Option C: Independent repo</h4>
-              <p><strong>Rejected.</strong> A separate repo adds release coordination overhead,
-              version drift risk, and import complexity with zero benefit. The module has a clean
-              dependency chain (cqrs-htmx root + go-cqrs-lite core). It belongs in cqrs-htmx as
-              a sibling to <code>adminui/</code>.</p>
+              <p>
+                <strong>Rejected.</strong> A separate repo adds release coordination overhead,
+                version drift risk, and import complexity with zero benefit. The module has a clean
+                dependency chain (cqrs-htmx root + go-cqrs-lite core). It belongs in cqrs-htmx as a
+                sibling to <code>adminui/</code>.
+              </p>
             </div>
           </div>
 
           <h3>Module dependency graph</h3>
-          <div class="dep-tree"><span class="root">cqrs-htmx/</span>
-├── <span class="ok">v4 (root)</span>                    <span class="tok-comment"># HTMX, SSE, templ, routing, authz</span>
-├── <span class="ok">usermgmt/v4</span>                  <span class="tok-comment"># Event-sourced user management</span>
-├── <span class="ok">adminui/v4</span>                   <span class="tok-comment"># User/tenant admin panel (existing)</span>
-├── <span class="root">dashboardui/v4</span>             <span class="tok-comment"># CQRS/ES observability dashboard (PROPOSED)</span>
-│   ├── depends on: <span class="ok">cqrs-htmx/v4</span>          <span class="tok-comment"># HTMX patterns, SSE, templ integration</span>
-│   ├── depends on: <span class="ok">go-cqrs-lite/event/v4</span>   <span class="tok-comment"># EventSource, Journal, SeekableJournal</span>
-│   ├── depends on: <span class="ok">go-cqrs-lite/command/v4</span> <span class="tok-comment"># CommandJournal (optional)</span>
-│   ├── depends on: <span class="ok">go-cqrs-lite/query/v4</span>   <span class="tok-comment"># QueryJournal (optional)</span>
-│   ├── depends on: <span class="ok">go-cqrs-lite/listing/v4</span> <span class="tok-comment"># StreamReader (optional)</span>
-│   ├── depends on: <span class="ok">go-cqrs-lite/projectionhost/v4</span> <span class="tok-comment"># Host, DeadLetterStore (optional)</span>
-│   └── depends on: <span class="ok">go-cqrs-lite/snapshot/v4</span> <span class="tok-comment"># SnapshotStore (optional)</span>
-├── loginpage/v4
-└── examples/</div>
+          <div class="dep-tree">
+            <span class="root">cqrs-htmx/</span> ├── <span class="ok">v4 (root)</span>
+            <span class="tok-comment"># HTMX, SSE, templ, routing, authz</span> ├──
+            <span class="ok">usermgmt/v4</span>
+            <span class="tok-comment"># Event-sourced user management</span> ├──
+            <span class="ok">adminui/v4</span>
+            <span class="tok-comment"># User/tenant admin panel (existing)</span> ├──
+            <span class="root">dashboardui/v4</span>
+            <span class="tok-comment"># CQRS/ES observability dashboard (PROPOSED)</span> │ ├──
+            depends on: <span class="ok">cqrs-htmx/v4</span>
+            <span class="tok-comment"># HTMX patterns, SSE, templ integration</span> │ ├── depends
+            on: <span class="ok">go-cqrs-lite/event/v4</span>
+            <span class="tok-comment"># EventSource, Journal, SeekableJournal</span> │ ├── depends
+            on: <span class="ok">go-cqrs-lite/command/v4</span>
+            <span class="tok-comment"># CommandJournal (optional)</span> │ ├── depends on:
+            <span class="ok">go-cqrs-lite/query/v4</span>
+            <span class="tok-comment"># QueryJournal (optional)</span> │ ├── depends on:
+            <span class="ok">go-cqrs-lite/listing/v4</span>
+            <span class="tok-comment"># StreamReader (optional)</span> │ ├── depends on:
+            <span class="ok">go-cqrs-lite/projectionhost/v4</span>
+            <span class="tok-comment"># Host, DeadLetterStore (optional)</span> │ └── depends on:
+            <span class="ok">go-cqrs-lite/snapshot/v4</span>
+            <span class="tok-comment"># SnapshotStore (optional)</span> ├── loginpage/v4 └──
+            examples/
+          </div>
 
           <div class="callout callout-teal">
             <strong>Why this works</strong>
@@ -867,82 +1318,82 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
 
           <h3>Panel inventory</h3>
           <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Panel</th>
-                <th>Primary Interface</th>
-                <th>Phase</th>
-                <th>Key Capability</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td><strong>Overview Dashboard</strong></td>
-                <td>All available</td>
-                <td><span class="badge badge-critical">P1</span></td>
-                <td>Summary cards: events, aggregates, projections, DLQ depth</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td><strong>Event Stream Browser</strong></td>
-                <td><code>SeekableJournal</code></td>
-                <td><span class="badge badge-critical">P1</span></td>
-                <td>Global paginated event log with live SSE tail</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td><strong>Aggregate Browser</strong></td>
-                <td><code>listing.StreamReader</code></td>
-                <td><span class="badge badge-critical">P1</span></td>
-                <td>List/search aggregates, click into event timeline</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td><strong>Projection Dashboard</strong></td>
-                <td><code>projectionhost.Host</code></td>
-                <td><span class="badge badge-critical">P1</span></td>
-                <td>Status, lag, processed/errors, reset</td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td><strong>Dead-Letter Queue</strong></td>
-                <td><code>DeadLetterStore</code></td>
-                <td><span class="badge badge-critical">P1</span></td>
-                <td>Inspect, replay, delete poisoned messages</td>
-              </tr>
-              <tr>
-                <td>6</td>
-                <td><strong>Command/Query Audit</strong></td>
-                <td><code>CommandJournal</code> / <code>QueryJournal</code></td>
-                <td><span class="badge badge-high">P2</span></td>
-                <td>Full dispatch audit trail with payloads</td>
-              </tr>
-              <tr>
-                <td>7</td>
-                <td><strong>Time-Travel Inspector</strong></td>
-                <td><code>EventSource.LoadToVersion</code></td>
-                <td><span class="badge badge-high">P2</span></td>
-                <td>Scrub through aggregate versions, reconstruct state</td>
-              </tr>
-              <tr>
-                <td>8</td>
-                <td><strong>Correlation Trace</strong></td>
-                <td>Event metadata</td>
-                <td><span class="badge badge-medium">P3</span></td>
-                <td>Visualize command&rarr;event&rarr;derived-command causal chain</td>
-              </tr>
-              <tr>
-                <td>9</td>
-                <td><strong>Snapshot Inspector</strong></td>
-                <td><code>snapshot.SnapshotStore</code></td>
-                <td><span class="badge badge-medium">P3</span></td>
-                <td>View/delete snapshots per aggregate</td>
-              </tr>
-            </tbody>
-          </table>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Panel</th>
+                  <th>Primary Interface</th>
+                  <th>Phase</th>
+                  <th>Key Capability</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td><strong>Overview Dashboard</strong></td>
+                  <td>All available</td>
+                  <td><span class="badge badge-critical">P1</span></td>
+                  <td>Summary cards: events, aggregates, projections, DLQ depth</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><strong>Event Stream Browser</strong></td>
+                  <td><code>SeekableJournal</code></td>
+                  <td><span class="badge badge-critical">P1</span></td>
+                  <td>Global paginated event log with live SSE tail</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><strong>Aggregate Browser</strong></td>
+                  <td><code>listing.StreamReader</code></td>
+                  <td><span class="badge badge-critical">P1</span></td>
+                  <td>List/search aggregates, click into event timeline</td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td><strong>Projection Dashboard</strong></td>
+                  <td><code>projectionhost.Host</code></td>
+                  <td><span class="badge badge-critical">P1</span></td>
+                  <td>Status, lag, processed/errors, reset</td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td><strong>Dead-Letter Queue</strong></td>
+                  <td><code>DeadLetterStore</code></td>
+                  <td><span class="badge badge-critical">P1</span></td>
+                  <td>Inspect, replay, delete poisoned messages</td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td><strong>Command/Query Audit</strong></td>
+                  <td><code>CommandJournal</code> / <code>QueryJournal</code></td>
+                  <td><span class="badge badge-high">P2</span></td>
+                  <td>Full dispatch audit trail with payloads</td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td><strong>Time-Travel Inspector</strong></td>
+                  <td><code>EventSource.LoadToVersion</code></td>
+                  <td><span class="badge badge-high">P2</span></td>
+                  <td>Scrub through aggregate versions, reconstruct state</td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td><strong>Correlation Trace</strong></td>
+                  <td>Event metadata</td>
+                  <td><span class="badge badge-medium">P3</span></td>
+                  <td>Visualize command&rarr;event&rarr;derived-command causal chain</td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td><strong>Snapshot Inspector</strong></td>
+                  <td><code>snapshot.SnapshotStore</code></td>
+                  <td><span class="badge badge-medium">P3</span></td>
+                  <td>View/delete snapshots per aggregate</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           <!-- Panel details -->
@@ -952,40 +1403,59 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
             <p><strong>Data sources:</strong> All available interfaces, summarized.</p>
             <p><strong>Contains:</strong></p>
             <ul>
-              <li><strong>Summary stat cards:</strong> total events (from Journal count), total
-              aggregates (from StreamReader), active projections (from Host.Status), DLQ depth
-              (from DeadLetterStoreAdmin.Count)</li>
-              <li><strong>Projection health strip:</strong> green/yellow/red per projection based
-              on lag threshold (from <code>Host.LagPerProjection()</code>)</li>
-              <li><strong>Recent events:</strong> last 10 events (from
-              <code>SeekableJournal.ReadFrom</code> with limit)</li>
-              <li><strong>Recent dead letters:</strong> last 5 DLQ entries across all projections</li>
+              <li>
+                <strong>Summary stat cards:</strong> total events (from Journal count), total
+                aggregates (from StreamReader), active projections (from Host.Status), DLQ depth
+                (from DeadLetterStoreAdmin.Count)
+              </li>
+              <li>
+                <strong>Projection health strip:</strong> green/yellow/red per projection based on
+                lag threshold (from <code>Host.LagPerProjection()</code>)
+              </li>
+              <li>
+                <strong>Recent events:</strong> last 10 events (from
+                <code>SeekableJournal.ReadFrom</code> with limit)
+              </li>
+              <li>
+                <strong>Recent dead letters:</strong> last 5 DLQ entries across all projections
+              </li>
               <li><strong>System health:</strong> <code>Bundle.HealthCheck()</code> result</li>
             </ul>
-            <p><strong>Live updates:</strong> SSE push for new events and projection status changes.</p>
+            <p>
+              <strong>Live updates:</strong> SSE push for new events and projection status changes.
+            </p>
           </div>
 
           <h3>Panel 2 &mdash; Event Stream Browser (the crown jewel)</h3>
           <div class="card card-solution">
             <p><strong>Goal:</strong> Browse, search, and inspect every event in the system.</p>
-            <p><strong>Primary interface:</strong> <code>event.SeekableJournal.ReadFrom(ctx,
-            afterEventID, limit)</code> for paginated access. Falls back to
-            <code>Journal.ReadAll</code> for in-memory stores.</p>
+            <p>
+              <strong>Primary interface:</strong>
+              <code>event.SeekableJournal.ReadFrom(ctx, afterEventID, limit)</code> for paginated
+              access. Falls back to <code>Journal.ReadAll</code> for in-memory stores.
+            </p>
             <p><strong>Features:</strong></p>
             <ul>
-              <li><strong>Paginated event table:</strong> ULID-based cursor pagination via
-              <code>ReadFrom</code>. Columns: timestamp, event ID, type, stream ID, stream type,
-              version, schema version</li>
-              <li><strong>Filters:</strong> by aggregate type, event type, time range, correlation
-              ID (filters applied client-side on paginated results, or via custom journal
-              implementation)</li>
-              <li><strong>Event detail view:</strong> click any event to expand &mdash; shows
-              decoded payload (pretty-printed JSON via
-              <code>event.DecodePayloadAuto[T]</code>), full metadata (correlation ID, causation,
-              user ID, request ID, source IP, user agent, tombstone status, custom metadata),
-              encoding, deadline</li>
-              <li><strong>Live tail:</strong> SSE connection that pushes new events in real-time
-              (using cqrs-htmx's <code>Broadcaster</code> + <code>JournalSSEStore</code>)</li>
+              <li>
+                <strong>Paginated event table:</strong> ULID-based cursor pagination via
+                <code>ReadFrom</code>. Columns: timestamp, event ID, type, stream ID, stream type,
+                version, schema version
+              </li>
+              <li>
+                <strong>Filters:</strong> by aggregate type, event type, time range, correlation ID
+                (filters applied client-side on paginated results, or via custom journal
+                implementation)
+              </li>
+              <li>
+                <strong>Event detail view:</strong> click any event to expand &mdash; shows decoded
+                payload (pretty-printed JSON via <code>event.DecodePayloadAuto[T]</code>), full
+                metadata (correlation ID, causation, user ID, request ID, source IP, user agent,
+                tombstone status, custom metadata), encoding, deadline
+              </li>
+              <li>
+                <strong>Live tail:</strong> SSE connection that pushes new events in real-time
+                (using cqrs-htmx's <code>Broadcaster</code> + <code>JournalSSEStore</code>)
+              </li>
               <li><strong>Pause/resume:</strong> like EventStoreDB's stream browser</li>
             </ul>
           </div>
@@ -993,41 +1463,60 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
           <h3>Panel 3 &mdash; Aggregate Browser</h3>
           <div class="card">
             <p><strong>Goal:</strong> List, filter, and drill into aggregates.</p>
-            <p><strong>Primary interface:</strong>
-            <code>listing.StreamReader.ListWithStatus(ctx, opts)</code></p>
+            <p>
+              <strong>Primary interface:</strong>
+              <code>listing.StreamReader.ListWithStatus(ctx, opts)</code>
+            </p>
             <p><strong>Features:</strong></p>
             <ul>
-              <li><strong>Aggregate table:</strong> ID, type, current version, event count, last
-              event timestamp, tombstone status (active/tombstoned)</li>
-              <li><strong>Filters:</strong> by stream type (dropdown populated from observed
-              types), tombstone policy (all/active-only/deleted-only), pagination via
-              <code>ListOptions.After</code> + <code>ListOptions.Limit</code></li>
-              <li><strong>Aggregate detail:</strong> click into an aggregate &mdash; shows the full
-              event timeline (via <code>EventSource.Load</code>), current state summary, snapshot
-              info (if available), tombstone history</li>
-              <li><strong>Auto-creation:</strong> if no <code>StreamReader</code> is configured,
-              the dashboard auto-creates an <code>InMemoryStreamReader</code> from the journal</li>
+              <li>
+                <strong>Aggregate table:</strong> ID, type, current version, event count, last event
+                timestamp, tombstone status (active/tombstoned)
+              </li>
+              <li>
+                <strong>Filters:</strong> by stream type (dropdown populated from observed types),
+                tombstone policy (all/active-only/deleted-only), pagination via
+                <code>ListOptions.After</code> + <code>ListOptions.Limit</code>
+              </li>
+              <li>
+                <strong>Aggregate detail:</strong> click into an aggregate &mdash; shows the full
+                event timeline (via <code>EventSource.Load</code>), current state summary, snapshot
+                info (if available), tombstone history
+              </li>
+              <li>
+                <strong>Auto-creation:</strong> if no <code>StreamReader</code> is configured, the
+                dashboard auto-creates an <code>InMemoryStreamReader</code> from the journal
+              </li>
             </ul>
           </div>
 
           <h3>Panel 4 &mdash; Projection Dashboard</h3>
           <div class="card card-solution">
             <p><strong>Goal:</strong> Monitor and manage projection health.</p>
-            <p><strong>Primary interface:</strong>
-            <code>projectionhost.Host.Status()</code>,
-            <code>Host.LagPerProjection()</code></p>
+            <p>
+              <strong>Primary interface:</strong> <code>projectionhost.Host.Status()</code>,
+              <code>Host.LagPerProjection()</code>
+            </p>
             <p><strong>Features:</strong></p>
             <ul>
-              <li><strong>Projection grid:</strong> one row per projection showing name, status
-              (idle/running/live/backoff/draining/stopped/failed), checkpoint position, processed
-              count, error count, restart count, lag duration, last error</li>
-              <li><strong>Color-coded status:</strong> green (running/live), yellow (idle/backoff),
-              red (stopped/failed)</li>
-              <li><strong>Lag visualization:</strong> human-readable lag ("2.3s behind", "caught
-              up") with trend indicator</li>
-              <li><strong>Reset projection:</strong> button to call
-              <code>Host.Reset(ctx, name)</code> &mdash; replays from beginning. Confirmation
-              dialog. Behind <code>ReadOnly = false</code> opt-in.</li>
+              <li>
+                <strong>Projection grid:</strong> one row per projection showing name, status
+                (idle/running/live/backoff/draining/stopped/failed), checkpoint position, processed
+                count, error count, restart count, lag duration, last error
+              </li>
+              <li>
+                <strong>Color-coded status:</strong> green (running/live), yellow (idle/backoff),
+                red (stopped/failed)
+              </li>
+              <li>
+                <strong>Lag visualization:</strong> human-readable lag ("2.3s behind", "caught up")
+                with trend indicator
+              </li>
+              <li>
+                <strong>Reset projection:</strong> button to call
+                <code>Host.Reset(ctx, name)</code> &mdash; replays from beginning. Confirmation
+                dialog. Behind <code>ReadOnly = false</code> opt-in.
+              </li>
               <li><strong>Live updates:</strong> SSE push for status changes</li>
             </ul>
           </div>
@@ -1035,72 +1524,104 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
           <h3>Panel 5 &mdash; Dead-Letter Queue Viewer</h3>
           <div class="card card-solution">
             <p><strong>Goal:</strong> Inspect, replay, and manage poisoned messages.</p>
-            <p><strong>Primary interface:</strong>
-            <code>DeadLetterStoreAdmin.ListPaged</code>,
-            <code>DeadLetterStoreAdmin.Count</code>,
-            <code>Host.ReplayDeadLetters</code></p>
+            <p>
+              <strong>Primary interface:</strong> <code>DeadLetterStoreAdmin.ListPaged</code>,
+              <code>DeadLetterStoreAdmin.Count</code>, <code>Host.ReplayDeadLetters</code>
+            </p>
             <p><strong>Features:</strong></p>
             <ul>
-              <li><strong>DLQ summary:</strong> total count across all projections (from
-              <code>Count</code>)</li>
-              <li><strong>Per-projection filter:</strong> select projection to view its dead
-              letters</li>
-              <li><strong>Dead-letter table:</strong> event ID, event type, stream ID, error
-              message, error code, error family (5-family taxonomy), failed timestamp</li>
-              <li><strong>Detail view:</strong> full event payload + metadata + stack trace (the
-              <code>DeadLetterEntry.Event</code> field contains the full event)</li>
-              <li><strong>Replay:</strong> button to call
-              <code>Host.ReplayDeadLetters(ctx, projectionName)</code> &mdash; replays all dead
-              letters for that projection. Shows <code>ReplayResult</code> (replayed vs still
-              failing).</li>
-              <li><strong>Delete/Purge:</strong> individual delete
-              (<code>DeadLetterStore.Delete</code>), purge all
-              (<code>DeadLetterStore.Purge</code>), purge before timestamp
-              (<code>DeadLetterStoreAdmin.PurgeBefore</code>). Behind
-              <code>ReadOnly = false</code>.</li>
+              <li>
+                <strong>DLQ summary:</strong> total count across all projections (from
+                <code>Count</code>)
+              </li>
+              <li>
+                <strong>Per-projection filter:</strong> select projection to view its dead letters
+              </li>
+              <li>
+                <strong>Dead-letter table:</strong> event ID, event type, stream ID, error message,
+                error code, error family (5-family taxonomy), failed timestamp
+              </li>
+              <li>
+                <strong>Detail view:</strong> full event payload + metadata + stack trace (the
+                <code>DeadLetterEntry.Event</code> field contains the full event)
+              </li>
+              <li>
+                <strong>Replay:</strong> button to call
+                <code>Host.ReplayDeadLetters(ctx, projectionName)</code> &mdash; replays all dead
+                letters for that projection. Shows <code>ReplayResult</code> (replayed vs still
+                failing).
+              </li>
+              <li>
+                <strong>Delete/Purge:</strong> individual delete
+                (<code>DeadLetterStore.Delete</code>), purge all
+                (<code>DeadLetterStore.Purge</code>), purge before timestamp
+                (<code>DeadLetterStoreAdmin.PurgeBefore</code>). Behind
+                <code>ReadOnly = false</code>.
+              </li>
             </ul>
           </div>
 
           <h3>Panel 6 &mdash; Command/Query Audit Log</h3>
           <div class="card">
             <p><strong>Goal:</strong> Full audit trail of every dispatched command and query.</p>
-            <p><strong>Primary interfaces:</strong>
-            <code>command.SeekableCommandJournal.ReadFrom</code>,
-            <code>query.SeekableQueryJournal.ReadQueriesFrom</code></p>
+            <p>
+              <strong>Primary interfaces:</strong>
+              <code>command.SeekableCommandJournal.ReadFrom</code>,
+              <code>query.SeekableQueryJournal.ReadQueriesFrom</code>
+            </p>
             <p><strong>Features:</strong></p>
             <ul>
-              <li><strong>Command log table:</strong> timestamp, command ID, type, stream ref,
-              payload summary, metadata (user, correlation, request ID)</li>
-              <li><strong>Query log table:</strong> timestamp, request ID, type, payload summary,
-              metadata</li>
+              <li>
+                <strong>Command log table:</strong> timestamp, command ID, type, stream ref, payload
+                summary, metadata (user, correlation, request ID)
+              </li>
+              <li>
+                <strong>Query log table:</strong> timestamp, request ID, type, payload summary,
+                metadata
+              </li>
               <li><strong>Detail view:</strong> full decoded payload + metadata</li>
-              <li><strong>Cross-link:</strong> click a command's causation ID to jump to the events
-              it produced (links to the Event Stream Browser filtered by causation ID)</li>
+              <li>
+                <strong>Cross-link:</strong> click a command's causation ID to jump to the events it
+                produced (links to the Event Stream Browser filtered by causation ID)
+              </li>
             </ul>
-            <p><strong>Note:</strong> only appears if the consumer has wired a CommandStore or
-            QueryStore. Most consumers don't persist queries &mdash; that panel gracefully hides.</p>
+            <p>
+              <strong>Note:</strong> only appears if the consumer has wired a CommandStore or
+              QueryStore. Most consumers don't persist queries &mdash; that panel gracefully hides.
+            </p>
           </div>
 
           <h3>Panel 7 &mdash; Time-Travel Inspector</h3>
           <div class="card card-warning">
-            <p><strong>Goal:</strong> Scrub through aggregate history and reconstruct state at any
-            point in time.</p>
-            <p><strong>Primary interfaces:</strong>
-            <code>EventSource.LoadToVersion</code>,
-            <code>EventSource.LoadToTimestamp</code></p>
+            <p>
+              <strong>Goal:</strong> Scrub through aggregate history and reconstruct state at any
+              point in time.
+            </p>
+            <p>
+              <strong>Primary interfaces:</strong> <code>EventSource.LoadToVersion</code>,
+              <code>EventSource.LoadToTimestamp</code>
+            </p>
             <p><strong>Features:</strong></p>
             <ul>
-              <li><strong>Version slider:</strong> for any aggregate, a slider from version 1 to
-              current version. Move the slider to see the aggregate's event timeline up to that
-              point.</li>
-              <li><strong>State reconstruction:</strong> if the consumer provides a fold function
-              (<code>decider.Decider[State].Fold</code>), the dashboard reconstructs and displays
-              the aggregate state at the selected version. This is the killer feature no
-              competitor has.</li>
-              <li><strong>Timestamp navigation:</strong> alternatively pick a timestamp and load
-              via <code>LoadToTimestamp</code></li>
-              <li><strong>Diff view:</strong> show what changed between the previous version and
-              the selected version (which events were added)</li>
+              <li>
+                <strong>Version slider:</strong> for any aggregate, a slider from version 1 to
+                current version. Move the slider to see the aggregate's event timeline up to that
+                point.
+              </li>
+              <li>
+                <strong>State reconstruction:</strong> if the consumer provides a fold function
+                (<code>decider.Decider[State].Fold</code>), the dashboard reconstructs and displays
+                the aggregate state at the selected version. This is the killer feature no
+                competitor has.
+              </li>
+              <li>
+                <strong>Timestamp navigation:</strong> alternatively pick a timestamp and load via
+                <code>LoadToTimestamp</code>
+              </li>
+              <li>
+                <strong>Diff view:</strong> show what changed between the previous version and the
+                selected version (which events were added)
+              </li>
             </ul>
             <div class="callout callout-amber">
               <strong>Unique differentiator</strong>
@@ -1112,38 +1633,55 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
 
           <h3>Panel 8 &mdash; Correlation Trace</h3>
           <div class="card card-warning">
-            <p><strong>Goal:</strong> Visualize the full causal chain: which command produced which
-            events, which events triggered derived commands, which derived commands produced more
-            events.</p>
-            <p><strong>Primary data:</strong> event metadata (<code>metadata.command.type</code>,
-            <code>metadata.command.id</code> via <code>event.CommandCausalityFromContext</code>),
-            correlation ID, causation ID</p>
+            <p>
+              <strong>Goal:</strong> Visualize the full causal chain: which command produced which
+              events, which events triggered derived commands, which derived commands produced more
+              events.
+            </p>
+            <p>
+              <strong>Primary data:</strong> event metadata (<code>metadata.command.type</code>,
+              <code>metadata.command.id</code> via <code>event.CommandCausalityFromContext</code>),
+              correlation ID, causation ID
+            </p>
             <p><strong>Features:</strong></p>
             <ul>
-              <li><strong>Trace view:</strong> start from any event or command. The dashboard walks
-              the journal to find all events sharing the same correlation ID, ordered by
-              occurrence time.</li>
-              <li><strong>Causal graph:</strong> visualize command &rarr; event &rarr; derived
-              command &rarr; event chains as a tree/timeline. The <code>deriver</code> module's
-              event&rarr;command derivation creates these chains; this panel makes them visible.</li>
-              <li><strong>Cross-panel links:</strong> every event in every panel has a "view trace"
-              link that jumps here</li>
+              <li>
+                <strong>Trace view:</strong> start from any event or command. The dashboard walks
+                the journal to find all events sharing the same correlation ID, ordered by
+                occurrence time.
+              </li>
+              <li>
+                <strong>Causal graph:</strong> visualize command &rarr; event &rarr; derived command
+                &rarr; event chains as a tree/timeline. The <code>deriver</code> module's
+                event&rarr;command derivation creates these chains; this panel makes them visible.
+              </li>
+              <li>
+                <strong>Cross-panel links:</strong> every event in every panel has a "view trace"
+                link that jumps here
+              </li>
             </ul>
           </div>
 
           <h3>Panel 9 &mdash; Snapshot Inspector</h3>
           <div class="card">
             <p><strong>Goal:</strong> View and manage aggregate snapshots.</p>
-            <p><strong>Primary interface:</strong>
-            <code>snapshot.SnapshotStore.Load</code>,
-            <code>SnapshotStore.Delete</code></p>
+            <p>
+              <strong>Primary interface:</strong> <code>snapshot.SnapshotStore.Load</code>,
+              <code>SnapshotStore.Delete</code>
+            </p>
             <p><strong>Features:</strong></p>
             <ul>
-              <li><strong>Snapshot list:</strong> for any aggregate, show snapshot version, state
-              size, creation timestamp</li>
-              <li><strong>State viewer:</strong> decode and pretty-print the snapshot state
-              (requires codec information)</li>
-              <li><strong>Delete:</strong> remove a snapshot (behind <code>ReadOnly = false</code>)</li>
+              <li>
+                <strong>Snapshot list:</strong> for any aggregate, show snapshot version, state
+                size, creation timestamp
+              </li>
+              <li>
+                <strong>State viewer:</strong> decode and pretty-print the snapshot state (requires
+                codec information)
+              </li>
+              <li>
+                <strong>Delete:</strong> remove a snapshot (behind <code>ReadOnly = false</code>)
+              </li>
             </ul>
           </div>
         </section>
@@ -1154,29 +1692,50 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
 
           <h3>Module structure</h3>
           <p>Following the <code>adminui/</code> pattern exactly:</p>
-          <div class="dep-tree">dashboardui/
-├── <span class="ok">go.mod</span>                        <span class="tok-comment"># independent module</span>
-├── <span class="ok">config.go</span>                     <span class="tok-comment"># Config struct, defaults, validation</span>
-├── <span class="ok">handler.go</span>                    <span class="tok-comment"># Handler, Mount(), routing, capability detection</span>
-├── <span class="ok">render.go</span>                     <span class="tok-comment"># page/partial render helpers</span>
-├── <span class="ok">assets.go</span>                     <span class="tok-comment"># embedded CSS + JS (self-contained)</span>
-├── <span class="ok">assets/</span>
-│   ├── dashboard.css              <span class="tok-comment"># self-contained stylesheet (no Tailwind)</span>
-│   └── dashboard.js               <span class="tok-comment"># minimal HTMX helpers</span>
-├── <span class="ok">data.go</span>                       <span class="tok-comment"># data aggregation: reads from interfaces, builds view models</span>
-├── <span class="ok">handler_events.go</span>             <span class="tok-comment"># Event Stream Browser handlers</span>
-├── <span class="ok">handler_aggregates.go</span>         <span class="tok-comment"># Aggregate Browser handlers</span>
-├── <span class="ok">handler_projections.go</span>        <span class="tok-comment"># Projection Dashboard handlers</span>
-├── <span class="ok">handler_dlq.go</span>                <span class="tok-comment"># Dead-Letter Queue handlers</span>
-├── <span class="ok">handler_audit.go</span>              <span class="tok-comment"># Command/Query Audit handlers</span>
-├── <span class="ok">handler_timetravel.go</span>         <span class="tok-comment"># Time-Travel Inspector handlers</span>
-├── <span class="ok">handler_trace.go</span>              <span class="tok-comment"># Correlation Trace handlers</span>
-├── <span class="ok">handler_snapshots.go</span>          <span class="tok-comment"># Snapshot Inspector handlers</span>
-├── <span class="ok">sse.go</span>                        <span class="tok-comment"># SSE live-update hub (event tail, projection status)</span>
-├── <span class="ok">*.templ</span>                       <span class="tok-comment"># templ components</span>
-├── <span class="ok">*_templ.go</span>                    <span class="tok-comment"># generated Go (committed)</span>
-├── <span class="ok">*_test.go</span>                     <span class="tok-comment"># handler + render tests</span>
-└── <span class="ok">README.md</span></div>
+          <div class="dep-tree">
+            dashboardui/ ├── <span class="ok">go.mod</span>
+            <span class="tok-comment"># independent module</span> ├──
+            <span class="ok">config.go</span>
+            <span class="tok-comment"># Config struct, defaults, validation</span> ├──
+            <span class="ok">handler.go</span>
+            <span class="tok-comment"># Handler, Mount(), routing, capability detection</span> ├──
+            <span class="ok">render.go</span>
+            <span class="tok-comment"># page/partial render helpers</span> ├──
+            <span class="ok">assets.go</span>
+            <span class="tok-comment"># embedded CSS + JS (self-contained)</span> ├──
+            <span class="ok">assets/</span> │ ├── dashboard.css
+            <span class="tok-comment"># self-contained stylesheet (no Tailwind)</span> │ └──
+            dashboard.js <span class="tok-comment"># minimal HTMX helpers</span> ├──
+            <span class="ok">data.go</span>
+            <span class="tok-comment"
+              ># data aggregation: reads from interfaces, builds view models</span
+            >
+            ├── <span class="ok">handler_events.go</span>
+            <span class="tok-comment"># Event Stream Browser handlers</span> ├──
+            <span class="ok">handler_aggregates.go</span>
+            <span class="tok-comment"># Aggregate Browser handlers</span> ├──
+            <span class="ok">handler_projections.go</span>
+            <span class="tok-comment"># Projection Dashboard handlers</span> ├──
+            <span class="ok">handler_dlq.go</span>
+            <span class="tok-comment"># Dead-Letter Queue handlers</span> ├──
+            <span class="ok">handler_audit.go</span>
+            <span class="tok-comment"># Command/Query Audit handlers</span> ├──
+            <span class="ok">handler_timetravel.go</span>
+            <span class="tok-comment"># Time-Travel Inspector handlers</span> ├──
+            <span class="ok">handler_trace.go</span>
+            <span class="tok-comment"># Correlation Trace handlers</span> ├──
+            <span class="ok">handler_snapshots.go</span>
+            <span class="tok-comment"># Snapshot Inspector handlers</span> ├──
+            <span class="ok">sse.go</span>
+            <span class="tok-comment"># SSE live-update hub (event tail, projection status)</span>
+            ├── <span class="ok">*.templ</span>
+            <span class="tok-comment"># templ components</span> ├──
+            <span class="ok">*_templ.go</span>
+            <span class="tok-comment"># generated Go (committed)</span> ├──
+            <span class="ok">*_test.go</span>
+            <span class="tok-comment"># handler + render tests</span> └──
+            <span class="ok">README.md</span>
+          </div>
 
           <h3>Capability detection</h3>
           <p>
@@ -1225,9 +1784,9 @@ bundle.<span class="tok-func">HealthCheck</span>(ctx)    <span class="tok-commen
 
           <h3>SSE live updates</h3>
           <p>
-            The dashboard uses cqrs-htmx's existing SSE infrastructure for real-time updates.
-            No new SSE code is needed &mdash; it composes <code>Broadcaster</code>,
-            <code>SSEStream</code>, and the optional <code>JournalSSEStore</code>.
+            The dashboard uses cqrs-htmx's existing SSE infrastructure for real-time updates. No new
+            SSE code is needed &mdash; it composes <code>Broadcaster</code>, <code>SSEStream</code>,
+            and the optional <code>JournalSSEStore</code>.
           </p>
           <pre><code><span class="tok-comment">// In handler.go: SSE hub for live updates</span>
 <span class="tok-comment">// Three channels:</span>
@@ -1343,97 +1902,86 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
               <div class="check">+</div>
               <div class="text">
                 <strong>Follow adminui/ exactly</strong>
-                <span>templ components, self-contained stylesheet (no Tailwind, no build step),
-                automatic light/dark theming, configurable accent color. The generated Go is
-                committed so consumers never run a code generator.</span>
+                <span
+                  >templ components, self-contained stylesheet (no Tailwind, no build step),
+                  automatic light/dark theming, configurable accent color. The generated Go is
+                  committed so consumers never run a code generator.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>HTMX-driven interactivity</strong>
-                <span>Live search, inline actions, SSE for real-time updates. No React, no SPA,
-                no client-side routing. Just HTMX partial swaps.</span>
+                <span
+                  >Live search, inline actions, SSE for real-time updates. No React, no SPA, no
+                  client-side routing. Just HTMX partial swaps.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Read-only by default</strong>
-                <span>Observation is the default mode. Write operations (reset, replay, purge)
-                require explicit <code>ReadOnly = false</code> and show confirmation dialogs.</span>
+                <span
+                  >Observation is the default mode. Write operations (reset, replay, purge) require
+                  explicit <code>ReadOnly = false</code> and show confirmation dialogs.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
                 <strong>Density over decoration</strong>
-                <span>Developers use this to debug. Information density matters more than
-                whitespace. Tables, monospace timestamps, color-coded status badges.</span>
+                <span
+                  >Developers use this to debug. Information density matters more than whitespace.
+                  Tables, monospace timestamps, color-coded status badges.</span
+                >
               </div>
             </div>
           </div>
 
           <h3>Page layout (wireframe)</h3>
-          <div class="dep-tree">┌──────────────────────────────────────────────────────────┐
-│  [≡] CQRS Dashboard                    user@host  [Logout] │
-├──────────┬───────────────────────────────────────────────────┤
-│ Overview │  <span class="ok">Page content area</span>                                   │
-│ Events   │                                                   │
-│ Aggregat.│                                                   │
-│ Project. │                                                   │
-│ Dead Lt. │                                                   │
-│ Commands │                                                   │
-│ Queries  │                                                   │
-│ Time-Tv. │                                                   │
-│ Trace    │                                                   │
-│ Snapshot │                                                   │
-│          │                                                   │
-│ [SSE ●]  │                                                   │
-└──────────┴───────────────────────────────────────────────────┘
-   <span class="tok-comment">Sidebar: built from available capabilities</span>
-   <span class="tok-comment">SSE indicator: green = connected, red = disconnected</span></div>
+          <div class="dep-tree">
+            ┌──────────────────────────────────────────────────────────┐ │ [≡] CQRS Dashboard
+            user@host [Logout] │ ├──────────┬───────────────────────────────────────────────────┤ │
+            Overview │ <span class="ok">Page content area</span> │ │ Events │ │ │ Aggregat.│ │ │
+            Project. │ │ │ Dead Lt. │ │ │ Commands │ │ │ Queries │ │ │ Time-Tv. │ │ │ Trace │ │ │
+            Snapshot │ │ │ │ │ │ [SSE ●] │ │
+            └──────────┴───────────────────────────────────────────────────┘
+            <span class="tok-comment">Sidebar: built from available capabilities</span>
+            <span class="tok-comment">SSE indicator: green = connected, red = disconnected</span>
+          </div>
 
           <h3>Overview page wireframe</h3>
-          <div class="dep-tree">┌─────────────┬─────────────┬─────────────┬─────────────┐
-│  1,247      │  43         │  5 active   │  2 dead     │
-│  Events     │  Aggregates │  Projections│  Letters    │
-├─────────────┴─────────────┴─────────────┴─────────────┤
-│  Projection Health                                    │
-│  ● user_projection    caught up     0s lag            │
-│  ● audit_projection   caught up     0s lag            │
-│  ● search_index       <span class="unwanted">BACKOFF</span>      4.2s lag           │
-├───────────────────────────────────────────────────────┤
-│  Recent Events (live)                          [⏸]    │
-│  2026-07-23 19:27  user.created    usr_01HX... v1    │
-│  2026-07-23 19:26  user.emailchg.  usr_01HX... v3    │
-│  2026-07-23 19:25  tenant.created  tnt_01HX... v1    │
-├───────────────────────────────────────────────────────┤
-│  Recent Dead Letters                                 │
-│  2026-07-23 19:20  search_index  parse error in evt  │
-└───────────────────────────────────────────────────────┘</div>
+          <div class="dep-tree">
+            ┌─────────────┬─────────────┬─────────────┬─────────────┐ │ 1,247 │ 43 │ 5 active │ 2
+            dead │ │ Events │ Aggregates │ Projections│ Letters │
+            ├─────────────┴─────────────┴─────────────┴─────────────┤ │ Projection Health │ │ ●
+            user_projection caught up 0s lag │ │ ● audit_projection caught up 0s lag │ │ ●
+            search_index <span class="unwanted">BACKOFF</span> 4.2s lag │
+            ├───────────────────────────────────────────────────────┤ │ Recent Events (live) [⏸] │ │
+            2026-07-23 19:27 user.created usr_01HX... v1 │ │ 2026-07-23 19:26 user.emailchg.
+            usr_01HX... v3 │ │ 2026-07-23 19:25 tenant.created tnt_01HX... v1 │
+            ├───────────────────────────────────────────────────────┤ │ Recent Dead Letters │ │
+            2026-07-23 19:20 search_index parse error in evt │
+            └───────────────────────────────────────────────────────┘
+          </div>
 
           <h3>Event detail view (expanded row)</h3>
-          <div class="dep-tree">▼ 2026-07-23 19:27:42  user.created  evt_01HXK8M...  v1
-┌───────────────────────────────────────────────────────┐
-│  <span class="ok">Payload</span> (decoded via DecodePayloadAuto)             │
-│  {                                                    │
-│    "name": "Alice",                                   │
-│    "email": "alice@example.com"                       │
-│  }                                                    │
-│                                                       │
-│  <span class="ok">Metadata</span>                                            │
-│  correlation_id:  corr_01HXK8M...                     │
-│  command_type:    user.create                         │
-│  command_id:      cmd_01HXK8M...                      │
-│  user_id:         usr_01HWV2P...                      │
-│  request_id:      req_01HXK8M...                      │
-│  source:          :8080                               │
-│  schema_version:  1                                   │
-│  encoding:        cbor                                │
-│                                                       │
-│  [<span class="root">View trace</span>] [<span class="root">View aggregate</span>] [<span class="root">Time-travel</span>]     │
-└───────────────────────────────────────────────────────┘</div>
+          <div class="dep-tree">
+            ▼ 2026-07-23 19:27:42 user.created evt_01HXK8M... v1
+            ┌───────────────────────────────────────────────────────┐ │
+            <span class="ok">Payload</span> (decoded via DecodePayloadAuto) │ │ { │ │ "name":
+            "Alice", │ │ "email": "alice@example.com" │ │ } │ │ │ │
+            <span class="ok">Metadata</span> │ │ correlation_id: corr_01HXK8M... │ │ command_type:
+            user.create │ │ command_id: cmd_01HXK8M... │ │ user_id: usr_01HWV2P... │ │ request_id:
+            req_01HXK8M... │ │ source: :8080 │ │ schema_version: 1 │ │ encoding: cbor │ │ │ │ [<span
+              class="root"
+              >View trace</span
+            >] [<span class="root">View aggregate</span>] [<span class="root">Time-travel</span>] │
+            └───────────────────────────────────────────────────────┘
+          </div>
         </section>
 
         <!-- ==================== WHAT ELSE IS MISSING ==================== -->
@@ -1451,8 +1999,8 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <p>
               The existing <code>App.HealthHandler()</code> is a basic liveness check. A CQRS app
               needs a <strong>readiness</strong> check that answers: is the event store reachable?
-              Are projections caught up (<code>Host.LagDuration() &lt; threshold</code>)? Is the
-              DLQ depth below threshold? This composite check should be composable and expose a
+              Are projections caught up (<code>Host.LagDuration() &lt; threshold</code>)? Is the DLQ
+              depth below threshold? This composite check should be composable and expose a
               <code>/readyz</code> endpoint distinct from liveness.
             </p>
             <div class="callout callout-teal">
@@ -1466,14 +2014,16 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
           <div class="issue issue-important">
             <span class="severity severity-important">Gap &middot; Medium impact</span>
             <h3>CQRS admin CLI (cqrs-admin)</h3>
-            <div class="where">go-cqrs-lite/cmd/ &middot; sibling to cqrs-gen, cqrs-lint, cqrs-bench</div>
+            <div class="where">
+              go-cqrs-lite/cmd/ &middot; sibling to cqrs-gen, cqrs-lint, cqrs-bench
+            </div>
             <p>
               The dashboard covers interactive inspection. But for automation, CI/CD, and scripting,
               a CLI is needed: <code>cqrs-admin events list</code>,
               <code>cqrs-admin projections reset --name search_index</code>,
               <code>cqrs-admin dlq replay --projection search_index</code>,
-              <code>cqrs-admin aggregates list --type User</code>.
-              This mirrors how Marten has a projections CLI alongside CritterWatch.
+              <code>cqrs-admin aggregates list --type User</code>. This mirrors how Marten has a
+              projections CLI alongside CritterWatch.
             </p>
             <div class="callout callout-teal">
               <strong>Recommendation</strong>
@@ -1489,10 +2039,10 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="where">go-cqrs-lite/stack &middot; Bundle.Debug()</div>
             <p>
               <code>Bundle.Debug()</code> returns a human-readable string.
-              <code>Bundle.DebugStructured()</code> returns <code>map[string]bool</code>. Neither
-              is exposed as an HTTP endpoint. A <code>/debug/cqrs</code> JSON endpoint that dumps
-              system state (capabilities wired, event count, projection status, DLQ depth) would
-              be useful for programmatic monitoring and the dashboard's own overview page.
+              <code>Bundle.DebugStructured()</code> returns <code>map[string]bool</code>. Neither is
+              exposed as an HTTP endpoint. A <code>/debug/cqrs</code> JSON endpoint that dumps
+              system state (capabilities wired, event count, projection status, DLQ depth) would be
+              useful for programmatic monitoring and the dashboard's own overview page.
             </p>
           </div>
         </section>
@@ -1501,8 +2051,8 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
         <section id="plan">
           <h2><span class="num">10</span>Implementation Plan</h2>
           <p>
-            Three phases. Phase 1 delivers the core value (events + projections + DLQ). Phase 2
-            adds the differentiators (audit + time-travel). Phase 3 adds polish (trace + snapshots).
+            Three phases. Phase 1 delivers the core value (events + projections + DLQ). Phase 2 adds
+            the differentiators (audit + time-travel). Phase 3 adds polish (trace + snapshots).
           </p>
 
           <h3>Phase 1 &mdash; Core Dashboard (the 80% value)</h3>
@@ -1511,11 +2061,13 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">1</div>
             <div class="migration-content">
               <h4>Scaffold the module</h4>
-              <p>Create <code>dashboardui/</code> with go.mod, Config struct, Handler, Mount(),
-              capability detection, and the self-contained stylesheet. Copy the pattern from
-              <code>adminui/</code> verbatim. Write the <code>FromBundle()</code> constructor.
-              Write the overview page with summary stat cards. <strong>Verify:</strong> mount in
-              the taskmanager example, see the overview page with real data.</p>
+              <p>
+                Create <code>dashboardui/</code> with go.mod, Config struct, Handler, Mount(),
+                capability detection, and the self-contained stylesheet. Copy the pattern from
+                <code>adminui/</code> verbatim. Write the <code>FromBundle()</code> constructor.
+                Write the overview page with summary stat cards. <strong>Verify:</strong> mount in
+                the taskmanager example, see the overview page with real data.
+              </p>
             </div>
           </div>
 
@@ -1523,11 +2075,13 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">2</div>
             <div class="migration-content">
               <h4>Event Stream Browser</h4>
-              <p>Implement paginated event table (<code>SeekableJournal.ReadFrom</code>), event
-              detail view (decoded payload + metadata), and basic filters (by type, by aggregate
-              type). Add SSE live tail using <code>Broadcaster</code> + <code>SSEStream</code>.
-              <strong>Verify:</strong> create events in the taskmanager example, see them appear
-              live in the browser.</p>
+              <p>
+                Implement paginated event table (<code>SeekableJournal.ReadFrom</code>), event
+                detail view (decoded payload + metadata), and basic filters (by type, by aggregate
+                type). Add SSE live tail using <code>Broadcaster</code> + <code>SSEStream</code>.
+                <strong>Verify:</strong> create events in the taskmanager example, see them appear
+                live in the browser.
+              </p>
             </div>
           </div>
 
@@ -1535,12 +2089,13 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">3</div>
             <div class="migration-content">
               <h4>Aggregate Browser</h4>
-              <p>Implement <code>StreamReader</code> listing with type/tombstone filters,
-              pagination via <code>ListOptions</code>. Click into aggregate &rarr; event timeline
-              via <code>EventSource.Load</code>. Auto-create
-              <code>InMemoryStreamReader</code> from Journal if no reader configured.
-              <strong>Verify:</strong> browse User aggregates, click into one, see full event
-              history.</p>
+              <p>
+                Implement <code>StreamReader</code> listing with type/tombstone filters, pagination
+                via <code>ListOptions</code>. Click into aggregate &rarr; event timeline via
+                <code>EventSource.Load</code>. Auto-create <code>InMemoryStreamReader</code> from
+                Journal if no reader configured. <strong>Verify:</strong> browse User aggregates,
+                click into one, see full event history.
+              </p>
             </div>
           </div>
 
@@ -1548,12 +2103,14 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">4</div>
             <div class="migration-content">
               <h4>Projection Dashboard</h4>
-              <p>Implement projection grid from <code>Host.Status()</code>, color-coded status,
-              lag display from <code>Host.LagPerProjection()</code>. Add reset button behind
-              <code>ReadOnly = false</code> with confirmation dialog calling
-              <code>Host.Reset()</code>. Add SSE for status changes.
-              <strong>Verify:</strong> reset a projection in the taskmanager example, watch it
-              replay.</p>
+              <p>
+                Implement projection grid from <code>Host.Status()</code>, color-coded status, lag
+                display from <code>Host.LagPerProjection()</code>. Add reset button behind
+                <code>ReadOnly = false</code> with confirmation dialog calling
+                <code>Host.Reset()</code>. Add SSE for status changes.
+                <strong>Verify:</strong> reset a projection in the taskmanager example, watch it
+                replay.
+              </p>
             </div>
           </div>
 
@@ -1561,12 +2118,14 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">5</div>
             <div class="migration-content">
               <h4>Dead-Letter Queue Viewer</h4>
-              <p>Implement DLQ table from <code>DeadLetterStoreAdmin.ListPaged</code>, total count
-              from <code>Count</code>, detail view showing full event + error. Add replay button
-              (<code>Host.ReplayDeadLetters</code>) and delete/purge behind
-              <code>ReadOnly = false</code>. Show <code>ReplayResult</code> feedback.
-              <strong>Verify:</strong> inject a poison event, see it in DLQ, replay it, observe
-              the result.</p>
+              <p>
+                Implement DLQ table from <code>DeadLetterStoreAdmin.ListPaged</code>, total count
+                from <code>Count</code>, detail view showing full event + error. Add replay button
+                (<code>Host.ReplayDeadLetters</code>) and delete/purge behind
+                <code>ReadOnly = false</code>. Show <code>ReplayResult</code> feedback.
+                <strong>Verify:</strong> inject a poison event, see it in DLQ, replay it, observe
+                the result.
+              </p>
             </div>
           </div>
 
@@ -1576,11 +2135,12 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">6</div>
             <div class="migration-content">
               <h4>Command/Query Audit Log</h4>
-              <p>Implement command and query log tables from
-              <code>SeekableCommandJournal</code> / <code>SeekableQueryJournal</code>. Add detail
-              view with decoded payload + metadata. Cross-link commands to events via causation ID.
-              <strong>Verify:</strong> dispatch commands in taskmanager, see them in the audit log,
-              click through to events.</p>
+              <p>
+                Implement command and query log tables from <code>SeekableCommandJournal</code> /
+                <code>SeekableQueryJournal</code>. Add detail view with decoded payload + metadata.
+                Cross-link commands to events via causation ID. <strong>Verify:</strong> dispatch
+                commands in taskmanager, see them in the audit log, click through to events.
+              </p>
             </div>
           </div>
 
@@ -1588,11 +2148,13 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">7</div>
             <div class="migration-content">
               <h4>Time-Travel Inspector</h4>
-              <p>Implement version slider using <code>EventSource.LoadToVersion</code>, timestamp
-              navigation using <code>LoadToTimestamp</code>. Add state reconstruction via
-              <code>StateReconstructor</code> functions. Add diff view between versions.
-              <strong>Verify:</strong> scrub through a User aggregate's history, see state
-              reconstruction at each version.</p>
+              <p>
+                Implement version slider using <code>EventSource.LoadToVersion</code>, timestamp
+                navigation using <code>LoadToTimestamp</code>. Add state reconstruction via
+                <code>StateReconstructor</code> functions. Add diff view between versions.
+                <strong>Verify:</strong> scrub through a User aggregate's history, see state
+                reconstruction at each version.
+              </p>
             </div>
           </div>
 
@@ -1602,9 +2164,11 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">8</div>
             <div class="migration-content">
               <h4>Correlation Trace</h4>
-              <p>Implement trace view: walk journal for events sharing a correlation ID, visualize
-              the command &rarr; event &rarr; derived command chain. Add "View trace" links to all
-              event displays.</p>
+              <p>
+                Implement trace view: walk journal for events sharing a correlation ID, visualize
+                the command &rarr; event &rarr; derived command chain. Add "View trace" links to all
+                event displays.
+              </p>
             </div>
           </div>
 
@@ -1612,8 +2176,10 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="migration-num">9</div>
             <div class="migration-content">
               <h4>Snapshot Inspector</h4>
-              <p>Implement snapshot list per aggregate from <code>SnapshotStore.Load</code>, state
-              viewer, delete behind <code>ReadOnly = false</code>.</p>
+              <p>
+                Implement snapshot list per aggregate from <code>SnapshotStore.Load</code>, state
+                viewer, delete behind <code>ReadOnly = false</code>.
+              </p>
             </div>
           </div>
 
@@ -1667,9 +2233,9 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <div class="callout callout-teal">
               <strong>Mitigation</strong>
               The Config should detect <code>SeekableJournal</code> vs plain <code>Journal</code>.
-              For plain <code>Journal</code>, show a warning: "Pagination not available, loading
-              all events." The overview page should never call <code>ReadAll</code> &mdash; it
-              should use <code>StreamReader</code> counts or a dedicated count method.
+              For plain <code>Journal</code>, show a warning: "Pagination not available, loading all
+              events." The overview page should never call <code>ReadAll</code> &mdash; it should
+              use <code>StreamReader</code> counts or a dedicated count method.
             </div>
           </div>
 
@@ -1717,8 +2283,8 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
             <p>
               <code>SeekableJournal.ReadFrom(ctx, afterEventID, limit)</code> supports cursor
               pagination but not filtering (by type, by aggregate, by time range). The dashboard
-              must either filter client-side (load pages, filter in Go) or require a custom
-              journal implementation.
+              must either filter client-side (load pages, filter in Go) or require a custom journal
+              implementation.
             </p>
             <div class="callout callout-teal">
               <strong>Approach</strong>
@@ -1780,20 +2346,34 @@ panel.<span class="tok-func">Mount</span>(mux, <span class="tok-string">"/dashbo
     </script>
 
     <style>
-      .built-update{margin:2rem auto 3rem;max-width:900px;padding:1.25rem 1.5rem;border:1px solid rgba(128,128,128,0.5);border-radius:10px;color:inherit}
-      .built-update__title{margin:0 0 .35rem;font-weight:700}
-      .built-update__body{margin:0}
+      .built-update {
+        margin: 2rem auto 3rem;
+        max-width: 900px;
+        padding: 1.25rem 1.5rem;
+        border: 1px solid rgba(128, 128, 128, 0.5);
+        border-radius: 10px;
+        color: inherit;
+      }
+      .built-update__title {
+        margin: 0 0 0.35rem;
+        font-weight: 700;
+      }
+      .built-update__body {
+        margin: 0;
+      }
     </style>
     <div class="built-update">
       <p class="built-update__title">Update 2026-07-26 &mdash; BUILT.</p>
       <p class="built-update__body">
-        This design study shipped as the <code>dashboardui/v4</code> module in v4.5.0
-        (<code>dashboardui/v4.0.0</code> tag). Overview, event stream browser, aggregate
-        browser, projection dashboard, DLQ, command/query audit, snapshot inspector,
-        time-travel inspector, and SSE live updates are all implemented. See
-        <code>FEATURES.md</code> &rarr; dashboardui, and <code>examples/dashboard-demo/</code>.
-        Open follow-ups (dead-code cleanup, <code>handlers.go</code> split, SSE reconnect
-        replay, test coverage) are tracked in <code>TODO_LIST.md</code>.
+        This design study shipped as the <code>dashboardui/v4</code> module in v4.5.0 (<code
+          >dashboardui/v4.0.0</code
+        >
+        tag). Overview, event stream browser, aggregate browser, projection dashboard, DLQ,
+        command/query audit, snapshot inspector, time-travel inspector, and SSE live updates are all
+        implemented. See <code>FEATURES.md</code> &rarr; dashboardui, and
+        <code>examples/dashboard-demo/</code>. Open follow-ups (dead-code cleanup,
+        <code>handlers.go</code> split, SSE reconnect replay, test coverage) are tracked in
+        <code>TODO_LIST.md</code>.
       </p>
     </div>
   </body>
