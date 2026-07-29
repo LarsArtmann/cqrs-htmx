@@ -174,9 +174,10 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
   await page1.click('button[type="submit"]');
   await expect.poll(() => page1.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
-  // Explicitly notify the SharedWorker before closing so it cleans up the port
-  // and clears originatingTab mappings (preventing retries targeting a dead port).
-  await page1.evaluate(() => window.dispatchEvent(new Event("beforeunload")));
+  // Navigate away to trigger a real beforeunload → bye message to the worker,
+  // then close the page. This ensures the worker cleans up the port and
+  // clears originatingTab before session 2 connects.
+  await page1.goto("about:blank");
   await new Promise((r) => setTimeout(r, 500));
   await page1.close();
 
