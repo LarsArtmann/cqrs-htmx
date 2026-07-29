@@ -34,7 +34,7 @@ const (
 )
 
 func (h *AuthHandler) handleListCredentials(w http.ResponseWriter, r *http.Request) {
-	user, ok := requireUser(w, r)
+	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
 	}
@@ -91,14 +91,13 @@ func paginate[T any](items []T, page, pageSize int) []T {
 }
 
 func (h *AuthHandler) handleDeleteCredential(w http.ResponseWriter, r *http.Request) {
-	user, ok := requireUser(w, r)
+	user, ok := h.currentUser(w, r)
 	if !ok {
 		return
 	}
 
-	encodedID := r.PathValue("id")
-	if encodedID == "" {
-		writeError(w, http.StatusBadRequest, "credential id is required")
+	encodedID, ok := requirePathValue(w, r, "id", "credential id is required")
+	if !ok {
 		return
 	}
 

@@ -61,12 +61,12 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 }
 
 func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Request) {
-	streamType, streamID := streamPathValues(r)
-
 	ref, allEvents, ok := d.loadStreamFromRequest(w, r)
 	if !ok {
 		return
 	}
+
+	streamType, streamID := string(ref.Type), ref.ID.String()
 
 	if len(allEvents) == 0 {
 		p := d.page("Time Travel: "+streamType, "/time-travel", r)
