@@ -31,6 +31,10 @@ cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware, 
 
 // 5. Map errors -> HTTP status (one function)
 status := cqrshtmx.MapError(err) // Rejection->400, Conflict->409, Transient->503, etc.
+
+// 6. Wire dispatch middleware (retry, circuit breaker, tracing, recovery)
+cmdDisp.Use(middleware.CommandRecovery(), middleware.CommandRetry(middleware.DefaultRetryConfig()))
+// See docs/guides/leveraging-go-cqrs-lite.md §1 for the full middleware recipe
 ```
 
 ## The modules
@@ -508,7 +512,8 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`references/usermgmt.md`** -- Service setup matrix, auth endpoints, WebAuthn/OAuth2/TOTP, roles/tenants/bots, SQL persistence.
 - **`references/realtime.md`** -- SSE + WebSocket, broadcaster, ACK protocol, idempotency, reconnection/replay, heartbeat, event filtering patterns.
 - **`references/gotchas.md`** -- the complete consumer gotcha list with fixes.
-- **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase).
+- **`docs/guides/leveraging-go-cqrs-lite.md`** -- how to leverage 58 go-cqrs-lite modules from cqrs-htmx (dispatch middleware, OTel/Prometheus, durable scheduling, signing/encryption, catalog docs, scenario testing, sagas, schema evolution).
+- **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof).
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.
 
 When the user asks for something not covered inline here, **read the matching reference file before improvising** -- it almost always contains the exact API and the ordering constraints.
