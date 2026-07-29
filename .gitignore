@@ -40,6 +40,7 @@ examples/catalog-demo/catalog-demo
 examples/catalog-demo/eventcatalog/
 examples/admin-demo/admin-demo
 examples/dashboard-demo/dashboard-demo
+examples/middleware-demo/middleware-demo
 # Nix build output
 /result
 # Generated reports (buildflow coverage / jscpd / lint output)
