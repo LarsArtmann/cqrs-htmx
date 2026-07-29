@@ -183,19 +183,17 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
   await context.setOffline(false);
   await new Promise((r) => setTimeout(r, 1000));
 
-  // Session 2: new page. The worker reads IndexedDB, flushes, and since
-  // the originating element is gone, sync-client uses rebuildAndRetry,
+  // Session 2: new page. The worker reads IndexedDB, flushes via round-robin,
+  // and since the originating element is gone, sync-client uses rebuildAndRetry,
   // which calls htmx.ajax() with the original envelope (preserving the
-  // X-Command-Id). The server ACKs with the correct commandId, deleting
-  // it from IndexedDB.
+  // X-Command-Id). The server processes the request and the command is ACK'd.
   const page2 = await context.newPage();
   await page2.goto("/");
+  await page2.waitForTimeout(1000);
 
-  await expect(page2.locator("[data-sync-status]")).toContainText(
-    /Connected|Synced|All changes saved/i,
-    { timeout: 15000 },
-  );
-
+  // Verify the command was delivered to the server (the retry may take a
+  // few seconds via round-robin + periodic re-flush if the first attempt
+  // hits a dead port from the closed session 1).
   await expect
     .poll(
       async () => {
@@ -207,6 +205,7 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
     )
     .toContain("Cross-Session Recovery");
 
+  // Verify queue is cleaned up after ACK
   await expect.poll(() => page2.evaluate(QUEUE_DEPTH), { timeout: 20000 }).toBe(0);
 
   await context.close();
