@@ -26,6 +26,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
+	"go.opentelemetry.io/otel"
 )
 
 type pingCmd struct {
