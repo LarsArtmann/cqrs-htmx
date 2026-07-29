@@ -416,3 +416,199 @@ Also port **recovery** and **security headers** extensions upstream into httputi
 | Security headers → httputil (enrich + delegate) | none |
 
 **Combined: removes 2 heavy external deps from cqrs-htmx root**, establishes httputil as the canonical HTTP middleware repo, and eliminates 3 duplicated reimplementations.
+
+---
+
+## Appendix A: Huma Deep Dive — Is Reflection-From-Types the Better Idea?
+
+> Added 2026-07-30 after a deeper investigation into `danielgtaylor/huma` (v2), prompted by the question "Code-first with reflection (huma, fuego) — feel like the better idea or not?"
+
+### Corrections to Earlier Claims
+
+Several statements in the main analysis (above) about huma were **wrong**. This section corrects them with verified facts from the source code and documentation.
+
+| Earlier Claim | Reality (Verified) |
+|---|---|
+| "huma/fuego are frameworks that own the router" | **Wrong.** Huma is explicitly router-agnostic via an `Adapter` interface. 9 official adapters ship: net/http (`humago`), Chi (`humachi`), Gin (`humagin`), Echo (`humaecho`), Fiber (`humafiber`), gorilla/mux (`humamux`), httprouter (`humahttprouter`), bunrouter (`humabunrouter`), Flow (`humaflow`). You bring your own router. |
+| "every endpoint is JSON-in/JSON-out" | **Wrong.** Huma supports multipart forms (`form:` struct tags, typed file uploads via `FormFile`/`[]FormFile`), SSE (first-class `sse` subpackage with typed event maps), streaming responses (arbitrary byte streams via `huma.StreamResponse`), and HTML/HTMX (documented how-to guide with templ + gomponents integration). |
+| "reflection can't work without owning the router" | **Wrong.** Router ownership is not the blocker. Huma's `Register[I, O]()` reflects on the generic type parameters at registration time, independent of which adapter handles the routing. |
+| "reflection means the library can't see the path/method" | **Wrong.** The `huma.Operation` struct carries `Method` and `Path` explicitly — the developer provides them at registration. Reflection is only used to infer schemas from the `I` (input) and `O` (output) type parameters. |
+
+### How Huma Actually Works (Verified from Source)
+
+#### Handler Registration
+
+The universal handler signature:
+
+```go
+func(ctx context.Context, input *I) (*O, error)
+```
+
+Where `I` and `O` are generic type parameters (must be structs). Two registration styles:
+
+```go
+// Low-level: explicit Operation
+huma.Register(api, huma.Operation{
+    OperationID: "get-greeting",
+    Method:      http.MethodGet,
+    Path:        "/greeting/{name}",
+    Summary:     "Get a greeting",
+}, func(ctx context.Context, input *GreetingInput) (*GreetingOutput, error) { ... })
+
+// Convenience wrapper (auto-generates OperationID + Summary)
+huma.Get(api, "/greeting/{name}", func(ctx context.Context, input *struct{
+    Name string `path:"name" maxLength:"30" example:"world" doc:"Name to greet"`
+}) (*GreetingOutput, error) { ... })
+```
+
+#### Spec Generation Mechanism
+
+- **When:** At **registration time** (when you call `huma.Register`/`huma.Get`/etc.), not build-time, not first-request.
+- **How:** `Register[I, O]()` calls `reflect.TypeFor[I]()` and `reflect.TypeFor[O]()` to introspect the input and output structs. `processInputType()` and `processOutputType()` in `huma.go` walk the struct fields, reading struct tags to build OpenAPI parameters, request bodies, and response schemas.
+- **Serialization:** The `/openapi.json` spec is serialized lazily on first request (cached in a closure variable).
+- **Tags → schema:** Struct tags like `path:"id"`, `query:"q"`, `header:"Authorization"`, `maxLength:"30"`, `minimum:"0"`, `pattern:"^[a-z]+$"`, `enum:"a,b,c"`, `doc:"description"`, `example:"value"` each map to both OpenAPI schema fields AND runtime validation rules. One tag line generates both docs and validation.
+
+#### Router Integration
+
+Huma defines an `Adapter` interface:
+
+```go
+type Adapter interface {
+    Handle(op *Operation, handler func(ctx Context))
+    ServeHTTP(http.ResponseWriter, *http.Request)
+}
+```
+
+Any router implementing `Handle` can be wrapped. The stdlib adapter (`humago`) wraps Go 1.22+ `http.ServeMux`:
+
+```go
+func New(m Mux, config huma.Config) huma.API {
+    return huma.NewAPI(config, &goAdapter{m, ""})
+}
+```
+
+#### SSE Support
+
+First-class via `github.com/danielgtaylor/huma/v2/sse`:
+
+```go
+sse.Register(api, huma.Operation{
+    OperationID: "stream-events",
+    Method:      http.MethodGet,
+    Path:        "/events",
+}, map[string]any{
+    "message": MyEvent{},
+}, func(ctx context.Context, input *struct{}, send sse.Sender) {
+    send.Data(MyEvent{Msg: "hello"})
+    send.Comment("heartbeat")
+})
+```
+
+- Event types are mapped via `eventTypeMap` → JSON Schema `oneOf` in the spec
+- `Sender` supports `.Data()`, `.Comment()` methods
+- Flushing handled automatically (requires `http.Flusher`)
+- Response Content-Type set to `text/event-stream`
+
+#### HTML / HTMX Support
+
+Documented at https://huma.rocks/how-to/html-response/:
+
+```go
+type MyHTMLOutput struct {
+    ContentType string `header:"Content-Type"`
+    Body        []byte
+}
+
+huma.Register(api, huma.Operation{
+    OperationID: "get-html",
+    Method:      http.MethodGet,
+    Path:        "/html",
+}, func(ctx context.Context, input *struct{}) (*MyHTMLOutput, error) {
+    return &MyHTMLOutput{
+        ContentType: "text/html",
+        Body:        []byte("<html><body><h1>Hello World</h1></body></html>"),
+    }, nil
+})
+```
+
+Docs show integration with **Templ** and **Gomponents** for type-safe HTML templating. Also supports `huma.StreamResponse` for larger templates.
+
+#### OpenAPI Version
+
+Primary: **OpenAPI 3.1.0**. Also auto-generates downgraded **3.0.3** via `Downgrade()`/`DowngradeYAML()`. Served at:
+- `/openapi.json` / `/openapi.yaml` (3.1.0)
+- `/openapi-3.0.json` / `/openapi-3.0.yaml` (3.0.3)
+
+#### Middleware
+
+Three layers:
+1. **Router-native** — use your router's middleware before creating the Huma API
+2. **Huma's own** — `api.UseMiddleware(func(ctx huma.Context, next func(huma.Context)))`
+3. **Per-operation** — `huma.Operation{ Middlewares: huma.Middlewares{...} }`
+
+Standard `net/http` middleware can be used via `humago.Unwrap(ctx)` to extract `(r, w)`.
+
+#### Dependencies
+
+Core files (`huma.go`, `schema.go`, `openapi.go`, `validate.go`) depend only on stdlib. However, `go.mod` bundles all 9 router adapters in the same module, so the transitive dependency tree includes chi, gin, fiber, echo, gorilla/mux, etc. — even if you only use `humago`. The author has written about this: ["Reducing Go Dependencies"](https://dgt.hashnode.dev/reducing-go-dependencies).
+
+Direct deps: `shorthand/v2` (patch syntax), `json-patch/v5`, `cbor/v2`, `google/uuid`, `spf13/cobra`+`pflag` (CLI), `stretchr/testify`, plus all router libraries.
+
+#### Standalone Schema Generation (Without Handler Registration)
+
+The reflection-based schema generation IS usable standalone:
+
+```go
+registry := huma.NewMapRegistry("#/components/schemas/", huma.DefaultSchemaNamer)
+schema := huma.SchemaFromType(registry, reflect.TypeOf(MyType{}))
+```
+
+Manual OpenAPI spec construction also works:
+
+```go
+oapi := &huma.OpenAPI{
+    OpenAPI: "3.1.0",
+    Info:    &huma.Info{Title: "My API", Version: "1.0.0"},
+}
+oapi.AddOperation(&huma.Operation{...})
+```
+
+However: the automatic input/output struct → OpenAPI mapping (the killer feature) is coupled to `huma.Register()`, which requires an `API` instance (which requires an `Adapter`). The workaround for spec-only generation is to create a throwaway API, register operations, then extract the spec.
+
+### What Huma CANNOT Do (vs a Manual Builder)
+
+1. **Nullable objects** — Huma panics if you try `nullable:"true"` on a struct/object field
+2. **Same-named types from different packages** — default registry panics on name collision (e.g., `foo.Thing` + `bar.Thing`)
+3. **Complex polymorphic schemas** — `oneOf`/`anyOf`/`allOf` exist but have no declarative struct-field mapping; require `SchemaProvider` interface or manual construction
+4. **Arbitrary schema composition per-field** — each field maps to exactly one schema; can't express `patternProperties` or complex inline `oneOf`
+5. **Lossy OpenAPI 3.0 downgrade** — type arrays with `"null"` are simplified; `exclusiveMinimum`/`Maximum` values become booleans
+6. **No WebSocket support or documentation**
+7. **No compile-time/codegen** — generation is runtime reflection; can't produce the spec as a build artifact without running the server
+8. **Response status code documentation is limited** — `Status int` allows dynamic codes but the spec only documents the default; multiple response schemas per status require manual `op.Responses` config
+
+### Verdict: Is Reflection-From-Types the Better Idea?
+
+**For a greenfield Go API framework: yes, absolutely.** Huma's approach — define a struct, get validation + docs + typed handler for free — eliminates docs drift entirely. That's why huma (4.3k stars) and fuego (1.7k stars) are the fastest-growing Go API frameworks.
+
+**But adopting it for cqrs-htmx's `openapi/` package specifically is NOT the right move:**
+
+1. **Fundamentally different handler model.** Huma's `Register[I, O](api, op, func(ctx, *I) (*O, error))` is a complete paradigm shift from cqrs-htmx's `app.Command("Type", DecodeJSON(mapper), ...)`. The mapper closures deliberately decouple HTTP request structs from CQRS command structs — that's the architectural boundary cqrs-htmx is built around. Reflection-from-types assumes `I` (HTTP input) IS the thing you document. In cqrs-htmx, the documented type and the dispatched command are intentionally different types connected by a closure the reflection system cannot see through.
+
+2. **Adding reflection means adding dependencies.** Either huma's schema generator or `invopop/jsonschema`. The current builder is zero-dep stdlib only. That is a feature, not a bug — it means cqrs-htmx's OpenAPI support has the smallest possible footprint.
+
+3. **The right integration path is a Huma adapter for cqrs-htmx**, not the reverse. A `cqrs-htmx` adapter implementing Huma's `Adapter` interface would let consumers get automatic OpenAPI generation by registering CQRS commands through Huma's typed handler system. But that is a major architectural integration project, not a small extraction — and it would only work for consumers whose commands map cleanly to HTTP types (i.e., no mapper closures).
+
+**Bottom line:** Reflection-from-types is the better idea for building Go APIs in general. Huma is the proof. But this research strengthens the earlier verdict: cqrs-htmx's `openapi/` builder is even less worth extracting as a standalone project than initially thought — the market is moving toward the reflection-from-types model (Huma, Fuego), away from manual builders entirely. The manual builder's niche (115 importers for the closest competitor) is shrinking, not growing.
+
+### Sources
+
+- https://huma.rocks/ — Main documentation
+- https://huma.rocks/features/ — Features overview
+- https://huma.rocks/how-to/html-response/ — HTML/HTMX rendering guide
+- https://github.com/danielgtaylor/huma — Repository (README, go.mod)
+- `huma.go` source — `Register[I, O]`, `processInputType`, `processOutputType`, convenience functions
+- `schema.go` source — `SchemaFromType`, `SchemaFromField`, reflection logic
+- `api.go` source — `Adapter` interface, `NewAPI`, `Config`
+- `defaults.go` source — `DefaultConfig` with OpenAPI 3.1.0
+- `adapters/humago/humago.go` source — stdlib ServeMux adapter
+- `sse/sse.go` source — SSE implementation with `Sender`, `Message`, `eventTypeMap`
