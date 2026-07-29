@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // ===== Projection Dashboard =====
@@ -32,45 +34,43 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 	renderPage(w, r, html)
 }
 
-// requireProjectionHost checks that a projection host is configured and writes
-// a 400 error if not. Returns true if the caller should continue.
-func (d *Dashboard) requireProjectionHost(w http.ResponseWriter) bool {
+// withProjectionHost checks that a projection host is configured and calls fn
+// with it. If not configured, writes a 400 error and returns without calling fn.
+func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *projectionhost.Host)) {
 	if d.cfg.ProjectionHost == nil {
 		http.Error(w, "projection host not configured", http.StatusBadRequest)
 
-		return false
+		return
 	}
 
-	return true
+	fn(d.cfg.ProjectionHost)
 }
 
-// requireDeadLetterStore checks that a dead-letter store is configured and
-// writes a 400 error if not. Returns true if the caller should continue.
-func (d *Dashboard) requireDeadLetterStore(w http.ResponseWriter) bool {
+// withDeadLetterStore checks that a dead-letter store is configured and calls
+// fn with it. If not configured, writes a 400 error and returns without calling fn.
+func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store projectionhost.DeadLetterStore)) {
 	if d.cfg.DeadLetterStore == nil {
 		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
 
-		return false
+		return
 	}
 
-	return true
+	fn(d.cfg.DeadLetterStore)
 }
 
 func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Request) {
-	if !d.requireProjectionHost(w) {
-		return
-	}
+	d.withProjectionHost(w, func(host *projectionhost.Host) {
+		name := r.PathValue("name")
+		if err := host.Reset(r.Context(), name); err != nil {
+			triggerToast(w, "err", "Reset failed: "+err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
 
-	name := r.PathValue("name")
-	if err := d.cfg.ProjectionHost.Reset(r.Context(), name); err != nil {
-		triggerToast(w, "err", "Reset failed: "+err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-		return
-	}
-
-	triggerToast(w, "ok", "Projection reset")
-	redirect(w, r, d.cfg.BasePath+"/projections")
+		triggerToast(w, "ok", "Projection reset")
+		redirect(w, r, d.cfg.BasePath+"/projections")
+	})
 }
 
 func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string {

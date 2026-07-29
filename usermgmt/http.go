@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"bytes"
+	"context"
 	"encoding/json/v2"
 	"fmt"
 	"io"
@@ -216,34 +217,33 @@ func (h *AuthHandler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ctx, cancel := h.withTimeout(r)
-	defer cancel()
-
-	var regReq RegisterRequest
-	body, err := io.ReadAll(io.LimitReader(r.Body, maxAuthBodySize))
-	if err != nil {
-		writeError(
-			w,
-			http.StatusBadRequest,
-			fmt.Sprintf("%s: read register request: %s", ErrValidation, err),
-		)
-		return
-	}
-	if err := json.Unmarshal(body, &regReq); err != nil {
-		writeError(
-			w,
-			http.StatusBadRequest,
-			fmt.Sprintf("%s: unmarshal register request: %s", ErrValidation, err),
-		)
-		return
-	}
-	resp, err := h.service.Register(ctx, regReq)
-	if err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-	h.setSessionCookie(w, resp.Session.Token)
-	writeJSON(w, http.StatusCreated, resp)
+	h.withTimeoutCtx(r, func(ctx context.Context) {
+		var regReq RegisterRequest
+		body, err := io.ReadAll(io.LimitReader(r.Body, maxAuthBodySize))
+		if err != nil {
+			writeError(
+				w,
+				http.StatusBadRequest,
+				fmt.Sprintf("%s: read register request: %s", ErrValidation, err),
+			)
+			return
+		}
+		if err := json.Unmarshal(body, &regReq); err != nil {
+			writeError(
+				w,
+				http.StatusBadRequest,
+				fmt.Sprintf("%s: unmarshal register request: %s", ErrValidation, err),
+			)
+			return
+		}
+		resp, err := h.service.Register(ctx, regReq)
+		if err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
+		h.setSessionCookie(w, resp.Session.Token)
+		writeJSON(w, http.StatusCreated, resp)
+	})
 }
 
 func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
@@ -253,16 +253,15 @@ func (h *AuthHandler) handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := h.withTimeout(r)
-	defer cancel()
+	h.withTimeoutCtx(r, func(ctx context.Context) {
+		if err := h.service.Logout(ctx, token); err != nil {
+			writeDispatchError(w, r, err)
+			return
+		}
 
-	if err := h.service.Logout(ctx, token); err != nil {
-		writeDispatchError(w, r, err)
-		return
-	}
-
-	h.clearSessionCookie(w)
-	writeJSON(w, http.StatusOK, map[string]string{statusKey: statusLoggedOut})
+		h.clearSessionCookie(w)
+		writeJSON(w, http.StatusOK, map[string]string{statusKey: statusLoggedOut})
+	})
 }
 
 func (h *AuthHandler) handleMe(w http.ResponseWriter, r *http.Request) {
