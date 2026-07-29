@@ -56,20 +56,23 @@ templ dangerZoneHeader() {
 	<h3 class="text-base font-semibold text-red-600">Danger zone</h3>
 }
 
-templ verifiedBadge(verified bool) {
-	if verified {
-		@badge("verified", "green")
+// stateBadge renders one of two labels depending on a boolean condition. kindIf
+// is the badge kind shown when cond is true; kindElse is used otherwise (empty
+// string means default styling). Shared by verifiedBadge and totpBadge.
+templ stateBadge(cond bool, labelIf, kindIf, labelElse, kindElse string) {
+	if cond {
+		@badge(labelIf, kindIf)
 	} else {
-		@badge("unverified", "")
+		@badge(labelElse, kindElse)
 	}
 }
 
+templ verifiedBadge(verified bool) {
+	@stateBadge(verified, "verified", "green", "unverified", "")
+}
+
 templ totpBadge(enabled bool) {
-	if enabled {
-		@badge("enabled", "blue")
-	} else {
-		@badge("disabled", "")
-	}
+	@stateBadge(enabled, "enabled", "blue", "disabled", "")
 }
 
 // listNote renders a "showing N of M" hint when a list is truncated by the

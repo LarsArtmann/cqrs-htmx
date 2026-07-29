@@ -15,12 +15,7 @@ import (
 // ===== Snapshots =====
 
 func (d *Dashboard) snapshotsIndexHandler(w http.ResponseWriter, r *http.Request) {
-	p := d.page("Snapshots", "/snapshots", r)
-
-	listings := d.listStreams(r)
-
-	html := d.renderSnapshotsIndex(p, listings)
-	renderPage(w, r, html)
+	d.renderStreamIndex(w, r, "Snapshots", "/snapshots", d.renderSnapshotsIndex)
 }
 
 func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamListing) string {

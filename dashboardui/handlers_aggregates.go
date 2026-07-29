@@ -29,12 +29,7 @@ func (d *Dashboard) listStreams(r *http.Request) []listing.StreamListing {
 }
 
 func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Request) {
-	p := d.page("Aggregates", "/aggregates", r)
-
-	listings := d.listStreams(r)
-
-	html := d.renderAggregates(p, listings)
-	renderPage(w, r, html)
+	d.renderStreamIndex(w, r, "Aggregates", "/aggregates", d.renderAggregates)
 }
 
 func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Request) {
