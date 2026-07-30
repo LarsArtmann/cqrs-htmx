@@ -103,7 +103,7 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 		}
 
 		var b strings.Builder
-		b.WriteString(`<h3>Projections</h3>`)
+		b.WriteString(`<h2>Projections</h2>`)
 
 		var rows strings.Builder
 
@@ -122,19 +122,22 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 			var actions string
 			if !p.ReadOnly {
 				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" onsubmit="return confirm('Reset projection %s? This will re-process all events from the beginning.')"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Reset</button></form>`,
+					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" onsubmit="return confirm('Reset projection %s? This will re-process all events from the beginning.')" aria-label="Reset projection %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Reset projection %s">Reset</button></form>`,
 					p.BasePath,
 					esc(proj.Name),
 					esc(proj.Name),
+					esc(proj.Name),
 					esc(p.CSRFToken),
+					esc(proj.Name),
 				)
 			}
 
 			dlqLink := ""
 			if proj.Errors > 0 || d.caps.DeadLetterStore || d.caps.ProjectionHost {
 				dlqLink = fmt.Sprintf(
-					`<a href="%s/dead-letters/%s" class="btn">DLQ (%d)</a>`,
+					`<a href="%s/dead-letters/%s" class="btn" aria-label="View dead letters for %s">DLQ (%d)</a>`,
 					p.BasePath,
+					esc(proj.Name),
 					esc(proj.Name),
 					proj.Errors,
 				)
@@ -165,7 +168,7 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 
 		fmt.Fprintf(
 			&b,
-			`<table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Restarts</th><th scope="col">Checkpoint</th><th scope="col">Last Error</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table>`,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Restarts</th><th scope="col">Checkpoint</th><th scope="col">Last Error</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 

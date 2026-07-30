@@ -73,11 +73,13 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 		for _, cmd := range cmds {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono">%s</td><td class="mono">%s</td></tr>`,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td></tr>`,
 				esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(cmd.Type())),
 				esc(string(cmd.StreamType())),
 				esc(cmd.StreamID().String()),
+				esc(cmd.StreamID().String()),
+				esc(cmd.ID().String()),
 				truncate(cmd.ID().String(), eventIDWidth),
 			)
 		}
@@ -85,7 +87,7 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 		var b strings.Builder
 		fmt.Fprintf(
 			&b,
-			`<h3>Command Audit</h3><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th></tr></thead><tbody>%s</tbody></table>`,
+			`<h2>Command Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 		b.WriteString(renderPagination(p.BasePath, "/commands", pg, ""))
@@ -153,16 +155,20 @@ func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery, p
 		var rows strings.Builder
 
 		for _, q := range queries {
-			fmt.Fprintf(&rows, `<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono">%s</td></tr>`,
+			fmt.Fprintf(
+				&rows,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td></tr>`,
 				esc(q.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(q.Type())),
-				truncate(q.ID().String(), eventIDWidth))
+				esc(q.ID().String()),
+				truncate(q.ID().String(), eventIDWidth),
+			)
 		}
 
 		var b strings.Builder
 		fmt.Fprintf(
 			&b,
-			`<h3>Query Audit</h3><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th></tr></thead><tbody>%s</tbody></table>`,
+			`<h2>Query Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 		b.WriteString(renderPagination(p.BasePath, "/queries", pg, ""))

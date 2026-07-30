@@ -151,3 +151,126 @@ func TestReadOnlyMode_WriteEndpointsNotFound(t *testing.T) {
 		t.Errorf("expected 404 or 405 for write endpoint in read-only mode, got %d", rec.Code)
 	}
 }
+
+func TestEventFilter_ByType(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	aggID := id.NewStreamID()
+	evt1, _ := event.New("user.created", aggID, "User", event.Version(1), struct{}{})
+	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt1}, event.Version(0))
+
+	aggID2 := id.NewStreamID()
+	evt2, _ := event.New("user.deleted", aggID2, "User", event.Version(1), struct{}{})
+	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID2), []event.Event{evt2}, event.Version(0))
+
+	d, _ := New(Config{EventSource: store, Journal: store})
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/events?type=user.created", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("filter status = %d; want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	if !strings.Contains(body, "user.created") {
+		t.Errorf("filtered events should contain user.created")
+	}
+
+	if strings.Contains(body, "user.deleted") {
+		t.Errorf("filtered events should NOT contain user.deleted")
+	}
+}
+
+func TestCSS_ServedWithCorrectHeaders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	d, _ := New(Config{EventSource: store, Journal: store})
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.css", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("css status = %d; want 200", rec.Code)
+	}
+
+	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/css") {
+		t.Errorf("css Content-Type = %q; want text/css", ct)
+	}
+
+	if cc := rec.Header().Get("Cache-Control"); !strings.Contains(cc, "max-age") {
+		t.Errorf("css Cache-Control = %q; expected max-age", cc)
+	}
+
+	if !strings.Contains(rec.Body.String(), "--accent") {
+		t.Errorf("css body should contain CSS custom property --accent")
+	}
+}
+
+func TestJS_ServedWithCorrectHeaders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	d, _ := New(Config{EventSource: store, Journal: store})
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.js", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("js status = %d; want 200", rec.Code)
+	}
+
+	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/javascript") {
+		t.Errorf("js Content-Type = %q; want text/javascript", ct)
+	}
+
+	if cc := rec.Header().Get("Cache-Control"); !strings.Contains(cc, "max-age") {
+		t.Errorf("js Cache-Control = %q; expected max-age", cc)
+	}
+}
+
+func TestPagination_PreservesFilterInLinks(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	for i := range 30 {
+		aggID := id.NewStreamID()
+
+		st := id.StreamType("User")
+		if i >= 15 {
+			st = "Order"
+		}
+
+		evt, _ := event.New(event.Type("entity.event"), aggID, st, event.Version(1), struct{}{})
+		_ = store.Save(context.Background(), id.NewStreamRef(st, aggID), []event.Event{evt}, event.Version(0))
+	}
+
+	reader := listing.NewInMemoryStreamReader(store)
+	d, _ := New(Config{EventSource: store, SeekableJournal: store, StreamReader: reader})
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/events?streamType=User", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d; want 200; body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	if strings.Contains(body, "Order") {
+		t.Errorf("filtered by streamType=User should not contain Order events")
+	}
+
+	if strings.Contains(body, "pagination") {
+		if !strings.Contains(body, "streamType=User") {
+			t.Errorf("pagination links should preserve streamType=User filter")
+		}
+	}
+}

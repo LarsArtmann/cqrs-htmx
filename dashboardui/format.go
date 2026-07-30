@@ -79,10 +79,11 @@ func timeCell(t time.Time) string {
 }
 
 // encodingBadgeClass returns the CSS badge class for an event encoding.
+// JSON is neutral (default), CBOR is a warning (may need decoder), raw is neutral.
 func encodingBadgeClass(encoding string) string {
 	switch encoding {
 	case "json", "":
-		return "badge badge-ok"
+		return "badge badge-neutral"
 	case "cbor":
 		return "badge badge-warn"
 	case "raw":

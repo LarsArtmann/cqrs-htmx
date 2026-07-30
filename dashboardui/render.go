@@ -58,10 +58,10 @@ func renderError(w http.ResponseWriter, r *http.Request, statusCode int, message
 // emptyState renders the standard empty-state panel.
 func emptyState(title, message string) string {
 	if message == "" {
-		return fmt.Sprintf(`<div class="empty-state"><h3>%s</h3></div>`, esc(title))
+		return fmt.Sprintf(`<div class="empty-state"><h2>%s</h2></div>`, esc(title))
 	}
 
-	return fmt.Sprintf(`<div class="empty-state"><h3>%s</h3><p>%s</p></div>`, esc(title), esc(message))
+	return fmt.Sprintf(`<div class="empty-state"><h2>%s</h2><p>%s</p></div>`, esc(title), esc(message))
 }
 
 func redirect(w http.ResponseWriter, r *http.Request, path string) {
