@@ -12,17 +12,87 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// eventFilter holds in-memory filter criteria for the event browser.
+type eventFilter struct {
+	Type       string
+	StreamType string
+	StreamID   string
+}
+
+func (f eventFilter) Active() bool {
+	return f.Type != "" || f.StreamType != "" || f.StreamID != ""
+}
+
+func (f eventFilter) Matches(evt event.Event) bool {
+	if f.Type != "" && string(evt.Type()) != f.Type {
+		return false
+	}
+
+	if f.StreamType != "" && string(evt.StreamType()) != f.StreamType {
+		return false
+	}
+
+	if f.StreamID != "" && evt.StreamID().String() != f.StreamID {
+		return false
+	}
+
+	return true
+}
+
+func parseEventFilter(r *http.Request) eventFilter {
+	q := r.URL.Query()
+	return eventFilter{
+		Type:       q.Get("type"),
+		StreamType: q.Get("streamType"),
+		StreamID:   q.Get("streamID"),
+	}
+}
+
+// filterExtraParams builds a query-string fragment preserving active filters
+// across pagination links (e.g., "type=user.created&streamType=User").
+func (f eventFilter) extraParams() string {
+	if !f.Active() {
+		return ""
+	}
+
+	var parts []string
+	if f.Type != "" {
+		parts = append(parts, "type="+f.Type)
+	}
+
+	if f.StreamType != "" {
+		parts = append(parts, "streamType="+f.StreamType)
+	}
+
+	if f.StreamID != "" {
+		parts = append(parts, "streamID="+f.StreamID)
+	}
+
+	return strings.Join(parts, "&")
+}
+
+const filterScanLimit = 500
+
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Events", "/events", r)
 
 	pageSize := parsePageSize(r, d.cfg.PageSize)
 	after := r.URL.Query().Get("after")
 	afterID, _ := id.ParseEventID(after)
+	filters := parseEventFilter(r)
 
-	events, err := d.loadRecentEvents(r.Context(), afterID, pageSize+1)
+	var events []event.Event
+
+	var err error
+
+	if filters.Active() {
+		events, err = d.loadFilteredEvents(r.Context(), afterID, filters, pageSize)
+	} else {
+		events, err = d.loadRecentEvents(r.Context(), afterID, pageSize+1)
+	}
+
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "failed to load events")
-
 		return
 	}
 
@@ -41,7 +111,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		NextCursor: nextCursor,
 		PageSize:   pageSize,
 		HasPrev:    after != "",
-	})
+	}, filters)
 	renderPage(w, r, html)
 }
 
@@ -198,29 +268,6 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limi
 	if d.cfg.SeekableJournal != nil {
 		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, after, limit)
 		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.recent_events.read_failed", "read recent events")
-		}
-
-		return events, nil
-	}
-
-	if d.cfg.Journal != nil {
-		all, err := d.cfg.Journal.ReadAll(ctx)
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.recent_events.read_all_failed", "read all events")
-		}
-
-		if len(all) > limit {
-			all = all[:limit]
-		}
-
-		return all, nil
-	}
-
-	return nil, nil
-}
 
 func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg paginationState) string {
 	return d.renderLayout(p, func() string {
