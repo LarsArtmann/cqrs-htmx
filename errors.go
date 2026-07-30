@@ -33,7 +33,6 @@ var (
 	ErrDispatchFailed   = errorfamily.NewTransient("dispatch_failed", "command/query dispatch failed")
 	ErrEnforcerNil      = errorfamily.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
 	ErrValidationFailed = errorfamily.NewRejection("validation_failed", "request validation failed")
-	ErrCSRFConfig       = errorfamily.NewInfrastructure("csrf_config", "invalid CSRF configuration")
 	ErrRequestTooLarge  = errorfamily.NewRejection("request_too_large", "request body exceeds maximum size")
 	ErrMethodNotAllowed = errorfamily.NewRejection("method_not_allowed", "HTTP method not allowed")
 
@@ -105,9 +104,11 @@ func explicitErrorStatus(err error) int {
 	}
 }
 
+// ErrorHandler is now an alias for httputil.CSRFErrorHandler (defined in csrf_reexport.go).
+// It is kept here for documentation discoverability.
+//
 // ErrorHandler writes an HTTP error response with HTMX awareness.
-type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
-
+//
 // DefaultErrorHandler maps CQRS errors to HTTP status codes and writes
 // a plain text error response. For HTMX requests with auth errors,
 // it redirects via HX-Redirect to the login path instead of returning an error body.
