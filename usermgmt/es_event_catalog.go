@@ -23,8 +23,8 @@ func DefaultEventCatalog() *cqrshtmx.EventCatalog {
 func registerUserEvents(catalog *cqrshtmx.EventCatalog) {
 	sv := identitymodel.CurrentSchemaVersion
 
-	catalog.Register(
-		cqrshtmx.EventMetadata{ //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
+	catalog.Register( //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
+		cqrshtmx.EventMetadata{
 			Type:          string(identitymodel.EventUserRegistered),
 			Aggregate:     string(identitymodel.AggregateTypeUser),
 			SchemaVersion: sv,
@@ -168,8 +168,8 @@ func registerUserEvents(catalog *cqrshtmx.EventCatalog) {
 func registerMembershipEvents(catalog *cqrshtmx.EventCatalog) {
 	sv := identitymodel.CurrentSchemaVersion
 
-	catalog.Register(
-		cqrshtmx.EventMetadata{ //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
+	catalog.Register( //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
+		cqrshtmx.EventMetadata{
 			Type:          string(identitymodel.EventMemberAdded),
 			Aggregate:     string(identitymodel.AggregateTypeMembership),
 			SchemaVersion: sv,
@@ -215,8 +215,8 @@ func registerMembershipEvents(catalog *cqrshtmx.EventCatalog) {
 func registerTenantEvents(catalog *cqrshtmx.EventCatalog) {
 	sv := identitymodel.CurrentSchemaVersion
 
-	catalog.Register(
-		cqrshtmx.EventMetadata{ //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
+	catalog.Register( //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
+		cqrshtmx.EventMetadata{
 			Type:          string(identitymodel.EventTenantCreated),
 			Aggregate:     string(identitymodel.AggregateTypeTenant),
 			SchemaVersion: sv,

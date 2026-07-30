@@ -108,13 +108,13 @@ func seedDemoData(
 			"email": fmt.Sprintf("%s@example.com", name),
 		})
 
-		created, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		created, _ := event.New( //cqrs-lint:ignore(E004) cqrs-lint:ignore(E006) demo data: no catalog/projection in this dashboard demo
 			"user.created",
 			aggID,
 			"User",
 			event.Version(1),
 			jsontext.Value(payload),
-		) //cqrs-lint:ignore(E004) demo data
+		)
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
 		renamed, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
@@ -218,12 +218,12 @@ func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
 			event.Version(1),
 			jsontext.Value(payload),
 		)
-		_ = store.Save(
+		_ = store.Save( //cqrs-lint:ignore(S003) demo with in-memory store: no signing needed
 			ctx,
 			ref,
 			[]event.Event{evt},
 			event.Version(0),
-		) //cqrs-lint:ignore(S003) demo with in-memory store: no signing needed
+		)
 		_ = bus.Publish(ctx, evt)
 	}
 }
