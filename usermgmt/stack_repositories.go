@@ -62,40 +62,40 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 func buildDeciderRepositories(
 	store event.Store, bus event.Publisher, closeOnErr func(), snap SnapshotConfig,
 ) (*aggregateRepositories, error) {
-	user, err := decider.NewRepository(
+	user, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig; zero-value = full-replay mode
 		store,
 		bus,
 		UserDecider(),
 		snapshotOptions[UserState](
 			snap,
-		)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig; zero-value = full-replay mode
+		)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create decider repository").WithCause(err)
 	}
-	membership, err := decider.NewRepository(
+	membership, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 		store,
 		bus,
 		MembershipDecider(),
-		snapshotOptions[MembershipState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+		snapshotOptions[MembershipState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create membership decider repository").WithCause(err)
 	}
-	tenant, err := decider.NewRepository(
+	tenant, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 		store,
 		bus,
 		TenantDecider(),
-		snapshotOptions[TenantState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+		snapshotOptions[TenantState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create tenant decider repository").WithCause(err)
 	}
-	bot, err := decider.NewRepository(
+	bot, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 		store,
 		bus,
 		BotDecider(),
-		snapshotOptions[BotState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+		snapshotOptions[BotState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create bot decider repository").WithCause(err)
