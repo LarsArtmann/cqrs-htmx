@@ -12,9 +12,6 @@ import (
 
 // ===== Aggregate Browser =====
 
-// listStreams returns the first page of stream listings for the index pages
-// (aggregates, time-travel, snapshots). When no StreamReader is configured or
-// the lookup fails it returns nil so the page renders an empty state.
 func (d *Dashboard) listStreams(r *http.Request) []listing.StreamListing {
 	if d.cfg.StreamReader == nil {
 		return nil
@@ -39,12 +36,7 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	p := d.page("Aggregate: "+streamTitlePath(ref), "/aggregates", r)
-
-	link := func(href, label string) string {
-		return fmt.Sprintf(`<a href="%s" style="color:var(--accent);text-decoration:none">%s</a>`, href, label)
-	}
-
-	html := d.renderAggregateDetail(p, ref, events, link)
+	html := d.renderAggregateDetail(p, ref, events)
 	renderPage(w, r, html)
 }
 
@@ -52,67 +44,55 @@ func (d *Dashboard) renderAggregateDetail(
 	p pageData,
 	ref id.StreamRef,
 	events []event.Event,
-	link func(string, string) string,
 ) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		fmt.Fprintf(&b, `<div style="margin-bottom:24px">`)
+		b.WriteString(`<div class="page-header">`)
+		fmt.Fprintf(&b, `<h2>%s: <code>%s</code></h2>`, esc(string(ref.Type)), esc(ref.ID.String()))
 		fmt.Fprintf(
 			&b,
-			`<h2 style="margin:0 0 4px">%s: <code>%s</code></h2>`,
-			esc(string(ref.Type)),
-			esc(ref.ID.String()),
+			`<div class="page-subtitle">%d events · current version %s</div>`,
+			len(events),
+			latestVersion(events),
 		)
-		fmt.Fprintf(&b, `<div style="color:var(--muted);font-size:0.88em">%d events · current version %s</div>`,
-			len(events), latestVersion(events))
 		b.WriteString(`</div>`)
 
 		if d.caps.EventSource && len(events) > 0 {
-			maxVer := events[len(events)-1].Version().Int()
-
 			fmt.Fprintf(
 				&b,
-				`<div style="margin-bottom:16px"><a href="%s/time-travel/%s/%s" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;text-decoration:none;color:var(--accent);font-size:0.85em">Inspect time-travel for this aggregate</a></div>`,
+				`<div style="margin-bottom:16px"><a href="%s/time-travel/%s/%s" class="btn btn-accent">Inspect time-travel for this aggregate</a></div>`,
 				p.BasePath,
 				esc(string(ref.Type)),
 				esc(ref.ID.String()),
 			)
-
-			_ = maxVer
 		}
 
 		if len(events) == 0 {
-			b.WriteString(
-				`<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No events</h3><p>This aggregate has no recorded events.</p></div>`,
-			)
-
-			return b.String()
+			return emptyState("No events", "This aggregate has no recorded events.")
 		}
 
-		b.WriteString(`<h4 style="margin-bottom:8px">Event Timeline</h4>`)
-		b.WriteString(`<table style="width:100%;border-collapse:collapse">`)
-		b.WriteString(`<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">`)
-		b.WriteString(`<th style="padding:8px">Version</th><th style="padding:8px">Type</th>`)
-		b.WriteString(`<th style="padding:8px">Occurred At</th><th style="padding:8px">Event ID</th>`)
-		b.WriteString(`</tr></thead><tbody>`)
+		var rows strings.Builder
 
 		for _, evt := range events {
 			fmt.Fprintf(
-				&b, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px;font-weight:600">%s</td>
-				<td style="padding:8px">%s</td>
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-				<td style="padding:8px">%s</td>
-			</tr>`,
+				&rows,
+				`<tr><td style="font-weight:600">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono">%s</code></td></tr>`,
 				esc(evt.Version().String()),
-				link(fmt.Sprintf("%s/events/%s", p.BasePath, esc(evt.ID().String())), esc(string(evt.Type()))),
+				p.BasePath,
+				esc(evt.ID().String()),
+				esc(string(evt.Type())),
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
-				fmt.Sprintf(`<code style="font-size:0.8em">%s</code>`, truncate(evt.ID().String(), eventIDWidth)),
+				truncate(evt.ID().String(), eventIDWidth),
 			)
 		}
 
-		b.WriteString(`</tbody></table>`)
+		b.WriteString(`<h4>Event Timeline</h4>`)
+		fmt.Fprintf(
+			&b,
+			`<table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th><th scope="col">Event ID</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 
 		return b.String()
 	})
@@ -121,41 +101,26 @@ func (d *Dashboard) renderAggregateDetail(
 func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing) string {
 	return d.renderLayout(p, func() string {
 		if len(listings) == 0 {
-			return `<div style="padding:40px;text-align:center;color:#64748b"><h3>No aggregates found</h3></div>`
+			return emptyState("No aggregates found", "")
 		}
 
-		var (
-			rows      string
-			rowsSb131 strings.Builder
-		)
+		var rows strings.Builder
+
 		for _, l := range listings {
-			fmt.Fprintf(&rowsSb131, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-				<td style="padding:8px">%s</td>
-				<td style="padding:8px">%s</td>
-				<td style="padding:8px">%d</td>
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-			</tr>`,
+			fmt.Fprintf(
+				&rows,
+				`<tr><td class="mono">%s</td><td>%s</td><td>%s</td><td>%d</td><td class="mono">%s</td></tr>`,
 				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(string(l.Type)),
 				esc(l.Version.String()),
 				l.EventCount,
-				esc(l.LastEventAt.Format("2006-01-02 15:04:05")))
+				esc(l.LastEventAt.Format("2006-01-02 15:04:05")),
+			)
 		}
 
-		rows += rowsSb131.String()
-
-		return fmt.Sprintf(`
-			<h3 style="margin-bottom:12px">Aggregates</h3>
-			<table style="width:100%%;border-collapse:collapse">
-				<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
-					<th style="padding:8px">ID</th>
-					<th style="padding:8px">Type</th>
-					<th style="padding:8px">Version</th>
-					<th style="padding:8px">Events</th>
-					<th style="padding:8px">Last Event</th>
-				</tr></thead>
-				<tbody>%s</tbody>
-			</table>`, rows)
+		return fmt.Sprintf(
+			`<h3>Aggregates</h3><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 	})
 }
