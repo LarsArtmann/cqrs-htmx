@@ -513,6 +513,8 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`references/realtime.md`** -- SSE + WebSocket, broadcaster, ACK protocol, idempotency, reconnection/replay, heartbeat, event filtering patterns.
 - **`references/gotchas.md`** -- the complete consumer gotcha list with fixes.
 - **`docs/guides/leveraging-go-cqrs-lite.md`** -- how to leverage 58 go-cqrs-lite modules from cqrs-htmx (dispatch middleware, OTel/Prometheus, durable scheduling, signing/encryption, catalog docs, scenario testing, sagas, schema evolution).
+- **`docs/guides/production-readiness.md`** -- single checklist for taking a cqrs-htmx app to production (middleware stack, observability, security, projection health, performance).
+- **`docs/guides/dispatch-middleware-ordering.md`** -- correct ordering rules for dispatch middleware (recovery, circuit breaker, retry, tracing, metrics, logging).
 - **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof).
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.
 
