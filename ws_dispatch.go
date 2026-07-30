@@ -104,7 +104,7 @@ func (a *App) DispatchWSCommand(
 	data []byte,
 ) error {
 	if cmdType.IsZero() {
-		panic("cqrs-htmx: command type must not be empty")
+		panic("cqrs-htmx: command type must not be empty") //cqrs-lint:ignore(C009) programmer error: empty command type
 	}
 
 	if a.commands == nil {
@@ -159,7 +159,7 @@ func (a *App) DispatchWSQuery(
 	data []byte,
 ) (any, error) {
 	if qryType.IsZero() {
-		panic("cqrs-htmx: query type must not be empty")
+		panic("cqrs-htmx: query type must not be empty") //cqrs-lint:ignore(C009) programmer error: empty query type
 	}
 
 	if a.queries == nil {
