@@ -84,7 +84,7 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 		Accent:    d.cfg.AccentColor,
 		Brand:     d.cfg.Title,
 		Nav:       nav,
-		LogoutURL: "",
+		LogoutURL: d.cfg.LogoutURL,
 		CSRFToken: csrfToken(r),
 		ReadOnly:  d.cfg.ReadOnly,
 		Caps:      d.caps,
