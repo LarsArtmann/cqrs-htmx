@@ -31,8 +31,10 @@ const (
 	errorDisplayWidth = 60
 )
 
-const recentEventsLimit = 5
-const overviewCountLimit = 500
+const (
+	recentEventsLimit  = 5
+	overviewCountLimit = 500
+)
 
 func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Overview", "/", r)
@@ -167,11 +169,13 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 
 		if len(stats.Projections) > 0 {
 			active := 0
+
 			for _, pr := range stats.Projections {
 				if pr.StatusKind == statusGood {
 					active++
 				}
 			}
+
 			statCard(&inner, fmt.Sprintf("%d/%d", active, len(stats.Projections)), "Projections", "ok")
 		}
 
@@ -202,8 +206,14 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 			inner.WriteString(`</tr></thead><tbody>`)
 
 			for _, e := range stats.RecentEvents {
-				fmt.Fprintf(&inner, `<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono">%s</td><td>%s</td></tr>`,
-					esc(e.Time), esc(e.Type), esc(truncate(e.StreamID, eventIDWidth)), esc(e.Version))
+				fmt.Fprintf(
+					&inner,
+					`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono">%s</td><td>%s</td></tr>`,
+					esc(e.Time),
+					esc(e.Type),
+					esc(truncate(e.StreamID, eventIDWidth)),
+					esc(e.Version),
+				)
 			}
 
 			inner.WriteString(`</tbody></table>`)
@@ -217,6 +227,7 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 
 func renderProjectionRow(p projectionStat) string {
 	badgeClass := "badge badge-neutral"
+
 	switch p.StatusKind {
 	case statusGood:
 		badgeClass = "badge badge-ok"
@@ -226,8 +237,15 @@ func renderProjectionRow(p projectionStat) string {
 		badgeClass = "badge badge-err"
 	}
 
-	return fmt.Sprintf(`<tr><td>%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
-		esc(p.Name), badgeClass, esc(p.Status), esc(p.Lag), p.Processed, p.Errors)
+	return fmt.Sprintf(
+		`<tr><td>%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
+		esc(p.Name),
+		badgeClass,
+		esc(p.Status),
+		esc(p.Lag),
+		p.Processed,
+		p.Errors,
+	)
 }
 
 func statCard(b *strings.Builder, value, label, variant string) {
@@ -246,6 +264,7 @@ func truncate(s string, n int) string {
 	if len(s) <= n {
 		return s
 	}
+
 	return s[:n] + "..."
 }
 

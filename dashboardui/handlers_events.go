@@ -18,6 +18,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	events, err := d.loadRecentEvents(r.Context(), d.cfg.PageSize)
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "failed to load events")
+
 		return
 	}
 
@@ -31,12 +32,14 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 	eventID, err := id.ParseEventID(eventIDStr)
 	if err != nil {
 		renderError(w, r, http.StatusBadRequest, "invalid event ID")
+
 		return
 	}
 
 	evt, err := d.loadEventByID(r.Context(), eventID)
 	if err != nil {
 		renderError(w, r, http.StatusNotFound, "event not found")
+
 		return
 	}
 
@@ -51,14 +54,17 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		evt, err := d.cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
 		if err != nil {
 			var zero event.Event
+
 			return zero, errorfamily.WrapInfrastructure(err,
 				"dashboardui.event_detail.load_failed", "load event by ID")
 		}
+
 		return evt, nil
 	}
 
 	if d.cfg.SeekableJournal != nil {
 		const scanLimit = 5000
+
 		var after id.EventID
 
 		for {
@@ -128,15 +134,19 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
 		if corrID := meta.CorrelationID.String(); corrID != "" {
 			metaRow(&b, "Correlation ID", esc(corrID))
 		}
+
 		if causID := meta.CausationID.String(); causID != "" {
 			metaRow(&b, "Causation ID", esc(causID))
 		}
+
 		if userID := meta.UserID.String(); userID != "" {
 			metaRow(&b, "User ID", esc(userID))
 		}
+
 		if reqID := meta.RequestID.String(); reqID != "" {
 			metaRow(&b, "Request ID", esc(reqID))
 		}
+
 		if deadline, ok := evt.Deadline(); ok {
 			metaRow(&b, "Deadline", esc(deadline.Format(time.RFC3339)))
 		}
@@ -145,9 +155,11 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
 
 		if len(meta.Custom) > 0 {
 			b.WriteString(`<h4>Custom Metadata</h4><table class="meta-table">`)
+
 			for k, v := range meta.Custom {
 				metaRow(&b, esc(string(k)), esc(v))
 			}
+
 			b.WriteString(`</table>`)
 		}
 
@@ -170,6 +182,7 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Ev
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.recent_events.read_failed", "read recent events")
 		}
+
 		return events, nil
 	}
 
@@ -179,9 +192,11 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Ev
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.recent_events.read_all_failed", "read all events")
 		}
+
 		if len(all) > limit {
 			all = all[:limit]
 		}
+
 		return all, nil
 	}
 
@@ -197,14 +212,22 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 		var rows strings.Builder
 
 		for _, evt := range events {
-			fmt.Fprintf(&rows, `<tr><td class="mono">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td>%s</td><td>%s</td></tr>`,
+			fmt.Fprintf(
+				&rows,
+				`<tr><td class="mono">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td>%s</td><td>%s</td></tr>`,
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
-				p.BasePath, esc(evt.ID().String()), esc(string(evt.Type())),
+				p.BasePath,
+				esc(evt.ID().String()),
+				esc(string(evt.Type())),
 				esc(truncate(evt.StreamID().String(), listIDWidth)),
 				esc(string(evt.StreamType())),
-				esc(evt.Version().String()))
+				esc(evt.Version().String()),
+			)
 		}
 
-		return fmt.Sprintf(`<h3>Event Stream</h3><table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		return fmt.Sprintf(
+			`<h3>Event Stream</h3><table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 	})
 }
