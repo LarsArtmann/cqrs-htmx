@@ -222,7 +222,7 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 					<td style="padding:8px">%s</td>
 					<td style="padding:8px">%d</td>
 					<td style="padding:8px">%d</td>
-				</tr>`, p.Name, color, p.Status, p.Lag, p.Processed, p.Errors)
+				</tr>`, esc(p.Name), color, esc(p.Status), esc(p.Lag), p.Processed, p.Errors)
 			}
 
 			inner.WriteString(`</tbody></table>`)
@@ -242,7 +242,7 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 					<td style="padding:8px"><code>%s</code></td>
 					<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 					<td style="padding:8px">%s</td>
-				</tr>`, e.Time, e.Type, truncate(e.StreamID, eventIDWidth), e.Version)
+				</tr>`, esc(e.Time), esc(e.Type), esc(truncate(e.StreamID, eventIDWidth)), esc(e.Version))
 			}
 
 			inner.WriteString(`</tbody></table>`)

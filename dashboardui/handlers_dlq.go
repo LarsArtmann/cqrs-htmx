@@ -109,10 +109,10 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 				<td style="padding:8px;color:#dc2626">%s</td>
 				<td style="padding:8px">%s</td>
 			</tr>`,
-				e.FailedAt.Format("2006-01-02 15:04:05"),
-				e.EventType,
-				truncate(e.Error, errorDisplayWidth),
-				e.ErrorFamily)
+				esc(e.FailedAt.Format("2006-01-02 15:04:05")),
+				esc(e.EventType),
+				esc(truncate(e.Error, errorDisplayWidth)),
+				esc(e.ErrorFamily))
 		}
 
 		rows += rowsSb326.String()
