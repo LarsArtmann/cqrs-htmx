@@ -147,8 +147,9 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 					p.BasePath, esc(proj), esc(e.EventID), esc(p.CSRFToken))
 			}
 
-			fmt.Fprintf(&rows, `<tr><td class="mono">%s</td><td><code>%s</code></td><td><span class="badge badge-err">%s</span></td><td>%s</td><td>%s</td></tr>`,
+			fmt.Fprintf(&rows, `<tr><td class="mono" title="%s">%s</td><td><code>%s</code></td><td><span class="badge badge-err">%s</span></td><td>%s</td><td>%s</td></tr>`,
 				esc(e.FailedAt.Format("2006-01-02 15:04:05")),
+				esc(relativeTime(e.FailedAt)),
 				esc(e.EventType),
 				esc(truncate(e.Error, errorDisplayWidth)),
 				esc(e.ErrorFamily),

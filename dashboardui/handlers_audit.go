@@ -17,8 +17,9 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 	p := d.page("Commands", "/commands", r)
 
 	pageSize := parsePageSize(r, d.cfg.PageSize)
-	after := id.CommandID(r.URL.Query().Get("after"))
-	hasPrev := r.URL.Query().Get("after") != ""
+	afterStr := r.URL.Query().Get("after")
+	after, _ := id.ParseCommandID(afterStr)
+	hasPrev := afterStr != ""
 
 	var cmds []*command.PersistedCommand
 	var hasNext bool
@@ -85,8 +86,9 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 	p := d.page("Queries", "/queries", r)
 
 	pageSize := parsePageSize(r, d.cfg.PageSize)
-	after := id.RequestID(r.URL.Query().Get("after"))
-	hasPrev := r.URL.Query().Get("after") != ""
+	afterStr := r.URL.Query().Get("after")
+	after, _ := id.ParseRequestID(afterStr)
+	hasPrev := afterStr != ""
 
 	var queries []*query.PersistedQuery
 	var hasNext bool

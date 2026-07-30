@@ -86,7 +86,7 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 
 		b.WriteString(`<div class="page-header">`)
 		fmt.Fprintf(&b, `<h2>Snapshot: <code>%s</code></h2>`, esc(ref.ID.String()))
-		fmt.Fprintf(&b, `<div class="page-subtitle">Version %s · Created %s</div>`, esc(snap.Version.String()), esc(snap.CreatedAt.Format(time.RFC3339)))
+		fmt.Fprintf(&b, `<div class="page-subtitle">Version %s · Created %s (%s)</div>`, esc(snap.Version.String()), esc(snap.CreatedAt.Format(time.RFC3339)), esc(relativeTime(snap.CreatedAt)))
 		b.WriteString(`</div>`)
 
 		if !p.ReadOnly {
@@ -103,7 +103,7 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 		metaRow(&b, "Stream ID", esc(snap.StreamID.String()))
 		metaRow(&b, "Version", esc(snap.Version.String()))
 		metaRow(&b, "Created At", esc(snap.CreatedAt.Format(time.RFC3339)))
-		metaRow(&b, "State Size", esc(fmt.Sprintf("%d bytes", len(snap.State))))
+		metaRow(&b, "State Size", esc(humanByteSize(len(snap.State))))
 		b.WriteString(`</table>`)
 
 		b.WriteString(`<h4>State</h4>`)

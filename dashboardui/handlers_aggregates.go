@@ -36,7 +36,10 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 	if d.cfg.StreamReader != nil {
 		opts := listing.ListOptions{Limit: uint(pageSize + 1)}
 		if after := r.URL.Query().Get("after"); after != "" {
-			opts.After = id.StreamID(after)
+			parsed, err := id.ParseStreamID(after)
+			if err == nil {
+				opts.After = parsed
+			}
 		}
 
 		page, err := d.cfg.StreamReader.List(r.Context(), opts)

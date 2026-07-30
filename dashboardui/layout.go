@@ -283,6 +283,8 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .data-table td { padding: 8px; }
 .data-table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
 .data-table tbody tr:hover { background: var(--surface-hover); }
+.data-table tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface-hover) 50%, transparent); }
+.data-table thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
 
 /* ===== Stat cards ===== */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--gap); margin-bottom: 24px; }
