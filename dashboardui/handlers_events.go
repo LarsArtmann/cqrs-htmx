@@ -15,14 +15,33 @@ import (
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Events", "/events", r)
 
-	events, err := d.loadRecentEvents(r.Context(), d.cfg.PageSize)
+	pageSize := parsePageSize(r, d.cfg.PageSize)
+	after := r.URL.Query().Get("after")
+	afterID, _ := id.ParseEventID(after)
+
+	events, err := d.loadRecentEvents(r.Context(), afterID, pageSize+1)
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "failed to load events")
 
 		return
 	}
 
-	html := d.renderEvents(p, events)
+	hasNext := len(events) > pageSize
+	if hasNext {
+		events = events[:pageSize]
+	}
+
+	var nextCursor string
+	if hasNext && len(events) > 0 {
+		nextCursor = events[len(events)-1].ID().String()
+	}
+
+	html := d.renderEvents(p, events, paginationState{
+		HasNext:    hasNext,
+		NextCursor: nextCursor,
+		PageSize:   pageSize,
+		HasPrev:    after != "",
+	})
 	renderPage(w, r, html)
 }
 
@@ -175,9 +194,9 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
 	})
 }
 
-func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Event, error) {
+func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limit int) ([]event.Event, error) {
 	if d.cfg.SeekableJournal != nil {
-		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, limit)
+		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, after, limit)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.recent_events.read_failed", "read recent events")
@@ -203,8 +222,11 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, limit int) ([]event.Ev
 	return nil, nil
 }
 
-func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
+func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg paginationState) string {
 	return d.renderLayout(p, func() string {
+		var b strings.Builder
+		b.WriteString(`<div class="page-header"><h3>Event Stream</h3></div>`)
+
 		if len(events) == 0 {
 			return emptyState("No events yet", "Events will appear here as they are committed to the store.")
 		}
@@ -225,9 +247,10 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 			)
 		}
 
-		return fmt.Sprintf(
-			`<h3>Event Stream</h3><table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table>`,
-			rows.String(),
-		)
+		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+
+		b.WriteString(renderPagination(p.BasePath, "/events", pg, ""))
+
+		return b.String()
 	})
 }

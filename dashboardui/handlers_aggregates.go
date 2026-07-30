@@ -26,7 +26,43 @@ func (d *Dashboard) listStreams(r *http.Request) []listing.StreamListing {
 }
 
 func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Request) {
-	d.renderStreamIndex(w, r, "Aggregates", "/aggregates", d.renderAggregates)
+	p := d.page("Aggregates", "/aggregates", r)
+
+	pageSize := parsePageSize(r, d.cfg.PageSize)
+
+	var listings []listing.StreamListing
+	var hasMore bool
+
+	if d.cfg.StreamReader != nil {
+		opts := listing.ListOptions{Limit: uint(pageSize + 1)}
+		if after := r.URL.Query().Get("after"); after != "" {
+			opts.After = id.StreamID(after)
+		}
+
+		page, err := d.cfg.StreamReader.List(r.Context(), opts)
+		if err == nil && page != nil {
+			hasMore = len(page.Items) > pageSize
+			if hasMore {
+				listings = page.Items[:pageSize]
+			} else {
+				listings = page.Items
+			}
+		}
+	}
+
+	hasPrev := r.URL.Query().Get("after") != ""
+	var nextCursor string
+	if hasMore && len(listings) > 0 {
+		nextCursor = listings[len(listings)-1].ID.String()
+	}
+
+	html := d.renderAggregates(p, listings, paginationState{
+		HasNext:    hasMore,
+		NextCursor: nextCursor,
+		PageSize:   pageSize,
+		HasPrev:    hasPrev,
+	})
+	renderPage(w, r, html)
 }
 
 func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +134,7 @@ func (d *Dashboard) renderAggregateDetail(
 	})
 }
 
-func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing) string {
+func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing, pg paginationState) string {
 	return d.renderLayout(p, func() string {
 		if len(listings) == 0 {
 			return emptyState("No aggregates found", "")
@@ -118,9 +154,10 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 			)
 		}
 
-		return fmt.Sprintf(
-			`<h3>Aggregates</h3><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table>`,
-			rows.String(),
-		)
+		var b strings.Builder
+		fmt.Fprintf(&b, `<h3>Aggregates</h3><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		b.WriteString(renderPagination(p.BasePath, "/aggregates", pg, ""))
+
+		return b.String()
 	})
 }
