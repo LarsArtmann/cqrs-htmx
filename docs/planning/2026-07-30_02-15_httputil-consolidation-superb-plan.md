@@ -321,7 +321,7 @@ CSRF context keys (for CSRF token) similarly live in httputil.
 1. **httputil lint: 49→0 issues.** The original port introduced 49 lint violations (depguard, varnamelen×31, exhaustruct×3, canonicalheader×6, wsl_v5×8, noinlineerr×3, gci×2, nlreturn×1, nolintlint×2). All resolved via config + code fixes.
 2. **Renames for clarity:** `CSRFErrorHandler`→`ErrorHandler` and `ForbiddenCSRFHandler`→`ForbiddenHandler` in httputil (the types are general-purpose, not CSRF-specific). cqrs-htmx aliases updated.
 3. **TokenBucketLimiter deprecated** (not deleted): 6 `// Deprecated:` markers added, pointing to `KeyedRateLimiter`. Reversible deprecation over breaking deletion.
-4. **cqrs-htmx lint: 64→1 issues** (the 1 remaining is a pre-existing `unparam` in decoder.go, untouched). Added: `_reexport.go` exclusion from gochecknoglobals+revive, httputil types to exhaustruct exclude, G705 to gosec excludes, canonicalheader text exclusions for HX-*/X-CSRF-* ecosystem headers.
+4. **cqrs-htmx lint: 64→1 issues** (the 1 remaining is a pre-existing `unparam` in decoder.go, untouched). Added: `_reexport.go` exclusion from gochecknoglobals+revive, httputil types to exhaustruct exclude, G705 to gosec excludes, canonicalheader text exclusions for HX-_/X-CSRF-_ ecosystem headers.
 5. **1288 LOC of redundant tests deleted** (7 files). All cqrs-htmx-specific coverage retained in `integration_csrf_test.go`, `benchmark_middleware_test.go`, `feedback_features_test.go`.
 6. **Root coverage:** 93.2% (was 93.7%, gate ≥90% — still passes).
 7. **httputil git index corruption fixed** (libgit2 checksum error was blocking `nix run .#test`).
@@ -331,6 +331,7 @@ CSRF context keys (for CSRF token) similarly live in httputil.
 cqrs-htmx now depends on **unreleased** httputil symbols (`CSRFConfig`, `ServerTiming`, `KeyedRateLimiter`, `ErrorHandler`, `ForbiddenHandler`). The `go.work` replace (`=> /home/lars/projects/httputil`) makes local `go test` work, but `nix run .#test` (GOWORK=off, hermetic) fetches published v0.7.1 and fails to compile.
 
 **3 steps to unblock:**
+
 1. Publish httputil v0.8.0 (`git tag v0.8.0 && git push origin master --tags`)
 2. Bump cqrs-htmx (`go get github.com/larsartmann/httputil@v0.8.0`)
 3. Remove go.work replace for httputil

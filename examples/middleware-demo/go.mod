@@ -19,14 +19,14 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/retry/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/retry/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-sse v0.3.0 // indirect
 	github.com/larsartmann/httputil v0.7.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
