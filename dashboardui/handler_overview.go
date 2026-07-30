@@ -34,6 +34,10 @@ const (
 // recentEventsLimit is how many recent events the overview card shows.
 const recentEventsLimit = 5
 
+// overviewCountLimit is the batch size for counting events/aggregates on the
+// overview page. Produces accurate counts up to this number, then "N+".
+const overviewCountLimit = 500
+
 func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Overview", "/", r)
 
@@ -71,8 +75,16 @@ type recentEvent struct {
 func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:cyclop // stat computation
 	stats := overviewStats{}
 
+	if stats.TotalAggregates == "" {
+		stats.TotalAggregates = "0"
+	}
+
+	if stats.TotalEvents == "" {
+		stats.TotalEvents = "0"
+	}
+
 	if d.cfg.StreamReader != nil {
-		page, err := d.cfg.StreamReader.List(ctx, listing.ListOptions{Limit: 1})
+		page, err := d.cfg.StreamReader.List(ctx, listing.ListOptions{Limit: uint(d.cfg.PageSize)})
 		if err == nil && page != nil {
 			stats.TotalAggregates = strconv.Itoa(len(page.Items))
 			if page.HasMore {
@@ -82,9 +94,13 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 	}
 
 	if d.cfg.SeekableJournal != nil { //nolint:nestif // journal-fallback branching is inherently nested
-		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, recentEventsLimit)
+		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, overviewCountLimit)
 		if err == nil {
-			for _, evt := range events {
+			for i, evt := range events {
+				if i >= recentEventsLimit {
+					break
+				}
+
 				stats.RecentEvents = append(stats.RecentEvents, recentEvent{
 					Time:     evt.OccurredAt().Format(time.RFC3339),
 					Type:     string(evt.Type()),
@@ -94,7 +110,10 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 				})
 			}
 
-			stats.TotalEvents = fmt.Sprintf("%d+", len(events))
+			stats.TotalEvents = strconv.Itoa(len(events))
+			if len(events) >= overviewCountLimit {
+				stats.TotalEvents += "+"
+			}
 		}
 	} else if d.cfg.Journal != nil {
 		events, err := d.cfg.Journal.ReadAll(ctx)
