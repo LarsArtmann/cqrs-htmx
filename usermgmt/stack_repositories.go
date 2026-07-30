@@ -62,22 +62,40 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 func buildDeciderRepositories(
 	store event.Store, bus event.Publisher, closeOnErr func(), snap SnapshotConfig,
 ) (*aggregateRepositories, error) {
-	user, err := decider.NewRepository(store, bus, UserDecider(), snapshotOptions[UserState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig; zero-value = full-replay mode
+	user, err := decider.NewRepository(
+		store,
+		bus,
+		UserDecider(),
+		snapshotOptions[UserState](
+			snap,
+		)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig; zero-value = full-replay mode
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create decider repository").WithCause(err)
 	}
-	membership, err := decider.NewRepository(store, bus, MembershipDecider(), snapshotOptions[MembershipState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	membership, err := decider.NewRepository(
+		store,
+		bus,
+		MembershipDecider(),
+		snapshotOptions[MembershipState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create membership decider repository").WithCause(err)
 	}
-	tenant, err := decider.NewRepository(store, bus, TenantDecider(), snapshotOptions[TenantState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	tenant, err := decider.NewRepository(
+		store,
+		bus,
+		TenantDecider(),
+		snapshotOptions[TenantState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create tenant decider repository").WithCause(err)
 	}
-	bot, err := decider.NewRepository(store, bus, BotDecider(), snapshotOptions[BotState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	bot, err := decider.NewRepository(
+		store,
+		bus,
+		BotDecider(),
+		snapshotOptions[BotState](snap)...) //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create bot decider repository").WithCause(err)

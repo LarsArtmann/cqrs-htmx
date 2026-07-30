@@ -109,11 +109,23 @@ func seedDemoData(
 		})
 
 		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
-		created, _ := event.New("user.created", aggID, "User", event.Version(1), jsontext.Value(payload)) //cqrs-lint:ignore(E004) demo data
+		created, _ := event.New(
+			"user.created",
+			aggID,
+			"User",
+			event.Version(1),
+			jsontext.Value(payload),
+		) //cqrs-lint:ignore(E004) demo data
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
 		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
-		renamed, _ := event.New("user.renamed", aggID, "User", event.Version(2), map[string]any{"name": name + " Jr."}) //cqrs-lint:ignore(E004) demo data
+		renamed, _ := event.New(
+			"user.renamed",
+			aggID,
+			"User",
+			event.Version(2),
+			map[string]any{"name": name + " Jr."},
+		) //cqrs-lint:ignore(E004) demo data
 		_ = store.Save(ctx, ref, []event.Event{renamed}, event.Version(1))
 
 		// Record a command for this user
@@ -140,17 +152,29 @@ func seedDemoData(
 		ref := id.NewStreamRef("Order", aggID)
 
 		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
-		placed, _ := event.New("order.placed", aggID, "Order", event.Version(1), map[string]any{ //cqrs-lint:ignore(E004) demo data
-			"customerId": fmt.Sprintf("cust-%d", i),
-			"total":      float64(i * 2999),
-			"items":      i,
-		})
+		placed, _ := event.New(
+			"order.placed",
+			aggID,
+			"Order",
+			event.Version(1),
+			map[string]any{ //cqrs-lint:ignore(E004) demo data
+				"customerId": fmt.Sprintf("cust-%d", i),
+				"total":      float64(i * 2999),
+				"items":      i,
+			},
+		)
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
 		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
-		shipped, _ := event.New("order.shipped", aggID, "Order", event.Version(2), map[string]any{ //cqrs-lint:ignore(E004) demo data
-			"trackingNumber": fmt.Sprintf("TRK%d", i*1000+i),
-		})
+		shipped, _ := event.New(
+			"order.shipped",
+			aggID,
+			"Order",
+			event.Version(2),
+			map[string]any{ //cqrs-lint:ignore(E004) demo data
+				"trackingNumber": fmt.Sprintf("TRK%d", i*1000+i),
+			},
+		)
 		_ = store.Save(ctx, ref, []event.Event{shipped}, event.Version(1))
 	}
 
@@ -198,7 +222,12 @@ func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
 			event.Version(1),
 			jsontext.Value(payload),
 		)
-		_ = store.Save(ctx, ref, []event.Event{evt}, event.Version(0)) //cqrs-lint:ignore(S003) demo with in-memory store: no signing needed
+		_ = store.Save(
+			ctx,
+			ref,
+			[]event.Event{evt},
+			event.Version(0),
+		) //cqrs-lint:ignore(S003) demo with in-memory store: no signing needed
 		_ = bus.Publish(ctx, evt)
 	}
 }
