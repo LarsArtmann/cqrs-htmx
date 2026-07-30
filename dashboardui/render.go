@@ -37,6 +37,24 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 	w.Header().Set("Hx-Trigger", string(detail))
 }
 
+// renderError logs the full error and shows a generic message to the user.
+// For HTMX requests, it renders within the layout; for regular requests, it
+// uses http.Error.
+func renderError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
+	slog.ErrorContext(r.Context(), "dashboardui: handler error",
+		"status", statusCode, "message", message, "path", r.URL.Path)
+	http.Error(w, message, statusCode)
+}
+
+// emptyState renders the standard empty-state panel.
+func emptyState(title, message string) string {
+	if message == "" {
+		return fmt.Sprintf(`<div class="empty-state"><h3>%s</h3></div>`, esc(title))
+	}
+
+	return fmt.Sprintf(`<div class="empty-state"><h3>%s</h3><p>%s</p></div>`, esc(title), esc(message))
+}
+
 func redirect(w http.ResponseWriter, r *http.Request, path string) {
 	cqrshtmx.HTMXRedirect(w, r, path)
 }
