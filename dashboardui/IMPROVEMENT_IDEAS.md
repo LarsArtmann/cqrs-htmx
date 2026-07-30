@@ -260,7 +260,7 @@
 
 99. **Add CSS for forms** — Filter inputs, select dropdowns, and buttons need consistent form styling.
 
-100. **Reduce CSS specificity issues** — Inline styles have highest specificity, making overrides impossible. Moving to classes fixes this.
+100.  **Reduce CSS specificity issues** — Inline styles have highest specificity, making overrides impossible. Moving to classes fixes this.
 
 ---
 
@@ -822,57 +822,61 @@
 
 ## Summary
 
-| Category | Ideas | Priority |
-|---|---|---|
-| Critical Bugs & Correctness | 18 | P0 |
-| Architecture & Rendering | 17 | P1 |
-| HTMX Integration | 13 | P1 |
-| Pagination & Data Loading | 12 | P1 |
-| Filtering & Search | 12 | P1 |
-| Sorting & Table UX | 11 | P2 |
-| CSS & Styling | 17 | P1 |
-| JavaScript & SSE | 18 | P1 |
-| Security | 13 | P1 |
-| DLQ Panel Improvements | 13 | P2 |
-| Projection Panel Improvements | 14 | P2 |
-| Event Browser Improvements | 13 | P2 |
-| Aggregate Browser Improvements | 12 | P2 |
-| Time-Travel Improvements | 13 | P2 |
-| Snapshot Inspector Improvements | 12 | P2 |
-| Command/Query Audit Improvements | 13 | P2 |
-| Overview Page Improvements | 14 | P2 |
-| New Panels & Features | 13 | P3 |
-| API & Export | 10 | P2 |
-| Testing & Quality | 20 | P1 |
-| Documentation | 17 | P2 |
-| Demo & Examples | 12 | P3 |
-| Observability & Metrics | 11 | P3 |
-| Accessibility | 14 | P2 |
-| Mobile & Responsive | 10 | P2 |
-| **Total** | **342** | |
+| Category                         | Ideas   | Priority |
+| -------------------------------- | ------- | -------- |
+| Critical Bugs & Correctness      | 18      | P0       |
+| Architecture & Rendering         | 17      | P1       |
+| HTMX Integration                 | 13      | P1       |
+| Pagination & Data Loading        | 12      | P1       |
+| Filtering & Search               | 12      | P1       |
+| Sorting & Table UX               | 11      | P2       |
+| CSS & Styling                    | 17      | P1       |
+| JavaScript & SSE                 | 18      | P1       |
+| Security                         | 13      | P1       |
+| DLQ Panel Improvements           | 13      | P2       |
+| Projection Panel Improvements    | 14      | P2       |
+| Event Browser Improvements       | 13      | P2       |
+| Aggregate Browser Improvements   | 12      | P2       |
+| Time-Travel Improvements         | 13      | P2       |
+| Snapshot Inspector Improvements  | 12      | P2       |
+| Command/Query Audit Improvements | 13      | P2       |
+| Overview Page Improvements       | 14      | P2       |
+| New Panels & Features            | 13      | P3       |
+| API & Export                     | 10      | P2       |
+| Testing & Quality                | 20      | P1       |
+| Documentation                    | 17      | P2       |
+| Demo & Examples                  | 12      | P3       |
+| Observability & Metrics          | 11      | P3       |
+| Accessibility                    | 14      | P2       |
+| Mobile & Responsive              | 10      | P2       |
+| **Total**                        | **342** |          |
 
 ---
 
 ## Recommended Execution Order (Pareto)
 
 ### Phase 1: Critical Fixes (do first, highest impact)
+
 1. Fix XSS vulnerabilities (items 11, 12, 119) — security critical
 2. Fix SSE reconnection bug (items 4, 102) — core functionality broken
 3. Fix overview stats (items 1, 2, 222) — user trust
 4. Remove console.log and dead code (items 101, 5, 7, 8) — professionalism
 
 ### Phase 2: Templ Migration (enables everything else)
+
 5. Migrate to templ-components (item 19) — eliminates an entire class of bugs
 6. Extract shared components (items 20-25) — maintainability
 7. Consolidate CSS (items 26-28) — dark mode, consistency
 
 ### Phase 3: Core UX
+
 8. Add real HTMX integration (items 36-48) — the dashboard already loads htmx.js
 9. Add pagination (items 49-60) — basic usability
 10. Add filtering (items 61-72) — basic usability
 11. Implement toast rendering (item 42) — write op feedback
 
 ### Phase 4: Polish
+
 12. CSS overhaul and dark mode (items 84-100)
 13. Accessibility (items 319-332)
 14. Mobile responsive (items 333-342)
