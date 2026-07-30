@@ -22,43 +22,25 @@ func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamLi
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		b.WriteString(
-			`<p style="color:var(--muted);margin-bottom:16px">Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.</p>`,
-		)
+		b.WriteString(`<p class="page-subtitle" style="margin-bottom:16px">Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.</p>`)
 
 		if len(listings) == 0 {
-			b.WriteString(`<div style="padding:40px;text-align:center;color:var(--muted)">`)
-			b.WriteString(`<h3>No aggregates found</h3>`)
-			b.WriteString(`<p>Configure a StreamReader to browse snapshots by aggregate.</p>`)
-			b.WriteString(`</div>`)
-
-			return b.String()
+			return emptyState("No aggregates found", "Configure a StreamReader to browse snapshots by aggregate.")
 		}
 
-		b.WriteString(`<table style="width:100%;border-collapse:collapse">`)
-		b.WriteString(`<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">`)
-		b.WriteString(`<th style="padding:8px">Type</th><th style="padding:8px">ID</th>`)
-		b.WriteString(`<th style="padding:8px">Version</th><th style="padding:8px"></th>`)
-		b.WriteString(`</tr></thead><tbody>`)
+		var rows strings.Builder
 
 		for _, l := range listings {
-			fmt.Fprintf(
-				&b, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px">%s</td>
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-				<td style="padding:8px">%s</td>
-				<td style="padding:8px"><a href="%s/snapshots/%s/%s" style="color:var(--accent);text-decoration:none">View</a></td>
-			</tr>`,
+			fmt.Fprintf(&rows, `<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td><a href="%s/snapshots/%s/%s" class="btn">View</a></td></tr>`,
 				esc(string(l.Type)),
 				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(l.Version.String()),
 				p.BasePath,
 				esc(string(l.Type)),
-				esc(l.ID.String()),
-			)
+				esc(l.ID.String()))
 		}
 
-		b.WriteString(`</tbody></table>`)
+		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table>`, rows.String())
 
 		return b.String()
 	})
@@ -70,8 +52,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 
 	ref, err := streamRefFromRequest(r)
 	if err != nil {
-		http.Error(w, "invalid stream reference: "+err.Error(), http.StatusBadRequest)
-
+		renderError(w, r, http.StatusBadRequest, "invalid stream reference")
 		return
 	}
 
@@ -79,21 +60,17 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
-			return fmt.Sprintf(`<div style="padding:40px;text-align:center;color:var(--muted)">
-				<h3>No snapshot found</h3>
-				<p>No snapshot exists for %s/<code>%s</code>.</p>
-			</div>`, esc(streamType), esc(truncate(streamID, snapshotIDWidth)))
+			return fmt.Sprintf(`<div class="empty-state"><h3>No snapshot found</h3><p>No snapshot exists for %s/<code>%s</code>.</p></div>`,
+				esc(streamType), esc(truncate(streamID, snapshotIDWidth)))
 		}))
-
 		return
 	}
 
 	if snap == nil {
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
-			return `<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No snapshot</h3></div>`
+			return emptyState("No snapshot", "")
 		}))
-
 		return
 	}
 
@@ -106,26 +83,21 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		fmt.Fprintf(&b, `<div style="margin-bottom:24px">`)
-		fmt.Fprintf(&b, `<h2 style="margin:0 0 4px">Snapshot: <code>%s</code></h2>`, esc(ref.ID.String()))
-		fmt.Fprintf(&b, `<div style="color:var(--muted);font-size:0.88em">Version %s · Created %s</div>`,
-			esc(snap.Version.String()), esc(snap.CreatedAt.Format(time.RFC3339)))
+		b.WriteString(`<div class="page-header">`)
+		fmt.Fprintf(&b, `<h2>Snapshot: <code>%s</code></h2>`, esc(ref.ID.String()))
+		fmt.Fprintf(&b, `<div class="page-subtitle">Version %s · Created %s</div>`, esc(snap.Version.String()), esc(snap.CreatedAt.Format(time.RFC3339)))
 		b.WriteString(`</div>`)
 
-		// Delete button (if not read-only).
 		if !p.ReadOnly {
-			fmt.Fprintf(&b, `<form method="POST" action="%s/snapshots/%s/%s/delete" style="margin-bottom:24px">`,
+			fmt.Fprintf(&b, `<form method="POST" action="%s/snapshots/%s/%s/delete" style="margin-bottom:24px" onsubmit="return confirm('Delete this snapshot?')">`,
 				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
-			fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, p.CSRFToken)
-			b.WriteString(
-				`<button type="submit" style="padding:6px 12px;border:1px solid var(--err);border-radius:6px;background:transparent;color:var(--err);cursor:pointer;font-size:0.85em">Delete Snapshot</button>`,
-			)
+			fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
+			b.WriteString(`<button type="submit" class="btn btn-danger">Delete Snapshot</button>`)
 			b.WriteString(`</form>`)
 		}
 
-		// Metadata.
-		b.WriteString(`<h4 style="margin-bottom:8px">Metadata</h4>`)
-		b.WriteString(`<table style="width:100%;border-collapse:collapse;font-size:0.88em;margin-bottom:24px">`)
+		b.WriteString(`<h4>Metadata</h4>`)
+		b.WriteString(`<table class="meta-table" style="margin-bottom:24px">`)
 		metaRow(&b, "Stream Type", esc(string(snap.StreamType)))
 		metaRow(&b, "Stream ID", esc(snap.StreamID.String()))
 		metaRow(&b, "Version", esc(snap.Version.String()))
@@ -133,15 +105,9 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 		metaRow(&b, "State Size", esc(fmt.Sprintf("%d bytes", len(snap.State))))
 		b.WriteString(`</table>`)
 
-		// State.
-		b.WriteString(`<h4 style="margin-bottom:8px">State</h4>`)
-
+		b.WriteString(`<h4>State</h4>`)
 		stateDisplay := d.renderSnapshotState(snap.State)
-		fmt.Fprintf(
-			&b,
-			`<pre style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;font-size:0.85em;line-height:1.5;margin:0"><code>%s</code></pre>`,
-			stateDisplay,
-		)
+		fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, stateDisplay)
 
 		return b.String()
 	})
@@ -152,7 +118,6 @@ func (d *Dashboard) renderSnapshotState(state []byte) string {
 		return esc("(empty)")
 	}
 
-	// Try to pretty-print as JSON.
 	out, err := d.cfg.PayloadRenderer.Render(state, codec.EncodingJSON)
 	if err == nil && len(out) > 0 {
 		return esc(string(out))
@@ -164,21 +129,18 @@ func (d *Dashboard) renderSnapshotState(state []byte) string {
 func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if d.cfg.SnapshotStore == nil {
 		http.Error(w, "snapshot store not configured", http.StatusBadRequest)
-
 		return
 	}
 
 	ref, err := streamRefFromRequest(r)
 	if err != nil {
-		http.Error(w, "invalid stream reference: "+err.Error(), http.StatusBadRequest)
-
+		renderError(w, r, http.StatusBadRequest, "invalid stream reference")
 		return
 	}
 
 	if err := d.cfg.SnapshotStore.Delete(r.Context(), ref); err != nil {
 		triggerToast(w, "err", "Delete failed: "+err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
-
 		return
 	}
 

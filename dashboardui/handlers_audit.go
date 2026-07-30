@@ -18,7 +18,7 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 
 	var cmds []*command.PersistedCommand
 
-	if d.cfg.CommandJournal != nil { //nolint:nestif // journal-fallback branching is inherently nested
+	if d.cfg.CommandJournal != nil {
 		var err error
 
 		if seekable, ok := d.cfg.CommandJournal.(command.SeekableCommandJournal); ok {
@@ -31,8 +31,7 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 		}
 
 		if err != nil {
-			http.Error(w, "failed to load commands: "+err.Error(), http.StatusInternalServerError)
-
+			renderError(w, r, http.StatusInternalServerError, "failed to load commands")
 			return
 		}
 	}
@@ -44,40 +43,21 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand) string {
 	return d.renderLayout(p, func() string {
 		if len(cmds) == 0 {
-			return `<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No commands recorded</h3><p>Commands will appear here as they are dispatched.</p></div>`
+			return emptyState("No commands recorded", "Commands will appear here as they are dispatched.")
 		}
 
 		var rows strings.Builder
 
 		for _, cmd := range cmds {
-			fmt.Fprintf(
-				&rows, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-				<td style="padding:8px"><code>%s</code></td>
-				<td style="padding:8px">%s</td>
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-				<td style="padding:8px;font-family:monospace;font-size:0.8em;color:var(--muted)">%s</td>
-			</tr>`,
+			fmt.Fprintf(&rows, `<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono">%s</td><td class="mono">%s</td></tr>`,
 				esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(cmd.Type())),
 				esc(string(cmd.StreamType())),
 				esc(cmd.StreamID().String()),
-				truncate(cmd.ID().String(), eventIDWidth),
-			)
+				truncate(cmd.ID().String(), eventIDWidth))
 		}
 
-		return fmt.Sprintf(`
-			<h3 style="margin-bottom:12px">Command Audit</h3>
-			<table style="width:100%%;border-collapse:collapse">
-				<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
-					<th style="padding:8px">Received At</th>
-					<th style="padding:8px">Type</th>
-					<th style="padding:8px">Stream Type</th>
-					<th style="padding:8px">Stream ID</th>
-					<th style="padding:8px">Command ID</th>
-				</tr></thead>
-				<tbody>%s</tbody>
-			</table>`, rows.String())
+		return fmt.Sprintf(`<h3>Command Audit</h3><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
 	})
 }
 
@@ -87,7 +67,7 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 
 	var queries []*query.PersistedQuery
 
-	if d.cfg.QueryJournal != nil { //nolint:nestif // journal-fallback branching is inherently nested
+	if d.cfg.QueryJournal != nil {
 		var err error
 
 		if seekable, ok := d.cfg.QueryJournal.(query.SeekableQueryJournal); ok {
@@ -100,8 +80,7 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 		}
 
 		if err != nil {
-			http.Error(w, "failed to load queries: "+err.Error(), http.StatusInternalServerError)
-
+			renderError(w, r, http.StatusInternalServerError, "failed to load queries")
 			return
 		}
 	}
@@ -113,33 +92,18 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery) string {
 	return d.renderLayout(p, func() string {
 		if len(queries) == 0 {
-			return `<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No queries recorded</h3><p>Queries will appear here as they are executed.</p></div>`
+			return emptyState("No queries recorded", "Queries will appear here as they are executed.")
 		}
 
 		var rows strings.Builder
 
 		for _, q := range queries {
-			fmt.Fprintf(
-				&rows, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-				<td style="padding:8px"><code>%s</code></td>
-				<td style="padding:8px;font-family:monospace;font-size:0.8em;color:var(--muted)">%s</td>
-			</tr>`,
+			fmt.Fprintf(&rows, `<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono">%s</td></tr>`,
 				esc(q.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(q.Type())),
-				truncate(q.ID().String(), eventIDWidth),
-			)
+				truncate(q.ID().String(), eventIDWidth))
 		}
 
-		return fmt.Sprintf(`
-			<h3 style="margin-bottom:12px">Query Audit</h3>
-			<table style="width:100%%;border-collapse:collapse">
-				<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
-					<th style="padding:8px">Received At</th>
-					<th style="padding:8px">Type</th>
-					<th style="padding:8px">Request ID</th>
-				</tr></thead>
-				<tbody>%s</tbody>
-			</table>`, rows.String())
+		return fmt.Sprintf(`<h3>Query Audit</h3><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
 	})
 }

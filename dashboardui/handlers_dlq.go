@@ -13,7 +13,7 @@ import (
 func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Dead Letters", "/dead-letters", r)
 	html := d.renderLayout(p, func() string {
-		return `<div style="padding:40px;text-align:center;color:#64748b"><h3>Dead-Letter Queue</h3><p>Select a projection to view its dead letters.</p></div>`
+		return emptyState("Dead-Letter Queue", "Select a projection to view its dead letters.")
 	})
 	renderPage(w, r, html)
 }
@@ -28,13 +28,12 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 		entries, err = d.cfg.DeadLetterStore.List(r.Context(), proj)
 		if err != nil {
-			http.Error(w, "failed to list dead letters: "+err.Error(), http.StatusInternalServerError)
-
+			renderError(w, r, http.StatusInternalServerError, "failed to list dead letters")
 			return
 		}
 	}
 
-	p := d.page("Dead Letters: "+proj, "/dead-letters", r)
+	p := d.page("Dead Letters: "+esc(proj), "/dead-letters", r)
 	html := d.renderDLQ(p, proj, entries)
 	renderPage(w, r, html)
 }
@@ -47,7 +46,6 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			triggerToast(w, "err", "Replay failed: "+err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-
 			return
 		}
 
@@ -65,7 +63,6 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		if err := store.Delete(r.Context(), proj, eventID); err != nil {
 			triggerToast(w, "err", "Delete failed: "+err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-
 			return
 		}
 
@@ -80,7 +77,6 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 		if err := store.Purge(r.Context(), proj); err != nil {
 			triggerToast(w, "err", "Purge failed: "+err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-
 			return
 		}
 
@@ -92,41 +88,19 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.DeadLetterEntry) string {
 	return d.renderLayout(p, func() string {
 		if len(entries) == 0 {
-			return fmt.Sprintf(
-				`<div style="padding:40px;text-align:center;color:#64748b"><h3>No dead letters for %s</h3></div>`,
-				proj,
-			)
+			return emptyState("No dead letters for "+esc(proj), "")
 		}
 
-		var (
-			rows      string
-			rowsSb326 strings.Builder
-		)
+		var rows strings.Builder
+
 		for _, e := range entries {
-			fmt.Fprintf(&rowsSb326, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-				<td style="padding:8px"><code>%s</code></td>
-				<td style="padding:8px;color:#dc2626">%s</td>
-				<td style="padding:8px">%s</td>
-			</tr>`,
+			fmt.Fprintf(&rows, `<tr><td class="mono">%s</td><td><code>%s</code></td><td><span class="badge badge-err">%s</span></td><td>%s</td></tr>`,
 				esc(e.FailedAt.Format("2006-01-02 15:04:05")),
 				esc(e.EventType),
 				esc(truncate(e.Error, errorDisplayWidth)),
 				esc(e.ErrorFamily))
 		}
 
-		rows += rowsSb326.String()
-
-		return fmt.Sprintf(`
-			<h3 style="margin-bottom:12px">Dead Letters: %s</h3>
-			<table style="width:100%%;border-collapse:collapse">
-				<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
-					<th style="padding:8px">Failed At</th>
-					<th style="padding:8px">Event Type</th>
-					<th style="padding:8px">Error</th>
-					<th style="padding:8px">Family</th>
-				</tr></thead>
-				<tbody>%s</tbody>
-			</table>`, proj, rows)
+		return fmt.Sprintf(`<h3>Dead Letters: %s</h3><table class="data-table"><thead><tr><th scope="col">Failed At</th><th scope="col">Event Type</th><th scope="col">Error</th><th scope="col">Family</th></tr></thead><tbody>%s</tbody></table>`, esc(proj), rows.String())
 	})
 }
