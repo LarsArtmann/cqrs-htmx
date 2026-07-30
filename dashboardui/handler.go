@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"fmt"
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -110,5 +111,19 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 		}
 	}
 
+	// Catch-all: styled 404 for any unmatched GET route under the dashboard.
+	mux.HandleFunc("GET /", d.guard(d.notFoundHandler))
+
 	return mux
+}
+
+// notFoundHandler renders a styled 404 page within the dashboard layout.
+func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	p := d.page("Not Found", "", r)
+	w.Header().Set("Content-Type", contentTypeHTML)
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprint(w, d.renderLayout(p, func() string {
+		return `<div class="empty-state"><h3>Page Not Found</h3><p>The requested page does not exist.</p><a href="`+esc(p.BasePath)+`/" class="btn">Back to Overview</a></div>`
+	}))
 }
