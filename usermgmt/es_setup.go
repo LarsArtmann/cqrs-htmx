@@ -115,7 +115,7 @@ func UserDecider() decider.Decider[UserState] {
 // (e.g. *watermill.EventBus) retain their Close method.
 func closeBus(bus event.Bus) {
 	if c, ok := bus.(io.Closer); ok {
-		_ = c.Close()
+		_ = c.Close() //cqrs-lint:ignore(C015) best-effort cleanup in error paths; the real Close() on EventSourcedSetup handles errors properly
 	}
 }
 
