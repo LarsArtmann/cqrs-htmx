@@ -38,6 +38,11 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	mux.Handle("GET /-/dashboard.js", d.guard(d.serveJS()))
 	mux.Handle("GET /-/htmx.js", cqrshtmx.HTMXScriptHandler())
 
+	// Observability probes (unguarded: load balancers and k8s need access)
+	mux.HandleFunc("GET /-/healthz", d.healthzHandler)
+	mux.HandleFunc("GET /-/readyz", d.readyzHandler)
+	mux.HandleFunc("GET /-/versionz", d.versionzHandler)
+
 	// SSE live updates
 	if d.caps.EventBus {
 		mux.Handle("GET /-/events/stream", d.guard(d.sseHandler))
