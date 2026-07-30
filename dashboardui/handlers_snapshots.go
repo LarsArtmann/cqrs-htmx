@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -139,10 +140,13 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := d.cfg.SnapshotStore.Delete(r.Context(), ref); err != nil {
+		slog.InfoContext(r.Context(), "dashboardui.audit", "op", "snapshot.delete", "stream_type", string(ref.Type), "stream_id", ref.ID.String(), "result", "error")
 		triggerToast(w, "err", "Delete failed")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	slog.InfoContext(r.Context(), "dashboardui.audit", "op", "snapshot.delete", "stream_type", string(ref.Type), "stream_id", ref.ID.String(), "result", "ok")
 
 	triggerToast(w, "ok", "Snapshot deleted")
 	redirect(w, r, d.cfg.BasePath+"/snapshots")
