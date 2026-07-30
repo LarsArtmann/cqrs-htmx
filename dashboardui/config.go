@@ -241,7 +241,6 @@ type pageData struct {
 	Nav       []navItem
 	LogoutURL string
 	CSRFToken string
-	CSRFMeta  string
 	ReadOnly  bool
 	Caps      Capabilities
 }

@@ -45,9 +45,3 @@ func latestVersion(events []event.Event) string {
 
 	return events[len(events)-1].Version().String()
 }
-
-// Ensure we use the imports.
-var (
-	_ = id.NewStreamID
-	_ = event.Type("")
-)
