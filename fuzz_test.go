@@ -101,11 +101,6 @@ func FuzzCSRFConfigValidation(f *testing.F) {
 			FieldName:  fieldName,
 			Domain:     domain,
 		}
-		_ = cfg.cookieName()
-		_ = cfg.headerName()
-		_ = cfg.fieldName()
-		_ = cfg.maxAge()
-		_ = cfg.path()
 		_ = cfg.Validate()
 	})
 }

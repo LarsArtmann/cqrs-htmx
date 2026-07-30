@@ -2,9 +2,8 @@ package cqrshtmx
 
 import (
 	"net/http"
-	"net/http/httptest"
 
-	"github.com/justinas/nosurf"
+	"github.com/larsartmann/httputil"
 )
 
 // CSRFProtect returns a HandlerOption that validates CSRF tokens for a specific
@@ -35,45 +34,19 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, handlerCfg *h
 		return nil
 	}
 
-	if nosurf.Token(r) != "" {
+	validated, rec := httputil.ValidateCSRF(r, *handlerCfg.csrfConfig)
+	if validated {
 		return nil
 	}
 
-	var validated bool
-
-	dummy := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-		validated = true
-	})
-
-	handler := nosurf.New(dummy)
-	configureNosurfHandler(handler, *handlerCfg.csrfConfig)
-
-	rec := httptest.NewRecorder()
-
-	// For plain HTTP requests without origin headers, set Sec-Fetch-Site
-	// to allow nosurf to skip origin validation.
-	setPlaintextHTTPOrigin(r, *handlerCfg.csrfConfig)
-
-	needsTranslation := handlerCfg.csrfConfig.headerName() != defaultCSRFHeaderName ||
-		handlerCfg.csrfConfig.fieldName() != defaultCSRFFieldName
-	if needsTranslation {
-		translateCSRFHeaders(r, *handlerCfg.csrfConfig)
-	}
-
-	handler.ServeHTTP(rec, r)
-
-	if !validated {
-		for k, vv := range rec.Header() {
-			for _, v := range vv {
-				w.Header().Add(k, v)
-			}
+	for k, vv := range rec.Header() {
+		for _, v := range vv {
+			w.Header().Add(k, v)
 		}
-
-		w.WriteHeader(rec.Code)
-		_, _ = w.Write(rec.Body.Bytes())
-
-		return ErrCSRFInvalid
 	}
 
-	return nil
+	w.WriteHeader(rec.Code)
+	_, _ = w.Write(rec.Body.Bytes())
+
+	return ErrCSRFInvalid
 }

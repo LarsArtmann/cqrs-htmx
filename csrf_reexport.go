@@ -22,6 +22,7 @@ var (
 	CSRFTokenFormField           = httputil.CSRFTokenFormField
 	ForbiddenErrorHandler        = httputil.ForbiddenCSRFHandler
 	ErrCSRFInvalid               = httputil.ErrCSRFInvalid
+	ErrCSRFConfig                = httputil.ErrCSRFConfig
 )
 
 const (
