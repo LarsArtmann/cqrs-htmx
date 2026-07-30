@@ -118,7 +118,7 @@ func (s *itemStore) listPaginated(p query.Pagination) query.PaginatedResult[item
 
 func main() {
 	// --- Command dispatcher ---
-	cmdDisp := command.NewDispatcher()
+	cmdDisp := command.NewDispatcher() //cqrs-lint:ignore(A016) example: idempotency middleware omitted for simplicity
 	_ = command.RegisterTyped(cmdDisp, "CreateItem",
 		func(_ context.Context, c *createItemCmd) error {
 			db.add(c.Name)
