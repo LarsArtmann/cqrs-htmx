@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -32,21 +33,14 @@ func decideCreateTenant(
 				"tenant name is required",
 			)
 		}
-		payload, err := marshalPayload(TenantCreatedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Name:          name,
-			DisplayName:   displayName,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.tenant.marshal_failed",
-				"marshal TenantCreated payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTenantCreated, aggID, aggregateTypeTenant, version.Increment(),
-			payload,
+			TenantCreatedPayload{
+				SchemaVersion: currentSchemaVersion,
+				Name:          name,
+				DisplayName:   displayName,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -73,20 +67,13 @@ func decideSuspendTenant(
 		if state.Suspended {
 			return nil, nil
 		}
-		payload, err := marshalPayload(TenantSuspendedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Reason:        reason,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.tenant_suspend.marshal_failed",
-				"marshal TenantSuspended payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTenantSuspended, aggID, aggregateTypeTenant, version.Increment(),
-			payload,
+			TenantSuspendedPayload{
+				SchemaVersion: currentSchemaVersion,
+				Reason:        reason,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -112,19 +99,12 @@ func decideReactivateTenant(
 		if !state.Suspended {
 			return nil, nil
 		}
-		payload, err := marshalPayload(TenantReactivatedPayload{
-			SchemaVersion: currentSchemaVersion,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.tenant_reactivate.marshal_failed",
-				"marshal TenantReactivated payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTenantReactivated, aggID, aggregateTypeTenant, version.Increment(),
-			payload,
+			TenantReactivatedPayload{
+				SchemaVersion: currentSchemaVersion,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -155,20 +135,13 @@ func decideDeleteTenant(
 				"tenant is already deleted",
 			)
 		}
-		payload, err := marshalPayload(TenantDeletedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Reason:        reason,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.tenant_delete.marshal_failed",
-				"marshal TenantDeleted payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTenantDeleted, aggID, aggregateTypeTenant, version.Increment(),
-			payload,
+			TenantDeletedPayload{
+				SchemaVersion: currentSchemaVersion,
+				Reason:        reason,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

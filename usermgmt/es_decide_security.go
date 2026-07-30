@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -21,20 +22,13 @@ func decideEnableTOTP(
 		if state.TOTPEnabled {
 			return nil, nil
 		}
-		payload, err := marshalPayload(TOTPEnabledPayload{
-			SchemaVersion: currentSchemaVersion,
-			Secret:        secret,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.enable_totp.marshal_failed",
-				"marshal TOTPEnabled payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTOTPEnabled, aggID, aggregateTypeUser, version.Increment(),
-			payload,
+			TOTPEnabledPayload{
+				SchemaVersion: currentSchemaVersion,
+				Secret:        secret,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -61,19 +55,12 @@ func decideDisableTOTP(
 		if !state.TOTPEnabled {
 			return nil, nil
 		}
-		payload, err := marshalPayload(TOTPDisabledPayload{
-			SchemaVersion: currentSchemaVersion,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.disable_totp.marshal_failed",
-				"marshal TOTPDisabled payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventTOTPDisabled, aggID, aggregateTypeUser, version.Increment(),
-			payload,
+			TOTPDisabledPayload{
+				SchemaVersion: currentSchemaVersion,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
