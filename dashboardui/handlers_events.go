@@ -41,6 +41,7 @@ func (f eventFilter) Matches(evt event.Event) bool {
 
 func parseEventFilter(r *http.Request) eventFilter {
 	q := r.URL.Query()
+
 	return eventFilter{
 		Type:       q.Get("type"),
 		StreamType: q.Get("streamType"),
@@ -93,6 +94,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "failed to load events")
+
 		return
 	}
 
@@ -248,12 +250,21 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 		meta := evt.Metadata()
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2><code>%s</code> <span class="badge badge-neutral">schema v%d</span> <span class="badge %s">%s</span></h2>`,
-			esc(string(evt.Type())), evt.SchemaVersion(), encodingBadgeClass(string(evt.Encoding())), esc(string(evt.Encoding())))
+		fmt.Fprintf(
+			&b,
+			`<h2><code>%s</code> <span class="badge badge-neutral">schema v%d</span> <span class="badge %s">%s</span></h2>`,
+			esc(
+				string(evt.Type()),
+			),
+			evt.SchemaVersion(),
+			encodingBadgeClass(string(evt.Encoding())),
+			esc(string(evt.Encoding())),
+		)
 		fmt.Fprintf(&b, `<div class="page-subtitle mono">%s</div>`, esc(evt.ID().String()))
 
 		if prevID != "" || nextID != "" {
 			b.WriteString(`<div class="filter-bar section-gap">`)
+
 			if prevID != "" {
 				fmt.Fprintf(&b, `<a href="%s/events/%s" class="btn">← Previous</a>`, p.BasePath, esc(prevID))
 			} else {
@@ -357,11 +368,13 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limi
 // in-memory filters, returning up to pageSize+1 results (the +1 is for
 // HasMore detection). When filters are active we scan up to filterScanLimit
 // raw events per page to find matches.
-func (d *Dashboard) loadFilteredEvents(ctx context.Context, after id.EventID, f eventFilter, pageSize int) ([]event.Event, error) {
-	rawLimit := filterScanLimit
-	if rawLimit < pageSize+1 {
-		rawLimit = pageSize + 1
-	}
+func (d *Dashboard) loadFilteredEvents(
+	ctx context.Context,
+	after id.EventID,
+	f eventFilter,
+	pageSize int,
+) ([]event.Event, error) {
+	rawLimit := max(filterScanLimit, pageSize+1)
 
 	var raw []event.Event
 
@@ -386,6 +399,7 @@ func (d *Dashboard) loadFilteredEvents(ctx context.Context, after id.EventID, f 
 	}
 
 	var filtered []event.Event
+
 	for _, evt := range raw {
 		if f.Matches(evt) {
 			filtered = append(filtered, evt)
@@ -407,7 +421,10 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 
 		if len(events) == 0 {
 			if f.Active() {
-				return emptyState("No matching events", "No events match the current filters. Try adjusting or clearing them.")
+				return emptyState(
+					"No matching events",
+					"No events match the current filters. Try adjusting or clearing them.",
+				)
 			}
 
 			return emptyState("No events yet", "Events will appear here as they are committed to the store.")
@@ -430,7 +447,11 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 			)
 		}
 
-		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		fmt.Fprintf(
+			&b,
+			`<table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 
 		b.WriteString(renderPagination(p.BasePath, "/events", pg, f.extraParams()))
 

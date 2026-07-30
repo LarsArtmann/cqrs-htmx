@@ -27,6 +27,7 @@ func renderPagination(basePath, path string, state paginationState, extraParams 
 	}
 
 	var b string
+
 	params := ""
 	if extraParams != "" {
 		params = "&" + extraParams
@@ -35,7 +36,7 @@ func renderPagination(basePath, path string, state paginationState, extraParams 
 	if state.HasPrev {
 		b = fmt.Sprintf(`<a href="%s%s" class="btn">← Previous</a>`, basePath, path)
 	} else {
-		b = fmt.Sprintf(`<span class="pagination disabled">← Previous</span>`)
+		b = `<span class="pagination disabled">← Previous</span>`
 	}
 
 	if state.HasNext {

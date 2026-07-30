@@ -12,7 +12,6 @@ import (
 
 // ===== Command/Query Audit =====
 
-//nolint:dupl // parallel cmd/query
 func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Commands", "/commands", r)
 
@@ -21,8 +20,10 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 	after, _ := id.ParseCommandID(afterStr)
 	hasPrev := afterStr != ""
 
-	var cmds []*command.PersistedCommand
-	var hasNext bool
+	var (
+		cmds    []*command.PersistedCommand
+		hasNext bool
+	)
 
 	if d.cfg.CommandJournal != nil {
 		var err error
@@ -38,6 +39,7 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 
 		if err != nil {
 			renderError(w, r, http.StatusInternalServerError, "failed to load commands")
+
 			return
 		}
 
@@ -52,7 +54,11 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 		nextCursor = cmds[len(cmds)-1].ID().String()
 	}
 
-	html := d.renderCommands(p, cmds, paginationState{HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev})
+	html := d.renderCommands(
+		p,
+		cmds,
+		paginationState{HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev},
+	)
 	renderPage(w, r, html)
 }
 
@@ -65,23 +71,29 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 		var rows strings.Builder
 
 		for _, cmd := range cmds {
-			fmt.Fprintf(&rows, `<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono">%s</td><td class="mono">%s</td></tr>`,
+			fmt.Fprintf(
+				&rows,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono">%s</td><td class="mono">%s</td></tr>`,
 				esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(cmd.Type())),
 				esc(string(cmd.StreamType())),
 				esc(cmd.StreamID().String()),
-				truncate(cmd.ID().String(), eventIDWidth))
+				truncate(cmd.ID().String(), eventIDWidth),
+			)
 		}
 
 		var b strings.Builder
-		fmt.Fprintf(&b, `<h3>Command Audit</h3><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		fmt.Fprintf(
+			&b,
+			`<h3>Command Audit</h3><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 		b.WriteString(renderPagination(p.BasePath, "/commands", pg, ""))
 
 		return b.String()
 	})
 }
 
-//nolint:dupl // parallel cmd/query
 func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Queries", "/queries", r)
 
@@ -90,8 +102,10 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 	after, _ := id.ParseRequestID(afterStr)
 	hasPrev := afterStr != ""
 
-	var queries []*query.PersistedQuery
-	var hasNext bool
+	var (
+		queries []*query.PersistedQuery
+		hasNext bool
+	)
 
 	if d.cfg.QueryJournal != nil {
 		var err error
@@ -107,6 +121,7 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 
 		if err != nil {
 			renderError(w, r, http.StatusInternalServerError, "failed to load queries")
+
 			return
 		}
 
@@ -121,7 +136,11 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 		nextCursor = queries[len(queries)-1].ID().String()
 	}
 
-	html := d.renderQueries(p, queries, paginationState{HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev})
+	html := d.renderQueries(
+		p,
+		queries,
+		paginationState{HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev},
+	)
 	renderPage(w, r, html)
 }
 
@@ -141,7 +160,11 @@ func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery, p
 		}
 
 		var b strings.Builder
-		fmt.Fprintf(&b, `<h3>Query Audit</h3><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		fmt.Fprintf(
+			&b,
+			`<h3>Query Audit</h3><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 		b.WriteString(renderPagination(p.BasePath, "/queries", pg, ""))
 
 		return b.String()

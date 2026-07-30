@@ -24,12 +24,14 @@ func (d *Dashboard) readyzHandler(w http.ResponseWriter, _ *http.Request) {
 	select {
 	case <-d.done:
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "shutting_down", "ready": false})
+
 		return
 	default:
 	}
 
 	if !d.caps.hasEventRead() && !d.caps.EventSource {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "no_data_source", "ready": false})
+
 		return
 	}
 
@@ -63,9 +65,11 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
+
 	body, err := json.Marshal(v)
 	if err != nil {
 		_, _ = fmt.Fprint(w, `{"error":"marshal_failed"}`)
+
 		return
 	}
 

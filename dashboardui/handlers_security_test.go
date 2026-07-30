@@ -32,6 +32,7 @@ func TestXSS_EventTypeEscaped(t *testing.T) {
 	if strings.Contains(body, "<script>alert(1)</script>") {
 		t.Errorf("XSS: raw <script> tag found in events page body")
 	}
+
 	if !strings.Contains(body, "&lt;script&gt;") {
 		t.Errorf("expected escaped &lt;script&gt; in events page body")
 	}
@@ -83,10 +84,15 @@ func TestXSS_AggregateDetailEscaped(t *testing.T) {
 func TestOverviewStats_AccurateCount(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		aggID := id.NewStreamID()
 		evt, _ := event.New("test.event", aggID, "TestAggregate", event.Version(1), struct{}{})
-		_ = store.Save(context.Background(), id.NewStreamRef("TestAggregate", aggID), []event.Event{evt}, event.Version(0))
+		_ = store.Save(
+			context.Background(),
+			id.NewStreamRef("TestAggregate", aggID),
+			[]event.Event{evt},
+			event.Version(0),
+		)
 	}
 
 	reader := listing.NewInMemoryStreamReader(store)
@@ -121,6 +127,7 @@ func TestNotFound_Handler(t *testing.T) {
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("expected status 404, got %d", rec.Code)
 	}
+
 	if !strings.Contains(rec.Body.String(), "Page Not Found") {
 		t.Errorf("expected 'Page Not Found' in 404 body")
 	}

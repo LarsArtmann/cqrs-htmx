@@ -30,11 +30,14 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 
 	pageSize := parsePageSize(r, d.cfg.PageSize)
 
-	var listings []listing.StreamListing
-	var hasMore bool
+	var (
+		listings []listing.StreamListing
+		hasMore  bool
+	)
 
 	if d.cfg.StreamReader != nil {
 		opts := listing.ListOptions{Limit: uint(pageSize + 1)}
+
 		if after := r.URL.Query().Get("after"); after != "" {
 			parsed, err := id.ParseStreamID(after)
 			if err == nil {
@@ -54,6 +57,7 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	hasPrev := r.URL.Query().Get("after") != ""
+
 	var nextCursor string
 	if hasMore && len(listings) > 0 {
 		nextCursor = listings[len(listings)-1].ID.String()
@@ -158,7 +162,11 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 		}
 
 		var b strings.Builder
-		fmt.Fprintf(&b, `<h3>Aggregates</h3><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		fmt.Fprintf(
+			&b,
+			`<h3>Aggregates</h3><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 		b.WriteString(renderPagination(p.BasePath, "/aggregates", pg, ""))
 
 		return b.String()

@@ -21,25 +21,37 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		b.WriteString(`<p class="page-subtitle section-gap">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`)
+		b.WriteString(
+			`<p class="page-subtitle section-gap">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`,
+		)
 
 		if len(listings) == 0 {
-			return emptyState("No aggregates found", "Configure a StreamReader to list aggregates for time-travel inspection.")
+			return emptyState(
+				"No aggregates found",
+				"Configure a StreamReader to list aggregates for time-travel inspection.",
+			)
 		}
 
 		var rows strings.Builder
 
 		for _, l := range listings {
-			fmt.Fprintf(&rows, `<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td><a href="%s/time-travel/%s/%s" class="btn">Inspect</a></td></tr>`,
+			fmt.Fprintf(
+				&rows,
+				`<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td><a href="%s/time-travel/%s/%s" class="btn">Inspect</a></td></tr>`,
 				esc(string(l.Type)),
 				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(l.Version.String()),
 				p.BasePath,
 				esc(string(l.Type)),
-				esc(l.ID.String()))
+				esc(l.ID.String()),
+			)
 		}
 
-		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Current Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		fmt.Fprintf(
+			&b,
+			`<table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Current Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 
 		return b.String()
 	})
@@ -56,6 +68,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 		renderPage(w, r, d.renderLayout(p, func() string {
 			return emptyState("No events", "")
 		}))
+
 		return
 	}
 
@@ -76,6 +89,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	eventsToVersion, err := d.cfg.EventSource.LoadToVersion(r.Context(), ref, requestedVersion)
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "failed to load version")
+
 		return
 	}
 
@@ -96,18 +110,33 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 		b.WriteString(`<div class="page-header">`)
 		fmt.Fprintf(&b, `<h2>Time Travel: <code>%s</code></h2>`, esc(ref.ID.String()))
-		fmt.Fprintf(&b, `<div class="page-subtitle">Viewing version %d of %d</div>`, currentVersion.Int(), maxVersion.Int())
+		fmt.Fprintf(
+			&b,
+			`<div class="page-subtitle">Viewing version %d of %d</div>`,
+			currentVersion.Int(),
+			maxVersion.Int(),
+		)
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="panel">`)
 		b.WriteString(`<div class="panel-title">Version</div>`)
 
-		fmt.Fprintf(&b, `<input type="range" min="1" max="%d" value="%d" class="version-slider" onchange="window.location.href='%s/time-travel/%s/%s?v='+this.value" aria-label="Select version"/>`,
-			maxVersion.Int(), currentVersion.Int(),
-			p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
+		fmt.Fprintf(
+			&b,
+			`<input type="range" min="1" max="%d" value="%d" class="version-slider" onchange="window.location.href='%s/time-travel/%s/%s?v='+this.value" aria-label="Select version"/>`,
+			maxVersion.Int(),
+			currentVersion.Int(),
+			p.BasePath,
+			esc(string(ref.Type)),
+			esc(ref.ID.String()),
+		)
 
-		fmt.Fprintf(&b, `<div class="version-display section-gap">Viewing version <strong>%d</strong> of <strong>%d</strong></div>`,
-			currentVersion.Int(), maxVersion.Int())
+		fmt.Fprintf(
+			&b,
+			`<div class="version-display section-gap">Viewing version <strong>%d</strong> of <strong>%d</strong></div>`,
+			currentVersion.Int(),
+			maxVersion.Int(),
+		)
 
 		b.WriteString(`<div class="filter-bar">`)
 
@@ -125,6 +154,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 		if maxVersion.Int() <= 20 {
 			b.WriteString(`<div class="version-links section-gap">`)
+
 			for v := event.Version(1); v <= maxVersion; v++ {
 				if v == currentVersion {
 					fmt.Fprintf(&b, `<span class="pagination"><span class="current">%d</span></span>`, v.Int())
@@ -144,13 +174,22 @@ func (d *Dashboard) renderTimeTravelDetail(
 		var rows strings.Builder
 
 		for _, evt := range events {
-			fmt.Fprintf(&rows, `<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td></tr>`,
+			fmt.Fprintf(
+				&rows,
+				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td></tr>`,
 				esc(evt.Version().String()),
-				p.BasePath, esc(evt.ID().String()), esc(string(evt.Type())),
-				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")))
+				p.BasePath,
+				esc(evt.ID().String()),
+				esc(string(evt.Type())),
+				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
+			)
 		}
 
-		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		fmt.Fprintf(
+			&b,
+			`<table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 
 		return b.String()
 	})
