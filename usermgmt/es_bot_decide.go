@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -49,23 +50,16 @@ func decideRegisterBot(
 		}
 		scopesCopy := make([]string, len(scopes))
 		copy(scopesCopy, scopes)
-		payload, err := marshalPayload(BotRegisteredPayload{
-			SchemaVersion: currentSchemaVersion,
-			Name:          name,
-			OwnerID:       ownerID,
-			TokenHash:     tokenHash,
-			Scopes:        scopesCopy,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.bot.marshal_failed",
-				"marshal BotRegistered payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventBotRegistered, aggID, aggregateTypeBot, version.Increment(),
-			payload,
+			BotRegisteredPayload{
+				SchemaVersion: currentSchemaVersion,
+				Name:          name,
+				OwnerID:       ownerID,
+				TokenHash:     tokenHash,
+				Scopes:        scopesCopy,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -96,20 +90,13 @@ func decideDeleteBot(
 				"bot is already deleted",
 			)
 		}
-		payload, err := marshalPayload(BotDeletedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Reason:        reason,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.bot_delete.marshal_failed",
-				"marshal BotDeleted payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventBotDeleted, aggID, aggregateTypeBot, version.Increment(),
-			payload,
+			BotDeletedPayload{
+				SchemaVersion: currentSchemaVersion,
+				Reason:        reason,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
