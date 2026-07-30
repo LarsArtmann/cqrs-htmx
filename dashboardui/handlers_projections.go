@@ -11,25 +11,39 @@ import (
 
 // ===== Projection Dashboard =====
 
+// buildProjectionStats converts the projection host's WorkerState slice into
+// projectionStat entries with status classification, lag, and additional
+// fields (restarts, checkpoint, last error). Shared across the projections
+// index, the overview, and the health partial.
+func buildProjectionStats(host *projectionhost.Host) []projectionStat {
+	if host == nil {
+		return nil
+	}
+
+	lagPerProj := host.LagPerProjection()
+	var stats []projectionStat
+
+	for _, ws := range host.Status() {
+		lag := lagPerProj[ws.Name]
+		stats = append(stats, projectionStat{
+			Name:       ws.Name,
+			Status:     string(ws.Status),
+			Lag:        lag.String(),
+			Processed:  ws.Processed,
+			Errors:     ws.Errors,
+			StatusKind: projectionStatusKind(string(ws.Status)),
+			Restarts:   ws.Restarts,
+			Checkpoint: ws.Checkpoint,
+			LastError:  ws.LastError,
+		})
+	}
+
+	return stats
+}
+
 func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Projections", "/projections", r)
-
-	var projs []projectionStat
-
-	if d.cfg.ProjectionHost != nil {
-		lagPerProj := d.cfg.ProjectionHost.LagPerProjection()
-		for _, ws := range d.cfg.ProjectionHost.Status() {
-			lag := lagPerProj[ws.Name]
-			projs = append(projs, projectionStat{
-				Name:       ws.Name,
-				Status:     string(ws.Status),
-				Lag:        lag.String(),
-				Processed:  ws.Processed,
-				Errors:     ws.Errors,
-				StatusKind: projectionStatusKind(string(ws.Status)),
-			})
-		}
-	}
+	projs := buildProjectionStats(d.cfg.ProjectionHost)
 
 	html := d.renderProjections(p, projs)
 	renderPage(w, r, html)
@@ -99,20 +113,35 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 					p.BasePath, esc(proj.Name), esc(proj.Name), esc(p.CSRFToken))
 			}
 
+			dlqLink := ""
+			if proj.Errors > 0 || d.caps.DeadLetterStore || d.caps.ProjectionHost {
+				dlqLink = fmt.Sprintf(`<a href="%s/dead-letters/%s" class="btn">DLQ (%d)</a>`, p.BasePath, esc(proj.Name), proj.Errors)
+			}
+
+			lastErr := "—"
+			if proj.LastError != "" {
+				lastErr = esc(truncate(proj.LastError, errorDisplayWidth))
+			}
+
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="cell-emph">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%s</td></tr>`,
+				`<tr><td class="cell-emph">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%d</td><td class="mono" title="%s">%s</td><td>%s</td><td>%s %s</td></tr>`,
 				esc(proj.Name),
 				badgeClass,
 				esc(proj.Status),
 				esc(proj.Lag),
 				proj.Processed,
 				proj.Errors,
+				proj.Restarts,
+				esc(proj.Checkpoint),
+				esc(truncate(proj.Checkpoint, listIDWidth)),
+				lastErr,
+				dlqLink,
 				actions,
 			)
 		}
 
-		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Restarts</th><th scope="col">Checkpoint</th><th scope="col">Last Error</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
 
 		return b.String()
 	})
