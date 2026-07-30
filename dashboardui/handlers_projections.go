@@ -21,6 +21,7 @@ func buildProjectionStats(host *projectionhost.Host) []projectionStat {
 	}
 
 	lagPerProj := host.LagPerProjection()
+
 	var stats []projectionStat
 
 	for _, ws := range host.Status() {
@@ -73,7 +74,16 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
 		name := r.PathValue("name")
 		if err := host.Reset(r.Context(), name); err != nil {
-			slog.InfoContext(r.Context(), "dashboardui.audit", "op", "projection.reset", "projection", name, "result", "error")
+			slog.InfoContext(
+				r.Context(),
+				"dashboardui.audit",
+				"op",
+				"projection.reset",
+				"projection",
+				name,
+				"result",
+				"error",
+			)
 			triggerToast(w, "err", "Reset failed")
 			w.WriteHeader(http.StatusInternalServerError)
 
@@ -96,8 +106,10 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 		b.WriteString(`<h3>Projections</h3>`)
 
 		var rows strings.Builder
+
 		for _, proj := range projs {
 			badgeClass := "badge badge-neutral"
+
 			switch proj.StatusKind {
 			case statusGood:
 				badgeClass = "badge badge-ok"
@@ -109,13 +121,23 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 
 			var actions string
 			if !p.ReadOnly {
-				actions = fmt.Sprintf(`<form method="POST" action="%s/projections/%s/reset" class="inline-form" onsubmit="return confirm('Reset projection %s? This will re-process all events from the beginning.')"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Reset</button></form>`,
-					p.BasePath, esc(proj.Name), esc(proj.Name), esc(p.CSRFToken))
+				actions = fmt.Sprintf(
+					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" onsubmit="return confirm('Reset projection %s? This will re-process all events from the beginning.')"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Reset</button></form>`,
+					p.BasePath,
+					esc(proj.Name),
+					esc(proj.Name),
+					esc(p.CSRFToken),
+				)
 			}
 
 			dlqLink := ""
 			if proj.Errors > 0 || d.caps.DeadLetterStore || d.caps.ProjectionHost {
-				dlqLink = fmt.Sprintf(`<a href="%s/dead-letters/%s" class="btn">DLQ (%d)</a>`, p.BasePath, esc(proj.Name), proj.Errors)
+				dlqLink = fmt.Sprintf(
+					`<a href="%s/dead-letters/%s" class="btn">DLQ (%d)</a>`,
+					p.BasePath,
+					esc(proj.Name),
+					proj.Errors,
+				)
 			}
 
 			lastErr := "—"
@@ -141,7 +163,11 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 			)
 		}
 
-		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Restarts</th><th scope="col">Checkpoint</th><th scope="col">Last Error</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+		fmt.Fprintf(
+			&b,
+			`<table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Restarts</th><th scope="col">Checkpoint</th><th scope="col">Last Error</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 
 		return b.String()
 	})

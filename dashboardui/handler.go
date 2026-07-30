@@ -126,6 +126,7 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 // notFoundHandler renders a styled 404 page within the dashboard layout.
 func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Not Found", "", r)
+
 	w.Header().Set("Content-Type", contentTypeHTML)
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusNotFound)
