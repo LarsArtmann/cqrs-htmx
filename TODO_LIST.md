@@ -30,6 +30,8 @@ _(None open. Previous P1 items completed: identity-model coverage gate added to 
 
 ## P3 — Technical Debt & Future
 
+- [ ] **MySQL event-store support via go-cqrs-lite Dialect.** `storage/sql/dialect.go` has 3 dialects (Postgres, SQLite, DuckDB) behind an 11-method `Dialect` interface. Event-store-only MySQL support is LOW effort (~half a day): clone `PostgresDialect` → `MySQLDialect` (`?` placeholders, `LONGBLOB`/`JSON`/`DATETIME(6)` types), add MySQL error-1062 detection to `IsDuplicateKeyError`. Full SQL backend (snapshots/checkpoints/KV/views/projections) is MEDIUM (~2-3 days) — the blocker is UPSERT syntax divergence (`ON CONFLICT` → `ON DUPLICATE KEY UPDATE`) across ~8 call sites. Recommendation: ship event-store-only first; add UPSERT abstraction when non-event-store MySQL is requested. Source: `docs/guides/leveraging-go-cqrs-lite.md` evaluation + ROADMAP.md.
+
 - [ ] **MySQL event-store support.** Currently Postgres + SQLite only (dropped in v3.0.0 when `SQLEventStore` was delegated to `go-cqrs-lite/storage`, which has no MySQL dialect). `SQLSessionStore` already supports MySQL. Requires adding a MySQL dialect to `go-cqrs-lite/storage` (external repo).
 - [~] **Offline sync E2E browser testing.** The SharedWorker IndexedDB queue (`sync/sync-worker.js`) is unit-verified and E2E infrastructure is built (`e2e/` directory: Go test server, Playwright config, 4 test scenarios in `sync.spec.ts`). All 4 E2E tests now pass (offline enqueue, online flush, cross-session recovery, multiple commands). syncVersion at `1.3.0`. Remaining: add `e2e/README.md`, integrate into flake.nix/CI.
 
