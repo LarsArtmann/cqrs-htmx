@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"encoding/json/v2"
+	"fmt"
 	"log/slog"
 	"net/http"
 
