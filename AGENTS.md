@@ -13,7 +13,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 | Test     | `nix run .#test` or `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race`                                                                                                                                                |
 | Build    | `nix run .#build` or `GOEXPERIMENT=jsonv2 go build ./...`                                                                                                                                                             |
 | Lint     | `nix run .#lint` or `GOEXPERIMENT=jsonv2 golangci-lint run`                                                                                                                                                           |
-| Coverage | `nix run .#coverage` / `nix run .#coverage-gate` (9 modules gated: root 93.7%/90, usermgmt 80.9%/74, identity-model 74.9%/70, dashboardui 72.5%/60, adminui gate 66, loginpage gate 79, totp/webauthn/oauth2 gate 80) |
+| Coverage | `nix run .#coverage` / `nix run .#coverage-gate` (9 modules gated: root 93.7%/90, usermgmt 80.9%/74, identity-model 74.9%/70, dashboardui 78.7%/60, adminui gate 66, loginpage gate 79, totp/webauthn/oauth2 gate 80) |
 | Fmt      | `nix fmt`                                                                                                                                                                                                             |
 | DevShell | `nix develop`                                                                                                                                                                                                         |
 
