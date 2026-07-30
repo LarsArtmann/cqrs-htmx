@@ -21,7 +21,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 **Multi-module Go workspace.** 15 independent Go modules under one `go.work`:
 
-- **Root** (`cqrs-htmx/v4`): Core library — HTTP handler builder, HTMX/SSE/WS helpers, authz (Casbin), CSRF, rate limiting, security headers, error mapping, pagination, `openapi/` sub-package (dependency-free OpenAPI 3.1 spec builder + `WithOpenAPI`/`OpenAPISpecHandler`)
+- **Root** (`cqrs-htmx/v4`): Core library — HTTP handler builder, HTMX/SSE/WS helpers, authz (Casbin), error mapping, pagination, `openapi/` sub-package (dependency-free OpenAPI 3.1 spec builder + `WithOpenAPI`/`OpenAPISpecHandler`). CSRF, Server-Timing, and keyed rate limiting are now thin re-exports over `httputil` (see `_reexport.go` files).
 - **identity-model** (`identity-model/v4`): Pure domain types for event-sourced identity management — IDs (UserID/TenantID/BotID/ActorID), events (22 payload structs), commands (19 structs with accessor methods), fold functions (FoldUser/FoldMembership/FoldTenant/FoldBot), state structs, Authz engine (Casbin-backed), Session, User, Membership, ExternalAccount, WebAuthnCredential, crypto helpers, domain errors (errorfamily-only, no HTTP dependency), upcaster registry, exported constants (event types, command types, aggregate types, schema version). Casbin is a first-class dependency.
 - **usermgmt** (`usermgmt/v4`): Event-sourced CQRS user management — thin re-export layer over identity-model (type aliases + var aliases for fold functions/constants + constructor wrappers + WithHTTPStatus-wrapped errors) plus infrastructure (HTTP handlers, SQL stores, session middleware, read models, CasbinProjection, decide/dispatch functions). Auth via WebAuthn/TOTP/OAuth2 behind interfaces
 - **usermgmt/totp**, **usermgmt/webauthn**, **usermgmt/oauth2**: Independent auth strategy modules — satisfy `usermgmt` interfaces via structural typing
@@ -33,7 +33,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 **Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt. dashboardui → root + usermgmt. Nothing depends on adminui, loginpage, or dashboardui.
 
-**Key dependencies:** go-cqrs-lite v4.2.0 (CQRS/event sourcing), casbin/v3 (authz), justinas/nosurf (CSRF), go-error-family (error classification), go-branded-id (typed IDs), go-sse v0.3.0 (SSE/WS broadcaster, stream, replay), a-h/templ (HTML templating), ginkgo/gomega (BDD testing).
+**Key dependencies:** go-cqrs-lite v4.2.0 (CQRS/event sourcing), casbin/v3 (authz), httputil (HTTP middleware: CSRF, Server-Timing, rate limiting), go-error-family (error classification), go-branded-id (typed IDs), go-sse v0.3.0 (SSE/WS broadcaster, stream, replay), a-h/templ (HTML templating), ginkgo/gomega (BDD testing). `justinas/nosurf` and `golang.org/x/time` are now transitive deps via httputil (no longer direct root deps).
 
 ## Key Patterns
 
