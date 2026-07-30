@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 )
 
 // App wires CQRS dispatchers, Casbin authorization, and HTMX response handling
@@ -328,17 +329,7 @@ func (a *App) applyServerTiming(w http.ResponseWriter, r *http.Request) (http.Re
 		return w, r
 	}
 
-	st := newServerTiming()
-	ctx := WithServerTiming(r.Context(), st)
-	wrapped := &serverTimingWriter{
-		delegatingWriter: delegatingWriter{ResponseWriter: w},
-		st:               st,
-		start:            time.Now(),
-		injected:         false,
-		wrote:            false,
-	}
-
-	return wrapped, r.WithContext(ctx)
+	return httputil.WrapServerTiming(w, r)
 }
 
 // enrichUserID extracts the user ID if not already present in context.
