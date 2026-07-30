@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-07-29 | **Version:** v4.6.1 (15 modules in `go.work`; see AGENTS.md for per-sub-module versions) | **Coverage:** Root 93.7% (gate 90%), openapi 99.0%, usermgmt 80.9% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 72.5% (gate 60%) | **Lint:** All 15 modules at 0 issues. Zero SA1019 deprecation warnings. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
+**Updated:** 2026-07-30 | **Version:** v4.6.1 (15 modules in `go.work`; see AGENTS.md for per-sub-module versions) | **Coverage:** Root 93.7% (gate 90%), openapi 99.0%, usermgmt 80.9% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 78.7% (gate 60%) | **Lint:** All 15 modules at 0 issues. Zero SA1019 deprecation warnings. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 
 ## Status Legend
 
@@ -22,8 +22,7 @@ _(None open. Previous P1 items completed: identity-model coverage gate added to 
 
 ## P2 — Medium Impact (code quality & test gaps)
 
-- [ ] **Durable expiry for usermgmt via `go-cqrs-lite/scheduling`.** Session TTL, email-verification-token TTL, and account-lockout duration are currently handled by in-process sweepers (`EvictStale()`, `EvictExpired()`) that are **not durable** — a restart or multi-instance deploy misses expiries. Design doc at `docs/design/durable-scheduling.md` concludes: NOT needed for SQL-backed deployments (SQL sweeper is shared + idempotent). Re-evaluate only if cross-instance lockout coordination or immediate session revocation is needed. Source: `docs/guides/leveraging-go-cqrs-lite.md` §3.
-- [ ] **dashboardui index handler tests.** The write-operation handlers are now fully tested (`handlers_write_test.go`, 16 tests). Index handler tests also done (`handlers_index_test.go`, 5 tests). Coverage at 72.5% (gate 60%).
+_(None open. Previous P2 items resolved: durable-scheduling evaluated and moved to ROADMAP "Not Planned"; dashboardui index handler tests completed and coverage improved from 68.1% to 78.7%.)_
 
 ---
 

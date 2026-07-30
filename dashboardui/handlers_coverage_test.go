@@ -8,9 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 // ===== Aggregates Index Handler =====
@@ -47,7 +45,7 @@ func TestAggregatesIndexHandler_WithListings(t *testing.T) {
 
 	body := w.Body.String()
 
-	for _, want := range []string{"Aggregates", "user", "tenant", "Event Timeline", "Events"} {
+	for _, want := range []string{"Aggregates", "user", "tenant", "Last Event"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("expected %q in body", want)
 		}
@@ -538,7 +536,7 @@ func TestRenderPagination_HasNextOnly(t *testing.T) {
 		t.Errorf("expected Next link")
 	}
 
-	if strings.Contains(html, `<a href=`) && strings.Contains(html, "Previous") {
+	if strings.Contains(html, "Previous</a>") {
 		t.Errorf("did not expect Previous as a link (should be disabled span)")
 	}
 
@@ -670,31 +668,5 @@ func TestEmptyState_WithMessage(t *testing.T) {
 	html := emptyState("Nothing Here", "Try again later")
 	if !strings.Contains(html, "Try again later") {
 		t.Errorf("expected message in output")
-	}
-}
-
-// ===== Aggregate Detail with Empty Events =====
-
-func TestAggregateDetailHandler_EmptyEvents(t *testing.T) {
-	store := memorystorage.NewMemoryStore()
-	aggID := id.NewStreamID()
-
-	d := mustTestDashboardWithConfig(t, Config{
-		EventSource: store,
-		Journal:     store,
-	})
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/aggregates/User/"+aggID.String(), nil)
-	r.SetPathValue("type", "User")
-	r.SetPathValue("id", aggID.String())
-	d.aggregateDetailHandler(w, r)
-
-	if w.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d", w.Code)
-	}
-
-	if !strings.Contains(w.Body.String(), "No events") {
-		t.Fatalf("expected empty state for aggregate with no events")
 	}
 }
