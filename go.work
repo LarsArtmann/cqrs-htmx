@@ -121,7 +121,9 @@ replace github.com/larsartmann/go-cqrs-lite/transport/http/v4 => /home/lars/proj
 
 replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => /home/lars/projects/go-cqrs-lite/watermill
 
-// Local replace for httputil until a new version (v0.5.1+) is published with
-// ParseUintQuery. Both root and usermgmt use it to avoid duplicating the
-// query-param-to-uint parsing helper.
+// Local replace for httputil until v0.8.0 is published. The httputil consolidation
+// moved Server-Timing, CSRF core, and keyed rate limiting into httputil; cqrs-htmx
+// re-exports them via type/var aliases. Required until the httputil tag is cut,
+// otherwise the nix build (GOWORK=off) resolves the published v0.7.1 which lacks
+// those symbols.
 replace github.com/larsartmann/httputil => /home/lars/projects/httputil
