@@ -165,21 +165,68 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 
 const dashboardJS = `
 (function() {
-  var path = document.currentScript.src.replace(/\/dashboard\.js$/, "");
+  var scriptSrc = document.currentScript.src;
+  var path = scriptSrc.replace(/\/dashboard\.js$/, "");
   var base = path.replace(/\/-\/$/, "");
-  var es = new EventSource(base + "/-/events/stream");
-  es.addEventListener("event", function(e) {
+  var streamUrl = base + "/-/events/stream";
+  var indicator = document.querySelector("[data-live-indicator]");
+  var statusEl = document.querySelector("[data-sse-status]");
+  var reconnectDelay = 1000;
+  var maxReconnectDelay = 30000;
+  var eventCount = 0;
+  var es = null;
+  var reconnectTimer = null;
+
+  function updateStatus(state) {
+    var labels = { connecting: "Connecting", open: "Live", error: "Reconnecting", closed: "Disconnected" };
+    if (statusEl) statusEl.textContent = labels[state] || state;
+    if (indicator) {
+      indicator.style.opacity = state === "open" ? "1" : "0.4";
+      indicator.title = labels[state] || state;
+    }
+  }
+
+  function handleEvent(e) {
     try {
       var data = JSON.parse(e.data);
       document.dispatchEvent(new CustomEvent("dashboard:event", { detail: data }));
-      var indicator = document.querySelector("[data-live-indicator]");
-      if (indicator) {
-        indicator.style.opacity = "1";
-        setTimeout(function() { indicator.style.opacity = "0.4"; }, 1000);
-      }
+      eventCount++;
+      updateStatus("open");
     } catch (err) {}
+  }
+
+  function connect() {
+    if (es) es.close();
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+
+    es = new EventSource(streamUrl);
+    es.addEventListener("event", handleEvent);
+
+    es.onopen = function() {
+      reconnectDelay = 1000;
+      updateStatus("open");
+    };
+
+    es.onerror = function() {
+      updateStatus("error");
+      es.close();
+      reconnectTimer = setTimeout(function() {
+        reconnectDelay = Math.min(reconnectDelay * 2, maxReconnectDelay);
+        connect();
+      }, reconnectDelay);
+    };
+  }
+
+  document.addEventListener("visibilitychange", function() {
+    if (document.visibilityState === "visible" && (!es || es.readyState === EventSource.CLOSED)) {
+      reconnectDelay = 1000;
+      connect();
+    }
   });
-  es.onerror = function() { es.close(); setTimeout(function() { es = new EventSource(base + "/-/events/stream"); }, 5000); };
-})();
-console.log("dashboardui loaded with live updates");
-`
+
+  window.addEventListener("beforeunload", function() {
+    if (es) es.close();
+  });
+
+  connect();
+});`
