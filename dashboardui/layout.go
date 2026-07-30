@@ -99,7 +99,8 @@ func (d *Dashboard) renderHeader(p pageData) string {
 
 	if p.Caps.EventBus {
 		indicator = `<span class="live-indicator" data-live-indicator aria-label="Live updates status"></span>` +
-			`<span class="sse-status" data-sse-status aria-live="polite">Connecting</span>`
+			`<span class="sse-status" data-sse-status aria-live="polite">Connecting</span>` +
+			`<span class="sse-count" data-sse-count aria-live="polite"></span>`
 	}
 
 	return fmt.Sprintf(
@@ -404,6 +405,7 @@ const dashboardJS = `
   var streamUrl = base + "/-/events/stream";
   var indicator = document.querySelector("[data-live-indicator]");
   var statusEl = document.querySelector("[data-sse-status]");
+  var countEl = document.querySelector("[data-sse-count]");
   var reconnectDelay = 1000;
   var maxReconnectDelay = 30000;
   var eventCount = 0;
@@ -419,12 +421,17 @@ const dashboardJS = `
     }
   }
 
+  function updateCount() {
+    if (countEl) countEl.textContent = eventCount + " events";
+  }
+
   function handleEvent(e) {
     try {
       var data = JSON.parse(e.data);
       document.dispatchEvent(new CustomEvent("dashboard:event", { detail: data }));
       eventCount++;
       updateStatus("open");
+      updateCount();
     } catch (err) {}
   }
 
@@ -462,4 +469,16 @@ const dashboardJS = `
   });
 
   connect();
+})();
+
+document.addEventListener("click", function(e) {
+  var el = e.target.closest("[data-copyable]");
+  if (!el) return;
+  var text = el.getAttribute("data-copyable");
+  if (text === "") text = el.textContent.trim();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      document.body.dispatchEvent(new CustomEvent("showToast", { detail: { kind: "ok", message: "Copied to clipboard" } }));
+    }).catch(function() {});
+  }
 });`

@@ -60,6 +60,9 @@ type projectionStat struct {
 	Processed  int64
 	Errors     int64
 	StatusKind string
+	Restarts   int
+	Checkpoint string
+	LastError  string
 }
 
 type recentEvent struct {
@@ -129,23 +132,15 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 	}
 
 	if d.cfg.ProjectionHost != nil {
-		lagPerProj := d.cfg.ProjectionHost.LagPerProjection()
+		stats.Projections = buildProjectionStats(d.cfg.ProjectionHost)
+
 		totalErrors := int64(0)
 		anyBad := false
 		anyWarn := false
 
-		for _, ws := range d.cfg.ProjectionHost.Status() {
-			lag := lagPerProj[ws.Name]
-			stats.Projections = append(stats.Projections, projectionStat{
-				Name:       ws.Name,
-				Status:     string(ws.Status),
-				Lag:        lag.String(),
-				Processed:  ws.Processed,
-				Errors:     ws.Errors,
-				StatusKind: projectionStatusKind(string(ws.Status)),
-			})
-			totalErrors += ws.Errors
-			switch projectionStatusKind(string(ws.Status)) {
+		for _, pr := range stats.Projections {
+			totalErrors += pr.Errors
+			switch pr.StatusKind {
 			case statusBad:
 				anyBad = true
 			case statusWarn:
@@ -295,23 +290,7 @@ func metaRow(b *strings.Builder, key, value string) {
 // projectionHealthPartialHandler returns just the projection health panel HTML
 // for HTMX polling. Registered at GET /-/partials/projection-health.
 func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *http.Request) {
-	var projs []projectionStat
-
-	if d.cfg.ProjectionHost != nil {
-		lagPerProj := d.cfg.ProjectionHost.LagPerProjection()
-		for _, ws := range d.cfg.ProjectionHost.Status() {
-			lag := lagPerProj[ws.Name]
-			projs = append(projs, projectionStat{
-				Name:       ws.Name,
-				Status:     string(ws.Status),
-				Lag:        lag.String(),
-				Processed:  ws.Processed,
-				Errors:     ws.Errors,
-				StatusKind: projectionStatusKind(string(ws.Status)),
-			})
-		}
-	}
-
+	projs := buildProjectionStats(d.cfg.ProjectionHost)
 	html := renderProjectionHealthPanel(d.cfg.BasePath, projs)
 	writeHTML(w, r, html, "projection health partial")
 }
