@@ -130,6 +130,8 @@ func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusNotFound)
 	fmt.Fprint(w, d.renderLayout(p, func() string {
-		return `<div class="empty-state"><h3>Page Not Found</h3><p>The requested page does not exist.</p><a href="`+esc(p.BasePath)+`/" class="btn">Back to Overview</a></div>`
+		return `<div class="empty-state"><h3>Page Not Found</h3><p>The requested page does not exist.</p><a href="` + esc(
+			p.BasePath,
+		) + `/" class="btn">Back to Overview</a></div>`
 	}))
 }

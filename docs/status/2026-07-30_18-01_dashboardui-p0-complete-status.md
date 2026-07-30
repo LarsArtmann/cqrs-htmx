@@ -10,28 +10,29 @@
 
 ### P0 Critical Fixes (items 1-18) — ALL COMPLETE
 
-| # | Issue | What was done |
-|---|---|---|
-| 1-2 | Overview stats always "1+"/"5+" | Changed `overviewStats()` to read `PageSize` batch for aggregates, `overviewCountLimit=500` for events. Shows accurate counts with "+" suffix when threshold exceeded. |
-| 3 | `Close()` false warning | Removed `else { slog.Warn(...) }` branch in `dashboard.go` — no broadcaster when no EventBus is expected behavior. |
-| 4 | SSE reconnection broken | Rewrote entire `dashboardJS`: `connect()` function creates EventSource, attaches `event` listener, re-attaches on every reconnect. Exponential backoff (1s→30s). Visibility-aware reconnect. `beforeunload` cleanup. |
-| 5 | Dead code import hacks | Removed `var _ = id.NewStreamID` and `var _ = event.Type("")` from `handlers.go`. |
-| 6 | doc.go false templ claim | Rewrote doc.go to describe actual implementation (raw HTML, not templ-components). |
-| 7 | Unused LogoutURL | Added `Config.LogoutURL` field, wired to `pageData`, rendered conditionally in sidebar. |
-| 8 | Unused navItem.Icon | Added `navIconSVG()` function with inline SVG icons for all 9 nav items. Sidebar now renders `<svg>` icons next to labels. |
-| 9 | csrfMeta stub | Removed dead `csrfMeta()` function and `CSRFMeta` field from `pageData`. |
-| 10 | csrfToken form-only | Now checks `X-CSRF-Token` header first, falls back to form value. |
-| 11 | XSS in event rendering | All `evt.Type()`, `evt.StreamType()`, `evt.Version()` now wrapped in `esc()`. Verified zero unescaped domain values in Fprintf calls. |
-| 12 | XSS in overview projections | Projection name, status, lag all escaped. Badges use CSS classes. |
-| 13-14 | `rowsSbNNN` naming | All eliminated. Every handler now uses clean `var rows strings.Builder`. |
-| 15 | CHANGELOG inaccuracy | Removed references to non-existent `templ_render.go`, `AuthService`, "Templ rendering", "DTOs". Replaced with accurate descriptions. |
-| 16 | No styled 404 | Added `notFoundHandler()` + `GET /` catch-all route in `handler.go`. Renders branded "Page Not Found" within layout with back-to-overview link. |
-| 17 | No method-not-allowed | Not explicitly handled but the catch-all + `{$}` patterns prevent the worst case. Could still improve. |
-| 18 | htmx.js served but unused | Now used: `data-hx-boost="true"` on `.app-layout`, `hx-get` polling on projection health panel. |
+| #     | Issue                           | What was done                                                                                                                                                                                                        |
+| ----- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1-2   | Overview stats always "1+"/"5+" | Changed `overviewStats()` to read `PageSize` batch for aggregates, `overviewCountLimit=500` for events. Shows accurate counts with "+" suffix when threshold exceeded.                                               |
+| 3     | `Close()` false warning         | Removed `else { slog.Warn(...) }` branch in `dashboard.go` — no broadcaster when no EventBus is expected behavior.                                                                                                   |
+| 4     | SSE reconnection broken         | Rewrote entire `dashboardJS`: `connect()` function creates EventSource, attaches `event` listener, re-attaches on every reconnect. Exponential backoff (1s→30s). Visibility-aware reconnect. `beforeunload` cleanup. |
+| 5     | Dead code import hacks          | Removed `var _ = id.NewStreamID` and `var _ = event.Type("")` from `handlers.go`.                                                                                                                                    |
+| 6     | doc.go false templ claim        | Rewrote doc.go to describe actual implementation (raw HTML, not templ-components).                                                                                                                                   |
+| 7     | Unused LogoutURL                | Added `Config.LogoutURL` field, wired to `pageData`, rendered conditionally in sidebar.                                                                                                                              |
+| 8     | Unused navItem.Icon             | Added `navIconSVG()` function with inline SVG icons for all 9 nav items. Sidebar now renders `<svg>` icons next to labels.                                                                                           |
+| 9     | csrfMeta stub                   | Removed dead `csrfMeta()` function and `CSRFMeta` field from `pageData`.                                                                                                                                             |
+| 10    | csrfToken form-only             | Now checks `X-CSRF-Token` header first, falls back to form value.                                                                                                                                                    |
+| 11    | XSS in event rendering          | All `evt.Type()`, `evt.StreamType()`, `evt.Version()` now wrapped in `esc()`. Verified zero unescaped domain values in Fprintf calls.                                                                                |
+| 12    | XSS in overview projections     | Projection name, status, lag all escaped. Badges use CSS classes.                                                                                                                                                    |
+| 13-14 | `rowsSbNNN` naming              | All eliminated. Every handler now uses clean `var rows strings.Builder`.                                                                                                                                             |
+| 15    | CHANGELOG inaccuracy            | Removed references to non-existent `templ_render.go`, `AuthService`, "Templ rendering", "DTOs". Replaced with accurate descriptions.                                                                                 |
+| 16    | No styled 404                   | Added `notFoundHandler()` + `GET /` catch-all route in `handler.go`. Renders branded "Page Not Found" within layout with back-to-overview link.                                                                      |
+| 17    | No method-not-allowed           | Not explicitly handled but the catch-all + `{$}` patterns prevent the worst case. Could still improve.                                                                                                               |
+| 18    | htmx.js served but unused       | Now used: `data-hx-boost="true"` on `.app-layout`, `hx-get` polling on projection health panel.                                                                                                                      |
 
 ### CSS Overhaul (items 26-28, 84-100) — ~90% DONE
 
 **Comprehensive CSS class system** replacing inline styles:
+
 - 191 lines of CSS in `dashboardCSS` constant (was ~25 lines)
 - CSS custom properties: `--sidebar-width`, `--radius`, `--radius-lg`, `--radius-sm`, `--gap`, `--transition`, `--surface-hover`, `--sidebar-active`
 - Dark mode: full `@media (prefers-color-scheme: dark)` with dedicated variables
@@ -68,12 +69,12 @@
 
 ## b) PARTIALLY DONE
 
-| Area | Status | What remains |
-|---|---|---|
-| CSS class migration | ~90% | 8 inline styles remain: `margin-bottom`, `font-weight` in tables (handlers_aggregates:2, projections:1, snapshots:3, timetravel:2) |
-| XSS escaping | ~95% | All domain values escaped. `p.BasePath` in layout.go link hrefs is not escaped (safe — it's config-controlled). |
-| HTMX integration | ~10% | `data-hx-boost` + one polling endpoint added. No partial rendering routes, no OOB swaps, no hx-indicator. |
-| Error sanitization | ~70% | `renderError` added and used in most handlers. A few `http.Error` calls remain in store-check guards. |
+| Area                | Status | What remains                                                                                                                       |
+| ------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| CSS class migration | ~90%   | 8 inline styles remain: `margin-bottom`, `font-weight` in tables (handlers_aggregates:2, projections:1, snapshots:3, timetravel:2) |
+| XSS escaping        | ~95%   | All domain values escaped. `p.BasePath` in layout.go link hrefs is not escaped (safe — it's config-controlled).                    |
+| HTMX integration    | ~10%   | `data-hx-boost` + one polling endpoint added. No partial rendering routes, no OOB swaps, no hx-indicator.                          |
+| Error sanitization  | ~70%   | `renderError` added and used in most handlers. A few `http.Error` calls remain in store-check guards.                              |
 
 ---
 
@@ -122,6 +123,7 @@
 ## f) NEXT 50 THINGS TO DO (prioritized)
 
 ### Critical (fix what's broken)
+
 1. Add `/-/partials/projection-health` route or remove the dead `hx-get` reference
 2. Add 8 remaining inline styles → CSS classes (trivial)
 3. Write XSS test: feed `<script>` in event type, verify escaped output
@@ -132,6 +134,7 @@
 8. Add v4.2.0 CHANGELOG entry for this session's changes
 
 ### High leverage (enables everything else)
+
 9. **Migrate to templ** (item 19) — create `.templ` files, migrate `renderLayout`, then each handler
 10. Extract shared table component (item 20)
 11. Extract shared card/stat component (item 21)
@@ -139,6 +142,7 @@
 13. Add `pageHeader(title, subtitle)` component (item 25)
 
 ### HTMX integration (items 36-48)
+
 14. Add `hx-get` partial routes for events table
 15. Add `hx-get` partial routes for projection table
 16. Add `hx-get` partial routes for DLQ table
@@ -148,6 +152,7 @@
 20. Add HTMX loading states (item 47)
 
 ### Pagination (items 49-60)
+
 21. Add cursor-based pagination for events
 22. Add pagination for aggregates
 23. Add pagination for commands/queries
@@ -157,6 +162,7 @@
 27. Handle `HasMore` properly for next button
 
 ### Filtering (items 61-72)
+
 28. Add event type filter
 29. Add stream type filter
 30. Add free-text search
@@ -165,6 +171,7 @@
 33. Add HTMX-powered filter updates
 
 ### Security (items 119-131)
+
 34. Add CSP support (item 120)
 35. Add confirmation dialogs for all destructive actions (item 126)
 36. Add startup warning when `ReadOnly: false` and `Authorizer == nil` (item 123)
@@ -172,6 +179,7 @@
 38. Validate all path parameters (item 128)
 
 ### Panel improvements (items 132-235)
+
 39. Add DLQ index listing projections with dead letters (item 132)
 40. Add projection detail view (item 145)
 41. Add `WorkerState.Restarts` and `LastError` display (items 150-151)
@@ -181,12 +189,14 @@
 45. Add snapshot comparison (item 197)
 
 ### Testing (items 259-278)
+
 46. Switch from `strings.Contains` to HTML parsing in tests (item 259)
 47. Add pagination tests (item 261)
 48. Add error path tests (item 266)
 49. Add coverage gate for dashboardui (item 270)
 
 ### Demo & Docs (items 279-307)
+
 50. Add EventBus + projections to demo (items 297-298)
 
 ---
