@@ -260,7 +260,8 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 			encodingBadgeClass(string(evt.Encoding())),
 			esc(string(evt.Encoding())),
 		)
-		fmt.Fprintf(&b, `<div class="page-subtitle mono">%s</div>`, esc(evt.ID().String()))
+		fmt.Fprintf(&b, `<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
+			esc(evt.ID().String()), esc(evt.ID().String()))
 
 		if prevID != "" || nextID != "" {
 			b.WriteString(`<div class="filter-bar section-gap">`)
@@ -284,49 +285,49 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 
 		b.WriteString(`<div class="two-col-grid">`)
 
-		b.WriteString(`<div><h4>Metadata</h4><table class="meta-table">`)
+		b.WriteString(`<div><h3>Metadata</h3><table class="meta-table">`)
 		metaRow(&b, "Stream Type", esc(string(evt.StreamType())))
-		metaRow(&b, "Stream ID", esc(evt.StreamID().String()))
+		metaRowCopyable(&b, "Stream ID", esc(evt.StreamID().String()), evt.StreamID().String())
 		metaRow(&b, "Version", esc(evt.Version().String()))
 		metaRow(&b, "Schema Version", esc(fmt.Sprintf("%d", evt.SchemaVersion())))
 		metaRow(&b, "Encoding", esc(string(evt.Encoding())))
 		metaRow(&b, "Occurred At", esc(evt.OccurredAt().Format(time.RFC3339)))
 
 		if corrID := meta.CorrelationID.String(); corrID != "" {
-			metaRow(&b, "Correlation ID", esc(corrID))
+			metaRowCopyable(&b, "Correlation ID", esc(corrID), corrID)
 		}
 
 		if causID := meta.CausationID.String(); causID != "" {
-			metaRow(&b, "Causation ID", esc(causID))
+			metaRowCopyable(&b, "Causation ID", esc(causID), causID)
 		}
 
 		if userID := meta.UserID.String(); userID != "" {
-			metaRow(&b, "User ID", esc(userID))
+			metaRowCopyable(&b, "User ID", esc(userID), userID)
 		}
 
 		if reqID := meta.RequestID.String(); reqID != "" {
-			metaRow(&b, "Request ID", esc(reqID))
+			metaRowCopyable(&b, "Request ID", esc(reqID), reqID)
 		}
 
 		if deadline, ok := evt.Deadline(); ok {
 			metaRow(&b, "Deadline", esc(deadline.Format(time.RFC3339)))
 		}
 
-		b.WriteString(`</table>`)
+		b.WriteString(`</table></div>`)
 
 		if len(meta.Custom) > 0 {
-			b.WriteString(`<h4>Custom Metadata</h4><table class="meta-table">`)
+			b.WriteString(`<h3>Custom Metadata</h3><table class="meta-table">`)
 
 			for k, v := range meta.Custom {
 				metaRow(&b, esc(string(k)), esc(v))
 			}
 
-			b.WriteString(`</table>`)
+			b.WriteString(`</table></div>`)
 		}
 
 		b.WriteString(`</div>`)
 
-		b.WriteString(`<div><h4>Payload</h4>`)
+		b.WriteString(`<div><h3>Payload</h3>`)
 		fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, esc(string(payload)))
 		b.WriteString(`</div>`)
 
@@ -415,7 +416,7 @@ func (d *Dashboard) loadFilteredEvents(
 func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg paginationState, f eventFilter) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
-		b.WriteString(`<div class="page-header"><h3>Event Stream</h3></div>`)
+		b.WriteString(`<div class="page-header"><h2>Event Stream</h2></div>`)
 
 		b.WriteString(renderEventFilterBar(p.BasePath, f))
 
@@ -449,7 +450,7 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 
 		fmt.Fprintf(
 			&b,
-			`<table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table>`,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 

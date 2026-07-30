@@ -15,6 +15,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -34,6 +36,7 @@ func main() {
 	cmdStore := memorystorage.NewMemoryCommandStore()
 	queryStore := memorystorage.NewMemoryQueryStore()
 	snapStore := memorystorage.NewMemorySnapshotStore()
+	bus := eventtest.NewFakeBus()
 
 	seedDemoData(store, cmdStore, queryStore, snapStore)
 
@@ -47,12 +50,17 @@ func main() {
 		CommandJournal: cmdStore,
 		QueryJournal:   queryStore,
 		SnapshotStore:  snapStore,
+		EventBus:       bus,
 		ReadOnly:       false,
 		PageSize:       25,
 	})
 	if err != nil {
 		log.Fatalf("dashboard: %v", err)
 	}
+
+	// Start a goroutine that publishes live events every 5 seconds so the
+	// SSE feed in the dashboard shows real-time updates.
+	go startLiveEvents(store, bus)
 
 	mux := http.NewServeMux()
 	dash.Mount(mux, "/dashboard/")
@@ -91,7 +99,7 @@ func seedDemoData(
 	ctx := context.Background()
 
 	// --- Users ---
-	for i, name := range []string{"Alice", "Bob", "Charlie", "Diana"} {
+	for i, name := range []string{"Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace", "Henry"} {
 		aggID := id.NewStreamID()
 		ref := id.NewStreamRef("User", aggID)
 
@@ -125,7 +133,7 @@ func seedDemoData(
 	}
 
 	// --- Orders ---
-	for i := 1; i <= 3; i++ {
+	for i := 1; i <= 6; i++ {
 		aggID := id.NewStreamID()
 		ref := id.NewStreamRef("Order", aggID)
 
@@ -149,5 +157,44 @@ func seedDemoData(
 		_ = queryStore.SaveQuery(ctx, q)
 	}
 
-	log.Println("Demo data seeded: 4 users, 3 orders, commands, queries, 1 snapshot")
+	log.Println("Demo data seeded: 8 users, 6 orders, commands, queries, 1 snapshot")
+}
+
+// startLiveEvents periodically publishes new events to the event bus and store
+// so the dashboard SSE feed and event browser show real-time activity.
+func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
+	ctx := context.Background()
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	eventTypes := []string{
+		"user.login", "user.logout", "order.cancelled",
+		"payment.received", "cart.updated", "notification.sent",
+	}
+	streamTypes := []id.StreamType{"User", "Order", "Payment", "Cart"}
+
+	var counter int
+
+	for range ticker.C {
+		counter++
+		aggID := id.NewStreamID()
+		st := streamTypes[rand.IntN(len(streamTypes))]
+		ref := id.NewStreamRef(st, aggID)
+		et := eventTypes[rand.IntN(len(eventTypes))]
+
+		payload, _ := json.Marshal(map[string]any{
+			"source":  "live-demo",
+			"counter": counter,
+		})
+
+		evt, _ := event.New(
+			event.Type(et),
+			aggID,
+			st,
+			event.Version(1),
+			jsontext.Value(payload),
+		)
+		_ = store.Save(ctx, ref, []event.Event{evt}, event.Version(0))
+		_ = bus.Publish(ctx, evt)
+	}
 }

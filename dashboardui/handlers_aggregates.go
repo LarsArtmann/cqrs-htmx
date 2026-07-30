@@ -92,7 +92,13 @@ func (d *Dashboard) renderAggregateDetail(
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2>%s: <code>%s</code></h2>`, esc(string(ref.Type)), esc(ref.ID.String()))
+		fmt.Fprintf(
+			&b,
+			`<h2>%s: <code class="copyable" data-copyable="%s" title="Click to copy">%s</code></h2>`,
+			esc(string(ref.Type)),
+			esc(ref.ID.String()),
+			esc(ref.ID.String()),
+		)
 		fmt.Fprintf(
 			&b,
 			`<div class="page-subtitle">%d events · current version %s</div>`,
@@ -120,20 +126,21 @@ func (d *Dashboard) renderAggregateDetail(
 		for _, evt := range events {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono">%s</code></td></tr>`,
+				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono copyable" data-copyable="%s" title="Click to copy">%s</code></td></tr>`,
 				esc(evt.Version().String()),
 				p.BasePath,
 				esc(evt.ID().String()),
 				esc(string(evt.Type())),
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
+				esc(evt.ID().String()),
 				truncate(evt.ID().String(), eventIDWidth),
 			)
 		}
 
-		b.WriteString(`<h4>Event Timeline</h4>`)
+		b.WriteString(`<h3>Event Timeline</h3>`)
 		fmt.Fprintf(
 			&b,
-			`<table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th><th scope="col">Event ID</th></tr></thead><tbody>%s</tbody></table>`,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th><th scope="col">Event ID</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 
@@ -164,7 +171,7 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 		var b strings.Builder
 		fmt.Fprintf(
 			&b,
-			`<h3>Aggregates</h3><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table>`,
+			`<h2>Aggregates</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 		b.WriteString(renderPagination(p.BasePath, "/aggregates", pg, ""))

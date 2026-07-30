@@ -210,8 +210,8 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 		}
 
 		if len(stats.RecentEvents) > 0 {
-			inner.WriteString(`<h3>Recent Events</h3>`)
-			inner.WriteString(`<table class="data-table"><thead><tr>`)
+			inner.WriteString(`<h2>Recent Events</h2>`)
+			inner.WriteString(`<div class="table-scroll"><table class="data-table"><thead><tr>`)
 			inner.WriteString(`<th scope="col">Time</th><th scope="col">Type</th>`)
 			inner.WriteString(`<th scope="col">Stream</th><th scope="col">Version</th>`)
 			inner.WriteString(`</tr></thead><tbody>`)
@@ -227,7 +227,7 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 				)
 			}
 
-			inner.WriteString(`</tbody></table>`)
+			inner.WriteString(`</tbody></table></div>`)
 		}
 
 		return inner.String()
@@ -287,6 +287,18 @@ func metaRow(b *strings.Builder, key, value string) {
 	fmt.Fprintf(b, `<tr><td class="meta-key">%s</td><td class="meta-val">%s</td></tr>`, key, value)
 }
 
+// metaRowCopyable renders a metadata row where the value is click-to-copy.
+// The rawValue is placed in data-copyable for clipboard; displayValue is shown.
+func metaRowCopyable(b *strings.Builder, key, displayValue, rawValue string) {
+	fmt.Fprintf(
+		b,
+		`<tr><td class="meta-key">%s</td><td class="meta-val copyable" data-copyable="%s" title="Click to copy">%s</td></tr>`,
+		key,
+		esc(rawValue),
+		displayValue,
+	)
+}
+
 // projectionHealthPartialHandler returns just the projection health panel HTML
 // for HTMX polling. Registered at GET /-/partials/projection-health.
 func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *http.Request) {
@@ -305,7 +317,7 @@ func renderProjectionHealthPanel(basePath string, projs []projectionStat) string
 	b.WriteString(basePath)
 	b.WriteString(`/-/partials/projection-health" hx-trigger="every 10s" hx-swap="outerHTML">`)
 	b.WriteString(`<div class="panel-title">Projection Health</div>`)
-	b.WriteString(`<table class="data-table"><thead><tr>`)
+	b.WriteString(`<div class="table-scroll"><table class="data-table"><thead><tr>`)
 	b.WriteString(`<th scope="col">Name</th><th scope="col">Status</th>`)
 	b.WriteString(`<th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th>`)
 	b.WriteString(`</tr></thead><tbody>`)
@@ -314,7 +326,7 @@ func renderProjectionHealthPanel(basePath string, projs []projectionStat) string
 		b.WriteString(renderProjectionRow(pr))
 	}
 
-	b.WriteString(`</tbody></table></div>`)
+	b.WriteString(`</tbody></table></div></div>`)
 
 	return b.String()
 }

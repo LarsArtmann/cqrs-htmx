@@ -32,9 +32,12 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 
 	b.WriteString("</head>\n<body>\n")
 
+	b.WriteString(`<a href="#main-content" class="skip-link">Skip to content</a>`)
+
 	b.WriteString(`<div class="app-layout" data-hx-boost="true">`)
 
 	b.WriteString(d.renderSidebar(p))
+	b.WriteString(`<div class="sidebar-backdrop" data-sidebar-backdrop></div>`)
 	b.WriteString(`<div class="app-main">`)
 	b.WriteString(d.renderHeader(p))
 	fmt.Fprintf(&b, `<main id="main-content" class="content-area">%s</main>`, content())
@@ -104,7 +107,7 @@ func (d *Dashboard) renderHeader(p pageData) string {
 	}
 
 	return fmt.Sprintf(
-		`<header class="app-header"><div class="header-title">%s%s</div></header>`,
+		`<header class="app-header"><button class="hamburger" aria-label="Toggle navigation menu" data-hamburger aria-expanded="false"><span></span><span></span><span></span></button><div class="header-title">%s%s</div></header>`,
 		esc(p.Title),
 		indicator,
 	)
@@ -365,15 +368,35 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }
 .htmx-request.htmx-indicator-dot::after { content: " ⏳"; }
 
+/* ===== Hamburger (mobile only) ===== */
+.hamburger { display: none; flex-direction: column; justify-content: center; gap: 4px; width: 36px; height: 36px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); cursor: pointer; }
+.hamburger span { display: block; height: 2px; background: var(--text); border-radius: 1px; transition: transform 0.2s, opacity 0.2s; }
+
+/* ===== Sidebar backdrop (mobile only) ===== */
+.sidebar-backdrop { display: none; }
+
+/* ===== Table scroll wrapper ===== */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
 	.app-layout { grid-template-columns: 1fr; }
-	.sidebar { position: fixed; left: -100%; width: var(--sidebar-width); z-index: 100; transition: left 0.3s; }
+	.sidebar { position: fixed; left: -100%; width: var(--sidebar-width); z-index: 100; transition: left 0.3s; height: 100vh; }
 	.sidebar.open { left: 0; }
+	.sidebar-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+	.sidebar-backdrop.visible { opacity: 1; pointer-events: auto; }
+	.hamburger { display: flex; }
 	.app-header { padding: 12px 16px; }
 	.content-area { padding: 16px; }
 	.two-col-grid { grid-template-columns: 1fr; }
 	.data-table { font-size: 0.8em; }
+	.btn { min-height: 44px; padding: 10px 16px; }
+	.filter-bar { flex-direction: column; align-items: stretch; }
+	.filter-bar input, .filter-bar select { width: 100%; }
+	.nav-link { padding: 12px 10px; font-size: 1rem; }
+	.stat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+	.stat-card { padding: 14px; }
+	.stat-card-value { font-size: 1.8rem; }
 }
 
 /* ===== Print styles ===== */
@@ -483,5 +506,27 @@ document.addEventListener("click", function(e) {
     navigator.clipboard.writeText(text).then(function() {
       document.body.dispatchEvent(new CustomEvent("showToast", { detail: { kind: "ok", message: "Copied to clipboard" } }));
     }).catch(function() {});
+  }
+});
+
+document.addEventListener("click", function(e) {
+  var hamburger = e.target.closest("[data-hamburger]");
+  if (hamburger) {
+    var sidebar = document.querySelector(".sidebar");
+    var backdrop = document.querySelector("[data-sidebar-backdrop]");
+    if (sidebar) {
+      var isOpen = sidebar.classList.toggle("open");
+      hamburger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      if (backdrop) backdrop.classList.toggle("visible", isOpen);
+    }
+    return;
+  }
+  var sidebar = document.querySelector(".sidebar");
+  if (sidebar && sidebar.classList.contains("open") && !sidebar.contains(e.target)) {
+    sidebar.classList.remove("open");
+    hamburger = document.querySelector("[data-hamburger]");
+    if (hamburger) hamburger.setAttribute("aria-expanded", "false");
+    var backdrop = document.querySelector("[data-sidebar-backdrop]");
+    if (backdrop) backdrop.classList.remove("visible");
   }
 });`

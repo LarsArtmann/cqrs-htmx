@@ -48,7 +48,7 @@ func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamLi
 
 		fmt.Fprintf(
 			&b,
-			`<table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table>`,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 
@@ -72,7 +72,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
 			return fmt.Sprintf(
-				`<div class="empty-state"><h3>No snapshot found</h3><p>No snapshot exists for %s/<code>%s</code>.</p></div>`,
+				`<div class="empty-state"><h2>No snapshot found</h2><p>No snapshot exists for %s/<code>%s</code>.</p></div>`,
 				esc(streamType),
 				esc(truncate(streamID, snapshotIDWidth)),
 			)
@@ -100,7 +100,12 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2>Snapshot: <code>%s</code></h2>`, esc(ref.ID.String()))
+		fmt.Fprintf(
+			&b,
+			`<h2>Snapshot: <code class="copyable" data-copyable="%s" title="Click to copy">%s</code></h2>`,
+			esc(ref.ID.String()),
+			esc(ref.ID.String()),
+		)
 		fmt.Fprintf(
 			&b,
 			`<div class="page-subtitle">Version %s · Created %s (%s)</div>`,
@@ -119,20 +124,24 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 				esc(ref.ID.String()),
 			)
 			fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-			b.WriteString(`<button type="submit" class="btn btn-danger">Delete Snapshot</button>`)
+			b.WriteString(
+				`<button type="submit" class="btn btn-danger" aria-label="Delete snapshot for ` + esc(
+					ref.ID.String(),
+				) + `">Delete Snapshot</button>`,
+			)
 			b.WriteString(`</form>`)
 		}
 
-		b.WriteString(`<h4>Metadata</h4>`)
+		b.WriteString(`<h3>Metadata</h3>`)
 		b.WriteString(`<table class="meta-table section-gap-lg">`)
 		metaRow(&b, "Stream Type", esc(string(snap.StreamType)))
-		metaRow(&b, "Stream ID", esc(snap.StreamID.String()))
+		metaRowCopyable(&b, "Stream ID", esc(snap.StreamID.String()), snap.StreamID.String())
 		metaRow(&b, "Version", esc(snap.Version.String()))
 		metaRow(&b, "Created At", esc(snap.CreatedAt.Format(time.RFC3339)))
 		metaRow(&b, "State Size", esc(humanByteSize(len(snap.State))))
-		b.WriteString(`</table>`)
+		b.WriteString(`</table></div>`)
 
-		b.WriteString(`<h4>State</h4>`)
+		b.WriteString(`<h3>State</h3>`)
 
 		stateDisplay := d.renderSnapshotState(snap.State)
 		fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, stateDisplay)

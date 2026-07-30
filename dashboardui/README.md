@@ -108,6 +108,72 @@ When `EventBus` is configured, the dashboard:
 The browser auto-connects and dispatches `dashboard:event` custom events. Listen
 to these events to trigger HTMX swaps or other UI updates.
 
+### Reconnection and Backoff
+
+The SSE client implements automatic reconnection with exponential backoff:
+
+- Initial reconnect delay: 1 second
+- Maximum reconnect delay: 30 seconds
+- Delay doubles on each failure (1s, 2s, 4s, 8s, 16s, 30s, 30s, ...)
+- On reconnect, `Last-Event-ID` is sent so the server can replay missed events
+- Reconnect resets to 1s on successful connection or when the tab becomes visible again
+
+### Event Replay on Reconnect
+
+When an SSE client reconnects with `Last-Event-ID`, the server replays all events
+that occurred since the last received event ID (up to 1000 events). On first connect,
+recent history is backfilled so the user immediately sees context.
+
+## Filtering and Search
+
+The Events page supports in-memory filtering:
+
+- **By event type**: `?type=user.created` filters to a specific event type
+- **By stream type**: `?streamType=User` filters to events from a specific aggregate type
+- Filters are preserved across pagination links
+
+When filters are active, the dashboard scans up to 500 events and filters in-memory.
+For larger datasets, wire a `SeekableJournal` for paginated access.
+
+## Observability Endpoints
+
+Three unauthenticated endpoints for load balancers and Kubernetes probes:
+
+| Endpoint      | Purpose         | 200 Response                             | 503 Response                                |
+| ------------- | --------------- | ---------------------------------------- | ------------------------------------------- |
+| `/-/healthz`  | Liveness probe  | `{"status":"ok"}`                        | `{"status":"shutting_down"}`                |
+| `/-/readyz`   | Readiness probe | `{"status":"ready","ready":true}`        | `{"status":"no_data_source","ready":false}` |
+| `/-/versionz` | Build metadata  | Module, Go version, capabilities, config | —                                           |
+
+All return `application/json` with `Cache-Control: no-store`.
+
+## Mobile Responsive Design
+
+The dashboard is fully responsive:
+
+- **Hamburger menu**: On screens <768px, the sidebar collapses into a slide-in drawer with backdrop overlay
+- **Touch targets**: All buttons have minimum 44px height on mobile (WCAG 2.5.5)
+- **Table scroll**: Data tables scroll horizontally within a wrapper on narrow screens
+- **Filter bar stacking**: Filter controls stack vertically on mobile
+- **Stat cards**: Grid collapses to 2 columns on mobile
+
+## Copy-to-Clipboard
+
+Identifiers (event IDs, stream IDs, correlation IDs, etc.) are click-to-copy:
+
+- Click any element with the copy cursor to copy its value to the clipboard
+- A toast notification confirms the copy
+- The `data-copyable` attribute on any HTML element enables this behavior
+
+## Accessibility
+
+- **Semantic HTML5 landmarks**: `<aside>`, `<nav>`, `<main>`, `<header>` for screen reader navigation
+- **Skip-to-content link**: Keyboard users can bypass the sidebar
+- **ARIA labels**: All interactive elements (buttons, links, forms) have descriptive aria-labels
+- **Focus-visible outlines**: All focusable elements show a visible focus ring
+- **Reduced motion**: Animations disabled when `prefers-reduced-motion: reduce`
+- **Live regions**: SSE status updates use `aria-live="polite"`
+
 ## Mounting
 
 ```go
@@ -135,8 +201,9 @@ handler := cqrshtmx.Chain(
 
 ## Demo
 
-See `examples/dashboard-demo/main.go` for a fully seeded demo with users,
-orders, commands, queries, and snapshots.
+See `examples/dashboard-demo/main.go` for a fully seeded demo with 8 users,
+6 orders, commands, queries, snapshots, EventBus-powered SSE live updates,
+and a goroutine that publishes new events every 5 seconds.
 
 > **Note:** The demo requires the `dashboardui/v4` module to be tagged and
 > published. Once tagged, add `./examples/dashboard-demo` to `go.work` and run:

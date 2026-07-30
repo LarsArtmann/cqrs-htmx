@@ -49,7 +49,7 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 
 		fmt.Fprintf(
 			&b,
-			`<table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Current Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table>`,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Current Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 
@@ -109,7 +109,12 @@ func (d *Dashboard) renderTimeTravelDetail(
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2>Time Travel: <code>%s</code></h2>`, esc(ref.ID.String()))
+		fmt.Fprintf(
+			&b,
+			`<h2>Time Travel: <code class="copyable" data-copyable="%s" title="Click to copy">%s</code></h2>`,
+			esc(ref.ID.String()),
+			esc(ref.ID.String()),
+		)
 		fmt.Fprintf(
 			&b,
 			`<div class="page-subtitle">Viewing version %d of %d</div>`,
@@ -169,7 +174,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 		b.WriteString(`</div>`)
 
-		fmt.Fprintf(&b, `<h4>Events Through Version %d</h4>`, currentVersion.Int())
+		fmt.Fprintf(&b, `<h3>Events Through Version %d</h3>`, currentVersion.Int())
 
 		var rows strings.Builder
 
@@ -187,7 +192,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 		fmt.Fprintf(
 			&b,
-			`<table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th></tr></thead><tbody>%s</tbody></table>`,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 

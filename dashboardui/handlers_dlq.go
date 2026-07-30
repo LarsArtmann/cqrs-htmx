@@ -35,7 +35,7 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		return fmt.Sprintf(
-			`<div class="page-header"><h3>Dead-Letter Queue</h3><p class="page-subtitle">Select a projection to view its dead letters.</p></div><div class="filter-bar">%s</div>`,
+			`<div class="page-header"><h2>Dead-Letter Queue</h2><p class="page-subtitle">Select a projection to view its dead letters.</p></div><div class="filter-bar">%s</div>`,
 			projLinks,
 		)
 	})
@@ -169,7 +169,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h3>Dead Letters: %s</h3>`, esc(proj))
+		fmt.Fprintf(&b, `<h2>Dead Letters: %s</h2>`, esc(proj))
 		b.WriteString(`</div>`)
 
 		if !p.ReadOnly {
@@ -178,26 +178,32 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 			if d.caps.ProjectionHost {
 				fmt.Fprintf(
 					&b,
-					`<form method="POST" action="%s/dead-letters/%s/replay" class="inline-form" onsubmit="return confirm('Replay all dead letters for %s?')">`,
+					`<form method="POST" action="%s/dead-letters/%s/replay" class="inline-form" onsubmit="return confirm('Replay all dead letters for %s?')" aria-label="Replay all dead letters for %s">`,
 					p.BasePath,
+					esc(proj),
 					esc(proj),
 					esc(proj),
 				)
 				fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-				b.WriteString(`<button type="submit" class="btn btn-accent">Replay All</button>`)
+				b.WriteString(
+					`<button type="submit" class="btn btn-accent" aria-label="Replay all dead letters">Replay All</button>`,
+				)
 				b.WriteString(`</form>`)
 			}
 
 			if d.caps.DeadLetterStore {
 				fmt.Fprintf(
 					&b,
-					`<form method="POST" action="%s/dead-letters/%s/purge" class="inline-form" onsubmit="return confirm('Purge ALL dead letters for %s? This cannot be undone.')">`,
+					`<form method="POST" action="%s/dead-letters/%s/purge" class="inline-form" onsubmit="return confirm('Purge ALL dead letters for %s? This cannot be undone.')" aria-label="Purge all dead letters for %s">`,
 					p.BasePath,
+					esc(proj),
 					esc(proj),
 					esc(proj),
 				)
 				fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-				b.WriteString(`<button type="submit" class="btn btn-danger">Purge All</button>`)
+				b.WriteString(
+					`<button type="submit" class="btn btn-danger" aria-label="Purge all dead letters">Purge All</button>`,
+				)
 				b.WriteString(`</form>`)
 			}
 
@@ -214,11 +220,13 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 			var actions string
 			if !p.ReadOnly && d.caps.DeadLetterStore {
 				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" onsubmit="return confirm('Delete this dead letter?')"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Delete</button></form>`,
+					`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" onsubmit="return confirm('Delete this dead letter?')" aria-label="Delete dead letter %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Delete dead letter %s">Delete</button></form>`,
 					p.BasePath,
 					esc(proj),
 					esc(e.EventID),
+					esc(e.EventID),
 					esc(p.CSRFToken),
+					esc(e.EventID),
 				)
 			}
 
@@ -236,7 +244,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 
 		fmt.Fprintf(
 			&b,
-			`<table class="data-table"><thead><tr><th scope="col">Failed At</th><th scope="col">Event Type</th><th scope="col">Error</th><th scope="col">Family</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table>`,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Failed At</th><th scope="col">Event Type</th><th scope="col">Error</th><th scope="col">Family</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 
