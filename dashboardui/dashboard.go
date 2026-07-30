@@ -70,7 +70,7 @@ func New(cfg Config) (*Dashboard, error) {
 func MustNew(cfg Config) *Dashboard {
 	d, err := New(cfg)
 	if err != nil {
-		panic(fmt.Sprintf("dashboardui: %v", err))
+		panic(fmt.Sprintf("dashboardui: %v", err)) //cqrs-lint:ignore(C009) MustNew: startup config error is a programmer error
 	}
 
 	return d
