@@ -100,20 +100,44 @@ func (d *Dashboard) renderTimeTravelDetail(
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="panel">`)
-		b.WriteString(`<label class="panel-title">Version</label>`)
-		b.WriteString(`<div class="version-links">`)
+		b.WriteString(`<div class="panel-title">Version</div>`)
 
-		for v := event.Version(1); v <= maxVersion; v++ {
-			if v == currentVersion {
-				fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d" class="pagination"><span class="current">%d</span></a>`,
-					p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), v.Int(), v.Int())
-			} else {
-				fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d">%d</a>`,
-					p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), v.Int(), v.Int())
-			}
+		fmt.Fprintf(&b, `<input type="range" min="1" max="%d" value="%d" class="version-slider" onchange="window.location.href='%s/time-travel/%s/%s?v='+this.value" aria-label="Select version"/>`,
+			maxVersion.Int(), currentVersion.Int(),
+			p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
+
+		fmt.Fprintf(&b, `<div class="version-display section-gap">Viewing version <strong>%d</strong> of <strong>%d</strong></div>`,
+			currentVersion.Int(), maxVersion.Int())
+
+		b.WriteString(`<div class="filter-bar">`)
+
+		if currentVersion > event.Version(1) {
+			fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s" class="btn">First</a>`,
+				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
 		}
 
-		b.WriteString(`</div></div>`)
+		if currentVersion < maxVersion {
+			fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d" class="btn btn-accent">Latest (v%d)</a>`,
+				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), maxVersion.Int(), maxVersion.Int())
+		}
+
+		b.WriteString(`</div>`)
+
+		if maxVersion.Int() <= 20 {
+			b.WriteString(`<div class="version-links section-gap">`)
+			for v := event.Version(1); v <= maxVersion; v++ {
+				if v == currentVersion {
+					fmt.Fprintf(&b, `<span class="pagination"><span class="current">%d</span></span>`, v.Int())
+				} else {
+					fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d">%d</a>`,
+						p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), v.Int(), v.Int())
+				}
+			}
+
+			b.WriteString(`</div>`)
+		}
+
+		b.WriteString(`</div>`)
 
 		fmt.Fprintf(&b, `<h4>Events Through Version %d</h4>`, currentVersion.Int())
 

@@ -340,6 +340,8 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 
 /* ===== Version slider (time-travel) ===== */
 .version-links { display: flex; flex-wrap: wrap; gap: 4px; }
+.version-slider { width: 100%; max-width: 400px; accent-color: var(--accent); cursor: pointer; }
+.version-display { font-size: 0.9rem; color: var(--muted); }
 
 /* ===== Filter bar ===== */
 .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
