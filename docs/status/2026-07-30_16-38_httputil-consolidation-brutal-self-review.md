@@ -1,6 +1,7 @@
 # httputil Consolidation — Brutal Self-Review & Status
 
 > **Date:** 2026-07-30 16:38
+> **Status:** ✅ RESOLVED (2026-07-30). All 9 problems fixed. See resolution appendix at the bottom.
 > **Session goal:** Execute the httputil consolidation plan — move Server-Timing, CSRF, and rate limiting from cqrs-htmx root into httputil via re-export aliases.
 
 ---
@@ -188,3 +189,44 @@ Cutting now unblocks cqrs-htmx from the go.work replace. Waiting means one relea
 
 ### Q3: The `ErrorHandler` type alias situation — should I rename httputil's `CSRFErrorHandler` to match cqrs-htmx's `ErrorHandler`, or rename cqrs-htmx's to `CSRFErrorHandler`?
 cqrs-htmx's `ErrorHandler` is used in `Config.ErrorHandler`, `recovery.go`, and many tests — it's a general-purpose type. httputil's `CSRFErrorHandler` is scoped by name. Renaming httputil's to `ErrorHandler` (or `HTTPErrorHandler`) seems right, but you may have opinions on httputil's naming conventions.
+
+---
+
+## h) Resolution Appendix (2026-07-30, later session)
+
+All 9 problems from section (d) are fixed. All 3 questions resolved.
+
+### Problem resolutions
+
+| # | Problem | Resolution |
+|---|---------|------------|
+| 1 | httputil depguard BLOCKS nosurf | **Fixed.** Added `github.com/justinas/nosurf` to depguard allow list. |
+| 2 | Two competing rate limiting APIs | **Resolved.** Deprecated `TokenBucketLimiter`/`RateLimiter`/`RateLimit()` with 6 `// Deprecated:` markers pointing to `KeyedRateLimiter`. Not deleted (reversible). |
+| 3 | Two ResponseWriter wrapper types | **Deferred.** Low ROI, risk of breaking Flush/Hijack delegation. Documented in plan. |
+| 4 | `ErrorHandler` naming misleading | **Fixed.** Renamed `CSRFErrorHandler`→`ErrorHandler` in httputil. The type is general-purpose (`func(w, r, err)`). |
+| 5 | `ForbiddenErrorHandler` vs `ForbiddenCSRFHandler` mismatch | **Fixed.** Renamed `ForbiddenCSRFHandler`→`ForbiddenHandler` in httputil. cqrs-htmx alias updated. |
+| 6 | `canonicalheader` lint warnings | **Fixed.** Added text exclusions for `X-CSRF-Token` (httputil) and `HX-*`/`X-CSRF-Token` (cqrs-htmx). Ecosystem-standard casing; http.Header canonicalizes at wire level. |
+| 7 | 1288 LOC of redundant test files | **Fixed.** Deleted 7 files. Moved `writeStringHandler` helper to `testing_handlers_test.go`. All cqrs-htmx-specific coverage retained in integration/benchmark/feedback tests. |
+| 8 | Awkward comment block in errors.go | **Fixed.** Cleaned up the stale `ErrorHandler` alias comment. `DefaultErrorHandler` now has a proper doc comment. |
+| 9 | `contentTypePlain` duplication | **Deferred.** Trivial; both packages define it independently. No consumer impact. |
+
+### Question resolutions
+
+| Q | Question | Decision | Rationale |
+|---|----------|----------|-----------|
+| Q1 | Delete or deprecate `TokenBucketLimiter`? | **Deprecate** | Reversible; external consumers may depend on the `RateLimiter` interface. `// Deprecated:` markers signal the path forward. |
+| Q2 | Cut httputil v0.8.0 now or wait? | **Prepare now, publish pending approval** | Release-ready (lint clean, tests pass, CHANGELOG written). Not pushed per never-push rule. |
+| Q3 | Rename direction for `ErrorHandler`? | **Rename in httputil** | The type is general-purpose (`func(w, r, err)`), not CSRF-specific. Matches cqrs-htmx's consumer-facing name. |
+
+### Additional work done beyond the self-review
+
+- **httputil lint: 49→0.** The self-review only caught depguard + canonicalheader (8 issues). Full audit found 49 (varnamelen×31, exhaustruct×3, wsl_v5×8, noinlineerr×3, gci×2, nlreturn×1, nolintlint×2). All fixed.
+- **cqrs-htmx lint: 64→1** (1 pre-existing `unparam` in decoder.go, untouched). Added re-export exclusion, httputil exhaustruct types, G705 gosec exclusion.
+- **httputil docs fully updated:** doc.go, README.md, CHANGELOG.md, AGENTS.md, FEATURES.md.
+- **cqrs-htmx docs updated:** doc.go, CHANGELOG.md, SKILL.md, AGENTS.md, go.work comment.
+- **httputil git index corruption fixed** (was blocking `nix run .#test`).
+- **Root coverage verified:** 93.2% (gate ≥90%).
+
+### Remaining blocker
+
+`nix run .#test` for cqrs-htmx is blocked until httputil v0.8.0 is published and cqrs-htmx go.mod is bumped (the nix build is hermetic/GOWORK=off and fetches published v0.7.1). Local `go test` passes all 10 modules via go.work replace.
