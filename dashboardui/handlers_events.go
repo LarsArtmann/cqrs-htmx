@@ -132,8 +132,10 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	prevID, nextID := d.findEventNeighbors(r.Context(), eventID)
+
 	p := d.page("Event: "+truncate(string(evt.Type()), eventTypeWidth), "/events", r)
-	html := d.renderEventDetail(p, evt)
+	html := d.renderEventDetail(p, evt, prevID, nextID)
 	renderPage(w, r, html)
 }
 
@@ -198,7 +200,47 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		"dashboardui.event_detail.no_source", "no event source available to load event %s", eventID)
 }
 
-func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
+// findEventNeighbors scans recent events to find the previous and next event IDs
+// relative to eventID. Returns empty strings if not found or at the boundary.
+// This is a best-effort scan limited to the most recent batch of events.
+func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) (prevID, nextID string) {
+	const neighborScanLimit = 500
+
+	var events []event.Event
+
+	var err error
+
+	if d.cfg.SeekableJournal != nil {
+		events, err = d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, neighborScanLimit)
+	} else if d.cfg.Journal != nil {
+		events, err = d.cfg.Journal.ReadAll(ctx)
+		if err == nil && len(events) > neighborScanLimit {
+			events = events[:neighborScanLimit]
+		}
+	}
+
+	if err != nil || len(events) == 0 {
+		return "", ""
+	}
+
+	for i, evt := range events {
+		if evt.ID() == eventID {
+			if i > 0 {
+				prevID = events[i-1].ID().String()
+			}
+
+			if i < len(events)-1 {
+				nextID = events[i+1].ID().String()
+			}
+
+			return prevID, nextID
+		}
+	}
+
+	return "", ""
+}
+
+func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextID string) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -206,8 +248,27 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event) string {
 		meta := evt.Metadata()
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2><code>%s</code></h2>`, esc(string(evt.Type())))
+		fmt.Fprintf(&b, `<h2><code>%s</code> <span class="badge badge-neutral">schema v%d</span> <span class="badge %s">%s</span></h2>`,
+			esc(string(evt.Type())), evt.SchemaVersion(), encodingBadgeClass(string(evt.Encoding())), esc(string(evt.Encoding())))
 		fmt.Fprintf(&b, `<div class="page-subtitle mono">%s</div>`, esc(evt.ID().String()))
+
+		if prevID != "" || nextID != "" {
+			b.WriteString(`<div class="filter-bar section-gap">`)
+			if prevID != "" {
+				fmt.Fprintf(&b, `<a href="%s/events/%s" class="btn">← Previous</a>`, p.BasePath, esc(prevID))
+			} else {
+				b.WriteString(`<span class="btn" aria-disabled="true">← Previous</span>`)
+			}
+
+			if nextID != "" {
+				fmt.Fprintf(&b, `<a href="%s/events/%s" class="btn btn-accent">Next →</a>`, p.BasePath, esc(nextID))
+			} else {
+				b.WriteString(`<span class="btn" aria-disabled="true">Next →</span>`)
+			}
+
+			b.WriteString(`</div>`)
+		}
+
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="two-col-grid">`)
@@ -268,13 +329,87 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limi
 	if d.cfg.SeekableJournal != nil {
 		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, after, limit)
 		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.recent_events.read_failed", "read recent events")
+		}
 
-func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg paginationState) string {
+		return events, nil
+	}
+
+	if d.cfg.Journal != nil {
+		all, err := d.cfg.Journal.ReadAll(ctx)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.recent_events.read_all_failed", "read all events")
+		}
+
+		if len(all) > limit {
+			all = all[:limit]
+		}
+
+		return all, nil
+	}
+
+	return nil, nil
+}
+
+// loadFilteredEvents reads a generous batch from the journal and applies
+// in-memory filters, returning up to pageSize+1 results (the +1 is for
+// HasMore detection). When filters are active we scan up to filterScanLimit
+// raw events per page to find matches.
+func (d *Dashboard) loadFilteredEvents(ctx context.Context, after id.EventID, f eventFilter, pageSize int) ([]event.Event, error) {
+	rawLimit := filterScanLimit
+	if rawLimit < pageSize+1 {
+		rawLimit = pageSize + 1
+	}
+
+	var raw []event.Event
+
+	var err error
+
+	if d.cfg.SeekableJournal != nil {
+		raw, err = d.cfg.SeekableJournal.ReadFrom(ctx, after, rawLimit)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.filtered_events.read_failed", "read events for filtering")
+		}
+	} else if d.cfg.Journal != nil {
+		raw, err = d.cfg.Journal.ReadAll(ctx)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(err,
+				"dashboardui.filtered_events.read_all_failed", "read all events for filtering")
+		}
+
+		if len(raw) > rawLimit {
+			raw = raw[:rawLimit]
+		}
+	}
+
+	var filtered []event.Event
+	for _, evt := range raw {
+		if f.Matches(evt) {
+			filtered = append(filtered, evt)
+			if len(filtered) > pageSize {
+				break
+			}
+		}
+	}
+
+	return filtered, nil
+}
+
+func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg paginationState, f eventFilter) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 		b.WriteString(`<div class="page-header"><h3>Event Stream</h3></div>`)
 
+		b.WriteString(renderEventFilterBar(p.BasePath, f))
+
 		if len(events) == 0 {
+			if f.Active() {
+				return emptyState("No matching events", "No events match the current filters. Try adjusting or clearing them.")
+			}
+
 			return emptyState("No events yet", "Events will appear here as they are committed to the store.")
 		}
 
@@ -296,8 +431,22 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 
 		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
 
-		b.WriteString(renderPagination(p.BasePath, "/events", pg, ""))
+		b.WriteString(renderPagination(p.BasePath, "/events", pg, f.extraParams()))
 
 		return b.String()
 	})
+}
+
+// renderEventFilterBar renders the filter form with current values pre-filled.
+func renderEventFilterBar(basePath string, f eventFilter) string {
+	return fmt.Sprintf(
+		`<form method="GET" action="%s/events" class="filter-bar">`+
+			`<label for="filter-type">Type</label><input id="filter-type" type="text" name="type" value="%s" placeholder="event.type"/>`+
+			`<label for="filter-stream-type">Stream Type</label><input id="filter-stream-type" type="text" name="streamType" value="%s" placeholder="User"/>`+
+			`<label for="filter-stream-id">Stream ID</label><input id="filter-stream-id" type="text" name="streamID" value="%s" placeholder="01H..."/>`+
+			`<button type="submit" class="btn btn-accent">Filter</button>`+
+			`<a href="%s/events" class="btn">Clear</a>`+
+			`</form>`,
+		esc(basePath), esc(f.Type), esc(f.StreamType), esc(f.StreamID), esc(basePath),
+	)
 }

@@ -72,3 +72,17 @@ func timeCell(t time.Time) string {
 		esc(relativeTime(t)),
 	)
 }
+
+// encodingBadgeClass returns the CSS badge class for an event encoding.
+func encodingBadgeClass(encoding string) string {
+	switch encoding {
+	case "json", "":
+		return "badge badge-ok"
+	case "cbor":
+		return "badge badge-warn"
+	case "raw":
+		return "badge badge-neutral"
+	default:
+		return "badge badge-neutral"
+	}
+}
