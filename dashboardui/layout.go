@@ -304,7 +304,7 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 
 /* ===== Empty state ===== */
 .empty-state { padding: 40px; text-align: center; color: var(--muted); }
-.empty-state h3 { margin-bottom: 8px; }
+.empty-state h2 { margin-bottom: 8px; }
 
 /* ===== Metadata table ===== */
 .meta-table { width: 100%; border-collapse: collapse; font-size: 0.88em; }

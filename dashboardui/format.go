@@ -70,14 +70,6 @@ func humanByteSize(bytes int) string {
 	return fmt.Sprintf("%.1f %ciB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
 
-// timeCell renders a table cell with relative time and full timestamp tooltip.
-func timeCell(t time.Time) string {
-	return fmt.Sprintf(`<td class="mono" title="%s">%s</td>`,
-		esc(t.Format(time.RFC3339)),
-		esc(relativeTime(t)),
-	)
-}
-
 // encodingBadgeClass returns the CSS badge class for an event encoding.
 // JSON is neutral (default), CBOR is a warning (may need decoder), raw is neutral.
 func encodingBadgeClass(encoding string) string {

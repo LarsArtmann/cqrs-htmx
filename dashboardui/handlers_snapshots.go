@@ -124,10 +124,10 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 				esc(ref.ID.String()),
 			)
 			fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-			b.WriteString(
-				`<button type="submit" class="btn btn-danger" aria-label="Delete snapshot for ` + esc(
-					ref.ID.String(),
-				) + `">Delete Snapshot</button>`,
+			fmt.Fprintf(
+				&b,
+				`<button type="submit" class="btn btn-danger" aria-label="Delete snapshot for %s">Delete Snapshot</button>`,
+				esc(ref.ID.String()),
 			)
 			b.WriteString(`</form>`)
 		}
