@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **httputil consolidation**: Server-Timing, CSRF core, and keyed rate limiting moved from cqrs-htmx root to `httputil`. cqrs-htmx now re-exports these via type/var aliases (`server_timing_reexport.go`, `csrf_reexport.go`, `ratelimit_reexport.go`). Consumer API is unchanged. Removes `justinas/nosurf` and `golang.org/x/time` as direct root dependencies (now transitive via httputil). The `applyServerTiming` method delegates to `httputil.WrapServerTiming`. The `executeCSRFValidation` function delegates to `httputil.ValidateCSRF`. The `ErrorHandler` type is now an alias for `httputil.CSRFErrorHandler`.
+
 ### Fixed
 
 - **Offline sync retry pipeline** (`sync/sync-client.js`, `sync/sync-worker.js`): multiple fixes to the offline command retry mechanism discovered via E2E browser testing. (1) **Verb casing**: HTMX 2.x stores `requestConfig.verb` as lowercase ("post"); the envelope now uppercases it for consistency with HTTP method conventions. (2) **Retry trigger**: `retryQueuedCommand` now uses `htmx.ajax()` with the persisted envelope instead of `htmx.trigger(el, "click")`, which only worked if the element itself had an HTMX trigger attribute (forms trigger on submit, not click). (3) **Connectivity detection**: the sync-client now listens for the window `online` event and sends a `flush` message to the SharedWorker, because the SharedWorker scope may not receive `online`/`offline` events reliably in all browsers and test environments. (4) **Dead port resilience**: `pickPort` now uses pure round-robin (removed `originatingTab` optimization that targeted dead ports after tab close), `sendRetry` catches postMessage errors and falls back to round-robin, and `flush()` schedules a periodic 2-second re-flush while commands remain pending (ensuring delivery even when a dead port silently swallows the first attempt). (5) Removed premature flush from the enqueue handler that could burn through `MAX_RETRIES` before the user reconnects. syncVersion bumped to `1.3.0`. All 4 E2E Playwright tests now pass.
