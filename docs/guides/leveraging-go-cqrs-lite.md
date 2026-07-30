@@ -10,18 +10,18 @@ cqrs-htmx already leans heavily on go-cqrs-lite for the event-sourced core (`eve
 
 ## TL;DR — the adoption map
 
-| go-cqrs-lite module | Status in cqrs-htmx | How to leverage |
-| --- | --- | --- |
-| `middleware` (27 factories) | 🟡 **Undocumented, fully usable** | `dispatcher.Use(middleware.CommandRetry(...))` — see [§1](#1-dispatch-middleware--the-1-undocumented-capability) |
-| `otel` + `prometheus` | 🟡 **Hooks exist, OTel/Prom wiring is on you** | [§2](#2-opentelemetry--prometheus) |
-| `scheduling` (durable timers) | 🔴 **Not used** | [§3](#3-durable-deadline-scheduling) |
-| `signing` / `encryption` | 🟢 **Exposed** via `ServiceConfig` hooks | [§4](#4-event-signing--encryption) |
-| `catalog` (docs generation) | 🟢 **Exposed** (`simple`, `docserver`, `events`) | [§5](#5-api--event-documentation) |
-| `scenario` (BDD testing) | 🟢 **Used in usermgmt tests** | [§6](#6-scenario-based-testing) |
-| `transport/http` (SSE broker) | ⚪ **Intentionally not adopted** | [§7](#7-transporthttp-sse-broker) |
-| `deriver` (reactive sagas) | 🔴 **Not used** | [§8](#8-reactive-sagas-deriver) |
-| `schema` (store-layer upcasters) | 🟢 **Covered** (decode-time, all paths) | [§9](#9-schema-evolution-store-layer-upcasting) |
-| `graph` / `metaengine` | ⚪ **Niche** | [§10](#10-niche-modules) |
+| go-cqrs-lite module              | Status in cqrs-htmx                              | How to leverage                                                                                                  |
+| -------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `middleware` (27 factories)      | 🟡 **Undocumented, fully usable**                | `dispatcher.Use(middleware.CommandRetry(...))` — see [§1](#1-dispatch-middleware--the-1-undocumented-capability) |
+| `otel` + `prometheus`            | 🟡 **Hooks exist, OTel/Prom wiring is on you**   | [§2](#2-opentelemetry--prometheus)                                                                               |
+| `scheduling` (durable timers)    | 🔴 **Not used**                                  | [§3](#3-durable-deadline-scheduling)                                                                             |
+| `signing` / `encryption`         | 🟢 **Exposed** via `ServiceConfig` hooks         | [§4](#4-event-signing--encryption)                                                                               |
+| `catalog` (docs generation)      | 🟢 **Exposed** (`simple`, `docserver`, `events`) | [§5](#5-api--event-documentation)                                                                                |
+| `scenario` (BDD testing)         | 🟢 **Used in usermgmt tests**                    | [§6](#6-scenario-based-testing)                                                                                  |
+| `transport/http` (SSE broker)    | ⚪ **Intentionally not adopted**                 | [§7](#7-transporthttp-sse-broker)                                                                                |
+| `deriver` (reactive sagas)       | 🔴 **Not used**                                  | [§8](#8-reactive-sagas-deriver)                                                                                  |
+| `schema` (store-layer upcasters) | 🟢 **Covered** (decode-time, all paths)          | [§9](#9-schema-evolution-store-layer-upcasting)                                                                  |
+| `graph` / `metaengine`           | ⚪ **Niche**                                     | [§10](#10-niche-modules)                                                                                         |
 
 Legend: 🟢 exposed · 🟡 usable but under-documented · 🔴 available, not wired · ⚪ deliberately out of scope.
 
@@ -33,16 +33,16 @@ cqrs-htmx's `App` dispatches commands/queries through the **exact** `*command.Di
 
 This unlocks 27 production-grade middleware factories covering 9 concerns:
 
-| Concern | Command factory | What it gives you |
-| --- | --- | --- |
-| Logging | `middleware.CommandLogging(logger)` | type, stream ID, duration, per attempt |
-| Recovery | `middleware.CommandRecovery()` | panic → error (never crash the request) |
-| Retry | `middleware.CommandRetry(middleware.DefaultRetryConfig())` | exponential backoff on `errorfamily.IsRetryable` |
-| Circuit breaker | `middleware.CommandCircuitBreaker(middleware.DefaultCircuitBreakerConfig())` | failsafe-go breaker to stop cascading failures |
-| Metrics | `middleware.CommandMetrics(recorder)` | dispatch count / duration / error counters |
-| Tracing | `middleware.CommandTracing(tracer)` | per-command OTel spans (real `.Type()` in the span name) |
-| Validation | `middleware.CommandValidation(validator)` | pre-handle validation |
-| Idempotency | `middleware.CommandIdempotency(store, ttl, keyFn)` | at-least-once dedup by command ID |
+| Concern         | Command factory                                                              | What it gives you                                        |
+| --------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Logging         | `middleware.CommandLogging(logger)`                                          | type, stream ID, duration, per attempt                   |
+| Recovery        | `middleware.CommandRecovery()`                                               | panic → error (never crash the request)                  |
+| Retry           | `middleware.CommandRetry(middleware.DefaultRetryConfig())`                   | exponential backoff on `errorfamily.IsRetryable`         |
+| Circuit breaker | `middleware.CommandCircuitBreaker(middleware.DefaultCircuitBreakerConfig())` | failsafe-go breaker to stop cascading failures           |
+| Metrics         | `middleware.CommandMetrics(recorder)`                                        | dispatch count / duration / error counters               |
+| Tracing         | `middleware.CommandTracing(tracer)`                                          | per-command OTel spans (real `.Type()` in the span name) |
+| Validation      | `middleware.CommandValidation(validator)`                                    | pre-handle validation                                    |
+| Idempotency     | `middleware.CommandIdempotency(store, ttl, keyFn)`                           | at-least-once dedup by command ID                        |
 
 (Query middleware mirrors these: `middleware.QueryRetry`, `middleware.QueryCircuitBreaker`, …)
 
@@ -72,10 +72,10 @@ app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: cmdDisp, Queries: qryDisp})
 
 You need **both** `cqrshtmx.RecoveryMiddleware` (HTTP layer) and `middleware.CommandRecovery()` (dispatch layer). They catch panics at different call sites:
 
-| Layer | Middleware | Catches panics in |
-|---|---|---|
-| HTTP | `cqrshtmx.RecoveryMiddleware` | HTTP handler, decode, response writing |
-| Dispatch | `middleware.CommandRecovery()` | Command handler body, domain logic |
+| Layer    | Middleware                     | Catches panics in                      |
+| -------- | ------------------------------ | -------------------------------------- |
+| HTTP     | `cqrshtmx.RecoveryMiddleware`  | HTTP handler, decode, response writing |
+| Dispatch | `middleware.CommandRecovery()` | Command handler body, domain logic     |
 
 Neither is redundant. If a panic occurs inside the command handler (e.g. nil dereference in domain logic), the dispatch recovery catches it and converts it to a `Transient` error. If a panic occurs during JSON decoding or response writing, the HTTP recovery catches it. Using only one leaves a gap.
 
@@ -127,7 +127,7 @@ mux.Handle("/metrics", provider.Handler())
 
 ## 3. Durable deadline scheduling
 
-go-cqrs-lite's `scheduling` module provides **durable timers** that survive restarts: *"cancel order after 30 min if unpaid"*, *"expire this session/token at T"*. cqrs-htmx does not use it — usermgmt currently handles time-based domain rules (session TTL, email-verification-token TTL, account-lockout duration) with **in-process sweepers** (`EvictStale()`, `EvictExpired()`). Those are not durable: a restart or multi-instance deploy misses expiries.
+go-cqrs-lite's `scheduling` module provides **durable timers** that survive restarts: _"cancel order after 30 min if unpaid"_, _"expire this session/token at T"_. cqrs-htmx does not use it — usermgmt currently handles time-based domain rules (session TTL, email-verification-token TTL, account-lockout duration) with **in-process sweepers** (`EvictStale()`, `EvictExpired()`). Those are not durable: a restart or multi-instance deploy misses expiries.
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/scheduling/v4"
@@ -213,7 +213,7 @@ Faster, clearer, and more deterministic than standing up a full event store for 
 
 ## 7. `transport/http` SSE broker
 
-go-cqrs-lite ships a production SSE broker (`transport/http.NewSSEBroker`) with **replay→live catch-up**, `Last-Event-ID`, a dedup ring at the handoff boundary, byte-budgeted replay, and CBOR→JSON payload transcoding. cqrs-htmx instead composes its own `Broadcaster` + `SSEStream` + `JournalSSEStore` (from `go-sse`) because its SSE layer is HTMX-aware (HTML fragment data, `HX-Redirect`, OOB swaps) — adopting `transport/http` would cross the documented *"building blocks, not a server"* boundary (see FEATURES.md → "Not Planned": `broadcaster.ServeSSE()`).
+go-cqrs-lite ships a production SSE broker (`transport/http.NewSSEBroker`) with **replay→live catch-up**, `Last-Event-ID`, a dedup ring at the handoff boundary, byte-budgeted replay, and CBOR→JSON payload transcoding. cqrs-htmx instead composes its own `Broadcaster` + `SSEStream` + `JournalSSEStore` (from `go-sse`) because its SSE layer is HTMX-aware (HTML fragment data, `HX-Redirect`, OOB swaps) — adopting `transport/http` would cross the documented _"building blocks, not a server"_ boundary (see FEATURES.md → "Not Planned": `broadcaster.ServeSSE()`).
 
 > **Takeaway:** this is a **deliberate non-adoption**, not a gap. cqrs-htmx's `JournalSSEStore` already provides journal-backed reconnect replay for the dashboard. If you need broker-grade fanout (>500 clients) or CBOR stores with JSON browsers, reach for `transport/http` directly in your app — it interoperates with the same `event.Bus` cqrs-htmx uses.
 
@@ -241,7 +241,7 @@ bus.SubscribeAll(d.Filter("UserDeleted").Idempotent().AsHandler(cmdDispatcher))
 
 ## 9. Schema evolution — store-layer upcasting
 
-identity-model ships its own `UpcasterRegistry` that upcasts event payloads **at decode time** via the shared `UnmarshalPayload[T]` helper. This covers every decode path — fold functions (`FoldUser`, `FoldMembership`, etc.), read models, and projections — because all of them route through `UnmarshalPayload`, which calls `applyUpcasters` as its first step. There is **no gap**: the `SetUpcasterRegistry` doc comment confirms it is *"used by all event decode paths (FoldUser, read models, projections)"*.
+identity-model ships its own `UpcasterRegistry` that upcasts event payloads **at decode time** via the shared `UnmarshalPayload[T]` helper. This covers every decode path — fold functions (`FoldUser`, `FoldMembership`, etc.), read models, and projections — because all of them route through `UnmarshalPayload`, which calls `applyUpcasters` as its first step. There is **no gap**: the `SetUpcasterRegistry` doc comment confirms it is _"used by all event decode paths (FoldUser, read models, projections)"_.
 
 go-cqrs-lite also offers `schema.VersionedSeekableJournal`, which upcasts **at the store boundary** instead. This is an alternative approach (not complementary for cqrs-htmx's needs):
 
@@ -264,23 +264,23 @@ if err != nil { /* handle */ }
 
 ## 10. Niche modules
 
-| Module | When you'd reach for it from a cqrs-htmx app |
-| --- | --- |
-| `graph` | Third projection tier (nodes + edges) for traversal-heavy read models — reply chains, social graphs, causation DAGs. Rarely needed for identity/usermgmt. |
-| `metaengine` | Experimental cost-based storage planner. R&D only. |
-| `transport/grpc` | Remote command/query dispatch over gRPC (transparent: client implements the same `Dispatch` interface). Only if your architecture is polyglot-transport. |
-| `watermill` (`CatchUpSubscriber`) | Push-based ordered replay→live for projections across processes. cqrs-htmx uses the pull-based `projectionhost` instead; both are valid. |
+| Module                            | When you'd reach for it from a cqrs-htmx app                                                                                                              |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `graph`                           | Third projection tier (nodes + edges) for traversal-heavy read models — reply chains, social graphs, causation DAGs. Rarely needed for identity/usermgmt. |
+| `metaengine`                      | Experimental cost-based storage planner. R&D only.                                                                                                        |
+| `transport/grpc`                  | Remote command/query dispatch over gRPC (transparent: client implements the same `Dispatch` interface). Only if your architecture is polyglot-transport.  |
+| `watermill` (`CatchUpSubscriber`) | Push-based ordered replay→live for projections across processes. cqrs-htmx uses the pull-based `projectionhost` instead; both are valid.                  |
 
 ---
 
 ## Decision summary
 
-| Do this now | Effort | Value |
-| --- | --- | --- |
-| **Wire dispatcher middleware** (`Use(...)`) in your app — logging/retry/circuit-breaker | Trivial | High |
-| **Add OTel tracing via `middleware.CommandTracing` + `prometheus.Setup()`** | Low | High (prod readiness) |
-| **Use `scenario` for new aggregate unit tests** | Low | Medium |
-| cqrs-htmx: **document the middleware path** (this guide + `examples/middleware-demo`) | Done ✅ | High |
-| cqrs-htmx: **durable scheduling** for usermgmt expiry | Medium | Medium-High |
+| Do this now                                                                             | Effort  | Value                 |
+| --------------------------------------------------------------------------------------- | ------- | --------------------- |
+| **Wire dispatcher middleware** (`Use(...)`) in your app — logging/retry/circuit-breaker | Trivial | High                  |
+| **Add OTel tracing via `middleware.CommandTracing` + `prometheus.Setup()`**             | Low     | High (prod readiness) |
+| **Use `scenario` for new aggregate unit tests**                                         | Low     | Medium                |
+| cqrs-htmx: **document the middleware path** (this guide + `examples/middleware-demo`)   | Done ✅ | High                  |
+| cqrs-htmx: **durable scheduling** for usermgmt expiry                                   | Medium  | Medium-High           |
 
 The single highest-leverage change an **app developer** can make today is the one-line `dispatcher.Use(...)` in [§1](#1-dispatch-middleware--the-1-undocumented-capability). The single highest-leverage change **inside cqrs-htmx itself** is making that capability discoverable — which this guide and `examples/middleware-demo` now do.

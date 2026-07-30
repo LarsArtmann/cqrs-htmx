@@ -113,10 +113,10 @@ cmdDisp.Use(middleware.CommandCircuitBreaker(...))
 
 cqrs-htmx has **two** recovery layers that serve different purposes:
 
-| Layer | Middleware | Catches |
-|-------|-----------|---------|
-| HTTP | `cqrshtmx.RecoveryMiddleware` | Panics in HTTP handler, JSON decode, response writing |
-| Dispatch | `middleware.CommandRecovery()` | Panics in command handler, domain logic |
+| Layer    | Middleware                     | Catches                                               |
+| -------- | ------------------------------ | ----------------------------------------------------- |
+| HTTP     | `cqrshtmx.RecoveryMiddleware`  | Panics in HTTP handler, JSON decode, response writing |
+| Dispatch | `middleware.CommandRecovery()` | Panics in command handler, domain logic               |
 
 Both are needed. They catch panics at different call sites in the request lifecycle. See [leveraging-go-cqrs-lite.md](leveraging-go-cqrs-lite.md) §1 for the full explanation.
 

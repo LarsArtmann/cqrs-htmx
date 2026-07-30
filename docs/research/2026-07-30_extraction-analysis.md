@@ -25,37 +25,37 @@
 
 cqrs-htmx is a **multi-module Go workspace** with 15 independent Go modules under one `go.work`:
 
-| Module | Import Path | LOC (non-test) | Provides |
-|---|---|---|---|
-| **root** | `github.com/larsartmann/cqrs-htmx/v4` | ~25,900 | Core library: HTTP handler builder, HTMX/SSE/WS helpers, authz (Casbin), CSRF, rate limiting, security headers, error mapping, pagination, `openapi/` sub-package |
-| **identity-model** | `identity-model/v4` | — | Pure domain types for event-sourced identity management (IDs, events, commands, fold functions, Authz engine, constants) |
-| **usermgmt** | `usermgmt/v4` | — | Event-sourced CQRS user management (thin re-export layer over identity-model + infrastructure) |
-| **usermgmt/totp** | `usermgmt/totp/v4` | — | TOTP MFA auth strategy |
-| **usermgmt/webauthn** | `usermgmt/webauthn/v4` | — | WebAuthn passkey auth strategy |
-| **usermgmt/oauth2** | `usermgmt/oauth2/v4` | — | OAuth2/OIDC auth strategy |
-| **adminui** | `adminui/v4` | — | Ready-made admin dashboard (templ + HTMX) |
-| **loginpage** | `loginpage/v4` | — | Ready-made passwordless login page |
-| **dashboardui** | `dashboardui/v4` | — | CQRS/ES observability dashboard (templ + HTMX) |
-| **integration_test** | — | — | Cross-module bridge tests |
-| **examples/** (6) | — | — | basic, datastar-demo, catalog-demo, admin-demo, dashboard-demo, middleware-demo, observability-demo |
+| Module                | Import Path                           | LOC (non-test) | Provides                                                                                                                                                          |
+| --------------------- | ------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **root**              | `github.com/larsartmann/cqrs-htmx/v4` | ~25,900        | Core library: HTTP handler builder, HTMX/SSE/WS helpers, authz (Casbin), CSRF, rate limiting, security headers, error mapping, pagination, `openapi/` sub-package |
+| **identity-model**    | `identity-model/v4`                   | —              | Pure domain types for event-sourced identity management (IDs, events, commands, fold functions, Authz engine, constants)                                          |
+| **usermgmt**          | `usermgmt/v4`                         | —              | Event-sourced CQRS user management (thin re-export layer over identity-model + infrastructure)                                                                    |
+| **usermgmt/totp**     | `usermgmt/totp/v4`                    | —              | TOTP MFA auth strategy                                                                                                                                            |
+| **usermgmt/webauthn** | `usermgmt/webauthn/v4`                | —              | WebAuthn passkey auth strategy                                                                                                                                    |
+| **usermgmt/oauth2**   | `usermgmt/oauth2/v4`                  | —              | OAuth2/OIDC auth strategy                                                                                                                                         |
+| **adminui**           | `adminui/v4`                          | —              | Ready-made admin dashboard (templ + HTMX)                                                                                                                         |
+| **loginpage**         | `loginpage/v4`                        | —              | Ready-made passwordless login page                                                                                                                                |
+| **dashboardui**       | `dashboardui/v4`                      | —              | CQRS/ES observability dashboard (templ + HTMX)                                                                                                                    |
+| **integration_test**  | —                                     | —              | Cross-module bridge tests                                                                                                                                         |
+| **examples/** (6)     | —                                     | —              | basic, datastar-demo, catalog-demo, admin-demo, dashboard-demo, middleware-demo, observability-demo                                                               |
 
 **Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt. dashboardui → root + usermgmt. Nothing depends on adminui, loginpage, or dashboardui.
 
 **Root module direct dependencies (17 total):**
 
-| Dependency | Used By | Extraction Relevant? |
-|---|---|---|
-| `github.com/casbin/casbin/v3` | authz.go, errors.go (duck-typed `Enforcer` interface) | No — the root only duck-types the interface, doesn't import casbin directly |
-| `github.com/go-playground/form/v4` | decoder.go | Yes — form decoding |
-| `github.com/justinas/nosurf` | csrf_*.go (4 files) | **Yes — CSRF is self-contained** |
-| `github.com/larsartmann/go-branded-id` | Multiple files (ID types) | No — core ID types |
-| `go-cqrs-lite` (6 packages) | Multiple files (command/event/query/id/idempotency) | No — core CQRS types |
-| `github.com/larsartmann/go-error-family` | Multiple files (error classification) | No — core error model |
-| `github.com/larsartmann/go-sse` | sse_event.go, sse_store.go, ws_broadcaster.go | No — core SSE building blocks |
-| `github.com/larsartmann/httputil` | ratelimit_config.go (ClientIP), options_json.go (ParseUintQuery) | **Yes — already partially used** |
-| `github.com/oklog/ulid/v2` | context.go, sse_event.go, logging.go | No — core ID generation |
-| `github.com/onsi/ginkgo/v2` + `gomega` | Test files only | No — test-only |
-| `golang.org/x/time` | ratelimit_config.go, ratelimit_middleware.go | **Yes — only for rate limiting** |
+| Dependency                               | Used By                                                          | Extraction Relevant?                                                        |
+| ---------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `github.com/casbin/casbin/v3`            | authz.go, errors.go (duck-typed `Enforcer` interface)            | No — the root only duck-types the interface, doesn't import casbin directly |
+| `github.com/go-playground/form/v4`       | decoder.go                                                       | Yes — form decoding                                                         |
+| `github.com/justinas/nosurf`             | csrf_*.go (4 files)                                              | **Yes — CSRF is self-contained**                                            |
+| `github.com/larsartmann/go-branded-id`   | Multiple files (ID types)                                        | No — core ID types                                                          |
+| `go-cqrs-lite` (6 packages)              | Multiple files (command/event/query/id/idempotency)              | No — core CQRS types                                                        |
+| `github.com/larsartmann/go-error-family` | Multiple files (error classification)                            | No — core error model                                                       |
+| `github.com/larsartmann/go-sse`          | sse_event.go, sse_store.go, ws_broadcaster.go                    | No — core SSE building blocks                                               |
+| `github.com/larsartmann/httputil`        | ratelimit_config.go (ClientIP), options_json.go (ParseUintQuery) | **Yes — already partially used**                                            |
+| `github.com/oklog/ulid/v2`               | context.go, sse_event.go, logging.go                             | No — core ID generation                                                     |
+| `github.com/onsi/ginkgo/v2` + `gomega`   | Test files only                                                  | No — test-only                                                              |
+| `golang.org/x/time`                      | ratelimit_config.go, ratelimit_middleware.go                     | **Yes — only for rate limiting**                                            |
 
 ---
 
@@ -65,38 +65,38 @@ The root module has ~54 non-test source files. Here is the complete internal dep
 
 ### Key Shared Types (The "Spine" Everything Couples To)
 
-| Symbol | Defined In | Referenced By |
-|---|---|---|
-| `App` struct | `app.go:20` | WS (ws_dispatch.go) |
-| `AfterDispatchHook` | `app.go:110` | SSE (sse_broadcaster, ack), WS (ws_broadcaster, ack) |
-| `handlerConfig` | `options_types.go:54` | CSRF (csrf_handler), OpenAPI (options_openapi) |
-| `HandlerOption` | `options_types.go:30` | CSRF (csrf_handler), OpenAPI (options_openapi) |
-| `hashTag` | `options_openapi.go:64` | Event catalog, Projection status |
-| `serializeToImmutableHandler` | `event_catalog_handler.go` | OpenAPI (options_openapi) |
-| `ContentTypeJSON/Plain` | `constants.go` | Event catalog, Projection, CSRF, OpenAPI |
-| `NewStructuredError` | `structured_error.go:81` | SSE (sse_broadcaster), WS (ws_broadcaster) |
-| `OOBHTML/SwapStrategy` | `partial.go:45` / `htmx.go:37` | WS (ws.go, ws_broadcaster) |
-| `serveJS` | `htmx_serve.go:34` | Offline sync (sync_serve) |
-| `marshalJSONOrFallback` | `httputil.go:42` | SSE (ack) |
-| `SSEEvent/SSEEventID/SSEStream` | `sse_event.go` | All SSE files, ack |
+| Symbol                          | Defined In                     | Referenced By                                        |
+| ------------------------------- | ------------------------------ | ---------------------------------------------------- |
+| `App` struct                    | `app.go:20`                    | WS (ws_dispatch.go)                                  |
+| `AfterDispatchHook`             | `app.go:110`                   | SSE (sse_broadcaster, ack), WS (ws_broadcaster, ack) |
+| `handlerConfig`                 | `options_types.go:54`          | CSRF (csrf_handler), OpenAPI (options_openapi)       |
+| `HandlerOption`                 | `options_types.go:30`          | CSRF (csrf_handler), OpenAPI (options_openapi)       |
+| `hashTag`                       | `options_openapi.go:64`        | Event catalog, Projection status                     |
+| `serializeToImmutableHandler`   | `event_catalog_handler.go`     | OpenAPI (options_openapi)                            |
+| `ContentTypeJSON/Plain`         | `constants.go`                 | Event catalog, Projection, CSRF, OpenAPI             |
+| `NewStructuredError`            | `structured_error.go:81`       | SSE (sse_broadcaster), WS (ws_broadcaster)           |
+| `OOBHTML/SwapStrategy`          | `partial.go:45` / `htmx.go:37` | WS (ws.go, ws_broadcaster)                           |
+| `serveJS`                       | `htmx_serve.go:34`             | Offline sync (sync_serve)                            |
+| `marshalJSONOrFallback`         | `httputil.go:42`               | SSE (ack)                                            |
+| `SSEEvent/SSEEventID/SSEStream` | `sse_event.go`                 | All SSE files, ack                                   |
 
 ### Cluster Coupling Matrix
 
-| Cluster | go-cqrs-lite | casbin | App/handlerConfig | Primary Root Coupling |
-|---|---|---|---|---|
-| **SSE** (5 files, ~900 LOC) | event/v4, id/v4 (event_store_sse only) | No | `AfterDispatchHook` (app.go) | sse_event.go types; ack.go bridges to WS |
-| **WebSocket** (4 files, ~700 LOC) | command/v4, event/v4, query/v4 | No | `*App` methods (app.go) — ws_dispatch tightly bound | partial.go/htmx.go (OOBHTML/SwapStrategy); app.go |
-| **CSRF** (6 files, ~905 LOC) | No | No | `handlerConfig` via csrf_handler only | constants.go, errors.go — otherwise self-contained |
-| **Offline sync** (2 files, ~100 LOC) | No | No | No | htmx_serve.go (`serveJS`) |
-| **OpenAPI** (1 root file + 5 sub-pkg files, ~700 LOC) | No | No | `handlerConfig` via WithOpenAPI | options_types.go; openapi/ sub-package (one-way) |
-| **Event catalog** (2 files, ~300 LOC) | No | No | No | constants.go, options_openapi.go (`hashTag`) |
-| **Projection status** (1 file, ~100 LOC) | No | No | No | constants.go, options_openapi.go (`hashTag`) |
-| **Idempotency** (1 file, ~50 LOC) | idempotency/v4 | No | No | none |
-| **Rate limiting** (2 files, ~392 LOC) | No | No | No | none — standalone |
-| **Server-Timing** (1 file, ~389 LOC) | No | No | No | none — standalone |
-| **Recovery** (1 file, ~131 LOC) | event/v4 (errorfamily classification) | No | No | structured_error.go, context.go |
-| **Security headers** (1 file, ~157 LOC) | No | No | No | constants.go |
-| **Middleware chain** (1 file) | No | No | No | none — standalone |
+| Cluster                                               | go-cqrs-lite                           | casbin | App/handlerConfig                                   | Primary Root Coupling                              |
+| ----------------------------------------------------- | -------------------------------------- | ------ | --------------------------------------------------- | -------------------------------------------------- |
+| **SSE** (5 files, ~900 LOC)                           | event/v4, id/v4 (event_store_sse only) | No     | `AfterDispatchHook` (app.go)                        | sse_event.go types; ack.go bridges to WS           |
+| **WebSocket** (4 files, ~700 LOC)                     | command/v4, event/v4, query/v4         | No     | `*App` methods (app.go) — ws_dispatch tightly bound | partial.go/htmx.go (OOBHTML/SwapStrategy); app.go  |
+| **CSRF** (6 files, ~905 LOC)                          | No                                     | No     | `handlerConfig` via csrf_handler only               | constants.go, errors.go — otherwise self-contained |
+| **Offline sync** (2 files, ~100 LOC)                  | No                                     | No     | No                                                  | htmx_serve.go (`serveJS`)                          |
+| **OpenAPI** (1 root file + 5 sub-pkg files, ~700 LOC) | No                                     | No     | `handlerConfig` via WithOpenAPI                     | options_types.go; openapi/ sub-package (one-way)   |
+| **Event catalog** (2 files, ~300 LOC)                 | No                                     | No     | No                                                  | constants.go, options_openapi.go (`hashTag`)       |
+| **Projection status** (1 file, ~100 LOC)              | No                                     | No     | No                                                  | constants.go, options_openapi.go (`hashTag`)       |
+| **Idempotency** (1 file, ~50 LOC)                     | idempotency/v4                         | No     | No                                                  | none                                               |
+| **Rate limiting** (2 files, ~392 LOC)                 | No                                     | No     | No                                                  | none — standalone                                  |
+| **Server-Timing** (1 file, ~389 LOC)                  | No                                     | No     | No                                                  | none — standalone                                  |
+| **Recovery** (1 file, ~131 LOC)                       | event/v4 (errorfamily classification)  | No     | No                                                  | structured_error.go, context.go                    |
+| **Security headers** (1 file, ~157 LOC)               | No                                     | No     | No                                                  | constants.go                                       |
+| **Middleware chain** (1 file)                         | No                                     | No     | No                                                  | none — standalone                                  |
 
 ### Detailed Cluster Dependency Analysis
 
@@ -166,16 +166,17 @@ The root module has ~54 non-test source files. Here is the complete internal dep
 
 #### 2. Server-Timing → move to `httputil`
 
-| Criterion | Assessment |
-|---|---|
-| **Self-contained?** | **100%.** 389 LOC, zero dependencies, zero root-module coupling. |
-| **Broadly useful?** | Yes — Server-Timing is a general HTTP performance header, not a CQRS/HTMX concern. |
-| **Already duplicated?** | **No counterpart in httputil** — this is unique to cqrs-htmx. |
+| Criterion                 | Assessment                                                                                                              |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Self-contained?**       | **100%.** 389 LOC, zero dependencies, zero root-module coupling.                                                        |
+| **Broadly useful?**       | Yes — Server-Timing is a general HTTP performance header, not a CQRS/HTMX concern.                                      |
+| **Already duplicated?**   | **No counterpart in httputil** — this is unique to cqrs-htmx.                                                           |
 | **Composability payoff?** | httputil gains a feature no other Go middleware library has. cqrs-htmx loses no functionality (just changes an import). |
-| **Effort** | Low — move 1 file + test files, update imports. |
-| **Risk** | Near zero. |
+| **Effort**                | Low — move 1 file + test files, update imports.                                                                         |
+| **Risk**                  | Near zero.                                                                                                              |
 
 **Extraction plan:**
+
 1. Copy `server_timing.go` + `server_timing_test.go` → httputil repo
 2. cqrs-htmx `go.mod` adds `require github.com/larsartmann/httputil` (already present)
 3. cqrs-htmx replaces `ServerTiming`/`ServerTimingMiddleware`/`MeasureServerTiming` with httputil versions (re-export type aliases for backward compat)
@@ -186,15 +187,16 @@ The root module has ~54 non-test source files. Here is the complete internal dep
 
 #### 3. Rate limiting → consolidate with `httputil`
 
-| Criterion | Assessment |
-|---|---|
-| **Self-contained?** | **100%.** No root-module coupling. Only dep: `golang.org/x/time/rate`. |
-| **Duplicated?** | **Yes** — httputil has `ratelimit.go` (token bucket, interface-based, simpler). cqrs-htmx version is richer (min-heap eviction, `MaxKeys` cap, monitoring API). |
-| **Composability payoff?** | Eliminates `golang.org/x/time` from cqrs-htmx dep tree. Merges two implementations into one canonical version. |
-| **Effort** | Medium — merge the best of both into httputil, then cqrs-htmx delegates. |
-| **Risk** | Low — API surface changes are backward-compatible via re-exports. |
+| Criterion                 | Assessment                                                                                                                                                      |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Self-contained?**       | **100%.** No root-module coupling. Only dep: `golang.org/x/time/rate`.                                                                                          |
+| **Duplicated?**           | **Yes** — httputil has `ratelimit.go` (token bucket, interface-based, simpler). cqrs-htmx version is richer (min-heap eviction, `MaxKeys` cap, monitoring API). |
+| **Composability payoff?** | Eliminates `golang.org/x/time` from cqrs-htmx dep tree. Merges two implementations into one canonical version.                                                  |
+| **Effort**                | Medium — merge the best of both into httputil, then cqrs-htmx delegates.                                                                                        |
+| **Risk**                  | Low — API surface changes are backward-compatible via re-exports.                                                                                               |
 
 **cqrs-htmx version advantages over httputil:**
+
 - Min-heap eviction (O(log n) vs httputil's O(n) full map scan)
 - `MaxKeys` cap to prevent unbounded memory growth
 - `ActiveKeys()` and `Check()` monitoring methods
@@ -203,40 +205,44 @@ The root module has ~54 non-test source files. Here is the complete internal dep
 
 #### 4. CSRF middleware → move core to `httputil`
 
-| Criterion | Assessment |
-|---|---|
-| **Self-contained?** | **Nearly.** 6 files, 905 LOC. Only dep: `justinas/nosurf`. Only touch point to cqrs-htmx core: `csrf_handler.go` writing `handlerConfig.csrfConfig`. |
-| **Broadly useful?** | Yes — CSRF protection is a general HTTP concern. httputil currently has NO CSRF support. |
-| **Composability payoff?** | Removes `justinas/nosurf` from cqrs-htmx's dep tree. httputil gains a missing feature. |
-| **Effort** | Medium — move the 4 core files (config, context, middleware, helpers, testing), keep `csrf_handler.go` in cqrs-htmx as the `HandlerOption` adapter. |
-| **Risk** | Low — the `CSRFProtect` handler option stays in cqrs-htmx as a thin adapter. |
+| Criterion                 | Assessment                                                                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Self-contained?**       | **Nearly.** 6 files, 905 LOC. Only dep: `justinas/nosurf`. Only touch point to cqrs-htmx core: `csrf_handler.go` writing `handlerConfig.csrfConfig`. |
+| **Broadly useful?**       | Yes — CSRF protection is a general HTTP concern. httputil currently has NO CSRF support.                                                             |
+| **Composability payoff?** | Removes `justinas/nosurf` from cqrs-htmx's dep tree. httputil gains a missing feature.                                                               |
+| **Effort**                | Medium — move the 4 core files (config, context, middleware, helpers, testing), keep `csrf_handler.go` in cqrs-htmx as the `HandlerOption` adapter.  |
+| **Risk**                  | Low — the `CSRFProtect` handler option stays in cqrs-htmx as a thin adapter.                                                                         |
 
 **What moves to httputil:**
+
 - `CSRFConfig`, `CSRFToken`, cookie/header/field accessors
 - `CSRFMiddleware`, `CSRFResponseHeaderMiddleware`
 - `CSRFTokenFromContext`, `WithCSRFToken`
 - `CSRFTestToken` (test helper)
 
 **What stays in cqrs-htmx:**
+
 - `CSRFProtect` (returns `HandlerOption`, writes `handlerConfig`)
 
 #### 5. Recovery + Security headers → enrich httputil, then delegate
 
-| Criterion | Assessment |
-|---|---|
-| **Self-contained?** | Nearly — recovery.go has minor coupling to structured_error.go and context.go. Security headers reference only constants.go. |
-| **Duplicated?** | **Yes** — both are reimplementations of httputil's `recovery.go` and `security.go`. cqrs-htmx versions are richer supersets. |
-| **Composability payoff?** | Eliminates duplication. httputil becomes the canonical home. cqrs-htmx delegates. |
-| **Effort** | Medium — port cqrs-htmx extensions upstream, then cqrs-htmx re-exports. |
-| **Risk** | Low-medium — need to ensure the error-family classification in recovery is compatible with httputil's design. |
+| Criterion                 | Assessment                                                                                                                   |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Self-contained?**       | Nearly — recovery.go has minor coupling to structured_error.go and context.go. Security headers reference only constants.go. |
+| **Duplicated?**           | **Yes** — both are reimplementations of httputil's `recovery.go` and `security.go`. cqrs-htmx versions are richer supersets. |
+| **Composability payoff?** | Eliminates duplication. httputil becomes the canonical home. cqrs-htmx delegates.                                            |
+| **Effort**                | Medium — port cqrs-htmx extensions upstream, then cqrs-htmx re-exports.                                                      |
+| **Risk**                  | Low-medium — need to ensure the error-family classification in recovery is compatible with httputil's design.                |
 
 **cqrs-htmx recovery.go advantages over httputil:**
+
 - Pluggable `ErrorHandler` (vs httputil's hardcoded 500 text/plain)
 - `http.ErrAbortHandler` re-raising (httputil swallows it)
 - Error classification as `event.Infrastructure` via errorfamily
 - Request context recovery (RequestID + CorrelationID)
 
 **cqrs-htmx security.go advantages over httputil:**
+
 - `PermissionsPolicy` header support
 - `Custom map[string]string` for arbitrary headers
 - `SecurityHeaderSkip` (`"-"`) sentinel to suppress any default header
@@ -249,7 +255,7 @@ The root module has ~54 non-test source files. Here is the complete internal dep
 #### 6. Event Catalog → consolidate with `go-cqrs-lite/catalog/v4`
 
 - ~300 LOC across `event_catalog.go` + `event_catalog_handler.go`
-- Already noted in ROADMAP: *"evaluate consolidating the hand-rolled `EventCatalog`/`openapi/` with `catalog/v4`"*
+- Already noted in ROADMAP: _"evaluate consolidating the hand-rolled `EventCatalog`/`openapi/` with `catalog/v4`"_
 - This is a **CQRS concern** (Published Language pattern), not an HTTP/HTMX concern
 - go-cqrs-lite already has `catalog/v4` — this belongs there
 - Minor coupling: `hashTag` and `serializeToImmutableHandler` shared with OpenAPI (extract the immutable-handler utility to httputil as an `ETagHandler`)
@@ -258,16 +264,16 @@ The root module has ~54 non-test source files. Here is the complete internal dep
 
 ### Tier 4: Should Not Extract
 
-| Candidate | Why Not |
-|---|---|
-| **SSE/WS building blocks** | Thin wrappers over `go-sse` (already extracted). The value-add (`AfterDispatchHook` integration) is cqrs-htmx-specific. |
-| **HTMX serving/embedding** | Too thin (~200 LOC). Just serves embedded JS with ETag/cache headers. Not enough standalone value. |
-| **Offline sync** | Two files (~100 LOC). Tightly coupled to `serveJS` pattern. Too thin. |
-| **usermgmt god-package split** | Already deferred to v5 per ROADMAP. Zero consumer benefit while in same repo — same `go.mod` = same dep tree. |
-| **Root SSE/WS/ratelimit into sub-modules** | Explicitly "Not Planned" in ROADMAP: same `go.mod` = same dep tree = zero consumer benefit within a repo. |
-| **Identity-model further extraction** | Already extracted. Works perfectly. No action needed. |
-| **Idempotency** | 50 LOC of type aliases to go-cqrs-lite. Nothing to extract. |
-| **Projection status** | 100 LOC. Too thin. The `ProjectionStatusProvider` interface is designed for cqrs-htmx consumers. |
+| Candidate                                  | Why Not                                                                                                                 |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **SSE/WS building blocks**                 | Thin wrappers over `go-sse` (already extracted). The value-add (`AfterDispatchHook` integration) is cqrs-htmx-specific. |
+| **HTMX serving/embedding**                 | Too thin (~200 LOC). Just serves embedded JS with ETag/cache headers. Not enough standalone value.                      |
+| **Offline sync**                           | Two files (~100 LOC). Tightly coupled to `serveJS` pattern. Too thin.                                                   |
+| **usermgmt god-package split**             | Already deferred to v5 per ROADMAP. Zero consumer benefit while in same repo — same `go.mod` = same dep tree.           |
+| **Root SSE/WS/ratelimit into sub-modules** | Explicitly "Not Planned" in ROADMAP: same `go.mod` = same dep tree = zero consumer benefit within a repo.               |
+| **Identity-model further extraction**      | Already extracted. Works perfectly. No action needed.                                                                   |
+| **Idempotency**                            | 50 LOC of type aliases to go-cqrs-lite. Nothing to extract.                                                             |
+| **Projection status**                      | 100 LOC. Too thin. The `ProjectionStatusProvider` interface is designed for cqrs-htmx consumers.                        |
 
 ---
 
@@ -276,6 +282,7 @@ The root module has ~54 non-test source files. Here is the complete internal dep
 ### Initial Assessment (Pre-Research)
 
 The `openapi/` sub-package appeared to be the #1 extraction candidate:
+
 - 577 LOC across 5 files
 - **Zero dependencies** — pure stdlib (`encoding/json/v2` only in marshal.go)
 - Self-contained sub-package with explicit "can be used standalone" documentation
@@ -286,17 +293,17 @@ The `openapi/` sub-package appeared to be the #1 extraction candidate:
 
 The space is **saturated**:
 
-| Library | Stars | Approach | OpenAPI 3.1? | Type |
-|---|---|---|---|---|
-| **swaggo/swag** | ~12.9k | Annotation-driven code→spec | No (2.0 only) | Spec generator |
-| **go-swagger** | ~10k | Full toolkit (spec↔codegen) | No (2.0 only) | Toolkit |
-| **oapi-codegen** | ~8.5k | Spec→code codegen | Yes (3.0+3.1) | Codegen |
-| **goa** | ~6.1k | DSL→everything framework | Yes (3.0) | Framework |
-| **huma** | ~4.3k | Framework, reflection-based spec gen from types | Yes (3.1) | Framework |
-| **kin-openapi** | ~3.3k | Parse/validate/route against specs | Yes (3.0+3.1) | Library |
-| **fuego** | ~1.7k | Framework, generics-based spec gen | No (3.0) | Framework |
-| **pb33f/libopenapi** | ~860 | High-performance parser/validator | Yes (3.0+3.1+3.2) | Library |
-| **swaggest/openapi-go** | ~115 | **Programmatic builder** (closest competitor) | No (3.0) | Builder |
+| Library                 | Stars  | Approach                                        | OpenAPI 3.1?      | Type           |
+| ----------------------- | ------ | ----------------------------------------------- | ----------------- | -------------- |
+| **swaggo/swag**         | ~12.9k | Annotation-driven code→spec                     | No (2.0 only)     | Spec generator |
+| **go-swagger**          | ~10k   | Full toolkit (spec↔codegen)                     | No (2.0 only)     | Toolkit        |
+| **oapi-codegen**        | ~8.5k  | Spec→code codegen                               | Yes (3.0+3.1)     | Codegen        |
+| **goa**                 | ~6.1k  | DSL→everything framework                        | Yes (3.0)         | Framework      |
+| **huma**                | ~4.3k  | Framework, reflection-based spec gen from types | Yes (3.1)         | Framework      |
+| **kin-openapi**         | ~3.3k  | Parse/validate/route against specs              | Yes (3.0+3.1)     | Library        |
+| **fuego**               | ~1.7k  | Framework, generics-based spec gen              | No (3.0)          | Framework      |
+| **pb33f/libopenapi**    | ~860   | High-performance parser/validator               | Yes (3.0+3.1+3.2) | Library        |
+| **swaggest/openapi-go** | ~115   | **Programmatic builder** (closest competitor)   | No (3.0)          | Builder        |
 
 ### What cqrs-htmx's openapi/ Does Differently
 
@@ -319,6 +326,7 @@ The space is **saturated**:
 ### The Problem: Wrong Side of Market Demand
 
 **Nobody in the market wants manual spec building.** The trends are:
+
 - **Code-first with reflection** (huma, fuego) — spec is a free byproduct of writing typed handlers
 - **Spec-first codegen** (oapi-codegen) — spec is the source of truth, code is generated
 - **Annotation-driven** (swaggo/swag) — bolt docs onto existing code
@@ -343,37 +351,37 @@ cqrs-htmx root already imports `httputil` for only 2 things: `ClientIP` (in rate
 
 ### 1. Recovery Middleware — DUPLICATE (reimplemented + significantly extended)
 
-| Aspect | httputil `recovery.go` | cqrs-htmx `recovery.go` |
-|---|---|---|
-| API | `Recovery(logger *slog.Logger) Middleware` | `RecoveryMiddleware(next)` standalone + `App.RecoverHandler()` method |
-| Response | Hardcoded 500 text/plain | Delegates to pluggable `ErrorHandler` |
-| `http.ErrAbortHandler` | Not handled (swallowed) | Re-raised per net/http convention |
-| Logging | Injected `*slog.Logger` | `slog.ErrorContext` (default logger), structured fields |
-| Error classification | None | Classifies as `event.Infrastructure` via `errorfamily`, code `"panic"` |
-| Request context | None | Recovers RequestID + CorrelationID into context |
+| Aspect                 | httputil `recovery.go`                     | cqrs-htmx `recovery.go`                                                |
+| ---------------------- | ------------------------------------------ | ---------------------------------------------------------------------- |
+| API                    | `Recovery(logger *slog.Logger) Middleware` | `RecoveryMiddleware(next)` standalone + `App.RecoverHandler()` method  |
+| Response               | Hardcoded 500 text/plain                   | Delegates to pluggable `ErrorHandler`                                  |
+| `http.ErrAbortHandler` | Not handled (swallowed)                    | Re-raised per net/http convention                                      |
+| Logging                | Injected `*slog.Logger`                    | `slog.ErrorContext` (default logger), structured fields                |
+| Error classification   | None                                       | Classifies as `event.Infrastructure` via `errorfamily`, code `"panic"` |
+| Request context        | None                                       | Recovers RequestID + CorrelationID into context                        |
 
 **cqrs-htmx version is a superset. Not a wrapper.**
 
 ### 2. Security Headers — DUPLICATE (reimplemented + extended)
 
-| Aspect | httputil `security.go` | cqrs-htmx `security.go` |
-|---|---|---|
-| Config shape | `ContentTypeNosniff bool`, `FrameOptions`, `ReferrerPolicy`, `CSP`, `HSTS` | `ContentTypeOptions string` + same + **`PermissionsPolicy`** + **`Custom map[string]string`** |
-| Skip/suppress | No (bool toggle) | `SecurityHeaderSkip = "-"` sentinel to omit any header |
-| Defaults helper | `DefaultSecurityHeadersConfig()` | `DefaultRateLimiterConfig`-style + **`RecommendedHSTS`**, **`RecommendedCSP`** constants |
-| Headers set | 5 | 7 (adds Permissions-Policy + custom) |
+| Aspect          | httputil `security.go`                                                     | cqrs-htmx `security.go`                                                                       |
+| --------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Config shape    | `ContentTypeNosniff bool`, `FrameOptions`, `ReferrerPolicy`, `CSP`, `HSTS` | `ContentTypeOptions string` + same + **`PermissionsPolicy`** + **`Custom map[string]string`** |
+| Skip/suppress   | No (bool toggle)                                                           | `SecurityHeaderSkip = "-"` sentinel to omit any header                                        |
+| Defaults helper | `DefaultSecurityHeadersConfig()`                                           | `DefaultRateLimiterConfig`-style + **`RecommendedHSTS`**, **`RecommendedCSP`** constants      |
+| Headers set     | 5                                                                          | 7 (adds Permissions-Policy + custom)                                                          |
 
 **Same concept reimplemented. cqrs-htmx is richer. Not a wrapper.**
 
 ### 3. Rate Limiting — DUPLICATE (reimplemented with different design)
 
-| Aspect | httputil `ratelimit.go` | cqrs-htmx `ratelimit_config.go` + `ratelimit_middleware.go` |
-|---|---|---|
-| Abstraction | `RateLimiter` interface + `TokenBucketLimiter` impl | Concrete `perKeyLimiter` (no interface) |
-| Eviction | Lazy `sweep()`: O(n) full map scan on every TTL interval | **Min-heap**: O(log n) eviction + `MaxKeys` cap eviction |
-| Config | `RateLimitConfig{Limiter, KeyFunc, Status, OnDenied}` | `RateLimiterConfig{Limit, Window, Burst, KeyExtractor, TTL, MaxKeys, OnAllowed, OnRejected, RejectionHandler}` |
-| Monitoring | None | `RateLimiter` struct exposes `ActiveKeys()`, `Check()` |
-| Key extractor | `KeyFunc` (defaults to `RemoteAddr`) | `KeyExtractor` + helpers `KeyExtractorFromRemoteAddr`, `KeyExtractorFromClientIP` |
+| Aspect        | httputil `ratelimit.go`                                  | cqrs-htmx `ratelimit_config.go` + `ratelimit_middleware.go`                                                    |
+| ------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Abstraction   | `RateLimiter` interface + `TokenBucketLimiter` impl      | Concrete `perKeyLimiter` (no interface)                                                                        |
+| Eviction      | Lazy `sweep()`: O(n) full map scan on every TTL interval | **Min-heap**: O(log n) eviction + `MaxKeys` cap eviction                                                       |
+| Config        | `RateLimitConfig{Limiter, KeyFunc, Status, OnDenied}`    | `RateLimiterConfig{Limit, Window, Burst, KeyExtractor, TTL, MaxKeys, OnAllowed, OnRejected, RejectionHandler}` |
+| Monitoring    | None                                                     | `RateLimiter` struct exposes `ActiveKeys()`, `Check()`                                                         |
+| Key extractor | `KeyFunc` (defaults to `RemoteAddr`)                     | `KeyExtractor` + helpers `KeyExtractorFromRemoteAddr`, `KeyExtractorFromClientIP`                              |
 
 **Reimplemented from scratch. The only httputil touchpoint is `KeyExtractorFromClientIP → httputil.ClientIP`.**
 
@@ -407,13 +415,13 @@ Also port **recovery** and **security headers** extensions upstream into httputi
 
 ### Dep Tree Impact of Recommended Actions
 
-| Action | Deps removed from cqrs-htmx root |
-|---|---|
-| Server-Timing → httputil | none (already zero-dep) |
-| CSRF → httputil | `justinas/nosurf` |
-| Rate limiting → httputil | `golang.org/x/time` |
-| Recovery → httputil (enrich + delegate) | none (already uses errorfamily, shared dep) |
-| Security headers → httputil (enrich + delegate) | none |
+| Action                                          | Deps removed from cqrs-htmx root            |
+| ----------------------------------------------- | ------------------------------------------- |
+| Server-Timing → httputil                        | none (already zero-dep)                     |
+| CSRF → httputil                                 | `justinas/nosurf`                           |
+| Rate limiting → httputil                        | `golang.org/x/time`                         |
+| Recovery → httputil (enrich + delegate)         | none (already uses errorfamily, shared dep) |
+| Security headers → httputil (enrich + delegate) | none                                        |
 
 **Combined: removes 2 heavy external deps from cqrs-htmx root**, establishes httputil as the canonical HTTP middleware repo, and eliminates 3 duplicated reimplementations.
 
@@ -427,12 +435,12 @@ Also port **recovery** and **security headers** extensions upstream into httputi
 
 Several statements in the main analysis (above) about huma were **wrong**. This section corrects them with verified facts from the source code and documentation.
 
-| Earlier Claim | Reality (Verified) |
-|---|---|
-| "huma/fuego are frameworks that own the router" | **Wrong.** Huma is explicitly router-agnostic via an `Adapter` interface. 9 official adapters ship: net/http (`humago`), Chi (`humachi`), Gin (`humagin`), Echo (`humaecho`), Fiber (`humafiber`), gorilla/mux (`humamux`), httprouter (`humahttprouter`), bunrouter (`humabunrouter`), Flow (`humaflow`). You bring your own router. |
-| "every endpoint is JSON-in/JSON-out" | **Wrong.** Huma supports multipart forms (`form:` struct tags, typed file uploads via `FormFile`/`[]FormFile`), SSE (first-class `sse` subpackage with typed event maps), streaming responses (arbitrary byte streams via `huma.StreamResponse`), and HTML/HTMX (documented how-to guide with templ + gomponents integration). |
-| "reflection can't work without owning the router" | **Wrong.** Router ownership is not the blocker. Huma's `Register[I, O]()` reflects on the generic type parameters at registration time, independent of which adapter handles the routing. |
-| "reflection means the library can't see the path/method" | **Wrong.** The `huma.Operation` struct carries `Method` and `Path` explicitly — the developer provides them at registration. Reflection is only used to infer schemas from the `I` (input) and `O` (output) type parameters. |
+| Earlier Claim                                            | Reality (Verified)                                                                                                                                                                                                                                                                                                                    |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "huma/fuego are frameworks that own the router"          | **Wrong.** Huma is explicitly router-agnostic via an `Adapter` interface. 9 official adapters ship: net/http (`humago`), Chi (`humachi`), Gin (`humagin`), Echo (`humaecho`), Fiber (`humafiber`), gorilla/mux (`humamux`), httprouter (`humahttprouter`), bunrouter (`humabunrouter`), Flow (`humaflow`). You bring your own router. |
+| "every endpoint is JSON-in/JSON-out"                     | **Wrong.** Huma supports multipart forms (`form:` struct tags, typed file uploads via `FormFile`/`[]FormFile`), SSE (first-class `sse` subpackage with typed event maps), streaming responses (arbitrary byte streams via `huma.StreamResponse`), and HTML/HTMX (documented how-to guide with templ + gomponents integration).        |
+| "reflection can't work without owning the router"        | **Wrong.** Router ownership is not the blocker. Huma's `Register[I, O]()` reflects on the generic type parameters at registration time, independent of which adapter handles the routing.                                                                                                                                             |
+| "reflection means the library can't see the path/method" | **Wrong.** The `huma.Operation` struct carries `Method` and `Path` explicitly — the developer provides them at registration. Reflection is only used to infer schemas from the `I` (input) and `O` (output) type parameters.                                                                                                          |
 
 ### How Huma Actually Works (Verified from Source)
 
@@ -536,12 +544,14 @@ Docs show integration with **Templ** and **Gomponents** for type-safe HTML templ
 #### OpenAPI Version
 
 Primary: **OpenAPI 3.1.0**. Also auto-generates downgraded **3.0.3** via `Downgrade()`/`DowngradeYAML()`. Served at:
+
 - `/openapi.json` / `/openapi.yaml` (3.1.0)
 - `/openapi-3.0.json` / `/openapi-3.0.yaml` (3.0.3)
 
 #### Middleware
 
 Three layers:
+
 1. **Router-native** — use your router's middleware before creating the Huma API
 2. **Huma's own** — `api.UseMiddleware(func(ctx huma.Context, next func(huma.Context)))`
 3. **Per-operation** — `huma.Operation{ Middlewares: huma.Middlewares{...} }`

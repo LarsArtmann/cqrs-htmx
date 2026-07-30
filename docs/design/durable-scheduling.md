@@ -16,15 +16,15 @@ usermgmt handles 6 time-based expiry mechanisms via in-process sweepers or lazy 
 
 ## Current Expiry Inventory
 
-| Expiry Type | Default TTL | Lazy Check | Background Sweeper | Multi-Instance Safe? |
-|---|---|---|---|---|
-| Session (in-memory) | 24h | Yes (on auth) | No (manual) | No (in-memory only) |
-| Session (SQL) | 24h | Yes (on auth) | Yes (per-instance ticker) | Yes (SQL is shared) |
-| Email verification | 24h | Yes (on consume) | Yes (5 min) | Depends on store |
-| Account lockout | 15 min | Yes (on check) | No (manual) | No (in-memory only) |
-| WebAuthn session | 5 min | Yes (on get) | Yes (5 min) | Depends on store |
-| Pending TOTP | 5 min | Yes (on consume) | Yes (1 min) | Depends on store |
-| OAuth2 state | 10 min | Yes (on consume) | Yes (5 min) | Depends on store |
+| Expiry Type         | Default TTL | Lazy Check       | Background Sweeper        | Multi-Instance Safe? |
+| ------------------- | ----------- | ---------------- | ------------------------- | -------------------- |
+| Session (in-memory) | 24h         | Yes (on auth)    | No (manual)               | No (in-memory only)  |
+| Session (SQL)       | 24h         | Yes (on auth)    | Yes (per-instance ticker) | Yes (SQL is shared)  |
+| Email verification  | 24h         | Yes (on consume) | Yes (5 min)               | Depends on store     |
+| Account lockout     | 15 min      | Yes (on check)   | No (manual)               | No (in-memory only)  |
+| WebAuthn session    | 5 min       | Yes (on get)     | Yes (5 min)               | Depends on store     |
+| Pending TOTP        | 5 min       | Yes (on consume) | Yes (1 min)               | Depends on store     |
+| OAuth2 state        | 10 min      | Yes (on consume) | Yes (5 min)               | Depends on store     |
 
 **Key observation:** Every expiry mechanism already has a **lazy check** that fires on access. This means correctness is NOT compromised by restart gaps — expired entries are always rejected when accessed. The background sweepers are an **optimization** (clean up stale entries proactively) rather than a correctness requirement.
 
@@ -88,6 +88,7 @@ scheduler := scheduling.New(timerStore, func(ctx context.Context, t scheduling.T
 **DO NOT IMPLEMENT NOW.** The current lazy-check + background-sweeper design is correct for all deployment modes. The SQL store already provides multi-instance safety for the longest-TTL item (sessions, 24h). Short-lived tokens (5-10 min) are not worth the complexity of durable timers.
 
 Re-evaluate if:
+
 - A consumer needs cross-instance lockout coordination (currently in-memory only)
 - Session revocation must be immediate (not lazy-on-next-access)
 - A consumer runs a single-instance deploy and needs guaranteed post-restart cleanup
