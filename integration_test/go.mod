@@ -43,7 +43,7 @@ require (
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.6.1 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.1 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0 // indirect
