@@ -93,7 +93,7 @@ func (s BotState) Exists() bool {
 }
 
 // FoldUser applies an event to the current UserState, returning the new state.
-func FoldUser(state UserState, evt event.Event) (UserState, error) {
+func FoldUser(state UserState, evt event.Event) (UserState, error) { //cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
 	next := state
 
 	switch evt.Type() {
@@ -216,7 +216,7 @@ func FoldUser(state UserState, evt event.Event) (UserState, error) {
 }
 
 // FoldMembership applies an event to the current MembershipState.
-func FoldMembership(state MembershipState, evt event.Event) (MembershipState, error) {
+func FoldMembership(state MembershipState, evt event.Event) (MembershipState, error) { //cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
 	next := state
 
 	switch evt.Type() {
@@ -260,7 +260,7 @@ func FoldMembership(state MembershipState, evt event.Event) (MembershipState, er
 }
 
 // FoldTenant applies an event to the current TenantState.
-func FoldTenant(state TenantState, evt event.Event) (TenantState, error) {
+func FoldTenant(state TenantState, evt event.Event) (TenantState, error) { //cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
 	next := state
 
 	switch evt.Type() {
@@ -307,7 +307,7 @@ func FoldTenant(state TenantState, evt event.Event) (TenantState, error) {
 }
 
 // FoldBot applies an event to the current BotState.
-func FoldBot(state BotState, evt event.Event) (BotState, error) {
+func FoldBot(state BotState, evt event.Event) (BotState, error) { //cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
 	next := state
 
 	switch evt.Type() {

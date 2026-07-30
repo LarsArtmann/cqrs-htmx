@@ -115,7 +115,7 @@ func (a *App) RecoverHandler() func(http.Handler) http.Handler {
 			defer func() {
 				if rec := recover(); rec != nil {
 					if shouldRePanic(rec) {
-						panic(rec)
+						panic(rec) //cqrs-lint:ignore(C009) re-panic http.ErrAbortHandler per net/http convention
 					}
 
 					writePanicResponse(w, r, rec, a.errorHandler)
