@@ -32,7 +32,9 @@ func TestAuthz_Enforce(t *testing.T) {
 	uid3, _ := userActorPair("u3")
 
 	// Seed: u1 is super_admin in tenant-a, u3 is admin in tenant-a.
-	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleSuperAdmin, Domain: "tenant-a"}); err != nil {
+	if err := a.AddGroupPolicy(
+		GroupPolicy{Subject: uid.String(), Role: RoleSuperAdmin, Domain: "tenant-a"},
+	); err != nil {
 		t.Fatalf("add super admin: %v", err)
 	}
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid3.String(), Role: RoleAdmin, Domain: "tenant-a"}); err != nil {
@@ -86,7 +88,9 @@ func TestAuthz_EnforceAny(t *testing.T) {
 func TestAuthz_EnforceEx(t *testing.T) {
 	a := newTestAuthz(t)
 	uid, _ := userActorPair("u1")
-	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleSuperAdmin, Domain: "tenant-a"}); err != nil {
+	if err := a.AddGroupPolicy(
+		GroupPolicy{Subject: uid.String(), Role: RoleSuperAdmin, Domain: "tenant-a"},
+	); err != nil {
 		t.Fatalf("add group: %v", err)
 	}
 	res, err := a.EnforceEx(uid.String(), "tenant-a", "resource", ActionRead)
@@ -105,7 +109,9 @@ func TestAuthz_Authorize(t *testing.T) {
 	a := newTestAuthz(t)
 	uid, _ := userActorPair("u1")
 	uid2, _ := userActorPair("u2")
-	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleSuperAdmin, Domain: "tenant-a"}); err != nil {
+	if err := a.AddGroupPolicy(
+		GroupPolicy{Subject: uid.String(), Role: RoleSuperAdmin, Domain: "tenant-a"},
+	); err != nil {
 		t.Fatalf("add group: %v", err)
 	}
 	if err := a.Authorize(uid.String(), "tenant-a", "resource", ActionRead); err != nil {
@@ -149,7 +155,9 @@ func TestAuthz_Apply(t *testing.T) {
 		t.Fatal("expected allowed after Apply")
 	}
 
-	if err := a.Apply(PolicyUpdate{RemoveGroups: []GroupPolicy{{Subject: uid.String(), Role: RoleAdmin, Domain: "tenant-a"}}}); err != nil {
+	if err := a.Apply(
+		PolicyUpdate{RemoveGroups: []GroupPolicy{{Subject: uid.String(), Role: RoleAdmin, Domain: "tenant-a"}}},
+	); err != nil {
 		t.Fatalf("Apply remove: %v", err)
 	}
 	ok, err = a.Enforce(uid.String(), "tenant-a", "resource", ActionRead)
@@ -323,7 +331,9 @@ func TestAuthz_ImplicitPermissionsForUser(t *testing.T) {
 	tid := NewTenantID("tenant-a")
 	// Add a domain-scoped policy for the admin role so ImplicitPermissionsForUser
 	// finds it (Casbin matches domain exactly, not via wildcard).
-	if err := a.AddPolicy(Policy{Subject: RoleAdmin, Domain: tid.Get(), Object: "resource", Action: ActionRead, Effect: EffectAllow}); err != nil {
+	if err := a.AddPolicy(
+		Policy{Subject: RoleAdmin, Domain: tid.Get(), Object: "resource", Action: ActionRead, Effect: EffectAllow},
+	); err != nil {
 		t.Fatalf("add policy: %v", err)
 	}
 	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {

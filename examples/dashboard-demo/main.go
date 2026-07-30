@@ -11,13 +11,12 @@ package main
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
-
-	"encoding/json/jsontext"
 
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"

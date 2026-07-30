@@ -7,8 +7,10 @@ import (
 // CSRF core now lives in httputil. These aliases preserve backward
 // compatibility for cqrs-htmx consumers.
 
-type CSRFConfig = httputil.CSRFConfig
-type ErrorHandler = httputil.ErrorHandler
+type (
+	CSRFConfig   = httputil.CSRFConfig
+	ErrorHandler = httputil.ErrorHandler
+)
 
 var (
 	CSRFMiddleware               = httputil.CSRFMiddleware
