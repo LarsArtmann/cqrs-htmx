@@ -43,6 +43,8 @@ github.com/larsartmann/cqrs-htmx/v4 v4.6.1 h1:r0ZVmzttBjfonUlvbR6Lkj1oMJDFepp15O
 github.com/larsartmann/cqrs-htmx/v4 v4.6.1/go.mod h1:ghMY1r/NEw3IpZ+uycleTo4lxKBcSoFoDNBU3FMOQiY=
 github.com/larsartmann/go-branded-id v0.4.0 h1:5IPQ0OWtJE2BjF6qSTjmrMpNjKYblt9ae74WQj5PthI=
 github.com/larsartmann/go-branded-id v0.4.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
+github.com/larsartmann/go-branded-id v0.5.1 h1:4Cyv41AkbtQuf66TuNfWugjqHYA48I3KfxjjM/KwBKk=
+github.com/larsartmann/go-branded-id v0.5.1/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
 github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1 h1:JEVoG+7HnUTGSuD7uXdWqWddtR0/9v74o9+wRuohmqI=
 github.com/larsartmann/go-cqrs-lite/codec/v4 v4.1.1/go.mod h1:rllfH3yP5OoS+lpjkG9m7Y0FuDEmCxMhxQLtiflqKqE=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0 h1:MIYtn/KKD62b7em/X+pk0aQgnRwI6abOwkITMmOpMnw=
@@ -81,6 +83,8 @@ github.com/larsartmann/go-sse v0.3.0 h1:1XGi5C7dhGqrYvRB0s9ngwpGsZmeyuECM8JAUVEW
 github.com/larsartmann/go-sse v0.3.0/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV1VIUk5pQ2Y=
 github.com/larsartmann/httputil v0.6.1 h1:1Yav44hzBvrmcnNc17RS+ept/30e6KnwKiCwtEslinw=
 github.com/larsartmann/httputil v0.6.1/go.mod h1:IYVTbv9asqvzJahTYbH4hrmU6Mr7W8yjFQOkTusXucA=
+github.com/larsartmann/httputil v0.7.1 h1:I226h2GYF5H3lagQS82liCBkg6bDy9zqEeR+tdvPj8M=
+github.com/larsartmann/httputil v0.7.1/go.mod h1:9ITDyxMcAjBDL8EDjIDH6pjxXDENHWCj3D4SECYh+lk=
 github.com/mattn/go-isatty v0.0.23 h1:cYwCQTQf3HB6xUC+BtyCLZNr7IzbOmoZbmssVNzSyiQ=
 github.com/mattn/go-isatty v0.0.23/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
