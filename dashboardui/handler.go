@@ -64,6 +64,7 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	// Projection Dashboard
 	if d.caps.ProjectionHost {
 		mux.HandleFunc("GET /projections", d.guard(d.projectionsIndexHandler))
+		mux.HandleFunc("GET /-/partials/projection-health", d.guard(d.projectionHealthPartialHandler))
 
 		if !d.cfg.ReadOnly {
 			mux.HandleFunc("POST /projections/{name}/reset", d.guard(d.projectionResetHandler))

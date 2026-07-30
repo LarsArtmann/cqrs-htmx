@@ -383,6 +383,11 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 /* ===== Skip-to-content link ===== */
 .skip-link { position: absolute; left: -999px; top: 0; z-index: 10000; padding: 8px 16px; background: var(--accent); color: white; border-radius: 0 0 var(--radius) 0; }
 .skip-link:focus { left: 0; }
+
+/* ===== Utility classes ===== */
+.section-gap { margin-bottom: 16px; }
+.section-gap-lg { margin-bottom: 24px; }
+.cell-emph { font-weight: 600; }
 `
 
 const dashboardJS = `

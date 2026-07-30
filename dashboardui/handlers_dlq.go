@@ -44,7 +44,7 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 
 		result, err := host.ReplayDeadLetters(r.Context(), proj)
 		if err != nil {
-			triggerToast(w, "err", "Replay failed: "+err.Error())
+			triggerToast(w, "err", "Replay failed")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -61,7 +61,7 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 		eventID := r.PathValue("eventID")
 		if err := store.Delete(r.Context(), proj, eventID); err != nil {
-			triggerToast(w, "err", "Delete failed: "+err.Error())
+			triggerToast(w, "err", "Delete failed")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -75,7 +75,7 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // handler closure
 		proj := r.PathValue("projection")
 		if err := store.Purge(r.Context(), proj); err != nil {
-			triggerToast(w, "err", "Purge failed: "+err.Error())
+			triggerToast(w, "err", "Purge failed")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

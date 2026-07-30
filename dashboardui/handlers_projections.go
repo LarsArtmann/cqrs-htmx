@@ -36,7 +36,7 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 
 func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *projectionhost.Host)) {
 	if d.cfg.ProjectionHost == nil {
-		http.Error(w, "projection host not configured", http.StatusBadRequest)
+		renderError(w, nil, http.StatusBadRequest, "projection host not configured")
 
 		return
 	}
@@ -46,7 +46,7 @@ func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *proj
 
 func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store projectionhost.DeadLetterStore)) {
 	if d.cfg.DeadLetterStore == nil {
-		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
+		renderError(w, nil, http.StatusBadRequest, "dead letter store not configured")
 
 		return
 	}
@@ -58,7 +58,7 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
 		name := r.PathValue("name")
 		if err := host.Reset(r.Context(), name); err != nil {
-			triggerToast(w, "err", "Reset failed: "+err.Error())
+			triggerToast(w, "err", "Reset failed")
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -91,7 +91,7 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 
 			fmt.Fprintf(
 				&rows,
-				`<tr><td style="font-weight:500">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
+				`<tr><td class="cell-emph">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
 				esc(proj.Name),
 				badgeClass,
 				esc(proj.Status),

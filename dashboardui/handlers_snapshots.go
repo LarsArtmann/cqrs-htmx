@@ -22,7 +22,7 @@ func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamLi
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		b.WriteString(`<p class="page-subtitle" style="margin-bottom:16px">Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.</p>`)
+		b.WriteString(`<p class="page-subtitle section-gap">Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.</p>`)
 
 		if len(listings) == 0 {
 			return emptyState("No aggregates found", "Configure a StreamReader to browse snapshots by aggregate.")
@@ -89,7 +89,7 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 		b.WriteString(`</div>`)
 
 		if !p.ReadOnly {
-			fmt.Fprintf(&b, `<form method="POST" action="%s/snapshots/%s/%s/delete" style="margin-bottom:24px" onsubmit="return confirm('Delete this snapshot?')">`,
+			fmt.Fprintf(&b, `<form method="POST" action="%s/snapshots/%s/%s/delete" class="section-gap-lg" onsubmit="return confirm('Delete this snapshot? This cannot be undone.')">`,
 				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
 			fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
 			b.WriteString(`<button type="submit" class="btn btn-danger">Delete Snapshot</button>`)
@@ -97,7 +97,7 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 		}
 
 		b.WriteString(`<h4>Metadata</h4>`)
-		b.WriteString(`<table class="meta-table" style="margin-bottom:24px">`)
+		b.WriteString(`<table class="meta-table section-gap-lg">`)
 		metaRow(&b, "Stream Type", esc(string(snap.StreamType)))
 		metaRow(&b, "Stream ID", esc(snap.StreamID.String()))
 		metaRow(&b, "Version", esc(snap.Version.String()))
@@ -128,7 +128,7 @@ func (d *Dashboard) renderSnapshotState(state []byte) string {
 
 func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if d.cfg.SnapshotStore == nil {
-		http.Error(w, "snapshot store not configured", http.StatusBadRequest)
+		renderError(w, r, http.StatusBadRequest, "snapshot store not configured")
 		return
 	}
 
@@ -139,7 +139,7 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := d.cfg.SnapshotStore.Delete(r.Context(), ref); err != nil {
-		triggerToast(w, "err", "Delete failed: "+err.Error())
+		triggerToast(w, "err", "Delete failed")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
