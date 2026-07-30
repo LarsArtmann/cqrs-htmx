@@ -95,6 +95,9 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 			if rec := recover(); rec != nil {
 				if shouldRePanic(rec) {
 					panic(rec) //cqrs-lint:ignore(C009) re-panic http.ErrAbortHandler per net/http convention
+				}
+
+				writePanicResponse(w, r, rec, DefaultErrorHandler)
 			}
 		}()
 
