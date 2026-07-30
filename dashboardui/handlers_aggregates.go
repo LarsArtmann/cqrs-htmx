@@ -61,7 +61,7 @@ func (d *Dashboard) renderAggregateDetail(
 		if d.caps.EventSource && len(events) > 0 {
 			fmt.Fprintf(
 				&b,
-				`<div style="margin-bottom:16px"><a href="%s/time-travel/%s/%s" class="btn btn-accent">Inspect time-travel for this aggregate</a></div>`,
+				`<div class="section-gap"><a href="%s/time-travel/%s/%s" class="btn btn-accent">Inspect time-travel for this aggregate</a></div>`,
 				p.BasePath,
 				esc(string(ref.Type)),
 				esc(ref.ID.String()),
@@ -77,7 +77,7 @@ func (d *Dashboard) renderAggregateDetail(
 		for _, evt := range events {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td style="font-weight:600">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono">%s</code></td></tr>`,
+				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono">%s</code></td></tr>`,
 				esc(evt.Version().String()),
 				p.BasePath,
 				esc(evt.ID().String()),

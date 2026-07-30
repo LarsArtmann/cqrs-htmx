@@ -21,7 +21,7 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		b.WriteString(`<p class="page-subtitle" style="margin-bottom:16px">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`)
+		b.WriteString(`<p class="page-subtitle section-gap">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`)
 
 		if len(listings) == 0 {
 			return emptyState("No aggregates found", "Configure a StreamReader to list aggregates for time-travel inspection.")
@@ -120,7 +120,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 		var rows strings.Builder
 
 		for _, evt := range events {
-			fmt.Fprintf(&rows, `<tr><td style="font-weight:600">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td></tr>`,
+			fmt.Fprintf(&rows, `<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td></tr>`,
 				esc(evt.Version().String()),
 				p.BasePath, esc(evt.ID().String()), esc(string(evt.Type())),
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")))
