@@ -7,9 +7,11 @@ import (
 // Keyed rate limiting now lives in httputil. These aliases preserve backward
 // compatibility for cqrs-htmx consumers.
 
-type RateLimiterConfig = httputil.KeyedRateLimiterConfig
-type RateLimiter = httputil.KeyedRateLimiter
-type KeyExtractor = httputil.KeyExtractor
+type (
+	RateLimiterConfig = httputil.KeyedRateLimiterConfig
+	RateLimiter       = httputil.KeyedRateLimiter
+	KeyExtractor      = httputil.KeyExtractor
+)
 
 var (
 	RateLimiterMiddleware      = httputil.KeyedRateLimiterMiddleware

@@ -104,16 +104,11 @@ func explicitErrorStatus(err error) int {
 	}
 }
 
-// ErrorHandler is now an alias for httputil.CSRFErrorHandler (defined in csrf_reexport.go).
-// It is kept here for documentation discoverability.
+// DefaultErrorHandler maps CQRS errors to HTTP status codes and writes a plain
+// text error response. For HTMX requests with auth errors, it redirects via
+// HX-Redirect to the login path instead of returning an error body.
 //
-// ErrorHandler writes an HTTP error response with HTMX awareness.
-//
-// DefaultErrorHandler maps CQRS errors to HTTP status codes and writes
-// a plain text error response. For HTMX requests with auth errors,
-// it redirects via HX-Redirect to the login path instead of returning an error body.
-//
-// Config note: this handler is intentionally config-unaware — it does NOT read
+// It is intentionally config-unaware — it does NOT read
 // Config.IncludeInternalDetails or Config.IncludeRequestIDInErrors, so wiring
 // it as Config.ErrorHandler silently bypasses those knobs (it always writes the
 // safe, redacted message and never the request id). That is acceptable for the
@@ -247,7 +242,7 @@ func plainBodyWriter(r *http.Request, includeInternal, includeRequestID bool) fu
 			detail = prefixRequestID(r, detail)
 		}
 
-		_, _ = io.WriteString(w, detail) //nolint:gosec // text/plain prevents HTML rendering
+		_, _ = io.WriteString(w, detail)
 	}
 }
 
@@ -381,6 +376,6 @@ func ProblemDetailsErrorHandlerWithRedirect(
 
 		payload := NewStructuredError(err, r)
 		data, _ := json.Marshal(payload)
-		_, _ = w.Write(data) //nolint:gosec // G705: json.Marshal escapes HTML by default
+		_, _ = w.Write(data)
 	})
 }
