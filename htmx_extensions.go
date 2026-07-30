@@ -96,9 +96,9 @@ func HTMXExtensionHandler(name string) http.Handler {
 //	    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph))
 func HTMXExtensionsHandler(names ...string) http.Handler {
 	if len(names) == 0 {
-		panic(
+		panic( //cqrs-lint:ignore(C009) startup-time programmer error: empty variadic call
 			"cqrshtmx: HTMXExtensionsHandler requires at least one extension name",
-		) //cqrs-lint:ignore(C009) startup-time programmer error: empty variadic call
+		)
 	}
 
 	var buf bytes.Buffer

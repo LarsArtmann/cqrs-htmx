@@ -66,15 +66,15 @@ func NewJournalSSEStore(
 	opts ...JournalSSEStoreOption,
 ) *JournalSSEStore {
 	if journal == nil {
-		panic(
+		panic( //cqrs-lint:ignore(C009) constructor guard: nil journal is a programmer error
 			"cqrshtmx: NewJournalSSEStore: journal must not be nil",
-		) //cqrs-lint:ignore(C009) constructor guard: nil journal is a programmer error
+		)
 	}
 
 	if mapper == nil {
-		panic(
+		panic( //cqrs-lint:ignore(C009) constructor guard: nil mapper is a programmer error
 			"cqrshtmx: NewJournalSSEStore: mapper must not be nil",
-		) //cqrs-lint:ignore(C009) constructor guard: nil mapper is a programmer error
+		)
 	}
 
 	s := &JournalSSEStore{
