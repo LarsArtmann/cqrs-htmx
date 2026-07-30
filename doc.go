@@ -4,6 +4,10 @@
 // handlers with automatic HTMX response building, Casbin authorization, CSRF protection,
 // rate limiting, SSE streaming, and error classification.
 //
+// Server-Timing instrumentation, CSRF core, and keyed rate limiting are re-exported
+// from [github.com/larsartmann/httputil] via type/var aliases, so the consumer API is
+// unchanged while the implementation lives in httputil.
+//
 // # Quick Start
 //
 // Create an [App] with command/query dispatchers and a Casbin enforcer, then use

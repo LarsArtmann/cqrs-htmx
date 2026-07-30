@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- **httputil consolidation**: Server-Timing, CSRF core, and keyed rate limiting moved from cqrs-htmx root to `httputil`. cqrs-htmx now re-exports these via type/var aliases (`server_timing_reexport.go`, `csrf_reexport.go`, `ratelimit_reexport.go`). Consumer API is unchanged. Removes `justinas/nosurf` and `golang.org/x/time` as direct root dependencies (now transitive via httputil). The `applyServerTiming` method delegates to `httputil.WrapServerTiming`. The `executeCSRFValidation` function delegates to `httputil.ValidateCSRF`. The `ErrorHandler` type is now an alias for `httputil.CSRFErrorHandler`.
+- **httputil consolidation**: Server-Timing, CSRF core, and keyed rate limiting moved from cqrs-htmx root to `httputil`. cqrs-htmx now re-exports these via type/var aliases (`server_timing_reexport.go`, `csrf_reexport.go`, `ratelimit_reexport.go`). Consumer API is unchanged. Removes `justinas/nosurf` and `golang.org/x/time` as direct root dependencies (now transitive via httputil). The `applyServerTiming` method delegates to `httputil.WrapServerTiming`. The `executeCSRFValidation` function delegates to `httputil.ValidateCSRF`. The `ErrorHandler` type is now an alias for `httputil.ErrorHandler`.
 
 ### Fixed
 
