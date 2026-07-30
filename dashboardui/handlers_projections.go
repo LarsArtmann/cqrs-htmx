@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -58,12 +59,14 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
 		name := r.PathValue("name")
 		if err := host.Reset(r.Context(), name); err != nil {
+			slog.InfoContext(r.Context(), "dashboardui.audit", "op", "projection.reset", "projection", name, "result", "error")
 			triggerToast(w, "err", "Reset failed")
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
 
+		slog.InfoContext(r.Context(), "dashboardui.audit", "op", "projection.reset", "projection", name, "result", "ok")
 		triggerToast(w, "ok", "Projection reset")
 		redirect(w, r, d.cfg.BasePath+"/projections")
 	})
@@ -75,11 +78,12 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 			return emptyState("No projections registered", "")
 		}
 
-		var rows strings.Builder
+		var b strings.Builder
+		b.WriteString(`<h3>Projections</h3>`)
 
+		var rows strings.Builder
 		for _, proj := range projs {
 			badgeClass := "badge badge-neutral"
-
 			switch proj.StatusKind {
 			case statusGood:
 				badgeClass = "badge badge-ok"
@@ -89,21 +93,27 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 				badgeClass = "badge badge-err"
 			}
 
+			var actions string
+			if !p.ReadOnly {
+				actions = fmt.Sprintf(`<form method="POST" action="%s/projections/%s/reset" class="inline-form" onsubmit="return confirm('Reset projection %s? This will re-process all events from the beginning.')"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Reset</button></form>`,
+					p.BasePath, esc(proj.Name), esc(proj.Name), esc(p.CSRFToken))
+			}
+
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="cell-emph">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
+				`<tr><td class="cell-emph">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%s</td></tr>`,
 				esc(proj.Name),
 				badgeClass,
 				esc(proj.Status),
 				esc(proj.Lag),
 				proj.Processed,
 				proj.Errors,
+				actions,
 			)
 		}
 
-		return fmt.Sprintf(
-			`<h3>Projections</h3><table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th></tr></thead><tbody>%s</tbody></table>`,
-			rows.String(),
-		)
+		fmt.Fprintf(&b, `<table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table>`, rows.String())
+
+		return b.String()
 	})
 }

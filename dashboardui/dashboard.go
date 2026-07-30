@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 
@@ -37,6 +38,12 @@ func New(cfg Config) (*Dashboard, error) {
 	}
 
 	caps := cfg.capabilities()
+
+	if !cfg.ReadOnly && cfg.Authorizer == nil {
+		slog.Warn("dashboardui: write operations are enabled (ReadOnly=false) but no Authorizer is configured; " +
+			"anyone with network access can reset projections, replay/delete dead letters, and delete snapshots. " +
+			"Set Config.Authorizer or wrap the dashboard with authentication middleware.")
+	}
 
 	d := &Dashboard{
 		cfg:  cfg,

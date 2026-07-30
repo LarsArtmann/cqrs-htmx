@@ -388,6 +388,8 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .section-gap { margin-bottom: 16px; }
 .section-gap-lg { margin-bottom: 24px; }
 .cell-emph { font-weight: 600; }
+.inline-form { display: inline; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
 `
 
 const dashboardJS = `
