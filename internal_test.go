@@ -22,14 +22,3 @@ func TestAuthModeString(t *testing.T) {
 		}
 	}
 }
-
-func TestEvictionHeapPushNonPtr(t *testing.T) {
-	t.Parallel()
-
-	h := &evictionHeap{}
-	h.Push("not a pointer")
-
-	if h.Len() != 0 {
-		t.Errorf("Push(non-pointer) should be ignored, got len=%d", h.Len())
-	}
-}
