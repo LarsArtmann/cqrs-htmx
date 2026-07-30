@@ -306,6 +306,15 @@ linters:
         linters:
           - gochecknoglobals
           - revive
+      # HTMX headers (HX-Redirect, HX-Trigger-Name, ...) and the CSRF header
+      # (X-CSRF-Token) use ecosystem-standard casing, not Go's canonical form.
+      # http.Header.Set/Get canonicalize at the wire level regardless.
+      - text: '"HX-[A-Za-z-]+" is not canonical'
+        linters:
+          - canonicalheader
+      - text: '"X-CSRF-Token" is not canonical'
+        linters:
+          - canonicalheader
     paths:
       - \.gen\.go$
       - _mock\.go$
