@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"encoding/json/v2"
 	"fmt"
 	"log/slog"
@@ -39,11 +40,18 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 }
 
 // renderError logs the full error and shows a generic message to the user.
-// For HTMX requests, it renders within the layout; for regular requests, it
-// uses http.Error.
+// Safe to call with a nil request.
 func renderError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	slog.ErrorContext(r.Context(), "dashboardui: handler error",
-		"status", statusCode, "message", message, "path", r.URL.Path)
+	ctx := context.Background()
+	path := ""
+
+	if r != nil {
+		ctx = r.Context()
+		path = r.URL.Path
+	}
+
+	slog.ErrorContext(ctx, "dashboardui: handler error",
+		"status", statusCode, "message", message, "path", path)
 	http.Error(w, message, statusCode)
 }
 

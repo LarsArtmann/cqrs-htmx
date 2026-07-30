@@ -182,20 +182,7 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 		inner.WriteString(`</div>`)
 
 		if len(stats.Projections) > 0 {
-			inner.WriteString(`<div class="panel" id="projection-health" hx-get="`)
-			inner.WriteString(p.BasePath)
-			inner.WriteString(`/-/partials/projection-health" hx-trigger="every 10s" hx-swap="outerHTML">`)
-			inner.WriteString(`<div class="panel-title">Projection Health</div>`)
-			inner.WriteString(`<table class="data-table"><thead><tr>`)
-			inner.WriteString(`<th scope="col">Name</th><th scope="col">Status</th>`)
-			inner.WriteString(`<th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th>`)
-			inner.WriteString(`</tr></thead><tbody>`)
-
-			for _, pr := range stats.Projections {
-				inner.WriteString(renderProjectionRow(pr))
-			}
-
-			inner.WriteString(`</tbody></table></div>`)
+			inner.WriteString(renderProjectionHealthPanel(p.BasePath, stats.Projections))
 		}
 
 		if len(stats.RecentEvents) > 0 {
@@ -274,4 +261,52 @@ func esc(s string) string {
 
 func metaRow(b *strings.Builder, key, value string) {
 	fmt.Fprintf(b, `<tr><td class="meta-key">%s</td><td class="meta-val">%s</td></tr>`, key, value)
+}
+
+// projectionHealthPartialHandler returns just the projection health panel HTML
+// for HTMX polling. Registered at GET /-/partials/projection-health.
+func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *http.Request) {
+	var projs []projectionStat
+
+	if d.cfg.ProjectionHost != nil {
+		lagPerProj := d.cfg.ProjectionHost.LagPerProjection()
+		for _, ws := range d.cfg.ProjectionHost.Status() {
+			lag := lagPerProj[ws.Name]
+			projs = append(projs, projectionStat{
+				Name:       ws.Name,
+				Status:     string(ws.Status),
+				Lag:        lag.String(),
+				Processed:  ws.Processed,
+				Errors:     ws.Errors,
+				StatusKind: projectionStatusKind(string(ws.Status)),
+			})
+		}
+	}
+
+	html := renderProjectionHealthPanel(d.cfg.BasePath, projs)
+	writeHTML(w, r, html, "projection health partial")
+}
+
+// renderProjectionHealthPanel renders the projection health panel div with
+// HTMX polling attributes and the table inside. Used by both the overview page
+// and the projection-health partial endpoint.
+func renderProjectionHealthPanel(basePath string, projs []projectionStat) string {
+	var b strings.Builder
+
+	b.WriteString(`<div class="panel" id="projection-health" hx-get="`)
+	b.WriteString(basePath)
+	b.WriteString(`/-/partials/projection-health" hx-trigger="every 10s" hx-swap="outerHTML">`)
+	b.WriteString(`<div class="panel-title">Projection Health</div>`)
+	b.WriteString(`<table class="data-table"><thead><tr>`)
+	b.WriteString(`<th scope="col">Name</th><th scope="col">Status</th>`)
+	b.WriteString(`<th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th>`)
+	b.WriteString(`</tr></thead><tbody>`)
+
+	for _, pr := range projs {
+		b.WriteString(renderProjectionRow(pr))
+	}
+
+	b.WriteString(`</tbody></table></div>`)
+
+	return b.String()
 }
