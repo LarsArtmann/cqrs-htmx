@@ -71,10 +71,8 @@ var htmxExtensions = map[string]htmxExtension{
 func HTMXExtensionHandler(name string) http.Handler {
 	ext, ok := htmxExtensions[name]
 	if !ok {
-		panic(fmt.Sprintf(
-			"cqrshtmx: unknown htmx extension %q (available: %s)",
-			name, strings.Join(htmxExtensionNames(), ", "),
-		)) //cqrs-lint:ignore(C009) startup-time programmer error: unknown extension name
+		msg := fmt.Sprintf("cqrshtmx: unknown htmx extension %q (available: %s)", name, strings.Join(htmxExtensionNames(), ", "))
+		panic(msg) //cqrs-lint:ignore(C009) startup-time programmer error: unknown extension name
 	}
 
 	return serveJS(ext.js, fmt.Sprintf(`"htmx-ext-%s-%s"`, name, ext.version))
@@ -103,10 +101,8 @@ func HTMXExtensionsHandler(names ...string) http.Handler {
 	for _, name := range names {
 		ext, ok := htmxExtensions[name]
 		if !ok {
-			panic(fmt.Sprintf(
-				"cqrshtmx: unknown htmx extension %q (available: %s)",
-				name, strings.Join(htmxExtensionNames(), ", "),
-			)) //cqrs-lint:ignore(C009) startup-time programmer error: unknown extension name
+			msg := fmt.Sprintf("cqrshtmx: unknown htmx extension %q (available: %s)", name, strings.Join(htmxExtensionNames(), ", "))
+			panic(msg) //cqrs-lint:ignore(C009) startup-time programmer error: unknown extension name
 		}
 
 		fmt.Fprintf(&buf, "/* htmx-ext-%s %s */\n", name, ext.version)

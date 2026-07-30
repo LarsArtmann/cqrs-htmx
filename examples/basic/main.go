@@ -57,7 +57,7 @@ func (q *listItemsPaginatedQuery) Type() query.Type { return query.Type("ListIte
 // greetCmd implements command.Command directly (no embedded BasicCommand)
 // because DecodeJSONTyped creates a zero-value struct — an embedded pointer
 // would be nil. This is the documented pattern for typed commands.
-type greetCmd struct { //cqrs-lint:ignore(A001) typed command: DecodeJSONTyped requires manual Type()/ID()/StreamID()
+type greetCmd struct {
 	aggID id.StreamID
 	cmdID id.CommandID
 	Name  string `json:"name"`
@@ -65,7 +65,7 @@ type greetCmd struct { //cqrs-lint:ignore(A001) typed command: DecodeJSONTyped r
 
 func (c *greetCmd) Type() command.Type    { return "Greet" }
 func (c *greetCmd) StreamID() id.StreamID { return c.aggID }
-func (c *greetCmd) ID() id.CommandID      { return c.cmdID }
+func (c *greetCmd) ID() id.CommandID      { return c.cmdID } //cqrs-lint:ignore(A001) typed command: DecodeJSONTyped requires manual methods (embedded *BasicCommand would be nil)
 
 // sumQuery is a typed query that implements query.Query directly.
 type sumQuery struct {
