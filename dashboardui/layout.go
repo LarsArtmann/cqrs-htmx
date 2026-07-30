@@ -269,6 +269,9 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 /* ===== Live indicator ===== */
 .live-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); opacity: 0.4; transition: opacity 0.3s; }
 .sse-status { font-size: 0.75rem; color: var(--muted); }
+.sse-count { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.copyable { cursor: pointer; position: relative; }
+.copyable:hover::after { content: "📋"; font-size: 0.75em; margin-left: 4px; opacity: 0.6; }
 
 /* ===== Content area ===== */
 .content-area { width: 100%; max-width: 1200px; padding: 24px; }

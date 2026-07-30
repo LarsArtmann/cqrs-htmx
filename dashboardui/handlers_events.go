@@ -418,11 +418,12 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 		for _, evt := range events {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td>%s</td><td>%s</td></tr>`,
+				`<tr><td class="mono">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td>%s</td><td>%s</td></tr>`,
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
 				p.BasePath,
 				esc(evt.ID().String()),
 				esc(string(evt.Type())),
+				esc(evt.StreamID().String()),
 				esc(truncate(evt.StreamID().String(), listIDWidth)),
 				esc(string(evt.StreamType())),
 				esc(evt.Version().String()),
