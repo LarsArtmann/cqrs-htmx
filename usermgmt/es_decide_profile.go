@@ -7,7 +7,6 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-//nolint:dupl // mirrors decideChangeDisplayName; single-field deciders are structurally identical by design
 func decideChangeEmail(
 	aggID id.StreamID,
 	email string,
@@ -42,7 +41,6 @@ func decideChangeEmail(
 	}
 }
 
-//nolint:dupl // mirrors decideChangeEmail; single-field deciders are structurally identical by design
 func decideChangeDisplayName(
 	aggID id.StreamID,
 	displayName string,
