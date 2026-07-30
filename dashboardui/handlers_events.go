@@ -238,11 +238,11 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event) string {
 				<td style="padding:8px">%s</td>
 				<td style="padding:8px">%s</td>
 			</tr>`,
-				evt.OccurredAt().Format("2006-01-02 15:04:05"),
-				evt.Type(),
-				truncate(evt.StreamID().String(), listIDWidth),
-				evt.StreamType(),
-				evt.Version().String())
+				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
+				esc(string(evt.Type())),
+				esc(truncate(evt.StreamID().String(), listIDWidth)),
+				esc(string(evt.StreamType())),
+				esc(evt.Version().String()))
 		}
 
 		rows += rowsSb72.String()

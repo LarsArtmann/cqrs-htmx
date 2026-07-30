@@ -136,11 +136,11 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 				<td style="padding:8px">%d</td>
 				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
 			</tr>`,
-				truncate(l.ID.String(), listIDWidth),
-				l.Type,
-				l.Version.String(),
+				esc(truncate(l.ID.String(), listIDWidth)),
+				esc(string(l.Type)),
+				esc(l.Version.String()),
 				l.EventCount,
-				l.LastEventAt.Format("2006-01-02 15:04:05"))
+				esc(l.LastEventAt.Format("2006-01-02 15:04:05")))
 		}
 
 		rows += rowsSb131.String()

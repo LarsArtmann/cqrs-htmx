@@ -101,7 +101,7 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 				<td style="padding:8px;font-family:monospace">%s</td>
 				<td style="padding:8px">%d</td>
 				<td style="padding:8px">%d</td>
-			</tr>`, proj.Name, color, proj.Status, proj.Lag, proj.Processed, proj.Errors)
+			</tr>`, esc(proj.Name), color, esc(proj.Status), esc(proj.Lag), proj.Processed, proj.Errors)
 		}
 
 		rows += rowsSb209.String()
