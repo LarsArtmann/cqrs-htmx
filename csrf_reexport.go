@@ -8,7 +8,7 @@ import (
 // compatibility for cqrs-htmx consumers.
 
 type CSRFConfig = httputil.CSRFConfig
-type ErrorHandler = httputil.CSRFErrorHandler
+type ErrorHandler = httputil.ErrorHandler
 
 var (
 	CSRFMiddleware               = httputil.CSRFMiddleware
@@ -20,7 +20,7 @@ var (
 	CSRFTokenHTMLMeta            = httputil.CSRFTokenHTMLMeta
 	CSRFTokenHXHeaders           = httputil.CSRFTokenHXHeaders
 	CSRFTokenFormField           = httputil.CSRFTokenFormField
-	ForbiddenErrorHandler        = httputil.ForbiddenCSRFHandler
+	ForbiddenErrorHandler        = httputil.ForbiddenHandler
 	ErrCSRFInvalid               = httputil.ErrCSRFInvalid
 	ErrCSRFConfig                = httputil.ErrCSRFConfig
 )
