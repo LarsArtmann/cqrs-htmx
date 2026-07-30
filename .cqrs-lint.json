@@ -1,0 +1,9 @@
+{
+  "min-severity": "info",
+  "min-confidence": "low",
+  "format": "text",
+  "exclude": [],
+  "only": "",
+  "features": {},
+  "preset": ""
+}
