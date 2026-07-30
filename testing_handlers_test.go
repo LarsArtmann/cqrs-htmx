@@ -60,6 +60,12 @@ func createdHandler() http.Handler {
 	})
 }
 
+func writeStringHandler(body string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(body))
+	})
+}
+
 // --- Extractor helpers ---
 
 func staticExtractor(uid cqrshtmx.UserID) cqrshtmx.UserIDExtractor {
