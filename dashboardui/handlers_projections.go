@@ -34,8 +34,6 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 	renderPage(w, r, html)
 }
 
-// withProjectionHost checks that a projection host is configured and calls fn
-// with it. If not configured, writes a 400 error and returns without calling fn.
 func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *projectionhost.Host)) {
 	if d.cfg.ProjectionHost == nil {
 		http.Error(w, "projection host not configured", http.StatusBadRequest)
@@ -46,8 +44,6 @@ func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *proj
 	fn(d.cfg.ProjectionHost)
 }
 
-// withDeadLetterStore checks that a dead-letter store is configured and calls
-// fn with it. If not configured, writes a 400 error and returns without calling fn.
 func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store projectionhost.DeadLetterStore)) {
 	if d.cfg.DeadLetterStore == nil {
 		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
@@ -76,47 +72,38 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string {
 	return d.renderLayout(p, func() string {
 		if len(projs) == 0 {
-			return `<div style="padding:40px;text-align:center;color:#64748b"><h3>No projections registered</h3></div>`
+			return emptyState("No projections registered", "")
 		}
 
-		var rows string
-
-		var rowsSb209 strings.Builder
+		var rows strings.Builder
 
 		for _, proj := range projs {
-			color := "#64748b"
+			badgeClass := "badge badge-neutral"
 
 			switch proj.StatusKind {
 			case statusGood:
-				color = "#16a34a"
+				badgeClass = "badge badge-ok"
 			case statusWarn:
-				color = "#d97706"
+				badgeClass = "badge badge-warn"
 			case statusBad:
-				color = "#dc2626"
+				badgeClass = "badge badge-err"
 			}
 
-			fmt.Fprintf(&rowsSb209, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px;font-weight:500">%s</td>
-				<td style="padding:8px"><span style="color:%s;font-weight:600">%s</span></td>
-				<td style="padding:8px;font-family:monospace">%s</td>
-				<td style="padding:8px">%d</td>
-				<td style="padding:8px">%d</td>
-			</tr>`, esc(proj.Name), color, esc(proj.Status), esc(proj.Lag), proj.Processed, proj.Errors)
+			fmt.Fprintf(
+				&rows,
+				`<tr><td style="font-weight:500">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
+				esc(proj.Name),
+				badgeClass,
+				esc(proj.Status),
+				esc(proj.Lag),
+				proj.Processed,
+				proj.Errors,
+			)
 		}
 
-		rows += rowsSb209.String()
-
-		return fmt.Sprintf(`
-			<h3 style="margin-bottom:12px">Projections</h3>
-			<table style="width:100%%;border-collapse:collapse">
-				<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
-					<th style="padding:8px">Name</th>
-					<th style="padding:8px">Status</th>
-					<th style="padding:8px">Lag</th>
-					<th style="padding:8px">Processed</th>
-					<th style="padding:8px">Errors</th>
-				</tr></thead>
-				<tbody>%s</tbody>
-			</table>`, rows)
+		return fmt.Sprintf(
+			`<h3>Projections</h3><table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th></tr></thead><tbody>%s</tbody></table>`,
+			rows.String(),
+		)
 	})
 }
