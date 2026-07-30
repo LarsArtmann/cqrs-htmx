@@ -49,6 +49,8 @@ type overviewStats struct {
 	Projections     []projectionStat
 	DLQCount        string
 	RecentEvents    []recentEvent
+	HealthStatus    string
+	HealthKind      string
 }
 
 type projectionStat struct {
@@ -128,6 +130,10 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 
 	if d.cfg.ProjectionHost != nil {
 		lagPerProj := d.cfg.ProjectionHost.LagPerProjection()
+		totalErrors := int64(0)
+		anyBad := false
+		anyWarn := false
+
 		for _, ws := range d.cfg.ProjectionHost.Status() {
 			lag := lagPerProj[ws.Name]
 			stats.Projections = append(stats.Projections, projectionStat{
@@ -138,6 +144,29 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 				Errors:     ws.Errors,
 				StatusKind: projectionStatusKind(string(ws.Status)),
 			})
+			totalErrors += ws.Errors
+			switch projectionStatusKind(string(ws.Status)) {
+			case statusBad:
+				anyBad = true
+			case statusWarn:
+				anyWarn = true
+			}
+		}
+
+		if totalErrors > 0 {
+			stats.DLQCount = strconv.FormatInt(totalErrors, 10)
+		}
+
+		switch {
+		case anyBad:
+			stats.HealthStatus = "Unhealthy"
+			stats.HealthKind = statusBad
+		case anyWarn:
+			stats.HealthStatus = "Degraded"
+			stats.HealthKind = statusWarn
+		case len(stats.Projections) > 0:
+			stats.HealthStatus = "Healthy"
+			stats.HealthKind = statusGood
 		}
 	}
 
