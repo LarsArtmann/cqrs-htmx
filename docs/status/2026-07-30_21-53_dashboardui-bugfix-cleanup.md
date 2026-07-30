@@ -11,12 +11,12 @@
 
 ### Bugs fixed this session (4/4)
 
-| # | Bug | File | Fix |
-|---|-----|------|-----|
-| 1 | Dead CSS selector `.empty-state h3` (headings changed to `<h2>`) | `layout.go:307` | Updated selector to `.empty-state h2` |
-| 2 | Unused `timeCell` function (gopls flagged every step of session 3) | `format.go:74` | Removed entirely. `time` import still used by `relativeTime()`. |
-| 3 | WriteString inefficiency (string `+` concat inside `WriteString`) | `handlers_snapshots.go:128` | Replaced with `fmt.Fprintf` |
-| 4 | 12MB `dashboard-demo` binary tracked at repo root | repo root | `git rm --cached` + added `/dashboard-demo` to `.gitignore` |
+| #   | Bug                                                                | File                        | Fix                                                             |
+| --- | ------------------------------------------------------------------ | --------------------------- | --------------------------------------------------------------- |
+| 1   | Dead CSS selector `.empty-state h3` (headings changed to `<h2>`)   | `layout.go:307`             | Updated selector to `.empty-state h2`                           |
+| 2   | Unused `timeCell` function (gopls flagged every step of session 3) | `format.go:74`              | Removed entirely. `time` import still used by `relativeTime()`. |
+| 3   | WriteString inefficiency (string `+` concat inside `WriteString`)  | `handlers_snapshots.go:128` | Replaced with `fmt.Fprintf`                                     |
+| 4   | 12MB `dashboard-demo` binary tracked at repo root                  | repo root                   | `git rm --cached` + added `/dashboard-demo` to `.gitignore`     |
 
 ### Verification completed
 
@@ -35,9 +35,11 @@
 ### gopls printf diagnostics (stale, NOT fixed at source)
 
 The gopls LSP still shows two printf warnings on `handlers_dlq.go:181,194`:
+
 ```
 fmt.Fprintf format %s reads arg #4, but call has 3 args
 ```
+
 These are **stale** — `go vet` passes cleanly. The code is correct: the replay form has 4 `%s` placeholders and 4 args (`p.BasePath`, `esc(proj)`, `esc(proj)`, `esc(proj)`), and the purge form has 4 `%s` and 4 args. The gopls cache was not invalidated. I verified correctness but did **not** restart gopls to clear the stale diagnostics.
 
 ### Oxfmt review
@@ -67,6 +69,7 @@ However, there is one **process failure worth calling out:**
 ### I left 2 more tracked binaries in git (29MB total)
 
 The pre-commit hook output explicitly flagged them:
+
 ```
 🟠 ERROR e2e/server/server [executable-in-repo | structure]
   Compiled binary 'server' is tracked in git
@@ -171,12 +174,14 @@ I fixed `dashboard-demo` (12MB) but **ignored** `e2e/server/server` (9.9MB) and 
 ### Q1: Should I remove the other 2 tracked binaries right now?
 
 `e2e/server/server` (9.9MB) and `examples/observability-demo/observability-demo` (20MB) are tracked in git. The observability-demo one is already in `.gitignore` (line 118) but still tracked. The e2e/server one is NOT in `.gitignore`. Should I:
+
 - (a) Fix both now (quick, same class of bug)
 - (b) Leave them (pre-existing, not my session's responsibility)
 
 ### Q2: Should IMPROVEMENT_IDEAS.md get tracking markers now or after templ migration?
 
 The 382-item list has no done/pending/skip tracking. Adding markers is mechanical but tedious. If we migrate to templ first, many items become irrelevant (CSS-in-templ, component-based rendering, etc.). Should I:
+
 - (a) Add markers now (honest tracking of current state)
 - (b) Wait until templ migration decision is finalized
 - (c) Delete the file entirely and use TODO_LIST.md instead
@@ -184,6 +189,7 @@ The 382-item list has no done/pending/skip tracking. Adding markers is mechanica
 ### Q3: Should the dashboardui doc.go mention the rendering approach?
 
 Currently `doc.go` says "The dashboard renders HTML" without mentioning it uses raw `strings.Builder` (not templ). This is an architectural choice consumers should know about. Should I:
+
 - (a) Add a note: "Rendering uses raw Go strings.Builder, not templ. A migration to templ is planned (see ROADMAP.md)."
 - (b) Leave it (the rendering approach is an implementation detail)
 
@@ -191,17 +197,17 @@ Currently `doc.go` says "The dashboard renders HTML" without mentioning it uses 
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Bugs fixed | 4 |
-| Bugs introduced | 0 |
-| Tests before | 64 |
-| Tests after | 64 |
-| Build | GREEN |
-| Vet | GREEN |
-| Lint | GREEN (0 new issues) |
-| Commit | `4faba6b` |
-| Pushed | Yes |
-| Files touched | 5 (`.gitignore`, `format.go`, `handlers_snapshots.go`, `layout.go`, status doc) |
-| Lines changed | +214 / -13 |
-| Session duration | ~15 minutes |
+| Metric           | Value                                                                           |
+| ---------------- | ------------------------------------------------------------------------------- |
+| Bugs fixed       | 4                                                                               |
+| Bugs introduced  | 0                                                                               |
+| Tests before     | 64                                                                              |
+| Tests after      | 64                                                                              |
+| Build            | GREEN                                                                           |
+| Vet              | GREEN                                                                           |
+| Lint             | GREEN (0 new issues)                                                            |
+| Commit           | `4faba6b`                                                                       |
+| Pushed           | Yes                                                                             |
+| Files touched    | 5 (`.gitignore`, `format.go`, `handlers_snapshots.go`, `layout.go`, status doc) |
+| Lines changed    | +214 / -13                                                                      |
+| Session duration | ~15 minutes                                                                     |
