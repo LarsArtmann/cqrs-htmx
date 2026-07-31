@@ -139,7 +139,6 @@ func BenchmarkBeginLogin(b *testing.B) {
 //
 // Run: GOEXPERIMENT=jsonv2 go test -bench=BenchmarkStateCache -benchmem -count=3
 func BenchmarkStateCache_ColdVsWarm(b *testing.B) {
-	ctx := context.Background()
 	const eventCount = 50
 
 	b.Run("cold", func(b *testing.B) {
@@ -152,6 +151,7 @@ func BenchmarkStateCache_ColdVsWarm(b *testing.B) {
 			seedSvc.Stop()
 
 			coldSvc, _ := NewService(ServiceConfig{EventStore: store})
+			ctx := context.Background()
 			b.StartTimer()
 
 			_ = coldSvc.ChangeEmail(ctx, userID, "cold@test.com")
@@ -166,6 +166,7 @@ func BenchmarkStateCache_ColdVsWarm(b *testing.B) {
 		defer svc.Close() //nolint:errcheck // benchmark cleanup
 
 		userID := seedBenchUser(b, svc, eventCount)
+		ctx := context.Background()
 
 		b.ResetTimer()
 		for range b.N {
