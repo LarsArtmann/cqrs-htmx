@@ -28,22 +28,18 @@ type readinessDetail struct {
 // body so operators can identify failing subsystems.
 //
 //	mux.Handle("/ready", cqrshtmx.ReadinessHandler(
-//	    cqrshtmx.NamedCheck("event-store", func() error { return db.Ping() }),
-//	    cqrshtmx.NamedCheck("projections", func() error {
+//	    cqrshtmx.NewNamedCheck("event-store", func() error { return db.Ping() }),
+//	    cqrshtmx.NewNamedCheck("projections", func() error {
 //	        for _, ws := range host.Status() {
-//	            if ws.Status == "failed" { return errors.New(ws.LastError) }
+//	            if ws.Status == "failed" { return ws.Err() }
 //	        }
+//
 //	        return nil
 //	    }),
 //	))
 func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-
-		result := readinessResult{
-			Status: "ok",
-			Checks: make(map[string]readinessDetail, len(checks)),
-		}
 
 		if len(checks) == 0 {
 			w.WriteHeader(http.StatusOK)
@@ -52,20 +48,25 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 			return
 		}
 
-		var (
-			mu sync.Mutex
-			wg sync.WaitGroup
-		)
+		result := readinessResult{
+			Status: "ok",
+			Checks: make(map[string]readinessDetail, len(checks)),
+		}
+
+		var mu sync.Mutex
+		var wg sync.WaitGroup
 
 		allOK := true
 
 		for _, check := range checks {
 			wg.Add(1)
-			go func(nc NamedCheck) {
+
+			go func(namedCheck NamedCheck) {
 				defer wg.Done()
 
-				detail := readinessDetail{Status: "ok"}
-				if err := nc.Check(); err != nil {
+				detail := readinessDetail{Status: "ok"} //nolint:exhaustruct // Error is omitempty; zero value is correct when check passes
+
+				if err := namedCheck.Check(); err != nil {
 					detail.Status = "fail"
 					detail.Error = err.Error()
 
@@ -75,7 +76,7 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 				}
 
 				mu.Lock()
-				result.Checks[nc.Name] = detail
+				result.Checks[namedCheck.Name] = detail
 				mu.Unlock()
 			}(check)
 		}
@@ -126,6 +127,7 @@ func DebugHandler(info map[string]any) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-cache")
+
 		_, _ = w.Write(body)
 	}
 }

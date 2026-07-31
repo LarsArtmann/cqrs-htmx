@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -39,11 +40,12 @@ func TestReadinessHandler_OneFails(t *testing.T) {
 	}
 
 	body := rr.Body.String()
-	if !contains(body, "bad") {
+
+	if !strings.Contains(body, "bad") {
 		t.Errorf("expected body to contain failing check name 'bad', got: %s", body)
 	}
 
-	if !contains(body, "connection refused") {
+	if !strings.Contains(body, "connection refused") {
 		t.Errorf("expected body to contain error message, got: %s", body)
 	}
 }
@@ -77,21 +79,8 @@ func TestDebugHandler_ReturnsJSON(t *testing.T) {
 	}
 
 	body := rr.Body.String()
-	if !contains(body, "1.0.0") {
+
+	if !strings.Contains(body, "1.0.0") {
 		t.Errorf("expected body to contain '1.0.0', got: %s", body)
 	}
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsStr(s, substr))
-}
-
-func containsStr(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-
-	return false
 }
