@@ -24,22 +24,22 @@ type aggregateRepositories struct {
 // optionally enables aggregate snapshotting (see SnapshotConfig); a zero-value
 // snap leaves repositories in full-replay mode.
 func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggregateRepositories, error) {
-	user, err := stack.Repository(bundle, UserDecider(), snapshotOptions[UserState](snap)...)
+	user, err := stack.Repository(bundle, UserDecider(), repositoryOptions[UserState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "create user repository")
 	}
-	membership, err := stack.Repository(bundle, MembershipDecider(), snapshotOptions[MembershipState](snap)...)
+	membership, err := stack.Repository(bundle, MembershipDecider(), repositoryOptions[MembershipState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "create membership repository")
 	}
-	tenant, err := stack.Repository(bundle, TenantDecider(), snapshotOptions[TenantState](snap)...)
+	tenant, err := stack.Repository(bundle, TenantDecider(), repositoryOptions[TenantState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "create tenant repository")
 	}
-	bot, err := stack.Repository(bundle, BotDecider(), snapshotOptions[BotState](snap)...)
+	bot, err := stack.Repository(bundle, BotDecider(), repositoryOptions[BotState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "create bot repository")
@@ -66,7 +66,7 @@ func buildDeciderRepositories(
 		store,
 		bus,
 		UserDecider(),
-		snapshotOptions[UserState](
+		repositoryOptions[UserState](
 			snap,
 		)...)
 	if err != nil {
@@ -77,7 +77,7 @@ func buildDeciderRepositories(
 		store,
 		bus,
 		MembershipDecider(),
-		snapshotOptions[MembershipState](snap)...)
+		repositoryOptions[MembershipState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create membership decider repository").WithCause(err)
@@ -86,7 +86,7 @@ func buildDeciderRepositories(
 		store,
 		bus,
 		TenantDecider(),
-		snapshotOptions[TenantState](snap)...)
+		repositoryOptions[TenantState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create tenant decider repository").WithCause(err)
@@ -95,7 +95,7 @@ func buildDeciderRepositories(
 		store,
 		bus,
 		BotDecider(),
-		snapshotOptions[BotState](snap)...)
+		repositoryOptions[BotState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create bot decider repository").WithCause(err)
