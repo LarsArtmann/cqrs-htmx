@@ -5,7 +5,7 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-07-30 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Lint:** 0 issues across all 15 modules | **Coverage gates:** root 93.7% (gate 90%), usermgmt 80.9% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 78.7% (gate 60%)
+**Updated:** 2026-07-31 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Lint:** 0 issues across all 15 modules | **Coverage gates:** root 93.7% (gate 90%), usermgmt 80.9% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 78.7% (gate 60%)
 
 ## Current State
 
@@ -94,15 +94,16 @@ usermgmt/totp/v5             ← (unchanged: auth strategy sub-module)
 
 ---
 
-## Operational Tooling Ideas (From Dashboard Design Research)
+## Operational Tooling Ideas
 
-_These emerged from the CQRS dashboard design brainstorm (`docs/brainstorming/2026-07-23_cqrs-dashboard-design.html`) and have not been refined into actionable tasks. They are candidates for future development if consumer demand emerges._
+_These emerged from the CQRS dashboard design brainstorm (`docs/brainstorming/2026-07-23_cqrs-dashboard-design.html`) and the cqrs-lint adoption sessions, and have not been refined into actionable tasks. They are candidates for future development if consumer demand emerges._
 
 | Idea                          | What                                                                                                                                                                                         | Effort  |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | Composite readiness checker   | `cqrshtmx.ReadinessHandler()` — combines `HealthHandler` + projection lag + DLQ depth into a single `/readyz` endpoint for load-balancer probes that should fail when projections are behind | ~50 LOC |
 | CQRS admin CLI (`cqrs-admin`) | `cqrs-admin events list`, `projections reset`, `dlq replay`, `aggregates list` — a command-line tool for operational CQRS/ES tasks without a running dashboard                               | Medium  |
 | JSON debug endpoint           | `GET /debug/cqrs` returning structured debug info (registered commands/queries, projection states, event counts) from `Bundle.DebugStructured()`                                             | ~30 LOC |
+| cqrs-lint CI gate             | Add a `cqrs-lint --strict --verbose` step to `.buildflow.yml` to prevent suppression drift from being merged. Depends on upgrading cqrs-lint from Nix v0.2.2 (see TODO_LIST P2).              | ~30 min |
 
 ---
 
