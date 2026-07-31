@@ -161,6 +161,8 @@ linters:
         - .+\.cidCapture$
         - .+\.SSEEvent$
         - .+\.stubCarrierError$
+        - .+\.(fakeSeekableJournal|fakeEventByIDLoader)$
+        - github\.com/larsartmann/go-cqrs-lite/projectionhost/v4\.DeadLetterEntry$
         - .+\.CommandAck$
         - .+\.JournalSSEStore$
         - .+\.sseReadResult$
@@ -298,7 +300,6 @@ linters:
       - path: _test\.go
         linters:
           - testpackage
-          - exhaustruct
       - path: benchmark_server_test\.go$
         linters:
           - exhaustruct
