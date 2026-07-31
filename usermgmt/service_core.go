@@ -363,15 +363,22 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
 	}
 
-	if svc.lockout != nil {
-		if evictor, ok := svc.lockout.(interface{ EvictStale() int }); ok {
-			svc.stopLockoutEviction = startPeriodicEviction(evictor.EvictStale, lockoutEvictionInterval)
-		}
-	}
+	svc.wireLockoutEviction()
 
 	svc.tokenPepper = cfg.TokenPepper
 
 	return svc, nil
+}
+
+func (s *Service) wireLockoutEviction() {
+	if s.lockout == nil {
+		return
+	}
+	evictor, ok := s.lockout.(interface{ EvictStale() int })
+	if !ok {
+		return
+	}
+	s.stopLockoutEviction = startPeriodicEviction(evictor.EvictStale, lockoutEvictionInterval)
 }
 
 // Authz returns the underlying authorization engine for direct policy queries.

@@ -18,29 +18,29 @@ I performed a deep audit of go-cqrs-lite module usage across all 18 workspace mo
 
 ## a) FULLY DONE (this session)
 
-| # | Deliverable | Evidence |
-|---|---|---|
-| 1 | Loaded the `cqrs-htmx` skill before starting | per skills_usage rule |
-| 2 | Read `go.work` (40 replace directives) and all 18 `go.mod` files | grep `go-cqrs-lite` across go.mod |
-| 3 | Extracted the complete set of directly-imported go-cqrs-lite modules from `.go` source (ground truth, not go.mod which mixes direct+indirect) | 30 unique import paths |
-| 4 | Cataloged all ~58 upstream go-cqrs-lite submodules from the local checkout | `find . -name go.mod` |
-| 5 | Built a clean pivot table: module × {LIB, TEST, EX, INT} import counts | `/tmp/cqrsusage.txt` + awk pivot |
-| 6 | Categorized every upstream module as: used-in-library / test-only / example-only / transitive-only / deliberately-not-adopted / out-of-scope | final answer table |
-| 7 | Read `docs/guides/leveraging-go-cqrs-lite.md` end-to-end to align with the canonical adoption map | 287 lines |
-| 8 | Verified `watermill` is core (default EventBus backend), not "niche" as the guide's §10 implied | `es_setup.go:113`, `es_materialize_adapter.go` |
-| 9 | Confirmed 18 modules have ZERO direct imports anywhere (`deriver`, `schema`, `scheduling`, `transport/http`, `transport/grpc`, `graph`, `metaengine`, `integration`, `testutil`, `benchkit`, 6 storage/stack backends, 2 idempotency stores) | per-module grep |
-| 10 | Ran 4 parallel sub-agent investigations: middleware seam, expiry mechanisms, deriver candidates, projectionhost usage | all returned file:line evidence |
-| 11 | Spot-verified 3 headline security/integrity claims with direct grep (TOTP replay absent, lockout EvictStale not wired, DeleteUser skips memberships) | bash confirmation |
-| 12 | Produced an 8-item prioritized improvement matrix with severity/effort/owner | final answer |
+| #   | Deliverable                                                                                                                                                                                                                                  | Evidence                                       |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1   | Loaded the `cqrs-htmx` skill before starting                                                                                                                                                                                                 | per skills_usage rule                          |
+| 2   | Read `go.work` (40 replace directives) and all 18 `go.mod` files                                                                                                                                                                             | grep `go-cqrs-lite` across go.mod              |
+| 3   | Extracted the complete set of directly-imported go-cqrs-lite modules from `.go` source (ground truth, not go.mod which mixes direct+indirect)                                                                                                | 30 unique import paths                         |
+| 4   | Cataloged all ~58 upstream go-cqrs-lite submodules from the local checkout                                                                                                                                                                   | `find . -name go.mod`                          |
+| 5   | Built a clean pivot table: module × {LIB, TEST, EX, INT} import counts                                                                                                                                                                       | `/tmp/cqrsusage.txt` + awk pivot               |
+| 6   | Categorized every upstream module as: used-in-library / test-only / example-only / transitive-only / deliberately-not-adopted / out-of-scope                                                                                                 | final answer table                             |
+| 7   | Read `docs/guides/leveraging-go-cqrs-lite.md` end-to-end to align with the canonical adoption map                                                                                                                                            | 287 lines                                      |
+| 8   | Verified `watermill` is core (default EventBus backend), not "niche" as the guide's §10 implied                                                                                                                                              | `es_setup.go:113`, `es_materialize_adapter.go` |
+| 9   | Confirmed 18 modules have ZERO direct imports anywhere (`deriver`, `schema`, `scheduling`, `transport/http`, `transport/grpc`, `graph`, `metaengine`, `integration`, `testutil`, `benchkit`, 6 storage/stack backends, 2 idempotency stores) | per-module grep                                |
+| 10  | Ran 4 parallel sub-agent investigations: middleware seam, expiry mechanisms, deriver candidates, projectionhost usage                                                                                                                        | all returned file:line evidence                |
+| 11  | Spot-verified 3 headline security/integrity claims with direct grep (TOTP replay absent, lockout EvictStale not wired, DeleteUser skips memberships)                                                                                         | bash confirmation                              |
+| 12  | Produced an 8-item prioritized improvement matrix with severity/effort/owner                                                                                                                                                                 | final answer                                   |
 
 ## b) PARTIALLY DONE
 
-| Item | What's done | What's missing |
-|---|---|---|
-| Security gap analysis (TOTP, lockout) | Headline claims verified; root cause located | Did not read `lockout.go` / `totp/provider.go` line-by-line myself; relied on sub-agent summary |
+| Item                                       | What's done                                  | What's missing                                                                                            |
+| ------------------------------------------ | -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Security gap analysis (TOTP, lockout)      | Headline claims verified; root cause located | Did not read `lockout.go` / `totp/provider.go` line-by-line myself; relied on sub-agent summary           |
 | Cascade analysis (UserDelete/TenantDelete) | Identified the gaps and the best-effort loop | Did not verify whether orphaned memberships cause real harm (read-model filters? tombstone? intentional?) |
-| projectionhost usage audit | Confirmed only 2 of 9 options wired | Did not propose the exact `Config` plumbing needed |
-| Improvement prioritization | 8 items with severity/effort labels | Not Pareto-ranked with evidence; gut-feel labels |
+| projectionhost usage audit                 | Confirmed only 2 of 9 options wired          | Did not propose the exact `Config` plumbing needed                                                        |
+| Improvement prioritization                 | 8 items with severity/effort labels          | Not Pareto-ranked with evidence; gut-feel labels                                                          |
 
 ## c) NOT STARTED
 
@@ -59,7 +59,7 @@ I am calling these out honestly:
    - `brutal-self-review` — the user literally asked "what did you forget, what could you improve" (this is the skill's exact trigger).
    - `library-deep-dive` — "are we using X to the max" / "library utilization audit" is the exact framing of "how are we using go-cqrs-lite, what to improve."
    - `pareto-planning` — needed to rank the improvement backlog rigorously instead of by gut feel.
-   My rules say I MUST call View on a matching skill's location before any task-doing tool. I did not. This is the single biggest process failure of the session.
+     My rules say I MUST call View on a matching skill's location before any task-doing tool. I did not. This is the single biggest process failure of the session.
 
 2. **I presented two findings as "bugs" without proving harm.** "UserDeleted orphans memberships" and "TOTP replay missing" may be intentional design tradeoffs or may be mitigated elsewhere. I stated them as defects based on code-reading without verifying runtime/data impact or checking for read-model filters, tombstones, or documentation of intent. Asserting a bug without proving harm is a quality failure.
 
@@ -75,26 +75,26 @@ I am calling these out honestly:
 
 ### 🔴 Security / data-integrity (verify before acting)
 
-| # | Finding | Evidence | Caveat |
-|---|---|---|---|
-| 1 | **TOTP replay protection absent** — no used-code tracking; valid code reusable within ±30s window | `usermgmt/totp/provider.go:77-80` (`Skew=1`, no `lastUsed`/`seen` map) | Verify no mitigating layer exists before calling it a bug |
-| 2 | **AccountLockout state lost on restart** → brute-force counter resets; AND `EvictStale` never auto-started → unbounded memory growth | `usermgmt/lockout.go:23-25`; `service_core.go` wires eviction for 4 stores but not lockout | Restart-loss is documented; unbounded-growth is not |
-| 3 | **`UserDeleted` orphans memberships & owned bots** — only sessions revoked | `usermgmt/service_misc.go:61-71`; `FindByActor` exists but unused on delete | MUST verify orphaned records aren't filtered/tombstoned before calling it a bug |
-| 4 | **`TenantDeleted` cascade swallows errors** — best-effort loop, logs and discards failures | `usermgmt/service_tenant.go:84-103` (`revokeMembershipsForTenantBestEffort`) | Real harm: silent partial cleanup |
+| #   | Finding                                                                                                                              | Evidence                                                                                   | Caveat                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| 1   | **TOTP replay protection absent** — no used-code tracking; valid code reusable within ±30s window                                    | `usermgmt/totp/provider.go:77-80` (`Skew=1`, no `lastUsed`/`seen` map)                     | Verify no mitigating layer exists before calling it a bug                       |
+| 2   | **AccountLockout state lost on restart** → brute-force counter resets; AND `EvictStale` never auto-started → unbounded memory growth | `usermgmt/lockout.go:23-25`; `service_core.go` wires eviction for 4 stores but not lockout | Restart-loss is documented; unbounded-growth is not                             |
+| 3   | **`UserDeleted` orphans memberships & owned bots** — only sessions revoked                                                           | `usermgmt/service_misc.go:61-71`; `FindByActor` exists but unused on delete                | MUST verify orphaned records aren't filtered/tombstoned before calling it a bug |
+| 4   | **`TenantDeleted` cascade swallows errors** — best-effort loop, logs and discards failures                                           | `usermgmt/service_tenant.go:84-103` (`revokeMembershipsForTenantBestEffort`)               | Real harm: silent partial cleanup                                               |
 
 ### 🟠 Underused upstream capabilities (go-cqrs-lite leverage)
 
-| # | Finding | Evidence |
-|---|---|---|
-| 5 | **projectionhost runs blind** — only 2 of 9 options wired; no `WithMetrics`, no `WithOnFailed`, memory DLQ, memory checkpoints | `usermgmt/es_projection_setup.go:81-84` |
-| 6 | **Dispatch middleware `.Use()` is invisible** — no `Config` seam, not in `doc.go`; 27 factories undiscoverable | `app.go:38-101` (no middleware field); only `examples/` hint at it |
-| 7 | **Checkpoints default to memory** → full journal replay every restart | `es_projection_setup.go:76-79` |
+| #   | Finding                                                                                                                        | Evidence                                                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| 5   | **projectionhost runs blind** — only 2 of 9 options wired; no `WithMetrics`, no `WithOnFailed`, memory DLQ, memory checkpoints | `usermgmt/es_projection_setup.go:81-84`                            |
+| 6   | **Dispatch middleware `.Use()` is invisible** — no `Config` seam, not in `doc.go`; 27 factories undiscoverable                 | `app.go:38-101` (no middleware field); only `examples/` hint at it |
+| 7   | **Checkpoints default to memory** → full journal replay every restart                                                          | `es_projection_setup.go:76-79`                                     |
 
 ### 🟢 Architecture (largest win, most work)
 
-| # | Finding | Evidence |
-|---|---|---|
-| 8 | **`deriver` would replace imperative cascades** — 4 candidates (TenantDeleted→RemoveMember, UserDeleted→sessions/memberships/bots); decide layer already pure/deriver-friendly | zero `deriver` imports today; `deriver` in go.work but unused |
+| #   | Finding                                                                                                                                                                        | Evidence                                                      |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| 8   | **`deriver` would replace imperative cascades** — 4 candidates (TenantDeleted→RemoveMember, UserDeleted→sessions/memberships/bots); decide layer already pure/deriver-friendly | zero `deriver` imports today; `deriver` in go.work but unused |
 
 ---
 
@@ -187,7 +187,7 @@ I am calling these out honestly:
 
 ## g) Questions I cannot figure out myself
 
-1. **Is the `UserDeleted` → (no membership/bot cascade) absence intentional or a bug?** I can read the code, but I cannot infer design *intent*. The CasbinProjection *does* clean policies on user delete, which suggests someone considered cascades — making the missing aggregate-level cleanup either an oversight or a deliberate "tombstone-only" choice. Only you (or an ADR I haven't found) can answer whether orphaned membership/bot rows are expected.
+1. **Is the `UserDeleted` → (no membership/bot cascade) absence intentional or a bug?** I can read the code, but I cannot infer design _intent_. The CasbinProjection _does_ clean policies on user delete, which suggests someone considered cascades — making the missing aggregate-level cleanup either an oversight or a deliberate "tombstone-only" choice. Only you (or an ADR I haven't found) can answer whether orphaned membership/bot rows are expected.
 
 2. **When you say "improve," do you want me to (a) fix the security/data-integrity findings now, (b) wire the underused go-cqrs-lite capabilities, or (c) do the deriver architecture migration?** These are very different scopes (hours vs. days vs. weeks). My recommendation is (a) first — but I cannot tell if you consider the security items in-scope for "go-cqrs-lite usage improvement" or separate work.
 
