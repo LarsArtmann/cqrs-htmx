@@ -17,12 +17,11 @@ func TestProvider_ValidateCode_ReplayWithinWindow(t *testing.T) {
 
 	p := New(Config{Issuer: "TestApp"})
 
-	rawSecret, err := p.GenerateSecret("replay@example.com")
+	rawSecret, b32Secret, _, err := p.GenerateSecret("replay@example.com")
 	if err != nil {
 		t.Fatalf("GenerateSecret: %v", err)
 	}
 
-	b32Secret := encodeBase32(rawSecret)
 	code, err := totp.GenerateCode(b32Secret, time.Now())
 	if err != nil {
 		t.Fatalf("GenerateCode: %v", err)
@@ -37,21 +36,23 @@ func TestProvider_ValidateCode_ReplayWithinWindow(t *testing.T) {
 	}
 }
 
-// TestProvider_WindowEffect shows that increasing the Window config allows
-// accepting codes from adjacent time steps (wider clock drift tolerance).
+// TestProvider_WindowEffect shows that with Window=1, the current-time code
+// is always accepted.
 func TestProvider_WindowEffect(t *testing.T) {
 	t.Parallel()
 
 	p := New(Config{Issuer: "TestApp", Window: 1})
 
-	rawSecret, err := p.GenerateSecret("window@example.com")
+	rawSecret, b32Secret, _, err := p.GenerateSecret("window@example.com")
 	if err != nil {
 		t.Fatalf("GenerateSecret: %v", err)
 	}
 
-	b32Secret := encodeBase32(rawSecret)
+	codeNow, err := totp.GenerateCode(b32Secret, time.Now())
+	if err != nil {
+		t.Fatalf("GenerateCode: %v", err)
+	}
 
-	codeNow, _ := totp.GenerateCode(b32Secret, time.Now())
 	if !p.ValidateCode(rawSecret, codeNow) {
 		t.Fatal("current-time code should validate with Window=1")
 	}
