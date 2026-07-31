@@ -108,7 +108,7 @@ func seedDemoData(
 			"email": fmt.Sprintf("%s@example.com", name),
 		})
 
-		created, _ := event.New( //cqrs-lint:ignore(E004) cqrs-lint:ignore(E006) demo data: no catalog/projection in this dashboard demo
+		created, _ := event.New( //cqrs-lint:ignore(E004,E006) demo data: no catalog/projection in this dashboard demo
 			"user.created",
 			aggID,
 			"User",
