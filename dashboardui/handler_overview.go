@@ -170,11 +170,11 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 
 func projectionStatusKind(status string) string {
 	switch strings.ToLower(status) {
-	case "running", "live":
+	case statusRunning, "live":
 		return statusGood
 	case "idle", "backoff", "draining":
 		return statusWarn
-	case "stopped", "failed":
+	case "stopped", statusFailed:
 		return statusBad
 	default:
 		return statusNeutral
@@ -237,15 +237,15 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 }
 
 func renderProjectionRow(p projectionStat) string {
-	badgeClass := "badge badge-neutral"
+	badgeClass := badgeNeutral
 
 	switch p.StatusKind {
 	case statusGood:
-		badgeClass = "badge badge-ok"
+		badgeClass = badgeOK
 	case statusWarn:
-		badgeClass = "badge badge-warn"
+		badgeClass = badgeWarn
 	case statusBad:
-		badgeClass = "badge badge-err"
+		badgeClass = badgeErr
 	}
 
 	return fmt.Sprintf(

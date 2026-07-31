@@ -55,14 +55,14 @@ func parsePageSize(r *http.Request, defaultPageSize int) int {
 		return defaultPageSize
 	}
 
-	n, err := strconv.Atoi(s)
-	if err != nil || n < 1 {
+	num, err := strconv.Atoi(s)
+	if err != nil || num < 1 {
 		return defaultPageSize
 	}
 
-	if n > maxPageSize {
+	if num > maxPageSize {
 		return maxPageSize
 	}
 
-	return n
+	return num
 }

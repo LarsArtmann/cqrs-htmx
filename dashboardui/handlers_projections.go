@@ -108,15 +108,15 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 		var rows strings.Builder
 
 		for _, proj := range projs {
-			badgeClass := "badge badge-neutral"
+			badgeClass := badgeNeutral
 
 			switch proj.StatusKind {
 			case statusGood:
-				badgeClass = "badge badge-ok"
+				badgeClass = badgeOK
 			case statusWarn:
-				badgeClass = "badge badge-warn"
+				badgeClass = badgeWarn
 			case statusBad:
-				badgeClass = "badge badge-err"
+				badgeClass = badgeErr
 			}
 
 			var actions string

@@ -13,6 +13,8 @@ import (
 
 // ===== Time-Travel =====
 
+const maxVersionLinks = 20 // show individual version links up to this threshold
+
 func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Request) {
 	d.renderStreamIndex(w, r, "Time Travel", "/time-travel", d.renderTimeTravelIndex)
 }
@@ -157,7 +159,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 		b.WriteString(`</div>`)
 
-		if maxVersion.Int() <= 20 {
+		if maxVersion.Int() <= maxVersionLinks {
 			b.WriteString(`<div class="version-links section-gap">`)
 
 			for v := event.Version(1); v <= maxVersion; v++ {

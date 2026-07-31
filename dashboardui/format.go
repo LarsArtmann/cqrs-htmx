@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+const (
+	hoursPerDay        = 24
+	approxDaysPerMonth = 30
+	daysPerYear        = 365
+)
+
 // relativeTime renders a human-readable relative time like "2 minutes ago".
 // The full RFC3339 timestamp should be rendered in a tooltip (title attribute).
 func relativeTime(t time.Time) string {
@@ -23,29 +29,29 @@ func relativeTime(t time.Time) string {
 		}
 
 		return fmt.Sprintf("%d minutes ago", minutes)
-	case d < 24*time.Hour:
+	case d < hoursPerDay*time.Hour:
 		hours := int(d.Hours())
 		if hours == 1 {
 			return "1 hour ago"
 		}
 
 		return fmt.Sprintf("%d hours ago", hours)
-	case d < 30*24*time.Hour:
-		days := int(d.Hours() / 24)
+	case d < approxDaysPerMonth*hoursPerDay*time.Hour:
+		days := int(d.Hours() / hoursPerDay)
 		if days == 1 {
 			return "1 day ago"
 		}
 
 		return fmt.Sprintf("%d days ago", days)
-	case d < 365*24*time.Hour:
-		months := int(d.Hours() / 24 / 30)
+	case d < daysPerYear*hoursPerDay*time.Hour:
+		months := int(d.Hours() / hoursPerDay / approxDaysPerMonth)
 		if months == 1 {
 			return "1 month ago"
 		}
 
 		return fmt.Sprintf("%d months ago", months)
 	default:
-		years := int(d.Hours() / 24 / 365)
+		years := int(d.Hours() / hoursPerDay / daysPerYear)
 		if years == 1 {
 			return "1 year ago"
 		}
@@ -75,12 +81,12 @@ func humanByteSize(bytes int) string {
 func encodingBadgeClass(encoding string) string {
 	switch encoding {
 	case "json", "":
-		return "badge badge-neutral"
+		return badgeNeutral
 	case "cbor":
-		return "badge badge-warn"
+		return badgeWarn
 	case "raw":
-		return "badge badge-neutral"
+		return badgeNeutral
 	default:
-		return "badge badge-neutral"
+		return badgeNeutral
 	}
 }
