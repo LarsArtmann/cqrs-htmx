@@ -35,7 +35,7 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 		hasMore  bool
 	)
 
-	if d.cfg.StreamReader != nil {
+	if d.cfg.StreamReader != nil { //nolint:nestif // optional data source branching
 		opts := listing.ListOptions{Limit: uint(pageSize + 1)}
 
 		if after := r.URL.Query().Get("after"); after != "" {
@@ -148,7 +148,7 @@ func (d *Dashboard) renderAggregateDetail(
 	})
 }
 
-func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing, pg paginationState) string {
+func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing, page paginationState) string {
 	return d.renderLayout(p, func() string {
 		if len(listings) == 0 {
 			return emptyState("No aggregates found", "")
@@ -174,7 +174,7 @@ func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListin
 			`<h2>Aggregates</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
-		b.WriteString(renderPagination(p.BasePath, "/aggregates", pg, ""))
+		b.WriteString(renderPagination(p.BasePath, "/aggregates", page, ""))
 
 		return b.String()
 	})
