@@ -221,22 +221,15 @@ func (c *countingEventStore) snapshot() (full, fromVersion int) {
 	return c.fullLoads, c.loadsFromVersion
 }
 
-// TestSnapshot_WritePathConsultsSnapshot proves that wiring SnapshotConfig
-// through NewService makes the decider Repository actually consult the
-// snapshot on the WRITE path (command dispatch). Without this test, the
-// existing TestService_SnapshotIntegration only proves a snapshot is WRITTEN —
-// not that it is ever READ back. A snapshot that is written but never loaded
-// is pure overhead.
+// TestStateCache_InterceptsWritePathLoad proves that WithStateCache (now default)
+// intercepts the decider load on the WRITE path (command dispatch). After
+// Register caches the user state, a subsequent ChangeEmail hits the cache
+// without consulting the snapshot store or the event store at all.
 //
-// Proof strategy: wrap both stores with counters, register a user (which
-// writes the first snapshot via EveryNEvents(1)), reset the counters, then
-// issue a second command (ChangeEmail) that must load the aggregate state. We
-// then assert:
-//  1. snapshot.Load was called at least once (the snapshot was CONSULTED), and
-//  2. event.LoadFromVersion was called (the tail-only path was used). If only
-//     event.Load was called, the repository fell back to full replay and the
-//     snapshot is dead weight.
-func TestSnapshot_WritePathConsultsSnapshot(t *testing.T) {
+// This is the correct behavior: the state cache is a higher-level optimization
+// than the snapshot — it eliminates ALL I/O on cache hit, not just full replay.
+// The snapshot path is tested separately in TestSnapshot_WritePathConsultsSnapshot_OnCacheMiss.
+func TestStateCache_InterceptsWritePathLoad(t *testing.T) {
 	t.Parallel()
 
 	snapStore := &countingSnapshotStore{SnapshotStore: NewMemorySnapshotStore()}
@@ -299,5 +292,94 @@ func TestSnapshot_WritePathConsultsSnapshot(t *testing.T) {
 			"This means the snapshot is not actually accelerating loads.")
 	}
 	t.Logf("during ChangeEmail: snapshot.Load=%d, event.Load=%d (full replay), event.LoadFromVersion=%d (tail)",
+		snapLoads, fullLoads, loadsFromVersion)
+}
+
+// TestSnapshot_WritePathConsultsSnapshot_OnCacheMiss verifies the snapshot path
+// works when the state cache MISSES. After closing the first service (clearing
+// the in-memory state cache), a new service with the same persistent stores
+// must fall back to snapshot.Load + LoadFromVersion on the next command.
+func TestSnapshot_WritePathConsultsSnapshot_OnCacheMiss(t *testing.T) {
+	t.Parallel()
+
+	snapStore := &countingSnapshotStore{SnapshotStore: NewMemorySnapshotStore()}
+	strategy, err := snapshot.EveryNEvents(1)
+	if err != nil {
+		t.Fatalf("EveryNEvents: %v", err)
+	}
+	eventStore := &countingEventStore{Store: memory.NewMemoryStore()}
+
+	svc, err := NewService(ServiceConfig{
+		EventStore: eventStore,
+		SnapshotConfig: SnapshotConfig{
+			Store:    snapStore,
+			Codec:    codec.JSONCodec{},
+			Strategy: strategy,
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+
+	ctx := context.Background()
+	resp, err := svc.Register(ctx, RegisterRequest{
+		ID:    NewUserID("snap-miss"),
+		Email: "snap-miss@example.com",
+	})
+	if err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	// Close the first service — this clears the in-memory state cache.
+	if err := svc.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	// Reset counters — the new service has a fresh (empty) state cache.
+	snapStore.mu.Lock()
+	snapStore.loadCalls = 0
+	snapStore.saveCalls = 0
+	snapStore.mu.Unlock()
+	eventStore.mu.Lock()
+	eventStore.fullLoads = 0
+	eventStore.loadsFromVersion = 0
+	eventStore.mu.Unlock()
+
+	// Create a new service with the SAME stores — snapshot and event store
+	// persist in memory, but the state cache is empty (new service).
+	svc2, err := NewService(ServiceConfig{
+		EventStore: eventStore,
+		SnapshotConfig: SnapshotConfig{
+			Store:    snapStore,
+			Codec:    codec.JSONCodec{},
+			Strategy: strategy,
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewService (2nd): %v", err)
+	}
+	defer svc2.Close() //nolint:errcheck // test cleanup
+
+	// ChangeEmail MUST load the User aggregate. Cache miss → snapshot path.
+	if err := svc2.ChangeEmail(ctx, resp.User.ID, "after-restart@example.com"); err != nil {
+		t.Fatalf("ChangeEmail: %v", err)
+	}
+
+	snapStore.mu.Lock()
+	snapLoads := snapStore.loadCalls
+	snapStore.mu.Unlock()
+	fullLoads, loadsFromVersion := eventStore.snapshot()
+
+	if snapLoads == 0 {
+		t.Fatal("snapshot.Load was NOT called during ChangeEmail after cache miss — " +
+			"the snapshot store is dead weight on cold start")
+	}
+	if loadsFromVersion == 0 {
+		t.Error("LoadFromVersion was not called — expected tail-only load after snapshot hit")
+	}
+	if fullLoads > 0 {
+		t.Errorf("full replay was used (%d times) — expected snapshot+tail, not full replay", fullLoads)
+	}
+	t.Logf("cache-miss ChangeEmail: snapshot.Load=%d, fullLoad=%d, LoadFromVersion=%d",
 		snapLoads, fullLoads, loadsFromVersion)
 }
