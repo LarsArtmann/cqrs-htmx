@@ -188,3 +188,17 @@ The commit is HEAD and its message is provably false (the tree didn't compile). 
 ---
 
 _Report ends. Awaiting instructions._
+
+---
+
+## Resolution (2026-07-31)
+
+| Item | Resolution |
+| ---- | ---------- |
+| fatcontext/dupword permanent fix | **Done.** AGENTS.md Gotchas now documents `//nolint:fatcontext` / `//nolint:dupword` directives with reasons. The fix is permanent — `--fix` leaves them stable. |
+| All 15 modules at 0 lint issues | **Done** (2026-07-28). Zero SA1019 warnings, zero golangci-lint issues across all 15 workspace modules. |
+| buildflow govalid flake | **Mitigated.** `.buildflow.yml` pins `max_concurrency: 2` and `retry_modifier: conservative`. `scripts/prewarm-gocache.sh` exists (opt-in, not wired into buildflow yet). AGENTS.md documents the flake and the `retry_modifier` key-name trap. |
+| Canonical nix gates (`nix run .#test/lint/coverage-gate`, `nix flake check`) | **Blocked** by httputil v0.8.0 publication — TODO_LIST P1. |
+| `examples/*` have zero tests | Still open — pre-existing, low priority. |
+| `hierarchical-errors` (367 findings) | Still open — pre-existing architectural debt, not in scope. |
+| `varnamelen` (50 findings) | Still open — pre-existing, cosmetic. |

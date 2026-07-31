@@ -246,3 +246,16 @@ kind + " type must not be empty")`. Strings match, but no test asserts them — 
 - **Canonical commands run:** 0 ⚠️ (used raw `go test` + `golangci-lint`)
 - **Modules verified:** root + usermgmt + loginpage + integration_test + adminui + totp +
   basic + admin-demo + datastar-demo (build only for last 4)
+
+---
+
+## Resolution (2026-07-31)
+
+| Item | Resolution |
+| ---- | ---------- |
+| Dedup sweep CHANGELOG entry | **Done** — documented in v4.6.0 CHANGELOG ("Dedup sweep — harmful clones driven to zero"). |
+| Harmful clones driven to zero | **Done** — confirmed at 0 clone groups after rounds 3 (threshold 3) and 4 (threshold 2) on 2026-07-29. |
+| Coverage gate verification | **Done** — all 9 modules have coverage gates (identity-model gate added 2026-07-29). |
+| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |
+| Dedicated unit tests for extracted helpers | **Partially done** — coverage improved significantly in later sessions (root 93.7%, usermgmt 80.9%). `readBodyForDecode` unparam finding still open — TODO_LIST P2. |
+| Accepted-clone rationale comments | **Done** — subsequent dedup rounds (3+4) explicitly documented accepted clones. |
