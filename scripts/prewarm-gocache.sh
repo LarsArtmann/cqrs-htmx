@@ -28,7 +28,7 @@ set -uo pipefail
 export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
 
 # Auto-discover workspace modules from go.work (no manual list to maintain).
-mapfile -t modules < <(go work edit -json 2>/dev/null | grep -o '"DiskPath":"[^"]*"' | cut -d'"' -f4)
+mapfile -t modules < <(go work edit -json 2>/dev/null | grep DiskPath | sed 's/.*: *"*//;s/".*//')
 
 if [ ${#modules[@]} -eq 0 ]; then
   echo "prewarm-gocache: WARNING: no workspace modules found in go.work" >&2
