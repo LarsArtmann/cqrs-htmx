@@ -12,11 +12,11 @@ A deep audit of go-cqrs-lite module usage across 18 workspace modules surfaced 8
 
 ### Already evaluated and REJECTED (do NOT plan)
 
-| Item | ROADMAP verdict | Reason |
-|---|---|---|
-| `deriver` for event→command cascades | **Not a fit** (2026-07-30) | Tenant cleanup violates deriver purity contract (must read mutable read model). Session revocation is a direct store call, not a command. |
+| Item                                        | ROADMAP verdict                   | Reason                                                                                                                                                       |
+| ------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `deriver` for event→command cascades        | **Not a fit** (2026-07-30)        | Tenant cleanup violates deriver purity contract (must read mutable read model). Session revocation is a direct store call, not a command.                    |
 | Re-export go-cqrs-lite middleware factories | **Do NOT re-export** (2026-07-30) | Would pull ~29 new deps (full OTel SDK, failsafe-go, modernc.org/sqlite). Consumers already wire with one import. Docs + examples are the correct mechanism. |
-| Durable expiry via `scheduling` | **NOT needed** (2026-07-30) | Every expiry mechanism has lazy checks (correctness preserved on restart). SQL store handles multi-instance for sessions. |
+| Durable expiry via `scheduling`             | **NOT needed** (2026-07-30)       | Every expiry mechanism has lazy checks (correctness preserved on restart). SQL store handles multi-instance for sessions.                                    |
 
 ---
 
@@ -26,47 +26,47 @@ A deep audit of go-cqrs-lite module usage across 18 workspace modules surfaced 8
 
 These two tasks are trivially small, completely independent, fix real bugs or surface real capabilities, and have zero risk of breaking anything:
 
-| # | Task | Why it's 1%→51% | Effort |
-|---|---|---|---|
-| **A** | **Wire `AccountLockout.EvictStale` into `NewService`** | Real bug: lockout maps grow unbounded (no eviction goroutine wired, unlike the other 4 ephemeral stores). Every production deploy with lockout enabled leaks memory forever. Fix is ~8 lines matching the existing pattern. | 10 min |
-| **B** | **Add dispatch-middleware section to `doc.go`** | Surfaces the #1 undocumented capability (27 middleware factories via `.Use()`). Currently only examples/ and a guide doc mention it. Adding 15 lines to doc.go makes it visible to every `go doc` reader. Zero code change, zero risk. | 10 min |
+| #     | Task                                                   | Why it's 1%→51%                                                                                                                                                                                                                        | Effort |
+| ----- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| **A** | **Wire `AccountLockout.EvictStale` into `NewService`** | Real bug: lockout maps grow unbounded (no eviction goroutine wired, unlike the other 4 ephemeral stores). Every production deploy with lockout enabled leaks memory forever. Fix is ~8 lines matching the existing pattern.            | 10 min |
+| **B** | **Add dispatch-middleware section to `doc.go`**        | Surfaces the #1 undocumented capability (27 middleware factories via `.Use()`). Currently only examples/ and a guide doc mention it. Adding 15 lines to doc.go makes it visible to every `go doc` reader. Zero code change, zero risk. | 10 min |
 
 ### The 4% that delivers 64%
 
 Adding these three tasks to the 1% covers the majority of customer-visible improvement:
 
-| # | Task | Why | Effort |
-|---|---|---|---|
-| **C** | **Document TOTP replay-window limitation** | `totp/provider.go` ValidateCode is stateless (no used-code tracking). A valid code is reusable within ±30s. RFC 6238 §5.2 recommends replay protection. This is a library (stateless by design), so the fix is documentation, not enforcement. | 15 min |
-| **D** | **Fix `dashboardui/sse_replay_test.go:182` data race** | Pre-existing race breaks `-race` for the entire dashboardui module. `httptest.ResponseRecorder` accessed from both test goroutine and SSE handler goroutine. | 20 min |
-| **E** | **Verify + resolve UserDelete cascade gap** | `DeleteUser` revokes sessions but never removes memberships or owned bots. May be intentional (tombstone pattern) or a real data-integrity gap. Must verify before fixing. | 30 min verify + 30 min fix |
+| #     | Task                                                   | Why                                                                                                                                                                                                                                            | Effort                     |
+| ----- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| **C** | **Document TOTP replay-window limitation**             | `totp/provider.go` ValidateCode is stateless (no used-code tracking). A valid code is reusable within ±30s. RFC 6238 §5.2 recommends replay protection. This is a library (stateless by design), so the fix is documentation, not enforcement. | 15 min                     |
+| **D** | **Fix `dashboardui/sse_replay_test.go:182` data race** | Pre-existing race breaks `-race` for the entire dashboardui module. `httptest.ResponseRecorder` accessed from both test goroutine and SSE handler goroutine.                                                                                   | 20 min                     |
+| **E** | **Verify + resolve UserDelete cascade gap**            | `DeleteUser` revokes sessions but never removes memberships or owned bots. May be intentional (tombstone pattern) or a real data-integrity gap. Must verify before fixing.                                                                     | 30 min verify + 30 min fix |
 
 ### The 20% that delivers 80%
 
 Adding these high-impact items completes the Pareto core:
 
-| # | Task | Why | Effort |
-|---|---|---|---|
-| **F** | **Wire `decider.WithStateCache` in usermgmt** | ROADMAP-flagged as "high-value, zero-risk." Eliminates full event replay on every Execute (O(total events) → O(new events)). No consumer-visible API change. | 45 min |
-| **G** | **Wire `projectionhost.WithOnFailed` callback** | Terminal worker failures (after 5 crash-restarts) are currently silent. A callback hook enables alerting. Must respect library principle (opt-in via Config). | 30 min |
-| **H** | **Publish httputil v0.8.0 + remove go.work replace** | #1 recurring verification blocker across 10+ status reports. Unblocks all canonical nix gates. External dependency. | 60 min |
-| **I** | **Run canonical nix verification gates** | Blocked by H. Once unblocked, verifies all 15 modules pass hermetic build/test/lint/coverage. | 30 min |
-| **J** | **Fix `decoder.go:22` unparam finding** | `readBodyForDecode[T]` returns unused zero-value T. Pre-existing, flagged by linter. | 15 min |
+| #     | Task                                                 | Why                                                                                                                                                           | Effort |
+| ----- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| **F** | **Wire `decider.WithStateCache` in usermgmt**        | ROADMAP-flagged as "high-value, zero-risk." Eliminates full event replay on every Execute (O(total events) → O(new events)). No consumer-visible API change.  | 45 min |
+| **G** | **Wire `projectionhost.WithOnFailed` callback**      | Terminal worker failures (after 5 crash-restarts) are currently silent. A callback hook enables alerting. Must respect library principle (opt-in via Config). | 30 min |
+| **H** | **Publish httputil v0.8.0 + remove go.work replace** | #1 recurring verification blocker across 10+ status reports. Unblocks all canonical nix gates. External dependency.                                           | 60 min |
+| **I** | **Run canonical nix verification gates**             | Blocked by H. Once unblocked, verifies all 15 modules pass hermetic build/test/lint/coverage.                                                                 | 30 min |
+| **J** | **Fix `decoder.go:22` unparam finding**              | `readBodyForDecode[T]` returns unused zero-value T. Pre-existing, flagged by linter.                                                                          | 15 min |
 
 ### The other 20% (to reach 100%)
 
-| # | Task | Effort |
-|---|---|---|
-| **K** | Upgrade cqrs-lint v0.2.2 → latest | 20 min |
-| **L** | Document cqrs-lint suppression syntax in AGENTS.md | 20 min |
-| **M** | Integrate E2E tests into flake.nix/CI | 45 min |
-| **N** | dashboardui coverage: overviewStats (48.9%) | 45 min |
-| **O** | dashboardui coverage: renderDLQ (42.9%) | 30 min |
-| **P** | dashboardui coverage: dlqDetailHandler (54.5%) | 20 min |
-| **Q** | dashboardui coverage: snapshotDetailHandler (50.0%) | 20 min |
-| **R** | dashboardui coverage: dlqIndexHandler (58.3%) | 15 min |
-| **S** | dashboardui coverage: eventDetailHandler (28.6%) | 20 min |
-| **T** | dashboardui coverage: loadRecentEvents (46.2%) | 20 min |
+| #     | Task                                                     | Effort |
+| ----- | -------------------------------------------------------- | ------ |
+| **K** | Upgrade cqrs-lint v0.2.2 → latest                        | 20 min |
+| **L** | Document cqrs-lint suppression syntax in AGENTS.md       | 20 min |
+| **M** | Integrate E2E tests into flake.nix/CI                    | 45 min |
+| **N** | dashboardui coverage: overviewStats (48.9%)              | 45 min |
+| **O** | dashboardui coverage: renderDLQ (42.9%)                  | 30 min |
+| **P** | dashboardui coverage: dlqDetailHandler (54.5%)           | 20 min |
+| **Q** | dashboardui coverage: snapshotDetailHandler (50.0%)      | 20 min |
+| **R** | dashboardui coverage: dlqIndexHandler (58.3%)            | 15 min |
+| **S** | dashboardui coverage: eventDetailHandler (28.6%)         | 20 min |
+| **T** | dashboardui coverage: loadRecentEvents (46.2%)           | 20 min |
 | **U** | MySQL event-store support (event-store-only first phase) | 90 min |
 
 ---
@@ -75,26 +75,26 @@ Adding these high-impact items completes the Pareto core:
 
 Sorted by impact (desc) → effort (asc) → customer-value (desc).
 
-| ID | Task | Pareto | Impact | Effort | Value | Depends on |
-|----|------|--------|--------|--------|-------|------------|
-| T01 | Wire AccountLockout.EvictStale into NewService | 1% | 🔴 Critical (memory leak) | 10 min | Every prod deploy with lockout | — |
-| T02 | Add dispatch-middleware `.Use()` section to doc.go | 1% | 🟠 High (DX discoverability) | 10 min | Every consumer | — |
-| T03 | Document TOTP replay-window limitation in provider | 4% | 🟠 High (security clarity) | 15 min | Every TOTP consumer | — |
-| T04 | Fix dashboardui sse_replay_test.go data race | 4% | 🟠 High (breaks -race) | 20 min | dashboardui module | — |
-| T05 | Verify UserDelete cascade gap (intentional vs bug) | 4% | 🟠 High (data integrity) | 30 min | usermgmt consumers | — |
-| T06 | Fix UserDelete cascade if confirmed as bug | 4% | 🟠 High (data integrity) | 30 min | usermgmt consumers | T05 |
-| T07 | Wire decider.WithStateCache in usermgmt repositories | 20% | 🟠 High (perf, ROADMAP-flagged) | 45 min | All event-sourced consumers | — |
-| T08 | Add projectionhost WithOnFailed opt-in via Config | 20% | 🟡 Medium (observability) | 30 min | Prod consumers | — |
-| T09 | Fix decoder.go:22 unparam (remove unused T return) | 20% | 🟡 Medium (code quality) | 15 min | Root module | — |
-| T10 | Publish httputil v0.8.0 + remove go.work replace | 20% | 🔴 Critical (blocks all nix gates) | 60 min | All modules | — |
-| T11 | Run canonical nix verification gates (build/test/lint/coverage) | 20% | 🔴 Critical (verification debt) | 30 min | All modules | T10 |
-| T12 | Upgrade cqrs-lint v0.2.2 → latest build | rest | 🟡 Medium (lint hygiene) | 20 min | Dev experience | — |
-| T13 | Document cqrs-lint suppression syntax in AGENTS.md Gotchas | rest | 🟡 Medium (dev knowledge) | 20 min | Future sessions | T12 |
-| T14 | Integrate E2E Playwright tests into flake.nix/CI | rest | 🟡 Medium (CI coverage) | 45 min | Release confidence | — |
-| T15 | dashboardui coverage: overviewStats + eventDetailHandler | rest | 🟡 Medium (coverage gate) | 45 min | dashboardui quality | — |
-| T16 | dashboardui coverage: renderDLQ + dlqDetail + dlqIndex | rest | 🟡 Medium (coverage gate) | 45 min | dashboardui quality | — |
-| T17 | dashboardui coverage: snapshotDetail + loadRecentEvents | rest | 🟢 Low (coverage polish) | 30 min | dashboardui quality | — |
-| T18 | MySQL event-store support (dialect clone) | rest | 🟢 Low (new backend) | 90 min | MySQL consumers | — |
+| ID  | Task                                                            | Pareto | Impact                             | Effort | Value                          | Depends on |
+| --- | --------------------------------------------------------------- | ------ | ---------------------------------- | ------ | ------------------------------ | ---------- |
+| T01 | Wire AccountLockout.EvictStale into NewService                  | 1%     | 🔴 Critical (memory leak)          | 10 min | Every prod deploy with lockout | —          |
+| T02 | Add dispatch-middleware `.Use()` section to doc.go              | 1%     | 🟠 High (DX discoverability)       | 10 min | Every consumer                 | —          |
+| T03 | Document TOTP replay-window limitation in provider              | 4%     | 🟠 High (security clarity)         | 15 min | Every TOTP consumer            | —          |
+| T04 | Fix dashboardui sse_replay_test.go data race                    | 4%     | 🟠 High (breaks -race)             | 20 min | dashboardui module             | —          |
+| T05 | Verify UserDelete cascade gap (intentional vs bug)              | 4%     | 🟠 High (data integrity)           | 30 min | usermgmt consumers             | —          |
+| T06 | Fix UserDelete cascade if confirmed as bug                      | 4%     | 🟠 High (data integrity)           | 30 min | usermgmt consumers             | T05        |
+| T07 | Wire decider.WithStateCache in usermgmt repositories            | 20%    | 🟠 High (perf, ROADMAP-flagged)    | 45 min | All event-sourced consumers    | —          |
+| T08 | Add projectionhost WithOnFailed opt-in via Config               | 20%    | 🟡 Medium (observability)          | 30 min | Prod consumers                 | —          |
+| T09 | Fix decoder.go:22 unparam (remove unused T return)              | 20%    | 🟡 Medium (code quality)           | 15 min | Root module                    | —          |
+| T10 | Publish httputil v0.8.0 + remove go.work replace                | 20%    | 🔴 Critical (blocks all nix gates) | 60 min | All modules                    | —          |
+| T11 | Run canonical nix verification gates (build/test/lint/coverage) | 20%    | 🔴 Critical (verification debt)    | 30 min | All modules                    | T10        |
+| T12 | Upgrade cqrs-lint v0.2.2 → latest build                         | rest   | 🟡 Medium (lint hygiene)           | 20 min | Dev experience                 | —          |
+| T13 | Document cqrs-lint suppression syntax in AGENTS.md Gotchas      | rest   | 🟡 Medium (dev knowledge)          | 20 min | Future sessions                | T12        |
+| T14 | Integrate E2E Playwright tests into flake.nix/CI                | rest   | 🟡 Medium (CI coverage)            | 45 min | Release confidence             | —          |
+| T15 | dashboardui coverage: overviewStats + eventDetailHandler        | rest   | 🟡 Medium (coverage gate)          | 45 min | dashboardui quality            | —          |
+| T16 | dashboardui coverage: renderDLQ + dlqDetail + dlqIndex          | rest   | 🟡 Medium (coverage gate)          | 45 min | dashboardui quality            | —          |
+| T17 | dashboardui coverage: snapshotDetail + loadRecentEvents         | rest   | 🟢 Low (coverage polish)           | 30 min | dashboardui quality            | —          |
+| T18 | MySQL event-store support (dialect clone)                       | rest   | 🟢 Low (new backend)               | 90 min | MySQL consumers                | —          |
 
 **Totals:** 18 tasks, ~13.5 hours estimated.
 
@@ -104,72 +104,72 @@ Sorted by impact (desc) → effort (asc) → customer-value (desc).
 
 Each task decomposed into atomic steps. Sorted within parent task by execution order.
 
-| Sub-ID | Parent | Step | Est | Validates |
-|--------|--------|------|-----|-----------|
-| S01a | T01 | Read `service_core.go` eviction wiring section (lines ~300-360) | 3 min | Understand existing pattern |
-| S01b | T01 | Read `eviction.go` startPeriodicEviction signature | 3 min | Confirm generic helper |
-| S01c | T01 | Add lockout eviction goroutine in NewService (if cfg.Lockout != nil) | 5 min | Matches 4-store pattern |
-| S01d | T01 | Add test: lockout EvictStale called periodically | 8 min | Race-safe test |
-| S02a | T02 | Read doc.go current middleware section (lines 37-48) | 3 min | Understand current content |
-| S02b | T02 | Write dispatch-middleware subsection with `.Use()` recipe | 7 min | go doc renders correctly |
-| S03a | T03 | Read totp/provider.go ValidateCode doc comment | 3 min | Current state |
-| S03b | T03 | Add "Replay Protection" doc paragraph to Provider | 5 min | Consumer knows limitation |
-| S03c | T03 | Cross-reference in leveraging-go-cqrs-lite.md if relevant | 5 min | Single source of truth |
-| S04a | T04 | Read sse_replay_test.go around line 182 | 5 min | Understand the race |
-| S04b | T04 | Fix: use sync buffer or serialize access | 8 min | -race passes |
-| S04c | T04 | Run `go test -race ./dashboardui/...` | 2 min | Verify fix |
-| S05a | T05 | Read DeleteUser + DeleteTenant + CasbinProjection | 5 min | Full picture |
-| S05b | T05 | Check membership read model for user-existence filters | 5 min | Orphaned harm assessment |
-| S05c | T05 | Check git log/blame on DeleteUser for design intent | 5 min | ADR or comment |
-| S05d | T05 | Decision: intentional (document) or bug (fix) | 5 min | Clear verdict |
-| S05e | T05 | If intentional: add doc comment explaining tombstone design | 5 min | Consumer clarity |
-| S06a | T06 | If bug: implement UserDelete → RemoveMember×N cascade | 8 min | Data integrity |
-| S06b | T06 | If bug: implement UserDelete → DeleteBot×N cascade | 8 min | Data integrity |
-| S06c | T06 | Add test: deleting user removes memberships | 10 min | Cascade verified |
-| S06d | T06 | Add test: deleting user removes owned bots | 10 min | Cascade verified |
-| S07a | T07 | Read buildDeciderRepositories in es_setup.go | 5 min | Current wiring |
-| S07b | T07 | Read ROADMAP WithStateCache evaluation | 3 min | Design constraints |
-| S07c | T07 | Add WithStateCache to user/membership/tenant/bot repos | 8 min | Performance win |
-| S07d | T07 | Add benchmark: before vs after state cache | 10 min | Quantify improvement |
-| S07e | T07 | Run `go test ./usermgmt/... -count=1 -race` | 5 min | No regression |
-| S08a | T08 | Read projectionhost options (WithOnFailed signature) | 5 min | Available hooks |
-| S08b | T08 | Add OnFailed field to EventSourcedConfig/ServiceConfig | 5 min | Opt-in design |
-| S08c | T08 | Wire through startProjectionHost factory | 5 min | Plumbing |
-| S08d | T08 | Add test: terminal failure triggers callback | 10 min | Alert path verified |
-| S09a | T09 | Read decoder.go:22 readBodyForDecode | 5 min | Understand T return |
-| S09b | T09 | Refactor: remove unused T return, update callers | 8 min | Linter clean |
-| S09c | T09 | Run `go build ./...` + `go test ./...` | 5 min | No regression |
-| S10a | T10 | Verify httputil repo is ready for v0.8.0 tag | 10 min | Pre-flight |
-| S10b | T10 | Tag httputil v0.8.0 (or confirm with owner) | 5 min | External dependency |
-| S10c | T10 | Update root go.mod: httputil v0.7.1 → v0.8.0 | 5 min | Version bump |
-| S10d | T10 | Remove httputil replace from go.work | 3 min | Clean workspace |
-| S10e | T10 | Run `go mod tidy` per module | 10 min | Dependency resolution |
-| S10f | T10 | Run `go build ./...` (GOWORK=off) | 5 min | Hermetic build passes |
-| S11a | T11 | Run `nix run .#build` | 10 min | Canonical build |
-| S11b | T11 | Run `nix run .#test` | 10 min | Canonical test |
-| S11c | T11 | Run `nix run .#lint` | 10 min | Canonical lint |
-| S11d | T11 | Run `nix run .#coverage-gate` | 10 min | All 9 coverage gates |
-| S12a | T12 | Check latest cqrs-lint build availability | 5 min | Pre-flight |
-| S12b | T12 | Update flake.nix cqrs-lint source/hash | 8 min | Nix update |
-| S12c | T12 | Run `nix run .#lint` with new cqrs-lint | 5 min | Verify improvement |
-| S13a | T13 | Draft cqrs-lint suppression section from 2 sessions | 10 min | Knowledge capture |
-| S13b | T13 | Add to AGENTS.md Gotchas section | 10 min | Future sessions benefit |
-| S14a | T14 | Read e2e/ README + Playwright config | 5 min | Current state |
-| S14b | T14 | Design `nix run .#e2e` app in flake.nix | 10 min | Nix integration |
-| S14c | T14 | Implement flake.nix e2e app | 10 min | Runnable |
-| S14d | T14 | Test: `nix run .#e2e` runs all 4 scenarios | 10 min | E2E passes |
-| S15a | T15 | Read overviewStats handler + write integration test | 12 min | Branch coverage |
-| S15b | T15 | Read eventDetailHandler + write test | 10 min | Branch coverage |
-| S16a | T16 | Read renderDLQ + write populated-entry test | 10 min | Branch coverage |
-| S16b | T16 | Read dlqDetailHandler + write test | 10 min | Branch coverage |
-| S16c | T16 | Read dlqIndexHandler + write test | 8 min | Branch coverage |
-| S17a | T17 | Read snapshotDetailHandler + write test | 10 min | Branch coverage |
-| S17b | T17 | Read loadRecentEvents + write test | 10 min | Branch coverage |
-| S18a | T18 | Read storage/sql/dialect.go Dialect interface | 8 min | 11 methods |
-| S18b | T18 | Clone PostgresDialect → MySQLDialect | 10 min | Placeholders + types |
-| S18c | T18 | Add MySQL IsDuplicateKeyError (error 1062) | 5 min | Duplicate detection |
-| S18d | T18 | Add MySQL dialect test | 10 min | Dialect verified |
-| S18e | T18 | Document MySQL event-store limitation (no UPSERT yet) | 5 min | Scope clarity |
+| Sub-ID | Parent | Step                                                                 | Est    | Validates                   |
+| ------ | ------ | -------------------------------------------------------------------- | ------ | --------------------------- |
+| S01a   | T01    | Read `service_core.go` eviction wiring section (lines ~300-360)      | 3 min  | Understand existing pattern |
+| S01b   | T01    | Read `eviction.go` startPeriodicEviction signature                   | 3 min  | Confirm generic helper      |
+| S01c   | T01    | Add lockout eviction goroutine in NewService (if cfg.Lockout != nil) | 5 min  | Matches 4-store pattern     |
+| S01d   | T01    | Add test: lockout EvictStale called periodically                     | 8 min  | Race-safe test              |
+| S02a   | T02    | Read doc.go current middleware section (lines 37-48)                 | 3 min  | Understand current content  |
+| S02b   | T02    | Write dispatch-middleware subsection with `.Use()` recipe            | 7 min  | go doc renders correctly    |
+| S03a   | T03    | Read totp/provider.go ValidateCode doc comment                       | 3 min  | Current state               |
+| S03b   | T03    | Add "Replay Protection" doc paragraph to Provider                    | 5 min  | Consumer knows limitation   |
+| S03c   | T03    | Cross-reference in leveraging-go-cqrs-lite.md if relevant            | 5 min  | Single source of truth      |
+| S04a   | T04    | Read sse_replay_test.go around line 182                              | 5 min  | Understand the race         |
+| S04b   | T04    | Fix: use sync buffer or serialize access                             | 8 min  | -race passes                |
+| S04c   | T04    | Run `go test -race ./dashboardui/...`                                | 2 min  | Verify fix                  |
+| S05a   | T05    | Read DeleteUser + DeleteTenant + CasbinProjection                    | 5 min  | Full picture                |
+| S05b   | T05    | Check membership read model for user-existence filters               | 5 min  | Orphaned harm assessment    |
+| S05c   | T05    | Check git log/blame on DeleteUser for design intent                  | 5 min  | ADR or comment              |
+| S05d   | T05    | Decision: intentional (document) or bug (fix)                        | 5 min  | Clear verdict               |
+| S05e   | T05    | If intentional: add doc comment explaining tombstone design          | 5 min  | Consumer clarity            |
+| S06a   | T06    | If bug: implement UserDelete → RemoveMember×N cascade                | 8 min  | Data integrity              |
+| S06b   | T06    | If bug: implement UserDelete → DeleteBot×N cascade                   | 8 min  | Data integrity              |
+| S06c   | T06    | Add test: deleting user removes memberships                          | 10 min | Cascade verified            |
+| S06d   | T06    | Add test: deleting user removes owned bots                           | 10 min | Cascade verified            |
+| S07a   | T07    | Read buildDeciderRepositories in es_setup.go                         | 5 min  | Current wiring              |
+| S07b   | T07    | Read ROADMAP WithStateCache evaluation                               | 3 min  | Design constraints          |
+| S07c   | T07    | Add WithStateCache to user/membership/tenant/bot repos               | 8 min  | Performance win             |
+| S07d   | T07    | Add benchmark: before vs after state cache                           | 10 min | Quantify improvement        |
+| S07e   | T07    | Run `go test ./usermgmt/... -count=1 -race`                          | 5 min  | No regression               |
+| S08a   | T08    | Read projectionhost options (WithOnFailed signature)                 | 5 min  | Available hooks             |
+| S08b   | T08    | Add OnFailed field to EventSourcedConfig/ServiceConfig               | 5 min  | Opt-in design               |
+| S08c   | T08    | Wire through startProjectionHost factory                             | 5 min  | Plumbing                    |
+| S08d   | T08    | Add test: terminal failure triggers callback                         | 10 min | Alert path verified         |
+| S09a   | T09    | Read decoder.go:22 readBodyForDecode                                 | 5 min  | Understand T return         |
+| S09b   | T09    | Refactor: remove unused T return, update callers                     | 8 min  | Linter clean                |
+| S09c   | T09    | Run `go build ./...` + `go test ./...`                               | 5 min  | No regression               |
+| S10a   | T10    | Verify httputil repo is ready for v0.8.0 tag                         | 10 min | Pre-flight                  |
+| S10b   | T10    | Tag httputil v0.8.0 (or confirm with owner)                          | 5 min  | External dependency         |
+| S10c   | T10    | Update root go.mod: httputil v0.7.1 → v0.8.0                         | 5 min  | Version bump                |
+| S10d   | T10    | Remove httputil replace from go.work                                 | 3 min  | Clean workspace             |
+| S10e   | T10    | Run `go mod tidy` per module                                         | 10 min | Dependency resolution       |
+| S10f   | T10    | Run `go build ./...` (GOWORK=off)                                    | 5 min  | Hermetic build passes       |
+| S11a   | T11    | Run `nix run .#build`                                                | 10 min | Canonical build             |
+| S11b   | T11    | Run `nix run .#test`                                                 | 10 min | Canonical test              |
+| S11c   | T11    | Run `nix run .#lint`                                                 | 10 min | Canonical lint              |
+| S11d   | T11    | Run `nix run .#coverage-gate`                                        | 10 min | All 9 coverage gates        |
+| S12a   | T12    | Check latest cqrs-lint build availability                            | 5 min  | Pre-flight                  |
+| S12b   | T12    | Update flake.nix cqrs-lint source/hash                               | 8 min  | Nix update                  |
+| S12c   | T12    | Run `nix run .#lint` with new cqrs-lint                              | 5 min  | Verify improvement          |
+| S13a   | T13    | Draft cqrs-lint suppression section from 2 sessions                  | 10 min | Knowledge capture           |
+| S13b   | T13    | Add to AGENTS.md Gotchas section                                     | 10 min | Future sessions benefit     |
+| S14a   | T14    | Read e2e/ README + Playwright config                                 | 5 min  | Current state               |
+| S14b   | T14    | Design `nix run .#e2e` app in flake.nix                              | 10 min | Nix integration             |
+| S14c   | T14    | Implement flake.nix e2e app                                          | 10 min | Runnable                    |
+| S14d   | T14    | Test: `nix run .#e2e` runs all 4 scenarios                           | 10 min | E2E passes                  |
+| S15a   | T15    | Read overviewStats handler + write integration test                  | 12 min | Branch coverage             |
+| S15b   | T15    | Read eventDetailHandler + write test                                 | 10 min | Branch coverage             |
+| S16a   | T16    | Read renderDLQ + write populated-entry test                          | 10 min | Branch coverage             |
+| S16b   | T16    | Read dlqDetailHandler + write test                                   | 10 min | Branch coverage             |
+| S16c   | T16    | Read dlqIndexHandler + write test                                    | 8 min  | Branch coverage             |
+| S17a   | T17    | Read snapshotDetailHandler + write test                              | 10 min | Branch coverage             |
+| S17b   | T17    | Read loadRecentEvents + write test                                   | 10 min | Branch coverage             |
+| S18a   | T18    | Read storage/sql/dialect.go Dialect interface                        | 8 min  | 11 methods                  |
+| S18b   | T18    | Clone PostgresDialect → MySQLDialect                                 | 10 min | Placeholders + types        |
+| S18c   | T18    | Add MySQL IsDuplicateKeyError (error 1062)                           | 5 min  | Duplicate detection         |
+| S18d   | T18    | Add MySQL dialect test                                               | 10 min | Dialect verified            |
+| S18e   | T18    | Document MySQL event-store limitation (no UPSERT yet)                | 5 min  | Scope clarity               |
 
 **Totals:** 56 sub-tasks, ~10.5 hours estimated (excludes external blocking).
 
