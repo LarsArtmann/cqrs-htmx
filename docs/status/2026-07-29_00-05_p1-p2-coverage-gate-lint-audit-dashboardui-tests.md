@@ -193,3 +193,15 @@ No regressions, no broken builds, no data loss. All tests pass with `-race`. Lin
 | Lint issues resolved               | 8 (in new test file, during development)     |
 | Bugs found                         | 0 (exclusion audit confirmed no masked bugs) |
 | Time                               | ~1 hour                                      |
+
+---
+
+## Resolution (2026-07-31)
+
+| Item | Resolution |
+| ---- | ---------- |
+| identity-model coverage-gate (70%) | **Done** — added to flake.nix. Actual: 74.9%. |
+| `.golangci.yml` exclusion audit (zero masked bugs) | **Done** — documented in CHANGELOG `[Unreleased]`. |
+| dashboardui write-operation handler tests (16 tests) | **Done** — documented in CHANGELOG `[Unreleased]`. Coverage improved 55% → 66.5%. |
+| Additional dashboardui test coverage | **Partially done** — dashboardui now at 78.7% (gate 60%), 9 test files, ~101 tests. Several handlers still have thin coverage — TODO_LIST P2. |
+| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |

@@ -229,3 +229,17 @@ The function silently SHA-256-hashes non-ULID strings, which is dangerous (masks
 ### 3. Should I have used `nix run .#test` / `nix run .#lint` / `nix run .#coverage-gate` instead of raw Go commands?
 
 The AGENTS.md says to use `nix run .#test` etc. I used `GOEXPERIMENT=jsonv2 go test` and `golangci-lint run` directly. The nix commands may apply different configurations, additional flags (like `-race`), or enforce coverage gates that my raw commands didn't. Should I re-verify everything through the nix commands, or are the raw Go commands sufficient? I don't know if the nix wrappers add anything beyond convenience.
+
+---
+
+## Resolution (2026-07-31)
+
+| Item | Resolution |
+| ---- | ---------- |
+| SA1019 deprecation migration (all modules) | **Done** — zero SA1019 warnings across all 15 workspace modules. `id.AggregateID` → `id.StreamID`, `evt.AggregateType` → `evt.StreamType`, etc. |
+| All 15 modules at 0 lint issues | **Done** (2026-07-28). |
+| identity-model coverage-gate (70%) | **Done** — added to flake.nix. Actual: 74.9%. |
+| `.golangci.yml` exclusion audit | **Done** — zero masked bugs. Documented in CHANGELOG `[Unreleased]`. |
+| MySQL event-store support | Still open — TODO_LIST P3. |
+| Offline sync E2E browser testing | **Done** — 4 tests pass. CI integration still open (TODO_LIST P2). |
+| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |
