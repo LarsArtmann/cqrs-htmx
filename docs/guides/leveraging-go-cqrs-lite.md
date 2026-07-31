@@ -140,7 +140,7 @@ scheduler := scheduling.New(timerStore, func(ctx context.Context, t scheduling.T
 defer scheduler.Close()
 ```
 
-> **Opportunity (tracked in TODO_LIST):** wire `scheduling.TimerStore` behind usermgmt so session/verification-token expiry is durable and multi-instance safe, replacing the in-process sweepers for production deployments.
+> **Evaluated and deferred:** durable `scheduling.TimerStore` was investigated via a design doc (`docs/design/durable-scheduling.md`). Conclusion: NOT needed — every expiry mechanism already has a lazy check (correctness preserved on restart), and the SQL store provides multi-instance safety for the longest-TTL items (sessions, 24h). See ROADMAP.md "Not Planned" for full rationale.
 
 ---
 
