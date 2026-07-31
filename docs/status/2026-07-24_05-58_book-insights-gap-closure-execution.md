@@ -235,3 +235,16 @@ The `examples/dashboard-demo/go.mod` requires `dashboardui/v4 v4.4.0` which does
 ### 3. Is the `go-sse` repo's uncommitted state intentional?
 
 `/home/lars/projects/go-sse` had uncommitted modifications to `event.go`, `fanout.go`, `stream.go` (and test files) that broke the workspace build. I stashed and restored them. Were these changes from another active session that I should not have touched? Should they be committed or reverted?
+
+---
+
+## Resolution (2026-07-31)
+
+| Item | Resolution |
+| ---- | ---------- |
+| CHANGELOG / AGENTS.md / FEATURES.md updates | **Done** — all three living docs updated in subsequent sessions. EventCatalog, ProjectionStatusHandler, RebuildProjection all documented in CHANGELOG v4.5.0 and FEATURES.md. |
+| `createProjectionHost` dedup | **Done** — shared `startProjectionHost` factory used by both `StartProjections` and `RebuildProjection`. |
+| `projectionListField` rename | **Done** — field renamed. |
+| Coverage gate (identity-model 70%) | **Done** — all 9 modules have coverage gates. identity-model at 74.9% (gate 70%). |
+| 7 operational guides | **Done** — now 12 guides in `docs/guides/` (added leveraging-go-cqrs-lite, dispatch-middleware-ordering, production-readiness, csrf-trusted-proxies, provider-implementation). |
+| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |

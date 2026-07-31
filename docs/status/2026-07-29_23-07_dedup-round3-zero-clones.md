@@ -178,3 +178,16 @@ The skill says "Run tests after every change." I ran `go test` but never `golang
 2. **Should the `requirePathValue` helper live in `usermgmt/http.go` or in the root module (`cqrs-htmx`)?** It's a generic HTTP utility (read path value, validate non-empty, write 400). The root module has other HTTP helpers. But moving it to root means usermgmt depends on root for it, and the root module currently has zero imports of usermgmt (clean boundary per AGENTS.md). Should I keep it in usermgmt, or promote it to root?
 
 3. **Should I update CHANGELOG.md for this session, or does the auto-commit daemon's commit messages suffice?** The project convention says completed work goes to CHANGELOG (append-only, per-version). But the auto-commit daemon already created 2 commits with descriptive messages. Is there a version bump planned, or should I add an "Unreleased" entry?
+
+---
+
+## Resolution (2026-07-31)
+
+| Item | Resolution |
+| ---- | ---------- |
+| 0 clone groups at threshold 3 | **Done** — confirmed. Round 4 (threshold 2) also reached 0. |
+| CHANGELOG entry | **Done** — dedup work documented in v4.6.0 and `[Unreleased]`. |
+| Lint at 0 issues across all modules | **Done** (2026-07-28). |
+| `dashboardui/sse_replay_test.go:182` data race | Still open — TODO_LIST P2. Breaks `-race` for dashboardui. |
+| `decoder.go:22` unparam | Still open — TODO_LIST P2. `readBodyForDecode` always returns zero-value T. |
+| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |
