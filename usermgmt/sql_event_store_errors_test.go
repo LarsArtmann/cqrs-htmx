@@ -88,3 +88,38 @@ func TestSQLEventStore_OperationsAfterClose(t *testing.T) {
 		t.Error("ReadAll after close: expected error")
 	}
 }
+
+func TestDialectToUpstream_AllDialects(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		dialect string
+		wantErr bool
+	}{
+		{dialectPostgres, false},
+		{dialectPgx, false},
+		{dialectSQLite, false},
+		{dialectSQLite3, false},
+		{dialectMySQL, false},
+		{"oracle", true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.dialect, func(t *testing.T) {
+			t.Parallel()
+
+			d, err := dialectToUpstream(tc.dialect)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("expected error for dialect %q, got nil", tc.dialect)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error for dialect %q: %v", tc.dialect, err)
+			}
+			if d == nil {
+				t.Fatalf("expected non-nil dialect for %q", tc.dialect)
+			}
+		})
+	}
+}
