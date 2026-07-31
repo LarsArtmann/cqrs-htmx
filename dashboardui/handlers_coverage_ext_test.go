@@ -93,7 +93,7 @@ func makeTestEvent(t *testing.T, eventType string, version event.Version) event.
 func TestOverviewStats_SeekableJournal(t *testing.T) {
 	evt := makeTestEvent(t, "test.created", 1)
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{events: []event.Event{evt}},
+		SeekableJournal: &fakeSeekableJournal{events: []event.Event{evt}}, //nolint:exhaustruct // test fake: only events needed
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -122,7 +122,7 @@ func TestOverviewStats_SeekableJournalError(t *testing.T) {
 
 func TestOverviewStats_JournalError(t *testing.T) {
 	d, err := New(Config{
-		Journal: &fakeSeekableJournal{allErr: errors.New("readall failed")},
+		Journal: &fakeSeekableJournal{allErr: errors.New("readall failed")}, //nolint:exhaustruct // test fake: only allErr needed
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -318,7 +318,7 @@ func TestSnapshotDetailHandler_StoreError(t *testing.T) {
 func TestLoadRecentEvents_SeekableJournal(t *testing.T) {
 	evt := makeTestEvent(t, "test.recent", 1)
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{events: []event.Event{evt}},
+		SeekableJournal: &fakeSeekableJournal{events: []event.Event{evt}}, //nolint:exhaustruct // test fake: only events needed
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -334,7 +334,7 @@ func TestLoadRecentEvents_SeekableJournal(t *testing.T) {
 
 func TestLoadRecentEvents_SeekableJournalError(t *testing.T) {
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{readErr: errors.New("seek failed")},
+		SeekableJournal: &fakeSeekableJournal{readErr: errors.New("seek failed")}, //nolint:exhaustruct // test fake: only readErr needed
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -350,7 +350,7 @@ func TestLoadRecentEvents_SeekableJournalError(t *testing.T) {
 
 func TestLoadRecentEvents_JournalError(t *testing.T) {
 	d, err := New(Config{
-		Journal: &fakeSeekableJournal{allErr: errors.New("readall failed")},
+		Journal: &fakeSeekableJournal{allErr: errors.New("readall failed")}, //nolint:exhaustruct // test fake: only allErr needed
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
