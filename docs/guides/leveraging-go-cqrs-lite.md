@@ -262,6 +262,47 @@ if err != nil { /* handle */ }
 
 ---
 
+## 9b. State cache & snapshotting — built-in performance
+
+cqrs-htmx's usermgmt module **automatically wires two performance optimizations** from go-cqrs-lite that most consumers don't know about:
+
+### State cache (`decider.WithStateCache`)
+
+Every `Service` and `EventSourcedSetup` repository includes `decider.WithStateCache` by default. This in-memory LRU cache stores the last-folded state per stream. On subsequent `Execute` calls for the same stream, the decider loads only events **since the cached version** instead of replaying the full history:
+
+```
+Without cache: Execute() → Load all events → Fold from version 0  → O(total events)
+With cache:    Execute() → Load events since cached version       → O(new events)
+```
+
+The cache is process-local, best-effort, and auto-invalidated after every successful write. You do not need to configure anything — it is always on.
+
+```go
+// Already wired internally in usermgmt/snapshot.go:repositoryOptions():
+// opts = append(opts, decider.WithStateCache[State](decider.NewStateCache[State](0)))
+```
+
+> **When it matters:** streams with 50+ events see meaningful speedup. For short streams (1-10 events), the fold cost is negligible and the cache adds minimal overhead.
+
+### Snapshotting (`SnapshotConfig`)
+
+For extremely long streams (1000+ events), enable snapshot persistence on `ServiceConfig.SnapshotConfig`:
+
+```go
+cfg := usermgmt.ServiceConfig{
+    SnapshotConfig: usermgmt.SnapshotConfig{
+        Store:   usermgmt.MemorySnapshotStore{}, // dev/test; use SQLSnapshotStore in prod
+        Codec:   usermgmt.GobSnapshotCodec{},
+        Strategy: usermgmt.SnapshotEveryN(100),
+    },
+    // ...
+}
+```
+
+On cache miss (e.g., after a restart), the repository loads the snapshot and replays only the tail via `LoadFromVersion`. See ADR-0041 for details.
+
+---
+
 ## 10. Niche modules
 
 | Module                            | When you'd reach for it from a cqrs-htmx app                                                                                                              |
