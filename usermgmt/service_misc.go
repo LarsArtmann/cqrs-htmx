@@ -78,7 +78,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 // removeMembershipsForUserBestEffort removes all memberships for a user.
 // Errors are logged but not returned — the user is already deleted.
 func (s *Service) removeMembershipsForUserBestEffort(ctx context.Context, userID UserID) {
-	memberships := s.membershipReadModel.FindByActor(userID.Get())
+	memberships := s.membershipReadModel.FindByActor(userID.Get().String())
 	for _, mem := range memberships {
 		removalCmd := NewRemoveMemberCmd(mem.ActorID, mem.TenantID)
 		if err := s.dispatcher.Dispatch(ctx, removalCmd); err != nil {
