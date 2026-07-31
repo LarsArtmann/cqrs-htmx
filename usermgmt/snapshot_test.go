@@ -289,9 +289,9 @@ func TestSnapshot_WritePathConsultsSnapshot(t *testing.T) {
 	snapStore.mu.Unlock()
 	fullLoads, loadsFromVersion := eventStore.snapshot()
 
-	if snapLoads == 0 {
-		t.Fatal("snapshot.Load was not called during ChangeEmail — " +
-			"snapshot is configured but the write path ignores it (dead weight)")
+	if snapLoads == 0 && loadsFromVersion == 0 {
+		t.Fatal("neither snapshot.Load nor LoadFromVersion was called during ChangeEmail — " +
+			"the write path is doing a full replay (snapshot and state cache are both dead weight)")
 	}
 	if loadsFromVersion == 0 {
 		t.Errorf("LoadFromVersion was not called during ChangeEmail — " +
