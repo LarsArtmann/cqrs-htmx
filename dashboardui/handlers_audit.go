@@ -25,7 +25,7 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 		hasNext bool
 	)
 
-	if d.cfg.CommandJournal != nil {
+	if d.cfg.CommandJournal != nil { //nolint:nestif // optional data source branching
 		var err error
 
 		if seekable, ok := d.cfg.CommandJournal.(command.SeekableCommandJournal); ok {
@@ -62,7 +62,7 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand, pg paginationState) string {
+func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand, page paginationState) string {
 	return d.renderLayout(p, func() string {
 		if len(cmds) == 0 {
 			return emptyState("No commands recorded", "Commands will appear here as they are dispatched.")
@@ -90,7 +90,7 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 			`<h2>Command Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
-		b.WriteString(renderPagination(p.BasePath, "/commands", pg, ""))
+		b.WriteString(renderPagination(p.BasePath, "/commands", page, ""))
 
 		return b.String()
 	})
@@ -109,7 +109,7 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 		hasNext bool
 	)
 
-	if d.cfg.QueryJournal != nil {
+	if d.cfg.QueryJournal != nil { //nolint:nestif // optional data source branching
 		var err error
 
 		if seekable, ok := d.cfg.QueryJournal.(query.SeekableQueryJournal); ok {
@@ -146,7 +146,7 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery, pg paginationState) string {
+func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery, page paginationState) string {
 	return d.renderLayout(p, func() string {
 		if len(queries) == 0 {
 			return emptyState("No queries recorded", "Queries will appear here as they are executed.")
@@ -171,7 +171,7 @@ func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery, p
 			`<h2>Query Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
-		b.WriteString(renderPagination(p.BasePath, "/queries", pg, ""))
+		b.WriteString(renderPagination(p.BasePath, "/queries", page, ""))
 
 		return b.String()
 	})

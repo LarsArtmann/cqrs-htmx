@@ -13,7 +13,7 @@ const (
 
 // relativeTime renders a human-readable relative time like "2 minutes ago".
 // The full RFC3339 timestamp should be rendered in a tooltip (title attribute).
-func relativeTime(t time.Time) string {
+func relativeTime(t time.Time) string { //nolint:cyclop // natural switch over time ranges
 	if t.IsZero() {
 		return ""
 	}

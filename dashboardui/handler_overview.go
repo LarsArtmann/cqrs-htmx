@@ -73,7 +73,7 @@ type recentEvent struct {
 	EventID  string
 }
 
-func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:cyclop // stat computation
+func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:cyclop,gocognit,nestif // multi-source stat aggregation
 	stats := overviewStats{
 		TotalAggregates: "0",
 		TotalEvents:     "0",

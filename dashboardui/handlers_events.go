@@ -212,6 +212,8 @@ func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) 
 
 	var err error
 
+	var prevID, nextID string
+
 	if d.cfg.SeekableJournal != nil {
 		events, err = d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, neighborScanLimit)
 	} else if d.cfg.Journal != nil {
@@ -418,7 +420,7 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 		var b strings.Builder
 		b.WriteString(`<div class="page-header"><h2>Event Stream</h2></div>`)
 
-		b.WriteString(renderEventFilterBar(p.BasePath, f))
+		b.WriteString(renderEventFilterBar(p.BasePath, filter))
 
 		if len(events) == 0 {
 			if filter.Active() {
