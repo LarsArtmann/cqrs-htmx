@@ -123,6 +123,47 @@ VACUUM;
 
 ---
 
+## MySQL Storage Health
+
+For production deployments using MySQL/MariaDB as the event store backend:
+
+### OPTIMIZE TABLE
+
+MySQL uses InnoDB by default (ACID-compliant). While the events table is append-only, InnoDB maintains undo logs and indexes that fragment over time. Use `OPTIMIZE TABLE` to rebuild the table and reclaim space:
+
+```sql
+OPTIMIZE TABLE events;
+```
+
+**Note:** `OPTIMIZE TABLE` on InnoDB creates a temporary table and copies data. It locks the table during the operation. Run during low-traffic periods or use `pt-online-schema-change` for zero-downtime maintenance.
+
+### Connection Pool Tuning
+
+MySQL connections are expensive to establish. Configure the connection pool:
+
+```go
+db.SetMaxOpenConns(50)
+db.SetMaxIdleConns(10)
+db.SetConnMaxLifetime(5 * time.Minute)
+```
+
+### Important Connection String Parameters
+
+- `parseTime=true` — **required** (converts `DATETIME` columns to `time.Time`)
+- `interpolateParams=true` — small performance gain (client-side parameter interpolation)
+- `multiStatements=true` — needed if auto-migration DDL contains multiple statements
+
+### Error Handling
+
+MySQL errors are automatically classified by `classifyMySQLError` in go-cqrs-lite:
+- Error 1062 (duplicate entry) → **Conflict** (409)
+- Error 1205 (lock wait timeout), 1213 (deadlock) → **Transient** (503, retry)
+- Error 2003/2006/2013 (connection errors) → **Transient** (503)
+
+See [MySQL Setup Guide](./mysql-setup.md) for full setup instructions.
+
+---
+
 ## Monitoring Storage Growth
 
 Track these metrics:

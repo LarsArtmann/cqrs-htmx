@@ -149,7 +149,7 @@ func BenchmarkStateCache_ColdVsWarm(b *testing.B) {
 			store := memory.NewMemoryStore()
 			seedSvc, _ := NewService(ServiceConfig{EventStore: store})
 			userID := seedBenchUser(b, seedSvc, eventCount)
-			_ = seedSvc.Close()
+			seedSvc.Stop()
 
 			coldSvc, _ := NewService(ServiceConfig{EventStore: store})
 			b.StartTimer()
@@ -157,7 +157,7 @@ func BenchmarkStateCache_ColdVsWarm(b *testing.B) {
 			_ = coldSvc.ChangeEmail(ctx, userID, "cold@test.com")
 
 			b.StopTimer()
-			_ = coldSvc.Close()
+			coldSvc.Stop()
 		}
 	})
 

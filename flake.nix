@@ -712,7 +712,8 @@
                   goPkg
                   pkgs.nodejs
                   pkgs.curl
-                ] ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
+                ]
+                ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
                 text = ''
                   export GOEXPERIMENT=jsonv2
                   # On NixOS, Playwright's downloaded Chromium cannot run (no FHS linker).
