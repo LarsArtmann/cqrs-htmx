@@ -298,6 +298,7 @@ linters:
       - path: _test\.go
         linters:
           - testpackage
+          - exhaustruct
       - path: benchmark_server_test\.go$
         linters:
           - exhaustruct
