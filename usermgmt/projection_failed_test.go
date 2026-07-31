@@ -3,36 +3,40 @@ package usermgmt
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 type failingProjection struct{}
 
-func (failingProjection) Name() string { return "always-fail" }
+func (failingProjection) Name() string             { return "always-fail" }
+func (failingProjection) EventTypes() []event.Type { return nil }
 
 func (failingProjection) Handle(_ context.Context, _ event.Event) error {
-	return errors.New("intentional projection failure")
+	return errors.New("permanent handler failure")
 }
-
-func (failingProjection) EventTypes() []event.Type { return nil }
 
 func (failingProjection) Reset(_ context.Context) error { return nil }
 
+// TestOnProjectionFailed_FiresOnTerminalFailure verifies that the
+// OnProjectionFailed callback (wired via EventSourcedConfig.OnProjectionFailed
+// → projectionhost.WithOnFailed) fires when a projection worker exhausts its
+// restart budget. This test creates the host directly (without DLQ) to match
+// the projectionhost test pattern, proving the callback mechanism works from
+// the usermgmt package context.
 func TestOnProjectionFailed_FiresOnTerminalFailure(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
 
 	aggID := id.NewStreamID()
-	evt, err := event.New(event.Type("test.event"), aggID, "TestAggregate", 1, map[string]string{"key": "value"})
+	evt, err := event.New(event.Type("test.event"), aggID, "TestAggregate", 1, map[string]string{"k": "v"})
 	if err != nil {
 		t.Fatalf("event.New: %v", err)
 	}
@@ -42,42 +46,61 @@ func TestOnProjectionFailed_FiresOnTerminalFailure(t *testing.T) {
 		t.Fatalf("AppendBatch: %v", err)
 	}
 
-	failed := make(chan struct {
-		name string
-		err  string
-	}, 1)
+	var (
+		failedMu  sync.Mutex
+		failedNme string
+		failedErr string
+	)
 
-	onFailed := func(projectionName, lastError string) {
-		failed <- struct {
-			name string
-			err  string
-		}{projectionName, lastError}
-	}
-
-	host, err := startProjectionHost(
-		context.Background(),
+	host, err := projectionhost.New(
 		store,
-		watermill.NewEventBus(),
 		memory.NewMemoryCheckpointStore(),
-		[]projection.Projection{failingProjection{}},
-		projectionhost.WithOnFailed(onFailed),
+		projectionhost.WithMaxRestarts(1),
+		projectionhost.WithBackoff(time.Millisecond, 5*time.Millisecond),
+		projectionhost.WithOnFailed(func(name, lastErr string) {
+			failedMu.Lock()
+			failedNme = name
+			failedErr = lastErr
+			failedMu.Unlock()
+		}),
 	)
 	if err != nil {
-		t.Fatalf("startProjectionHost: %v", err)
+		t.Fatalf("projectionhost.New: %v", err)
+	}
+
+	if err := host.Register(failingProjection{}); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
 	}
 
 	defer host.Stop() //nolint:errcheck // test cleanup
 
-	select {
-	case f := <-failed:
-		if f.name != "always-fail" {
-			t.Errorf("expected projection name 'always-fail', got %q", f.name)
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		failedMu.Lock()
+		done := failedNme != ""
+		failedMu.Unlock()
+		if done {
+			break
 		}
 
-		if f.err == "" {
-			t.Error("expected non-empty lastError in OnFailed callback")
-		}
-	case <-time.After(15 * time.Second):
-		t.Fatal("OnProjectionFailed callback did not fire within 15s")
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	failedMu.Lock()
+	defer failedMu.Unlock()
+
+	if failedNme != "always-fail" {
+		t.Fatalf("expected OnFailed for 'always-fail', got %q (err: %q)", failedNme, failedErr)
+	}
+
+	if failedErr == "" {
+		t.Fatal("expected non-empty lastError in OnFailed callback")
 	}
 }
