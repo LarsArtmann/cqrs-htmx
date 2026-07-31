@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"context"
 	"database/sql"
 	"io"
 	"log/slog"
@@ -71,6 +72,13 @@ type EventSourcedConfig struct {
 	// journal. The store must be backed by persistent storage (e.g. SQL) to
 	// survive process restarts. When nil, full journal replay is used.
 	CheckpointStore event.CheckpointStore
+
+	// OnProjectionFailed, when set, is called when a projection worker
+	// exhausts its restart budget and enters a terminal failure state.
+	// Use this for alerting (e.g., emit a metric, page on-call). The
+	// callback receives the projection name and the last error message.
+	// Optional — when nil, terminal failures are silent (logs only).
+	OnProjectionFailed func(projectionName, lastError string)
 
 	// SecurityHooks configures opt-in event signing and encryption.
 	SecurityHooks
@@ -249,16 +257,19 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	allProjections := collectProjections(
 		userProj, membershipProj, tenantProj, botProj, casbinProjection, cfg.AuditLog,
 	)
-	host, err := StartProjections(
+
+	var hostOpts []projectionhost.HostOption
+	if cfg.OnProjectionFailed != nil {
+		hostOpts = append(hostOpts, projectionhost.WithOnFailed(cfg.OnProjectionFailed))
+	}
+
+	host, err := startProjectionHost(
+		context.Background(),
 		journal,
 		bus,
 		cfg.CheckpointStore,
-		userProj,
-		membershipProj,
-		tenantProj,
-		botProj,
-		casbinProjection,
-		cfg.AuditLog,
+		allProjections,
+		hostOpts...,
 	)
 	if err != nil {
 		closeBus(bus)
