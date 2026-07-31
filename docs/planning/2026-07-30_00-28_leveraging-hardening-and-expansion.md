@@ -321,3 +321,17 @@ These items are **blocked on user input** and cannot proceed autonomously:
 3. **Does not fix unrelated test failures or lint issues** — only touches files related to the leveraging work. Unrelated issues get documented, not fixed.
 4. **Does not add middleware re-exports to the public API** — only evaluates the tradeoff (M20). API surface changes are irreversible for downstream consumers.
 5. **Does not rewrite git history** without explicit approval (Blocker #1).
+
+---
+
+## Resolution (2026-07-31)
+
+**All 3 blockers resolved:**
+
+1. **12MB binary blob** — left in history (irreversible rewrite not worth the risk). Binary removed going forward in v4.6.0 (`f25599a`).
+2. **HTML vs Markdown** — Markdown is correct for this repo. The leveraging guide shipped as `docs/guides/leveraging-go-cqrs-lite.md`.
+3. **Middleware re-export (M20)** — evaluated and rejected. Decision documented in ROADMAP.md "Not Planned": re-exporting would pull ~29 new dependencies (OTel SDK, failsafe-go, modernc.org/sqlite) into every consumer's build, violating the library principle. Documentation + `examples/middleware-demo/` are the correct discoverability mechanism.
+
+**Executed items:** leveraging guide written + verified against go-cqrs-lite source (6 API inaccuracies corrected), `examples/middleware-demo/` created with 3 tests, durable scheduling evaluated (NOT needed — see ROADMAP "Not Planned"), `deriver` evaluated (not a fit — see ROADMAP), `WithStateCache` and `kv.Cache` evaluated (high-value, not wired — see ROADMAP "Upstream Adoption & Scale"), projection upcasting gap refuted (upcasters run at decode time).
+
+**Remaining:** M18-M25 design/strategic items are documented in ROADMAP.md, not actionable tasks. This plan is closed.
