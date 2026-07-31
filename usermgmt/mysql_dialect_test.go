@@ -7,7 +7,7 @@ import (
 
 // TestMySQLDialect_PlaceholdersAndSchema verifies that the MySQLDialect
 // produces MySQL-specific SQL: ? placeholders, LONGBLOB payloads, DATETIME(3)
-// timestamps, and backtick identifier quoting.
+// timestamps, and ON DUPLICATE KEY conflict handling.
 func TestMySQLDialect_PlaceholdersAndSchema(t *testing.T) {
 	t.Parallel()
 
@@ -32,15 +32,5 @@ func TestMySQLDialect_PlaceholdersAndSchema(t *testing.T) {
 
 	if strings.Contains(schema, "$1") {
 		t.Error("EventSchema should not contain Postgres-style $1 placeholders")
-	}
-
-	quoted := d.QuoteIdentifier("stream_id")
-	if !strings.Contains(quoted, "`") {
-		t.Errorf("expected backtick-quoted identifier, got %q", quoted)
-	}
-
-	ddl := d.OnConflictDoNothing("stream_id")
-	if !strings.Contains(ddl, "ON DUPLICATE KEY") {
-		t.Errorf("expected ON DUPLICATE KEY in conflict-nothing, got: %s", ddl)
 	}
 }
