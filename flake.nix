@@ -563,18 +563,39 @@
               meta.description = "Verify all errors use go-error-family constructors (no stdlib errors.New/fmt.Errorf/errors.Join)";
               program = pkgs.writeShellApplication {
                 name = "check-errorfamily";
+                runtimeInputs = [ pkgs.ripgrep ];
                 text = ''
-                  # Root + usermgmt + adminui: error-family constructors are mandatory.
+                  # Root + usermgmt + adminui + identity-model + dashboardui + loginpage:
+                  # error-family constructors are mandatory in non-test code.
                   # Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt:
-                  # they don't import go-cqrs-lite/event/v3 (keeping deps minimal), and
+                  # they don't import go-cqrs-lite/event/v4 (keeping deps minimal), and
                   # the Service layer wraps all provider errors with event.Wrapf at the
                   # boundary — so error families are assigned at the correct layer.
-                  echo "==> Root module"
-                  branching-flow errorfamily .
-                  echo "==> usermgmt submodule"
-                  branching-flow errorfamily usermgmt
-                  echo "==> adminui submodule"
-                  branching-flow errorfamily adminui
+                  set -euo pipefail
+
+                  check_module() {
+                    local dir="$1"
+                    local name="$2"
+                    echo "==> $name"
+                    local violations
+                    violations=$(rg --glob='*.go' --glob='!*_test.go' --glob='!*_templ.go' \
+                      --glob='!vendor/' --glob='!examples/' \
+                      'errors\.New\(|fmt\.Errorf\(|errors\.Join\(' "$dir" 2>/dev/null || true)
+                    if [ -n "$violations" ]; then
+                      echo "FAIL: stdlib error constructors found in $name:"
+                      echo "$violations"
+                      exit 1
+                    fi
+                    echo "  OK"
+                  }
+
+                  check_module "." "Root module"
+                  check_module "usermgmt" "usermgmt submodule"
+                  check_module "adminui" "adminui submodule"
+                  check_module "identity-model" "identity-model submodule"
+                  check_module "dashboardui" "dashboardui submodule"
+                  check_module "loginpage" "loginpage submodule"
+
                   echo "All modules pass errorfamily check."
                 '';
               };
