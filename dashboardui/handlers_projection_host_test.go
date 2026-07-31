@@ -25,6 +25,7 @@ type countingProjection struct {
 func (p *countingProjection) Name() string { return p.name }
 func (p *countingProjection) Handle(_ context.Context, _ event.Event) error {
 	p.count++
+
 	return nil
 }
 func (p *countingProjection) EventTypes() []event.Type { return nil }
@@ -37,6 +38,7 @@ func newTestProjectionHost(t *testing.T) *projectionhost.Host {
 	store := memory.NewMemoryStore()
 
 	aggID := id.NewStreamID()
+
 	evt, err := event.New(event.Type("test.event"), aggID, "TestAggregate", 1, map[string]string{"k": "v"})
 	if err != nil {
 		t.Fatalf("event.New: %v", err)
@@ -66,8 +68,7 @@ func TestOverviewStats_WithProjectionHost(t *testing.T) {
 
 	host := newTestProjectionHost(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	if err := host.Start(ctx); err != nil {
 		t.Fatalf("Start: %v", err)
@@ -103,14 +104,14 @@ func TestOverviewStats_ProjectionHostHealthClassification(t *testing.T) {
 
 	host := newTestProjectionHost(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	if err := host.Start(ctx); err != nil {
 		t.Fatalf("Start: %v", err)
 	}
 
 	time.Sleep(200 * time.Millisecond)
+
 	_ = host.Stop()
 
 	d := MustNew(Config{Journal: stubJournal{}, ProjectionHost: host})
@@ -137,8 +138,7 @@ func TestDLQIndexHandler_WithProjectionHost(t *testing.T) {
 
 	host := newTestProjectionHost(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	if err := host.Start(ctx); err != nil {
 		t.Fatalf("Start: %v", err)
