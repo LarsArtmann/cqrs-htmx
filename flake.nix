@@ -580,7 +580,8 @@
                     local violations
                     violations=$(rg --glob='*.go' --glob='!*_test.go' --glob='!*_templ.go' \
                       --glob='!vendor/' --glob='!examples/' \
-                      'errors\.New\(|fmt\.Errorf\(|errors\.Join\(' "$dir" 2>/dev/null || true)
+                      'errors\.New\(|fmt\.Errorf\(|errors\.Join\(' "$dir" 2>/dev/null \
+                      | rg -v ':[0-9]+:\s*//' || true)
                     if [ -n "$violations" ]; then
                       echo "FAIL: stdlib error constructors found in $name:"
                       echo "$violations"
