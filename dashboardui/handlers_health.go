@@ -12,9 +12,9 @@ import (
 func (d *Dashboard) healthzHandler(w http.ResponseWriter, _ *http.Request) {
 	select {
 	case <-d.done:
-		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "shutting_down"})
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{jsonKeyStatus: "shutting_down"})
 	default:
-		writeJSON(w, http.StatusOK, map[string]any{"status": "ok"})
+		writeJSON(w, http.StatusOK, map[string]any{jsonKeyStatus: "ok"})
 	}
 }
 
@@ -23,19 +23,19 @@ func (d *Dashboard) healthzHandler(w http.ResponseWriter, _ *http.Request) {
 func (d *Dashboard) readyzHandler(w http.ResponseWriter, _ *http.Request) {
 	select {
 	case <-d.done:
-		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "shutting_down", "ready": false})
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{jsonKeyStatus: "shutting_down", jsonKeyReady: false})
 
 		return
 	default:
 	}
 
 	if !d.caps.hasEventRead() && !d.caps.EventSource {
-		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"status": "no_data_source", "ready": false})
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{jsonKeyStatus: "no_data_source", jsonKeyReady: false})
 
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]any{"status": "ready", "ready": true})
+	writeJSON(w, http.StatusOK, map[string]any{jsonKeyStatus: "ready", jsonKeyReady: true})
 }
 
 // versionzHandler returns build and configuration metadata.

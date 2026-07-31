@@ -42,7 +42,7 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 // renderError logs the full error and shows a generic message to the user.
 // Safe to call with a nil request.
 func renderError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	ctx := context.Background()
+	ctx := context.Background() //nolint:contextcheck // fallback when request is nil; replaced by r.Context() below
 	path := ""
 
 	if r != nil {

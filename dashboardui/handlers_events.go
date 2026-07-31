@@ -19,20 +19,20 @@ type eventFilter struct {
 	StreamID   string
 }
 
-func (f eventFilter) Active() bool {
-	return f.Type != "" || f.StreamType != "" || f.StreamID != ""
+func (filter eventFilter) Active() bool {
+	return filter.Type != "" || filter.StreamType != "" || filter.StreamID != ""
 }
 
-func (f eventFilter) Matches(evt event.Event) bool {
-	if f.Type != "" && string(evt.Type()) != f.Type {
+func (filter eventFilter) Matches(evt event.Event) bool {
+	if filter.Type != "" && string(evt.Type()) != filter.Type {
 		return false
 	}
 
-	if f.StreamType != "" && string(evt.StreamType()) != f.StreamType {
+	if filter.StreamType != "" && string(evt.StreamType()) != filter.StreamType {
 		return false
 	}
 
-	if f.StreamID != "" && evt.StreamID().String() != f.StreamID {
+	if filter.StreamID != "" && evt.StreamID().String() != filter.StreamID {
 		return false
 	}
 
@@ -51,22 +51,22 @@ func parseEventFilter(r *http.Request) eventFilter {
 
 // filterExtraParams builds a query-string fragment preserving active filters
 // across pagination links (e.g., "type=user.created&streamType=User").
-func (f eventFilter) extraParams() string {
-	if !f.Active() {
+func (filter eventFilter) extraParams() string {
+	if !filter.Active() {
 		return ""
 	}
 
 	var parts []string
-	if f.Type != "" {
-		parts = append(parts, "type="+f.Type)
+	if filter.Type != "" {
+		parts = append(parts, "type="+filter.Type)
 	}
 
-	if f.StreamType != "" {
-		parts = append(parts, "streamType="+f.StreamType)
+	if filter.StreamType != "" {
+		parts = append(parts, "streamType="+filter.StreamType)
 	}
 
-	if f.StreamID != "" {
-		parts = append(parts, "streamID="+f.StreamID)
+	if filter.StreamID != "" {
+		parts = append(parts, "streamID="+filter.StreamID)
 	}
 
 	return strings.Join(parts, "&")
@@ -205,7 +205,7 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 // findEventNeighbors scans recent events to find the previous and next event IDs
 // relative to eventID. Returns empty strings if not found or at the boundary.
 // This is a best-effort scan limited to the most recent batch of events.
-func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) (prevID, nextID string) {
+func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) (string, string) {
 	const neighborScanLimit = 500
 
 	var events []event.Event
@@ -372,7 +372,7 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limi
 func (d *Dashboard) loadFilteredEvents(
 	ctx context.Context,
 	after id.EventID,
-	f eventFilter,
+	filter eventFilter,
 	pageSize int,
 ) ([]event.Event, error) {
 	rawLimit := max(filterScanLimit, pageSize+1)
@@ -402,7 +402,7 @@ func (d *Dashboard) loadFilteredEvents(
 	var filtered []event.Event
 
 	for _, evt := range raw {
-		if f.Matches(evt) {
+		if filter.Matches(evt) {
 			filtered = append(filtered, evt)
 			if len(filtered) > pageSize {
 				break
@@ -413,7 +413,7 @@ func (d *Dashboard) loadFilteredEvents(
 	return filtered, nil
 }
 
-func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg paginationState, f eventFilter) string {
+func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg paginationState, filter eventFilter) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 		b.WriteString(`<div class="page-header"><h2>Event Stream</h2></div>`)
@@ -421,7 +421,7 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 		b.WriteString(renderEventFilterBar(p.BasePath, f))
 
 		if len(events) == 0 {
-			if f.Active() {
+			if filter.Active() {
 				return emptyState(
 					"No matching events",
 					"No events match the current filters. Try adjusting or clearing them.",
@@ -454,14 +454,14 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 			rows.String(),
 		)
 
-		b.WriteString(renderPagination(p.BasePath, "/events", pg, f.extraParams()))
+		b.WriteString(renderPagination(p.BasePath, "/events", pg, filter.extraParams()))
 
 		return b.String()
 	})
 }
 
 // renderEventFilterBar renders the filter form with current values pre-filled.
-func renderEventFilterBar(basePath string, f eventFilter) string {
+func renderEventFilterBar(basePath string, filter eventFilter) string {
 	return fmt.Sprintf(
 		`<form method="GET" action="%s/events" class="filter-bar">`+
 			`<label for="filter-type">Type</label><input id="filter-type" type="text" name="type" value="%s" placeholder="event.type"/>`+
@@ -470,6 +470,6 @@ func renderEventFilterBar(basePath string, f eventFilter) string {
 			`<button type="submit" class="btn btn-accent">Filter</button>`+
 			`<a href="%s/events" class="btn">Clear</a>`+
 			`</form>`,
-		esc(basePath), esc(f.Type), esc(f.StreamType), esc(f.StreamID), esc(basePath),
+		esc(basePath), esc(filter.Type), esc(filter.StreamType), esc(filter.StreamID), esc(basePath),
 	)
 }
