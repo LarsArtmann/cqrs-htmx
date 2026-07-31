@@ -681,6 +681,51 @@
                 '';
               };
             };
+
+            e2e = {
+              type = "app";
+              meta.description = "Run Playwright E2E tests (offline sync) against the local Go test server";
+              program = pkgs.writeShellApplication {
+                name = "e2e";
+                runtimeInputs = [ goPkg ];
+                text = ''
+                  cd "''${BUILD_ROOT:-$(pwd)}"
+                  echo "==> Building E2E test server"
+                  (cd e2e/server && go build -o /tmp/cqrs-htmx-e2e-server .)
+
+                  echo "==> Starting E2E test server"
+                  /tmp/cqrs-htmx-e2e-server &
+                  SERVER_PID=$!
+
+                  cleanup() {
+                    kill "$SERVER_PID" 2>/dev/null || true
+                    wait "$SERVER_PID" 2>/dev/null || true
+                  }
+                  trap cleanup EXIT
+
+                  sleep 1
+
+                  if ! curl -sf http://localhost:18923/ >/dev/null 2>&1; then
+                    echo "FAIL: E2E server did not start on :18923"
+                    exit 1
+                  fi
+
+                  echo "==> Running Playwright tests"
+                  cd e2e
+
+                  if command -v bun >/dev/null 2>&1; then
+                    bun install --frozen-lockfile 2>/dev/null || bun install
+                    bun run test
+                  elif command -v npx >/dev/null 2>&1; then
+                    npx playwright install chromium
+                    npx playwright test
+                  else
+                    echo "FAIL: Neither bun nor npx found. Install Node.js or Bun to run E2E tests."
+                    exit 1
+                  fi
+                '';
+              };
+            };
           };
         };
     };
