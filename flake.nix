@@ -687,7 +687,11 @@
               meta.description = "Run Playwright E2E tests (offline sync) against the local Go test server";
               program = pkgs.writeShellApplication {
                 name = "e2e";
-                runtimeInputs = [ goPkg pkgs.nodejs pkgs.nodePackages.npm ];
+                runtimeInputs = [
+                  goPkg
+                  pkgs.nodejs
+                  pkgs.nodePackages.npm
+                ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(pwd)}"
                   echo "==> Building E2E test server"
