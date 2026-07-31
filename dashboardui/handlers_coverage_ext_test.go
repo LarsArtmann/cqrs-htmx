@@ -109,7 +109,7 @@ func TestOverviewStats_SeekableJournal(t *testing.T) {
 
 func TestOverviewStats_SeekableJournalError(t *testing.T) {
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{readErr: errors.New("boom")},
+		SeekableJournal: &fakeSeekableJournal{readErr: errors.New("boom")}, //nolint:exhaustruct // test fake: only readErr needed
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -139,7 +139,7 @@ func TestOverviewStats_SeekableJournalManyEvents(t *testing.T) {
 		events[i] = makeTestEvent(t, "test.bulk", event.Version(i+1))
 	}
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{events: events},
+		SeekableJournal: &fakeSeekableJournal{events: events}, //nolint:exhaustruct // test fake: only events needed
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -178,7 +178,7 @@ func TestEventDetailHandler_NotFound(t *testing.T) {
 func TestEventDetailHandler_EventByIDLoader(t *testing.T) {
 	evt := makeTestEvent(t, "test.loaded", 1)
 	d, err := New(Config{
-		EventByIDLoader: &fakeEventByIDLoader{evt: evt},
+		EventByIDLoader: &fakeEventByIDLoader{evt: evt}, //nolint:exhaustruct // test fake: only evt needed
 		Journal:         &stubJournal{},
 	})
 	if err != nil {

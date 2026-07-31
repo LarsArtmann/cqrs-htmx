@@ -155,8 +155,8 @@ github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxm
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-sse v0.3.0 h1:1XGi5C7dhGqrYvRB0s9ngwpGsZmeyuECM8JAUVEW8MY=
 github.com/larsartmann/go-sse v0.3.0/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV1VIUk5pQ2Y=
-github.com/larsartmann/httputil v0.7.1 h1:I226h2GYF5H3lagQS82liCBkg6bDy9zqEeR+tdvPj8M=
-github.com/larsartmann/httputil v0.7.1/go.mod h1:9ITDyxMcAjBDL8EDjIDH6pjxXDENHWCj3D4SECYh+lk=
+github.com/larsartmann/httputil v0.8.0 h1:jYyElWd/XQj1YqVQEPinsu91EkottEmjwcRBWWht96U=
+github.com/larsartmann/httputil v0.8.0/go.mod h1:I22z9KHES2ChfZ8gG16MGO8qSrtHKS1OMSltXdff0Lc=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
 github.com/lithammer/shortuuid/v3 v3.0.7/go.mod h1:vMk8ke37EmiewwolSO1NLW8vP4ZaKlRuDIi8tWWmAts=
 github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 h1:6E+4a0GO5zZEnZ81pIr0yLvtUWk2if982qA3F3QD6H4=
