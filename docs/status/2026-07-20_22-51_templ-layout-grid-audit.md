@@ -213,11 +213,11 @@
 
 ## Resolution (2026-07-31)
 
-| Item | Resolution |
-| ---- | ---------- |
-| `flex-1` spacer hack (7 sites fixed) | **Done** — 7 sites across 5 files replaced with `justify-between`. |
-| dashboardui CSS overhaul | **Done** — dashboardui sprint (2026-07-30) delivered a full CSS custom-property design system with dark mode, focus-visible, print styles, and responsive `@media max-width: 768px`. Documented in FEATURES.md "Security & UX" row and CHANGELOG `[Unreleased]`. |
-| loginpage CSS audit (lines 200-262) | Still open — low priority, loginpage CSS is self-contained and works correctly. |
-| adminui CSS audit (`admin-tw.css`) | Still open — low priority, adminui uses compiled Tailwind output. |
-| Structural snapshot tests for rendered HTML | Still open — design question, not a bug. |
-| AGENTS.md UI patterns section | Not done — intentionally deferred (minor convention, AGENTS.md is already dense). |
+| Item                                        | Resolution                                                                                                                                                                                                                                                       |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `flex-1` spacer hack (7 sites fixed)        | **Done** — 7 sites across 5 files replaced with `justify-between`.                                                                                                                                                                                               |
+| dashboardui CSS overhaul                    | **Done** — dashboardui sprint (2026-07-30) delivered a full CSS custom-property design system with dark mode, focus-visible, print styles, and responsive `@media max-width: 768px`. Documented in FEATURES.md "Security & UX" row and CHANGELOG `[Unreleased]`. |
+| loginpage CSS audit (lines 200-262)         | Still open — low priority, loginpage CSS is self-contained and works correctly.                                                                                                                                                                                  |
+| adminui CSS audit (`admin-tw.css`)          | Still open — low priority, adminui uses compiled Tailwind output.                                                                                                                                                                                                |
+| Structural snapshot tests for rendered HTML | Still open — design question, not a bug.                                                                                                                                                                                                                         |
+| AGENTS.md UI patterns section               | Not done — intentionally deferred (minor convention, AGENTS.md is already dense).                                                                                                                                                                                |

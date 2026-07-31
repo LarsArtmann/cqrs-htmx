@@ -234,12 +234,12 @@ The AGENTS.md says to use `nix run .#test` etc. I used `GOEXPERIMENT=jsonv2 go t
 
 ## Resolution (2026-07-31)
 
-| Item | Resolution |
-| ---- | ---------- |
+| Item                                       | Resolution                                                                                                                                      |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | SA1019 deprecation migration (all modules) | **Done** — zero SA1019 warnings across all 15 workspace modules. `id.AggregateID` → `id.StreamID`, `evt.AggregateType` → `evt.StreamType`, etc. |
-| All 15 modules at 0 lint issues | **Done** (2026-07-28). |
-| identity-model coverage-gate (70%) | **Done** — added to flake.nix. Actual: 74.9%. |
-| `.golangci.yml` exclusion audit | **Done** — zero masked bugs. Documented in CHANGELOG `[Unreleased]`. |
-| MySQL event-store support | Still open — TODO_LIST P3. |
-| Offline sync E2E browser testing | **Done** — 4 tests pass. CI integration still open (TODO_LIST P2). |
-| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |
+| All 15 modules at 0 lint issues            | **Done** (2026-07-28).                                                                                                                          |
+| identity-model coverage-gate (70%)         | **Done** — added to flake.nix. Actual: 74.9%.                                                                                                   |
+| `.golangci.yml` exclusion audit            | **Done** — zero masked bugs. Documented in CHANGELOG `[Unreleased]`.                                                                            |
+| MySQL event-store support                  | Still open — TODO_LIST P3.                                                                                                                      |
+| Offline sync E2E browser testing           | **Done** — 4 tests pass. CI integration still open (TODO_LIST P2).                                                                              |
+| Canonical nix gates                        | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                                                                  |
