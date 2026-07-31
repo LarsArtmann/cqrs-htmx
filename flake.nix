@@ -690,9 +690,10 @@
                 runtimeInputs = [
                   goPkg
                   pkgs.nodejs
-                  pkgs.nodePackages.npm
+                  pkgs.curl
                 ];
                 text = ''
+                  export GOEXPERIMENT=jsonv2
                   cd "''${BUILD_ROOT:-$(pwd)}"
                   echo "==> Building E2E test server"
                   (cd e2e/server && go build -o /tmp/cqrs-htmx-e2e-server .)
