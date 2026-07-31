@@ -759,6 +759,57 @@
                 '';
               };
             };
+
+            check-phantom-version = {
+              type = "app";
+              meta.description = "Detect zero pseudo-versions in go-cqrs-lite dependencies (broken upstream tags)";
+              program = pkgs.writeShellApplication {
+                name = "check-phantom-version";
+                runtimeInputs = [ pkgs.ripgrep ];
+                text = ''
+                  set -euo pipefail
+                  echo "=== Phantom Version Check ==="
+                  echo "Scanning go.mod files for zero pseudo-versions..."
+                  found=0
+                  result=$(rg 'v0\.0\.0-00010101000000-000000000000' --glob 'go.mod' . 2>/dev/null || true)
+                  if [ -n "$result" ]; then
+                    echo "FAIL: zero pseudo-version detected:"
+                    echo "$result"
+                    found=1
+                  fi
+                  if [ "$found" -eq 0 ]; then
+                    echo "OK: No phantom versions detected."
+                  else
+                    exit 1
+                  fi
+                '';
+              };
+            };
+
+            check-cqrs-lint = {
+              type = "app";
+              meta.description = "Run cqrs-lint --strict on all workspace modules";
+              program = pkgs.writeShellApplication {
+                name = "check-cqrs-lint";
+                text = ''
+                  set -euo pipefail
+                  echo "=== cqrs-lint strict check ==="
+                  fail=0
+                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui; do
+                    echo "==> $mod"
+                    if ! (cd "$mod" && cqrs-lint --strict . >/dev/null 2>&1); then
+                      echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --verbose .' for details)"
+                      fail=1
+                    fi
+                  done
+                  if [ "$fail" -eq 0 ]; then
+                    echo "All modules pass cqrs-lint strict."
+                  else
+                    exit 1
+                  fi
+                '';
+              };
+            };
           };
         };
     };
