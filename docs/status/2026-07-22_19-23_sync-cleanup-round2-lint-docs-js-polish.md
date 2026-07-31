@@ -252,12 +252,12 @@ I claimed "sync-client.js must load before admin.js: it registers htmx:beforeReq
 
 ## Resolution (2026-07-31)
 
-| Item | Resolution |
-| ---- | ---------- |
-| ROADMAP.md "Not Planned" section | **Done** — now contains 15+ entries including `SyncWorkerURL(path)` (rejected across three sessions), durable scheduling, re-export middleware, and more. |
-| `syncVersion` drift prevention | **Done** — `TestSyncVersionMatchesJSConstants` asserts JS `VERSION` constants match Go `syncVersion`. Current version: `1.3.0`. |
-| JS modernization (`var` → `const`/`let`, `@ts-check`, JSDoc) | **Done** — shipped in v4.5.0. All sync JS uses modern syntax. |
-| Browser E2E tests | **Done** — 4 Playwright E2E tests pass (syncVersion 1.3.0). README exists (`e2e/README.md`). |
-| `nix run .#coverage-gate` | Now checks 9 modules. Blocked hermetically by httputil v0.8.0 — TODO_LIST P1. |
-| `SyncWorkerURL(path)` Go helper | **Won't implement** — ROADMAP "Not Planned". Consumers use `data-sync-worker-url` attribute. |
-| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |
+| Item                                                         | Resolution                                                                                                                                                |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ROADMAP.md "Not Planned" section                             | **Done** — now contains 15+ entries including `SyncWorkerURL(path)` (rejected across three sessions), durable scheduling, re-export middleware, and more. |
+| `syncVersion` drift prevention                               | **Done** — `TestSyncVersionMatchesJSConstants` asserts JS `VERSION` constants match Go `syncVersion`. Current version: `1.3.0`.                           |
+| JS modernization (`var` → `const`/`let`, `@ts-check`, JSDoc) | **Done** — shipped in v4.5.0. All sync JS uses modern syntax.                                                                                             |
+| Browser E2E tests                                            | **Done** — 4 Playwright E2E tests pass (syncVersion 1.3.0). README exists (`e2e/README.md`).                                                              |
+| `nix run .#coverage-gate`                                    | Now checks 9 modules. Blocked hermetically by httputil v0.8.0 — TODO_LIST P1.                                                                             |
+| `SyncWorkerURL(path)` Go helper                              | **Won't implement** — ROADMAP "Not Planned". Consumers use `data-sync-worker-url` attribute.                                                              |
+| Canonical nix gates                                          | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                                                                            |

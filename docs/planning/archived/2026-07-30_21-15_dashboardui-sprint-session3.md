@@ -256,13 +256,13 @@ graph TD
 
 All 21 tasks shipped. Verified against code:
 
-| Phase | Task | Status | Evidence |
-| ----- | ---- | ------ | -------- |
-| 1 (a11y) | 1a-1d: aria-labels on projection/DLQ/snapshot buttons | **Done** | 8 `aria-label` attributes across 3 handler files |
-| 2 (Mobile) | 2a-2e: hamburger toggle, table scroll, mobile CSS, touch targets | **Done** | `@media (max-width: 768px)` + hamburger toggle JS in `layout.go` |
-| 3 (Tests) | 3a-3g: health/readyz/versionz/filter/CSS-JS/pagination tests | **Done** | `handlers_health_test.go` (4 tests) + `handlers_security_test.go` (10 tests) |
-| 4 (Demo) | 4a-4c: EventBus wiring, 30+ events, build | **Done** | Commits `fc9e79e`, `e411c92`, `cb3025f` |
-| 5 (Docs) | 5a-5c: README, CHANGELOG, ROADMAP | **Done** | CHANGELOG `[Unreleased]` entries; FEATURES.md "Security & UX" row |
-| 6 (Verify) | 6a-6b: build+test+vet, commit+push | **Done** | Build passes; commits in git log |
+| Phase      | Task                                                             | Status   | Evidence                                                                     |
+| ---------- | ---------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
+| 1 (a11y)   | 1a-1d: aria-labels on projection/DLQ/snapshot buttons            | **Done** | 8 `aria-label` attributes across 3 handler files                             |
+| 2 (Mobile) | 2a-2e: hamburger toggle, table scroll, mobile CSS, touch targets | **Done** | `@media (max-width: 768px)` + hamburger toggle JS in `layout.go`             |
+| 3 (Tests)  | 3a-3g: health/readyz/versionz/filter/CSS-JS/pagination tests     | **Done** | `handlers_health_test.go` (4 tests) + `handlers_security_test.go` (10 tests) |
+| 4 (Demo)   | 4a-4c: EventBus wiring, 30+ events, build                        | **Done** | Commits `fc9e79e`, `e411c92`, `cb3025f`                                      |
+| 5 (Docs)   | 5a-5c: README, CHANGELOG, ROADMAP                                | **Done** | CHANGELOG `[Unreleased]` entries; FEATURES.md "Security & UX" row            |
+| 6 (Verify) | 6a-6b: build+test+vet, commit+push                               | **Done** | Build passes; commits in git log                                             |
 
 **All actionable items resolved.** File archived.

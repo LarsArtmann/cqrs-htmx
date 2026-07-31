@@ -213,11 +213,11 @@ The work itself is solid: a real production bug was found and fixed, 3 split bra
 
 ## Resolution (2026-07-31)
 
-| Item | Resolution |
-| ---- | ---------- |
-| FormData serialization bug fix | **Done** — FIXED. syncVersion at 1.3.0. All 4 E2E tests pass. Retry pipeline also fixed (5 fixes in CHANGELOG `[Unreleased]`). |
-| Planning doc with mermaid graph | **Done** — written in a later session (`docs/planning/2026-07-31_04-44_docs-health-completion-blitz-plan.md`). |
-| `git push` | **Done** — pushed in subsequent session. |
-| FEATURES.md / ROADMAP.md freshness | **Done** — both updated with current coverage numbers and version refs. |
-| dashboardui test coverage | **Partially done** — 78.7% (gate 60%), 9 test files, ~101 tests. More handlers need coverage — TODO_LIST P2. |
-| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |
+| Item                               | Resolution                                                                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| FormData serialization bug fix     | **Done** — FIXED. syncVersion at 1.3.0. All 4 E2E tests pass. Retry pipeline also fixed (5 fixes in CHANGELOG `[Unreleased]`). |
+| Planning doc with mermaid graph    | **Done** — written in a later session (`docs/planning/2026-07-31_04-44_docs-health-completion-blitz-plan.md`).                 |
+| `git push`                         | **Done** — pushed in subsequent session.                                                                                       |
+| FEATURES.md / ROADMAP.md freshness | **Done** — both updated with current coverage numbers and version refs.                                                        |
+| dashboardui test coverage          | **Partially done** — 78.7% (gate 60%), 9 test files, ~101 tests. More handlers need coverage — TODO_LIST P2.                   |
+| Canonical nix gates                | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                                                 |

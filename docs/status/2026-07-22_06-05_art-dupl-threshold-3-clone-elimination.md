@@ -159,11 +159,11 @@ Nothing.
 
 ## Resolution (2026-07-31)
 
-| Item | Resolution |
-| ---- | ---------- |
-| `readModelCore` pattern (shared read-model delegation) | **Done** — shipped in v4.5.0. All SQL read models use the shared `readModelCore[T]` pattern. |
-| art-dupl at threshold 3 → 0 clones | **Done** — rounds 3 (threshold 3) and 4 (threshold 2) reached 0 clone groups on 2026-07-29. |
-| httputil v0.5.1 publication | Now at v0.7.1; blocked at v0.8.0 for httputil consolidation — TODO_LIST P1. |
-| go-cqrs-lite pseudo-versions | Still broken (13 of ~40 tags). `go.work` local replaces still required — AGENTS.md documents this. |
-| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |
-| Lint at 0 issues across all modules | **Done** (2026-07-28). |
+| Item                                                   | Resolution                                                                                         |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `readModelCore` pattern (shared read-model delegation) | **Done** — shipped in v4.5.0. All SQL read models use the shared `readModelCore[T]` pattern.       |
+| art-dupl at threshold 3 → 0 clones                     | **Done** — rounds 3 (threshold 3) and 4 (threshold 2) reached 0 clone groups on 2026-07-29.        |
+| httputil v0.5.1 publication                            | Now at v0.7.1; blocked at v0.8.0 for httputil consolidation — TODO_LIST P1.                        |
+| go-cqrs-lite pseudo-versions                           | Still broken (13 of ~40 tags). `go.work` local replaces still required — AGENTS.md documents this. |
+| Canonical nix gates                                    | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                     |
+| Lint at 0 issues across all modules                    | **Done** (2026-07-28).                                                                             |

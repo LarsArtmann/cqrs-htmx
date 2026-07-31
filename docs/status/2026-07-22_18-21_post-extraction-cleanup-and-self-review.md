@@ -188,11 +188,11 @@ The current design uses a SharedWorker with a hello/bye protocol and `Map<tabId,
 
 ## Resolution (2026-07-31)
 
-| Item | Resolution |
-| ---- | ---------- |
-| Offline sync extracted to root module | **Done** — ADR-0042, shipped in v4.5.0. `SyncWorkerHandler()` / `SyncClientHandler()` + `With` variants serve from root module. |
-| Browser E2E tests for sync system | **Done** — 4 E2E Playwright tests pass (offline enqueue, online flush, cross-session recovery, multiple commands). syncVersion at 1.3.0. |
-| FormData serialization bug | **Done** — FIXED in CHANGELOG `[Unreleased]`. `htmx:sendError` handler converts FormData to plain object before postMessage. |
-| syncVersion constant | Now at `1.3.0` (was "1.0.0"). `TestSyncVersionMatchesJSConstants` prevents drift. |
-| Integration into flake.nix/CI | Still open — TODO_LIST P2. |
-| Canonical nix gates | **Blocked** by httputil v0.8.0 — TODO_LIST P1. |
+| Item                                  | Resolution                                                                                                                               |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Offline sync extracted to root module | **Done** — ADR-0042, shipped in v4.5.0. `SyncWorkerHandler()` / `SyncClientHandler()` + `With` variants serve from root module.          |
+| Browser E2E tests for sync system     | **Done** — 4 E2E Playwright tests pass (offline enqueue, online flush, cross-session recovery, multiple commands). syncVersion at 1.3.0. |
+| FormData serialization bug            | **Done** — FIXED in CHANGELOG `[Unreleased]`. `htmx:sendError` handler converts FormData to plain object before postMessage.             |
+| syncVersion constant                  | Now at `1.3.0` (was "1.0.0"). `TestSyncVersionMatchesJSConstants` prevents drift.                                                        |
+| Integration into flake.nix/CI         | Still open — TODO_LIST P2.                                                                                                               |
+| Canonical nix gates                   | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                                                           |
