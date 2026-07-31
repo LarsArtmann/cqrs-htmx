@@ -17,6 +17,7 @@ Investigated the recurring `govalid-generate` buildflow failure. Identified the 
 ### 1. Symptom Identified and Reproduced
 
 The `govalid-generate` failure cascades as:
+
 1. `govalid` invokes `go/packages.Load()` with `NeedTypes` (type-checking mode)
 2. `go/packages` shells out to `go list -compiled=true -export=true ./...`
 3. The `-export` flag forces Go to **compile dependencies** and write export data to `$GOCACHE`
@@ -26,15 +27,15 @@ The `govalid-generate` failure cascades as:
 
 ### 2. Hard Statistics Gathered (from buildflow SQLite timing DB)
 
-| Metric | Value |
-|---|---|
-| Total govalid-generate runs | 1,757 |
-| Total failures | 377 (**21.5% per-attempt failure rate**) |
-| Retry sessions triggered | 111 |
-| Eventually recovered via retry | 107/111 (96.4%) |
-| **Hard failures (exhausted all retries)** | **4** — this is what we hit |
-| Wasted retry attempts | 1,612 |
-| govalid-generate is the | **#1 flakiest step** (377 failures vs 17 for #2) |
+| Metric                                    | Value                                            |
+| ----------------------------------------- | ------------------------------------------------ |
+| Total govalid-generate runs               | 1,757                                            |
+| Total failures                            | 377 (**21.5% per-attempt failure rate**)         |
+| Retry sessions triggered                  | 111                                              |
+| Eventually recovered via retry            | 107/111 (96.4%)                                  |
+| **Hard failures (exhausted all retries)** | **4** — this is what we hit                      |
+| Wasted retry attempts                     | 1,612                                            |
+| govalid-generate is the                   | **#1 flakiest step** (377 failures vs 17 for #2) |
 
 ### 3. Confirmed: Codebase is NOT Broken
 
@@ -60,6 +61,7 @@ The `govalid-generate` failure cascades as:
 ### 6. Verified Existing AGENTS.md Documentation
 
 The AGENTS.md already documents this as a "known transient flake" with:
+
 - `max_concurrency: 2` (reduced from 4)
 - `retry_modifier: conservative` (auto-retries transient failures)
 - Documented as `go/packages` loader race
@@ -114,6 +116,7 @@ This was **wrong on multiple levels**:
 ### Stopped Investigation Too Early
 
 After finding the `max_concurrency: 32` telemetry anomaly (which turned out to be a red herring — it's the CPU count default reported in telemetry, not the actual concurrency used), I pivoted to the race condition diagnosis and then STOPPED. I should have continued to:
+
 - Test whether pre-warming eliminates the race
 - Profile the actual time cost of serialization vs. retry overhead
 - Explore buildflow's data-flow scheduling for step dependencies
@@ -121,6 +124,7 @@ After finding the `max_concurrency: 32` telemetry anomaly (which turned out to b
 ### Asked "Want me to apply it?" Instead of Acting Autonomously
 
 The project philosophy says "BE AUTONOMOUS — don't ask questions." I should have either:
+
 - Applied the fix and tested it, OR
 - Investigated better solutions first
 
@@ -146,6 +150,7 @@ The project philosophy says "BE AUTONOMOUS — don't ask questions." I should ha
 ## F) Up to 50 Things We Should Get Done Next
 
 ### Immediate (Fix the Flake)
+
 1. Test pre-warm fix: `go build ./... && buildflow -s govalid-generate` — does it eliminate the race?
 2. Test per-module GOCACHE isolation — does each govalid getting its own cache eliminate failures?
 3. Check if govalid has `--serial`, `--no-cache`, or `--single-threaded` flags
@@ -159,12 +164,14 @@ The project philosophy says "BE AUTONOMOUS — don't ask questions." I should ha
 11. Test if `go clean -cache` before buildflow reduces the race (fresh cache = fewer stale reads)
 
 ### Documentation Updates (After Fix)
+
 12. Update AGENTS.md gotcha with the REAL fix (not max_concurrency: 1)
 13. Update `.buildflow.yml` comments with the real fix explanation
 14. Remove or revise the "known transient flake" documentation once fixed
 15. Document the pre-warm mechanism in AGENTS.md if it works
 
 ### Build Infrastructure
+
 16. Add a pre-warm step to `.buildflow.yml` if buildflow supports it (or a pre-commit hook)
 17. Consider adding `go build ./...` to the Nix devShell `shellHook` to warm cache on entry
 18. Investigate whether `GOCACHE` should be set explicitly in flake.nix for reproducibility
@@ -173,6 +180,7 @@ The project philosophy says "BE AUTONOMOUS — don't ask questions." I should ha
 21. Set up a periodic `buildflow timings --flaky` check to catch new flakes early
 
 ### Test Flake Analysis (from timing DB)
+
 22. Investigate `test-race` flakiness (15 failures / 92 runs = 16% failure rate — #2 flakiest)
 23. Investigate `go-fix` flakiness (17 failures / 79 runs = 22% — worse than govalid!)
 24. Investigate `go-auto-upgrade` failures (9 failures / 237 runs)
@@ -180,12 +188,14 @@ The project philosophy says "BE AUTONOMOUS — don't ask questions." I should ha
 26. Check if `test-race` failures correlate with concurrent govalid runs (shared Go build cache)
 
 ### Code Quality (noticed during investigation)
+
 27. The `.buildflow.yml` has `todo_severity: debug` but `buildflow config view` shows `TODO Min Severity: info` — config key might be wrong
 28. `max_concurrency: 32` appears in telemetry despite config saying 2 — telemetry reports CPU count, not actual concurrency. This is confusing/misleading.
 29. Buildflow's `verify-config` does NOT warn on unknown YAML keys — `ZZZ_INVALID_KEY_TEST` was silently accepted. This is a buildflow bug.
 30. The `.buildflow.yml` comment about "Key-name trap: retry_modifier vs retry_profile" — this trap was documented but the key IS correct. The comment is misleading.
 
 ### Broader Workspace Health
+
 31. Run a full `nix run .#test` to confirm all 15 modules pass
 32. Run `nix run .#lint` to confirm 0 issues across all modules
 33. Check if `go.work` replace directives can be reduced (go-cqrs-lite publishing bug — any progress?)
@@ -193,6 +203,7 @@ The project philosophy says "BE AUTONOMOUS — don't ask questions." I should ha
 35. Check if the dashboard-demo example (mentioned in the error) has any special characteristics
 
 ### Buildflow Tooling
+
 36. Check if buildflow has a `--serial-steps` flag for specific steps
 37. Explore `buildflow explain govalid-generate` more deeply for configuration options
 38. Check if buildflow supports `depends_on` or `after` in `.buildflow.yml`
@@ -200,6 +211,7 @@ The project philosophy says "BE AUTONOMOUS — don't ask questions." I should ha
 40. Investigate if buildflow caches govalid results and whether stale cache causes issues
 
 ### Long-term Improvements
+
 41. Consider migrating from govalid to a validation library that doesn't use `go/packages` (avoids the race entirely)
 42. Consider a `make validate` or `just validate` target that pre-warms then runs govalid serially
 43. Evaluate whether govalid's value justifies its flakiness cost (1,612 wasted attempts)
@@ -231,11 +243,11 @@ The retry system recovers 96.4% of the time. The 4 hard failures represent a 0.2
 
 ## Session Self-Assessment
 
-| Aspect | Rating | Notes |
-|---|---|---|
-| Symptom identification | Good | Found the go/packages cache race, gathered hard statistics |
-| Root cause depth | Mediocre | Identified the symptom but didn't verify the exact write contention mechanism |
-| Fix quality | **Poor** | Proposed a band-aid (`max_concurrency: 1`) that kills parallelism |
-| Autonomy | Poor | Asked "Want me to apply it?" instead of testing better solutions first |
-| Data backing | Poor | Claimed "faster in practice" with zero benchmarks |
-| Philosophy adherence | Poor | Violated "Best solution, not fastest" from AGENTS.md |
+| Aspect                 | Rating   | Notes                                                                         |
+| ---------------------- | -------- | ----------------------------------------------------------------------------- |
+| Symptom identification | Good     | Found the go/packages cache race, gathered hard statistics                    |
+| Root cause depth       | Mediocre | Identified the symptom but didn't verify the exact write contention mechanism |
+| Fix quality            | **Poor** | Proposed a band-aid (`max_concurrency: 1`) that kills parallelism             |
+| Autonomy               | Poor     | Asked "Want me to apply it?" instead of testing better solutions first        |
+| Data backing           | Poor     | Claimed "faster in practice" with zero benchmarks                             |
+| Philosophy adherence   | Poor     | Violated "Best solution, not fastest" from AGENTS.md                          |
