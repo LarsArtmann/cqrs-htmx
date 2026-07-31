@@ -5,18 +5,21 @@
 build_mode: full
 
 # Parallel execution
-# Reduced from 4 to 2 because govalid-generate (go/packages loader) intermittently
-# fails to resolve sibling modules under higher concurrency, producing cascading
-# "undefined: command" / "markers: failed prerequisites" errors that disappear on
-# re-run. This is a known transient flake in this workspace, not a code bug.
+# Kept at 2 as defense-in-depth. The primary fix for the govalid-generate flake
+# is the GOCACHE pre-warming script (scripts/prewarm-gocache.sh) called from the
+# pre-commit hook. Pre-warming compiles all shared dependencies once (serialized)
+# before concurrent tools start, converting GOCACHE access from WRITE (race-prone)
+# to READ (safe). With pre-warming in place, max_concurrency could safely return
+# to 4, but 2 is kept as a safety margin until post-fix failure rate is verified
+# at 0% over a sufficient sample.
 parallel: true
 max_concurrency: 2
 
 # Retry modifier: conservative retries transiently-failing steps with backoff.
-# This auto-recovers the known govalid-generate flake (go/packages loader race
-# documented above) instead of hard-failing and requiring a manual re-run.
-# Valid values: aggressive, conservative, none. conservative avoids masking real
-# failures the way aggressive might. (The --retry-profile flag sets this same key.)
+# With the GOCACHE pre-warming fix, govalid-generate failures should drop to ~0%.
+# Retries remain as a safety net for any residual transient failures.
+# Valid values: aggressive, conservative, none. (The --retry-profile flag sets
+# this same key.)
 retry_modifier: conservative
 
 # File settings

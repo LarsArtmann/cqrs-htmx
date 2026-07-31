@@ -7,8 +7,12 @@
 #   buildflow module-fanout processes (govalid, golangci-lint, go-auto-upgrade)
 #   compile them concurrently to the same GOCACHE, they race, producing
 #   cascading "markers: failed prerequisites" / "could not import encoding/json/v2"
-#   errors that disappear on re-run. This is the #1 flakiest buildflow step
-#   (20% per-attempt failure rate over 1867 runs).
+#   errors that disappear on re-run. Historical failure rate: 16.6% in pre-commit
+#   mode, 12.0% in full mode (buildflow SQLite timing DB, 6,072 records).
+#
+#   Why pre-commit is worse: buildflow skips `workspace-build-verify` (which runs
+#   `go build ./...`) in pre-commit mode AND in check mode (phantom-skip). So the
+#   GOCACHE is never pre-warmed before concurrent analysis tools start.
 #
 # FIX:
 #   Compile all workspace modules once (serialized) BEFORE concurrent analysis
@@ -17,33 +21,19 @@
 #   the race only occurs on concurrent WRITES.
 #
 # PERFORMANCE:
-#   Warm cache: <1s total (all 18 modules hit cache, no compilation needed).
-#   Cold cache: ~5s (one-time cost, amortized across all subsequent tool runs).
+#   Warm cache: ~3s total (all modules hit cache, no compilation needed).
+#   Cold cache: ~5-10s (one-time cost, amortized across all subsequent tool runs).
 
 set -uo pipefail
 export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
 
-# All workspace modules from go.work (kept in sync manually).
-modules=(
-  .
-  identity-model
-  usermgmt
-  usermgmt/totp
-  usermgmt/webauthn
-  usermgmt/oauth2
-  adminui
-  loginpage
-  dashboardui
-  integration_test
-  e2e/server
-  examples/datastar-demo
-  examples/admin-demo
-  examples/basic
-  examples/dashboard-demo
-  examples/middleware-demo
-  examples/observability-demo
-  examples/catalog-demo
-)
+# Auto-discover workspace modules from go.work (no manual list to maintain).
+mapfile -t modules < <(go work edit -json 2>/dev/null | grep -o '"Path":"[^"]*"' | cut -d'"' -f4)
+
+if [ ${#modules[@]} -eq 0 ]; then
+  echo "prewarm-gocache: WARNING: no workspace modules found in go.work" >&2
+  exit 0
+fi
 
 for mod in "${modules[@]}"; do
   (cd "$mod" && go build ./... 2>/dev/null) || {
