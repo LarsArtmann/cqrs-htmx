@@ -118,13 +118,14 @@ func seedDemoData(
 		)
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
+		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
 		renamed, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
 			"user.renamed",
 			aggID,
 			"User",
 			event.Version(2),
 			map[string]any{"name": name + " Jr."},
-		) //cqrs-lint:ignore(E004) demo data
+		)
 		_ = store.Save(ctx, ref, []event.Event{renamed}, event.Version(1))
 
 		// Record a command for this user
@@ -150,12 +151,13 @@ func seedDemoData(
 		aggID := id.NewStreamID()
 		ref := id.NewStreamRef("Order", aggID)
 
+		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
 		placed, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
 			"order.placed",
 			aggID,
 			"Order",
 			event.Version(1),
-			map[string]any{ //cqrs-lint:ignore(E004) demo data
+			map[string]any{
 				"customerId": fmt.Sprintf("cust-%d", i),
 				"total":      float64(i * 2999),
 				"items":      i,
@@ -163,12 +165,13 @@ func seedDemoData(
 		)
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
+		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
 		shipped, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
 			"order.shipped",
 			aggID,
 			"Order",
 			event.Version(2),
-			map[string]any{ //cqrs-lint:ignore(E004) demo data
+			map[string]any{
 				"trackingNumber": fmt.Sprintf("TRK%d", i*1000+i),
 			},
 		)
