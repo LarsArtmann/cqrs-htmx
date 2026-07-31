@@ -57,6 +57,7 @@ The SQL session store already detects MySQL from the dialect string and generate
 If migrating from an existing PostgreSQL deployment:
 
 1. Export events from Postgres:
+
 ```sql
 COPY (SELECT * FROM events ORDER BY stream_id, version) TO '/tmp/events.csv' CSV HEADER;
 ```
@@ -69,13 +70,13 @@ COPY (SELECT * FROM events ORDER BY stream_id, version) TO '/tmp/events.csv' CSV
 
 ## Key Differences from PostgreSQL
 
-| Feature | PostgreSQL | MySQL |
-| ------- | ---------- | ----- |
-| Placeholder | `$1, $2` | `?` |
-| Upsert | `ON CONFLICT ... DO NOTHING` | `ON DUPLICATE KEY UPDATE col = col` |
-| Binary type | `BYTEA` | `LONGBLOB` |
-| Timestamp | `TIMESTAMPTZ` | `DATETIME(3)` |
-| Identifier quoting | `"column"` | `` `column` `` |
+| Feature            | PostgreSQL                   | MySQL                               |
+| ------------------ | ---------------------------- | ----------------------------------- |
+| Placeholder        | `$1, $2`                     | `?`                                 |
+| Upsert             | `ON CONFLICT ... DO NOTHING` | `ON DUPLICATE KEY UPDATE col = col` |
+| Binary type        | `BYTEA`                      | `LONGBLOB`                          |
+| Timestamp          | `TIMESTAMPTZ`                | `DATETIME(3)`                       |
+| Identifier quoting | `"column"`                   | `` `column` ``                      |
 
 ## See Also
 

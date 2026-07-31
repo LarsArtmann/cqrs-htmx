@@ -156,6 +156,7 @@ db.SetConnMaxLifetime(5 * time.Minute)
 ### Error Handling
 
 MySQL errors are automatically classified by `classifyMySQLError` in go-cqrs-lite:
+
 - Error 1062 (duplicate entry) → **Conflict** (409)
 - Error 1205 (lock wait timeout), 1213 (deadlock) → **Transient** (503, retry)
 - Error 2003/2006/2013 (connection errors) → **Transient** (503)

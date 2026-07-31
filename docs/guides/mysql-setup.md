@@ -27,14 +27,14 @@ if err != nil { /* ... */ }
 
 The `"mysql"` dialect maps to `go-cqrs-lite`'s `MySQLDialect`, which provides:
 
-| Feature | MySQL-specific behavior |
-| ------- | ----------------------- |
-| Placeholders | `?` (not `$1`, `$2`) |
-| Schema | `LONGBLOB` for payload, `JSON` for metadata, `DATETIME(3)` for timestamps |
-| Upsert | `ON DUPLICATE KEY UPDATE col = col` (self-assign no-op) |
-| Identifier quoting | Backticks (`` `stream_id` ``) |
-| Duplicate-key detection | MySQL error 1062 + `"Duplicate entry"` string fallback |
-| Error classification | 1062→Conflict, 1205/1213/2003/2006/2013→Transient (via `classifyMySQLError`) |
+| Feature                 | MySQL-specific behavior                                                      |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| Placeholders            | `?` (not `$1`, `$2`)                                                         |
+| Schema                  | `LONGBLOB` for payload, `JSON` for metadata, `DATETIME(3)` for timestamps    |
+| Upsert                  | `ON DUPLICATE KEY UPDATE col = col` (self-assign no-op)                      |
+| Identifier quoting      | Backticks (`` `stream_id` ``)                                                |
+| Duplicate-key detection | MySQL error 1062 + `"Duplicate entry"` string fallback                       |
+| Error classification    | 1062→Conflict, 1205/1213/2003/2006/2013→Transient (via `classifyMySQLError`) |
 
 The events table DDL is auto-created by `EventSchema()`. Indexes use inline `KEY`/`UNIQUE KEY` syntax.
 
@@ -68,15 +68,15 @@ These use `MySQLDialect{}` internally for correct `?` placeholders, `ON DUPLICAT
 
 ## What's Supported vs. What's Not
 
-| Component | MySQL support | Notes |
-| --------- | ------------- | ----- |
-| Event store | ✅ Full | `NewSQLEventStore(ctx, db, "mysql")` |
-| Error classification | ✅ Full | `classifyMySQLError` in go-cqrs-lite |
-| Duplicate-key detection | ✅ Full | Error 1062 detection |
-| Session store | ⚠️ Placeholders | Uses `?` placeholders (MySQL-compatible), but no dedicated dialect |
-| Snapshot store | ⚠️ Manual | Pass the same `*sql.DB` with `MySQLDialect` |
-| Checkpoint store | ⚠️ Manual | Same as snapshot store |
-| Convenience constructor | ❌ Not yet | `NewMySQLEventSourcedSetup` is planned |
+| Component               | MySQL support   | Notes                                                              |
+| ----------------------- | --------------- | ------------------------------------------------------------------ |
+| Event store             | ✅ Full         | `NewSQLEventStore(ctx, db, "mysql")`                               |
+| Error classification    | ✅ Full         | `classifyMySQLError` in go-cqrs-lite                               |
+| Duplicate-key detection | ✅ Full         | Error 1062 detection                                               |
+| Session store           | ⚠️ Placeholders | Uses `?` placeholders (MySQL-compatible), but no dedicated dialect |
+| Snapshot store          | ⚠️ Manual       | Pass the same `*sql.DB` with `MySQLDialect`                        |
+| Checkpoint store        | ⚠️ Manual       | Same as snapshot store                                             |
+| Convenience constructor | ❌ Not yet      | `NewMySQLEventSourcedSetup` is planned                             |
 
 ## Connection String Tips
 

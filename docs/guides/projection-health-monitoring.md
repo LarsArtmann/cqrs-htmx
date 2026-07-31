@@ -145,6 +145,7 @@ cfg := usermgmt.ServiceConfig{
 ```
 
 The callback receives:
+
 - `projectionName` — the projection's `Name()` (e.g., `"user-read-model"`, `"casbin-projection"`)
 - `lastError` — the error message from the final crash-restart attempt
 
