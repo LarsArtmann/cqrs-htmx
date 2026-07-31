@@ -54,7 +54,7 @@ func newTestProjectionHost(t *testing.T) *projectionhost.Host {
 		t.Fatalf("projectionhost.New: %v", err)
 	}
 
-	if err := host.Register(&countingProjection{name: "test-projection"}); err != nil {
+	if err := host.Register(&countingProjection{name: "test-projection", count: 0}); err != nil {
 		t.Fatalf("Register: %v", err)
 	}
 

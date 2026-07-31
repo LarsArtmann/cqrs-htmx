@@ -53,8 +53,10 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 			Checks: make(map[string]readinessDetail, len(checks)),
 		}
 
-		var mu sync.Mutex
-		var wg sync.WaitGroup
+		var (
+			mu sync.Mutex
+			wg sync.WaitGroup
+		)
 
 		allOK := true
 
@@ -64,7 +66,8 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 			go func(namedCheck NamedCheck) {
 				defer wg.Done()
 
-				detail := readinessDetail{Status: "ok"} //nolint:exhaustruct // Error is omitempty; zero value is correct when check passes
+				//nolint:exhaustruct // Error is omitempty; zero value is correct when check passes
+				detail := readinessDetail{Status: "ok"}
 
 				if err := namedCheck.Check(); err != nil {
 					detail.Status = "fail"
