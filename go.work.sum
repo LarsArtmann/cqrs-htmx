@@ -135,6 +135,8 @@ github.com/larsartmann/go-cqrs-lite/kv/v3 v3.7.3/go.mod h1:WrTBX+ewhkT+1Eyfcz4fa
 github.com/larsartmann/go-cqrs-lite/memory/v2 v2.0.0/go.mod h1:SWmYefGEomBfNfYINnnxcHs6WPjrDxRMS+Onpid1GJY=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-20260711202820-6d093b4c0e3f h1:/NDyNQpKzvZqSgpx8vGAJGPzL3Tka7WvlcK9m5GsVww=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.0.0-20260711202820-6d093b4c0e3f/go.mod h1:ynDsyIzY0WltWvG9PKoCWSkXCrOPOLpOU+RwYr3P3U4=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.2.0 h1:i2kGSC5u8J9d181DUTQhW+YNIzIT3EiYhPG2/ZAeYxs=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.2.0/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
 github.com/larsartmann/go-cqrs-lite/otel/v3 v3.7.3/go.mod h1:L2MNWMOYRGwh2nbS1bc+gAalgdkWNng0dwEyemMEwno=
 github.com/larsartmann/go-cqrs-lite/query/v2 v2.0.0 h1:Cxqtdg0KtW13dHV8xPvrbdKMS4pa7lAVa7NI960akbI=
 github.com/larsartmann/go-cqrs-lite/query/v2 v2.0.0/go.mod h1:8hBFmtAEChRbz3Ms+OKRdPEDlqEejUePELXKkRU2BNU=
