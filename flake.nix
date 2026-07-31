@@ -645,7 +645,7 @@
                 text = ''
                   for mod in adminui loginpage; do
                     echo "==> $mod"
-                    (cd "$mod" && templ generate && gofmt -w *_templ.go)
+                    (cd "$mod" && templ generate && gofmt -w ./*_templ.go)
                     if ! git diff --exit-code -- "$mod"/*_templ.go; then
                       echo ""
                       echo "FAIL: Generated _templ.go files in $mod differ from committed versions."
