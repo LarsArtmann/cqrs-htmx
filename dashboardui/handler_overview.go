@@ -73,7 +73,8 @@ type recentEvent struct {
 	EventID  string
 }
 
-func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:cyclop,gocognit,nestif // multi-source stat aggregation
+//nolint:cyclop,gocognit // multi-source aggregation
+func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 	stats := overviewStats{
 		TotalAggregates: "0",
 		TotalEvents:     "0",
@@ -89,7 +90,7 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 		}
 	}
 
-	if d.cfg.SeekableJournal != nil {
+	if d.cfg.SeekableJournal != nil { //nolint:nestif // optional data source branching
 		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, overviewCountLimit)
 		if err == nil {
 			for i, evt := range events {

@@ -415,7 +415,7 @@ func (d *Dashboard) loadFilteredEvents(
 	return filtered, nil
 }
 
-func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg paginationState, filter eventFilter) string {
+func (d *Dashboard) renderEvents(p pageData, events []event.Event, page paginationState, filter eventFilter) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 		b.WriteString(`<div class="page-header"><h2>Event Stream</h2></div>`)
@@ -456,7 +456,7 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, pg pagination
 			rows.String(),
 		)
 
-		b.WriteString(renderPagination(p.BasePath, "/events", pg, filter.extraParams()))
+		b.WriteString(renderPagination(p.BasePath, "/events", page, filter.extraParams()))
 
 		return b.String()
 	})
