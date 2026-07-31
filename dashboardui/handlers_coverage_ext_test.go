@@ -28,6 +28,7 @@ func (f *fakeSeekableJournal) ReadAll(_ context.Context) ([]event.Event, error) 
 	if f.allErr != nil {
 		return nil, f.allErr
 	}
+
 	return f.events, nil
 }
 
@@ -35,6 +36,7 @@ func (f *fakeSeekableJournal) ReadFrom(_ context.Context, _ id.EventID, _ int) (
 	if f.readErr != nil {
 		return nil, f.readErr
 	}
+
 	return f.events, nil
 }
 
@@ -47,6 +49,7 @@ func (f *fakeEventByIDLoader) LoadByEventID(_ context.Context, _ id.EventID) (ev
 	if f.err != nil {
 		return nil, f.err
 	}
+
 	return f.evt, nil
 }
 
@@ -74,17 +77,23 @@ func (e *errorSnapshotStore) Delete(_ context.Context, _ id.StreamRef) error    
 func (e *errorSnapshotStore) Load(_ context.Context, _ id.StreamRef) (*snapshot.Snapshot, error) {
 	return nil, e.loadErr
 }
-func (e *errorSnapshotStore) LoadAtVersion(_ context.Context, _ id.StreamRef, _ event.Version) (*snapshot.Snapshot, error) {
+
+func (e *errorSnapshotStore) LoadAtVersion(
+	_ context.Context, _ id.StreamRef, _ event.Version,
+) (*snapshot.Snapshot, error) {
 	return nil, e.loadErr
 }
 
 func makeTestEvent(t *testing.T, eventType string, version event.Version) event.Event {
 	t.Helper()
+
 	aggID := id.NewStreamID()
+
 	evt, err := event.New(event.Type(eventType), aggID, "TestAggregate", version, map[string]string{"key": "value"})
 	if err != nil {
 		t.Fatalf("event.New: %v", err)
 	}
+
 	return evt
 }
 
@@ -92,16 +101,19 @@ func makeTestEvent(t *testing.T, eventType string, version event.Version) event.
 
 func TestOverviewStats_SeekableJournal(t *testing.T) {
 	evt := makeTestEvent(t, "test.created", 1)
+
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{events: []event.Event{evt}}, //nolint:exhaustruct // test fake: only events needed
+		SeekableJournal: &fakeSeekableJournal{events: []event.Event{evt}},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	stats := d.overviewStats(context.Background())
 	if stats.TotalEvents != "1" {
 		t.Errorf("expected TotalEvents=1, got %s", stats.TotalEvents)
 	}
+
 	if len(stats.RecentEvents) != 1 {
 		t.Errorf("expected 1 recent event, got %d", len(stats.RecentEvents))
 	}
@@ -109,11 +121,12 @@ func TestOverviewStats_SeekableJournal(t *testing.T) {
 
 func TestOverviewStats_SeekableJournalError(t *testing.T) {
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{readErr: errors.New("boom")}, //nolint:exhaustruct // test fake: only readErr needed
+		SeekableJournal: &fakeSeekableJournal{readErr: errors.New("boom")},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	stats := d.overviewStats(context.Background())
 	if stats.TotalEvents != "0" {
 		t.Errorf("expected TotalEvents=0 on error, got %s", stats.TotalEvents)
@@ -122,11 +135,12 @@ func TestOverviewStats_SeekableJournalError(t *testing.T) {
 
 func TestOverviewStats_JournalError(t *testing.T) {
 	d, err := New(Config{
-		Journal: &fakeSeekableJournal{allErr: errors.New("readall failed")}, //nolint:exhaustruct // test fake: only allErr needed
+		Journal: &fakeSeekableJournal{allErr: errors.New("readall failed")},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	stats := d.overviewStats(context.Background())
 	if stats.TotalEvents != "0" {
 		t.Errorf("expected TotalEvents=0 on error, got %s", stats.TotalEvents)
@@ -138,12 +152,14 @@ func TestOverviewStats_SeekableJournalManyEvents(t *testing.T) {
 	for i := range events {
 		events[i] = makeTestEvent(t, "test.bulk", event.Version(i+1))
 	}
+
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{events: events}, //nolint:exhaustruct // test fake: only events needed
+		SeekableJournal: &fakeSeekableJournal{events: events},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	stats := d.overviewStats(context.Background())
 	if stats.TotalEvents != strconv.Itoa(overviewCountLimit+1)+"+" {
 		t.Errorf("expected TotalEvents with + suffix, got %s", stats.TotalEvents)
@@ -158,6 +174,7 @@ func TestEventDetailHandler_InvalidID(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/events/not-a-valid-ulid", nil)
 	r.SetPathValue("id", "not-a-valid-ulid")
 	d.eventDetailHandler(w, r)
+
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("expected 400, got %d", w.Code)
 	}
@@ -170,6 +187,7 @@ func TestEventDetailHandler_NotFound(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/events/"+eid.String(), nil)
 	r.SetPathValue("id", eid.String())
 	d.eventDetailHandler(w, r)
+
 	if w.Code != http.StatusNotFound {
 		t.Errorf("expected 404, got %d", w.Code)
 	}
@@ -177,17 +195,20 @@ func TestEventDetailHandler_NotFound(t *testing.T) {
 
 func TestEventDetailHandler_EventByIDLoader(t *testing.T) {
 	evt := makeTestEvent(t, "test.loaded", 1)
+
 	d, err := New(Config{
-		EventByIDLoader: &fakeEventByIDLoader{evt: evt}, //nolint:exhaustruct // test fake: only evt needed
+		EventByIDLoader: &fakeEventByIDLoader{evt: evt},
 		Journal:         &stubJournal{},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/events/"+evt.ID().String(), nil)
 	r.SetPathValue("id", evt.ID().String())
 	d.eventDetailHandler(w, r)
+
 	if w.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d (body: %s)", w.Code, w.Body.String())
 	}
@@ -195,6 +216,7 @@ func TestEventDetailHandler_EventByIDLoader(t *testing.T) {
 
 func TestLoadEventByID_NoSource(t *testing.T) {
 	d := &Dashboard{cfg: Config{}}
+
 	_, err := d.loadEventByID(context.Background(), id.NewEventID())
 	if err == nil {
 		t.Fatal("expected error with no event source")
@@ -214,6 +236,7 @@ func TestDLQDetailHandler_WithEntries(t *testing.T) {
 			FailedAt:       time.Now(),
 		},
 	}
+
 	d, err := New(Config{
 		Journal:         &stubJournal{},
 		DeadLetterStore: &populatedDeadLetterStore{entries: entries},
@@ -221,11 +244,13 @@ func TestDLQDetailHandler_WithEntries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/dead-letters/test-proj/evt-1", nil)
 	r.SetPathValue("projection", "test-proj")
 	r.SetPathValue("id", "evt-1")
 	d.dlqDetailHandler(w, r)
+
 	if w.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", w.Code)
 	}
@@ -239,9 +264,11 @@ func TestDLQIndexHandler_WithDeadLetterStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/dead-letters", nil)
 	d.dlqIndexHandler(w, r)
+
 	if w.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", w.Code)
 	}
@@ -259,6 +286,7 @@ func TestRenderDLQ_WithEntries(t *testing.T) {
 			ErrorFamily:    "Transient",
 		},
 	}
+
 	d, err := New(Config{
 		Journal:         &stubJournal{},
 		DeadLetterStore: &populatedDeadLetterStore{entries: entries},
@@ -266,16 +294,20 @@ func TestRenderDLQ_WithEntries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/dead-letters/proj-a", nil)
 	r.SetPathValue("projection", "proj-a")
 	d.dlqDetailHandler(w, r)
+
 	if w.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", w.Code)
 	}
+
 	if !strings.Contains(w.Body.String(), "proj-a") {
 		t.Error("expected body to contain projection name")
 	}
+
 	if !strings.Contains(w.Body.String(), "evt-1") {
 		t.Error("expected body to contain event ID")
 	}
@@ -290,6 +322,7 @@ func TestSnapshotDetailHandler_InvalidRef(t *testing.T) {
 	r.SetPathValue("streamType", "")
 	r.SetPathValue("streamID", "")
 	d.snapshotDetailHandler(w, r)
+
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("expected 400, got %d", w.Code)
 	}
@@ -303,11 +336,13 @@ func TestSnapshotDetailHandler_StoreError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/snapshots/User/01HXTEST", nil)
 	r.SetPathValue("type", "User")
 	r.SetPathValue("id", "01HXTEST")
 	d.snapshotDetailHandler(w, r)
+
 	if w.Code != http.StatusOK {
 		t.Errorf("expected 200 (renders 'no snapshot' page), got %d", w.Code)
 	}
@@ -317,16 +352,19 @@ func TestSnapshotDetailHandler_StoreError(t *testing.T) {
 
 func TestLoadRecentEvents_SeekableJournal(t *testing.T) {
 	evt := makeTestEvent(t, "test.recent", 1)
+
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{events: []event.Event{evt}}, //nolint:exhaustruct // test fake: only events needed
+		SeekableJournal: &fakeSeekableJournal{events: []event.Event{evt}},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	events, err := d.loadRecentEvents(context.Background(), id.EventID{}, 10)
 	if err != nil {
 		t.Fatalf("loadRecentEvents: %v", err)
 	}
+
 	if len(events) != 1 {
 		t.Errorf("expected 1 event, got %d", len(events))
 	}
@@ -334,15 +372,17 @@ func TestLoadRecentEvents_SeekableJournal(t *testing.T) {
 
 func TestLoadRecentEvents_SeekableJournalError(t *testing.T) {
 	d, err := New(Config{
-		SeekableJournal: &fakeSeekableJournal{readErr: errors.New("seek failed")}, //nolint:exhaustruct // test fake: only readErr needed
+		SeekableJournal: &fakeSeekableJournal{readErr: errors.New("seek failed")},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	events, err := d.loadRecentEvents(context.Background(), id.EventID{}, 10)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
+
 	if events != nil {
 		t.Errorf("expected nil events on error, got %v", events)
 	}
@@ -350,15 +390,17 @@ func TestLoadRecentEvents_SeekableJournalError(t *testing.T) {
 
 func TestLoadRecentEvents_JournalError(t *testing.T) {
 	d, err := New(Config{
-		Journal: &fakeSeekableJournal{allErr: errors.New("readall failed")}, //nolint:exhaustruct // test fake: only allErr needed
+		Journal: &fakeSeekableJournal{allErr: errors.New("readall failed")},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	events, err := d.loadRecentEvents(context.Background(), id.EventID{}, 10)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
+
 	if events != nil {
 		t.Errorf("expected nil events on error, got %v", events)
 	}
@@ -366,10 +408,12 @@ func TestLoadRecentEvents_JournalError(t *testing.T) {
 
 func TestLoadRecentEvents_NoJournal(t *testing.T) {
 	d := &Dashboard{cfg: Config{}}
+
 	events, err := d.loadRecentEvents(context.Background(), id.EventID{}, 10)
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}
+
 	if events != nil {
 		t.Errorf("expected nil events, got %v", events)
 	}
