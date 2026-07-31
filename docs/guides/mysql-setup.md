@@ -40,7 +40,7 @@ The events table DDL is auto-created by `EventSchema()`. Indexes use inline `KEY
 
 ## Full Service Setup (Manual)
 
-MySQL does not yet have a convenience constructor (`NewMySQLEventSourcedSetup`). Until then, wire it manually:
+MySQL does not yet have a compiled convenience constructor (`NewMySQLEventSourcedSetup`). A reference template exists at `usermgmt/mysql_setup.go` (`//go:build ignore`) — copy it into your application and remove the build tag to use it. Until then, wire it manually:
 
 ```go
 eventStore, _ := usermgmt.NewSQLEventStore(ctx, db, "mysql")
@@ -52,6 +52,19 @@ cfg := usermgmt.EventSourcedConfig{
 
 setup, err := usermgmt.NewEventSourcedSetup(ctx, cfg)
 ```
+
+### MySQL Read Models
+
+MySQL-specific read model constructors are available:
+
+```go
+userRm, _ := usermgmt.NewMySQLUserReadModel(db)
+memRm, _ := usermgmt.NewMySQLMembershipReadModel(db)
+tenRm, _ := usermgmt.NewMySQLTenantReadModel(db)
+botRm, _ := usermgmt.NewMySQLBotReadModel(db)
+```
+
+These use `MySQLDialect{}` internally for correct `?` placeholders, `ON DUPLICATE KEY UPDATE` upsert, and backtick identifier quoting.
 
 ## What's Supported vs. What's Not
 
