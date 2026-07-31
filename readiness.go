@@ -48,11 +48,15 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 		if len(checks) == 0 {
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`{"status":"ok"}`))
+
 			return
 		}
 
-		var mu sync.Mutex
-		var wg sync.WaitGroup
+		var (
+			mu sync.Mutex
+			wg sync.WaitGroup
+		)
+
 		allOK := true
 
 		for _, check := range checks {
@@ -64,6 +68,7 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 				if err := nc.Check(); err != nil {
 					detail.Status = "fail"
 					detail.Error = err.Error()
+
 					mu.Lock()
 					allOK = false
 					mu.Unlock()
@@ -79,6 +84,7 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 
 		if !allOK {
 			result.Status = "degraded"
+
 			w.WriteHeader(http.StatusServiceUnavailable)
 		} else {
 			w.WriteHeader(http.StatusOK)

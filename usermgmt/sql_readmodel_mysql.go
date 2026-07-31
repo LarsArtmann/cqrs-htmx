@@ -24,7 +24,11 @@ func NewMySQLUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
 
 // NewMySQLMembershipReadModel creates a SQL-backed membership read model using MySQL syntax.
 func NewMySQLMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
-	return buildSQLMembershipReadModel(db, mysqlViewStoreCreator[MembershipView, id.StreamID], "create mysql membership view store")
+	return buildSQLMembershipReadModel(
+		db,
+		mysqlViewStoreCreator[MembershipView, id.StreamID],
+		"create mysql membership view store",
+	)
 }
 
 // NewMySQLTenantReadModel creates a SQL-backed tenant read model using MySQL syntax.

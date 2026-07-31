@@ -42,6 +42,7 @@ func TestReadinessHandler_OneFails(t *testing.T) {
 	if !contains(body, "bad") {
 		t.Errorf("expected body to contain failing check name 'bad', got: %s", body)
 	}
+
 	if !contains(body, "connection refused") {
 		t.Errorf("expected body to contain error message, got: %s", body)
 	}
@@ -91,5 +92,6 @@ func containsStr(s, substr string) bool {
 			return true
 		}
 	}
+
 	return false
 }
