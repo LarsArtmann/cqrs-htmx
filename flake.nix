@@ -691,9 +691,15 @@
                   goPkg
                   pkgs.nodejs
                   pkgs.curl
-                ];
+                ] ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
                 text = ''
                   export GOEXPERIMENT=jsonv2
+                  # On NixOS, Playwright's downloaded Chromium cannot run (no FHS linker).
+                  # Use the Nix-packaged Chromium via E2E_BROWSER_PATH.
+                  if [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
+                    E2E_BROWSER_PATH="$(command -v chromium)"
+                    export E2E_BROWSER_PATH
+                  fi
                   cd "''${BUILD_ROOT:-$(pwd)}"
                   echo "==> Building E2E test server"
                   (cd e2e/server && go build -o /tmp/cqrs-htmx-e2e-server .)
