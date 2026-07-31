@@ -32,6 +32,10 @@
 
 - [ ] **Integrate E2E tests into flake.nix/CI.** The offline sync E2E Playwright tests (`e2e/`, 4 scenarios, all passing) have a `README.md` and test infrastructure but are NOT wired into the nix build or CI pipeline. Needs a `nix run .#e2e` app or CI step. Source: `docs/status/2026-07-29_00-17_offline-sync-e2e-browser-testing.md`.
 
+- [ ] **Fix `decoder.go:22` unparam finding.** `readBodyForDecode[T]` always returns zero-value `T` (the function reads body bytes but never populates `T`; callers unmarshal into `out` afterward). The `T` return is structurally unnecessary. Pre-existing, flagged by `unparam` linter in dedup round 3/4. Source: `docs/status/2026-07-29_23-38_dedup-round4-t2-zero-clones-brutal-self-review.md` item f.6.
+
+- [ ] **Fix `dashboardui/sse_replay_test.go:182` data race.** `httptest.ResponseRecorder` is accessed from both the test goroutine (`buf.String()`) and the SSE handler goroutine (`buf.Write` via heartbeat), breaking `-race` for the entire dashboardui module. Pre-existing, noted in dedup rounds 3 and 4. Source: `docs/status/2026-07-29_23-07_dedup-round3-zero-clones.md` section d + `docs/status/2026-07-29_23-38_dedup-round4-t2-zero-clones-brutal-self-review.md` item f.7.
+
 ---
 
 ## P3 — Technical Debt & Future
