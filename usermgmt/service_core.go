@@ -56,6 +56,7 @@ type Service struct {
 	oauth2States             OAuth2StateStore
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
+	stopLockoutEviction      func()
 	tokenPepper              TokenPepper
 	projectionHost           *projectionhost.Host
 	checkpointStore          event.CheckpointStore
@@ -354,6 +355,12 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
 	}
 
+	if svc.lockout != nil {
+		if evictor, ok := svc.lockout.(interface{ EvictStale() int }); ok {
+			svc.stopLockoutEviction = startPeriodicEviction(evictor.EvictStale, lockoutEvictionInterval)
+		}
+	}
+
 	svc.tokenPepper = cfg.TokenPepper
 
 	return svc, nil
@@ -379,6 +386,7 @@ func (s *Service) stopEvictions() {
 		&s.stopVerificationEviction,
 		&s.stopPendingTOTPEviction,
 		&s.stopOAuth2Eviction,
+		&s.stopLockoutEviction,
 	} {
 		if *stop != nil {
 			(*stop)()
