@@ -14,6 +14,11 @@ Read all 60 `2026-07-2*` files across `docs/status/`, `docs/planning/`, `docs/pr
 
 **But I did NOT run the canonical Nix quality gates.** I ran `go build ./...` (which passed) and `go test ./...` on root + dashboardui — but I skipped `nix run .#test`, `nix run .#lint`, `nix run .#errorfamily`, `nix run .#coverage-gate`, `nix run .#check-docs-freshness`, `nix run .#check-modules`, and `nix fmt`. This is the **#1 recurring lesson across every prior status report in this project** — 8+ prior reports flag "always run the canonical gates" — and I violated it again. I also left CONTRIBUTING.md with 8 stale v4.5.0 version references, left the auth sub-module CHANGELOGs behind at v4.6.0 (I noted this as a TODO item instead of just fixing it), left the FEATURES.md metrics table with v4.6.0 coverage numbers, and didn't annotate the HTML status file (`2026-07-25_02-03_sse-integration-status.html`).
 
+> **Update 2026-08-01:** **Superseded** by round6 (23-34) and subsequent sessions. All gaps closed:
+> CONTRIBUTING.md version refs fixed, auth sub-module CHANGELOGs aligned to v4.6.1, FEATURES.md
+> metrics updated (root 93.7%, usermgmt 81.6%, dashboardui 84.0%), HTML file annotated, canonical
+> nix gates verified green. TODO_LIST rebuilt with accurate items.
+
 ---
 
 ## a) FULLY DONE

@@ -5,6 +5,11 @@
 **Commits:** `20e498b`, `adba36f`, `767a0f3`, `8ac3475` (BuildFlow auto-committed in 4 batches)
 **Working tree:** Clean (all changes committed by pre-commit hook)
 
+> **Update 2026-08-01:** This was round 1 of docs-health annotation. **Superseded** by rounds 2–6
+> and subsequent sessions. All P0 items shipped (inter-module version refs resolved `e274540`,
+> dead binary removed, dead code removed). SA1019 migration complete. TODO_LIST rebuilt multiple
+> times since — see current TODO_LIST.md for the authoritative open-work list.
+
 ---
 
 ## a) FULLY DONE
