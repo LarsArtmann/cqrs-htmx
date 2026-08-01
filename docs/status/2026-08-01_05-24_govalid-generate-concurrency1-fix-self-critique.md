@@ -39,10 +39,10 @@
 
 This is the **#1 critical failure** of this session. I measured ONLY the govalid-generate step in isolation and concluded "~5% slower." But the FULL pipeline tells a completely different story:
 
-| Metric | Concurrency 2 | Concurrency 1 | Delta |
-|---|---|---|---|
-| `govalid-generate` only | 6.2s | 6.5s | +5% |
-| **FULL pipeline** | **16s** | **64s** | **+300% (4x slower)** |
+| Metric                  | Concurrency 2 | Concurrency 1 | Delta                 |
+| ----------------------- | ------------- | ------------- | --------------------- |
+| `govalid-generate` only | 6.2s          | 6.5s          | +5%                   |
+| **FULL pipeline**       | **16s**       | **64s**       | **+300% (4x slower)** |
 
 **Why I was wrong:** govalid-generate modules are small (each ~1-2s). The 5% delta is negligible because the bottleneck is per-module compile time, not parallelism — for small modules. But golangci-lint runs 114 linters per module and takes much longer per module (~3-5s each). With 18 modules serialized at concurrency 1, golangci-lint alone balloons to ~45-55s. At concurrency 2, it halves to ~25s.
 
@@ -79,6 +79,7 @@ This is the **#1 critical failure** of this session. I measured ONLY the govalid
 ## f) NEXT TASKS (up to 50)
 
 ### Critical / Immediate
+
 1. **RE-EVALUATE the concurrency-1 fix** — the 4x full-pipeline slowdown makes it net-negative. Decide: revert + improve prewarm coverage, or keep + accept the slowdown.
 2. **Measure pre-commit mode specifically** at concurrency 1 vs 2 (`buildflow --build-mode pre-commit --staged-only`) — the 60s budget may already be blown.
 3. **Update `scripts/prewarm-gocache.sh` header comments** — currently says "ROOT CAUSE" / "FIX", should say "PERFORMANCE OPTIMIZATION" since concurrency-1 (or whatever final fix) is the correctness mechanism.
@@ -86,31 +87,37 @@ This is the **#1 critical failure** of this session. I measured ONLY the govalid
 5. **Add CHANGELOG entry** for the fix once finalized.
 
 ### If we keep concurrency-1:
+
 6. **Increase the pre-commit hook budget** from 60s to at least 120s.
 7. **Consider splitting buildflow into two runs** — govalid-generate at concurrency 1, everything else at concurrency 2 (if buildflow doesn't support per-step overrides).
 8. **Profile which steps are most impacted** by serialization (golangci-lint is the likely bottleneck).
 
 ### If we revert to concurrency-2 + improve prewarm:
+
 9. **Make prewarm run before single-step invocations** — the user's failure was `buildflow -s govalid-generate` which skipped both prewarm AND workspace-build-verify.
 10. **Create a `nix run .#buildflow` wrapper** that always prewarms before delegating to the real buildflow binary.
 11. **Or add a direnv hook** that prewarms on directory entry.
 
 ### Documentation cleanup:
+
 12. **Annotate `docs/status/2026-07-31_03-57_govalid-generate-flake-root-cause-investigation.md`** — references old concurrency-2 framing.
 13. **Annotate `docs/status/2026-07-31_04-26_govalid-generate-gocache-race-architectural-fix.md`** — references old prewarm-as-fix framing.
 14. **Update `docs/status/2026-07-28_18-17_govalid-concurrency-reduction-self-critique.md`** if it contains now-stale conclusions.
 
 ### Pre-existing issues noticed (NOT caused by this session):
+
 15. **`.github/workflows/ci.yml` unpinned GitHub Actions** — buildflow flags 8 `github-actions-pinned` errors at lines 20, 22, 104, 106, 174, 176, 181, 191. Pre-existing, unrelated to this fix.
 16. **`gitleaks` skipped in full build mode** — "skipped by build mode 'full'". May be intentional but worth verifying.
 
 ### Verification debt:
+
 17. **Run the full buildflow suite at the final concurrency setting** to confirm all steps pass.
 18. **Run `nix run .#test`** to confirm the codebase still compiles and tests pass (no code changes were made, but verify).
 19. **Run `nix run .#lint`** to confirm lint still passes.
 20. **Verify `scripts/prewarm-gocache.sh` still works correctly** at the final concurrency setting.
 
 ### Broader improvements:
+
 21. **Investigate whether `govalid` itself can be made concurrency-safe** with GOCACHE (upstream issue).
 22. **Consider filing a buildflow feature request** for per-step `max_concurrency` overrides.
 23. **Consider using `GODEBUG=gocachehash=1` or `GOCACHEPROG`** to diagnose the exact race condition in govalid.

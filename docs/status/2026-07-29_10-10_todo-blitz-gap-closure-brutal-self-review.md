@@ -10,6 +10,7 @@ This report covers what was ACTUALLY done, what was fucked up, and what remains.
 
 > **Update 2026-08-01:** The sync "design regressions" flagged in section D (D2–D4) were
 > subsequently confirmed as **intentional design decisions**, not regressions:
+>
 > - D2 (`originatingTab` removal): round-robin `pickPort` is correct — postMessage to a dead
 >   port doesn't throw in some browsers, so targeted delivery can't be guaranteed. The code now
 >   documents this rationale inline (`sync/sync-worker.js:128`). `originatingTab` map remains

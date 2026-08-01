@@ -98,11 +98,11 @@ usermgmt/totp/v5             ← (unchanged: auth strategy sub-module)
 
 _Candidates for future development if consumer demand emerges. Items that became actionable have graduated to TODO_LIST._
 
-| Idea                          | What                                                                                                                                                                                                                                                                                                      | Effort  |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| CQRS admin CLI (`cqrs-admin`) | `cqrs-admin events list`, `projections reset`, `dlq replay`, `aggregates list` — a command-line tool for operational CQRS/ES tasks without a running dashboard                                                                                                                                            | Medium  |
-| MetricsRecorder through projectionhost | Wire `projectionhost.WithMetrics` so projection lag, DLQ depth, and restart counts flow through a metrics pipeline. `OnProjectionFailed` callback is wired; metrics are not. Requires deciding whether metrics are library-wired or consumer-provided. | ~100 LOC |
-| SQL-backed defaults for checkpoint + DLQ | When a `*sql.DB` is available, default to SQL-backed `CheckpointStore` and `DeadLetterStore` instead of in-memory (which loses state on restart). Requires an architectural decision on library-vs-consumer boundary for projectionhost defaults. | Medium  |
+| Idea                                     | What                                                                                                                                                                                                                                                   | Effort   |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| CQRS admin CLI (`cqrs-admin`)            | `cqrs-admin events list`, `projections reset`, `dlq replay`, `aggregates list` — a command-line tool for operational CQRS/ES tasks without a running dashboard                                                                                         | Medium   |
+| MetricsRecorder through projectionhost   | Wire `projectionhost.WithMetrics` so projection lag, DLQ depth, and restart counts flow through a metrics pipeline. `OnProjectionFailed` callback is wired; metrics are not. Requires deciding whether metrics are library-wired or consumer-provided. | ~100 LOC |
+| SQL-backed defaults for checkpoint + DLQ | When a `*sql.DB` is available, default to SQL-backed `CheckpointStore` and `DeadLetterStore` instead of in-memory (which loses state on restart). Requires an architectural decision on library-vs-consumer boundary for projectionhost defaults.      | Medium   |
 
 ---
 
