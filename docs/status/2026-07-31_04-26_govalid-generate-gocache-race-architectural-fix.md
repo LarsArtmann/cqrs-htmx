@@ -4,6 +4,11 @@
 **Session scope:** Root-cause the govalid-generate flake from an architecture perspective, implement a real fix (not a band-aid)
 **Outcome:** Pre-warming script implemented and wired into pre-commit hook. Root cause partially verified but **NOT reproduced** — the fix is architecturally sound but empirically unproven against the actual race.
 
+> **Update 2026-08-01:** **Definitively fixed.** `.buildflow.yml` sets `max_concurrency: 1` — at
+> concurrency 1 only one process writes to GOCACHE, making the race impossible. The pre-warm script
+> remains as a performance optimization. Full root-cause analysis and fix documented in AGENTS.md
+> gotcha ("govalid-generate GOCACHE race").
+
 ---
 
 ## A) FULLY DONE
