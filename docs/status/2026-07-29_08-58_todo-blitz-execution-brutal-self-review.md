@@ -5,6 +5,10 @@
 **Session goal:** Execute the entire TODO_LIST.md, fix split brains, close verification gaps, and ship a production bug fix.
 **Session scope:** Read all 12 `2026-07-28*` + `2026-07-29*` status reports + TODO_LIST.md. Executed the full TODO list. Fixed a critical production bug. Ran canonical nix gates for the first time across 10+ sessions.
 
+> **Update 2026-08-01:** **Superseded** by 10-10 session (sync retry pipeline fix, syncVersion 1.3.0)
+> and 2026-07-31 sessions. All items resolved. dashboardui coverage now 84.0% (was 72.5% at report
+> time). FormData serialization bug fixed. Canonical nix gates verified green multiple times since.
+
 ---
 
 ## a) FULLY DONE (verified: nix run .#test PASS, nix run .#lint PASS, nix run .#coverage-gate PASS)

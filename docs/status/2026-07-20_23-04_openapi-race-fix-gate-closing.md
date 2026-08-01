@@ -4,6 +4,8 @@
 **Session scope:** Fix the `OpenAPISpecHandler` data race the prior self-review surfaced, run the canonical Nix gates the prior session skipped, replace the sham `WithOpenAPI` test, annotate the now-stale mid-session report, update living docs.
 **Overall verdict:** 🟢 **The race is fixed and all canonical gates are green — but I uncovered several gaps the prior reviews missed, and I left two things genuinely unverified.**
 
+> **Update 2026-08-01:** All items resolved. The data race fix (eager serialization) shipped in v4.5.0. All canonical nix gates pass (`nix run .#test`, `nix run .#lint`, `nix run .#coverage-gate`, `nix flake check`). The `nil-spec` error reclassification, HEAD method support, and `WithOpenAPI` dead-metadata documentation remain as openapi wishlist items (ROADMAP-class, not blocking).
+
 ---
 
 ## a) FULLY DONE ✅
