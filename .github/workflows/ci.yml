@@ -280,7 +280,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v4.37.3
         if: always()
         with:
           sarif_file: results.sarif
