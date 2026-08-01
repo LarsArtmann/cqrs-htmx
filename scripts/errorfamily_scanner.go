@@ -22,9 +22,9 @@ import (
 )
 
 var banned = map[string]bool{
-	"errors.New":   true,
-	"fmt.Errorf":   true,
-	"errors.Join":  true,
+	"errors.New":  true,
+	"fmt.Errorf":  true,
+	"errors.Join": true,
 }
 
 type violation struct {
