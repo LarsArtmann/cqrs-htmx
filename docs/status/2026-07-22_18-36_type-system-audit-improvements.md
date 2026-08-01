@@ -4,6 +4,11 @@
 > (`docs/status/2026-07-22_17-42_type-system-audit-implementation.md`).
 > **Outcome:** 6 of7 improvement items addressed. 1 skipped. Multiple self-inflicted wounds from poor session discipline.
 
+> **Update 2026-08-01:** Typed command/query handlers shipped in v4.5.0 (`CommandTyped[Q]`,
+> `QueryTyped[Q,R]`, `DecodeJSONTyped`, `DecodeAndValidateJSON`, etc.). Lint debt fully resolved
+> (0 issues across all 18 modules). Coverage gate passes. **Micro-types** (branded `Email`,
+> `Password` types) never started — remains a ROADMAP-class idea, not tracked as actionable.
+
 ---
 
 ## What This Session Did

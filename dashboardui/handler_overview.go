@@ -23,22 +23,22 @@ const (
 
 // Display truncation widths for IDs shown in the dashboard UI.
 const (
-	titleIDWidth      = 12 // page-title stream/aggregate ID truncation
-	listIDWidth       = 24 // list-row ID truncation
-	eventIDWidth      = 20 // event ID truncation in tables
-	eventTypeWidth    = 30 // event type label truncation
-	snapshotIDWidth   = 16 // snapshot detail streamID truncation
-	errorDisplayWidth = 60 // error message truncation in DLQ
+	titleIDWidth      = 12
+	listIDWidth       = 24
+	eventIDWidth      = 20
+	eventTypeWidth    = 30
+	snapshotIDWidth   = 16
+	errorDisplayWidth = 60
 )
 
-// recentEventsLimit is how many recent events the overview card shows.
-const recentEventsLimit = 5
+const (
+	recentEventsLimit  = 5
+	overviewCountLimit = 500
+)
 
 func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Overview", "/", r)
-
 	stats := d.overviewStats(r.Context())
-
 	html := d.renderOverview(p, stats)
 	renderPage(w, r, html)
 }
@@ -49,6 +49,8 @@ type overviewStats struct {
 	Projections     []projectionStat
 	DLQCount        string
 	RecentEvents    []recentEvent
+	HealthStatus    string
+	HealthKind      string
 }
 
 type projectionStat struct {
@@ -58,6 +60,9 @@ type projectionStat struct {
 	Processed  int64
 	Errors     int64
 	StatusKind string
+	Restarts   int
+	Checkpoint string
+	LastError  string
 }
 
 type recentEvent struct {
@@ -68,11 +73,15 @@ type recentEvent struct {
 	EventID  string
 }
 
-func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:cyclop // stat computation
-	stats := overviewStats{}
+//nolint:cyclop,gocognit // multi-source aggregation
+func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
+	stats := overviewStats{
+		TotalAggregates: "0",
+		TotalEvents:     "0",
+	}
 
 	if d.cfg.StreamReader != nil {
-		page, err := d.cfg.StreamReader.List(ctx, listing.ListOptions{Limit: 1})
+		page, err := d.cfg.StreamReader.List(ctx, listing.ListOptions{Limit: uint(d.cfg.PageSize)})
 		if err == nil && page != nil {
 			stats.TotalAggregates = strconv.Itoa(len(page.Items))
 			if page.HasMore {
@@ -81,10 +90,14 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 		}
 	}
 
-	if d.cfg.SeekableJournal != nil { //nolint:nestif // journal-fallback branching is inherently nested
-		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, recentEventsLimit)
+	if d.cfg.SeekableJournal != nil { //nolint:nestif // optional data source branching
+		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, overviewCountLimit)
 		if err == nil {
-			for _, evt := range events {
+			for i, evt := range events {
+				if i >= recentEventsLimit {
+					break
+				}
+
 				stats.RecentEvents = append(stats.RecentEvents, recentEvent{
 					Time:     evt.OccurredAt().Format(time.RFC3339),
 					Type:     string(evt.Type()),
@@ -94,7 +107,10 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 				})
 			}
 
-			stats.TotalEvents = fmt.Sprintf("%d+", len(events))
+			stats.TotalEvents = strconv.Itoa(len(events))
+			if len(events) >= overviewCountLimit {
+				stats.TotalEvents += "+"
+			}
 		}
 	} else if d.cfg.Journal != nil {
 		events, err := d.cfg.Journal.ReadAll(ctx)
@@ -117,17 +133,36 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 	}
 
 	if d.cfg.ProjectionHost != nil {
-		lagPerProj := d.cfg.ProjectionHost.LagPerProjection()
-		for _, ws := range d.cfg.ProjectionHost.Status() {
-			lag := lagPerProj[ws.Name]
-			stats.Projections = append(stats.Projections, projectionStat{
-				Name:       ws.Name,
-				Status:     string(ws.Status),
-				Lag:        lag.String(),
-				Processed:  ws.Processed,
-				Errors:     ws.Errors,
-				StatusKind: projectionStatusKind(string(ws.Status)),
-			})
+		stats.Projections = buildProjectionStats(d.cfg.ProjectionHost)
+
+		totalErrors := int64(0)
+		anyBad := false
+		anyWarn := false
+
+		for _, pr := range stats.Projections {
+			totalErrors += pr.Errors
+			switch pr.StatusKind {
+			case statusBad:
+				anyBad = true
+			case statusWarn:
+				anyWarn = true
+			}
+		}
+
+		if totalErrors > 0 {
+			stats.DLQCount = strconv.FormatInt(totalErrors, 10)
+		}
+
+		switch {
+		case anyBad:
+			stats.HealthStatus = "Unhealthy"
+			stats.HealthKind = statusBad
+		case anyWarn:
+			stats.HealthStatus = "Degraded"
+			stats.HealthKind = statusWarn
+		case len(stats.Projections) > 0:
+			stats.HealthStatus = "Healthy"
+			stats.HealthKind = statusGood
 		}
 	}
 
@@ -136,97 +171,64 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats { //nolint:
 
 func projectionStatusKind(status string) string {
 	switch strings.ToLower(status) {
-	case "running", "live":
+	case statusRunning, "live":
 		return statusGood
 	case "idle", "backoff", "draining":
 		return statusWarn
-	case "stopped", "failed":
+	case "stopped", statusFailed:
 		return statusBad
 	default:
 		return statusNeutral
 	}
 }
 
-// renderOverview produces the overview page HTML.
-// This is intentionally simple Go-generated HTML for the initial version.
-// Future iterations will use templ components from templ-components.
 func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 	var b strings.Builder
 
 	b.WriteString(d.renderLayout(p, func() string {
 		var inner strings.Builder
 
-		inner.WriteString(
-			`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px">`,
-		)
-
-		statCard(&inner, stats.TotalEvents, "Events", "#1d3557")
-		statCard(&inner, stats.TotalAggregates, "Aggregates", "#1d3557")
+		inner.WriteString(`<div class="stat-grid">`)
+		statCard(&inner, stats.TotalEvents, "Events", "")
+		statCard(&inner, stats.TotalAggregates, "Aggregates", "")
 
 		if len(stats.Projections) > 0 {
 			active := 0
 
-			for _, p := range stats.Projections {
-				if p.StatusKind == statusGood {
+			for _, pr := range stats.Projections {
+				if pr.StatusKind == statusGood {
 					active++
 				}
 			}
 
-			statCard(&inner, fmt.Sprintf("%d/%d", active, len(stats.Projections)), "Projections", "#16a34a")
+			statCard(&inner, fmt.Sprintf("%d/%d", active, len(stats.Projections)), "Projections", "ok")
 		}
 
 		inner.WriteString(`</div>`)
 
 		if len(stats.Projections) > 0 {
-			inner.WriteString(`<h3 style="margin-bottom:12px">Projection Health</h3>`)
-			inner.WriteString(`<table style="width:100%;border-collapse:collapse;margin-bottom:24px">`)
-			inner.WriteString(`<thead><tr style="text-align:left;border-bottom:2px solid #e6e8ec">`)
-			inner.WriteString(`<th style="padding:8px">Name</th><th style="padding:8px">Status</th>`)
-			inner.WriteString(`<th style="padding:8px">Lag</th><th style="padding:8px">Processed</th>`)
-			inner.WriteString(`<th style="padding:8px">Errors</th></tr></thead><tbody>`)
-
-			for _, p := range stats.Projections {
-				color := "#64748b"
-
-				switch p.StatusKind {
-				case statusGood:
-					color = "#16a34a"
-				case statusWarn:
-					color = "#d97706"
-				case statusBad:
-					color = "#dc2626"
-				}
-
-				fmt.Fprintf(&inner, `<tr style="border-bottom:1px solid #e6e8ec">
-					<td style="padding:8px">%s</td>
-					<td style="padding:8px"><span style="color:%s;font-weight:600">%s</span></td>
-					<td style="padding:8px">%s</td>
-					<td style="padding:8px">%d</td>
-					<td style="padding:8px">%d</td>
-				</tr>`, p.Name, color, p.Status, p.Lag, p.Processed, p.Errors)
-			}
-
-			inner.WriteString(`</tbody></table>`)
+			inner.WriteString(renderProjectionHealthPanel(p.BasePath, stats.Projections))
 		}
 
 		if len(stats.RecentEvents) > 0 {
-			inner.WriteString(`<h3 style="margin-bottom:12px">Recent Events</h3>`)
-			inner.WriteString(`<table style="width:100%;border-collapse:collapse">`)
-			inner.WriteString(`<thead><tr style="text-align:left;border-bottom:2px solid #e6e8ec">`)
-			inner.WriteString(`<th style="padding:8px">Time</th><th style="padding:8px">Type</th>`)
-			inner.WriteString(`<th style="padding:8px">Stream</th><th style="padding:8px">Version</th>`)
+			inner.WriteString(`<h2>Recent Events</h2>`)
+			inner.WriteString(`<div class="table-scroll"><table class="data-table"><thead><tr>`)
+			inner.WriteString(`<th scope="col">Time</th><th scope="col">Type</th>`)
+			inner.WriteString(`<th scope="col">Stream</th><th scope="col">Version</th>`)
 			inner.WriteString(`</tr></thead><tbody>`)
 
 			for _, e := range stats.RecentEvents {
-				fmt.Fprintf(&inner, `<tr style="border-bottom:1px solid #e6e8ec">
-					<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-					<td style="padding:8px"><code>%s</code></td>
-					<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-					<td style="padding:8px">%s</td>
-				</tr>`, e.Time, e.Type, truncate(e.StreamID, eventIDWidth), e.Version)
+				fmt.Fprintf(
+					&inner,
+					`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono">%s</td><td>%s</td></tr>`,
+					esc(e.Time),
+					esc(e.Type),
+					esc(truncate(e.StreamID, eventIDWidth)),
+					esc(e.Version),
+				)
 			}
 
-			inner.WriteString(`</tbody></table>`)
+			inner.WriteString(`</tbody></table></div>`)
 		}
 
 		return inner.String()
@@ -235,18 +237,38 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 	return b.String()
 }
 
-func statCard(b *strings.Builder, value, label, color string) {
-	fmt.Fprintf(
-		b,
-		`<div style="border:2px solid #111;padding:20px;text-align:center;background:%s;color:white">`,
-		color,
+func renderProjectionRow(p projectionStat) string {
+	badgeClass := badgeNeutral
+
+	switch p.StatusKind {
+	case statusGood:
+		badgeClass = badgeOK
+	case statusWarn:
+		badgeClass = badgeWarn
+	case statusBad:
+		badgeClass = badgeErr
+	}
+
+	return fmt.Sprintf(
+		`<tr><td>%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
+		esc(p.Name),
+		badgeClass,
+		esc(p.Status),
+		esc(p.Lag),
+		p.Processed,
+		p.Errors,
 	)
-	fmt.Fprintf(b, `<div style="font-size:2.5rem;font-weight:900;line-height:1">%s</div>`, value)
-	fmt.Fprintf(
-		b,
-		`<div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-top:6px">%s</div>`,
-		label,
-	)
+}
+
+func statCard(b *strings.Builder, value, label, variant string) {
+	classes := "stat-card"
+	if variant != "" {
+		classes += " " + variant
+	}
+
+	fmt.Fprintf(b, `<div class="%s">`, classes)
+	fmt.Fprintf(b, `<div class="stat-card-value">%s</div>`, esc(value))
+	fmt.Fprintf(b, `<div class="stat-card-label">%s</div>`, esc(label))
 	b.WriteString(`</div>`)
 }
 
@@ -258,17 +280,54 @@ func truncate(s string, n int) string {
 	return s[:n] + "..."
 }
 
-// esc wraps html.EscapeString for terse call sites.
 func esc(s string) string {
 	return html.EscapeString(s)
 }
 
-// metaRow writes a key-value row into a metadata table.
 func metaRow(b *strings.Builder, key, value string) {
+	fmt.Fprintf(b, `<tr><td class="meta-key">%s</td><td class="meta-val">%s</td></tr>`, key, value)
+}
+
+// metaRowCopyable renders a metadata row where the value is click-to-copy.
+// The rawValue is placed in data-copyable for clipboard; displayValue is shown.
+func metaRowCopyable(b *strings.Builder, key, displayValue, rawValue string) {
 	fmt.Fprintf(
 		b,
-		`<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--muted);font-weight:500">%s</td><td style="padding:6px 8px;font-family:monospace;font-size:0.85em">%s</td></tr>`,
+		`<tr><td class="meta-key">%s</td><td class="meta-val copyable" data-copyable="%s" title="Click to copy">%s</td></tr>`,
 		key,
-		value,
+		esc(rawValue),
+		displayValue,
 	)
+}
+
+// projectionHealthPartialHandler returns just the projection health panel HTML
+// for HTMX polling. Registered at GET /-/partials/projection-health.
+func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *http.Request) {
+	projs := buildProjectionStats(d.cfg.ProjectionHost)
+	html := renderProjectionHealthPanel(d.cfg.BasePath, projs)
+	writeHTML(w, r, html, "projection health partial")
+}
+
+// renderProjectionHealthPanel renders the projection health panel div with
+// HTMX polling attributes and the table inside. Used by both the overview page
+// and the projection-health partial endpoint.
+func renderProjectionHealthPanel(basePath string, projs []projectionStat) string {
+	var b strings.Builder
+
+	b.WriteString(`<div class="panel" id="projection-health" hx-get="`)
+	b.WriteString(basePath)
+	b.WriteString(`/-/partials/projection-health" hx-trigger="every 10s" hx-swap="outerHTML">`)
+	b.WriteString(`<div class="panel-title">Projection Health</div>`)
+	b.WriteString(`<div class="table-scroll"><table class="data-table"><thead><tr>`)
+	b.WriteString(`<th scope="col">Name</th><th scope="col">Status</th>`)
+	b.WriteString(`<th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th>`)
+	b.WriteString(`</tr></thead><tbody>`)
+
+	for _, pr := range projs {
+		b.WriteString(renderProjectionRow(pr))
+	}
+
+	b.WriteString(`</tbody></table></div></div>`)
+
+	return b.String()
 }

@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"fmt"
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -37,6 +38,11 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	mux.Handle("GET /-/dashboard.js", d.guard(d.serveJS()))
 	mux.Handle("GET /-/htmx.js", cqrshtmx.HTMXScriptHandler())
 
+	// Observability probes (unguarded: load balancers and k8s need access)
+	mux.HandleFunc("GET /-/healthz", d.healthzHandler)
+	mux.HandleFunc("GET /-/readyz", d.readyzHandler)
+	mux.HandleFunc("GET /-/versionz", d.versionzHandler)
+
 	// SSE live updates
 	if d.caps.EventBus {
 		mux.Handle("GET /-/events/stream", d.guard(d.sseHandler))
@@ -63,6 +69,7 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	// Projection Dashboard
 	if d.caps.ProjectionHost {
 		mux.HandleFunc("GET /projections", d.guard(d.projectionsIndexHandler))
+		mux.HandleFunc("GET /-/partials/projection-health", d.guard(d.projectionHealthPartialHandler))
 
 		if !d.cfg.ReadOnly {
 			mux.HandleFunc("POST /projections/{name}/reset", d.guard(d.projectionResetHandler))
@@ -110,5 +117,22 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 		}
 	}
 
+	// Catch-all: styled 404 for any unmatched GET route under the dashboard.
+	mux.HandleFunc("GET /", d.guard(d.notFoundHandler))
+
 	return mux
+}
+
+// notFoundHandler renders a styled 404 page within the dashboard layout.
+func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	p := d.page("Not Found", "", r)
+
+	w.Header().Set("Content-Type", contentTypeHTML)
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprint(w, d.renderLayout(p, func() string {
+		return `<div class="empty-state"><h2>Page Not Found</h2><p>The requested page does not exist.</p><a href="` + esc(
+			p.BasePath,
+		) + `/" class="btn">Back to Overview</a></div>`
+	}))
 }

@@ -79,6 +79,17 @@ func snapshotOptions[State any](cfg SnapshotConfig) []decider.RepositoryOption[S
 	return opts
 }
 
+// repositoryOptions builds the full decider.RepositoryOption list: snapshot
+// options (if configured) plus a best-effort state cache. The state cache
+// eliminates full event replay on every Execute when a hot entry exists
+// (O(new events) instead of O(total events)). It is best-effort: a cache miss
+// falls back to the normal load path. The decider repository auto-invalidates
+// cache entries after writes, so consistency is preserved.
+func repositoryOptions[State any](cfg SnapshotConfig) []decider.RepositoryOption[State] {
+	opts := snapshotOptions[State](cfg)
+	return append(opts, decider.WithStateCache[State](decider.NewStateCache[State](0)))
+}
+
 // MemorySnapshotStore is an in-process snapshot.SnapshotStore for development
 // and testing. Snapshots are kept in a map keyed by aggregate ref and are lost
 // when the process exits — for production use a persistent store backed by SQL

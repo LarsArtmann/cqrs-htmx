@@ -4,6 +4,10 @@
 **Session scope:** Executed the actionable items from the two prior status reports (`18-02_offline-sync-extraction-to-root-module.md` and `18-21_post-extraction-cleanup-and-self-review.md`). Added `With` handler variants, godoc examples, edge-case tests, integration tests, JS modernization, recipe documentation.
 **Outcome:** All 9 planned tasks executed. Build passes. Root sync tests (24 tests, all pass with `-race`). adminui tests pass (4.3s). JS syntax valid. 3 pre-existing test failures in `typed_handlers_test.go` unrelated to this session.
 
+> **Update 2026-08-01:** All sync API items shipped in v4.5.0. `With` variants, godoc examples,
+> version-drift test (`TestSyncVersionMatchesJSConstants`), ETag prefix unification, and JS
+> modernization (`@ts-check`, JSDoc) all done. syncVersion at 1.3.0. E2E tests pass 4/4.
+
 ---
 
 ## A) FULLY DONE

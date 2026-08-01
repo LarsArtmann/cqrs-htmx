@@ -3,6 +3,12 @@
 **Date:** 2026-07-22 11:38
 **Session scope:** Adopt `projectionhost/v4` to replace hand-rolled `StartProjections`, benchmark projection replay, evaluate CatchUpSubscriber, update docs.
 
+> **Update 2026-08-01:** projectionhost/v4 shipped in v4.5.0. All Close()/GracefulClose error-swallowing
+> fixed (now logs via `slog.Warn` before discarding). `OnProjectionFailed` callback wired (v4.6.1+).
+> State cache (`decider.WithStateCache`) wired in all 4 aggregate repos. Per-projection checkpoints
+> (keyed by projection `Name()`). Dashboard.Close() leak fixed (`15c27c3`). Remaining open:
+> `event.Bus.UnsubscribeAll` upstream API (ROADMAP).
+
 ---
 
 ## a) FULLY DONE

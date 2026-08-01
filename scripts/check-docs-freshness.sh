@@ -49,7 +49,7 @@ check_agents_md "a-h/templ" "a-h/templ"
 # Check for stale Go version references
 echo ""
 echo "Checking Go version references..."
-GO_MOD_VERSION=$(head -3 go.mod | grep '^go ' | awk '{print $2}')
+GO_MOD_VERSION=$(grep '^go ' go.mod | awk '{print $2}')
 AGENTS_GO=$(grep -oP 'Go 1\.\d+\.\d+' AGENTS.md | head -1 | grep -oP '1\.\d+\.\d+' || echo "")
 if [ -n "$AGENTS_GO" ] && [ "$AGENTS_GO" != "$GO_MOD_VERSION" ]; then
     echo "  INFO: AGENTS.md says Go $AGENTS_GO, go.mod says $GO_MOD_VERSION (may be intentional)"

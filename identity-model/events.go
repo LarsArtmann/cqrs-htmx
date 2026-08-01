@@ -22,7 +22,7 @@ type RolesUpdatedPayload struct {
 	Domain        string `json:"domain"`
 }
 
-type EmailChangedPayload struct {
+type EmailChangedPayload struct { //cqrs-lint:ignore(S002) domain types module: encryption is an infrastructure concern applied by consumers via encryption.EncryptMiddleware
 	SchemaVersion int    `json:"schema_version"`
 	Email         string `json:"email"`
 }

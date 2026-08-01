@@ -61,7 +61,9 @@ func ParseUserID(s string) (UserID, error) {
 func MustParseUserID(s string) UserID {
 	uid, err := id.ParseUserID(s)
 	if err != nil {
-		panic(fmt.Sprintf("identitymodel.MustParseUserID(%q): %v", s, err))
+		panic( //cqrs-lint:ignore(C009) Must* function: panics on invalid input by Go convention
+			fmt.Sprintf("identitymodel.MustParseUserID(%q): %v", s, err),
+		)
 	}
 	return uid
 }
@@ -129,7 +131,9 @@ func NewActorID(kind ActorKind, raw string) ActorID {
 	switch kind {
 	case ActorUser, ActorBot:
 	default:
-		panic(fmt.Sprintf("NewActorID: invalid ActorKind %d", kind))
+		panic( //cqrs-lint:ignore(C009) exhaustive switch guard: impossible state if enum values are used
+			fmt.Sprintf("NewActorID: invalid ActorKind %d", kind),
+		)
 	}
 	return ActorID{kind: kind, raw: raw}
 }

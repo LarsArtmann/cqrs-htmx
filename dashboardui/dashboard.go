@@ -39,6 +39,12 @@ func New(cfg Config) (*Dashboard, error) {
 
 	caps := cfg.capabilities()
 
+	if !cfg.ReadOnly && cfg.Authorizer == nil {
+		slog.Warn("dashboardui: write operations are enabled (ReadOnly=false) but no Authorizer is configured; " +
+			"anyone with network access can reset projections, replay/delete dead letters, and delete snapshots. " +
+			"Set Config.Authorizer or wrap the dashboard with authentication middleware.")
+	}
+
 	d := &Dashboard{
 		cfg:  cfg,
 		caps: caps,
@@ -64,7 +70,9 @@ func New(cfg Config) (*Dashboard, error) {
 func MustNew(cfg Config) *Dashboard {
 	d, err := New(cfg)
 	if err != nil {
-		panic(fmt.Sprintf("dashboardui: %v", err))
+		panic( //cqrs-lint:ignore(C009) MustNew: startup config error is a programmer error
+			fmt.Sprintf("dashboardui: %v", err),
+		)
 	}
 
 	return d
@@ -85,9 +93,8 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 		Accent:    d.cfg.AccentColor,
 		Brand:     d.cfg.Title,
 		Nav:       nav,
-		LogoutURL: "",
+		LogoutURL: d.cfg.LogoutURL,
 		CSRFToken: csrfToken(r),
-		CSRFMeta:  csrfMeta(r),
 		ReadOnly:  d.cfg.ReadOnly,
 		Caps:      d.caps,
 	}
@@ -129,8 +136,6 @@ func (d *Dashboard) Close() {
 
 		if d.broadcaster != nil {
 			d.broadcaster.Close()
-		} else {
-			slog.Warn("dashboardui.Dashboard.Close: no broadcaster configured; SSE clients were not disconnected")
 		}
 	})
 }

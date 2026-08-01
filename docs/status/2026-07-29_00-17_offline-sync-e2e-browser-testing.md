@@ -222,3 +222,16 @@ The string-based `page.evaluate()` scripts for reading IndexedDB from the page c
 | Direct SharedWorker enqueue works               | Debug test 14 proved IndexedDB receives entries when bypassing sync-client                      |
 | Manual sendError dispatch works                 | Debug test 16 proved enqueue works when `values` is a plain object                              |
 | HTMX 2.x `requestConfig.parameters` is FormData | Debug test 17 traced the full event lifecycle                                                   |
+
+---
+
+## Resolution (2026-07-31)
+
+| Item                                                                                            | Resolution                                                                                                                                                           |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FormData serialization bug                                                                      | **Done** — FIXED in CHANGELOG `[Unreleased]`. `htmx:sendError` handler converts FormData to plain object before postMessage. syncVersion bumped to 1.2.0 then 1.3.0. |
+| All 4 E2E Playwright tests                                                                      | **Done** — all pass (offline enqueue, online flush, cross-session recovery, multiple commands).                                                                      |
+| `e2e/README.md` documentation                                                                   | **Done** — exists with setup instructions.                                                                                                                           |
+| Retry pipeline fixes (verb casing, retry trigger, connectivity detection, dead port resilience) | **Done** — all 5 fixes documented in CHANGELOG `[Unreleased]`. syncVersion 1.3.0.                                                                                    |
+| `nix run .#e2e` flake app                                                                       | Still open — TODO_LIST P2.                                                                                                                                           |
+| CI integration                                                                                  | Still open — TODO_LIST P2.                                                                                                                                           |

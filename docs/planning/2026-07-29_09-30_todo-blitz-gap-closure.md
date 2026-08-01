@@ -139,6 +139,14 @@ graph TD
 - [ ] `nix run .#test` passes (all 11 module groups)
 - [ ] `nix run .#lint` passes (0 issues across 15 modules)
 - [ ] `nix flake check` passes
-- [ ] FEATURES.md, ROADMAP.md, TODO_LIST.md, AGENTS.md all consistent
-- [ ] Git pushed to origin/master
-- [ ] This doc updated with final status table
+- [x] FEATURES.md, ROADMAP.md, TODO_LIST.md, AGENTS.md all consistent
+- [x] Git pushed to origin/master
+- [x] This doc updated with final status table
+
+---
+
+## Resolution (2026-07-31)
+
+**Tasks 1–7 DONE:** FormData fix shipped (syncVersion 1.3.0), FEATURES/ROADMAP/AGENTS updated across subsequent sessions. All 4 E2E Playwright tests pass. Docs consistency verified (living docs rebuilt and cross-checked).
+
+**Tasks 8–14 partially blocked:** `nix run .#test`, `nix run .#lint`, `nix flake check` cannot run until httputil v0.8.0 is published (the httputil consolidation moved Server-Timing/CSRF/rate-limiting into httputil; `go.work` has a local replace but GOWORK=off hermetic builds fetch the published v0.7.1 which lacks the new symbols). Tracked as TODO_LIST P1. The FormData style fix (var→const) is code-complete; only the canonical nix gate verification remains.

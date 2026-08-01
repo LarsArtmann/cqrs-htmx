@@ -101,6 +101,10 @@ type Config struct {
 	// Authorizer controls access. If nil, allows all requests (the
 	// consumer MUST wrap the dashboard with their own auth middleware).
 	Authorizer func(*http.Request) error
+
+	// LogoutURL, if set, renders a logout link at the bottom of the sidebar.
+	// Typically "/logout" or similar. If empty, no logout link is shown.
+	LogoutURL string
 }
 
 func (cfg Config) withDefaults() (Config, error) {
@@ -241,7 +245,6 @@ type pageData struct {
 	Nav       []navItem
 	LogoutURL string
 	CSRFToken string
-	CSRFMeta  string
 	ReadOnly  bool
 	Caps      Capabilities
 }

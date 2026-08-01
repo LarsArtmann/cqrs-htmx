@@ -63,6 +63,7 @@ func startProjectionHost(
 	bus event.Subscriber,
 	cpStore event.CheckpointStore,
 	projections []projection.Projection,
+	hostOpts ...projectionhost.HostOption,
 ) (*projectionhost.Host, error) {
 	seekable, ok := journal.(event.SeekableJournal)
 	if !ok {
@@ -78,10 +79,12 @@ func startProjectionHost(
 		store = memory.NewMemoryCheckpointStore()
 	}
 
-	host, err := projectionhost.New(seekable, store,
+	allOpts := append([]projectionhost.HostOption{
 		projectionhost.WithSubscriber(bus),
 		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
-	)
+	}, hostOpts...)
+
+	host, err := projectionhost.New(seekable, store, allOpts...)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
 			"usermgmt.projection.host_create_failed",

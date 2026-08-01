@@ -213,3 +213,17 @@ Four `//nolint:contextcheck` directives were added to silence the linter on the 
 2. **Should the closure-wrapper pattern be the standard for ALL new handlers going forward, or just for dedup?** I introduced 6 new closure wrappers (`withTimeoutCtx`, `withAuthContext`, `withLock`, `withProjectionHost`, `withDeadLetterStore`, `withDispatchTimeout`). This creates a convention question: should new handlers in this codebase default to the closure pattern, or should they use the direct `acquire; defer release` pattern and only refactor when art-dupl flags them?
 
 3. **Should I fix the pre-existing `decoder.go:22` `unparam` issue?** It's from round 3, not my session. The `readBodyForDecode[T any]` function always returns nil for `T` — the generic return type is dead code. But it's not my change, and the AGENTS.md says "Don't fix unrelated bugs." Is this "unrelated" or "fix on sight"?
+
+---
+
+## Resolution (2026-07-31)
+
+| Item                                                                                        | Resolution                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0 clone groups at threshold 2                                                               | **Done** — confirmed. All harmful clones eliminated across rounds 1-4.                                                                                          |
+| ws_dispatch.go `withDispatchTimeout` revert                                                 | **Won't implement** — ROADMAP "Not Planned". Evaluated: the closure chain is correct, tested with `-race`, and eliminates harmful clones. Decision: keep as-is. |
+| 4-deep closure chain (`withTimeout` → `withTimeoutCtx` → `authContext` → `withAuthContext`) | **Won't simplify** — ROADMAP "Not Planned". Each layer adds a distinct concern.                                                                                 |
+| `decoder.go:22` unparam                                                                     | Still open — TODO_LIST P2. `readBodyForDecode` always returns zero-value T.                                                                                     |
+| `dashboardui/sse_replay_test.go:182` data race                                              | Still open — TODO_LIST P2. Breaks `-race` for dashboardui.                                                                                                      |
+| CHANGELOG entry                                                                             | **Done** — dedup rounds documented in CHANGELOG.                                                                                                                |
+| Canonical nix gates                                                                         | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                                                                                  |

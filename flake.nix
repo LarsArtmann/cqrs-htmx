@@ -563,18 +563,35 @@
               meta.description = "Verify all errors use go-error-family constructors (no stdlib errors.New/fmt.Errorf/errors.Join)";
               program = pkgs.writeShellApplication {
                 name = "check-errorfamily";
+                runtimeInputs = [ pkgs.go ];
                 text = ''
-                  # Root + usermgmt + adminui: error-family constructors are mandatory.
+                  # Root + usermgmt + adminui + identity-model + dashboardui + loginpage:
+                  # error-family constructors are mandatory in non-test code.
                   # Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt:
-                  # they don't import go-cqrs-lite/event/v3 (keeping deps minimal), and
+                  # they don't import go-cqrs-lite/event/v4 (keeping deps minimal), and
                   # the Service layer wraps all provider errors with event.Wrapf at the
                   # boundary — so error families are assigned at the correct layer.
-                  echo "==> Root module"
-                  branching-flow errorfamily .
-                  echo "==> usermgmt submodule"
-                  branching-flow errorfamily usermgmt
-                  echo "==> adminui submodule"
-                  branching-flow errorfamily adminui
+                  #
+                  # Uses a Go AST-based scanner (go/parser) instead of ripgrep, which
+                  # inherently ignores ALL comment types (//, /* */, inline, multi-line).
+                  set -euo pipefail
+                  export GOEXPERIMENT=jsonv2
+
+                  check_module() {
+                    local dir="$1"
+                    local name="$2"
+                    echo "==> $name"
+                    go run scripts/errorfamily_scanner.go "$dir"
+                    echo "  OK"
+                  }
+
+                  check_module "." "Root module"
+                  check_module "usermgmt" "usermgmt submodule"
+                  check_module "adminui" "adminui submodule"
+                  check_module "identity-model" "identity-model submodule"
+                  check_module "dashboardui" "dashboardui submodule"
+                  check_module "loginpage" "loginpage submodule"
+
                   echo "All modules pass errorfamily check."
                 '';
               };
@@ -624,7 +641,7 @@
                 text = ''
                   for mod in adminui loginpage; do
                     echo "==> $mod"
-                    (cd "$mod" && templ generate && gofmt -w *_templ.go)
+                    (cd "$mod" && templ generate && gofmt -w ./*_templ.go)
                     if ! git diff --exit-code -- "$mod"/*_templ.go; then
                       echo ""
                       echo "FAIL: Generated _templ.go files in $mod differ from committed versions."
@@ -678,6 +695,114 @@
                 runtimeInputs = [ goPkg ];
                 text = ''
                   bash scripts/release-checklist.sh
+                '';
+              };
+            };
+
+            e2e = {
+              type = "app";
+              meta.description = "Run Playwright E2E tests (offline sync) against the local Go test server";
+              program = pkgs.writeShellApplication {
+                name = "e2e";
+                runtimeInputs = [
+                  goPkg
+                  pkgs.nodejs
+                  pkgs.curl
+                ]
+                ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
+                text = ''
+                  export GOEXPERIMENT=jsonv2
+                  # On NixOS, Playwright's downloaded Chromium cannot run (no FHS linker).
+                  # Use the Nix-packaged Chromium via E2E_BROWSER_PATH.
+                  if [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
+                    E2E_BROWSER_PATH="$(command -v chromium)"
+                    export E2E_BROWSER_PATH
+                  fi
+                  cd "''${BUILD_ROOT:-$(pwd)}"
+                  echo "==> Building E2E test server"
+                  (cd e2e/server && go build -o /tmp/cqrs-htmx-e2e-server .)
+
+                  echo "==> Starting E2E test server"
+                  /tmp/cqrs-htmx-e2e-server &
+                  SERVER_PID=$!
+
+                  cleanup() {
+                    kill "$SERVER_PID" 2>/dev/null || true
+                    wait "$SERVER_PID" 2>/dev/null || true
+                  }
+                  trap cleanup EXIT
+
+                  sleep 1
+
+                  if ! curl -sf http://localhost:18923/ >/dev/null 2>&1; then
+                    echo "FAIL: E2E server did not start on :18923"
+                    exit 1
+                  fi
+
+                  echo "==> Running Playwright tests"
+                  cd e2e
+
+                  if command -v bun >/dev/null 2>&1; then
+                    bun install --frozen-lockfile 2>/dev/null || bun install
+                    bun run test
+                  elif command -v npx >/dev/null 2>&1; then
+                    npx playwright install chromium
+                    npx playwright test
+                  else
+                    echo "FAIL: Neither bun nor npx found. Install Node.js or Bun to run E2E tests."
+                    exit 1
+                  fi
+                '';
+              };
+            };
+
+            check-phantom-version = {
+              type = "app";
+              meta.description = "Detect zero pseudo-versions in go-cqrs-lite dependencies (broken upstream tags)";
+              program = pkgs.writeShellApplication {
+                name = "check-phantom-version";
+                runtimeInputs = [ pkgs.ripgrep ];
+                text = ''
+                  set -euo pipefail
+                  echo "=== Phantom Version Check ==="
+                  echo "Scanning go.mod files for zero pseudo-versions..."
+                  found=0
+                  result=$(rg 'v0\.0\.0-00010101000000-000000000000' --glob 'go.mod' . 2>/dev/null || true)
+                  if [ -n "$result" ]; then
+                    echo "FAIL: zero pseudo-version detected:"
+                    echo "$result"
+                    found=1
+                  fi
+                  if [ "$found" -eq 0 ]; then
+                    echo "OK: No phantom versions detected."
+                  else
+                    exit 1
+                  fi
+                '';
+              };
+            };
+
+            check-cqrs-lint = {
+              type = "app";
+              meta.description = "Run cqrs-lint --strict on all workspace modules";
+              program = pkgs.writeShellApplication {
+                name = "check-cqrs-lint";
+                text = ''
+                  set -euo pipefail
+                  echo "=== cqrs-lint strict check ==="
+                  fail=0
+                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui; do
+                    echo "==> $mod"
+                    if ! (cd "$mod" && cqrs-lint --strict . >/dev/null 2>&1); then
+                      echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --verbose .' for details)"
+                      fail=1
+                    fi
+                  done
+                  if [ "$fail" -eq 0 ]; then
+                    echo "All modules pass cqrs-lint strict."
+                  else
+                    exit 1
+                  fi
                 '';
               };
             };
