@@ -53,7 +53,7 @@ All tests in all modules must pass with zero errors before submitting.
 
 This is a **library/SDK**, not an application. There is no `main` package. Consumers import `github.com/larsartmann/cqrs-htmx/v4` into their projects.
 
-The project uses a **multi-module Go workspace** with 15 modules:
+The project uses a **multi-module Go workspace** with 18 modules:
 
 | Module            | Path                         | Go Module                                               | Tests |
 | ----------------- | ---------------------------- | ------------------------------------------------------- | ----- |
@@ -72,6 +72,9 @@ The project uses a **multi-module Go workspace** with 15 modules:
 | Catalog Demo      | `./examples/catalog-demo/`   | example app (go-cqrs-lite catalog)                      | No    |
 | Admin Demo        | `./examples/admin-demo/`     | runnable admin panel showcase                           | No    |
 | Dashboard Demo    | `./examples/dashboard-demo/` | CQRS/ES observability demo                              | No    |
+| Middleware Demo   | `./examples/middleware-demo/` | go-cqrs-lite dispatch middleware demo                   | Yes   |
+| Observability Demo | `./examples/observability-demo/` | OTel/Prometheus observability demo                | Yes   |
+| E2E Server        | `./e2e/server/`              | Playwright E2E test server (offline sync)               | No    |
 
 **Auth sub-modules** (totp, webauthn, oauth2) use **structural typing** — they implement core interfaces via primitive types (`[]byte`, `string`) without importing core `usermgmt`. This keeps auth dependencies (pquerna/otp, go-webauthn, oauth2/oidc) out of core. Each has its own `.golangci.yml`.
 
