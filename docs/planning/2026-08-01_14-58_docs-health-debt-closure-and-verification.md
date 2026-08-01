@@ -30,25 +30,25 @@ DOMAIN_LANGUAGE freshness, HTML CSP compliance, CHANGELOG reorganization, TODO_L
 
 ## Execution Status
 
-| # | Task | Status | Evidence |
-|---|------|--------|----------|
-| M1 | Fix AGENTS.md coverage line | ✅ Done | `93.7%/81.6%/84.0%` |
-| M2 | Fix AGENTS.md coverage gate actuals | ✅ Done | `81.6%` |
-| M3 | Fix CONTRIBUTING.md module count | ✅ Done | `18 modules` |
-| M4 | Add missing modules to CONTRIBUTING table | ✅ Done | middleware-demo, observability-demo, e2e/server |
-| M5 | Run `nix fmt` | ✅ Done | 0 changed |
-| M6 | Run `nix run .#lint` (all modules) | ✅ Done | 0 issues across all 10 modules |
-| M7 | Fix FEATURES.md `[Unreleased]` | ✅ Done | Removed qualifier |
-| M8 | Archive 5 resolved files | ✅ Done | `git mv` to `docs/status/archived/` |
-| M9 | Fix ADR-0030 status | ✅ Done | Proposed → Superseded (by ADR 0040) |
-| M10 | Verify internal markdown links | Pending | |
-| M11 | Fix broken links (if any) | Pending | |
-| M12 | Annotate 9 `2026-07-31` files | Pending | |
-| M13 | Run `nix run .#test` | Pending | Background |
-| M14 | Run `nix run .#errorfamily` | ✅ Done | All pass |
-| M15 | Run `nix flake check` | ✅ Done | All checks passed |
-| M16 | Write this plan doc | ✅ Done | This file |
-| M17 | Commit + push | Pending | After all |
+| #   | Task                                      | Status  | Evidence                                        |
+| --- | ----------------------------------------- | ------- | ----------------------------------------------- |
+| M1  | Fix AGENTS.md coverage line               | ✅ Done | `93.7%/81.6%/84.0%`                             |
+| M2  | Fix AGENTS.md coverage gate actuals       | ✅ Done | `81.6%`                                         |
+| M3  | Fix CONTRIBUTING.md module count          | ✅ Done | `18 modules`                                    |
+| M4  | Add missing modules to CONTRIBUTING table | ✅ Done | middleware-demo, observability-demo, e2e/server |
+| M5  | Run `nix fmt`                             | ✅ Done | 0 changed                                       |
+| M6  | Run `nix run .#lint` (all modules)        | ✅ Done | 0 issues across all 10 modules                  |
+| M7  | Fix FEATURES.md `[Unreleased]`            | ✅ Done | Removed qualifier                               |
+| M8  | Archive 5 resolved files                  | ✅ Done | `git mv` to `docs/status/archived/`             |
+| M9  | Fix ADR-0030 status                       | ✅ Done | Proposed → Superseded (by ADR 0040)             |
+| M10 | Verify internal markdown links            | Pending |                                                 |
+| M11 | Fix broken links (if any)                 | Pending |                                                 |
+| M12 | Annotate 9 `2026-07-31` files             | Pending |                                                 |
+| M13 | Run `nix run .#test`                      | Pending | Background                                      |
+| M14 | Run `nix run .#errorfamily`               | ✅ Done | All pass                                        |
+| M15 | Run `nix flake check`                     | ✅ Done | All checks passed                               |
+| M16 | Write this plan doc                       | ✅ Done | This file                                       |
+| M17 | Commit + push                             | Pending | After all                                       |
 
 ---
 
@@ -103,15 +103,15 @@ graph TD
 
 These items are already in TODO_LIST.md or ROADMAP.md. Included for completeness.
 
-| # | Task | Source | Effort |
-|---|------|--------|--------|
-| E1 | Upgrade cqrs-lint v0.2.2 → latest | TODO_LIST P2 | 15m |
-| E2 | MySQL integration test (docker) | TODO_LIST P2 | 2h+ |
-| E3 | State cache invalidation test | TODO_LIST P2 | 30m |
-| E4 | catalog-demo smoke test | TODO_LIST P2 (harvested) | 15m |
-| E5 | errorfamily gate comment-aware | TODO_LIST P2 (harvested) | 30m |
-| E6 | loginpage/CHANGELOG.md | TODO_LIST P3 (harvested) | 15m |
-| E7 | Phantom-version CI gate | TODO_LIST P3 | 15m |
-| E8 | cqrs-lint strict CI gate | TODO_LIST P3 | 15m |
-| E9 | HTML CSP compliance (9 files) | Pre-existing | 30m |
-| E10 | DOMAIN_LANGUAGE.md freshness | Pre-existing | 15m |
+| #   | Task                              | Source                   | Effort |
+| --- | --------------------------------- | ------------------------ | ------ |
+| E1  | Upgrade cqrs-lint v0.2.2 → latest | TODO_LIST P2             | 15m    |
+| E2  | MySQL integration test (docker)   | TODO_LIST P2             | 2h+    |
+| E3  | State cache invalidation test     | TODO_LIST P2             | 30m    |
+| E4  | catalog-demo smoke test           | TODO_LIST P2 (harvested) | 15m    |
+| E5  | errorfamily gate comment-aware    | TODO_LIST P2 (harvested) | 30m    |
+| E6  | loginpage/CHANGELOG.md            | TODO_LIST P3 (harvested) | 15m    |
+| E7  | Phantom-version CI gate           | TODO_LIST P3             | 15m    |
+| E8  | cqrs-lint strict CI gate          | TODO_LIST P3             | 15m    |
+| E9  | HTML CSP compliance (9 files)     | Pre-existing             | 30m    |
+| E10 | DOMAIN_LANGUAGE.md freshness      | Pre-existing             | 15m    |

@@ -13,6 +13,7 @@
 **What:** The TODO_LIST had `[~] State cache invalidation-after-write test` marked as partially done, claiming "Remaining: verify cache is busted on command dispatch, and write a benchmark."
 
 **Reality:** Both deliverables already existed in the codebase:
+
 - `TestStateCache_ServesUpdatedStateAfterWrite` in `usermgmt/correctness_test.go:44` — proves sequential `ChangeEmail` commands see updated state
 - `BenchmarkStateCache_ColdVsWarm` in `usermgmt/benchmark_test.go:141` — quantifies 50-event stream: cold 189μs vs warm 14μs (13.7x speedup)
 
@@ -26,12 +27,12 @@
 
 **What:** `examples/catalog-demo/` was the only example module with zero test files. Added 4 tests:
 
-| Test | What it verifies |
-|------|-----------------|
+| Test                            | What it verifies                                            |
+| ------------------------------- | ----------------------------------------------------------- |
 | `TestBuildCatalog_Registration` | Catalog builds with 1 service, 1 command, 2 events, 1 query |
-| `TestCatalog_Validate` | Catalog passes `Validate()` with zero violations |
-| `TestHTTPHandlers_ServeSpecs` | OpenAPI, AsyncAPI, D2, and health endpoints all return 200 |
-| `TestOpenAPISpec_ValidJSON` | OpenAPI spec is valid JSON with correct `info.title` |
+| `TestCatalog_Validate`          | Catalog passes `Validate()` with zero violations            |
+| `TestHTTPHandlers_ServeSpecs`   | OpenAPI, AsyncAPI, D2, and health endpoints all return 200  |
+| `TestOpenAPISpec_ValidJSON`     | OpenAPI spec is valid JSON with correct `info.title`        |
 
 **Verification:** `cd examples/catalog-demo && GOEXPERIMENT=jsonv2 go test ./... -count=1 -race` → `ok 1.015s`
 
@@ -42,6 +43,7 @@
 **What:** Replaced the ripgrep-based errorfamily gate with a Go AST-based scanner.
 
 **Why:** The ripgrep filter (`rg -v ':[0-9]+:\s*//'`) only handled full-line `//` comments. It would false-positive on:
+
 - Block comments (`/* errors.New(...) */`)
 - Inline trailing comments (`code() // see errors.New for reference`)
 - Doc comments with example code
@@ -49,11 +51,13 @@
 **Solution:** `go/parser.ParseFile` inherently discards ALL comment types. The scanner walks the AST for `*ast.CallExpr` nodes matching `errors.New`, `fmt.Errorf`, `errors.Join`. Zero false positives by construction.
 
 **Design decisions:**
+
 - `//go:build ignore` tag — file doesn't affect module builds, coverage, or `go list`
 - Run via `go run scripts/errorfamily_scanner.go <dir> [<dir> ...]` — no binary to install
 - Exits 0 on clean, 1 on violations; prints `FAIL: file:line: fn( — stdlib error constructor`
 
 **Verification:**
+
 - Passes on real codebase: all 6 modules clean
 - Catches real violations: synthetic test with `errors.New` + `fmt.Errorf` → both flagged
 - Ignores comments: both `//` and `/* */` mentioning banned functions → zero flags
@@ -69,6 +73,7 @@
 **What:** Created CHANGELOG for the only sub-module lacking one. Followed the totp CHANGELOG pattern.
 
 **Coverage:** All 6 git tags documented:
+
 - `v4.0.0` (2026-07-12) — module extraction: passwordless WebAuthn login page
 - `v4.3.0` (2026-07-12) — go-cqrs-lite v3→v4 migration
 - `v4.4.0` (2026-07-23) — httputil v0.6.0, identity-model extraction
@@ -84,17 +89,17 @@
 
 **What was missing (stale CI):**
 
-| Gap | Before | After |
-|-----|--------|-------|
-| identity-model build/test/lint | Missing entirely | Added |
-| dashboardui build/test/lint | Missing entirely | Added |
-| loginpage build/test | Missing entirely | Added |
-| phantom-version gate | Missing | Added to security job |
-| errorfamily gate | Missing | Added to security job |
-| usermgmt coverage threshold | 78% (wrong) | 74% (matches flake.nix gate) |
-| identity-model coverage check | Missing | Added (70% threshold) |
-| dashboardui coverage check | Missing | Added (60% threshold) |
-| mod-tidy module list | 9 modules | All 18 modules |
+| Gap                            | Before           | After                        |
+| ------------------------------ | ---------------- | ---------------------------- |
+| identity-model build/test/lint | Missing entirely | Added                        |
+| dashboardui build/test/lint    | Missing entirely | Added                        |
+| loginpage build/test           | Missing entirely | Added                        |
+| phantom-version gate           | Missing          | Added to security job        |
+| errorfamily gate               | Missing          | Added to security job        |
+| usermgmt coverage threshold    | 78% (wrong)      | 74% (matches flake.nix gate) |
+| identity-model coverage check  | Missing          | Added (70% threshold)        |
+| dashboardui coverage check     | Missing          | Added (60% threshold)        |
+| mod-tidy module list           | 9 modules        | All 18 modules               |
 
 **Verification:** YAML validated via `python3 -c "import yaml; yaml.safe_load(open(...))"`. Phantom-version check confirmed clean via `grep -rF 'v0.0.0-00010101000000-000000000000'`.
 
@@ -102,32 +107,35 @@
 
 ### 6. All canonical gates verified green
 
-| Gate | Result |
-|------|--------|
-| `nix run .#test` | All 11 module groups pass (`-race`) |
-| `nix run .#lint` | 0 issues across all 10 lint groups |
+| Gate                      | Result                                                       |
+| ------------------------- | ------------------------------------------------------------ |
+| `nix run .#test`          | All 11 module groups pass (`-race`)                          |
+| `nix run .#lint`          | 0 issues across all 10 lint groups                           |
 | `nix run .#coverage-gate` | All 9 coverage gates pass (root 93.7%, usermgmt 81.6%, etc.) |
-| `nix run .#errorfamily` | All 6 modules pass |
-| `nix fmt` | Applied (1 alignment fix in scanner) |
-| `nix flake check` | All checks passed |
+| `nix run .#errorfamily`   | All 6 modules pass                                           |
+| `nix fmt`                 | Applied (1 alignment fix in scanner)                         |
+| `nix flake check`         | All checks passed                                            |
 
 ---
 
 ### 7. TODO_LIST + CHANGELOG updated
 
 **TODO_LIST changes:**
+
 - Removed stale state cache TODO (split brain)
 - Removed completed: catalog-demo test, errorfamily comment-awareness, loginpage CHANGELOG, phantom-version CI gate
 - Updated cqrs-lint CI gate target: `.buildflow.yml` → GitHub Actions (blocked on Nix-only binary)
 - Date bumped to 2026-08-02
 
 **CHANGELOG additions (Under `### Added`):**
+
 - Catalog-demo smoke test entry
 - Errorfamily AST scanner entry
 - CI workflow expansion entry
 - loginpage CHANGELOG entry
 
 **CHANGELOG additions (Under `### Changed`):**
+
 - Errorfamily gate upgraded entry (ripgrep → AST)
 - TODO_LIST reconciled entry (stale state cache + completed items removed)
 
@@ -145,11 +153,11 @@
 
 ## c) NOT STARTED (from TODO_LIST)
 
-| Item | Priority | Blocker |
-|------|----------|---------|
-| Upgrade cqrs-lint from Nix v0.2.2 to latest | P2 | System-level Nix package update — requires rebuilding the Nix binary from go-cqrs-lite source |
-| MySQL integration test against real MySQL | P2 | Requires docker/testcontainers infrastructure |
-| cqrs-lint strict CI gate | P3 | cqrs-lint is Nix-only; GitHub Actions runners are Ubuntu. Needs Go-installable distribution or Nix CI runner |
+| Item                                        | Priority | Blocker                                                                                                      |
+| ------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| Upgrade cqrs-lint from Nix v0.2.2 to latest | P2       | System-level Nix package update — requires rebuilding the Nix binary from go-cqrs-lite source                |
+| MySQL integration test against real MySQL   | P2       | Requires docker/testcontainers infrastructure                                                                |
+| cqrs-lint strict CI gate                    | P3       | cqrs-lint is Nix-only; GitHub Actions runners are Ubuntu. Needs Go-installable distribution or Nix CI runner |
 
 ---
 
@@ -309,15 +317,15 @@ The project now has 3 `//go:build ignore` files: `usermgmt/mysql_setup.go`, `use
 
 ## Session metrics
 
-| Metric | Value |
-|--------|-------|
-| Files changed | 7 |
-| Lines added | +427 |
-| Lines removed | -25 |
-| Commits | 5 (auto-committed by BuildFlow daemon) |
-| TODO items closed | 4 (state cache, catalog-demo, errorfamily, loginpage CHANGELOG) |
-| TODO items remaining | 3 (cqrs-lint upgrade, MySQL integration, cqrs-lint CI gate) |
-| Tests added | 4 (catalog-demo) |
-| Gates run | 6 (test, lint, coverage-gate, errorfamily, fmt, flake-check) |
-| All gates green | Yes |
-| Time to complete | ~20 minutes |
+| Metric               | Value                                                           |
+| -------------------- | --------------------------------------------------------------- |
+| Files changed        | 7                                                               |
+| Lines added          | +427                                                            |
+| Lines removed        | -25                                                             |
+| Commits              | 5 (auto-committed by BuildFlow daemon)                          |
+| TODO items closed    | 4 (state cache, catalog-demo, errorfamily, loginpage CHANGELOG) |
+| TODO items remaining | 3 (cqrs-lint upgrade, MySQL integration, cqrs-lint CI gate)     |
+| Tests added          | 4 (catalog-demo)                                                |
+| Gates run            | 6 (test, lint, coverage-gate, errorfamily, fmt, flake-check)    |
+| All gates green      | Yes                                                             |
+| Time to complete     | ~20 minutes                                                     |

@@ -26,20 +26,20 @@ Plan doc, commit, push.
 
 ## Execution Status
 
-| # | Micro-Task | Status | Evidence |
-|---|-----------|--------|----------|
-| M1 | Annotate `03-41` cqrs-lint suppression | ✅ Done | Superseded by TODO_LIST P2 |
-| M2 | Annotate `03-57` govalid flake investigation | ✅ Done | Superseded; "wrong" fix was correct |
-| M3 | Annotate `04-41` docs-health session | ✅ Done | Superseded by 05-46 + 2026-08-01 |
-| M4 | Annotate `05-46` completion blitz | ✅ Done | Superseded by 2026-08-01 |
-| M5 | Annotate `17-49` go-cqrs-lite usage audit | ✅ Done | Key findings acted upon |
-| M6 | Annotate `18-50` Pareto plan execution | ✅ Done | Sprint debt largely closed |
-| M7 | Check DOMAIN_LANGUAGE.md freshness | ✅ Done | **11 events + 8 commands missing — DRIFT FOUND** |
-| M8 | Fix DOMAIN_LANGUAGE.md drift | ✅ Done | Added all 21 events + 21 commands |
-| M9 | Verify markdown links properly | ✅ Done | All links resolve (14 doc-relative links verified) |
-| M10 | Classify HTML CSP files | ✅ Done | All 9 are internal dev docs — CSP N/A |
-| M11 | Write this plan doc | ✅ Done | This file |
-| M12 | Run gates + commit + push | Pending | |
+| #   | Micro-Task                                   | Status  | Evidence                                           |
+| --- | -------------------------------------------- | ------- | -------------------------------------------------- |
+| M1  | Annotate `03-41` cqrs-lint suppression       | ✅ Done | Superseded by TODO_LIST P2                         |
+| M2  | Annotate `03-57` govalid flake investigation | ✅ Done | Superseded; "wrong" fix was correct                |
+| M3  | Annotate `04-41` docs-health session         | ✅ Done | Superseded by 05-46 + 2026-08-01                   |
+| M4  | Annotate `05-46` completion blitz            | ✅ Done | Superseded by 2026-08-01                           |
+| M5  | Annotate `17-49` go-cqrs-lite usage audit    | ✅ Done | Key findings acted upon                            |
+| M6  | Annotate `18-50` Pareto plan execution       | ✅ Done | Sprint debt largely closed                         |
+| M7  | Check DOMAIN_LANGUAGE.md freshness           | ✅ Done | **11 events + 8 commands missing — DRIFT FOUND**   |
+| M8  | Fix DOMAIN_LANGUAGE.md drift                 | ✅ Done | Added all 21 events + 21 commands                  |
+| M9  | Verify markdown links properly               | ✅ Done | All links resolve (14 doc-relative links verified) |
+| M10 | Classify HTML CSP files                      | ✅ Done | All 9 are internal dev docs — CSP N/A              |
+| M11 | Write this plan doc                          | ✅ Done | This file                                          |
+| M12 | Run gates + commit + push                    | Pending |                                                    |
 
 ---
 

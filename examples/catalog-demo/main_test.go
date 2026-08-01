@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -107,7 +107,7 @@ func TestOpenAPISpec_ValidJSON(t *testing.T) {
 	defer resp.Body.Close()
 
 	var parsed map[string]any
-	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
+	if err := json.UnmarshalRead(resp.Body, &parsed); err != nil {
 		t.Fatalf("openapi.json is not valid JSON: %v", err)
 	}
 
