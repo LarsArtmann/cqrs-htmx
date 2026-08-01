@@ -20,8 +20,6 @@
 
 - [~] **MySQL event-store support via go-cqrs-lite Dialect.** Event-store-only MySQL dialect added (`MySQLDialect` with `?` placeholders, MySQL-specific DDL, `IsDuplicateKeyError` extended, `classifyMySQLError` error classifier implemented in go-cqrs-lite `storage/sql/classify_init.go`). `dialectToUpstream` updated. `storage/v4` at v4.5.0. Read model constructors shipped (`NewMySQLUserReadModel`, etc.). Remaining: (1) add integration test against real MySQL (docker/testcontainers), (2) document MySQL support in README, (3) consider `NewMySQLSetup` convenience constructor and MySQL-backed session/snapshot/checkpoint stores.
 
-- [~] **State cache invalidation-after-write test.** WithStateCache is wired in all 4 usermgmt repositories. Two tests exist (`TestStateCache_InterceptsWritePathLoad`, `TestSnapshot_WritePathConsultsSnapshot_OnCacheMiss`). Remaining: verify cache is busted on command dispatch (not just on service restart), and write a benchmark quantifying first (cold) vs second (cache hit) Execute.
-
 - [ ] **Add catalog-demo smoke test.** `examples/catalog-demo/` has zero test files — the only example module without any test coverage. A basic `main_test.go` that imports and initializes the demo would catch build-breakage. Source: docs/status/2026-07-28_09-58.
 
 - [ ] **Make errorfamily CI gate comment-aware.** The current ripgrep-based `nix run .#errorfamily` scan matches `errors.New(`/`fmt.Errorf(` inside Go comments and docstrings (caused a false positive on `readiness.go`). Either filter comments properly or use a Go AST-based scanner.
