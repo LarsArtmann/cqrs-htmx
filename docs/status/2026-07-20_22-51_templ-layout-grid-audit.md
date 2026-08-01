@@ -4,6 +4,11 @@
 **Session scope:** User asked "Should we use grid CSS more, for layouts?" → "Checkout .templ files!" → full read/understand/refactor/verify cycle.
 **Trigger prompt:** "READ, UNDERSTAND, RESEARCH, REFLECT. Break this down into multiple actionable steps."
 
+> **Update 2026-08-01:** The 7 `flex-1` spacer eliminations shipped (replaced with `justify-between`).
+> The CSS audit follow-up items (snapshot tests, accessibility audit, dark-mode audit, responsive
+> audit) remain as low-priority ideas — not tracked in TODO_LIST. loginpage was redesigned with
+> improved HTMX integration in a later session.
+
 ---
 
 ## Executive Summary
