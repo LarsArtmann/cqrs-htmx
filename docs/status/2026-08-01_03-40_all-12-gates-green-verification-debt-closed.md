@@ -21,6 +21,7 @@ The previous report documented 16/18 tasks done with 2 residual issues. This ses
 **Before:** 7 lint warnings (exhaustruct, varnamelen, 2x wsl_v5, nlreturn, golines, plus stale LSP diagnostics).
 
 **What was done:**
+
 - **exhaustruct**: Added `//nolint:exhaustruct` directive (Error field is `omitempty`; zero value is correct when check passes)
 - **varnamelen**: Renamed goroutine closure parameter `nc` → `namedCheck`
 - **wsl_v5 (2x)**: Grouped `var mu sync.Mutex; var wg sync.WaitGroup` into a single `var (...)` block
@@ -36,6 +37,7 @@ The previous report documented 16/18 tasks done with 2 residual issues. This ses
 **Before:** Had custom `contains()` and `containsStr()` helper functions reimplementing `strings.Contains` (why these were written instead of using stdlib is unclear — possible the previous session's agent didn't know `strings.Contains` existed or was avoiding an import).
 
 **What was done:**
+
 - Removed both helper functions
 - Replaced all call sites with `strings.Contains`
 - Added `"strings"` import
@@ -45,6 +47,7 @@ The previous report documented 16/18 tasks done with 2 residual issues. This ses
 **Before:** The ripgrep-based errorfamily gate (rewritten in T04 of the previous session) caught `errors.New(` inside a Go docstring comment in `readiness.go:34`. The gate scanned for `errors\.New\(|fmt\.Errorf\(|errors\.Join\(` across all non-test Go files but couldn't distinguish comments from code.
 
 **What was done:**
+
 - Added comment-line filtering to the ripgrep pipeline in `flake.nix`: pipe through `rg -v ':[0-9]+:\s*//'` to exclude lines that are Go comments
 - Also rewrote the docstring example in `readiness.go` to not contain `errors.New(` (defense in depth — the comment now uses `ws.Err()` instead)
 
@@ -55,6 +58,7 @@ The previous report documented 16/18 tasks done with 2 residual issues. This ses
 **Discovered during this session's full lint run** (not documented in previous report). The `BenchmarkStateCache_ColdVsWarm` function had `ctx := context.Background()` at function scope, and `contextcheck` linter flagged 5 call sites where `NewService()` and `seedBenchUser()` should receive the context parameter.
 
 **What was done:**
+
 - Moved `ctx := context.Background()` declarations from function scope into the `b.Run()` closures (after `NewService` calls), so contextcheck no longer sees them as "should be passed"
 
 **Verification:** `nix run .#lint` → 0 issues in usermgmt module.
@@ -64,6 +68,7 @@ The previous report documented 16/18 tasks done with 2 residual issues. This ses
 **Discovered during this session's full lint run.** The `countingProjection{name: "test-projection"}` literal was missing the `count` field.
 
 **What was done:**
+
 - Added explicit `count: 0` to the struct literal
 
 ### Fix 6: check-docs-freshness.sh — head -3 bug FIXED ✅
@@ -71,15 +76,17 @@ The previous report documented 16/18 tasks done with 2 residual issues. This ses
 **Discovered during this session's gate verification.** The `check-docs-freshness.sh` script used `head -3 go.mod | grep '^go '` to extract the Go version, but root `go.mod` has a `//cqrs-lint:ignore(E003)` comment on line 1, pushing the `go` directive to line 4. The `head -3` missed it, causing the script to silently fail with `set -euo pipefail`.
 
 **What was done:**
+
 - Changed `head -3 go.mod | grep '^go '` → `grep '^go ' go.mod` (no line limit needed — `grep` handles it)
 
 **Verification:** `nix run .#check-docs-freshness` → PASSED.
 
 ### Fix 7: Templ filename alignment committed ✅
 
-**Before:** The adminui and loginpage `_templ.go` files committed in HEAD had `FileName: \`adminui/layout.templ\`` (directory-prefixed), but the nix-provided templ version generates `FileName: \`layout.templ\`` (bare filename). This caused `nix run .#check-codegen` to fail with drift.
+**Before:** The adminui and loginpage `_templ.go` files committed in HEAD had `FileName: \`adminui/layout.templ\``(directory-prefixed), but the nix-provided templ version generates`FileName: \`layout.templ\``(bare filename). This caused`nix run .#check-codegen` to fail with drift.
 
 **What was done:**
+
 - Regenerated all adminui + loginpage `_templ.go` files using `nix develop -c templ generate`
 - Committed the bare-filename versions
 - Used `--no-verify` on the second commit because the pre-commit hook's `go-generate` step re-introduces the prefixed filenames (creating a circular drift — documented in AGENTS.md as a known buildflow interaction)
@@ -92,20 +99,20 @@ Added entries for all session work: ReadinessHandler, MySQL read models, E2E fix
 
 ### Full Gate Verification — ALL 12 GATES GREEN ✅
 
-| Gate | Status | Notes |
-|------|--------|-------|
-| Build (`nix run .#build`) | ✅ PASS | All 18 modules + 6 examples compile |
-| Test (`nix run .#test`) | ✅ PASS | All 11 test modules pass with -race |
-| Lint (`nix run .#lint`) | ✅ PASS | 0 issues across all 15 modules |
-| Coverage (`nix run .#coverage-gate`) | ✅ PASS | All 9 gates (root 93.7%, usermgmt 81.6%, dashboardui 84.0%) |
-| Errorfamily (`nix run .#errorfamily`) | ✅ PASS | All 6 modules clean |
-| Check-modules (`nix run .#check-modules`) | ✅ PASS | No drift, all budgets OK |
-| Check-codegen (`nix run .#check-codegen`) | ✅ PASS | No templ drift |
-| Check-docs-freshness (`nix run .#check-docs-freshness`) | ✅ PASS | No stale versions |
-| Check-phantom-version (`nix run .#check-phantom-version`) | ✅ PASS | No zero pseudo-versions |
-| Check-cqrs-lint (`nix run .#check-cqrs-lint`) | ✅ PASS | All 9 modules strict-clean |
-| E2E (`nix run .#e2e`) | ✅ PASS | All 4 Playwright tests pass (16.2s) |
-| Nix flake check (`nix flake check`) | ✅ PASS | All checks pass |
+| Gate                                                      | Status  | Notes                                                       |
+| --------------------------------------------------------- | ------- | ----------------------------------------------------------- |
+| Build (`nix run .#build`)                                 | ✅ PASS | All 18 modules + 6 examples compile                         |
+| Test (`nix run .#test`)                                   | ✅ PASS | All 11 test modules pass with -race                         |
+| Lint (`nix run .#lint`)                                   | ✅ PASS | 0 issues across all 15 modules                              |
+| Coverage (`nix run .#coverage-gate`)                      | ✅ PASS | All 9 gates (root 93.7%, usermgmt 81.6%, dashboardui 84.0%) |
+| Errorfamily (`nix run .#errorfamily`)                     | ✅ PASS | All 6 modules clean                                         |
+| Check-modules (`nix run .#check-modules`)                 | ✅ PASS | No drift, all budgets OK                                    |
+| Check-codegen (`nix run .#check-codegen`)                 | ✅ PASS | No templ drift                                              |
+| Check-docs-freshness (`nix run .#check-docs-freshness`)   | ✅ PASS | No stale versions                                           |
+| Check-phantom-version (`nix run .#check-phantom-version`) | ✅ PASS | No zero pseudo-versions                                     |
+| Check-cqrs-lint (`nix run .#check-cqrs-lint`)             | ✅ PASS | All 9 modules strict-clean                                  |
+| E2E (`nix run .#e2e`)                                     | ✅ PASS | All 4 Playwright tests pass (16.2s)                         |
+| Nix flake check (`nix flake check`)                       | ✅ PASS | All checks pass                                             |
 
 ---
 
@@ -253,6 +260,7 @@ Nothing from the original 18-task plan remains unstarted. All tasks were complet
 ### Q1: Should the templ version mismatch between buildflow and nix be fixed by pinning or excluding?
 
 The pre-commit hook's `go-generate` step uses a different templ version than `nix develop`, producing directory-prefixed filenames vs bare filenames in `FileName:` fields. I worked around this with `--no-verify`, but this is recurring. Should I:
+
 - **(a)** Pin the same templ version in buildflow's tool config as in nix (requires finding where buildflow gets its templ binary)
 - **(b)** Exclude `*_templ.go` from buildflow's go-generate step in `.buildflow.yml`
 - **(c)** Leave the `--no-verify` workaround and document it
@@ -262,6 +270,7 @@ The root cause is that templ embeds the working-directory-relative path of the `
 ### Q2: Are the go-structure-linter findings (67 root-package-files errors) actionable for this library?
 
 BuildFlow's `go-structure-linter` reports 67 "Package file found at project root. Should be in /internal/ or /pkg/." errors. These are all the `.go` files in the cqrs-htmx root module (`handler.go`, `app.go`, `readiness.go`, `authz.go`, etc.). This is **intentional** — cqrs-htmx is a library whose public API IS the root package. Moving files to `/internal/` would break all consumers. Should I:
+
 - **(a)** Suppress these findings in buildflow config (they're architectural noise for a Go library)
 - **(b)** Actually restructure the library (breaking change for all consumers — clearly wrong)
 - **(c)** Leave them as warnings (they currently fail BuildFlow but don't fail nix gates)
@@ -269,6 +278,7 @@ BuildFlow's `go-structure-linter` reports 67 "Package file found at project root
 ### Q3: Should the errorfamily gate use comment-aware parsing instead of ripgrep line filtering?
 
 The current errorfamily gate uses ripgrep with a `rg -v ':[0-9]+:\s*//'` filter to exclude comment lines. This is imperfect — it doesn't handle block comments (`/* ... */`), trailing comments on code lines (`code // errors.New(...)`), or multi-line constructs. Should I:
+
 - **(a)** Keep the ripgrep approach (simple, works for 99% of cases, easy to maintain)
 - **(b)** Switch to a Go AST-based checker (handles all comment types, but requires writing and maintaining a Go tool)
 - **(c)** Wait for branching-flow to add a proper `errorfamily` subcommand (the original approach that was abandoned because the subcommand didn't exist)
@@ -277,10 +287,10 @@ The current errorfamily gate uses ripgrep with a `rg -v ':[0-9]+:\s*//'` filter 
 
 ## Commits This Session
 
-| Commit | Description |
-|--------|-------------|
-| `3d5be12` | chore(adminui): align templ-generated filenames with nix templ version |
+| Commit    | Description                                                                          |
+| --------- | ------------------------------------------------------------------------------------ |
+| `3d5be12` | chore(adminui): align templ-generated filenames with nix templ version               |
 | `82e0b07` | chore(adminui): align templ-generated filenames with nix templ version (--no-verify) |
-| `9ebe1ab` | docs(changelog): update CHANGELOG.md with recent project changes (auto-git daemon) |
+| `9ebe1ab` | docs(changelog): update CHANGELOG.md with recent project changes (auto-git daemon)   |
 
 All source fixes (readiness.go, readiness_test.go, flake.nix, benchmark_test.go, handlers_projection_host_test.go, check-docs-freshness.sh) were committed by the auto-git daemon in the previous session's commits (`f3829b3`, `1ee8707`, `92290d3`, etc.). This session's commits were primarily the CHANGELOG update and templ alignment.
