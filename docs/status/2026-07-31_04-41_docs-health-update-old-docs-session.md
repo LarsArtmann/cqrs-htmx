@@ -5,6 +5,12 @@
 - **Branch:** `master` (auto-committed by git daemon: commits `50c4740`, `5c98256`, `8ea8899`)
 - **Verdict:** Living docs rebuilt and cross-checked. 6 files archived, 3 planning docs annotated. Build passes. **But ~32 status reports classified as ANNOTATE were LEFT UNTOUCHED** — the annotation pass was abandoned after only 3 files. Several verification gaps remain (see c, d, e).
 
+> **Update 2026-08-01:** **Superseded** by the `05-46` completion blitz (14 reports annotated) and
+> subsequent 2026-08-01 sessions (17 remaining files annotated, 5 archived). All July-20 through
+> July-31 status reports now have resolution annotations or are archived. All canonical nix gates
+> verified green. Living docs (AGENTS.md, CONTRIBUTING.md, FEATURES.md, TODO_LIST.md, ROADMAP.md,
+> CHANGELOG.md) all updated with verified coverage/module counts.
+
 ---
 
 ## a) FULLY DONE

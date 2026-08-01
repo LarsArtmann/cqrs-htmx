@@ -5,6 +5,11 @@
 - **Branch:** `master` (auto-committed by the git daemon across multiple commits)
 - **Verdict:** 56 of 56 findings suppressed, cqrs-lint exits 0, build+test+lint pass. **But 4 stale-suppression warnings remain** and several verification gaps exist.
 
+> **Update 2026-08-01:** **Superseded.** The 4 stale-suppression warnings are caused by the installed
+> cqrs-lint Nix binary being v0.2.2 (lacks comma-separated rule support). The go-cqrs-lite source
+> already implements it. Tracked in TODO_LIST P2 ("Upgrade cqrs-lint from Nix v0.2.2"). AGENTS.md
+> gotcha documents the workaround (two separate comment lines). All canonical nix gates green.
+
 ---
 
 ## a) FULLY DONE

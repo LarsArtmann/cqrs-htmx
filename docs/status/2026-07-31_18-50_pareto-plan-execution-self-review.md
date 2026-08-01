@@ -4,6 +4,12 @@
 **Session type:** Plan execution (T01-T18) + brutal self-review
 **Scope:** Execute the entire 18-task Pareto plan from `docs/planning/2026-07-31_17-55_go-cqrs-lite-leverage-security-hardening.md`
 
+> **Update 2026-08-01:** **Sprint debt largely closed** by `19-46` and `23-18` sessions. Lint at
+> 0 issues across all 18 modules. Coverage: root 93.7%, usermgmt 81.6%, dashboardui 84.0%. MySQL
+> read models shipped. State cache wired. OnProjectionFailed wired. E2E sync tests pass 4/4.
+> ReadinessHandler + DebugHandler shipped. All canonical nix gates verified green. Remaining:
+> MySQL integration test against real instance (TODO_LIST P2).
+
 ---
 
 ## Executive summary

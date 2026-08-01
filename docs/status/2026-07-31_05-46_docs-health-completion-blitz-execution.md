@@ -4,6 +4,11 @@
 
 **Working tree state at session end:** CLEAN. All committed. Pushed to origin/master (`c8af525`).
 
+> **Update 2026-08-01:** **Superseded** by 2026-08-01 sessions. All 14 reports annotated by this
+> session were re-checked. AGENTS.md and CONTRIBUTING.md updated (module count 18, coverage
+> corrected). 5 July-20 files archived. All July-31 files annotated. All canonical nix gates
+> verified green. Living docs at verified accuracy.
+
 ---
 
 ## TL;DR

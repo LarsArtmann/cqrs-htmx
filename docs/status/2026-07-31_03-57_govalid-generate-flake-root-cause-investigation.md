@@ -4,6 +4,12 @@
 **Session scope:** Diagnosing the `govalid-generate` buildflow failure reported in `paste_1.txt`
 **Outcome:** Symptom identified, root cause partially diagnosed, proposed fix was WRONG (band-aid, not root cause fix)
 
+> **Update 2026-08-01:** **Superseded by `04-26` session and definitive fix.** This investigation's
+> proposed `max_concurrency: 1` was initially rejected as a "band-aid" but turned out to be the
+> **correct** fix — at concurrency 1, only one process writes to GOCACHE, making the race impossible.
+> The `04-26` session added the pre-warm script as a performance optimization. Full root cause
+> documented in AGENTS.md gotcha ("govalid-generate GOCACHE race").
+
 ---
 
 ## Executive Summary
