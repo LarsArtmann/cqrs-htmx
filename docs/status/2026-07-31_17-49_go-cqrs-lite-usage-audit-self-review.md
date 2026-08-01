@@ -4,6 +4,12 @@
 **Session type:** Deep research audit + self-critique
 **Scope:** How cqrs-htmx uses go-cqrs-lite; what to improve; what I did poorly
 
+> **Update 2026-08-01:** **Key findings acted upon.** Security fixes shipped (TOTP replay
+> documentation, lockout eviction wiring, UserDelete cascade). `decider.WithStateCache` wired in
+> all 4 aggregate repos. `OnProjectionFailed` callback wired. `docs/guides/leveraging-go-cqrs-lite.md`
+> guide shipped (10-section adoption map). `examples/middleware-demo/` shipped. Remaining open:
+> MetricsRecorder through projectionhost (ROADMAP), SQL-backed defaults for checkpoint+DLQ (ROADMAP).
+
 ---
 
 ## Executive summary
