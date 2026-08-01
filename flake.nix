@@ -563,7 +563,7 @@
               meta.description = "Verify all errors use go-error-family constructors (no stdlib errors.New/fmt.Errorf/errors.Join)";
               program = pkgs.writeShellApplication {
                 name = "check-errorfamily";
-                runtimeInputs = [ pkgs.ripgrep ];
+                runtimeInputs = [ pkgs.go ];
                 text = ''
                   # Root + usermgmt + adminui + identity-model + dashboardui + loginpage:
                   # error-family constructors are mandatory in non-test code.
@@ -571,22 +571,17 @@
                   # they don't import go-cqrs-lite/event/v4 (keeping deps minimal), and
                   # the Service layer wraps all provider errors with event.Wrapf at the
                   # boundary — so error families are assigned at the correct layer.
+                  #
+                  # Uses a Go AST-based scanner (go/parser) instead of ripgrep, which
+                  # inherently ignores ALL comment types (//, /* */, inline, multi-line).
                   set -euo pipefail
+                  export GOEXPERIMENT=jsonv2
 
                   check_module() {
                     local dir="$1"
                     local name="$2"
                     echo "==> $name"
-                    local violations
-                    violations=$(rg --glob='*.go' --glob='!*_test.go' --glob='!*_templ.go' \
-                      --glob='!vendor/' --glob='!examples/' \
-                      'errors\.New\(|fmt\.Errorf\(|errors\.Join\(' "$dir" 2>/dev/null \
-                      | rg -v ':[0-9]+:\s*//' || true)
-                    if [ -n "$violations" ]; then
-                      echo "FAIL: stdlib error constructors found in $name:"
-                      echo "$violations"
-                      exit 1
-                    fi
+                    go run scripts/errorfamily_scanner.go "$dir"
                     echo "  OK"
                   }
 
