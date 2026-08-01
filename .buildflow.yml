@@ -5,19 +5,32 @@
 build_mode: full
 
 # Parallel execution
-# Kept at 2 as defense-in-depth. The primary fix for the govalid-generate flake
-# is the GOCACHE pre-warming script (scripts/prewarm-gocache.sh) called from the
-# pre-commit hook. Pre-warming compiles all shared dependencies once (serialized)
-# before concurrent tools start, converting GOCACHE access from WRITE (race-prone)
-# to READ (safe). With pre-warming in place, max_concurrency could safely return
-# to 4, but 2 is kept as a safety margin until post-fix failure rate is verified
-# at 0% over a sufficient sample.
+#
+# max_concurrency: 1 is the DEFINITIVE fix for the govalid-generate GOCACHE
+# race. At concurrency >1, two govalid (or golangci-lint) processes can
+# SIMULTANEOUSLY compile the same cold-cache dependency (encoding/json/v2 under
+# GOEXPERIMENT=jsonv2 is not pre-compiled) to GOCACHE, racing on concurrent
+# WRITEs and producing cascading "markers: failed prerequisites" /
+# "invalid package name" / garbled "unknown revision" errors. Historical flake
+# rate at concurrency 2 WITHOUT prewarm: 16.6% (pre-commit) / 12% (full).
+#
+# At concurrency 1 there is only ever ONE writer to GOCACHE, so the race is
+# impossible — regardless of cache warmth, invocation mode (pre-commit, full,
+# single-step), or whether prewarm ran. The speed cost is negligible (~5% on a
+# warm cache: 6.5s vs 6.2s for the 18-module govalid-generate fan-out) because
+# the bottleneck is per-module compile time, not parallelism.
+#
+# scripts/prewarm-gocache.sh remains as a PERFORMANCE optimization (it converts
+# the first cold compile to a warm read, so each serialized module is faster)
+# and is still called from the pre-commit hook. It is no longer load-bearing
+# for correctness.
 parallel: true
-max_concurrency: 2
+max_concurrency: 1
 
 # Retry modifier: conservative retries transiently-failing steps with backoff.
-# With the GOCACHE pre-warming fix, govalid-generate failures should drop to ~0%.
-# Retries remain as a safety net for any residual transient failures.
+# With max_concurrency: 1, the govalid-generate GOCACHE race is eliminated at
+# the source (no concurrent writers), so failures should be ~0%. Retries remain
+# as a safety net for any other transient failures.
 # Valid values: aggressive, conservative, none. (The --retry-profile flag sets
 # this same key.)
 retry_modifier: conservative
