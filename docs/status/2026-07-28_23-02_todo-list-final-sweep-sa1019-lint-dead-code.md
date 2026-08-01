@@ -4,6 +4,8 @@
 
 **Session goal:** Finish every remaining item from the previous session's self-critique (15 SA1019 warnings, unverified coverage, dead code, lint nits) and reach a clean, verified, shippable state.
 
+> **Update 2026-08-01:** **All items resolved.** SA1019 migration complete across all 18 modules (0 deprecation warnings). httputil v0.8.0 published — hermetic `GOWORK=off` builds pass, canonical nix gates green. `decoder.go` `readBodyForDecode` simplified to `([]byte, error)` (unparam fixed). Lint at 0 issues. Coverage: root 93.7%, usermgmt 81.6%, dashboardui 84.0%.
+
 ---
 
 ## a) FULLY DONE (verified: build + tests + lint pass)

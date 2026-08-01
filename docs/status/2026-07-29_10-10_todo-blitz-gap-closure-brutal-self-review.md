@@ -8,6 +8,22 @@
 
 This report covers what was ACTUALLY done, what was fucked up, and what remains.
 
+> **Update 2026-08-01:** The sync "design regressions" flagged in section D (D2–D4) were
+> subsequently confirmed as **intentional design decisions**, not regressions:
+> - D2 (`originatingTab` removal): round-robin `pickPort` is correct — postMessage to a dead
+>   port doesn't throw in some browsers, so targeted delivery can't be guaranteed. The code now
+>   documents this rationale inline (`sync/sync-worker.js:128`). `originatingTab` map remains
+>   for bye-cleanup only.
+> - D3 (re-flush loop): bounded by MAX_RETRIES (10) + TTL (24h) eviction. The periodic 2s
+>   re-flush ensures delivery when a dead port swallows the first attempt.
+> - D4 (`online = true` on flush): intentional — the SharedWorker scope can't reliably detect
+>   `online`/`offline` events; a tab's flush message IS the online signal.
+>
+> All P1 items resolved: gates re-run (0 issues, all gates pass), CHANGELOG consolidated
+> (syncVersion at 1.3.0), FEATURES.md updated. E2E tests pass 4/4 (`nix run .#e2e`).
+> Remaining open: JS unit tests for sync-worker.js (P2), `e2e/README.md` shipped, `nix run .#e2e`
+> app added to flake.nix.
+
 ---
 
 ## A) FULLY DONE ✅
