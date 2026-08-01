@@ -2,7 +2,6 @@ package dashboardui
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strings"
 
@@ -13,31 +12,8 @@ import (
 
 func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Dead Letters", "/dead-letters", r)
-
-	var projLinks string
-
-	if d.cfg.ProjectionHost != nil {
-		var links strings.Builder
-		for _, ws := range d.cfg.ProjectionHost.Status() {
-			fmt.Fprintf(&links, `<a href="%s/dead-letters/%s" class="btn btn-accent">%s</a>`,
-				p.BasePath, esc(ws.Name), esc(ws.Name))
-		}
-
-		projLinks = links.String()
-	}
-
 	html := d.renderLayout(p, func() string {
-		if projLinks == "" {
-			return emptyState(
-				"Dead-Letter Queue",
-				"No projections registered. Dead letters will appear here when projection errors occur.",
-			)
-		}
-
-		return fmt.Sprintf(
-			`<div class="page-header"><h2>Dead-Letter Queue</h2><p class="page-subtitle">Select a projection to view its dead letters.</p></div><div class="filter-bar">%s</div>`,
-			projLinks,
-		)
+		return `<div style="padding:40px;text-align:center;color:#64748b"><h3>Dead-Letter Queue</h3><p>Select a projection to view its dead letters.</p></div>`
 	})
 	renderPage(w, r, html)
 }
@@ -52,13 +28,13 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 		entries, err = d.cfg.DeadLetterStore.List(r.Context(), proj)
 		if err != nil {
-			renderError(w, r, http.StatusInternalServerError, "failed to list dead letters")
+			http.Error(w, "failed to list dead letters: "+err.Error(), http.StatusInternalServerError)
 
 			return
 		}
 	}
 
-	p := d.page("Dead Letters: "+esc(proj), "/dead-letters", r)
+	p := d.page("Dead Letters: "+proj, "/dead-letters", r)
 	html := d.renderDLQ(p, proj, entries)
 	renderPage(w, r, html)
 }
@@ -69,36 +45,11 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 
 		result, err := host.ReplayDeadLetters(r.Context(), proj)
 		if err != nil {
-			slog.InfoContext(
-				r.Context(),
-				"dashboardui.audit",
-				"op",
-				"dlq.replay",
-				"projection",
-				proj,
-				"result",
-				"error",
-			)
-			triggerToast(w, "err", "Replay failed")
+			triggerToast(w, "err", "Replay failed: "+err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
-
-		slog.InfoContext(
-			r.Context(),
-			"dashboardui.audit",
-			"op",
-			"dlq.replay",
-			"projection",
-			proj,
-			"replayed",
-			len(result.Replayed),
-			"still_failing",
-			len(result.StillFailing),
-			"result",
-			"ok",
-		)
 
 		msg := fmt.Sprintf("Replayed %d, %d still failing", len(result.Replayed), len(result.StillFailing))
 		triggerToast(w, "ok", msg)
@@ -112,36 +63,12 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 		eventID := r.PathValue("eventID")
 		if err := store.Delete(r.Context(), proj, eventID); err != nil {
-			slog.InfoContext(
-				r.Context(),
-				"dashboardui.audit",
-				"op",
-				"dlq.delete",
-				"projection",
-				proj,
-				"event_id",
-				eventID,
-				"result",
-				"error",
-			)
-			triggerToast(w, "err", "Delete failed")
+			triggerToast(w, "err", "Delete failed: "+err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
 
-		slog.InfoContext(
-			r.Context(),
-			"dashboardui.audit",
-			"op",
-			"dlq.delete",
-			"projection",
-			proj,
-			"event_id",
-			eventID,
-			"result",
-			"ok",
-		)
 		triggerToast(w, "ok", "Dead letter deleted")
 		redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
 	})
@@ -151,14 +78,12 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // handler closure
 		proj := r.PathValue("projection")
 		if err := store.Purge(r.Context(), proj); err != nil {
-			slog.InfoContext(r.Context(), "dashboardui.audit", "op", "dlq.purge", "projection", proj, "result", "error")
-			triggerToast(w, "err", "Purge failed")
+			triggerToast(w, "err", "Purge failed: "+err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
 
-		slog.InfoContext(r.Context(), "dashboardui.audit", "op", "dlq.purge", "projection", proj, "result", "ok")
 		triggerToast(w, "ok", "Dead letters purged")
 		redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
 	})
@@ -166,88 +91,42 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 
 func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.DeadLetterEntry) string {
 	return d.renderLayout(p, func() string {
-		var b strings.Builder
-
-		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2>Dead Letters: %s</h2>`, esc(proj))
-		b.WriteString(`</div>`)
-
-		if !p.ReadOnly {
-			b.WriteString(`<div class="filter-bar">`)
-
-			if d.caps.ProjectionHost {
-				fmt.Fprintf(
-					&b,
-					`<form method="POST" action="%s/dead-letters/%s/replay" class="inline-form" onsubmit="return confirm('Replay all dead letters for %s?')" aria-label="Replay all dead letters for %s">`,
-					p.BasePath,
-					esc(proj),
-					esc(proj),
-					esc(proj),
-				)
-				fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-				b.WriteString(
-					`<button type="submit" class="btn btn-accent" aria-label="Replay all dead letters">Replay All</button>`,
-				)
-				b.WriteString(`</form>`)
-			}
-
-			if d.caps.DeadLetterStore {
-				fmt.Fprintf(
-					&b,
-					`<form method="POST" action="%s/dead-letters/%s/purge" class="inline-form" onsubmit="return confirm('Purge ALL dead letters for %s? This cannot be undone.')" aria-label="Purge all dead letters for %s">`,
-					p.BasePath,
-					esc(proj),
-					esc(proj),
-					esc(proj),
-				)
-				fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-				b.WriteString(
-					`<button type="submit" class="btn btn-danger" aria-label="Purge all dead letters">Purge All</button>`,
-				)
-				b.WriteString(`</form>`)
-			}
-
-			b.WriteString(`</div>`)
-		}
-
 		if len(entries) == 0 {
-			return emptyState("No dead letters for "+esc(proj), "")
-		}
-
-		var rows strings.Builder
-
-		for _, e := range entries {
-			var actions string
-			if !p.ReadOnly && d.caps.DeadLetterStore {
-				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" onsubmit="return confirm('Delete this dead letter?')" aria-label="Delete dead letter %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Delete dead letter %s">Delete</button></form>`,
-					p.BasePath,
-					esc(proj),
-					esc(e.EventID),
-					esc(e.EventID),
-					esc(p.CSRFToken),
-					esc(e.EventID),
-				)
-			}
-
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="mono" title="%s">%s</td><td><code>%s</code></td><td><span class="badge badge-err">%s</span></td><td>%s</td><td>%s</td></tr>`,
-				esc(e.FailedAt.Format("2006-01-02 15:04:05")),
-				esc(relativeTime(e.FailedAt)),
-				esc(e.EventType),
-				esc(truncate(e.Error, errorDisplayWidth)),
-				esc(e.ErrorFamily),
-				actions,
+			return fmt.Sprintf(
+				`<div style="padding:40px;text-align:center;color:#64748b"><h3>No dead letters for %s</h3></div>`,
+				proj,
 			)
 		}
 
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Failed At</th><th scope="col">Event Type</th><th scope="col">Error</th><th scope="col">Family</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
+		var (
+			rows      string
+			rowsSb326 strings.Builder
 		)
+		for _, e := range entries {
+			fmt.Fprintf(&rowsSb326, `<tr style="border-bottom:1px solid var(--border)">
+				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
+				<td style="padding:8px"><code>%s</code></td>
+				<td style="padding:8px;color:#dc2626">%s</td>
+				<td style="padding:8px">%s</td>
+			</tr>`,
+				e.FailedAt.Format("2006-01-02 15:04:05"),
+				e.EventType,
+				truncate(e.Error, errorDisplayWidth),
+				e.ErrorFamily)
+		}
 
-		return b.String()
+		rows += rowsSb326.String()
+
+		return fmt.Sprintf(`
+			<h3 style="margin-bottom:12px">Dead Letters: %s</h3>
+			<table style="width:100%%;border-collapse:collapse">
+				<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
+					<th style="padding:8px">Failed At</th>
+					<th style="padding:8px">Event Type</th>
+					<th style="padding:8px">Error</th>
+					<th style="padding:8px">Family</th>
+				</tr></thead>
+				<tbody>%s</tbody>
+			</table>`, proj, rows)
 	})
 }

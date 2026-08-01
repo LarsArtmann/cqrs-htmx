@@ -247,17 +247,3 @@ I claimed "sync-client.js must load before admin.js: it registers htmx:beforeReq
 ### G3: Should the coverage gate check only root, or should I fix the usermgmt compilation?
 
 `nix run .#coverage-gate` exits 1 because usermgmt fails to compile under `GOWORK=off` (pre-existing go-cqrs-lite pseudo-version issue, 13 broken submodule tags). This is documented in AGENTS.md as requiring local go.work replaces. Should I: (a) accept that coverage-gate only passes for root + adminui (which compile fine), (b) investigate fixing the go-cqrs-lite pseudo-versions upstream (external dependency, may require publishing new tags), or (c) modify the coverage gate script to skip modules that fail to compile (silently reducing coverage guarantees)?
-
----
-
-## Resolution (2026-07-31)
-
-| Item                                                         | Resolution                                                                                                                                                |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ROADMAP.md "Not Planned" section                             | **Done** — now contains 15+ entries including `SyncWorkerURL(path)` (rejected across three sessions), durable scheduling, re-export middleware, and more. |
-| `syncVersion` drift prevention                               | **Done** — `TestSyncVersionMatchesJSConstants` asserts JS `VERSION` constants match Go `syncVersion`. Current version: `1.3.0`.                           |
-| JS modernization (`var` → `const`/`let`, `@ts-check`, JSDoc) | **Done** — shipped in v4.5.0. All sync JS uses modern syntax.                                                                                             |
-| Browser E2E tests                                            | **Done** — 4 Playwright E2E tests pass (syncVersion 1.3.0). README exists (`e2e/README.md`).                                                              |
-| `nix run .#coverage-gate`                                    | Now checks 9 modules. Blocked hermetically by httputil v0.8.0 — TODO_LIST P1.                                                                             |
-| `SyncWorkerURL(path)` Go helper                              | **Won't implement** — ROADMAP "Not Planned". Consumers use `data-sync-worker-url` attribute.                                                              |
-| Canonical nix gates                                          | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                                                                            |

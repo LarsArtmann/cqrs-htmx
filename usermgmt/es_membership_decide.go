@@ -1,7 +1,6 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -44,16 +43,23 @@ func decideAddMember(
 		}
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
-		evt, err := event.New(
+		payload, err := marshalPayload(MemberAddedPayload{
+			SchemaVersion: currentSchemaVersion,
+			ActorKind:     actorID.Kind().String(),
+			ActorID:       actorID.String(),
+			TenantID:      tenantID.Get(),
+			Roles:         rolesCopy,
+		})
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.membership.marshal_failed",
+				"marshal MemberAdded payload",
+			)
+		}
+		evt, err := event.NewEvent(
 			eventMemberAdded, aggID, aggregateTypeMembership, version.Increment(),
-			MemberAddedPayload{
-				SchemaVersion: currentSchemaVersion,
-				ActorKind:     actorID.Kind().String(),
-				ActorID:       actorID.String(),
-				TenantID:      tenantID.Get(),
-				Roles:         rolesCopy,
-			},
-			event.WithCodec(codec.JSONCodec{}),
+			payload,
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -79,16 +85,23 @@ func decideUpdateMemberRoles(
 		}
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
-		evt, err := event.New(
+		payload, err := marshalPayload(MemberRolesChangedPayload{
+			SchemaVersion: currentSchemaVersion,
+			ActorKind:     state.ActorID.Kind().String(),
+			ActorID:       state.ActorID.String(),
+			TenantID:      state.TenantID.Get(),
+			Roles:         rolesCopy,
+		})
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.membership_roles.marshal_failed",
+				"marshal MemberRolesChanged payload",
+			)
+		}
+		evt, err := event.NewEvent(
 			eventMemberRolesChanged, aggID, aggregateTypeMembership, version.Increment(),
-			MemberRolesChangedPayload{
-				SchemaVersion: currentSchemaVersion,
-				ActorKind:     state.ActorID.Kind().String(),
-				ActorID:       state.ActorID.String(),
-				TenantID:      state.TenantID.Get(),
-				Roles:         rolesCopy,
-			},
-			event.WithCodec(codec.JSONCodec{}),
+			payload,
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -111,14 +124,21 @@ func decideRemoveMember(
 				"membership does not exist",
 			)
 		}
-		evt, err := event.New(
+		payload, err := marshalPayload(MemberRemovedPayload{
+			SchemaVersion: currentSchemaVersion,
+			ActorID:       state.ActorID.String(),
+			TenantID:      state.TenantID.Get(),
+		})
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.membership_remove.marshal_failed",
+				"marshal MemberRemoved payload",
+			)
+		}
+		evt, err := event.NewEvent(
 			eventMemberRemoved, aggID, aggregateTypeMembership, version.Increment(),
-			MemberRemovedPayload{
-				SchemaVersion: currentSchemaVersion,
-				ActorID:       state.ActorID.String(),
-				TenantID:      state.TenantID.Get(),
-			},
-			event.WithCodec(codec.JSONCodec{}),
+			payload,
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

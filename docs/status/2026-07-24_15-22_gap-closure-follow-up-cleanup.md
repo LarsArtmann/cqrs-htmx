@@ -11,11 +11,6 @@
 
 This session was a **follow-up cleanup pass** after the main implementation session completed all 27 tasks from the book insights gap closure plan. The prior session's status report identified critical process failures and a 50-item follow-up list. This session addressed the highest-priority items.
 
-> **Update 2026-08-01:** All 27 gap-closure tasks shipped. identity-model coverage gate at 70%
-> (actual 74.9%). Lint at 0 issues across all 18 modules. `sqlite_setup_test.go` ghost file
-> resolved. `handlers.go` split into 7 domain files (v4.6.1). Remaining: catalog-demo zero tests
-> (TODO_LIST P2), loginpage/CHANGELOG.md missing (TODO_LIST P3).
-
 **What actually got done:** Code refactoring (deduplication + rename), documentation updates (CHANGELOG, AGENTS.md, FEATURES.md, SKILL.md), gap-closure annotations on the review/planning docs, and a full verification pass.
 
 **What's still broken:** Pre-existing issues that predate this work remain unfixed. The code compiles, tests pass, and coverage gates are green — but the repository has accumulated debt from multiple rapid-fire sessions.

@@ -11,11 +11,6 @@
 
 **Root cause of both failures is the same:** a dependency-update sweep wrote `go.mod` versions that **never existed as tags**, masked by `go.work` local replaces (which make `GOWORK=on` builds pass) but exposed by `GOWORK=off` (which buildflow and the flake apps use).
 
-> **Update 2026-08-01:** Buildflow remains green. The phantom-version CI gate is tracked in
-> TODO_LIST P3. `examples/catalog-demo/` still has zero test files (tracked in TODO_LIST P2).
-> The govalid-generate concurrency flake was root-caused and definitively fixed
-> (`max_concurrency: 1` in `.buildflow.yml`, see AGENTS.md gotcha).
-
 ---
 
 ## a) FULLY DONE

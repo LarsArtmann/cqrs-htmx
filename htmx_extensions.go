@@ -71,12 +71,10 @@ var htmxExtensions = map[string]htmxExtension{
 func HTMXExtensionHandler(name string) http.Handler {
 	ext, ok := htmxExtensions[name]
 	if !ok {
-		msg := fmt.Sprintf(
+		panic(fmt.Sprintf(
 			"cqrshtmx: unknown htmx extension %q (available: %s)",
-			name,
-			strings.Join(htmxExtensionNames(), ", "),
-		)
-		panic(msg) //cqrs-lint:ignore(C009) startup-time programmer error: unknown extension name
+			name, strings.Join(htmxExtensionNames(), ", "),
+		))
 	}
 
 	return serveJS(ext.js, fmt.Sprintf(`"htmx-ext-%s-%s"`, name, ext.version))
@@ -96,9 +94,7 @@ func HTMXExtensionHandler(name string) http.Handler {
 //	    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph))
 func HTMXExtensionsHandler(names ...string) http.Handler {
 	if len(names) == 0 {
-		panic( //cqrs-lint:ignore(C009) startup-time programmer error: empty variadic call
-			"cqrshtmx: HTMXExtensionsHandler requires at least one extension name",
-		)
+		panic("cqrshtmx: HTMXExtensionsHandler requires at least one extension name")
 	}
 
 	var buf bytes.Buffer
@@ -107,12 +103,10 @@ func HTMXExtensionsHandler(names ...string) http.Handler {
 	for _, name := range names {
 		ext, ok := htmxExtensions[name]
 		if !ok {
-			msg := fmt.Sprintf(
+			panic(fmt.Sprintf(
 				"cqrshtmx: unknown htmx extension %q (available: %s)",
-				name,
-				strings.Join(htmxExtensionNames(), ", "),
-			)
-			panic(msg) //cqrs-lint:ignore(C009) startup-time programmer error: unknown extension name
+				name, strings.Join(htmxExtensionNames(), ", "),
+			))
 		}
 
 		fmt.Fprintf(&buf, "/* htmx-ext-%s %s */\n", name, ext.version)

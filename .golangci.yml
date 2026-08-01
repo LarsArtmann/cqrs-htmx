@@ -151,7 +151,6 @@ linters:
       exclude:
         - os/exec.Cmd
         - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig|EventCatalog|EventMetadata|PayloadField|ProjectionStatusEntry)$
-        - github\.com/larsartmann/httputil\.(CSRFConfig|KeyedRateLimiterConfig)$
         - github\.com/larsartmann/cqrs-htmx/v4/openapi\..*$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.(User|UserState|UserReadModel|UserView|EnforcerConfig|HandlerConfig|ActorID|AccountLockout|InMemorySessionStore|WebAuthnCredential)$
         - .+\.testCreateUserCmd$
@@ -161,8 +160,6 @@ linters:
         - .+\.cidCapture$
         - .+\.SSEEvent$
         - .+\.stubCarrierError$
-        - .+\.(fakeSeekableJournal|fakeEventByIDLoader)$
-        - github\.com/larsartmann/go-cqrs-lite/projectionhost/v4\.DeadLetterEntry$
         - .+\.CommandAck$
         - .+\.JournalSSEStore$
         - .+\.sseReadResult$
@@ -186,13 +183,9 @@ linters:
     gomoddirectives:
       replace-local: true
     gosec:
-      # G705 (XSS via taint analysis) is structurally a false positive in a
-      # response-writing library: every ResponseWriter.Write emits intentional
-      # output, never unsanitized HTML rendering.
       excludes:
         - G304
         - G115
-        - G705
     ireturn:
       allow:
         - error
@@ -304,19 +297,6 @@ linters:
         linters:
           - exhaustruct
           - errcheck
-      - path: _reexport\.go$
-        linters:
-          - gochecknoglobals
-          - revive
-      # HTMX headers (HX-Redirect, HX-Trigger-Name, ...) and the CSRF header
-      # (X-CSRF-Token) use ecosystem-standard casing, not Go's canonical form.
-      # http.Header.Set/Get canonicalize at the wire level regardless.
-      - text: '"HX-[A-Za-z-]+" is not canonical'
-        linters:
-          - canonicalheader
-      - text: '"X-CSRF-Token" is not canonical'
-        linters:
-          - canonicalheader
     paths:
       - \.gen\.go$
       - _mock\.go$

@@ -463,9 +463,3 @@ Base path: `/home/lars/go/pkg/mod/github.com/larsartmann/go-cqrs-lite/transport/
 | `catalog/v4` usage           | `integration_test/`, `examples/catalog-demo/` | —    | Proven but not exposed as first-class                                  |
 | `transport/http/v4` usage    | nowhere                                       | —    | **Zero imports anywhere in the repo**                                  |
 | `StreamingJournal` usage     | nowhere                                       | —    | **Zero imports anywhere** (uses slice-materializing `SeekableJournal`) |
-
----
-
-## Resolution (2026-07-31)
-
-**Status: under consideration — no code written.** The proposal's recommendation (Approach C+D: evaluate consolidating `EventCatalog`/`openapi/` with `catalog/v4`, plus build 3 genuinely missing runtime pieces) is tracked in `ROADMAP.md` → "Data Mesh Interchange (Researched — Not Yet Adopted)". The three gaps (~180 LOC total) are: (1) Channel-to-runtime binding (~50 LOC), (2) CloudEvents envelope (~30 LOC), (3) Pull-based machine transport (~100 LOC). Not committed to a release. The strategic angle (per the landscape research at `docs/research/2026-07-25_data-mesh-landscape-and-event-sourced-advantage.md`): event sourcing structurally prevents the data-discovery problems DataHub/OpenMetadata/ODDS exist to solve, so time-travel + the catalog are a stronger positioning than a bespoke mesh product.

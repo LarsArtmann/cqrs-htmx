@@ -58,10 +58,7 @@ func (s *Service) ChangeDisplayName(ctx context.Context, userID UserID, newName 
 	)
 }
 
-// DeleteUser dispatches a DeleteUser command (tombstone), revokes all sessions,
-// and best-effort removes all memberships and bots owned by the user. The
-// CasbinProjection handles authorization policy removal automatically via the
-// UserDeleted event.
+// DeleteUser dispatches a DeleteUser command (tombstone) and revokes all sessions.
 func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) error {
 	if err := s.dispatchUserCommand(ctx, userID,
 		func(aggID id.StreamID) command.Command { return NewDeleteUserCmd(aggID, reason) },
@@ -70,52 +67,7 @@ func (s *Service) DeleteUser(ctx context.Context, userID UserID, reason string) 
 		return err
 	}
 	s.revokeSessionsBestEffort(ctx, userID, "failed to revoke sessions on delete")
-	s.removeMembershipsForUserBestEffort(ctx, userID)
-	s.deleteBotsForUserBestEffort(ctx, userID, reason)
 	return nil
-}
-
-// removeMembershipsForUserBestEffort removes all memberships for a user.
-// Errors are logged but not returned — the user is already deleted.
-func (s *Service) removeMembershipsForUserBestEffort(ctx context.Context, userID UserID) {
-	memberships := s.membershipReadModel.FindByActor(userID.Get().String())
-	for _, mem := range memberships {
-		removalCmd := NewRemoveMemberCmd(mem.ActorID, mem.TenantID)
-		if err := s.dispatcher.Dispatch(ctx, removalCmd); err != nil {
-			s.logger.Warn(
-				"usermgmt: failed to remove membership on user deletion",
-				"user_id", userID.Get(),
-				"tenant_id", mem.TenantID.Get(),
-				"error", err,
-			)
-		}
-	}
-}
-
-// deleteBotsForUserBestEffort deletes all bots owned by a user.
-// Errors are logged but not returned — the user is already deleted.
-func (s *Service) deleteBotsForUserBestEffort(ctx context.Context, userID UserID, reason string) {
-	bots := s.botReadModel.FindByOwner(userID)
-	for _, bot := range bots {
-		aggID, err := aggIDFromBot(bot.ID)
-		if err != nil {
-			s.logger.Warn(
-				"usermgmt: failed to convert bot ID on user deletion",
-				"user_id", userID.Get(),
-				"bot_id", bot.ID.Get(),
-				"error", err,
-			)
-			continue
-		}
-		if err := s.dispatcher.Dispatch(ctx, NewDeleteBotCmd(aggID, reason)); err != nil {
-			s.logger.Warn(
-				"usermgmt: failed to delete bot on user deletion",
-				"user_id", userID.Get(),
-				"bot_id", bot.ID.Get(),
-				"error", err,
-			)
-		}
-	}
 }
 
 // AddCredential dispatches an AddCredential command.

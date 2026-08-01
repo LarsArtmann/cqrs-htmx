@@ -10,7 +10,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
-	"github.com/larsartmann/httputil"
 )
 
 // App wires CQRS dispatchers, Casbin authorization, and HTMX response handling
@@ -155,7 +154,7 @@ func New(cfg Config) (*App, error) {
 func MustNew(cfg Config) *App {
 	app, err := New(cfg)
 	if err != nil {
-		panic(err) //cqrs-lint:ignore(C009) MustNew: startup config error is a programmer error
+		panic(err)
 	}
 
 	return app
@@ -302,9 +301,7 @@ func QueryTyped[Q query.Query, R any](a *App, qryType query.Type, opts ...Handle
 // used only in the panic message.
 func (a *App) buildHandlerConfigChecked(typeIsZero bool, kind string, opts []HandlerOption) *handlerConfig {
 	if typeIsZero {
-		panic( //cqrs-lint:ignore(C009) programmer error: empty command/query type at registration
-			"cqrs-htmx: " + kind + " type must not be empty",
-		)
+		panic("cqrs-htmx: " + kind + " type must not be empty")
 	}
 
 	cfg := buildHandlerConfig(opts)
@@ -331,7 +328,17 @@ func (a *App) applyServerTiming(w http.ResponseWriter, r *http.Request) (http.Re
 		return w, r
 	}
 
-	return httputil.WrapServerTiming(w, r)
+	st := newServerTiming()
+	ctx := WithServerTiming(r.Context(), st)
+	wrapped := &serverTimingWriter{
+		delegatingWriter: delegatingWriter{ResponseWriter: w},
+		st:               st,
+		start:            time.Now(),
+		injected:         false,
+		wrote:            false,
+	}
+
+	return wrapped, r.WithContext(ctx)
 }
 
 // enrichUserID extracts the user ID if not already present in context.

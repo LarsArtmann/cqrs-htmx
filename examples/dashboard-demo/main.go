@@ -11,19 +11,18 @@ package main
 
 import (
 	"context"
-	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"log"
-	"math/rand/v2"
 	"net/http"
 	"time"
+
+	"encoding/json/jsontext"
 
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -36,7 +35,6 @@ func main() {
 	cmdStore := memorystorage.NewMemoryCommandStore()
 	queryStore := memorystorage.NewMemoryQueryStore()
 	snapStore := memorystorage.NewMemorySnapshotStore()
-	bus := eventtest.NewFakeBus()
 
 	seedDemoData(store, cmdStore, queryStore, snapStore)
 
@@ -50,17 +48,12 @@ func main() {
 		CommandJournal: cmdStore,
 		QueryJournal:   queryStore,
 		SnapshotStore:  snapStore,
-		EventBus:       bus,
 		ReadOnly:       false,
 		PageSize:       25,
 	})
 	if err != nil {
 		log.Fatalf("dashboard: %v", err)
 	}
-
-	// Start a goroutine that publishes live events every 5 seconds so the
-	// SSE feed in the dashboard shows real-time updates.
-	go startLiveEvents(store, bus)
 
 	mux := http.NewServeMux()
 	dash.Mount(mux, "/dashboard/")
@@ -99,7 +92,7 @@ func seedDemoData(
 	ctx := context.Background()
 
 	// --- Users ---
-	for i, name := range []string{"Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace", "Henry"} {
+	for i, name := range []string{"Alice", "Bob", "Charlie", "Diana"} {
 		aggID := id.NewStreamID()
 		ref := id.NewStreamRef("User", aggID)
 
@@ -108,24 +101,10 @@ func seedDemoData(
 			"email": fmt.Sprintf("%s@example.com", name),
 		})
 
-		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		created, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
-			"user.created",
-			aggID,
-			"User",
-			event.Version(1),
-			jsontext.Value(payload),
-		)
+		created, _ := event.New("user.created", aggID, "User", event.Version(1), jsontext.Value(payload))
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
-		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		renamed, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
-			"user.renamed",
-			aggID,
-			"User",
-			event.Version(2),
-			map[string]any{"name": name + " Jr."},
-		)
+		renamed, _ := event.New("user.renamed", aggID, "User", event.Version(2), map[string]any{"name": name + " Jr."})
 		_ = store.Save(ctx, ref, []event.Event{renamed}, event.Version(1))
 
 		// Record a command for this user
@@ -147,34 +126,20 @@ func seedDemoData(
 	}
 
 	// --- Orders ---
-	for i := 1; i <= 6; i++ {
+	for i := 1; i <= 3; i++ {
 		aggID := id.NewStreamID()
 		ref := id.NewStreamRef("Order", aggID)
 
-		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		placed, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
-			"order.placed",
-			aggID,
-			"Order",
-			event.Version(1),
-			map[string]any{
-				"customerId": fmt.Sprintf("cust-%d", i),
-				"total":      float64(i * 2999),
-				"items":      i,
-			},
-		)
+		placed, _ := event.New("order.placed", aggID, "Order", event.Version(1), map[string]any{
+			"customerId": fmt.Sprintf("cust-%d", i),
+			"total":      float64(i * 2999),
+			"items":      i,
+		})
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
-		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		shipped, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
-			"order.shipped",
-			aggID,
-			"Order",
-			event.Version(2),
-			map[string]any{
-				"trackingNumber": fmt.Sprintf("TRK%d", i*1000+i),
-			},
-		)
+		shipped, _ := event.New("order.shipped", aggID, "Order", event.Version(2), map[string]any{
+			"trackingNumber": fmt.Sprintf("TRK%d", i*1000+i),
+		})
 		_ = store.Save(ctx, ref, []event.Event{shipped}, event.Version(1))
 	}
 
@@ -185,49 +150,5 @@ func seedDemoData(
 		_ = queryStore.SaveQuery(ctx, q)
 	}
 
-	log.Println("Demo data seeded: 8 users, 6 orders, commands, queries, 1 snapshot")
-}
-
-// startLiveEvents periodically publishes new events to the event bus and store
-// so the dashboard SSE feed and event browser show real-time activity.
-func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
-	ctx := context.Background()
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
-	eventTypes := []string{
-		"user.login", "user.logout", "order.cancelled",
-		"payment.received", "cart.updated", "notification.sent",
-	}
-	streamTypes := []id.StreamType{"User", "Order", "Payment", "Cart"}
-
-	var counter int
-
-	for range ticker.C {
-		counter++
-		aggID := id.NewStreamID()
-		st := streamTypes[rand.IntN(len(streamTypes))]
-		ref := id.NewStreamRef(st, aggID)
-		et := eventTypes[rand.IntN(len(eventTypes))]
-
-		payload, _ := json.Marshal(map[string]any{
-			"source":  "live-demo",
-			"counter": counter,
-		})
-
-		evt, _ := event.New(
-			event.Type(et),
-			aggID,
-			st,
-			event.Version(1),
-			jsontext.Value(payload),
-		)
-		_ = store.Save( //cqrs-lint:ignore(S003) demo with in-memory store: no signing needed
-			ctx,
-			ref,
-			[]event.Event{evt},
-			event.Version(0),
-		)
-		_ = bus.Publish(ctx, evt)
-	}
+	log.Println("Demo data seeded: 4 users, 3 orders, commands, queries, 1 snapshot")
 }

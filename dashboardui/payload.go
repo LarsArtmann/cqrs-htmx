@@ -76,9 +76,9 @@ func renderPayload(r PayloadRenderer, evt event.Event) []byte {
 }
 
 func csrfToken(r *http.Request) string {
-	if token := r.Header.Get("X-Csrf-Token"); token != "" {
-		return token
-	}
-
 	return r.FormValue("_csrf")
+}
+
+func csrfMeta(_ *http.Request) string {
+	return ""
 }

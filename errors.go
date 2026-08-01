@@ -33,6 +33,7 @@ var (
 	ErrDispatchFailed   = errorfamily.NewTransient("dispatch_failed", "command/query dispatch failed")
 	ErrEnforcerNil      = errorfamily.NewInfrastructure("enforcer_nil", "casbin enforcer is required for authorization")
 	ErrValidationFailed = errorfamily.NewRejection("validation_failed", "request validation failed")
+	ErrCSRFConfig       = errorfamily.NewInfrastructure("csrf_config", "invalid CSRF configuration")
 	ErrRequestTooLarge  = errorfamily.NewRejection("request_too_large", "request body exceeds maximum size")
 	ErrMethodNotAllowed = errorfamily.NewRejection("method_not_allowed", "HTTP method not allowed")
 
@@ -104,11 +105,14 @@ func explicitErrorStatus(err error) int {
 	}
 }
 
-// DefaultErrorHandler maps CQRS errors to HTTP status codes and writes a plain
-// text error response. For HTMX requests with auth errors, it redirects via
-// HX-Redirect to the login path instead of returning an error body.
+// ErrorHandler writes an HTTP error response with HTMX awareness.
+type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
+
+// DefaultErrorHandler maps CQRS errors to HTTP status codes and writes
+// a plain text error response. For HTMX requests with auth errors,
+// it redirects via HX-Redirect to the login path instead of returning an error body.
 //
-// It is intentionally config-unaware — it does NOT read
+// Config note: this handler is intentionally config-unaware — it does NOT read
 // Config.IncludeInternalDetails or Config.IncludeRequestIDInErrors, so wiring
 // it as Config.ErrorHandler silently bypasses those knobs (it always writes the
 // safe, redacted message and never the request id). That is acceptable for the
@@ -242,7 +246,7 @@ func plainBodyWriter(r *http.Request, includeInternal, includeRequestID bool) fu
 			detail = prefixRequestID(r, detail)
 		}
 
-		_, _ = io.WriteString(w, detail)
+		_, _ = io.WriteString(w, detail) //nolint:gosec // text/plain prevents HTML rendering
 	}
 }
 
@@ -376,6 +380,6 @@ func ProblemDetailsErrorHandlerWithRedirect(
 
 		payload := NewStructuredError(err, r)
 		data, _ := json.Marshal(payload)
-		_, _ = w.Write(data)
+		_, _ = w.Write(data) //nolint:gosec // G705: json.Marshal escapes HTML by default
 	})
 }

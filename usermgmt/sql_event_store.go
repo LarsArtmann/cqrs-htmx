@@ -65,19 +65,17 @@ func NewSQLEventStore(ctx context.Context, db *sql.DB, dialect string) (*SQLEven
 	return store, nil
 }
 
-// dialectToUpstream maps usermgmt dialect strings to storage/v4 Dialect
-// implementations.
+// dialectToUpstream maps usermgmt dialect strings to storage/v2 Dialect
+// implementations. Returns an error for unsupported dialects (e.g. MySQL).
 func dialectToUpstream(dialect string) (sqlpkg.Dialect, error) {
 	switch dialect {
 	case dialectPostgres, dialectPgx:
 		return sqlpkg.PostgresDialect{}, nil
 	case dialectSQLite, dialectSQLite3:
 		return sqlpkg.SQLiteDialect{}, nil
-	case dialectMySQL:
-		return sqlpkg.MySQLDialect{}, nil
 	default:
 		return nil, errorfamily.Newf(event.Rejection, "usermgmt.sql_event_store.unsupported_dialect",
-			"unsupported event store dialect %q: use postgres, pgx, sqlite, sqlite3, or mysql", dialect).
+			"unsupported event store dialect %q: use postgres, pgx, sqlite, or sqlite3", dialect).
 			WithContext("dialect", dialect)
 	}
 }

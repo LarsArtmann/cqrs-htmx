@@ -56,7 +56,6 @@ type Service struct {
 	oauth2States             OAuth2StateStore
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
-	stopLockoutEviction      func()
 	tokenPepper              TokenPepper
 	projectionHost           *projectionhost.Host
 	checkpointStore          event.CheckpointStore
@@ -150,13 +149,6 @@ type ServiceConfig struct {
 	// restarts. When nil, full journal replay is used.
 	CheckpointStore event.CheckpointStore
 
-	// OnProjectionFailed, when set, is called when a projection worker
-	// exhausts its restart budget and enters a terminal failure state.
-	// Use this for alerting (e.g., emit a metric, page on-call). The
-	// callback receives the projection name and the last error message.
-	// Optional — when nil, terminal failures are silent (logs only).
-	OnProjectionFailed func(projectionName, lastError string)
-
 	// SnapshotConfig optionally enables aggregate snapshotting for
 	// high-event-volume aggregates (>10K events/aggregate). When the Store
 	// field is nil (the default), repositories replay the full journal on
@@ -233,14 +225,13 @@ func journalFromStore(store event.Store) event.Journal {
 
 func NewService(cfg ServiceConfig) (*Service, error) {
 	setup, err := NewEventSourcedSetup(EventSourcedConfig{
-		EventStore:         cfg.EventStore,
-		EventBus:           cfg.EventBus,
-		ReadModelDB:        cfg.ReadModelDB,
-		AuditLog:           cfg.AuditLog,
-		CheckpointStore:    cfg.CheckpointStore,
-		OnProjectionFailed: cfg.OnProjectionFailed,
-		SecurityHooks:      cfg.SecurityHooks,
-		SnapshotConfig:     cfg.SnapshotConfig,
+		EventStore:      cfg.EventStore,
+		EventBus:        cfg.EventBus,
+		ReadModelDB:     cfg.ReadModelDB,
+		AuditLog:        cfg.AuditLog,
+		CheckpointStore: cfg.CheckpointStore,
+		SecurityHooks:   cfg.SecurityHooks,
+		SnapshotConfig:  cfg.SnapshotConfig,
 	})
 	if err != nil {
 		return nil, err
@@ -363,22 +354,9 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		svc.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
 	}
 
-	svc.wireLockoutEviction()
-
 	svc.tokenPepper = cfg.TokenPepper
 
 	return svc, nil
-}
-
-func (s *Service) wireLockoutEviction() {
-	if s.lockout == nil {
-		return
-	}
-	evictor, ok := s.lockout.(interface{ EvictStale() int })
-	if !ok {
-		return
-	}
-	s.stopLockoutEviction = startPeriodicEviction(evictor.EvictStale, lockoutEvictionInterval)
 }
 
 // Authz returns the underlying authorization engine for direct policy queries.
@@ -401,7 +379,6 @@ func (s *Service) stopEvictions() {
 		&s.stopVerificationEviction,
 		&s.stopPendingTOTPEviction,
 		&s.stopOAuth2Eviction,
-		&s.stopLockoutEviction,
 	} {
 		if *stop != nil {
 			(*stop)()

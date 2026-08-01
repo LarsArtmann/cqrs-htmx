@@ -1,7 +1,6 @@
 # SUPERB Plan: httputil Consolidation — Server-Timing, CSRF, Rate Limiting
 
 > **Date:** 2026-07-30
-> **Status:** ✅ COMPLETED (2026-07-30). All 4 phases executed, verified, and documented. See resolution notes below.
 > **Goal:** Move general-purpose HTTP middleware OUT of cqrs-htmx INTO httputil, removing 2 external deps (`justinas/nosurf`, `golang.org/x/time`) from cqrs-htmx and eliminating 3 duplicated reimplementations. httputil becomes the canonical home for HTTP middleware in the LarsArtmann ecosystem.
 
 ---
@@ -301,37 +300,12 @@ CSRF context keys (for CSRF token) similarly live in httputil.
 
 ## Verification Checklist
 
-- [x] httputil: `GOWORK=off go test ./... -count=1 -race` passes
-- [x] httputil: `GOWORK=off golangci-lint run` clean (0 issues)
-- [x] cqrs-htmx: `GOEXPERIMENT=jsonv2 go build ./...` passes (all 15 modules)
-- [x] cqrs-htmx: all 10 module groups pass with `-race` (go.work active)
-- [x] cqrs-htmx: `GOEXPERIMENT=jsonv2 golangci-lint run` clean on all touched files
-- [x] cqrs-htmx root go.mod: `justinas/nosurf` absent from require block
-- [x] cqrs-htmx root go.mod: `golang.org/x/time` only as indirect
-- [x] cqrs-htmx consumers: existing `cqrshtmx.CSRFMiddleware`, `cqrshtmx.ServerTiming`, `cqrshtmx.RateLimiterMiddleware` still work (type/var aliases)
-- [ ] Both repos pushed — **BLOCKED**: httputil v0.8.0 not yet published; cqrs-htmx `go.work` replace still required. See blocker note below.
-- [ ] `nix run .#test` passes — **BLOCKED**: nix build is hermetic (GOWORK=off), fetches published httputil v0.7.1 which lacks new symbols. Requires httputil v0.8.0 tag + cqrs-htmx go.mod bump + go.work replace removal.
-
----
-
-## Resolution Notes (2026-07-30)
-
-### What was completed beyond the original plan
-
-1. **httputil lint: 49→0 issues.** The original port introduced 49 lint violations (depguard, varnamelen×31, exhaustruct×3, canonicalheader×6, wsl_v5×8, noinlineerr×3, gci×2, nlreturn×1, nolintlint×2). All resolved via config + code fixes.
-2. **Renames for clarity:** `CSRFErrorHandler`→`ErrorHandler` and `ForbiddenCSRFHandler`→`ForbiddenHandler` in httputil (the types are general-purpose, not CSRF-specific). cqrs-htmx aliases updated.
-3. **TokenBucketLimiter deprecated** (not deleted): 6 `// Deprecated:` markers added, pointing to `KeyedRateLimiter`. Reversible deprecation over breaking deletion.
-4. **cqrs-htmx lint: 64→1 issues** (the 1 remaining is a pre-existing `unparam` in decoder.go, untouched). Added: `_reexport.go` exclusion from gochecknoglobals+revive, httputil types to exhaustruct exclude, G705 to gosec excludes, canonicalheader text exclusions for HX-_/X-CSRF-_ ecosystem headers.
-5. **1288 LOC of redundant tests deleted** (7 files). All cqrs-htmx-specific coverage retained in `integration_csrf_test.go`, `benchmark_middleware_test.go`, `feedback_features_test.go`.
-6. **Root coverage:** 93.2% (was 93.7%, gate ≥90% — still passes).
-7. **httputil git index corruption fixed** (libgit2 checksum error was blocking `nix run .#test`).
-
-### Blocker: httputil v0.8.0 publication required
-
-cqrs-htmx now depends on **unreleased** httputil symbols (`CSRFConfig`, `ServerTiming`, `KeyedRateLimiter`, `ErrorHandler`, `ForbiddenHandler`). The `go.work` replace (`=> /home/lars/projects/httputil`) makes local `go test` work, but `nix run .#test` (GOWORK=off, hermetic) fetches published v0.7.1 and fails to compile.
-
-**3 steps to unblock:**
-
-1. Publish httputil v0.8.0 (`git tag v0.8.0 && git push origin master --tags`)
-2. Bump cqrs-htmx (`go get github.com/larsartmann/httputil@v0.8.0`)
-3. Remove go.work replace for httputil
+- [ ] httputil: `GOWORK=off go test ./... -count=1 -race` passes
+- [ ] httputil: `GOWORK=off go vet ./...` clean
+- [ ] cqrs-htmx: `GOEXPERIMENT=jsonv2 go build ./...` passes (all 15 modules)
+- [ ] cqrs-htmx: `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race` passes (all modules)
+- [ ] cqrs-htmx: `GOEXPERIMENT=jsonv2 golangci-lint run` clean (root module)
+- [ ] cqrs-htmx root go.mod: `justinas/nosurf` absent from require block
+- [ ] cqrs-htmx root go.mod: `golang.org/x/time` absent from require block
+- [ ] cqrs-htmx consumers: existing `cqrshtmx.CSRFMiddleware`, `cqrshtmx.ServerTiming`, `cqrshtmx.RateLimiterMiddleware` still work
+- [ ] Both repos pushed

@@ -23,20 +23,18 @@ func DefaultEventCatalog() *cqrshtmx.EventCatalog {
 func registerUserEvents(catalog *cqrshtmx.EventCatalog) {
 	sv := identitymodel.CurrentSchemaVersion
 
-	catalog.Register( //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
-		cqrshtmx.EventMetadata{
-			Type:          string(identitymodel.EventUserRegistered),
-			Aggregate:     string(identitymodel.AggregateTypeUser),
-			SchemaVersion: sv,
-			Description:   "A user registered with an email address and display name",
-			PayloadFields: []cqrshtmx.PayloadField{
-				{Name: "schema_version", Type: "int", Required: true},
-				{Name: "email", Type: "string", Required: true},
-				{Name: "display_name", Type: "string"},
-				{Name: "roles", Type: "[]Role"},
-			},
+	catalog.Register(cqrshtmx.EventMetadata{
+		Type:          string(identitymodel.EventUserRegistered),
+		Aggregate:     string(identitymodel.AggregateTypeUser),
+		SchemaVersion: sv,
+		Description:   "A user registered with an email address and display name",
+		PayloadFields: []cqrshtmx.PayloadField{
+			{Name: "schema_version", Type: "int", Required: true},
+			{Name: "email", Type: "string", Required: true},
+			{Name: "display_name", Type: "string"},
+			{Name: "roles", Type: "[]Role"},
 		},
-	)
+	})
 
 	catalog.Register(cqrshtmx.EventMetadata{
 		Type:          string(identitymodel.EventRolesUpdated),
@@ -168,21 +166,19 @@ func registerUserEvents(catalog *cqrshtmx.EventCatalog) {
 func registerMembershipEvents(catalog *cqrshtmx.EventCatalog) {
 	sv := identitymodel.CurrentSchemaVersion
 
-	catalog.Register( //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
-		cqrshtmx.EventMetadata{
-			Type:          string(identitymodel.EventMemberAdded),
-			Aggregate:     string(identitymodel.AggregateTypeMembership),
-			SchemaVersion: sv,
-			Description:   "A member was added to a tenant with roles",
-			PayloadFields: []cqrshtmx.PayloadField{
-				{Name: "schema_version", Type: "int", Required: true},
-				{Name: "actor_kind", Type: "string", Required: true},
-				{Name: "actor_id", Type: "string", Required: true},
-				{Name: "tenant_id", Type: "string", Required: true},
-				{Name: "roles", Type: "[]Role", Required: true},
-			},
+	catalog.Register(cqrshtmx.EventMetadata{
+		Type:          string(identitymodel.EventMemberAdded),
+		Aggregate:     string(identitymodel.AggregateTypeMembership),
+		SchemaVersion: sv,
+		Description:   "A member was added to a tenant with roles",
+		PayloadFields: []cqrshtmx.PayloadField{
+			{Name: "schema_version", Type: "int", Required: true},
+			{Name: "actor_kind", Type: "string", Required: true},
+			{Name: "actor_id", Type: "string", Required: true},
+			{Name: "tenant_id", Type: "string", Required: true},
+			{Name: "roles", Type: "[]Role", Required: true},
 		},
-	)
+	})
 
 	catalog.Register(cqrshtmx.EventMetadata{
 		Type:          string(identitymodel.EventMemberRolesChanged),
@@ -215,19 +211,17 @@ func registerMembershipEvents(catalog *cqrshtmx.EventCatalog) {
 func registerTenantEvents(catalog *cqrshtmx.EventCatalog) {
 	sv := identitymodel.CurrentSchemaVersion
 
-	catalog.Register( //cqrs-lint:ignore(B007) explicit registrations are more readable than table-driven
-		cqrshtmx.EventMetadata{
-			Type:          string(identitymodel.EventTenantCreated),
-			Aggregate:     string(identitymodel.AggregateTypeTenant),
-			SchemaVersion: sv,
-			Description:   "A tenant was created",
-			PayloadFields: []cqrshtmx.PayloadField{
-				{Name: "schema_version", Type: "int", Required: true},
-				{Name: "name", Type: "string", Required: true},
-				{Name: "display_name", Type: "string", Required: true},
-			},
+	catalog.Register(cqrshtmx.EventMetadata{
+		Type:          string(identitymodel.EventTenantCreated),
+		Aggregate:     string(identitymodel.AggregateTypeTenant),
+		SchemaVersion: sv,
+		Description:   "A tenant was created",
+		PayloadFields: []cqrshtmx.PayloadField{
+			{Name: "schema_version", Type: "int", Required: true},
+			{Name: "name", Type: "string", Required: true},
+			{Name: "display_name", Type: "string", Required: true},
 		},
-	)
+	})
 
 	catalog.Register(cqrshtmx.EventMetadata{
 		Type:          string(identitymodel.EventTenantSuspended),

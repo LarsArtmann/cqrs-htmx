@@ -4,8 +4,6 @@
 
 **Session goal:** Finish every remaining item from the previous session's self-critique (15 SA1019 warnings, unverified coverage, dead code, lint nits) and reach a clean, verified, shippable state.
 
-> **Update 2026-08-01:** **All items resolved.** SA1019 migration complete across all 18 modules (0 deprecation warnings). httputil v0.8.0 published — hermetic `GOWORK=off` builds pass, canonical nix gates green. `decoder.go` `readBodyForDecode` simplified to `([]byte, error)` (unparam fixed). Lint at 0 issues. Coverage: root 93.7%, usermgmt 81.6%, dashboardui 84.0%.
-
 ---
 
 ## a) FULLY DONE (verified: build + tests + lint pass)
@@ -231,17 +229,3 @@ The function silently SHA-256-hashes non-ULID strings, which is dangerous (masks
 ### 3. Should I have used `nix run .#test` / `nix run .#lint` / `nix run .#coverage-gate` instead of raw Go commands?
 
 The AGENTS.md says to use `nix run .#test` etc. I used `GOEXPERIMENT=jsonv2 go test` and `golangci-lint run` directly. The nix commands may apply different configurations, additional flags (like `-race`), or enforce coverage gates that my raw commands didn't. Should I re-verify everything through the nix commands, or are the raw Go commands sufficient? I don't know if the nix wrappers add anything beyond convenience.
-
----
-
-## Resolution (2026-07-31)
-
-| Item                                       | Resolution                                                                                                                                      |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| SA1019 deprecation migration (all modules) | **Done** — zero SA1019 warnings across all 15 workspace modules. `id.AggregateID` → `id.StreamID`, `evt.AggregateType` → `evt.StreamType`, etc. |
-| All 15 modules at 0 lint issues            | **Done** (2026-07-28).                                                                                                                          |
-| identity-model coverage-gate (70%)         | **Done** — added to flake.nix. Actual: 74.9%.                                                                                                   |
-| `.golangci.yml` exclusion audit            | **Done** — zero masked bugs. Documented in CHANGELOG `[Unreleased]`.                                                                            |
-| MySQL event-store support                  | Still open — TODO_LIST P3.                                                                                                                      |
-| Offline sync E2E browser testing           | **Done** — 4 tests pass. CI integration still open (TODO_LIST P2).                                                                              |
-| Canonical nix gates                        | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                                                                  |

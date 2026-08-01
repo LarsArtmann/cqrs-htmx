@@ -4,10 +4,6 @@
 // handlers with automatic HTMX response building, Casbin authorization, CSRF protection,
 // rate limiting, SSE streaming, and error classification.
 //
-// Server-Timing instrumentation, CSRF core, and keyed rate limiting are re-exported
-// from [github.com/larsartmann/httputil] via type/var aliases, so the consumer API is
-// unchanged while the implementation lives in httputil.
-//
 // # Quick Start
 //
 // Create an [App] with command/query dispatchers and a Casbin enforcer, then use
@@ -46,30 +42,6 @@
 //	    cqrshtmx.HTMXMiddleware,
 //	    app.Middleware(),
 //	)(mux)
-//
-// # Dispatch Middleware
-//
-// The [*command.Dispatcher] and [*query.Dispatcher] passed to [Config.Commands] and
-// [Config.Queries] are go-cqrs-lite dispatchers. They implement Use(mw ...), so all 27
-// middleware factories from [go-cqrs-lite/middleware/v4] compose with zero glue:
-//
-//	import "github.com/larsartmann/go-cqrs-lite/middleware/v4"
-//
-//	cmdDisp.Use(
-//	    middleware.CommandRecovery(),
-//	    middleware.CommandRetry(middleware.DefaultRetryConfig()),
-//	)
-//	qryDisp.Use(
-//	    middleware.QueryRecovery(),
-//	)
-//
-// Dispatch middleware runs at the CQRS layer (per-command/per-query), not the HTTP
-// layer. This is strictly richer than [Config.BeforeDispatchHook] / [Config.AfterDispatchHook],
-// which only see the HTTP request, not the command type. See
-// docs/guides/leveraging-go-cqrs-lite.md and docs/guides/dispatch-middleware-ordering.md
-// for the full middleware catalogue and ordering rules.
-//
-// A runnable example lives in examples/middleware-demo/.
 //
 // # HTMX Response Builder
 //
