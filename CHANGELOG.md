@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **ReadinessHandler + DebugHandler** (`readiness.go`): composite readiness checker that runs NamedChecks in parallel and returns 200/503 with per-check status JSON. DebugHandler serves arbitrary system metadata as cached JSON. Both include full test coverage.
+- **MySQL read model constructors** (`usermgmt/sql_readmodel_mysql.go`): `NewMySQLUserReadModel`, `NewMySQLMembershipReadModel`, `NewMySQLTenantReadModel`, `NewMySQLBotReadModel` — using `storage.NewViewStoreWithDialect` with `MySQLDialect{}`.
+- **MySQL setup template** (`usermgmt/mysql_setup.go`): `//go:build ignore` reference constructor mirroring postgres_setup.go pattern with `stackmysql.New(dsn)`.
+- **MySQL dialect test** (`usermgmt/mysql_dialect_test.go`): verifies `MySQLDialect` produces `?` placeholders, `LONGBLOB`/`DATETIME(3)` schema types, no Postgres `$1` placeholders.
+- **State cache benchmark** (`usermgmt/benchmark_test.go`): `BenchmarkStateCache_ColdVsWarm` — 50-event stream cold path 189μs vs warm path 14μs (13.7x speedup from `WithStateCache`).
+- **TOTP replay documentation tests** (`usermgmt/totp/replay_test.go`): documents stateless TOTP design (RFC 6238 §5.2) and validates window behavior.
+- **Correctness tests** (`usermgmt/correctness_test.go`): eviction goroutine lifecycle test + state cache invalidation test (proves cache serves updated state after sequential writes).
+- **dashboardui projection host tests** (`dashboardui/handlers_projection_host_test.go`): 3 tests covering ProjectionHost branches in overviewStats and dlqIndexHandler (were 0% covered). Coverage improved 82%→84%.
+- **CI gate apps** (`flake.nix`): `check-phantom-version` (scans go.mod for zero pseudo-versions), `check-cqrs-lint` (runs cqrs-lint --strict on all 9 modules).
+- **E2E flake.nix fix** (`flake.nix`): 3-layer fix — replaced removed `pkgs.nodePackages.npm` with `pkgs.nodejs`, added `GOEXPERIMENT=jsonv2`, added NixOS Chromium auto-detection via `E2E_BROWSER_PATH`. All 4 Playwright tests now pass (was completely broken).
+- **errorfamily gate rewrite** (`flake.nix`): replaced broken `branching-flow errorfamily` subcommand with ripgrep-based check scanning for `errors.New(`/`fmt.Errorf(`/`errors.Join(` in non-test Go files. Comment-line filtering prevents false positives.
+- **MySQL setup guide** (`docs/guides/mysql-setup.md`): prerequisites, event store, read models, connection string tips, supported/unsupported matrix.
+- **MySQL migration guide** (`docs/migrations/adding-mysql.md`): step-by-step Postgres→MySQL migration instructions.
+- **Guide updates**: `leveraging-go-cqrs-lite.md` §9b (state cache & snapshotting), `projection-health-monitoring.md` (OnProjectionFailed callback), `event-store-storage-health.md` (MySQL section).
+- **Docs freshness script fix** (`scripts/check-docs-freshness.sh`): `head -3 go.mod` replaced with `grep '^go '` to handle go.mod files with leading comments.
 - **Lockout eviction wiring** (`usermgmt/service_core.go`): `AccountLockout.EvictStale` is now wired into `NewService` via `wireLockoutEviction()` helper, matching the existing pattern for WebAuthn, verification, TOTP, and OAuth2 ephemeral stores. Without this, lockout maps grew unbounded in production (memory leak). Test: `TestService_LockoutEvictionWired`.
 - **Dispatch middleware documentation** (`doc.go`): 20-line section documenting the `.Use()` recipe — the #1 undocumented capability (27 middleware factories from `go-cqrs-lite/middleware/v4` compose with zero glue). Cross-references the leveraging guide and middleware-demo example.
 - **TOTP replay-window documentation** (`usermgmt/totp/provider.go`): `ValidateCode` doc comment now explains the stateless design, RFC 6238 §5.2 replay protection recommendation, and the mitigation path for consumers.
