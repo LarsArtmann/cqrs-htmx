@@ -28,6 +28,7 @@ vendor/
 /coverage
 # Build artifacts
 /cqrs-htmx
+/dashboard-demo
 # Dependencies
 node_modules/
 # Sensitive files
@@ -116,3 +117,4 @@ yarn-error.log*
 .pnpm-debug.log*
 # <<< buildflow-managed (.gitignore) <<<
 examples/observability-demo/observability-demo
+/e2e/server/server

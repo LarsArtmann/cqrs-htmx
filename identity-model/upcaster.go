@@ -40,8 +40,14 @@ func (r *UpcasterRegistry) Register(eventType event.Type, fromVersion int, fn Up
 		r.chains[eventType] = make(map[int]Upcaster)
 	}
 	if _, exists := r.chains[eventType][fromVersion]; exists {
-		panic(fmt.Sprintf("upcaster already registered for %s v%d→v%d",
-			eventType, fromVersion, fromVersion+1))
+		panic( //cqrs-lint:ignore(C009) init-time duplicate registration guard
+			fmt.Sprintf(
+				"upcaster already registered for %s v%d→v%d",
+				eventType,
+				fromVersion,
+				fromVersion+1,
+			),
+		)
 	}
 	r.chains[eventType][fromVersion] = fn
 }

@@ -13,6 +13,8 @@ import (
 
 // ===== Time-Travel =====
 
+const maxVersionLinks = 20 // show individual version links up to this threshold
+
 func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Request) {
 	d.renderStreamIndex(w, r, "Time Travel", "/time-travel", d.renderTimeTravelIndex)
 }
@@ -21,30 +23,23 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		b.WriteString(`<div style="margin-bottom:16px">`)
 		b.WriteString(
-			`<p style="color:var(--muted);margin:0">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`,
+			`<p class="page-subtitle section-gap">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`,
 		)
-		b.WriteString(`</div>`)
 
 		if len(listings) == 0 {
-			return `<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No aggregates found</h3><p>Configure a StreamReader to list aggregates for time-travel inspection.</p></div>`
+			return emptyState(
+				"No aggregates found",
+				"Configure a StreamReader to list aggregates for time-travel inspection.",
+			)
 		}
 
-		b.WriteString(`<table style="width:100%;border-collapse:collapse">`)
-		b.WriteString(`<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">`)
-		b.WriteString(`<th style="padding:8px">Type</th><th style="padding:8px">ID</th>`)
-		b.WriteString(`<th style="padding:8px">Current Version</th><th style="padding:8px"></th>`)
-		b.WriteString(`</tr></thead><tbody>`)
+		var rows strings.Builder
 
 		for _, l := range listings {
 			fmt.Fprintf(
-				&b, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px">%s</td>
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-				<td style="padding:8px">%s</td>
-				<td style="padding:8px"><a href="%s/time-travel/%s/%s" style="color:var(--accent);text-decoration:none">Inspect</a></td>
-			</tr>`,
+				&rows,
+				`<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td><a href="%s/time-travel/%s/%s" class="btn">Inspect</a></td></tr>`,
 				esc(string(l.Type)),
 				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(l.Version.String()),
@@ -54,7 +49,11 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 			)
 		}
 
-		b.WriteString(`</tbody></table>`)
+		fmt.Fprintf(
+			&b,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Current Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
+			rows.String(),
+		)
 
 		return b.String()
 	})
@@ -69,7 +68,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	if len(allEvents) == 0 {
 		p := d.page("Time Travel: "+string(ref.Type), "/time-travel", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
-			return `<div style="padding:40px;text-align:center;color:var(--muted)"><h3>No events</h3></div>`
+			return emptyState("No events", "")
 		}))
 
 		return
@@ -77,7 +76,6 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 
 	maxVersion := allEvents[len(allEvents)-1].Version()
 
-	// Parse requested version from query param, default to latest.
 	requestedVersion := maxVersion
 
 	if v := r.URL.Query().Get("v"); v != "" {
@@ -90,10 +88,9 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 		requestedVersion = maxVersion
 	}
 
-	// Load events up to the requested version.
 	eventsToVersion, err := d.cfg.EventSource.LoadToVersion(r.Context(), ref, requestedVersion)
 	if err != nil {
-		http.Error(w, "failed to load version: "+err.Error(), http.StatusInternalServerError)
+		renderError(w, r, http.StatusInternalServerError, "failed to load version")
 
 		return
 	}
@@ -113,60 +110,93 @@ func (d *Dashboard) renderTimeTravelDetail(
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		fmt.Fprintf(&b, `<div style="margin-bottom:24px">`)
-		fmt.Fprintf(&b, `<h2 style="margin:0 0 4px">Time Travel: <code>%s</code></h2>`, esc(ref.ID.String()))
-		fmt.Fprintf(&b, `<div style="color:var(--muted);font-size:0.88em">Viewing version %d of %d</div>`,
-			currentVersion.Int(), maxVersion.Int())
-		b.WriteString(`</div>`)
-
-		// Version slider.
+		b.WriteString(`<div class="page-header">`)
 		fmt.Fprintf(
 			&b,
-			`<div style="margin-bottom:24px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">`,
+			`<h2>Time Travel: <code class="copyable" data-copyable="%s" title="Click to copy">%s</code></h2>`,
+			esc(ref.ID.String()),
+			esc(ref.ID.String()),
 		)
-		fmt.Fprintf(&b, `<label style="display:block;margin-bottom:8px;font-weight:600">Version</label>`)
+		fmt.Fprintf(
+			&b,
+			`<div class="page-subtitle">Viewing version %d of %d</div>`,
+			currentVersion.Int(),
+			maxVersion.Int(),
+		)
+		b.WriteString(`</div>`)
 
-		// Generate version links.
-		b.WriteString(`<div style="display:flex;flex-wrap:wrap;gap:4px">`)
+		b.WriteString(`<div class="panel">`)
+		b.WriteString(`<div class="panel-title">Version</div>`)
 
-		for v := event.Version(1); v <= maxVersion; v++ {
-			style := "padding:4px 10px;border:1px solid var(--border);border-radius:4px;text-decoration:none;color:var(--muted);font-size:0.85em"
+		fmt.Fprintf(
+			&b,
+			`<input type="range" min="1" max="%d" value="%d" class="version-slider" onchange="window.location.href='%s/time-travel/%s/%s?v='+this.value" aria-label="Select version"/>`,
+			maxVersion.Int(),
+			currentVersion.Int(),
+			p.BasePath,
+			esc(string(ref.Type)),
+			esc(ref.ID.String()),
+		)
 
-			if v == currentVersion {
-				style = "padding:4px 10px;border:1px solid var(--accent);border-radius:4px;text-decoration:none;color:white;background:var(--accent);font-size:0.85em;font-weight:600"
-			}
+		fmt.Fprintf(
+			&b,
+			`<div class="version-display section-gap">Viewing version <strong>%d</strong> of <strong>%d</strong></div>`,
+			currentVersion.Int(),
+			maxVersion.Int(),
+		)
 
-			fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d" style="%s">%d</a>`,
-				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), v.Int(), style, v.Int())
+		b.WriteString(`<div class="filter-bar">`)
+
+		if currentVersion > event.Version(1) {
+			fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s" class="btn">First</a>`,
+				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
 		}
 
-		b.WriteString(`</div></div>`)
+		if currentVersion < maxVersion {
+			fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d" class="btn btn-accent">Latest (v%d)</a>`,
+				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), maxVersion.Int(), maxVersion.Int())
+		}
 
-		// Event timeline up to selected version.
-		b.WriteString(`<h4 style="margin-bottom:8px">Events Through Version `)
-		fmt.Fprintf(&b, `%d`, currentVersion.Int())
-		b.WriteString(`</h4>`)
+		b.WriteString(`</div>`)
 
-		b.WriteString(`<table style="width:100%;border-collapse:collapse">`)
-		b.WriteString(`<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">`)
-		b.WriteString(`<th style="padding:8px">Version</th><th style="padding:8px">Type</th>`)
-		b.WriteString(`<th style="padding:8px">Occurred At</th>`)
-		b.WriteString(`</tr></thead><tbody>`)
+		if maxVersion.Int() <= maxVersionLinks {
+			b.WriteString(`<div class="version-links section-gap">`)
+
+			for v := event.Version(1); v <= maxVersion; v++ {
+				if v == currentVersion {
+					fmt.Fprintf(&b, `<span class="pagination"><span class="current">%d</span></span>`, v.Int())
+				} else {
+					fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d">%d</a>`,
+						p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), v.Int(), v.Int())
+				}
+			}
+
+			b.WriteString(`</div>`)
+		}
+
+		b.WriteString(`</div>`)
+
+		fmt.Fprintf(&b, `<h3>Events Through Version %d</h3>`, currentVersion.Int())
+
+		var rows strings.Builder
 
 		for _, evt := range events {
 			fmt.Fprintf(
-				&b, `<tr style="border-bottom:1px solid var(--border)">
-				<td style="padding:8px;font-weight:600">%s</td>
-				<td style="padding:8px"><a href="%s/events/%s" style="color:var(--accent);text-decoration:none"><code>%s</code></a></td>
-				<td style="padding:8px;font-family:monospace;font-size:0.85em">%s</td>
-			</tr>`,
+				&rows,
+				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td></tr>`,
 				esc(evt.Version().String()),
-				p.BasePath, esc(evt.ID().String()), esc(string(evt.Type())),
+				p.BasePath,
+				esc(evt.ID().String()),
+				esc(string(evt.Type())),
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
 			)
 		}
 
-		b.WriteString(`</tbody></table>`)
+		fmt.Fprintf(
+			&b,
+			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th></tr></thead><tbody>%s</tbody></table></div>`,
+			rows.String(),
+		)
 
 		return b.String()
 	})

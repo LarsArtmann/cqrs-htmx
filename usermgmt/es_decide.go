@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -36,22 +37,15 @@ func decideRegisterUser(
 		}
 		rolesCopy := make([]Role, len(roles))
 		copy(rolesCopy, roles)
-		payload, err := marshalPayload(UserRegisteredPayload{
-			SchemaVersion: currentSchemaVersion,
-			Email:         email,
-			DisplayName:   displayName,
-			Roles:         rolesCopy,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.register.marshal_failed",
-				"marshal UserRegistered payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventUserRegistered, aggID, aggregateTypeUser, version.Increment(),
-			payload,
+			UserRegisteredPayload{
+				SchemaVersion: currentSchemaVersion,
+				Email:         email,
+				DisplayName:   displayName,
+				Roles:         rolesCopy,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -76,20 +70,13 @@ func decideDeleteUser(
 			return nil, errorfamily.NewRejection("usermgmt.delete_user.already_deleted",
 				"user is already deleted")
 		}
-		payload, err := marshalPayload(UserDeletedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Reason:        reason,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.delete_user.marshal_failed",
-				"marshal UserDeleted payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventUserDeleted, aggID, aggregateTypeUser, version.Increment(),
-			payload,
+			UserDeletedPayload{
+				SchemaVersion: currentSchemaVersion,
+				Reason:        reason,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

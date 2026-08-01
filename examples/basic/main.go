@@ -34,17 +34,11 @@ type item struct {
 	Name string `json:"name"`
 }
 
-// createItemCmd is a custom command.Command carrying the decoded request data.
+// createItemCmd embeds *command.BasicCommand for Type()/StreamID()/ID().
 type createItemCmd struct {
-	typ   command.Type
-	aggID id.StreamID
-	cmdID id.CommandID
-	Name  string
+	*command.BasicCommand
+	Name string
 }
-
-func (c *createItemCmd) Type() command.Type    { return c.typ }
-func (c *createItemCmd) StreamID() id.StreamID { return c.aggID }
-func (c *createItemCmd) ID() id.CommandID      { return c.cmdID }
 
 // listItemsQuery is a custom query.Query.
 type listItemsQuery struct{}
@@ -60,8 +54,9 @@ func (q *listItemsPaginatedQuery) Type() query.Type { return query.Type("ListIte
 
 // --- Typed command/query types (no mapper needed) ---
 
-// greetCmd is a typed command that implements command.Command directly.
-// The JSON body shape matches the struct fields (minus the command methods).
+// greetCmd implements command.Command directly (no embedded BasicCommand)
+// because DecodeJSONTyped creates a zero-value struct — an embedded pointer
+// would be nil. This is the documented pattern for typed commands.
 type greetCmd struct {
 	aggID id.StreamID
 	cmdID id.CommandID
@@ -70,7 +65,8 @@ type greetCmd struct {
 
 func (c *greetCmd) Type() command.Type    { return "Greet" }
 func (c *greetCmd) StreamID() id.StreamID { return c.aggID }
-func (c *greetCmd) ID() id.CommandID      { return c.cmdID }
+
+func (c *greetCmd) ID() id.CommandID { return c.cmdID } //cqrs-lint:ignore(A001) typed command: DecodeJSONTyped requires manual methods (embedded *BasicCommand would be nil)
 
 // sumQuery is a typed query that implements query.Query directly.
 type sumQuery struct {
@@ -123,12 +119,10 @@ func (s *itemStore) listPaginated(p query.Pagination) query.PaginatedResult[item
 
 func main() {
 	// --- Command dispatcher ---
-	cmdDisp := command.NewDispatcher()
-	_ = cmdDisp.Register(command.Type("CreateItem"),
-		func(_ context.Context, cmd command.Command) error {
-			if c, ok := cmd.(*createItemCmd); ok {
-				db.add(c.Name)
-			}
+	cmdDisp := command.NewDispatcher() //cqrs-lint:ignore(A016) example: idempotency middleware omitted for simplicity
+	_ = command.RegisterTyped(cmdDisp, "CreateItem",
+		func(_ context.Context, c *createItemCmd) error {
+			db.add(c.Name)
 			return nil
 		})
 
@@ -142,16 +136,13 @@ func main() {
 
 	// --- Query dispatcher ---
 	qryDisp := query.NewDispatcher()
-	_ = qryDisp.Register(query.Type("ListItems"),
-		func(_ context.Context, _ query.Query) (any, error) {
+	_ = query.RegisterTyped(qryDisp, "ListItems",
+		func(_ context.Context, _ *listItemsQuery) ([]item, error) {
 			return db.list(), nil
 		})
-	_ = qryDisp.Register(query.Type("ListItemsPaginated"),
-		func(_ context.Context, q query.Query) (any, error) {
-			if pq, ok := q.(*listItemsPaginatedQuery); ok {
-				return db.listPaginated(pq.pagination), nil
-			}
-			return db.listPaginated(query.NewPagination(1, 10)), nil
+	_ = query.RegisterTyped(qryDisp, "ListItemsPaginated",
+		func(_ context.Context, q *listItemsPaginatedQuery) (query.PaginatedResult[item], error) {
+			return db.listPaginated(q.pagination), nil
 		})
 
 	// Typed query handler: returns a concrete result type (int).
@@ -174,12 +165,11 @@ func main() {
 	mux.Handle("POST /api/items", app.Command(
 		"CreateItem",
 		cqrshtmx.DecodeJSON(func(req createItemRequest) (command.Command, error) {
-			return &createItemCmd{
-				typ:   command.Type("CreateItem"),
-				aggID: id.NewStreamID(),
-				cmdID: id.NewCommandID(),
-				Name:  req.Name,
-			}, nil
+			core, err := command.New("CreateItem", id.NewStreamID())
+			if err != nil {
+				return nil, err
+			}
+			return &createItemCmd{BasicCommand: core, Name: req.Name}, nil
 		}),
 		cqrshtmx.WithSuccessStatus(201),
 	))

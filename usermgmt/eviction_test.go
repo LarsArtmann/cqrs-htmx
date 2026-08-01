@@ -75,3 +75,19 @@ func TestService_StopTerminatesEvictionGoroutines(t *testing.T) {
 	svc.Stop()
 	svc.Stop()
 }
+
+func TestService_LockoutEvictionWired(t *testing.T) {
+	svc, err := NewService(ServiceConfig{
+		Lockout: NewAccountLockout(),
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	if svc.stopLockoutEviction == nil {
+		t.Fatal("expected stopLockoutEviction goroutine to be wired when Lockout is provided")
+	}
+	svc.Stop()
+	if svc.stopLockoutEviction != nil {
+		t.Fatal("expected stopLockoutEviction to be nil after Stop()")
+	}
+}

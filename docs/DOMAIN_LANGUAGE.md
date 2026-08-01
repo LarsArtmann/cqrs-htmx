@@ -94,35 +94,57 @@ Immutable objects defined by attributes.
 
 Immutable records of domain changes.
 
-| Event              | What Happened                                         | Aggregate |
-| ------------------ | ----------------------------------------------------- | --------- |
-| UserRegistered     | A new user account was created with email and roles   | User      |
-| RolesUpdated       | The user's roles were changed in a specific domain    | User      |
-| EmailChanged       | The user's email address was changed                  | User      |
-| EmailVerified      | The user proved ownership of their email via token    | User      |
-| DisplayNameChanged | The user's display name was changed                   | User      |
-| UserDeleted        | The user was deleted (tombstone — no further changes) | User      |
-| CredentialAdded    | A WebAuthn credential was registered to the user      | User      |
-| CredentialRemoved  | A WebAuthn credential was removed from the user       | User      |
-| TOTPEnabled        | TOTP multi-factor authentication was activated        | User      |
-| TOTPDisabled       | TOTP multi-factor authentication was deactivated      | User      |
+| Event                   | What Happened                                          | Aggregate  |
+| ----------------------- | ------------------------------------------------------ | ---------- |
+| UserRegistered          | A new user account was created with email and roles    | User       |
+| RolesUpdated            | The user's roles were changed in a specific domain     | User       |
+| EmailChanged            | The user's email address was changed                   | User       |
+| EmailVerified           | The user proved ownership of their email via token     | User       |
+| DisplayNameChanged      | The user's display name was changed                    | User       |
+| UserDeleted             | The user was deleted (tombstone — no further changes)  | User       |
+| CredentialAdded         | A WebAuthn credential was registered to the user       | User       |
+| CredentialRemoved       | A WebAuthn credential was removed from the user        | User       |
+| TOTPEnabled             | TOTP multi-factor authentication was activated         | User       |
+| TOTPDisabled            | TOTP multi-factor authentication was deactivated       | User       |
+| ExternalAccountLinked   | An OAuth2/OIDC provider account was linked to the user | User       |
+| ExternalAccountUnlinked | An OAuth2/OIDC provider account was unlinked           | User       |
+| MemberAdded             | An actor was granted a role in a tenant                | Membership |
+| MemberRolesChanged      | An actor's roles within a tenant were changed          | Membership |
+| MemberRemoved           | An actor's membership in a tenant was revoked          | Membership |
+| TenantCreated           | A new tenant was created                               | Tenant     |
+| TenantSuspended         | A tenant was suspended (inactive but not deleted)      | Tenant     |
+| TenantReactivated       | A suspended tenant was reactivated                     | Tenant     |
+| TenantDeleted           | A tenant was deleted (tombstone)                       | Tenant     |
+| BotRegistered           | A bot was registered with an API token                 | Bot        |
+| BotDeleted              | A bot was deleted (tombstone)                          | Bot        |
 
 ## Commands
 
 Intents that trigger state changes.
 
-| Command           | What It Does                                        | Events Produced    |
-| ----------------- | --------------------------------------------------- | ------------------ |
-| RegisterUser      | Create a new user account (email only, no password) | UserRegistered     |
-| UpdateRoles       | Change the user's role assignments in a domain      | RolesUpdated       |
-| ChangeEmail       | Change the user's email address                     | EmailChanged       |
-| VerifyEmail       | Confirm email ownership with a verification token   | EmailVerified      |
-| ChangeDisplayName | Change the user's display name                      | DisplayNameChanged |
-| DeleteUser        | Soft-delete the user (tombstone)                    | UserDeleted        |
-| AddCredential     | Register a WebAuthn passkey to the user             | CredentialAdded    |
-| RemoveCredential  | Remove a WebAuthn passkey from the user             | CredentialRemoved  |
-| EnableTOTP        | Activate TOTP multi-factor authentication           | TOTPEnabled        |
-| DisableTOTP       | Deactivate TOTP (requires a valid code)             | TOTPDisabled       |
+| Command               | What It Does                                                  | Events Produced         | Aggregate  |
+| --------------------- | ------------------------------------------------------------- | ----------------------- | ---------- |
+| RegisterUser          | Create a new user account (email only, no password)           | UserRegistered          | User       |
+| UpdateRoles           | Change the user's role assignments in a domain                | RolesUpdated            | User       |
+| ChangeEmail           | Change the user's email address                               | EmailChanged            | User       |
+| VerifyEmail           | Confirm email ownership with a verification token             | EmailVerified           | User       |
+| ChangeDisplayName     | Change the user's display name                                | DisplayNameChanged      | User       |
+| DeleteUser            | Soft-delete the user (tombstone; cascades memberships + bots) | UserDeleted             | User       |
+| AddCredential         | Register a WebAuthn passkey to the user                       | CredentialAdded         | User       |
+| RemoveCredential      | Remove a WebAuthn passkey from the user                       | CredentialRemoved       | User       |
+| EnableTOTP            | Activate TOTP multi-factor authentication                     | TOTPEnabled             | User       |
+| DisableTOTP           | Deactivate TOTP (requires a valid code)                       | TOTPDisabled            | User       |
+| LinkExternalAccount   | Link an OAuth2/OIDC provider account to the user              | ExternalAccountLinked   | User       |
+| UnlinkExternalAccount | Unlink an OAuth2/OIDC provider account                        | ExternalAccountUnlinked | User       |
+| AddMember             | Grant an actor a role within a tenant                         | MemberAdded             | Membership |
+| UpdateMemberRoles     | Change an actor's roles within a tenant                       | MemberRolesChanged      | Membership |
+| RemoveMember          | Revoke an actor's membership in a tenant                      | MemberRemoved           | Membership |
+| CreateTenant          | Create a new tenant                                           | TenantCreated           | Tenant     |
+| SuspendTenant         | Suspend a tenant (inactive but not deleted)                   | TenantSuspended         | Tenant     |
+| ReactivateTenant      | Reactivate a suspended tenant                                 | TenantReactivated       | Tenant     |
+| DeleteTenant          | Delete a tenant (tombstone; cascades memberships)             | TenantDeleted           | Tenant     |
+| RegisterBot           | Register a bot with an API token for automated access         | BotRegistered           | Bot        |
+| DeleteBot             | Delete a bot (tombstone)                                      | BotDeleted              | Bot        |
 
 ## Bounded Contexts
 

@@ -33,18 +33,12 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// pingCmd implements command.Command. The JSON body decodes directly into Msg.
+// pingCmd embeds *command.BasicCommand for Type()/StreamID()/ID().
+// The JSON body decodes directly into Msg.
 type pingCmd struct {
-	id  id.CommandID
-	sid id.StreamID
+	*command.BasicCommand
 	Msg string `json:"msg"`
 }
-
-func (c *pingCmd) Type() command.Type { return "Ping" }
-
-func (c *pingCmd) StreamID() id.StreamID { return c.sid }
-
-func (c *pingCmd) ID() id.CommandID { return c.id }
 
 type pingRequest struct {
 	Msg string `json:"msg"`
@@ -96,7 +90,11 @@ func newHandler() http.Handler {
 	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
 	mux.Handle("POST /ping", app.Command("Ping",
 		cqrshtmx.DecodeJSON(func(r pingRequest) (command.Command, error) {
-			return &pingCmd{id: id.NewCommandID(), sid: id.NewStreamID(), Msg: r.Msg}, nil
+			core, err := command.New("Ping", id.NewStreamID())
+			if err != nil {
+				return nil, err
+			}
+			return &pingCmd{BasicCommand: core, Msg: r.Msg}, nil
 		}),
 		cqrshtmx.WithSuccessStatus(http.StatusNoContent),
 	))

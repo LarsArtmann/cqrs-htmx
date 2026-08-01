@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -28,25 +29,18 @@ func decideLinkExternalAccount(
 					"external account already linked to this user")
 			}
 		}
-		payload, err := marshalPayload(ExternalAccountLinkedPayload{
-			SchemaVersion: currentSchemaVersion,
-			ExternalAccountCore: ExternalAccountCore{
-				Provider:    provider,
-				Subject:     subject,
-				Email:       email,
-				DisplayName: displayName,
-			},
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.link_external_account.marshal_failed",
-				"marshal ExternalAccountLinked payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventExternalAccountLinked, aggID, aggregateTypeUser, version.Increment(),
-			payload,
+			ExternalAccountLinkedPayload{
+				SchemaVersion: currentSchemaVersion,
+				ExternalAccountCore: ExternalAccountCore{
+					Provider:    provider,
+					Subject:     subject,
+					Email:       email,
+					DisplayName: displayName,
+				},
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -88,21 +82,14 @@ func decideUnlinkExternalAccount(
 			return nil, errorfamily.NewRejection("usermgmt.unlink_external_account.last_auth_method",
 				"cannot remove the last authentication method")
 		}
-		payload, err := marshalPayload(ExternalAccountUnlinkedPayload{
-			SchemaVersion: currentSchemaVersion,
-			Provider:      provider,
-			Subject:       subject,
-		})
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				err,
-				"usermgmt.unlink_external_account.marshal_failed",
-				"marshal ExternalAccountUnlinked payload",
-			)
-		}
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			eventExternalAccountUnlinked, aggID, aggregateTypeUser, version.Increment(),
-			payload,
+			ExternalAccountUnlinkedPayload{
+				SchemaVersion: currentSchemaVersion,
+				Provider:      provider,
+				Subject:       subject,
+			},
+			event.WithCodec(codec.JSONCodec{}),
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

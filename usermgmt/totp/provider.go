@@ -74,6 +74,16 @@ func (p *Provider) GenerateSecret(accountName string) (rawSecret []byte, base32S
 // ValidateCode checks if the given TOTP code is valid for the provided
 // raw secret bytes. Returns true if the code matches within the configured
 // time window.
+//
+// # Replay protection
+//
+// ValidateCode is stateless: it does not track previously used codes. A valid
+// code remains reusable within the acceptance window (±30s with the default
+// Skew=1). RFC 6238 §5.2 recommends rejecting reused codes. Callers that need
+// replay protection should wrap the provider with a used-code store (e.g.,
+// a short-lived cache keyed by code hash that rejects duplicates within the
+// current time step). The usermgmt.AccountLockout mechanism mitigates brute-force
+// but does not prevent code reuse.
 func (p *Provider) ValidateCode(rawSecret []byte, code string) bool {
 	b32Secret := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(rawSecret)
 	valid, err := totp.ValidateCustom(code, b32Secret, time.Now(), totp.ValidateOpts{

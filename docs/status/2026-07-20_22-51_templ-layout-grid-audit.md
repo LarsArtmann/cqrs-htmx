@@ -4,6 +4,11 @@
 **Session scope:** User asked "Should we use grid CSS more, for layouts?" → "Checkout .templ files!" → full read/understand/refactor/verify cycle.
 **Trigger prompt:** "READ, UNDERSTAND, RESEARCH, REFLECT. Break this down into multiple actionable steps."
 
+> **Update 2026-08-01:** The 7 `flex-1` spacer eliminations shipped (replaced with `justify-between`).
+> The CSS audit follow-up items (snapshot tests, accessibility audit, dark-mode audit, responsive
+> audit) remain as low-priority ideas — not tracked in TODO_LIST. loginpage was redesigned with
+> improved HTMX integration in a later session.
+
 ---
 
 ## Executive Summary
@@ -208,3 +213,16 @@
 2. **Do you want structural snapshot tests for rendered HTML, or is that over-engineering for a library?** Snapshot tests would have caught the spacer hack automatically and would catch future layout regressions. But this is a library — consumers will style their own pages. Snapshot tests pin the library's default UI, which may or may not be worth the maintenance cost. I can't judge your testing philosophy for UI output.
 
 3. **Should I update AGENTS.md now with the "justify-between > flex-1 spacer" learning, or batch it with future UI discoveries?** The memory protocol says "update immediately, no threshold." But AGENTS.md is already dense and this is a minor convention. I can't determine if you want every small pattern logged or only architectural-level decisions.
+
+---
+
+## Resolution (2026-07-31)
+
+| Item                                        | Resolution                                                                                                                                                                                                                                                       |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `flex-1` spacer hack (7 sites fixed)        | **Done** — 7 sites across 5 files replaced with `justify-between`.                                                                                                                                                                                               |
+| dashboardui CSS overhaul                    | **Done** — dashboardui sprint (2026-07-30) delivered a full CSS custom-property design system with dark mode, focus-visible, print styles, and responsive `@media max-width: 768px`. Documented in FEATURES.md "Security & UX" row and CHANGELOG `[Unreleased]`. |
+| loginpage CSS audit (lines 200-262)         | Still open — low priority, loginpage CSS is self-contained and works correctly.                                                                                                                                                                                  |
+| adminui CSS audit (`admin-tw.css`)          | Still open — low priority, adminui uses compiled Tailwind output.                                                                                                                                                                                                |
+| Structural snapshot tests for rendered HTML | Still open — design question, not a bug.                                                                                                                                                                                                                         |
+| AGENTS.md UI patterns section               | Not done — intentionally deferred (minor convention, AGENTS.md is already dense).                                                                                                                                                                                |
