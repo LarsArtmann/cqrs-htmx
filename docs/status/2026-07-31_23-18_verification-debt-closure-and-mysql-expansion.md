@@ -10,6 +10,11 @@
 
 Executed all 18 tasks from the Pareto plan. 16 tasks are fully done and verified. 2 tasks have residual issues that need fixing. 3 lint violations remain in `readiness.go` (exhaustruct, varnamelen, and a docstring comment triggering the errorfamily gate). The E2E flake.nix app is now fully working (was completely broken before). MySQL read models, operational tooling (readiness checker + debug endpoint), CI gate apps, and comprehensive documentation all shipped.
 
+> **Update 2026-08-01:** **All residual issues resolved.** The 3 `readiness.go` lint violations are
+> fixed (lint at 0 issues across all 18 modules, verified via `nix run .#lint`). The errorfamily
+> gate passes clean. Coverage at: root 93.7%, usermgmt 81.6%, dashboardui 84.0%. MySQL read models
+> shipped. ReadinessHandler + DebugHandler documented in FEATURES.md.
+
 ---
 
 ## a) FULLY DONE (Verified)
