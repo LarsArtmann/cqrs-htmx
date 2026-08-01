@@ -2,7 +2,6 @@ package dashboardui
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strings"
 
@@ -11,48 +10,35 @@ import (
 
 // ===== Projection Dashboard =====
 
-// buildProjectionStats converts the projection host's WorkerState slice into
-// projectionStat entries with status classification, lag, and additional
-// fields (restarts, checkpoint, last error). Shared across the projections
-// index, the overview, and the health partial.
-func buildProjectionStats(host *projectionhost.Host) []projectionStat {
-	if host == nil {
-		return nil
-	}
-
-	lagPerProj := host.LagPerProjection()
-
-	var stats []projectionStat
-
-	for _, ws := range host.Status() {
-		lag := lagPerProj[ws.Name]
-		stats = append(stats, projectionStat{
-			Name:       ws.Name,
-			Status:     string(ws.Status),
-			Lag:        lag.String(),
-			Processed:  ws.Processed,
-			Errors:     ws.Errors,
-			StatusKind: projectionStatusKind(string(ws.Status)),
-			Restarts:   ws.Restarts,
-			Checkpoint: ws.Checkpoint,
-			LastError:  ws.LastError,
-		})
-	}
-
-	return stats
-}
-
 func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Projections", "/projections", r)
-	projs := buildProjectionStats(d.cfg.ProjectionHost)
+
+	var projs []projectionStat
+
+	if d.cfg.ProjectionHost != nil {
+		lagPerProj := d.cfg.ProjectionHost.LagPerProjection()
+		for _, ws := range d.cfg.ProjectionHost.Status() {
+			lag := lagPerProj[ws.Name]
+			projs = append(projs, projectionStat{
+				Name:       ws.Name,
+				Status:     string(ws.Status),
+				Lag:        lag.String(),
+				Processed:  ws.Processed,
+				Errors:     ws.Errors,
+				StatusKind: projectionStatusKind(string(ws.Status)),
+			})
+		}
+	}
 
 	html := d.renderProjections(p, projs)
 	renderPage(w, r, html)
 }
 
+// withProjectionHost checks that a projection host is configured and calls fn
+// with it. If not configured, writes a 400 error and returns without calling fn.
 func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *projectionhost.Host)) {
 	if d.cfg.ProjectionHost == nil {
-		renderError(w, nil, http.StatusBadRequest, "projection host not configured")
+		http.Error(w, "projection host not configured", http.StatusBadRequest)
 
 		return
 	}
@@ -60,9 +46,11 @@ func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *proj
 	fn(d.cfg.ProjectionHost)
 }
 
+// withDeadLetterStore checks that a dead-letter store is configured and calls
+// fn with it. If not configured, writes a 400 error and returns without calling fn.
 func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store projectionhost.DeadLetterStore)) {
 	if d.cfg.DeadLetterStore == nil {
-		renderError(w, nil, http.StatusBadRequest, "dead letter store not configured")
+		http.Error(w, "dead letter store not configured", http.StatusBadRequest)
 
 		return
 	}
@@ -74,23 +62,12 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
 		name := r.PathValue("name")
 		if err := host.Reset(r.Context(), name); err != nil {
-			slog.InfoContext(
-				r.Context(),
-				"dashboardui.audit",
-				"op",
-				"projection.reset",
-				"projection",
-				name,
-				"result",
-				"error",
-			)
-			triggerToast(w, "err", "Reset failed")
+			triggerToast(w, "err", "Reset failed: "+err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
 		}
 
-		slog.InfoContext(r.Context(), "dashboardui.audit", "op", "projection.reset", "projection", name, "result", "ok")
 		triggerToast(w, "ok", "Projection reset")
 		redirect(w, r, d.cfg.BasePath+"/projections")
 	})
@@ -99,79 +76,47 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string {
 	return d.renderLayout(p, func() string {
 		if len(projs) == 0 {
-			return emptyState("No projections registered", "")
+			return `<div style="padding:40px;text-align:center;color:#64748b"><h3>No projections registered</h3></div>`
 		}
 
-		var b strings.Builder
-		b.WriteString(`<h2>Projections</h2>`)
+		var rows string
 
-		var rows strings.Builder
+		var rowsSb209 strings.Builder
 
 		for _, proj := range projs {
-			badgeClass := badgeNeutral
+			color := "#64748b"
 
 			switch proj.StatusKind {
 			case statusGood:
-				badgeClass = badgeOK
+				color = "#16a34a"
 			case statusWarn:
-				badgeClass = badgeWarn
+				color = "#d97706"
 			case statusBad:
-				badgeClass = badgeErr
+				color = "#dc2626"
 			}
 
-			var actions string
-			if !p.ReadOnly {
-				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" onsubmit="return confirm('Reset projection %s? This will re-process all events from the beginning.')" aria-label="Reset projection %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Reset projection %s">Reset</button></form>`,
-					p.BasePath,
-					esc(proj.Name),
-					esc(proj.Name),
-					esc(proj.Name),
-					esc(p.CSRFToken),
-					esc(proj.Name),
-				)
-			}
-
-			dlqLink := ""
-			if proj.Errors > 0 || d.caps.DeadLetterStore || d.caps.ProjectionHost {
-				dlqLink = fmt.Sprintf(
-					`<a href="%s/dead-letters/%s" class="btn" aria-label="View dead letters for %s">DLQ (%d)</a>`,
-					p.BasePath,
-					esc(proj.Name),
-					esc(proj.Name),
-					proj.Errors,
-				)
-			}
-
-			lastErr := "—"
-			if proj.LastError != "" {
-				lastErr = esc(truncate(proj.LastError, errorDisplayWidth))
-			}
-
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="cell-emph">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%d</td><td class="mono" title="%s">%s</td><td>%s</td><td>%s %s</td></tr>`,
-				esc(proj.Name),
-				badgeClass,
-				esc(proj.Status),
-				esc(proj.Lag),
-				proj.Processed,
-				proj.Errors,
-				proj.Restarts,
-				esc(proj.Checkpoint),
-				esc(truncate(proj.Checkpoint, listIDWidth)),
-				lastErr,
-				dlqLink,
-				actions,
-			)
+			fmt.Fprintf(&rowsSb209, `<tr style="border-bottom:1px solid var(--border)">
+				<td style="padding:8px;font-weight:500">%s</td>
+				<td style="padding:8px"><span style="color:%s;font-weight:600">%s</span></td>
+				<td style="padding:8px;font-family:monospace">%s</td>
+				<td style="padding:8px">%d</td>
+				<td style="padding:8px">%d</td>
+			</tr>`, proj.Name, color, proj.Status, proj.Lag, proj.Processed, proj.Errors)
 		}
 
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Restarts</th><th scope="col">Checkpoint</th><th scope="col">Last Error</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
+		rows += rowsSb209.String()
 
-		return b.String()
+		return fmt.Sprintf(`
+			<h3 style="margin-bottom:12px">Projections</h3>
+			<table style="width:100%%;border-collapse:collapse">
+				<thead><tr style="text-align:left;border-bottom:2px solid var(--border)">
+					<th style="padding:8px">Name</th>
+					<th style="padding:8px">Status</th>
+					<th style="padding:8px">Lag</th>
+					<th style="padding:8px">Processed</th>
+					<th style="padding:8px">Errors</th>
+				</tr></thead>
+				<tbody>%s</tbody>
+			</table>`, rows)
 	})
 }

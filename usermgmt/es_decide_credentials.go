@@ -3,7 +3,6 @@ package usermgmt
 import (
 	"bytes"
 
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -27,23 +26,30 @@ func decideAddCredential(
 					"credential with this ID already exists")
 			}
 		}
-		evt, err := event.New(
-			eventCredentialAdded, aggID, aggregateTypeUser, version.Increment(),
-			CredentialAddedPayload{
-				SchemaVersion: currentSchemaVersion,
-				CredentialCore: CredentialCore{
-					ID:              cred.ID,
-					PublicKey:       cred.PublicKey,
-					AttestationType: cred.AttestationType,
-					Transports:      cred.Transports,
-					AAGUID:          cred.AAGUID,
-					SignCount:       cred.SignCount,
-					BackupEligible:  cred.BackupEligible,
-					BackupState:     cred.BackupState,
-					Name:            cred.Name,
-				},
+		payload, err := marshalPayload(CredentialAddedPayload{
+			SchemaVersion: currentSchemaVersion,
+			CredentialCore: CredentialCore{
+				ID:              cred.ID,
+				PublicKey:       cred.PublicKey,
+				AttestationType: cred.AttestationType,
+				Transports:      cred.Transports,
+				AAGUID:          cred.AAGUID,
+				SignCount:       cred.SignCount,
+				BackupEligible:  cred.BackupEligible,
+				BackupState:     cred.BackupState,
+				Name:            cred.Name,
 			},
-			event.WithCodec(codec.JSONCodec{}),
+		})
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.add_credential.marshal_failed",
+				"marshal CredentialAdded payload",
+			)
+		}
+		evt, err := event.NewEvent(
+			eventCredentialAdded, aggID, aggregateTypeUser, version.Increment(),
+			payload,
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -79,13 +85,20 @@ func decideRemoveCredential(
 			return nil, errorfamily.NewRejection("usermgmt.credential_not_found",
 				"credential not found")
 		}
-		evt, err := event.New(
+		payload, err := marshalPayload(CredentialRemovedPayload{
+			SchemaVersion: currentSchemaVersion,
+			ID:            credentialID,
+		})
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.remove_credential.marshal_failed",
+				"marshal CredentialRemoved payload",
+			)
+		}
+		evt, err := event.NewEvent(
 			eventCredentialRemoved, aggID, aggregateTypeUser, version.Increment(),
-			CredentialRemovedPayload{
-				SchemaVersion: currentSchemaVersion,
-				ID:            credentialID,
-			},
-			event.WithCodec(codec.JSONCodec{}),
+			payload,
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

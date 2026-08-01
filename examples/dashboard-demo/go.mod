@@ -7,7 +7,6 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
@@ -36,7 +35,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.3.0 // indirect
-	github.com/larsartmann/httputil v0.8.0 // indirect
+	github.com/larsartmann/httputil v0.7.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

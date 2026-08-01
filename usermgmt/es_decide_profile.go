@@ -1,12 +1,12 @@
 package usermgmt
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/codec/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+//nolint:dupl // mirrors decideChangeDisplayName; single-field deciders are structurally identical by design
 func decideChangeEmail(
 	aggID id.StreamID,
 	email string,
@@ -22,13 +22,20 @@ func decideChangeEmail(
 		if state.Email == email {
 			return nil, nil
 		}
-		evt, err := event.New(
+		payload, err := marshalPayload(EmailChangedPayload{
+			SchemaVersion: currentSchemaVersion,
+			Email:         email,
+		})
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.change_email.marshal_failed",
+				"marshal EmailChanged payload",
+			)
+		}
+		evt, err := event.NewEvent(
 			eventEmailChanged, aggID, aggregateTypeUser, version.Increment(),
-			EmailChangedPayload{
-				SchemaVersion: currentSchemaVersion,
-				Email:         email,
-			},
-			event.WithCodec(codec.JSONCodec{}),
+			payload,
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -41,6 +48,7 @@ func decideChangeEmail(
 	}
 }
 
+//nolint:dupl // mirrors decideChangeEmail; single-field deciders are structurally identical by design
 func decideChangeDisplayName(
 	aggID id.StreamID,
 	displayName string,
@@ -56,13 +64,20 @@ func decideChangeDisplayName(
 		if state.DisplayName == displayName {
 			return nil, nil
 		}
-		evt, err := event.New(
+		payload, err := marshalPayload(DisplayNameChangedPayload{
+			SchemaVersion: currentSchemaVersion,
+			DisplayName:   displayName,
+		})
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.change_display_name.marshal_failed",
+				"marshal DisplayNameChanged payload",
+			)
+		}
+		evt, err := event.NewEvent(
 			eventDisplayNameChanged, aggID, aggregateTypeUser, version.Increment(),
-			DisplayNameChangedPayload{
-				SchemaVersion: currentSchemaVersion,
-				DisplayName:   displayName,
-			},
-			event.WithCodec(codec.JSONCodec{}),
+			payload,
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(
@@ -89,13 +104,20 @@ func decideVerifyEmail(
 		if state.EmailVerified {
 			return nil, nil
 		}
-		evt, err := event.New(
+		payload, err := marshalPayload(EmailVerifiedPayload{
+			SchemaVersion: currentSchemaVersion,
+			Email:         state.Email,
+		})
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err,
+				"usermgmt.verify_email.marshal_failed",
+				"marshal EmailVerified payload",
+			)
+		}
+		evt, err := event.NewEvent(
 			eventEmailVerified, aggID, aggregateTypeUser, version.Increment(),
-			EmailVerifiedPayload{
-				SchemaVersion: currentSchemaVersion,
-				Email:         state.Email,
-			},
-			event.WithCodec(codec.JSONCodec{}),
+			payload,
 		)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(

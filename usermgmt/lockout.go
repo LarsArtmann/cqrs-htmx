@@ -7,9 +7,8 @@ import (
 )
 
 const (
-	defaultMaxAttempts      = 5
-	defaultLockoutDur       = 15 * time.Minute
-	lockoutEvictionInterval = 5 * time.Minute
+	defaultMaxAttempts = 5
+	defaultLockoutDur  = 15 * time.Minute
 )
 
 // LockoutConfig controls the account lockout behaviour.

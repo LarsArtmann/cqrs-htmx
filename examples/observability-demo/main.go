@@ -35,9 +35,9 @@ type pingCmd struct {
 	Msg string `json:"msg"`
 }
 
-func (c *pingCmd) Type() command.Type    { return "Ping" }
-func (c *pingCmd) StreamID() id.StreamID { return c.sid }
-func (c *pingCmd) ID() id.CommandID      { return c.id }
+func (c *pingCmd) Type() command.Type     { return "Ping" }
+func (c *pingCmd) StreamID() id.StreamID  { return c.sid }
+func (c *pingCmd) ID() id.CommandID       { return c.id }
 
 type pingRequest struct {
 	Msg string `json:"msg"`

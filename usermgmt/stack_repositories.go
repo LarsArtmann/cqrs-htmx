@@ -24,22 +24,22 @@ type aggregateRepositories struct {
 // optionally enables aggregate snapshotting (see SnapshotConfig); a zero-value
 // snap leaves repositories in full-replay mode.
 func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggregateRepositories, error) {
-	user, err := stack.Repository(bundle, UserDecider(), repositoryOptions[UserState](snap)...)
+	user, err := stack.Repository(bundle, UserDecider(), snapshotOptions[UserState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "create user repository")
 	}
-	membership, err := stack.Repository(bundle, MembershipDecider(), repositoryOptions[MembershipState](snap)...)
+	membership, err := stack.Repository(bundle, MembershipDecider(), snapshotOptions[MembershipState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "create membership repository")
 	}
-	tenant, err := stack.Repository(bundle, TenantDecider(), repositoryOptions[TenantState](snap)...)
+	tenant, err := stack.Repository(bundle, TenantDecider(), snapshotOptions[TenantState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "create tenant repository")
 	}
-	bot, err := stack.Repository(bundle, BotDecider(), repositoryOptions[BotState](snap)...)
+	bot, err := stack.Repository(bundle, BotDecider(), snapshotOptions[BotState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "internal", "create bot repository")
@@ -62,40 +62,22 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 func buildDeciderRepositories(
 	store event.Store, bus event.Publisher, closeOnErr func(), snap SnapshotConfig,
 ) (*aggregateRepositories, error) {
-	user, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig; zero-value = full-replay mode
-		store,
-		bus,
-		UserDecider(),
-		repositoryOptions[UserState](
-			snap,
-		)...)
+	user, err := decider.NewRepository(store, bus, UserDecider(), snapshotOptions[UserState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create decider repository").WithCause(err)
 	}
-	membership, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
-		store,
-		bus,
-		MembershipDecider(),
-		repositoryOptions[MembershipState](snap)...)
+	membership, err := decider.NewRepository(store, bus, MembershipDecider(), snapshotOptions[MembershipState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create membership decider repository").WithCause(err)
 	}
-	tenant, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
-		store,
-		bus,
-		TenantDecider(),
-		repositoryOptions[TenantState](snap)...)
+	tenant, err := decider.NewRepository(store, bus, TenantDecider(), snapshotOptions[TenantState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create tenant decider repository").WithCause(err)
 	}
-	bot, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
-		store,
-		bus,
-		BotDecider(),
-		repositoryOptions[BotState](snap)...)
+	bot, err := decider.NewRepository(store, bus, BotDecider(), snapshotOptions[BotState](snap)...)
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("internal", "create bot decider repository").WithCause(err)

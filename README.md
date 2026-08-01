@@ -39,7 +39,6 @@ One endpoint, four concerns, in declarative order. The same shape works for quer
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v4.2.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified) with ETag/caching. Opt-in, zero CDN dependency. Embedded HTMX extensions (SSE/WS/idiomorph) also available via `HTMXExtensionHandler`/`HTMXExtensionsHandler`
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers. Auth strategies (WebAuthn/Passkeys, TOTP MFA, OAuth2/OIDC) are **optional sub-modules** — import only what you need, zero auth deps in core
-- **SQL event store** — Postgres, SQLite, and MySQL backends via `go-cqrs-lite/storage/v4`. Auto-migrating schema, automatic error classification (Conflict/Transient), and one-call setup constructors for SQLite and Postgres. See [MySQL Setup Guide](docs/guides/mysql-setup.md)
 
 ## Why
 

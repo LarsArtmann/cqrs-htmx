@@ -183,16 +183,3 @@ ADR-0042 decided "root module, not a dedicated module" because it's only 2 JS fi
 ### G3. BroadcastChannel vs SharedWorker message passing — architectural question
 
 The current design uses a SharedWorker with a hello/bye protocol and `Map<tabId, MessagePort>` for tab management. An alternative is `BroadcastChannel` — simpler API, no port management, no hello/bye protocol, works in all modern browsers. The tradeoff: BroadcastChannel can't maintain shared state (the IDB connection, the in-memory fallback Map) across tabs — each tab would need its own IDB connection, eliminating the SharedWorker's "single queue coordinator" benefit. But with IndexedDB transactions being atomic, per-tab IDB access might actually be fine. This is a genuine architectural question where I don't have enough data on the concurrency patterns to recommend one way.
-
----
-
-## Resolution (2026-07-31)
-
-| Item                                  | Resolution                                                                                                                               |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Offline sync extracted to root module | **Done** — ADR-0042, shipped in v4.5.0. `SyncWorkerHandler()` / `SyncClientHandler()` + `With` variants serve from root module.          |
-| Browser E2E tests for sync system     | **Done** — 4 E2E Playwright tests pass (offline enqueue, online flush, cross-session recovery, multiple commands). syncVersion at 1.3.0. |
-| FormData serialization bug            | **Done** — FIXED in CHANGELOG `[Unreleased]`. `htmx:sendError` handler converts FormData to plain object before postMessage.             |
-| syncVersion constant                  | Now at `1.3.0` (was "1.0.0"). `TestSyncVersionMatchesJSConstants` prevents drift.                                                        |
-| Integration into flake.nix/CI         | Still open — TODO_LIST P2.                                                                                                               |
-| Canonical nix gates                   | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                                                                           |

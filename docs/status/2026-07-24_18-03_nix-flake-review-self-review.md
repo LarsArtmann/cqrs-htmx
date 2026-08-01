@@ -4,12 +4,6 @@
 **Session scope:** nix-flake-migration + nix-private-go-repos + nix-review skills applied to `flake.nix`
 **Verdict:** Session was mostly a **no-op with a false-success illusion**. See below.
 
-> **Update 2026-08-01:** The flake.nix improvements the session intended to make were already at HEAD
-> (the session read an old cached version). httputil v0.8.0 is now published (go.work replace removed).
-> Canonical nix gates pass green (`nix run .#test`, `nix run .#coverage-gate`, `nix flake check`).
-> The flake-review improvement ideas (gofumpt, goimports, overlays, git-hooks.nix, cachix) remain
-> as low-priority infrastructure ideas, not tracked in TODO_LIST.
-
 ---
 
 ## What Actually Happened (Chronological)

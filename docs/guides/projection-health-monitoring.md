@@ -128,33 +128,6 @@ curl -s http://localhost:8080/health/projections | \
 
 ---
 
-## Terminal Failure Callback (`OnProjectionFailed`)
-
-When a projection worker exhausts its restart budget (configurable via `projectionhost.WithMaxRestarts`), it transitions to a terminal failure state and stops processing. By default, this is silent (logs only).
-
-To receive a callback when this happens, set `OnProjectionFailed` on your config:
-
-```go
-cfg := usermgmt.ServiceConfig{
-    OnProjectionFailed: func(projectionName, lastError string) {
-        log.Printf("CRITICAL: projection %s entered terminal failure: %s", projectionName, lastError)
-        // Emit a metric, send a Slack alert, page on-call, etc.
-    },
-    // ...
-}
-```
-
-The callback receives:
-
-- `projectionName` — the projection's `Name()` (e.g., `"user-read-model"`, `"casbin-projection"`)
-- `lastError` — the error message from the final crash-restart attempt
-
-> **Note:** The callback is invoked synchronously from the worker goroutine. Keep it fast and non-blocking. For expensive operations (HTTP calls, external APIs), dispatch to a separate goroutine from within the callback.
-
-This is available on both `EventSourcedConfig` and `ServiceConfig`. The same field is forwarded to `projectionhost.WithOnFailed` internally.
-
----
-
 ## Caching Behavior
 
 The handler uses `Cache-Control: no-cache` with a per-request ETag (FNV-1a hash of the current status JSON). This means:

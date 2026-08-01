@@ -12,11 +12,6 @@
 
 Read all 9 `2026-07-26*` snapshots and 4 living docs in full. Ran all canonical Nix gates (errorfamily, check-docs-freshness, coverage-gate, flake-check, check-modules, test, fmt — honoring the #1 recurring lesson across 8+ prior reports). Found that 7 of 9 snapshots were already annotated by the round3 session; annotated the remaining 2 (UP2 carrier-status, round3 self-critique). Fixed 3 stale auth sub-module CHANGELOGs (totp/webauthn/oauth2 stuck at v4.0.2 → v4.6.0). Fixed 1 stale ROADMAP reference (Dashboard.Close leak, now fixed in code but doc still described it as an open TODO).
 
-> **Update 2026-08-01:** **Superseded** by rounds 5–6 and subsequent sessions. Auth sub-module
-> CHANGELOGs now at v4.6.1. Dashboard.Close() leak fixed (`15c27c3`). `art-dupl` independently
-> verified (0 clones). SA1019 migration complete. Lint at 0 issues across all 18 modules.
-> Coverage: root 93.7%, usermgmt 81.6%, dashboardui 84.0%.
-
 > **Update 2026-07-28:** v4.6.1 shipped later the same day — the auth sub-module CHANGELOGs are now
 > at v4.6.1 (totp/webauthn/oauth2). The `check-modules` FAILs on lockstep cascade noted in §a.4 are
 > also resolved (all modules tagged and pushed for v4.6.1).

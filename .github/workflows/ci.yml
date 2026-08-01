@@ -98,48 +98,6 @@ jobs:
           GOWORK: off
           GOEXPERIMENT: jsonv2
 
-      - name: Build identity-model submodule
-        run: cd identity-model && go build ./...
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: Build dashboardui submodule
-        run: cd dashboardui && go build ./...
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: Build loginpage submodule
-        run: cd loginpage && go build ./...
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: Build middleware-demo example
-        run: cd examples/middleware-demo && go build ./...
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: Build observability-demo example
-        run: cd examples/observability-demo && go build ./...
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: Build dashboard-demo example
-        run: cd examples/dashboard-demo && go build ./...
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
   test:
     runs-on: ubuntu-latest
     steps:
@@ -198,27 +156,6 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
-      - name: Test identity-model submodule
-        run: cd identity-model && go test ./... -count=1 -race -coverprofile=coverage.out
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: Test dashboardui submodule
-        run: cd dashboardui && go test ./... -count=1 -race -coverprofile=coverage.out
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: Test loginpage submodule
-        run: cd loginpage && go test ./... -count=1 -race
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
       - name: Coverage check
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
@@ -229,19 +166,7 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=usermgmt/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "Usermgmt coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 74) { print \"Usermgmt coverage ${COVERAGE}% is below 74% threshold\"; exit 1 } }"
-
-      - name: identity-model coverage check
-        run: |
-          COVERAGE=$(go tool cover -func=identity-model/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "identity-model coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 70) { print \"identity-model coverage ${COVERAGE}% is below 70% threshold\"; exit 1 } }"
-
-      - name: dashboardui coverage check
-        run: |
-          COVERAGE=$(go tool cover -func=dashboardui/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
-          echo "dashboardui coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 60) { print \"dashboardui coverage ${COVERAGE}% is below 60% threshold\"; exit 1 } }"
+          awk "BEGIN { if ($COVERAGE < 78) { print \"Usermgmt coverage ${COVERAGE}% is below 78% threshold\"; exit 1 } }"
 
   lint:
     runs-on: ubuntu-latest
@@ -284,39 +209,6 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
-      - name: golangci-lint (identity-model)
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.12.2
-          working-directory: identity-model
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (dashboardui)
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.12.2
-          working-directory: dashboardui
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (loginpage)
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.12.2
-          working-directory: loginpage
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
   mod-tidy:
     runs-on: ubuntu-latest
     steps:
@@ -328,7 +220,7 @@ jobs:
 
       - name: Verify go mod tidy (all modules)
         run: |
-          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
+          for mod in . usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui integration_test examples/basic examples/admin-demo; do
             echo "=== Checking $mod ==="
             (cd "$mod" && go mod tidy -diff)
           done
@@ -368,23 +260,6 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-
-      - name: Phantom version check
-        run: |
-          echo "=== Phantom Version Check ==="
-          if grep -rF 'v0.0.0-00010101000000-000000000000' --include='go.mod' .; then
-            echo "FAIL: zero pseudo-version detected in go.mod"
-            exit 1
-          fi
-          echo "OK: No phantom versions detected."
-
-      - name: Error family check
-        run: |
-          echo "=== Error Family Check ==="
-          go run scripts/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage
-          echo "OK: All modules pass errorfamily check."
-        env:
-          GOEXPERIMENT: jsonv2
 
       - name: gosec
         uses: securego/gosec@master

@@ -4,12 +4,6 @@
 **Session scope:** Read ALL 64 `**/2026-07-2*` files; run the `update-old-docs` + `docs-health` skills superbly; rebuild TODO_LIST, ROADMAP, FEATURES, CHANGELOG.
 **Commits produced (by auto-git daemon):** `e820580`, `72a2d5f`, `c5fb7df` (3 commits, all doc-only)
 
-> **Update 2026-08-01:** **Superseded** by 2026-07-29 + 2026-07-31 + 2026-08-01 sessions. Current
-> state: root 93.7%, usermgmt 81.6%, dashboardui 84.0% (11 test files, 121 tests). 18 modules in
-> go.work. identity-model coverage gate at 70% (actual 74.9%). All canonical nix gates green.
-> ReadinessHandler + DebugHandler added to FEATURES.md. loginpage/CHANGELOG.md still missing
-> (TODO_LIST P3).
-
 ---
 
 ## a) FULLY DONE (verified)

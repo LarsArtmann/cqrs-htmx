@@ -1,9 +1,7 @@
 package dashboardui
 
 import (
-	"context"
 	"encoding/json/v2"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -37,31 +35,6 @@ type toastDetail = cqrshtmx.ToastDetail
 func triggerToast(w http.ResponseWriter, kind, message string) {
 	detail, _ := json.Marshal(toastDetail{Message: message, Kind: kind})
 	w.Header().Set("Hx-Trigger", string(detail))
-}
-
-// renderError logs the full error and shows a generic message to the user.
-// Safe to call with a nil request.
-func renderError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	ctx := context.Background() //nolint:contextcheck // fallback when request is nil; replaced by r.Context() below
-	path := ""
-
-	if r != nil {
-		ctx = r.Context()
-		path = r.URL.Path
-	}
-
-	slog.ErrorContext(ctx, "dashboardui: handler error",
-		"status", statusCode, "message", message, "path", path)
-	http.Error(w, message, statusCode)
-}
-
-// emptyState renders the standard empty-state panel.
-func emptyState(title, message string) string {
-	if message == "" {
-		return fmt.Sprintf(`<div class="empty-state"><h2>%s</h2></div>`, esc(title))
-	}
-
-	return fmt.Sprintf(`<div class="empty-state"><h2>%s</h2><p>%s</p></div>`, esc(title), esc(message))
 }
 
 func redirect(w http.ResponseWriter, r *http.Request, path string) {

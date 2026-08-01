@@ -108,18 +108,4 @@ func (m *BotReadModel) FindByTokenHash(hash []byte) (*Bot, bool) {
 	return bot, ok
 }
 
-// FindByOwner returns all non-deleted bots owned by the given user ID.
-// Used by user-deletion cascade cleanup.
-func (m *BotReadModel) FindByOwner(ownerID UserID) []*Bot {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	result := make([]*Bot, 0)
-	for _, bot := range m.bots {
-		if bot.OwnerID.Get() == ownerID.Get() {
-			result = append(result, bot)
-		}
-	}
-	return result
-}
-
 var _ projection.Projection = (*BotReadModel)(nil)

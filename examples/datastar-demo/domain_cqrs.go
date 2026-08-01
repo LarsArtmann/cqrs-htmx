@@ -15,8 +15,8 @@ import (
 type BroadcastEvent struct {
 	Kind string // "todo_created", "todo_updated", "todo_deleted"
 	User string
-	Data string    // HTML fragment or CSS selector
-	Time time.Time //cqrs-lint:ignore(C013) in-memory SSE broadcast struct, not an event store payload
+	Data string // HTML fragment or CSS selector
+	Time time.Time
 }
 
 type Broadcaster struct {

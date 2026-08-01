@@ -235,17 +235,3 @@ test verification, typed handler examples, and SKILL.md documentation.
 2. **Should we fix the usermgmt build failure now?** — `sqlite_setup_test.go` references `SQLiteEventSourcedSetup` and `NewSQLiteEventSourcedSetup` which were moved to the root module. This is a pre-existing issue from a refactor. Should we fix it now (update/remove the test file) or leave it for a dedicated cleanup session?
 
 3. **Is the typed handler documentation complete enough?** — The SKILL.md section covers the basic pattern but doesn't mention form-based typed decoders in the examples, doesn't document the `RenderTemplResult[T]` + typed query pattern, and doesn't cover edge cases like empty body behavior. Should we expand the documentation now or wait until the integration tests are in place?
-
----
-
-## Resolution (2026-07-31)
-
-| Item                                                  | Resolution                                                                             |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Coverage gate (root 90% threshold)                    | **Done** — root at 93.7%, all 9 modules have coverage gates.                           |
-| CHANGELOG entries for typed handler tests             | **Done** — entries in v4.3.0 and `[Unreleased]`.                                       |
-| `sqlite_setup_test.go` build failure                  | **Done** — resolved (types moved to root module, test file updated).                   |
-| Typed handler error-path tests                        | **Done** — error-path tests documented in CHANGELOG `[Unreleased]`.                    |
-| Typed handler integration tests (CSRF, auth, timeout) | Still open — lower priority, typed handlers are FULLY_FUNCTIONAL with unit tests.      |
-| Nil pointer dispatch behavior                         | Design question — not fixed; typed handlers document empty-body → zero-value behavior. |
-| Canonical nix gates                                   | **Blocked** by httputil v0.8.0 — TODO_LIST P1.                                         |

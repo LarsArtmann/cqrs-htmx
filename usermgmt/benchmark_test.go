@@ -2,14 +2,12 @@ package usermgmt
 
 import (
 	"context"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 func BenchmarkService_Register(b *testing.B) {
@@ -127,71 +125,4 @@ func BenchmarkBeginLogin(b *testing.B) {
 	for range b.N {
 		_, _ = svc.BeginLogin(context.Background(), reg.User.Email)
 	}
-}
-
-// BenchmarkStateCache_ColdVsWarm quantifies the performance improvement from
-// the decider.WithStateCache that usermgmt wires by default.
-//
-// "cold" creates a fresh service (no cached state) — the repository replays
-// all events from version 0 on each invocation.
-// "warm" reuses the service (cache populated by prior writes) — the repository
-// loads only events since the cached version.
-//
-// Run: GOEXPERIMENT=jsonv2 go test -bench=BenchmarkStateCache -benchmem -count=3
-func BenchmarkStateCache_ColdVsWarm(b *testing.B) {
-	const eventCount = 50
-
-	b.Run("cold", func(b *testing.B) {
-		for range b.N {
-			b.StopTimer()
-
-			store := memory.NewMemoryStore()
-			seedSvc, _ := NewService(ServiceConfig{EventStore: store})
-			userID := seedBenchUser(b, seedSvc, eventCount)
-			seedSvc.Stop()
-
-			coldSvc, _ := NewService(ServiceConfig{EventStore: store})
-			ctx := context.Background()
-			b.StartTimer()
-
-			_ = coldSvc.ChangeEmail(ctx, userID, "cold@test.com")
-
-			b.StopTimer()
-			coldSvc.Stop()
-		}
-	})
-
-	b.Run("warm", func(b *testing.B) {
-		svc, _ := NewService(ServiceConfig{})
-		defer svc.Close() //nolint:errcheck // benchmark cleanup
-
-		userID := seedBenchUser(b, svc, eventCount)
-		ctx := context.Background()
-
-		b.ResetTimer()
-		for range b.N {
-			_ = svc.ChangeEmail(ctx, userID, "warm@test.com")
-		}
-	})
-}
-
-func seedBenchUser(b *testing.B, svc *Service, eventCount int) UserID {
-	b.Helper()
-	ctx := context.Background()
-
-	resp, err := svc.Register(ctx, RegisterRequest{
-		ID:    GenerateUserID(),
-		Email: "bench@example.com",
-	})
-	if err != nil {
-		b.Fatalf("Register: %v", err)
-	}
-
-	for i := range eventCount {
-		if err := svc.ChangeEmail(ctx, resp.User.ID, "bench-"+strconv.Itoa(i)+"@test.com"); err != nil {
-			b.Fatalf("ChangeEmail %d: %v", i, err)
-		}
-	}
-
-	return resp.User.ID
 }
