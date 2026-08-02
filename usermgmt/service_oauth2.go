@@ -24,17 +24,17 @@ func (s *Service) BeginOAuthLogin(ctx context.Context, provider string) (*BeginO
 
 	state, err := generateOAuth2State()
 	if err != nil {
-		return nil, errorfamily.NewTransient("internal", "generate oauth2 state").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.oauth2.generate_state", "generate oauth2 state").WithCause(err)
 	}
 
 	redirectURL, pkceVerifier, err := s.oauth2.BeginLogin(ctx, provider, state)
 	if err != nil {
-		return nil, errorfamily.NewTransient("internal", "oauth2 begin login").
+		return nil, errorfamily.NewTransient("usermgmt.oauth2.begin_login", "oauth2 begin login").
 			WithCause(err).WithContext("provider", provider)
 	}
 
 	if err := s.oauth2States.Save(state, provider, pkceVerifier, s.oauth2StateTTL); err != nil {
-		return nil, errorfamily.NewTransient("internal", "save oauth2 state").
+		return nil, errorfamily.NewTransient("usermgmt.oauth2.save_state", "save oauth2 state").
 			WithCause(err).WithContext("provider", provider)
 	}
 
@@ -100,7 +100,7 @@ func (s *Service) FinishOAuthLogin(
 	session, err := s.createSession(ctx, user.ID)
 	if err != nil {
 		return nil, withUserIDContext(
-			errorfamily.NewTransient("internal", "create oauth2 session").WithCause(err), user.ID,
+			errorfamily.NewTransient("usermgmt.oauth2.create_session", "create oauth2 session").WithCause(err), user.ID,
 		)
 	}
 
@@ -151,7 +151,7 @@ func (s *Service) matchOrCreateUser(
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, false, withUserIDContext(
-			errorfamily.NewTransient("internal", "oauth2 user not in read model after register"), userID,
+			errorfamily.NewTransient("usermgmt.oauth2.read_model_missing", "oauth2 user not in read model after register"), userID,
 		)
 	}
 

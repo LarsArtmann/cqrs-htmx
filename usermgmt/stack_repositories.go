@@ -27,22 +27,22 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 	user, err := stack.Repository(bundle, UserDecider(), repositoryOptions[UserState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
-		return nil, errorfamily.WrapTransient(err, "internal", "create user repository")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_user", "create user repository")
 	}
 	membership, err := stack.Repository(bundle, MembershipDecider(), repositoryOptions[MembershipState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
-		return nil, errorfamily.WrapTransient(err, "internal", "create membership repository")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_membership", "create membership repository")
 	}
 	tenant, err := stack.Repository(bundle, TenantDecider(), repositoryOptions[TenantState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
-		return nil, errorfamily.WrapTransient(err, "internal", "create tenant repository")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_tenant", "create tenant repository")
 	}
 	bot, err := stack.Repository(bundle, BotDecider(), repositoryOptions[BotState](snap)...)
 	if err != nil {
 		_ = bundle.Close()
-		return nil, errorfamily.WrapTransient(err, "internal", "create bot repository")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_bot", "create bot repository")
 	}
 	return &aggregateRepositories{
 		User:       user,
@@ -62,7 +62,8 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 func buildDeciderRepositories(
 	store event.Store, bus event.Publisher, closeOnErr func(), snap SnapshotConfig,
 ) (*aggregateRepositories, error) {
-	user, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig; zero-value = full-replay mode
+	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig; zero-value = full-replay mode
+	user, err := decider.NewRepository(
 		store,
 		bus,
 		UserDecider(),
@@ -71,34 +72,37 @@ func buildDeciderRepositories(
 		)...)
 	if err != nil {
 		closeOnErr()
-		return nil, errorfamily.NewTransient("internal", "create decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.repository.create_user_decider", "create decider repository").WithCause(err)
 	}
-	membership, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	membership, err := decider.NewRepository(
 		store,
 		bus,
 		MembershipDecider(),
 		repositoryOptions[MembershipState](snap)...)
 	if err != nil {
 		closeOnErr()
-		return nil, errorfamily.NewTransient("internal", "create membership decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.repository.create_membership_decider", "create membership decider repository").WithCause(err)
 	}
-	tenant, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	tenant, err := decider.NewRepository(
 		store,
 		bus,
 		TenantDecider(),
 		repositoryOptions[TenantState](snap)...)
 	if err != nil {
 		closeOnErr()
-		return nil, errorfamily.NewTransient("internal", "create tenant decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.repository.create_tenant_decider", "create tenant decider repository").WithCause(err)
 	}
-	bot, err := decider.NewRepository( //cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	bot, err := decider.NewRepository(
 		store,
 		bus,
 		BotDecider(),
 		repositoryOptions[BotState](snap)...)
 	if err != nil {
 		closeOnErr()
-		return nil, errorfamily.NewTransient("internal", "create bot decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.repository.create_bot_decider", "create bot decider repository").WithCause(err)
 	}
 	return &aggregateRepositories{
 		User:       user,

@@ -52,7 +52,7 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 		Credentials: creds,
 	})
 	if err != nil {
-		return nil, errorfamily.NewInfrastructure("internal", "marshal webauthn user data").WithCause(err)
+		return nil, errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user_data", "marshal webauthn user data").WithCause(err)
 	}
 	return data, nil
 }
@@ -96,7 +96,7 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 	if err != nil {
 		s.logger.Warn("usermgmt: begin registration ceremony failed",
 			"user_id", userID, "error", err)
-		return nil, errorfamily.NewTransient("internal", "begin webauthn registration").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.webauthn.begin_registration", "begin webauthn registration").WithCause(err)
 	}
 
 	sessionKey := userID.Get().String()
@@ -210,7 +210,7 @@ func (s *Service) BeginLogin(ctx context.Context, email string) (*BeginLoginResp
 	options, sessionData, err := s.webauthn.BeginLogin(ctx, userJSON)
 	if err != nil {
 		s.logger.Warn("usermgmt: begin login ceremony failed", "email", email, "error", err)
-		return nil, errorfamily.NewTransient("internal", "begin webauthn login").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.webauthn.begin_login", "begin webauthn login").WithCause(err)
 	}
 
 	sessionKey := user.ID.Get().String()
@@ -277,7 +277,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	sess, err := s.createSession(ctx, user.ID)
 	if err != nil {
 		return nil, withUserIDContext(
-			errorfamily.NewTransient("internal", "create session").WithCause(err), user.ID,
+			errorfamily.NewTransient("usermgmt.session.create", "create session").WithCause(err), user.ID,
 		)
 	}
 

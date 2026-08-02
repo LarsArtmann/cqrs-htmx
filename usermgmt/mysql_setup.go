@@ -70,7 +70,7 @@ func newMySQLSetup(
 	)
 	if err != nil {
 		_ = bundle.Close()
-		return nil, errorfamily.WrapTransient(err, "internal", "start projections")
+		return nil, errorfamily.WrapTransient(err, "usermgmt.projection.start", "start projections")
 	}
 
 	return &MySQLEventSourcedSetup{
@@ -100,19 +100,19 @@ func createMySQLReadModels(db *sql.DB) (
 	}
 	userRm, err := NewMySQLUserReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create mysql user read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_user_mysql", "create mysql user read model")
 	}
 	memRm, err := NewMySQLMembershipReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create mysql membership read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_membership_mysql", "create mysql membership read model")
 	}
 	tenRm, err := NewMySQLTenantReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create mysql tenant read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_tenant_mysql", "create mysql tenant read model")
 	}
 	botRm, err := NewMySQLBotReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "internal", "create mysql bot read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_bot_mysql", "create mysql bot read model")
 	}
 	return userRm, memRm, tenRm, botRm, nil
 }

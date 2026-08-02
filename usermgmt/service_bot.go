@@ -66,7 +66,7 @@ func (s *Service) RegisterBot(ctx context.Context, req RegisterBotRequest) (*Reg
 
 	bot, ok := s.botReadModel.FindByID(aggID)
 	if !ok {
-		return nil, errorfamily.NewTransient("internal", "bot not in read model after register")
+		return nil, errorfamily.NewTransient("usermgmt.bot.read_model_missing", "bot not in read model after register")
 	}
 	return &RegisterBotResult{Bot: bot, Token: token}, nil
 }
