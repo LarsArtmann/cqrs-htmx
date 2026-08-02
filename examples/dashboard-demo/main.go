@@ -108,8 +108,7 @@ func seedDemoData(
 			"email": fmt.Sprintf("%s@example.com", name),
 		})
 
-		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		//cqrs-lint:ignore(E006) demo data: no catalog and no projection in this dashboard demo
 		created, _ := event.New(
 			"user.created",
 			aggID,
@@ -119,8 +118,7 @@ func seedDemoData(
 		)
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
-		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		//cqrs-lint:ignore(E006) demo data: no catalog and no projection in this dashboard demo
 		renamed, _ := event.New(
 			"user.renamed",
 			aggID,
@@ -153,8 +151,7 @@ func seedDemoData(
 		aggID := id.NewStreamID()
 		ref := id.NewStreamRef("Order", aggID)
 
-		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		//cqrs-lint:ignore(E006) demo data: no catalog and no projection in this dashboard demo
 		placed, _ := event.New(
 			"order.placed",
 			aggID,
@@ -168,8 +165,7 @@ func seedDemoData(
 		)
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
-		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		//cqrs-lint:ignore(E006) demo data: no catalog and no projection in this dashboard demo
 		shipped, _ := event.New(
 			"order.shipped",
 			aggID,

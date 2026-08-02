@@ -75,6 +75,7 @@ func NewCQRS() *CQRS {
 	events := NewEventStore()
 	read := NewProjector()
 	broadcast := NewBroadcaster()
+	//cqrs-lint:ignore(C027) example event bus: Subscribe is the only projection mechanism here
 
 	events.Subscribe(read.Apply)
 	events.Subscribe(func(e DomainEvent) {
