@@ -210,8 +210,8 @@ func main() {
 	// GET /api/events — SSE live updates
 	mux.HandleFunc("GET /api/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := cqrshtmx.NewSSEStream(w, r)
-		ch := broadcaster.Subscribe()
 		//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
+		ch := broadcaster.Subscribe()
 		defer broadcaster.Unsubscribe(ch)
 		for {
 			select {

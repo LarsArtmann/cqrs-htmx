@@ -52,7 +52,6 @@ func ParseUserID(s string) (UserID, error) {
 func MustParseUserID(s string) UserID {
 	v, err := ParseUserID(s)
 	if err != nil {
-		//cqrs-lint:ignore(C009) Must* function: panics on invalid input by Go convention
 		panic(
 			fmt.Sprintf("MustParseUserID: %v", err),
 		)
@@ -80,7 +79,6 @@ func ParseCorrelationID(s string) (CorrelationID, error) {
 func MustParseCorrelationID(s string) CorrelationID {
 	v, err := ParseCorrelationID(s)
 	if err != nil {
-		//cqrs-lint:ignore(C009) Must* function: panics on invalid input by Go convention
 		panic(
 			fmt.Sprintf("MustParseCorrelationID: %v", err),
 		)
@@ -138,7 +136,6 @@ func ParseRequestID(s string) (RequestID, error) {
 func MustParseRequestID(s string) RequestID {
 	v, err := ParseRequestID(s)
 	if err != nil {
-		//cqrs-lint:ignore(C009) Must* function: panics on invalid input by Go convention
 		panic(
 			fmt.Sprintf("MustParseRequestID: %v", err),
 		)

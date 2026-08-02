@@ -155,7 +155,6 @@ func New(cfg Config) (*App, error) {
 func MustNew(cfg Config) *App {
 	app, err := New(cfg)
 	if err != nil {
-		//cqrs-lint:ignore(C009) MustNew: startup config error is a programmer error
 		panic(err)
 	}
 
