@@ -253,7 +253,11 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		return nil, errorfamily.NewTransient("internal", "create casbin projection").WithCause(err)
 	}
 
-	journal := journalFromStore(store)
+	journal, err := journalFromStore(store)
+	if err != nil {
+		closeBus(bus)
+		return nil, err
+	}
 	allProjections := collectProjections(
 		userProj, membershipProj, tenantProj, botProj, casbinProjection, cfg.AuditLog,
 	)

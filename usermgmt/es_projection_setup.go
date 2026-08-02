@@ -76,11 +76,13 @@ func startProjectionHost(
 
 	store := cpStore
 	if store == nil {
+		//cqrs-lint:ignore(C017) library default: consumers pass a persistent checkpoint store via config for production
 		store = memory.NewMemoryCheckpointStore()
 	}
 
 	allOpts := append([]projectionhost.HostOption{
 		projectionhost.WithSubscriber(bus),
+		//cqrs-lint:ignore(C017) library default DLQ; consumers can override via hostOpts for persistent backends
 		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
 	}, hostOpts...)
 

@@ -11,7 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -212,18 +211,19 @@ func applyBusMiddleware(publishMW []event.PublishMiddleware, handlerMW []event.M
 }
 
 // journalFromStore extracts the projection-replay journal from the store.
-// Falls back to a fresh in-memory store when the store implements neither
-// *storage/memory.MemoryStore nor event.Journal.
-func journalFromStore(store event.Store) event.Journal {
-	if memStore, ok := store.(*memory.MemoryStore); ok {
-		return memStore
-	}
-
+// Returns an error when the store does not implement event.Journal — silently
+// falling back to an empty memory store would cause projections to replay from
+// nothing, masking a real configuration problem.
+func journalFromStore(store event.Store) (event.Journal, error) {
 	if j, ok := store.(event.Journal); ok {
-		return j
+		return j, nil
 	}
 
-	return memory.NewMemoryStore()
+	return nil, errorfamily.NewRejection(
+		"usermgmt.projection.store_not_journal",
+		"event store does not implement event.Journal; "+
+			"projections require a journal-capable store for replay",
+	)
 }
 
 // NewService creates a Service from the given config, applying defaults for nil/zero fields.
