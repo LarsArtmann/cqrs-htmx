@@ -216,13 +216,12 @@ func applyBusMiddleware(publishMW []event.PublishMiddleware, handlerMW []event.M
 // event.Journal — this is intentional for dev/test wrappers that embed
 // event.Store without promoting Journal methods. Production consumers
 // should use a journal-capable store (SQLite/Postgres/Pebble).
-//
-//cqrs-lint:ignore(C018) dev/test fallback: consumers using journal-capable stores (SQLite/Postgres) are unaffected; wrapped stores in tests need the fallback
 func journalFromStore(store event.Store) event.Journal {
 	if j, ok := store.(event.Journal); ok {
 		return j
 	}
 
+	//cqrs-lint:ignore(C018) dev/test fallback: consumers using journal-capable stores (SQLite/Postgres) are unaffected; wrapped stores in tests need the fallback
 	return memory.NewMemoryStore()
 }
 
