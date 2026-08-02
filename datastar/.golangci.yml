@@ -78,6 +78,9 @@ linters:
     - gochecknoglobals
     # exhaustruct flags unkeyed struct literals; the Patch types use internal fields.
     - exhaustruct
+    # Adapter module re-exports SDK functions — wrapcheck flags every SDK
+    # passthrough. The adapter is intentionally thin; wrapping adds noise.
+    - wrapcheck
     # depguard denies encoding/json/v2 — the SDK uses encoding/json internally.
     - depguard
     # templ render chains confuse contextcheck.
@@ -128,6 +131,12 @@ linters:
       - path: _test\.go
         linters:
           - errchkjson
+      - path: _test\.go
+        linters:
+          - nilnil
+      - path: _test\.go
+        linters:
+          - errcheck
     paths:
       - \.gen\.go$
       - _mock\.go$

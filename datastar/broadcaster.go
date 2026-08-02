@@ -87,10 +87,7 @@ func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		b.mu.Lock()
-		// Guard against double-cleanup if Close() already removed the channel.
-		if _, ok := b.subscribers[ch]; ok {
-			delete(b.subscribers, ch)
-		}
+		delete(b.subscribers, ch)
 		b.mu.Unlock()
 	}()
 

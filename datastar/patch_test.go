@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
@@ -117,10 +118,13 @@ func TestMultiplePatchesInOrder(t *testing.T) {
 		ds.ElementsPatch("<div>second</div>"),
 	}
 
-	body := applyPatch(t, patches[0])
+	var sb strings.Builder
+	sb.WriteString(applyPatch(t, patches[0]))
 	for _, p := range patches[1:] {
-		body += applyPatch(t, p)
+		sb.WriteString(applyPatch(t, p))
 	}
+
+	body := sb.String()
 
 	require.Contains(t, body, "first")
 	require.Contains(t, body, "second")

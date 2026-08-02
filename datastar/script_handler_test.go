@@ -19,7 +19,7 @@ func TestScriptHandlerReturnsJS(t *testing.T) {
 
 	resp, err := http.Get(server.URL)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	require.Equal(t, "text/javascript; charset=utf-8", resp.Header.Get("Content-Type"))
@@ -39,7 +39,7 @@ func TestScriptHandlerETag(t *testing.T) {
 
 	resp, err := http.Get(server.URL)
 	require.NoError(t, err)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	etag := resp.Header.Get("ETag")
 	require.Equal(t, `"datastar-1.0.2"`, etag)
@@ -60,7 +60,7 @@ func TestScriptHandlerIfNoneMatchReturns304(t *testing.T) {
 
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusNotModified, resp.StatusCode)
 }
@@ -74,7 +74,7 @@ func TestScriptHandlerCacheControl(t *testing.T) {
 
 	resp, err := http.Get(server.URL)
 	require.NoError(t, err)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	require.Equal(t, "public, max-age=31536000, immutable", resp.Header.Get("Cache-Control"))
 }
@@ -88,7 +88,7 @@ func TestScriptHandlerRejectsPOST(t *testing.T) {
 
 	resp, err := http.Post(server.URL, "text/plain", nil)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 }

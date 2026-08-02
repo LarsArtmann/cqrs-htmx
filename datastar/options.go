@@ -30,19 +30,19 @@ type (
 var (
 	// --- Element patch options ---
 
-	WithSelector     = sdk.WithSelector
-	WithSelectorf    = sdk.WithSelectorf
-	WithSelectorID   = sdk.WithSelectorID
-	WithMode         = sdk.WithMode
-	WithModeOuter    = sdk.WithModeOuter
-	WithModeInner    = sdk.WithModeInner
-	WithModeRemove   = sdk.WithModeRemove
-	WithModePrepend  = sdk.WithModePrepend
-	WithModeAppend   = sdk.WithModeAppend
-	WithModeBefore   = sdk.WithModeBefore
-	WithModeAfter    = sdk.WithModeAfter
-	WithModeReplace  = sdk.WithModeReplace
-	WithNamespace    = sdk.WithNamespace
+	WithSelector      = sdk.WithSelector
+	WithSelectorf     = sdk.WithSelectorf
+	WithSelectorID    = sdk.WithSelectorID
+	WithMode          = sdk.WithMode
+	WithModeOuter     = sdk.WithModeOuter
+	WithModeInner     = sdk.WithModeInner
+	WithModeRemove    = sdk.WithModeRemove
+	WithModePrepend   = sdk.WithModePrepend
+	WithModeAppend    = sdk.WithModeAppend
+	WithModeBefore    = sdk.WithModeBefore
+	WithModeAfter     = sdk.WithModeAfter
+	WithModeReplace   = sdk.WithModeReplace
+	WithNamespace     = sdk.WithNamespace
 	WithNamespaceHTML = sdk.WithNamespaceHTML
 	WithNamespaceSVG  = sdk.WithNamespaceSVG
 

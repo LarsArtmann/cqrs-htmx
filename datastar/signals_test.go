@@ -13,7 +13,7 @@ import (
 func TestReadSignalsFromPOSTBody(t *testing.T) {
 	t.Parallel()
 
-	body := strings.NewReader(`{"datastar":{"title":"Buy milk","id":"todo-1"}}`)
+	body := strings.NewReader(`{"title":"Buy milk","id":"todo-1"}`)
 	req := httptest.NewRequest(http.MethodPost, "/todos", body)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -58,7 +58,7 @@ func TestReadSignalsEmptyBody(t *testing.T) {
 func TestReadSignalsMalformedJSON(t *testing.T) {
 	t.Parallel()
 
-	req := httptest.NewRequest(http.MethodPost, "/todos", strings.NewReader(`{"datastar": invalid}`))
+	req := httptest.NewRequest(http.MethodPost, "/todos", strings.NewReader(`{"invalid`))
 	req.Header.Set("Content-Type", "application/json")
 
 	var s struct {
@@ -72,7 +72,7 @@ func TestReadSignalsMalformedJSON(t *testing.T) {
 func TestReadSignalsNestedStruct(t *testing.T) {
 	t.Parallel()
 
-	body := strings.NewReader(`{"datastar":{"todo":{"title":"Write tests","done":true}}}`)
+	body := strings.NewReader(`{"todo":{"title":"Write tests","done":true}}`)
 	req := httptest.NewRequest(http.MethodPost, "/todos", body)
 	req.Header.Set("Content-Type", "application/json")
 
