@@ -90,8 +90,8 @@ func (b *Broadcaster) broadcastOnErrorHook(mapper func(r *http.Request, err erro
 func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	stream := NewSSEStream(w, r)
 	defer func() { _ = stream.Close() }()
-	//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 
+	//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 

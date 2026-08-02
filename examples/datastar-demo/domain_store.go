@@ -64,6 +64,7 @@ func (p *Projector) Apply(event DomainEvent) {
 		var payload TodoCreatedPayload
 		_ = json.Unmarshal(event.Payload, &payload)
 		createdAt, _ := time.Parse(time.RFC3339, payload.CreatedAt)
+
 		p.mu.Lock()
 		defer p.mu.Unlock()
 		p.todos[payload.ID] = &Todo{
@@ -77,6 +78,7 @@ func (p *Projector) Apply(event DomainEvent) {
 	case "TodoToggled":
 		var payload TodoToggledPayload
 		_ = json.Unmarshal(event.Payload, &payload)
+
 		p.mu.Lock()
 		defer p.mu.Unlock()
 		if todo, ok := p.todos[payload.ID]; ok {
@@ -86,6 +88,7 @@ func (p *Projector) Apply(event DomainEvent) {
 	case "TodoDeleted":
 		var payload TodoDeletedPayload
 		_ = json.Unmarshal(event.Payload, &payload)
+
 		p.mu.Lock()
 		defer p.mu.Unlock()
 		delete(p.todos, payload.ID)
@@ -100,6 +103,7 @@ func (p *Projector) Apply(event DomainEvent) {
 	case "TodoUpdated":
 		var payload TodoUpdatedPayload
 		_ = json.Unmarshal(event.Payload, &payload)
+
 		p.mu.Lock()
 		defer p.mu.Unlock()
 		if todo, ok := p.todos[payload.ID]; ok {

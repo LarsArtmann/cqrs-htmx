@@ -38,12 +38,12 @@ type Todo struct {
 // --- Domain Events ---
 
 type DomainEvent struct {
-	AggregateID string
-	Type        string
-	User        string
-	Payload     jsontext.Value
+	AggregateID string         `json:"aggregate_id"`
+	Type        string         `json:"type"`
+	User        string         `json:"user"`
+	Payload     jsontext.Value `json:"payload"`
 	//cqrs-lint:ignore(C013) in-memory domain event struct, not an event store payload
-	OccurredAt  time.Time
+	OccurredAt  time.Time      `json:"occurred_at"`
 }
 
 type TodoCreatedPayload struct {

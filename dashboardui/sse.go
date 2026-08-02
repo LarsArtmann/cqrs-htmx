@@ -93,8 +93,8 @@ func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() { _ = stream.Close() }()
 
 	// Subscribe BEFORE replay to avoid missing events during the replay window.
-		//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 	// Live events buffer in the channel while replay writes to the stream.
+	//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 	ch := d.broadcaster.Subscribe()
 	defer d.broadcaster.Unsubscribe(ch)
 

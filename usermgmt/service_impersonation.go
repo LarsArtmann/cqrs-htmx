@@ -84,13 +84,13 @@ func (s *Service) BeginImpersonation(
 	session, err := NewImpersonationSession(targetActor, callerActor, reason, s.sessionTTL)
 	if err != nil {
 		return nil, errorfamily.NewTransient(
-			"internal", "create impersonation session",
+			"usermgmt.impersonation.create_session", "create impersonation session",
 		).WithCause(err)
 	}
 
 	if err := s.sessions.Create(ctx, session); err != nil {
 		return nil, errorfamily.NewTransient(
-			"internal", "store impersonation session",
+			"usermgmt.impersonation.store_session", "store impersonation session",
 		).WithCause(err)
 	}
 

@@ -183,9 +183,9 @@ func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 // Each client gets its own channel via Broadcaster.Subscribe().
 // Domain events from any source (user actions, bots) are fanned out to every client.
 func handleEventStream(cqrs *CQRS) http.HandlerFunc {
-		//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 	return func(w http.ResponseWriter, r *http.Request) {
 		ch := cqrs.Broadcast.Subscribe()
+		//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 		defer cqrs.Broadcast.Unsubscribe(ch)
 
 		sse := datastar.NewSSE(w, r)
