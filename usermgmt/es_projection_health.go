@@ -121,11 +121,7 @@ func createProjectionHost(
 	cpStore event.CheckpointStore,
 	projections []projection.Projection,
 ) (*projectionhost.Host, error) {
-	journal, err := journalFromStore(store)
-	if err != nil {
-		return nil, err
-	}
-	return startProjectionHost(ctx, journal, bus, cpStore, projections)
+	return startProjectionHost(ctx, journalFromStore(store), bus, cpStore, projections)
 }
 
 // adaptWorkerStates converts projectionhost.WorkerState slices to the
