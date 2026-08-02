@@ -17,9 +17,9 @@ import (
 type UserReadModel struct {
 	readModelCore[*UserReadModel]
 	//cqrs-lint:ignore(P011) bounded by finite user count; in-memory dev/test default
-	users            map[id.StreamID]*User
+	users map[id.StreamID]*User
 	//cqrs-lint:ignore(P011) bounded by finite user count; in-memory dev/test default
-	emails           map[string]id.StreamID
+	emails map[string]id.StreamID
 	//cqrs-lint:ignore(P011) bounded by finite user count; in-memory dev/test default
 	externalAccounts map[externalAccountKey]id.StreamID
 }

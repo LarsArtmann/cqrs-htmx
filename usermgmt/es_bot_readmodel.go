@@ -26,7 +26,7 @@ type Bot struct {
 type BotReadModel struct {
 	readModelCore[*BotReadModel]
 	//cqrs-lint:ignore(P011) bounded by finite bot count; in-memory dev/test default
-	bots        map[id.StreamID]*Bot
+	bots map[id.StreamID]*Bot
 	//cqrs-lint:ignore(P011) bounded by finite bot count; in-memory dev/test default
 	byTokenHash map[string]*Bot
 }
