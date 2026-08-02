@@ -257,11 +257,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		return nil, errorfamily.NewTransient("usermgmt.authz.create_casbin_projection", "create casbin projection").WithCause(err)
 	}
 
-	journal, err := journalFromStore(store)
-	if err != nil {
-		closeBus(bus)
-		return nil, err
-	}
+	journal := journalFromStore(store)
 	allProjections := collectProjections(
 		userProj, membershipProj, tenantProj, botProj, casbinProjection, cfg.AuditLog,
 	)
