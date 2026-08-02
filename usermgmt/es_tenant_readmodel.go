@@ -19,6 +19,8 @@ type Tenant struct {
 }
 
 // TenantReadModel is the projection-side store for tenants.
+t//cqrs-lint:ignore(C035) protected by embedded readModelCore.mu (sync.RWMutex)
+	//cqrs-lint:ignore(P011) bounded by finite tenant count; in-memory dev/test default
 type TenantReadModel struct {
 	readModelCore[*TenantReadModel]
 	tenants map[id.StreamID]*Tenant

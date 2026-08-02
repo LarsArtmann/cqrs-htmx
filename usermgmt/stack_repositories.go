@@ -26,21 +26,25 @@ type aggregateRepositories struct {
 func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggregateRepositories, error) {
 	user, err := stack.Repository(bundle, UserDecider(), repositoryOptions[UserState](snap)...)
 	if err != nil {
+		//cqrs-lint:ignore(C023) best-effort cleanup in error path
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_user", "create user repository")
 	}
 	membership, err := stack.Repository(bundle, MembershipDecider(), repositoryOptions[MembershipState](snap)...)
 	if err != nil {
+		//cqrs-lint:ignore(C023) best-effort cleanup in error path
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_membership", "create membership repository")
 	}
 	tenant, err := stack.Repository(bundle, TenantDecider(), repositoryOptions[TenantState](snap)...)
 	if err != nil {
+		//cqrs-lint:ignore(C023) best-effort cleanup in error path
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_tenant", "create tenant repository")
 	}
 	bot, err := stack.Repository(bundle, BotDecider(), repositoryOptions[BotState](snap)...)
 	if err != nil {
+		//cqrs-lint:ignore(C023) best-effort cleanup in error path
 		_ = bundle.Close()
 		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_bot", "create bot repository")
 	}
@@ -59,6 +63,7 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 // than receiving a stack Bundle. snap optionally enables aggregate
 // snapshotting (see SnapshotConfig); a zero-value snap leaves repositories in
 // full-replay mode.
+t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at snapshot.go:90; linter cannot trace through the helper
 func buildDeciderRepositories(
 	store event.Store, bus event.Publisher, closeOnErr func(), snap SnapshotConfig,
 ) (*aggregateRepositories, error) {
@@ -70,6 +75,7 @@ func buildDeciderRepositories(
 		repositoryOptions[UserState](
 			snap,
 		)...)
+t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at snapshot.go:90; linter cannot trace through the helper
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("usermgmt.repository.create_user_decider", "create decider repository").WithCause(err)
@@ -79,6 +85,7 @@ func buildDeciderRepositories(
 		store,
 		bus,
 		MembershipDecider(),
+t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at snapshot.go:90; linter cannot trace through the helper
 		repositoryOptions[MembershipState](snap)...)
 	if err != nil {
 		closeOnErr()
@@ -88,6 +95,7 @@ func buildDeciderRepositories(
 	tenant, err := decider.NewRepository(
 		store,
 		bus,
+t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at snapshot.go:90; linter cannot trace through the helper
 		TenantDecider(),
 		repositoryOptions[TenantState](snap)...)
 	if err != nil {

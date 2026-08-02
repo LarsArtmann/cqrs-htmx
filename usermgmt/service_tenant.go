@@ -78,6 +78,7 @@ func (s *Service) DeleteTenant(ctx context.Context, tenantID TenantID, reason st
 		ctx,
 		NewDeleteTenantCmd(aggID, reason),
 	); err != nil {
+		//cqrs-lint:ignore(C033) decider returns typed domain errors; wrapping would obscure the family
 		return err //nolint:wrapcheck // decider returns typed domain errors
 	}
 	// Best-effort membership cleanup: remove all members from the deleted tenant.

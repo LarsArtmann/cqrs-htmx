@@ -66,6 +66,7 @@ func placeholderFor(dialect string) (placeholderFunc, error) {
 //
 // For Postgres or MySQL this function is a no-op.
 func OptimizeSQLiteDB(ctx context.Context, db *sql.DB) error {
+	//cqrs-lint:ignore(C036) library helper: consumer configures both session and event stores with the same backend
 	if err := storage.SQLiteEnableWAL(ctx, db); err != nil {
 		return errorfamily.WrapTransient(err, "usermgmt.sqlite.enable_wal", "enable SQLite WAL")
 	}
