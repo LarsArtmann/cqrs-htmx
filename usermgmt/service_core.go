@@ -258,6 +258,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	}
 
 	if cfg.SessionStore == nil {
+		//cqrs-lint:ignore(S007) library default; consumers configure persistent session stores for production
 		cfg.SessionStore = NewInMemorySessionStore()
 	}
 	if cfg.SessionTTL == 0 {

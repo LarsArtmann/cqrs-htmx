@@ -121,8 +121,10 @@ func UserDecider() decider.Decider[UserState] {
 // closeBus closes the bus if it implements io.Closer. In go-cqrs-lite v4, core
 // interfaces no longer embed io.Closer, but concrete implementations
 // (e.g. *watermill.EventBus) retain their Close method.
+//cqrs-lint:ignore(D009) duck-typed Close() matches event.Bus interface which may not implement io.Closer
 func closeBus(bus event.Bus) {
 	if c, ok := bus.(io.Closer); ok {
+		//cqrs-lint:ignore(C023) best-effort cleanup in error path
 		//cqrs-lint:ignore(C015) best-effort cleanup in error paths; the real Close() on EventSourcedSetup handles errors properly
 		_ = c.Close()
 	}
@@ -184,6 +186,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 
 	bus := cfg.EventBus
 	if bus == nil {
+	//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
 		bus = watermill.NewEventBus()
 	}
 

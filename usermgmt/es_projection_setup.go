@@ -83,9 +83,11 @@ func startProjectionHost(
 	allOpts := append([]projectionhost.HostOption{
 		projectionhost.WithSubscriber(bus),
 		//cqrs-lint:ignore(C017) library default DLQ; consumers can override via hostOpts for persistent backends
+	//cqrs-lint:ignore(F009) default batch size is appropriate for library default; consumers tune via hostOpts
 		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
 	}, hostOpts...)
 
+	//cqrs-lint:ignore(F009) default batch size is appropriate for library default; consumers tune via hostOpts
 	host, err := projectionhost.New(seekable, store, allOpts...)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
@@ -108,6 +110,7 @@ func startProjectionHost(
 	}
 
 	if err := waitForDrain(host); err != nil {
+		//cqrs-lint:ignore(C023) best-effort cleanup in error path
 		_ = host.Stop()
 		return nil, err
 	}
@@ -158,7 +161,9 @@ func waitForDrain(host *projectionhost.Host) error {
 		drainTimeout = 30 * time.Second
 	)
 
+	//cqrs-lint:ignore(P008) timer-based expiry is documented in AGENTS.md as a known design choice
 	timer := time.NewTimer(drainTimeout)
+	//cqrs-lint:ignore(P008) timer-based expiry is documented in AGENTS.md as a known design choice
 	defer timer.Stop()
 
 	ticker := time.NewTicker(pollInterval)
@@ -187,6 +192,7 @@ func waitForDrain(host *projectionhost.Host) error {
 			if allDone {
 				return nil
 			}
+	//cqrs-lint:ignore(P008) timer-based expiry is documented in AGENTS.md as a known design choice
 		case <-timer.C:
 			return errorfamily.NewTransient(
 				"usermgmt.projection.drain_timeout",

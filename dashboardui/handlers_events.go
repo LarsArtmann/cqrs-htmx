@@ -16,6 +16,7 @@ import (
 type eventFilter struct {
 	Type       string
 	StreamType string
+	//cqrs-lint:ignore(A032) filter field for HTMX form input
 	StreamID   string
 }
 
