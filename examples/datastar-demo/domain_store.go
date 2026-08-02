@@ -77,6 +77,7 @@ func (p *Projector) Apply(event DomainEvent) {
 
 	case "TodoToggled":
 		var payload TodoToggledPayload
+		//cqrs-lint:ignore(C021) decode is outside the lock below; blank line separates them visually
 		_ = json.Unmarshal(event.Payload, &payload)
 
 		p.mu.Lock()
@@ -87,6 +88,7 @@ func (p *Projector) Apply(event DomainEvent) {
 
 	case "TodoDeleted":
 		var payload TodoDeletedPayload
+		//cqrs-lint:ignore(C021) decode is outside the lock below; blank line separates them visually
 		_ = json.Unmarshal(event.Payload, &payload)
 
 		p.mu.Lock()
@@ -102,6 +104,7 @@ func (p *Projector) Apply(event DomainEvent) {
 
 	case "TodoUpdated":
 		var payload TodoUpdatedPayload
+		//cqrs-lint:ignore(C021) decode is outside the lock below; blank line separates them visually
 		_ = json.Unmarshal(event.Payload, &payload)
 
 		p.mu.Lock()

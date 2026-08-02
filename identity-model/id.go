@@ -61,7 +61,6 @@ func ParseUserID(s string) (UserID, error) {
 func MustParseUserID(s string) UserID {
 	uid, err := id.ParseUserID(s)
 	if err != nil {
-		//cqrs-lint:ignore(C009) Must* function: panics on invalid input by Go convention
 		panic(
 			fmt.Sprintf("identitymodel.MustParseUserID(%q): %v", s, err),
 		)

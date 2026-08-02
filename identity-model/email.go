@@ -40,7 +40,6 @@ func ParseEmail(raw string) (Email, error) {
 func MustParseEmail(raw string) Email {
 	email, err := ParseEmail(raw)
 	if err != nil {
-		//cqrs-lint:ignore(C009) MustParseEmail: Must* function panics on invalid input by Go convention
 		panic(err)
 	}
 	return email
