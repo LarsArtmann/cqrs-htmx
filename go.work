@@ -4,6 +4,7 @@ use (
 	.
 	./adminui
 	./dashboardui
+	./datastar
 	./e2e/server
 	./examples/admin-demo
 	./examples/basic
