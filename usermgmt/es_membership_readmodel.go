@@ -19,7 +19,7 @@ type MembershipReadModel struct {
 	//cqrs-lint:ignore(P011) bounded by finite membership count; in-memory dev/test default
 	memberships map[id.StreamID]*Membership
 	//cqrs-lint:ignore(P011) bounded by finite membership count; in-memory dev/test default
-	byActor     map[string][]id.StreamID
+	byActor map[string][]id.StreamID
 }
 
 // NewMembershipReadModel creates an empty MembershipReadModel.
