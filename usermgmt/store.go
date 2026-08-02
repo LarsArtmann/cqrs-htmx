@@ -107,13 +107,13 @@ type SessionStore interface {
 // Warning: Not suitable for production. Sessions are lost on process restart.
 // Expired sessions accumulate unless EvictExpired is called periodically.
 // Use a persistent store (Redis, SQL, etc.) in production.
-//cqrs-lint:ignore(S007) library default; consumers configure persistent session stores for production
 type InMemorySessionStore struct {
 	mu       sync.RWMutex
 	sessions map[string]*Session
 }
 
 // NewInMemorySessionStore creates an empty InMemorySessionStore.
+//cqrs-lint:ignore(S007) library default; consumers configure persistent session stores for production
 func NewInMemorySessionStore() *InMemorySessionStore {
 	return &InMemorySessionStore{
 		sessions: make(map[string]*Session),

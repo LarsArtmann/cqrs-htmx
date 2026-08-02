@@ -86,7 +86,7 @@ func startProjectionHost(
 		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 0),
 	}, hostOpts...)
 
-	//cqrs-lint:ignore(F009) default batch size is appropriate for library default; consumers tune via hostOpts
+	//cqrs-lint:ignore(P008) default batch size is appropriate for library default; consumers tune via hostOpts
 	host, err := projectionhost.New(seekable, store, allOpts...)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
@@ -160,7 +160,7 @@ func waitForDrain(host *projectionhost.Host) error {
 		drainTimeout = 30 * time.Second
 	)
 
-	//cqrs-lint:ignore(P008) timer-based expiry is documented in AGENTS.md as a known design choice
+	//cqrs-lint:ignore(F009) timer-based expiry is documented in AGENTS.md as a known design choice
 	timer := time.NewTimer(drainTimeout)
 	defer timer.Stop()
 
