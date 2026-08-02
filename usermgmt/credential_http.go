@@ -20,7 +20,7 @@ type credentialSummary struct {
 }
 
 // credentialListResponse is the paginated response for credential listing.
-\//cqrs-lint:ignore(S006) credential metadata, not financial data; encryption applied at event-store layer
+//cqrs-lint:ignore(S006) credential metadata, not financial data; encryption applied at event-store layer
 type credentialListResponse struct {
 	Credentials []credentialSummary `json:"credentials"`
 	TotalCount  int                 `json:"total_count"`

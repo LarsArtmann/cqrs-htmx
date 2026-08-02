@@ -22,7 +22,7 @@ type Bot struct {
 // BotReadModel is the projection-side store for bots.
 // It indexes bots by aggregate ID for lookup by BotID, and provides
 // FindByTokenHash for API token authentication middleware.
-t//cqrs-lint:ignore(C035) protected by embedded readModelCore.mu (sync.RWMutex)
+//cqrs-lint:ignore(C035) protected by embedded readModelCore.mu (sync.RWMutex)
 	//cqrs-lint:ignore(P011) bounded by finite bot count; in-memory dev/test default
 type BotReadModel struct {
 	readModelCore[*BotReadModel]

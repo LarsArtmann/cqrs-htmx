@@ -13,7 +13,7 @@ import (
 )
 
 // UserReadModel is the projection-side store for users.
-t//cqrs-lint:ignore(C035) protected by embedded readModelCore.mu (sync.RWMutex)
+//cqrs-lint:ignore(C035) protected by embedded readModelCore.mu (sync.RWMutex)
 	//cqrs-lint:ignore(P011) bounded by finite user count; in-memory dev/test default
 type UserReadModel struct {
 	readModelCore[*UserReadModel]

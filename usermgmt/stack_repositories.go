@@ -63,7 +63,6 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 // than receiving a stack Bundle. snap optionally enables aggregate
 // snapshotting (see SnapshotConfig); a zero-value snap leaves repositories in
 // full-replay mode.
-t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at snapshot.go:90; linter cannot trace through the helper
 func buildDeciderRepositories(
 	store event.Store, bus event.Publisher, closeOnErr func(), snap SnapshotConfig,
 ) (*aggregateRepositories, error) {
@@ -75,7 +74,6 @@ func buildDeciderRepositories(
 		repositoryOptions[UserState](
 			snap,
 		)...)
-t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at snapshot.go:90; linter cannot trace through the helper
 	if err != nil {
 		closeOnErr()
 		return nil, errorfamily.NewTransient("usermgmt.repository.create_user_decider", "create decider repository").WithCause(err)
@@ -85,7 +83,6 @@ t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at sna
 		store,
 		bus,
 		MembershipDecider(),
-t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at snapshot.go:90; linter cannot trace through the helper
 		repositoryOptions[MembershipState](snap)...)
 	if err != nil {
 		closeOnErr()
@@ -95,7 +92,6 @@ t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at sna
 	tenant, err := decider.NewRepository(
 		store,
 		bus,
-t//cqrs-lint:ignore(B025) WithStateCache is wired via repositoryOptions() at snapshot.go:90; linter cannot trace through the helper
 		TenantDecider(),
 		repositoryOptions[TenantState](snap)...)
 	if err != nil {
