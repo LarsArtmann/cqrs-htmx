@@ -48,6 +48,8 @@ Research and a proposal (`docs/research/2026-07-25_*`, `docs/proposals/2026-07-2
 
 **Status:** under consideration. No code written. The strategic angle (per the landscape research): event sourcing _structurally prevents_ the data-discovery problems DataHub/OpenMetadata/ODDS exist to solve, so time-travel + the catalog are a stronger positioning than a bespoke mesh product. Not yet committed to a release.
 
+**Related research:** [Iroh (n0-computer) P2P/QUIC networking fit analysis](docs/research/2026-08-02_iroh-p2p-networking-fit-analysis.md) — evaluated for broker-less multi-instance fanout (`iroh-gossip`), distributed snapshot store (`iroh-blobs`), and local-first read projections (`iroh-docs`). Conclusion: not a core-dependency fit (Rust-first, no official Go bindings for the protocol layer; write-path conflict with server-authoritative ES). One low-risk opt-in idea (gossip-backed `event.Bus`) kept as a raw idea pending official Go protocol bindings or a consumer request.
+
 ---
 
 ## v5 Vision: usermgmt Decomposition (Deferred)
