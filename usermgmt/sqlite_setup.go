@@ -108,19 +108,35 @@ func createSQLReadModels(bundle *stack.Bundle) (
 	}
 	userRm, err := NewSQLiteUserReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_user_sql", "create sql user read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.read_model.create_user_sql",
+			"create sql user read model",
+		)
 	}
 	memRm, err := NewSQLiteMembershipReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_membership_sql", "create sql membership read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.read_model.create_membership_sql",
+			"create sql membership read model",
+		)
 	}
 	tenRm, err := NewSQLiteTenantReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_tenant_sql", "create sql tenant read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.read_model.create_tenant_sql",
+			"create sql tenant read model",
+		)
 	}
 	botRm, err := NewSQLiteBotReadModel(db)
 	if err != nil {
-		return nil, nil, nil, nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_bot_sql", "create sql bot read model")
+		return nil, nil, nil, nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.read_model.create_bot_sql",
+			"create sql bot read model",
+		)
 	}
 	return userRm, memRm, tenRm, botRm, nil
 }
@@ -132,7 +148,11 @@ func createAuthzAndCasbin() (*CasbinProjection, error) {
 	}
 	casbinProj, err := NewCasbinProjection(authz)
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "usermgmt.authz.create_casbin_projection", "create casbin projection")
+		return nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.authz.create_casbin_projection",
+			"create casbin projection",
+		)
 	}
 	return casbinProj, nil
 }

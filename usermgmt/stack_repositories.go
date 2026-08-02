@@ -34,7 +34,11 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 	if err != nil {
 		//cqrs-lint:ignore(C023) best-effort cleanup in error path
 		_ = bundle.Close()
-		return nil, errorfamily.WrapTransient(err, "usermgmt.repository.create_membership", "create membership repository")
+		return nil, errorfamily.WrapTransient(
+			err,
+			"usermgmt.repository.create_membership",
+			"create membership repository",
+		)
 	}
 	tenant, err := stack.Repository(bundle, TenantDecider(), repositoryOptions[TenantState](snap)...)
 	if err != nil {
@@ -76,7 +80,8 @@ func buildDeciderRepositories(
 		)...)
 	if err != nil {
 		closeOnErr()
-		return nil, errorfamily.NewTransient("usermgmt.repository.create_user_decider", "create decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.repository.create_user_decider", "create decider repository").
+			WithCause(err)
 	}
 	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 	membership, err := decider.NewRepository(
@@ -86,7 +91,8 @@ func buildDeciderRepositories(
 		repositoryOptions[MembershipState](snap)...)
 	if err != nil {
 		closeOnErr()
-		return nil, errorfamily.NewTransient("usermgmt.repository.create_membership_decider", "create membership decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.repository.create_membership_decider", "create membership decider repository").
+			WithCause(err)
 	}
 	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 	tenant, err := decider.NewRepository(
@@ -96,7 +102,8 @@ func buildDeciderRepositories(
 		repositoryOptions[TenantState](snap)...)
 	if err != nil {
 		closeOnErr()
-		return nil, errorfamily.NewTransient("usermgmt.repository.create_tenant_decider", "create tenant decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.repository.create_tenant_decider", "create tenant decider repository").
+			WithCause(err)
 	}
 	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
 	bot, err := decider.NewRepository(
@@ -106,7 +113,8 @@ func buildDeciderRepositories(
 		repositoryOptions[BotState](snap)...)
 	if err != nil {
 		closeOnErr()
-		return nil, errorfamily.NewTransient("usermgmt.repository.create_bot_decider", "create bot decider repository").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.repository.create_bot_decider", "create bot decider repository").
+			WithCause(err)
 	}
 	return &aggregateRepositories{
 		User:       user,

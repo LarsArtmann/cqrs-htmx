@@ -204,7 +204,7 @@ type BotView struct {
 	OwnerID   string `json:"owner_id"   view:"owner_id"`
 	TokenHash string `json:"token_hash" view:"token_hash"`
 	Deleted   bool   `json:"deleted"    view:"deleted"`
-	Data      string `json:"data"      view:"data"`
+	Data      string `json:"data"       view:"data"`
 }
 
 type SQLBotReadModel struct {

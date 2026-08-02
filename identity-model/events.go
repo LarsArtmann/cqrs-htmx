@@ -23,7 +23,7 @@ type RolesUpdatedPayload struct {
 	Domain        string `json:"domain"`
 }
 
-//cqrs-lint:ignore(S002) domain types module: encryption is an infrastructure concern applied by consumers via encryption.EncryptMiddleware
+// cqrs-lint:ignore(S002) domain types module: encryption is an infrastructure concern applied by consumers via encryption.EncryptMiddleware
 type EmailChangedPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	Email         string `json:"email"`
@@ -44,7 +44,7 @@ type CredentialAddedPayload struct {
 	CredentialCore
 }
 
-//cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
+// cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
 type CredentialRemovedPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	ID            []byte `json:"id"`
@@ -55,7 +55,7 @@ type EmailVerifiedPayload struct {
 	Email         string `json:"email"`
 }
 
-//cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
+// cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
 type TOTPEnabledPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	Secret        []byte `json:"secret"`
@@ -124,7 +124,7 @@ type TenantDeletedPayload struct {
 
 // --- Bot event payloads ---
 
-//cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
+// cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
 type BotRegisteredPayload struct {
 	SchemaVersion int      `json:"schema_version"`
 	Name          string   `json:"name"`
