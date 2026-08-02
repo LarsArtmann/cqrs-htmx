@@ -141,6 +141,7 @@ func (c *CQRS) appendDomainEvent(ctx context.Context, aggID, eventType string, p
 }
 
 func (c *CQRS) registerCommandHandlers() {
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(c.Commands, "CreateTodo", func(ctx context.Context, cmd *CreateTodoCmd) error {
 		todoID := cmd.StreamID().String()
 		payload, _ := json.Marshal(TodoCreatedPayload{
@@ -153,6 +154,7 @@ func (c *CQRS) registerCommandHandlers() {
 		return nil
 	})
 
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(c.Commands, "ToggleTodo", func(ctx context.Context, cmd *ToggleTodoCmd) error {
 		todoID := cmd.StreamID().String()
 		payload, _ := json.Marshal(TodoToggledPayload{ID: todoID})
@@ -161,6 +163,7 @@ func (c *CQRS) registerCommandHandlers() {
 		return nil
 	})
 
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(c.Commands, "DeleteTodo", func(ctx context.Context, cmd *DeleteTodoCmd) error {
 		todoID := cmd.StreamID().String()
 		payload, _ := json.Marshal(TodoDeletedPayload{ID: todoID})
@@ -169,6 +172,7 @@ func (c *CQRS) registerCommandHandlers() {
 		return nil
 	})
 
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(c.Commands, "UpdateTodo", func(ctx context.Context, cmd *UpdateTodoCmd) error {
 		todoID := cmd.StreamID().String()
 		payload, _ := json.Marshal(TodoUpdatedPayload{ID: todoID, Title: cmd.Title})
@@ -179,10 +183,12 @@ func (c *CQRS) registerCommandHandlers() {
 }
 
 func (c *CQRS) registerQueryHandlers() {
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = query.RegisterTyped(c.Queries, "ListTodos", func(ctx context.Context, q *ListTodosQry) ([]Todo, error) {
 		return c.Read.List(), nil
 	})
 
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = query.RegisterTyped(c.Queries, "GetStats", func(_ context.Context, _ *GetStatsQry) (Stats, error) {
 		total, active, completed := c.Read.Stats()
 		return Stats{Total: total, Active: active, Completed: completed}, nil

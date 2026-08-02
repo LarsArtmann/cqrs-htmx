@@ -79,6 +79,7 @@ func newHandler() http.Handler {
 	cmdDisp.Use(middleware.CommandCircuitBreaker(middleware.DefaultCircuitBreakerConfig()))
 	cmdDisp.Use(middleware.CommandLogging(slog.Default()))
 
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(cmdDisp, "Ping",
 		func(_ context.Context, c *pingCmd) error {
 			return service.ping(c.Msg)

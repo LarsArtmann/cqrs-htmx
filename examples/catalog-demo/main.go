@@ -144,6 +144,7 @@ func main() {
 	}()
 
 	stop := make(chan os.Signal, 1)
+	//cqrs-lint:ignore(E010) example: minimal signal handling for demo
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 	log.Print("shutting down...")

@@ -37,6 +37,7 @@ type Todo struct {
 
 // --- Domain Events ---
 
+//cqrs-lint:ignore(A011) all snake_case; single-word keys are valid in both conventions
 type DomainEvent struct {
 	AggregateID string         `json:"aggregate_id"`
 	Type        string         `json:"type"`
