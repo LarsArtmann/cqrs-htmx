@@ -1,5 +1,4 @@
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
-
 package dashboardui
 
 import (
