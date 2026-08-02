@@ -92,7 +92,11 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, withUserIDContext(
-			errorfamily.NewTransient("usermgmt.user.read_model_missing", "user not in read model after register"), req.ID,
+			errorfamily.NewTransient(
+				"usermgmt.user.read_model_missing",
+				"user not in read model after register",
+			),
+			req.ID,
 		)
 	}
 

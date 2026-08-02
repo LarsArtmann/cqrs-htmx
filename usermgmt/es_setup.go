@@ -216,7 +216,11 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		sqlUserRM, err := NewSQLiteUserReadModel(cfg.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
-			return nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_user_sql", "create SQL user read model")
+			return nil, errorfamily.WrapTransient(
+				err,
+				"usermgmt.read_model.create_user_sql",
+				"create SQL user read model",
+			)
 		}
 		readModel = sqlUserRM.UserReadModel
 		userProj = sqlUserRM
@@ -224,7 +228,11 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		sqlMembershipRM, err := NewSQLiteMembershipReadModel(cfg.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
-			return nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_membership_sql", "create SQL membership read model")
+			return nil, errorfamily.WrapTransient(
+				err,
+				"usermgmt.read_model.create_membership_sql",
+				"create SQL membership read model",
+			)
 		}
 		membershipReadModel = sqlMembershipRM.MembershipReadModel
 		membershipProj = sqlMembershipRM
@@ -232,7 +240,11 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		sqlTenantRM, err := NewSQLiteTenantReadModel(cfg.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
-			return nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_tenant_sql", "create SQL tenant read model")
+			return nil, errorfamily.WrapTransient(
+				err,
+				"usermgmt.read_model.create_tenant_sql",
+				"create SQL tenant read model",
+			)
 		}
 		tenantReadModel = sqlTenantRM.TenantReadModel
 		tenantProj = sqlTenantRM
@@ -240,7 +252,11 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		sqlBotRM, err := NewSQLiteBotReadModel(cfg.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
-			return nil, errorfamily.WrapTransient(err, "usermgmt.read_model.create_bot_sql", "create SQL bot read model")
+			return nil, errorfamily.WrapTransient(
+				err,
+				"usermgmt.read_model.create_bot_sql",
+				"create SQL bot read model",
+			)
 		}
 		botReadModel = sqlBotRM.BotReadModel
 		botProj = sqlBotRM
@@ -254,7 +270,8 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	casbinProjection, err := NewCasbinProjection(authz)
 	if err != nil {
 		closeBus(bus)
-		return nil, errorfamily.NewTransient("usermgmt.authz.create_casbin_projection", "create casbin projection").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.authz.create_casbin_projection", "create casbin projection").
+			WithCause(err)
 	}
 
 	journal := journalFromStore(store)

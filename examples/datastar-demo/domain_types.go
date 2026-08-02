@@ -37,14 +37,14 @@ type Todo struct {
 
 // --- Domain Events ---
 
-//cqrs-lint:ignore(A011) all snake_case; single-word keys are valid in both conventions
+// cqrs-lint:ignore(A011) all snake_case; single-word keys are valid in both conventions
 type DomainEvent struct {
 	AggregateID string         `json:"aggregate_id"`
 	Type        string         `json:"type"`
 	User        string         `json:"user"`
 	Payload     jsontext.Value `json:"payload"`
 	//cqrs-lint:ignore(C013) in-memory domain event struct, not an event store payload
-	OccurredAt  time.Time      `json:"occurred_at"`
+	OccurredAt time.Time `json:"occurred_at"`
 }
 
 type TodoCreatedPayload struct {

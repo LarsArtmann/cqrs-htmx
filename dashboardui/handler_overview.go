@@ -65,15 +65,15 @@ type projectionStat struct {
 	LastError  string
 }
 
-//cqrs-lint:ignore(A011) all snake_case; single-word keys are valid in both conventions
+// cqrs-lint:ignore(A011) all snake_case; single-word keys are valid in both conventions
 type recentEvent struct {
-	Time     string `json:"time"`
-	Type     string `json:"type"`
+	Time string `json:"time"`
+	Type string `json:"type"`
 	//cqrs-lint:ignore(A032) display-only DTO field for HTMX rendering
 	StreamID string `json:"stream_id"`
 	Version  string `json:"version"`
 	//cqrs-lint:ignore(A032) display-only DTO field for HTMX rendering
-	EventID  string `json:"event_id"`
+	EventID string `json:"event_id"`
 }
 
 //nolint:cyclop,gocognit // multi-source aggregation

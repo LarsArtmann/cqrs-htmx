@@ -151,7 +151,11 @@ func (s *Service) matchOrCreateUser(
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, false, withUserIDContext(
-			errorfamily.NewTransient("usermgmt.oauth2.read_model_missing", "oauth2 user not in read model after register"), userID,
+			errorfamily.NewTransient(
+				"usermgmt.oauth2.read_model_missing",
+				"oauth2 user not in read model after register",
+			),
+			userID,
 		)
 	}
 

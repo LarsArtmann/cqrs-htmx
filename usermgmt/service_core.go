@@ -198,13 +198,15 @@ func wrapEventStore(wrapper func(event.Store) (event.Store, error), store event.
 func applyBusMiddleware(publishMW []event.PublishMiddleware, handlerMW []event.Middleware, bus event.Bus) error {
 	if len(publishMW) > 0 {
 		if err := bus.UsePublish(publishMW...); err != nil {
-			return errorfamily.NewTransient("usermgmt.middleware.apply_publish", "apply publish middleware").WithCause(err)
+			return errorfamily.NewTransient("usermgmt.middleware.apply_publish", "apply publish middleware").
+				WithCause(err)
 		}
 	}
 
 	if len(handlerMW) > 0 {
 		if err := bus.Use(handlerMW...); err != nil {
-			return errorfamily.NewTransient("usermgmt.middleware.apply_handler", "apply handler middleware").WithCause(err)
+			return errorfamily.NewTransient("usermgmt.middleware.apply_handler", "apply handler middleware").
+				WithCause(err)
 		}
 	}
 
@@ -252,7 +254,8 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		authz = cfg.Authz
 		casbinProjection, err = NewCasbinProjection(authz)
 		if err != nil {
-			return nil, errorfamily.NewTransient("usermgmt.authz.create_casbin_projection", "create casbin projection").WithCause(err)
+			return nil, errorfamily.NewTransient("usermgmt.authz.create_casbin_projection", "create casbin projection").
+				WithCause(err)
 		}
 	}
 
@@ -274,10 +277,12 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		return nil, errorfamily.NewTransient("usermgmt.command.register", "register commands").WithCause(err)
 	}
 	if err := RegisterMembershipCommands(dispatcher, setup.MembershipRepository); err != nil {
-		return nil, errorfamily.NewTransient("usermgmt.command.register_membership", "register membership commands").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.command.register_membership", "register membership commands").
+			WithCause(err)
 	}
 	if err := RegisterTenantCommands(dispatcher, setup.TenantRepository); err != nil {
-		return nil, errorfamily.NewTransient("usermgmt.command.register_tenant", "register tenant commands").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.command.register_tenant", "register tenant commands").
+			WithCause(err)
 	}
 	if err := RegisterBotCommands(dispatcher, setup.BotRepository); err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.command.register_bot", "register bot commands").WithCause(err)

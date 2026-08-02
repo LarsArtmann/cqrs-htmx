@@ -121,13 +121,15 @@ func (s *Service) SendVerificationEmail(ctx context.Context, userID UserID) (tok
 	token, err = s.verificationTokens.Save(userID, user.Email, ttl)
 	if err != nil {
 		s.logAuth("verification_email_failed", userID, "reason", "token_generation_error")
-		return "", errorfamily.NewTransient("usermgmt.email_verification.generate_token", "generate verification token").WithCause(err)
+		return "", errorfamily.NewTransient("usermgmt.email_verification.generate_token", "generate verification token").
+			WithCause(err)
 	}
 
 	if s.sendVerificationEmail != nil {
 		if err := s.sendVerificationEmail(ctx, user.Email, token); err != nil {
 			s.logAuth("verification_email_failed", userID, "reason", "send_callback_error")
-			return "", errorfamily.NewTransient("usermgmt.email_verification.send", "send verification email").WithCause(err)
+			return "", errorfamily.NewTransient("usermgmt.email_verification.send", "send verification email").
+				WithCause(err)
 		}
 	}
 	s.logAuth("verification_email_sent", userID, "email", user.Email)

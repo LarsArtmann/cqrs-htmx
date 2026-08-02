@@ -9,7 +9,7 @@ import (
 
 // --- User commands ---
 
-//cqrs-lint:ignore(B004) project does not use cqrs-gen; manual constructors are intentional
+// cqrs-lint:ignore(B004) project does not use cqrs-gen; manual constructors are intentional
 type RegisterUserCmd struct {
 	*command.BasicCommand
 	email       string
@@ -130,7 +130,7 @@ func NewDisableTOTPCmd(aggID id.StreamID) *DisableTOTPCmd {
 	}
 }
 
-//cqrs-lint:ignore(B004) project does not use cqrs-gen
+// cqrs-lint:ignore(B004) project does not use cqrs-gen
 type LinkExternalAccountCmd struct {
 	*command.BasicCommand
 	provider    string
@@ -156,7 +156,7 @@ func (c *LinkExternalAccountCmd) Subject() string     { return c.subject }
 func (c *LinkExternalAccountCmd) Email() string       { return c.email }
 func (c *LinkExternalAccountCmd) DisplayName() string { return c.displayName }
 
-//cqrs-lint:ignore(B004) project does not use cqrs-gen
+// cqrs-lint:ignore(B004) project does not use cqrs-gen
 type UnlinkExternalAccountCmd struct {
 	*command.BasicCommand
 	provider string
@@ -183,7 +183,7 @@ func DeriveMembershipID(actorID ActorID, tenantID TenantID) id.StreamID {
 	return id.DeriveStreamID("membership", actorID.PrefixedString(), tenantID.Get())
 }
 
-//cqrs-lint:ignore(B004) project does not use cqrs-gen
+// cqrs-lint:ignore(B004) project does not use cqrs-gen
 type AddMemberCmd struct {
 	*command.BasicCommand
 	actorID  ActorID
@@ -232,7 +232,7 @@ func NewRemoveMemberCmd(actorID ActorID, tenantID TenantID) *RemoveMemberCmd {
 
 // --- Tenant commands ---
 
-//cqrs-lint:ignore(B004) project does not use cqrs-gen
+// cqrs-lint:ignore(B004) project does not use cqrs-gen
 type CreateTenantCmd struct {
 	*command.BasicCommand
 	name        string
@@ -278,7 +278,7 @@ func NewDeleteTenantCmd(aggID id.StreamID, reason string) *DeleteTenantCmd {
 
 // --- Bot commands ---
 
-//cqrs-lint:ignore(B004) project does not use cqrs-gen
+// cqrs-lint:ignore(B004) project does not use cqrs-gen
 type RegisterBotCmd struct {
 	*command.BasicCommand
 	name      string
@@ -316,7 +316,7 @@ func NewDeleteBotCmd(aggID id.StreamID, reason string) *DeleteBotCmd {
 // reason (deletions, suspensions). Embedding it gives the command the standard
 // *command.BasicCommand embedding plus a Reason() accessor, so each concrete
 // command only declares its type and constructor.
-//cqrs-lint:ignore(E005) shared base struct embedded by concrete commands, never dispatched directly
+// cqrs-lint:ignore(E005) shared base struct embedded by concrete commands, never dispatched directly
 type reasonedCommand struct {
 	*command.BasicCommand
 	reason string

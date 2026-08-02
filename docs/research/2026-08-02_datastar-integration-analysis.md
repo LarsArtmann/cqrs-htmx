@@ -22,14 +22,14 @@ The gap Datastar fills is **frontend state management and structured SSE updates
 
 ## 2. Philosophical Alignment (Why This Isn't Forced)
 
-| Datastar Tao Principle | cqrs-htmx Equivalent | Status |
-|---|---|---|
-| CQRS for real-time: one SSE read + short writes | `Broadcaster` + SSE stream + `App.Command` dispatch | **Already implemented** |
-| Backend as source of truth | Event sourcing — backend IS the only truth | **Already implemented** |
-| SSE as default response type | Full SSE infrastructure (`SSEStream`, `Broadcaster`, `JournalSSEStore`) | **Already implemented** |
-| No optimistic updates | ADR-0024 "Honest UI" — loading indicators, confirm from backend | **Already the design** |
-| Backend templating + compression | templ components embedded in Go | **Already implemented** |
-| Fat morphing (send large DOM, let morph diff it) | `RenderPartialOrFull` sends full page sections | **Partial — needs morph** |
+| Datastar Tao Principle                           | cqrs-htmx Equivalent                                                    | Status                    |
+| ------------------------------------------------ | ----------------------------------------------------------------------- | ------------------------- |
+| CQRS for real-time: one SSE read + short writes  | `Broadcaster` + SSE stream + `App.Command` dispatch                     | **Already implemented**   |
+| Backend as source of truth                       | Event sourcing — backend IS the only truth                              | **Already implemented**   |
+| SSE as default response type                     | Full SSE infrastructure (`SSEStream`, `Broadcaster`, `JournalSSEStore`) | **Already implemented**   |
+| No optimistic updates                            | ADR-0024 "Honest UI" — loading indicators, confirm from backend         | **Already the design**    |
+| Backend templating + compression                 | templ components embedded in Go                                         | **Already implemented**   |
+| Fat morphing (send large DOM, let morph diff it) | `RenderPartialOrFull` sends full page sections                          | **Partial — needs morph** |
 
 The conclusion: **cqrs-htmx is already a Datastar-compatible backend.** What's missing is the Datastar frontend adapter and the structured SSE protocol layer.
 
@@ -41,23 +41,28 @@ The conclusion: **cqrs-htmx is already a Datastar-compatible backend.** What's m
 
 cqrs-htmx has **zero frontend state management**. Today's options for consumers:
 
-| Need | Current Solution | Problem |
-|---|---|---|
-| Form input binding | HTMX `hx-post` on every keystroke, or Alpine.js | Server round-trip per keystroke, or add a second library |
-| Toggle visibility | `hx-get` round-trip, or Alpine.js | Server load for trivial UI state |
-| Loading indicators | `hx-indicator` + custom CSS | Manual wiring per element |
-| Multi-step form state | Server-side session or Alpine.js | Either approach adds complexity |
-| Filter/search state | URL params + server re-render | Every filter change = full round-trip |
+| Need                  | Current Solution                                | Problem                                                  |
+| --------------------- | ----------------------------------------------- | -------------------------------------------------------- |
+| Form input binding    | HTMX `hx-post` on every keystroke, or Alpine.js | Server round-trip per keystroke, or add a second library |
+| Toggle visibility     | `hx-get` round-trip, or Alpine.js               | Server load for trivial UI state                         |
+| Loading indicators    | `hx-indicator` + custom CSS                     | Manual wiring per element                                |
+| Multi-step form state | Server-side session or Alpine.js                | Either approach adds complexity                          |
+| Filter/search state   | URL params + server re-render                   | Every filter change = full round-trip                    |
 
 Datastar signals eliminate all of these:
 
 ```html
 <!-- cqrs-htmx + HTMX today: server round-trip for a search filter -->
-<input name="q" hx-get="/users" hx-trigger="keyup changed delay:300ms"
-       hx-target="#user-list" hx-push-url="true">
+<input
+	name="q"
+	hx-get="/users"
+	hx-trigger="keyup changed delay:300ms"
+	hx-target="#user-list"
+	hx-push-url="true"
+/>
 
 <!-- cqrs-htmx + Datastar: instant client-side filter, no round-trip -->
-<input data-bind:searchQuery>
+<input data-bind:searchQuery />
 <div data-text="$users.filter(u => u.name.includes($searchQuery)).length + ' results'"></div>
 ```
 
@@ -66,10 +71,11 @@ Datastar signals eliminate all of these:
 `dashboardui/handler_overview.go` uses **HTMX polling** for projection health:
 
 ```html
-<div hx-get="/.../-/partials/projection-health" hx-trigger="every 10s" hx-swap="outerHTML">
+<div hx-get="/.../-/partials/projection-health" hx-trigger="every 10s" hx-swap="outerHTML"></div>
 ```
 
 This means:
+
 - 10-second latency on health changes (stale data)
 - One HTTP request per connected client every 10 seconds (waste)
 - Server re-renders the full partial each time (CPU)
@@ -79,9 +85,11 @@ With Datastar, projection health becomes signal-driven:
 ```html
 <!-- Server patches $projectionLag signal via SSE when it changes -->
 <div data-signals:projectionLag="0">
-  <span data-text="$projectionLag > 5000 ? 'LAGGING' : 'HEALTHY'"
-        data-class:text-red-500="$projectionLag > 5000">
-  </span>
+	<span
+		data-text="$projectionLag > 5000 ? 'LAGGING' : 'HEALTHY'"
+		data-class:text-red-500="$projectionLag > 5000"
+	>
+	</span>
 </div>
 ```
 
@@ -92,6 +100,7 @@ The server sends one `datastar-patch-signals` event when the lag changes — zer
 cqrs-htmx's current SSE infrastructure sends **raw events** that consumers must format manually. The `datastar-demo` proves this: `domain_cqrs.go` has a broadcast bridge that manually calls `renderTodo()` (HTML `fmt.Sprintf`) for each event type. This is boilerplate that Datastar's structured protocol eliminates.
 
 **Current (datastar-demo `domain_cqrs.go`):**
+
 ```go
 events.Subscribe(func(e DomainEvent) {
     evt := BroadcastEvent{User: e.User, Time: e.OccurredAt}
@@ -111,6 +120,7 @@ events.Subscribe(func(e DomainEvent) {
 ```
 
 **With a Datastar adapter:**
+
 ```go
 // One line: the adapter maps domain events to Datastar SSE events
 dsBridge := datastaradapter.NewEventBridge(broadcaster, renderFunc)
@@ -130,6 +140,7 @@ HTMX requires the **idiomorph extension** for DOM morphing. cqrs-htmx embeds it 
 ### 3.5 The Offline Sync Complexity
 
 cqrs-htmx's offline sync (`sync/sync-worker.js` + `sync/sync-client.js`, v1.3.0) is 500+ lines of hand-rolled vanilla JavaScript implementing:
+
 - SharedWorker lifecycle
 - IndexedDB command queue
 - SSE `EventSource` for ACK confirmations
@@ -137,6 +148,7 @@ cqrs-htmx's offline sync (`sync/sync-worker.js` + `sync/sync-client.js`, v1.3.0)
 - DOM indicator management (`data-sync-state`, `data-sync-status`)
 
 Datastar's CQRS model (long-lived SSE read + short writes with auto-retry) is the **natural architecture** for offline sync. Datastar provides:
+
 - `retry: 'auto'` with exponential backoff built into `@post()`/`@get()`
 - `data-indicator` signals for loading state (no manual DOM manipulation)
 - Signal-based state that survives reconnection naturally
@@ -149,16 +161,16 @@ The sync-worker.js could potentially be simplified or replaced with Datastar's b
 
 The project already has a working proof-of-concept: `examples/datastar-demo/`.
 
-| Aspect | Status |
-|---|---|
-| Datastar Go SDK (`datastar-go v1.2.2`) | Used in demo go.mod |
-| Event-sourced CQRS + Datastar SSE | Fully working (Todo app with Create/Toggle/Delete/Update) |
-| Multi-user real-time simulation | 10 bot goroutines broadcasting to all tabs |
-| `PatchElements` + `PatchSignals` + `ReadSignals` | All used in handlers |
-| SSE event stream with fan-out | Custom `Broadcaster` (mirrors `cqrshtmx.Broadcaster` pattern) |
-| templ integration | **Not yet** (demo uses raw HTML strings) |
-| Integration with `cqrshtmx.App` | **Not yet** (demo uses vanilla `net/http`) |
-| Library-level Datastar adapter | **Not yet** |
+| Aspect                                           | Status                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| Datastar Go SDK (`datastar-go v1.2.2`)           | Used in demo go.mod                                           |
+| Event-sourced CQRS + Datastar SSE                | Fully working (Todo app with Create/Toggle/Delete/Update)     |
+| Multi-user real-time simulation                  | 10 bot goroutines broadcasting to all tabs                    |
+| `PatchElements` + `PatchSignals` + `ReadSignals` | All used in handlers                                          |
+| SSE event stream with fan-out                    | Custom `Broadcaster` (mirrors `cqrshtmx.Broadcaster` pattern) |
+| templ integration                                | **Not yet** (demo uses raw HTML strings)                      |
+| Integration with `cqrshtmx.App`                  | **Not yet** (demo uses vanilla `net/http`)                    |
+| Library-level Datastar adapter                   | **Not yet**                                                   |
 
 The demo deliberately **does not import the `cqrshtmx` root module** — it reimplements the transport layer with the Datastar SDK directly. This was a proof that CQRS + Datastar works, but the integration into the library itself was never done.
 
@@ -168,17 +180,18 @@ The demo deliberately **does not import the `cqrshtmx` root module** — it reim
 
 The May 2026 status report (`docs/status/archive/2026-05-21_23-43_datastar-demo-multi-user-simulation.md`) identified three options:
 
-| Option | Description | Verdict |
-|---|---|---|
-| A) Parallel response layer in root | Add Datastar response builders alongside HTMX ones | **Rejected** — bloats root module, forces Datastar SDK dep on all consumers |
-| B) Abstract transport interface | Refactor `response.go` + `options.go` into a transport-agnostic interface | **Rejected** — massive refactor, risks breaking stable HTMX API |
-| C) Separate library (`cqrs-datastar`) | Completely new repo | **Rejected** — fragments the ecosystem, duplicates CQRS wiring |
+| Option                                | Description                                                               | Verdict                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| A) Parallel response layer in root    | Add Datastar response builders alongside HTMX ones                        | **Rejected** — bloats root module, forces Datastar SDK dep on all consumers |
+| B) Abstract transport interface       | Refactor `response.go` + `options.go` into a transport-agnostic interface | **Rejected** — massive refactor, risks breaking stable HTMX API             |
+| C) Separate library (`cqrs-datastar`) | Completely new repo                                                       | **Rejected** — fragments the ecosystem, duplicates CQRS wiring              |
 
 ### Recommended: D) New Optional Submodule
 
 **`github.com/larsartmann/cqrs-htmx/datastar/v4`** — a new independent Go module.
 
 Rationale:
+
 - **Follows the existing module pattern** (usermgmt, adminui, dashboardui, loginpage are all separate modules with `/v4` suffixes)
 - **Zero coupling** — HTMX users never import Datastar code, the Datastar SDK dep stays optional
 - **Shares the CQRS dispatch layer** — go-cqrs-lite is the common foundation, only the HTTP/response layer differs
@@ -186,6 +199,7 @@ Rationale:
 - **Mirrors the dependency direction** — root has zero imports of UI modules; datastar module would depend on root (for shared types) + datastar-go SDK
 
 Module structure:
+
 ```
 cqrs-htmx/
   datastar/                    # NEW MODULE
@@ -299,36 +313,37 @@ This wraps the subscribe-replay-pump loop with Datastar's `datastar.NewSSE(w, r)
 
 ### 7.1 dashboardui — Highest Impact
 
-| Current | With Datastar |
-|---|---|
-| HTMX polling every 10s for projection health | Real-time signal patches via SSE |
-| Full partial re-render on each poll | Signal-only delta updates |
-| `hx-trigger="every 10s"` on projection panel | `data-text="$projectionLag"` auto-updates |
-| Manual event log rendering | `data-on:click="@get('/events')"` with auto-morph |
+| Current                                      | With Datastar                                     |
+| -------------------------------------------- | ------------------------------------------------- |
+| HTMX polling every 10s for projection health | Real-time signal patches via SSE                  |
+| Full partial re-render on each poll          | Signal-only delta updates                         |
+| `hx-trigger="every 10s"` on projection panel | `data-text="$projectionLag"` auto-updates         |
+| Manual event log rendering                   | `data-on:click="@get('/events')"` with auto-morph |
 
 The dashboard already has an SSE stream (`dashboardui/sse.go`) — but it sends raw JSON that the frontend must process with custom JS. Datastar would turn those into `patch-signals` events, making the dashboard fully reactive with zero custom JavaScript.
 
 ### 7.2 adminui — High Impact
 
-| Current | With Datastar |
-|---|---|
-| HTMX partial swaps for CRUD | Morph-based updates (preserves form focus, scroll position) |
-| Server round-trip for filter/pagination | Signal-based client-side filtering |
-| `HX-Trigger` toast notifications | `patch-signals` for notification state |
-| idiomorph extension for morphing | Built-in morphing (no extension) |
-| Complex `hx-target`/`hx-select`/`hx-swap` per interaction | `data-on:click="@post('/url')"` (1 attribute) |
+| Current                                                   | With Datastar                                               |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| HTMX partial swaps for CRUD                               | Morph-based updates (preserves form focus, scroll position) |
+| Server round-trip for filter/pagination                   | Signal-based client-side filtering                          |
+| `HX-Trigger` toast notifications                          | `patch-signals` for notification state                      |
+| idiomorph extension for morphing                          | Built-in morphing (no extension)                            |
+| Complex `hx-target`/`hx-select`/`hx-swap` per interaction | `data-on:click="@post('/url')"` (1 attribute)               |
 
 ### 7.3 loginpage — Medium Impact
 
-| Current | With Datastar |
-|---|---|
-| HTMX form submission for WebAuthn | Signal-based form state |
-| `hx-post` for each auth step | `@post()` with auto-retry |
-| Manual loading indicators | `data-indicator` signals |
+| Current                           | With Datastar             |
+| --------------------------------- | ------------------------- |
+| HTMX form submission for WebAuthn | Signal-based form state   |
+| `hx-post` for each auth step      | `@post()` with auto-retry |
+| Manual loading indicators         | `data-indicator` signals  |
 
 ### 7.4 Root Module — No Change
 
 The root module (`cqrs-htmx/v4`) stays HTMX-only. No changes to:
+
 - `response.go` (HTMX headers)
 - `htmx.go` (HX-* parsing)
 - `htmx_serve.go` (embedded htmx.js)
@@ -341,12 +356,12 @@ The datastar module **depends on** root (for shared types, `Broadcaster`, `SSESt
 
 The sync-worker.js/sync-client.js could remain as the durable IndexedDB layer, but the retry/reconnection/DOM-indicator logic (currently hand-rolled) could leverage Datastar's built-in primitives:
 
-| sync-worker.js feature | Datastar equivalent |
-|---|---|
-| Custom EventSource for ACK | `@post()` with `retry: 'auto'` |
-| Manual `data-sync-state` DOM manipulation | `data-indicator:syncing` signal |
-| Custom retry with backoff | `retryInterval`, `retryScaler`, `retryMaxWait` options |
-| `data-sync-status` indicator management | `data-text` bound to `$syncStatus` signal |
+| sync-worker.js feature                    | Datastar equivalent                                    |
+| ----------------------------------------- | ------------------------------------------------------ |
+| Custom EventSource for ACK                | `@post()` with `retry: 'auto'`                         |
+| Manual `data-sync-state` DOM manipulation | `data-indicator:syncing` signal                        |
+| Custom retry with backoff                 | `retryInterval`, `retryScaler`, `retryMaxWait` options |
+| `data-sync-status` indicator management   | `data-text` bound to `$syncStatus` signal              |
 
 ---
 
@@ -422,13 +437,13 @@ The SDK has **native templ support** (`PatchElementTempl`) — critical because 
 
 ## 10. Risk Assessment
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| Datastar SDK API changes (pre-2.0) | Medium | Pin SDK version in go.mod; adapter isolates consumers from SDK churn |
-| HTMX users accidentally pulled into Datastar deps | None | Separate module — Go module system prevents transitive deps |
-| Maintenance burden of two frontend adapters | Low | Shared CQRS dispatch layer; only the HTTP/response layer differs |
-| Datastar adoption stalls (project abandoned) | Low | Nonprofit-backed, active community, 14 SDKs; module is isolated and removable |
-| Skill gap for contributors unfamiliar with Datastar | Medium | Comprehensive guide + working demo + the existing datastar-demo as reference |
+| Risk                                                | Likelihood | Mitigation                                                                    |
+| --------------------------------------------------- | ---------- | ----------------------------------------------------------------------------- |
+| Datastar SDK API changes (pre-2.0)                  | Medium     | Pin SDK version in go.mod; adapter isolates consumers from SDK churn          |
+| HTMX users accidentally pulled into Datastar deps   | None       | Separate module — Go module system prevents transitive deps                   |
+| Maintenance burden of two frontend adapters         | Low        | Shared CQRS dispatch layer; only the HTTP/response layer differs              |
+| Datastar adoption stalls (project abandoned)        | Low        | Nonprofit-backed, active community, 14 SDKs; module is isolated and removable |
+| Skill gap for contributors unfamiliar with Datastar | Medium     | Comprehensive guide + working demo + the existing datastar-demo as reference  |
 
 ---
 
@@ -444,16 +459,16 @@ The SDK has **native templ support** (`PatchElementTempl`) — critical because 
 
 ## 12. Comparison: HTMX vs Datastar by Use Case
 
-| Use Case | Better Choice | Why |
-|---|---|---|
-| Simple CRUD forms (create/edit/delete) | **Either** | Both handle this well. HTMX is simpler for pure request-response. |
-| Real-time dashboards (projection health, metrics) | **Datastar** | Signal-based reactivity eliminates polling. Structured SSE protocol. |
-| Multi-user collaboration (live updates across tabs) | **Datastar** | CQRS SSE model is built for this. Fan-out + morph = instant sync. |
-| Admin panels with filtering/search/pagination | **Datastar** | Client-side signal filtering eliminates round-trips. Morph preserves form state. |
-| Simple marketing pages / static content | **HTMX** | No reactivity needed. HTMX is lighter for progressive enhancement. |
-| Offline-first apps (offline command queue) | **Datastar** | Built-in retry, signal-based indicators. But sync-worker.js remains for durable IndexedDB. |
-| Complex form wizards (multi-step, conditional fields) | **Datastar** | Computed signals, two-way binding, effect-based field visibility. |
-| File uploads | **Datastar** | Base64 into signals, no form needed. But HTMX's `hx-encoding` also works. |
+| Use Case                                              | Better Choice | Why                                                                                        |
+| ----------------------------------------------------- | ------------- | ------------------------------------------------------------------------------------------ |
+| Simple CRUD forms (create/edit/delete)                | **Either**    | Both handle this well. HTMX is simpler for pure request-response.                          |
+| Real-time dashboards (projection health, metrics)     | **Datastar**  | Signal-based reactivity eliminates polling. Structured SSE protocol.                       |
+| Multi-user collaboration (live updates across tabs)   | **Datastar**  | CQRS SSE model is built for this. Fan-out + morph = instant sync.                          |
+| Admin panels with filtering/search/pagination         | **Datastar**  | Client-side signal filtering eliminates round-trips. Morph preserves form state.           |
+| Simple marketing pages / static content               | **HTMX**      | No reactivity needed. HTMX is lighter for progressive enhancement.                         |
+| Offline-first apps (offline command queue)            | **Datastar**  | Built-in retry, signal-based indicators. But sync-worker.js remains for durable IndexedDB. |
+| Complex form wizards (multi-step, conditional fields) | **Datastar**  | Computed signals, two-way binding, effect-based field visibility.                          |
+| File uploads                                          | **Datastar**  | Base64 into signals, no form needed. But HTMX's `hx-encoding` also works.                  |
 
 ---
 

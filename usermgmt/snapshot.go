@@ -111,7 +111,7 @@ func NewMemorySnapshotStore() *MemorySnapshotStore {
 
 // Save stores a snapshot, overwriting any previous snapshot for the same
 // aggregate. Sets CreatedAt to now when the caller left it zero.
-//cqrs-lint:ignore(A023) library-provided dev/test snapshot store; production consumers use SQL/Pebble
+// cqrs-lint:ignore(A023) library-provided dev/test snapshot store; production consumers use SQL/Pebble
 func (m *MemorySnapshotStore) Save(_ context.Context, s snapshot.Snapshot) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()

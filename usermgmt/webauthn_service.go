@@ -52,7 +52,8 @@ func marshalWebAuthnUser(user *User) ([]byte, error) {
 		Credentials: creds,
 	})
 	if err != nil {
-		return nil, errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user_data", "marshal webauthn user data").WithCause(err)
+		return nil, errorfamily.NewInfrastructure("usermgmt.webauthn.marshal_user_data", "marshal webauthn user data").
+			WithCause(err)
 	}
 	return data, nil
 }
@@ -96,7 +97,8 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 	if err != nil {
 		s.logger.Warn("usermgmt: begin registration ceremony failed",
 			"user_id", userID, "error", err)
-		return nil, errorfamily.NewTransient("usermgmt.webauthn.begin_registration", "begin webauthn registration").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.webauthn.begin_registration", "begin webauthn registration").
+			WithCause(err)
 	}
 
 	sessionKey := userID.Get().String()

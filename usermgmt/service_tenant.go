@@ -37,7 +37,10 @@ func (s *Service) CreateTenant(ctx context.Context, req CreateTenantRequest) (*T
 
 	tenant, ok := s.tenantReadModel.FindByID(aggID)
 	if !ok {
-		return nil, errorfamily.NewTransient("usermgmt.tenant.read_model_missing", "tenant not in read model after create")
+		return nil, errorfamily.NewTransient(
+			"usermgmt.tenant.read_model_missing",
+			"tenant not in read model after create",
+		)
 	}
 	return tenant, nil
 }
