@@ -66,7 +66,8 @@ type greetCmd struct {
 func (c *greetCmd) Type() command.Type    { return "Greet" }
 func (c *greetCmd) StreamID() id.StreamID { return c.aggID }
 
-func (c *greetCmd) ID() id.CommandID { return c.cmdID } //cqrs-lint:ignore(A001) typed command: DecodeJSONTyped requires manual methods (embedded *BasicCommand would be nil)
+//cqrs-lint:ignore(A001) typed command: DecodeJSONTyped requires manual methods (embedded *BasicCommand would be nil)
+func (c *greetCmd) ID() id.CommandID { return c.cmdID }
 
 // sumQuery is a typed query that implements query.Query directly.
 type sumQuery struct {
@@ -119,7 +120,8 @@ func (s *itemStore) listPaginated(p query.Pagination) query.PaginatedResult[item
 
 func main() {
 	// --- Command dispatcher ---
-	cmdDisp := command.NewDispatcher() //cqrs-lint:ignore(A016) example: idempotency middleware omitted for simplicity
+	//cqrs-lint:ignore(A016) example: idempotency middleware omitted for simplicity
+	cmdDisp := command.NewDispatcher()
 	_ = command.RegisterTyped(cmdDisp, "CreateItem",
 		func(_ context.Context, c *createItemCmd) error {
 			db.add(c.Name)

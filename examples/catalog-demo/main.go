@@ -44,7 +44,8 @@ type OrderItem struct {
 }
 
 // OrderCreatedEvent is persisted to the event store when an order is placed.
-type OrderCreatedEvent struct { //cqrs-lint:ignore(A011) all keys are lowercase snake_case; single-word keys like "total"/"items" are valid snake_case
+//cqrs-lint:ignore(A011) all keys are lowercase snake_case; single-word keys like "total"/"items" are valid snake_case
+type OrderCreatedEvent struct {
 	OrderID    string      `json:"order_id"    doc:"The new order identifier" example:"ord_456"`
 	CustomerID string      `json:"customer_id" doc:"Owning customer"          example:"cust_123"`
 	Total      int         `json:"total"       doc:"Total in minor units"     example:"4999"`
@@ -52,7 +53,8 @@ type OrderCreatedEvent struct { //cqrs-lint:ignore(A011) all keys are lowercase 
 }
 
 // OrderCancelledEvent is published when an order is cancelled.
-type OrderCancelledEvent struct { //cqrs-lint:ignore(A011) all keys are lowercase snake_case; single-word keys like "reason" are valid snake_case
+//cqrs-lint:ignore(A011) all keys are lowercase snake_case; single-word keys like "reason" are valid snake_case
+type OrderCancelledEvent struct {
 	OrderID string `json:"order_id" doc:"The cancelled order" example:"ord_456"`
 	Reason  string `json:"reason"   doc:"Cancellation reason" example:"customer_request"`
 }

@@ -155,7 +155,8 @@ func New(cfg Config) (*App, error) {
 func MustNew(cfg Config) *App {
 	app, err := New(cfg)
 	if err != nil {
-		panic(err) //cqrs-lint:ignore(C009) MustNew: startup config error is a programmer error
+		//cqrs-lint:ignore(C009) MustNew: startup config error is a programmer error
+		panic(err)
 	}
 
 	return app
@@ -302,7 +303,8 @@ func QueryTyped[Q query.Query, R any](a *App, qryType query.Type, opts ...Handle
 // used only in the panic message.
 func (a *App) buildHandlerConfigChecked(typeIsZero bool, kind string, opts []HandlerOption) *handlerConfig {
 	if typeIsZero {
-		panic( //cqrs-lint:ignore(C009) programmer error: empty command/query type at registration
+		//cqrs-lint:ignore(C009) programmer error: empty command/query type at registration
+		panic(
 			"cqrs-htmx: " + kind + " type must not be empty",
 		)
 	}

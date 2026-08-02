@@ -68,7 +68,8 @@ func (d *Dashboard) startEventBridge() {
 		return nil
 	}
 
-	if err := d.cfg.EventBus.SubscribeAll( //cqrs-lint:ignore(A005) SSE fan-out bridge for live dashboard updates, not a read-model projection
+	//cqrs-lint:ignore(A005) SSE fan-out bridge for live dashboard updates, not a read-model projection
+	if err := d.cfg.EventBus.SubscribeAll(
 		handler,
 	); err != nil {
 		slog.Error("dashboardui: subscribe to event bus", "error", err)

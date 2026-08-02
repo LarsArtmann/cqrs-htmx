@@ -92,14 +92,14 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterR
 	user, ok := s.readModel.FindByID(aggID)
 	if !ok {
 		return nil, withUserIDContext(
-			errorfamily.NewTransient("internal", "user not in read model after register"), req.ID,
+			errorfamily.NewTransient("usermgmt.user.read_model_missing", "user not in read model after register"), req.ID,
 		)
 	}
 
 	session, err := s.createSession(ctx, req.ID)
 	if err != nil {
 		return nil, withUserIDContext(
-			errorfamily.NewTransient("internal", "create session").WithCause(err), req.ID,
+			errorfamily.NewTransient("usermgmt.session.create", "create session").WithCause(err), req.ID,
 		)
 	}
 
@@ -125,13 +125,13 @@ func (s *Service) classifyDispatchError(err error, userID UserID, kv ...string) 
 		classified = withUserIDContext(ee, userID)
 	case event.Transient, event.Corruption, event.Infrastructure, errorfamily.Orchestration:
 		classified = withUserIDContext(
-			errorfamily.NewTransient("internal", "dispatch command").WithCause(err), userID,
+			errorfamily.NewTransient("usermgmt.command.dispatch", "dispatch command").WithCause(err), userID,
 		)
 	default:
 		// Safety net for future errorfamily classifications or unclassified errors.
 		// Without this, classified would be nil and .WithContext below would panic.
 		classified = withUserIDContext(
-			errorfamily.NewTransient("internal", "dispatch command").WithCause(err), userID,
+			errorfamily.NewTransient("usermgmt.command.dispatch", "dispatch command").WithCause(err), userID,
 		)
 	}
 	for i := 0; i+1 < len(kv); i += 2 {
@@ -157,10 +157,10 @@ func (s *Service) revokeSessionsBestEffort(ctx context.Context, userID UserID, f
 func (s *Service) createSession(ctx context.Context, userID UserID) (*Session, error) {
 	session, err := NewSession(userID, s.sessionTTL)
 	if err != nil {
-		return nil, errorfamily.NewTransient("internal", "create session").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.session.create", "create session").WithCause(err)
 	}
 	if err := s.sessions.Create(ctx, session); err != nil {
-		return nil, errorfamily.NewTransient("internal", "store session").WithCause(err)
+		return nil, errorfamily.NewTransient("usermgmt.session.store", "store session").WithCause(err)
 	}
 	return session, nil
 }

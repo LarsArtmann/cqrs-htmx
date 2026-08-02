@@ -109,7 +109,8 @@ func seedDemoData(
 		})
 
 		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		created, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		created, _ := event.New(
 			"user.created",
 			aggID,
 			"User",
@@ -119,7 +120,8 @@ func seedDemoData(
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
 		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		renamed, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		renamed, _ := event.New(
 			"user.renamed",
 			aggID,
 			"User",
@@ -152,7 +154,8 @@ func seedDemoData(
 		ref := id.NewStreamRef("Order", aggID)
 
 		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		placed, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		placed, _ := event.New(
 			"order.placed",
 			aggID,
 			"Order",
@@ -166,7 +169,8 @@ func seedDemoData(
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
 		//cqrs-lint:ignore(E004) demo data: no catalog in this dashboard demo
-		shipped, _ := event.New( //cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		//cqrs-lint:ignore(E006) demo data: no projection in this dashboard demo
+		shipped, _ := event.New(
 			"order.shipped",
 			aggID,
 			"Order",
@@ -222,7 +226,8 @@ func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
 			event.Version(1),
 			jsontext.Value(payload),
 		)
-		_ = store.Save( //cqrs-lint:ignore(S003) demo with in-memory store: no signing needed
+		//cqrs-lint:ignore(S003) demo with in-memory store: no signing needed
+		_ = store.Save(
 			ctx,
 			ref,
 			[]event.Event{evt},

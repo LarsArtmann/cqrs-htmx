@@ -17,7 +17,7 @@ const defaultTOTPPendingTTL = 5 * time.Minute
 // an error that is not the caller's fault.
 func (s *Service) totpTransient(evt string, userID UserID, reason, msg string, err error) error {
 	s.logAuth(evt, userID, "reason", reason)
-	return errorfamily.NewTransient("internal", msg).WithCause(err)
+	return errorfamily.NewTransient("usermgmt.totp.transient", msg).WithCause(err)
 }
 
 // TOTPSetupResponse is returned when enabling TOTP for a user.

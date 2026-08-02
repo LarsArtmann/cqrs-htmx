@@ -9,7 +9,7 @@ import (
 // Logout deletes the session associated with the given token.
 func (s *Service) Logout(ctx context.Context, token string) error {
 	if err := s.sessions.Delete(ctx, token); err != nil {
-		return errorfamily.NewTransient("internal", "logout").WithCause(err)
+		return errorfamily.NewTransient("usermgmt.session.logout", "logout").WithCause(err)
 	}
 	return nil
 }

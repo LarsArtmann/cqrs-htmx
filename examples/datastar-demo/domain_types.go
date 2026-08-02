@@ -42,7 +42,8 @@ type DomainEvent struct {
 	Type        string
 	User        string
 	Payload     jsontext.Value
-	OccurredAt  time.Time //cqrs-lint:ignore(C013) in-memory domain event struct, not an event store payload
+	//cqrs-lint:ignore(C013) in-memory domain event struct, not an event store payload
+	OccurredAt  time.Time
 }
 
 type TodoCreatedPayload struct {

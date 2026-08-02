@@ -93,7 +93,8 @@ func (s BotState) Exists() bool {
 }
 
 // FoldUser applies an event to the current UserState, returning the new state.
-func FoldUser( //cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
+//cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
+func FoldUser(
 	state UserState,
 	evt event.Event,
 ) (UserState, error) {
@@ -219,7 +220,8 @@ func FoldUser( //cqrs-lint:ignore(B005) canonical fold pattern: switch is the st
 }
 
 // FoldMembership applies an event to the current MembershipState.
-func FoldMembership( //cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
+//cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
+func FoldMembership(
 	state MembershipState,
 	evt event.Event,
 ) (MembershipState, error) {
@@ -266,7 +268,8 @@ func FoldMembership( //cqrs-lint:ignore(B005) canonical fold pattern: switch is 
 }
 
 // FoldTenant applies an event to the current TenantState.
-func FoldTenant( //cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
+//cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
+func FoldTenant(
 	state TenantState,
 	evt event.Event,
 ) (TenantState, error) {
@@ -316,7 +319,8 @@ func FoldTenant( //cqrs-lint:ignore(B005) canonical fold pattern: switch is the 
 }
 
 // FoldBot applies an event to the current BotState.
-func FoldBot( //cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
+//cqrs-lint:ignore(B005) canonical fold pattern: switch is the standard ES fold
+func FoldBot(
 	state BotState,
 	evt event.Event,
 ) (BotState, error) {
