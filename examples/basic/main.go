@@ -120,7 +120,6 @@ func (s *itemStore) listPaginated(p query.Pagination) query.PaginatedResult[item
 
 func main() {
 	// --- Command dispatcher ---
-	//cqrs-lint:ignore(A016) example: idempotency middleware omitted for simplicity
 	cmdDisp := command.NewDispatcher()
 	_ = command.RegisterTyped(cmdDisp, "CreateItem",
 		func(_ context.Context, c *createItemCmd) error {
@@ -210,6 +209,7 @@ func main() {
 
 	// GET /api/events — SSE live updates
 	mux.HandleFunc("GET /api/events", func(w http.ResponseWriter, r *http.Request) {
+		//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 		stream := cqrshtmx.NewSSEStream(w, r)
 		ch := broadcaster.Subscribe()
 		defer broadcaster.Unsubscribe(ch)

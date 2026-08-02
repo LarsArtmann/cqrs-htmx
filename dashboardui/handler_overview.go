@@ -66,11 +66,11 @@ type projectionStat struct {
 }
 
 type recentEvent struct {
-	Time     string
-	Type     string
-	StreamID string
-	Version  string
-	EventID  string
+	Time     string `json:"time"`
+	Type     string `json:"type"`
+	StreamID string `json:"stream_id"`
+	Version  string `json:"version"`
+	EventID  string `json:"event_id"`
 }
 
 //nolint:cyclop,gocognit // multi-source aggregation
