@@ -30,6 +30,7 @@ type createItemRequest struct {
 }
 
 type item struct {
+	//cqrs-lint:ignore(A032) example DTO: simple string ID for demo
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
@@ -121,6 +122,7 @@ func (s *itemStore) listPaginated(p query.Pagination) query.PaginatedResult[item
 func main() {
 	// --- Command dispatcher ---
 	cmdDisp := command.NewDispatcher()
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(cmdDisp, "CreateItem",
 		func(_ context.Context, c *createItemCmd) error {
 			db.add(c.Name)
@@ -129,6 +131,7 @@ func main() {
 
 	// Typed command handler: no type assertion needed — the dispatcher
 	// calls the handler with the concrete *greetCmd directly.
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(cmdDisp, "Greet",
 		func(_ context.Context, cmd *greetCmd) error {
 			db.add("Hello, " + cmd.Name + "!")
@@ -137,16 +140,19 @@ func main() {
 
 	// --- Query dispatcher ---
 	qryDisp := query.NewDispatcher()
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = query.RegisterTyped(qryDisp, "ListItems",
 		func(_ context.Context, _ *listItemsQuery) ([]item, error) {
 			return db.list(), nil
 		})
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = query.RegisterTyped(qryDisp, "ListItemsPaginated",
 		func(_ context.Context, q *listItemsPaginatedQuery) (query.PaginatedResult[item], error) {
 			return db.listPaginated(q.pagination), nil
 		})
 
 	// Typed query handler: returns a concrete result type (int).
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = query.RegisterTyped(qryDisp, "Sum",
 		func(_ context.Context, q *sumQuery) (int, error) {
 			return q.A + q.B, nil

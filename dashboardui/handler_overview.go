@@ -65,6 +65,7 @@ type projectionStat struct {
 	LastError  string
 }
 
+//cqrs-lint:ignore(A011) all snake_case; single-word keys are valid in both conventions
 type recentEvent struct {
 	Time     string `json:"time"`
 	Type     string `json:"type"`

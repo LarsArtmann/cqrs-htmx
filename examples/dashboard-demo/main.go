@@ -116,6 +116,7 @@ func seedDemoData(
 			event.Version(1),
 			jsontext.Value(payload),
 		)
+	//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
 		//cqrs-lint:ignore(E006) demo data: no catalog and no projection in this dashboard demo
@@ -126,11 +127,13 @@ func seedDemoData(
 			event.Version(2),
 			map[string]any{"name": name + " Jr."},
 		)
+	//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = store.Save(ctx, ref, []event.Event{renamed}, event.Version(1))
 
 		// Record a command for this user
 		cmdPayload, _ := json.Marshal(map[string]any{"userId": aggID.String(), "name": name})
 		cmd, _ := command.NewPersistedCommand("create.user", ref, cmdPayload)
+	//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = cmdStore.Save(ctx, ref, cmd)
 
 		// Save a snapshot for the first user
@@ -142,6 +145,7 @@ func seedDemoData(
 				State:      []byte(`{"name":"Alice Jr.","email":"Alice@example.com"}`),
 				CreatedAt:  time.Now(),
 			}
+	//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 			_ = snapStore.Save(ctx, snap)
 		}
 	}
@@ -163,6 +167,7 @@ func seedDemoData(
 				"items":      i,
 			},
 		)
+	//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
 		//cqrs-lint:ignore(E006) demo data: no catalog and no projection in this dashboard demo
@@ -175,6 +180,7 @@ func seedDemoData(
 				"trackingNumber": fmt.Sprintf("TRK%d", i*1000+i),
 			},
 		)
+	//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = store.Save(ctx, ref, []event.Event{shipped}, event.Version(1))
 	}
 
@@ -222,13 +228,14 @@ func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
 			event.Version(1),
 			jsontext.Value(payload),
 		)
-		//cqrs-lint:ignore(S003) demo with in-memory store: no signing needed
+	//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = store.Save(
 			ctx,
 			ref,
 			[]event.Event{evt},
 			event.Version(0),
 		)
+	//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = bus.Publish(ctx, evt)
 	}
 }

@@ -1,7 +1,4 @@
-//cqrs-lint:ignore(F002) observability UI module, not a CQRS application
-//cqrs-lint:ignore(E009) dashboard IS the transport/view layer
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
-//cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 package dashboardui
 
 import (
