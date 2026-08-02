@@ -14,7 +14,6 @@ import (
 // It indexes memberships by aggregate ID (actor+tenant pair) and by
 // actor ID for "what tenants is this actor a member of?" queries.
 //cqrs-lint:ignore(C035) protected by embedded readModelCore.mu (sync.RWMutex)
-
 type MembershipReadModel struct {
 	readModelCore[*MembershipReadModel]
 	//cqrs-lint:ignore(P011) bounded by finite membership count; in-memory dev/test default
