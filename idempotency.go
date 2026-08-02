@@ -25,7 +25,7 @@ var ErrDuplicateCommand = idempotency.ErrDuplicate
 // NewMemoryIdempotencyStore creates an in-memory idempotency store and starts
 // a background goroutine that sweeps expired entries every sweepInterval.
 // Call Close() to stop the sweeper.
-	//cqrs-lint:ignore(C026) sweepInterval is a sweeper cadence, not an entry TTL; the idempotency store manages its own TTL internally
 func NewMemoryIdempotencyStore(sweepInterval time.Duration) *MemoryIdempotencyStore {
+	//cqrs-lint:ignore(C026) sweepInterval is a sweeper cadence, not an entry TTL; the idempotency store manages its own TTL internally
 	return idempotency.NewMemoryStore(sweepInterval)
 }
