@@ -10,7 +10,7 @@ import (
 
 type UserRegisteredPayload struct {
 	SchemaVersion int    `json:"schema_version"`
-\//cqrs-lint:ignore(S006) domain types module: encryption is infrastructure concern applied by consumers
+//cqrs-lint:ignore(S006) domain types module: encryption is infrastructure concern applied by consumers
 	Email         string `json:"email"`
 	DisplayName   string `json:"display_name,omitempty"`
 	Roles         []Role `json:"roles"`

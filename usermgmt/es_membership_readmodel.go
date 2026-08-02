@@ -13,7 +13,7 @@ import (
 // MembershipReadModel is the projection-side store for memberships.
 // It indexes memberships by aggregate ID (actor+tenant pair) and by
 // actor ID for "what tenants is this actor a member of?" queries.
-t//cqrs-lint:ignore(C035) protected by embedded readModelCore.mu (sync.RWMutex)
+//cqrs-lint:ignore(C035) protected by embedded readModelCore.mu (sync.RWMutex)
 	//cqrs-lint:ignore(P011) bounded by finite membership count; in-memory dev/test default
 type MembershipReadModel struct {
 	readModelCore[*MembershipReadModel]
