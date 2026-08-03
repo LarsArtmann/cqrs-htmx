@@ -97,7 +97,7 @@ Immutable records of domain changes.
 | Event                   | What Happened                                          | Aggregate  |
 | ----------------------- | ------------------------------------------------------ | ---------- |
 | UserRegistered          | A new user account was created with email and roles    | User       |
-| RolesUpdated            | The user's roles were changed in a specific domain     | User       |
+| RolesUpdated            | The user's roles were changed in a specific domain (**legacy** — superseded by MemberRolesChanged, kept for replay compat)     | User       |
 | EmailChanged            | The user's email address was changed                   | User       |
 | EmailVerified           | The user proved ownership of their email via token     | User       |
 | DisplayNameChanged      | The user's display name was changed                    | User       |
@@ -125,7 +125,7 @@ Intents that trigger state changes.
 | Command               | What It Does                                                  | Events Produced         | Aggregate  |
 | --------------------- | ------------------------------------------------------------- | ----------------------- | ---------- |
 | RegisterUser          | Create a new user account (email only, no password)           | UserRegistered          | User       |
-| UpdateRoles           | Change the user's role assignments in a domain                | RolesUpdated            | User       |
+| UpdateRoles           | **Legacy** — removed. Use UpdateMemberRoles instead            | RolesUpdated (legacy)   | User       |
 | ChangeEmail           | Change the user's email address                               | EmailChanged            | User       |
 | VerifyEmail           | Confirm email ownership with a verification token             | EmailVerified           | User       |
 | ChangeDisplayName     | Change the user's display name                                | DisplayNameChanged      | User       |
