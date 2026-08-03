@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
@@ -55,7 +56,7 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 			"title": "",
 			"notification": map[string]string{
 				"level":   "success",
-				"message": "Todo created",
+				"message": fmt.Sprintf("Created: %s", s.Title),
 			},
 		})
 	}

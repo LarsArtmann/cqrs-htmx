@@ -53,7 +53,7 @@ All tests in all modules must pass with zero errors before submitting.
 
 This is a **library/SDK**, not an application. There is no `main` package. Consumers import `github.com/larsartmann/cqrs-htmx/v4` into their projects.
 
-The project uses a **multi-module Go workspace** with 18 modules:
+The project uses a **multi-module Go workspace** with 19 modules:
 
 | Module             | Path                             | Go Module                                               | Tests |
 | ------------------ | -------------------------------- | ------------------------------------------------------- | ----- |
@@ -66,6 +66,7 @@ The project uses a **multi-module Go workspace** with 18 modules:
 | Admin UI           | `./adminui/`                     | `github.com/larsartmann/cqrs-htmx/adminui/v4`           | Yes   |
 | Login Page         | `./loginpage/`                   | `github.com/larsartmann/cqrs-htmx/loginpage/v4`         | Yes   |
 | Dashboard UI       | `./dashboardui/`                 | `github.com/larsartmann/cqrs-htmx/dashboardui/v4`       | Yes   |
+| Datastar           | `./datastar/`                    | `github.com/larsartmann/cqrs-htmx/datastar/v4`          | Yes   |
 | Integration Test   | `./integration_test/`            | separate test module                                    | Yes   |
 | Basic Example      | `./examples/basic/`              | example app                                             | No    |
 | Datastar Demo      | `./examples/datastar-demo/`      | example app (Datastar SSE)                              | No    |
@@ -78,7 +79,7 @@ The project uses a **multi-module Go workspace** with 18 modules:
 
 **Auth sub-modules** (totp, webauthn, oauth2) use **structural typing** — they implement core interfaces via primitive types (`[]byte`, `string`) without importing core `usermgmt`. This keeps auth dependencies (pquerna/otp, go-webauthn, oauth2/oidc) out of core. Each has its own `.golangci.yml`.
 
-**Dependency direction:** identity-model is the domain source of truth (pure types). usermgmt re-exports identity-model via type aliases. Root → usermgmt: zero imports. Auth sub-modules → usermgmt: ZERO (structural typing via interfaces). Adminui/loginpage/dashboardui → root + usermgmt. Nothing depends on adminui, loginpage, or dashboardui.
+**Dependency direction:** identity-model is the domain source of truth (pure types). usermgmt re-exports identity-model via type aliases. Root → usermgmt: zero imports. Auth sub-modules → usermgmt: ZERO (structural typing via interfaces). Adminui/loginpage/dashboardui → root + usermgmt. Datastar is fully isolated (depends only on datastar-go SDK + go-cqrs-lite/event/v4, zero root deps). Nothing depends on adminui, loginpage, dashboardui, or datastar.
 
 ## Key Conventions
 

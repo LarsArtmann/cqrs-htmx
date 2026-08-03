@@ -1214,7 +1214,7 @@ cqrs-htmx/
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
     ├── basic/           # Minimal cqrs-htmx consumer example
-    ├── datastar-demo/   # Standalone datastar + go-cqrs-lite SSE example
+    ├── datastar-demo/   # Real-time todo app using the datastar adapter module (SSE + signals)
     ├── catalog-demo/    # Catalog doc-server example
     ├── admin-demo/      # Runnable admin panel showcase
     └── dashboard-demo/  # CQRS/ES observability dashboard demo

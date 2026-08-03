@@ -106,5 +106,3 @@ func renderEventLogEntry(e DomainEvent) string {
 	<span class="event-time">%s</span>
 </div>`, eventKindFromType(e.Type), e.User, e.OccurredAt.Format("15:04:05"))
 }
-
-
