@@ -4,6 +4,8 @@
 > **Scope:** This session only. Started from `df8dfb6` (HEAD after prior docs-health initiative).
 > **Final HEAD:** `56d2dfe` — 7 files changed, +427/-25 lines across 5 auto-commits.
 
+> **Update 2026-08-03:** All 6 tasks in section a) shipped and are in CHANGELOG `[Unreleased]`. The errorfamily AST scanner (item 3) replaced the ripgrep approach — Q3 from the 03-40 report answered. Section d) items: the `http.Error()` → `ds.ErrorResponse()` migration in the datastar-demo was completed in session 09-14. The CI workflow was later expanded to include identity-model, dashboardui, and loginpage. The only remaining TODO_LIST items from this session are: cqrs-lint upgrade (P2), MySQL integration test (P2), cqrs-lint CI gate (P3).
+
 ---
 
 ## a) FULLY DONE

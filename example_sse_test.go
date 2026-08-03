@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 func ExampleWriteSSEEvent() {

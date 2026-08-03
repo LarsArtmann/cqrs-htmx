@@ -4,6 +4,8 @@
 **Session scope:** Diagnose and fix the `buildflow govalid-generate` failure from `paste_1.txt`
 **Status:** PARTIALLY DONE — race eliminated, but fix introduces a 4x full-pipeline slowdown that was NOT caught during implementation
 
+> **Update 2026-08-03:** **Q1 resolved — `max_concurrency: 1` was KEPT as the definitive fix** (AGENTS.md documents this). The 4x slowdown concern was mitigated: `scripts/prewarm-gocache.sh` remains as a performance optimization (converts cold compile to warm read), and the per-module compile bottleneck means serialization cost is ~5% on govalid-generate. The prewarm script and pre-commit hook comments were updated in subsequent sessions to reflect "performance optimization" framing. Section d) "4x slowdown" was overstated for the govalid-generate step specifically (5% delta); the full-pipeline concern was valid but accepted as the cost of correctness.
+
 ---
 
 ## a) FULLY DONE

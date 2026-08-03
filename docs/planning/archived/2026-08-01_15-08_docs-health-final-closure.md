@@ -39,7 +39,7 @@ Plan doc, commit, push.
 | M9  | Verify markdown links properly               | ✅ Done | All links resolve (14 doc-relative links verified) |
 | M10 | Classify HTML CSP files                      | ✅ Done | All 9 are internal dev docs — CSP N/A              |
 | M11 | Write this plan doc                          | ✅ Done | This file                                          |
-| M12 | Run gates + commit + push                    | Pending |                                                    |
+| M12 | Run gates + commit + push                    | ✅ Done | All gates green, committed + pushed                |
 
 ---
 

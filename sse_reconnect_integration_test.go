@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 // TestSSE_RealServer_ReconnectionWithLastEventID verifies the SSE

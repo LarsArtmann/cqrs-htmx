@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 func main() {
@@ -106,7 +107,7 @@ const indexHTML = `<!DOCTYPE html>
 
 func sseHandler(bc *cqrshtmx.Broadcaster) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		stream := cqrshtmx.NewSSEStream(w, r)
+		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
 
 		if f, ok := w.(http.Flusher); ok {

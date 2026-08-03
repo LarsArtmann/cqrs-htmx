@@ -4,6 +4,8 @@
 **Session goal:** Execute the remaining P0/P1 items from the prior session's 50-item follow-up list  
 **Result:** 9 of 10 tracked tasks completed. Module verified at **71 tests, 97.3% coverage, 0 lint issues, 0 workspace build errors**. Found 2 real bugs in my own work (documented below).
 
+> **Update 2026-08-03 (commit `9cde5c0`, `dfc18e1`):** Both bugs found in this session (D1 writeHeartbeat SDK bypass, D2 test tautology) were fixed in session 19:34. Coverage corrected from 97.3% to 96.7% after heartbeat refactor. Integration guide updated with new features. Module is in publishable state pending user decision on tagging.
+
 ---
 
 ## A. Fully Done

@@ -8,6 +8,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-sse"
 )
 
 // Dashboard is the CQRS/ES observability panel. Build it with [New] or
@@ -23,7 +24,7 @@ type Dashboard struct {
 	caps        Capabilities
 	nav         []navItem
 	broadcaster *cqrshtmx.Broadcaster
-	sseStore    cqrshtmx.SSEEventStore
+	sseStore    sse.EventStore
 	done        chan struct{}
 	closeOnce   sync.Once
 }

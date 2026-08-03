@@ -10,6 +10,8 @@
 
 The datastar adapter module is **production-ready for its initial scope**. This session closed 7 cleanup items from the prior session's 50-item follow-up list, fixed a cyclop lint regression introduced during the session, and verified the full module health. The module ships 16 Go files (2,014 lines), 57 tests, 95.3% coverage (gate 90%), 0 lint issues.
 
+> **Update 2026-08-03 (commit `a4cff70`, `d045663`, `9cde5c0`):** P0 items from this report's follow-up list (flightrecorder fix, integration tests, dead code, demo error paths) all resolved by session 09:14. P1 items (OnError callback, heartbeat, new Response methods, coverage push to 97.3%) also shipped in session 09:14. Two bugs from session 09:14 (writeHeartbeat bypass, test tautology) fixed in session 19:34. Module at **71 tests, 96.7% coverage**.
+
 **One item is genuinely fucked up:** the `integration_test/datastar_contract_test.go` cannot run due to a pre-existing `flightrecorder/v4.0.0` unknown-revision bug in go-cqrs-lite (not caused by this work, but blocks verification of cross-module contracts).
 
 ---

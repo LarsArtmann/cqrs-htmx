@@ -109,7 +109,7 @@
 //
 //	broadcaster := cqrshtmx.NewBroadcaster()
 //	ch := broadcaster.Subscribe()
-//	broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "update", Data: html})
+//	broadcaster.Broadcast(sse.Event{Event: "update", Data: html})
 //
 //	app, _ := cqrshtmx.New(cqrshtmx.Config{
 //	    AfterDispatch: broadcaster.BroadcastOnSuccess("itemUpdated", ""),
@@ -128,7 +128,7 @@
 // StructuredError (RFC 7807) provides transport-agnostic error payloads for SSE and WS:
 //
 //	payload := cqrshtmx.NewStructuredError(err, r)
-//	broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "error", Data: payload.JSON()})
+//	broadcaster.Broadcast(sse.Event{Event: "error", Data: payload.JSON()})
 //
 // # SSE Reconnection with Durable Replay
 //
@@ -136,16 +136,16 @@
 // backed by the go-cqrs-lite event journal. On SSE reconnection, missed
 // events are replayed via cursor-based ReadFrom:
 //
-//	store := cqrshtmx.NewJournalSSEStore(eventJournal, func(evt event.Event) cqrshtmx.SSEEvent {
-//	    return cqrshtmx.SSEEvent{
+//	store := cqrshtmx.NewJournalSSEStore(eventJournal, func(evt event.Event) sse.Event {
+//	    return sse.Event{
 //	        Event: string(evt.Type()),
 //	        Data:  renderHTML(evt),
-//	        ID:    cqrshtmx.NewSSEEventID(evt.ID().String()),
+//	        ID:    sse.NewEventID(evt.ID().String()),
 //	    }
 //	})
 //
 //	lastID := stream.LastEventID()
-//	cqrshtmx.ReplayEvents(stream, store, lastID)
+//	sse.Replay(stream, store, lastID)
 //
 // # ACK Protocol (Honest UI)
 //

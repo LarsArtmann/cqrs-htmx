@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-sse"
 )
 
 // errTestDispatch is a test-only dispatch error using event-family (no stdlib).
