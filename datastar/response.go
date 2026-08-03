@@ -52,7 +52,10 @@ func (resp *Response) PatchElements(html string, opts ...PatchElementOption) *Re
 }
 
 // PatchElementsTempl renders a templ component into the client's DOM.
-func (resp *Response) PatchElementsTempl(component TemplComponent, opts ...PatchElementOption) *Response {
+func (resp *Response) PatchElementsTempl(
+	component TemplComponent,
+	opts ...PatchElementOption,
+) *Response {
 	_ = resp.sse.PatchElementTempl(component, opts...)
 
 	return resp
@@ -95,7 +98,11 @@ func (resp *Response) ConsoleError(err error, opts ...ExecuteScriptOption) *Resp
 
 // DispatchCustomEvent dispatches a custom browser event with the given name
 // and detail payload (any JSON-marshallable value).
-func (resp *Response) DispatchCustomEvent(name string, detail any, opts ...DispatchCustomEventOption) *Response {
+func (resp *Response) DispatchCustomEvent(
+	name string,
+	detail any,
+	opts ...DispatchCustomEventOption,
+) *Response {
 	_ = resp.sse.DispatchCustomEvent(name, detail, opts...)
 
 	return resp
