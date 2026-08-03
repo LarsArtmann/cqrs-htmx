@@ -46,17 +46,17 @@ mux.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
 
 ## API
 
-| Function | Description |
-|----------|-------------|
-| `ScriptHandler()` | Serve embedded datastar.js with ETag caching |
-| `ScriptTag(path)` | HTML `<script type="module">` tag |
-| `ReadSignals(r, &target)` | Decode Datastar signals from request |
-| `NewResponse(w, r)` | Fluent Datastar SSE response builder |
-| `ElementsPatch(html, opts...)` | Create a patch-elements instruction |
-| `SignalsPatch(signals, opts...)` | Create a patch-signals instruction |
-| `RemovePatch(selector)` | Create a remove-element instruction |
-| `NewBroadcaster()` | Fan-out SSE patches to all clients |
-| `NewEventBridge(broadcaster)` | Declarative event-to-patch mapping |
+| Function                         | Description                                  |
+| -------------------------------- | -------------------------------------------- |
+| `ScriptHandler()`                | Serve embedded datastar.js with ETag caching |
+| `ScriptTag(path)`                | HTML `<script type="module">` tag            |
+| `ReadSignals(r, &target)`        | Decode Datastar signals from request         |
+| `NewResponse(w, r)`              | Fluent Datastar SSE response builder         |
+| `ElementsPatch(html, opts...)`   | Create a patch-elements instruction          |
+| `SignalsPatch(signals, opts...)` | Create a patch-signals instruction           |
+| `RemovePatch(selector)`          | Create a remove-element instruction          |
+| `NewBroadcaster()`               | Fan-out SSE patches to all clients           |
+| `NewEventBridge(broadcaster)`    | Declarative event-to-patch mapping           |
 
 ## License
 
