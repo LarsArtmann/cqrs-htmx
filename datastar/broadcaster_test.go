@@ -327,7 +327,7 @@ func TestBroadcasterHeartbeatKeepsConnectionAlive(t *testing.T) {
 	// readSSEBody sleeps 100ms after connecting — enough for ~10 heartbeats.
 	body := readSSEBody(t, b, server.URL, "")
 
-	require.Contains(t, body, ": heartbeat")
+	require.Contains(t, body, "event: ping")
 }
 
 func TestBroadcasterNoHeartbeatByDefault(t *testing.T) {
@@ -342,7 +342,7 @@ func TestBroadcasterNoHeartbeatByDefault(t *testing.T) {
 	body := readSSEBody(t, b, server.URL, "0")
 
 	require.Contains(t, body, "no-heartbeat-here")
-	require.NotContains(t, body, ": heartbeat")
+	require.NotContains(t, body, "event: ping")
 }
 
 func TestNewSSE(t *testing.T) {

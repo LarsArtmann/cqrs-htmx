@@ -13,6 +13,10 @@ import (
 const (
 	subscriberBufferSize = 64
 	defaultReplaySize    = 256
+	// heartbeatEventType is the SSE event type used for keep-alive heartbeats.
+	// The Datastar client ignores unknown event types, making this a safe
+	// lightweight signal that resets proxy idle timers without side effects.
+	heartbeatEventType = EventType("ping")
 )
 
 // patchEntry pairs a patch with its monotonically increasing replay ID.
@@ -220,7 +224,9 @@ func (b *Broadcaster) pumpPatches(
 			if sse.IsClosed() {
 				return
 			}
-			writeHeartbeat(w)
+			if err := writeHeartbeat(sse); err != nil {
+				return
+			}
 		}
 	}
 }
@@ -229,6 +235,12 @@ func (b *Broadcaster) pumpPatches(
 // automatic reconnection via the Last-Event-ID header. Written directly to the
 // ResponseWriter before the SDK writes the event body — both are flushed
 // together by the SDK's Send method.
+//
+// Note: this writes to the raw ResponseWriter, not through the SDK's internal
+// writer (sse.w). This is correct when SSE compression is not enabled (the
+// default — the Broadcaster creates the SSE generator without compression
+// options). If compression support is added to the Broadcaster in the future,
+// this function must be updated to write through the SDK's writer path.
 func writeEventID(w http.ResponseWriter, id uint64) {
 	if id == 0 {
 		return
@@ -236,15 +248,13 @@ func writeEventID(w http.ResponseWriter, id uint64) {
 	_, _ = fmt.Fprintf(w, "id: %d\n", id)
 }
 
-// writeHeartbeat sends an SSE comment to keep the connection alive. Comments
-// (lines starting with ":") are ignored by the browser's EventSource but
-// reset proxy idle timers. The ResponseWriter is flushed immediately so the
-// comment reaches the client without waiting for the next patch.
-func writeHeartbeat(w http.ResponseWriter) {
-	_, _ = fmt.Fprint(w, ": heartbeat\n\n")
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
-	}
+// writeHeartbeat sends a lightweight SSE event to keep the connection alive.
+// It uses the SDK's Send method so the heartbeat respects the SSE generator's
+// mutex, compression writer (if configured), and ResponseController-based
+// flush. The Datastar client ignores unknown event types, making this a safe
+// keep-alive signal that resets proxy idle timers without side effects.
+func writeHeartbeat(sse *sdk.ServerSentEventGenerator) error {
+	return sse.Send(heartbeatEventType, nil)
 }
 
 // parseLastEventID extracts the last event ID from the standard SSE
