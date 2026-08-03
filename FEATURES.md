@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-08-03 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.7% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 84.0% dashboardui (gate 60%), 96.7% datastar (gate 90%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 19 modules
+**Updated:** 2026-08-03 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.3% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 84.0% dashboardui (gate 60%), 96.7% datastar (gate 90%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 19 modules
 
 ## Status legend
 
@@ -265,8 +265,8 @@
 | Feature           | Status                | Notes                                                                                                                                                                                                                                    |
 | ----------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Domain IDs        | 🟢 `FULLY_FUNCTIONAL` | `UserID`, `TenantID`, `BotID`, `ActorID` (kind-discriminated: ActorUser/ActorBot), `SessionID`. Backed by go-branded-id. `NewUserID`/`ParseUserID`/`SyntheticUserID`/`GenerateUserID` constructors.                                      |
-| Event Payloads    | 🟢 `FULLY_FUNCTIONAL` | 22 event payload structs across User (12), Membership (3), Tenant (4), Bot (2), ExternalAccount (2), Credentials (2). Schema versioning with `CurrentSchemaVersion`.                                                                     |
-| Commands          | 🟢 `FULLY_FUNCTIONAL` | 19 command structs with accessor methods (`c.Email()`, `c.Roles()`, etc.). All embed `*command.BasicCommand` (ADR-0032).                                                                                                                 |
+| Event Payloads    | 🟢 `FULLY_FUNCTIONAL` | 21 event payload structs across User (12), Membership (3), Tenant (4), Bot (2). Schema versioning with `CurrentSchemaVersion`. (RolesUpdated is legacy, kept for replay compat.)                                                                     |
+| Commands          | 🟢 `FULLY_FUNCTIONAL` | 20 command structs with accessor methods (`c.Email()`, `c.Roles()`, etc.). All embed `*command.BasicCommand` (ADR-0032).                                                                                                                 |
 | Fold Functions    | 🟢 `FULLY_FUNCTIONAL` | `FoldUser`/`FoldMembership`/`FoldTenant`/`FoldBot` — pure state reconstruction from event streams. Strict: unknown events return Rejection error.                                                                                        |
 | State Structs     | 🟢 `FULLY_FUNCTIONAL` | `UserState`, `MembershipState`, `TenantState`, `BotState` — aggregate snapshots from fold functions.                                                                                                                                     |
 | Authz Engine      | 🟢 `FULLY_FUNCTIONAL` | Casbin-backed RBAC with `Enforce`/`EnforceAny`/`EnforceEx`/`Authorize`/`AsEnforcer`/`RolesForUser`/`AddPolicy`/`Apply`. Default policies + role hierarchy (SuperAdmin→Admin→User→Viewer). Casbin is a first-class dependency (ADR-0044). |
@@ -396,7 +396,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Metric        | Root  | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | datastar | integration_test |
 | ------------- | ----- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | -------- | ---------------- |
-| Coverage      | 93.7% | 81.6%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 84.0%       | 96.7%    | —                |
+| Coverage      | 93.3% | 81.6%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 84.0%       | 96.7%    | —                |
 | CI gate       | 90%   | 74%      | 70%            | 80%   | 80%      | 80%    | 66%     | 79%       | 60%         | 90%      | —                |
 | Tests passing | ~160  | ~602     | ~109           | 3     | 16       | 21     | ~75     | ~36       | ~50         | ~29      |
 | Lint issues   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |
