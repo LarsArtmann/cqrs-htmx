@@ -148,6 +148,8 @@
                 (cd loginpage && go test ./... -count=1 -race)
                 echo "==> dashboardui submodule"
                 (cd dashboardui && go test ./... -count=1 -race)
+                echo "==> datastar submodule"
+                (cd datastar && go test ./... -count=1 -race)
                 echo "==> integration_test submodule"
                 (cd integration_test && go test ./... -count=1 -race)
               '';
@@ -284,6 +286,8 @@
                 (cd loginpage && golangci-lint run)
                 echo "==> dashboardui submodule"
                 (cd dashboardui && golangci-lint run)
+                echo "==> datastar submodule"
+                (cd datastar && golangci-lint run)
                 echo "==> integration_test submodule"
                 (cd integration_test && golangci-lint run)
               '';
@@ -335,6 +339,8 @@
                 (cd loginpage && go build ./...)
                 echo "==> dashboardui submodule"
                 (cd dashboardui && go build ./...)
+                echo "==> datastar submodule"
+                (cd datastar && go build ./...)
                 echo "==> integration_test submodule"
                 (cd integration_test && go build ./...)
                 echo "==> datastar-demo example"
