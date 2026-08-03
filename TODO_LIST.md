@@ -20,13 +20,23 @@
 
 - [~] **MySQL event-store support via go-cqrs-lite Dialect.** Event-store-only MySQL dialect added (`MySQLDialect` with `?` placeholders, MySQL-specific DDL, `IsDuplicateKeyError` extended, `classifyMySQLError` error classifier implemented in go-cqrs-lite `storage/sql/classify_init.go`). `dialectToUpstream` updated. `storage/v4` at v4.5.0. Read model constructors shipped (`NewMySQLUserReadModel`, etc.). Remaining: (1) add integration test against real MySQL (docker/testcontainers), (2) document MySQL support in README, (3) consider `NewMySQLSetup` convenience constructor and MySQL-backed session/snapshot/checkpoint stores.
 
-- [ ] **Fix templ version mismatch between buildflow pre-commit hook and nix.** The pre-commit hook's `go-generate` step regenerates `_templ.go` files with directory-prefixed `FileName:` fields, conflicting with the nix templ version's bare filenames. Forces `--no-verify` on templ-touching commits. Fix by either (a) pinning the same templ version in buildflow as in nix, or (b) excluding `*_templ.go` from buildflow's go-generate step in `.buildflow.yml`. Recurring since 2026-08-01 (documented in AGENTS.md).
+- [ ] **Auto-discover modules from go.work in flake.nix.** Replace hardcoded module lists in flake.nix apps (`test`, `lint`, `coverage`, `build`, etc.) with dynamic discovery via `go work edit -json | jq -r '.Mapping[].DiskPath'`. Currently each new module requires manual updates to 6+ flake.nix apps AND `.github/workflows/ci.yml`. Requires an architecture decision: the shell-in-Nix pattern makes dynamic generation non-trivial. Documented in AGENTS.md gotchas.
+
+- [ ] **Single-source domain model counts.** Generate event/command counts (currently "21 events, 20 commands") from identity-model code instead of hardcoding in 5+ docs (AGENTS.md, ROADMAP.md, FEATURES.md, TODO_LIST.md, guides). A small Go script counting struct types in `events.go`/`commands.go` could produce a canonical number.
+
+- [ ] **Add golines alignment to nix fmt pipeline.** `golines` is available (`~/go/bin/golines`) but not integrated into `nix fmt` (treefmt). Adding it would catch alignment drift automatically. May need `pkgs.golines` from nixpkgs or a wrapper.
+
+- [ ] **Audit display-only structs for dead JSON tags.** `recentEvent` in dashboardui was one case (fixed). Other display-only structs rendered via templ/fmt may carry dead JSON tags that cause lint friction. Systematic `grep` for structs with `json:"..."` tags that are never marshaled.
+
+- [ ] **Add `nix run .#check-docs-links` to pre-commit hook.** Catch broken markdown links before commit. Risk: scans ALL .md files (not just staged), so pre-existing broken links could block unrelated commits. Consider running only on staged `.md` files or adding a `--staged-only` flag.
 
 ---
 
 ## P3 — Technical Debt & Future
 
 - [ ] **Add cqrs-lint strict CI gate to GitHub Actions.** Run cqrs-lint `--strict` in CI to catch catalog/validation findings early. Blocked: cqrs-lint is a Nix-only binary; needs either a Go-installable distribution or a Nix CI runner. The flake.nix `check-cqrs-lint` app exists for local use.
+
+- [ ] **Consider a Go-based markdown link checker.** The current `check-docs-links.sh` uses awk regex extraction which handles common cases but may miss edge cases (nested brackets, multi-line links). A Go-based checker using a proper Markdown parser (goldmark) would be more robust. The awk checker + test suite (`scripts/test-check-docs-links.sh`) is sufficient for now.
 
 ---
 
