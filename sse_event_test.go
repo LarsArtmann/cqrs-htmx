@@ -13,7 +13,7 @@ import (
 )
 
 var _ = Describe("SSE Event Writing and Streaming", func() {
-	Describe("WriteSSEEvent", func() {
+	Describe("sse.WriteEvent", func() {
 		It("writes a named event with data", func() {
 			writeAndExpect(sse.Event{
 				Event: eventTodoCreated,
@@ -120,7 +120,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		})
 	})
 
-	Describe("SSEStream", func() {
+	Describe("sse.Stream", func() {
 		It("sets correct SSE headers", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
@@ -285,9 +285,9 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		})
 	})
 
-	Describe("SSEEventID", func() {
+	Describe("sse.EventID", func() {
 		DescribeTable(
-			"ParseSSEEventID accepts valid IDs",
+			"sse.ParseEventID accepts valid IDs",
 			func(input string) {
 				id, err := sse.ParseEventID(input)
 				Expect(err).NotTo(HaveOccurred())

@@ -132,7 +132,7 @@
 //
 // # SSE Reconnection with Durable Replay
 //
-// JournalSSEStore provides the production SSEEventStore implementation,
+// JournalSSEStore provides the production sse.EventStore implementation,
 // backed by the go-cqrs-lite event journal. On SSE reconnection, missed
 // events are replayed via cursor-based ReadFrom:
 //

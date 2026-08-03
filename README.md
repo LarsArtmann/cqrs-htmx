@@ -34,7 +34,7 @@ One endpoint, four concerns, in declarative order. The same shape works for quer
 - **Rate limiting** — per-key token-bucket with min-heap eviction, configurable burst, and hook callbacks
 - **Security headers** — automatic `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, plus optional CSP/HSTS/Permissions-Policy
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
-- **SSE streaming** — `SSEStream`, `Broadcaster` (thread-safe fan-out), `JournalSSEStore` (production durable replay via `event.SeekableJournal`), CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive, **ACK protocol** (`BroadcastOnAck` — opt-in command confirmation via `X-Command-Id` header)
+- **SSE streaming** — built on [`go-sse`](https://github.com/larsartmann/go-sse) (`sse.Stream`, `sse.Event`); cqrs-htmx adds `Broadcaster` (thread-safe fan-out with CQRS hooks), `JournalSSEStore` (production durable replay via `event.SeekableJournal`), CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive, **ACK protocol** (`BroadcastOnAck` — opt-in command confirmation via `X-Command-Id` header)
 - **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge, `BroadcastOnAckWS` for command confirmation
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v4.2.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified) with ETag/caching. Opt-in, zero CDN dependency. Embedded HTMX extensions (SSE/WS/idiomorph) also available via `HTMXExtensionHandler`/`HTMXExtensionsHandler`
@@ -413,20 +413,23 @@ resp.Trigger("userCreated").
 
 ## SSE (Server-Sent Events)
 
-First-class SSE support for the HTMX SSE extension (`hx-ext="sse"`):
+First-class SSE support for the HTMX SSE extension (`hx-ext="sse"`).
+Protocol types (`Event`, `Stream`, `EventID`) come from [`go-sse`](https://github.com/larsartmann/go-sse); cqrs-htmx adds the CQRS-coupled `Broadcaster` and `JournalSSEStore`.
 
 ```go
-// Start an SSE stream
-stream := cqrshtmx.NewSSEStream(w, r)
-_ = stream.Send(cqrshtmx.SSEEvent{
+import "github.com/larsartmann/go-sse"
+
+// Start an SSE stream (go-sse)
+stream := sse.NewStream(w, r)
+_ = stream.Send(sse.Event{
     Event: "todoUpdated",
     Data:  "<div id='todos'><ul><li>Buy milk</li></ul></div>",
 })
 
-// Fan-out to multiple clients
+// Fan-out to multiple clients (cqrs-htmx Broadcaster)
 broadcaster := cqrshtmx.NewBroadcaster()
 ch := broadcaster.Subscribe()
-broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "update", Data: html})
+broadcaster.Broadcast(sse.Event{Event: "update", Data: html})
 
 // Bridge to CQRS: broadcast SSE on successful command dispatch
 app, _ := cqrshtmx.New(cqrshtmx.Config{
@@ -441,9 +444,9 @@ errApp, _ := cqrshtmx.New(cqrshtmx.Config{
 // Prevent reverse proxies from killing idle connections
 go stream.Heartbeat(stream.Context(), 15*time.Second)
 
-// Reconnection support (SSE spec)
-lastID := cqrshtmx.LastEventIDFromRequest(r)
-cqrshtmx.ReplayEvents(stream, eventStore, lastID)
+// Reconnection support (SSE spec — go-sse)
+lastID := sse.LastEventIDFromRequest(r)
+sse.Replay(stream, eventStore, lastID)
 ```
 
 Client-side:
@@ -456,30 +459,40 @@ Client-side:
 
 ### SSE API
 
-|| Type / Function | Description |
-|| -------------------------------------- | ---------------------------------------------------------------------------------- |
-|| `SSEEvent` | Event struct: `Event`, `Data`, `ID`, `Retry` |
-|| `WriteSSEEvent(w, event)` | Write a single SSE event to any `io.Writer` |
-|| `NewSSEStream(w, r)` | Create a managed SSE connection (correct headers, flush, context-aware lifecycle) |
-|| `stream.Send(event)` | Send event to connected client |
-|| `stream.SendData(name, data)` | Shorthand for raw string content events |
-|| `stream.LastEventID()` | Client's last event ID (for reconnection) |
-|| `stream.Close()` | Graceful shutdown |
+Protocol types come from [go-sse](https://github.com/larsartmann/go-sse); cqrs-htmx adds the CQRS-coupled building blocks.
+
+**go-sse** (`github.com/larsartmann/go-sse`):
+
+| Type / Function | Description |
+| --- | --- |
+| `sse.Event` | Event struct: `Event`, `Data`, `ID`, `Retry` |
+| `sse.WriteEvent(w, event)` | Write a single SSE event to any `io.Writer` |
+| `sse.NewStream(w, r)` | Create a managed SSE connection (correct headers, flush, context-aware lifecycle) |
+| `stream.Send(event)` | Send event to connected client |
+| `stream.SendData(name, data)` | Shorthand for raw string content events |
+| `stream.LastEventID()` | Client's last event ID (for reconnection) |
+| `stream.Close()` | Graceful shutdown |
 | `stream.Heartbeat(ctx, interval)` | Send SSE comment-frame pings to prevent proxy idle kills |
 | `stream.OnDisconnect(fn)` | Register cleanup callback fired on `Close()` |
-|| `NewBroadcaster()` | Thread-safe fan-out hub |
-|| `broadcaster.Subscribe()` | Get a receiver channel |
-|| `broadcaster.Unsubscribe(ch)` | O(1) unsubscribe via channel identity |
-|| `broadcaster.Broadcast(event)` | Non-blocking send to all subscribers (drops to slow consumers) |
-|| `broadcaster.SubscriberCount()` | Active subscriber count |
-|| `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch |
-|| `BroadcastOnSuccessFunc(fn)` | `AfterDispatchHook` with dynamic event generation |
+| `sse.LastEventIDFromRequest(r)` | Extract `Last-Event-ID` from request |
+| `sse.EventStore` | Interface for reconnection replay (`EventsSince(id)`) |
+| `sse.Replay(stream, store, lastID)` | Replay missed events to reconnecting client |
+
+**cqrs-htmx** (CQRS-coupled):
+
+| Type / Function | Description |
+| --- | --- |
+| `NewBroadcaster()` | Thread-safe fan-out hub |
+| `broadcaster.Subscribe()` | Get a receiver channel |
+| `broadcaster.Unsubscribe(ch)` | O(1) unsubscribe via channel identity |
+| `broadcaster.Broadcast(event)` | Non-blocking send to all subscribers (drops to slow consumers) |
+| `broadcaster.SubscriberCount()` | Active subscriber count |
+| `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch |
+| `BroadcastOnSuccessFunc(fn)` | `AfterDispatchHook` with dynamic event generation |
 | `BroadcastOnError(eventName)` | `AfterDispatchHook` that broadcasts StructuredError on dispatch failure |
 | `BroadcastOnErrorFunc(fn)` | `AfterDispatchHook` with dynamic error event generation |
 | `NewStructuredError(err, r)` | RFC 7807 error payload with type/title/status/detail/instance. `.JSON()` for SSE/WS |
-|| `LastEventIDFromRequest(r)` | Extract `Last-Event-ID` from request |
-|| `SSEEventStore` | Interface for reconnection replay (`EventsSince(id)`) |
-|| `ReplayEvents(stream, store, lastID)` | Replay missed events to reconnecting client |
+| `NewJournalSSEStore(...)` | Production `sse.EventStore` backed by a go-cqrs-lite event journal |
 
 ## WebSocket Helpers
 
@@ -573,7 +586,7 @@ The library also embeds the 3 HTMX extensions that pair with its server-side bui
 
 | Extension          | Version            | Server-side counterpart                           |
 | ------------------ | ------------------ | ------------------------------------------------- |
-| `HTMXExtSSE`       | htmx-ext-sse 2.2.4 | `SSEStream`, `Broadcaster`, `JournalSSEStore`     |
+| `HTMXExtSSE`       | htmx-ext-sse 2.2.4 | `sse.Stream`, `Broadcaster`, `JournalSSEStore`     |
 | `HTMXExtWS`        | htmx-ext-ws 2.0.4  | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
 | `HTMXExtIdiomorph` | idiomorph 0.7.4    | Morph-swap for SSE partial updates                |
 
@@ -1166,10 +1179,10 @@ cqrs-htmx/
 ├── ratelimit_middleware.go # RateLimiterMiddleware, token bucket, min-heap eviction
 ├── security.go         # SecurityHeadersMiddleware, SecurityHeadersConfig
 ├── recovery.go         # RecoveryMiddleware (package-level), App.RecoverHandler()
-├── sse_broadcaster.go  # Thread-safe fan-out Broadcaster (O(1) unsubscribe)
-├── sse_event.go        # SSEEvent protocol type, WriteSSEEvent, splitSSELines
-├── sse_store.go        # SSEEventStore interface for reconnection replay
-├── sse_stream.go       # SSEStream, BroadcastOnSuccess CQRS bridge
+├── sse_broadcaster.go  # Broadcaster, ServeSSE, BroadcastOnSuccess/OnError CQRS bridge
+├── sse_event.go        # Deprecated re-exports of go-sse types (sse.Event, WriteEvent, etc.)
+├── sse_store.go        # Deprecated re-exports (SSEEventStore, ReplayEvents → sse.EventStore, sse.Replay)
+├── event_store_sse.go  # JournalSSEStore — production sse.EventStore backed by event journal
 ├── ws.go               # WebSocket message parser, OOB HTML, typed generic parser
 ├── usermgmt/           # User management submodule (independent Go module)
 │   ├── id.go               # Branded UserID type (go-branded-id)
