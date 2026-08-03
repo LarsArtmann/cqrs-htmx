@@ -102,6 +102,85 @@ func TestResponseExecuteScript(t *testing.T) {
 	require.Contains(t, body, "console.log")
 }
 
+func TestResponseConsoleLog(t *testing.T) {
+	t.Parallel()
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/action", nil)
+
+	ds.NewResponse(w, req).ConsoleLog("debug-here")
+
+	require.Contains(t, w.Body.String(), "debug-here")
+}
+
+func TestResponseConsoleError(t *testing.T) {
+	t.Parallel()
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/action", nil)
+
+	ds.NewResponse(w, req).ConsoleError(testError("boom-failed"))
+
+	require.Contains(t, w.Body.String(), "boom-failed")
+}
+
+func TestResponseDispatchCustomEvent(t *testing.T) {
+	t.Parallel()
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/action", nil)
+
+	ds.NewResponse(w, req).DispatchCustomEvent("cartUpdated", map[string]any{"count": 3})
+
+	require.Contains(t, w.Body.String(), "cartUpdated")
+}
+
+func TestResponseReplaceURL(t *testing.T) {
+	t.Parallel()
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/action", nil)
+
+	ds.NewResponse(w, req).ReplaceURL("/items/42")
+
+	require.Contains(t, w.Body.String(), "/items/42")
+}
+
+func TestResponseReplaceURLInvalidIgnored(t *testing.T) {
+	t.Parallel()
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/action", nil)
+
+	ds.NewResponse(w, req).ReplaceURL("%zz") // invalid percent-escape -> silently ignored
+
+	require.NotContains(t, w.Body.String(), "replace-url")
+}
+
+func TestResponseRemoveElementByID(t *testing.T) {
+	t.Parallel()
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("DELETE", "/todos/todo-1", nil)
+
+	ds.NewResponse(w, req).RemoveElementByID("todo-1")
+
+	body := w.Body.String()
+	require.Contains(t, body, "remove")
+	require.Contains(t, body, "todo-1")
+}
+
+func TestResponsePrefetch(t *testing.T) {
+	t.Parallel()
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/page", nil)
+
+	ds.NewResponse(w, req).Prefetch("/assets/big.css")
+
+	require.Contains(t, w.Body.String(), "/assets/big.css")
+}
+
 func TestResponseChainedMethods(t *testing.T) {
 	t.Parallel()
 
