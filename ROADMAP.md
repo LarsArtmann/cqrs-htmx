@@ -5,12 +5,12 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-08-03 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Lint:** 0 issues across all 19 modules | **Coverage gates:** root 93.7% (gate 90%), usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 84.0% (gate 60%), datastar 95.1% (gate 90%)
+**Updated:** 2026-08-03 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Lint:** 0 issues across all 19 modules | **Coverage gates:** root 93.7% (gate 90%), usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 84.0% (gate 60%), datastar 96.7% (gate 90%)
 
 ## Current State
 
 - **Version:** v4.6.1 (19 modules: root + identity-model + usermgmt + 3 auth sub-modules + adminui + loginpage + dashboardui + datastar + integration_test + 7 examples + e2e/server). v4.6.0 released 2026-07-26; v4.6.1 released 2026-07-27 (dependency bumps, identity-model metadata, slices.Contains refactor). All inter-module version refs resolved to clean tags (`e274540` + subsequent releases).
-- **Coverage:** 93.7% root, 81.6% usermgmt, 74.9% identity-model (gate 70%), 88.2% totp, 89.2% webauthn, 88.3% oauth2, 68.7% adminui, 79.9% loginpage, 84.0% dashboardui (gate 60%), 95.1% datastar (gate 90%). Race-safe. CI gates: root 90%, usermgmt 74%, identity-model 70%, auth 80%, adminui 66%, loginpage 79%, dashboardui 60%, datastar 90% (see `nix run .#coverage-gate`). All 10 modules have coverage gates.
+- **Coverage:** 93.7% root, 81.6% usermgmt, 74.9% identity-model (gate 70%), 88.2% totp, 89.2% webauthn, 88.3% oauth2, 68.7% adminui, 79.9% loginpage, 84.0% dashboardui (gate 60%), 96.7% datastar (gate 90%). Race-safe. CI gates: root 90%, usermgmt 74%, identity-model 70%, auth 80%, adminui 66%, loginpage 79%, dashboardui 60%, datastar 90% (see `nix run .#coverage-gate`). All 10 modules have coverage gates.
 - **Lint:** All 19 modules lint-clean (0 issues each). Achieved via the SA1019 deprecation migration (`id.AggregateID` → `id.StreamID` across all modules), dead-code removal (`renderStatCardsTempl`, `notImplemented`, `eventRow`), and targeted `.golangci.yml` exclusions for intentional patterns (builder-pattern partial init, re-export wrappers, generated `_templ.go`). The exclusion audit confirmed zero masked bugs. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 - **ErrorFamily:** 0 violations across all modules.
 - **Dependencies:** go-cqrs-lite v4.2.0 (storage/memory and snapshot at v4.1.0), go-error-family v0.10.0, go-branded-id v0.5.0, go-sse v0.3.0, httputil v0.8.0, templ-components v1.2.0. Casbin v3 is a first-class dependency of identity-model (ADR-0044). Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps.
@@ -49,6 +49,25 @@ Research and a proposal (`docs/research/2026-07-25_*`, `docs/proposals/2026-07-2
 **Status:** under consideration. No code written. The strategic angle (per the landscape research): event sourcing _structurally prevents_ the data-discovery problems DataHub/OpenMetadata/ODDS exist to solve, so time-travel + the catalog are a stronger positioning than a bespoke mesh product. Not yet committed to a release.
 
 **Related research:** [Iroh (n0-computer) P2P/QUIC networking fit analysis](docs/research/2026-08-02_iroh-p2p-networking-fit-analysis.md) — evaluated for broker-less multi-instance fanout (`iroh-gossip`), distributed snapshot store (`iroh-blobs`), and local-first read projections (`iroh-docs`). Conclusion: not a core-dependency fit (Rust-first, no official Go bindings for the protocol layer; write-path conflict with server-authoritative ES). One low-risk opt-in idea (gossip-backed `event.Bus`) kept as a raw idea pending official Go protocol bindings or a consumer request.
+
+---
+
+## Datastar Future Scope
+
+The `datastar/v4` module shipped in [Unreleased] with 71 tests, 96.7% coverage (gate 90%), 0 lint issues. It is feature-complete for its initial scope (script serving, signal decoding, response builder, broadcaster with replay + heartbeat, EventBridge with OnError). These items are future scope, each requiring a separate decision:
+
+| Item | What | Effort | Notes |
+| ---- | ---- | ------ | ----- |
+| Publish `datastar/v4` tag | Tag the module so consumers can `go get` without `replace` directives | 5min | Module is ready. Requires stripping local `replace` directives from demo/integration_test go.mod first. |
+| dashboardui Datastar variant | Replace HTMX polling with Datastar signal patches for real-time projection health | ~8hr | Templ components stay the same; only transport changes from polling to SSE signal patches. |
+| adminui Datastar variant | Optional morph-based rendering mode alongside HTMX | ~6hr | Same pattern as dashboardui variant. |
+| loginpage Datastar forms | Signal-based form state/validation (client-side) | ~3hr | Replace server-side form validation roundtrips with client-side signal validation. |
+| Offline sync evaluation | Compare Datastar built-in retry primitives vs `sync-worker.js` | ~4hr | Datastar's CQRS model (long-lived SSE + short writes with auto-retry) may simplify the sync layer. |
+| Broadcaster SSE compression | Re-export SDK compression options (`WithGzip`, `WithBrotli`, etc.) | ~4hr | Blocked: `writeEventID` bypasses SDK write path (documented limitation). Requires SDK `SetEventID` method or refactor. |
+| Broadcaster options pattern | Refactor constructors to `NewBroadcaster(opts ...BroadcasterOption)` with `WithReplay(n)`, `WithHeartbeat(d)` | ~2hr | Currently 3 separate constructors; no way to combine replay + heartbeat. |
+| WebSocket transport | WS Broadcaster variant (Datastar supports WS alongside SSE) | ~8hr | Root module already has WSBroadcaster; would need Datastar patch format adapter. |
+
+**Open question:** Should the `datastar/v4` tag be published now (module is tested, documented, integration-tested) or wait for additional features? The module has no published tag — consumers outside the workspace cannot `go get` it.
 
 ---
 
