@@ -107,17 +107,4 @@ func renderEventLogEntry(e DomainEvent) string {
 </div>`, eventKindFromType(e.Type), e.User, e.OccurredAt.Format("15:04:05"))
 }
 
-// extractTitle pulls the text content from <span class="todo-title">...</span>
-func extractTitle(html string) string {
-	const marker = `<span class="todo-title">`
-	const end = `</span>`
-	_, rest, found := strings.Cut(html, marker)
-	if !found {
-		return ""
-	}
-	before, _, found := strings.Cut(rest, end)
-	if !found {
-		return rest
-	}
-	return before
-}
+
