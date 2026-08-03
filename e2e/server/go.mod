@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.6.1
-	github.com/larsartmann/go-sse v0.3.0
+	github.com/larsartmann/go-sse v0.4.0
 )
 
 require (
