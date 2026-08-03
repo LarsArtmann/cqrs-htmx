@@ -19,6 +19,14 @@ require (
 )
 
 require (
+	github.com/CAFxX/httpcompression v0.0.9 // indirect
+	github.com/andybalholm/brotli v1.2.2 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
+	github.com/starfederation/datastar-go v1.2.2 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+)
+
+require (
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
@@ -43,7 +51,7 @@ require (
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.0.0
+	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.6.1
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.1 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
@@ -75,7 +83,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
+	github.com/stretchr/testify v1.11.1
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

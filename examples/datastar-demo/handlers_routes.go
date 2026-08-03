@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 func eventKindFromType(t string) string {

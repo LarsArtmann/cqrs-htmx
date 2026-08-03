@@ -55,9 +55,9 @@ Root's `handlerConfig` is unexported, so the datastar module cannot create `cqrs
 
 ## Alternatives Considered
 
-| Option | Verdict |
-|---|---|
-| Add Datastar to root go.mod | **Rejected** — forces every HTMX consumer to pull Datastar SDK |
-| Abstract transport interface | **Rejected** — massive refactor of stable code for hypothetical benefit |
-| Separate repo (`cqrs-datastar`) | **Rejected** — fragments the ecosystem, duplicates CQRS wiring |
-| Depend on root module | **Rejected** — pulls casbin/httputil/go-sse unnecessarily; replay via JournalSSEStore is wrong abstraction (replays events, not patches) |
+| Option                          | Verdict                                                                                                                                  |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Add Datastar to root go.mod     | **Rejected** — forces every HTMX consumer to pull Datastar SDK                                                                           |
+| Abstract transport interface    | **Rejected** — massive refactor of stable code for hypothetical benefit                                                                  |
+| Separate repo (`cqrs-datastar`) | **Rejected** — fragments the ecosystem, duplicates CQRS wiring                                                                           |
+| Depend on root module           | **Rejected** — pulls casbin/httputil/go-sse unnecessarily; replay via JournalSSEStore is wrong abstraction (replays events, not patches) |

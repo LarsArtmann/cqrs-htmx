@@ -3,9 +3,9 @@ package main
 import (
 	"net/http"
 
+	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
-	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 )
 
 type Signals struct {

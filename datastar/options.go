@@ -88,17 +88,17 @@ var (
 
 	// --- Signal patch options ---
 
-	WithOnlyIfMissing            = sdk.WithOnlyIfMissing
-	WithPatchSignalsEventID      = sdk.WithPatchSignalsEventID
+	WithOnlyIfMissing             = sdk.WithOnlyIfMissing
+	WithPatchSignalsEventID       = sdk.WithPatchSignalsEventID
 	WithPatchSignalsRetryDuration = sdk.WithPatchSignalsRetryDuration
 
 	// --- ExecuteScript options ---
 
-	WithExecuteScriptEventID         = sdk.WithExecuteScriptEventID
-	WithExecuteScriptRetryDuration   = sdk.WithExecuteScriptRetryDuration
-	WithExecuteScriptAutoRemove      = sdk.WithExecuteScriptAutoRemove
-	WithExecuteScriptAttributes      = sdk.WithExecuteScriptAttributes
-	WithExecuteScriptAttributeKVs    = sdk.WithExecuteScriptAttributeKVs
+	WithExecuteScriptEventID       = sdk.WithExecuteScriptEventID
+	WithExecuteScriptRetryDuration = sdk.WithExecuteScriptRetryDuration
+	WithExecuteScriptAutoRemove    = sdk.WithExecuteScriptAutoRemove
+	WithExecuteScriptAttributes    = sdk.WithExecuteScriptAttributes
+	WithExecuteScriptAttributeKVs  = sdk.WithExecuteScriptAttributeKVs
 
 	// --- SSE options ---
 
