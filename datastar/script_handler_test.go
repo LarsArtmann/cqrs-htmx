@@ -4,6 +4,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"regexp"
 	"testing"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
@@ -122,4 +124,24 @@ func TestVersion(t *testing.T) {
 	t.Parallel()
 
 	require.Equal(t, "1.0.2", ds.Version())
+}
+
+// TestVersionMatchesJSComment prevents silent version drift between the Go
+// datastarVersion constant and the version embedded in the datastar.js file.
+// If the JS is updated but datastarVersion isn't bumped, cached clients get
+// stale 304s for a year. This test catches that mismatch at CI time.
+func TestVersionMatchesJSComment(t *testing.T) {
+	t.Parallel()
+
+	content, err := os.ReadFile("datastar/datastar.js")
+	require.NoError(t, err)
+
+	versionRe := regexp.MustCompile(`// Datastar v(\d+\.\d+(?:\.\d+)?)`)
+	matches := versionRe.FindSubmatch(content)
+	require.NotNil(t, matches, "version comment not found in datastar.js")
+
+	jsVersion := string(matches[1])
+	require.Equal(t, ds.Version(), jsVersion,
+		"version drift: datastar.js v%s, Go datastarVersion=%s \u2014 bump datastarVersion in script_embed.go",
+		jsVersion, ds.Version())
 }
