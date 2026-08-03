@@ -1,9 +1,9 @@
 # SQL Store Reference for usermgmt
 
 **Status:** `SQLSessionStore` shipped in-package. `SQLEventStore` shipped in-package.
-**See:** [ADR 0003](../adr/0003-numeric-ids-sql-stores.md) for ID-type strategy.
-**See:** [ADR 0006](../adr/0006-event-sourced-user-aggregate.md) for event-sourced architecture.
-**See:** [ADR 0012](../adr/0012-sql-session-store.md) for SQLSessionStore design.
+**See:** [ADR 0003](../../docs/adr/0003-numeric-ids-sql-stores.md) for ID-type strategy.
+**See:** [ADR 0006](../../docs/adr/0006-event-sourced-user-aggregate.md) for event-sourced architecture.
+**See:** [ADR 0012](../../docs/adr/0012-sql-session-store.md) for SQLSessionStore design.
 
 The `usermgmt` package ships two SQL-backed stores using `database/sql` (stdlib):
 

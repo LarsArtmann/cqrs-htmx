@@ -123,5 +123,5 @@ OnStateChange: func(name string, from, to gobreaker.State) {
 
 ## See Also
 
-- [Service Setup](../references/usermgmt.md) — How to inject auth providers into the Service
-- [Error Mapping](../references/core-api.md) — How `Transient` errors map to HTTP 503
+- Service Setup — How to inject auth providers into the Service (see `docs/guides/provider-implementation.md`)
+- Error Mapping — How `Transient` errors map to HTTP 503 (see AGENTS.md "Error families → HTTP status")
