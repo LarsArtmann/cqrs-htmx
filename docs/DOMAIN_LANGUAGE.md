@@ -94,29 +94,29 @@ Immutable objects defined by attributes.
 
 Immutable records of domain changes.
 
-| Event                   | What Happened                                          | Aggregate  |
-| ----------------------- | ------------------------------------------------------ | ---------- |
-| UserRegistered          | A new user account was created with email and roles    | User       |
-| RolesUpdated            | The user's roles were changed in a specific domain (**legacy** — superseded by MemberRolesChanged, kept for replay compat)     | User       |
-| EmailChanged            | The user's email address was changed                   | User       |
-| EmailVerified           | The user proved ownership of their email via token     | User       |
-| DisplayNameChanged      | The user's display name was changed                    | User       |
-| UserDeleted             | The user was deleted (tombstone — no further changes)  | User       |
-| CredentialAdded         | A WebAuthn credential was registered to the user       | User       |
-| CredentialRemoved       | A WebAuthn credential was removed from the user        | User       |
-| TOTPEnabled             | TOTP multi-factor authentication was activated         | User       |
-| TOTPDisabled            | TOTP multi-factor authentication was deactivated       | User       |
-| ExternalAccountLinked   | An OAuth2/OIDC provider account was linked to the user | User       |
-| ExternalAccountUnlinked | An OAuth2/OIDC provider account was unlinked           | User       |
-| MemberAdded             | An actor was granted a role in a tenant                | Membership |
-| MemberRolesChanged      | An actor's roles within a tenant were changed          | Membership |
-| MemberRemoved           | An actor's membership in a tenant was revoked          | Membership |
-| TenantCreated           | A new tenant was created                               | Tenant     |
-| TenantSuspended         | A tenant was suspended (inactive but not deleted)      | Tenant     |
-| TenantReactivated       | A suspended tenant was reactivated                     | Tenant     |
-| TenantDeleted           | A tenant was deleted (tombstone)                       | Tenant     |
-| BotRegistered           | A bot was registered with an API token                 | Bot        |
-| BotDeleted              | A bot was deleted (tombstone)                          | Bot        |
+| Event                   | What Happened                                                                                                              | Aggregate  |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| UserRegistered          | A new user account was created with email and roles                                                                        | User       |
+| RolesUpdated            | The user's roles were changed in a specific domain (**legacy** — superseded by MemberRolesChanged, kept for replay compat) | User       |
+| EmailChanged            | The user's email address was changed                                                                                       | User       |
+| EmailVerified           | The user proved ownership of their email via token                                                                         | User       |
+| DisplayNameChanged      | The user's display name was changed                                                                                        | User       |
+| UserDeleted             | The user was deleted (tombstone — no further changes)                                                                      | User       |
+| CredentialAdded         | A WebAuthn credential was registered to the user                                                                           | User       |
+| CredentialRemoved       | A WebAuthn credential was removed from the user                                                                            | User       |
+| TOTPEnabled             | TOTP multi-factor authentication was activated                                                                             | User       |
+| TOTPDisabled            | TOTP multi-factor authentication was deactivated                                                                           | User       |
+| ExternalAccountLinked   | An OAuth2/OIDC provider account was linked to the user                                                                     | User       |
+| ExternalAccountUnlinked | An OAuth2/OIDC provider account was unlinked                                                                               | User       |
+| MemberAdded             | An actor was granted a role in a tenant                                                                                    | Membership |
+| MemberRolesChanged      | An actor's roles within a tenant were changed                                                                              | Membership |
+| MemberRemoved           | An actor's membership in a tenant was revoked                                                                              | Membership |
+| TenantCreated           | A new tenant was created                                                                                                   | Tenant     |
+| TenantSuspended         | A tenant was suspended (inactive but not deleted)                                                                          | Tenant     |
+| TenantReactivated       | A suspended tenant was reactivated                                                                                         | Tenant     |
+| TenantDeleted           | A tenant was deleted (tombstone)                                                                                           | Tenant     |
+| BotRegistered           | A bot was registered with an API token                                                                                     | Bot        |
+| BotDeleted              | A bot was deleted (tombstone)                                                                                              | Bot        |
 
 ## Commands
 
@@ -125,7 +125,7 @@ Intents that trigger state changes.
 | Command               | What It Does                                                  | Events Produced         | Aggregate  |
 | --------------------- | ------------------------------------------------------------- | ----------------------- | ---------- |
 | RegisterUser          | Create a new user account (email only, no password)           | UserRegistered          | User       |
-| UpdateRoles           | **Legacy** — removed. Use UpdateMemberRoles instead            | RolesUpdated (legacy)   | User       |
+| UpdateRoles           | **Legacy** — removed. Use UpdateMemberRoles instead           | RolesUpdated (legacy)   | User       |
 | ChangeEmail           | Change the user's email address                               | EmailChanged            | User       |
 | VerifyEmail           | Confirm email ownership with a verification token             | EmailVerified           | User       |
 | ChangeDisplayName     | Change the user's display name                                | DisplayNameChanged      | User       |
