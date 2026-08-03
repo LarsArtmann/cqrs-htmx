@@ -24,8 +24,9 @@
 //	bridge.Map("TodoCreated", func(e event.Event) (ds.Patch, error) {
 //	    return ds.ElementsPatch(renderTodo(e)), nil
 //	})
-//	bridge.Start(subscribeFunc)
-//	defer bridge.Stop()
+//
+//	// Wire to your event bus — bridge.Handle processes each domain event:
+//	eventBus.SubscribeAll(bridge.Handle)
 //
 // For command endpoints, decode Datastar signals and respond with patches:
 //
@@ -44,7 +45,7 @@
 // # API Surface
 //
 //   - ScriptHandler / ScriptHandlerWith / ScriptTag — embed and serve datastar.js
-//   - ReadSignals / ReadSignalsQuery — decode client signals from requests
+//   - ReadSignals — decode client signals from requests
 //   - NewResponse — fluent Datastar SSE response builder
 //   - ElementsPatch / SignalsPatch / RemovePatch / ScriptPatch / RedirectPatch — patch constructors
 //   - Broadcaster — fan-out SSE patches to all connected clients

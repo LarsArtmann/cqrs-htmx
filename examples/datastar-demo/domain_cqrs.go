@@ -3,105 +3,30 @@ package main
 import (
 	"context"
 	"encoding/json/v2"
-	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 )
 
 // --- CQRS Setup ---
-
-type BroadcastEvent struct {
-	Kind string `json:"kind"` // "todo_created", "todo_updated", "todo_deleted"
-	User string `json:"user"`
-	Data string `json:"data"` // HTML fragment or CSS selector
-	//cqrs-lint:ignore(C013) in-memory SSE broadcast struct, not an event store payload
-	Time time.Time `json:"time"`
-}
-
-type Broadcaster struct {
-	mu   sync.Mutex
-	subs map[chan BroadcastEvent]struct{}
-}
-
-func NewBroadcaster() *Broadcaster {
-	return &Broadcaster{subs: make(map[chan BroadcastEvent]struct{})}
-}
-
-func (b *Broadcaster) Subscribe() chan BroadcastEvent {
-	ch := make(chan BroadcastEvent, 64)
-	b.mu.Lock()
-	b.subs[ch] = struct{}{}
-	b.mu.Unlock()
-	return ch
-}
-
-func (b *Broadcaster) Unsubscribe(ch chan BroadcastEvent) {
-	b.mu.Lock()
-	delete(b.subs, ch)
-	b.mu.Unlock()
-}
-
-// Send broadcasts an event to all subscribers. The snapshot-then-send
-// pattern is safe ONLY because Unsubscribe does not close the channel.
-// If you change Unsubscribe to close(ch), you MUST hold the lock during
-// the send loop (see cqrs-htmx fanout.go for the correct pattern).
-func (b *Broadcaster) Send(evt BroadcastEvent) {
-	b.mu.Lock()
-	subs := make([]chan BroadcastEvent, 0, len(b.subs))
-	for ch := range b.subs {
-		subs = append(subs, ch)
-	}
-	b.mu.Unlock()
-
-	for _, ch := range subs {
-		select {
-		case ch <- evt:
-		default:
-		}
-	}
-}
 
 type CQRS struct {
 	Commands  *command.Dispatcher
 	Queries   *query.Dispatcher
 	Events    *EventStore
 	Read      *Projector
-	Broadcast *Broadcaster
+	Broadcast *ds.Broadcaster
 }
 
 func NewCQRS() *CQRS {
 	events := NewEventStore()
 	read := NewProjector()
-	broadcast := NewBroadcaster()
+	broadcast := ds.NewBroadcaster()
 
 	//cqrs-lint:ignore(C027) example event bus: Subscribe is the only projection mechanism here, no projectionhost in this demo
 	events.Subscribe(read.Apply)
-	//cqrs-lint:ignore(C027) example event bus: broadcast bridge, not a read-model projection
-	events.Subscribe(func(e DomainEvent) {
-		evt := BroadcastEvent{User: e.User, Time: e.OccurredAt}
-		switch e.Type {
-		case "TodoCreated":
-			var p TodoCreatedPayload
-			_ = json.Unmarshal(e.Payload, &p)
-			todo := Todo{ID: p.ID, Title: p.Title, CreatedAt: time.Now()}
-			evt.Kind = "todo_created"
-			evt.Data = renderTodo(todo)
-		case "TodoToggled":
-			evt.Kind = "todo_updated"
-			t := findTodoByID(read, e.AggregateID)
-			evt.Data = renderTodo(t)
-		case "TodoUpdated":
-			evt.Kind = "todo_updated"
-			t := findTodoByID(read, e.AggregateID)
-			evt.Data = renderTodo(t)
-		case "TodoDeleted":
-			evt.Kind = "todo_deleted"
-			evt.Data = "#todo-" + e.AggregateID
-		}
-		broadcast.Send(evt)
-	})
 
 	cmdDisp := command.NewDispatcher()
 	qryDisp := query.NewDispatcher()
@@ -116,6 +41,17 @@ func NewCQRS() *CQRS {
 
 	cqrs.registerCommandHandlers()
 	cqrs.registerQueryHandlers()
+
+	// Broadcast bridge: domain events → Datastar patches → all SSE clients.
+	// The Broadcaster handles fan-out and reconnection replay automatically.
+	//cqrs-lint:ignore(C027) example broadcast bridge, not a read-model projection
+	events.Subscribe(func(e DomainEvent) {
+		cqrs.Broadcast.BroadcastMany(
+			ds.ElementsPatch(renderTodoList(read.List()), ds.WithSelectorID("todo-list"), ds.WithModeInner()),
+			ds.ElementsPatch(renderStatsFromQuery(cqrs), ds.WithSelectorID("stats")),
+			ds.ElementsPatch(renderEventLogEntry(e), ds.WithSelectorID("event-log"), ds.WithModePrepend()),
+		)
+	})
 
 	return cqrs
 }
