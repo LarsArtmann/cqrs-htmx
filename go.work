@@ -124,4 +124,8 @@ replace github.com/larsartmann/go-cqrs-lite/transport/http/v4 => /home/lars/proj
 
 replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => /home/lars/projects/go-cqrs-lite/watermill
 
+// Additional replace: go-idempotency is a transitive dep of go-cqrs-lite/idempotency
+// with a zero pseudo-version (v0.0.0). The repo has no published tags. Without this
+// workspace-level replace, `go build ./...` fails in workspace mode because the
+// replace in go-cqrs-lite/idempotency/go.mod is only visible within that module's context.
 replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempotency
