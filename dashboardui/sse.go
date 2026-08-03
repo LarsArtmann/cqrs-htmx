@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-sse"
 )

@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-08-01 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.7% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 84.0% dashboardui (gate 60%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 18 modules
+**Updated:** 2026-08-03 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 93.7% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 84.0% dashboardui (gate 60%), 96.7% datastar (gate 90%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 19 modules
 
 ## Status legend
 
@@ -360,18 +360,18 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## datastar Module (`github.com/larsartmann/cqrs-htmx/datastar/v4`)
 
-> NEW in v4.7.0. Optional Datastar frontend adapter — use Datastar instead of (or alongside) HTMX. Fully isolated module (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045.
+> NEW [Unreleased]. Optional Datastar frontend adapter — use Datastar instead of (or alongside) HTMX. Fully isolated module (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045.
 
 | Feature              | Status                | Notes                                                                                                                                                                                                                            |
 | -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Script Serving       | 🟢 `FULLY_FUNCTIONAL` | `ScriptHandler()` / `ScriptHandlerWith()` / `ScriptTag()` — embeds datastar.js v1.0.2 with ETag caching (mirrors `HTMXScriptHandler`)                                                                                            |
 | Signal Decoding      | 🟢 `FULLY_FUNCTIONAL` | `ReadSignals(r, &target)` — re-export of SDK's `datastar.ReadSignals` for POST body and GET query params                                                                                                                         |
-| Response Builder     | 🟢 `FULLY_FUNCTIONAL` | `NewResponse(w, r)` fluent builder: `PatchSignals`, `PatchSignalsIfMissing`, `PatchElements`, `PatchElementsTempl`, `RemoveElement`, `Redirect`, `ExecuteScript`, `ApplyPatches`                                                 |
+| Response Builder     | 🟢 `FULLY_FUNCTIONAL` | `NewResponse(w, r)` fluent builder: `PatchSignals`, `PatchSignalsIfMissing`, `PatchElements`, `PatchElementsTempl`, `RemoveElement`, `Redirect`, `ExecuteScript`, `ConsoleLog`, `ConsoleError`, `DispatchCustomEvent`, `ReplaceURL`, `RemoveElementByID`, `Prefetch`, `ApplyPatches` |
 | Patch Constructors   | 🟢 `FULLY_FUNCTIONAL` | `ElementsPatch`, `ElementsTemplPatch`, `SignalsPatch`, `SignalsIfMissingPatch`, `RemovePatch`, `ScriptPatch`, `RedirectPatch` — controlled `Patch` interface                                                                     |
-| Broadcaster + Replay | 🟢 `FULLY_FUNCTIONAL` | `NewBroadcaster()` — fan-out SSE patches to all clients with bounded ring buffer replay (default 256). `NewBroadcasterWithReplay(n)` for custom size, 0 to disable. `Last-Event-ID` header + `?lastEventId=` query param support |
-| EventBridge          | 🟢 `FULLY_FUNCTIONAL` | `NewEventBridge(broadcaster)` + `Map(eventType, fn)` + `Handle(event.Event)` — declarative domain-event-to-patch mapping                                                                                                         |
+| Broadcaster + Replay | 🟢 `FULLY_FUNCTIONAL` | `NewBroadcaster()` — fan-out SSE patches to all clients with bounded ring buffer replay (default 256). `NewBroadcasterWithReplay(n)` for custom size, 0 to disable. `NewBroadcasterWithHeartbeat(interval)` for proxy keep-alive. `Last-Event-ID` header + `?lastEventId=` query param support |
+| EventBridge          | 🟢 `FULLY_FUNCTIONAL` | `NewEventBridge(broadcaster)` + `Map(eventType, fn)` + `Handle(event.Event)` + `OnError(callback)` — declarative domain-event-to-patch mapping with error observability                                                           |
 | SDK Re-exports       | 🟢 `FULLY_FUNCTIONAL` | All `With*` options, type aliases, constants — single-import convenience (`ds.WithSelectorID` instead of importing SDK separately)                                                                                               |
-| Coverage             | 🟢 `FULLY_FUNCTIONAL` | 95.1% (gate 90%). ~57 tests across 7 test files                                                                                                                                                                                  |
+| Coverage             | 🟢 `FULLY_FUNCTIONAL` | 96.7% (gate 90%). 71 tests across 8 test files                                                                                                                                                                                   |
 
 ---
 
@@ -394,10 +394,10 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Metrics
 
-| Metric        | Root  | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | integration_test |
-| ------------- | ----- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | ---------------- |
-| Coverage      | 93.7% | 81.6%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 84.0%       | —                |
-| CI gate       | 90%   | 74%      | 70%            | 80%   | 80%      | 80%    | 66%     | 79%       | 60%         | —                |
+| Metric        | Root  | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | datastar | integration_test |
+| ------------- | ----- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | -------- | ---------------- |
+| Coverage      | 93.7% | 81.6%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 84.0%       | 96.7%    | —                |
+| CI gate       | 90%   | 74%      | 70%            | 80%   | 80%      | 80%    | 66%     | 79%       | 60%         | 90%      | —                |
 | Tests passing | ~160  | ~602     | ~109           | 3     | 16       | 21     | ~75     | ~36       | ~50         | ~29              |
 | Lint issues   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |
 | ErrorFamily   | 0     | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0                |

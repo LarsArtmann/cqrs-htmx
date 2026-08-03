@@ -26,9 +26,9 @@ func TestJournalSSEStore_EventsAfterEmpty(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	sse := NewJournalSSEStore(store, testMapper)
+	sseStore := NewJournalSSEStore(store, testMapper)
 
-	result, err := sse.EventsAfter(sse.EventID{})
+	result, err := sseStore.EventsAfter(sse.EventID{})
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -45,9 +45,9 @@ func TestJournalSSEStore_EventsAfterAll(t *testing.T) {
 	events := seedEventList(t, 5)
 	appendEvents(t, store, events)
 
-	sse := NewJournalSSEStore(store, testMapper)
+	sseStore := NewJournalSSEStore(store, testMapper)
 
-	result, err := sse.EventsAfter(sse.EventID{})
+	result, err := sseStore.EventsAfter(sse.EventID{})
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -72,12 +72,12 @@ func TestJournalSSEStore_EventsAfterCursor(t *testing.T) {
 	events := seedEventList(t, 5)
 	appendEvents(t, store, events)
 
-	sse := NewJournalSSEStore(store, testMapper)
+	sseStore := NewJournalSSEStore(store, testMapper)
 
 	// Replay after event 3 — should get events 4 and 5
 	cursor := events[2].ID().String()
 
-	result, err := sse.EventsAfter(sse.NewEventID(cursor))
+	result, err := sseStore.EventsAfter(sse.NewEventID(cursor))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -98,12 +98,12 @@ func TestJournalSSEStore_EventsAfterLastEvent(t *testing.T) {
 	events := seedEventList(t, 3)
 	appendEvents(t, store, events)
 
-	sse := NewJournalSSEStore(store, testMapper)
+	sseStore := NewJournalSSEStore(store, testMapper)
 
 	// Cursor at the last event — should get nothing
 	cursor := events[2].ID().String()
 
-	result, err := sse.EventsAfter(sse.NewEventID(cursor))
+	result, err := sseStore.EventsAfter(sse.NewEventID(cursor))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -120,11 +120,11 @@ func TestJournalSSEStore_EventsAfterNotFound(t *testing.T) {
 	events := seedEventList(t, 3)
 	appendEvents(t, store, events)
 
-	sse := NewJournalSSEStore(store, testMapper)
+	sseStore := NewJournalSSEStore(store, testMapper)
 
 	// Non-existent cursor — upstream ReadFrom returns all events from beginning.
 	// This matches the upstream behavior (unknown cursor = no filter).
-	result, err := sse.EventsAfter(sse.NewEventID(ulid.Make().String()))
+	result, err := sseStore.EventsAfter(sse.NewEventID(ulid.Make().String()))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -141,10 +141,10 @@ func TestJournalSSEStore_EventsAfterInvalidCursor(t *testing.T) {
 	events := seedEventList(t, 3)
 	appendEvents(t, store, events)
 
-	sse := NewJournalSSEStore(store, testMapper)
+	sseStore := NewJournalSSEStore(store, testMapper)
 
 	// Invalid ULID — should return empty
-	result, err := sse.EventsAfter(sse.NewEventID("not-a-valid-ulid"))
+	result, err := sseStore.EventsAfter(sse.NewEventID("not-a-valid-ulid"))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -161,10 +161,10 @@ func TestJournalSSEStore_MaxReplay(t *testing.T) {
 	events := seedEventList(t, 10)
 	appendEvents(t, store, events)
 
-	sse := NewJournalSSEStore(store, testMapper, WithMaxReplay(3))
+	sseStore := NewJournalSSEStore(store, testMapper, WithMaxReplay(3))
 
 	// No cursor — should return last 3 events only
-	result, err := sse.EventsAfter(sse.EventID{})
+	result, err := sseStore.EventsAfter(sse.EventID{})
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -183,9 +183,9 @@ func TestJournalSSEStore_SeekableUsed(t *testing.T) {
 	t.Parallel()
 
 	store := memory.NewMemoryStore()
-	sse := NewJournalSSEStore(store, testMapper)
+	sseStore := NewJournalSSEStore(store, testMapper)
 
-	if sse.seekable == nil {
+	if sseStore.seekable == nil {
 		t.Fatal("expected SeekableJournal to be detected from memory store")
 	}
 }
@@ -195,16 +195,16 @@ func TestJournalSSEStore_FullScanFallback(t *testing.T) {
 	events := seedEventList(t, 5)
 	journal := &journalOnlyStore{events: events}
 
-	sse := NewJournalSSEStore(journal, testMapper)
+	sseStore := NewJournalSSEStore(journal, testMapper)
 
-	if sse.seekable != nil {
+	if sseStore.seekable != nil {
 		t.Fatal("expected SeekableJournal to NOT be detected from journal-only store")
 	}
 
 	// Test replay after cursor 3 — should get 4, 5
 	cursor := events[2].ID().String()
 
-	result, err := sse.EventsAfter(sse.NewEventID(cursor))
+	result, err := sseStore.EventsAfter(sse.NewEventID(cursor))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -251,7 +251,7 @@ func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 	events := seedEventList(t, 100)
 	appendEvents(t, store, events)
 
-	sse := NewJournalSSEStore(store, testMapper)
+	sseStore := NewJournalSSEStore(store, testMapper)
 
 	var wg sync.WaitGroup
 	for i := range 10 {
@@ -260,9 +260,9 @@ func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 			defer wg.Done()
 
 			for range 50 {
-				_, _ = sse.EventsAfter(sse.EventID{})
+				_, _ = sseStore.EventsAfter(sse.EventID{})
 				if idx > 0 {
-					_, _ = sse.EventsAfter(sse.NewEventID(events[idx%50].ID().String()))
+					_, _ = sseStore.EventsAfter(sse.NewEventID(events[idx%50].ID().String()))
 				}
 			}
 		}(i)
