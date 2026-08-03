@@ -119,6 +119,12 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Build datastar submodule
+        run: cd datastar && go build ./...
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+
       - name: Build middleware-demo example
         run: cd examples/middleware-demo && go build ./...
         env:
@@ -219,6 +225,13 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Test datastar submodule
+        run: cd datastar && go test ./... -count=1 -race -coverprofile=coverage.out
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Coverage check
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
@@ -242,6 +255,12 @@ jobs:
           COVERAGE=$(go tool cover -func=dashboardui/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "dashboardui coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 60) { print \"dashboardui coverage ${COVERAGE}% is below 60% threshold\"; exit 1 } }"
+
+      - name: datastar coverage check
+        run: |
+          COVERAGE=$(go tool cover -func=datastar/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "datastar coverage: ${COVERAGE}%"
+          awk "BEGIN { if ($COVERAGE < 90) { print \"datastar coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
 
   lint:
     runs-on: ubuntu-latest
@@ -311,6 +330,17 @@ jobs:
         with:
           version: v2.12.2
           working-directory: loginpage
+          args: "--timeout=5m"
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: golangci-lint (datastar)
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12.2
+          working-directory: datastar
           args: "--timeout=5m"
         env:
           GOWORK: off

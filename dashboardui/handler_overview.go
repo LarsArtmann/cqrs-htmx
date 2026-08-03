@@ -65,15 +65,13 @@ type projectionStat struct {
 	LastError  string
 }
 
-// cqrs-lint:ignore(A011) all snake_case; single-word keys are valid in both conventions
+// cqrs-lint:ignore(A011) display-only DTO, not an event/command payload
 type recentEvent struct {
-	Time string `json:"time"`
-	Type string `json:"type"`
-	//cqrs-lint:ignore(A032) display-only DTO field for HTMX rendering
-	StreamID string `json:"streamId"`
-	Version  string `json:"version"`
-	//cqrs-lint:ignore(A032) display-only DTO field for HTMX rendering
-	EventID string `json:"eventId"`
+	Time     string
+	Type     string
+	StreamID string
+	Version  string
+	EventID  string
 }
 
 //nolint:cyclop,gocognit // multi-source aggregation
