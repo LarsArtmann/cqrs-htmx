@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	"github.com/starfederation/datastar-go/datastar"
+	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 )
 
 func eventKindFromType(t string) string {
@@ -31,8 +31,7 @@ func handleSimulate(cqrs *CQRS) http.HandlerFunc {
 			go SimulateUser(ctx, cqrs, name)
 		}
 
-		sse := datastar.NewSSE(w, r)
-		sse.MarshalAndPatchSignals(map[string]any{
+		ds.NewResponse(w, r).PatchSignals(map[string]any{
 			"simulating": true,
 			"notification": map[string]string{
 				"level":   "warning",
@@ -100,12 +99,12 @@ func renderStatsFromQuery(cqrs *CQRS) string {
 </div>`, stats.Total, stats.Active, stats.Completed)
 }
 
-func renderEventLog(evt BroadcastEvent) string {
+func renderEventLogEntry(e DomainEvent) string {
 	return fmt.Sprintf(`<div class="event-entry">
 	<span class="event-type">%s</span>
 	<span class="event-user">%s</span>
 	<span class="event-time">%s</span>
-</div>`, evt.Kind, evt.User, evt.Time.Format("15:04:05"))
+</div>`, eventKindFromType(e.Type), e.User, e.OccurredAt.Format("15:04:05"))
 }
 
 // extractTitle pulls the text content from <span class="todo-title">...</span>

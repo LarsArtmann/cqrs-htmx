@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 )
 
 func main() {
@@ -17,8 +19,8 @@ func main() {
 	mux.HandleFunc("POST /api/todos/delete", handleDeleteTodo(cqrs))
 	mux.HandleFunc("POST /api/todos/update", handleUpdateTodo(cqrs))
 	mux.HandleFunc("GET /api/todos", handleListTodos(cqrs))
-	mux.HandleFunc("GET /api/events", handleEventStream(cqrs))
-	mux.HandleFunc("GET /api/events/replay", handleEventReplay(cqrs))
+	mux.Handle("GET /datastar.js", ds.ScriptHandler())
+	mux.Handle("GET /api/events", cqrs.Broadcast)
 	mux.HandleFunc("POST /api/simulate", handleSimulate(cqrs))
 
 	addr := ":8095"
@@ -40,7 +42,7 @@ const indexHTML = `<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CQRS + Datastar Todo Demo</title>
-    <script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.1/bundles/datastar.js"></script>
+    <script type="module" src="/datastar.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
