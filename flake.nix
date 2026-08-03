@@ -659,7 +659,10 @@
               meta.description = "Check all markdown file-path links resolve correctly";
               program = pkgs.writeShellApplication {
                 name = "check-docs-links";
-                runtimeInputs = [ pkgs.findutils pkgs.gnugrep ];
+                runtimeInputs = [
+                  pkgs.findutils
+                  pkgs.gnugrep
+                ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-docs-links.sh

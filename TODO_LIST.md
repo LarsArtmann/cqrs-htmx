@@ -20,8 +20,6 @@
 
 - [~] **MySQL event-store support via go-cqrs-lite Dialect.** Event-store-only MySQL dialect added (`MySQLDialect` with `?` placeholders, MySQL-specific DDL, `IsDuplicateKeyError` extended, `classifyMySQLError` error classifier implemented in go-cqrs-lite `storage/sql/classify_init.go`). `dialectToUpstream` updated. `storage/v4` at v4.5.0. Read model constructors shipped (`NewMySQLUserReadModel`, etc.). Remaining: (1) add integration test against real MySQL (docker/testcontainers), (2) document MySQL support in README, (3) consider `NewMySQLSetup` convenience constructor and MySQL-backed session/snapshot/checkpoint stores.
 
-- [ ] **Add datastar module to GitHub Actions CI workflow.** `.github/workflows/ci.yml` was expanded to include identity-model, dashboardui, and loginpage but does NOT include the datastar module (which didn't exist when CI was last updated). Add build+test+lint+coverage (90% threshold) for datastar. Source: `docs/status/2026-08-03_19-34_datastar-cleanup-session-3-status.md`.
-
 - [ ] **Fix templ version mismatch between buildflow pre-commit hook and nix.** The pre-commit hook's `go-generate` step regenerates `_templ.go` files with directory-prefixed `FileName:` fields, conflicting with the nix templ version's bare filenames. Forces `--no-verify` on templ-touching commits. Fix by either (a) pinning the same templ version in buildflow as in nix, or (b) excluding `*_templ.go` from buildflow's go-generate step in `.buildflow.yml`. Recurring since 2026-08-01 (documented in AGENTS.md).
 
 ---
