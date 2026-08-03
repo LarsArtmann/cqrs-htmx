@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-sse"
 )
 
 // EventToSSEMapper converts a domain event from the event store into an SSE
@@ -16,7 +17,7 @@ import (
 //
 // The mapper MUST set evt.ID to the event's ID (typically evt.ID().String())
 // so that reconnection cursors work correctly.
-type EventToSSEMapper func(evt event.Event) SSEEvent
+type EventToSSEMapper func(evt event.Event) sse.Event
 
 // JournalSSEStore implements [SSEEventStore] by reading from a go-cqrs-lite
 // [event.Journal] or [event.SeekableJournal]. It is the production
@@ -104,7 +105,7 @@ func NewJournalSSEStore(
 //
 // Returns an error if the underlying journal read fails. Invalid cursor IDs
 // are treated as "not found" (empty slice, no error).
-func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) ([]SSEEvent, error) {
+func (s *JournalSSEStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
 	ctx := context.Background()
 
 	if s.seekable != nil {
@@ -115,7 +116,7 @@ func (s *JournalSSEStore) EventsAfter(lastID SSEEventID) ([]SSEEvent, error) {
 }
 
 // eventsAfterSeekable uses ReadFrom for efficient position-based replay.
-func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEventID) ([]SSEEvent, error) {
+func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID sse.EventID) ([]sse.Event, error) {
 	if lastID.Get() == "" {
 		// No cursor — return the most recent events (consistent with fullScan path).
 		// We can't use ReadFrom(zero, limit) because that returns the FIRST N,
@@ -160,7 +161,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID SSEEve
 
 // eventsAfterFullScan falls back to ReadAll + in-memory filter when the
 // journal does not support SeekableJournal.
-func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEventID) ([]SSEEvent, error) {
+func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID sse.EventID) ([]sse.Event, error) {
 	events, err := s.journal.ReadAll(ctx)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
@@ -196,12 +197,12 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID SSEEve
 }
 
 // mapEvents converts domain events to SSE events using the consumer-provided mapper.
-func (s *JournalSSEStore) mapEvents(events []event.Event) []SSEEvent {
+func (s *JournalSSEStore) mapEvents(events []event.Event) []sse.Event {
 	if len(events) == 0 {
 		return nil
 	}
 
-	result := make([]SSEEvent, 0, len(events))
+	result := make([]sse.Event, 0, len(events))
 	for _, evt := range events {
 		result = append(result, s.mapper(evt))
 	}

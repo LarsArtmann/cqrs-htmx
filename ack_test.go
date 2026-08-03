@@ -220,8 +220,8 @@ func TestBroadcastOnAckFunc_Custom(t *testing.T) {
 	ch := broadcaster.Subscribe()
 	defer broadcaster.Unsubscribe(ch)
 
-	hook := broadcaster.BroadcastOnAckFunc(func(r *http.Request, err error, commandID string) SSEEvent {
-		return SSEEvent{
+	hook := broadcaster.BroadcastOnAckFunc(func(r *http.Request, err error, commandID string) sse.Event {
+		return sse.Event{
 			Event: "custom:ack",
 			Data:  `{"cmd":"` + commandID + `","ok":true}`,
 		}

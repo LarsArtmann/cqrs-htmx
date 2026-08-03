@@ -15,20 +15,20 @@ import (
 var _ = Describe("SSE Event Writing and Streaming", func() {
 	Describe("WriteSSEEvent", func() {
 		It("writes a named event with data", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Event: eventTodoCreated,
 				Data:  "<div>Buy milk</div>",
 			}, "event: "+eventTodoCreated+"\ndata: <div>Buy milk</div>\n\n")
 		})
 
 		It("writes an unnamed message event", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Data: "<div>content</div>",
 			}, "data: <div>content</div>\n\n")
 		})
 
 		It("writes multi-line data", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Event: eventUpdate,
 				Data:  "line1\nline2\nline3",
 			}, "event: update\ndata: line1\ndata: line2\ndata: line3\n\n")
@@ -37,9 +37,9 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		It("writes an event ID", func() {
 			var buf bytes.Buffer
 
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			err := sse.WriteEvent(&buf, sse.Event{
 				Data: "payload",
-				ID:   cqrshtmx.NewSSEEventID("42"),
+				ID:   sse.NewEventID("42"),
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(buf.String()).To(ContainSubstring("id: 42\n"))
@@ -48,7 +48,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		It("writes a retry interval", func() {
 			var buf bytes.Buffer
 
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			err := sse.WriteEvent(&buf, sse.Event{
 				Data:  "payload",
 				Retry: 5000,
 			})
@@ -59,10 +59,10 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		It("writes a complete event with all fields", func() {
 			var buf bytes.Buffer
 
-			err := cqrshtmx.WriteSSEEvent(&buf, cqrshtmx.SSEEvent{
+			err := sse.WriteEvent(&buf, sse.Event{
 				Event: "fullEvent",
 				Data:  "multi\nline\ndata",
-				ID:    cqrshtmx.NewSSEEventID("evt-123"),
+				ID:    sse.NewEventID("evt-123"),
 				Retry: 3000,
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -76,45 +76,45 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		})
 
 		It("handles empty data", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Event: "empty",
 			}, "event: empty\ndata: \n\n")
 		})
 
 		It("handles CRLF line endings in data", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Data: "line1\r\nline2",
 			}, "data: line1\ndata: line2\n\n")
 		})
 
 		It("returns error on write failure", func() {
-			err := cqrshtmx.WriteSSEEvent(&errorWriter{}, cqrshtmx.SSEEvent{
+			err := sse.WriteEvent(&errorWriter{}, sse.Event{
 				Event: "fail",
 			})
 			Expect(err).To(HaveOccurred())
 		})
 
 		It("handles trailing newline in data", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Event: "trailing",
 				Data:  "line1\n",
 			}, "event: trailing\ndata: line1\n\n")
 		})
 
 		It("handles multiple consecutive newlines", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Data: "a\n\nb",
 			}, "data: a\ndata: \ndata: b\n\n") //nolint:dupword // SSE wire format requires a data: prefix on every line
 		})
 
 		It("handles CRLF-only string", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Data: "\r\n",
 			}, "data: \n\n")
 		})
 
 		It("handles multiple CRLF lines with trailing CRLF", func() {
-			writeAndExpect(cqrshtmx.SSEEvent{
+			writeAndExpect(sse.Event{
 				Data: "line1\r\nline2\r\n",
 			}, "data: line1\ndata: line2\n\n")
 		})
@@ -125,7 +125,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 			defer func() { _ = stream.Close() }()
 
 			Expect(w.Header().Get("Content-Type")).To(Equal("text/event-stream"))
@@ -138,10 +138,10 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 			defer func() { _ = stream.Close() }()
 
-			err := stream.Send(cqrshtmx.SSEEvent{
+			err := stream.Send(sse.Event{
 				Event: eventUpdate,
 				Data:  "<div>new content</div>",
 			})
@@ -155,11 +155,11 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 			defer func() { _ = stream.Close() }()
 
-			Expect(stream.Send(cqrshtmx.SSEEvent{Event: "e1", Data: "d1"})).To(Succeed())
-			Expect(stream.Send(cqrshtmx.SSEEvent{Event: "e2", Data: "d2"})).To(Succeed())
+			Expect(stream.Send(sse.Event{Event: "e1", Data: "d1"})).To(Succeed())
+			Expect(stream.Send(sse.Event{Event: "e2", Data: "d2"})).To(Succeed())
 
 			body := w.Body.String()
 			Expect(body).To(ContainSubstring("event: e1\ndata: d1\n\n"))
@@ -170,7 +170,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 			defer func() { _ = stream.Close() }()
 
 			err := stream.SendData("todoUpdated", "<ul><li>Buy milk</li></ul>")
@@ -189,7 +189,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 			defer func() { _ = stream.Close() }()
 
 			Expect(stream.Context().Done()).NotTo(BeNil())
@@ -201,7 +201,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 			defer func() { _ = stream.Close() }()
 
 			cancel()
@@ -215,7 +215,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 
 			done := make(chan struct{})
 			go func() {
@@ -237,7 +237,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 
 			done := make(chan struct{})
 			go func() {
@@ -254,7 +254,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 
 			called := false
 
@@ -271,7 +271,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 
 			order := []int{}
 
@@ -289,9 +289,9 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		DescribeTable(
 			"ParseSSEEventID accepts valid IDs",
 			func(input string) {
-				id, err := cqrshtmx.ParseSSEEventID(input)
+				id, err := sse.ParseEventID(input)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(id).To(Equal(cqrshtmx.NewSSEEventID(input)))
+				Expect(id).To(Equal(sse.NewEventID(input)))
 			},
 			Entry("empty (initial connection)", ""),
 			Entry("numeric", "42"),
@@ -303,7 +303,7 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		DescribeTable(
 			"ParseSSEEventID rejects IDs with newlines",
 			func(input string) {
-				_, err := cqrshtmx.ParseSSEEventID(input)
+				_, err := sse.ParseEventID(input)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("forbidden character"))
 			},
@@ -314,16 +314,16 @@ var _ = Describe("SSE Event Writing and Streaming", func() {
 		)
 
 		It("NewSSEEventID constructs without validation", func() {
-			Expect(cqrshtmx.NewSSEEventID("any-value")).To(Equal(cqrshtmx.NewSSEEventID("any-value")))
+			Expect(sse.NewEventID("any-value")).To(Equal(sse.NewEventID("any-value")))
 		})
 
 		It("IsZero reports emptiness", func() {
-			Expect(cqrshtmx.NewSSEEventID("").IsZero()).To(BeTrue())
-			Expect(cqrshtmx.NewSSEEventID("x").IsZero()).To(BeFalse())
+			Expect(sse.NewEventID("").IsZero()).To(BeTrue())
+			Expect(sse.NewEventID("x").IsZero()).To(BeFalse())
 		})
 
 		It("Get returns the underlying value", func() {
-			Expect(cqrshtmx.NewSSEEventID("evt-1").Get()).To(Equal("evt-1"))
+			Expect(sse.NewEventID("evt-1").Get()).To(Equal("evt-1"))
 		})
 	})
 })

@@ -44,11 +44,11 @@ const reconnectEventKind = "itemCreated"
 
 func newReconnectStore() *memoryEventStore {
 	return &memoryEventStore{
-		events: []cqrshtmx.SSEEvent{
-			{Event: reconnectEventKind, Data: "<li>first</li>", ID: cqrshtmx.NewSSEEventID("1")},
-			{Event: reconnectEventKind, Data: "<li>second</li>", ID: cqrshtmx.NewSSEEventID("2")},
-			{Event: reconnectEventKind, Data: "<li>third</li>", ID: cqrshtmx.NewSSEEventID("3")},
-			{Event: reconnectEventKind, Data: "<li>fourth</li>", ID: cqrshtmx.NewSSEEventID("4")},
+		events: []sse.Event{
+			{Event: reconnectEventKind, Data: "<li>first</li>", ID: sse.NewEventID("1")},
+			{Event: reconnectEventKind, Data: "<li>second</li>", ID: sse.NewEventID("2")},
+			{Event: reconnectEventKind, Data: "<li>third</li>", ID: sse.NewEventID("3")},
+			{Event: reconnectEventKind, Data: "<li>fourth</li>", ID: sse.NewEventID("4")},
 		},
 	}
 }
@@ -56,11 +56,11 @@ func newReconnectStore() *memoryEventStore {
 func newReconnectMux(store *memoryEventStore, includeReplayOnError bool) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
-		stream := cqrshtmx.NewSSEStream(w, r)
+		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
 
-		if lastID := cqrshtmx.LastEventIDFromRequest(r); !lastID.IsZero() {
-			if _, err := cqrshtmx.ReplayEvents(stream, store, lastID); err != nil {
+		if lastID := sse.LastEventIDFromRequest(r); !lastID.IsZero() {
+			if _, err := sse.Replay(stream, store, lastID); err != nil {
 				if includeReplayOnError {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
@@ -150,18 +150,18 @@ func TestSSE_RealServer_ReconnectionNoLastID(t *testing.T) {
 	t.Parallel()
 
 	store := &memoryEventStore{
-		events: []cqrshtmx.SSEEvent{
-			{Event: "x", Data: "y", ID: cqrshtmx.NewSSEEventID("1")},
+		events: []sse.Event{
+			{Event: "x", Data: "y", ID: sse.NewEventID("1")},
 		},
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
-		stream := cqrshtmx.NewSSEStream(w, r)
+		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
 
-		if lastID := cqrshtmx.LastEventIDFromRequest(r); !lastID.IsZero() {
-			_, _ = cqrshtmx.ReplayEvents(stream, store, lastID)
+		if lastID := sse.LastEventIDFromRequest(r); !lastID.IsZero() {
+			_, _ = sse.Replay(stream, store, lastID)
 		}
 	})
 

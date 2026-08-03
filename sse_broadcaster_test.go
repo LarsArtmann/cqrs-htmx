@@ -51,7 +51,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			defer b.Unsubscribe(ch1)
 			defer b.Unsubscribe(ch2)
 
-			event := cqrshtmx.SSEEvent{Event: eventUpdate, Data: "<div>new</div>"}
+			event := sse.Event{Event: eventUpdate, Data: "<div>new</div>"}
 			b.Broadcast(event)
 
 			Expect(<-ch1).To(Equal(event))
@@ -69,7 +69,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 		It("handles unsubscribe of unknown channel gracefully", func() {
 			b := cqrshtmx.NewBroadcaster()
-			ch := make(chan cqrshtmx.SSEEvent)
+			ch := make(chan sse.Event)
 
 			Expect(func() { b.Unsubscribe(ch) }).NotTo(Panic())
 			Expect(b.SubscriberCount()).To(Equal(0))
@@ -83,7 +83,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 			// The buffer is 64; send 65 events to overflow
 			for i := range 65 {
-				b.Broadcast(cqrshtmx.SSEEvent{Event: "e", Data: string(rune(i))})
+				b.Broadcast(sse.Event{Event: "e", Data: string(rune(i))})
 			}
 
 			// Should have received 64 (buffer size), lost 1
@@ -109,7 +109,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 			const goroutines = 10
 
-			channels := make([]<-chan cqrshtmx.SSEEvent, goroutines)
+			channels := make([]<-chan sse.Event, goroutines)
 
 			for i := range goroutines {
 				ch := b.Subscribe()
@@ -122,7 +122,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 				})
 			}
 
-			b.Broadcast(cqrshtmx.SSEEvent{Event: "test", Data: "concurrent"})
+			b.Broadcast(sse.Event{Event: "test", Data: "concurrent"})
 
 			Eventually(func() int { return b.SubscriberCount() }).Should(BeNumerically("<=", goroutines))
 			wg.Wait()
@@ -150,7 +150,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 						case <-stop:
 							return
 						default:
-							b.Broadcast(cqrshtmx.SSEEvent{Event: "hammer", Data: "x"})
+							b.Broadcast(sse.Event{Event: "hammer", Data: "x"})
 						}
 					}
 				})
@@ -175,7 +175,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			defer b.Unsubscribe(ch)
 
 			for i := range 5 {
-				b.Broadcast(cqrshtmx.SSEEvent{Event: "seq", Data: string(rune('0' + i))})
+				b.Broadcast(sse.Event{Event: "seq", Data: string(rune('0' + i))})
 			}
 
 			for i := range 5 {
@@ -219,7 +219,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 			b.OnUnsubscribe(func() { count++ })
 
-			unknown := make(chan cqrshtmx.SSEEvent)
+			unknown := make(chan sse.Event)
 			b.Unsubscribe(unknown)
 
 			Expect(count).To(Equal(0))
@@ -262,7 +262,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/events", nil)
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 
 			ch := b.Subscribe()
 
@@ -286,7 +286,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 				}
 			}()
 
-			b.Broadcast(cqrshtmx.SSEEvent{Event: eventTodoCreated, Data: "<li>Buy milk</li>"})
+			b.Broadcast(sse.Event{Event: eventTodoCreated, Data: "<li>Buy milk</li>"})
 
 			Eventually(done).Should(BeClosed())
 

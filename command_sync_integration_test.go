@@ -79,7 +79,7 @@ func readSSEUntil(ctx context.Context, body io.Reader, patterns ...string) (stri
 // JournalSSEStore then streams live events from the Broadcaster.
 func newSSEHandler(store *JournalSSEStore, bc *Broadcaster) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		stream := NewSSEStream(w, r)
+		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
 
 		// Flush response headers immediately so the client receives 200 OK
@@ -89,8 +89,8 @@ func newSSEHandler(store *JournalSSEStore, bc *Broadcaster) http.HandlerFunc {
 		}
 
 		if store != nil {
-			if lastID := LastEventIDFromRequest(r); !lastID.IsZero() {
-				if _, err := ReplayEvents(stream, store, lastID); err != nil {
+			if lastID := sse.LastEventIDFromRequest(r); !lastID.IsZero() {
+				if _, err := sse.Replay(stream, store, lastID); err != nil {
 					return
 				}
 			}
@@ -169,11 +169,11 @@ func TestIntegration_JournalSSEStore_Replay(t *testing.T) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
-		stream := NewSSEStream(w, r)
+		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
 
-		lastID := LastEventIDFromRequest(r)
-		_, _ = ReplayEvents(stream, sseStore, lastID)
+		lastID := sse.LastEventIDFromRequest(r)
+		_, _ = sse.Replay(stream, sseStore, lastID)
 	})
 
 	server := httptest.NewServer(mux)

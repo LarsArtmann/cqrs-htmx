@@ -34,7 +34,7 @@ var _ = Describe("Transport Parity Integration", func() {
 			handler := app.Command("CreateUser", decodeCreateUserJSON())
 			serve(handler, newPostRequest("/users", `{"email":"dup@test.com","name":"Dup"}`))
 
-			var event cqrshtmx.SSEEvent
+			var event sse.Event
 			Eventually(ch).Should(Receive(&event))
 			Expect(event.Event).To(Equal("commandError"))
 
@@ -62,11 +62,11 @@ var _ = Describe("Transport Parity Integration", func() {
 					if err == nil {
 						successCount++
 
-						broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "ok", Data: "success"})
+						broadcaster.Broadcast(sse.Event{Event: "ok", Data: "success"})
 					} else {
 						errorCount++
 						payload := cqrshtmx.NewStructuredError(err, r)
-						broadcaster.Broadcast(cqrshtmx.SSEEvent{
+						broadcaster.Broadcast(sse.Event{
 							Event: "error",
 							Data:  payload.JSON(),
 						})

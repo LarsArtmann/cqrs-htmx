@@ -16,8 +16,8 @@ import (
 // itemUpdatedEventFunc returns a BroadcastOnSuccessFunc payload function
 // that emits an "itemUpdated" SSE event whose Data wraps the request path.
 // Shared by the example in example_app_test.go and the test below.
-func itemUpdatedEventFunc(r *http.Request) cqrshtmx.SSEEvent {
-	return cqrshtmx.SSEEvent{
+func itemUpdatedEventFunc(r *http.Request) sse.Event {
+	return sse.Event{
 		Event: "itemUpdated",
 		Data:  "<div>" + r.URL.Path + "</div>",
 	}
@@ -34,7 +34,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			hook := b.BroadcastOnSuccess("itemCreated", "<li>New item</li>")
 			hook(context.Background(), httptest.NewRequest(http.MethodPost, "/items", nil), nil)
 
-			Eventually(ch).Should(Receive(Equal(cqrshtmx.SSEEvent{
+			Eventually(ch).Should(Receive(Equal(sse.Event{
 				Event: "itemCreated",
 				Data:  "<li>New item</li>",
 			})))
@@ -67,7 +67,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			r := httptest.NewRequest(http.MethodPost, "/items/42", nil)
 			hook(context.Background(), r, nil)
 
-			Eventually(ch).Should(Receive(Equal(cqrshtmx.SSEEvent{
+			Eventually(ch).Should(Receive(Equal(sse.Event{
 				Event: "itemUpdated",
 				Data:  "<div>/items/42</div>",
 			})))
@@ -79,8 +79,8 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
-			hook := b.BroadcastOnSuccessFunc(func(_ *http.Request) cqrshtmx.SSEEvent {
-				return cqrshtmx.SSEEvent{Event: "shouldNotFire", Data: "oops"}
+			hook := b.BroadcastOnSuccessFunc(func(_ *http.Request) sse.Event {
+				return sse.Event{Event: "shouldNotFire", Data: "oops"}
 			})
 
 			hook(context.Background(), nil, errors.New("fail"))
@@ -99,7 +99,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			req := httptest.NewRequest(http.MethodPost, "/api/cmd", nil)
 			hook(context.Background(), req, errorfamily.NewRejection("validation_failed", "validation failed"))
 
-			var event cqrshtmx.SSEEvent
+			var event sse.Event
 			Eventually(ch).Should(Receive(&event))
 			Expect(event.Event).To(Equal("commandError"))
 			Expect(event.Data).To(ContainSubstring("validation failed"))
@@ -127,8 +127,8 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
-			hook := b.BroadcastOnErrorFunc(func(r *http.Request, err error) cqrshtmx.SSEEvent {
-				return cqrshtmx.SSEEvent{
+			hook := b.BroadcastOnErrorFunc(func(r *http.Request, err error) sse.Event {
+				return sse.Event{
 					Event: "customError",
 					Data:  r.URL.Path + ": " + err.Error(),
 				}
@@ -137,7 +137,7 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			req := httptest.NewRequest(http.MethodPost, "/users/create", nil)
 			hook(context.Background(), req, errors.New("email taken"))
 
-			var event cqrshtmx.SSEEvent
+			var event sse.Event
 			Eventually(ch).Should(Receive(&event))
 			Expect(event.Event).To(Equal("customError"))
 			Expect(event.Data).To(Equal("/users/create: email taken"))
@@ -149,10 +149,10 @@ var _ = Describe("SSE Broadcaster AfterDispatchHook Bridge", func() {
 			ch := b.Subscribe()
 			defer b.Unsubscribe(ch)
 
-			hook := b.BroadcastOnErrorFunc(func(_ *http.Request, _ error) cqrshtmx.SSEEvent {
+			hook := b.BroadcastOnErrorFunc(func(_ *http.Request, _ error) sse.Event {
 				Fail("should not be called on success")
 
-				return cqrshtmx.SSEEvent{}
+				return sse.Event{}
 			})
 
 			hook(context.Background(), nil, nil)
@@ -169,10 +169,10 @@ func (e *errorWriter) Write(_ []byte) (int, error) {
 }
 
 // writeAndExpect writes an SSE event to a buffer and asserts the exact output.
-func writeAndExpect(event cqrshtmx.SSEEvent, want string) {
+func writeAndExpect(event sse.Event, want string) {
 	var buf bytes.Buffer
 
-	err := cqrshtmx.WriteSSEEvent(&buf, event)
+	err := sse.WriteEvent(&buf, event)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(buf.String()).To(Equal(want))
 }
@@ -191,10 +191,10 @@ func (e *errorResponseWriter) Write(p []byte) (int, error) {
 func (e *errorResponseWriter) Flush() {}
 
 type memoryEventStore struct {
-	events []cqrshtmx.SSEEvent
+	events []sse.Event
 }
 
-func (m *memoryEventStore) EventsAfter(lastID cqrshtmx.SSEEventID) ([]cqrshtmx.SSEEvent, error) {
+func (m *memoryEventStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
 	if lastID.Get() == "" {
 		return m.events, nil
 	}

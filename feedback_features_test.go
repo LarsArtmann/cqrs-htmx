@@ -32,8 +32,8 @@ var _ = Describe("Feedback-driven features", func() {
 
 	Describe("SSE event name constants", func() {
 		It("provides standard event names", func() {
-			Expect(cqrshtmx.SSEEventConnected).To(Equal("connected"))
-			Expect(cqrshtmx.SSEEventHeartbeat).To(Equal("heartbeat"))
+			Expect(sse.EventConnected).To(Equal("connected"))
+			Expect(sse.EventHeartbeat).To(Equal("heartbeat"))
 		})
 	})
 
