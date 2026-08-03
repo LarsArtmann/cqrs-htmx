@@ -207,4 +207,39 @@ func TestEventBridgeMappedEventTypesReturnsSortedCopy(t *testing.T) {
 	require.Contains(t, types, "M")
 }
 
+func TestEventBridgeOnError(t *testing.T) {
+	t.Parallel()
+
+	broadcaster := ds.NewBroadcaster()
+	bridge := ds.NewEventBridge(broadcaster)
+
+	var captured error
+	bridge.OnError(func(err error) { captured = err })
+
+	bridge.Map("FailEvent", func(e event.Event) (ds.Patch, error) {
+		return nil, errHandlerFailed
+	})
+
+	evt := makeTestEvent(t, "FailEvent")
+	bridge.Handle(evt)
+
+	require.ErrorIs(t, captured, errHandlerFailed, "OnError callback should receive the handler error")
+}
+
+func TestEventBridgeOnErrorNilDropsSilently(t *testing.T) {
+	t.Parallel()
+
+	broadcaster := ds.NewBroadcaster()
+	bridge := ds.NewEventBridge(broadcaster)
+
+	bridge.Map("FailEvent", func(e event.Event) (ds.Patch, error) {
+		return nil, errHandlerFailed
+	})
+
+	evt := makeTestEvent(t, "FailEvent")
+	bridge.Handle(evt) // no OnError set — must not panic
+
+	require.Equal(t, 0, broadcaster.SubscriberCount(), "error handler should not broadcast")
+}
+
 var errHandlerFailed = testError("handler failed")

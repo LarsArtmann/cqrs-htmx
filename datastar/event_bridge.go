@@ -30,6 +30,7 @@ type EventBridge struct {
 	broadcaster *Broadcaster
 	mu          sync.RWMutex
 	handlers    map[string]PatchFunc
+	onError     func(error)
 }
 
 // NewEventBridge creates an event bridge that broadcasts patches via the
@@ -60,12 +61,29 @@ func (b *EventBridge) Unmap(eventType string) {
 	delete(b.handlers, eventType)
 }
 
+// OnError sets a callback invoked when a registered PatchFunc returns an
+// error. If nil (the default), errors are silently dropped, preserving the
+// original behavior. Use this for observability (logging, metrics) without
+// changing control flow — Handle never blocks on the callback.
+//
+//	bridge.OnError(func(err error) {
+//	    slog.Error("datastar event bridge error", "err", err)
+//	})
+func (b *EventBridge) OnError(fn func(error)) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.onError = fn
+}
+
 // Handle processes a single domain event. It looks up the registered handler
 // for the event type, generates a patch, and broadcasts it to all connected
-// clients. Unmapped events are silently skipped.
+// clients. Unmapped events are silently skipped. If the handler returns an
+// error and an OnError callback is set, the callback is invoked.
 func (b *EventBridge) Handle(e event.Event) {
 	b.mu.RLock()
 	fn, ok := b.handlers[string(e.Type())]
+	onError := b.onError
 	b.mu.RUnlock()
 
 	if !ok {
@@ -74,6 +92,9 @@ func (b *EventBridge) Handle(e event.Event) {
 
 	patch, err := fn(e)
 	if err != nil {
+		if onError != nil {
+			onError(err)
+		}
 		return
 	}
 
