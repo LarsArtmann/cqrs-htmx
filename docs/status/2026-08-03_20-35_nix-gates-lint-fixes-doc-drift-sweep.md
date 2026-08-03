@@ -10,18 +10,18 @@
 
 ### Phase 1: Execute the 10-step handoff plan
 
-| Step | What | Result |
-|------|------|--------|
-| 1 | Annotate datastar research doc | ✅ Resolution blockquote added |
-| 2 | Fix prewarm-gocache.sh comments | ✅ Rewritten to match .buildflow.yml |
-| 3 | `nix fmt` | ✅ 0 changed |
-| 4 | `nix run .#errorfamily` | ✅ 6 modules OK |
-| 5 | `nix run .#lint` | ❌→✅ Fixed 3 failures, all 11 modules clean |
-| 6 | `nix run .#test` | ✅ 11 modules pass with -race |
-| 7 | `nix run .#coverage-gate` | ✅ All 10 gates pass |
-| 8 | Verify markdown links | ❌→✅ Found and fixed 7 broken links |
-| 9 | DOMAIN_LANGUAGE.md freshness | ❌→✅ Found and fixed event/command count drift |
-| 10 | `nix flake check` | ✅ All checks passed |
+| Step | What                            | Result                                          |
+| ---- | ------------------------------- | ----------------------------------------------- |
+| 1    | Annotate datastar research doc  | ✅ Resolution blockquote added                  |
+| 2    | Fix prewarm-gocache.sh comments | ✅ Rewritten to match .buildflow.yml            |
+| 3    | `nix fmt`                       | ✅ 0 changed                                    |
+| 4    | `nix run .#errorfamily`         | ✅ 6 modules OK                                 |
+| 5    | `nix run .#lint`                | ❌→✅ Fixed 3 failures, all 11 modules clean    |
+| 6    | `nix run .#test`                | ✅ 11 modules pass with -race                   |
+| 7    | `nix run .#coverage-gate`       | ✅ All 10 gates pass                            |
+| 8    | Verify markdown links           | ❌→✅ Found and fixed 7 broken links            |
+| 9    | DOMAIN_LANGUAGE.md freshness    | ❌→✅ Found and fixed event/command count drift |
+| 10   | `nix flake check`               | ✅ All checks passed                            |
 
 ### Phase 2: Lint failures found and fixed during gate runs
 
@@ -53,13 +53,13 @@
 
 Scanned all 145 file-path links across all markdown files. Found and fixed 7 broken links:
 
-| File | Broken Link | Fix |
-|------|-------------|-----|
-| `docs/status/archived/2026-07-20_04-45_*.md` | `../planning/2026-07-20_*` (moved to archived/) | Updated to `../../planning/archived/` |
-| `docs/guides/auth-provider-fault-tolerance.md` | `../references/usermgmt.md` (dir doesn't exist) | Replaced with text references to actual docs |
-| `docs/guides/auth-provider-fault-tolerance.md` | `../references/core-api.md` (dir doesn't exist) | Replaced with text reference |
-| `usermgmt/docs/SQL_STORES.md` | `../adr/0003-*.md` (3 links, wrong relative path) | Fixed to `../../docs/adr/` |
-| `adminui/README.md` | `../csrf_middleware.go` (file renamed) | Fixed to `../csrf_reexport.go` |
+| File                                           | Broken Link                                       | Fix                                          |
+| ---------------------------------------------- | ------------------------------------------------- | -------------------------------------------- |
+| `docs/status/archived/2026-07-20_04-45_*.md`   | `../planning/2026-07-20_*` (moved to archived/)   | Updated to `../../planning/archived/`        |
+| `docs/guides/auth-provider-fault-tolerance.md` | `../references/usermgmt.md` (dir doesn't exist)   | Replaced with text references to actual docs |
+| `docs/guides/auth-provider-fault-tolerance.md` | `../references/core-api.md` (dir doesn't exist)   | Replaced with text reference                 |
+| `usermgmt/docs/SQL_STORES.md`                  | `../adr/0003-*.md` (3 links, wrong relative path) | Fixed to `../../docs/adr/`                   |
+| `adminui/README.md`                            | `../csrf_middleware.go` (file renamed)            | Fixed to `../csrf_reexport.go`               |
 
 ### Phase 6: Domain model count drift
 
@@ -173,7 +173,7 @@ Fixed across: AGENTS.md, FEATURES.md, ROADMAP.md, TODO_LIST.md, docs/DOMAIN_LANG
 37. [ ] **Update go.work comment block**: add go-idempotency to the list of modules with broken pseudo-versions
 38. [ ] **Consider adding `datastar` to `nix run .#check-phantom-version`**: ensure no zero pseudo-versions creep into datastar's deps
 39. [ ] **Verify e2e/server is NOT in lint** (intentional — it's a test server, not a library module)
-40. [ ] **Verify examples/* are NOT in lint** (intentional — examples have no .golangci.yml)
+40. [ ] _*Verify examples/* are NOT in lint_* (intentional — examples have no .golangci.yml)
 41. [ ] **Add `nix run .#check-docs-freshness` to pre-commit hook**: catch version string drift before commit
 42. [ ] **Consider a `make-modules-check` CI step**: verify go.work module count matches flake.nix script coverage
 43. [ ] **datastar CHANGELOG**: verify `datastar/CHANGELOG.md` is up to date with any datastar changes this session (none were made, but verify)
@@ -211,35 +211,35 @@ Two links in `docs/guides/auth-provider-fault-tolerance.md` pointed to `../refer
 
 ## Files Modified This Session
 
-| File | Change |
-|------|--------|
-| `dashboardui/config.go` | Removed cqrs-lint comment (moved to go.mod) |
-| `dashboardui/go.mod` | Added `//cqrs-lint:ignore(E014)` module-level suppression |
-| `dashboardui/handler_overview.go` | JSON tags snake_case → camelCase on `recentEvent` struct |
-| `flake.nix` | Added datastar to lint, test, build scripts |
-| `go.work` | Added `go-idempotency` local replace |
-| `usermgmt/sql_readmodel_extra.go` | Fixed golines struct tag alignment (2 fields) |
-| `scripts/prewarm-gocache.sh` | Rewrote header comments (ROOT CAUSE → PERFORMANCE OPTIMIZATION) |
-| `docs/research/2026-08-02_datastar-integration-analysis.md` | Added adoption resolution blockquote |
-| `docs/status/archived/2026-07-20_04-45_*.md` | Fixed broken planning doc link |
-| `docs/guides/auth-provider-fault-tolerance.md` | Fixed 2 dead reference links |
-| `usermgmt/docs/SQL_STORES.md` | Fixed 3 broken ADR links |
-| `adminui/README.md` | Fixed csrf_middleware.go → csrf_reexport.go link |
-| `AGENTS.md` | Event/command counts, coverage 93.3%, lint module count, go-idempotency note |
-| `FEATURES.md` | Event payload count, command count, coverage 93.3% |
-| `ROADMAP.md` | Event/command counts, coverage 93.3% |
-| `TODO_LIST.md` | Coverage 93.3% |
-| `CHANGELOG.md` | Added Changed + Fixed entries for this session's work |
-| `docs/DOMAIN_LANGUAGE.md` | Annotated RolesUpdated + UpdateRoles as legacy |
+| File                                                        | Change                                                                       |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `dashboardui/config.go`                                     | Removed cqrs-lint comment (moved to go.mod)                                  |
+| `dashboardui/go.mod`                                        | Added `//cqrs-lint:ignore(E014)` module-level suppression                    |
+| `dashboardui/handler_overview.go`                           | JSON tags snake_case → camelCase on `recentEvent` struct                     |
+| `flake.nix`                                                 | Added datastar to lint, test, build scripts                                  |
+| `go.work`                                                   | Added `go-idempotency` local replace                                         |
+| `usermgmt/sql_readmodel_extra.go`                           | Fixed golines struct tag alignment (2 fields)                                |
+| `scripts/prewarm-gocache.sh`                                | Rewrote header comments (ROOT CAUSE → PERFORMANCE OPTIMIZATION)              |
+| `docs/research/2026-08-02_datastar-integration-analysis.md` | Added adoption resolution blockquote                                         |
+| `docs/status/archived/2026-07-20_04-45_*.md`                | Fixed broken planning doc link                                               |
+| `docs/guides/auth-provider-fault-tolerance.md`              | Fixed 2 dead reference links                                                 |
+| `usermgmt/docs/SQL_STORES.md`                               | Fixed 3 broken ADR links                                                     |
+| `adminui/README.md`                                         | Fixed csrf_middleware.go → csrf_reexport.go link                             |
+| `AGENTS.md`                                                 | Event/command counts, coverage 93.3%, lint module count, go-idempotency note |
+| `FEATURES.md`                                               | Event payload count, command count, coverage 93.3%                           |
+| `ROADMAP.md`                                                | Event/command counts, coverage 93.3%                                         |
+| `TODO_LIST.md`                                              | Coverage 93.3%                                                               |
+| `CHANGELOG.md`                                              | Added Changed + Fixed entries for this session's work                        |
+| `docs/DOMAIN_LANGUAGE.md`                                   | Annotated RolesUpdated + UpdateRoles as legacy                               |
 
 ## Gate Results Summary
 
-| Gate | Result | Notes |
-|------|--------|-------|
-| `nix fmt` | ✅ 0 changed | |
-| `nix run .#errorfamily` | ✅ 6/6 OK | datastar NOT in errorfamily script (see improvements) |
-| `nix run .#lint` | ✅ 11/11 modules 0 issues | datastar added this session |
-| `nix run .#test` | ✅ 11/11 pass with -race | datastar added this session |
-| `nix run .#coverage-gate` | ✅ 10/10 gates pass | |
-| `nix flake check` | ✅ All checks passed | |
-| `go build ./...` | ✅ Exit 0 | Required go-idempotency replace fix |
+| Gate                      | Result                    | Notes                                                 |
+| ------------------------- | ------------------------- | ----------------------------------------------------- |
+| `nix fmt`                 | ✅ 0 changed              |                                                       |
+| `nix run .#errorfamily`   | ✅ 6/6 OK                 | datastar NOT in errorfamily script (see improvements) |
+| `nix run .#lint`          | ✅ 11/11 modules 0 issues | datastar added this session                           |
+| `nix run .#test`          | ✅ 11/11 pass with -race  | datastar added this session                           |
+| `nix run .#coverage-gate` | ✅ 10/10 gates pass       |                                                       |
+| `nix flake check`         | ✅ All checks passed      |                                                       |
+| `go build ./...`          | ✅ Exit 0                 | Required go-idempotency replace fix                   |

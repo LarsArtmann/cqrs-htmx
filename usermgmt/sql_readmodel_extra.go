@@ -18,7 +18,7 @@ const sqlColName = "name"
 
 type MembershipView struct {
 	//cqrs-lint:ignore(A032) SQL view DTO: string ID for JSON serialization and DB scan compatibility
-	ActorID string `json:"actor_id" view:"actor_id"`
+	ActorID string `json:"actor_id"  view:"actor_id"`
 	//cqrs-lint:ignore(A032) SQL view DTO: string ID for JSON serialization and DB scan compatibility
 	TenantID string `json:"tenant_id" view:"tenant_id"`
 	Data     string `json:"data"      view:"data"`
@@ -199,7 +199,7 @@ var _ projection.Projection = (*SQLTenantReadModel)(nil)
 // --- Bot ---
 
 type BotView struct {
-	Name string `json:"name" view:"name"`
+	Name string `json:"name"       view:"name"`
 	//cqrs-lint:ignore(A032) SQL view DTO: string ID for JSON serialization and DB scan compatibility
 	OwnerID   string `json:"owner_id"   view:"owner_id"`
 	TokenHash string `json:"token_hash" view:"token_hash"`

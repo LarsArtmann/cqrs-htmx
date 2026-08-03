@@ -12,22 +12,23 @@
 
 The prior session discovered that `datastar` was added to `go.work` and the coverage gate but was missing from lint/test/build scripts. That session fixed lint/test/build. This session closed ALL remaining gaps:
 
-| Script/CI | Was | Now |
-|-----------|-----|-----|
-| `flake.nix` test-flake | Missing datastar + loginpage | Both added |
-| `flake.nix` test-fuzz | Missing datastar + loginpage | Both added |
-| `flake.nix` coverage (human report) | Missing datastar | Added |
-| `flake.nix` check-cqrs-lint | Missing datastar | Added |
-| `.github/workflows/ci.yml` build | Missing datastar | Added |
-| `.github/workflows/ci.yml` test | Missing datastar | Added (with coverage profile) |
-| `.github/workflows/ci.yml` lint | Missing datastar | Added (golangci-lint-action) |
-| `.github/workflows/ci.yml` coverage gate | Missing datastar | Added (90% threshold) |
-| `scripts/check-module-isolation.sh` | Missing identity-model, dashboardui, datastar | All 3 added |
-| `scripts/check-dep-budgets.sh` | Missing identity-model, dashboardui, datastar | All 3 added with 20% headroom budgets |
+| Script/CI                                | Was                                           | Now                                   |
+| ---------------------------------------- | --------------------------------------------- | ------------------------------------- |
+| `flake.nix` test-flake                   | Missing datastar + loginpage                  | Both added                            |
+| `flake.nix` test-fuzz                    | Missing datastar + loginpage                  | Both added                            |
+| `flake.nix` coverage (human report)      | Missing datastar                              | Added                                 |
+| `flake.nix` check-cqrs-lint              | Missing datastar                              | Added                                 |
+| `.github/workflows/ci.yml` build         | Missing datastar                              | Added                                 |
+| `.github/workflows/ci.yml` test          | Missing datastar                              | Added (with coverage profile)         |
+| `.github/workflows/ci.yml` lint          | Missing datastar                              | Added (golangci-lint-action)          |
+| `.github/workflows/ci.yml` coverage gate | Missing datastar                              | Added (90% threshold)                 |
+| `scripts/check-module-isolation.sh`      | Missing identity-model, dashboardui, datastar | All 3 added                           |
+| `scripts/check-dep-budgets.sh`           | Missing identity-model, dashboardui, datastar | All 3 added with 20% headroom budgets |
 
 ### Phase 2: Permanent markdown link checker
 
 Created `scripts/check-docs-links.sh` — a bash/awk-based link checker that:
+
 - Scans all `.md` files (excluding `.git/`, `node_modules/`, `vendor/`)
 - Skips fenced code blocks (` ``` `)
 - Filters false positives: URLs, Go generics (`[T](mapper)`), function signatures with spaces
@@ -152,7 +153,7 @@ Removed all 5 JSON tags and 2 `cqrs-lint:ignore(A032)` directives. Updated the A
 34. [ ] **datastar errorfamily**: add to errorfamily gate for consistency
 35. [ ] **Consider adding datastar to `check-phantom-version`**: ensure no zero pseudo-versions in datastar deps
 36. [ ] **Verify e2e/server is intentionally excluded from lint** (test server, not library module)
-37. [ ] **Verify examples/* are intentionally excluded from lint** (no .golangci.yml)
+37. [ ] _*Verify examples/* are intentionally excluded from lint_* (no .golangci.yml)
 38. [ ] **Consider committing a reference link-checker test fixture**
 39. [ ] **Audit CONTRIBUTING.md for datastar module references**
 40. [ ] **Consider a `check-modules` enhancement**: verify every go.work module appears in every flake.nix script
@@ -191,15 +192,15 @@ Datastar depends on `go-cqrs-lite/event/v4` (which provides error-family constru
 
 ## Gate Results Summary
 
-| Gate | Result | Notes |
-|------|--------|-------|
-| `nix fmt` | ✅ 0 changed | 1 file auto-formatted during session, already committed |
-| `nix run .#errorfamily` | ✅ 6/6 OK | datastar NOT in errorfamily script (zero violations regardless) |
-| `nix run .#lint` | ✅ 11/11 modules 0 issues | datastar included |
-| `nix run .#test` | ✅ 11/11 pass with -race | datastar included |
-| `nix run .#coverage-gate` | ✅ 10/10 gates pass | |
-| `nix flake check` | ✅ All checks passed | |
-| `go build ./...` | ✅ Exit 0 | |
-| `check-module-isolation.sh` | ✅ 12/12 modules OK | identity-model, dashboardui, datastar added |
-| `check-dep-budgets.sh` | ✅ 10/10 modules within budget | identity-model, dashboardui, datastar added |
-| `check-docs-links.sh` | ✅ 175 links, 0 broken | New this session |
+| Gate                        | Result                         | Notes                                                           |
+| --------------------------- | ------------------------------ | --------------------------------------------------------------- |
+| `nix fmt`                   | ✅ 0 changed                   | 1 file auto-formatted during session, already committed         |
+| `nix run .#errorfamily`     | ✅ 6/6 OK                      | datastar NOT in errorfamily script (zero violations regardless) |
+| `nix run .#lint`            | ✅ 11/11 modules 0 issues      | datastar included                                               |
+| `nix run .#test`            | ✅ 11/11 pass with -race       | datastar included                                               |
+| `nix run .#coverage-gate`   | ✅ 10/10 gates pass            |                                                                 |
+| `nix flake check`           | ✅ All checks passed           |                                                                 |
+| `go build ./...`            | ✅ Exit 0                      |                                                                 |
+| `check-module-isolation.sh` | ✅ 12/12 modules OK            | identity-model, dashboardui, datastar added                     |
+| `check-dep-budgets.sh`      | ✅ 10/10 modules within budget | identity-model, dashboardui, datastar added                     |
+| `check-docs-links.sh`       | ✅ 175 links, 0 broken         | New this session                                                |
