@@ -19,7 +19,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 ## Architecture
 
-**Multi-module Go workspace.** 18 independent Go modules under one `go.work`:
+**Multi-module Go workspace.** 19 independent Go modules under one `go.work`:
 
 - **Root** (`cqrs-htmx/v4`): Core library — HTTP handler builder, HTMX/SSE/WS helpers, authz (Casbin), error mapping, pagination, `openapi/` sub-package (dependency-free OpenAPI 3.1 spec builder + `WithOpenAPI`/`OpenAPISpecHandler`). CSRF, Server-Timing, and keyed rate limiting are now thin re-exports over `httputil` (see `_reexport.go` files).
 - **identity-model** (`identity-model/v4`): Pure domain types for event-sourced identity management — IDs (UserID/TenantID/BotID/ActorID), events (22 payload structs), commands (19 structs with accessor methods), fold functions (FoldUser/FoldMembership/FoldTenant/FoldBot), state structs, Authz engine (Casbin-backed), Session, User, Membership, ExternalAccount, WebAuthnCredential, crypto helpers, domain errors (errorfamily-only, no HTTP dependency), upcaster registry, exported constants (event types, command types, aggregate types, schema version). Casbin is a first-class dependency.
@@ -27,12 +27,13 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 - **usermgmt/totp**, **usermgmt/webauthn**, **usermgmt/oauth2**: Independent auth strategy modules — satisfy `usermgmt` interfaces via structural typing
 - **adminui** (`adminui/v4`): Ready-made admin dashboard (templ + HTMX)
 - **loginpage** (`loginpage/v4`): Ready-made passwordless login page
+- **datastar** (`datastar/v4`): Optional Datastar frontend adapter — script serving, signal decoding, SSE response builder, Broadcaster with replay, EventBridge. Fully isolated (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045.
 - **dashboardui** (`dashboardui/v4`): Ready-made CQRS/ES observability dashboard — projection health, event catalog overview, real-time SSE updates (templ + HTMX)
 - **integration_test**: Cross-module bridge tests
 - **e2e/server**: Playwright E2E test server for offline-sync browser testing
 - **examples/**: `basic`, `datastar-demo`, `catalog-demo`, `admin-demo`, `dashboard-demo`, `middleware-demo`, `observability-demo`
 
-**Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt. dashboardui → root + usermgmt. Nothing depends on adminui, loginpage, or dashboardui.
+**Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt. dashboardui → root + usermgmt. datastar → datastar-go SDK only (no root dep). Nothing depends on adminui, loginpage, dashboardui, or datastar.
 
 **Key dependencies:** go-cqrs-lite v4.2.0 (CQRS/event sourcing), casbin/v3 (authz), httputil (HTTP middleware: CSRF, Server-Timing, rate limiting), go-error-family (error classification), go-branded-id (typed IDs), go-sse v0.3.0 (SSE/WS broadcaster, stream, replay), a-h/templ (HTML templating), ginkgo/gomega (BDD testing). `justinas/nosurf` and `golang.org/x/time` are now transitive deps via httputil (no longer direct root deps).
 

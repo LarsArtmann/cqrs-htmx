@@ -358,6 +358,23 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ---
 
+## datastar Module (`github.com/larsartmann/cqrs-htmx/datastar/v4`)
+
+> NEW in v4.7.0. Optional Datastar frontend adapter — use Datastar instead of (or alongside) HTMX. Fully isolated module (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045.
+
+| Feature                   | Status             | Notes                                                                                                                                             |
+| ------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Script Serving            | 🟢 `FULLY_FUNCTIONAL` | `ScriptHandler()` / `ScriptHandlerWith()` / `ScriptTag()` — embeds datastar.js v1.0.2 with ETag caching (mirrors `HTMXScriptHandler`)             |
+| Signal Decoding           | 🟢 `FULLY_FUNCTIONAL` | `ReadSignals(r, &target)` — re-export of SDK's `datastar.ReadSignals` for POST body and GET query params                                           |
+| Response Builder          | 🟢 `FULLY_FUNCTIONAL` | `NewResponse(w, r)` fluent builder: `PatchSignals`, `PatchSignalsIfMissing`, `PatchElements`, `PatchElementsTempl`, `RemoveElement`, `Redirect`, `ExecuteScript`, `ApplyPatches` |
+| Patch Constructors        | 🟢 `FULLY_FUNCTIONAL` | `ElementsPatch`, `ElementsTemplPatch`, `SignalsPatch`, `SignalsIfMissingPatch`, `RemovePatch`, `ScriptPatch`, `RedirectPatch` — controlled `Patch` interface |
+| Broadcaster + Replay      | 🟢 `FULLY_FUNCTIONAL` | `NewBroadcaster()` — fan-out SSE patches to all clients with bounded ring buffer replay (default 256). `NewBroadcasterWithReplay(n)` for custom size, 0 to disable. `Last-Event-ID` header + `?lastEventId=` query param support |
+| EventBridge               | 🟢 `FULLY_FUNCTIONAL` | `NewEventBridge(broadcaster)` + `Map(eventType, fn)` + `Handle(event.Event)` — declarative domain-event-to-patch mapping                           |
+| SDK Re-exports            | 🟢 `FULLY_FUNCTIONAL` | All `With*` options, type aliases, constants — single-import convenience (`ds.WithSelectorID` instead of importing SDK separately)                |
+| Coverage                  | 🟢 `FULLY_FUNCTIONAL` | 95.1% (gate 90%). ~57 tests across 7 test files                                                                                                   |
+
+---
+
 ## Not Planned
 
 | Feature                         | Reason                                                                                                                                |

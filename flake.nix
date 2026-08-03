@@ -679,6 +679,7 @@
                 check_cov adminui 66
                 check_cov loginpage 79
                 check_cov dashboardui 60
+                check_cov datastar 90
                 if [ "$fail" -eq 1 ]; then
                   echo "Coverage gate FAILED"
                   exit 1

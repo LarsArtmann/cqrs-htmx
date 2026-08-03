@@ -1210,6 +1210,7 @@ cqrs-htmx/
 ├── adminui/             # Admin Dashboard UI (templ + HTMX, independent Go module)
 ├── loginpage/          # Ready-made passwordless login page (templ + HTMX, independent Go module)
 ├── dashboardui/        # CQRS/ES observability dashboard (HTMX + Tailwind v4, independent Go module)
+├── datastar/           # Optional Datastar frontend adapter (script serving, signals, SSE, replay, event bridge)
 ├── integration_test/   # Cross-module integration tests (independent Go module)
 └── examples/
     ├── basic/           # Minimal cqrs-htmx consumer example
