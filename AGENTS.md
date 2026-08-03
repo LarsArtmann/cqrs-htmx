@@ -27,7 +27,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 - **usermgmt/totp**, **usermgmt/webauthn**, **usermgmt/oauth2**: Independent auth strategy modules — satisfy `usermgmt` interfaces via structural typing
 - **adminui** (`adminui/v4`): Ready-made admin dashboard (templ + HTMX)
 - **loginpage** (`loginpage/v4`): Ready-made passwordless login page
-- **datastar** (`datastar/v4`): Optional Datastar frontend adapter — script serving, signal decoding, SSE response builder (ConsoleLog/ConsoleError/DispatchCustomEvent/ReplaceURL/Prefetch etc), Broadcaster with replay + optional SSE heartbeat (`NewBroadcasterWithHeartbeat`), EventBridge with `OnError` callback. 71 tests, 97.3% coverage. Fully isolated (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045.
+- **datastar** (`datastar/v4`): Optional Datastar frontend adapter — script serving, signal decoding, SSE response builder (ConsoleLog/ConsoleError/DispatchCustomEvent/ReplaceURL/Prefetch etc), Broadcaster with replay + optional SSE heartbeat (`NewBroadcasterWithHeartbeat`), EventBridge with `OnError` callback. 71 tests, 96.7% coverage. Fully isolated (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045.
 - **dashboardui** (`dashboardui/v4`): Ready-made CQRS/ES observability dashboard — projection health, event catalog overview, real-time SSE updates (templ + HTMX)
 - **integration_test**: Cross-module bridge tests
 - **e2e/server**: Playwright E2E test server for offline-sync browser testing
