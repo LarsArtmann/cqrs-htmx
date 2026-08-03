@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/stretchr/testify/require"
 )
 

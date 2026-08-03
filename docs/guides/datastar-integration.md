@@ -99,21 +99,22 @@ eventBus.SubscribeAll(bridge.Handle)
 
 ## Patch Types
 
-| Constructor | SSE Event | Description |
-|---|---|---|
-| `ElementsPatch(html, opts...)` | `datastar-patch-elements` | Morph HTML into the DOM |
-| `ElementsTemplPatch(component, opts...)` | `datastar-patch-elements` | Render a templ component |
-| `SignalsPatch(signals, opts...)` | `datastar-patch-signals` | Update reactive signals |
-| `SignalsIfMissingPatch(signals, opts...)` | `datastar-patch-signals` | Set signals only if absent |
-| `RemovePatch(selector)` | `datastar-patch-elements` | Remove elements matching selector |
-| `ScriptPatch(script, opts...)` | `datastar-execute-script` | Execute JavaScript on client |
-| `RedirectPatch(url)` | `datastar-execute-script` | Navigate client to URL |
+| Constructor                               | SSE Event                 | Description                       |
+| ----------------------------------------- | ------------------------- | --------------------------------- |
+| `ElementsPatch(html, opts...)`            | `datastar-patch-elements` | Morph HTML into the DOM           |
+| `ElementsTemplPatch(component, opts...)`  | `datastar-patch-elements` | Render a templ component          |
+| `SignalsPatch(signals, opts...)`          | `datastar-patch-signals`  | Update reactive signals           |
+| `SignalsIfMissingPatch(signals, opts...)` | `datastar-patch-signals`  | Set signals only if absent        |
+| `RemovePatch(selector)`                   | `datastar-patch-elements` | Remove elements matching selector |
+| `ScriptPatch(script, opts...)`            | `datastar-execute-script` | Execute JavaScript on client      |
+| `RedirectPatch(url)`                      | `datastar-execute-script` | Navigate client to URL            |
 
 ## Reconnection and Replay
 
 The Broadcaster maintains a bounded ring buffer of recent patches. Each patch receives a monotonically increasing ID (sent as the SSE `id:` field).
 
 When a client disconnects and reconnects:
+
 1. The browser's `EventSource` automatically sends `Last-Event-ID` with the last received ID
 2. The Broadcaster replays all buffered patches after that ID
 3. Live updates resume seamlessly
@@ -159,6 +160,7 @@ ds.WithExecuteScriptAttributes("type", "module")
 ## Demo Application
 
 See `examples/datastar-demo/` for a complete working example:
+
 - Event-sourced CQRS todo app
 - Real-time SSE with patch replay on reconnection
 - Multi-user simulation (10 bot goroutines)

@@ -5,9 +5,9 @@ import (
 	"encoding/json/v2"
 	"time"
 
+	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 )
 
 // --- CQRS Setup ---
