@@ -48,3 +48,4 @@
 | [0042](0042-offline-sync-extraction-to-root.md)   | Extract Offline Sync from adminui to Root Module                                | Accepted                                                             |
 | [0043](0043-identity-model-extraction.md)         | Extract identity-model as Domain Source of Truth                                | Accepted                                                             |
 | [0044](0044-casbin-first-class-dependency.md)     | Casbin as First-Class Dependency of identity-model                              | Accepted                                                             |
+| [0045](0045-datastar-optional-frontend.md)        | Datastar as Optional Frontend Adapter Module                                    | Accepted                                                             |
