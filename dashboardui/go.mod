@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-sse v0.3.0
+	github.com/larsartmann/go-sse v0.4.0
 )
 
 require (

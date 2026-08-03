@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Pre-warm the Go build cache (GOCACHE) to prevent concurrent compilation races.
+# Pre-warm the Go build cache (GOCACHE) as a PERFORMANCE optimization.
 #
-# ROOT CAUSE:
+# CONTEXT:
 #   encoding/json/v2 and other GOEXPERIMENT=jsonv2 stdlib packages are NOT
 #   pre-compiled in the Go installation (they are experimental). When multiple
 #   buildflow module-fanout processes (govalid, golangci-lint, go-auto-upgrade)
@@ -10,15 +10,17 @@
 #   errors that disappear on re-run. Historical failure rate: 16.6% in pre-commit
 #   mode, 12.0% in full mode (buildflow SQLite timing DB, 6,072 records).
 #
-#   Why pre-commit is worse: buildflow skips `workspace-build-verify` (which runs
-#   `go build ./...`) in pre-commit mode AND in check mode (phantom-skip). So the
-#   GOCACHE is never pre-warmed before concurrent analysis tools start.
+# DEFINITIVE FIX (in .buildflow.yml):
+#   max_concurrency: 1 eliminates the race entirely — at concurrency 1 there is
+#   only ever ONE writer to GOCACHE, so concurrent-WRITE races are impossible.
+#   This script is no longer load-bearing for correctness.
 #
-# FIX:
-#   Compile all workspace modules once (serialized) BEFORE concurrent analysis
-#   tools start. This converts all subsequent go/packages.Load calls from WRITE
-#   (compile) to READ (cache hit). Go's build cache is safe for concurrent READS;
-#   the race only occurs on concurrent WRITES.
+# ROLE OF THIS SCRIPT (PERFORMANCE OPTIMIZATION):
+#   Compile all workspace modules once (serialized) BEFORE analysis tools start.
+#   This converts subsequent go/packages.Load calls from WRITE (compile) to READ
+#   (cache hit). Go's build cache is safe for concurrent READS; the race only
+#   occurs on concurrent WRITES. With max_concurrency: 1 the serialized modules
+#   each hit a warm cache instead of compiling cold, saving ~5% per module.
 #
 # PERFORMANCE:
 #   Warm cache: ~3s total (all modules hit cache, no compilation needed).

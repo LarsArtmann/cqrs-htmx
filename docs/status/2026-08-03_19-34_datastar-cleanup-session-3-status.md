@@ -18,80 +18,80 @@ Session 2 completed all 10 tracked todo items but ended with a self-review that 
 
 ### B1. Bug Fix: `writeHeartbeat` bypassed SDK write path
 
-| Aspect | Detail |
-|--------|--------|
-| **Root cause** | Session 2 wrote raw bytes (`fmt.Fprint(w, ": heartbeat\n\n")`) directly to `http.ResponseWriter`, bypassing the SDK's `sync.Mutex`, compression writer (`sse.w`), and `http.ResponseController` flush path |
-| **Risk** | Would corrupt SSE streams if compression were ever enabled on the Broadcaster (currently opt-in and unused, so latent) |
-| **Fix** | Changed `writeHeartbeat` to call `sse.Send(heartbeatEventType, nil)` where `heartbeatEventType = EventType("ping")`. This routes through the SDK's full write pipeline (mutex lock → buffer → compress if configured → write → flush via ResponseController) |
-| **Tradeoff** | Heartbeats now produce visible `event: ping` SSE events instead of invisible SSE comments (`: heartbeat`). The Datastar client ignores unknown event types, so this is safe but slightly more verbose on the wire (~20 bytes/event vs ~14 bytes/comment) |
-| **Files** | `datastar/broadcaster.go` (const block, `pumpPatches` call site, `writeHeartbeat` function) |
-| **Tests** | `TestBroadcasterHeartbeatKeepsConnectionAlive` and `TestBroadcasterNoHeartbeatByDefault` assertions updated from `": heartbeat"` to `"event: ping"` — both pass |
-| **Verification** | 71/71 tests pass with `-race`, go vet clean, golangci-lint 0 issues |
+| Aspect           | Detail                                                                                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Root cause**   | Session 2 wrote raw bytes (`fmt.Fprint(w, ": heartbeat\n\n")`) directly to `http.ResponseWriter`, bypassing the SDK's `sync.Mutex`, compression writer (`sse.w`), and `http.ResponseController` flush path                                                   |
+| **Risk**         | Would corrupt SSE streams if compression were ever enabled on the Broadcaster (currently opt-in and unused, so latent)                                                                                                                                       |
+| **Fix**          | Changed `writeHeartbeat` to call `sse.Send(heartbeatEventType, nil)` where `heartbeatEventType = EventType("ping")`. This routes through the SDK's full write pipeline (mutex lock → buffer → compress if configured → write → flush via ResponseController) |
+| **Tradeoff**     | Heartbeats now produce visible `event: ping` SSE events instead of invisible SSE comments (`: heartbeat`). The Datastar client ignores unknown event types, so this is safe but slightly more verbose on the wire (~20 bytes/event vs ~14 bytes/comment)     |
+| **Files**        | `datastar/broadcaster.go` (const block, `pumpPatches` call site, `writeHeartbeat` function)                                                                                                                                                                  |
+| **Tests**        | `TestBroadcasterHeartbeatKeepsConnectionAlive` and `TestBroadcasterNoHeartbeatByDefault` assertions updated from `": heartbeat"` to `"event: ping"` — both pass                                                                                              |
+| **Verification** | 71/71 tests pass with `-race`, go vet clean, golangci-lint 0 issues                                                                                                                                                                                          |
 
 ### B2. Bug Fix: `TestResponseReplaceURLInvalidIgnored` was a tautology
 
-| Aspect | Detail |
-|--------|--------|
-| **Root cause** | Session 2 asserted `NotContains(body, "replace-url")` — but the SDK's `ReplaceURL` method emits `window.history.replaceState(...)` inside a `datastar-execute-script` event. The string `"replace-url"` never appears in ANY output (valid or invalid), so the assertion was vacuously true |
-| **Fix** | Changed to `NotContains(body, "replaceState")` (the actual SDK marker for ReplaceURL) + `NotContains(body, "datastar-execute-script")` (proves no event was sent at all) |
-| **Files** | `datastar/response_test.go` |
-| **Verification** | Both `TestResponseReplaceURL` (positive) and `TestResponseReplaceURLInvalidIgnored` (negative) pass |
+| Aspect           | Detail                                                                                                                                                                                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Root cause**   | Session 2 asserted `NotContains(body, "replace-url")` — but the SDK's `ReplaceURL` method emits `window.history.replaceState(...)` inside a `datastar-execute-script` event. The string `"replace-url"` never appears in ANY output (valid or invalid), so the assertion was vacuously true |
+| **Fix**          | Changed to `NotContains(body, "replaceState")` (the actual SDK marker for ReplaceURL) + `NotContains(body, "datastar-execute-script")` (proves no event was sent at all)                                                                                                                    |
+| **Files**        | `datastar/response_test.go`                                                                                                                                                                                                                                                                 |
+| **Verification** | Both `TestResponseReplaceURL` (positive) and `TestResponseReplaceURLInvalidIgnored` (negative) pass                                                                                                                                                                                         |
 
 ### B3. Documentation: `writeEventID` compression caveat documented
 
-| Aspect | Detail |
-|--------|--------|
+| Aspect         | Detail                                                                                                                                                                                                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Root cause** | `writeEventID` writes `fmt.Fprintf(w, "id: %d\n", id)` directly to the raw `http.ResponseWriter` — the same class of bypass as the heartbeat bug. This is pre-existing (not introduced this session) and currently safe (Broadcaster doesn't use compression), but undocumented |
-| **Fix** | Added doc comment explaining the raw-write pattern, why it's safe today, and what must change if compression is added |
-| **Files** | `datastar/broadcaster.go` (`writeEventID` function doc) |
+| **Fix**        | Added doc comment explaining the raw-write pattern, why it's safe today, and what must change if compression is added                                                                                                                                                           |
+| **Files**      | `datastar/broadcaster.go` (`writeEventID` function doc)                                                                                                                                                                                                                         |
 
 ### B4. Documentation: Integration guide updated
 
-| Aspect | Detail |
-|--------|--------|
-| **Gap** | `docs/guides/datastar-integration.md` had zero mention of heartbeat, OnError, or the 6 new Response methods added in Session 2 |
-| **Fix** | Added 3 sections: Heartbeat (keep-alive) with code example, Response methods table (5 new methods), Error observability (OnError callback) with code example. Also clarified `NewBroadcasterWithReplay(0)` disables replay |
-| **Files** | `docs/guides/datastar-integration.md` |
+| Aspect    | Detail                                                                                                                                                                                                                     |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Gap**   | `docs/guides/datastar-integration.md` had zero mention of heartbeat, OnError, or the 6 new Response methods added in Session 2                                                                                             |
+| **Fix**   | Added 3 sections: Heartbeat (keep-alive) with code example, Response methods table (5 new methods), Error observability (OnError callback) with code example. Also clarified `NewBroadcasterWithReplay(0)` disables replay |
+| **Files** | `docs/guides/datastar-integration.md`                                                                                                                                                                                      |
 
 ### B5. Config: Lint config Go version fixed
 
-| Aspect | Detail |
-|--------|--------|
-| **Gap** | `datastar/.golangci.yml` specified `go: 1.26.4` while the root config and actual toolchain use `1.26.5` |
-| **Fix** | Updated to `go: 1.26.5` |
+| Aspect   | Detail                                                                                                                                                    |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Gap**  | `datastar/.golangci.yml` specified `go: 1.26.4` while the root config and actual toolchain use `1.26.5`                                                   |
+| **Fix**  | Updated to `go: 1.26.5`                                                                                                                                   |
 | **Note** | Other submodule configs (adminui, identity-model, usermgmt, loginpage, integration_test) also have stale Go versions but are outside this session's scope |
 
 ### B6. Accuracy: Terminology consistency sweep
 
-| Aspect | Detail |
-|--------|--------|
-| **Gap** | After changing heartbeats from SSE comments to SSE events, all references to "comments" needed updating |
-| **Fix** | Updated: Broadcaster struct doc comment, `NewBroadcasterWithHeartbeat` doc comment, README API table |
-| **Files** | `datastar/broadcaster.go` (2 doc comments), `datastar/README.md` (1 table row) |
+| Aspect    | Detail                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------- |
+| **Gap**   | After changing heartbeats from SSE comments to SSE events, all references to "comments" needed updating |
+| **Fix**   | Updated: Broadcaster struct doc comment, `NewBroadcasterWithHeartbeat` doc comment, README API table    |
+| **Files** | `datastar/broadcaster.go` (2 doc comments), `datastar/README.md` (1 table row)                          |
 
 ### B7. Accuracy: Coverage numbers corrected
 
-| Aspect | Detail |
-|--------|--------|
-| **Gap** | CHANGELOG and AGENTS.md claimed 97.3% coverage; actual after heartbeat refactor is 96.7% (the `writeHeartbeat` function changed from a 2-line void to a 1-line return, slightly shifting branch coverage) |
-| **Fix** | Updated to 96.7% in both `CHANGELOG.md` (root) and `AGENTS.md` |
-| **Note** | 96.7% is still well above the 90% gate |
+| Aspect   | Detail                                                                                                                                                                                                    |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Gap**  | CHANGELOG and AGENTS.md claimed 97.3% coverage; actual after heartbeat refactor is 96.7% (the `writeHeartbeat` function changed from a 2-line void to a 1-line return, slightly shifting branch coverage) |
+| **Fix**  | Updated to 96.7% in both `CHANGELOG.md` (root) and `AGENTS.md`                                                                                                                                            |
+| **Note** | 96.7% is still well above the 90% gate                                                                                                                                                                    |
 
 ### B8. Comprehensive verification
 
 All checks pass:
 
-| Check | Command | Result |
-|-------|---------|--------|
-| Build (datastar) | `go build ./...` | Pass |
+| Check             | Command                                     | Result     |
+| ----------------- | ------------------------------------------- | ---------- |
+| Build (datastar)  | `go build ./...`                            | Pass       |
 | Tests (71, -race) | `go test ./... -count=1 -race -timeout 30s` | 71/71 PASS |
-| Go vet | `go vet ./...` | Clean |
-| Lint | `golangci-lint run --timeout 5m` | 0 issues |
-| Gofumpt | `gofumpt -l .` | Clean |
-| Golines | `golines --dry-run --max-len 120 .` | Clean |
-| Integration tests | `integration_test: go test -run Datastar` | 8/8 PASS |
-| Workspace build | `go build ./...` (19 modules) | Pass |
-| Coverage | `go test -cover ./...` | 96.7% |
+| Go vet            | `go vet ./...`                              | Clean      |
+| Lint              | `golangci-lint run --timeout 5m`            | 0 issues   |
+| Gofumpt           | `gofumpt -l .`                              | Clean      |
+| Golines           | `golines --dry-run --max-len 120 .`         | Clean      |
+| Integration tests | `integration_test: go test -run Datastar`   | 8/8 PASS   |
+| Workspace build   | `go build ./...` (19 modules)               | Pass       |
+| Coverage          | `go test -cover ./...`                      | 96.7%      |
 
 ---
 
@@ -100,6 +100,7 @@ All checks pass:
 ### C1. Submodule golangci.yml Go version drift (partially addressed)
 
 Fixed `datastar/.golangci.yml` only. Five other submodules still have stale Go versions:
+
 - `adminui/.golangci.yml` — `1.26.4`
 - `identity-model/.golangci.yml` — `1.26.4`
 - `usermgmt/.golangci.yml` — `1.26.4`
@@ -111,6 +112,7 @@ This is cosmetic — golangci-lint uses the installed Go, not the config value, 
 ### C2. `writeEventID` raw-write pattern (documented but not fixed)
 
 The same root cause as the heartbeat bug (writing to raw ResponseWriter instead of SDK's internal writer) exists in `writeEventID`. It's now documented as a known limitation with a future-fix note, but the fix itself requires either:
+
 - An SDK method to set the event ID (doesn't exist)
 - Writing the `id:` line through `sse.w` (requires access to the unexported field)
 

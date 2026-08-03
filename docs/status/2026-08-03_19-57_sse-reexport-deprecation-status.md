@@ -10,6 +10,7 @@
 Deprecated all 15 type aliases and delegating functions in `sse_event.go` and `sse_store.go` with `// Deprecated:` markers. Migrated 25+ internal consumers across root module, dashboardui, examples, and e2e to import `github.com/larsartmann/go-sse` and use `sse.Event`, `sse.NewStream`, `sse.Replay`, etc. directly.
 
 **Files modified (source):**
+
 - `sse_event.go` — added deprecation markers to all symbols
 - `sse_store.go` — added deprecation markers to `SSEEventStore` + `ReplayEvents`
 - `sse_broadcaster.go` — internal types changed to `sse.Event`/`sse.NewStream`/`sse.EventConnected`
@@ -19,11 +20,13 @@ Deprecated all 15 type aliases and delegating functions in `sse_event.go` and `s
 - `structured_error.go` — doc-comment example updated
 
 **Files modified (consumers):**
+
 - `dashboardui/sse.go` — full migration to `sse.*`
 - `dashboardui/dashboard.go` — `cqrshtmx.SSEEventStore` → `sse.EventStore`
 - `examples/basic/main.go`, `examples/admin-demo/main.go`, `e2e/server/main.go` — `sse.*` migration
 
 **Files modified (tests — 13 files):**
+
 - `ack_test.go`, `bdd_realtime_test.go`, `command_sync_integration_test.go`, `event_store_sse_test.go`, `example_sse_test.go`, `feedback_features_test.go`, `integration_transport_test.go`, `sse_bridge_test.go`, `sse_broadcaster_bench_test.go`, `sse_broadcaster_test.go`, `sse_event_test.go`, `sse_reconnect_integration_test.go`, `sse_reconnect_test.go`, `sse_stream_test.go`
 
 **Docs updated:** `CHANGELOG.md` (Deprecated section), `AGENTS.md` (new gotcha entry).
@@ -113,8 +116,8 @@ Deprecated all 15 type aliases and delegating functions in `sse_event.go` and `s
 
 ### Lower priority (polish)
 
-11. **Review all docs/guides/*.md** for deprecated SSE symbol references (currently clean per grep, but worth a manual scan)
-12. **Review docs/status/*.html** for stale SSE references (historical, low priority)
+11. **Review all docs/guides/\*.md** for deprecated SSE symbol references (currently clean per grep, but worth a manual scan)
+12. **Review docs/status/\*.html** for stale SSE references (historical, low priority)
 13. **Consider adding a `// Deprecated:` banner to the package doc** in `sse_event.go` header
 14. **Consider a `go fix` or codemod tool** for consumers migrating from `cqrshtmx.SSE*` to `sse.*`
 15. **Review whether `example_sse_test.go` Example functions still make sense** — `ExampleWriteSSEEvent` documents a deprecated function; consider adding `ExampleSSE_Event` showing the new pattern

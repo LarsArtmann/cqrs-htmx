@@ -54,14 +54,14 @@ bridge.OnError(func(err error) {
 
 The `Response` builder was missing high-value SDK methods. Added:
 
-| Method | SDK method wrapped |
-|--------|-------------------|
-| `ConsoleLog(msg, opts...)` | `sse.ConsoleLog` |
-| `ConsoleError(err, opts...)` | `sse.ConsoleError` |
-| `DispatchCustomEvent(name, detail, opts...)` | `sse.DispatchCustomEvent` |
-| `ReplaceURL(rawURL string, opts...)` | `sse.ReplaceURL` (with url.Parse error handling) |
-| `RemoveElementByID(id)` | `sse.RemoveElementByID` |
-| `Prefetch(urls...)` | `sse.Prefetch` |
+| Method                                       | SDK method wrapped                               |
+| -------------------------------------------- | ------------------------------------------------ |
+| `ConsoleLog(msg, opts...)`                   | `sse.ConsoleLog`                                 |
+| `ConsoleError(err, opts...)`                 | `sse.ConsoleError`                               |
+| `DispatchCustomEvent(name, detail, opts...)` | `sse.DispatchCustomEvent`                        |
+| `ReplaceURL(rawURL string, opts...)`         | `sse.ReplaceURL` (with url.Parse error handling) |
+| `RemoveElementByID(id)`                      | `sse.RemoveElementByID`                          |
+| `Prefetch(urls...)`                          | `sse.Prefetch`                                   |
 
 **Files:** `datastar/response.go` (6 methods + `net/url` import), `datastar/response_test.go` (8 new tests including invalid-URL edge case).
 
@@ -92,6 +92,7 @@ The `Response` builder was missing high-value SDK methods. Added:
 ### 8. Coverage pushed from 95.3% → 97.3%
 
 Added 14 new tests total (57 → 71):
+
 - 2 EventBridge OnError tests
 - 8 Response method tests (ConsoleLog, ConsoleError, DispatchCustomEvent, ReplaceURL, ReplaceURLInvalid, RemoveElementByID, Prefetch, + example tests)
 - 2 Broadcaster heartbeat tests
@@ -108,14 +109,14 @@ Remaining 2.7% gap: defensive SSE-write-failure paths in `replayPatches` (75%), 
 
 ### 10. Full workspace verification
 
-| Check | Result |
-|-------|--------|
-| `go build ./...` (all 19 modules) | 0 errors |
-| `go test ./...` (all 19 modules) | All pass |
+| Check                                            | Result   |
+| ------------------------------------------------ | -------- |
+| `go build ./...` (all 19 modules)                | 0 errors |
+| `go test ./...` (all 19 modules)                 | All pass |
 | `go test ./... -run Datastar` (integration_test) | 8/8 pass |
-| `golangci-lint run` (datastar) | 0 issues |
-| `golangci-lint run` (datastar-demo) | 0 issues |
-| Demo `go build` | OK |
+| `golangci-lint run` (datastar)                   | 0 issues |
+| `golangci-lint run` (datastar-demo)              | 0 issues |
+| Demo `go build`                                  | OK       |
 
 ---
 
@@ -136,6 +137,7 @@ Added `example_test.go` with `ExampleNewResponse` and `ExampleNewBroadcaster`. T
 ### 1. Integration guide (`docs/guides/datastar-integration.md`) NOT updated
 
 The guide still describes the pre-cleanup API. It does NOT mention:
+
 - Heartbeat (`NewBroadcasterWithHeartbeat`)
 - `OnError` callback on EventBridge
 - New Response methods (ConsoleLog, ConsoleError, DispatchCustomEvent, ReplaceURL, RemoveElementByID, Prefetch)
@@ -150,6 +152,7 @@ P0 item #5 from the prior session's list. Never checked whether `datastar/.golan
 ### 3. Demo doesn't showcase new features
 
 The demo doesn't use:
+
 - Heartbeat (not critical — demo is local dev, no proxy)
 - `OnError` on EventBridge (should be — demonstrates observability)
 - New Response methods (ConsoleLog for debug, DispatchCustomEvent for custom events)
@@ -171,6 +174,7 @@ The Broadcaster calls `sdk.NewSSE(w, r)` without accepting `SSEOption` variadic 
 **What I did:** `writeHeartbeat` writes raw bytes (`": heartbeat\n\n"`) directly to the `http.ResponseWriter`, then flushes via `w.(http.Flusher)`.
 
 **Why it's wrong:** The Datastar SDK's `ServerSentEventGenerator` has:
+
 - A `sync.Mutex` (`sse.mu`) that protects writes
 - An optional compressing writer (brotli/gzip/zstd/zlib via `CAFxX/httpcompression`)
 - An `http.ResponseController` for robust flushing
@@ -326,6 +330,7 @@ The SDK uses `http.NewResponseController(w)` for flushing (more robust — handl
 ### Q1: Should the heartbeat go through the SDK's `Send` method (safe but produces a visible SSE event), or should we PR a `SendComment` method to the upstream datastar-go SDK?
 
 The SDK has no way to send SSE comments (lines starting with `:`). My current raw-byte approach works but bypasses the SDK's mutex/compression/flush path. Options:
+
 - **A:** Use `sse.Send("heartbeat", nil)` — produces `event: heartbeat\n\n` (visible to EventSource, ignored by Datastar, safe under compression)
 - **B:** PR `SendComment(text string)` to `starfederation/datastar-go` upstream (cleanest, but depends on external maintainer)
 - **C:** Keep raw bytes, document compression incompatibility (current approach)
@@ -335,6 +340,7 @@ I cannot decide because each option has real tradeoffs (visibility vs correctnes
 ### Q2: Should the Broadcaster's `ServeHTTP` accept `...SSEOption` (breaking change to the `http.Handler` interface), or should we add a separate `ServeHTTPWith(opts)` method?
 
 The Broadcaster implements `http.Handler` (so consumers can `mux.Handle("GET /events", broadcaster)`). But the SDK's `NewSSE(w, r, opts...)` accepts options (compression, custom context). Currently there's no way to pass these through. Options:
+
 - **A:** Add `BroadcasterConfig` struct with `SSEOptions []sdk.SSEOption`, set at construction time (no interface break)
 - **B:** Add `ServeHTTPWith(w, r, opts...)` method alongside `ServeHTTP` (consumers who need options use the variant)
 - **C:** Don't expose SSE options (consumers who need compression wrap the Broadcaster themselves)

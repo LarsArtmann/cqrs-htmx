@@ -94,13 +94,13 @@ ds.NewResponse(w, r).
 
 The Response builder also supports:
 
-| Method | Description |
-| ------ | ----------- |
-| `ConsoleLog(msg)` / `ConsoleError(err)` | Write to the browser developer console |
-| `DispatchCustomEvent(name, detail)` | Fire a custom browser event with a JSON payload |
-| `ReplaceURL(rawURL)` | Update the browser address bar without navigation (invalid URLs silently ignored) |
-| `RemoveElementByID(id)` | Remove a DOM element by its ID (shorthand for `RemoveElement("#" + id)`) |
-| `Prefetch(urls...)` | Hint the browser to preload URLs via the Speculation Rules API |
+| Method                                  | Description                                                                       |
+| --------------------------------------- | --------------------------------------------------------------------------------- |
+| `ConsoleLog(msg)` / `ConsoleError(err)` | Write to the browser developer console                                            |
+| `DispatchCustomEvent(name, detail)`     | Fire a custom browser event with a JSON payload                                   |
+| `ReplaceURL(rawURL)`                    | Update the browser address bar without navigation (invalid URLs silently ignored) |
+| `RemoveElementByID(id)`                 | Remove a DOM element by its ID (shorthand for `RemoveElement("#" + id)`)          |
+| `Prefetch(urls...)`                     | Hint the browser to preload URLs via the Speculation Rules API                    |
 
 ### 5. Map domain events to patches
 
