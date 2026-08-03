@@ -56,6 +56,14 @@ exclude:
 # Auto-fix settings
 auto_fix: false
 
+# Skip templ-generate: buildflow uses its own bundled templ binary which
+# regenerates _templ.go files with directory-prefixed FileName: fields,
+# conflicting with the nix-pinned templ version (used by `nix run .#gen`
+# and the committed _templ.go files). The committed files are verified by
+# the `nix run .#check-codegen` app instead.
+skip_steps:
+  - templ-generate
+
 # Logging
 verbose: false
 log_level: info
