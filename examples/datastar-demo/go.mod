@@ -31,3 +31,5 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 )
+
+replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../../datastar
