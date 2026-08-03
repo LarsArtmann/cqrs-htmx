@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.6.1
 	github.com/larsartmann/cqrs-htmx/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-sse v0.3.0
+	github.com/larsartmann/go-sse v0.4.0
 )
 
 require (
@@ -17,7 +17,7 @@ require (
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
-	github.com/casbin/casbin/v3 v3.10.0 // indirect
+	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

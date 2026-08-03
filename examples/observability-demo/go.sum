@@ -77,8 +77,8 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0 h1:2p7FB48WJsNw73Ns
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.1.0/go.mod h1:PdZCnnN0zoW+N6Nrtoxp3KALj6Fx6HXoYEOi8aTujEY=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
-github.com/larsartmann/go-sse v0.3.0 h1:1XGi5C7dhGqrYvRB0s9ngwpGsZmeyuECM8JAUVEW8MY=
-github.com/larsartmann/go-sse v0.3.0/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV1VIUk5pQ2Y=
+github.com/larsartmann/go-sse v0.4.0 h1:cHeOMbVGcIqeetic8bdZIITo4xsPSpWiPhtvQTxNd+4=
+github.com/larsartmann/go-sse v0.4.0/go.mod h1:B9mLj83rwtrnbqSqBcRuMV8vnOvAaPlJtH+9U/fMeRQ=
 github.com/larsartmann/httputil v0.8.0 h1:jYyElWd/XQj1YqVQEPinsu91EkottEmjwcRBWWht96U=
 github.com/larsartmann/httputil v0.8.0/go.mod h1:I22z9KHES2ChfZ8gG16MGO8qSrtHKS1OMSltXdff0Lc=
 github.com/mattn/go-isatty v0.0.23 h1:cYwCQTQf3HB6xUC+BtyCLZNr7IzbOmoZbmssVNzSyiQ=
