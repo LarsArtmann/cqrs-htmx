@@ -153,12 +153,4 @@ func (p *Projector) GetByID(id string) (Todo, bool) {
 	return *t, true
 }
 
-func findTodoByID(p *Projector, id string) Todo {
-	t, ok := p.GetByID(id)
-	if !ok {
-		return Todo{ID: id}
-	}
-	return t
-}
-
 // --- CQRS Setup ---
