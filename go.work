@@ -56,6 +56,8 @@ replace github.com/larsartmann/go-cqrs-lite/event/v4 => /home/lars/projects/go-c
 
 replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => /home/lars/projects/go-cqrs-lite/event/v4/eventtest
 
+replace github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 => /home/lars/projects/go-cqrs-lite/flightrecorder
+
 replace github.com/larsartmann/go-cqrs-lite/graph/v4 => /home/lars/projects/go-cqrs-lite/graph
 
 replace github.com/larsartmann/go-cqrs-lite/id/v4 => /home/lars/projects/go-cqrs-lite/id
