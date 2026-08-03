@@ -154,7 +154,9 @@ func TestResponseReplaceURLInvalidIgnored(t *testing.T) {
 
 	ds.NewResponse(w, req).ReplaceURL("%zz") // invalid percent-escape -> silently ignored
 
-	require.NotContains(t, w.Body.String(), "replace-url")
+	body := w.Body.String()
+	require.NotContains(t, body, "replaceState")            // SDK never called
+	require.NotContains(t, body, "datastar-execute-script") // no event sent at all
 }
 
 func TestResponseRemoveElementByID(t *testing.T) {

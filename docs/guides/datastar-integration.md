@@ -51,6 +51,18 @@ When a client reconnects (sending the `Last-Event-ID` header), missed patches ar
 broadcaster := ds.NewBroadcasterWithReplay(1024) // 1024-patch ring buffer
 ```
 
+Pass `0` to disable replay entirely (clients that disconnect miss patches until reconnect).
+
+#### Heartbeat (keep-alive)
+
+Proxies (nginx, Cloudflare, load balancers) close idle SSE connections after a timeout. Enable periodic heartbeats to keep the connection alive:
+
+```go
+broadcaster := ds.NewBroadcasterWithHeartbeat(30 * time.Second)
+```
+
+Heartbeats are sent as lightweight SSE events (`event: ping`) that the Datastar client silently ignores. They reset proxy idle timers without producing any visible UI update.
+
 ### 3. Decode client signals
 
 Datastar automatically sends all signals with every request. Decode them into Go structs:
@@ -80,6 +92,16 @@ ds.NewResponse(w, r).
         ds.WithModeInner())
 ```
 
+The Response builder also supports:
+
+| Method | Description |
+| ------ | ----------- |
+| `ConsoleLog(msg)` / `ConsoleError(err)` | Write to the browser developer console |
+| `DispatchCustomEvent(name, detail)` | Fire a custom browser event with a JSON payload |
+| `ReplaceURL(rawURL)` | Update the browser address bar without navigation (invalid URLs silently ignored) |
+| `RemoveElementByID(id)` | Remove a DOM element by its ID (shorthand for `RemoveElement("#" + id)`) |
+| `Prefetch(urls...)` | Hint the browser to preload URLs via the Speculation Rules API |
+
 ### 5. Map domain events to patches
 
 Use `EventBridge` to declaratively map go-cqrs-lite domain events to Datastar patches:
@@ -96,6 +118,18 @@ bridge.Map("TodoDeleted", func(e event.Event) (ds.Patch, error) {
 // Wire to your event bus:
 eventBus.SubscribeAll(bridge.Handle)
 ```
+
+### Error observability
+
+Set an `OnError` callback on the EventBridge to capture errors from PatchFuncs without changing control flow:
+
+```go
+bridge.OnError(func(err error) {
+    slog.Error("datastar patch error", "err", err)
+})
+```
+
+Without `OnError`, errors are silently dropped (the original behavior). The callback fires only for registered event types whose handler returns an error — unmapped events are always skipped silently.
 
 ## Patch Types
 
