@@ -120,39 +120,65 @@ func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	b.mu.Lock()
 	b.subscribers[ch] = struct{}{}
-
-	// Snapshot replay entries atomically with subscriber registration.
-	// This prevents gaps (patches broadcast between snapshot and subscribe)
-	// and duplicates (patches in both the snapshot and the live channel).
-	// Only reconnecting clients (with Last-Event-ID) get replay — new clients
-	// start fresh and receive only live patches from this point forward.
-	var replayEntries []patchEntry
-	if b.maxReplay > 0 && hasLastEventID(r) {
-		lastID := parseLastEventID(r)
-		for _, e := range b.entries {
-			if e.id > lastID {
-				replayEntries = append(replayEntries, e)
-			}
-		}
-	}
+	replayEntries := b.collectReplayEntries(r)
 	b.mu.Unlock()
 
-	defer func() {
-		b.mu.Lock()
-		delete(b.subscribers, ch)
-		b.mu.Unlock()
-	}()
+	defer b.removeSubscriber(ch)
 
 	sse := sdk.NewSSE(w, r)
 
-	// Replay missed patches (if any) before entering the live pump loop.
-	for _, entry := range replayEntries {
+	b.replayPatches(w, sse, replayEntries)
+	b.pumpPatches(w, sse, ch, r)
+}
+
+// collectReplayEntries returns patches the reconnecting client has missed.
+// Must be called while holding b.mu so that the snapshot is atomic with
+// subscriber registration (no gaps, no duplicates). New clients (no
+// Last-Event-ID) get an empty slice — only reconnecting clients receive replay.
+func (b *Broadcaster) collectReplayEntries(r *http.Request) []patchEntry {
+	if b.maxReplay <= 0 || !hasLastEventID(r) {
+		return nil
+	}
+	lastID := parseLastEventID(r)
+	var missed []patchEntry
+	for _, e := range b.entries {
+		if e.id > lastID {
+			missed = append(missed, e)
+		}
+	}
+	return missed
+}
+
+// removeSubscriber safely removes a subscriber channel from the broadcaster.
+func (b *Broadcaster) removeSubscriber(ch chan patchEntry) {
+	b.mu.Lock()
+	delete(b.subscribers, ch)
+	b.mu.Unlock()
+}
+
+// replayPatches sends missed patches to a reconnecting client before live
+// updates resume. Stops on the first write error.
+func (b *Broadcaster) replayPatches(
+	w http.ResponseWriter,
+	sse *sdk.ServerSentEventGenerator,
+	entries []patchEntry,
+) {
+	for _, entry := range entries {
 		writeEventID(w, entry.id)
 		if err := entry.patch.apply(sse); err != nil {
 			return
 		}
 	}
+}
 
+// pumpPatches forwards live patches from the subscriber channel to the SSE
+// client until the request context is cancelled or the connection breaks.
+func (b *Broadcaster) pumpPatches(
+	w http.ResponseWriter,
+	sse *sdk.ServerSentEventGenerator,
+	ch chan patchEntry,
+	r *http.Request,
+) {
 	for {
 		select {
 		case <-r.Context().Done():
@@ -161,7 +187,6 @@ func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if !ok || sse.IsClosed() {
 				return
 			}
-
 			writeEventID(w, entry.id)
 			if err := entry.patch.apply(sse); err != nil {
 				return
