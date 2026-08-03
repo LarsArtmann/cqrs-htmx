@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 // drain launches a goroutine that receives every message on channel until it

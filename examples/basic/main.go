@@ -21,6 +21,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 // --- Domain types ---
@@ -95,7 +96,7 @@ func (s *itemStore) add(name string) item {
 	defer s.mu.Unlock()
 	it := item{ID: id.NewStreamID().String(), Name: name}
 	s.items = append(s.items, it)
-	broadcaster.Broadcast(cqrshtmx.SSEEvent{
+	broadcaster.Broadcast(sse.Event{
 		Event: "itemCreated",
 		Data:  fmt.Sprintf(`{"id":"%s","name":"%s"}`, it.ID, it.Name),
 	})
@@ -215,7 +216,7 @@ func main() {
 
 	// GET /api/events — SSE live updates
 	mux.HandleFunc("GET /api/events", func(w http.ResponseWriter, r *http.Request) {
-		stream := cqrshtmx.NewSSEStream(w, r)
+		stream := sse.NewStream(w, r)
 		//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 		ch := broadcaster.Subscribe()
 		defer broadcaster.Unsubscribe(ch)

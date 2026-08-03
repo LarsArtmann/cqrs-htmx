@@ -14,6 +14,8 @@ Read all 70+ `2026-07-2*` files across `docs/status/`, `docs/planning/`, `docs/p
 
 **But I missed several things.** I did NOT update AGENTS.md (still says "15 modules", stale coverage numbers). I did NOT update CONTRIBUTING.md (still says "15 modules"). I did NOT run `nix fmt`. I did NOT archive the 5 files classified as ARCHIVE-ready. I did NOT verify internal markdown links. I did NOT touch the 9 HTML files with inline `style=` attributes (CSP compliance). Details below.
 
+> **Update 2026-08-03:** ALL items in sections c) "NOT STARTED" and d) "FUCKED UP" were resolved by the round-2 session (15-06) and final closure session (15-08): AGENTS.md updated (15-06), CONTRIBUTING.md updated (15-06), 5 files archived (15-06), all 6 canonical nix gates run green (15-06), DOMAIN_LANGUAGE.md drift fixed — 11 events + 8 commands added (15-08), 6 remaining July-31 files annotated (15-08), markdown links verified (15-08), HTML CSP files classified as exempt (15-08). Q1 answered: all living docs ARE in scope.
+
 ---
 
 ## a) FULLY DONE ✅

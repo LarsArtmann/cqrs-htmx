@@ -34,6 +34,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-sse"
 )
 
 const (
@@ -264,7 +265,7 @@ func ackMiddleware(bc *cqrshtmx.Broadcaster, idem cqrshtmx.IdempotencyStore) fun
 // sseHandler streams live SSE events from the Broadcaster to the browser.
 func sseHandler(bc *cqrshtmx.Broadcaster) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		stream := cqrshtmx.NewSSEStream(w, r)
+		stream := sse.NewStream(w, r)
 		defer stream.Close()
 
 		// Flush headers immediately

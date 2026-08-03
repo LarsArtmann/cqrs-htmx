@@ -5,6 +5,8 @@
 **Starting state (from session 1 report):** 43 non-suppressed findings, 18 stale suppressions, exit code 0
 **Final state:** 16 non-suppressed findings, **0 stale suppressions**, exit code 0, 123 suppressed
 
+> **Update 2026-08-03:** The remaining 16 non-suppressed findings are ALL caused by cqrs-lint v0.2.2's one-suppression-per-code-line limitation (multiple rules fire on the same line, only ONE can be suppressed). These are NOT fixable without upgrading cqrs-lint (TODO_LIST P2). The gofmt-vs-cqrs-lint conflict was documented in AGENTS.md. The closeBus fix (error handling instead of suppression) and B027 stream-type constant extraction in dashboard-demo shipped cleanly.
+
 ---
 
 ## a) FULLY DONE

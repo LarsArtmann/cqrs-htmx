@@ -5,6 +5,8 @@
 **Baseline:** 5 ERRORs, 83 WARNINGs, 116 INFOs (199 non-suppressed + 5 suppressed = 204 total findings)
 **Final state:** 0 ERRORs, 20 WARNINGs, 23 INFOs (43 non-suppressed), exit code 0, 60 files changed across 10 commits.
 
+> **Update 2026-08-03:** The 18 stale suppressions were eliminated and non-suppressed findings reduced from 43→16 by session 22-16. The remaining 16 are blocked on cqrs-lint upgrade (TODO_LIST P2 — v0.2.2 only supports one suppression per code line). Q1 (D010 semver-breaking): the error code changes shipped under `[Unreleased]` without a major version bump. Q2 (stale suppressions): cleaned up in session 22-16 regardless of upgrade. Q3 (C018 journal fallback): suppressed with documented reason — the fallback is intentional for dev/test.
+
 ---
 
 ## a) FULLY DONE

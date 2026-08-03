@@ -2,7 +2,9 @@
 
 > **Date:** 2026-08-02 23:57
 > **Session goal:** Implement the `github.com/larsartmann/cqrs-htmx/datastar/v4` adapter module from the execution plan at `docs/planning/2026-08-02_22-42_datastar-adapter-module.md`.
-> **Verdict:** Core module shipped (97.3% coverage, 0 lint issues, 51 tests). But significant planned work remains: no demo upgrade, no docs, no typed decoders, no replay support, and several sloppy mistakes during implementation.
+> **Verdict:** ~~Core module shipped (97.3% coverage, 0 lint issues, 51 tests). But significant planned work remains: no demo upgrade, no docs, no typed decoders, no replay support, and several sloppy mistakes during implementation.~~
+>
+> **Update 2026-08-03 (commit `ab0b2f0`, `c1b9776`):** ALL planned work completed across 4 subsequent sessions (08-03 04:51, 07:26, 09:14, 19:34). Module now at **71 tests, 96.7% coverage, 0 lint issues**. Demo fully upgraded to adapter module. Integration guide + ADR-0045 written. Replay support shipped (patch ring buffer). All implementation bugs (D1-D9) fixed. Typed decoders documented as architecturally impossible in ADR-0045 (root's `handlerConfig` is unexported). Full item-by-item status in Resolution below.
 
 ---
 

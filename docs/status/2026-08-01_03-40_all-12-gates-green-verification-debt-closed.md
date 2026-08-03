@@ -10,6 +10,8 @@
 
 This session picked up from the previous session's 2 blocking issues (lint regression in `readiness.go`, errorfamily gate false positive) and resolved them, plus discovered and fixed 3 additional issues during final verification. **All 12 nix gates now pass cleanly.** The verification debt from the 18-task Pareto plan is fully closed.
 
+> **Update 2026-08-03:** All 12 gates remain green (now 19 modules). The errorfamily gate was later upgraded from ripgrep to a Go AST scanner (`scripts/errorfamily_scanner.go`, commit in 16-32 session). The BuildFlow templ drift remains a known issue (documented in AGENTS.md). The `max_concurrency: 1` fix for govalid-generate was confirmed as definitive. The cqrs-lint upgrade and MySQL backend completion remain open (TODO_LIST P2). The errorfamily question Q3 was resolved: **option (b) — AST-based checker** shipped.
+
 The previous report documented 16/18 tasks done with 2 residual issues. This session fixed those 2 issues, discovered 3 more during verification, fixed all 5, and achieved a clean working tree with all changes committed.
 
 ---

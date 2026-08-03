@@ -20,7 +20,7 @@ import (
 //
 //	payload := cqrshtmx.NewStructuredError(err, r)
 //	jsonBytes, _ := json.Marshal(payload)
-//	broadcaster.Broadcast(cqrshtmx.SSEEvent{
+//	broadcaster.Broadcast(sse.Event{
 //	    Event: "commandError",
 //	    Data:  string(jsonBytes),
 //	})

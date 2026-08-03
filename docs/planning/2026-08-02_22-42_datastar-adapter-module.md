@@ -5,6 +5,8 @@
 > **Analysis:** `docs/research/2026-08-02_datastar-integration-analysis.md`
 > **Principle:** Zero changes to the root module. Zero changes to existing modules. The datastar module is purely additive.
 
+> **Update 2026-08-03:** **This plan was FULLY EXECUTED** across 4 sessions (08-02 23:57 → 08-03 04:51 → 07:26 → 09:14 → 19:34). All 26 tasks completed. Module shipped as `datastar/v4` with 71 tests, 96.7% coverage (gate 90%), 0 lint issues. The plan's Verschlimmbessern safeguards held: zero changes to root module. Departures from plan: (1) module does NOT depend on root `cqrs-htmx/v4` (kept standalone for zero transitive deps — ADR-0045); (2) replay implemented as patch ring buffer, not `JournalSSEStore` (more correct for Datastar patches); (3) typed decoders (`DecodeSignals[Q]` returning `HandlerOption`) are architecturally impossible (root's `handlerConfig` is unexported — documented in ADR-0045); (4) `Response.Status()`/`Header()` impossible (SDK upgrades connection immediately — documented limitation).
+
 ---
 
 ## 0. The Problem

@@ -10,6 +10,8 @@
 
 The session completed 13 tracked tasks across bug fixes, architecture (patch ring buffer replay), demo migration, documentation, and quality gates. The datastar module is now feature-complete for its initial scope, with 57 tests at 95.1% coverage, 0 lint issues, and a fully migrated demo. However, several gaps remain: dead code in the demo, formatting issues, missing root CHANGELOG entry, and a broken integration test module (pre-existing go-cqrs-lite publish bug).
 
+> **Update 2026-08-03 (commit `ab0b2f0`, `c01d238`):** ALL remaining gaps closed by sessions 07:26 and 09:14. Dead code removed (`extractTitle`, `findTodoByID`, `Projector.GetByID`). Root CHANGELOG updated. Flightrecorder replace added to go.work — integration tests now run (8/8 pass). Module at **71 tests, 96.7% coverage** after session 09:14 added OnError, heartbeat, 6 new Response methods. The `writeHeartbeat` bug (D-class) found and fixed in session 19:34.
+
 ---
 
 ## A) FULLY DONE (shipped, verified, committed)

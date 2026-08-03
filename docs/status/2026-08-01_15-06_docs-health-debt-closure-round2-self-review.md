@@ -6,6 +6,8 @@
 **Build:** ALL 6 canonical nix gates green (`nix fmt`, `nix run .#lint`, `nix run .#test`, `nix run .#errorfamily`, `nix run .#coverage-gate`, `nix flake check`)
 **Commits:** 8 pushed to origin/master (`46fea9f..0c2212a`)
 
+> **Update 2026-08-03:** ALL remaining items resolved by the final closure session (15-08): 6 remaining July-31 files annotated (M1-M6 ✅), DOMAIN_LANGUAGE.md drift fixed — 11 events + 8 commands added (M7-M8 ✅), markdown links verified (M9 ✅), HTML CSP files classified as exempt — internal dev docs (M10 ✅). Plan doc statuses updated. The "weasel" on M12 (3 of 9 claimed as "key") was corrected by the 15-08 session which annotated all 6 remaining files.
+
 ---
 
 ## a) FULLY DONE ✅

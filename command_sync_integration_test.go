@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 // --- Integration Test Helpers ---

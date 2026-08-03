@@ -9,6 +9,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 // sseEventPayload is the JSON shape sent to the browser on each SSE push.
@@ -21,7 +22,7 @@ type sseEventPayload struct {
 	EventID    string `json:"eventId"`
 }
 
-func newSSEEvent(evt event.Event) cqrshtmx.SSEEvent {
+func newSSEEvent(evt event.Event) sse.Event {
 	payload := sseEventPayload{
 		Type:       string(evt.Type()),
 		StreamType: string(evt.StreamType()),
@@ -35,16 +36,16 @@ func newSSEEvent(evt event.Event) cqrshtmx.SSEEvent {
 	if err != nil {
 		slog.Error("dashboardui: marshal SSE event", "error", err, "eventType", payload.Type)
 
-		return cqrshtmx.SSEEvent{
+		return sse.Event{
 			Event: "event",
-			ID:    cqrshtmx.NewSSEEventID(payload.EventID),
+			ID:    sse.NewEventID(payload.EventID),
 		}
 	}
 
-	return cqrshtmx.SSEEvent{
+	return sse.Event{
 		Event: "event",
 		Data:  string(data),
-		ID:    cqrshtmx.NewSSEEventID(payload.EventID),
+		ID:    sse.NewEventID(payload.EventID),
 	}
 }
 
@@ -89,7 +90,7 @@ func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stream := cqrshtmx.NewSSEStream(w, r)
+	stream := sse.NewStream(w, r)
 	defer func() { _ = stream.Close() }()
 
 	// Subscribe BEFORE replay to avoid missing events during the replay window.
@@ -98,7 +99,7 @@ func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 	ch := d.broadcaster.Subscribe()
 	defer d.broadcaster.Unsubscribe(ch)
 
-	_ = stream.Send(cqrshtmx.SSEEvent{Event: cqrshtmx.SSEEventConnected, Data: "connected"})
+	_ = stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"})
 
 	// Replay missed events (reconnect with Last-Event-ID) or backfill recent
 	// history (first connect with empty Last-Event-ID). Events arrive after
@@ -106,7 +107,7 @@ func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 	if d.sseStore != nil {
 		lastID := stream.LastEventID()
 
-		if _, err := cqrshtmx.ReplayEvents(stream, d.sseStore, lastID); err != nil {
+		if _, err := sse.Replay(stream, d.sseStore, lastID); err != nil {
 			slog.Warn("dashboardui: SSE replay failed", "error", err, "lastEventID", lastID.Get())
 		}
 	}
