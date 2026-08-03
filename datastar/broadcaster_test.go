@@ -344,3 +344,81 @@ func TestBroadcasterNoHeartbeatByDefault(t *testing.T) {
 	require.Contains(t, body, "no-heartbeat-here")
 	require.NotContains(t, body, ": heartbeat")
 }
+
+func TestNewSSE(t *testing.T) {
+	t.Parallel()
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/events", nil)
+
+	sse := ds.NewSSE(w, req)
+	require.NotNil(t, sse)
+	require.NotNil(t, sse.Context())
+}
+
+func TestBroadcasterInvalidLastEventIDHandled(t *testing.T) {
+	t.Parallel()
+
+	b := ds.NewBroadcasterWithReplay(10)
+	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "first"}))
+
+	server := httptest.NewServer(b)
+	defer server.Close()
+
+	// Non-numeric Last-Event-ID is treated as 0 — replay everything in buffer.
+	body := readSSEBody(t, b, server.URL, "not-a-number")
+
+	require.Contains(t, body, "first")
+}
+
+func TestBroadcasterNoReplayLivePatchHasNoEventID(t *testing.T) {
+	t.Parallel()
+
+	b := ds.NewBroadcasterWithReplay(0)
+
+	server := httptest.NewServer(b)
+	defer server.Close()
+
+	var (
+		body string
+		mu   sync.Mutex
+		wg   sync.WaitGroup
+	)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, server.URL, nil)
+		if err != nil {
+			return
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		data, _ := io.ReadAll(resp.Body)
+		mu.Lock()
+		body = string(data)
+		mu.Unlock()
+	}()
+
+	require.Eventually(t, func() bool { return b.SubscriberCount() == 1 }, 2*time.Second, 5*time.Millisecond)
+
+	b.Broadcast(ds.SignalsPatch(map[string]any{"live": "patch-data"}))
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	wg.Wait()
+	b.Close()
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	require.Contains(t, body, "patch-data")
+	require.NotContains(t, body, "id: ") // no event ID line when replay is disabled
+}
