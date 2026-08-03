@@ -14,10 +14,10 @@ func ExampleWriteSSEEvent() {
 	w := httptest.NewRecorder()
 	w.Header().Set("Content-Type", "text/event-stream")
 
-	err := cqrshtmx.WriteSSEEvent(w, cqrshtmx.SSEEvent{
+	err := sse.WriteEvent(w, sse.Event{
 		Event: "todoCreated",
 		Data:  "<li>Buy milk</li>",
-		ID:    cqrshtmx.NewSSEEventID("evt-1"),
+		ID:    sse.NewEventID("evt-1"),
 	})
 	if err != nil {
 		panic(err)
@@ -34,10 +34,10 @@ func ExampleSSEStream() {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-	stream := cqrshtmx.NewSSEStream(w, r)
+	stream := sse.NewStream(w, r)
 	defer func() { _ = stream.Close() }()
 
-	_ = stream.Send(cqrshtmx.SSEEvent{Event: "update", Data: "<div>new</div>"})
+	_ = stream.Send(sse.Event{Event: "update", Data: "<div>new</div>"})
 	_ = stream.SendData("update", "<div>newer</div>")
 
 	fmt.Println(w.Header().Get("Content-Type"))
@@ -50,7 +50,7 @@ func ExampleBroadcaster() {
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 
-	b.Broadcast(cqrshtmx.SSEEvent{Event: "itemCreated", Data: "<li>item</li>"})
+	b.Broadcast(sse.Event{Event: "itemCreated", Data: "<li>item</li>"})
 
 	evt := <-ch
 	fmt.Println(evt.Event, evt.Data)

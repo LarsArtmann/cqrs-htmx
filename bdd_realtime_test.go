@@ -21,7 +21,7 @@ import (
 // docs, letting specs assert on the exact bytes the browser would receive.
 type sseClient struct {
 	recorder *httptest.ResponseRecorder
-	stream   *cqrshtmx.SSEStream
+	stream   *sse.Stream
 	done     chan struct{}
 }
 
@@ -32,7 +32,7 @@ func newSSEClient(b *cqrshtmx.Broadcaster, stopAfter int) *sseClient {
 	// matching the fan-out integration test convention and avoiding a leaked
 	// cancellable context.
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
-	stream := cqrshtmx.NewSSEStream(rec, r)
+	stream := sse.NewStream(rec, r)
 	ch := b.Subscribe()
 
 	c := &sseClient{recorder: rec, stream: stream, done: make(chan struct{})}
@@ -105,7 +105,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-				stream := cqrshtmx.NewSSEStream(rec, r)
+				stream := sse.NewStream(rec, r)
 				defer func() { _ = stream.Close() }()
 
 				Expect(rec.Code).To(Equal(http.StatusOK))
@@ -118,7 +118,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				alice := newSSEClient(broadcaster, 1)
 				bob := newSSEClient(broadcaster, 1)
 
-				broadcaster.Broadcast(cqrshtmx.SSEEvent{
+				broadcaster.Broadcast(sse.Event{
 					Event: "itemUpdated",
 					Data:  "<div id='items'>restocked</div>",
 				})
@@ -136,7 +136,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			It("splits a multi-line HTML payload across data lines so the browser renders each", func() {
 				client := newSSEClient(broadcaster, 1)
 
-				broadcaster.Broadcast(cqrshtmx.SSEEvent{
+				broadcaster.Broadcast(sse.Event{
 					Event: "listUpdated",
 					Data:  "<li>Apple</li>\n<li>Banana</li>",
 				})
@@ -150,7 +150,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-				stream := cqrshtmx.NewSSEStream(rec, r)
+				stream := sse.NewStream(rec, r)
 				defer func() { _ = stream.Close() }()
 
 				Expect(stream.SendData("toast", "<div class='toast'>Saved</div>")).
@@ -171,19 +171,19 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
 				r.Header.Set("Last-Event-ID", "2")
 
-				stream := cqrshtmx.NewSSEStream(rec, r)
+				stream := sse.NewStream(rec, r)
 				defer func() { _ = stream.Close() }()
 
-				Expect(stream.LastEventID()).To(Equal(cqrshtmx.NewSSEEventID("2")))
+				Expect(stream.LastEventID()).To(Equal(sse.NewEventID("2")))
 
-				store := &memoryEventStore{events: []cqrshtmx.SSEEvent{
-					{Event: eventItem, Data: "first", ID: cqrshtmx.NewSSEEventID("1")},
-					{Event: eventItem, Data: "second", ID: cqrshtmx.NewSSEEventID("2")},
-					{Event: eventItem, Data: "third", ID: cqrshtmx.NewSSEEventID("3")},
-					{Event: eventItem, Data: "fourth", ID: cqrshtmx.NewSSEEventID("4")},
+				store := &memoryEventStore{events: []sse.Event{
+					{Event: eventItem, Data: "first", ID: sse.NewEventID("1")},
+					{Event: eventItem, Data: "second", ID: sse.NewEventID("2")},
+					{Event: eventItem, Data: "third", ID: sse.NewEventID("3")},
+					{Event: eventItem, Data: "fourth", ID: sse.NewEventID("4")},
 				}}
 
-				n, err := cqrshtmx.ReplayEvents(stream, store, stream.LastEventID())
+				n, err := sse.Replay(stream, store, stream.LastEventID())
 				Expect(err).NotTo(HaveOccurred())
 				Expect(n).To(Equal(2))
 
@@ -200,7 +200,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-				stream := cqrshtmx.NewSSEStream(rec, r)
+				stream := sse.NewStream(rec, r)
 				defer func() { _ = stream.Close() }()
 
 				Expect(stream.LastEventID()).To(BeZero())
@@ -211,11 +211,11 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				rec := httptest.NewRecorder()
 				r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-				stream := cqrshtmx.NewSSEStream(rec, r)
+				stream := sse.NewStream(rec, r)
 				defer func() { _ = stream.Close() }()
 
-				Expect(stream.Send(cqrshtmx.SSEEvent{
-					Event: eventUpdate, Data: "ping", ID: cqrshtmx.NewSSEEventID("42"), Retry: 3000,
+				Expect(stream.Send(sse.Event{
+					Event: eventUpdate, Data: "ping", ID: sse.NewEventID("42"), Retry: 3000,
 				})).To(Succeed())
 
 				body := rec.Body.String()
@@ -224,7 +224,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			})
 
 			It("rejects a Last-Event-ID that would corrupt the SSE wire format", func() {
-				_, err := cqrshtmx.ParseSSEEventID("bad\nid")
+				_, err := sse.ParseEventID("bad\nid")
 				Expect(err).To(HaveOccurred())
 			})
 		},
@@ -236,7 +236,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 			ctx, cancel := context.WithCancel(context.Background())
 			r := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events", nil)
 
-			stream := cqrshtmx.NewSSEStream(rec, r)
+			stream := sse.NewStream(rec, r)
 			defer func() { _ = stream.Close() }()
 
 			done := make(chan struct{})
@@ -255,7 +255,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 		It("runs cleanup callbacks when the client disconnects", func() {
 			ctx, cancel := context.WithCancel(context.Background())
 			r := httptest.NewRequestWithContext(ctx, http.MethodGet, "/events", nil)
-			stream := cqrshtmx.NewSSEStream(httptest.NewRecorder(), r)
+			stream := sse.NewStream(httptest.NewRecorder(), r)
 
 			cleanedUp := false
 
@@ -275,7 +275,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 		func() {
 			var (
 				broadcaster *cqrshtmx.Broadcaster
-				subscriber  <-chan cqrshtmx.SSEEvent
+				subscriber  <-chan sse.Event
 			)
 
 			BeforeEach(func() {
@@ -300,7 +300,7 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 				)
 				Expect(w.code()).To(Equal(http.StatusNoContent))
 
-				Expect(subscriber).To(Receive(Equal(cqrshtmx.SSEEvent{
+				Expect(subscriber).To(Receive(Equal(sse.Event{
 					Event: "itemCreated", Data: "<div>new</div>",
 				})))
 			})

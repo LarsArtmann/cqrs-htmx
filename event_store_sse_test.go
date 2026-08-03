@@ -13,11 +13,11 @@ import (
 )
 
 // testMapper is a minimal EventToSSEMapper for testing.
-func testMapper(evt event.Event) SSEEvent {
-	return SSEEvent{
+func testMapper(evt event.Event) sse.Event {
+	return sse.Event{
 		Event: string(evt.Type()),
 		Data:  string(evt.Payload()),
-		ID:    NewSSEEventID(evt.ID().String()),
+		ID:    sse.NewEventID(evt.ID().String()),
 	}
 }
 
@@ -27,7 +27,7 @@ func TestJournalSSEStore_EventsAfterEmpty(t *testing.T) {
 	store := memory.NewMemoryStore()
 	sse := NewJournalSSEStore(store, testMapper)
 
-	result, err := sse.EventsAfter(SSEEventID{})
+	result, err := sse.EventsAfter(sse.EventID{})
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestJournalSSEStore_EventsAfterAll(t *testing.T) {
 
 	sse := NewJournalSSEStore(store, testMapper)
 
-	result, err := sse.EventsAfter(SSEEventID{})
+	result, err := sse.EventsAfter(sse.EventID{})
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -76,7 +76,7 @@ func TestJournalSSEStore_EventsAfterCursor(t *testing.T) {
 	// Replay after event 3 — should get events 4 and 5
 	cursor := events[2].ID().String()
 
-	result, err := sse.EventsAfter(NewSSEEventID(cursor))
+	result, err := sse.EventsAfter(sse.NewEventID(cursor))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestJournalSSEStore_EventsAfterLastEvent(t *testing.T) {
 	// Cursor at the last event — should get nothing
 	cursor := events[2].ID().String()
 
-	result, err := sse.EventsAfter(NewSSEEventID(cursor))
+	result, err := sse.EventsAfter(sse.NewEventID(cursor))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -123,7 +123,7 @@ func TestJournalSSEStore_EventsAfterNotFound(t *testing.T) {
 
 	// Non-existent cursor — upstream ReadFrom returns all events from beginning.
 	// This matches the upstream behavior (unknown cursor = no filter).
-	result, err := sse.EventsAfter(NewSSEEventID(ulid.Make().String()))
+	result, err := sse.EventsAfter(sse.NewEventID(ulid.Make().String()))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -143,7 +143,7 @@ func TestJournalSSEStore_EventsAfterInvalidCursor(t *testing.T) {
 	sse := NewJournalSSEStore(store, testMapper)
 
 	// Invalid ULID — should return empty
-	result, err := sse.EventsAfter(NewSSEEventID("not-a-valid-ulid"))
+	result, err := sse.EventsAfter(sse.NewEventID("not-a-valid-ulid"))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -163,7 +163,7 @@ func TestJournalSSEStore_MaxReplay(t *testing.T) {
 	sse := NewJournalSSEStore(store, testMapper, WithMaxReplay(3))
 
 	// No cursor — should return last 3 events only
-	result, err := sse.EventsAfter(SSEEventID{})
+	result, err := sse.EventsAfter(sse.EventID{})
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -203,7 +203,7 @@ func TestJournalSSEStore_FullScanFallback(t *testing.T) {
 	// Test replay after cursor 3 — should get 4, 5
 	cursor := events[2].ID().String()
 
-	result, err := sse.EventsAfter(NewSSEEventID(cursor))
+	result, err := sse.EventsAfter(sse.NewEventID(cursor))
 	if err != nil {
 		t.Fatalf("EventsAfter: %v", err)
 	}
@@ -259,9 +259,9 @@ func TestJournalSSEStore_ConcurrentAccess(t *testing.T) {
 			defer wg.Done()
 
 			for range 50 {
-				_, _ = sse.EventsAfter(SSEEventID{})
+				_, _ = sse.EventsAfter(sse.EventID{})
 				if idx > 0 {
-					_, _ = sse.EventsAfter(NewSSEEventID(events[idx%50].ID().String()))
+					_, _ = sse.EventsAfter(sse.NewEventID(events[idx%50].ID().String()))
 				}
 			}
 		}(i)

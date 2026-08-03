@@ -27,10 +27,10 @@ func drain[T any](tb testing.TB, channel <-chan T) {
 
 // subscribeN wires count drained subscribers onto broadcaster and registers
 // cleanup. Returns the channels so the caller can Unsubscribe them.
-func subscribeN(b *testing.B, broadcaster *cqrshtmx.Broadcaster, count int) []<-chan cqrshtmx.SSEEvent {
+func subscribeN(b *testing.B, broadcaster *cqrshtmx.Broadcaster, count int) []<-chan sse.Event {
 	b.Helper()
 
-	channels := make([]<-chan cqrshtmx.SSEEvent, 0, count)
+	channels := make([]<-chan sse.Event, 0, count)
 
 	for range count {
 		channel := broadcaster.Subscribe()
@@ -66,7 +66,7 @@ func BenchmarkBroadcasterFanOut(b *testing.B) {
 				drain(b, channel)
 			}
 
-			evt := cqrshtmx.SSEEvent{Event: "bench", Data: "payload"}
+			evt := sse.Event{Event: "bench", Data: "payload"}
 
 			b.ReportAllocs()
 			b.ResetTimer()
@@ -94,7 +94,7 @@ func BenchmarkBroadcasterBroadcastSaturated(b *testing.B) {
 			// broadcasts, then every send hits the drop path.
 			_ = subscribeN(b, broadcaster, subs)
 
-			evt := cqrshtmx.SSEEvent{Event: "bench", Data: "payload"}
+			evt := sse.Event{Event: "bench", Data: "payload"}
 
 			b.ReportAllocs()
 			b.ResetTimer()
@@ -132,7 +132,7 @@ func BenchmarkBroadcastNoSubscribers(b *testing.B) {
 
 	defer broadcaster.Close()
 
-	evt := cqrshtmx.SSEEvent{Event: "bench", Data: "payload"}
+	evt := sse.Event{Event: "bench", Data: "payload"}
 
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -159,7 +159,7 @@ func BenchmarkBroadcasterConcurrentBroadcast(b *testing.B) {
 		drain(b, channel)
 	}
 
-	evt := cqrshtmx.SSEEvent{Event: "bench", Data: "payload"}
+	evt := sse.Event{Event: "bench", Data: "payload"}
 
 	b.ReportAllocs()
 	b.ResetTimer()

@@ -23,7 +23,7 @@ var _ = Describe("SSE Stream Concurrency", func() {
 			r := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 			w := httptest.NewRecorder()
 
-			stream := cqrshtmx.NewSSEStream(w, r)
+			stream := sse.NewStream(w, r)
 			Expect(stream.Context()).To(Equal(ctx))
 
 			var wg sync.WaitGroup
@@ -39,7 +39,7 @@ var _ = Describe("SSE Stream Concurrency", func() {
 				defer cancel()
 
 				for range 20 {
-					_ = stream.Send(cqrshtmx.SSEEvent{Event: "ping", Data: "x"})
+					_ = stream.Send(sse.Event{Event: "ping", Data: "x"})
 				}
 			}()
 

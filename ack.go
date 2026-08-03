@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json/v2"
 	"net/http"
+
+	"github.com/larsartmann/go-sse"
 )
 
 // CommandIDHeader is the request header that carries a client-generated command
@@ -87,9 +89,9 @@ func newAck(commandID string, err error) CommandAck {
 	return ack
 }
 
-// ackToSSEEvent converts a CommandAck to an SSEEvent with the default event name.
-func ackToSSEEvent(ack CommandAck) SSEEvent {
-	return SSEEvent{Event: defaultAckEventName, Data: ack.ackJSON()}
+// ackToSSEEvent converts a CommandAck to an SSE event with the default event name.
+func ackToSSEEvent(ack CommandAck) sse.Event {
+	return sse.Event{Event: defaultAckEventName, Data: ack.ackJSON()}
 }
 
 // ackToWSMessage converts a CommandAck to a WS message string.
@@ -117,9 +119,9 @@ func (b *Broadcaster) BroadcastOnAck() AfterDispatchHook {
 // BroadcastOnAckFunc returns an [AfterDispatchHook] with a custom ACK mapper.
 // The mapper receives the request, the dispatch error (nil on success), and the
 // extracted command ID, and returns the SSE event to broadcast. If the mapper
-// returns an SSEEvent with empty Data, no broadcast is sent.
+// returns an sse.Event with empty Data, no broadcast is sent.
 func (b *Broadcaster) BroadcastOnAckFunc(
-	fn func(r *http.Request, err error, commandID string) SSEEvent,
+	fn func(r *http.Request, err error, commandID string) sse.Event,
 ) AfterDispatchHook {
 	return func(_ context.Context, r *http.Request, err error) {
 		cmdID := CommandIDFromRequest(r)
