@@ -5,7 +5,7 @@
 # Filters out:
 #   - URLs (http://, https://, mailto:)
 #   - Links inside fenced code blocks (``` ... ```)
-#   - Links inside inline code (`...`)
+#   - False positives: targets with spaces, commas, or missing file extensions
 #
 # Usage: ./scripts/check-docs-links.sh
 # Exit: 0 = all links valid, 1 = at least one broken link found
@@ -18,42 +18,6 @@ cd "$REPO_ROOT"
 broken=0
 checked=0
 
-find_md_files() {
-    find . -name '*.md' -not -path './.git/*' -not -path './vendor/*' -not -path './node_modules/*' | sort
-}
-
-# Extract markdown links from a file, skipping code blocks
-extract_links() {
-    local file="$1"
-    local in_codeblock=0
-
-    while IFS= read -r line; do
-        # Track fenced code blocks
-        if echo "$line" | grep -qP '^\s*```'; then
-            in_codeblock=$((1 - in_codeblock))
-            continue
-        fi
-
-        # Skip lines inside code blocks
-        [ "$in_codeblock" -eq 1 ] && continue
-
-        # Extract [text](path) links, excluding URLs and inline-code links
-        # Use grep -oP to find all link targets on the line
-        echo "$line" | grep -oP '\[[^\]]*\]\(\K[^)]+' | while IFS= read -r target; do
-            # Skip URLs and email links
-            case "$target" in
-                http://*|https://*|mailto:*) continue ;;
-            esac
-            # Strip anchor fragments and query strings
-            target="${target%%#*}"
-            target="${target%%\?*}"
-            # Skip empty targets after stripping
-            [ -z "$target" ] && continue
-            echo "$target"
-        done
-    done < "$file"
-}
-
 echo "=== Markdown Link Check ==="
 echo "Scanning all .md files for broken file-path links..."
 echo ""
@@ -61,19 +25,61 @@ echo ""
 while IFS= read -r md_file; do
     md_dir="$(dirname "$md_file")"
 
-    while IFS= read -r link; do
-        [ -z "$link" ] && continue
+    # Use awk to extract links, skipping fenced code blocks.
+    # Only accept targets that look like real file paths:
+    #   - Ends with a file extension (.md, .go, .sh, .yml, etc.)
+    #   - OR starts with ./ or ../ and contains a path separator
+    # This excludes Go generics like [T](mapper), function signatures,
+    # and other false positives in embedded code samples.
+    links=$(awk '
+        /^[[:space:]]*```/ { in_code = !in_code; next }
+        in_code { next }
+        {
+            line = $0
+            while (match(line, /\[[^][]*\]\([^)]*\)/)) {
+                link_part = substr(line, RSTART, RLENGTH)
+                if (match(link_part, /\]\(([^)]*)\)/)) {
+                    target = substr(link_part, RSTART+2, RLENGTH-3)
+                    # Strip anchor/query before testing
+                    path = target
+                    sub(/[?#].*$/, "", path)
+                    # Accept: file extension at end, or explicit relative path with /
+                    # Reject: anything with spaces (Go code, not file paths)
+                    if (path !~ / / && (path ~ /\.[a-zA-Z][a-zA-Z0-9]*$/ || path ~ /^\.\.?\//)) {
+                        print target
+                    }
+                }
+                line = substr(line, RSTART + RLENGTH)
+            }
+        }
+    ' "$md_file")
+
+    while IFS= read -r target; do
+        [ -z "$target" ] && continue
+
+        # Skip URLs and email links
+        case "$target" in
+            http://*|https://*|mailto:*) continue ;;
+        esac
+
+        # Strip anchor fragments and query strings
+        path_part="${target%%#*}"
+        path_part="${path_part%%\?*}"
+
+        # Skip empty targets after stripping (anchor-only links)
+        [ -z "$path_part" ] && continue
+
         checked=$((checked + 1))
 
         # Resolve relative to the markdown file's directory
-        resolved="$md_dir/$link"
+        resolved="$md_dir/$path_part"
 
         if [ ! -e "$resolved" ]; then
-            echo "  BROKEN: $md_file -> $link"
+            echo "  BROKEN: $md_file -> $target"
             broken=$((broken + 1))
         fi
-    done < <(extract_links "$md_file")
-done < <(find_md_files)
+    done <<< "$links"
+done < <(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' -not -path './vendor/*' | sort)
 
 echo ""
 echo "Checked $checked links across all markdown files."

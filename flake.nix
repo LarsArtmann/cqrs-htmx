@@ -634,6 +634,7 @@
                   bash scripts/check-version-drift.sh --strict
                   bash scripts/check-replace-directives.sh
                   bash scripts/check-docs-freshness.sh
+                  bash scripts/check-docs-links.sh
                   echo ""
                   echo "✓ All module architecture checks passed"
                 '';
@@ -649,6 +650,19 @@
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-docs-freshness.sh
+                '';
+              };
+            };
+
+            check-docs-links = {
+              type = "app";
+              meta.description = "Check all markdown file-path links resolve correctly";
+              program = pkgs.writeShellApplication {
+                name = "check-docs-links";
+                runtimeInputs = [ pkgs.findutils pkgs.gnugrep ];
+                text = ''
+                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                  bash scripts/check-docs-links.sh
                 '';
               };
             };
