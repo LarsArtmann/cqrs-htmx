@@ -30,15 +30,15 @@ Iroh is a **Rust** peer-to-peer QUIC networking stack: dial-by-key identity, NAT
 
 A modular P2P networking stack written in **Rust** by n0-computer. Core properties:
 
-| Property | Detail |
-| --- | --- |
-| **Identity** | Dial by ed25519 public key (`NodeId` / `EndpointId`), not IP address. A `NodeAddr` bundles the key + relay URLs + direct addresses. |
-| **Transport** | QUIC + TLS 1.3 — end-to-end encryption, authentication, stream multiplexing without head-of-line blocking. ALPN strings dispatch streams to protocol handlers via a `Router`. |
-| **NAT traversal** | QAD (QUIC Address Discovery) probes → home relay selection → DNS-based or Mainline DHT peer lookup → direct QUIC hole punching (via `n0_nat_traversal` extension) → LAN/mDNS local connections → **relay fallback** if no direct path. Connections migrate across network changes without dropping. |
-| **Relays** | Stateless, free community relays by default; self-hostable for production. Used for discovery + last-resort data relay. |
-| **Swappable transports** | UDP default; Tor, Nym, or Bluetooth as alternatives. |
-| **Platforms** | Windows, macOS, Linux, Android, iOS, embedded (ESP32), and WASM/browser. |
-| **Protocols** | Composable, dispatched by ALPN. See [Appendix A](#appendix-a-iroh-protocol-detail). |
+| Property                 | Detail                                                                                                                                                                                                                                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Identity**             | Dial by ed25519 public key (`NodeId` / `EndpointId`), not IP address. A `NodeAddr` bundles the key + relay URLs + direct addresses.                                                                                                                                                                 |
+| **Transport**            | QUIC + TLS 1.3 — end-to-end encryption, authentication, stream multiplexing without head-of-line blocking. ALPN strings dispatch streams to protocol handlers via a `Router`.                                                                                                                       |
+| **NAT traversal**        | QAD (QUIC Address Discovery) probes → home relay selection → DNS-based or Mainline DHT peer lookup → direct QUIC hole punching (via `n0_nat_traversal` extension) → LAN/mDNS local connections → **relay fallback** if no direct path. Connections migrate across network changes without dropping. |
+| **Relays**               | Stateless, free community relays by default; self-hostable for production. Used for discovery + last-resort data relay.                                                                                                                                                                             |
+| **Swappable transports** | UDP default; Tor, Nym, or Bluetooth as alternatives.                                                                                                                                                                                                                                                |
+| **Platforms**            | Windows, macOS, Linux, Android, iOS, embedded (ESP32), and WASM/browser.                                                                                                                                                                                                                            |
+| **Protocols**            | Composable, dispatched by ALPN. See [Appendix A](#appendix-a-iroh-protocol-detail).                                                                                                                                                                                                                 |
 
 **Language bindings (via iroh-ffi / UniFFI):** Python, Swift, Kotlin/JVM, JavaScript/Node — these cover the **core 1.0 networking surface only**. A **community Go binding** ([decentral1se/iroh-go](https://git.coopcloud.tech/decentral1se/iroh-go)) exists but covers only the core surface, **not** the higher-level protocols (blobs/docs/gossip). The interesting protocols are **Rust-first** and not yet in scope for official FFI.
 
@@ -51,7 +51,7 @@ Grounded in the actual codebase:
 - **Server-authoritative event sourcing.** 22 events, 19 commands, fold functions, Casbin authz. All writes pass through command dispatch (validation + invariant enforcement + authz). Clients **cannot** append events directly.
 - **SSE for server→client push.** `go-sse` v0.3.0 broadcaster/stream/replay. Per-tab `EventSource` in the browser. Single-node (the broadcaster is in-process).
 - **Offline command queue (ADR-0029 + ADR-0040).** `sync-worker.js` (SharedWorker) + `sync-client.js` in the root module's `sync/` directory. The worker is a **coordinator, not a proxy**: it does NOT send HTTP requests (tabs do, via HTMX), does NOT own the SSE connection. It **persists queued commands to IndexedDB** so writes survive closed tabs/restarts, and tells tabs to retry on reconnect. Served via `cqrshtmx.SyncWorkerHandler()` / `cqrshtmx.SyncClientHandler()`. Current `syncVersion`: `1.3.0`.
-  - **Key distinction:** the offline layer queues *writes* (command envelopes). It does **not** serve readable state offline — the UI cannot render stale projections when offline.
+  - **Key distinction:** the offline layer queues _writes_ (command envelopes). It does **not** serve readable state offline — the UI cannot render stale projections when offline.
 - **Opt-in `SnapshotConfig` (ADR-0041).** Zero-value = full-replay mode. `MemorySnapshotStore` is dev/test only. To enable: set `Store` + `Codec` + `Strategy` on config. Write path consults snapshot and loads only the tail via `LoadFromVersion`.
 - **Multi-instance fanout:** Not currently solved in-process. The event bus + SSE broadcaster is single-node. Horizontally-scaled deployments would conventionally add Redis Pub/Sub or Kafka.
 - **"Never enforce defaults" library principle.** No mandatory CSP/HSTS/CSRF — all opt-in. Auth strategies (TOTP/WebAuthn/OAuth2) are optional sub-modules via interfaces.
@@ -60,13 +60,13 @@ Grounded in the actual codebase:
 
 ## 3. Capability → Fit Matrix
 
-| Iroh capability | cqrs-htmx need | Fit | Notes |
-| --- | --- | --- | --- |
-| `iroh-gossip` (decentralized pub/sub by topic) | Multi-node SSE/event-bus replication across horizontally-scaled instances | **Strong** | Replaces a Redis/Kafka broker dependency for fanout; matches the existing `go-sse` broadcaster role but server-to-server. Epidemic broadcast trees (HyParView + PlumTree). |
-| `iroh-blobs` (BLAKE3 content-addressed, resumable, verified transfer) | `SnapshotConfig` snapshot distribution; event-log segment shipping | **Medium** | Real use but speculative — current SQL snapshots work. BLAKE3 chunking maps well to snapshot segments. |
-| `iroh-docs` (CRDT multi-writer KV sync via range-based set reconciliation) | Read-only projection replication to browser for true local-first UI | **Medium (read-only only)** | **Conflict on writes** — clients cannot append events; that bypasses command validation, authz, and invariants. |
-| Dial-by-key / NAT traversal | Self-hosted/on-prem/edge deployments behind NAT (POS, IoT) | **Low/medium** | Niche; most consumers want a normal HTTP server. |
-| `iroh-roq` / `iroh-live` (RTP-over-QUIC, Media over QUIC streaming) | — | **None** | No media use case. |
+| Iroh capability                                                            | cqrs-htmx need                                                            | Fit                         | Notes                                                                                                                                                                      |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `iroh-gossip` (decentralized pub/sub by topic)                             | Multi-node SSE/event-bus replication across horizontally-scaled instances | **Strong**                  | Replaces a Redis/Kafka broker dependency for fanout; matches the existing `go-sse` broadcaster role but server-to-server. Epidemic broadcast trees (HyParView + PlumTree). |
+| `iroh-blobs` (BLAKE3 content-addressed, resumable, verified transfer)      | `SnapshotConfig` snapshot distribution; event-log segment shipping        | **Medium**                  | Real use but speculative — current SQL snapshots work. BLAKE3 chunking maps well to snapshot segments.                                                                     |
+| `iroh-docs` (CRDT multi-writer KV sync via range-based set reconciliation) | Read-only projection replication to browser for true local-first UI       | **Medium (read-only only)** | **Conflict on writes** — clients cannot append events; that bypasses command validation, authz, and invariants.                                                            |
+| Dial-by-key / NAT traversal                                                | Self-hosted/on-prem/edge deployments behind NAT (POS, IoT)                | **Low/medium**              | Niche; most consumers want a normal HTTP server.                                                                                                                           |
+| `iroh-roq` / `iroh-live` (RTP-over-QUIC, Media over QUIC streaming)        | —                                                                         | **None**                    | No media use case.                                                                                                                                                         |
 
 ---
 
@@ -94,9 +94,9 @@ An `iroh-docs`-replicated read-model would let the UI render stale-but-readable 
 
 Honest costs, not hand-waving:
 
-1. **Language gap (the big one).** Iroh is Rust-first. The **official FFI covers Python/Swift/Kotlin/JS — not Go**. The Go binding (`decentral1se/iroh-go`) is community-maintained and covers only the **core 1.0 networking surface**, *not* blobs/docs/gossip — the actually-interesting protocols. Using the interesting parts means hand-rolling cgo FFI against `iroh-ffi` (C binding) or reimplementing.
+1. **Language gap (the big one).** Iroh is Rust-first. The **official FFI covers Python/Swift/Kotlin/JS — not Go**. The Go binding (`decentral1se/iroh-go`) is community-maintained and covers only the **core 1.0 networking surface**, _not_ blobs/docs/gossip — the actually-interesting protocols. Using the interesting parts means hand-rolling cgo FFI against `iroh-ffi` (C binding) or reimplementing.
 2. **Build complexity.** The hermetic Nix build (`GOWORK=off`, vendored Go deps, the `govalid-generate` GOCACHE race saga) would need to compile/link a Rust native library. Significant friction against a currently clean 18-module Go workspace. cgo also breaks cross-compilation and complicates the devShell.
-3. **Write-path conflict.** Event sourcing + Casbin = centralized trust. P2P CRDT merge = distributed trust. These are fundamentally different consistency models. Keep Iroh strictly on the *read/replication/transport* side; never on the write side.
+3. **Write-path conflict.** Event sourcing + Casbin = centralized trust. P2P CRDT merge = distributed trust. These are fundamentally different consistency models. Keep Iroh strictly on the _read/replication/transport_ side; never on the write side.
 4. **Already solved.** Offline command queueing already exists (IndexedDB-persisted, SharedWorker-coordinated). Iroh would be additive, not simplifying, for that use case.
 
 ---
@@ -108,6 +108,7 @@ Honest costs, not hand-waving:
 If pursued, the **one high-value, low-risk** experiment is an opt-in `iroh-gossip`-backed `event.Bus`/broadcaster as a new optional sub-module (like the auth modules) for broker-less multi-instance fanout — it respects the library principle, needs no write-path changes, and the worst case is it stays unused. Keep the CRDT/snapshot ideas in `ROADMAP.md` "raw ideas" rather than acting on them, pending either (a) official Go bindings covering the protocol layer, or (b) a concrete consumer request for broker-less multi-instance deployment.
 
 **Decision triggers to revisit:**
+
 - n0-computer ships official Go bindings for `iroh-gossip` (unblocks §4.1 with acceptable FFI cost).
 - A consumer requests multi-instance deployment without an external broker.
 - A consumer requests local-first offline-readable projections (re-evaluate §4.3 read-only path).

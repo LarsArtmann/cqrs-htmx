@@ -114,6 +114,7 @@ The package doc comment in `doc.go` contains code examples that reference `ds.Ne
 ### T17-T19: Demo upgrade — NOT STARTED
 
 `examples/datastar-demo/` was not touched. The plan called for:
+
 - T17: Rewrite handlers to use `ds.ReadSignals` + `ds.NewResponse` instead of raw `datastar.NewSSE`
 - T18: Replace custom Broadcaster with the adapter's `Broadcaster`
 - T19: Add EventBridge usage + update README + verify build
@@ -161,7 +162,7 @@ The workspace build passes (`go build ./...` succeeds for all 19 modules). The w
 
 **What happened:** Tests sent `{"datastar":{"title":"Buy milk"}}` but the SDK reads the body directly as JSON (no `datastar` wrapper for POST body — that wrapper only applies to GET query params where the key is literally `datastar`).
 
-**Root cause:** I read the SDK's `ReadSignals` source after writing the tests, not before. The research phase noted "signals are sent as `{datastar: {...}}` with every request" but this is the *client-side* behavior — the SDK unmarshals the raw body, not a nested field.
+**Root cause:** I read the SDK's `ReadSignals` source after writing the tests, not before. The research phase noted "signals are sent as `{datastar: {...}}` with every request" but this is the _client-side_ behavior — the SDK unmarshals the raw body, not a nested field.
 
 **Should have caught:** Read the SDK source before writing tests. The function is 27 lines long.
 
@@ -181,7 +182,7 @@ The plan (section 7.4) explicitly called for "A test asserts the Go SDK version 
 
 ### D6. EventBridge broadcast test assertion weakened
 
-**What happened:** `TestEventBridgeMapAndHandle` originally asserted `broadcaster.SubscriberCount() == 1` after handling an event. But SubscriberCount reflects *connected SSE clients*, not queued messages. The assertion was wrong, so I removed it instead of properly testing broadcast delivery.
+**What happened:** `TestEventBridgeMapAndHandle` originally asserted `broadcaster.SubscriberCount() == 1` after handling an event. But SubscriberCount reflects _connected SSE clients_, not queued messages. The assertion was wrong, so I removed it instead of properly testing broadcast delivery.
 
 **Should have done:** Connect a subscriber, broadcast, verify the subscriber receives the patch via the SSE stream. This is testable (the broadcaster test does it).
 
@@ -356,16 +357,16 @@ The project's coverage gates are: root 90% (actual 93.7%), usermgmt 74%, identit
 
 ## Session Metrics
 
-| Metric | Value |
-|--------|-------|
-| Files created | 16 Go files + 4 meta files (go.mod, LICENSE, README, CHANGELOG, .golangci.yml) + 1 JS asset |
-| Total lines (Go) | 1,654 |
-| Test functions | 51 |
-| Test coverage | 97.3% |
-| Lint issues | 0 |
-| Compile errors during dev | 3 (missing import, wrong event.Type cast, missing embed import) |
-| Test failures during dev | 4 (wrong JSON format ×2, subscriber count assertion, stack overflow) |
-| Existing module files modified | 0 |
-| Planned tasks completed | 10 of 26 (T1-T5, T8, T10-T11, T13-T16 partial, T23) |
-| Planned tasks not started | 10 (T6-T7 partial, T9 partial, T17-T22, T24-T26) |
-| Time to implement | ~1.5 hours (from scaffold to 0 lint issues) |
+| Metric                         | Value                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------- |
+| Files created                  | 16 Go files + 4 meta files (go.mod, LICENSE, README, CHANGELOG, .golangci.yml) + 1 JS asset |
+| Total lines (Go)               | 1,654                                                                                       |
+| Test functions                 | 51                                                                                          |
+| Test coverage                  | 97.3%                                                                                       |
+| Lint issues                    | 0                                                                                           |
+| Compile errors during dev      | 3 (missing import, wrong event.Type cast, missing embed import)                             |
+| Test failures during dev       | 4 (wrong JSON format ×2, subscriber count assertion, stack overflow)                        |
+| Existing module files modified | 0                                                                                           |
+| Planned tasks completed        | 10 of 26 (T1-T5, T8, T10-T11, T13-T16 partial, T23)                                         |
+| Planned tasks not started      | 10 (T6-T7 partial, T9 partial, T17-T22, T24-T26)                                            |
+| Time to implement              | ~1.5 hours (from scaffold to 0 lint issues)                                                 |
