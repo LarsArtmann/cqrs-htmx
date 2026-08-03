@@ -52,5 +52,5 @@ app.Query("ListItems",
 ### SSE live updates
 
 ```go
-broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "itemCreated", Data: jsonStr})
+broadcaster.Broadcast(sse.Event{Event: "itemCreated", Data: jsonStr})
 ```
