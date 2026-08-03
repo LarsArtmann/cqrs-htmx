@@ -43,7 +43,7 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
 		cmd, err := NewCreateTodo(s.Title)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			ds.ErrorResponse(w, r, err)
 			return
 		}
 
@@ -72,7 +72,7 @@ func handleToggleTodo(cqrs *CQRS) http.HandlerFunc {
 		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
 		cmd, err := NewToggleTodo(s.ID)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			ds.ErrorResponse(w, r, err)
 			return
 		}
 
@@ -95,7 +95,7 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
 		cmd, err := NewDeleteTodo(s.ID)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			ds.ErrorResponse(w, r, err)
 			return
 		}
 
@@ -131,7 +131,7 @@ func handleUpdateTodo(cqrs *CQRS) http.HandlerFunc {
 		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
 		cmd, err := NewUpdateTodo(s.ID, s.Title)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			ds.ErrorResponse(w, r, err)
 			return
 		}
 
@@ -148,12 +148,12 @@ func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		qry, err := NewListTodosQry()
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			ds.ErrorResponse(w, r, err)
 			return
 		}
 		todos, err := query.DispatchTyped[[]Todo](r.Context(), cqrs.Queries, qry)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			ds.ErrorResponse(w, r, err)
 			return
 		}
 

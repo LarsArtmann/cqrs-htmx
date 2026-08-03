@@ -143,14 +143,4 @@ func (p *Projector) Stats() (total, active, completed int) {
 	return total, active, completed
 }
 
-func (p *Projector) GetByID(id string) (Todo, bool) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	t, ok := p.todos[id]
-	if !ok {
-		return Todo{}, false
-	}
-	return *t, true
-}
-
 // --- CQRS Setup ---
