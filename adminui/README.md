@@ -52,7 +52,7 @@ or your own middleware). Requests without a user get `401`; users that fail
 
 > **Security:** like authentication, **CSRF protection is the consumer's
 > responsibility**. The panel issues state-changing `POST`s (delete user,
-> create/suspend/delete tenant). Wrap it with [`cqrshtmx.CSRFMiddleware`](../csrf_middleware.go)
+> create/suspend/delete tenant). Wrap it with [`cqrshtmx.CSRFMiddleware`](../csrf_reexport.go)
 > (or your own) in production. The showcase demo omits it for simplicity.
 
 The default authorizer checks roles:

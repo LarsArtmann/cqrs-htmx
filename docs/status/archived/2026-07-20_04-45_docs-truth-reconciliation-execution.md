@@ -1,7 +1,7 @@
 # Docs Truth Reconciliation — Execution Report
 
 **Created:** 2026-07-20 04:45 | **Author:** Crush recovery session | **Status:** COMPLETE
-**Plan:** [`docs/planning/2026-07-20_00-20_docs-truth-reconciliation.md`](../planning/2026-07-20_00-20_docs-truth-reconciliation.md)
+**Plan:** [`docs/planning/archived/2026-07-20_00-20_docs-truth-reconciliation.md`](../../planning/archived/2026-07-20_00-20_docs-truth-reconciliation.md)
 
 > **Outcome:** All 10 Level-1 tasks executed. All 10 success criteria met. 6 living docs updated, 0 Verschlimmbessern.
 
