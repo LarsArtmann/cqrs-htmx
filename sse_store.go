@@ -9,6 +9,8 @@ import (
 //
 // Since [SSEEvent] is a type alias for [sse.Event], any type implementing
 // [SSEEventStore] also implements [sse.EventStore].
+//
+// Deprecated: Use [sse.EventStore] from github.com/larsartmann/go-sse directly.
 type SSEEventStore interface {
 	// EventsAfter returns events with IDs strictly after the given lastID.
 	// Returns an empty slice if no events are found or lastID is unknown.
@@ -22,6 +24,8 @@ type SSEEventStore interface {
 // reconnects with a Last-Event-ID header, replay the events it missed.
 //
 // Returns the number of events replayed, or an error if writing fails.
+//
+// Deprecated: Use [sse.Replay] from github.com/larsartmann/go-sse directly.
 func ReplayEvents(stream *SSEStream, store SSEEventStore, lastEventID SSEEventID) (int, error) {
 	return sse.Replay(stream, store, lastEventID) //nolint:wrapcheck // pure delegation
 }
