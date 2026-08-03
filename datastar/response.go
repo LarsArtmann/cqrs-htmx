@@ -2,6 +2,7 @@ package datastar
 
 import (
 	"net/http"
+	"net/url"
 
 	sdk "github.com/starfederation/datastar-go/datastar"
 )
@@ -74,6 +75,56 @@ func (resp *Response) Redirect(url string) *Response {
 // ExecuteScript runs JavaScript on the client.
 func (resp *Response) ExecuteScript(script string, opts ...ExecuteScriptOption) *Response {
 	_ = resp.sse.ExecuteScript(script, opts...)
+
+	return resp
+}
+
+// ConsoleLog writes a message to the browser developer console.
+func (resp *Response) ConsoleLog(msg string, opts ...ExecuteScriptOption) *Response {
+	_ = resp.sse.ConsoleLog(msg, opts...)
+
+	return resp
+}
+
+// ConsoleError writes an error to the browser developer console.
+func (resp *Response) ConsoleError(err error, opts ...ExecuteScriptOption) *Response {
+	_ = resp.sse.ConsoleError(err, opts...)
+
+	return resp
+}
+
+// DispatchCustomEvent dispatches a custom browser event with the given name
+// and detail payload (any JSON-marshallable value).
+func (resp *Response) DispatchCustomEvent(name string, detail any, opts ...DispatchCustomEventOption) *Response {
+	_ = resp.sse.DispatchCustomEvent(name, detail, opts...)
+
+	return resp
+}
+
+// ReplaceURL updates the browser's address bar to the given URL without
+// triggering a navigation. An unparseable URL is silently ignored.
+func (resp *Response) ReplaceURL(rawURL string, opts ...ExecuteScriptOption) *Response {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return resp
+	}
+
+	_ = resp.sse.ReplaceURL(*u, opts...)
+
+	return resp
+}
+
+// RemoveElementByID removes the DOM element with the given ID. It is a
+// convenience wrapper around RemoveElement with a "#id" selector.
+func (resp *Response) RemoveElementByID(id string) *Response {
+	_ = resp.sse.RemoveElementByID(id)
+
+	return resp
+}
+
+// Prefetch hints the browser to preload the given URLs.
+func (resp *Response) Prefetch(urls ...string) *Response {
+	_ = resp.sse.Prefetch(urls...)
 
 	return resp
 }

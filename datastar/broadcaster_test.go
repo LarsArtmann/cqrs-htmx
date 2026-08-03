@@ -315,3 +315,32 @@ func TestBroadcasterReplayRingBufferEviction(t *testing.T) {
 	require.Contains(t, body, "p4")
 	require.Contains(t, body, "p5")
 }
+
+func TestBroadcasterHeartbeatKeepsConnectionAlive(t *testing.T) {
+	t.Parallel()
+
+	b := ds.NewBroadcasterWithHeartbeat(10 * time.Millisecond)
+
+	server := httptest.NewServer(b)
+	defer server.Close()
+
+	// readSSEBody sleeps 100ms after connecting — enough for ~10 heartbeats.
+	body := readSSEBody(t, b, server.URL, "")
+
+	require.Contains(t, body, ": heartbeat")
+}
+
+func TestBroadcasterNoHeartbeatByDefault(t *testing.T) {
+	t.Parallel()
+
+	b := ds.NewBroadcaster()
+	b.Broadcast(ds.SignalsPatch(map[string]any{"msg": "no-heartbeat-here"}))
+
+	server := httptest.NewServer(b)
+	defer server.Close()
+
+	body := readSSEBody(t, b, server.URL, "0")
+
+	require.Contains(t, body, "no-heartbeat-here")
+	require.NotContains(t, body, ": heartbeat")
+}

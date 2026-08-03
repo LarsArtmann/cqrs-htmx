@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	sdk "github.com/starfederation/datastar-go/datastar"
 )
@@ -33,13 +34,16 @@ type patchEntry struct {
 // The Broadcaster maintains a bounded ring buffer of recent patches. When a
 // client reconnects (sending the Last-Event-ID header), missed patches are
 // replayed before live updates resume. Use NewBroadcasterWithReplay to
-// configure the buffer size, or pass 0 to disable replay entirely.
+// configure the buffer size, or pass 0 to disable replay entirely. Use
+// NewBroadcasterWithHeartbeat to enable periodic keep-alive comments that
+// prevent proxy idle-timeout disconnects.
 type Broadcaster struct {
 	mu          sync.Mutex
 	subscribers map[chan patchEntry]struct{}
 	entries     []patchEntry
 	nextID      uint64
 	maxReplay   int
+	heartbeat   time.Duration
 }
 
 // NewBroadcaster creates a Datastar patch broadcaster with a default replay
@@ -57,6 +61,20 @@ func NewBroadcasterWithReplay(maxReplay int) *Broadcaster {
 		subscribers: make(map[chan patchEntry]struct{}),
 		maxReplay:   maxReplay,
 	}
+}
+
+// NewBroadcasterWithHeartbeat creates a broadcaster that sends periodic SSE
+// heartbeat comments to each connected client. This keeps the connection
+// alive through proxies (nginx, Cloudflare, etc.) that close idle
+// connections after a timeout. Pass a reasonable interval (e.g. 30s) — too
+// frequent and you waste bandwidth, too rare and proxies may drop the
+// connection before the first heartbeat arrives.
+//
+//	broadcaster := ds.NewBroadcasterWithHeartbeat(30 * time.Second)
+func NewBroadcasterWithHeartbeat(interval time.Duration) *Broadcaster {
+	b := NewBroadcaster()
+	b.heartbeat = interval
+	return b
 }
 
 // Broadcast sends a patch to all connected clients and stores it in the replay
@@ -179,6 +197,13 @@ func (b *Broadcaster) pumpPatches(
 	ch chan patchEntry,
 	r *http.Request,
 ) {
+	var heartbeatC <-chan time.Time
+	if b.heartbeat > 0 {
+		ticker := time.NewTicker(b.heartbeat)
+		defer ticker.Stop()
+		heartbeatC = ticker.C
+	}
+
 	for {
 		select {
 		case <-r.Context().Done():
@@ -191,6 +216,11 @@ func (b *Broadcaster) pumpPatches(
 			if err := entry.patch.apply(sse); err != nil {
 				return
 			}
+		case <-heartbeatC:
+			if sse.IsClosed() {
+				return
+			}
+			writeHeartbeat(w)
 		}
 	}
 }
@@ -204,6 +234,17 @@ func writeEventID(w http.ResponseWriter, id uint64) {
 		return
 	}
 	_, _ = fmt.Fprintf(w, "id: %d\n", id)
+}
+
+// writeHeartbeat sends an SSE comment to keep the connection alive. Comments
+// (lines starting with ":") are ignored by the browser's EventSource but
+// reset proxy idle timers. The ResponseWriter is flushed immediately so the
+// comment reaches the client without waiting for the next patch.
+func writeHeartbeat(w http.ResponseWriter) {
+	_, _ = fmt.Fprint(w, ": heartbeat\n\n")
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
 }
 
 // parseLastEventID extracts the last event ID from the standard SSE
