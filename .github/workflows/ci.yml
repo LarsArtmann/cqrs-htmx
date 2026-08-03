@@ -411,7 +411,7 @@ jobs:
       - name: Error family check
         run: |
           echo "=== Error Family Check ==="
-          go run scripts/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage
+          go run scripts/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage datastar
           echo "OK: All modules pass errorfamily check."
         env:
           GOEXPERIMENT: jsonv2

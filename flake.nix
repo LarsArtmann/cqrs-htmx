@@ -589,7 +589,7 @@
                 name = "check-errorfamily";
                 runtimeInputs = [ pkgs.go ];
                 text = ''
-                  # Root + usermgmt + adminui + identity-model + dashboardui + loginpage:
+                  # Root + usermgmt + adminui + identity-model + dashboardui + loginpage + datastar:
                   # error-family constructors are mandatory in non-test code.
                   # Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt:
                   # they don't import go-cqrs-lite/event/v4 (keeping deps minimal), and
@@ -615,6 +615,7 @@
                   check_module "identity-model" "identity-model submodule"
                   check_module "dashboardui" "dashboardui submodule"
                   check_module "loginpage" "loginpage submodule"
+                  check_module "datastar" "datastar submodule"
 
                   echo "All modules pass errorfamily check."
                 '';
