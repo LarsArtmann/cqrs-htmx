@@ -70,10 +70,10 @@ type recentEvent struct {
 	Time string `json:"time"`
 	Type string `json:"type"`
 	//cqrs-lint:ignore(A032) display-only DTO field for HTMX rendering
-	StreamID string `json:"stream_id"`
+	StreamID string `json:"streamId"`
 	Version  string `json:"version"`
 	//cqrs-lint:ignore(A032) display-only DTO field for HTMX rendering
-	EventID string `json:"event_id"`
+	EventID string `json:"eventId"`
 }
 
 //nolint:cyclop,gocognit // multi-source aggregation
