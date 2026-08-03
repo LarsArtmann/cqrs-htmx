@@ -41,14 +41,14 @@ DOMAIN_LANGUAGE freshness, HTML CSP compliance, CHANGELOG reorganization, TODO_L
 | M7  | Fix FEATURES.md `[Unreleased]`            | ✅ Done | Removed qualifier                               |
 | M8  | Archive 5 resolved files                  | ✅ Done | `git mv` to `docs/status/archived/`             |
 | M9  | Fix ADR-0030 status                       | ✅ Done | Proposed → Superseded (by ADR 0040)             |
-| M10 | Verify internal markdown links             | ✅ Done | All links resolve (14 doc-relative links)        |
-| M11 | Fix broken links (if any)                  | ✅ Done | No broken links found                            |
-| M12 | Annotate 9 `2026-07-31` files              | ✅ Done | All 9 annotated (6 in 15-08, 3 in 15-06)        |
-| M13 | Run `nix run .#test`                       | ✅ Done | All 11 module groups pass with -race             |
+| M10 | Verify internal markdown links            | ✅ Done | All links resolve (14 doc-relative links)       |
+| M11 | Fix broken links (if any)                 | ✅ Done | No broken links found                           |
+| M12 | Annotate 9 `2026-07-31` files             | ✅ Done | All 9 annotated (6 in 15-08, 3 in 15-06)        |
+| M13 | Run `nix run .#test`                      | ✅ Done | All 11 module groups pass with -race            |
 | M14 | Run `nix run .#errorfamily`               | ✅ Done | All pass                                        |
 | M15 | Run `nix flake check`                     | ✅ Done | All checks passed                               |
 | M16 | Write this plan doc                       | ✅ Done | This file                                       |
-| M17 | Commit + push                              | ✅ Done | 8 commits pushed (`46fea9f..0c2212a`)            |
+| M17 | Commit + push                             | ✅ Done | 8 commits pushed (`46fea9f..0c2212a`)           |
 
 ---
 

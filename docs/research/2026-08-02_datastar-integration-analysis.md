@@ -6,6 +6,10 @@
 
 ---
 
+> **Update 2026-08-03:** Recommendation adopted — module shipped as `datastar/v4` (71 tests, 96.7% coverage, 0 lint). See ADR-0045 (`docs/adr/0045-datastar-optional-frontend.md`), `docs/guides/datastar-integration.md`, and the `datastar-demo` example. The module is fully standalone (zero transitive deps on root `cqrs-htmx/v4`).
+
+---
+
 ## 1. Executive Summary
 
 Datastar is not an HTMX replacement bolted onto a CQRS backend. Its founding philosophy — "The Tao of Datastar" — **is the cqrs-htmx architecture**: backend as single source of truth, CQRS for real-time (one long-lived SSE read connection + short-lived command writes), no optimistic updates, SSE as the default transport. The project already implements every principle Datastar advocates — just with HTMX as the frontend reactivity layer.

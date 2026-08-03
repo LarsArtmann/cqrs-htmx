@@ -46,21 +46,21 @@ mux.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
 
 ## API
 
-| Function                                  | Description                                             |
-| ----------------------------------------- | ------------------------------------------------------- |
-| `ScriptHandler()`                         | Serve embedded datastar.js with ETag caching            |
-| `ScriptTag(path)`                         | HTML `<script type="module">` tag                       |
-| `ReadSignals(r, &target)`                 | Decode Datastar signals from request                    |
-| `NewResponse(w, r)`                       | Fluent Datastar SSE response builder                    |
-| `ElementsPatch(html, opts...)`            | Create a patch-elements instruction                     |
-| `SignalsPatch(signals, opts...)`          | Create a patch-signals instruction                      |
-| `RemovePatch(selector)`                   | Create a remove-element instruction                     |
-| `NewBroadcaster()`                        | Fan-out SSE patches to all clients                      |
-| `NewBroadcasterWithReplay(n)`             | Broadcaster with a custom replay buffer                 |
-| `NewBroadcasterWithHeartbeat(d)`          | Broadcaster with periodic SSE keep-alive events         |
-| `NewEventBridge(broadcaster)`             | Declarative event-to-patch mapping                      |
-| `EventBridge.OnError(fn)`                 | Callback for handler errors (logging/metrics)           |
-| `ErrorResponse(w, r, err)`                | Send an error as a Datastar notification signal         |
+| Function                         | Description                                     |
+| -------------------------------- | ----------------------------------------------- |
+| `ScriptHandler()`                | Serve embedded datastar.js with ETag caching    |
+| `ScriptTag(path)`                | HTML `<script type="module">` tag               |
+| `ReadSignals(r, &target)`        | Decode Datastar signals from request            |
+| `NewResponse(w, r)`              | Fluent Datastar SSE response builder            |
+| `ElementsPatch(html, opts...)`   | Create a patch-elements instruction             |
+| `SignalsPatch(signals, opts...)` | Create a patch-signals instruction              |
+| `RemovePatch(selector)`          | Create a remove-element instruction             |
+| `NewBroadcaster()`               | Fan-out SSE patches to all clients              |
+| `NewBroadcasterWithReplay(n)`    | Broadcaster with a custom replay buffer         |
+| `NewBroadcasterWithHeartbeat(d)` | Broadcaster with periodic SSE keep-alive events |
+| `NewEventBridge(broadcaster)`    | Declarative event-to-patch mapping              |
+| `EventBridge.OnError(fn)`        | Callback for handler errors (logging/metrics)   |
+| `ErrorResponse(w, r, err)`       | Send an error as a Datastar notification signal |
 
 The `Response` builder also exposes `ConsoleLog`, `ConsoleError`,
 `DispatchCustomEvent`, `ReplaceURL`, `RemoveElementByID`, `Prefetch`, and

@@ -463,36 +463,36 @@ Protocol types come from [go-sse](https://github.com/larsartmann/go-sse); cqrs-h
 
 **go-sse** (`github.com/larsartmann/go-sse`):
 
-| Type / Function | Description |
-| --- | --- |
-| `sse.Event` | Event struct: `Event`, `Data`, `ID`, `Retry` |
-| `sse.WriteEvent(w, event)` | Write a single SSE event to any `io.Writer` |
-| `sse.NewStream(w, r)` | Create a managed SSE connection (correct headers, flush, context-aware lifecycle) |
-| `stream.Send(event)` | Send event to connected client |
-| `stream.SendData(name, data)` | Shorthand for raw string content events |
-| `stream.LastEventID()` | Client's last event ID (for reconnection) |
-| `stream.Close()` | Graceful shutdown |
-| `stream.Heartbeat(ctx, interval)` | Send SSE comment-frame pings to prevent proxy idle kills |
-| `stream.OnDisconnect(fn)` | Register cleanup callback fired on `Close()` |
-| `sse.LastEventIDFromRequest(r)` | Extract `Last-Event-ID` from request |
-| `sse.EventStore` | Interface for reconnection replay (`EventsSince(id)`) |
-| `sse.Replay(stream, store, lastID)` | Replay missed events to reconnecting client |
+| Type / Function                     | Description                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------- |
+| `sse.Event`                         | Event struct: `Event`, `Data`, `ID`, `Retry`                                      |
+| `sse.WriteEvent(w, event)`          | Write a single SSE event to any `io.Writer`                                       |
+| `sse.NewStream(w, r)`               | Create a managed SSE connection (correct headers, flush, context-aware lifecycle) |
+| `stream.Send(event)`                | Send event to connected client                                                    |
+| `stream.SendData(name, data)`       | Shorthand for raw string content events                                           |
+| `stream.LastEventID()`              | Client's last event ID (for reconnection)                                         |
+| `stream.Close()`                    | Graceful shutdown                                                                 |
+| `stream.Heartbeat(ctx, interval)`   | Send SSE comment-frame pings to prevent proxy idle kills                          |
+| `stream.OnDisconnect(fn)`           | Register cleanup callback fired on `Close()`                                      |
+| `sse.LastEventIDFromRequest(r)`     | Extract `Last-Event-ID` from request                                              |
+| `sse.EventStore`                    | Interface for reconnection replay (`EventsSince(id)`)                             |
+| `sse.Replay(stream, store, lastID)` | Replay missed events to reconnecting client                                       |
 
 **cqrs-htmx** (CQRS-coupled):
 
-| Type / Function | Description |
-| --- | --- |
-| `NewBroadcaster()` | Thread-safe fan-out hub |
-| `broadcaster.Subscribe()` | Get a receiver channel |
-| `broadcaster.Unsubscribe(ch)` | O(1) unsubscribe via channel identity |
-| `broadcaster.Broadcast(event)` | Non-blocking send to all subscribers (drops to slow consumers) |
-| `broadcaster.SubscriberCount()` | Active subscriber count |
-| `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch |
-| `BroadcastOnSuccessFunc(fn)` | `AfterDispatchHook` with dynamic event generation |
-| `BroadcastOnError(eventName)` | `AfterDispatchHook` that broadcasts StructuredError on dispatch failure |
-| `BroadcastOnErrorFunc(fn)` | `AfterDispatchHook` with dynamic error event generation |
-| `NewStructuredError(err, r)` | RFC 7807 error payload with type/title/status/detail/instance. `.JSON()` for SSE/WS |
-| `NewJournalSSEStore(...)` | Production `sse.EventStore` backed by a go-cqrs-lite event journal |
+| Type / Function                   | Description                                                                         |
+| --------------------------------- | ----------------------------------------------------------------------------------- |
+| `NewBroadcaster()`                | Thread-safe fan-out hub                                                             |
+| `broadcaster.Subscribe()`         | Get a receiver channel                                                              |
+| `broadcaster.Unsubscribe(ch)`     | O(1) unsubscribe via channel identity                                               |
+| `broadcaster.Broadcast(event)`    | Non-blocking send to all subscribers (drops to slow consumers)                      |
+| `broadcaster.SubscriberCount()`   | Active subscriber count                                                             |
+| `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch                          |
+| `BroadcastOnSuccessFunc(fn)`      | `AfterDispatchHook` with dynamic event generation                                   |
+| `BroadcastOnError(eventName)`     | `AfterDispatchHook` that broadcasts StructuredError on dispatch failure             |
+| `BroadcastOnErrorFunc(fn)`        | `AfterDispatchHook` with dynamic error event generation                             |
+| `NewStructuredError(err, r)`      | RFC 7807 error payload with type/title/status/detail/instance. `.JSON()` for SSE/WS |
+| `NewJournalSSEStore(...)`         | Production `sse.EventStore` backed by a go-cqrs-lite event journal                  |
 
 ## WebSocket Helpers
 
@@ -586,7 +586,7 @@ The library also embeds the 3 HTMX extensions that pair with its server-side bui
 
 | Extension          | Version            | Server-side counterpart                           |
 | ------------------ | ------------------ | ------------------------------------------------- |
-| `HTMXExtSSE`       | htmx-ext-sse 2.2.4 | `sse.Stream`, `Broadcaster`, `JournalSSEStore`     |
+| `HTMXExtSSE`       | htmx-ext-sse 2.2.4 | `sse.Stream`, `Broadcaster`, `JournalSSEStore`    |
 | `HTMXExtWS`        | htmx-ext-ws 2.0.4  | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
 | `HTMXExtIdiomorph` | idiomorph 0.7.4    | Morph-swap for SSE partial updates                |
 

@@ -18,30 +18,30 @@ The datastar adapter module is **production-ready for its initial scope**. This 
 
 ## A) FULLY DONE
 
-| # | Item | Commit |
-|---|------|--------|
-| 1 | **Dead code removed**: `extractTitle()` from `handlers_routes.go`, `findTodoByID()` from `domain_store.go` — both unused after demo migration to adapter module | `c01d238` |
-| 2 | **Notification regression fixed**: `handleCreateTodo` now sends `"Created: {title}"` (was generic `"Todo created"`) — restores old per-user notification UX with better architecture (handler response instead of broadcast-stream filtering) | `ab0b2f0` |
-| 3 | **Dotfiles added**: `.editorconfig`, `.gitattributes`, `.gitignore` — match `dashboardui/` and `identity-model/` patterns exactly | `ab0b2f0` |
-| 4 | **README.md updated**: demo description changed from "Standalone datastar + go-cqrs-lite SSE example" to "Real-time todo app using the datastar adapter module (SSE + signals)" | `ab0b2f0` |
-| 5 | **TODO_LIST.md updated**: 18→19 modules, added datastar coverage to summary line | `ab0b2f0` |
-| 6 | **ROADMAP.md updated**: 18→19 modules across 5 references (version header, version line, coverage line, lint line, modules list), added datastar 95.1%/gate 90% | `ab0b2f0` |
-| 7 | **CONTRIBUTING.md updated**: 18→19 modules, added datastar row to module table, updated dependency direction note | `ab0b2f0` |
-| 8 | **CHANGELOG.md updated**: Added 4-bullet datastar entry under `[Unreleased] → Added` (module, guide, ADR, demo migration) | `ab0b2f0` |
-| 9 | **Cyclop lint fixed**: Refactored `Broadcaster.ServeHTTP` (complexity 13→<8) by extracting `collectReplayEntries`, `removeSubscriber`, `replayPatches`, `pumpPatches` helpers | `ad1ccc9` |
+| #   | Item                                                                                                                                                                                                                                          | Commit    |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | **Dead code removed**: `extractTitle()` from `handlers_routes.go`, `findTodoByID()` from `domain_store.go` — both unused after demo migration to adapter module                                                                               | `c01d238` |
+| 2   | **Notification regression fixed**: `handleCreateTodo` now sends `"Created: {title}"` (was generic `"Todo created"`) — restores old per-user notification UX with better architecture (handler response instead of broadcast-stream filtering) | `ab0b2f0` |
+| 3   | **Dotfiles added**: `.editorconfig`, `.gitattributes`, `.gitignore` — match `dashboardui/` and `identity-model/` patterns exactly                                                                                                             | `ab0b2f0` |
+| 4   | **README.md updated**: demo description changed from "Standalone datastar + go-cqrs-lite SSE example" to "Real-time todo app using the datastar adapter module (SSE + signals)"                                                               | `ab0b2f0` |
+| 5   | **TODO_LIST.md updated**: 18→19 modules, added datastar coverage to summary line                                                                                                                                                              | `ab0b2f0` |
+| 6   | **ROADMAP.md updated**: 18→19 modules across 5 references (version header, version line, coverage line, lint line, modules list), added datastar 95.1%/gate 90%                                                                               | `ab0b2f0` |
+| 7   | **CONTRIBUTING.md updated**: 18→19 modules, added datastar row to module table, updated dependency direction note                                                                                                                             | `ab0b2f0` |
+| 8   | **CHANGELOG.md updated**: Added 4-bullet datastar entry under `[Unreleased] → Added` (module, guide, ADR, demo migration)                                                                                                                     | `ab0b2f0` |
+| 9   | **Cyclop lint fixed**: Refactored `Broadcaster.ServeHTTP` (complexity 13→<8) by extracting `collectReplayEntries`, `removeSubscriber`, `replayPatches`, `pumpPatches` helpers                                                                 | `ad1ccc9` |
 
 ### Verification Matrix (final state)
 
-| Check | Result |
-|-------|--------|
-| `go build ./...` (datastar) | PASS |
-| `go build ./...` (datastar-demo) | PASS |
-| `go build ./...` (workspace root) | PASS |
-| `go test ./... -race` (datastar) | PASS (57 tests, 1.12s) |
-| Coverage | 95.3% (gate: 90%) |
-| `golangci-lint run` | 0 issues |
-| `gofumpt -l` | Clean (no files flagged) |
-| `flake.nix` coverage gate | `check_cov datastar 90` present (line 682) |
+| Check                             | Result                                     |
+| --------------------------------- | ------------------------------------------ |
+| `go build ./...` (datastar)       | PASS                                       |
+| `go build ./...` (datastar-demo)  | PASS                                       |
+| `go build ./...` (workspace root) | PASS                                       |
+| `go test ./... -race` (datastar)  | PASS (57 tests, 1.12s)                     |
+| Coverage                          | 95.3% (gate: 90%)                          |
+| `golangci-lint run`               | 0 issues                                   |
+| `gofumpt -l`                      | Clean (no files flagged)                   |
+| `flake.nix` coverage gate         | `check_cov datastar 90` present (line 682) |
 
 ### Module File Inventory
 
