@@ -39,7 +39,7 @@ type patchEntry struct {
 // client reconnects (sending the Last-Event-ID header), missed patches are
 // replayed before live updates resume. Use NewBroadcasterWithReplay to
 // configure the buffer size, or pass 0 to disable replay entirely. Use
-// NewBroadcasterWithHeartbeat to enable periodic keep-alive comments that
+// NewBroadcasterWithHeartbeat to enable periodic keep-alive events that
 // prevent proxy idle-timeout disconnects.
 type Broadcaster struct {
 	mu          sync.Mutex
@@ -68,7 +68,7 @@ func NewBroadcasterWithReplay(maxReplay int) *Broadcaster {
 }
 
 // NewBroadcasterWithHeartbeat creates a broadcaster that sends periodic SSE
-// heartbeat comments to each connected client. This keeps the connection
+// heartbeat events to each connected client. This keeps the connection
 // alive through proxies (nginx, Cloudflare, etc.) that close idle
 // connections after a timeout. Pass a reasonable interval (e.g. 30s) — too
 // frequent and you waste bandwidth, too rare and proxies may drop the

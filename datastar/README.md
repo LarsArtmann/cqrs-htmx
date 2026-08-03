@@ -57,7 +57,7 @@ mux.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
 | `RemovePatch(selector)`                   | Create a remove-element instruction                     |
 | `NewBroadcaster()`                        | Fan-out SSE patches to all clients                      |
 | `NewBroadcasterWithReplay(n)`             | Broadcaster with a custom replay buffer                 |
-| `NewBroadcasterWithHeartbeat(d)`          | Broadcaster with periodic SSE keep-alive comments       |
+| `NewBroadcasterWithHeartbeat(d)`          | Broadcaster with periodic SSE keep-alive events         |
 | `NewEventBridge(broadcaster)`             | Declarative event-to-patch mapping                      |
 | `EventBridge.OnError(fn)`                 | Callback for handler errors (logging/metrics)           |
 | `ErrorResponse(w, r, err)`                | Send an error as a Datastar notification signal         |
