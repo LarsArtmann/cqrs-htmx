@@ -16,12 +16,15 @@ cd "$REPO_ROOT"
 # These are CURRENT counts + 20% headroom. Adjust when intentionally adding deps.
 declare -A DEP_BUDGET=(
     ["."]=18           # Root: 16 current (casbin, form, nosurf, branded-id, cqrs-lite x6, httputil, ulid, ginkgo, gomega, x/time)
+    ["identity-model"]=10    # identity-model: 8 current (casbin, branded-id, cqrs-lite event/id/codec/metadata, ulid, rapid)
     ["usermgmt"]=28    # usermgmt: 25 current (casbin, cqrs-htmx, branded-id, cqrs-lite x8, sqlite, ulid, rapid, watermill, kv)
     ["usermgmt/totp"]=3        # totp: 1 current (pquerna/otp)
     ["usermgmt/webauthn"]=3    # webauthn: 1 current (go-webauthn/webauthn)
     ["usermgmt/oauth2"]=5      # oauth2: 3 current (oauth2, oidc, go-jose)
     ["adminui"]=7      # adminui: 5 current (cqrs-htmx, usermgmt, templ, ulid, casbin)
     ["loginpage"]=5    # loginpage: 3 current (cqrs-htmx, usermgmt, templ)
+    ["dashboardui"]=16 # dashboardui: 13 current (cqrs-htmx, usermgmt, templ, casbin, branded-id, cqrs-lite event/id/codec/metadata, ulid, rapid, watermill)
+    ["datastar"]=5     # datastar: 4 current (datastar-go SDK, cqrs-lite event/id, templ)
 )
 
 # Modules that don't need budget checks

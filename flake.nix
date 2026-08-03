@@ -196,6 +196,10 @@
                 (cd adminui && go test ./... -count=3 -race)
                 echo "==> dashboardui submodule (3 iterations)"
                 (cd dashboardui && go test ./... -count=3 -race)
+                echo "==> loginpage submodule (3 iterations)"
+                (cd loginpage && go test ./... -count=3 -race)
+                echo "==> datastar submodule (3 iterations)"
+                (cd datastar && go test ./... -count=3 -race)
                 echo "==> integration_test submodule (3 iterations)"
                 (cd integration_test && go test ./... -count=3 -race)
               '';
@@ -251,6 +255,18 @@
 
                 echo "==> dashboardui submodule fuzz tests"
                 (cd dashboardui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
+
+                echo "==> loginpage submodule fuzz tests"
+                (cd loginpage && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                  echo "    -> $fuzz"
+                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                done)
+
+                echo "==> datastar submodule fuzz tests"
+                (cd datastar && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
                   echo "    -> $fuzz"
                   go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
                 done)
@@ -315,6 +331,8 @@
                 (cd loginpage && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
                 echo "==> dashboardui submodule coverage"
                 (cd dashboardui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                echo "==> datastar submodule coverage"
+                (cd datastar && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
               '';
             };
 
@@ -798,7 +816,7 @@
                   set -euo pipefail
                   echo "=== cqrs-lint strict check ==="
                   fail=0
-                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui; do
+                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar; do
                     echo "==> $mod"
                     if ! (cd "$mod" && cqrs-lint --strict . >/dev/null 2>&1); then
                       echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --verbose .' for details)"

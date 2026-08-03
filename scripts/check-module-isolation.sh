@@ -14,12 +14,15 @@ cd "$REPO_ROOT"
 # Modules to check (production modules only — examples are main packages)
 MODULES=(
     "."
+    "identity-model"
     "usermgmt"
     "usermgmt/totp"
     "usermgmt/webauthn"
     "usermgmt/oauth2"
     "adminui"
     "loginpage"
+    "dashboardui"
+    "datastar"
     "integration_test"
 )
 
