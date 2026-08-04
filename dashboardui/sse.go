@@ -68,7 +68,7 @@ func (d *Dashboard) startEventBridge() {
 		return nil
 	}
 
-	//cqrs-lint:ignore(C027) SSE fan-out bridge for live dashboard updates, not a read-model projection
+	//cqrs-lint:ignore(C027,A005) SSE fan-out bridge for live dashboard updates, not a read-model projection
 	if err := d.cfg.EventBus.SubscribeAll(
 		handler,
 	); err != nil {
