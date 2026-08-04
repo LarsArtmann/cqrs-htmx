@@ -62,10 +62,7 @@ func (c *cursorStreamReader) List(
 		}
 	}
 
-	end := start + int(opts.Limit)
-	if end > len(c.items) {
-		end = len(c.items)
-	}
+	end := min(start+int(opts.Limit), len(c.items))
 
 	if start >= len(c.items) {
 		return &listing.Page[listing.StreamListing]{Items: nil, HasMore: false}, nil

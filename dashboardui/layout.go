@@ -299,6 +299,8 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .stat-card:hover { border-color: var(--accent); }
 .stat-card.accent { border-color: var(--accent); }
 .stat-card.ok { border-color: var(--ok); }
+.stat-card.warn { border-color: var(--warn); }
+.stat-card.err { border-color: var(--err); }
 .stat-card-value { font-size: 2.5rem; font-weight: 900; line-height: 1; }
 .stat-card-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 6px; color: var(--muted); }
 

@@ -208,3 +208,37 @@ func TestDLQIndexHandler_ShowsDeadLetterCounts(t *testing.T) {
 		t.Errorf("expected dead-letter count '2' in body, got:\n%s", body)
 	}
 }
+
+// TestOverview_HealthStatCard verifies that the overview shows a System Health
+// stat card when projections are configured.
+func TestOverview_HealthStatCard(t *testing.T) {
+	t.Parallel()
+
+	host := newTestProjectionHost(t)
+
+	ctx := t.Context()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	defer func() { _ = host.Stop() }()
+
+	time.Sleep(200 * time.Millisecond)
+
+	d := MustNew(Config{Journal: stubJournal{}, ProjectionHost: host})
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
+	rr := httptest.NewRecorder()
+	d.overviewHandler(rr, req)
+
+	body := rr.Body.String()
+
+	if !strings.Contains(body, "System Health") {
+		t.Errorf("expected System Health stat card, got:\n%s", body)
+	}
+
+	if !strings.Contains(body, "stat-card ok") {
+		t.Errorf("expected healthy stat-card with ok variant, got:\n%s", body)
+	}
+}
