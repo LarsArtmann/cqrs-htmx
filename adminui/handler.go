@@ -150,6 +150,10 @@ func (h *Handler) Handler() http.Handler { return h.routes() }
 // Mount registers the panel on mux at pattern (e.g. "/admin/"). A trailing
 // slash is required by the standard mux for prefix matching. Use "/" to host
 // the panel at the site root.
+//
+// The pattern is registered without a method, so it conflicts with a
+// method-specific "GET /" catch-all on the same mux. Register any site-root
+// index as "GET /{$}" or "/" (no method) to avoid a ServeMux panic.
 func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 	mux.Handle(pattern, http.StripPrefix(pattern, h.routes()))
 }
