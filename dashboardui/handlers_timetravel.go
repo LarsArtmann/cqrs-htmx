@@ -19,19 +19,35 @@ func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Reques
 	d.renderStreamIndex(w, r, "Time Travel", "/time-travel", d.renderTimeTravelIndex)
 }
 
-func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamListing, page paginationState) string {
+// streamListPageConfig holds the display parameters for a stream-listing index
+// page (time-travel and snapshots share the same table layout). Extracting
+// this avoids duplicating the row/table/pagination rendering.
+type streamListPageConfig struct {
+	subtitle   string
+	emptyTitle string
+	emptyMsg   string
+	pagePath   string // pagination base path (e.g., "/time-travel")
+	linkPath   string // detail link path prefix (e.g., "/time-travel")
+	linkText   string // link label (e.g., "Inspect")
+}
+
+// renderStreamListingPage renders a table of stream listings with pagination
+// controls. Shared by time-travel and snapshots index pages.
+func (d *Dashboard) renderStreamListingPage(
+	p pageData,
+	listings []listing.StreamListing,
+	page paginationState,
+	cfg streamListPageConfig,
+) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		b.WriteString(
-			`<p class="page-subtitle section-gap">Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.</p>`,
-		)
+		if cfg.subtitle != "" {
+			fmt.Fprintf(&b, `<p class="page-subtitle section-gap">%s</p>`, esc(cfg.subtitle))
+		}
 
 		if len(listings) == 0 {
-			return emptyState(
-				"No aggregates found",
-				"Configure a StreamReader to list aggregates for time-travel inspection.",
-			)
+			return emptyState(cfg.emptyTitle, cfg.emptyMsg)
 		}
 
 		var rows strings.Builder
@@ -39,13 +55,15 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 		for _, l := range listings {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td><a href="%s/time-travel/%s/%s" class="btn">Inspect</a></td></tr>`,
+				`<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td><a href="%s%s/%s/%s" class="btn">%s</a></td></tr>`,
 				esc(string(l.Type)),
 				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(l.Version.String()),
 				p.BasePath,
+				cfg.linkPath,
 				esc(string(l.Type)),
 				esc(l.ID.String()),
+				esc(cfg.linkText),
 			)
 		}
 
@@ -55,9 +73,20 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 			rows.String(),
 		)
 
-		b.WriteString(renderPagination(p.BasePath, "/time-travel", page, ""))
+		b.WriteString(renderPagination(p.BasePath, cfg.pagePath, page, ""))
 
 		return b.String()
+	})
+}
+
+func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamListing, page paginationState) string {
+	return d.renderStreamListingPage(p, listings, page, streamListPageConfig{
+		subtitle:   "Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.",
+		emptyTitle: "No aggregates found",
+		emptyMsg:   "Configure a StreamReader to list aggregates for time-travel inspection.",
+		pagePath:   "/time-travel",
+		linkPath:   "/time-travel",
+		linkText:   "Inspect",
 	})
 }
 

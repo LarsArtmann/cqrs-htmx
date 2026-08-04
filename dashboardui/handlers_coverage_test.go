@@ -566,7 +566,7 @@ func TestRenderPagination_HasPrevOnly(t *testing.T) {
 }
 
 func TestRenderPagination_Both(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination("/d", "/events", paginationState{ //nolint:exhaustruct // test fixture
 		HasNext: true, NextCursor: "xyz", PageSize: 20, HasPrev: true,
 	}, "")
 

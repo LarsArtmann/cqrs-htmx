@@ -42,7 +42,7 @@ func pushCursor(history, cursor string) string {
 
 // popCursor splits the history into the last entry and the remaining prefix.
 // Returns ("", "") when history is empty.
-func popCursor(history string) (last, remaining string) {
+func popCursor(history string) (string, string) {
 	if history == "" {
 		return "", ""
 	}
@@ -131,10 +131,10 @@ func parsePageSize(r *http.Request, defaultPageSize int) int {
 
 // parseCursorParams extracts the after cursor and prev history from the
 // request query string. Shared by all paginated index handlers.
-func parseCursorParams(r *http.Request) (after, prevHistory string, hasPrev bool) {
-	after = r.URL.Query().Get("after")
-	prevHistory = r.URL.Query().Get("prev")
-	hasPrev = after != ""
+func parseCursorParams(r *http.Request) (string, string, bool) {
+	after := r.URL.Query().Get("after")
+	prevHistory := r.URL.Query().Get("prev")
+	hasPrev := after != ""
 
 	return after, prevHistory, hasPrev
 }

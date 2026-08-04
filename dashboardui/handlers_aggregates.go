@@ -33,7 +33,7 @@ func (d *Dashboard) listStreamsPaged(r *http.Request) ([]listing.StreamListing, 
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 
 	if d.cfg.StreamReader == nil {
-		return nil, paginationState{}
+		return nil, paginationState{PageSize: pageSize} //nolint:exhaustruct // no data source: only page size matters
 	}
 
 	opts := listing.ListOptions{Limit: uint(pageSize + 1)}
@@ -47,7 +47,7 @@ func (d *Dashboard) listStreamsPaged(r *http.Request) ([]listing.StreamListing, 
 
 	page, err := d.cfg.StreamReader.List(r.Context(), opts)
 	if err != nil || page == nil {
-		return nil, paginationState{PageSize: pageSize}
+		return nil, paginationState{PageSize: pageSize} //nolint:exhaustruct // error: only page size matters
 	}
 
 	hasMore := len(page.Items) > pageSize

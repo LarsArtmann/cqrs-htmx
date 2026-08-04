@@ -31,10 +31,10 @@ func TestPushCursor(t *testing.T) {
 
 func TestPopCursor(t *testing.T) {
 	cases := []struct {
-		name        string
-		history     string
-		wantLast    string
-		wantRemain  string
+		name       string
+		history    string
+		wantLast   string
+		wantRemain string
 	}{
 		{"empty", "", "", ""},
 		{"single", "abc", "abc", ""},
