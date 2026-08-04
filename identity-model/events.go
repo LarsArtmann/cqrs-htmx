@@ -9,10 +9,10 @@ import (
 // --- User event payloads ---
 
 type UserRegisteredPayload struct {
-	SchemaVersion int `json:"schema_version"`
-	Email       string `json:"email"`
-	DisplayName string `json:"display_name,omitempty"`
-	Roles       []Role `json:"roles"`
+	SchemaVersion int    `json:"schema_version"`
+	Email         string `json:"email"`
+	DisplayName   string `json:"display_name,omitempty"`
+	Roles         []Role `json:"roles"`
 }
 
 // RolesUpdatedPayload is the legacy payload for the RolesUpdated event.
