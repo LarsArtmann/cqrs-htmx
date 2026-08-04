@@ -106,11 +106,19 @@
         </header>
 
         <div class="verdict">
-          <strong>Verdict: the deferral is correct; the seams are ready when triggers fire.</strong>
-          Quantitative analysis confirms ROADMAP's position: zero cross-aggregate co-change,
-          clean file-prefix seams (6 clusters), shared infrastructure deps that haven't diverged,
-          and ~3s compile time. The ADR-0019 method-receiver blocker is real but solvable in v5
-          via interface-based service decomposition (ADR-0038). No v4 action; keep the seams clean.
+        <strong>Verdict: the deferral is correct; the seams are ready when triggers fire.</strong>
+        Quantitative analysis confirms ROADMAP's position: zero cross-aggregate co-change,
+        clean file-prefix seams (6 clusters), shared infrastructure deps that haven't diverged,
+        and ~3s compile time. The ADR-0019 method-receiver blocker is real but solvable in v5
+        via interface-based service decomposition (ADR-0038). No v4 action; keep the seams clean.
+        </div>
+
+        <div class="callout callout-solution">
+        <strong>Note on Casbin:</strong> ADR-0044 (ACCEPTED) establishes Casbin as an
+        intentional first-class domain fixture in identity-model &mdash; the foundation the
+        identity model is built on. It is not a dependency-direction violation. The v5
+        decomposition preserves this: Casbin stays in identity-model; aggregate sub-modules
+        depend on identity-model and inherit Casbin transitively.
         </div>
 
         <section id="state">

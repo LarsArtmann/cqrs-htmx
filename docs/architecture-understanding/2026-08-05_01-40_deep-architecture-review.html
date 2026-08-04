@@ -395,7 +395,7 @@
           extraction within one module yields zero dep-tree benefit without consumer demand). This
           review's value-add is <em>independent confirmation</em> of those decisions via quantitative
           coupling metrics, plus the SDP-perfect profile that explains why the architecture is healthy
-          despite the debt. The genuinely open items are the Casbin port and re-export-layer retirement.
+          despite the debt. The one genuinely open item is re-export-layer retirement.
         </div>
 
         <section id="scores">
@@ -583,18 +583,24 @@
             </p>
           </div>
 
-          <div class="issue issue-important">
-            <span class="severity severity-important">Tradeoff</span>
-            <h3>Casbin is a concrete dependency in the domain, not behind an interface</h3>
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">Decided &middot; ADR-0044</span>
+            <h3>Casbin is an intentional first-class domain fixture</h3>
             <div class="where">identity-model/authz.go &mdash; type Authz struct { enforcer *casbin.Enforcer }</div>
             <p>
-              <code>Authz</code> directly embeds <code>*casbin.Enforcer</code> (a concrete third-party
-              struct). The domain package cannot compile without Casbin on the build path. This is
-              documented as intentional ("Casbin is a first-class dependency"), and the blast radius
-              is well-contained: <strong>only one file</strong> (<code>authz.go</code>) imports
-              casbin; the rest of the workspace depends on the <code>Authz</code> type, not on Casbin
-              directly. Still, it is the single dependency-direction violation &mdash; the domain
-              owns a concrete policy engine rather than an <code>Enforcer</code> port.
+              <strong>Already decided (ACCEPTED 2026-07-23):</strong> ADR-0044 records that Casbin IS
+              the authorization model &mdash; not infrastructure like SQL or HTTP &mdash; and belongs
+              in identity-model as a first-class dependency. Alternative #3 ("use an interface instead
+              of concrete Casbin") was explicitly considered and rejected: identity-model already
+              provides the <code>Enforcer</code> duck-type interface for consumers who want to swap
+              implementations; making the default abstract would add complexity with no payoff.
+              Casbin is the foundation the entire identity model is built on top of.
+            </p>
+            <p>
+              Coupling is contained to one file (<code>authz.go</code>); the rest of the workspace
+              depends on the <code>Authz</code> type, not on Casbin directly. This is not a
+              dependency-direction violation &mdash; it is a deliberate architectural commitment.
+              <strong>No action. Case closed.</strong>
             </p>
           </div>
 
@@ -825,33 +831,18 @@
           <div class="migration-step">
             <div class="migration-num">1</div>
             <div class="migration-content">
-              <h4>Decide the Casbin port: interface it, or ADR-accept it <span class="badge badge-medium">P2</span> <span class="badge badge-low">S</span></h4>
+              <h4>Set a retirement path for the re-export layer <span class="badge badge-low">P3</span> <span class="badge badge-low">S</span></h4>
               <p>
-                The domain layer embeds a concrete <code>*casbin.Enforcer</code>
-                (<code>identity-model/authz.go</code>) &mdash; the sole dependency-direction blemish
-                in an SDP-perfect graph. Either define a narrow <code>Enforcer</code> interface and
-                default to the Casbin impl, or write an ADR accepting Casbin as an intentional domain
-                fixture. Either resolves the open question decisively. <em>This is the highest-value
-                open item.</em>
+                26 usermgmt files re-export identity-model types, inflating the surface to 819 symbols
+                and offering two import paths per domain type. Document a deprecation timeline, point
+                new consumers/examples at <code>identity-model</code> directly, and track residual
+                usage. Low effort, high clarity payoff. <em>This is now the only genuinely open item.</em>
               </p>
             </div>
           </div>
 
           <div class="migration-step">
             <div class="migration-num">2</div>
-            <div class="migration-content">
-              <h4>Set a retirement path for the re-export layer <span class="badge badge-low">P3</span> <span class="badge badge-low">S</span></h4>
-              <p>
-                26 usermgmt files re-export identity-model types, inflating the surface to 819 symbols
-                and offering two import paths per domain type. Document a deprecation timeline, point
-                new consumers/examples at <code>identity-model</code> directly, and track residual
-                usage. Low effort, high clarity payoff.
-              </p>
-            </div>
-          </div>
-
-          <div class="migration-step">
-            <div class="migration-num">3</div>
             <div class="migration-content">
               <h4>v5: execute ADR-0019 + ADR-0038 (god-package + Service split) <span class="badge badge-high">v5</span> <span class="badge badge-low">L</span></h4>
               <p>
@@ -867,7 +858,7 @@
           </div>
 
           <div class="migration-step">
-            <div class="migration-num">4</div>
+            <div class="migration-num">3</div>
             <div class="migration-content">
               <h4>Optional: aggregate scaffold/codegen <span class="badge badge-low">P3</span> <span class="badge badge-low">M</span></h4>
               <p>
@@ -881,7 +872,7 @@
             <strong>No P0 findings. No novel structural debt.</strong>
             The architecture is not blocking development and there are no production incidents from
             structure. The two largest concerns are ADR-documented and deliberately deferred; the
-            genuinely open items (Casbin port, re-export retirement) are low-effort, high-clarity
+            genuinely open item (re-export retirement) is low-effort, high-clarity
             cleanups. This is a healthy codebase being maintained with discipline.
           </div>
         </section>
