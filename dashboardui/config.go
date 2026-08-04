@@ -1,3 +1,7 @@
+//cqrs-lint:ignore(E009) dashboard IS the transport/view layer
+//cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
+//cqrs-lint:ignore(F011) read-only dashboard, no multi-table writes
+//cqrs-lint:ignore(F002) observability UI module, not a CQRS application
 package dashboardui
 
 import (
