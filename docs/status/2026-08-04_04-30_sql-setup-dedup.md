@@ -12,12 +12,12 @@ Ran `art-dupl` (threshold 3). Found 5 clone groups. Assessed each. Extracted one
 
 ### Files Changed
 
-| File | Change |
-|---|---|
-| `usermgmt/sql_setup_shared.go` | **NEW** — shared `buildSQLEventSourcedSetupCore` + `extractDB` + `createAuthzAndCasbin` |
-| `usermgmt/sqlite_setup.go` | Simplified `newSQLiteSetup` (45→4 lines). Renamed `createSQLReadModels`→`createSQLiteReadModels` (signature: `*stack.Bundle`→`*sql.DB`). Removed `extractDB` + `createAuthzAndCasbin` (moved to shared). |
-| `usermgmt/postgres_setup.go` | Simplified `newPostgresSetup` (45→4 lines). Removed dead `extractDB` reference. |
-| `usermgmt/mysql_setup.go` | Simplified `newMySQLSetup` (45→4 lines). Removed dead `extractDB` reference. |
+| File                           | Change                                                                                                                                                                                                   |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `usermgmt/sql_setup_shared.go` | **NEW** — shared `buildSQLEventSourcedSetupCore` + `extractDB` + `createAuthzAndCasbin`                                                                                                                  |
+| `usermgmt/sqlite_setup.go`     | Simplified `newSQLiteSetup` (45→4 lines). Renamed `createSQLReadModels`→`createSQLiteReadModels` (signature: `*stack.Bundle`→`*sql.DB`). Removed `extractDB` + `createAuthzAndCasbin` (moved to shared). |
+| `usermgmt/postgres_setup.go`   | Simplified `newPostgresSetup` (45→4 lines). Removed dead `extractDB` reference.                                                                                                                          |
+| `usermgmt/mysql_setup.go`      | Simplified `newMySQLSetup` (45→4 lines). Removed dead `extractDB` reference.                                                                                                                             |
 
 ### Before → After (per template)
 
@@ -199,14 +199,14 @@ This has been flagged in 3 status reports. The options are: (a) custom build tag
 
 ## Summary
 
-| Category | Count |
-|---|---|
-| Fully done | 10 |
-| Partially done | 3 |
-| Not started | 5 |
-| Totally fucked up | 4 |
-| Improvements identified | 7 |
-| Next actions | 50 |
-| Questions | 3 |
+| Category                | Count |
+| ----------------------- | ----- |
+| Fully done              | 10    |
+| Partially done          | 3     |
+| Not started             | 5     |
+| Totally fucked up       | 4     |
+| Improvements identified | 7     |
+| Next actions            | 50    |
+| Questions               | 3     |
 
 **Bottom line:** The extraction is correct and reduces real duplication. But I introduced a consumer-facing doc gap (mysql-setup.md), skipped full verification (test/lint/coverage), didn't update CHANGELOG, and left a second clone group (read-model factories) on the table. The `//go:build ignore` verification gap remains unsolved for the third consecutive report.
