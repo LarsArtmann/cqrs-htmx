@@ -19,7 +19,7 @@ func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Reques
 	d.renderStreamIndex(w, r, "Time Travel", "/time-travel", d.renderTimeTravelIndex)
 }
 
-func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamListing) string {
+func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamListing, page paginationState) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -54,6 +54,8 @@ func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamL
 			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Current Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
+
+		b.WriteString(renderPagination(p.BasePath, "/time-travel", page, ""))
 
 		return b.String()
 	})

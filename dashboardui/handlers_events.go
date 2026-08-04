@@ -79,8 +79,8 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Events", "/events", r)
 
 	pageSize := parsePageSize(r, d.cfg.PageSize)
-	after := r.URL.Query().Get("after")
-	afterID, _ := id.ParseEventID(after)
+	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
+	afterID, _ := id.ParseEventID(afterCursor)
 	filters := parseEventFilter(r)
 
 	var events []event.Event
@@ -110,10 +110,12 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	html := d.renderEvents(p, events, paginationState{
-		HasNext:    hasNext,
-		NextCursor: nextCursor,
-		PageSize:   pageSize,
-		HasPrev:    after != "",
+		HasNext:     hasNext,
+		NextCursor:  nextCursor,
+		PageSize:    pageSize,
+		HasPrev:     hasPrev,
+		After:       afterCursor,
+		PrevHistory: prevHistory,
 	}, filters)
 	renderPage(w, r, html)
 }

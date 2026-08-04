@@ -25,10 +25,58 @@ func (d *Dashboard) listStreams(r *http.Request) []listing.StreamListing {
 	return page.Items
 }
 
+// listStreamsPaged loads a cursor-paginated page of stream listings for the
+// stream-index pages (time-travel, snapshots). Returns the listings and the
+// pagination state for rendering Prev/Next controls.
+func (d *Dashboard) listStreamsPaged(r *http.Request) ([]listing.StreamListing, paginationState) {
+	pageSize := parsePageSize(r, d.cfg.PageSize)
+	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
+
+	if d.cfg.StreamReader == nil {
+		return nil, paginationState{}
+	}
+
+	opts := listing.ListOptions{Limit: uint(pageSize + 1)}
+
+	if afterCursor != "" {
+		parsed, err := id.ParseStreamID(afterCursor)
+		if err == nil {
+			opts.After = parsed
+		}
+	}
+
+	page, err := d.cfg.StreamReader.List(r.Context(), opts)
+	if err != nil || page == nil {
+		return nil, paginationState{PageSize: pageSize}
+	}
+
+	hasMore := len(page.Items) > pageSize
+
+	listings := page.Items
+	if hasMore {
+		listings = listings[:pageSize]
+	}
+
+	var nextCursor string
+	if hasMore && len(listings) > 0 {
+		nextCursor = listings[len(listings)-1].ID.String()
+	}
+
+	return listings, paginationState{
+		HasNext:     hasMore,
+		NextCursor:  nextCursor,
+		PageSize:    pageSize,
+		HasPrev:     hasPrev,
+		After:       afterCursor,
+		PrevHistory: prevHistory,
+	}
+}
+
 func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Aggregates", "/aggregates", r)
 
 	pageSize := parsePageSize(r, d.cfg.PageSize)
+	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 
 	var (
 		listings []listing.StreamListing
@@ -38,8 +86,8 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 	if d.cfg.StreamReader != nil { //nolint:nestif // optional data source branching
 		opts := listing.ListOptions{Limit: uint(pageSize + 1)}
 
-		if after := r.URL.Query().Get("after"); after != "" {
-			parsed, err := id.ParseStreamID(after)
+		if afterCursor != "" {
+			parsed, err := id.ParseStreamID(afterCursor)
 			if err == nil {
 				opts.After = parsed
 			}
@@ -56,18 +104,18 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	hasPrev := r.URL.Query().Get("after") != ""
-
 	var nextCursor string
 	if hasMore && len(listings) > 0 {
 		nextCursor = listings[len(listings)-1].ID.String()
 	}
 
 	html := d.renderAggregates(p, listings, paginationState{
-		HasNext:    hasMore,
-		NextCursor: nextCursor,
-		PageSize:   pageSize,
-		HasPrev:    hasPrev,
+		HasNext:     hasMore,
+		NextCursor:  nextCursor,
+		PageSize:    pageSize,
+		HasPrev:     hasPrev,
+		After:       afterCursor,
+		PrevHistory: prevHistory,
 	})
 	renderPage(w, r, html)
 }
