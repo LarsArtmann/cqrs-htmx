@@ -1,0 +1,92 @@
+direction: down
+
+# Dependency direction (production code only, internal siblings)
+# Instability I = Ce/(Ca+Ce). Stable core at top (I=0), volatile leaves at bottom (I=1)
+
+root: cqrs-htmx v4\nMulti-module workspace\n19 modules • 0 import cycles {
+  shape: package
+  style.fill: "#f4f4f0"
+}
+
+layer_foundation: Foundation (I=0.00) — stable, no internal deps {
+  shape: package
+  style.fill: "#e8e8e2"
+  identity-model: identity-model\nPure domain types • 2,495 LOC\n249 exports • Authz engine {
+    shape: rectangle
+    style.fill: "#1d3557"
+    style.font-color: "#ffffff"
+  }
+  root: root (v4)\nHTTP handler builder • 6,847 LOC\n436 exports • openapi/ sync/ {
+    shape: rectangle
+    style.fill: "#1d3557"
+    style.font-color: "#ffffff"
+  }
+  datastar: datastar\nIsolated adapter • 1,040 LOC\nNo sibling deps {
+    shape: rectangle
+    style.fill: "#2a9d8f"
+    style.font-color: "#ffffff"
+  }
+}
+
+layer_strategies: Auth Strategies (I=0.00) — structural typing, zero internal imports {
+  shape: package
+  style.fill: "#e8e8e2"
+  totp: totp\n8 exports {
+    shape: rectangle
+    style.fill: "#2a9d8f"
+    style.font-color: "#ffffff"
+  }
+  webauthn: webauthn\n21 exports {
+    shape: rectangle
+    style.fill: "#2a9d8f"
+    style.font-color: "#ffffff"
+  }
+  oauth2: oauth2\n25 exports {
+    shape: rectangle
+    style.fill: "#2a9d8f"
+    style.font-color: "#ffffff"
+  }
+}
+
+layer_app: Application + Infra (I=0.50) — middle {
+  shape: package
+  style.fill: "#e8e8e2"
+  usermgmt: usermgmt\nEvent-sourced CQRS • 10,464 LOC\n91 files • 819 exports • GOD-PACKAGE {
+    shape: rectangle
+    style.fill: "#e63946"
+    style.font-color: "#ffffff"
+    style.bold
+  }
+}
+
+layer_ui: Presentation Leaves (I=1.00) — pure consumers {
+  shape: package
+  style.fill: "#e8e8e2"
+  adminui: adminui\nAdmin dashboard • 4,138 LOC {
+    shape: rectangle
+    style.fill: "#f4d35e"
+  }
+  loginpage: loginpage\nLogin page • 667 LOC {
+    shape: rectangle
+    style.fill: "#f4d35e"
+  }
+  dashboardui: dashboardui\nObservability • 3,929 LOC {
+    shape: rectangle
+    style.fill: "#f4d35e"
+  }
+}
+
+# Dependencies point toward stability (lower I) — SDP-correct
+usermgmt -> identity-model: domain types
+usermgmt -> root: HTTP/CQRS core
+adminui -> root
+adminui -> usermgmt
+loginpage -> root
+loginpage -> usermgmt
+dashboardui -> root
+
+# Auth strategies: NO compile-time deps (satisfy interfaces via structural typing)
+# (dashed = interface-based, no import)
+usermgmt <-> totp: implements (structural): !
+usermgmt <-> webauthn: implements (structural): !
+usermgmt <-> oauth2: implements (structural): !

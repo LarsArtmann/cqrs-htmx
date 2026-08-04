@@ -107,6 +107,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Mount registers the handler at the given pattern on the mux.
 // Example: h.Mount(mux, "/login")
+//
+// The pattern is registered without a method, so it conflicts with a
+// method-specific "GET /" catch-all on the same mux. Register any site-root
+// index as "GET /{$}" or "/" (no method) to avoid a ServeMux panic.
 func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 	mux.Handle(pattern, h)
 }

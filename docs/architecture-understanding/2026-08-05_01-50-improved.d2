@@ -1,0 +1,158 @@
+direction: down
+
+# TARGET (v5) — ideal architecture after ADR-0019/0038 execution
+# Module-per-aggregate split when decomposition triggers fire.
+# Each sub-module independently versionable, independently composable.
+
+root: cqrs-htmx v5 — ideal target architecture {
+  shape: package
+  style.fill: "#f4f4f0"
+}
+
+# Foundation unchanged (already at I=0)
+foundation: Foundation (I=0.00) {
+  shape: package
+  style.fill: "#e8e8e2"
+  identity-model_v5: identity-model\nPure domain types + Enforcer PORT\n(interface, not concrete Casbin) {
+    shape: rectangle
+    style.fill: "#1d3557"
+    style.font-color: "#ffffff"
+  }
+  root_v5: root (v5)\nHTTP handler builder + openapi/ {
+    shape: rectangle
+    style.fill: "#1d3557"
+    style.font-color: "#ffffff"
+  }
+  datastar_v5: datastar\nIsolated adapter {
+    shape: rectangle
+    style.fill: "#2a9d8f"
+    style.font-color: "#ffffff"
+  }
+}
+
+# DECOMPOSED usermgmt — each aggregate its own module (ADR-0019/0038)
+usermgmt_core: usermgmt/v5\nFacade: Service aggregate\nshared infra, session/authz {
+  shape: rectangle
+  style.fill: "#e63946"
+  style.font-color: "#ffffff"
+}
+
+aggregates: Decomposed Aggregates (ADR-0019/0038) — each composes independently {
+  shape: package
+  style.fill: "#e8e8e2"
+  user_ag: usermgmt/user/v5\nUser aggregate\n+ UserReadModel + Decider {
+    shape: rectangle
+    style.fill: "#457b9d"
+    style.font-color: "#ffffff"
+  }
+  membership_ag: usermgmt/membership/v5\nMembership aggregate\n+ MembershipReadModel {
+    shape: rectangle
+    style.fill: "#457b9d"
+    style.font-color: "#ffffff"
+  }
+  tenant_ag: usermgmt/tenant/v5\nTenant aggregate\n+ TenantReadModel {
+    shape: rectangle
+    style.fill: "#457b9d"
+    style.font-color: "#ffffff"
+  }
+  bot_ag: usermgmt/bot/v5\nBot aggregate\n+ BotReadModel {
+    shape: rectangle
+    style.fill: "#457b9d"
+    style.font-color: "#ffffff"
+  }
+}
+
+# Service decomposition (ADR-0038)
+services: Focused Services (composition) {
+  shape: package
+  style.fill: "#e8e8e2"
+  user_svc: UserService {
+    shape: rectangle
+    style.fill: "#1d3557"
+    style.font-color: "#ffffff"
+  }
+  membership_svc: MembershipService {
+    shape: rectangle
+    style.fill: "#1d3557"
+    style.font-color: "#ffffff"
+  }
+  tenant_svc: TenantService {
+    shape: rectangle
+    style.fill: "#1d3557"
+    style.font-color: "#ffffff"
+  }
+  auth_svc: AuthService {
+    shape: rectangle
+    style.fill: "#1d3557"
+    style.font-color: "#ffffff"
+  }
+}
+
+# Auth strategies unchanged
+strategies_v5: Auth Strategies (unchanged, structural typing) {
+  shape: package
+  style.fill: "#e8e8e2"
+  totp_v5: totp {
+    shape: rectangle
+    style.fill: "#2a9d8f"
+    style.font-color: "#ffffff"
+  }
+  webauthn_v5: webauthn {
+    shape: rectangle
+    style.fill: "#2a9d8f"
+    style.font-color: "#ffffff"
+  }
+  oauth2_v5: oauth2 {
+    shape: rectangle
+    style.fill: "#2a9d8f"
+    style.font-color: "#ffffff"
+  }
+}
+
+ui_v5: Presentation Leaves {
+  shape: package
+  style.fill: "#e8e8e2"
+  adminui_v5: adminui {
+    shape: rectangle
+    style.fill: "#f4d35e"
+  }
+  loginpage_v5: loginpage {
+    shape: rectangle
+    style.fill: "#f4d35e"
+  }
+  dashboardui_v5: dashboardui {
+    shape: rectangle
+    style.fill: "#f4d35e"
+  }
+}
+
+# Dependencies — consumer imports only the aggregate it needs
+usermgmt_core -> identity-model_v5: domain types
+usermgmt_core -> root_v5: HTTP/CQRS core
+user_ag -> identity-model_v5
+membership_ag -> identity-model_v5
+tenant_ag -> identity-model_v5
+bot_ag -> identity-model_v5
+
+# Focused services compose aggregates
+user_svc -> user_ag
+membership_svc -> membership_ag
+tenant_svc -> tenant_ag
+auth_svc -> user_ag
+
+# Facade holds services
+usermgmt_core -> user_svc
+usermgmt_core -> membership_svc
+usermgmt_core -> tenant_svc
+usermgmt_core -> auth_svc
+
+adminui_v5 -> root_v5
+adminui_v5 -> usermgmt_core
+loginpage_v5 -> root_v5
+loginpage_v5 -> usermgmt_core
+dashboardui_v5 -> root_v5
+
+# Structural typing (unchanged)
+usermgmt_core <-> totp_v5: implements: !
+usermgmt_core <-> webauthn_v5: implements: !
+usermgmt_core <-> oauth2_v5: implements: !
