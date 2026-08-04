@@ -40,6 +40,76 @@ func (f *fakeStreamReader) ListWithStatus(
 
 var _ listing.StreamReader = (*fakeStreamReader)(nil)
 
+// cursorStreamReader is a listing.StreamReader that respects Limit and After
+// for cursor-based pagination tests. Items must be pre-sorted by ID.
+type cursorStreamReader struct {
+	items []listing.StreamListing
+}
+
+func (c *cursorStreamReader) List(
+	_ context.Context,
+	opts listing.ListOptions,
+) (*listing.Page[listing.StreamListing], error) {
+	start := 0
+
+	if opts.After.String() != "" {
+		for i, item := range c.items {
+			if item.ID.String() == opts.After.String() {
+				start = i + 1
+
+				break
+			}
+		}
+	}
+
+	end := start + int(opts.Limit)
+	if end > len(c.items) {
+		end = len(c.items)
+	}
+
+	if start >= len(c.items) {
+		return &listing.Page[listing.StreamListing]{Items: nil, HasMore: false}, nil
+	}
+
+	page := listing.Page[listing.StreamListing]{
+		Items:   c.items[start:end],
+		HasMore: end < len(c.items),
+	}
+
+	return &page, nil
+}
+
+func (c *cursorStreamReader) ListWithStatus(
+	ctx context.Context,
+	opts listing.ListOptions,
+) (*listing.Page[listing.StreamStatus], error) {
+	page, err := c.List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	statuses := make([]listing.StreamStatus, len(page.Items))
+	for i, item := range page.Items {
+		statuses[i] = listing.StreamStatus{Ref: item, Status: event.TombstoneActive}
+	}
+
+	return &listing.Page[listing.StreamStatus]{Items: statuses, HasMore: page.HasMore}, nil
+}
+
+var _ listing.StreamReader = (*cursorStreamReader)(nil)
+
+func nStreamListings(n int) []listing.StreamListing {
+	items := make([]listing.StreamListing, n)
+	for i := range items {
+		items[i] = listing.StreamListing{
+			ID: id.NewStreamID(), Type: "user", Version: event.Version(i + 1),
+			EventCount: uint(i + 1), LastEventAt: time.Now(),
+		}
+	}
+
+	return items
+}
+
 func streamListings() []listing.StreamListing {
 	return []listing.StreamListing{
 		{
@@ -165,5 +235,45 @@ func TestSnapshotsIndexHandler_RendersVersion(t *testing.T) {
 
 	if !strings.Contains(w.Body.String(), "42") {
 		t.Fatalf("expected version 42 in body")
+	}
+}
+
+// --- Time-Travel & Snapshots Pagination ---
+
+func TestTimeTravelIndexHandler_Pagination(t *testing.T) {
+	items := nStreamListings(5)
+	d := mustTestDashboardWithConfig(t, Config{
+		Journal:      &stubJournal{},
+		StreamReader: &cursorStreamReader{items: items},
+		PageSize:     2,
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/time-travel", nil)
+	d.timeTravelIndexHandler(w, r)
+
+	body := w.Body.String()
+
+	if !strings.Contains(body, "Next") {
+		t.Fatalf("expected Next link with 5 items and PageSize 2, got: %s", body)
+	}
+}
+
+func TestSnapshotsIndexHandler_Pagination(t *testing.T) {
+	items := nStreamListings(5)
+	d := mustTestDashboardWithConfig(t, Config{
+		Journal:      &stubJournal{},
+		StreamReader: &cursorStreamReader{items: items},
+		PageSize:     2,
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/snapshots", nil)
+	d.snapshotsIndexHandler(w, r)
+
+	body := w.Body.String()
+
+	if !strings.Contains(body, "Next") {
+		t.Fatalf("expected Next link with 5 items and PageSize 2, got: %s", body)
 	}
 }

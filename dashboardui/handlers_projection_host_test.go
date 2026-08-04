@@ -164,3 +164,47 @@ func TestDLQIndexHandler_WithProjectionHost(t *testing.T) {
 		t.Errorf("expected body to contain link href, got:\n%s", body)
 	}
 }
+
+// TestDLQIndexHandler_ShowsDeadLetterCounts verifies that the DLQ index
+// displays the dead-letter count per projection.
+func TestDLQIndexHandler_ShowsDeadLetterCounts(t *testing.T) {
+	t.Parallel()
+
+	host := newTestProjectionHost(t)
+
+	ctx := t.Context()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	defer func() { _ = host.Stop() }()
+
+	time.Sleep(200 * time.Millisecond)
+
+	entries := []projectionhost.DeadLetterEntry{
+		{ProjectionName: "test-projection", EventID: "evt-1", EventType: "test.event"},
+		{ProjectionName: "test-projection", EventID: "evt-2", EventType: "test.event"},
+	}
+
+	d := MustNew(Config{
+		Journal:         stubJournal{},
+		ProjectionHost:  host,
+		DeadLetterStore: &populatedDeadLetterStore{entries: entries},
+	})
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/dead-letters", nil)
+	rr := httptest.NewRecorder()
+	d.dlqIndexHandler(rr, req)
+
+	body := rr.Body.String()
+
+	if !strings.Contains(body, "Dead Letters") {
+		t.Fatalf("expected count column header, got:\n%s", body)
+	}
+
+	// The count (2) should appear as a badge value.
+	if !strings.Contains(body, ">2<") {
+		t.Errorf("expected dead-letter count '2' in body, got:\n%s", body)
+	}
+}
