@@ -33,7 +33,6 @@ func (d *Dashboard) loadStreamFromRequest(
 }
 
 // streamTitlePath renders a "type/truncated-id" path for page titles.
-// cqrs-lint:ignore(F010) displays stream type hierarchy, not graph traversal
 func streamTitlePath(ref id.StreamRef) string {
 	return string(ref.Type) + "/" + truncate(ref.ID.String(), titleIDWidth)
 }

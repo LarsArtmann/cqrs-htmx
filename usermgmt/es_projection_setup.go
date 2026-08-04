@@ -160,7 +160,6 @@ func waitForDrain(host *projectionhost.Host) error {
 		drainTimeout = 30 * time.Second
 	)
 
-	//cqrs-lint:ignore(F009) timer-based expiry is documented in AGENTS.md as a known design choice
 	timer := time.NewTimer(drainTimeout)
 	defer timer.Stop()
 

@@ -114,7 +114,6 @@ type InMemorySessionStore struct {
 
 // NewInMemorySessionStore creates an empty InMemorySessionStore.
 func NewInMemorySessionStore() *InMemorySessionStore {
-	//cqrs-lint:ignore(S007) library default; consumers configure persistent session stores for production
 	return &InMemorySessionStore{
 		sessions: make(map[string]*Session),
 	}
