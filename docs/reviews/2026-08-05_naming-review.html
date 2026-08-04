@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Naming Review &middot; cqrs-htmx</title>
+    <style>
+      :root {
+        --color-paper: #f4f4f0; --color-paper-2: #ffffff; --color-paper-3: #e8e8e2;
+        --color-ink: #111111; --color-red: #e63946; --color-blue: #1d3557; --color-yellow: #f4d35e;
+        --surface: var(--color-paper); --surface-raised: var(--color-paper-2); --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink); --text-muted: rgba(17,17,17,0.72); --text-faint: rgba(17,17,17,0.5);
+        --border: rgba(17,17,17,0.14); --accent: var(--color-red); --problem: var(--color-red); --solution: var(--color-blue); --warning: var(--color-yellow);
+        --font-mono: ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+      }
+      * { box-sizing:border-box; margin:0; padding:0; }
+      body { background:var(--surface); color:var(--text); font-family:ui-sans-serif,system-ui,sans-serif; font-size:16px; line-height:1.65; }
+      .container { max-width:900px; margin:0 auto; padding:2rem 3rem 5rem; }
+      header.hero { margin-bottom:2.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border); }
+      .eyebrow { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); margin-bottom:0.7rem; }
+      header.hero h1 { font-size:clamp(1.9rem,4vw,2.5rem); font-weight:900; letter-spacing:-0.02em; margin-bottom:0.6rem; }
+      header.hero .subtitle { font-size:1.08rem; color:var(--text-muted); max-width:60ch; }
+      h2 { font-size:1.5rem; font-weight:900; margin:2.4rem 0 1rem; padding-bottom:0.4rem; border-bottom:2px solid var(--text); display:flex; align-items:baseline; gap:0.6rem; }
+      h2 .num { font-family:var(--font-mono); font-size:0.95rem; color:var(--surface); background:var(--accent); padding:0.15rem 0.45rem; }
+      h3 { font-size:1.1rem; font-weight:800; margin:1.4rem 0 0.5rem; }
+      p { margin-bottom:0.85rem; } strong { font-weight:800; }
+      code,pre { font-family:var(--font-mono); }
+      code { background:var(--surface-sunken); padding:0.1rem 0.35rem; font-size:0.86em; border:1px solid var(--border); }
+      table { width:100%; border-collapse:collapse; margin:1rem 0 1.4rem; font-size:0.88rem; }
+      th,td { text-align:left; padding:0.5rem 0.7rem; border-bottom:1px solid var(--border); vertical-align:top; }
+      th { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); border-bottom:2px solid var(--text); }
+      td.num,th.num { text-align:right; font-family:var(--font-mono); }
+      .badge { font-family:var(--font-mono); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border:1px solid currentColor; }
+      .badge-low { color:var(--text-faint); } .badge-medium { color:#8a6d00; }
+      .card { background:var(--surface-raised); border:1px solid var(--border); padding:1.1rem 1.2rem; margin-bottom:1rem; border-left:4px solid var(--text-faint); }
+      .card-solution { border-left-color:var(--solution); } .card-warning { border-left-color:var(--warning); }
+      .callout { padding:0.85rem 1.1rem; margin:1rem 0; border-left:4px solid var(--text-faint); background:var(--surface-sunken); }
+      .callout-solution { border-left-color:var(--solution); }
+      .callout strong { display:block; margin-bottom:0.2rem; }
+      .strengths { margin:1rem 0; } .strength { display:flex; gap:0.8rem; align-items:flex-start; padding:0.7rem 0; border-bottom:1px solid var(--border); }
+      .strength:last-child { border-bottom:none; } .strength .check { font-family:var(--font-mono); font-weight:900; color:var(--solution); font-size:1.2rem; }
+      .strength .text strong { display:block; } .strength .text span { color:var(--text-muted); font-size:0.92rem; }
+      footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:0.76rem; color:var(--text-faint); }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="hero">
+        <div class="eyebrow">NAMING REVIEW &middot; 2026-08-05</div>
+        <h1>Identifier Audit &mdash; All 10 Core Modules</h1>
+        <p class="subtitle">
+          Automated smell detection (vague nouns, Manager/Handler classes, Impl suffixes,
+          abbreviations) plus manual domain-alignment and consistency review across the workspace.
+        </p>
+      </header>
+
+      <div class="callout callout-solution">
+        <strong>Verdict: CLEAN (4.5/5) &mdash; naming is consistently domain-driven.</strong>
+        Zero Impl suffixes, zero I-prefix interfaces, zero Manager/Processor/Helper trash-can
+        classes. Error naming is exemplary (<code>ErrXxx</code> + errorfamily classification).
+        One systemic abbreviation (<code>cfg</code>, 553 occurrences) and a few spec-faithful
+        "vague" names that are correct in context. No honesty violations found.
+      </div>
+
+      <h2><span class="num">01</span>Automated Detection Results</h2>
+      <table>
+        <thead><tr><th>Check</th><th class="num">Hits</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>Manager/Handler/Processor/Helper/Util classes</td><td class="num">3</td><td>Acceptable &mdash; all are Go HTTP convention (<code>Handler</code>, <code>AuthHandler</code>) or ES routing (<code>eventHandler[T]</code>)</td></tr>
+          <tr><td>Impl suffix</td><td class="num">0</td><td>Exemplary &mdash; zero architecture leakage</td></tr>
+          <tr><td>I-prefix interfaces</td><td class="num">0</td><td>Exemplary &mdash; Go convention followed</td></tr>
+          <tr><td>Vague nouns (Data/Info/Record/Item)</td><td class="num">19</td><td>17/19 are unexported view-models or OpenAPI spec types &mdash; acceptable in context</td></tr>
+          <tr><td>Abbreviation: <code>cfg</code></td><td class="num">553</td><td>Systemic &mdash; should be <code>config</code> per strict Go naming</td></tr>
+          <tr><td>Error naming convention</td><td class="num">248</td><td>Exemplary &mdash; <code>ErrXxx</code> pattern with errorfamily classification</td></tr>
+        </tbody>
+      </table>
+
+      <h2><span class="num">02</span>What's Done Right</h2>
+      <div class="strengths">
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Zero Impl/I-prefix/Abstract/Base &mdash; no architecture leakage</strong>
+            <span>No type in the workspace leaks its implementation role through its name. Interfaces have no <code>I</code> prefix (Go convention). No <code>BaseRepository</code> or <code>AbstractUser</code>. This is the correct Go posture.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Error naming is textbook</strong>
+            <span>248 domain-classified errors all follow <code>ErrXxx</code> (<code>ErrUserNotFound</code>, <code>ErrSessionExpired</code>, <code>ErrInvalidCredentials</code>). Each carries a domain-coded error code (<code>"usermgmt.session_expired"</code>) via errorfamily. <code>errors.Is</code> / <code>errors.As</code> work cleanly across module boundaries.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Domain language is ubiquitous</strong>
+            <span>Types use domain terms: <code>User</code>, <code>Membership</code>, <code>Tenant</code>, <code>Bot</code>, <code>Session</code>, <code>Credential</code>, <code>WebAuthnCredential</code>, <code>ExternalAccount</code>. No technical jargon for domain concepts. A domain expert would understand the type catalog.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Command-Query Separation in method names</strong>
+            <span>Commands are verbs: <code>RegisterUser</code>, <code>DeleteUser</code>, <code>SuspendTenant</code>, <code>AddMember</code>. Queries are nouns/questions: <code>FoldUser</code>, <code>Valid()</code>, <code>PrefixedString()</code>. No <code>and</code>/<code>or</code> in function names (each does one thing).</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Constructor naming is consistent</strong>
+            <span><code>New</code> for constructors (<code>NewAuthz</code>, <code>NewUserID</code>), <code>Parse</code> for validating constructors (<code>ParseEmail</code>, <code>ParseUserID</code>), <code>MustParse</code> for panicking variants (<code>MustParseUserID</code>). <code>From</code> for conversions (<code>ActorIDFromUser</code>). Consistent across all modules.</span>
+          </div>
+        </div>
+      </div>
+
+      <h2><span class="num">03</span>Findings</h2>
+
+      <div class="card card-warning">
+        <h3><span class="badge badge-medium">Medium</span> <code>cfg</code> abbreviation (553 occurrences)</h3>
+        <p><strong>Where:</strong> All modules &mdash; heaviest in dashboardui (14 files), usermgmt (12), adminui (9)</p>
+        <p><strong>Problem:</strong> <code>cfg</code> is used as a parameter name for <code>Config</code> structs throughout. The strict Go naming guide says no abbreviations. While <code>cfg</code> is extremely common in Go, <code>config</code> is clearer for newcomers and reads better at call sites.</p>
+        <p><strong>Fix:</strong> Find-and-replace <code>cfg</code> &rarr; <code>config</code> across parameter names. Low risk (internal parameter names, no API impact). Can be done mechanically with <code>gofmt -r</code> or LSP rename. <strong>Effort: S.</strong> Defer if no other reason to touch the files.</p>
+      </div>
+
+      <div class="card card-solution">
+        <h3><span class="badge badge-low">Low</span> "Vague" nouns are spec-faithful or unexported</h3>
+        <p>The 19 "vague noun" hits from automated detection are all justified in context:</p>
+        <table>
+          <thead><tr><th>Type</th><th>Module</th><th>Why it's OK</th></tr></thead>
+          <tbody>
+            <tr><td><code>Info</code>, <code>PathItem</code></td><td>openapi</td><td>OpenAPI 3.1 spec object names &mdash; spec-faithful</td></tr>
+            <tr><td><code>OrderItem</code></td><td>examples/catalog-demo</td><td>Example code, not library</td></tr>
+            <tr><td><code>PageData</code>, <code>userData</code>, <code>dashboardData</code>, <code>tenantDetailData</code>, etc.</td><td>adminui, dashboardui, loginpage</td><td>Unexported template view-model structs &mdash; common Go web pattern</td></tr>
+            <tr><td><code>viewRecord</code>, <code>versionInfo</code></td><td>dashboardui</td><td>Unexported view model / DTO</td></tr>
+          </tbody>
+        </table>
+        <p><strong>No action needed.</strong> None of these are in the domain core (<code>identity-model</code>), which has zero vague nouns.</p>
+      </div>
+
+      <div class="card card-solution">
+        <h3><span class="badge badge-low">Low</span> "Handler" types are Go HTTP convention</h3>
+        <p>The 3 Handler-type hits are all idiomatic Go:</p>
+        <ul>
+          <li><code>Handler struct</code> &mdash; the root HTTP handler builder. <code>http.Handler</code> is the stdlib term.</li>
+          <li><code>AuthHandler struct</code> &mdash; usermgmt HTTP auth handler. Standard Go HTTP naming.</li>
+          <li><code>eventHandler[T any]</code> &mdash; generic function type for event-sourcing routing. Idiomatic in ES context.</li>
+        </ul>
+        <p><strong>No action needed.</strong> "Handler" in an HTTP library is the correct Go term, not a trash-can name.</p>
+      </div>
+
+      <h2><span class="num">04</span>Glossary Check &mdash; Split-Brain Detection</h2>
+      <p>
+        Cross-referenced type names against <code>docs/DOMAIN_LANGUAGE.md</code>. No split-brain
+        terminology found: each domain concept has exactly one canonical name.
+      </p>
+      <table>
+        <thead><tr><th>Domain concept</th><th>Canonical name</th><th>Split-brain?</th></tr></thead>
+        <tbody>
+          <tr><td>Person who authenticates</td><td><code>User</code></td><td>No &mdash; not "Account"/"Member"/"Person"</td></tr>
+          <tr><td>User's role in a tenant</td><td><code>Membership</code></td><td>No &mdash; distinct from <code>User</code></td></tr>
+          <tr><td>Organization unit</td><td><code>Tenant</code></td><td>No &mdash; not "Org"/"Workspace"/"Group"</td></tr>
+          <tr><td>Machine actor</td><td><code>Bot</code></td><td>No &mdash; not "Service"/"App"/"Client"</td></tr>
+          <tr><td>Auth session</td><td><code>Session</code></td><td>No &mdash; not "Token"/"Ticket"</td></tr>
+          <tr><td>Passkey credential</td><td><code>WebAuthnCredential</code></td><td>No &mdash; not "Passkey"/"Key"</td></tr>
+          <tr><td>OAuth2 linked identity</td><td><code>ExternalAccount</code></td><td>No &mdash; not "LinkedAccount"/"SocialLogin"</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-solution">
+        <strong>Zero split-brain terminology.</strong>
+        Each domain concept maps to exactly one type name, used consistently across all 10 modules.
+        The re-export layer (identity-model &rarr; usermgmt aliases) uses type aliases (<code>=</code>),
+        so both paths refer to the same type &mdash; not a true duplicate.
+      </div>
+
+      <h2><span class="num">05</span>Consistency Verbs</h2>
+      <table>
+        <thead><tr><th>Operation</th><th>Canonical verb</th><th>Consistent?</th></tr></thead>
+        <tbody>
+          <tr><td>Create entity</td><td><code>Register</code> (user), <code>Create</code> (tenant), <code>Add</code> (member/credential)</td><td>Yes &mdash; domain-specific verbs, not generic <code>create</code></td></tr>
+          <tr><td>Remove entity</td><td><code>Delete</code> (user/tenant/bot), <code>Remove</code> (member/credential)</td><td>Yes &mdash; delete = hard removal, remove = relationship removal</td></tr>
+          <tr><td>State transition</td><td><code>Suspend</code>, <code>Reactivate</code></td><td>Yes &mdash; domain language</td></tr>
+          <tr><td>Validation</td><td><code>Parse</code> (returns error), <code>Valid()</code> (returns bool)</td><td>Yes &mdash; consistent across all modules</td></tr>
+          <tr><td>Fold (ES)</td><td><code>Fold</code>User, <code>Fold</code>Membership, <code>Fold</code>Tenant, <code>Fold</code>Bot</td><td>Yes &mdash; identical pattern per aggregate</td></tr>
+        </tbody>
+      </table>
+
+      <footer>
+        Generated 2026-08-05 &middot; naming-review skill &middot; 10 modules, ~3,000 identifiers, 1 systemic finding (cfg), 0 honesty violations
+      </footer>
+    </div>
+  </body>
+</html>

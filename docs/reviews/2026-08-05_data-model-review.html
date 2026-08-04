@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Model Review &middot; identity-model</title>
+    <style>
+      :root {
+        --color-paper: #f4f4f0; --color-paper-2: #ffffff; --color-paper-3: #e8e8e2;
+        --color-ink: #111111; --color-red: #e63946; --color-blue: #1d3557; --color-yellow: #f4d35e;
+        --surface: var(--color-paper); --surface-raised: var(--color-paper-2); --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink); --text-muted: rgba(17,17,17,0.72); --text-faint: rgba(17,17,17,0.5);
+        --border: rgba(17,17,17,0.14); --accent: var(--color-red); --problem: var(--color-red); --solution: var(--color-blue); --warning: var(--color-yellow);
+        --font-mono: ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+      }
+      * { box-sizing:border-box; margin:0; padding:0; }
+      body { background:var(--surface); color:var(--text); font-family:ui-sans-serif,system-ui,sans-serif; font-size:16px; line-height:1.65; }
+      .container { max-width:900px; margin:0 auto; padding:2rem 3rem 5rem; }
+      header.hero { margin-bottom:2.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border); }
+      .eyebrow { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); margin-bottom:0.7rem; }
+      header.hero h1 { font-size:clamp(1.9rem,4vw,2.5rem); font-weight:900; letter-spacing:-0.02em; line-height:1.08; margin-bottom:0.6rem; }
+      header.hero .subtitle { font-size:1.08rem; color:var(--text-muted); max-width:60ch; }
+      h2 { font-size:1.5rem; font-weight:900; margin:2.4rem 0 1rem; padding-bottom:0.4rem; border-bottom:2px solid var(--text); display:flex; align-items:baseline; gap:0.6rem; }
+      h2 .num { font-family:var(--font-mono); font-size:0.95rem; color:var(--surface); background:var(--accent); padding:0.15rem 0.45rem; }
+      h3 { font-size:1.12rem; font-weight:800; margin:1.4rem 0 0.5rem; }
+      p { margin-bottom:0.85rem; } strong { font-weight:800; }
+      code,pre { font-family:var(--font-mono); }
+      code { background:var(--surface-sunken); padding:0.1rem 0.35rem; font-size:0.86em; border:1px solid var(--border); }
+      pre { background:var(--surface-sunken); padding:1rem; overflow-x:auto; font-size:0.82rem; line-height:1.5; border:1px solid var(--border); margin-bottom:1rem; }
+      .tok-keyword { color:#c678dd; } .tok-type { color:#b8860b; } .tok-string { color:#2e7d32; } .tok-comment { color:#888; font-style:italic; } .tok-func { color:#1d3557; }
+      .scorecard { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.75rem; margin:1.2rem 0; }
+      .score-card { background:var(--surface-raised); border:1px solid var(--border); padding:0.9rem 0.8rem; text-align:center; border-top:4px solid var(--text-faint); }
+      .score-card .score { font-size:1.4rem; font-weight:900; } .score-card .label { font-family:var(--font-mono); font-size:0.66rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-top:0.3rem; }
+      .score-card.good { border-top-color:var(--solution); }
+      table { width:100%; border-collapse:collapse; margin:1rem 0 1.4rem; font-size:0.88rem; }
+      th,td { text-align:left; padding:0.5rem 0.7rem; border-bottom:1px solid var(--border); vertical-align:top; }
+      th { font-family:var(--font-mono); font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); border-bottom:2px solid var(--text); }
+      .badge { font-family:var(--font-mono); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border:1px solid currentColor; }
+      .badge-low { color:var(--text-faint); } .badge-medium { color:#8a6d00; }
+      .card { background:var(--surface-raised); border:1px solid var(--border); padding:1.1rem 1.2rem; margin-bottom:1rem; border-left:4px solid var(--text-faint); }
+      .card-solution { border-left-color:var(--solution); } .card-problem { border-left-color:var(--problem); } .card-warning { border-left-color:var(--warning); }
+      .callout { padding:0.85rem 1.1rem; margin:1rem 0; border-left:4px solid var(--text-faint); background:var(--surface-sunken); }
+      .callout-solution { border-left-color:var(--solution); }
+      .callout strong { display:block; margin-bottom:0.2rem; }
+      .strengths { margin:1rem 0; } .strength { display:flex; gap:0.8rem; align-items:flex-start; padding:0.7rem 0; border-bottom:1px solid var(--border); }
+      .strength:last-child { border-bottom:none; } .strength .check { font-family:var(--font-mono); font-weight:900; color:var(--solution); font-size:1.2rem; }
+      .strength .text strong { display:block; } .strength .text span { color:var(--text-muted); font-size:0.92rem; }
+      footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:0.76rem; color:var(--text-faint); }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="hero">
+        <div class="eyebrow">DATA MODEL REVIEW &middot; 2026-08-05</div>
+        <h1>identity-model &mdash; First-Principles Type Review</h1>
+        <p class="subtitle">
+          A from-scratch audit of the pure domain model that underpins all of cqrs-htmx.
+          Are impossible states unrepresentable? Do types enforce invariants at compile time?
+        </p>
+      </header>
+
+      <div class="callout callout-solution">
+        <strong>Verdict: EXEMPLARY (4.5/5).</strong>
+        This is one of the strongest Go domain models I have reviewed. Branded IDs via phantom
+        types, typed string enums with <code>Valid()</code> methods, constructor-enforced validation,
+        closed unions via interfaces and kind-discriminated structs, and zero pointer-as-state
+        encoding. The remaining findings are low-severity polish on external-facing types
+        (<code>Provider</code>, <code>Session.Token</code>) where the domain boundary is fuzzy.
+      </div>
+
+      <div class="scorecard">
+        <div class="score-card good"><div class="score">Solved</div><div class="label">P1 Branded IDs</div></div>
+        <div class="score-card good"><div class="score">Solved</div><div class="label">P2 Pointer-state</div></div>
+        <div class="score-card good"><div class="score">Solved</div><div class="label">P3 Validation</div></div>
+        <div class="score-card good"><div class="score">Solved</div><div class="label">P4 Primitive Obsession</div></div>
+        <div class="score-card good"><div class="score">Solved</div><div class="label">P5 Interface Unions</div></div>
+        <div class="score-card good"><div class="score">4/12</div><div class="label">Problems found (all Low)</div></div>
+      </div>
+
+      <h2><span class="num">01</span>What the Model Does Right</h2>
+      <p>The 12-problem catalog from the data-model-review skill is addressed systematically. This is not accidental &mdash; it reflects deliberate domain modeling.</p>
+
+      <div class="strengths">
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>P1 SOLVED &mdash; Branded IDs via phantom-type generics</strong>
+            <span><code>TenantID = brandid.ID[tenantBrand, string]</code> and <code>BotID = brandid.ID[botBrand, string]</code> use phantom type parameters for compile-time distinction. You cannot accidentally pass a <code>TenantID</code> where a <code>BotID</code> is expected. <code>UserID</code> aliases go-cqrs-lite's <code>id.UserID</code> for cross-module interop.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>P2 SOLVED &mdash; No pointer-as-optional-state encoding</strong>
+            <span><code>TenantState</code> uses <code>Suspended bool</code> + <code>SuspendReason string</code>, not <code>*time.Time</code> as a "suspended?" flag. The state is explicit, not encoded via nil-pointer dereference risk.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>P3 SOLVED &mdash; Constructor-enforced validation</strong>
+            <span><code>Email</code> is a branded type (<code>type Email string</code>) that CANNOT be safely constructed without validation: <code>ParseEmail(raw)</code> normalizes, validates via <code>mail.ParseAddress</code>, and returns an error. The comment explicitly directs: "Use ParseEmail or MustParseEmail to construct from user input."</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>P5 SOLVED &mdash; Interface-based unions for polymorphic types</strong>
+            <span><code>SessionOrigin</code> is an interface implemented by <code>DirectLogin</code> and <code>Impersonation</code> &mdash; a proper closed union via interface. <code>ActorID</code> uses a kind-discriminated struct with <em>unexported</em> fields (<code>kind ActorKind</code>, <code>raw string</code>) and constructor functions (<code>NewActorID</code>, <code>ActorIDFromUser</code>, <code>ActorIDFromBot</code>) &mdash; a closed union via encapsulation.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Typed string enums with Valid() &mdash; Casbin-compatible safety</strong>
+            <span><code>Action string</code>, <code>Effect string</code>, and <code>Role string</code> are NOT naive stringly-typing. Each declares typed constants (<code>ActionExecute</code>, <code>EffectAllow</code>, <code>RoleSuperAdmin</code>) and a <code>Valid()</code> method. The string backing is justified: Casbin matches on string subjects/objects/actions, so a branded-string is the correct interop layer.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>iota enums for closed value sets</strong>
+            <span><code>ActorKind</code> uses <code>iota</code> (<code>ActorUser = iota</code>, <code>ActorBot</code>) &mdash; the correct Go pattern for a closed, ordered enum.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Event payloads are typed data, not behavior</strong>
+            <span>21 event payload structs (<code>UserRegisteredPayload</code>, <code>EmailChangedPayload</code>, ...) are plain data with JSON tags. The fold functions (<code>FoldUser</code>, <code>FoldMembership</code>) use a type switch on <code>evt.Type()</code> with typed unmarshalling. This is the canonical event-sourcing pattern &mdash; events are immutable facts, not polymorphic objects.</span>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="check">+</div>
+          <div class="text">
+            <strong>Store interfaces use primitive types only</strong>
+            <span><code>WebAuthnSessionStore</code>, <code>VerificationTokenStore</code>, <code>LockoutStore</code>, <code>PendingTOTPStore</code> use <code>[]byte</code>, <code>string</code>, <code>UserID</code> &mdash; never framework types. Implementations (Redis, SQL) need not import the domain. This is dependency inversion at the type level.</span>
+          </div>
+        </div>
+      </div>
+
+      <h2><span class="num">02</span>Findings &mdash; Low-Severity Polish</h2>
+      <p>
+        The domain core is clean. These findings concern types at the <em>boundary</em> with
+        external systems (WebAuthn, OAuth2 providers), where the domain doesn't own the vocabulary.
+      </p>
+
+      <div class="card card-warning">
+        <h3><span class="badge badge-low">Low</span> ExternalAccountCore.Provider is plain string</h3>
+        <p><strong>Where:</strong> <code>external_account.go</code></p>
+        <p><strong>Problem:</strong> <code>Provider string</code> represents an OAuth2 provider name ("google", "github", "microsoft"). The set is finite but untyped &mdash; any string is accepted.</p>
+        <p><strong>Fix:</strong> Define <code>type Provider string</code> with declared constants (<code>ProviderGoogle</code>, <code>ProviderGitHub</code>) and a <code>Valid()</code> method, matching the <code>Action</code>/<code>Role</code> pattern already in the codebase. Alternatively, keep <code>string</code> if the provider set is genuinely open (consumer-defined).</p>
+      </div>
+
+      <div class="card card-warning">
+        <h3><span class="badge badge-low">Low</span> Session.Token is plain string</h3>
+        <p><strong>Where:</strong> <code>session.go</code> &mdash; <code>Token string</code></p>
+        <p><strong>Problem:</strong> A session token is a security primitive. Branding it (<code>type SessionToken string</code>) prevents accidental mixing with other string fields and signals its sensitivity.</p>
+        <p><strong>Fix:</strong> <code>type SessionToken string</code> with an internal constructor. Low impact &mdash; the token is generated by <code>generateToken()</code> and consumed internally.</p>
+      </div>
+
+      <div class="card card-warning">
+        <h3><span class="badge badge-low">Low</span> CredentialCore.AttestationType is plain string</h3>
+        <p><strong>Where:</strong> <code>credential.go</code> &mdash; <code>AttestationType string</code></p>
+        <p><strong>Problem:</strong> WebAuthn defines a finite set of attestation types ("none", "indirect", "direct", "enterprise"). Plain string accepts invalid values.</p>
+        <p><strong>Fix:</strong> Typed string enum with <code>Valid()</code>, matching the <code>Action</code> pattern. Low priority &mdash; this struct mirrors go-webauthn's data and the validation happens in the <code>webauthn</code> strategy module.</p>
+      </div>
+
+      <div class="card card-warning">
+        <h3><span class="badge badge-low">Low</span> CredentialCore.Transports is []string</h3>
+        <p><strong>Where:</strong> <code>credential.go</code> &mdash; <code>Transports []string</code></p>
+        <p><strong>Problem:</strong> WebAuthn authenticator transports are a finite set ("usb", "nfc", "ble", "internal", "hybrid"). Untyped slice.</p>
+        <p><strong>Fix:</strong> <code>type Transport string</code> with constants. Very low priority &mdash; mirror of external protocol data.</p>
+      </div>
+
+      <div class="callout">
+        <strong>Assessment of the findings.</strong>
+        All four are <code>Low</code> severity and cluster on types that <em>mirror external protocol
+        data</em> (WebAuthn, OAuth2). The domain doesn't own these vocabularies &mdash; it stores
+        opaque data from external systems. Typing them adds safety but the real validation lives in
+        the strategy modules (<code>webauthn</code>, <code>oauth2</code>). The domain core (User,
+        Membership, Tenant, Bot, Session, Authz, events, commands) is exemplary.
+      </div>
+
+      <h2><span class="num">03</span>Type System Power Usage</h2>
+      <table>
+        <thead><tr><th>Go type feature</th><th>Used for</th><th>Assessment</th></tr></thead>
+        <tbody>
+          <tr><td>Phantom-type generics</td><td>TenantID, BotID (brandid.ID[brand, string])</td><td>Correct &mdash; compile-time ID distinction</td></tr>
+          <tr><td>Type aliases</td><td>UserID = id.UserID (cross-module interop)</td><td>Correct &mdash; transparent aliasing</td></tr>
+          <tr><td>Typed string enums</td><td>Action, Effect, Role, Email</td><td>Correct &mdash; Casbin-compatible + Valid()</td></tr>
+          <tr><td>iota constants</td><td>ActorKind (ActorUser, ActorBot)</td><td>Correct &mdash; closed ordered enum</td></tr>
+          <tr><td>Interface unions</td><td>SessionOrigin (DirectLogin, Impersonation)</td><td>Correct &mdash; polymorphic origin</td></tr>
+          <tr><td>Kind-discriminated struct</td><td>ActorID (kind + raw, unexported)</td><td>Correct &mdash; closed union via encapsulation</td></tr>
+          <tr><td>Constructor functions</td><td>ParseEmail, NewActorID, NewUserID</td><td>Correct &mdash; invariant enforcement at creation</td></tr>
+          <tr><td>Struct embedding (core)</td><td>CredentialCore, ExternalAccountCore</td><td>Correct &mdash; unexported core + exported wrapper</td></tr>
+          <tr><td>Generics for payload unmarshal</td><td>UnmarshalPayload[T](evt)</td><td>Correct &mdash; type-safe event decoding</td></tr>
+        </tbody>
+      </table>
+      <p>
+        The model uses <strong>nine distinct Go type-system features</strong> deliberately and
+        correctly. No anti-patterns detected. This is the type of domain modeling the
+        <code>how-to-golang</code> skill recommends.
+      </p>
+
+      <h2><span class="num">04</span>Conclusion</h2>
+      <div class="callout callout-solution">
+        <strong>"Impossible states are unrepresentable" &mdash; largely achieved.</strong>
+        The identity-model demonstrates what a Go domain model should look like: branded types
+        prevent ID confusion, constructors enforce invariants, unions are closed via interfaces and
+        encapsulation, and there is zero pointer-as-optional encoding. The four low-severity findings
+        are all on boundary types mirroring external protocols. No action required on the domain core.
+      </div>
+
+      <footer>
+        Generated 2026-08-05 &middot; data-model-review skill &middot; identity-model v4.1.1 &middot; 80 types, 0 critical findings
+      </footer>
+    </div>
+  </body>
+</html>
