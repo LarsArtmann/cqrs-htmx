@@ -25,6 +25,7 @@ type (
 	// Namespace is the XML namespace for patched elements (html, svg, mathml).
 	Namespace = sdk.Namespace
 	// EventType is the Datastar SSE event type string.
+	//cqrs-lint:ignore(A008) re-export of Datastar SDK type, not a go-cqrs-lite duplicate
 	EventType = sdk.EventType
 	// TemplComponent is the interface satisfied by templ-generated components.
 	TemplComponent = sdk.TemplComponent
