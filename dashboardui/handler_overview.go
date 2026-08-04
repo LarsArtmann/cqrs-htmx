@@ -65,7 +65,6 @@ type projectionStat struct {
 	LastError  string
 }
 
-// cqrs-lint:ignore(A011) display-only DTO, not an event/command payload
 type recentEvent struct {
 	Time     string
 	Type     string

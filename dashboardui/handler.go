@@ -39,7 +39,6 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	mux.Handle("GET /-/htmx.js", cqrshtmx.HTMXScriptHandler())
 
 	// Observability probes (unguarded: load balancers and k8s need access)
-	//cqrs-lint:ignore(F013) dashboard IS the HTTP transport layer; no separate transport module needed
 	mux.HandleFunc("GET /-/healthz", d.healthzHandler)
 	mux.HandleFunc("GET /-/readyz", d.readyzHandler)
 	mux.HandleFunc("GET /-/versionz", d.versionzHandler)
