@@ -15,15 +15,15 @@
 
 All seven stale suppressions flagged by cqrs-lint were removed cleanly:
 
-| File | Line | Rule | Reason stale |
-|------|------|------|-------------|
-| `dashboardui/handler.go` | 42 | F013 | Rule no longer fires on this line |
-| `dashboardui/handler_overview.go` | 68 | A011 | Rule no longer fires (struct had no json tags) |
-| `event_store_sse.go` | 70 | C009 | Rule no longer fires (panic line) |
-| `event_store_sse.go` | 77 | C009 | Rule no longer fires (panic line) |
-| `usermgmt/credential_http.go` | 23 | S006 | Rule no longer fires |
-| `usermgmt/sql_session_store.go` | 69 | C036 | Rule no longer fires |
-| `usermgmt/sql_session_store.go` | 73 | C036 | Rule no longer fires |
+| File                              | Line | Rule | Reason stale                                   |
+| --------------------------------- | ---- | ---- | ---------------------------------------------- |
+| `dashboardui/handler.go`          | 42   | F013 | Rule no longer fires on this line              |
+| `dashboardui/handler_overview.go` | 68   | A011 | Rule no longer fires (struct had no json tags) |
+| `event_store_sse.go`              | 70   | C009 | Rule no longer fires (panic line)              |
+| `event_store_sse.go`              | 77   | C009 | Rule no longer fires (panic line)              |
+| `usermgmt/credential_http.go`     | 23   | S006 | Rule no longer fires                           |
+| `usermgmt/sql_session_store.go`   | 69   | C036 | Rule no longer fires                           |
+| `usermgmt/sql_session_store.go`   | 73   | C036 | Rule no longer fires                           |
 
 ### 2. Fixed D014 — added json tags to `recentEvent` struct
 
@@ -52,6 +52,7 @@ Datastar SDK type, not a go-cqrs-lite duplicate. Added line-above suppression.
 ### 6. Updated AGENTS.md with critical v0.2.2 discovery
 
 Updated the cqrs-lint suppression syntax gotcha entry to document:
+
 - **End-of-line (inline) `//cqrs-lint:ignore(...)` comments do NOT work in
   v0.2.2** — empirically verified during this session.
 - Package-level findings in Go files need the suppression in the Go file, not
@@ -76,15 +77,15 @@ Every remaining unsuppressed finding is blocked by the same root cause:
 immediately-preceding line slot is already occupied by a different (working)
 suppression.
 
-| Module | Finding(s) | Blocked by | Root cause |
-|--------|-----------|------------|------------|
-| dashboardui | E009, E014, F011 | F002 occupies line-above `package` | 4 module-level rules fire at `config.go:2`; only 1 suppressible |
-| dashboardui | A005 | C027 occupies line-above `SubscribeAll` | 2 rules fire on same call |
-| examples/dashboard-demo | E004×4 | E006 occupies line-above each `event.New` | 2 rules fire on same call |
-| examples/dashboard-demo | S003 | C028 occupies line-above `store.Save` | 2 rules fire on same call |
-| examples/dashboard-demo | D013 | Same line as E004 | Only 1 rule per line |
-| usermgmt | B025×4 | A017 occupies line-above each `decider.NewRepository` | 2 rules fire on same call |
-| usermgmt | E008 | A017 occupies line-above same `decider.NewRepository` | 2 rules on same call |
+| Module                  | Finding(s)       | Blocked by                                            | Root cause                                                      |
+| ----------------------- | ---------------- | ----------------------------------------------------- | --------------------------------------------------------------- |
+| dashboardui             | E009, E014, F011 | F002 occupies line-above `package`                    | 4 module-level rules fire at `config.go:2`; only 1 suppressible |
+| dashboardui             | A005             | C027 occupies line-above `SubscribeAll`               | 2 rules fire on same call                                       |
+| examples/dashboard-demo | E004×4           | E006 occupies line-above each `event.New`             | 2 rules fire on same call                                       |
+| examples/dashboard-demo | S003             | C028 occupies line-above `store.Save`                 | 2 rules fire on same call                                       |
+| examples/dashboard-demo | D013             | Same line as E004                                     | Only 1 rule per line                                            |
+| usermgmt                | B025×4           | A017 occupies line-above each `decider.NewRepository` | 2 rules fire on same call                                       |
+| usermgmt                | E008             | A017 occupies line-above same `decider.NewRepository` | 2 rules on same call                                            |
 
 **Resolution path:** Upgrade cqrs-lint to a version that supports
 multi-rule-per-line suppressions (TODO_LIST P2). Until then, these 15 findings
@@ -137,6 +138,7 @@ first, or at minimum been consistent within the struct.
 
 Initially tried stacking 4 `//cqrs-lint:ignore(...)` comments before
 `package dashboardui`:
+
 ```go
 //cqrs-lint:ignore(E009) ...
 //cqrs-lint:ignore(E014) ...
@@ -144,6 +146,7 @@ Initially tried stacking 4 `//cqrs-lint:ignore(...)` comments before
 //cqrs-lint:ignore(F002) ...
 package dashboardui
 ```
+
 Only F002 (the last one, immediately above `package`) worked. E009/E014/F011
 were flagged as stale. This confirmed the "only ONE immediately-preceding line"
 limitation for module-level findings.
@@ -332,24 +335,24 @@ release exists, the Nix build is pinned, upstream API changed)?
 
 ## Metrics Summary
 
-| Metric | Before | After | Delta |
-|--------|--------|-------|-------|
-| Stale suppressions | 7 | **0** | **-100%** |
-| Unsuppressed findings | 24 | **15** | **-37.5%** |
-| Suppressed findings | 111 | **115** | +4 |
-| D014 findings (no json tags) | 5 | **0** | **-100%** |
-| Build | pass | pass | — |
-| Tests (dashboardui+datastar+usermgmt) | pass | pass | — |
-| `nix run .#lint` | not run | **not run** | **GAP** |
-| `nix run .#coverage-gate` | not run | **not run** | **GAP** |
+| Metric                                | Before  | After       | Delta      |
+| ------------------------------------- | ------- | ----------- | ---------- |
+| Stale suppressions                    | 7       | **0**       | **-100%**  |
+| Unsuppressed findings                 | 24      | **15**      | **-37.5%** |
+| Suppressed findings                   | 111     | **115**     | +4         |
+| D014 findings (no json tags)          | 5       | **0**       | **-100%**  |
+| Build                                 | pass    | pass        | —          |
+| Tests (dashboardui+datastar+usermgmt) | pass    | pass        | —          |
+| `nix run .#lint`                      | not run | **not run** | **GAP**    |
+| `nix run .#coverage-gate`             | not run | **not run** | **GAP**    |
 
 ---
 
 ## Files Changed (8 files, 3 auto-commits)
 
-| Commit | Message | Files |
-|--------|---------|-------|
-| `2de88e7` | chore(lint): remove obsolete cqrs-lint suppression directives | handler.go, handler_overview.go, event_store_sse.go, credential_http.go, sql_session_store.go |
-| `ee41f0c` | chore(dashboardui): annotate module with lint justifications and JSON serialization tags | handler_overview.go, config.go, options.go |
-| `c39951e` | refactor(dashboardui,datastar): align JSON tags with camelCase and clean up lint directives | handler_overview.go, sse.go, options.go, examples/dashboard-demo/main.go, stack_repositories.go |
-| (uncommitted) | docs(agents): document v0.2.2 inline suppression limitation | AGENTS.md |
+| Commit        | Message                                                                                     | Files                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `2de88e7`     | chore(lint): remove obsolete cqrs-lint suppression directives                               | handler.go, handler_overview.go, event_store_sse.go, credential_http.go, sql_session_store.go   |
+| `ee41f0c`     | chore(dashboardui): annotate module with lint justifications and JSON serialization tags    | handler_overview.go, config.go, options.go                                                      |
+| `c39951e`     | refactor(dashboardui,datastar): align JSON tags with camelCase and clean up lint directives | handler_overview.go, sse.go, options.go, examples/dashboard-demo/main.go, stack_repositories.go |
+| (uncommitted) | docs(agents): document v0.2.2 inline suppression limitation                                 | AGENTS.md                                                                                       |
