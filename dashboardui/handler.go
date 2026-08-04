@@ -17,6 +17,11 @@ func (d *Dashboard) Handler() http.Handler { return d.routes() }
 //
 //	mux := http.NewServeMux()
 //	d.Mount(mux, "/dashboard/")
+//
+// The pattern is registered without a method (it matches all methods), so it
+// conflicts with a method-specific "GET /" catch-all on the same mux. Register
+// any site-root index as "GET /{$}" or "/" (no method) to avoid a ServeMux
+// panic at registration.
 func (d *Dashboard) Mount(mux *http.ServeMux, pattern string) {
 	prefix := trimTrailingSlash(pattern)
 	mux.Handle(pattern, http.StripPrefix(prefix, d.routes()))

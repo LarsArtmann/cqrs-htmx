@@ -70,7 +70,8 @@ func main() {
 	mux := http.NewServeMux()
 	dash.Mount(mux, "/dashboard/")
 
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, _ *http.Request) {
+	// "GET /{$}" (anchored) avoids a ServeMux conflict with the "/dashboard/" subtree.
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		fmt.Fprintln(w, `<html><body style="font-family:sans-serif;padding:40px">
 			<h1>CQRS Dashboard Demo</h1>
