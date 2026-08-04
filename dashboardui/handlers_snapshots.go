@@ -19,7 +19,7 @@ func (d *Dashboard) snapshotsIndexHandler(w http.ResponseWriter, r *http.Request
 	d.renderStreamIndex(w, r, "Snapshots", "/snapshots", d.renderSnapshotsIndex)
 }
 
-func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamListing) string {
+func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamListing, page paginationState) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -51,6 +51,8 @@ func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamLi
 			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
+
+		b.WriteString(renderPagination(p.BasePath, "/snapshots", page, ""))
 
 		return b.String()
 	})
