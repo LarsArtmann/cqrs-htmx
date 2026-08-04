@@ -16,8 +16,6 @@
 
 ## P2 — Medium Impact (code quality & tooling)
 
-- [ ] **Upgrade cqrs-lint from Nix v0.2.2 to latest build.** The installed binary (`/run/current-system/sw/bin/cqrs-lint` v0.2.2) lacks comma-separated rule ID support (`//cqrs-lint:ignore(E004,E006)`). This causes 4 stale-suppression warnings in `examples/dashboard-demo/` where dual-rule findings need two separate comment lines. The go-cqrs-lite source (`5ee3832e`) already implements comma-separated parsing. Upgrading eliminates all 4 stale warnings cleanly. Source: `docs/status/2026-07-31_03-41_cqrs-lint-suppression-remediation-round2.md`.
-
 - [~] **MySQL event-store support via go-cqrs-lite Dialect.** Event-store-only MySQL dialect added (`MySQLDialect` with `?` placeholders, MySQL-specific DDL, `IsDuplicateKeyError` extended, `classifyMySQLError` error classifier implemented in go-cqrs-lite `storage/sql/classify_init.go`). `dialectToUpstream` updated. `storage/v4` at v4.5.0. Read model constructors shipped (`NewMySQLUserReadModel`, etc.). Remaining: (1) add integration test against real MySQL (docker/testcontainers), (2) document MySQL support in README, (3) consider `NewMySQLSetup` convenience constructor and MySQL-backed session/snapshot/checkpoint stores.
 
 - [ ] **Auto-discover modules from go.work in flake.nix.** Replace hardcoded module lists in flake.nix apps (`test`, `lint`, `coverage`, `build`, etc.) with dynamic discovery via `go work edit -json | jq -r '.Mapping[].DiskPath'`. Currently each new module requires manual updates to 6+ flake.nix apps AND `.github/workflows/ci.yml`. Requires an architecture decision: the shell-in-Nix pattern makes dynamic generation non-trivial. Documented in AGENTS.md gotchas.
