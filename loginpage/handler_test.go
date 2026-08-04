@@ -352,6 +352,22 @@ func TestMount(t *testing.T) {
 	}
 }
 
+func TestMount_CoexistsWithRootIndex(t *testing.T) {
+	h, _ := New(Config{Service: newTestService(t)})
+
+	mux := http.NewServeMux()
+	h.Mount(mux, "/login")
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	if rec.Code != http.StatusOK {
+		t.Errorf("GET / status = %d, want 200", rec.Code)
+	}
+}
+
 func TestNewPageData(t *testing.T) {
 	svc := newTestService(t)
 	data, err := NewPageData(Config{

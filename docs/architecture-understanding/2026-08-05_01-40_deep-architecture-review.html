@@ -817,21 +817,22 @@
         <section id="roadmap">
           <h2><span class="num">07</span>Action Roadmap</h2>
           <p>
-            Ordered by leverage and dependency constraints. Each step is traceable to a finding above.
+            Ordered by leverage. Two of the largest items are <strong>already on the books</strong>
+            (ADR-0019/0038, deferred to v5) &mdash; this review confirms rather than re-opens them.
+            The genuinely open, actionable-now items are flagged below.
           </p>
 
           <div class="migration-step">
             <div class="migration-num">1</div>
             <div class="migration-content">
-              <h4>Split usermgmt into layer sub-packages <span class="badge badge-high">P1</span> <span class="badge badge-low">L</span></h4>
+              <h4>Decide the Casbin port: interface it, or ADR-accept it <span class="badge badge-medium">P2</span> <span class="badge badge-low">S</span></h4>
               <p>
-                Move <code>es_*</code> internals into <code>usermgmt/es</code> (unexported),
-                <code>sql_*</code> into <code>usermgmt/store</code>, and <code>*_http.go</code> into
-                <code>usermgmt/http</code>. Keep the top-level package as the public facade
-                (Service, Config, setup structs). Type aliases preserve the public API &mdash; no
-                consumer breaks. <strong>Do this first:</strong> it unblocks steps 2&ndash;4 and is the
-                highest-impact single change. <em>Effort driver:</em> mechanical file moves + import
-                rewriting across 91 files.
+                The domain layer embeds a concrete <code>*casbin.Enforcer</code>
+                (<code>identity-model/authz.go</code>) &mdash; the sole dependency-direction blemish
+                in an SDP-perfect graph. Either define a narrow <code>Enforcer</code> interface and
+                default to the Casbin impl, or write an ADR accepting Casbin as an intentional domain
+                fixture. Either resolves the open question decisively. <em>This is the highest-value
+                open item.</em>
               </p>
             </div>
           </div>
@@ -839,12 +840,12 @@
           <div class="migration-step">
             <div class="migration-num">2</div>
             <div class="migration-content">
-              <h4>Decompose the Service god-object <span class="badge badge-medium">P2</span> <span class="badge badge-low">M</span></h4>
+              <h4>Set a retirement path for the re-export layer <span class="badge badge-low">P3</span> <span class="badge badge-low">S</span></h4>
               <p>
-                Extract focused services (User/Membership/Tenant/Bot/Auth) that compose shared
-                dependencies. Top-level <code>Service</code> embeds or holds them. Reduces the 74-method
-                surface and makes each context independently testable. <em>Depends on:</em> step 1
-                (sub-services belong in sub-packages).
+                26 usermgmt files re-export identity-model types, inflating the surface to 819 symbols
+                and offering two import paths per domain type. Document a deprecation timeline, point
+                new consumers/examples at <code>identity-model</code> directly, and track residual
+                usage. Low effort, high clarity payoff.
               </p>
             </div>
           </div>
@@ -852,11 +853,15 @@
           <div class="migration-step">
             <div class="migration-num">3</div>
             <div class="migration-content">
-              <h4>Interface the Casbin dependency (or accept &amp; document) <span class="badge badge-medium">P2</span> <span class="badge badge-low">S</span></h4>
+              <h4>v5: execute ADR-0019 + ADR-0038 (god-package + Service split) <span class="badge badge-high">v5</span> <span class="badge badge-low">L</span></h4>
               <p>
-                Define a narrow <code>Enforcer</code> port in identity-model and default to the Casbin
-                implementation, OR record an ADR accepting Casbin as an intentional domain fixture.
-                Either resolves the open dependency-direction question decisively.
+                When the documented decomposition triggers fire (consumer needs a dep subset,
+                &gt;30% divergent deps, or compile-time pressure), land the module-per-aggregate split
+                and the Service decomposition together as a coordinated v5 major bump. This review's
+                metrics confirm the debt is real and slowly growing (+22 Service methods since the ADR)
+                but correctly bounded. <strong>No v4 action</strong> beyond keeping the
+                <code>es_*</code>/<code>service_*</code>/<code>sql_*</code> prefix seams clean so v5 is
+                mechanical.
               </p>
             </div>
           </div>
@@ -864,31 +869,20 @@
           <div class="migration-step">
             <div class="migration-num">4</div>
             <div class="migration-content">
-              <h4>Plan the re-export layer retirement <span class="badge badge-low">P3</span> <span class="badge badge-low">S</span></h4>
-              <p>
-                Set a deprecation timeline for the 26 identity-model alias files, update examples to
-                import <code>identity-model</code> directly, and track residual usage. Harvested from
-                this review into TODO_LIST/ROADMAP via docs-health.
-              </p>
-            </div>
-          </div>
-
-          <div class="migration-step">
-            <div class="migration-num">5</div>
-            <div class="migration-content">
               <h4>Optional: aggregate scaffold/codegen <span class="badge badge-low">P3</span> <span class="badge badge-low">M</span></h4>
               <p>
-                Reduce the 7-file-per-aggregate ritual with a template generator. Only if adding new
-                aggregates becomes frequent. Otherwise the explicit CQRS structure is fine as-is.
+                Reduce the 7-file-per-aggregate ritual with a template generator &mdash; only if adding
+                new aggregates becomes frequent. Otherwise the explicit CQRS structure is fine as-is.
               </p>
             </div>
           </div>
 
-          <div class="callout callout-warning">
-            <strong>No P0 findings.</strong>
-            The architecture is not actively blocking development and there are no production
-            incidents caused by structure. The roadmap is debt pay-down and polish, not emergency
-            repair.
+          <div class="callout callout-solution">
+            <strong>No P0 findings. No novel structural debt.</strong>
+            The architecture is not blocking development and there are no production incidents from
+            structure. The two largest concerns are ADR-documented and deliberately deferred; the
+            genuinely open items (Casbin port, re-export retirement) are low-effort, high-clarity
+            cleanups. This is a healthy codebase being maintained with discipline.
           </div>
         </section>
 
