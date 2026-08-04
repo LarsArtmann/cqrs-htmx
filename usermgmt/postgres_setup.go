@@ -46,51 +46,11 @@ func newPostgresSetup(
 	checkpointStore event.CheckpointStore,
 	snap SnapshotConfig,
 ) (*PostgresEventSourcedSetup, error) {
-	repos, err := buildStackRepositories(bundle, snap)
+	core, err := buildSQLEventSourcedSetupCore("postgres", bundle, auditLog, checkpointStore, snap, createPostgresReadModels)
 	if err != nil {
 		return nil, err
 	}
-
-	db := extractDB(bundle)
-	rm, memRm, tenRm, botRm, err := createPostgresReadModels(db)
-	if err != nil {
-		_ = bundle.Close()
-		return nil, err
-	}
-
-	casbinProj, err := createAuthzAndCasbin()
-	if err != nil {
-		_ = bundle.Close()
-		return nil, err
-	}
-
-	host, err := StartProjections(
-		bundle.Journal, bundle.Subscriber,
-		checkpointStore,
-		rm, memRm, tenRm, botRm, casbinProj, auditLog,
-	)
-	if err != nil {
-		_ = bundle.Close()
-		return nil, errorfamily.WrapTransient(err, "usermgmt.projection.start", "start projections")
-	}
-
-	return &PostgresEventSourcedSetup{
-		eventSourcedSetupCore: eventSourcedSetupCore{
-			backendName:          "postgres",
-			UserRepository:       repos.User,
-			MembershipRepository: repos.Membership,
-			TenantRepository:     repos.Tenant,
-			BotRepository:        repos.Bot,
-			ReadModel:            rm,
-			MembershipReadModel:  memRm,
-			TenantReadModel:      tenRm,
-			BotReadModel:         botRm,
-			Bundle:               bundle,
-			DB:                   db,
-			casbinProjection:     casbinProj,
-			projectionHost:       host,
-		},
-	}, nil
+	return &PostgresEventSourcedSetup{eventSourcedSetupCore: core}, nil
 }
 
 func createPostgresReadModels(db *sql.DB) (
