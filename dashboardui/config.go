@@ -1,4 +1,4 @@
-//cqrs-lint:ignore(E009,E014,F011,F002) dashboard IS the transport/view layer; consumes projections; read-only; not a CQRS app
+//cqrs-lint:ignore(E009,E014) dashboard IS the transport/view layer; consumes projections, does not own them
 package dashboardui
 
 import (

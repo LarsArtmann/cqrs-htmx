@@ -50,8 +50,6 @@ require (
 	modernc.org/sqlite v1.55.0 // indirect
 )
 
-//cqrs-lint:ignore(F002) observability UI module, not a CQRS application
-//cqrs-lint:ignore(F011) read-only dashboard, no multi-table writes
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 //cqrs-lint:ignore(E009) dashboard IS the transport/view layer
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them

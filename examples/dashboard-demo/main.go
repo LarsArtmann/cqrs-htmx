@@ -233,7 +233,7 @@ func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
 			event.Version(1),
 			jsontext.Value(payload),
 		)
-		//cqrs-lint:ignore(C028,S003) demo seed data: errors non-critical; no event signing in demo
+		//cqrs-lint:ignore(C028) demo seed data: errors non-critical
 		_ = store.Save(
 			ctx,
 			ref,
