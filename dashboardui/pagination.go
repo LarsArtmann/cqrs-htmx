@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // paginationState tracks cursor-based pagination state for rendering.
@@ -16,9 +17,68 @@ type paginationState struct {
 	PageSize int
 	// HasPrev is true when a cursor was used (i.e., not on the first page).
 	HasPrev bool
+	// After is the cursor that loaded the current page (the ?after= value).
+	// Empty on the first page.
+	After string
+	// PrevHistory is the comma-separated stack of cursors for pages before
+	// the current one. The implicit first-page cursor ("") is never stored;
+	// an empty history with a non-empty After means "Previous goes to page 1".
+	PrevHistory string
 }
 
-// renderPagination renders pagination controls (Prev/Next links).
+// pushCursor appends cursor to the comma-separated history, skipping empty
+// values (the implicit first-page cursor is never stored).
+func pushCursor(history, cursor string) string {
+	if cursor == "" {
+		return history
+	}
+
+	if history == "" {
+		return cursor
+	}
+
+	return history + "," + cursor
+}
+
+// popCursor splits the history into the last entry and the remaining prefix.
+// Returns ("", "") when history is empty.
+func popCursor(history string) (last, remaining string) {
+	if history == "" {
+		return "", ""
+	}
+
+	idx := strings.LastIndex(history, ",")
+
+	if idx == -1 {
+		return history, ""
+	}
+
+	return history[idx+1:], history[:idx]
+}
+
+// paginationQuery builds the query string for a pagination link from the
+// after cursor, prev history, page size, and any extra filter params.
+func paginationQuery(after, prevHistory string, pageSize int, extraParams string) string {
+	var parts []string
+
+	if after != "" {
+		parts = append(parts, "after="+after)
+	}
+
+	if prevHistory != "" {
+		parts = append(parts, "prev="+prevHistory)
+	}
+
+	parts = append(parts, "limit="+strconv.Itoa(pageSize))
+
+	if extraParams != "" {
+		parts = append(parts, extraParams)
+	}
+
+	return strings.Join(parts, "&")
+}
+
+// renderPagination renders Prev/Next links with cursor-history tracking.
 // basePath is the dashboard base path, path is the page path (e.g., "/events").
 // Extra query params (filters, sort) are preserved across pagination links.
 func renderPagination(basePath, path string, state paginationState, extraParams string) string {
@@ -26,25 +86,27 @@ func renderPagination(basePath, path string, state paginationState, extraParams 
 		return ""
 	}
 
-	var b string
+	var b strings.Builder
 
-	params := ""
-	if extraParams != "" {
-		params = "&" + extraParams
-	}
+	b.WriteString(`<div class="pagination">`)
 
 	if state.HasPrev {
-		b = fmt.Sprintf(`<a href="%s%s" class="btn">← Previous</a>`, basePath, path)
+		prevAfter, prevHistory := popCursor(state.PrevHistory)
+		query := paginationQuery(prevAfter, prevHistory, state.PageSize, extraParams)
+		fmt.Fprintf(&b, `<a href="%s%s?%s" class="btn">← Previous</a>`, basePath, path, query)
 	} else {
-		b = `<span class="pagination disabled">← Previous</span>`
+		b.WriteString(`<span class="pagination disabled">← Previous</span>`)
 	}
 
 	if state.HasNext {
-		b += fmt.Sprintf(`<a href="%s%s?after=%s&limit=%d%s" class="btn btn-accent">Next →</a>`,
-			basePath, path, state.NextCursor, state.PageSize, params)
+		nextHistory := pushCursor(state.PrevHistory, state.After)
+		query := paginationQuery(state.NextCursor, nextHistory, state.PageSize, extraParams)
+		fmt.Fprintf(&b, `<a href="%s%s?%s" class="btn btn-accent">Next →</a>`, basePath, path, query)
 	}
 
-	return fmt.Sprintf(`<div class="pagination">%s</div>`, b)
+	b.WriteString(`</div>`)
+
+	return b.String()
 }
 
 // parsePageSize reads the ?limit= query param, clamped to [1, maxPageSize].
@@ -65,4 +127,14 @@ func parsePageSize(r *http.Request, defaultPageSize int) int {
 	}
 
 	return num
+}
+
+// parseCursorParams extracts the after cursor and prev history from the
+// request query string. Shared by all paginated index handlers.
+func parseCursorParams(r *http.Request) (after, prevHistory string, hasPrev bool) {
+	after = r.URL.Query().Get("after")
+	prevHistory = r.URL.Query().Get("prev")
+	hasPrev = after != ""
+
+	return after, prevHistory, hasPrev
 }

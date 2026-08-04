@@ -16,9 +16,8 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 	p := d.page("Commands", "/commands", r)
 
 	pageSize := parsePageSize(r, d.cfg.PageSize)
-	afterStr := r.URL.Query().Get("after")
-	after, _ := id.ParseCommandID(afterStr)
-	hasPrev := afterStr != ""
+	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
+	after, _ := id.ParseCommandID(afterCursor)
 
 	var (
 		cmds    []*command.PersistedCommand
@@ -57,7 +56,10 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 	html := d.renderCommands(
 		p,
 		cmds,
-		paginationState{HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev},
+		paginationState{
+			HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev,
+			After: afterCursor, PrevHistory: prevHistory,
+		},
 	)
 	renderPage(w, r, html)
 }
@@ -100,9 +102,8 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 	p := d.page("Queries", "/queries", r)
 
 	pageSize := parsePageSize(r, d.cfg.PageSize)
-	afterStr := r.URL.Query().Get("after")
-	after, _ := id.ParseRequestID(afterStr)
-	hasPrev := afterStr != ""
+	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
+	after, _ := id.ParseRequestID(afterCursor)
 
 	var (
 		queries []*query.PersistedQuery
@@ -141,7 +142,10 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 	html := d.renderQueries(
 		p,
 		queries,
-		paginationState{HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev},
+		paginationState{
+			HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev,
+			After: afterCursor, PrevHistory: prevHistory,
+		},
 	)
 	renderPage(w, r, html)
 }
