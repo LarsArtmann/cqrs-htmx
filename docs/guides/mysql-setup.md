@@ -40,7 +40,7 @@ The events table DDL is auto-created by `EventSchema()`. Indexes use inline `KEY
 
 ## Full Service Setup (Manual)
 
-MySQL does not yet have a compiled convenience constructor (`NewMySQLEventSourcedSetup`). A reference template exists at `usermgmt/mysql_setup.go` (`//go:build ignore`) — copy it into your application and remove the build tag to use it. Until then, wire it manually:
+MySQL does not yet have a compiled convenience constructor (`NewMySQLEventSourcedSetup`). Reference templates exist at `usermgmt/mysql_setup.go` and `usermgmt/sql_setup_shared.go` (both `//go:build ignore`) — copy **both** files into your application and remove the build tags to use them. The shared file provides `buildSQLEventSourcedSetupCore`, which `mysql_setup.go` calls. Until then, wire it manually:
 
 ```go
 eventStore, _ := usermgmt.NewSQLEventStore(ctx, db, "mysql")
