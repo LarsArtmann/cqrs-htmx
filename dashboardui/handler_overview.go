@@ -70,9 +70,12 @@ type recentEvent struct {
 	Type string `json:"type"`
 	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
 	StreamID string `json:"streamId"`
-	Version  string `json:"version"`
 	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
-	EventID string `json:"eventId"`
+	StreamType string `json:"streamType"`
+	Version    string `json:"version"`
+	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
+	EventID   string    `json:"eventId"`
+	OccurredAt time.Time `json:"-"`
 }
 
 //nolint:cyclop,gocognit // multi-source aggregation
@@ -101,11 +104,13 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 				}
 
 				stats.RecentEvents = append(stats.RecentEvents, recentEvent{
-					Time:     evt.OccurredAt().Format(time.RFC3339),
-					Type:     string(evt.Type()),
-					StreamID: evt.StreamID().String(),
-					Version:  evt.Version().String(),
-					EventID:  evt.ID().String(),
+					Time:       evt.OccurredAt().Format(time.RFC3339),
+					Type:       string(evt.Type()),
+					StreamID:   evt.StreamID().String(),
+					StreamType: string(evt.StreamType()),
+					Version:    evt.Version().String(),
+					EventID:    evt.ID().String(),
+					OccurredAt: evt.OccurredAt(),
 				})
 			}
 
@@ -124,11 +129,13 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 				}
 
 				stats.RecentEvents = append(stats.RecentEvents, recentEvent{
-					Time:     evt.OccurredAt().Format(time.RFC3339),
-					Type:     string(evt.Type()),
-					StreamID: evt.StreamID().String(),
-					Version:  evt.Version().String(),
-					EventID:  evt.ID().String(),
+					Time:       evt.OccurredAt().Format(time.RFC3339),
+					Type:       string(evt.Type()),
+					StreamID:   evt.StreamID().String(),
+					StreamType: string(evt.StreamType()),
+					Version:    evt.Version().String(),
+					EventID:    evt.ID().String(),
+					OccurredAt: evt.OccurredAt(),
 				})
 			}
 		}
@@ -184,6 +191,21 @@ func projectionStatusKind(status string) string {
 	}
 }
 
+// healthKindToVariant maps an internal health kind (statusGood/statusWarn/...)
+// to the CSS stat-card variant class (ok/warn/err).
+func healthKindToVariant(kind string) string {
+	switch kind {
+	case statusGood:
+		return "ok"
+	case statusWarn:
+		return "warn"
+	case statusBad:
+		return "err"
+	default:
+		return ""
+	}
+}
+
 func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 	var b strings.Builder
 
@@ -206,6 +228,14 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 			statCard(&inner, fmt.Sprintf("%d/%d", active, len(stats.Projections)), "Projections", "ok")
 		}
 
+		if stats.HealthStatus != "" {
+			statCard(&inner, stats.HealthStatus, "System Health", healthKindToVariant(stats.HealthKind))
+		}
+
+		if stats.DLQCount != "" {
+			statCard(&inner, stats.DLQCount, "Dead Letters", "err")
+		}
+
 		inner.WriteString(`</div>`)
 
 		if len(stats.Projections) > 0 {
@@ -220,12 +250,32 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 			inner.WriteString(`</tr></thead><tbody>`)
 
 			for _, e := range stats.RecentEvents {
+				timeDisplay := esc(e.Time)
+				if !e.OccurredAt.IsZero() {
+					timeDisplay = esc(relativeTime(e.OccurredAt))
+				}
+
+				streamCell := esc(truncate(e.StreamID, eventIDWidth))
+				if e.StreamType != "" {
+					streamCell = fmt.Sprintf(
+						`<a href="%s/aggregates/%s/%s" class="mono copyable" data-copyable="%s" title="Click to copy">%s</a>`,
+						p.BasePath,
+						esc(e.StreamType),
+						esc(e.StreamID),
+						esc(e.StreamID),
+						esc(truncate(e.StreamID, eventIDWidth)),
+					)
+				}
+
 				fmt.Fprintf(
 					&inner,
-					`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono">%s</td><td>%s</td></tr>`,
+					`<tr><td class="mono" title="%s">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td>%s</td><td>%s</td></tr>`,
 					esc(e.Time),
+					timeDisplay,
+					p.BasePath,
+					esc(e.EventID),
 					esc(e.Type),
-					esc(truncate(e.StreamID, eventIDWidth)),
+					streamCell,
 					esc(e.Version),
 				)
 			}
