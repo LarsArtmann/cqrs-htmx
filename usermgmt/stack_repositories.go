@@ -70,7 +70,7 @@ func buildStackRepositories(bundle *stack.Bundle, snap SnapshotConfig) (*aggrega
 func buildDeciderRepositories(
 	store event.Store, bus event.Publisher, closeOnErr func(), snap SnapshotConfig,
 ) (*aggregateRepositories, error) {
-	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig; zero-value = full-replay mode
+	//cqrs-lint:ignore(B025,A017,E008) state cache wired via repositoryOptions; snapshot opt-in; stack bundle is consumer's choice
 	user, err := decider.NewRepository(
 		store,
 		bus,
@@ -83,7 +83,7 @@ func buildDeciderRepositories(
 		return nil, errorfamily.NewTransient("usermgmt.repository.create_user_decider", "create decider repository").
 			WithCause(err)
 	}
-	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	//cqrs-lint:ignore(B025,A017) state cache wired via repositoryOptions; snapshot opt-in
 	membership, err := decider.NewRepository(
 		store,
 		bus,
@@ -94,7 +94,7 @@ func buildDeciderRepositories(
 		return nil, errorfamily.NewTransient("usermgmt.repository.create_membership_decider", "create membership decider repository").
 			WithCause(err)
 	}
-	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	//cqrs-lint:ignore(B025,A017) state cache wired via repositoryOptions; snapshot opt-in
 	tenant, err := decider.NewRepository(
 		store,
 		bus,
@@ -105,7 +105,7 @@ func buildDeciderRepositories(
 		return nil, errorfamily.NewTransient("usermgmt.repository.create_tenant_decider", "create tenant decider repository").
 			WithCause(err)
 	}
-	//cqrs-lint:ignore(A017) snapshot is opt-in via SnapshotConfig
+	//cqrs-lint:ignore(B025,A017) state cache wired via repositoryOptions; snapshot opt-in
 	bot, err := decider.NewRepository(
 		store,
 		bus,
