@@ -696,6 +696,18 @@
               };
             };
 
+            check-templates = {
+              type = "app";
+              meta.description = "Verify //go:build ignore SQL setup template files compile (sqlite/postgres/mysql)";
+              program = pkgs.writeShellApplication {
+                name = "check-templates";
+                runtimeInputs = [ goPkg ];
+                text = ''
+                  bash scripts/check-templates.sh
+                '';
+              };
+            };
+
             coverage-gate = goApp {
               name = "coverage-gate";
               description = "Run tests and fail if coverage drops below thresholds";
