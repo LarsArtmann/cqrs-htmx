@@ -267,7 +267,7 @@ func isWSValueNil(v any) bool {
 	}
 
 	k := reflect.ValueOf(v).Kind()
-	switch k { //nolint:exhaustive // only reference kinds can be nil
+	switch k {
 	case reflect.Pointer, reflect.Interface, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func:
 		return reflect.ValueOf(v).IsNil()
 	}

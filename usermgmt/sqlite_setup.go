@@ -49,7 +49,14 @@ func newSQLiteSetup(
 	checkpointStore event.CheckpointStore,
 	snap SnapshotConfig,
 ) (*SQLiteEventSourcedSetup, error) {
-	core, err := buildSQLEventSourcedSetupCore("sqlite", bundle, auditLog, checkpointStore, snap, createSQLiteReadModels)
+	core, err := buildSQLEventSourcedSetupCore(
+		"sqlite",
+		bundle,
+		auditLog,
+		checkpointStore,
+		snap,
+		createSQLiteReadModels,
+	)
 	if err != nil {
 		return nil, err
 	}

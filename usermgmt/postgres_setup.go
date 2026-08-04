@@ -46,7 +46,14 @@ func newPostgresSetup(
 	checkpointStore event.CheckpointStore,
 	snap SnapshotConfig,
 ) (*PostgresEventSourcedSetup, error) {
-	core, err := buildSQLEventSourcedSetupCore("postgres", bundle, auditLog, checkpointStore, snap, createPostgresReadModels)
+	core, err := buildSQLEventSourcedSetupCore(
+		"postgres",
+		bundle,
+		auditLog,
+		checkpointStore,
+		snap,
+		createPostgresReadModels,
+	)
 	if err != nil {
 		return nil, err
 	}
