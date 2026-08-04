@@ -66,13 +66,13 @@ type projectionStat struct {
 }
 
 type recentEvent struct {
-	Time    string `json:"time"`
-	Type    string `json:"type"`
+	Time string `json:"time"`
+	Type string `json:"type"`
 	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
 	StreamID string `json:"streamId"`
 	Version  string `json:"version"`
 	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
-	EventID  string `json:"eventId"`
+	EventID string `json:"eventId"`
 }
 
 //nolint:cyclop,gocognit // multi-source aggregation
