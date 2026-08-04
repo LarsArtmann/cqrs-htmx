@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deep Architecture Review &middot; cqrs-htmx</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      a:focus-visible { outline-offset: -1px; }
+
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .top-bar a { color: var(--color-yellow); text-decoration: none; }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        max-width: 1240px;
+        margin: 0 auto;
+        gap: 0;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 2rem 1.25rem 2rem 2rem;
+        border-right: 1px solid var(--border);
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin-bottom: 0.6rem;
+      }
+      .sidebar nav a {
+        display: block;
+        padding: 0.28rem 0.5rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.86rem;
+        border-left: 2px solid transparent;
+        transition: border-color 0.15s, color 0.15s;
+      }
+      .sidebar nav a:hover { color: var(--text); border-left-color: var(--accent); }
+      .sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 700; }
+
+      .main { padding: 2rem 3rem 5rem; min-width: 0; }
+
+      header.hero { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.7rem;
+      }
+      header.hero h1 {
+        font-size: clamp(1.9rem, 4vw, 2.7rem);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.08;
+        margin-bottom: 0.6rem;
+      }
+      header.hero .subtitle { font-size: 1.08rem; color: var(--text-muted); max-width: 60ch; }
+      .meta { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .tag {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.18rem 0.55rem;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+      }
+      .tag.amber { background: color-mix(in srgb, var(--warning) 35%, transparent); border-color: var(--warning); color: var(--text); }
+
+      h2 {
+        font-size: 1.55rem;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        margin: 2.6rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.15rem 0.45rem;
+        line-height: 1;
+      }
+      h3 { font-size: 1.12rem; font-weight: 800; margin: 1.4rem 0 0.5rem; }
+      h4 { font-size: 0.98rem; font-weight: 800; margin: 1rem 0 0.35rem; }
+      p { margin-bottom: 0.85rem; }
+      ul, ol { margin: 0 0 1rem 1.3rem; }
+      li { margin-bottom: 0.3rem; }
+      strong { font-weight: 800; }
+      code, pre { font-family: var(--font-mono); }
+      code {
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+        font-size: 0.86em;
+        border: 1px solid var(--border);
+      }
+      pre {
+        background: var(--surface-sunken);
+        padding: 1rem 1.1rem;
+        overflow-x: auto;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        border: 1px solid var(--border);
+        margin-bottom: 1rem;
+      }
+      pre code { background: none; border: none; padding: 0; }
+
+      /* Syntax tokens */
+      .tok-keyword { color: #c678dd; }
+      .tok-type { color: #b8860b; }
+      .tok-string { color: #2e7d32; }
+      .tok-comment { color: #888; font-style: italic; }
+      .tok-func { color: #1d3557; }
+      .tok-builtin { color: #b85c00; }
+      .tok-punct { color: #555; }
+      .tok-attr { color: #b85c00; }
+
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1.2rem 0 1.6rem;
+      }
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 0.9rem 0.8rem;
+        text-align: center;
+        border-top: 4px solid var(--text-faint);
+      }
+      .score-card .score { font-size: 1.9rem; font-weight: 900; line-height: 1; }
+      .score-card .label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-top: 0.4rem; }
+      .score-card.score-good { border-top-color: var(--solution); }
+      .score-card.score-warn { border-top-color: var(--warning); }
+      .score-card.score-bad { border-top-color: var(--problem); }
+      .score-card.overall { border-top-width: 6px; background: var(--text); color: var(--surface); }
+      .score-card.overall .label { color: var(--text-faint); }
+      .score-card.overall .score { color: var(--color-yellow); }
+
+      .verdict {
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+        border-left: 4px solid var(--solution);
+        padding: 0.9rem 1.1rem;
+        margin: 1.2rem 0;
+      }
+      .verdict strong { color: var(--solution); }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.4rem;
+        font-size: 0.88rem;
+      }
+      th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+      th { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--text); }
+      td.num, th.num { text-align: right; font-family: var(--font-mono); }
+      table.compare td.no { color: var(--problem); font-weight: 700; }
+      table.compare td.yes { color: var(--solution); font-weight: 700; }
+
+      .badge { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; padding: 0.12rem 0.45rem; border: 1px solid currentColor; text-transform: uppercase; letter-spacing: 0.04em; }
+      .badge-critical { color: var(--problem); }
+      .badge-high { color: #c1440e; }
+      .badge-medium { color: #8a6d00; }
+      .badge-low { color: var(--text-faint); }
+
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.2rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--text-faint);
+      }
+      .card-problem { border-left-color: var(--problem); }
+      .card-solution { border-left-color: var(--solution); }
+      .card-warning { border-left-color: var(--warning); }
+      .card h3 { margin-top: 0; }
+
+      .issue { background: var(--surface-raised); border: 1px solid var(--border); padding: 1rem 1.2rem; margin-bottom: 1rem; border-left: 4px solid var(--text-faint); }
+      .issue-critical { border-left-color: var(--problem); }
+      .issue-important { border-left-color: var(--warning); }
+      .issue-nice { border-left-color: var(--solution); }
+      .issue h3 { margin-top: 0; }
+      .severity { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; padding: 0.12rem 0.45rem; text-transform: uppercase; letter-spacing: 0.04em; display: inline-block; margin-bottom: 0.5rem; }
+      .severity-critical { background: var(--problem); color: var(--surface); }
+      .severity-important { background: var(--warning); color: var(--text); }
+      .severity-nice { background: var(--solution); color: var(--surface); }
+      .where { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-faint); margin-bottom: 0.5rem; }
+
+      .callout { padding: 0.85rem 1.1rem; margin: 1rem 0; border-left: 4px solid var(--text-faint); background: var(--surface-sunken); }
+      .callout-solution { border-left-color: var(--solution); }
+      .callout-warning { border-left-color: var(--warning); }
+      .callout strong { display: block; margin-bottom: 0.2rem; }
+
+      .strengths { margin: 1rem 0; }
+      .strength { display: flex; gap: 0.8rem; align-items: flex-start; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+      .strength:last-child { border-bottom: none; }
+      .strength .check { font-family: var(--font-mono); font-weight: 900; color: var(--solution); font-size: 1.2rem; line-height: 1.2; }
+      .strength .text strong { display: block; }
+      .strength .text span { color: var(--text-muted); font-size: 0.92rem; }
+
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        overflow-x: auto;
+        white-space: pre;
+        margin-bottom: 1rem;
+      }
+      .dep-tree .ok { color: var(--solution); }
+      .dep-tree .warn { color: #8a6d00; }
+      .dep-tree .bad { color: var(--problem); }
+      .dep-tree .root { font-weight: 900; }
+
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+
+      .migration-step { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.1rem; }
+      .migration-num { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 900; color: var(--surface); background: var(--accent); width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; }
+      .migration-content { padding-top: 0.1rem; }
+      .migration-content h4 { margin-top: 0; }
+      .prio { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.4rem; margin-left: 0.4rem; vertical-align: middle; }
+
+      .diagram { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 1rem 0; font-family: var(--font-mono); font-size: 0.82rem; }
+      .node { border: 1px solid var(--border-strong); padding: 0.35rem 0.6rem; background: var(--surface-raised); }
+      .node-core { background: var(--text); color: var(--surface); border-color: var(--text); font-weight: 700; }
+      .arrow { color: var(--text-faint); }
+
+      footer.footer {
+        margin-top: 3rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        color: var(--text-faint);
+      }
+
+      @media (max-width: 1024px) {
+        .layout { grid-template-columns: 1fr; }
+        .sidebar { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+        .main { padding: 1.5rem; }
+        .grid-2 { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>cqrs-htmx &middot; architecture review</span>
+      <span>v4.6.1 &middot; 2026-08-05</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <nav data-nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scores">Dimension Scores</a>
+          <a href="#structure">01 &middot; Structure</a>
+          <a href="#coupling-graph">02 &middot; Coupling Graph</a>
+          <a href="#dependency">03 &middot; Dependency Direction</a>
+          <a href="#domain">04 &middot; Domain Alignment</a>
+          <a href="#strengths">05 &middot; Strengths</a>
+          <a href="#findings">06 &middot; Findings</a>
+          <a href="#roadmap">07 &middot; Action Roadmap</a>
+          <a href="#method">Methodology</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero" id="summary">
+          <div class="eyebrow">ARCHITECTURE REVIEW &middot; 2026-08-05</div>
+          <h1>Deep Architecture Review</h1>
+          <p class="subtitle">
+            An evidence-based assessment of modularity, coupling, composability, and
+            service-orientation across the cqrs-htmx multi-module Go library workspace.
+          </p>
+          <div class="meta">
+            <span class="tag amber">19 Go modules</span>
+            <span class="tag">~30.3k prod LOC</span>
+            <span class="tag">0 import cycles</span>
+            <span class="tag">Verdict: Good (4.0/5)</span>
+          </div>
+        </header>
+
+        <p>
+          This review maps the full structure of the <code>cqrs-htmx</code> workspace, measures
+          coupling and dependency direction against the Stable Dependencies Principle, checks
+          domain alignment against <code>docs/DOMAIN_LANGUAGE.md</code>, and scores all seven
+          architecture dimensions per the assessment rubric. Every finding cites concrete code
+          paths and metrics gathered on 2026-08-05.
+        </p>
+
+        <div class="verdict">
+          <strong>Verdict: GOOD (4.0 / 5.0).</strong>
+          The architecture is structurally sound: a clean multi-module workspace with zero
+          import cycles, a textbook-correct dependency profile (stable domain core, volatile UI
+          leaves), and standout composability via structural typing and middleware composition.
+          The largest structural debt &mdash; the <code>usermgmt</code> god-package and the
+          <code>Service</code> god-object &mdash; is <strong>already documented and deliberately
+          deferred</strong> (ADR-0019 Blocked by Go's method-receiver constraint; ADR-0038 deferred
+          to a coordinated v5 major bump; ROADMAP "Not Planned" with sound reasoning: sub-package
+          extraction within one module yields zero dep-tree benefit without consumer demand). This
+          review's value-add is <em>independent confirmation</em> of those decisions via quantitative
+          coupling metrics, plus the SDP-perfect profile that explains why the architecture is healthy
+          despite the debt. The genuinely open items are the Casbin port and re-export-layer retirement.
+        </div>
+
+        <section id="scores">
+          <h2><span class="num">&diams;</span>Dimension Scores</h2>
+          <div class="scorecard">
+            <div class="score-card score-good">
+              <div class="score">4</div>
+              <div class="label">Coupling</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">3</div>
+              <div class="label">Cohesion</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">4</div>
+              <div class="label">Modularity</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">5</div>
+              <div class="label">Composability</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">4</div>
+              <div class="label">Scalability</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">4</div>
+              <div class="label">Service Orient.</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">4</div>
+              <div class="label">Dep. Direction</div>
+            </div>
+            <div class="score-card overall">
+              <div class="score">4.0</div>
+              <div class="label">Overall &middot; Good</div>
+            </div>
+          </div>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Rubric: 4.5&ndash;5.0 Excellent &middot; 3.5&ndash;4.4 Good &middot; 2.5&ndash;3.4 Fair.
+            Lowest dimension: <strong>Cohesion (3)</strong> &mdash; driven by the single-package
+            <code>usermgmt</code> mixing event-sourcing internals, HTTP handlers, SQL stores, and
+            re-export shims in one namespace.
+          </p>
+        </section>
+
+        <section id="structure">
+          <h2><span class="num">01</span>Structural Mapping</h2>
+          <p>
+            The workspace is a single <code>go.work</code> containing <strong>19 independently
+            versioned Go modules</strong>. The 10 core library modules total ~30,300 production
+            lines; the rest are examples, an e2e server, and an integration-test module.
+          </p>
+
+          <h3>Module inventory (production code only)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th class="num">Prod LOC</th>
+                <th class="num">Files</th>
+                <th class="num">Exports</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>root (v4)</code></td><td class="num">6,847</td><td class="num">51</td><td class="num">436</td><td>Core: HTTP handler builder, HTMX/SSE/WS, authz, openapi/</td></tr>
+              <tr><td><code>usermgmt</code></td><td class="num">10,464</td><td class="num">91</td><td class="num">819</td><td>Event-sourced identity CQRS: ES, HTTP, SQL, service</td></tr>
+              <tr><td><code>identity-model</code></td><td class="num">2,495</td><td class="num">23</td><td class="num">249</td><td>Pure domain types, fold functions, Authz engine</td></tr>
+              <tr><td><code>adminui</code></td><td class="num">4,138</td><td class="num">21</td><td class="num">84</td><td>Ready-made admin dashboard (templ + HTMX)</td></tr>
+              <tr><td><code>dashboardui</code></td><td class="num">3,929</td><td class="num">21</td><td class="num">139</td><td>CQRS/ES observability dashboard (templ + HTMX)</td></tr>
+              <tr><td><code>datastar</code></td><td class="num">1,040</td><td class="num">10</td><td class="num">98</td><td>Datastar frontend adapter (isolated, no root dep)</td></tr>
+              <tr><td><code>loginpage</code></td><td class="num">667</td><td class="num">6</td><td class="num">46</td><td>Ready-made passwordless login page</td></tr>
+              <tr><td><code>usermgmt/webauthn</code></td><td class="num">295</td><td class="num">1</td><td class="num">21</td><td>WebAuthn strategy (structural typing)</td></tr>
+              <tr><td><code>usermgmt/oauth2</code></td><td class="num">344</td><td class="num">1</td><td class="num">25</td><td>OAuth2 strategy (structural typing)</td></tr>
+              <tr><td><code>usermgmt/totp</code></td><td class="num">96</td><td class="num">1</td><td class="num">8</td><td>TOTP strategy (structural typing)</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-warning">
+            <strong>Signal: two packages exceed the god-module threshold.</strong>
+            The rubric flags any package &gt;1,000 LOC or &gt;20 files. <code>usermgmt</code>
+            (10,464 LOC / 91 files / 819 exports) and <code>root</code> (6,847 LOC / 51 files /
+            436 exports) both exceed it. Root is a deliberate "kitchen-sink core" for a library
+            and is internally subdivided (<code>openapi/</code>, <code>sync/</code>
+            sub-packages); <code>usermgmt</code> is the genuine cohesion problem.
+          </div>
+
+          <h3>usermgmt internal file grouping (one package, 91 files)</h3>
+          <p>
+            Although every file declares <code>package usermgmt</code>, the code is organised by
+            prefix into implicit layers &mdash; but the package boundary is not enforced:
+          </p>
+          <div class="dep-tree"><span class="root">usermgmt/</span>
+├── es_*.go        <span class="warn">38 files  — event-sourcing internals (decide/dispatch/events/state/readmodel)</span>
+├── service_*.go   <span class="warn">10 files  — Service god-object methods (74 total)</span>
+├── sql_*.go       <span class="warn"> 7 files  — SQL stores + read models (infra)</span>
+├── *_http.go      <span class="warn"> 7 files  — HTTP handlers + middleware (presentation)</span>
+├── 26 alias files <span class="warn">    — identity-model re-exports (backward-compat shims)</span>
+└── domain/*.go    <span class="ok">  — user, credential, membership, tenant, bot (fused w/ above)</span></div>
+        </section>
+
+        <section id="coupling-graph">
+          <h2><span class="num">02</span>Coupling &amp; Dependency Graph</h2>
+          <p>
+            The internal module dependency graph (production code) is acyclic and shallow.
+            <code>go build ./...</code> passes clean. There are <strong>zero import cycles</strong>
+            &mdash; the #1 architecture smell is absent.
+          </p>
+
+          <div class="diagram">
+            <span class="node node-core">identity-model</span>
+            <span class="arrow">&larr;</span>
+            <span class="node">usermgmt</span>
+            <span class="arrow">&larr;</span>
+            <span class="node">adminui / loginpage</span>
+          </div>
+          <div class="diagram">
+            <span class="node node-core">root (v4)</span>
+            <span class="arrow">&larr;</span>
+            <span class="node">usermgmt &middot; adminui &middot; loginpage &middot; dashboardui</span>
+          </div>
+          <div class="diagram">
+            <span class="node node-core">datastar</span>
+            <span class="arrow">&middot;</span>
+            <span style="color:var(--text-faint)">isolated (no sibling deps)</span>
+            &nbsp;&nbsp;
+            <span class="node">totp / webauthn / oauth2</span>
+            <span class="arrow">&middot;</span>
+            <span style="color:var(--text-faint)">isolated (structural typing)</span>
+          </div>
+
+          <h3>Coupling metrics &amp; instability (Stable Dependencies Principle)</h3>
+          <p>
+            Instability <code>I = Ce / (Ca + Ce)</code>. <code>I=0</code> = maximally stable
+            (dependents only); <code>I=1</code> = maximally volatile (dependencies only). The SDP
+            rule: dependencies must point toward stability (lower I).
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th class="num">Ce (deps)</th>
+                <th class="num">Ca (dependents)</th>
+                <th class="num">Instability</th>
+                <th>SDP role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>identity-model</code></td><td class="num">0</td><td class="num">1</td><td class="num">0.00</td><td>domain core (stable)</td></tr>
+              <tr><td><code>root (v4)</code></td><td class="num">0</td><td class="num">4</td><td class="num">0.00</td><td>foundation (stable)</td></tr>
+              <tr><td><code>datastar</code></td><td class="num">0</td><td class="num">0</td><td class="num">0.00</td><td>isolated adapter</td></tr>
+              <tr><td><code>totp/webauthn/oauth2</code></td><td class="num">0</td><td class="num">0</td><td class="num">0.00</td><td>auth strategies (stable leaves)</td></tr>
+              <tr><td><code>usermgmt</code></td><td class="num">2</td><td class="num">2</td><td class="num">0.50</td><td>application+infra (middle)</td></tr>
+              <tr><td><code>dashboardui</code></td><td class="num">1</td><td class="num">0</td><td class="num">1.00</td><td>UI (pure consumer)</td></tr>
+              <tr><td><code>adminui</code></td><td class="num">2</td><td class="num">0</td><td class="num">1.00</td><td>UI (pure consumer)</td></tr>
+              <tr><td><code>loginpage</code></td><td class="num">2</td><td class="num">0</td><td class="num">1.00</td><td>UI (pure consumer)</td></tr>
+            </tbody>
+          </table>
+          <div class="callout callout-solution">
+            <strong>This is a textbook SDP-correct profile.</strong>
+            Dependencies monotonically point toward lower instability: the stable foundation
+            (root, identity-model) sits at <code>I=0</code> and the volatile presentation leaves
+            (adminui, loginpage, dashboardui) sit at <code>I=1</code>. No dependency points "up"
+            the stability gradient. This is the single strongest property of the architecture.
+          </div>
+        </section>
+
+        <section id="dependency">
+          <h2><span class="num">03</span>Dependency Direction</h2>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">Strength</span>
+            <h3>Domain layer is infra-clean (with one exception)</h3>
+            <div class="where">identity-model/*.go (23 prod files)</div>
+            <p>
+              The pure domain module imports <strong>no</strong> <code>net/http</code>,
+              <code>database/sql</code>, or framework packages. It depends only on
+              <code>go-cqrs-lite/event</code>, <code>go-error-family</code>, <code>go-branded-id</code>,
+              and the standard library. Clean ports are defined as interfaces in
+              <code>identity-model/interfaces.go</code> (<code>TOTPProvider</code>,
+              <code>WebAuthnProvider</code>, <code>OAuth2Provider</code>, store interfaces) using
+              only primitive types so implementations need not import the domain. This is
+              dependency inversion done right.
+            </p>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Tradeoff</span>
+            <h3>Casbin is a concrete dependency in the domain, not behind an interface</h3>
+            <div class="where">identity-model/authz.go &mdash; type Authz struct { enforcer *casbin.Enforcer }</div>
+            <p>
+              <code>Authz</code> directly embeds <code>*casbin.Enforcer</code> (a concrete third-party
+              struct). The domain package cannot compile without Casbin on the build path. This is
+              documented as intentional ("Casbin is a first-class dependency"), and the blast radius
+              is well-contained: <strong>only one file</strong> (<code>authz.go</code>) imports
+              casbin; the rest of the workspace depends on the <code>Authz</code> type, not on Casbin
+              directly. Still, it is the single dependency-direction violation &mdash; the domain
+              owns a concrete policy engine rather than an <code>Enforcer</code> port.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">Strength</span>
+            <h3>Root &rarr; siblings boundary is genuinely clean</h3>
+            <div class="where">root *.go (51 prod files)</div>
+            <p>
+              The root module imports <strong>zero</strong> cqrs-htmx sibling modules in production
+              code (verified: the only mention of <code>usermgmt</code> is a doc comment in
+              <code>doc.go</code>). Root test files also import zero siblings. The downstream
+              coupling (siblings depend on root) is one-way. This is the correct library shape:
+              the core never reaches up into consumers.
+            </p>
+          </div>
+        </section>
+
+        <section id="domain">
+          <h2><span class="num">04</span>Domain Alignment</h2>
+          <p>
+            The project maintains a 159-line <code>docs/DOMAIN_LANGUAGE.md</code> and 45+ ADRs
+            (<code>docs/adr/</code>) &mdash; strong evidence that architecture decisions are
+            recorded, not folklore. Domain concepts map cleanly to modules:
+          </p>
+          <table class="compare">
+            <thead>
+              <tr><th>Domain concept</th><th>Owning module</th><th>Alignment</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>User / Membership / Tenant / Bot</td><td><code>identity-model</code> (types) + <code>usermgmt</code> (behavior)</td><td class="yes">Aligned</td></tr>
+              <tr><td>Authorization (RBAC)</td><td><code>identity-model/authz.go</code></td><td class="yes">Aligned</td></tr>
+              <tr><td>Auth strategies (passkey/TOTP/OAuth2)</td><td><code>usermgmt/{totp,webauthn,oauth2}</code></td><td class="yes">Aligned (one per strategy)</td></tr>
+              <tr><td>HTMX/SSE/WS transport</td><td><code>root</code> + <code>datastar</code></td><td class="yes">Aligned</td></tr>
+              <tr><td>Admin UI / Login UI / Observability UI</td><td><code>adminui / loginpage / dashboardui</code></td><td class="yes">Aligned (one per surface)</td></tr>
+            </tbody>
+          </table>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Quasi split-brain</span>
+            <h3>identity-model has two doors via the usermgmt re-export layer</h3>
+            <div class="where">usermgmt/id.go, errors.go, events.go, ... (26 alias files)</div>
+            <p>
+              26 of usermgmt's production files are pure re-exports of identity-model types
+              (<code>type UserID = identitymodel.UserID</code>, var aliases for fold functions,
+              constructor wrappers). Because these are type <em>aliases</em> (<code>=</code>),
+              the two paths refer to the <strong>same</strong> type &mdash; this is NOT a true
+              split brain (no duplicate definitions). But it inflates usermgmt's exported surface
+              to 819 symbols and gives consumers two equivalent import paths for every domain
+              type. The re-export layer is a deliberate backward-compat migration shim; the risk
+              is that it never gets retired.
+            </p>
+          </div>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">05</span>Strengths</h2>
+          <p>What already works well &mdash; preserve and replicate these patterns.</p>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Structural typing for auth strategies</strong>
+                <span>The three auth modules (totp/webauthn/oauth2) have <strong>zero</strong> internal imports. They satisfy identity-model interfaces via structural typing, so any implementation can be swapped without recompiling the consumer. Exemplary dependency inversion.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Composable middleware &amp; builder pattern</strong>
+                <span>The go-cqrs-lite dispatchers passed to <code>Config</code> implement <code>Use(mw ...)</code>, so all 27 middleware factories (logging, retry, circuit breaker, OTel, idempotency) compose with zero glue. Combined with the <code>HandlerBuilder</code> and <code>Config</code> builder pattern, new features combine existing pieces. This is why Composability scores 5.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Low change ripple</strong>
+                <span>The last 15 commits touch 1&ndash;10 files each, almost entirely within a single module (e.g. dashboardui pagination). No "small feature, 5+ packages" smell. Module boundaries successfully localise change.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Duck-typed external libraries</strong>
+                <span><code>Enforcer</code> (Casbin), <code>TemplComponent</code> (templ), and auth provider interfaces are defined locally against the consumer's needs. Consumers import only the external library they actually use &mdash; the library never forces a framework.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Opt-in everything (library principle)</strong>
+                <span>No mandatory CSP/HSTS/CSRF. Everything is opt-in so consumers never fight enforced defaults they disagree with. This is the right posture for a library/SDK.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Decided &amp; documented architecture</strong>
+                <span>45+ ADRs, a domain glossary, and per-module CHANGELOGs mean the architecture is recorded, not implicit. Naming is consistently domain-driven (no <code>util</code>/<code>common</code>/<code>helpers</code> grab-bags).</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="findings">
+          <h2><span class="num">06</span>Findings</h2>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">Known &middot; ADR-0019/0038</span>
+            <h3>usermgmt god-package &mdash; acknowledged debt, deferred to v5</h3>
+            <div class="where">usermgmt/*.go &mdash; 91 prod files, 10,464 LOC, 819 exports, single package</div>
+            <p>
+              <strong>Finding (independently confirmed):</strong> Every file declares
+              <code>package usermgmt</code>, fusing event-sourcing internals (38 <code>es_*</code>
+              files), the <code>Service</code> (10 files), SQL infra (7 files), HTTP presentation
+              (7 files), and 26 alias shims with no package-level encapsulation. This is the lowest
+              dimension (Cohesion 3/5).
+            </p>
+            <p>
+              <strong>Already decided:</strong> ADR-0019 records that decomposition is
+              <strong>blocked by Go's method-receiver constraint</strong> &mdash; <code>*Service</code>
+              methods must live in the package where <code>Service</code> is defined, so a naive
+              sub-package move is illegal. ADR-0038 proposes full decomposition and defers it to a
+              v5 major bump. ROADMAP "Not Planned" argues (correctly) that sub-packages within one
+              Go module yield <strong>zero consumer benefit</strong> (same <code>go.mod</code> = same
+              transitive dep tree); only separate Go modules reduce deps, and no consumer has asked.
+              Decomposition triggers are documented (consumer needs a subset, &gt;30% divergent deps,
+              compile-time pressure at ~3s &mdash; currently none met).
+            </p>
+            <div class="callout callout-warning">
+              <strong>Recommendation: respect the deferral, keep the seams clean.</strong>
+              Do NOT split now &mdash; it would break the method-receiver contract with no consumer
+              payoff. The current "clean seams between aggregates, separate files per concern"
+              organisation is the right holding pattern. Action: keep the <code>es_*</code> /
+              <code>service_*</code> / <code>sql_*</code> prefix discipline intact so the v5 module
+              split (when triggered) is mechanical. This review confirms the existing decision.
+            </div>
+          </div>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">Known &middot; ADR-0038</span>
+            <h3>usermgmt.Service god-object (74 methods) &mdash; deferred to v5</h3>
+            <div class="where">usermgmt/service_*.go &mdash; 74 methods across 10 files, 38 struct fields</div>
+            <p>
+              <strong>Finding (independently confirmed):</strong> <code>*Service</code> exposes 74
+              methods (up from the ~52 recorded in ADR-0038 on 2026-07-19) fusing &ge;6 contexts:
+              auth, bot, impersonation, login, membership, oauth2, register, tenant, misc, core. The
+              trend confirms the ADR's observation that every new feature extends the same type.
+            </p>
+            <p>
+              <strong>Already decided:</strong> ADR-0038 proposes decomposition into focused services
+              sharing dependencies via composition, deferred to a v5 bump for the same method-receiver
+              reason. The growth since the ADR (+22 methods) validates the deferral rationale: the
+              debt is real and growing, but bounded by the v5 boundary.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Recommendation: track the growth, defer the fix.</strong>
+              This is the reason Scalability caps at 4/5. No v4 action beyond keeping the per-file
+              grouping intact. When v5 lands, execute ADR-0038's service decomposition alongside the
+              module split.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">P2 &middot; Medium</span>
+            <h3>Casbin is concrete in the domain layer</h3>
+            <div class="where">identity-model/authz.go &mdash; enforcer *casbin.Enforcer</div>
+            <p>
+              <strong>Finding:</strong> The domain package embeds a concrete Casbin enforcer rather
+              than defining an <code>Enforcer</code> port. Coupling is contained to one file, but the
+              domain cannot compile without Casbin.
+            </p>
+            <p>
+              <strong>Impact:</strong> Low today (Casbin is a sound choice and the contract is narrow),
+              but it makes the domain non-substitutable and is the sole dependency-direction blemish
+              in an otherwise SDP-perfect graph.
+            </p>
+            <div class="callout callout-warning">
+              <strong>Recommendation (judgment call)</strong>
+              Define a minimal <code>Enforcer</code> interface in identity-model covering only the
+              methods <code>Authz</code> calls, and have <code>Authz</code> depend on the interface.
+              Default to the Casbin implementation. This is a P2, not urgent &mdash; flag it as an
+              accepted tradeoff if Casbin-lock-in is intentional.
+            </div>
+          </div>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">P3 &middot; Low</span>
+            <h3>The 7-file-per-aggregate ritual resists feature scaling</h3>
+            <div class="where">usermgmt/es_{bot,membership,tenant}_{commands,decide,dispatch,events,readmodel,state}.go</div>
+            <p>
+              <strong>Finding:</strong> Adding a new aggregate to usermgmt requires touching ~7 files
+              following the <code>es_X_*</code> pattern. This is consistent (good) but mechanical and
+              repetitive.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Recommendation</strong>
+              Either accept the ritual as the cost of explicit CQRS structure, or introduce a
+              codegen/template for new aggregates. Low priority &mdash; consistency already makes it
+              predictable.
+            </div>
+          </div>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">P3 &middot; Low</span>
+            <h3>Re-export layer has no retirement path</h3>
+            <div class="where">usermgmt/id.go, events.go, errors.go, ... (26 alias files)</div>
+            <p>
+              <strong>Finding:</strong> The 26 identity-model alias files inflate usermgmt's surface
+              to 819 symbols and offer two import paths per domain type. They are backward-compat
+              shims with <code>// Deprecated:</code> markers on some, but no end-of-life plan.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Recommendation</strong>
+              Document a deprecation timeline and direct new consumers to import
+              <code>identity-model</code> directly. Track via the docs-health HARVEST process.
+            </div>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <h2><span class="num">07</span>Action Roadmap</h2>
+          <p>
+            Ordered by leverage and dependency constraints. Each step is traceable to a finding above.
+          </p>
+
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>Split usermgmt into layer sub-packages <span class="badge badge-high">P1</span> <span class="badge badge-low">L</span></h4>
+              <p>
+                Move <code>es_*</code> internals into <code>usermgmt/es</code> (unexported),
+                <code>sql_*</code> into <code>usermgmt/store</code>, and <code>*_http.go</code> into
+                <code>usermgmt/http</code>. Keep the top-level package as the public facade
+                (Service, Config, setup structs). Type aliases preserve the public API &mdash; no
+                consumer breaks. <strong>Do this first:</strong> it unblocks steps 2&ndash;4 and is the
+                highest-impact single change. <em>Effort driver:</em> mechanical file moves + import
+                rewriting across 91 files.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>Decompose the Service god-object <span class="badge badge-medium">P2</span> <span class="badge badge-low">M</span></h4>
+              <p>
+                Extract focused services (User/Membership/Tenant/Bot/Auth) that compose shared
+                dependencies. Top-level <code>Service</code> embeds or holds them. Reduces the 74-method
+                surface and makes each context independently testable. <em>Depends on:</em> step 1
+                (sub-services belong in sub-packages).
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>Interface the Casbin dependency (or accept &amp; document) <span class="badge badge-medium">P2</span> <span class="badge badge-low">S</span></h4>
+              <p>
+                Define a narrow <code>Enforcer</code> port in identity-model and default to the Casbin
+                implementation, OR record an ADR accepting Casbin as an intentional domain fixture.
+                Either resolves the open dependency-direction question decisively.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>Plan the re-export layer retirement <span class="badge badge-low">P3</span> <span class="badge badge-low">S</span></h4>
+              <p>
+                Set a deprecation timeline for the 26 identity-model alias files, update examples to
+                import <code>identity-model</code> directly, and track residual usage. Harvested from
+                this review into TODO_LIST/ROADMAP via docs-health.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">5</div>
+            <div class="migration-content">
+              <h4>Optional: aggregate scaffold/codegen <span class="badge badge-low">P3</span> <span class="badge badge-low">M</span></h4>
+              <p>
+                Reduce the 7-file-per-aggregate ritual with a template generator. Only if adding new
+                aggregates becomes frequent. Otherwise the explicit CQRS structure is fine as-is.
+              </p>
+            </div>
+          </div>
+
+          <div class="callout callout-warning">
+            <strong>No P0 findings.</strong>
+            The architecture is not actively blocking development and there are no production
+            incidents caused by structure. The roadmap is debt pay-down and polish, not emergency
+            repair.
+          </div>
+        </section>
+
+        <section id="method">
+          <h2><span class="num">&diams;</span>Methodology</h2>
+          <p>
+            Evidence was gathered programmatically on 2026-08-05 against the working tree at
+            <code>v4.6.1</code> (commit <code>1b24100</code> head): module inventory and LOC via
+            <code>find</code>/<code>wc</code>; cross-module imports via <code>go.mod</code> requires
+            and source-level <code>grep</code>; import-cycle verification via
+            <code>go build ./...</code> (exit 0); coupling metrics (Ca/Ce/Instability) computed from
+            the production dependency graph; change ripple via <code>git log --stat</code> over the
+            last 15 commits; god-object detection via exported-declaration counts and
+            <code>*Service</code>/<code>*App</code> method/field counts. Scores follow the 1&ndash;5
+            rubric (Coupling, Cohesion, Modularity, Composability, Scalability, Service Orientation,
+            Dependency Direction). This is a point-in-time snapshot; bring it current via
+            docs-health ANNOTATE mode, do not rewrite.
+          </p>
+        </section>
+
+        <footer class="footer">
+          Generated 2026-08-05 &middot; Reviewed against cqrs-htmx v4.6.1 @ 1b24100 &middot;
+          Bauhaus Light editorial template &middot; zero external dependencies
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      // Progressive enhancement: scrollspy. Nav still works via anchors if JS disabled.
+      (function () {
+        var nav = document.querySelector("[data-nav]");
+        if (!nav || !("IntersectionObserver" in window)) return;
+        var links = {};
+        nav.querySelectorAll("a").forEach(function (a) {
+          var id = a.getAttribute("href").slice(1);
+          var sec = document.getElementById(id);
+          if (sec) links[id] = a;
+        });
+        var obs = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) {
+                Object.keys(links).forEach(function (k) {
+                  links[k].classList.remove("active");
+                });
+                if (links[e.target.id]) links[e.target.id].classList.add("active");
+              }
+            });
+          },
+          { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
+        );
+        Object.keys(links).forEach(function (k) {
+          obs.observe(document.getElementById(k));
+        });
+      })();
+    </script>
+  </body>
+</html>

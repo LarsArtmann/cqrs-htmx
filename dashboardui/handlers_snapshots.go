@@ -20,41 +20,13 @@ func (d *Dashboard) snapshotsIndexHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamListing, page paginationState) string {
-	return d.renderLayout(p, func() string {
-		var b strings.Builder
-
-		b.WriteString(
-			`<p class="page-subtitle section-gap">Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.</p>`,
-		)
-
-		if len(listings) == 0 {
-			return emptyState("No aggregates found", "Configure a StreamReader to browse snapshots by aggregate.")
-		}
-
-		var rows strings.Builder
-
-		for _, l := range listings {
-			fmt.Fprintf(
-				&rows,
-				`<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td><a href="%s/snapshots/%s/%s" class="btn">View</a></td></tr>`,
-				esc(string(l.Type)),
-				esc(truncate(l.ID.String(), listIDWidth)),
-				esc(l.Version.String()),
-				p.BasePath,
-				esc(string(l.Type)),
-				esc(l.ID.String()),
-			)
-		}
-
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
-
-		b.WriteString(renderPagination(p.BasePath, "/snapshots", page, ""))
-
-		return b.String()
+	return d.renderStreamListingPage(p, listings, page, streamListPageConfig{
+		subtitle:   "Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.",
+		emptyTitle: "No aggregates found",
+		emptyMsg:   "Configure a StreamReader to browse snapshots by aggregate.",
+		pagePath:   "/snapshots",
+		linkPath:   "/snapshots",
+		linkText:   "View",
 	})
 }
 

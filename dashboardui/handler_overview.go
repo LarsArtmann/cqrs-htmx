@@ -74,7 +74,7 @@ type recentEvent struct {
 	StreamType string `json:"streamType"`
 	Version    string `json:"version"`
 	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
-	EventID   string    `json:"eventId"`
+	EventID    string    `json:"eventId"`
 	OccurredAt time.Time `json:"-"`
 }
 
