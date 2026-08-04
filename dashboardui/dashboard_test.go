@@ -67,12 +67,14 @@ func TestMount_CoexistsWithRootIndex(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
 	if rec.Code != http.StatusOK {
 		t.Errorf("GET / status = %d, want 200", rec.Code)
 	}
 
 	rec2 := httptest.NewRecorder()
 	mux.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/dashboard/", nil))
+
 	if rec2.Code != http.StatusOK {
 		t.Errorf("GET /dashboard/ status = %d, want 200", rec2.Code)
 	}
