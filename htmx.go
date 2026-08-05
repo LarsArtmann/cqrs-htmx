@@ -6,25 +6,25 @@ import (
 )
 
 const (
-	headerRequest        = "HX-Request"
-	headerBoosted        = "HX-Boosted"
-	headerCurrentURL     = "HX-Current-URL"
-	headerHistoryRestore = "HX-History-Restore-Request"
-	headerPrompt         = "HX-Prompt"
-	headerTarget         = "HX-Target"
-	headerTriggerName    = "HX-Trigger-Name"
+	headerRequest        = "Hx-Request"
+	headerBoosted        = "Hx-Boosted"
+	headerCurrentURL     = "Hx-Current-Url"
+	headerHistoryRestore = "Hx-History-Restore-Request"
+	headerPrompt         = "Hx-Prompt"
+	headerTarget         = "Hx-Target"
+	headerTriggerName    = "Hx-Trigger-Name"
 
-	headerLocation           = "HX-Location"
-	headerPushURL            = "HX-Push-Url"
-	headerRedirect           = "HX-Redirect"
-	headerRefresh            = "HX-Refresh"
-	headerReplaceURL         = "HX-Replace-Url"
-	headerReswap             = "HX-Reswap"
-	headerRetarget           = "HX-Retarget"
-	headerReselect           = "HX-Reselect"
-	headerTrigger            = "HX-Trigger"
-	headerTriggerAfterSettle = "HX-Trigger-After-Settle"
-	headerTriggerAfterSwap   = "HX-Trigger-After-Swap"
+	headerLocation           = "Hx-Location"
+	headerPushURL            = "Hx-Push-Url"
+	headerRedirect           = "Hx-Redirect"
+	headerRefresh            = "Hx-Refresh"
+	headerReplaceURL         = "Hx-Replace-Url"
+	headerReswap             = "Hx-Reswap"
+	headerRetarget           = "Hx-Retarget"
+	headerReselect           = "Hx-Reselect"
+	headerTrigger            = "Hx-Trigger"
+	headerTriggerAfterSettle = "Hx-Trigger-After-Settle"
+	headerTriggerAfterSwap   = "Hx-Trigger-After-Swap"
 )
 
 type htmxKey struct{}
