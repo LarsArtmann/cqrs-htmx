@@ -136,6 +136,7 @@ func (d *Dashboard) dlqEntryDetailHandler(w http.ResponseWriter, r *http.Request
 		for _, e := range entries {
 			if e.EventID == eventID {
 				entry = e
+
 				break
 			}
 		}
@@ -166,16 +167,25 @@ func (d *Dashboard) renderDLQEntryDetail(p pageData, proj string, entry projecti
 		b.WriteString(`<div><h3>Error Details</h3><table class="meta-table">`)
 		metaRow(&b, "Event Type", esc(entry.EventType))
 		metaRow(&b, "Event ID", esc(entry.EventID))
+
 		if entry.StreamID != "" {
 			metaRowCopyable(&b, "Stream ID", esc(entry.StreamID), entry.StreamID)
 		}
+
 		metaRow(&b, "Failed At", esc(entry.FailedAt.Format("2006-01-02 15:04:05")))
+
 		if entry.ErrorFamily != "" {
-			fmt.Fprintf(&b, `<tr><td class="meta-key">Error Family</td><td class="meta-val"><span class="badge badge-err">%s</span></td></tr>`, esc(entry.ErrorFamily))
+			fmt.Fprintf(
+				&b,
+				`<tr><td class="meta-key">Error Family</td><td class="meta-val"><span class="badge badge-err">%s</span></td></tr>`,
+				esc(entry.ErrorFamily),
+			)
 		}
+
 		if entry.ErrorCode != "" {
 			metaRow(&b, "Error Code", esc(entry.ErrorCode))
 		}
+
 		b.WriteString(`</table>`)
 
 		b.WriteString(`<h3>Error Message</h3>`)
@@ -184,12 +194,14 @@ func (d *Dashboard) renderDLQEntryDetail(p pageData, proj string, entry projecti
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div><h3>Event Payload</h3>`)
+
 		if entry.Event != nil {
 			payload := renderPayload(d.config.PayloadRenderer, entry.Event)
 			fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, esc(string(payload)))
 		} else {
 			b.WriteString(`<p class="muted">Original event not available</p>`)
 		}
+
 		b.WriteString(`</div>`)
 
 		b.WriteString(`</div>`)
@@ -199,7 +211,10 @@ func (d *Dashboard) renderDLQEntryDetail(p pageData, proj string, entry projecti
 			fmt.Fprintf(
 				&b,
 				`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" onsubmit="return confirm('Delete this dead letter?')"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Delete</button></form>`,
-				p.BasePath, esc(proj), esc(entry.EventID), esc(p.CSRFToken),
+				p.BasePath,
+				esc(proj),
+				esc(entry.EventID),
+				esc(p.CSRFToken),
 			)
 			b.WriteString(`</div>`)
 		}
@@ -380,11 +395,15 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 				`<tr><td class="mono" title="%s">%s</td><td><a href="%s/dead-letters/%s/%s"><code>%s</code></a></td><td><span class="badge badge-err">%s</span></td><td>%s</td><td><a href="%s/dead-letters/%s/%s" class="btn">View</a> %s</td></tr>`,
 				esc(e.FailedAt.Format("2006-01-02 15:04:05")),
 				esc(relativeTime(e.FailedAt)),
-				p.BasePath, esc(proj), esc(e.EventID),
+				p.BasePath,
+				esc(proj),
+				esc(e.EventID),
 				esc(e.EventType),
 				esc(truncate(e.Error, errorDisplayWidth)),
 				esc(e.ErrorFamily),
-				p.BasePath, esc(proj), esc(e.EventID),
+				p.BasePath,
+				esc(proj),
+				esc(e.EventID),
 				actions,
 			)
 		}

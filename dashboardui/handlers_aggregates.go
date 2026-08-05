@@ -206,14 +206,17 @@ func (d *Dashboard) renderAggregateDetail(
 		)
 
 		timelinePage := page
+
 		timelinePage.HasNext = hasNext
 		if hasNext && len(pagedEvents) > 0 {
 			timelinePage.NextCursor = pagedEvents[len(pagedEvents)-1].Version().String()
 		}
+
 		timelinePage.PageLen = len(pagedEvents)
 		if len(pagedEvents) > 0 {
 			timelinePage.PageStart = int(pagedEvents[0].Version().UInt64())
 		}
+
 		timelinePage.TotalCount = strconv.Itoa(len(events))
 
 		b.WriteString(renderPagination(
@@ -237,11 +240,14 @@ func paginateEventsByVersion(events []event.Event, page paginationState) ([]even
 	}
 
 	start := 0
+
 	for i, evt := range events {
 		if evt.Version().UInt64() > afterVersion {
 			start = i
+
 			break
 		}
+
 		if i == len(events)-1 {
 			start = len(events)
 		}
@@ -253,6 +259,7 @@ func paginateEventsByVersion(events []event.Event, page paginationState) ([]even
 
 	end := min(start+page.PageSize+1, len(events))
 	paged := events[start:end]
+
 	hasMore := len(paged) > page.PageSize
 	if hasMore {
 		paged = paged[:page.PageSize]

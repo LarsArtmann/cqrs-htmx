@@ -129,6 +129,7 @@ func renderPaginationInfo(state paginationState) string {
 	if state.PageStart < 1 {
 		state.PageStart = 1
 	}
+
 	if end < state.PageStart {
 		end = state.PageStart
 	}
@@ -154,7 +155,9 @@ func renderPageSizeSelector(basePath, path string, state paginationState, extraP
 	}
 
 	var b strings.Builder
-	b.WriteString(`<span class="page-size-selector"><label>Per page: <select onchange="window.location.href=this.value">`)
+	b.WriteString(
+		`<span class="page-size-selector"><label>Per page: <select onchange="window.location.href=this.value">`,
+	)
 
 	for _, opt := range pageSizeOptions {
 		selected := ""

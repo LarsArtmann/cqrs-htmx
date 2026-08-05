@@ -339,8 +339,11 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div><h3>Payload</h3>`)
-		fmt.Fprintf(&b, `<div class="filter-bar"><button class="btn" onclick="copyPayload()">Copy</button><button class="btn" onclick="downloadPayload('%s')">Download JSON</button></div>`,
-			esc(evt.ID().String()))
+		fmt.Fprintf(
+			&b,
+			`<div class="filter-bar"><button class="btn" onclick="copyPayload()">Copy</button><button class="btn" onclick="downloadPayload('%s')">Download JSON</button></div>`,
+			esc(evt.ID().String()),
+		)
 		fmt.Fprintf(&b, `<pre class="code-block" id="event-payload"><code>%s</code></pre>`, esc(string(payload)))
 		b.WriteString(`</div>`)
 
@@ -426,7 +429,13 @@ func (d *Dashboard) loadFilteredEvents(
 	return filtered, nil
 }
 
-func (d *Dashboard) renderEvents(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) string {
+func (d *Dashboard) renderEvents(
+	p pageData,
+	events []event.Event,
+	page paginationState,
+	filter eventFilter,
+	sortBy sortState,
+) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 		b.WriteString(`<div class="page-header"><h2>Event Stream</h2></div>`)
@@ -498,6 +507,10 @@ func renderEventFilterBar(basePath string, filter eventFilter) string {
 			`<button type="submit" class="btn btn-accent">Filter</button>`+
 			`<a href="%s/events" class="btn">Clear</a>`+
 			`</form>`,
-		esc(basePath), esc(filter.Type), esc(filter.StreamType), esc(filter.StreamID), esc(basePath),
+		esc(basePath),
+		esc(filter.Type),
+		esc(filter.StreamType),
+		esc(filter.StreamID),
+		esc(basePath),
 	)
 }

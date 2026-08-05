@@ -3,13 +3,13 @@ package usermgmt
 import (
 	"context"
 	"encoding/json/v2"
+	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
-	"log/slog"
 )
 
 // OAuth2Service encapsulates OAuth2/OIDC authentication: login flow, account

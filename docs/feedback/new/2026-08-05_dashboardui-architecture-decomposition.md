@@ -37,18 +37,18 @@ dashboardui generates HTML via string concatenation. Every handler builds HTML t
 
 **The numbers:**
 
-| File | `fmt.Fprintf`/`WriteString`/`Builder` call sites |
-|---|---|
-| `handlers_events.go` | 28 |
-| `handler_overview.go` | 24 |
-| `handlers_timetravel.go` | 28 |
-| `handlers_dlq.go` | 23 |
-| `handlers_aggregates.go` | 15 |
-| `layout.go` | 31 |
-| `handlers_snapshots.go` | 14 |
-| `handlers_audit.go` | 10 |
-| `handlers_projections.go` | 5 |
-| **Total** | **178** |
+| File                      | `fmt.Fprintf`/`WriteString`/`Builder` call sites |
+| ------------------------- | ------------------------------------------------ |
+| `handlers_events.go`      | 28                                               |
+| `handler_overview.go`     | 24                                               |
+| `handlers_timetravel.go`  | 28                                               |
+| `handlers_dlq.go`         | 23                                               |
+| `handlers_aggregates.go`  | 15                                               |
+| `layout.go`               | 31                                               |
+| `handlers_snapshots.go`   | 14                                               |
+| `handlers_audit.go`       | 10                                               |
+| `handlers_projections.go` | 5                                                |
+| **Total**                 | **178**                                          |
 
 The manual `esc()` function (`handler_overview.go:335`) is a reimplementation of what templ does automatically at compile time:
 
@@ -77,18 +77,17 @@ dashboardui ships a **335-line embedded CSS string** (`layout.go:200-534`, the `
 
 ```css
 /* layout.go:200 — a parallel design universe */
-const dashboardCSS = `
-:root {
-    --accent: #4f46e5;
-    --bg: #f6f7f9;
-    --surface: #ffffff;
-    --surface-hover: #f0f1f4;
-    --text: #0f172a;
-    --muted: #64748b;
-    --border: #e6e8ec;
-    --ok: #16a34a;
-    --warn: #d97706;
-    /* ... 300+ more lines ... */
+const dashboardCSS = ` :root {
+	--accent: #4f46e5;
+	--bg: #f6f7f9;
+	--surface: #ffffff;
+	--surface-hover: #f0f1f4;
+	--text: #0f172a;
+	--muted: #64748b;
+	--border: #e6e8ec;
+	--ok: #16a34a;
+	--warn: #d97706;
+	/* ... 300+ more lines ... */
 }
 ```
 
@@ -132,6 +131,7 @@ templ DLQPage(data DLQViewModel) {
 ```
 
 To embed dashboardui's DLQ panel inside DiscordSync, you would need to either:
+
 - Accept a second complete HTML document inside DiscordSync's layout (broken DOM)
 - Rewrite dashboardui's DLQ handler to not call `renderLayout()` (the panel and layout are coupled)
 
@@ -183,6 +183,7 @@ DiscordSync enforces a strict Content Security Policy with `script-src 'self' 'n
 ```
 
 dashboardui **cannot be deployed inside any app with a strict CSP** without either:
+
 - Disabling the CSP for dashboardui routes (security hole)
 - Rewriting every `onsubmit` to use `data-confirm` + a delegated listener (defeats the purpose of using the library)
 
@@ -248,6 +249,7 @@ DiscordSync builds **3 panels from scratch** that dashboardui already provides. 
 ### DLQ: `dlq.templ` (84 lines) + `handlers_extras.go:205-263` (59 lines) = 143 lines
 
 DiscordSync's DLQ page (`dlq.templ`) renders dead-lettered events with:
+
 - Per-projection replay forms (dashboardui only has per-projection replay at the detail page level)
 - Error code + error family display (dashboardui shows raw error string)
 - CSP-safe `data-confirm` forms (dashboardui uses inline `onsubmit`)
@@ -258,6 +260,7 @@ DiscordSync's handler (`handlers_extras.go:205-263`) has **dual-path dispatch** 
 ### Projection Health: `projection_health.templ` (203 lines) + `handlers_projection_health_page.go` (50 lines) = 253 lines
 
 DiscordSync's projection health page is **richer** than dashboardui's:
+
 - **Sparkline lag trends** — each projection shows a `display.Sparkline` of recent lag samples (from `observability.SparklineStats`). dashboardui shows plain text lag.
 - **HTMX polled regions** — the entire health table auto-refreshes via `polledRegion()` without SSE. dashboardui requires SSE for live updates.
 - **Health summary banner** — green/red summary computed from worker states (`projectionHealthBanner`). dashboardui has this in the overview but not on the projection page itself.
@@ -267,6 +270,7 @@ DiscordSync's projection health page is **richer** than dashboardui's:
 ### Command Audit: `command_audit.templ` (107 lines) + `handlers_command_audit.go` (74 lines) = 181 lines
 
 DiscordSync's command audit page has:
+
 - **Type filter** — dropdown to filter by command type (`filterSelect` with `change from:find select` HTMX auto-submit). dashboardui has no filtering.
 - **Payload display** — JSON payload column with expandable formatting. dashboardui only shows type, stream type, stream ID, and command ID (no payload).
 - **Offset pagination** — simple `Load more` link. dashboardui uses cursor-based pagination (slightly better, but both work).
@@ -285,6 +289,7 @@ Three dashboardui panels have **no DiscordSync equivalent at all**:
 ### Event Journal Browser (CQRS raw event log)
 
 dashboardui's events browser (`handlers_events.go`, 480 lines) paginates through the raw event journal with:
+
 - Cursor-based pagination over `SeekableJournal.ReadFrom()`
 - Filter by event type, stream type, stream ID
 - Event detail view with payload rendering (CBOR/JSON pretty-print)
@@ -325,19 +330,19 @@ Extract all data-fetching logic. Returns typed structs. Zero HTML imports, zero 
 
 **What moves here:**
 
-| Current location | What it does | New location |
-|---|---|---|
-| `buildProjectionStats()` (`handlers_projections.go:18-43`) | Converts `host.Status()` + `host.LagPerProjection()` into display structs | `core.ProjectionStats()` |
-| `overviewStats()` (`handler_overview.go:79-172`) | Aggregates events count, aggregates count, projection health, DLQ count, recent events | `core.FetchOverview()` |
-| `eventFilter` + `loadFilteredEvents()` (`handlers_events.go:16-100`) | Event journal filtering and loading | `core.ListEvents()` |
-| `listStreamsPaged()` (in `handlers_aggregates.go`) | Cursor-paginated stream listing | `core.ListStreams()` |
-| DLQ entry loading | Dead letter listing | `core.ListDeadLetters()` |
-| Command loading from `CommandJournal` | Command audit data | `core.ListCommands()` |
-| `Capabilities` + `capabilities()` (`config.go:150-186`) | Capability detection | `core.DetectCapabilities()` |
-| `payload.go` | Payload formatting | `core.DefaultPayloadRenderer` |
-| `pagination.go` | Pagination math | `core.PageResult`, `core.ParseCursor()` |
-| `sse.go` | SSE broadcasting | `core.SSEBroadcaster` |
-| `format.go` | `relativeTime`, `humanByteSize` | `core.RelativeTime()`, `core.HumanByteSize()` |
+| Current location                                                     | What it does                                                                           | New location                                  |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `buildProjectionStats()` (`handlers_projections.go:18-43`)           | Converts `host.Status()` + `host.LagPerProjection()` into display structs              | `core.ProjectionStats()`                      |
+| `overviewStats()` (`handler_overview.go:79-172`)                     | Aggregates events count, aggregates count, projection health, DLQ count, recent events | `core.FetchOverview()`                        |
+| `eventFilter` + `loadFilteredEvents()` (`handlers_events.go:16-100`) | Event journal filtering and loading                                                    | `core.ListEvents()`                           |
+| `listStreamsPaged()` (in `handlers_aggregates.go`)                   | Cursor-paginated stream listing                                                        | `core.ListStreams()`                          |
+| DLQ entry loading                                                    | Dead letter listing                                                                    | `core.ListDeadLetters()`                      |
+| Command loading from `CommandJournal`                                | Command audit data                                                                     | `core.ListCommands()`                         |
+| `Capabilities` + `capabilities()` (`config.go:150-186`)              | Capability detection                                                                   | `core.DetectCapabilities()`                   |
+| `payload.go`                                                         | Payload formatting                                                                     | `core.DefaultPayloadRenderer`                 |
+| `pagination.go`                                                      | Pagination math                                                                        | `core.PageResult`, `core.ParseCursor()`       |
+| `sse.go`                                                             | SSE broadcasting                                                                       | `core.SSEBroadcaster`                         |
+| `format.go`                                                          | `relativeTime`, `humanByteSize`                                                        | `core.RelativeTime()`, `core.HumanByteSize()` |
 
 ```go
 // Example: core package API
@@ -474,38 +479,38 @@ When porting panels from `fmt.Fprintf` to templ-components, absorb these product
 
 ### DLQ Panel
 
-| Current (dashboardui) | Improved (from DiscordSync) |
-|---|---|
+| Current (dashboardui)                  | Improved (from DiscordSync)                                 |
+| -------------------------------------- | ----------------------------------------------------------- |
 | Per-projection detail page with replay | Per-projection replay forms on the main page (fewer clicks) |
-| Raw error string | Error code + error family badges (structured error display) |
-| `onsubmit="return confirm(...)"` | `data-confirm` attribute (CSP-safe) |
-| `fmt.Fprintf` table rows | `listTableWithHeader` shared component |
+| Raw error string                       | Error code + error family badges (structured error display) |
+| `onsubmit="return confirm(...)"`       | `data-confirm` attribute (CSP-safe)                         |
+| `fmt.Fprintf` table rows               | `listTableWithHeader` shared component                      |
 
 ### Projections Panel
 
-| Current (dashboardui) | Improved (from DiscordSync) |
-|---|---|
-| Plain text lag (`proj.Lag`) | `display.Sparkline` showing lag trend over time |
-| SSE-only live updates | HTMX `polledRegion` for auto-refresh without SSE |
-| Status badge only | Health summary banner (green when all healthy, red when any failed) |
-| No row highlighting | Error rows highlighted with red background |
-| No last-event display | Relative-time auto-ticking "Last Event" stat card |
+| Current (dashboardui)       | Improved (from DiscordSync)                                         |
+| --------------------------- | ------------------------------------------------------------------- |
+| Plain text lag (`proj.Lag`) | `display.Sparkline` showing lag trend over time                     |
+| SSE-only live updates       | HTMX `polledRegion` for auto-refresh without SSE                    |
+| Status badge only           | Health summary banner (green when all healthy, red when any failed) |
+| No row highlighting         | Error rows highlighted with red background                          |
+| No last-event display       | Relative-time auto-ticking "Last Event" stat card                   |
 
 ### Command Audit Panel
 
-| Current (dashboardui) | Improved (from DiscordSync) |
-|---|---|
-| No filtering | Type filter dropdown with HTMX auto-submit |
-| No payload display | Expandable JSON payload column |
+| Current (dashboardui)  | Improved (from DiscordSync)                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| No filtering           | Type filter dropdown with HTMX auto-submit                     |
+| No payload display     | Expandable JSON payload column                                 |
 | Keyset pagination only | Offset pagination with "Load more" (simpler UX for audit logs) |
 
 ### Events Browser
 
-| Current (dashboardui) | Improvement opportunity |
-|---|---|
-| Filter by type/streamType/streamID | Add date-range filter, payload search |
+| Current (dashboardui)              | Improvement opportunity                                             |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| Filter by type/streamType/streamID | Add date-range filter, payload search                               |
 | In-memory filter scan (500 events) | Delegate to `SeekableJournal` when available for DB-level filtering |
-| No event correlation view | Show all events for the same stream on the detail page |
+| No event correlation view          | Show all events for the same stream on the detail page              |
 
 ### Cross-cutting: CSP Safety
 
@@ -513,11 +518,11 @@ Replace all 5 inline `onsubmit` handlers with a `data-confirm` attribute pattern
 
 ```js
 // CSP-safe confirmation — one listener, many forms
-document.addEventListener('submit', function(e) {
-    var form = e.target.closest('[data-confirm]');
-    if (form && !confirm(form.dataset.confirm)) {
-        e.preventDefault();
-    }
+document.addEventListener("submit", function (e) {
+	var form = e.target.closest("[data-confirm]");
+	if (form && !confirm(form.dataset.confirm)) {
+		e.preventDefault();
+	}
 });
 ```
 
@@ -538,6 +543,7 @@ Move all data-fetching functions from `handlers_*.go` into a new `core/` sub-pac
 ### Step 2: Build `panels` package (templ port)
 
 Port each panel from `fmt.Fprintf` to templ-components, one at a time:
+
 1. Start with DLQ (smallest, most duplicated)
 2. Then projections (highest value)
 3. Then command audit
@@ -558,6 +564,7 @@ The standalone dashboard's handlers become thin: fetch data via `core`, render v
 ### Step 4: Wire DiscordSync (pure deletion + import)
 
 For each of the 3 overlapping panels:
+
 1. Delete the custom templ file (`dlq.templ`, `projection_health.templ`, `command_audit.templ`)
 2. Delete the custom handler logic
 3. Import `core` + `panels`
@@ -574,34 +581,34 @@ Then wire the missing go-cqrs-lite interfaces (`EventSource`, `SeekableJournal`)
 
 ### For dashboardui
 
-| Metric | Before | After |
-|---|---|---|
-| `fmt.Fprintf` / `strings.Builder` call sites | 178 | ~0 (all in panels, replaced by templ) |
-| Embedded CSS lines | 335 | 0 (uses templ-components + Tailwind) |
-| Inline `onsubmit` handlers | 5 | 0 (CSP-safe `data-confirm`) |
-| Inline `<script>` blocks | 1 (toast container) | 0 (use templ-components `feedback.ToastContainer`) |
-| Consumable by templ-components apps | No | Yes |
-| Panels available to non-templ apps (via `core`) | No | Yes |
+| Metric                                          | Before              | After                                              |
+| ----------------------------------------------- | ------------------- | -------------------------------------------------- |
+| `fmt.Fprintf` / `strings.Builder` call sites    | 178                 | ~0 (all in panels, replaced by templ)              |
+| Embedded CSS lines                              | 335                 | 0 (uses templ-components + Tailwind)               |
+| Inline `onsubmit` handlers                      | 5                   | 0 (CSP-safe `data-confirm`)                        |
+| Inline `<script>` blocks                        | 1 (toast container) | 0 (use templ-components `feedback.ToastContainer`) |
+| Consumable by templ-components apps             | No                  | Yes                                                |
+| Panels available to non-templ apps (via `core`) | No                  | Yes                                                |
 
 ### For DiscordSync
 
-| Metric | Before | After |
-|---|---|---|
-| Custom DLQ templ + handler | 143 lines | ~5 lines (handler only) |
-| Custom projection health templ + handler | 253 lines | ~5 lines |
-| Custom command audit templ + handler | 181 lines | ~5 lines |
-| **Total lines deleted** | — | **~570 lines** |
-| Event journal browser | Missing | Available (wire `SeekableJournal`) |
-| Time-travel state reconstruction | Missing | Available (wire `EventSource`) |
-| Aggregate browser | Missing | Available (wire `StreamReader`) |
+| Metric                                   | Before    | After                              |
+| ---------------------------------------- | --------- | ---------------------------------- |
+| Custom DLQ templ + handler               | 143 lines | ~5 lines (handler only)            |
+| Custom projection health templ + handler | 253 lines | ~5 lines                           |
+| Custom command audit templ + handler     | 181 lines | ~5 lines                           |
+| **Total lines deleted**                  | —         | **~570 lines**                     |
+| Event journal browser                    | Missing   | Available (wire `SeekableJournal`) |
+| Time-travel state reconstruction         | Missing   | Available (wire `EventSource`)     |
+| Aggregate browser                        | Missing   | Available (wire `StreamReader`)    |
 
 ### For the cqrs-htmx ecosystem
 
-| Metric | Before | After |
-|---|---|---|
-| Rendering consistency across modules | dashboardui is the outlier (`fmt.Fprintf`); adminui uses templ | Both use templ + templ-components |
-| Design system consistency | dashboardui has its own CSS; adminui uses Tailwind | Both use templ-components |
-| Cross-module panel sharing | Impossible | Any panel embeddable in any templ-components app |
+| Metric                               | Before                                                         | After                                            |
+| ------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------ |
+| Rendering consistency across modules | dashboardui is the outlier (`fmt.Fprintf`); adminui uses templ | Both use templ + templ-components                |
+| Design system consistency            | dashboardui has its own CSS; adminui uses Tailwind             | Both use templ-components                        |
+| Cross-module panel sharing           | Impossible                                                     | Any panel embeddable in any templ-components app |
 
 ---
 
@@ -609,14 +616,14 @@ Then wire the missing go-cqrs-lite interfaces (`EventSource`, `SeekableJournal`)
 
 `adminui` already proves this works. It is a complete admin dashboard built on templ + Tailwind v4 + templ-components:
 
-| Aspect | dashboardui | adminui |
-|---|---|---|
-| HTML generation | `fmt.Fprintf` + `strings.Builder` (178 sites) | templ (zero string builders in non-templ .go) |
-| Design system | 335-line embedded CSS (`dashboardCSS`) | Tailwind v4 + templ-components (`assets/admin-tw.css`) |
-| Component library | None (hand-rolled `.btn`, `.data-table`, etc.) | `templ-components/display` (uses `display.StatCard`, etc.) |
-| Layout | `strings.Builder` in `layout.go:16-51` | templ component in `layout.templ` |
-| Inline event handlers | 5 `onsubmit` + 1 `<script>` | 0 |
-| Generated files | No `.templ` files | `*_templ.go` committed |
-| CSP compatibility | Requires `unsafe-inline` | Compatible with strict CSP |
+| Aspect                | dashboardui                                    | adminui                                                    |
+| --------------------- | ---------------------------------------------- | ---------------------------------------------------------- |
+| HTML generation       | `fmt.Fprintf` + `strings.Builder` (178 sites)  | templ (zero string builders in non-templ .go)              |
+| Design system         | 335-line embedded CSS (`dashboardCSS`)         | Tailwind v4 + templ-components (`assets/admin-tw.css`)     |
+| Component library     | None (hand-rolled `.btn`, `.data-table`, etc.) | `templ-components/display` (uses `display.StatCard`, etc.) |
+| Layout                | `strings.Builder` in `layout.go:16-51`         | templ component in `layout.templ`                          |
+| Inline event handlers | 5 `onsubmit` + 1 `<script>`                    | 0                                                          |
+| Generated files       | No `.templ` files                              | `*_templ.go` committed                                     |
+| CSP compatibility     | Requires `unsafe-inline`                       | Compatible with strict CSP                                 |
 
 dashboardui should follow adminui's precedent. The rendering technology decision was made when dashboardui was a standalone experiment — it's time to align it with the ecosystem.

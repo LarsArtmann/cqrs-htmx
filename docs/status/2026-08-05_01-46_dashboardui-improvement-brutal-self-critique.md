@@ -12,13 +12,13 @@ The user asked me to improve the `dashboardui/` module. I read all ~30 source fi
 
 ### Changes Implemented
 
-| # | Issue Found | Fix Applied | Key Files |
-|---|-------------|-------------|-----------|
-| 1 | **Pagination Previous was broken** — always jumped to page 1, no cursor history | Implemented cursor-history stack via `prev` query param with `pushCursor`/`popCursor` helpers; threaded through all 5 paginated handlers (events, aggregates, commands, queries, time-travel, snapshots) | `pagination.go`, `handlers_events.go`, `handlers_aggregates.go`, `handlers_audit.go`, `handlers_timetravel.go`, `handlers_snapshots.go` |
-| 2 | **Time-travel & snapshots index pages had no pagination** — loaded one page, no nav controls | Extracted `listStreamsPaged`, refactored `renderStreamIndex` signature, added shared `renderStreamListingPage` renderer (also eliminates `dupl` lint between the two) | `render.go`, `handlers_aggregates.go`, `handlers_timetravel.go`, `handlers_snapshots.go` |
-| 3 | **DLQ index showed bare buttons** — no visibility into which projections had dead letters or how many | Added `buildDLQProjectionLinks` that queries each projection's dead-letter count via `DeadLetterStore.List`; rendered as a summary table with color-coded count badges | `handlers_dlq.go` |
-| 4 | **Overview recent events were dead text** — not linked, raw RFC3339 timestamps | Event types now link to `/events/{id}` detail page, stream IDs link to `/aggregates/{type}/{id}` with copy-to-copy, relative time ("2 minutes ago") with full timestamp in tooltip | `handler_overview.go` |
-| 5 | **No system health or DLQ visibility on overview stat grid** | Added "System Health" stat card (color-coded green/yellow/red based on projection status) and "Dead Letters" stat card when errors exist; added `.stat-card.warn` and `.stat-card.err` CSS variants | `handler_overview.go`, `layout.go` |
+| #   | Issue Found                                                                                           | Fix Applied                                                                                                                                                                                              | Key Files                                                                                                                               |
+| --- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Pagination Previous was broken** — always jumped to page 1, no cursor history                       | Implemented cursor-history stack via `prev` query param with `pushCursor`/`popCursor` helpers; threaded through all 5 paginated handlers (events, aggregates, commands, queries, time-travel, snapshots) | `pagination.go`, `handlers_events.go`, `handlers_aggregates.go`, `handlers_audit.go`, `handlers_timetravel.go`, `handlers_snapshots.go` |
+| 2   | **Time-travel & snapshots index pages had no pagination** — loaded one page, no nav controls          | Extracted `listStreamsPaged`, refactored `renderStreamIndex` signature, added shared `renderStreamListingPage` renderer (also eliminates `dupl` lint between the two)                                    | `render.go`, `handlers_aggregates.go`, `handlers_timetravel.go`, `handlers_snapshots.go`                                                |
+| 3   | **DLQ index showed bare buttons** — no visibility into which projections had dead letters or how many | Added `buildDLQProjectionLinks` that queries each projection's dead-letter count via `DeadLetterStore.List`; rendered as a summary table with color-coded count badges                                   | `handlers_dlq.go`                                                                                                                       |
+| 4   | **Overview recent events were dead text** — not linked, raw RFC3339 timestamps                        | Event types now link to `/events/{id}` detail page, stream IDs link to `/aggregates/{type}/{id}` with copy-to-copy, relative time ("2 minutes ago") with full timestamp in tooltip                       | `handler_overview.go`                                                                                                                   |
+| 5   | **No system health or DLQ visibility on overview stat grid**                                          | Added "System Health" stat card (color-coded green/yellow/red based on projection status) and "Dead Letters" stat card when errors exist; added `.stat-card.warn` and `.stat-card.err` CSS variants      | `handler_overview.go`, `layout.go`                                                                                                      |
 
 ### Test Coverage
 
@@ -179,6 +179,7 @@ The rendering layer is raw `strings.Builder` HTML — the single biggest archite
 ### 2. Should `IMPROVEMENT_IDEAS.md` be pruned or replaced?
 
 The doc has 350+ items, ~80% of which are stale (already done). It's actively misleading. Options:
+
 - **A)** Prune in-place: mark each resolved item, remove fully-stale sections, keep only genuinely-open work
 - **B)** Replace entirely: delete the doc, fold remaining items into `TODO_LIST.md` (per project convention)
 - **C)** Leave as-is: it's an informational artifact, not a task list
