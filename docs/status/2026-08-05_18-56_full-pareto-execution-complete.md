@@ -45,11 +45,13 @@
 ## What's Partially Done
 
 ### M13 (continued): Remaining apps still use hardcoded lists
-- `lint`, `coverage`, `test-flake`, `test-fuzz` apps still have hardcoded module lists.
+> **UPDATE (2026-08-05 21:30):** **FULLY RESOLVED.** The `lint` app now uses auto-discovery via a custom loop over `go work edit -json` (with continue-past-failure). The `coverage`, `test-flake`, and `test-fuzz` apps now use `forEachGoModule`. All flake.nix apps that can be auto-discovered are. Only `coverage-gate` retains hardcoded lists (per-module thresholds require it).
+- ~~`lint`, `coverage`, `test-flake`, `test-fuzz` apps still have hardcoded module lists.~~
 - `coverage-gate` can NEVER be auto-discovered (per-module thresholds).
-- These are lower-priority (lint/coverage change rarely). Can be migrated incrementally.
+- ~~These are lower-priority (lint/coverage change rarely). Can be migrated incrementally.~~
 
 ### M15: httputil SecurityHeaders Field Tests — **NOT STARTED**
+> **UPDATE (2026-08-05 21:30):** **DONE.** httputil now has `security_test.go` with coverage for `PermissionsPolicy`, `Custom`, `ContentTypeOptions` precedence, and the `SecurityHeaderSkip` sentinel. The `SecurityHeaderSkip` suppression bug was found and fixed (commit `0076791`).
 - Would be in the external `/home/lars/projects/httputil` repo.
 - Tests for PermissionsPolicy, Custom headers, ContentTypeOptions precedence, SecurityHeaderSkip sentinel.
 - Low value for cqrs-htmx itself — deferred to a focused httputil session.
