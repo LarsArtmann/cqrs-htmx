@@ -161,7 +161,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 		fmt.Fprintf(
 			&b,
-			`<input type="range" min="1" max="%d" value="%d" class="version-slider" onchange="window.location.href='%s/time-travel/%s/%s?v='+this.value" aria-label="Select version"/>`,
+			`<input type="range" min="1" max="%d" value="%d" class="version-slider" id="version-slider" onchange="window.location.href='%s/time-travel/%s/%s?v='+this.value" oninput="document.getElementById('slider-version-display').textContent=this.value" aria-label="Select version"/>`,
 			maxVersion.Int(),
 			currentVersion.Int(),
 			p.BasePath,
@@ -171,7 +171,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 		fmt.Fprintf(
 			&b,
-			`<div class="version-display section-gap">Viewing version <strong>%d</strong> of <strong>%d</strong></div>`,
+			`<div class="version-display section-gap">Viewing version <strong id="slider-version-display">%d</strong> of <strong>%d</strong> <span class="muted">(use ← → arrow keys)</span></div>`,
 			currentVersion.Int(),
 			maxVersion.Int(),
 		)

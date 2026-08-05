@@ -624,6 +624,23 @@ document.addEventListener("submit", function(e) {
   }
 });
 
+// Keyboard navigation for the time-travel version slider: ArrowLeft/ArrowRight
+// anywhere on the page move the slider and navigate to the selected version.
+document.addEventListener("keydown", function(e) {
+  var slider = document.getElementById("version-slider");
+  if (!slider) return;
+  if (e.target.tagName === "INPUT" && e.target !== slider) return;
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  e.preventDefault();
+  var step = (e.key === "ArrowLeft") ? -1 : 1;
+  var newVal = parseInt(slider.value, 10) + step;
+  var min = parseInt(slider.min, 10);
+  var max = parseInt(slider.max, 10);
+  if (newVal < min || newVal > max) return;
+  slider.value = newVal;
+  slider.dispatchEvent(new Event("change"));
+});
+
 // Toast notification listener: renders transient toast messages from
 // Hx-Trigger events. Moved here from an inline <script> for CSP safety.
 document.body.addEventListener("showToast", function(e) {
