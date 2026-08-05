@@ -16,15 +16,15 @@ type Authz struct {
 // NewAuthz creates an Authz with the given optional config. When no config is
 // provided, the default model and a single admin wildcard policy are used.
 func NewAuthz(config ...EnforcerConfig) (*Authz, error) {
-	config := EnforcerConfig{
+	resolved := EnforcerConfig{
 		ModelString: DefaultRBACModel,
 		Policies:    DefaultPolicies(),
 	}
 	if len(config) > 0 {
-		config = config[0]
+		resolved = config[0]
 	}
 
-	modelStr := config.ModelString
+	modelStr := resolved.ModelString
 	if modelStr == "" {
 		modelStr = DefaultRBACModel
 	}
@@ -39,13 +39,13 @@ func NewAuthz(config ...EnforcerConfig) (*Authz, error) {
 		return nil, errorfamily.WrapTransient(err, "casbin_error", "create enforcer")
 	}
 
-	for _, p := range config.Policies {
+	for _, p := range resolved.Policies {
 		if _, err := e.AddPolicy(policyArgs(p)...); err != nil {
 			return nil, wrapPolicyError(err, "add", p)
 		}
 	}
 
-	for _, g := range config.Groups {
+	for _, g := range resolved.Groups {
 		if _, err := e.AddGroupingPolicy(g.Subject, string(g.Role), g.Domain); err != nil {
 			return nil, wrapGroupError(err, "add", g)
 		}

@@ -150,32 +150,32 @@ const (
 
 // NewAuthHandler creates an AuthHandler for the given Service with optional config.
 func NewAuthHandler(service *Service, config ...HandlerConfig) *AuthHandler {
-	config := applyConfigDefaults(HandlerConfig{})
+	resolved := applyConfigDefaults(HandlerConfig{})
 	if len(config) > 0 {
-		config = applyConfigDefaults(config[0])
+		resolved = applyConfigDefaults(config[0])
 	}
-	if config.ImportExportAuthorizer == nil {
-		config.ImportExportAuthorizer = RequireAdminRole(service.authz)
+	if resolved.ImportExportAuthorizer == nil {
+		resolved.ImportExportAuthorizer = RequireAdminRole(service.authz)
 	}
 	secure := true
-	if config.Secure != nil {
-		secure = *config.Secure
+	if resolved.Secure != nil {
+		secure = *resolved.Secure
 	}
 	return &AuthHandler{
 		service:                service,
-		cookieName:             config.CookieName,
+		cookieName:             resolved.CookieName,
 		secure:                 secure,
-		sessionMaxAge:          config.SessionMaxAge,
-		timeout:                config.Timeout,
-		importExportAuthorizer: config.ImportExportAuthorizer,
-		regLimiter:             newLimiterFromConfig(config.RegistrationRateLimit),
-		importLimiter:          newLimiterFromConfig(config.ImportRateLimit),
-		totpLimiter:            newLimiterFromConfig(config.TOTPRateLimit),
-		verificationLimiter:    newLimiterFromConfig(config.VerificationRateLimit),
-		webauthnLimiter:        newLimiterFromConfig(config.WebAuthnRateLimit),
-		oauthLimiter:           newLimiterFromConfig(config.OAuthRateLimit),
-		oauth2SuccessURL:       config.OAuth2SuccessURL,
-		oauth2ErrorURL:         config.OAuth2ErrorURL,
+		sessionMaxAge:          resolved.SessionMaxAge,
+		timeout:                resolved.Timeout,
+		importExportAuthorizer: resolved.ImportExportAuthorizer,
+		regLimiter:             newLimiterFromConfig(resolved.RegistrationRateLimit),
+		importLimiter:          newLimiterFromConfig(resolved.ImportRateLimit),
+		totpLimiter:            newLimiterFromConfig(resolved.TOTPRateLimit),
+		verificationLimiter:    newLimiterFromConfig(resolved.VerificationRateLimit),
+		webauthnLimiter:        newLimiterFromConfig(resolved.WebAuthnRateLimit),
+		oauthLimiter:           newLimiterFromConfig(resolved.OAuthRateLimit),
+		oauth2SuccessURL:       resolved.OAuth2SuccessURL,
+		oauth2ErrorURL:         resolved.OAuth2ErrorURL,
 	}
 }
 

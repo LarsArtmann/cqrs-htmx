@@ -368,7 +368,7 @@ func renderProjectionHealthPanel(basePath string, projs []projectionStat) string
 
 	b.WriteString(`<div class="panel" id="projection-health" hx-get="`)
 	b.WriteString(basePath)
-	b.WriteString(`/-/partials/projection-health" hx-trigger="every 10s" hx-swap="outerHTML">`)
+	b.WriteString(`/-/partials/projection-health" hx-trigger="every 10s, refresh" hx-swap="outerHTML">`)
 	b.WriteString(`<div class="panel-title">Projection Health</div>`)
 	b.WriteString(`<div class="table-scroll"><table class="data-table"><thead><tr>`)
 	b.WriteString(`<th scope="col">Name</th><th scope="col">Status</th>`)

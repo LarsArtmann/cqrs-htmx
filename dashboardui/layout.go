@@ -379,6 +379,13 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: inline; }
 .htmx-request.htmx-indicator-dot::after { content: " ⏳"; }
 
+/* ===== SSE live-update row highlight ===== */
+@keyframes newRowHighlight {
+  from { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+  to { background: transparent; }
+}
+.new-row { animation: newRowHighlight 2s ease-out; }
+
 /* ===== Hamburger (mobile only) ===== */
 .hamburger { display: none; flex-direction: column; justify-content: center; gap: 4px; width: 36px; height: 36px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); cursor: pointer; }
 .hamburger span { display: block; height: 2px; background: var(--text); border-radius: 1px; transition: transform 0.2s, opacity 0.2s; }
@@ -507,6 +514,31 @@ const dashboardJS = `
 
   connect();
 })();
+
+document.addEventListener("dashboard:event", function(e) {
+  var data = e.detail || {};
+
+  if (window.htmx && document.getElementById("projection-health")) {
+    htmx.trigger("#projection-health", "refresh");
+  }
+
+  var tbody = document.querySelector("#main-content .data-table tbody");
+  if (!tbody || !data.eventId) return;
+
+  var script = document.querySelector("script[src$='dashboard.js']");
+  var basePath = script ? script.src.replace(/\/-\/dashboard\.js$/, "") : "";
+  var now = data.occurredAt ? new Date(data.occurredAt) : new Date();
+  var row = document.createElement("tr");
+  row.className = "new-row";
+  var typeLink = basePath
+    ? '<a href="' + basePath + '/events/' + data.eventId + '"><code>' + (data.type || "") + '</code></a>'
+    : '<code>' + (data.type || "") + '</code>';
+  row.innerHTML = '<td class="mono">' + now.toLocaleTimeString() + '</td><td>' + typeLink + '</td>';
+  if (data.streamId) row.innerHTML += '<td class="mono">' + data.streamId.substring(0, 20) + '</td>';
+  if (data.version) row.innerHTML += '<td>' + data.version + '</td>';
+  tbody.insertBefore(row, tbody.firstChild);
+  while (tbody.children.length > 50) tbody.removeChild(tbody.lastChild);
+});
 
 document.addEventListener("click", function(e) {
   var el = e.target.closest("[data-copyable]");

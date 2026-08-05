@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ===== Command/Query Audit =====
@@ -75,7 +77,7 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 		for _, cmd := range cmds {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td></tr>`,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td><a href="%s/commands/%s" class="btn">View</a></td></tr>`,
 				esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(cmd.Type())),
 				esc(string(cmd.StreamType())),
@@ -83,13 +85,15 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 				esc(cmd.StreamID().String()),
 				esc(cmd.ID().String()),
 				truncate(cmd.ID().String(), eventIDWidth),
+				p.BasePath,
+				esc(cmd.ID().String()),
 			)
 		}
 
 		var b strings.Builder
 		fmt.Fprintf(
 			&b,
-			`<h2>Command Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th></tr></thead><tbody>%s</tbody></table></div>`,
+			`<h2>Command Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 		b.WriteString(renderPagination(p.BasePath, "/commands", page, ""))
@@ -161,18 +165,20 @@ func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery, p
 		for _, q := range queries {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td></tr>`,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td><a href="%s/queries/%s" class="btn">View</a></td></tr>`,
 				esc(q.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(q.Type())),
 				esc(q.ID().String()),
 				truncate(q.ID().String(), eventIDWidth),
+				p.BasePath,
+				esc(q.ID().String()),
 			)
 		}
 
 		var b strings.Builder
 		fmt.Fprintf(
 			&b,
-			`<h2>Query Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th></tr></thead><tbody>%s</tbody></table></div>`,
+			`<h2>Query Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
 		b.WriteString(renderPagination(p.BasePath, "/queries", page, ""))

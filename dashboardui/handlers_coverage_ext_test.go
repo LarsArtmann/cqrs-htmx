@@ -418,3 +418,87 @@ func TestLoadRecentEvents_NoJournal(t *testing.T) {
 		t.Errorf("expected nil events, got %v", events)
 	}
 }
+
+// --- HTMX Partial Rendering ---
+
+func TestIsHTMXRequest_NormalRequest(t *testing.T) {
+	r := httptest.NewRequest(http.MethodGet, "/events", nil)
+	if isHTMXRequest(r) {
+		t.Fatal("expected false for normal request")
+	}
+}
+
+func TestIsHTMXRequest_BoostedRequest(t *testing.T) {
+	r := httptest.NewRequest(http.MethodGet, "/events", nil)
+	r.Header.Set("HX-Request", "true")
+	if !isHTMXRequest(r) {
+		t.Fatal("expected true for HTMX request")
+	}
+}
+
+func TestRenderLayout_HTMXPartial(t *testing.T) {
+	d := mustTestDashboard(t)
+	r := httptest.NewRequest(http.MethodGet, "/events", nil)
+	r.Header.Set("HX-Request", "true")
+
+	p := d.page("Events", "/events", r)
+	html := d.renderLayout(p, func() string { return "<p>test content</p>" })
+
+	if !strings.Contains(html, "<main id=\"main-content\"") {
+		t.Errorf("expected <main> in HTMX partial, got: %s", html)
+	}
+
+	if !strings.Contains(html, "<title>") {
+		t.Errorf("expected <title> in HTMX partial for tab update")
+	}
+
+	if strings.Contains(html, "<!DOCTYPE html>") {
+		t.Errorf("expected no DOCTYPE in HTMX partial")
+	}
+
+	if strings.Contains(html, "<aside") {
+		t.Errorf("expected no sidebar in HTMX partial")
+	}
+}
+
+func TestRenderLayout_FullPage(t *testing.T) {
+	d := mustTestDashboard(t)
+	r := httptest.NewRequest(http.MethodGet, "/events", nil)
+
+	p := d.page("Events", "/events", r)
+	html := d.renderLayout(p, func() string { return "<p>test content</p>" })
+
+	if !strings.Contains(html, "<!DOCTYPE html>") {
+		t.Errorf("expected DOCTYPE in full page")
+	}
+
+	if !strings.Contains(html, "<aside") {
+		t.Errorf("expected sidebar in full page")
+	}
+
+	if !strings.Contains(html, "data-hx-boost") {
+		t.Errorf("expected hx-boost attribute on layout div")
+	}
+
+	if !strings.Contains(html, "data-hx-select=\"#main-content\"") {
+		t.Errorf("expected hx-select attribute for partial extraction")
+	}
+}
+
+func TestOverviewHandler_HTMXReturnsPartial(t *testing.T) {
+	d := mustTestDashboard(t)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r.Header.Set("HX-Request", "true")
+	d.overviewHandler(w, r)
+
+	body := w.Body.String()
+	if strings.Contains(body, "<!DOCTYPE html>") {
+		t.Errorf("expected no DOCTYPE in HTMX response")
+	}
+
+	if !strings.Contains(body, "<main id=\"main-content\"") {
+		t.Errorf("expected <main> in HTMX response")
+	}
+}
