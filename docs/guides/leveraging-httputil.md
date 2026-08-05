@@ -132,7 +132,7 @@ These have **richer, domain-aware** implementations than httputil's generic equi
 
 - **Recovery** (`cqrshtmx.RecoveryMiddleware`) — classifies panics via errorfamily, routes through the configured `ErrorHandler`, recovers Request/Correlation IDs.
 - **Logging** (`cqrshtmx.RequestLoggingSlog`) — captures dispatch errors and domain IDs (user/correlation/request).
-- **Security headers** (`cqrshtmx.SecurityHeadersMiddleware`) — superset config (`PermissionsPolicy`, `Custom` map, `SecurityHeaderSkip` sentinel). httputil has a simpler parallel version (`ContentTypeNosniff bool`). This split brain is a known issue; the v5 plan is to port cqrs-htmx's richer config into httputil and deprecate cqrs-htmx's version. For now, `cqrshtmx.SecurityHeadersMiddleware` is the recommended choice.
+- **Security headers** (`cqrshtmx.SecurityHeadersMiddleware`) — now a **deprecated alias** over `httputil.SecurityHeaders`. httputil's `SecurityHeadersConfig` is the single source of truth (gained `PermissionsPolicy`, `Custom`, `ContentTypeOptions`, `SecurityHeaderSkip`, `RecommendedHSTS`/`RecommendedCSP` in v0.9.0). The split brain is resolved. Use `httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())` directly.
 
 ## Re-export deprecation migration table
 
@@ -186,6 +186,19 @@ The following 39 symbols in `cqrs-htmx/v4` are **deprecated** (type/var aliases 
 | `MeasureServerTiming` | `httputil.MeasureServerTiming` |
 
 > **Migration is mechanical:** add `"github.com/larsartmann/httputil"` to your imports, change the `cqrshtmx.` prefix to `httputil.` for any of the symbols above, and remove the `cqrshtmx.` import if it's no longer needed. The types are aliases, so no behavior change.
+
+### Security headers (`security.go`)
+
+| Deprecated `cqrshtmx.*` | Replacement `httputil.*` |
+| --- | --- |
+| `SecurityHeadersConfig` | `httputil.SecurityHeadersConfig` (type alias) |
+| `SecurityHeadersMiddleware` | `httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())` |
+| `SecurityHeadersMiddlewareWithConfig` | `httputil.SecurityHeaders(cfg)` |
+| `RecommendedHSTS` | `httputil.RecommendedHSTS` |
+| `RecommendedCSP` | `httputil.RecommendedCSP` |
+| `SecurityHeaderSkip` | `httputil.SecurityHeaderSkip` |
+
+> **Note:** `cqrshtmx.SecurityHeadersMiddleware` applies secure defaults on a zero-value config (nosniff, DENY, strict-origin-when-cross-origin). `httputil.SecurityHeaders` does not — pass `httputil.DefaultSecurityHeadersConfig()` for the equivalent behavior, or construct your own `SecurityHeadersConfig` explicitly.
 - **Context enrichment** (`cqrshtmx.ContextEnrichmentMiddleware`) — domain-aware (UserID + RequestID + CorrelationID).
 - **Chain** (`cqrshtmx.Chain`) — curried signature (`Chain(mw...) func(http.Handler) http.Handler`) for composable stacking.
 

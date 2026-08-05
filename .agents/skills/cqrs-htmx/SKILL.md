@@ -117,7 +117,7 @@ http.ListenAndServe(":8080", cqrshtmx.Chain(
 )(mux))
 ```
 
-Available without `App`: `Chain`, `RecoveryMiddleware`, `SecurityHeadersMiddleware` (+`SecurityHeaderSkip`), `RequestLoggingSlog`, `HTMXScriptHandler`/`HTMXExtensionHandler`, `NewSSEStream`/`Broadcaster`/`JournalSSEStore`, `MapError`/`JSONErrorHandler`, `WriteJSON`, `IsHTMXRequest`/`RenderPartial`, `NewResponse(w, r)`. **Deprecated re-exports (import `github.com/larsartmann/httputil` instead):** `CSRFMiddleware`/`CSRFConfig`, `RateLimiterMiddleware`/`DefaultRateLimiterConfig`, `ServerTimingMiddleware`/`MeasureServerTiming`. These 39 symbols remain as backward-compat aliases but are deprecated and will be removed in v5.
+Available without `App`: `Chain`, `RecoveryMiddleware`, `RequestLoggingSlog`, `HTMXScriptHandler`/`HTMXExtensionHandler`, `NewSSEStream`/`Broadcaster`/`JournalSSEStore`, `MapError`/`JSONErrorHandler`, `WriteJSON`, `IsHTMXRequest`/`RenderPartial`, `NewResponse(w, r)`. **Deprecated re-exports/aliases (import `github.com/larsartmann/httputil` instead):** `CSRFMiddleware`/`CSRFConfig`, `RateLimiterMiddleware`/`DefaultRateLimiterConfig`, `ServerTimingMiddleware`/`MeasureServerTiming`, `SecurityHeadersMiddleware`/`SecurityHeadersConfig`/`SecurityHeaderSkip`/`RecommendedHSTS`/`RecommendedCSP`. All remain as backward-compat aliases but are deprecated and will be removed in v5. Use `httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())` for security headers.
 
 ## Path A -- CQRS + HTMX endpoints (root only)
 
@@ -500,7 +500,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`IsHTMXRequest(r)` vs `RenderPartial(r)`** -- `IsHTMXRequest` checks `HX-Request: true` (any HTMX request). `RenderPartial` additionally excludes `HX-History-Restore-Request` (only "real" HTMX navigations that should render a partial).
 - **`NewSSEEventID("")`** -- empty string auto-generates a ULID. This is the conventional way to mint event IDs.
 - **`HealthHandler()`** -- returns `{"status":"ok"}` (200) or `{"status":"unhealthy","error":"..."}` (503).
-- **`SecurityHeaderSkip`** (`"-"`) -- set on `ContentTypeOptions`/`FrameOptions`/`ReferrerPolicy` to suppress that default header entirely (empty string = use the default).
+- **`SecurityHeaderSkip`** (`"-"`) -- set on `ContentTypeOptions`/`FrameOptions`/`ReferrerPolicy` to suppress that default header entirely (empty string = use the default). Now deprecated alias for `httputil.SecurityHeaderSkip`.
 - **`cqrshtmx.Chain` vs `httputil.Chain`** -- `cqrshtmx.Chain` is the standard middleware composition helper for this library. If you also import `go-httputil`, its `Chain` has the same signature; pick one and use it consistently.
 - **Server-Timing / CSRF / rate-limiting are deprecated re-exports over httputil** -- `CSRFMiddleware`, `CSRFConfig`, `RateLimiterMiddleware`, `ServerTiming`, etc. are now deprecated type/var aliases for the equivalent symbols in `github.com/larsartmann/httputil`. Import httputil directly (these aliases will be removed in v5). The implementation (and deps like `justinas/nosurf`) lives in httputil. See `docs/guides/leveraging-httputil.md` for the migration table.
 - **`cqrshtmx.EventCatalogHandler(catalog)`** -- serves an event schema catalog as immutable JSON (1-year cache, FNV-1a ETag). Use with `usermgmt.DefaultEventCatalog()` or build your own `cqrshtmx.NewEventCatalog()`. Mirrors `OpenAPISpecHandler` pattern. See `docs/guides/event-catalog-guide.md`.

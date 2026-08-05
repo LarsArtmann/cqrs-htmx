@@ -129,3 +129,10 @@ replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => /home/lars/projects/
 // workspace-level replace, `go build ./...` fails in workspace mode because the
 // replace in go-cqrs-lite/idempotency/go.mod is only visible within that module's context.
 replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempotency
+
+// TEMPORARY: httputil v0.9.0 development replace.
+// cqrs-htmx's security.go now aliases httputil.SecurityHeadersConfig (which gained
+// PermissionsPolicy, Custom, ContentTypeOptions, SecurityHeaderSkip, RecommendedHSTS/CSP
+// fields in v0.9.0). The workspace build resolves the local httputil until v0.9.0 is
+// published. After publishing: bump go.mod to v0.9.0 and remove this replace.
+replace github.com/larsartmann/httputil => /home/lars/projects/httputil
