@@ -7,6 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // PageData holds everything the templ page needs to render.
@@ -99,8 +100,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Rebuild CSRF fields per-request (the token is request-scoped under nosurf).
 	data := h.data
-	data.CSRFMeta = cqrshtmx.CSRFTokenHTMLMeta(r)
-	data.CSRFField = cqrshtmx.CSRFTokenFormField(r)
+	data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
+	data.CSRFField = httputil.CSRFTokenFormField(r)
 
 	renderPage(w, r, data)
 }
@@ -194,8 +195,8 @@ func buildPageData(config Config, r *http.Request) PageData {
 	}
 
 	if r != nil {
-		data.CSRFMeta = cqrshtmx.CSRFTokenHTMLMeta(r)
-		data.CSRFField = cqrshtmx.CSRFTokenFormField(r)
+		data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
+		data.CSRFField = httputil.CSRFTokenFormField(r)
 	}
 
 	return data

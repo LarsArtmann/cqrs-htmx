@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // Handler is a mounted admin panel. Build it with [New] and register it on a
@@ -68,8 +69,8 @@ func (h *Handler) page(title, active string, user *usermgmt.User, r *http.Reques
 		User:      user,
 		LogoutURL: h.config.LogoutURL,
 		SSEURL:    h.config.SSEURL,
-		CSRFToken: cqrshtmx.CSRFTokenFormField(r),
-		CSRFMeta:  cqrshtmx.CSRFTokenHTMLMeta(r),
+		CSRFToken: httputil.CSRFTokenFormField(r),
+		CSRFMeta:  httputil.CSRFTokenHTMLMeta(r),
 		Nonce:     h.nonce(r),
 	}
 }

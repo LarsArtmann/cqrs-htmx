@@ -36,6 +36,8 @@
 
 - [ ] **Remove identity-model re-export layer in v5.** 26 usermgmt files re-export identity-model types (160 deprecated markers added 2026-08-05). Removal is a breaking change (consumers must switch `usermgmt.UserID` → `identitymodel.UserID`), bundled with the v5 major bump alongside ADR-0019/0038. Track: no consumer has requested this; v5 is undated. The deprecation markers are the retirement path — they signal consumers to migrate now. Decision: remove in v5 (confirmed by maintainer 2026-08-05).
 
+- [ ] **Remove httputil re-export layer in v5.** 3 root-module files (`csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go`) re-export 39 symbols from `github.com/larsartmann/httputil`. All now carry `// Deprecated:` markers (added 2026-08-05). Internal callers, examples, tests, and docs migrated to direct `httputil.*` imports. Removal bundled with the v5 major bump. Also includes resolving the SecurityHeaders split brain (port cqrs-htmx's richer config into httputil, then deprecate/remove `cqrshtmx.SecurityHeadersMiddleware`). See `docs/guides/leveraging-httputil.md` for the migration table.
+
 ---
 
 ## P3 — Technical Debt & Future

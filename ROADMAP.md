@@ -89,6 +89,10 @@ The split becomes worthwhile when:
 
 26 usermgmt files re-export identity-model types via type aliases and constructor wrappers. All 160 exported re-export symbols now carry `// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.` markers (added 2026-08-05). Removal is a breaking change bundled with the v5 major bump. Decision confirmed by maintainer 2026-08-05: remove in v5.
 
+### httputil Re-export Retirement (v5)
+
+3 root-module files (`csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go`) re-export 39 symbols from `github.com/larsartmann/httputil`. All now carry `// Deprecated:` markers (added 2026-08-05). Internal callers, examples, and docs migrated to direct `httputil.*` imports. Removal is bundled with the v5 major bump. Additionally, `security.go`'s `SecurityHeadersConfig` is richer than httputil's parallel version (split brain); the v5 plan is to port the richer config into httputil as the single source of truth, then deprecate/remove cqrs-htmx's `SecurityHeadersMiddleware`. See `docs/guides/leveraging-httputil.md` for the migration table.
+
 ### Proposed Module Boundaries (v5)
 
 ```
