@@ -53,6 +53,7 @@ type Service struct {
 	totpPendingTTL           time.Duration
 	stopPendingTOTPEviction  func()
 	oauth2                   OAuth2Provider
+	oauth2Svc                *OAuth2Service
 	oauth2States             OAuth2StateStore
 	stopOAuth2Eviction       func()
 	oauth2StateTTL           time.Duration
@@ -365,6 +366,10 @@ func NewService(config ServiceConfig) (*Service, error) {
 			svc.oauth2StateTTL = defaultOAuthStateTTL
 		}
 		svc.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
+		svc.oauth2Svc = NewOAuth2Service(
+			config.OAuth2, stateStore, svc.oauth2StateTTL,
+			svc.readModel, svc.dispatcher, svc.sessions, svc.sessionTTL, svc.logger,
+		)
 	}
 
 	svc.wireLockoutEviction()
