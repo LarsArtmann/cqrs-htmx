@@ -296,31 +296,10 @@
 
             lint = goApp {
               name = "run-lint";
-              description = "Run golangci-lint across all modules";
+              description = "Run golangci-lint across all workspace modules (auto-discovered, excludes e2e/examples)";
               runtimeInputs = [ pkgs.golangci-lint ];
               text = ''
-                echo "==> Root module"
-                golangci-lint run
-                echo "==> identity-model submodule"
-                (cd identity-model && golangci-lint run)
-                echo "==> usermgmt submodule"
-                (cd usermgmt && golangci-lint run)
-                echo "==> usermgmt/totp submodule"
-                (cd usermgmt/totp && golangci-lint run)
-                echo "==> usermgmt/webauthn submodule"
-                (cd usermgmt/webauthn && golangci-lint run)
-                echo "==> usermgmt/oauth2 submodule"
-                (cd usermgmt/oauth2 && golangci-lint run)
-                echo "==> adminui submodule"
-                (cd adminui && golangci-lint run)
-                echo "==> loginpage submodule"
-                (cd loginpage && golangci-lint run)
-                echo "==> dashboardui submodule"
-                (cd dashboardui && golangci-lint run)
-                echo "==> datastar submodule"
-                (cd datastar && golangci-lint run)
-                echo "==> integration_test submodule"
-                (cd integration_test && golangci-lint run)
+                forEachGoModule "golangci-lint run" '^(e2e/|examples/)'
               '';
             };
 
