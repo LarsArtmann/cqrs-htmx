@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/httputil"
 )
 

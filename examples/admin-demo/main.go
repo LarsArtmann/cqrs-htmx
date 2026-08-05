@@ -35,6 +35,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
+	"github.com/larsartmann/httputil"
 )
 
 const (
@@ -92,7 +93,7 @@ func main() {
 	//    the production-ready wiring pattern.
 	mux := http.NewServeMux()
 	sessionMW := usermgmt.NewSessionMiddleware(svc, cookieName)
-	csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+	csrfMW := httputil.CSRFMiddleware(httputil.CSRFConfig{})
 	panelMW := panel.Middleware()
 
 	// ACK + idempotency middleware: rejects duplicate commands (409) before
@@ -125,14 +126,17 @@ func main() {
 	})
 
 	fmt.Printf("admin-demo\nOpen http://localhost%s/  (auto-signs in as %s)\n", addr, adminEmail)
-	srv := &http.Server{ //nolint:exhaustruct // demo server
-		Addr: addr,
-		Handler: cqrshtmx.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
-			return r.URL.Query().Has("debug")
-		})(logging(mux)),
-		ReadHeaderTimeout: 5 * time.Second,
+
+	handler := httputil.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+		return r.URL.Query().Has("debug")
+	})(logging(mux))
+
+	srv, err := httputil.NewServer(httputil.ServerConfig{Addr: addr}, handler)
+	if err != nil {
+		log.Fatalf("NewServer: %v", err)
 	}
-	if err := srv.ListenAndServe(); err != nil {
+
+	if err := <-srv.Start(); err != nil {
 		log.Fatal(err)
 	}
 }
