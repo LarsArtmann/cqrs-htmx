@@ -25,7 +25,6 @@ var _ = Describe("HTMXExtensionHandler", func() {
 			Expect(w.Body.Len()).To(BeNumerically(">", 0))
 		},
 		Entry("sse", cqrshtmx.HTMXExtSSE, "2.2.4"),
-		Entry("ws", cqrshtmx.HTMXExtWS, "2.0.4"),
 		Entry("idiomorph", cqrshtmx.HTMXExtIdiomorph, "0.7.4"),
 	)
 

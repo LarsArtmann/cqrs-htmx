@@ -92,7 +92,7 @@ func (l *lockedRecorder) body() string {
 	return l.buf.String()
 }
 
-var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
+var _ = Describe("BDD: Realtime (SSE) Consumer Scenarios", func() {
 	Describe(
 		"As a consumer, I want to push live updates to every connected browser",
 		func() {
@@ -327,51 +327,3 @@ var _ = Describe("BDD: Realtime (SSE & WebSocket) Consumer Scenarios", func() {
 		},
 	)
 
-	Describe(
-		"As a consumer, I want to parse HTMX WebSocket form submissions into typed Go structs",
-		func() {
-			It("separates the form body from the HTMX HEADERS blob", func() {
-				raw := []byte(`{
-					"message": "hello",
-					"HEADERS": {"HX-Request": "true", "HX-Trigger": "send-btn"}
-				}`)
-
-				msg, err := cqrshtmx.ParseWSMessage(raw)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(msg.StringBody("message")).To(Equal("hello"))
-				Expect(msg.Headers["HX-Request"]).To(Equal("true"))
-				Expect(msg.Headers["HX-Trigger"]).To(Equal("send-btn"))
-				Expect(msg.Body).NotTo(HaveKey("HEADERS"))
-			})
-
-			It("deserializes body fields into a typed struct while keeping headers", func() {
-				type chatMessage struct {
-					Room    string `json:"room"`
-					Message string `json:"message"`
-				}
-
-				raw := []byte(`{
-					"room": "general",
-					"message": "ping",
-					"HEADERS": {"HX-Request": "true"}
-				}`)
-
-				msg, headers, err := cqrshtmx.ParseWSMessageInto[chatMessage](raw)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(msg.Room).To(Equal("general"))
-				Expect(msg.Message).To(Equal("ping"))
-				Expect(headers["HX-Request"]).To(Equal("true"))
-			})
-
-			It("wraps a fragment for out-of-band swap so the browser updates a target element", func() {
-				html := cqrshtmx.WSOOBHTML("notifications", "<span>3 unread</span>")
-
-				Expect(html).To(ContainSubstring(`id="notifications"`))
-				Expect(html).To(ContainSubstring(`hx-swap-oob`))
-				Expect(html).To(ContainSubstring("<span>3 unread</span>"))
-			})
-		},
-	)
-})
