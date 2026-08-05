@@ -18,7 +18,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -26,6 +25,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
+	"github.com/larsartmann/httputil"
 	"go.opentelemetry.io/otel"
 )
 
@@ -59,12 +59,15 @@ func main() {
 	fmt.Println("  POST /ping     — dispatch a command (traces + metrics emitted)")
 	fmt.Println("  GET  /metrics  — Prometheus metrics endpoint")
 
-	server := &http.Server{
-		Addr:              addr,
-		Handler:           handler,
-		ReadHeaderTimeout: 5 * time.Second,
+	srv, err := httputil.NewServer(httputil.ServerConfig{Addr: addr}, handler)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "NewServer: %v\n", err)
+		os.Exit(1)
 	}
-	_ = server.ListenAndServe()
+	if err := <-srv.Start(); err != nil {
+		fmt.Fprintf(os.Stderr, "server: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // newHandler builds the full HTTP handler with OTel tracing + Prometheus metrics

@@ -24,13 +24,13 @@ import (
 	"log/slog"
 	"net/http"
 	"sync/atomic"
-	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 )
 
 // pingCmd embeds *command.BasicCommand for Type()/StreamID()/ID().
@@ -110,10 +110,12 @@ func main() {
 	fmt.Printf("middleware-demo on http://localhost%s/ping (POST {\"msg\":...})\n", addr)
 	fmt.Println("First request retries twice (transient failures) then succeeds with 204.")
 
-	server := &http.Server{
-		Addr:              addr,
-		Handler:           handler,
-		ReadHeaderTimeout: 5 * time.Second,
+	srv, err := httputil.NewServer(httputil.ServerConfig{Addr: addr}, handler)
+	if err != nil {
+		fmt.Printf("NewServer: %v\n", err)
+		return
 	}
-	_ = server.ListenAndServe()
+	if err := <-srv.Start(); err != nil {
+		fmt.Printf("server: %v\n", err)
+	}
 }
