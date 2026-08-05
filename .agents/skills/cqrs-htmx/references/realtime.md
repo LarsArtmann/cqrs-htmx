@@ -1,8 +1,11 @@
-# Realtime reference (SSE + WebSocket)
+# Realtime reference (SSE)
 
-Import: `cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"`. Realtime is **building blocks, not a server** — you own the HTTP/WS handler, the library gives you the stream, fan-out, and the CQRS bridge.
+Import: `cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"` (and `sse "github.com/larsartmann/go-sse"` for the stream/event types). Realtime is **building blocks, not a server** — you own the HTTP handler, the library gives you the stream, fan-out, and the CQRS bridge.
 
-There is **no WebSocket library dependency** — the library provides protocol helpers only. You choose your WS library (e.g. `nhooyr.io/websocket`, `gorilla/websocket`) and do the upgrade yourself.
+> WebSocket transport was removed in v5 (see ADR-0046); the library is SSE-only.
+> SSE covers every realtime use case with strictly better operational properties:
+> plain HTTP, native auth/CSRF/cookies, proxy/CDN-friendly, and built-in
+> auto-reconnect via `Last-Event-ID`.
 
 ## SSE — the happy path
 
@@ -48,10 +51,10 @@ stream.OnDisconnect(fn func())        // register cleanup callbacks (fired on Cl
 stream.Close()
 ```
 
-`SSEEvent` is a type alias for `go-cqrs-lite/transport/http/v3.SSEEvent`:
+`sse.Event` (re-exported as the deprecated alias `cqrshtmx.SSEEvent`) has this shape:
 
 ```go
-type SSEEvent struct {
+type Event struct {
     Event string // event name; empty = default message event
     Data  string // multi-line data is auto-split per SSE spec; CRLF normalized to LF
     ID    string // event id; must not contain newlines (branded SSEEventID rejects them)
@@ -221,83 +224,9 @@ store := cqrshtmx.NewJournalSSEStore(
 
 Consumer provides the mapper (the library can't render consumer domain payloads). See `docs/adr/0023-command-sync.md`.
 
-## WebSocket
-
-WebSockets mirror the SSE pattern but with a string-message fan-out and OOB HTML helpers.
-
-### Inbound parsing (HTMX WebSocket JSON format)
-
-```go
-// Generic typed parse — separates HEADERS from body fields:
-msg, headers, err := cqrshtmx.ParseWSMessageInto[CreateTaskInput](data)
-
-// Or the untyped form:
-wsMsg, err := cqrshtmx.ParseWSMessage(data)  // WSMessage{Headers, Body}
-wsMsg.StringBody()                            // typed helper on WSMessage
-```
-
-### Outbound encoding
-
-```go
-cqrshtmx.WriteWSMessage(w, wsMsg)                       // WSMessage → JSON
-cqrshtmx.WriteWSMessageInto[T](w, body, headers)        // typed body → JSON
-// Round-trips perfectly through ParseWSMessage.
-```
-
-### OOB HTML (HTMX out-of-band swaps)
-
-```go
-html := cqrshtmx.WSOOBHTML("tasks", "<ul>...</ul>")                       // default swap
-html := cqrshtmx.WSOOBHTML("tasks", "<ul>...</ul>", cqrshtmx.SwapOuterHTML) // explicit strategy
-// Passthrough when html already contains hx-swap-oob.
-```
-
-### `WSBroadcaster` (WS fan-out)
-
-```go
-wb := cqrshtmx.NewWSBroadcaster()
-wb.Subscribe()       // chan string (buffered)
-wb.Unsubscribe(ch)   // closes channel
-wb.Broadcast(msg)    // non-blocking
-wb.BroadcastHTML(id, html, swapStrategy...) // convenience: wraps in WSOOBHTML
-wb.SubscriberCount() int
-```
-
-### Hook factories (bridge CQRS → WS)
-
-```go
-wb.BroadcastOnSuccessWS(msg) AfterDispatchHook
-wb.BroadcastOnSuccessWSFunc(func(r) string) AfterDispatchHook
-wb.BroadcastOnErrorWS() AfterDispatchHook                  // StructuredError JSON
-wb.BroadcastOnErrorWSFunc(func(r, err) string) AfterDispatchHook
-wb.BroadcastOnAckWS() AfterDispatchHook                    // ACK over WS
-wb.BroadcastOnAckWSFunc(func(r, err, cmdID) string) AfterDispatchHook
-```
-
-### CQRS bridge (WS → dispatch)
-
-`App.DispatchWSCommand` / `DispatchWSQuery` decode a WS message and dispatch it — running hooks + timeout but **no auth/CSRF/response-writing** (WS is authenticated at upgrade time; you serialize the result back to the connection yourself).
-
-```go
-decoder := cqrshtmx.DecodeWSJSON(func(t CreateTaskInput) (command.Command, error) {
-    return command.New("CreateTask", t)
-})
-// in your WS read loop:
-err := app.DispatchWSCommand(r, "CreateTask", decoder, data)
-if err != nil {
-    payload := cqrshtmx.NewStructuredError(err, r)
-    _ = conn.WriteMessage(websocket.TextMessage, []byte(payload.JSON()))
-    continue
-}
-// dispatch succeeded — broadcast the new state to all WS clients:
-wb.Broadcast(cqrshtmx.WSOOBHTML("tasks", renderTasks()))
-```
-
-For queries, `result, err := app.DispatchWSQuery(r, "GetTasks", queryDecoder, data)` returns the result for you to marshal. `cqrshtmx.DecodeWSJSONQuery[T]` is the typed query decoder.
-
 ## `StructuredError` (RFC 7807 shape)
 
-Used by `BroadcastOnError`/`BroadcastOnErrorWS` and the WS bridge to carry a typed error payload to realtime clients.
+Used by `BroadcastOnError` to carry a typed error payload to SSE clients.
 
 ```go
 payload := cqrshtmx.NewStructuredError(err, r)   // maps via MapError + extracts request ID
@@ -305,11 +234,9 @@ payload := cqrshtmx.NewStructuredErrorWithContext(err, ctx)
 payload.JSON()                                   // RFC 7807-shaped JSON string
 ```
 
-## When to pick SSE vs WebSocket
+## When to use SSE
 
-- **SSE** — one-way server→client (the common case for live updates). Simpler, plain HTTP, auto-reconnects, proxies-friendly. Use `Broadcaster` + `SSEStream`.
-- **WebSocket** — bidirectional. Use when the client pushes frequent messages back (collaborative editing, chat). Use `WSBroadcaster` + `DispatchWSCommand`/`DispatchWSQuery`. Authenticated at upgrade time.
-- The library provides **transport parity** — both have broadcasters, ACK, hooks, and OOB. See `docs/adr/0010-transport-parity.md`.
+SSE is the only realtime transport (since v5). It covers every server→client update pattern: live lists, notifications, ACKs, projection health. Client→server mutations go through the normal HTTP command/query pipeline (`app.Command`/`app.Query` + `DecodeJSON`), which already handles auth, CSRF, and content negotiation. See `docs/adr/0046-drop-websocket-sse-only.md`.
 
 ## Gotchas
 

@@ -53,7 +53,7 @@
 // panic recovery, CSRF protection, HTMX header parsing, and context enrichment:
 //
 //	handler := cqrshtmx.Chain(
-//	    cqrshtmx.SecurityHeadersMiddleware,
+//	    httputil.SecurityHeadersMiddleware,
 //	    cqrshtmx.RecoveryMiddleware,
 //	    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
 //	    cqrshtmx.HTMXMiddleware,

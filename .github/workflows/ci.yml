@@ -390,6 +390,27 @@ jobs:
       - name: Replace directive check
         run: bash scripts/check-replace-directives.sh
 
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Binary / large-file guard
+        run: bash scripts/check-large-files.sh --all
+
+      - name: "*Service method count guard (ADR-0038)"
+        run: bash scripts/check-service-methods.sh
+
+      - name: Domain model count drift check
+        run: bash scripts/check-domain-counts.sh
+
+      - name: Markdown link check
+        run: bash scripts/check-docs-links.sh
+
   security:
     runs-on: ubuntu-latest
     steps:

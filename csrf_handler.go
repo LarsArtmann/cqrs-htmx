@@ -18,7 +18,7 @@ import (
 // Usage:
 //
 //	app.Command("CreateUser",
-//	    cqrshtmx.CSRFProtect(cqrshtmx.CSRFConfig{}),
+//	    cqrshtmx.CSRFProtect(httputil.CSRFConfig{}),
 //	    cqrshtmx.DecodeJSON(...),
 //	)
 func CSRFProtect(config httputil.CSRFConfig) HandlerOption {

@@ -85,9 +85,9 @@ func writePanicResponse(
 // Usage:
 //
 //	handler := cqrshtmx.Chain(
-//	    cqrshtmx.SecurityHeadersMiddleware,
+//	    httputil.SecurityHeadersMiddleware,
 //	    cqrshtmx.RecoveryMiddleware,
-//	    cqrshtmx.CSRFMiddleware(...),
+//	    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
 //	)(mux)
 func RecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
