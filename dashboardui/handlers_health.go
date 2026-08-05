@@ -29,7 +29,7 @@ func (d *Dashboard) readyzHandler(w http.ResponseWriter, _ *http.Request) {
 	default:
 	}
 
-	if !d.caps.hasEventRead() && !d.caps.EventSource {
+	if !d.caps.HasEventRead() && !d.caps.EventSource {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{
 			jsonKeyStatus: "no_data_source",
 			jsonKeyReady:  false,
