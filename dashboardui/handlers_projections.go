@@ -213,7 +213,13 @@ func (d *Dashboard) renderProjectionDetail(p pageData, proj projectionStat) stri
 		b.WriteString(`</table>`)
 
 		b.WriteString(`<div class="filter-bar">`)
-		fmt.Fprintf(&b, `<a href="%s/dead-letters/%s" class="btn">View Dead Letters (%d)</a>`, p.BasePath, esc(proj.Name), proj.Errors)
+		fmt.Fprintf(
+			&b,
+			`<a href="%s/dead-letters/%s" class="btn">View Dead Letters (%d)</a>`,
+			p.BasePath,
+			esc(proj.Name),
+			proj.Errors,
+		)
 
 		if !p.ReadOnly {
 			fmt.Fprintf(

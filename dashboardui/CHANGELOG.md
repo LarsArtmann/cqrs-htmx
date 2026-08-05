@@ -8,6 +8,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Detail views for commands, queries, and DLQ entries** (`handlers_audit.go`, `handlers_dlq.go`, `handler.go`): New routes `/commands/{id}`, `/queries/{id}`, `/dead-letters/{projection}/{eventID}` render full detail pages with metadata tables, copyable IDs, and pretty-printed JSON payloads.
+- **Projection detail view** (`handlers_projections.go`, `handler.go`): New route `/projections/{name}` shows checkpoint, processed/errors/restarts counters, lag, last error, DLQ link, and reset action for a single projection. Projection names in the index table are now clickable links.
+- **Total count display** (`pagination.go`, all index handlers): Paginated pages now show "Showing X-Y of Z" when the total is known (last page). Uses `WithCountInfo()` builder pattern — no extra count queries for append-only logs.
+- **Page-size selector** (`pagination.go`): Dropdown in the pagination bar lets users choose 25/50/100/200 items per page via `?limit=` query param.
+- **Sortable column headers** (`sort.go`, `handlers_events.go`): Events table columns (Time, Type, Stream Type, Version) are clickable for ascending/descending sort via `?sort=` and `?dir=` query params. Headers show arrow indicators.
+- **HTMX-powered filter form** (`handlers_events.go`, `layout.go`): Event filter form uses `hx-get`/`hx-target`/`hx-select`/`hx-swap`/`hx-push-url` for partial content swapping without full page reloads.
+- **HTMX partial rendering** (`render.go`, `layout.go`): Server detects `HX-Request` header and renders title+main only (no full HTML document). Layout includes `data-hx-boost` for progressive enhancement.
+- **Payload copy and download** (`handlers_events.go`, `layout.go`): Event detail page has Copy (clipboard API with toast) and Download JSON (Blob download) buttons for event payloads.
+- **Keyboard navigation for time-travel slider** (`handlers_timetravel.go`, `layout.go`): Arrow keys anywhere on the time-travel page move the version slider. Live value display updates as the slider moves.
+- **CSV export** (`export.go`, all index handlers): `?format=csv` on events, commands, and queries index pages exports up to 10,000 rows as a downloadable CSV file.
+- **JSON API mode** (`export.go`, all index handlers): `?format=json` on events, commands, and queries index pages returns a JSON array of row objects.
+- **SSE live event injection** (`layout.go`): JavaScript listener for `dashboard:event` custom events prepends new rows to the events table and refreshes projection health (capped at 50 rows).
+- **Core data layer** (`core/` package): Capabilities, pagination, events, overview, payload, and format functions extracted into a pure-data `core` subpackage, bridged via type aliases in `core_bridge.go`.
+- **Demo projection host** (`examples/dashboard-demo/main.go`): Demo now includes a projection host with a `user-read-model` projection so the projections panel and detail view show live data.
+- **Templ migration evaluation** (`docs/planning/templ-migration-evaluation.md`): Documents the tradeoffs of migrating from strings.Builder to templ, with a recommendation to defer.
+
+### Changed
+
+- **`IMPROVEMENT_IDEAS.md` pruned** from 883 lines to ~60 lines after implementing the high-value ideas.
+- **Generic journal scanning** (`handlers_audit.go`): `loadCommandByID`/`loadQueryByID` refactored to share `scanJournalByID`/`findInAll` generic helpers, eliminating code duplication.
+- **Lint config updates** (`.golangci.yml`): Fixed broken canonicalheader exclusion patterns, added exhaustruct excludes for dashboardui types, added wrapcheck/revive exclusions for core_bridge.go.
+
+### Fixed
+
 - **Mobile responsive design** (`layout.go`, all handler files): Hamburger menu with slide-in sidebar drawer and backdrop overlay for screens <768px. All buttons have 44px minimum touch targets (WCAG 2.5.5). Data tables wrapped in horizontal scroll containers. Filter bar controls stack vertically on mobile. Stat card grid collapses to 2 columns.
 - **Accessibility aria-labels** (`handlers_projections.go`, `handlers_dlq.go`, `handlers_snapshots.go`): All interactive elements (Reset, Replay, Delete, Purge buttons and forms) now have descriptive `aria-label` attributes for screen reader users.
 - **Skip-to-content link** (`layout.go`): Keyboard users can bypass the sidebar navigation directly to main content.

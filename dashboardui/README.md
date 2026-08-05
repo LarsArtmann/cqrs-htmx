@@ -135,6 +135,60 @@ The Events page supports in-memory filtering:
 When filters are active, the dashboard scans up to 500 events and filters in-memory.
 For larger datasets, wire a `SeekableJournal` for paginated access.
 
+### Sorting
+
+Events table columns are sortable by clicking the column headers:
+
+- **`?sort=time`** / **`?sort=type`** / **`?sort=streamType`** / **`?sort=version`**
+- **`?dir=asc`** / **`?dir=desc`** (defaults to ascending)
+- Arrow indicators (▲/▼) show the active sort column and direction
+- Sorting is in-memory (scans up to 500 events)
+
+### Pagination
+
+All list pages support cursor-based pagination:
+
+- **`?after=<id>`**: Next page cursor (event/command/query ID)
+- **`?prev=<history>`**: Cursor history for Previous navigation (comma-separated)
+- **`?limit=<n>`**: Items per page (default: 50, max: 200, options: 25/50/100/200)
+- Count display: "Showing X-Y of Z" appears on the last page when total is known
+
+### HTMX Integration
+
+The dashboard supports HTMX for partial page updates:
+
+- **`data-hx-boost`**: All internal links use HTMX for smooth transitions
+- **Partial rendering**: When `HX-Request: true` header is present, the server renders only the title and main content (no full HTML document)
+- **Filter form**: The events filter form uses `hx-get` for partial content swapping
+- **SSE**: Live events are injected into the events table and projection health panel is refreshed automatically
+
+### CSV and JSON Export
+
+All list pages support data export via query parameters:
+
+- **`?format=csv`**: Downloads a CSV file with up to 10,000 rows
+- **`?format=json`**: Returns a JSON array of row objects
+- Available on: `/events`, `/commands`, `/queries`
+
+### Detail Views
+
+Each list item links to a detail page showing full metadata and pretty-printed JSON payload:
+
+- **Events** (`/events/{id}`): Type, stream ref, version, occurred at, metadata, payload with copy/download buttons
+- **Commands** (`/commands/{id}`): Type, stream ref, received at, metadata, payload
+- **Queries** (`/queries/{id}`): Type, received at, metadata, payload
+- **Projections** (`/projections/{name}`): Status badge, checkpoint, processed/errors/restarts stats, lag, last error, DLQ link, reset action
+- **DLQ entries** (`/dead-letters/{projection}/{eventID}`): Event details, error info, replay action
+- **Aggregates** (`/aggregates/{type}/{id}`): Event timeline with pagination, total event count
+
+### Time-Travel Slider
+
+The time-travel detail page includes a version slider with keyboard navigation:
+
+- **Arrow keys** (left/right) move the slider and navigate to the selected version
+- **Live value display**: The version number updates as the slider moves
+- **Version links**: For streams with <= 20 versions, individual version numbers are clickable
+
 ## Observability Endpoints
 
 Three unauthenticated endpoints for load balancers and Kubernetes probes:
@@ -202,8 +256,8 @@ handler := cqrshtmx.Chain(
 ## Demo
 
 See `examples/dashboard-demo/main.go` for a fully seeded demo with 8 users,
-6 orders, commands, queries, snapshots, EventBus-powered SSE live updates,
-and a goroutine that publishes new events every 5 seconds.
+6 orders, commands, queries, snapshots, a projection host, EventBus-powered
+SSE live updates, and a goroutine that publishes new events every 5 seconds.
 
 > **Note:** The demo requires the `dashboardui/v4` module to be tagged and
 > published. Once tagged, add `./examples/dashboard-demo` to `go.work` and run:

@@ -182,6 +182,9 @@ func exportQueriesJSON(w http.ResponseWriter, queries []*query.PersistedQuery) {
 func formatLinks(basePath, path string) string {
 	return fmt.Sprintf(
 		`<div class="filter-bar"><span class="muted">Export:</span><a href="%s%s?format=csv" class="btn">CSV</a><a href="%s%s?format=json" class="btn">JSON</a></div>`,
-		basePath, path, basePath, path,
+		basePath,
+		path,
+		basePath,
+		path,
 	)
 }
