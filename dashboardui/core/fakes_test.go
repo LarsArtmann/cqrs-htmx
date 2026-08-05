@@ -55,7 +55,10 @@ type fakeStreamReader struct {
 	err  error
 }
 
-func (f *fakeStreamReader) List(_ context.Context, _ listing.ListOptions) (*listing.Page[listing.StreamListing], error) {
+func (f *fakeStreamReader) List(
+	_ context.Context,
+	_ listing.ListOptions,
+) (*listing.Page[listing.StreamListing], error) {
 	if f.err != nil {
 		return nil, f.err
 	}
