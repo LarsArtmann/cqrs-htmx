@@ -73,6 +73,14 @@ skip_steps:
   - jest-test
   - vitest-test
   - npm-audit
+  # Not installed in devShell; biome handles JS formatting/linting.
+  - eslint
+  # Nix dead-code linter — not installed.
+  - deadnix
+  # Markdown formatting (dprint) — skipped until a one-time normalization pass
+  # is done. 257 .md files would create massive churn; format incrementally
+  # per-file instead. Re-enable after bulk-formatting docs.
+  - markdown-format
 
 # Logging
 verbose: false
