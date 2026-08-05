@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // verificationVerifyRequest is the body for POST /auth/email/verify.
@@ -71,7 +72,7 @@ func (h *AuthHandler) currentUserWithPathValue(
 }
 
 func (h *AuthHandler) checkRateLimit(
-	w http.ResponseWriter, r *http.Request, rl *cqrshtmx.RateLimiter, msg string,
+	w http.ResponseWriter, r *http.Request, rl *httputil.KeyedRateLimiter, msg string,
 ) bool {
 	if rl != nil {
 		if ok, _ := rl.Check(r); !ok {
@@ -202,7 +203,7 @@ func (h *AuthHandler) handleTOTPDisable(w http.ResponseWriter, r *http.Request) 
 func (h *AuthHandler) importExportContext(
 	w http.ResponseWriter,
 	r *http.Request,
-	limiter *cqrshtmx.RateLimiter,
+	limiter *httputil.KeyedRateLimiter,
 	limitMsg string,
 ) (context.Context, context.CancelFunc, bool) {
 	if !h.checkRateLimit(w, r, limiter, limitMsg) {
@@ -227,7 +228,7 @@ func (h *AuthHandler) importExportContext(
 func (h *AuthHandler) authContext(
 	w http.ResponseWriter,
 	r *http.Request,
-	limiter *cqrshtmx.RateLimiter,
+	limiter *httputil.KeyedRateLimiter,
 	limitMsg string,
 ) (*User, context.Context, context.CancelFunc, bool) {
 	if !h.checkRateLimit(w, r, limiter, limitMsg) {
@@ -247,7 +248,7 @@ func (h *AuthHandler) authContext(
 func (h *AuthHandler) withAuthContext(
 	w http.ResponseWriter,
 	r *http.Request,
-	limiter *cqrshtmx.RateLimiter,
+	limiter *httputil.KeyedRateLimiter,
 	limitMsg string,
 	fn func(user *User, ctx context.Context),
 ) {
