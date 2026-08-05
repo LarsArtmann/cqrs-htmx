@@ -75,7 +75,7 @@ mux.Handle("/events", sseHandler(broadcaster))
 
 func sseHandler(bc *cqrshtmx.Broadcaster) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        stream := cqrshtmx.NewSSEStream(w, r)
+        stream := sse.NewStream(w, r)
         defer stream.Close()
         ch := bc.Subscribe()
         defer bc.Unsubscribe(ch)
@@ -196,8 +196,8 @@ The sync system requires three CSP directives when using a restrictive CSP.
 | `connect-src 'self'` | SSE EventSource connects to same origin  |
 
 ```go
-cqrshtmx.SecurityHeadersConfig{
-    ContentSecurityPolicy: cqrshtmx.RecommendedCSP,
+httputil.SecurityHeadersConfig{
+    ContentSecurityPolicy: httputil.RecommendedCSP,
     // default-src 'self' covers worker-src, script-src, connect-src
 }
 ```

@@ -201,7 +201,9 @@ HTMX bundle now ships SSE as a core extension).
 
 ## The SSE Pattern (reference)
 
-If you're new to the SSE broadcaster, here's the canonical setup:
+If you're new to the SSE broadcaster, here's the canonical setup
+(`cqrshtmx.NewBroadcaster`/`Broadcaster` stay; `sse.Event`/`sse.NewStream`
+come from `github.com/larsartmann/go-sse`, imported as `sse`):
 
 ```go
 broadcaster := cqrshtmx.NewBroadcaster()
