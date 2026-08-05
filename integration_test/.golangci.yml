@@ -103,6 +103,9 @@ linters:
   exclusions:
     generated: lax
     rules:
+      - text: 'Import github\.com/larsartmann/cqrs-htmx/identity-model/v4 directly'
+        linters:
+          - staticcheck
       - path: _test\.go
         linters:
           - gochecknoglobals

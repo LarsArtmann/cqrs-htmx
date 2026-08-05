@@ -55,12 +55,14 @@ const (
 )
 
 // NewAuthz creates an Authz with the given optional config.
+//
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewAuthz(config ...EnforcerConfig) (*Authz, error) {
 	return identitymodel.NewAuthz(config...)
 }
 
 // AssignableRoles returns roles grantable within a tenant (excludes super_admin).
+//
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func AssignableRoles() []Role {
 	return identitymodel.AssignableRoles()

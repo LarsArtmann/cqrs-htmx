@@ -26,6 +26,7 @@ import (
 // Implemented by github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4.Provider.
 // The interface uses only primitive types so the implementation module does
 // not need to import core usermgmt.
+//
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 type TOTPProvider = identitymodel.TOTPProvider
 
@@ -40,6 +41,7 @@ type TOTPProvider = identitymodel.TOTPProvider
 // sessionData contains opaque serialized session state (stored by the Service).
 // credentialJSON contains the new credential data as JSON.
 // body contains the raw authenticator response body.
+//
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 type WebAuthnProvider = identitymodel.WebAuthnProvider
 
@@ -48,11 +50,13 @@ type WebAuthnProvider = identitymodel.WebAuthnProvider
 //
 // All parameters use primitive types so the implementation module does not
 // import core usermgmt. The provider generates PKCE internally.
+//
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 type OAuth2Provider = identitymodel.OAuth2Provider
 
 // OAuth2UserInfo is the normalized user information returned by an OAuth2
 // provider after token exchange. Used by the Service to deserialize the
 // provider's JSON return value.
+//
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 type OAuth2UserInfo = identitymodel.OAuth2UserInfo
