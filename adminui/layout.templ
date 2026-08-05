@@ -95,8 +95,8 @@ templ Layout(p pageData) {
 			<div
 				class="admin-scrim fixed inset-0 z-40 hidden bg-black/40 max-md:block"
 			></div>
-			@toastHost()
-			@htmx.GlobalErrorHandling(htmx.DefaultErrorHandlingConfig())
+			@toastHost(p.Nonce)
+			@htmx.GlobalErrorHandling(htmx.ErrorHandlingConfig{Nonce: p.Nonce})
 			if p.SSEURL != "" {
 				// sync-client.js must load before admin.js: it registers htmx:beforeRequest
 				// and htmx:sendError listeners that admin.js's CSRF config depends on being

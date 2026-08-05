@@ -42,8 +42,8 @@ templ empty(iconName, title, hint string) {
 	})
 }
 
-templ toastHost() {
-	@feedback.ToastContainer("")
+templ toastHost(nonce string) {
+	@feedback.ToastContainer(nonce)
 }
 
 templ userIDDetail(id string) {
