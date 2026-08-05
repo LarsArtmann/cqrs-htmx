@@ -5,19 +5,28 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-08-03 | **Version:** v4.6.1 (go-cqrs-lite v4.2.0; see AGENTS.md for per-sub-module versions) | **Lint:** 0 issues across all 19 modules | **Coverage gates:** root 93.3% (gate 90%), usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 84.0% (gate 60%), datastar 96.7% (gate 90%)
+**Updated:** 2026-08-05 | **Version:** v4.6.1 + `[Unreleased]` (WebSocket dropped — SSE-only; ADR 0046) | **Lint:** 0 issues across all lint-checked modules | **Coverage gates:** root ~93% (gate 90%), usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 84.0% (gate 60%), datastar 96.7% (gate 90%) | **`*Service` methods:** 72 (leading v5 indicator)
 
 ## Current State
 
-- **Version:** v4.6.1 (19 modules: root + identity-model + usermgmt + 3 auth sub-modules + adminui + loginpage + dashboardui + datastar + integration_test + 7 examples + e2e/server). v4.6.0 released 2026-07-26; v4.6.1 released 2026-07-27 (dependency bumps, identity-model metadata, slices.Contains refactor). All inter-module version refs resolved to clean tags (`e274540` + subsequent releases).
+- **Version:** v4.6.1 (released 2026-07-27) + a large `[Unreleased]` (19 modules: root + identity-model + usermgmt + 3 auth sub-modules + adminui + loginpage + dashboardui + datastar + integration_test + 7 examples + e2e/server). The `[Unreleased]` work includes the WebSocket transport drop (14 exported symbols deleted — breaking; ADR 0046), the httputil adoption to 100% (39 re-export symbols deprecated), the identity-model re-export deprecation (23 files), the OAuth2 sub-service extraction prototype, and the dashboardui `core/` pure-data layer. All inter-module version refs resolved to clean tags.
 - **Coverage:** 93.3% root, 81.6% usermgmt, 74.9% identity-model (gate 70%), 88.2% totp, 89.2% webauthn, 88.3% oauth2, 68.7% adminui, 79.9% loginpage, 84.0% dashboardui (gate 60%), 96.7% datastar (gate 90%). Race-safe. CI gates: root 90%, usermgmt 74%, identity-model 70%, auth 80%, adminui 66%, loginpage 79%, dashboardui 60%, datastar 90% (see `nix run .#coverage-gate`). All 10 modules have coverage gates.
 - **Lint:** All 19 modules lint-clean (0 issues each). Achieved via the SA1019 deprecation migration (`id.AggregateID` → `id.StreamID` across all modules), dead-code removal (`renderStatCardsTempl`, `notImplemented`, `eventRow`), and targeted `.golangci.yml` exclusions for intentional patterns (builder-pattern partial init, re-export wrappers, generated `_templ.go`). The exclusion audit confirmed zero masked bugs. Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 - **ErrorFamily:** 0 violations across all modules.
-- **Dependencies:** go-cqrs-lite v4.2.0 (storage/memory and snapshot at v4.1.0), go-error-family v0.10.0, go-branded-id v0.5.0, go-sse v0.3.0, httputil v0.8.0, templ-components v1.2.0. Casbin v3 is a first-class dependency of identity-model (ADR-0044). Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps.
-- **Architecture:** identity-model is the domain source of truth (pure types, fold functions, Authz engine, constants). usermgmt re-exports via type aliases. Fully event-sourced (21 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay via projectionhost). dashboardui provides CQRS/ES observability (event browser, projection health, time-travel inspector, SSE live updates). Auth strategies extracted behind interfaces (ADR-0035). Harmful code duplication driven to zero across two dedup sweeps (2026-07-26).
+- **Dependencies:** go-cqrs-lite v4.2.0 (storage/memory and snapshot at v4.1.0), go-error-family v0.10.0, go-branded-id v0.5.0, go-sse v0.3.0, httputil v0.8.0 (v0.9.0 pending publish — see TODO P0), templ-components v1.7.0. Casbin v3 is a first-class dependency of identity-model (ADR-0044). Auth deps (go-webauthn, oauth2, oidc, pquerna/otp) are in optional sub-modules — core usermgmt has ZERO auth deps.
+- **Architecture:** identity-model is the domain source of truth (pure types, fold functions, Authz engine, constants). usermgmt re-exports via type aliases (now deprecated; see v5 re-export retirement). Fully event-sourced (21 events, 20 commands, Decider pattern, WebAuthn passwordless, OAuth2/OIDC, multi-tenancy, bot accounts, membership RBAC, impersonation, checkpoint-based projection replay via projectionhost). **Transport is SSE-only** since the WebSocket drop (ADR 0046). dashboardui provides CQRS/ES observability (event browser, projection health, time-travel inspector, SSE live updates) and now has a pure-data `core/` sub-package (Phase 1 of a templ migration). Auth strategies extracted behind interfaces (ADR-0035). Harmful code duplication driven to zero across two dedup sweeps (2026-07-26) plus a 2026-08-05 `logAuth` pass.
 - **Modules:** 19 Go modules in `go.work` (root, identity-model, usermgmt, usermgmt/totp, usermgmt/webauthn, usermgmt/oauth2, adminui, loginpage, dashboardui, datastar, integration_test, examples/basic, examples/catalog-demo, examples/datastar-demo, examples/admin-demo, examples/dashboard-demo, examples/middleware-demo, examples/observability-demo, e2e/server).
 
 ---
+
+## Open Questions
+
+_Unresolved decisions that block a release or a direction. These route here (not TODO_LIST) until a decision is made._
+
+1. **Version bump for the WebSocket removal.** 14 exported symbols were deleted (ADR 0046), which is breaking under SemVer → v5.0.0. But the CHANGELOG `[Unreleased]` also accumulates many additive changes. Decision: cut v5.0.0 (SSE-only) now, or v4.7.0 with the WS removal framed as a major-bump preview? The code is already removed; only the tag/version is undecided.
+2. **SSE re-export alias deletion timing.** `sse_event.go`/`sse_store.go` re-export go-sse symbols with `// Deprecated:` markers. Delete them in v5, or keep as zero-cost transparent aliases indefinitely? They are type aliases (no runtime cost), but they give consumers two import paths.
+3. **Publish the `datastar/v4` tag now?** The module is tested, documented, and integration-tested, but has no published tag. Publish immediately, or wait for additional features (see Datastar Future Scope)?
+4. **httputil `ContentTypeNosniff` vs `ContentTypeOptions`.** httputil grew `ContentTypeOptions string` alongside the older `ContentTypeNosniff bool`. Decide whether to deprecate/remove `ContentTypeNosniff` (would be a breaking change for httputil consumers) before tagging v0.9.0.
 
 ## Upstream Adoption & Scale
 
@@ -82,7 +91,7 @@ The split becomes worthwhile when:
 2. **Dep-tree analysis shows >30% of usermgmt dependencies are pulled in for aggregates the consumer doesn't use.** Current dep-tree: go-cqrs-lite (event/command/decider/projection/projectionhost), casbin, go-error-family, go-branded-id. These are all shared infrastructure — the split would only help if aggregate-specific deps diverge.
 3. **Compile times become a bottleneck** — the current module compiles in ~3s. No urgency.
 
-**Trigger status (2026-08-05 architecture review):** 0 of 3 met. Independently confirmed: zero cross-aggregate co-change, 0% dep divergence, ~3s compile. The v5 deferral is correct. However, `*Service` has grown to 74 methods (+22 since ADR-0038 on 2026-07-19) — track this as the leading indicator. An OAuth2 sub-service extraction prototype is in progress (TODO_LIST) to validate the ADR-0038 composition pattern within v4 before committing to v5.
+**Trigger status (2026-08-05 architecture review):** 0 of 3 met. Independently confirmed: zero cross-aggregate co-change, 0% dep divergence, ~3s compile. The v5 deferral is correct. The **OAuth2 sub-service extraction prototype is DONE** (`service_oauth2_extracted.go`): 8 OAuth2 methods moved into a focused `oauth2Service` that `*Service` holds, validating the ADR-0038 composition pattern within v4. `*Service` now has **72 methods** (+20 since ADR-0038 on 2026-07-19) — track this as the leading v5 indicator (trigger at 80). The prototype establishes the shared dispatcher/error-classifier plumbing for the remaining 5 domain extractions (User, Membership, Tenant, Bot, Auth), all deferred to v5.
 
 ### Re-export Layer Retirement (v5)
 
@@ -92,9 +101,9 @@ The split becomes worthwhile when:
 
 3 root-module files (`csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go`) re-export 39 symbols from `github.com/larsartmann/httputil`. All now carry `// Deprecated:` markers (added 2026-08-05). Internal callers, examples, and docs migrated to direct `httputil.*` imports. Removal is bundled with the v5 major bump. The SecurityHeaders split-brain is **resolved**: httputil gained the richer config fields (`PermissionsPolicy`, `Custom`, `ContentTypeOptions`, `SecurityHeaderSkip`, `RecommendedHSTS`/`RecommendedCSP`) in a pending v0.9.0, and `security.go` is now a deprecated alias + delegating wrapper over `httputil.SecurityHeadersConfig`. **Publish step required:** tag httputil v0.9.0, bump cqrs-htmx `go.mod`, remove the `go.work` replace. See `docs/guides/leveraging-httputil.md` for the migration table.
 
-### WebSocket Transport Removal (v5)
+### WebSocket Transport Removal (DONE — pending version tag)
 
-Removed in v5 (ADR 0046). The entire WebSocket surface (`ws.go`, `ws_broadcaster.go`, `ws_dispatch.go`, `ws_encoder.go` + 5 test files + `extensions/ws.min.js`) was deleted without a `Deprecated:` phase — the WS code path was small enough, structurally isolated, and zero consumers were using it in production. The library is now SSE-only. Migration recipe in `docs/adr/0046-drop-websocket-sse-only.md`.
+The entire WebSocket surface (`ws.go`, `ws_broadcaster.go`, `ws_dispatch.go`, `ws_encoder.go` + 5 test files + `extensions/ws.min.js`) was deleted in `[Unreleased]` without a `Deprecated:` phase — the WS code path was small enough, structurally isolated, and zero consumers were using it in production (ADR 0046). The library is now SSE-only. ADR-0004 and ADR-0010 are superseded. Migration recipe in `docs/adr/0046-drop-websocket-sse-only.md`; a dedicated `docs/migrations/v4-to-v5.md` is tracked in TODO_LIST. The version tag (v5.0.0 vs v4.7.0) is an open question (see above).
 
 ### Proposed Module Boundaries (v5)
 

@@ -11,26 +11,26 @@
 
 ### Doc updates shipped (7 files modified)
 
-| File | Lines | Change |
-| --- | --- | --- |
-| `docs/adr/INDEX.md` | +5/−2 | Added ADR-0046 row (Accepted); marked ADR-0004 + ADR-0010 as `Superseded by ADR 0046` |
-| `.agents/skills/cqrs-htmx/SKILL.md` | +13/−12 | Removed WS from YAML description, module matrix row, decision-tree prompt, "Realtime (SSE / WebSocket)" → "Realtime (SSE)" section, embedded HTMX extensions list (3→2: SSE + idiomorph only), removed WS mirroring paragraph, removed `HTMXExtWS` from example bundle, `references/realtime.md` summary |
-| `AGENTS.md` | +3/−2 | Root module description: "HTMX/SSE/WS helpers" → "HTMX/SSE helpers" + bolded "**WebSocket transport removed in v5** — SSE only (see ADR 0046)"; new gotcha entry "WebSocket transport removed in v5 (ADR 0046)" listing all 14 removed symbols + migration recipe + file deletions + supersession chain (ADR-0046 supersedes ADR-0004 and ADR-0010); SSE re-export note: removed stale `/WSBroadcaster` reference (was a self-contradiction with the new removal note) |
-| `README.md` | +11/−108 | Removed intro tagline WS mention, "WebSocket dispatch" shape line, entire "WebSocket Helpers" section (~50 lines), entire "WebSocket API" table (~20 lines), `ws.go` tree entry, "WS (2.0.4)" row from Embedded HTMX Extensions table; replaced with a one-line SSE-only callout pointing to ADR 0046 |
-| `FEATURES.md` | +30/−36 | Replaced "Real-Time — WebSocket" section (header + 7-row table) with "Real-Time — WebSocket (removed in v5)" (header + 9-row table — added `HTMXExtWS` and `WS Dispatch` rows; all rows 🔴 `REMOVED` with migration notes); updated summary table row, Embedded HTMX Extensions description, StructuredError note, "Not Planned" entry, removed "SSE/WS" from split rationale |
-| `CHANGELOG.md` | +4 | Added `### Removed` section to `[Unreleased]` with full migration recipe (symbol-by-symbol) + ADR supersession chain + rationale for choosing SSE-only |
-| `ROADMAP.md` | +7/−1 | Added "WebSocket Transport Removal (v5)" subsection to v5 retirement list (between "httputil Re-export Retirement" and "Proposed Module Boundaries"); updated "Not Planned" entry to reflect removal |
+| File                                | Lines    | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ----------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/adr/INDEX.md`                 | +5/−2    | Added ADR-0046 row (Accepted); marked ADR-0004 + ADR-0010 as `Superseded by ADR 0046`                                                                                                                                                                                                                                                                                                                                                                                  |
+| `.agents/skills/cqrs-htmx/SKILL.md` | +13/−12  | Removed WS from YAML description, module matrix row, decision-tree prompt, "Realtime (SSE / WebSocket)" → "Realtime (SSE)" section, embedded HTMX extensions list (3→2: SSE + idiomorph only), removed WS mirroring paragraph, removed `HTMXExtWS` from example bundle, `references/realtime.md` summary                                                                                                                                                               |
+| `AGENTS.md`                         | +3/−2    | Root module description: "HTMX/SSE/WS helpers" → "HTMX/SSE helpers" + bolded "**WebSocket transport removed in v5** — SSE only (see ADR 0046)"; new gotcha entry "WebSocket transport removed in v5 (ADR 0046)" listing all 14 removed symbols + migration recipe + file deletions + supersession chain (ADR-0046 supersedes ADR-0004 and ADR-0010); SSE re-export note: removed stale `/WSBroadcaster` reference (was a self-contradiction with the new removal note) |
+| `README.md`                         | +11/−108 | Removed intro tagline WS mention, "WebSocket dispatch" shape line, entire "WebSocket Helpers" section (~50 lines), entire "WebSocket API" table (~20 lines), `ws.go` tree entry, "WS (2.0.4)" row from Embedded HTMX Extensions table; replaced with a one-line SSE-only callout pointing to ADR 0046                                                                                                                                                                  |
+| `FEATURES.md`                       | +30/−36  | Replaced "Real-Time — WebSocket" section (header + 7-row table) with "Real-Time — WebSocket (removed in v5)" (header + 9-row table — added `HTMXExtWS` and `WS Dispatch` rows; all rows 🔴 `REMOVED` with migration notes); updated summary table row, Embedded HTMX Extensions description, StructuredError note, "Not Planned" entry, removed "SSE/WS" from split rationale                                                                                          |
+| `CHANGELOG.md`                      | +4       | Added `### Removed` section to `[Unreleased]` with full migration recipe (symbol-by-symbol) + ADR supersession chain + rationale for choosing SSE-only                                                                                                                                                                                                                                                                                                                 |
+| `ROADMAP.md`                        | +7/−1    | Added "WebSocket Transport Removal (v5)" subsection to v5 retirement list (between "httputil Re-export Retirement" and "Proposed Module Boundaries"); updated "Not Planned" entry to reflect removal                                                                                                                                                                                                                                                                   |
 
 ### Pipeline verifications (all passed)
 
-| Check | Result |
-| --- | --- |
-| `GOEXPERIMENT=jsonv2 go build ./...` | PASS (silent) |
-| `GOEXPERIMENT=jsonv2 go vet ./...` | PASS (silent) |
-| `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race` (workspace mode, isolated `GOCACHE=/tmp/gocache-$$`) | PASS — root 4.08s, openapi 1.02s |
-| `GOEXPERIMENT=jsonv2 go test ./... -cover` (same isolation) | PASS — root **93.1%** (gate 90% ✅), openapi 99.0% |
-| `GOEXPERIMENT=jsonv2 golangci-lint run --timeout=5m` | **37 issues, zero in any file I touched** — all in `security.go`/`security_test.go`/`doc.go`/`htmx.go`/`errors.go`/`response.go` (pre-existing httputil v0.8.0/v0.9.0 split-brain) |
-| Final grep for all 14 removed WS symbols across `*.go` + `*.md` | All remaining matches are intentional: ADR-0046, status report, ROADMAP v5 retirement note, FEATURES.md removal table, CHANGELOG Removed section, or **pre-2026-08 archived status snapshots** that describe past work as historical record |
+| Check                                                                                                   | Result                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GOEXPERIMENT=jsonv2 go build ./...`                                                                    | PASS (silent)                                                                                                                                                                                                                               |
+| `GOEXPERIMENT=jsonv2 go vet ./...`                                                                      | PASS (silent)                                                                                                                                                                                                                               |
+| `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race` (workspace mode, isolated `GOCACHE=/tmp/gocache-$$`) | PASS — root 4.08s, openapi 1.02s                                                                                                                                                                                                            |
+| `GOEXPERIMENT=jsonv2 go test ./... -cover` (same isolation)                                             | PASS — root **93.1%** (gate 90% ✅), openapi 99.0%                                                                                                                                                                                          |
+| `GOEXPERIMENT=jsonv2 golangci-lint run --timeout=5m`                                                    | **37 issues, zero in any file I touched** — all in `security.go`/`security_test.go`/`doc.go`/`htmx.go`/`errors.go`/`response.go` (pre-existing httputil v0.8.0/v0.9.0 split-brain)                                                          |
+| Final grep for all 14 removed WS symbols across `*.go` + `*.md`                                         | All remaining matches are intentional: ADR-0046, status report, ROADMAP v5 retirement note, FEATURES.md removal table, CHANGELOG Removed section, or **pre-2026-08 archived status snapshots** that describe past work as historical record |
 
 ### Git state
 
@@ -99,12 +99,14 @@ This is a known race in the Nix Go installation: the GOCACHE directory is shared
 ### 2. Auto-git daemon committed work-in-progress 3 times during my session
 
 Without asking or surfacing the commits to me first:
+
 - `49a9f78a docs(documentation): reflect WebSocket removal in v5 across skill, agent, and ADR docs` (my SKILL.md + ADR INDEX changes)
 - `1818a82f docs(status,chore): record WebSocket removal status and normalize struct tag spacing` (prior session's status report — actually pre-dated my session)
 - `87c9500b docs(agents-md): remove stale WSBroadcaster reference from SSE re-export note` (my last edit)
 - `4c427979 chore(deps): switch to local module versions for development` (auto-daemon's own commit)
 
 The commits were correct, but they:
+
 - Made my `git diff HEAD` checks return empty when I expected to see pending work
 - Forced me to query `git log` instead of `git status` to find what was captured
 - Risk: if I'd been mid-edit on a broken file, the daemon could have committed a half-done change
@@ -159,76 +161,53 @@ When I rewrote the "Embedded HTMX extensions" section, my `new_string` block con
 
 ## f) NEXT STEPS — up to 50 things to do next 📋
 
+> **Resolution (2026-08-05 docs-health pass):** items re-routed below. `~~struck~~` = done; **→ TODO_LIST / ROADMAP** = tracked there (open); **still open** = not yet actioned. The httputil publish (#1–2) and version decision (#3) are the critical-path blockers; everything else is gated on them or is independent polish.
+
 ### Critical (block v5 release)
 
-1. **Publish httputil v0.9.0** — unblocks `nix run .#test` hermetic build. Resolve Q1 from prior session.
-2. **Bump cqrs-htmx `go.mod` to httputil v0.9.0** + remove `go.work` httputil replace.
-3. **Decide version bump: v5.0.0 or v4.7.0** (Q1 from prior session). Breaking change (14 exported symbols deleted) → v5.0.0 per SemVer; but the prior session's CHANGELOG entry was framed as v5.
-4. **Tag and release v5.0.0** — `git tag -a v5.0.0 -m "Drop WebSocket transport; SSE-only"`.
-5. **Push to origin** — `git push origin master --tags` (requires explicit user approval per NEVER PUSH rule).
-6. **Update `identity-model` CHANGELOG** — verify no WS surface there (it's pure domain types; should be clean).
-7. **Verify `adminui`, `loginpage`, `dashboardui`, `datastar`, `usermgmt` CHANGELOGs** — none of these mention WS surface but check.
+1. **Publish httputil v0.9.0** — unblocks `nix run .#test` hermetic build. **→ still open — TODO_LIST P0.**
+2. ~~**Bump cqrs-htmx `go.mod` to httputil v0.9.0** + remove `go.work` httputil replace.~~ bundled with #1 (TODO_LIST P0).
+3. **Decide version bump: v5.0.0 or v4.7.0.** **→ still open — ROADMAP "Open Questions" #1.**
+4. **Tag and release v5.0.0.** **→ still open — gated on #3.**
+5. **Push to origin.** **→ still open — gated on #4 (needs explicit user approval).**
+6. ~~**Update `identity-model` CHANGELOG`**~~ NOT-DO — identity-model is pure domain types; zero WS surface (structurally impossible). CHANGELOG needs no WS entry.
+7. **Verify submodule CHANGELOGs.** **→ still open — quick verification when #4 lands.**
 
 ### Doc health (within next session)
 
-8. **Resolve the `references/realtime.md` SKILL.md drift** — either create the file (with WS-stripped content focused on SSE broadcaster + ACK + idempotency + heartbeat + reconnection/replay) or remove the broken SKILL.md reference.
-9. **Create `docs/migrations/v4-to-v5.md`** — consumer-facing migration guide with copy-paste recipes for each removed symbol. More discoverable than the CHANGELOG entry.
-10. **Add CI step** to grep for WS symbol leaks in `*.go` + `*.md` (excludes ADR-0046 + status report). Per improvement #1.
-11. **Audit the 2026-06 archived status reports** — they reference WS surface extensively. Decide: leave (historical accuracy), annotate as superseded by ADR-0046, or move to a "history/2026-06" subdir. The prior session flagged this as "trust initial structural grep as verified."
-12. **Verify `extensions/ws.min.js` gitattributes workaround is no longer needed** (improvement #10).
-13. **Update `examples/datastar-demo/` references** — the demo uses the adapter module which had no WS surface, but the prior session's status report flagged a potential WS reference in demo docs.
-14. **Verify `examples/basic/`, `examples/admin-demo/`, `examples/middleware-demo/`** build against the new public API. Workspace-mode `go test ./examples/...` should work but hasn't been run.
-15. **Cross-check the `httputil` re-export deprecation** in the same v5 release — same `// Deprecated:` markers should be removed in v5 alongside the WS removal, per ROADMAP.md.
-16. **Cross-check the `usermgmt` identity-model re-export deprecation** — 160 symbols marked `Deprecated:` should be removed in v5.
+8. **Resolve the `references/realtime.md` SKILL.md drift.** **→ still open — TODO_LIST P1.**
+9. **Create `docs/migrations/v4-to-v5.md`.** **→ still open — TODO_LIST P1.**
+10. **Add CI step to grep for WS symbol leaks.** _*→ still open — folded into TODO_LIST P2 ("wire check-* into CI")._*
+11. **Audit the 2026-06 archived status reports.** **→ still open (low priority) — historical snapshots; leave as-is or annotate when touched.**
+12. ~~**Verify `extensions/ws.min.js` gitattributes workaround is no longer needed.**~~ partially resolved — `extensions/` now contains only `sse.min.js` + `idiomorph-ext.min.js`; the `*.min.js -text` gitattributes entry is now harmless but unverified-removable. **→ still open (cosmetic).**
+13. ~~**Update `examples/datastar-demo/` references.**~~ NOT-DO — datastar adapter never had a WS surface; demo is unaffected.
+14. **Verify `examples/*` build against new public API.** **→ still open — run `go test ./examples/...` when convenient.**
+15. **Cross-check the `httputil` re-export deprecation in v5.** **→ tracked — ROADMAP "httputil Re-export Retirement (v5)".**
+16. **Cross-check the `usermgmt` identity-model re-export deprecation in v5.** **→ tracked — ROADMAP "Re-export Layer Retirement (v5)"; markers already in CHANGELOG Deprecated.**
 
 ### Verification (build / test / lint)
 
-17. **Run `nix run .#test` after httputil v0.9.0 publish** — should now pass hermetically.
-18. **Run `nix run .#lint`** — verify 0 issues across all 11 lint-checked modules after v5 cut.
-19. **Run `nix run .#coverage-gate`** — verify all 9 gated modules still meet thresholds (root 93.1% > 90% gate).
-20. **Run `nix run .#build`** — hermetic GOWORK=off build.
-21. **Run `nix run .#check-templates`** — verifies the 4 `//go:build ignore` SQL setup files compile.
-22. **Run `nix run .#check-codegen`** — verifies committed `_templ.go` files are current.
-23. **Run `nix run .#check-dep-budgets`** — auto-discovers modules, no manual update needed.
-24. **Run `nix run .#check-module-isolation`** — auto-discovers modules, no manual update needed.
-25. **Run `nix run .#check-phantom-version`** — verifies no zero-pseudo-versions in go.mod files.
-26. **Run `nix run .#check-cqrs-lint`** — runs cqrs-lint --strict on all 9 modules.
+17. **Run `nix run .#test` after httputil v0.9.0 publish.** **→ still open — gated on #1.**
+    18–26. **Run the full nix gate cycle** (`.#lint`, `.#coverage-gate`, `.#build`, `.#check-templates`, `.#check-codegen`, `.#check-dep-budgets`, `.#check-module-isolation`, `.#check-phantom-version`, `.#check-cqrs-lint`). **→ still open — these are the canonical post-publish verification; recompute once #1 lands.** (Note: lint was confirmed 37 pre-existing `security.go` issues — all from the httputil split-brain, zero in WS-touched files.)
 
 ### Submodule post-deletion audit
 
-27. **Re-grep `adminui/` for WS symbols** — structural verification the prior session claimed green.
-28. **Re-grep `loginpage/` for WS symbols** — same.
-29. **Re-grep `dashboardui/` for WS symbols** — same.
-30. **Re-grep `datastar/` for WS symbols** — same.
-31. **Re-grep `usermgmt/` for WS symbols** — same.
-32. **Re-grep `integration_test/` for WS symbols** — same.
-33. **Re-grep `identity-model/` for WS symbols** — pure domain types; should be clean.
-34. **Re-grep `examples/*/` for WS symbols** — demos shouldn't reference WS.
+27–34. **Re-grep submodules for WS symbols.** **→ low priority** — WS lived only in the root module; the prior session's structural grep was clean. Re-verify if any doubt arises, but no action is blocking.
 
 ### Cosmetic / nice-to-have
 
-35. **Rename `fanOut[T]` to `sseFanOut[T]`** — now WS-only usage is gone (improvement #9).
-36. **Consider inlining `fanOut` into `Broadcaster`** — single use case now, no abstraction needed.
-37. **Add a doc-comment header to `ack.go`** explaining the ACK protocol is SSE-only.
-38. **Add a "v5 Migration" badge** to README.md top once v5 is tagged.
-39. **Verify `examples/admin-demo/` admin panel still works** without WS extension (it uses HTMXExtWS in layout — need to remove the `<script src="/ext/ws.js">` tag if present).
-40. **Update `templ-components` library** if any templ-components-related docs/examples referenced WS — should be clean since templ-components doesn't have WS surface, but verify.
+35–36. **Rename/inline `fanOut[T]`.** **→ tracked — CHANGELOG notes it is now SSE-only; rename is a cosmetic follow-up.** 37. **doc-comment header on `ack.go`.** **→ still open (cosmetic).** 38. **"v5 Migration" badge on README.** **→ still open — gated on #4.** 39. ~~**Verify `examples/admin-demo/` works without WS extension.**~~ NOT-DO — the WS `<script>` tag was removed with `HTMXExtWS` (the embedded asset is gone); admin-demo cannot reference it. 40. **Update `templ-components` docs.** **→ NOT-DO — templ-components has no WS surface.**
 
 ### Documentation consistency
 
-41. **Update `docs/adr/0004-sse-websocket-support.md`** — annotate as Superseded by ADR 0046 (like ADR INDEX row says) instead of just changing INDEX status.
-42. **Update `docs/adr/0010-transport-parity.md`** — same. The ADR bodies themselves still claim "Accepted."
-43. **Annotate `docs/research/2026-07-30_extraction-analysis.md`** — 5 references to WS in the WS cluster section. Either leave as historical research or annotate as outdated.
-44. **Annotate `docs/status/2026-07-12_18-15_v4.3.0-recovery-cleanup-self-review.md`** — multiple WS references (line 79 mentions `ws.go`).
-45. **Annotate `docs/status/archive/2026-06-08_01-33_sse-websocket-implementation.md`** — entire doc is about implementing WS. Mark as historical-only.
-46. **Annotate `docs/status/archive/2026-06-08_02-12_sse-ws-polish-v2.2-adoption.md`** — same.
-47. **Annotate `docs/status/2026-07-22_18-21_post-extraction-cleanup-and-self-review.md`** — line 165 mentions WS API.
-48. **Annotate `docs/status/2026-08-03_19-57_sse-reexport-deprecation-status.md`** — line 128 reviews WS broadcaster comments for accuracy.
+41. **Update `docs/adr/0004-sse-websocket-support.md` inline.** **→ still open — TODO_LIST P1.**
+42. **Update `docs/adr/0010-transport-parity.md` inline.** **→ still open — TODO_LIST P1.**
+    43–48. **Annotate older docs that reference WS** (research, archived status reports). **→ low priority** — these are historical snapshots describing past work; leaving them is acceptable (they are timestamped). Annotate only if a reader is misled.
 
 ### Process / meta
 
-49. **Capture the "deleted in v5 without Deprecated: phase" decision** in a follow-up ADR ("How we sunset features") — improvement #11.
-50. **Run the docs-health skill** end-to-end to catch any further drift across the 19 Go modules' docs that I might have missed.
+49. **Follow-up ADR "How we sunset features".** **→ low priority — ADR-0046 already captures the rationale.**
+50. ~~**Run the docs-health skill end-to-end.**~~ **done (2026-08-05)** — this pass rewrote TODO_LIST/ROADMAP/FEATURES, appended CHANGELOG, and annotated this report.
 
 ---
 

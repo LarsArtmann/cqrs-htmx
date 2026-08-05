@@ -73,14 +73,16 @@
 
 ## b) PARTIALLY DONE
 
-- **ADR INDEX** (`docs/adr/INDEX.md`) — ADR-0046 row not yet added; ADR-0004 status still shows "Accepted" (should be "Superseded by ADR 0046"); ADR-0010 status still shows "Accepted" (should be "Superseded by ADR 0046"). The INDEX line 51 ends with `[0045]` and the new row needs to be inserted before EOF.
-- **`docs/guides/realtime.md`** — not yet updated. Still describes WebSocket broadcaster, ACK protocol over WS, bi-directional dispatch, and 14 WS symbol entries. This is the primary migration reference for downstream consumers.
-- **`.agents/skills/cqrs-htmx/SKILL.md`** — not yet updated. The cheat sheet still mentions `NewBroadcaster` (correct) but the "Realtime (SSE/WS)" section header is gone (good), the description `"...build Go web apps with the cqrs-htmx library — CQRS command/query HTTP handlers, HTMX responses, event-sourced user management ... and SSE/WebSocket/auth features..."` still mentions WebSocket, and line 433 still says `"SSE / WebSocket"` in section header. The "Where to look" section line 514 also lists `references/realtime.md` as covering "SSE + WebSocket".
-- **`AGENTS.md`** — not yet updated. The "Quick Reference" table doesn't mention WS, but the architecture description and "Key Patterns" don't either; still needs a one-line note in the breaking-change gotchas section.
-- **`README.md`** — not yet updated. Need to scan for any WS mentions in the user-facing sales page.
-- **`FEATURES.md`** — not yet updated. The feature inventory likely lists WS as a feature; needs to flip status to "Removed".
-- **`CHANGELOG.md`** — not yet updated. Needs a "Removed" section for the next version (likely v5.0.0).
-- **`TODO_LIST.md`/`ROADMAP.md`** — not yet audited. Need to verify no stale `[~]` items reference the WS subsystem.
+> **Resolution (2026-08-05 docs-health pass):** ALL of the items below were completed by the phase-7 follow-up session (`2026-08-05_12-43_ws-removal-phase7-docs-status.md`). They are struck through below.
+
+- ~~**ADR INDEX** (`docs/adr/INDEX.md`)~~ done — ADR-0046 row added; ADR-0004 + ADR-0010 marked Superseded by ADR 0046 in the INDEX. (The ADR _bodies_ still need inline supersession notes → TODO_LIST P1.)
+- ~~**`docs/guides/realtime.md`**~~ done — the file never existed as a guide; the WS content was stripped from SKILL.md + doc.go + structured_error.go + logging.go + partial.go + responsewriter.go instead. The broken `references/realtime.md` SKILL.md reference is tracked in TODO_LIST P1.
+- ~~**`.agents/skills/cqrs-htmx/SKILL.md`**~~ done — WS removed from YAML description, module matrix, decision tree, realtime section, embedded-extension list; HTMXExtWS removed.
+- ~~**`AGENTS.md`**~~ done — new gotcha "WebSocket transport removed in v5 (ADR 0046)" listing all 14 removed symbols + migration recipe.
+- ~~**`README.md`**~~ done — removed ~108 lines of WS content (tagline, WebSocket Helpers/API sections, tree entry, extension row); replaced with a one-line SSE-only callout.
+- ~~**`FEATURES.md`**~~ done — "Real-Time — WebSocket" section replaced with a 9-row REMOVED table; updated metrics + lint notes (2026-08-05 pass).
+- ~~**`CHANGELOG.md`**~~ done — `### Removed` section added to `[Unreleased]` with full per-symbol migration recipe + ADR supersession chain.
+- ~~**`TODO_LIST.md`/`ROADMAP.md`**~~ done — both rewritten 2026-08-05 (TODO_LIST: WS items routed; ROADMAP: WS-removal subsection marked DONE-pending-tag).
 
 ---
 
@@ -130,6 +132,8 @@ Nothing is broken. Two minor process issues:
 ---
 
 ## f) Up to 50 things to get done next
+
+> **Resolution (2026-08-05 docs-health pass):** these items were re-enumerated and resolved inline in the follow-up report `2026-08-05_12-43_ws-removal-phase7-docs-status.md` §f. The canonical routing is now in **TODO_LIST.md** (P0/P1) and **ROADMAP.md** (Open Questions + v5 retirement). The docs items (#6–#18) are done; the critical-path blockers (#1 publish httputil v0.9.0, #2–#5 tag/release) remain open and gated.
 
 1. Add ADR-0046 row to `docs/adr/INDEX.md`
 2. Mark ADR-0004 status as "Superseded by ADR 0046" in INDEX
