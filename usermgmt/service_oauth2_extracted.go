@@ -321,10 +321,7 @@ func (o *OAuth2Service) createSession(ctx context.Context, userID UserID) (*Sess
 }
 
 func (o *OAuth2Service) logAuth(event string, userID UserID, attrs ...any) {
-	args := make([]any, 0, 4+len(attrs))
-	args = append(args, "event", event, "user_id", userID)
-	args = append(args, attrs...)
-	o.logger.Info("usermgmt: "+event, args...)
+	logAuthEvent(o.logger, event, userID, attrs...)
 }
 
 // classifyOAuth2DispatchError delegates to the shared error classifier.
