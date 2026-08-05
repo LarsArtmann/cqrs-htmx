@@ -82,3 +82,19 @@ func csrfToken(r *http.Request) string {
 
 	return r.FormValue("_csrf")
 }
+
+// prettyJSON attempts to pretty-print a JSON payload. Falls back to the raw
+// bytes if the payload is not valid JSON.
+func prettyJSON(raw []byte) string {
+	var v any
+	if err := json.Unmarshal(raw, &v); err != nil {
+		return string(raw)
+	}
+
+	out, err := json.Marshal(v, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	if err != nil {
+		return string(raw)
+	}
+
+	return string(out)
+}
