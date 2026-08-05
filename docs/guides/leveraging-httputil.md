@@ -12,23 +12,23 @@ For everything else — the everyday HTTP middleware a browser-facing CQRS app n
 
 ## Concern → middleware map
 
-| Concern | httputil symbol | Notes |
-| --- | --- | --- |
-| Cross-origin browser API access | `httputil.CORS(cfg)` + `DefaultCORSConfig()` | `DenyUnmatched: true` by default since v0.7.0; wildcard `*.example.com` rejects lookalikes. |
-| Response compression (htmx.js, JSON, SSE text) | `httputil.Compression(cfg)` + `DefaultCompressionConfig()` | Pooled gzip/deflate writers; skips already-compressed content types. |
-| Body-size guard for JSON/form decoders | `httputil.MaxBodySize(maxBytes)` | Rejects oversized bodies *before* decode → pairs with `cqrshtmx.ErrRequestTooLarge` (413). |
-| Client IP behind a reverse proxy | `httputil.ClientIPMiddleware`, `httputil.ClientIP(r)`, `httputil.IsTrustedProxy` | Trusted-proxy CIDR matching; feeds `KeyExtractorFromClientIP` for correct rate limiting. |
-| Production server with timeouts | `httputil.NewServer(cfg, h)` + `DefaultServerConfig()` | `Validate()`d config; sane `Read`/`Write`/`Idle`/`ReadHeader` timeouts. **Never use bare `http.ListenAndServe`.** |
-| Metrics recording | `httputil.Metrics(cfg)` + `DefaultMetricsConfig()` + `MetricsRecorder` interface | Plug in Prometheus/etc. via the interface. |
-| Dynamic response ETagging | `httputil.ETag(cfg)` + `DefaultETagConfig()` | Buffers responses, hashes, serves `304` on `If-None-Match`. (cqrs-htmx already does *static-asset* ETagging for htmx.js / OpenAPI / event catalog.) |
-| Validated middleware stack | `httputil.NewMiddlewareStack()` | Enforces "Recovery outermost", rejects duplicate names — a safer alternative to bare `Chain`. |
-| Health: liveness | `httputil.LiveHandler()` | Static 200 — process is up. |
-| Health: readiness | `httputil.ReadyHandlerWithProbe(func() bool)` | 200/503 based on a probe (deps ready). |
-| Health: mount conventional endpoints | `httputil.RegisterHealth(mux)` | Mounts `/healthz`, `/livez`, `/readyz` in one call. |
-| Request-level timeout | `httputil.Timeout(d)` | Bounds the **whole** HTTP request. Distinct from `cqrshtmx.Config.Timeout`, which bounds only the CQRS dispatch. Use both: request-level as a safety net, dispatch-level for per-command SLAs. |
-| Error classification registration | `httputil.RegisterErrorClassifications()` | Call once at startup so stdlib HTTP errors and httputil codes (`http.write_failed`, `http.compress_write_failed`, …) classify through `cqrshtmx.MapError` via `errorfamily.Classify`. |
-| HTTP-spec compliance testing | `httputil/httpspec.Run(t, h, opts...)` | 18 standard specs (index reachable, unknown→404, HEAD/OPTIONS handled, TRACE/CONNECT rejected, error responses carry Content-Type, no version leak, `X-Content-Type-Options` present). `cqrs-htmx` uses this internally — see `httpspec_compliance_test.go`. |
-| Response capture in tests | `httputil.NewResponseRecorder(w)` | Lightweight status/body capture. (cqrs-htmx's own `StatusRecorder` is richer — captures dispatch errors — prefer it inside the pipeline.) |
+| Concern                                        | httputil symbol                                                                  | Notes                                                                                                                                                                                                                                                        |
+| ---------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cross-origin browser API access                | `httputil.CORS(cfg)` + `DefaultCORSConfig()`                                     | `DenyUnmatched: true` by default since v0.7.0; wildcard `*.example.com` rejects lookalikes.                                                                                                                                                                  |
+| Response compression (htmx.js, JSON, SSE text) | `httputil.Compression(cfg)` + `DefaultCompressionConfig()`                       | Pooled gzip/deflate writers; skips already-compressed content types.                                                                                                                                                                                         |
+| Body-size guard for JSON/form decoders         | `httputil.MaxBodySize(maxBytes)`                                                 | Rejects oversized bodies _before_ decode → pairs with `cqrshtmx.ErrRequestTooLarge` (413).                                                                                                                                                                   |
+| Client IP behind a reverse proxy               | `httputil.ClientIPMiddleware`, `httputil.ClientIP(r)`, `httputil.IsTrustedProxy` | Trusted-proxy CIDR matching; feeds `KeyExtractorFromClientIP` for correct rate limiting.                                                                                                                                                                     |
+| Production server with timeouts                | `httputil.NewServer(cfg, h)` + `DefaultServerConfig()`                           | `Validate()`d config; sane `Read`/`Write`/`Idle`/`ReadHeader` timeouts. **Never use bare `http.ListenAndServe`.**                                                                                                                                            |
+| Metrics recording                              | `httputil.Metrics(cfg)` + `DefaultMetricsConfig()` + `MetricsRecorder` interface | Plug in Prometheus/etc. via the interface.                                                                                                                                                                                                                   |
+| Dynamic response ETagging                      | `httputil.ETag(cfg)` + `DefaultETagConfig()`                                     | Buffers responses, hashes, serves `304` on `If-None-Match`. (cqrs-htmx already does _static-asset_ ETagging for htmx.js / OpenAPI / event catalog.)                                                                                                          |
+| Validated middleware stack                     | `httputil.NewMiddlewareStack()`                                                  | Enforces "Recovery outermost", rejects duplicate names — a safer alternative to bare `Chain`.                                                                                                                                                                |
+| Health: liveness                               | `httputil.LiveHandler()`                                                         | Static 200 — process is up.                                                                                                                                                                                                                                  |
+| Health: readiness                              | `httputil.ReadyHandlerWithProbe(func() bool)`                                    | 200/503 based on a probe (deps ready).                                                                                                                                                                                                                       |
+| Health: mount conventional endpoints           | `httputil.RegisterHealth(mux)`                                                   | Mounts `/healthz`, `/livez`, `/readyz` in one call.                                                                                                                                                                                                          |
+| Request-level timeout                          | `httputil.Timeout(d)`                                                            | Bounds the **whole** HTTP request. Distinct from `cqrshtmx.Config.Timeout`, which bounds only the CQRS dispatch. Use both: request-level as a safety net, dispatch-level for per-command SLAs.                                                               |
+| Error classification registration              | `httputil.RegisterErrorClassifications()`                                        | Call once at startup so stdlib HTTP errors and httputil codes (`http.write_failed`, `http.compress_write_failed`, …) classify through `cqrshtmx.MapError` via `errorfamily.Classify`.                                                                        |
+| HTTP-spec compliance testing                   | `httputil/httpspec.Run(t, h, opts...)`                                           | 18 standard specs (index reachable, unknown→404, HEAD/OPTIONS handled, TRACE/CONNECT rejected, error responses carry Content-Type, no version leak, `X-Content-Type-Options` present). `cqrs-htmx` uses this internally — see `httpspec_compliance_test.go`. |
+| Response capture in tests                      | `httputil.NewResponseRecorder(w)`                                                | Lightweight status/body capture. (cqrs-htmx's own `StatusRecorder` is richer — captures dispatch errors — prefer it inside the pipeline.)                                                                                                                    |
 
 ## Recipes
 
@@ -140,65 +140,66 @@ The following 39 symbols in `cqrs-htmx/v4` are **deprecated** (type/var aliases 
 
 ### CSRF (`csrf_reexport.go`)
 
-| Deprecated `cqrshtmx.*` | Replacement `httputil.*` |
-| --- | --- |
-| `CSRFConfig` | `httputil.CSRFConfig` |
-| `CSRFMiddleware` | `httputil.CSRFMiddleware` |
+| Deprecated `cqrshtmx.*`        | Replacement `httputil.*`                |
+| ------------------------------ | --------------------------------------- |
+| `CSRFConfig`                   | `httputil.CSRFConfig`                   |
+| `CSRFMiddleware`               | `httputil.CSRFMiddleware`               |
 | `CSRFResponseHeaderMiddleware` | `httputil.CSRFResponseHeaderMiddleware` |
-| `CSRFTokenFromContext` | `httputil.CSRFTokenFromContext` |
-| `WithCSRFToken` | `httputil.WithCSRFToken` |
-| `CSRFTestToken` | `httputil.CSRFTestToken` |
-| `InvalidateCSRFCookie` | `httputil.InvalidateCSRFCookie` |
-| `CSRFTokenHTMLMeta` | `httputil.CSRFTokenHTMLMeta` |
-| `CSRFTokenHXHeaders` | `httputil.CSRFTokenHXHeaders` |
-| `CSRFTokenFormField` | `httputil.CSRFTokenFormField` |
-| `ForbiddenErrorHandler` | `httputil.ForbiddenErrorHandler` |
-| `ErrCSRFInvalid` | `httputil.ErrCSRFInvalid` |
-| `ErrCSRFConfig` | `httputil.ErrCSRFConfig` |
-| `ErrorHandler` | `httputil.ErrorHandler` |
+| `CSRFTokenFromContext`         | `httputil.CSRFTokenFromContext`         |
+| `WithCSRFToken`                | `httputil.WithCSRFToken`                |
+| `CSRFTestToken`                | `httputil.CSRFTestToken`                |
+| `InvalidateCSRFCookie`         | `httputil.InvalidateCSRFCookie`         |
+| `CSRFTokenHTMLMeta`            | `httputil.CSRFTokenHTMLMeta`            |
+| `CSRFTokenHXHeaders`           | `httputil.CSRFTokenHXHeaders`           |
+| `CSRFTokenFormField`           | `httputil.CSRFTokenFormField`           |
+| `ForbiddenErrorHandler`        | `httputil.ForbiddenErrorHandler`        |
+| `ErrCSRFInvalid`               | `httputil.ErrCSRFInvalid`               |
+| `ErrCSRFConfig`                | `httputil.ErrCSRFConfig`                |
+| `ErrorHandler`                 | `httputil.ErrorHandler`                 |
 
 ### Rate limiting (`ratelimit_reexport.go`)
 
-| Deprecated `cqrshtmx.*` | Replacement `httputil.*` |
-| --- | --- |
-| `RateLimiterConfig` | `httputil.RateLimiterConfig` |
-| `RateLimiter` | `httputil.RateLimiter` |
-| `KeyExtractor` | `httputil.KeyExtractor` |
-| `RateLimiterMiddleware` | `httputil.RateLimiterMiddleware` |
-| `NewRateLimiter` | `httputil.NewRateLimiter` |
-| `DefaultRateLimiterConfig` | `httputil.DefaultRateLimiterConfig` |
+| Deprecated `cqrshtmx.*`      | Replacement `httputil.*`              |
+| ---------------------------- | ------------------------------------- |
+| `RateLimiterConfig`          | `httputil.RateLimiterConfig`          |
+| `RateLimiter`                | `httputil.RateLimiter`                |
+| `KeyExtractor`               | `httputil.KeyExtractor`               |
+| `RateLimiterMiddleware`      | `httputil.RateLimiterMiddleware`      |
+| `NewRateLimiter`             | `httputil.NewRateLimiter`             |
+| `DefaultRateLimiterConfig`   | `httputil.DefaultRateLimiterConfig`   |
 | `KeyExtractorFromRemoteAddr` | `httputil.KeyExtractorFromRemoteAddr` |
-| `KeyExtractorFromClientIP` | `httputil.KeyExtractorFromClientIP` |
-| `DefaultRateLimit` | `httputil.DefaultRateLimit` |
-| `DefaultRateWindow` | `httputil.DefaultRateWindow` |
-| `DefaultRateTTL` | `httputil.DefaultRateTTL` |
+| `KeyExtractorFromClientIP`   | `httputil.KeyExtractorFromClientIP`   |
+| `DefaultRateLimit`           | `httputil.DefaultRateLimit`           |
+| `DefaultRateWindow`          | `httputil.DefaultRateWindow`          |
+| `DefaultRateTTL`             | `httputil.DefaultRateTTL`             |
 
 ### Server-Timing (`server_timing_reexport.go`)
 
-| Deprecated `cqrshtmx.*` | Replacement `httputil.*` |
-| --- | --- |
-| `ServerTiming` | `httputil.ServerTiming` |
-| `ServerTimingMiddleware` | `httputil.ServerTimingMiddleware` |
+| Deprecated `cqrshtmx.*`      | Replacement `httputil.*`              |
+| ---------------------------- | ------------------------------------- |
+| `ServerTiming`               | `httputil.ServerTiming`               |
+| `ServerTimingMiddleware`     | `httputil.ServerTimingMiddleware`     |
 | `ServerTimingMiddlewareWhen` | `httputil.ServerTimingMiddlewareWhen` |
-| `ServerTimingFromContext` | `httputil.ServerTimingFromContext` |
-| `WithServerTiming` | `httputil.WithServerTiming` |
-| `RecordServerTiming` | `httputil.RecordServerTiming` |
-| `MeasureServerTiming` | `httputil.MeasureServerTiming` |
+| `ServerTimingFromContext`    | `httputil.ServerTimingFromContext`    |
+| `WithServerTiming`           | `httputil.WithServerTiming`           |
+| `RecordServerTiming`         | `httputil.RecordServerTiming`         |
+| `MeasureServerTiming`        | `httputil.MeasureServerTiming`        |
 
 > **Migration is mechanical:** add `"github.com/larsartmann/httputil"` to your imports, change the `cqrshtmx.` prefix to `httputil.` for any of the symbols above, and remove the `cqrshtmx.` import if it's no longer needed. The types are aliases, so no behavior change.
 
 ### Security headers (`security.go`)
 
-| Deprecated `cqrshtmx.*` | Replacement `httputil.*` |
-| --- | --- |
-| `SecurityHeadersConfig` | `httputil.SecurityHeadersConfig` (type alias) |
-| `SecurityHeadersMiddleware` | `httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())` |
-| `SecurityHeadersMiddlewareWithConfig` | `httputil.SecurityHeaders(cfg)` |
-| `RecommendedHSTS` | `httputil.RecommendedHSTS` |
-| `RecommendedCSP` | `httputil.RecommendedCSP` |
-| `SecurityHeaderSkip` | `httputil.SecurityHeaderSkip` |
+| Deprecated `cqrshtmx.*`               | Replacement `httputil.*`                                            |
+| ------------------------------------- | ------------------------------------------------------------------- |
+| `SecurityHeadersConfig`               | `httputil.SecurityHeadersConfig` (type alias)                       |
+| `SecurityHeadersMiddleware`           | `httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())` |
+| `SecurityHeadersMiddlewareWithConfig` | `httputil.SecurityHeaders(cfg)`                                     |
+| `RecommendedHSTS`                     | `httputil.RecommendedHSTS`                                          |
+| `RecommendedCSP`                      | `httputil.RecommendedCSP`                                           |
+| `SecurityHeaderSkip`                  | `httputil.SecurityHeaderSkip`                                       |
 
 > **Note:** `cqrshtmx.SecurityHeadersMiddleware` applies secure defaults on a zero-value config (nosniff, DENY, strict-origin-when-cross-origin). `httputil.SecurityHeaders` does not — pass `httputil.DefaultSecurityHeadersConfig()` for the equivalent behavior, or construct your own `SecurityHeadersConfig` explicitly.
+
 - **Context enrichment** (`cqrshtmx.ContextEnrichmentMiddleware`) — domain-aware (UserID + RequestID + CorrelationID).
 - **Chain** (`cqrshtmx.Chain`) — curried signature (`Chain(mw...) func(http.Handler) http.Handler`) for composable stacking.
 

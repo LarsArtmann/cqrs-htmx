@@ -22,16 +22,16 @@ This report is the honest accounting.
 
 ## a) FULLY DONE (verified at HEAD)
 
-| # | Deliverable | File | Evidence |
-|---|---|---|---|
-| 1 | HTML deep-dive report (editorial-light template) | `docs/research/2026-08-05_httputil-deep-dive.html` | 1322 lines, tag-balanced, in HEAD |
-| 2 | `httpspec` compliance test (2 cases: bare stack + real App) | `httpspec_compliance_test.go` | passes `-race`, lint-clean |
-| 3 | **Bug fix:** nil-body panic in `decoder.go:readBody` | `decoder.go:60` | guard `if r.Body == nil { return nil, nil }` — covers JSON **and** Form paths (shared helper) |
-| 4 | Consumer guide: concern→middleware map + 6 recipes | `docs/guides/leveraging-httputil.md` | in HEAD |
-| 5 | `doc.go` new "HTTP Middleware" section pointing to httputil + guide | `doc.go:7-17` | gofmt-clean |
-| 6 | `examples/basic` migrated to `httputil.NewServer` | `examples/basic/main.go` | built, binary rebuilt, go.mod tidied (httputil promoted to direct) |
-| 7 | `examples/datastar-demo` migrated to `httputil.NewServer` | `examples/datastar-demo/main.go` | built, binary rebuilt, go.mod tidied |
-| 8 | `AGENTS.md` memory update (guides 14→15, leverage posture) | `AGENTS.md:137-138` | committed `c3a8f029` |
+| #   | Deliverable                                                         | File                                               | Evidence                                                                                      |
+| --- | ------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 1   | HTML deep-dive report (editorial-light template)                    | `docs/research/2026-08-05_httputil-deep-dive.html` | 1322 lines, tag-balanced, in HEAD                                                             |
+| 2   | `httpspec` compliance test (2 cases: bare stack + real App)         | `httpspec_compliance_test.go`                      | passes `-race`, lint-clean                                                                    |
+| 3   | **Bug fix:** nil-body panic in `decoder.go:readBody`                | `decoder.go:60`                                    | guard `if r.Body == nil { return nil, nil }` — covers JSON **and** Form paths (shared helper) |
+| 4   | Consumer guide: concern→middleware map + 6 recipes                  | `docs/guides/leveraging-httputil.md`               | in HEAD                                                                                       |
+| 5   | `doc.go` new "HTTP Middleware" section pointing to httputil + guide | `doc.go:7-17`                                      | gofmt-clean                                                                                   |
+| 6   | `examples/basic` migrated to `httputil.NewServer`                   | `examples/basic/main.go`                           | built, binary rebuilt, go.mod tidied (httputil promoted to direct)                            |
+| 7   | `examples/datastar-demo` migrated to `httputil.NewServer`           | `examples/datastar-demo/main.go`                   | built, binary rebuilt, go.mod tidied                                                          |
+| 8   | `AGENTS.md` memory update (guides 14→15, leverage posture)          | `AGENTS.md:137-138`                                | committed `c3a8f029`                                                                          |
 
 ---
 
@@ -39,7 +39,7 @@ This report is the honest accounting.
 
 1. **Other examples not migrated.** `catalog-demo`, `admin-demo`, `dashboard-demo`,
    `middleware-demo` all use `&http.Server{...}` with hand-filled timeouts. I only
-   fixed the two that used *bare* `http.ListenAndServe` (the worst offenders). The
+   fixed the two that used _bare_ `http.ListenAndServe` (the worst offenders). The
    other four would benefit from `httputil.NewServer` + `DefaultServerConfig()` for
    consistency, but I stopped at "not a footgun" instead of "fully consistent."
 2. **Report evidence quality.** Cites are real (`file:line`), but I did not
@@ -105,8 +105,9 @@ Actual card inventory:
 - Partially Used: `f-chain`, `f-health`, `f-timeout` = 3
 
 That's **5 missed + 1 anti-pattern + 3 partially-used = 9 cards**, not "10 missed
-+ 4 partial". And "7 fully leveraged" — I listed 5 strengths, not 7. The numbers
-were eyeballed, not counted.
+
+- 4 partial". And "7 fully leveraged" — I listed 5 strengths, not 7. The numbers
+  were eyeballed, not counted.
 
 ### DFU-3: Adoption score `61/100` has no shown methodology.
 
@@ -127,7 +128,7 @@ failures were 100% environmental/pre-existing — my changes themselves were cle
 After my work, three files were dirty: `adminui/styles.css`,
 `examples/observability-demo/observability-demo`, `usermgmt/service_logging.go`.
 I correctly did **not** revert them (per the "don't revert changes you didn't
-author" rule) but I also didn't determine *what* produced them (likely the
+author" rule) but I also didn't determine _what_ produced them (likely the
 buildflow hook's `--fix` + tailwind run during my failed pre-commit). They remain
 uncommitted and unexplained.
 
@@ -137,7 +138,7 @@ uncommitted and unexplained.
 
 1. **Verify negative claims before publishing them.** "X is not used anywhere" is
    the easiest claim to get wrong and the most embarrassing when wrong. I should
-   have run `grep MaxBodySize` *before* writing the finding — I even had the file
+   have run `grep MaxBodySize` _before_ writing the finding — I even had the file
    open.
 2. **Count findings before scoring them.** Scorecard numbers must be derived from
    card inventory, not estimated.
@@ -159,6 +160,7 @@ uncommitted and unexplained.
 ## f) Up to 50 things to do next (Pareto-ordered, scoped to this work)
 
 ### Corrective (do first — protect credibility)
+
 1. **Retract `f-maxbody`** from the HTML report; replace with a "Not Applicable —
    cqrs-htmx has its own `MaxBodySize`" note.
 2. **Recompute the scorecard** counts from actual cards; fix `7/4/10` → real
@@ -170,6 +172,7 @@ uncommitted and unexplained.
 5. **Add a "snapshot date" disclaimer** to the report header.
 
 ### High-value implementation
+
 6. **Wire `httputil.RegisterErrorClassifications()` into `cqrshtmx.New()` /
    `MustNew()`** (idempotent; completes the errorfamily picture through
    `MapError`).
@@ -183,6 +186,7 @@ uncommitted and unexplained.
     convention: completed work → CHANGELOG, not TODO_LIST).
 
 ### Discoverability & docs
+
 11. Cross-link `docs/guides/production-readiness.md` → `leveraging-httputil.md`.
 12. Add an httputil section to `README.md` (the consumer sales page).
 13. Verify every httputil symbol in the guide has the claimed signature
@@ -191,6 +195,7 @@ uncommitted and unexplained.
 15. Add a runnable `example_test.go` showing httputil + CQRS composition.
 
 ### Deeper correctness
+
 16. Audit the **WebSocket dispatch path** (`DispatchWSCommand`) for the same
     nil-body risk.
 17. Add a **fuzz test** for `readBody` over nil/empty/huge/truncated bodies.
@@ -202,6 +207,7 @@ uncommitted and unexplained.
     (opinionated convenience).
 
 ### Report polish
+
 21. Replace `&rsquo;`/`&hellip;` entities with plain ASCII for grep-friendliness.
 22. Add a "Not Applicable" section listing httputil features irrelevant to
     cqrs-htmx (so readers see the judgment, not just the gaps).
@@ -210,6 +216,7 @@ uncommitted and unexplained.
 25. Re-run the audit after corrective fixes and note the score delta.
 
 ### Coverage & CI
+
 26. Run `nix run .#coverage` to confirm the new test doesn't drop root below the
     90% gate.
 27. Add `httpspec.Run` to an `adminui`/`dashboardui` example test for broader
@@ -220,6 +227,7 @@ uncommitted and unexplained.
 30. Run workspace-wide `go test ./...` (all 19 modules) to confirm no ripple.
 
 ### Strategic (post-this-session)
+
 31. Track httputil v0.9.0 (OTel tracing + Prometheus `MetricsRecorder`) — pairs
     with the unused `Metrics` middleware.
 32. Proposal: a `cqrshtmx/httputilstack` sub-module that pre-composes the
@@ -228,10 +236,11 @@ uncommitted and unexplained.
     `cqrshtmx.ValidatedChain`.
 34. Consider deprecating cqrs-htmx's `SecurityHeadersConfig` once the httputil
     port lands.
-35. Consider whether cqrs-htmx should *depend on* `httpspec` at runtime (not just
+35. Consider whether cqrs-htmx should _depend on_ `httpspec` at runtime (not just
     test-time) to offer a `cqrshtmx.ComplianceHandler`.
 
 ### Latent-risk follow-ups (noticed but not chased)
+
 36. `decodeFormBody` re-wraps `r.Body = io.NopCloser(bytes.NewReader(body))` —
     confirm `bytes.NewReader(nil)` is safe (it is, but document it).
 37. The decoder's `DefaultMaxBodySize = 10MB` is generous for a library; consider
@@ -244,6 +253,7 @@ uncommitted and unexplained.
     worth a `.golangci.yml` rule exclusion for test files.
 
 ### Doc-health
+
 41. Annotate this status report inline once items resolve (per docs-health
     convention).
 42. Add the report to `docs/research/README.md` index if one exists.
@@ -253,6 +263,7 @@ uncommitted and unexplained.
 45. Update the `cqrs-htmx` skill (`SKILL.md`) to mention httputil composition.
 
 ### Nice-to-haves
+
 46. Add a "before/after" benchmark for `NewServer` vs `ListenAndServe` startup.
 47. Document the `srv.Start()` channel pattern (non-blocking) vs `ListenAndServe`
     (blocking) in the guide — I used `<-srv.Start()` without explaining it.
@@ -288,16 +299,16 @@ uncommitted and unexplained.
 
 ## Appendix: Session artifact ledger
 
-| Artifact | Path | Status |
-|---|---|---|
-| HTML report | `docs/research/2026-08-05_httputil-deep-dive.html` | shipped, needs DFU-1/2/3 corrections |
-| Compliance test | `httpspec_compliance_test.go` | shipped, green |
-| Decoder fix | `decoder.go:60` | shipped, needs regression test |
-| Consumer guide | `docs/guides/leveraging-httputil.md` | shipped, needs MaxBodySize correction |
-| `doc.go` section | `doc.go:7-17` | shipped |
-| Example fixes (×2) | `examples/{basic,datastar-demo}/main.go` | shipped |
-| AGENTS.md memory | `AGENTS.md:137-138` | shipped |
-| CHANGELOG entry | — | **MISSING** (convention violation) |
-| Regression test | — | **MISSING** |
-| Other 4 examples | — | deferred |
-| Report snapshot disclaimer | — | **MISSING** |
+| Artifact                   | Path                                               | Status                                |
+| -------------------------- | -------------------------------------------------- | ------------------------------------- |
+| HTML report                | `docs/research/2026-08-05_httputil-deep-dive.html` | shipped, needs DFU-1/2/3 corrections  |
+| Compliance test            | `httpspec_compliance_test.go`                      | shipped, green                        |
+| Decoder fix                | `decoder.go:60`                                    | shipped, needs regression test        |
+| Consumer guide             | `docs/guides/leveraging-httputil.md`               | shipped, needs MaxBodySize correction |
+| `doc.go` section           | `doc.go:7-17`                                      | shipped                               |
+| Example fixes (×2)         | `examples/{basic,datastar-demo}/main.go`           | shipped                               |
+| AGENTS.md memory           | `AGENTS.md:137-138`                                | shipped                               |
+| CHANGELOG entry            | —                                                  | **MISSING** (convention violation)    |
+| Regression test            | —                                                  | **MISSING**                           |
+| Other 4 examples           | —                                                  | deferred                              |
+| Report snapshot disclaimer | —                                                  | **MISSING**                           |
