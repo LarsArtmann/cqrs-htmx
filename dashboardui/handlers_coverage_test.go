@@ -589,18 +589,19 @@ func TestRenderPagination_WithExtraParams(t *testing.T) {
 	}
 }
 
-// ===== List Streams Helper =====
+// ===== List Streams Paged Helper =====
 
-func TestListStreams_NilReader(t *testing.T) {
+func TestListStreamsPaged_NilReader(t *testing.T) {
 	d := mustTestDashboard(t)
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 
-	if streams := d.listStreams(r); streams != nil {
+	streams, _ := d.listStreamsPaged(r)
+	if streams != nil {
 		t.Fatalf("expected nil for nil StreamReader, got %v", streams)
 	}
 }
 
-func TestListStreams_WithReader(t *testing.T) {
+func TestListStreamsPaged_WithReader(t *testing.T) {
 	expected := streamListings()
 	d := mustTestDashboardWithConfig(t, Config{
 		Journal:      &stubJournal{},
@@ -608,9 +609,13 @@ func TestListStreams_WithReader(t *testing.T) {
 	})
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 
-	streams := d.listStreams(r)
+	streams, page := d.listStreamsPaged(r)
 	if len(streams) != len(expected) {
 		t.Fatalf("expected %d streams, got %d", len(expected), len(streams))
+	}
+
+	if page.PageSize != defaultPageSize {
+		t.Errorf("expected page size %d, got %d", defaultPageSize, page.PageSize)
 	}
 }
 

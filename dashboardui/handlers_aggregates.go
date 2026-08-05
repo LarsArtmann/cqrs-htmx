@@ -12,19 +12,6 @@ import (
 
 // ===== Aggregate Browser =====
 
-func (d *Dashboard) listStreams(r *http.Request) []listing.StreamListing {
-	if d.cfg.StreamReader == nil {
-		return nil
-	}
-
-	page, err := d.cfg.StreamReader.List(r.Context(), listing.ListOptions{Limit: uint(d.cfg.PageSize)})
-	if err != nil || page == nil {
-		return nil
-	}
-
-	return page.Items
-}
-
 // listStreamsPaged loads a cursor-paginated page of stream listings for the
 // stream-index pages (time-travel, snapshots). Returns the listings and the
 // pagination state for rendering Prev/Next controls.

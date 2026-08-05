@@ -54,6 +54,54 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 - **Projection rebuild:** `RebuildProjection(ctx, name)` on both `EventSourcedSetup` and `Service` — stops host, resets checkpoint + read-model, creates fresh host, replays journal. See `docs/guides/event-replay-and-rebuild.md` and `docs/guides/rebuild-projection-runbook.md`.
 - **go-cqrs-lite leveraging (the #1 undocumented capability):** the `*command.Dispatcher`/`*query.Dispatcher` passed to `Config.Commands`/`Config.Queries` ARE go-cqrs-lite dispatchers — they implement `Use(mw ...)`, so all 27 factories from `go-cqrs-lite/middleware/v4` (logging, recovery, retry, circuit breaker, metrics, OTel tracing, validation, idempotency) compose with zero glue. This is strictly richer than `BeforeDispatchHook`/`AfterDispatchHook` (which only see the HTTP request, not the command type). Full capability-vs-usage map + recipes: `docs/guides/leveraging-go-cqrs-lite.md`. Runnable proof: `examples/middleware-demo/`. Underused upstream modules worth knowing: `middleware` (dispatch-level), `otel`+`prometheus` (observability), `scheduling` (durable timers — usermgmt expiry is currently in-process, not durable), `deriver` (reactive sagas), `schema.VersionedSeekableJournal` (store-layer upcasting for projections — identity-model only upcasts at decode time).
 
+## templ-components adoption (`github.com/larsartmann/templ-components` v1.7.0)
+
+Only **adminui** depends on templ-components. **dashboardui** and **loginpage** do not use it at all (dashboardui builds HTML via `strings.Builder`; loginpage hand-rolls a single `.templ` page with custom `lp-*` CSS). Before hand-rolling any UI element, check the library first — it has 110+ components across 10 packages.
+
+### adminui — current adoption
+
+| Library package/component     | Status  | Where                                    |
+| ----------------------------- | ------- | ---------------------------------------- |
+| `display.Grid`                | adopted | `dashboard.templ`                        |
+| `display.Card`                | adopted | `dashboard.templ`, `users.templ`         |
+| `display.StatCard`            | adopted | `components.templ`                       |
+| `display.Table`               | adopted | `dashboard.templ`, `users.templ`         |
+| `display.Badge`               | adopted | `components.templ` (wraps as `badge()`)  |
+| `display.EmptyState`          | adopted | `components.templ` (wraps as `empty()`)  |
+| `display.CopyButton`          | adopted | `components.templ`                       |
+| `display.ListNote`            | adopted | `components.templ`                       |
+| `display.Avatar`              | adopted | `layout.templ`                           |
+| `forms.Input`                 | adopted | `users.templ`, `tenants.templ`           |
+| `forms.Select`                | adopted | `tenants.templ`, `members.templ`         |
+| `icons.Name` / `icons.Icon`   | adopted | `icons.go`, `components.templ`           |
+| `utils.BaseProps`             | adopted | `users.templ`, `tenants.templ`           |
+| `layout.AppShell`             | custom  | `layout.templ` (hand-rolled shell; custom CSS vars for `--sidebar-bg`, `--surface`, `--accent`, SSE sync bar, mobile hamburger — AppShell's `lg:` breakpoint and standard Tailwind classes don't match the deeply themed layout) |
+| `feedback.ToastContainer`     | custom  | `components.templ` — hand-rolled `<div class="toast-host">` + admin.js toast function |
+| `htmx.GlobalErrorHandling`    | missing | No global HTMX error handling (network errors, 5xx retry, session-expiry redirect) |
+| `errorpage.*`                 | missing | No structured error pages (uses bare `http.Error`) |
+| `display.StatusBadge`         | custom  | Uses `badge()` wrapper instead of auto-mapping StatusBadge |
+| `navigation.SidebarNav`       | custom  | Hand-rolled sidebar in `layout.templ`    |
+
+### dashboardui — adoption opportunities
+
+dashboardui builds ALL HTML via `strings.Builder` + `fmt.Fprintf` (113 HTML-building calls). It does not use templ at all. Adoption opportunities (Pareto-ordered):
+
+1. **`icons.Icon`** — replace hand-rolled `navIconSVG()` switch (10 hard-coded SVG path strings) with `icons.Icon(name, class)`.
+2. **`display.Table`** — replace hand-rolled `<table>` string builders with typed `TableProps`.
+3. **`feedback.ToastContainer` + `htmx.GlobalErrorHandling`** — replace hand-rolled toast CSS/JS with library equivalents.
+4. **`display.EmptyState`** — replace `emptyState()` string helper.
+5. **`htmx.PolledRegion`** — for live SSE-refreshed panels.
+6. **Requires paradigm shift:** dashboardui uses `strings.Builder`, not templ. Full adoption means converting render functions to `.templ` files — a large but high-value refactor.
+
+### loginpage — adoption opportunities
+
+loginpage uses templ but hand-rolls everything with custom `lp-*` CSS:
+
+1. **`recipes.AuthLayout`** (v1.7.0) — split-screen auth layout, purpose-built for login pages.
+2. **`forms.Input` / `forms.Form`** — replace hand-rolled `<input>` / `<form>` elements.
+3. **`feedback.Alert`** — replace `lp-error` div.
+4. **`display.Button`** — replace `lp-btn` classes.
+
 ## Gotchas
 
 - **`GOEXPERIMENT=jsonv2` is mandatory:** Build fails without it. Never add depguard rules banning `encoding/json/v2`.
