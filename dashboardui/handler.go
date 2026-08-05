@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // Handler returns the root HTTP handler for the dashboard. All internal
@@ -30,7 +31,7 @@ func (d *Dashboard) Mount(mux *http.ServeMux, pattern string) {
 // Middleware returns the recommended middleware chain for the dashboard.
 func (d *Dashboard) Middleware() func(http.Handler) http.Handler {
 	return cqrshtmx.Chain(
-		cqrshtmx.SecurityHeadersMiddleware,
+		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
 		cqrshtmx.RecoveryMiddleware,
 	)
 }
