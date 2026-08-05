@@ -48,7 +48,7 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 	}
 	// Preserve any existing trigger events (other HX-Trigger entries).
 	triggers := map[string]jsontext.Value{}
-	if h := w.Header().Get("HX-Trigger"); h != "" {
+	if h := w.Header().Get("Hx-Trigger"); h != "" {
 		_ = json.Unmarshal([]byte(h), &triggers) // best-effort merge
 	}
 	triggers["adminui:toast"] = detail
@@ -56,7 +56,7 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 	if err != nil {
 		return
 	}
-	w.Header().Set("HX-Trigger", string(merged))
+	w.Header().Set("Hx-Trigger", string(merged))
 }
 
 // redirect issues an HTMX-aware redirect: HX-Redirect for HTMX requests, a

@@ -68,7 +68,7 @@ func emptyState(title, message string) string {
 // link or explicit hx-get/hx-post. When true, handlers render only the main
 // content (no full HTML shell) for smaller payloads and faster swaps.
 func isHTMXRequest(r *http.Request) bool {
-	return r != nil && r.Header.Get("HX-Request") == "true"
+	return r != nil && r.Header.Get("Hx-Request") == "true"
 }
 
 func redirect(w http.ResponseWriter, r *http.Request, path string) {
