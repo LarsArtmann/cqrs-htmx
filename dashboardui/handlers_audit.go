@@ -17,6 +17,25 @@ import (
 func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Commands", "/commands", r)
 
+	if fmt := parseFormat(r); fmt != formatHTML {
+		var cmds []*command.PersistedCommand
+
+		if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
+			cmds, _ = seekable.ReadFrom(r.Context(), id.CommandID{}, exportLimit)
+		} else if d.config.CommandJournal != nil {
+			cmds, _ = d.config.CommandJournal.ReadAll(r.Context())
+		}
+
+		switch fmt {
+		case formatCSV:
+			exportCommandsCSV(w, cmds)
+		case formatJSON:
+			exportCommandsJSON(w, cmds)
+		}
+
+		return
+	}
+
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 	after, _ := id.ParseCommandID(afterCursor)
@@ -104,6 +123,25 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 
 func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Queries", "/queries", r)
+
+	if fmt := parseFormat(r); fmt != formatHTML {
+		var queries []*query.PersistedQuery
+
+		if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
+			queries, _ = seekable.ReadQueriesFrom(r.Context(), id.RequestID{}, exportLimit)
+		} else if d.config.QueryJournal != nil {
+			queries, _ = d.config.QueryJournal.ReadAllQueries(r.Context())
+		}
+
+		switch fmt {
+		case formatCSV:
+			exportQueriesCSV(w, queries)
+		case formatJSON:
+			exportQueriesJSON(w, queries)
+		}
+
+		return
+	}
 
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
