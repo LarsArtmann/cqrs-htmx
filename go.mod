@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-sse v0.4.0
-	github.com/larsartmann/httputil v0.8.0
+	github.com/larsartmann/httputil v0.9.0
 	github.com/oklog/ulid/v2 v2.1.2
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1

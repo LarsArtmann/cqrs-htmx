@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/httputil v0.8.0
+	github.com/larsartmann/httputil v0.9.0
 )
 
 require (

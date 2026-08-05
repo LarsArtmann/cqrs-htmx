@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-sse v0.4.0
-	github.com/larsartmann/httputil v0.8.0
+	github.com/larsartmann/httputil v0.9.0
 )
 
 require (

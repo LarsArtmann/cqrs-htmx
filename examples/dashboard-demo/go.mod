@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
-	github.com/larsartmann/httputil v0.8.0
+	github.com/larsartmann/httputil v0.9.0
 )
 
 require (

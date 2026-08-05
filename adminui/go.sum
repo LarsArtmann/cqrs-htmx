@@ -161,6 +161,8 @@ github.com/larsartmann/go-sse v0.4.0 h1:cHeOMbVGcIqeetic8bdZIITo4xsPSpWiPhtvQTxN
 github.com/larsartmann/go-sse v0.4.0/go.mod h1:B9mLj83rwtrnbqSqBcRuMV8vnOvAaPlJtH+9U/fMeRQ=
 github.com/larsartmann/httputil v0.8.0 h1:jYyElWd/XQj1YqVQEPinsu91EkottEmjwcRBWWht96U=
 github.com/larsartmann/httputil v0.8.0/go.mod h1:I22z9KHES2ChfZ8gG16MGO8qSrtHKS1OMSltXdff0Lc=
+github.com/larsartmann/httputil v0.9.0 h1:mNQfIi0/Z/qlZ68vF4LRGZEKp1sVFidZ2lIsYjM3Fbg=
+github.com/larsartmann/httputil v0.9.0/go.mod h1:I22z9KHES2ChfZ8gG16MGO8qSrtHKS1OMSltXdff0Lc=
 github.com/larsartmann/templ-components v1.7.0 h1:igGqcD7h9WJjDs3MP9f+MgEeZfoA4com7OSne5tZoCY=
 github.com/larsartmann/templ-components v1.7.0/go.mod h1:odUy+VjdriptId0EP9RfbP/JNQgH/JIpku7xL1KjF3Y=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
