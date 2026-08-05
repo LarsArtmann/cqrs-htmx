@@ -54,7 +54,13 @@ func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (T, error) {
 
 // readBody reads the request body, respecting maxBodySize if > 0.
 // When maxBodySize <= 0, DefaultMaxBodySize is used.
+// A nil body (hand-constructed or proxied requests) is treated as empty,
+// consistent with the empty-body GET path decodeJSONBody already supports.
 func readBody(r *http.Request, maxBodySize int64) ([]byte, error) {
+	if r.Body == nil {
+		return nil, nil
+	}
+
 	if maxBodySize <= 0 {
 		maxBodySize = DefaultMaxBodySize
 	}
