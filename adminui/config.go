@@ -1,6 +1,8 @@
 package adminui
 
 import (
+	"net/http"
+
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
@@ -67,6 +69,11 @@ type Config struct {
 	// layout includes a data-sse-url attribute and renders the global sync
 	// indicator (.sync-bar). Empty disables honest UI sync tracking.
 	SSEURL string
+
+	// NonceFunc returns a per-request CSP nonce for inline scripts (used by
+	// ToastContainer and GlobalErrorHandling). Return "" if CSP is not active.
+	// When nil, all inline scripts render with no nonce attribute.
+	NonceFunc func(*http.Request) string
 }
 
 // withDefaults returns a copy of config with empty fields replaced by defaults and

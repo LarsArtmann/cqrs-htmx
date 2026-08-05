@@ -70,7 +70,16 @@ func (h *Handler) page(title, active string, user *usermgmt.User, r *http.Reques
 		SSEURL:    h.config.SSEURL,
 		CSRFToken: cqrshtmx.CSRFTokenFormField(r),
 		CSRFMeta:  cqrshtmx.CSRFTokenHTMLMeta(r),
+		Nonce:     h.nonce(r),
 	}
+}
+
+// nonce returns the per-request CSP nonce, or "" when no NonceFunc is set.
+func (h *Handler) nonce(r *http.Request) string {
+	if h.config.NonceFunc == nil {
+		return ""
+	}
+	return h.config.NonceFunc(r)
 }
 
 // guard wraps a handler with authentication + authorization. The wrapped
