@@ -28,30 +28,16 @@
     if (e.target.classList && e.target.classList.contains("admin-scrim")) toggleSidebar();
   });
 
-  // --- Toasts: render messages pushed via the HX-Trigger header ---
-  function toast(message, kind) {
-    var host = document.querySelector(".toast-host");
-    if (!host) {
-      host = document.createElement("div");
-      host.className = "toast-host";
-      document.body.appendChild(host);
-    }
-    var el = document.createElement("div");
-    el.className = "toast" + (kind ? " toast--" + kind : "");
-    el.textContent = message;
-    host.appendChild(el);
-    setTimeout(function () {
-      el.style.opacity = "0";
-      el.style.transition = "opacity .2s";
-      setTimeout(function () {
-        el.remove();
-      }, 220);
-    }, 3200);
-  }
-  // HTMX triggers are dispatched as custom events; listen for adminui:toast below.
+  // --- Toasts: bridge adminui:toast HX-Trigger events to templ-components tcShowToast ---
+  // tcShowToast is provided by feedback.ToastContainer (rendered server-side).
   document.addEventListener("adminui:toast", function (e) {
     var d = e.detail || {};
-    toast(d.message || "", d.kind);
+    var kindMap = { ok: "success", err: "error", warn: "warning", info: "info" };
+    if (typeof tcShowToast === "function") {
+      tcShowToast(d.message || "", kindMap[d.kind] || "info");
+    } else {
+      console.warn("adminui: tcShowToast not available — toast lost:", d.message);
+    }
   });
 
   // --- Confirm before destructive actions ---
