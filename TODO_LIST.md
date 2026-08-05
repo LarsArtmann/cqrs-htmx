@@ -25,6 +25,10 @@
 - [ ] **Add remaining BuildFlow tools to the flake devShell.** biome, shfmt, and nixfmt are now wired. Still missing: cspell (spell-checking), vitest, jest — needed for full `--no-verify`-free commits on JS/Markdown files. Source: `docs/status/2026-08-05_02-35_templ-components-adoption-deepening.md`.
 - [~] **Wire remaining `check-*` apps into CI.** `check-docs-links`, `check-service-methods`, `check-domain-counts`, `check-large-files`, and `check-phantom-version` now run in the CI `checks` and `security` jobs. Remaining: `check-codegen` (needs templ version pinning in CI), `check-templates` (needs workspace mode / local replaces), `check-cqrs-lint` (blocked — Nix-only binary; see P3.1).
 
+- [ ] **Create `docs/migrations/v4-to-v5.md` migration guide.** Covers: WebSocket→SSE migration recipe (ADR 0046), `HX-*`→`Hx-*` canonical header constant change (zero behavioral change via `http.Header.Set`/`Get`, but consumers using direct map access `r.Header["HX-Request"]` must update), identity-model import migration (adminui/integration_test → direct imports, removing SA1019 suppression), httputil re-export removal, SSE re-export removal. Referenced by ROADMAP and ADR-0046.
+- [ ] **Migrate adminui to direct identity-model imports.** Eliminates 133 SA1019 suppression warnings and the scoped text-based exclusion in `adminui/.golangci.yml`. v5 prerequisite — see ROADMAP "Re-export Layer Retirement". High effort (~26 files, ~133 call sites) but zero API change (type aliases are transparent).
+- [ ] **Migrate integration_test to direct identity-model imports.** Eliminates 22 SA1019 suppression warnings. Same pattern as the adminui migration above.
+
 ---
 
 ## P3 — Technical debt & future

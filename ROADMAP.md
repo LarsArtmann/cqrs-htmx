@@ -95,7 +95,7 @@ The split becomes worthwhile when:
 
 ### Re-export Layer Retirement (v5)
 
-26 usermgmt files re-export identity-model types via type aliases and constructor wrappers. All 160 exported re-export symbols now carry `// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.` markers (added 2026-08-05). Removal is a breaking change bundled with the v5 major bump. Decision confirmed by maintainer 2026-08-05: remove in v5.
+26 usermgmt files re-export identity-model types via type aliases and constructor wrappers. All 160 exported re-export symbols now carry `// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.` markers (added 2026-08-05). Removal is a breaking change bundled with the v5 major bump. Decision confirmed by maintainer 2026-08-05: remove in v5. **SA1019 suppression removal is a v5 blocker:** adminui and integration_test `.golangci.yml` contain a scoped text-based staticcheck exclusion (`'Import github\.com/larsartmann/cqrs-htmx/identity-model/v4 directly'`) that suppresses 155 deprecation warnings. This MUST be removed once both modules migrate to direct identity-model imports — until then it hides all identity-model deprecation warnings in those modules.
 
 ### httputil Re-export Retirement (v5)
 

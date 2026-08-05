@@ -2,6 +2,8 @@
 
 > **Session goal:** Resume the workspace-wide lint cleanup. Fix 9 stale nolintlint directives, verify `nix run .#lint`/`.#build`/`.#test` end-to-end, update all documentation.
 > **Self-assessed grade:** A- (all stated work completed and verified, but self-critique below reveals what was missed)
+>
+> **FOLLOW-UP SESSION (2026-08-05 ~21:40):** All 3 questions RESOLVED. All verification commands RUN and PASS. See `## Follow-up Resolutions` at the bottom.
 
 ---
 
@@ -252,3 +254,56 @@ Commits `bf9048e5` and `6b3906c9` have blank subject lines from the auto-git dae
 - Zero regressions introduced — all 14 test suites pass
 - The lint cleanup was thorough (236 issues, 5 modules, 4 root causes)
 - Self-critique is honest (see section D)
+
+---
+
+## Follow-up Resolutions (2026-08-05 ~21:40)
+
+### Q1 RESOLVED: Keep blanket `_test.go` exhaustruct exclusion
+
+Decision: **Keep the blanket exclusion.** It matches the pattern in adminui and usermgmt (3 of 11 modules). Test code legitimately needs partial struct initialization, and the targeted alternative (per-type excludes) creates ongoing `//nolint` maintenance churn. The blanket is the right tradeoff for a library: real type safety is enforced in production code, not test fixtures. Documented in AGENTS.md lint section.
+
+### Q2 RESOLVED: SA1019 suppression is temporary (v4.x only, v5 blocker)
+
+Decision: **Temporary.** The 155-warning text-based suppression in adminui + integration_test MUST be removed when both modules migrate to direct `identity-model/v4` imports. This is now documented as a v5 blocker in ROADMAP.md "Re-export Layer Retirement" section. TODO_LIST.md has two new items for the adminui (~133 sites) and integration_test (~22 sites) migrations.
+
+### Q3 RESOLVED: Leave blank auto-git commits as-is
+
+Decision: **Leave them.** Commits `bf9048e5` and `6b3906c9` have blank subjects from the auto-git daemon, but content is correct (verified via `git show`). History rewriting (`git rebase -i`) for cosmetic reasons violates the "NEVER git reset" safety principle and risks corrupting the branch. Not worth the risk.
+
+### Verification Commands — ALL PASS
+
+| Command | Result | Notes |
+|---------|--------|-------|
+| `nix run .#coverage-gate` | PASS | 11 gates (root 93.5%, usermgmt 81.5%, identity-model 74.9%, etc.) |
+| `nix run .#check-codegen` | PASS | No templ drift |
+| `nix run .#check-templates` | PASS | SQL setup files compile |
+| `nix run .#check-cqrs-lint` | PASS | All modules pass strict |
+| `nix flake check --no-build` | PASS | All flake checks pass |
+| `nix run .#test-fuzz` | **FIXED + PASS** | Was broken: `-fuzz` with `./...` (Go limitation). Now iterates per-package. |
+| `nix run .#test-flake` | **FIXED + PASS** | Was broken: `-count=3` rejected by Ginkgo. Now loops 3x with `-count=1`. |
+
+### Canonicalheader Audit — 3 Submodule Sites Fixed
+
+Root-only fix was incomplete. Found and fixed 3 additional `HX-*` literals in non-test code:
+- `adminui/render.go:51` — `Get("HX-Trigger")` → `Get("Hx-Trigger")`
+- `adminui/render.go:59` — `Set("HX-Trigger", ...)` → `Set("Hx-Trigger", ...)`
+- `dashboardui/render.go:71` — `Get("HX-Request")` → `Get("Hx-Request")`
+
+Zero remaining `HX-*` non-test literals across the workspace.
+
+### Stale Stash Dropped
+
+`stash@{0}: WIP on master: ba79a86` contained dashboardui LogoutURL + enhanced SSE reconnection changes. Verified all content was already merged into the current codebase. Stash dropped safely.
+
+### Files Changed This Session
+
+| File | Change |
+|------|--------|
+| `flake.nix` | Fixed `test-fuzz` (per-package iteration) and `test-flake` (3x loop instead of `-count=3`) |
+| `adminui/render.go` | 2 `HX-Trigger` → `Hx-Trigger` canonicalheader fixes |
+| `dashboardui/render.go` | 1 `HX-Request` → `Hx-Request` canonicalheader fix |
+| `AGENTS.md` | Added: verification gate status, Q1 exhaustruct decision, canonicalheader workspace-wide scope, test-fuzz/test-flake gotcha |
+| `CHANGELOG.md` | Added 4 Fixed entries: test script fixes, submodule canonicalheader, verification gates |
+| `ROADMAP.md` | SA1019 suppression removal marked as v5 blocker in Re-export Layer Retirement section |
+| `TODO_LIST.md` | Added 3 items: v4-to-v5 migration guide, adminui identity-model migration, integration_test identity-model migration |
