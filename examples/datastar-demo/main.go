@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/httputil"
 )
 
 func main() {
@@ -27,8 +28,17 @@ func main() {
 	fmt.Printf("CQRS + Datastar Todo Demo\n")
 	fmt.Printf("Event-sourced: all mutations produce domain events\n")
 	fmt.Printf("Real-time: open multiple tabs to see live event stream\n")
+	// Serve with real timeouts via httputil.NewServer (never bare http.ListenAndServe).
+	cfg := httputil.DefaultServerConfig()
+	cfg.Addr = addr
+	srv, err := httputil.NewServer(cfg, mux)
+	if err != nil {
+		log.Fatalf("invalid server config: %v", err)
+	}
 	fmt.Printf("Listening on http://localhost%s\n", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	if err := <-srv.Start(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func serveIndex(w http.ResponseWriter, r *http.Request) {

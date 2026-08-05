@@ -50,10 +50,7 @@ func TestHTTPSpecCompliance_RealApp(t *testing.T) {
 	_ = disp.Register("Ping", func(_ context.Context, _ query.Query) (any, error) {
 		return "ok", nil
 	})
-	app, err := cqrshtmx.New(cqrshtmx.Config{Queries: disp})
-	if err != nil {
-		t.Fatalf("cqrshtmx.New: %v", err)
-	}
+	app := cqrshtmx.MustNew(cqrshtmx.Config{Queries: disp})
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /index", app.Query("Ping",
