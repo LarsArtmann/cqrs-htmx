@@ -369,6 +369,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		svc.oauth2Svc = NewOAuth2Service(
 			config.OAuth2, stateStore, svc.oauth2StateTTL,
 			svc.readModel, svc.dispatcher, svc.sessions, svc.sessionTTL, svc.logger,
+			svc.classifyDispatchError,
 		)
 	}
 
