@@ -880,6 +880,7 @@
             <span class="tag amber">Installed: v0.8.0</span>
             <span class="tag">Latest: v0.8.0</span>
             <span class="tag teal">Adoption Score: 61/100</span>
+            <span class="tag amber">Snapshot: 2026-08-05 (pre-mitigation)</span>
           </div>
         </header>
 
@@ -897,7 +898,7 @@
             <div class="label">Partially used</div>
           </div>
           <div class="score-card score-bad">
-            <div class="score">10</div>
+            <div class="score">9</div>
             <div class="label">Missed opportunities</div>
           </div>
           <div class="score-card score-good">
@@ -911,7 +912,7 @@
           <p>
             <code>cqrs-htmx</code> depends on <code>httputil v0.8.0</code> (the latest release) and
             <em>fully</em> re-exports the three concerns it migrated there &mdash; CSRF, keyed rate
-            limiting, and Server-Timing &mdash; via clean type/var alias layers
+            limiting, and Server-Timing &mdash; via now-<strong>deprecated</strong> type/var alias layers
             (<code>csrf_reexport.go</code>, <code>ratelimit_reexport.go</code>,
             <code>server_timing_reexport.go</code>). That migration is a model of how to extract
             shared middleware into a focused library. The gap is everywhere <em>else</em>: httputil
@@ -1116,22 +1117,13 @@ log.<span class="tok-function">Fatal</span>(srv.<span class="tok-function">Liste
             </div>
           </div>
 
-          <div class="issue issue-important" id="f-maxbody">
-            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
-            <h3>JSON/form decoders have no body-size guard</h3>
-            <div class="where"><code>options_json.go</code> (<code>RenderJSON</code>), the <code>DecodeJSON</code>/<code>DecodeForm</code> family, and <code>usermgmt/credential_http.go</code> all decode request bodies. <code>cqrs-htmx</code> defines <code>ErrRequestTooLarge</code> (413) but never enforces a size limit. <code>httputil.MaxBodySize(int64)</code> is not referenced anywhere.</div>
+          <div class="issue issue-resolved" id="f-maxbody">
+            <span class="severity severity-nice">Retracted &middot; Not Applicable</span>
+            <h3>JSON/form decoders already have a body-size guard</h3>
+            <div class="where"><strong>Correction (2026-08-05):</strong> cqrs-htmx <em>does</em> enforce body-size limits. <code>decoder.go</code> defines <code>DefaultMaxBodySize</code> (10&nbsp;MB), <code>Config.MaxBodySize</code>, <code>WithMaxBodySize</code>, and the <code>readBody</code> function rejects oversized bodies with <code>ErrRequestTooLarge</code> (413) before decoding. <code>httputil.MaxBodySize</code> is an <em>additional</em> outer middleware guard, not the missing piece.</div>
             <p>
-              cqrs-htmx hands consumers unbounded <code>json.NewDecoder(r.Body)</code> decoders and
-              even declares an <code>ErrRequestTooLarge</code> sentinel &mdash; but nothing wires the
-              two together. httputil&rsquo;s <code>MaxBodySize</code> middleware is the missing piece:
-              it rejects oversized bodies before decoding, mapping cleanly onto the 413 path cqrs-htmx
-              already anticipates.
+              The original audit incorrectly claimed cqrs-htmx &ldquo;never enforces a size limit.&rdquo; This was wrong. cqrs-htmx enforces it at the decoder layer (per-handler, via <code>WithMaxBodySize</code>); httputil&rsquo;s <code>MaxBodySize</code> provides an earlier outer-layer rejection at the middleware level. Both are complementary, and the decoder-level guard is already wired. The <code>leveraging-httputil.md</code> guide documents both.
             </p>
-            <div class="callout callout-teal">
-              <strong>Recommendation</strong>
-              Document <code>httputil.MaxBodySize</code> in the new guide as the recommended guard for
-              mutation endpoints, and show it composing inside <code>cqrshtmx.Chain</code>.
-            </div>
           </div>
 
           <div class="issue issue-nice" id="f-chain">
@@ -1224,12 +1216,12 @@ log.<span class="tok-function">Fatal</span>(srv.<span class="tok-function">Liste
                 <td class="yes">5</td>
                 <td><span class="highlight">20</span></td>
               </tr>
-              <tr>
+              <tr class="resolved">
                 <td>4</td>
-                <td>Document MaxBodySize as the decoder guard</td>
-                <td class="yes">4</td>
-                <td class="yes">5</td>
-                <td><span class="highlight">20</span></td>
+                <td><s>Document MaxBodySize as the decoder guard</s> &mdash; <strong>Resolved:</strong> cqrs-htmx already has <code>Config.MaxBodySize</code> + <code>readBody</code> guard; guide documents both</td>
+                <td>&mdash;</td>
+                <td>&mdash;</td>
+                <td><span class="done">Done</span></td>
               </tr>
               <tr>
                 <td>5</td>

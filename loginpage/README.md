@@ -40,7 +40,7 @@ The consumer must also register the usermgmt auth endpoints and CSRF middleware:
 
 ```go
 svc.AuthHandler().RegisterRoutes(mux)
-mux.Use(cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}))
+mux.Use(httputil.CSRFMiddleware(httputil.CSRFConfig{}))
 ```
 
 ## Configuration

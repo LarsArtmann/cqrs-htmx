@@ -4,7 +4,7 @@
 
 ## Why this guide exists
 
-`cqrs-htmx` follows a **duck-typing** philosophy: it re-exports the three concerns it migrated into httputil (CSRF, keyed rate limiting, Server-Timing — see `csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go`) and keeps richer, domain-aware re-implementations where a generic version would lose value (Recovery with errorfamily, Logging with dispatch-error capture, context enrichment with domain IDs).
+`cqrs-htmx` follows a **duck-typing** philosophy: the three concerns it migrated into httputil (CSRF, keyed rate limiting, Server-Timing) are now **deprecated re-exports** (`csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go` — 39 symbols with `// Deprecated:` markers, removal planned for v5). Import `httputil` directly for these. cqrs-htmx keeps richer, domain-aware re-implementations where a generic version would lose value (Recovery with errorfamily, Logging with dispatch-error capture, context enrichment with domain IDs).
 
 For everything else — the everyday HTTP middleware a browser-facing CQRS app needs — `cqrs-htmx` intentionally stays out of the way. That middleware lives in **httputil**. This guide maps each concern to the exact httputil symbol so you import what you need with zero glue.
 
@@ -46,7 +46,7 @@ handler := cqrshtmx.Chain(
         AllowedMethods:   []string{"GET", "POST"},
         AllowedHeaders:   []string{"Content-Type", "X-CSRF-Token", "HX-Request"},
     }),
-    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
     app.Middleware(),
 )(mux)
 ```
@@ -60,7 +60,7 @@ handler := cqrshtmx.Chain(
     cqrshtmx.RecoveryMiddleware,
     httputil.MaxBodySize(1 << 20),          // 1 MiB — rejects before decode (413)
     httputil.Compression(httputil.DefaultCompressionConfig()),
-    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
     cqrshtmx.HTMXMiddleware,
     app.Middleware(),
 )(mux)
@@ -70,7 +70,9 @@ srv, err := httputil.NewServer(httputil.DefaultServerConfig(), handler)
 if err != nil {
     log.Fatal(err)
 }
-log.Fatal(srv.ListenAndServe())
+if err := <-srv.Start(); err != nil {
+    log.Fatal(err)
+}
 ```
 
 ### 3. Correct rate limiting behind a proxy
@@ -81,7 +83,7 @@ Without client-IP extraction, `KeyExtractorFromClientIP` sees the proxy's IP and
 handler := cqrshtmx.Chain(
     cqrshtmx.SecurityHeadersMiddleware,
     httputil.ClientIPMiddleware,            // populates client IP in context
-    cqrshtmx.RateLimiterMiddleware(cqrshtmx.DefaultRateLimiterConfig()),
+    httputil.RateLimiterMiddleware(httputil.DefaultRateLimiterConfig()),
     app.Middleware(),
 )(mux)
 ```
@@ -130,7 +132,60 @@ These have **richer, domain-aware** implementations than httputil's generic equi
 
 - **Recovery** (`cqrshtmx.RecoveryMiddleware`) — classifies panics via errorfamily, routes through the configured `ErrorHandler`, recovers Request/Correlation IDs.
 - **Logging** (`cqrshtmx.RequestLoggingSlog`) — captures dispatch errors and domain IDs (user/correlation/request).
-- **Security headers** (`cqrshtmx.SecurityHeadersMiddleware`) — superset config (`PermissionsPolicy`, `Custom` map, `SecurityHeaderSkip` sentinel). *Note: httputil has a weaker parallel version — a known split brain tracked in `docs/research/2026-08-05_httputil-deep-dive.html`.*
+- **Security headers** (`cqrshtmx.SecurityHeadersMiddleware`) — superset config (`PermissionsPolicy`, `Custom` map, `SecurityHeaderSkip` sentinel). httputil has a simpler parallel version (`ContentTypeNosniff bool`). This split brain is a known issue; the v5 plan is to port cqrs-htmx's richer config into httputil and deprecate cqrs-htmx's version. For now, `cqrshtmx.SecurityHeadersMiddleware` is the recommended choice.
+
+## Re-export deprecation migration table
+
+The following 39 symbols in `cqrs-htmx/v4` are **deprecated** (type/var aliases over `github.com/larsartmann/httputil`). Import `httputil` directly; the aliases will be removed in v5.
+
+### CSRF (`csrf_reexport.go`)
+
+| Deprecated `cqrshtmx.*` | Replacement `httputil.*` |
+| --- | --- |
+| `CSRFConfig` | `httputil.CSRFConfig` |
+| `CSRFMiddleware` | `httputil.CSRFMiddleware` |
+| `CSRFResponseHeaderMiddleware` | `httputil.CSRFResponseHeaderMiddleware` |
+| `CSRFTokenFromContext` | `httputil.CSRFTokenFromContext` |
+| `WithCSRFToken` | `httputil.WithCSRFToken` |
+| `CSRFTestToken` | `httputil.CSRFTestToken` |
+| `InvalidateCSRFCookie` | `httputil.InvalidateCSRFCookie` |
+| `CSRFTokenHTMLMeta` | `httputil.CSRFTokenHTMLMeta` |
+| `CSRFTokenHXHeaders` | `httputil.CSRFTokenHXHeaders` |
+| `CSRFTokenFormField` | `httputil.CSRFTokenFormField` |
+| `ForbiddenErrorHandler` | `httputil.ForbiddenErrorHandler` |
+| `ErrCSRFInvalid` | `httputil.ErrCSRFInvalid` |
+| `ErrCSRFConfig` | `httputil.ErrCSRFConfig` |
+| `ErrorHandler` | `httputil.ErrorHandler` |
+
+### Rate limiting (`ratelimit_reexport.go`)
+
+| Deprecated `cqrshtmx.*` | Replacement `httputil.*` |
+| --- | --- |
+| `RateLimiterConfig` | `httputil.RateLimiterConfig` |
+| `RateLimiter` | `httputil.RateLimiter` |
+| `KeyExtractor` | `httputil.KeyExtractor` |
+| `RateLimiterMiddleware` | `httputil.RateLimiterMiddleware` |
+| `NewRateLimiter` | `httputil.NewRateLimiter` |
+| `DefaultRateLimiterConfig` | `httputil.DefaultRateLimiterConfig` |
+| `KeyExtractorFromRemoteAddr` | `httputil.KeyExtractorFromRemoteAddr` |
+| `KeyExtractorFromClientIP` | `httputil.KeyExtractorFromClientIP` |
+| `DefaultRateLimit` | `httputil.DefaultRateLimit` |
+| `DefaultRateWindow` | `httputil.DefaultRateWindow` |
+| `DefaultRateTTL` | `httputil.DefaultRateTTL` |
+
+### Server-Timing (`server_timing_reexport.go`)
+
+| Deprecated `cqrshtmx.*` | Replacement `httputil.*` |
+| --- | --- |
+| `ServerTiming` | `httputil.ServerTiming` |
+| `ServerTimingMiddleware` | `httputil.ServerTimingMiddleware` |
+| `ServerTimingMiddlewareWhen` | `httputil.ServerTimingMiddlewareWhen` |
+| `ServerTimingFromContext` | `httputil.ServerTimingFromContext` |
+| `WithServerTiming` | `httputil.WithServerTiming` |
+| `RecordServerTiming` | `httputil.RecordServerTiming` |
+| `MeasureServerTiming` | `httputil.MeasureServerTiming` |
+
+> **Migration is mechanical:** add `"github.com/larsartmann/httputil"` to your imports, change the `cqrshtmx.` prefix to `httputil.` for any of the symbols above, and remove the `cqrshtmx.` import if it's no longer needed. The types are aliases, so no behavior change.
 - **Context enrichment** (`cqrshtmx.ContextEnrichmentMiddleware`) — domain-aware (UserID + RequestID + CorrelationID).
 - **Chain** (`cqrshtmx.Chain`) — curried signature (`Chain(mw...) func(http.Handler) http.Handler`) for composable stacking.
 
