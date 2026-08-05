@@ -93,24 +93,24 @@ FAKE_REPO="$TMPDIR/fake-repo"
 mkdir -p "$FAKE_REPO/identity-model"
 
 # Source files: 2 event payloads, 2 commands
-cat > "$FAKE_REPO/identity-model/events.go" << 'GOEOF'
+cat >"$FAKE_REPO/identity-model/events.go" <<'GOEOF'
 package identitymodel
 type UserCreatedPayload struct{}
 type UserDeletedPayload struct{}
 GOEOF
 
-cat > "$FAKE_REPO/identity-model/commands.go" << 'GOEOF'
+cat >"$FAKE_REPO/identity-model/commands.go" <<'GOEOF'
 package identitymodel
 type CreateUserCmd struct{}
 type DeleteUserCmd struct{}
 GOEOF
 
 # Create a copy of the checker that uses the fake repo as REPO_ROOT
-sed 's|^REPO_ROOT=.*|REPO_ROOT="'"$FAKE_REPO"'"|' "$CHECKER" > "$TMPDIR/fake-checker.sh"
+sed 's|^REPO_ROOT=.*|REPO_ROOT="'"$FAKE_REPO"'"|' "$CHECKER" >"$TMPDIR/fake-checker.sh"
 chmod +x "$TMPDIR/fake-checker.sh"
 
 # 4a: In-sync doc should pass
-echo "We have 2 event payload structs and 2 command structs." > "$FAKE_REPO/AGENTS.md"
+echo "We have 2 event payload structs and 2 command structs." >"$FAKE_REPO/AGENTS.md"
 set +e
 OUTPUT=$(bash "$TMPDIR/fake-checker.sh" 2>&1)
 EXIT_CODE=$?
@@ -125,7 +125,7 @@ else
 fi
 
 # 4b: Drifted event count should fail
-echo "We have 99 event payload structs and 2 command structs." > "$FAKE_REPO/AGENTS.md"
+echo "We have 99 event payload structs and 2 command structs." >"$FAKE_REPO/AGENTS.md"
 set +e
 OUTPUT=$(bash "$TMPDIR/fake-checker.sh" 2>&1)
 EXIT_CODE=$?
@@ -139,7 +139,7 @@ else
 fi
 
 # 4c: Drifted command count should fail
-echo "We have 2 event payload structs and 99 command structs." > "$FAKE_REPO/AGENTS.md"
+echo "We have 2 event payload structs and 99 command structs." >"$FAKE_REPO/AGENTS.md"
 set +e
 OUTPUT=$(bash "$TMPDIR/fake-checker.sh" 2>&1)
 EXIT_CODE=$?

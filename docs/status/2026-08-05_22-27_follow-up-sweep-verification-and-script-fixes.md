@@ -11,15 +11,15 @@
 
 The prior session only ran lint/build/test. This session ran the remaining 7:
 
-| Command | Result | Notes |
-|---------|--------|-------|
-| `nix run .#coverage-gate` | **PASS** | 11 gates: root 93.5% (gate 90%), usermgmt 81.5% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.8% (gate 60%), datastar 96.7% (gate 90%), dashboardui/core 86.1% (gate 80%), adminui 68.7% (gate 66%), loginpage 79.9% (gate 79%), totp 88.2% (gate 80%), webauthn 89.2% (gate 80%), oauth2 88.3% (gate 80%) |
-| `nix run .#check-codegen` | **PASS** | No templ drift (adminui 0 updates, loginpage 0 updates) |
-| `nix run .#check-templates` | **PASS** | All 4 SQL setup files compile (build tags stripped, workspace mode) |
-| `nix run .#check-cqrs-lint` | **PASS** | All 10 modules pass strict (root, identity-model, usermgmt, totp, webauthn, oauth2, adminui, loginpage, dashboardui, datastar) |
-| `nix flake check --no-build` | **PASS** | All apps and flake outputs evaluate correctly |
-| `nix run .#test-fuzz` | **FIXED + PASS** | Was broken (see D.1). Verified with `FUZZTIME=1s`. |
-| `nix run .#test-flake` | **FIXED + PASS** | Was broken (see D.1). All modules 3x with race detector, zero flakes. |
+| Command                      | Result           | Notes                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `nix run .#coverage-gate`    | **PASS**         | 11 gates: root 93.5% (gate 90%), usermgmt 81.5% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.8% (gate 60%), datastar 96.7% (gate 90%), dashboardui/core 86.1% (gate 80%), adminui 68.7% (gate 66%), loginpage 79.9% (gate 79%), totp 88.2% (gate 80%), webauthn 89.2% (gate 80%), oauth2 88.3% (gate 80%) |
+| `nix run .#check-codegen`    | **PASS**         | No templ drift (adminui 0 updates, loginpage 0 updates)                                                                                                                                                                                                                                                                  |
+| `nix run .#check-templates`  | **PASS**         | All 4 SQL setup files compile (build tags stripped, workspace mode)                                                                                                                                                                                                                                                      |
+| `nix run .#check-cqrs-lint`  | **PASS**         | All 10 modules pass strict (root, identity-model, usermgmt, totp, webauthn, oauth2, adminui, loginpage, dashboardui, datastar)                                                                                                                                                                                           |
+| `nix flake check --no-build` | **PASS**         | All apps and flake outputs evaluate correctly                                                                                                                                                                                                                                                                            |
+| `nix run .#test-fuzz`        | **FIXED + PASS** | Was broken (see D.1). Verified with `FUZZTIME=1s`.                                                                                                                                                                                                                                                                       |
+| `nix run .#test-flake`       | **FIXED + PASS** | Was broken (see D.1). All modules 3x with race detector, zero flakes.                                                                                                                                                                                                                                                    |
 
 ### 2. Two pre-existing flake.nix script bugs FOUND and FIXED
 
@@ -41,11 +41,11 @@ The prior session's canonicalheader fix (`HX-*`→`Hx-*`) was root-only. This se
 
 ### 4. Q1-Q3 questions RESOLVED with engineering decisions
 
-| Question | Decision | Rationale |
-|----------|----------|-----------|
-| **Q1**: Blanket vs targeted `_test.go` exhaustruct? | **Keep blanket** | Consistent across root/adminui/usermgmt. Test code legitimately needs partial struct init. Targeted approach creates perpetual nolint churn. |
-| **Q2**: SA1019 suppression temporary or permanent? | **Temporary (v4.x only)** | 155 warnings in adminui+integration_test. Marked as v5 blocker in ROADMAP. Two migration TODOs added. |
-| **Q3**: Fix the 2 blank-subject auto-git commits? | **Leave as-is** | Content correct (verified via `git show`). History rewriting (`rebase -i`) for cosmetics violates the safety-first principle. |
+| Question                                            | Decision                  | Rationale                                                                                                                                    |
+| --------------------------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Q1**: Blanket vs targeted `_test.go` exhaustruct? | **Keep blanket**          | Consistent across root/adminui/usermgmt. Test code legitimately needs partial struct init. Targeted approach creates perpetual nolint churn. |
+| **Q2**: SA1019 suppression temporary or permanent?  | **Temporary (v4.x only)** | 155 warnings in adminui+integration_test. Marked as v5 blocker in ROADMAP. Two migration TODOs added.                                        |
+| **Q3**: Fix the 2 blank-subject auto-git commits?   | **Leave as-is**           | Content correct (verified via `git show`). History rewriting (`rebase -i`) for cosmetics violates the safety-first principle.                |
 
 ### 5. Stale git stash dropped
 
@@ -53,13 +53,13 @@ The prior session's canonicalheader fix (`HX-*`→`Hx-*`) was root-only. This se
 
 ### 6. Documentation updated
 
-| File | Change |
-|------|--------|
-| `AGENTS.md` | Added: full verification gate status, Q1 exhaustruct decision, canonicalheader workspace-wide scope, test-fuzz/test-flake script gotcha |
-| `CHANGELOG.md` | 4 new Fixed entries: test script fixes, submodule canonicalheader, verification gates pass |
-| `ROADMAP.md` | SA1019 suppression removal marked as v5 blocker in Re-export Layer Retirement section |
-| `TODO_LIST.md` | 3 new items: v4-to-v5 migration guide expansion, adminui identity-model migration, integration_test identity-model migration |
-| `docs/status/2026-08-05_21-36_*.md` | Annotated with follow-up resolutions section (Q1-Q3 answers, verification results, files changed) |
+| File                                | Change                                                                                                                                  |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `AGENTS.md`                         | Added: full verification gate status, Q1 exhaustruct decision, canonicalheader workspace-wide scope, test-fuzz/test-flake script gotcha |
+| `CHANGELOG.md`                      | 4 new Fixed entries: test script fixes, submodule canonicalheader, verification gates pass                                              |
+| `ROADMAP.md`                        | SA1019 suppression removal marked as v5 blocker in Re-export Layer Retirement section                                                   |
+| `TODO_LIST.md`                      | 3 new items: v4-to-v5 migration guide expansion, adminui identity-model migration, integration_test identity-model migration            |
+| `docs/status/2026-08-05_21-36_*.md` | Annotated with follow-up resolutions section (Q1-Q3 answers, verification results, files changed)                                       |
 
 ### 7. Final verification — ALL GREEN
 
@@ -197,7 +197,7 @@ I didn't verify whether `.github/workflows/ci.yml` has separate fuzz or flake st
 8. **Run full `nix run .#test-fuzz` with default FUZZTIME=30s** — this session only verified with 1s
 9. **Migrate adminui to direct identity-model imports** — eliminates 133 SA1019 suppression warnings (~26 files)
 10. **Migrate integration_test to direct identity-model imports** — eliminates 22 SA1019 suppression warnings
-11. **Document htmx.min.js HX-* usage** — add a comment or AGENTS.md note that the vendored JS correctly uses `HX-*` (HTTP spec case-insensitivity) and should NOT be changed
+11. _*Document htmx.min.js HX-* usage_* — add a comment or AGENTS.md note that the vendored JS correctly uses `HX-*` (HTTP spec case-insensitivity) and should NOT be changed
 12. **Wire `check-codegen` into CI** — needs templ version pinning
 13. **Wire `check-templates` into CI** — needs workspace mode / local replaces
 14. **Wire `check-cqrs-lint` into CI** — blocked on Nix-only binary distribution
@@ -271,12 +271,14 @@ I only verified the fixed fuzz script with `FUZZTIME=1s`. A full run (30s × ~15
 ## Self-Critique Summary
 
 **What went well:**
+
 - Found and fixed 2 pre-existing script bugs that every prior session missed
 - Canonicalheader audit was thorough (found 3 submodule sites the prior session missed)
 - Stash cleanup was safe (verified content was merged before dropping)
 - All verification commands now pass — the repo is in a fully green state
 
 **What could be better:**
+
 - The TODO_LIST item for the migration guide is wrong (file already exists)
 - I didn't fill the canonicalheader documentation gap in the migration guide
 - I only smoke-tested test-fuzz with 1s, not the default 30s
@@ -284,6 +286,7 @@ I only verified the fixed fuzz script with `FUZZTIME=1s`. A full run (30s × ~15
 - I didn't check CI for equivalent fuzz/flake bugs
 
 **What I'm proud of:**
+
 - The test-fuzz and test-flake script fixes are genuine quality improvements that unblock actual fuzz and flake testing
 - The canonicalheader audit caught issues the prior session's "root-only" fix missed
 - Zero regressions — all 14 test suites pass, all 11 lint modules at 0 issues

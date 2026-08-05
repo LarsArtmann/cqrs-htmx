@@ -11,33 +11,34 @@
 
 ### Lint: 236 issues resolved across 5 modules (ALL 11 modules at 0 issues)
 
-| Module        | Issues Fixed | Root Cause                                                        |
-| ------------- | ------------ | ----------------------------------------------------------------- |
-| root          | 46           | exhaustruct (14), gochecknoglobals (3), godoclint (1), canonicalheader (19), wsl_v5 (1), nolintlint stale (9) |
-| usermgmt      | 34           | gocritic deprecatedComment (34 `// Deprecated:` formatting)       |
-| adminui       | 133          | SA1019 identity-model re-export deprecation warnings              |
-| integration_test | 22       | SA1019 identity-model re-export deprecation warnings              |
-| dashboardui   | 1            | deprecated `cqrshtmx.SecurityHeadersMiddleware` call              |
+| Module           | Issues Fixed | Root Cause                                                                                                    |
+| ---------------- | ------------ | ------------------------------------------------------------------------------------------------------------- |
+| root             | 46           | exhaustruct (14), gochecknoglobals (3), godoclint (1), canonicalheader (19), wsl_v5 (1), nolintlint stale (9) |
+| usermgmt         | 34           | gocritic deprecatedComment (34 `// Deprecated:` formatting)                                                   |
+| adminui          | 133          | SA1019 identity-model re-export deprecation warnings                                                          |
+| integration_test | 22           | SA1019 identity-model re-export deprecation warnings                                                          |
+| dashboardui      | 1            | deprecated `cqrshtmx.SecurityHeadersMiddleware` call                                                          |
 
 **Verification (all pass):**
+
 - `nix run .#lint`: **0 issues across all 11 modules** (continue-past-failure loop confirmed working)
 - `nix run .#build`: **all 19 modules built successfully**
 - `nix run .#test`: **all 14 test suites pass** (root, openapi, adminui, dashboardui, dashboardui/core, datastar, identity-model, integration_test, loginpage, usermgmt, usermgmt/oauth2, usermgmt/totp, usermgmt/webauthn)
 
 ### Code Changes Made This Session
 
-| File                                    | Change                                                                                        |
-| --------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `command_sync_integration_test.go`      | Removed 3 stale `//nolint:exhaustruct` directives                                              |
-| `fuzz_test.go`                          | Removed 1 stale `//nolint:exhaustruct` directive                                               |
-| `logging_test.go`                       | Removed 1 stale `//nolint:exhaustruct` directive + fixed wsl_v5 whitespace                    |
-| `sse_reconnect_integration_test.go`     | Removed 1 stale `//nolint:exhaustruct` directive                                               |
-| `structured_error_test.go`              | Removed 3 stale `//nolint:exhaustruct` directives                                              |
-| `htmx.go`                               | Canonicalized 18 HTMX header constants (`HX-*` → `Hx-*`, zero behavioral change)              |
-| `TODO_LIST.md`                          | Removed 6 completed items (httputil v0.9.0, datastar tag, auto-discovery, etc.)               |
-| `AGENTS.md`                             | Updated lint date, documented SA1019 suppression, canonicalheader fix, lint continue-past-failure |
-| `CHANGELOG.md`                          | Added 3 entries under `[Unreleased]` → `### Fixed`                                             |
-| `docs/status/2026-08-05_18-56_*.md`     | Annotated M13 + M15 as fully resolved                                                         |
+| File                                | Change                                                                                            |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `command_sync_integration_test.go`  | Removed 3 stale `//nolint:exhaustruct` directives                                                 |
+| `fuzz_test.go`                      | Removed 1 stale `//nolint:exhaustruct` directive                                                  |
+| `logging_test.go`                   | Removed 1 stale `//nolint:exhaustruct` directive + fixed wsl_v5 whitespace                        |
+| `sse_reconnect_integration_test.go` | Removed 1 stale `//nolint:exhaustruct` directive                                                  |
+| `structured_error_test.go`          | Removed 3 stale `//nolint:exhaustruct` directives                                                 |
+| `htmx.go`                           | Canonicalized 18 HTMX header constants (`HX-*` → `Hx-*`, zero behavioral change)                  |
+| `TODO_LIST.md`                      | Removed 6 completed items (httputil v0.9.0, datastar tag, auto-discovery, etc.)                   |
+| `AGENTS.md`                         | Updated lint date, documented SA1019 suppression, canonicalheader fix, lint continue-past-failure |
+| `CHANGELOG.md`                      | Added 3 entries under `[Unreleased]` → `### Fixed`                                                |
+| `docs/status/2026-08-05_18-56_*.md` | Annotated M13 + M15 as fully resolved                                                             |
 
 ### All 20 Pareto Plan Tasks — ADDRESSED
 
@@ -50,6 +51,7 @@
 ### N/A — nothing from this session is partial
 
 All work items from the resume context were completed:
+
 - 9 stale nolintlint directives: **removed**
 - `nix run .#lint` end-to-end: **verified**
 - `nix run .#build`: **verified**
@@ -88,6 +90,7 @@ The prior session's status report (`docs/status/2026-08-05_21-13_*`) had 50 next
 ### 2. The blank-subject auto-git commits
 
 Two commits from the prior session have blank subject lines:
+
 - `bf9048e5` — the lint continue-past-failure rewrite
 - `6b3906c9` — the usermgmt deprecatedComment + adminui SA1019 suppression
 
@@ -238,12 +241,14 @@ Commits `bf9048e5` and `6b3906c9` have blank subject lines from the auto-git dae
 ## Self-Critique Summary
 
 **What went well:**
+
 - All stated work items completed and verified end-to-end (lint/build/test all pass)
 - The canonicalheader fix was a genuine improvement (proper Go header canonicalization)
 - Documentation updated thoroughly (TODO_LIST, AGENTS.md, CHANGELOG, status report)
 - The lint continue-past-failure fix prevents future "hidden lint regression" sessions
 
 **What could be better:**
+
 - The git stash accident was avoidable (should have checked `stash list` first)
 - The `_test.go` exhaustruct blanket exclusion was a prior session's decision, but I didn't question it
 - I didn't run `nix run .#coverage-gate`, `.#check-templates`, `.#check-codegen`, `.#test-fuzz`, or `.#test-flake` — only lint/build/test
@@ -251,6 +256,7 @@ Commits `bf9048e5` and `6b3906c9` have blank subject lines from the auto-git dae
 - The 2 blank auto-git commits are still in history with no resolution
 
 **What I'm proud of:**
+
 - Zero regressions introduced — all 14 test suites pass
 - The lint cleanup was thorough (236 issues, 5 modules, 4 root causes)
 - Self-critique is honest (see section D)
@@ -273,19 +279,20 @@ Decision: **Leave them.** Commits `bf9048e5` and `6b3906c9` have blank subjects 
 
 ### Verification Commands — ALL PASS
 
-| Command | Result | Notes |
-|---------|--------|-------|
-| `nix run .#coverage-gate` | PASS | 11 gates (root 93.5%, usermgmt 81.5%, identity-model 74.9%, etc.) |
-| `nix run .#check-codegen` | PASS | No templ drift |
-| `nix run .#check-templates` | PASS | SQL setup files compile |
-| `nix run .#check-cqrs-lint` | PASS | All modules pass strict |
-| `nix flake check --no-build` | PASS | All flake checks pass |
-| `nix run .#test-fuzz` | **FIXED + PASS** | Was broken: `-fuzz` with `./...` (Go limitation). Now iterates per-package. |
-| `nix run .#test-flake` | **FIXED + PASS** | Was broken: `-count=3` rejected by Ginkgo. Now loops 3x with `-count=1`. |
+| Command                      | Result           | Notes                                                                       |
+| ---------------------------- | ---------------- | --------------------------------------------------------------------------- |
+| `nix run .#coverage-gate`    | PASS             | 11 gates (root 93.5%, usermgmt 81.5%, identity-model 74.9%, etc.)           |
+| `nix run .#check-codegen`    | PASS             | No templ drift                                                              |
+| `nix run .#check-templates`  | PASS             | SQL setup files compile                                                     |
+| `nix run .#check-cqrs-lint`  | PASS             | All modules pass strict                                                     |
+| `nix flake check --no-build` | PASS             | All flake checks pass                                                       |
+| `nix run .#test-fuzz`        | **FIXED + PASS** | Was broken: `-fuzz` with `./...` (Go limitation). Now iterates per-package. |
+| `nix run .#test-flake`       | **FIXED + PASS** | Was broken: `-count=3` rejected by Ginkgo. Now loops 3x with `-count=1`.    |
 
 ### Canonicalheader Audit — 3 Submodule Sites Fixed
 
 Root-only fix was incomplete. Found and fixed 3 additional `HX-*` literals in non-test code:
+
 - `adminui/render.go:51` — `Get("HX-Trigger")` → `Get("Hx-Trigger")`
 - `adminui/render.go:59` — `Set("HX-Trigger", ...)` → `Set("Hx-Trigger", ...)`
 - `dashboardui/render.go:71` — `Get("HX-Request")` → `Get("Hx-Request")`
@@ -298,12 +305,12 @@ Zero remaining `HX-*` non-test literals across the workspace.
 
 ### Files Changed This Session
 
-| File | Change |
-|------|--------|
-| `flake.nix` | Fixed `test-fuzz` (per-package iteration) and `test-flake` (3x loop instead of `-count=3`) |
-| `adminui/render.go` | 2 `HX-Trigger` → `Hx-Trigger` canonicalheader fixes |
-| `dashboardui/render.go` | 1 `HX-Request` → `Hx-Request` canonicalheader fix |
-| `AGENTS.md` | Added: verification gate status, Q1 exhaustruct decision, canonicalheader workspace-wide scope, test-fuzz/test-flake gotcha |
-| `CHANGELOG.md` | Added 4 Fixed entries: test script fixes, submodule canonicalheader, verification gates |
-| `ROADMAP.md` | SA1019 suppression removal marked as v5 blocker in Re-export Layer Retirement section |
-| `TODO_LIST.md` | Added 3 items: v4-to-v5 migration guide, adminui identity-model migration, integration_test identity-model migration |
+| File                    | Change                                                                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `flake.nix`             | Fixed `test-fuzz` (per-package iteration) and `test-flake` (3x loop instead of `-count=3`)                                  |
+| `adminui/render.go`     | 2 `HX-Trigger` → `Hx-Trigger` canonicalheader fixes                                                                         |
+| `dashboardui/render.go` | 1 `HX-Request` → `Hx-Request` canonicalheader fix                                                                           |
+| `AGENTS.md`             | Added: verification gate status, Q1 exhaustruct decision, canonicalheader workspace-wide scope, test-fuzz/test-flake gotcha |
+| `CHANGELOG.md`          | Added 4 Fixed entries: test script fixes, submodule canonicalheader, verification gates                                     |
+| `ROADMAP.md`            | SA1019 suppression removal marked as v5 blocker in Re-export Layer Retirement section                                       |
+| `TODO_LIST.md`          | Added 3 items: v4-to-v5 migration guide, adminui identity-model migration, integration_test identity-model migration        |

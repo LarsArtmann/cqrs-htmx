@@ -12,6 +12,7 @@
 **Root cause:** The httputil migration (v0.9.0) made `SecurityHeadersConfig` a type alias resolving to `httputil.SecurityHeadersConfig`. The root `.golangci.yml` exhaustruct exclude listed the `cqrs-htmx/v4.SecurityHeadersConfig` pattern, but golangci-lint resolved the alias and reported the `httputil.SecurityHeadersConfig` path — uncovered by the exclude. Similarly, `security.go`'s 3 re-export vars (`RecommendedHSTS`, `RecommendedCSP`, `SecurityHeaderSkip`) triggered gochecknoglobals because only `_reexport.go` was exempted, and `doc.go:175` triggered godoclint on the `# Submodule:` heading.
 
 **Fixes (`.golangci.yml`):**
+
 - Added `httputil.SecurityHeadersConfig` to exhaustruct exclude list (14 issues)
 - Added `security\.go$` exclusion for gochecknoglobals `is a global variable` text (3 issues)
 - Added `doc\.go$` exclusion for godoclint (1 issue)
@@ -60,6 +61,7 @@ Same root cause and same fix pattern as adminui. Added the same text-based exclu
 ### 7. Test verification
 
 Verified root, dashboardui, and usermgmt test suites pass with `-race` after all changes:
+
 - Root: 2 packages OK (4.059s)
 - Dashboardui: 2 packages OK (1.510s)
 - Usermgmt: 1 package OK (22.692s)
@@ -73,6 +75,7 @@ Verified root, dashboardui, and usermgmt test suites pass with `-race` after all
 **Root cause:** My `_test.go` → exhaustruct exclusion (added to fix dashboardui's 7 issues) also exempted root module test files from exhaustruct. This made 9 existing `//nolint:exhaustruct` directives in root test files stale — they're now "unused" per nolintlint.
 
 **Affected files:**
+
 - `command_sync_integration_test.go` (3 directives: lines 146, 147, 404)
 - `fuzz_test.go` (1 directive: line 170)
 - `logging_test.go` (1 directive: line 30)
@@ -100,6 +103,7 @@ Not yet started. The TODO_LIST still lists items as open that were completed in 
 ### 1. I created a problem I then had to detect
 
 Adding the blanket `_test.go` → exhaustruct exclusion to fix dashboardui's 7 issues had a side effect: it also exempted ALL root module test files from exhaustruct, creating 9 stale nolintlint findings. I should have either:
+
 - **(a)** Added exhaustruct excludes for the specific dashboardui test types (`listing.StreamListing`, `listing.Page`, `event.Checkpoint`) instead of blanket-exempting all test files, OR
 - **(b)** Cleaned up the stale nolint directives in the same commit
 
@@ -241,11 +245,11 @@ I didn't review whether the blank `//` separator changes the rendered godoc. It 
 
 ## Summary
 
-| Metric | Value |
-|--------|-------|
-| Lint issues fixed this session | 217 (18 root + 34 usermgmt + 135 adminui + 22 integration_test + 8 dashboardui) |
-| Lint issues remaining | 9 (nolintlint stale directives in root test files) |
-| Modules at 0 issues | 10 of 11 lint-checked modules (root has 9 nolintlint) |
-| Pareto tasks addressed (prior sessions) | 19 of 20 fully complete, 1 deferred (M18 golines) |
-| Tests verified | Root + dashboardui + usermgmt pass with `-race` |
-| Things I fucked up | Blanket exhaustruct exclusion side effect, didn't verify `nix run .#lint` end-to-end |
+| Metric                                  | Value                                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------------ |
+| Lint issues fixed this session          | 217 (18 root + 34 usermgmt + 135 adminui + 22 integration_test + 8 dashboardui)      |
+| Lint issues remaining                   | 9 (nolintlint stale directives in root test files)                                   |
+| Modules at 0 issues                     | 10 of 11 lint-checked modules (root has 9 nolintlint)                                |
+| Pareto tasks addressed (prior sessions) | 19 of 20 fully complete, 1 deferred (M18 golines)                                    |
+| Tests verified                          | Root + dashboardui + usermgmt pass with `-race`                                      |
+| Things I fucked up                      | Blanket exhaustruct exclusion side effect, didn't verify `nix run .#lint` end-to-end |

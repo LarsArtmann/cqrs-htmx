@@ -15,6 +15,7 @@
 2. `integration_test` was in the `test` app but same masking applied.
 
 **Fix:** Re-added local `replace` directives (matching the existing `examples/dashboard-demo` pattern for `dashboardui/v4`):
+
 - `examples/datastar-demo/go.mod`: `replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../../datastar`
 - `integration_test/go.mod`: `replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../datastar`
 
@@ -31,6 +32,7 @@ The handoff notes suggested excluding `e2e/server` from the `build` app. I teste
 **Before this session:** Only `build` and `test` used `forEachGoModule`.
 
 **This session migrated:**
+
 - `lint` — 11 hardcoded `cd` blocks → 1 `forEachGoModule` call
 - `test-race` — 7 hardcoded blocks → 1 call
 - `test-flake` — 11 hardcoded blocks → 1 call
@@ -38,6 +40,7 @@ The handoff notes suggested excluding `e2e/server` from the `build` app. I teste
 - `coverage` — 10 hardcoded blocks → 1 call
 
 **After:** 7 of ~12 flake.nix apps use `forEachGoModule`. The remaining hardcoded apps are intentionally hardcoded:
+
 - `coverage-gate` — per-module thresholds (`. 90`, `identity-model 70`, etc.) can't be auto-discovered
 - `errorfamily` — intentional auth-module exemptions (totp/webauthn/oauth2 excluded by design)
 - `check-cqrs-lint` — custom `.cqrs-lint.json` per module
@@ -51,18 +54,19 @@ The handoff notes suggested excluding `e2e/server` from the `build` app. I teste
 
 Added 8 new test functions (covering 18 total security-related test cases) to `/home/lars/projects/httputil/security_test.go`:
 
-| Test | Coverage |
-|------|----------|
-| `TestSecurityHeaders_PermissionsPolicy` | `PermissionsPolicy` header rendering |
-| `TestSecurityHeaders_EmptyPermissionsPolicy` | Empty value omits header |
-| `TestSecurityHeaders_CustomHeaders` | `Custom` map merging (2 headers) |
-| `TestSecurityHeaders_CustomHeadersEmptyMap` | Nil/empty Custom map is safe |
-| `TestSecurityHeaders_ContentTypeOptionsPrecedence` | 3 sub-tests: explicit overrides bool, explicit alone, bool alone |
-| `TestSecurityHeaderSkip_SuppressesHeaders` | 3 sub-tests: suppresses ContentTypeOptions (even with nosniff bool), FrameOptions, ReferrerPolicy |
-| `TestSecurityHeadersConfig_Validate_AcceptsSecurityHeaderSkip` | Validate accepts "-" for FrameOptions |
-| `TestSecurityHeaders_RecommendedConstants` | RecommendedHSTS + RecommendedCSP render correctly |
+| Test                                                           | Coverage                                                                                          |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `TestSecurityHeaders_PermissionsPolicy`                        | `PermissionsPolicy` header rendering                                                              |
+| `TestSecurityHeaders_EmptyPermissionsPolicy`                   | Empty value omits header                                                                          |
+| `TestSecurityHeaders_CustomHeaders`                            | `Custom` map merging (2 headers)                                                                  |
+| `TestSecurityHeaders_CustomHeadersEmptyMap`                    | Nil/empty Custom map is safe                                                                      |
+| `TestSecurityHeaders_ContentTypeOptionsPrecedence`             | 3 sub-tests: explicit overrides bool, explicit alone, bool alone                                  |
+| `TestSecurityHeaderSkip_SuppressesHeaders`                     | 3 sub-tests: suppresses ContentTypeOptions (even with nosniff bool), FrameOptions, ReferrerPolicy |
+| `TestSecurityHeadersConfig_Validate_AcceptsSecurityHeaderSkip` | Validate accepts "-" for FrameOptions                                                             |
+| `TestSecurityHeaders_RecommendedConstants`                     | RecommendedHSTS + RecommendedCSP render correctly                                                 |
 
 **Found and fixed a real bug** (`httputil/security.go`): When `ContentTypeOptions` was set to `SecurityHeaderSkip` ("-") but `ContentTypeNosniff` was `true`, the `else if cfg.ContentTypeNosniff` fallback incorrectly set `X-Content-Type-Options: nosniff` despite the explicit skip. The original code was:
+
 ```go
 // BUG: SecurityHeaderSkip fell through to the else-if
 if cfg.ContentTypeOptions != "" && cfg.ContentTypeOptions != SecurityHeaderSkip {
@@ -71,7 +75,9 @@ if cfg.ContentTypeOptions != "" && cfg.ContentTypeOptions != SecurityHeaderSkip 
     resp.Header().Set("X-Content-Type-Options", "nosniff")
 }
 ```
+
 Fixed by checking `SecurityHeaderSkip` first and short-circuiting:
+
 ```go
 if cfg.ContentTypeOptions == SecurityHeaderSkip {
     // explicitly suppressed — do not fall through to nosniff bool
@@ -120,6 +126,7 @@ The `nix run .#check-templates` app (which verifies `//go:build ignore` SQL setu
 ### Nothing this session.
 
 The prior session's handoff notes had two factual errors that I corrected:
+
 1. Claimed `e2e/server` "needs Playwright/browser deps" to build — **false**, it builds fine with `GOWORK=off`.
 2. Claimed the old hardcoded build "excluded `e2e/server`" as if intentional — it was just an omission. Including it via auto-discovery is strictly better.
 
@@ -251,12 +258,12 @@ The `security_test.go` exhaustruct findings (6 of the 14) are in the `cqrshtmx.S
 
 ## Summary
 
-| Metric | Value |
-|--------|-------|
-| Tasks completed this session | 6 (M13 fix + verify, 5 app migrations, M15 tests + bug fix, docs) |
-| Bugs found and fixed | 2 (datastar replace stripping, httputil SecurityHeaderSkip) |
-| Tests added | 8 functions, 18 test cases (httputil security_test.go) |
-| Flake.nix apps migrated to auto-discovery | 5 (lint, test-race, test-flake, test-fuzz, coverage) |
-| Flake.nix apps now using `forEachGoModule` | 7 of ~12 |
-| Pre-existing lint issues surfaced | 37 in root module |
-| Pareto plan tasks remaining | M18 (golines, P3, intentionally deferred) |
+| Metric                                     | Value                                                             |
+| ------------------------------------------ | ----------------------------------------------------------------- |
+| Tasks completed this session               | 6 (M13 fix + verify, 5 app migrations, M15 tests + bug fix, docs) |
+| Bugs found and fixed                       | 2 (datastar replace stripping, httputil SecurityHeaderSkip)       |
+| Tests added                                | 8 functions, 18 test cases (httputil security_test.go)            |
+| Flake.nix apps migrated to auto-discovery  | 5 (lint, test-race, test-flake, test-fuzz, coverage)              |
+| Flake.nix apps now using `forEachGoModule` | 7 of ~12                                                          |
+| Pre-existing lint issues surfaced          | 37 in root module                                                 |
+| Pareto plan tasks remaining                | M18 (golines, P3, intentionally deferred)                         |

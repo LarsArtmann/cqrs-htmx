@@ -31,7 +31,7 @@ first4hex() {
 }
 
 # --- Test 1: ELF magic detection in fixture ---
-printf '\x7fELF\x02\x01\x01\x00' > "$TMPDIR/fake-elf.bin"
+printf '\x7fELF\x02\x01\x01\x00' >"$TMPDIR/fake-elf.bin"
 hex=$(first4hex "$TMPDIR/fake-elf.bin")
 if [ "$hex" = "7f454c46" ]; then
 	echo "  PASS: ELF magic bytes detected in fixture (od method)"
@@ -42,7 +42,7 @@ else
 fi
 
 # --- Test 2: PE magic detection in fixture ---
-printf 'MZ\x90\x00' > "$TMPDIR/fake-pe.exe"
+printf 'MZ\x90\x00' >"$TMPDIR/fake-pe.exe"
 hex=$(first4hex "$TMPDIR/fake-pe.exe")
 if [ "$hex" = "4d5a9000" ]; then
 	echo "  PASS: PE magic bytes detected in fixture (od method)"
@@ -53,7 +53,7 @@ else
 fi
 
 # --- Test 3: Normal text file has no executable magic ---
-echo "package main" > "$TMPDIR/main.go"
+echo "package main" >"$TMPDIR/main.go"
 hex=$(first4hex "$TMPDIR/main.go")
 if [ "$hex" != "7f454c46" ] && [ "${hex#4d5a}" = "$hex" ]; then
 	echo "  PASS: Text file has no ELF/PE magic"
@@ -65,7 +65,7 @@ fi
 
 # --- Test 4: Large file fixture is correctly sized ---
 dd if=/dev/zero of="$TMPDIR/big.dat" bs=1024 count=2 2>/dev/null
-size=$(wc -c < "$TMPDIR/big.dat")
+size=$(wc -c <"$TMPDIR/big.dat")
 if [ "$size" -gt 1024 ]; then
 	echo "  PASS: Large file fixture is ${size} bytes (>1024)"
 	pass=$((pass + 1))
@@ -94,14 +94,14 @@ fi
 # confirming the od-based hex extraction matches known magic bytes.
 hex=$(first4hex "$TMPDIR/fake-elf.bin")
 case "$hex" in
-	7f454c46)
-		echo "  PASS: Checker case-statement would classify fixture as ELF"
-		pass=$((pass + 1))
-		;;
-	*)
-		echo "  FAIL: Checker case-statement would NOT classify fixture as ELF (hex: $hex)"
-		fail=$((fail + 1))
-		;;
+7f454c46)
+	echo "  PASS: Checker case-statement would classify fixture as ELF"
+	pass=$((pass + 1))
+	;;
+*)
+	echo "  FAIL: Checker case-statement would NOT classify fixture as ELF (hex: $hex)"
+	fail=$((fail + 1))
+	;;
 esac
 
 echo ""
