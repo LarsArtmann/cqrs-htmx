@@ -19,6 +19,31 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 	renderPage(w, r, html)
 }
 
+func (d *Dashboard) projectionDetailHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.PathValue("name")
+	projs := buildProjectionStats(d.config.ProjectionHost)
+
+	var found *projectionStat
+
+	for i := range projs {
+		if projs[i].Name == name {
+			found = &projs[i]
+
+			break
+		}
+	}
+
+	if found == nil {
+		renderError(w, r, http.StatusNotFound, "projection not found")
+
+		return
+	}
+
+	p := d.page("Projection: "+truncate(name, eventTypeWidth), "/projections", r)
+	html := d.renderProjectionDetail(p, *found)
+	renderPage(w, r, html)
+}
+
 func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *projectionhost.Host)) {
 	if d.config.ProjectionHost == nil {
 		renderError(w, nil, http.StatusBadRequest, "projection host not configured")
@@ -119,7 +144,9 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="cell-emph">%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%d</td><td class="mono" title="%s">%s</td><td>%s</td><td>%s %s</td></tr>`,
+				`<tr><td class="cell-emph"><a href="%s/projections/%s">%s</a></td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%d</td><td class="mono" title="%s">%s</td><td>%s</td><td>%s %s</td></tr>`,
+				p.BasePath,
+				esc(proj.Name),
 				esc(proj.Name),
 				badgeClass,
 				esc(proj.Status),

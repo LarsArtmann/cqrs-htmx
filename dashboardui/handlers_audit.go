@@ -212,10 +212,12 @@ func (d *Dashboard) commandDetailHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // loadCommandByID scans the command journal for a specific command.
+//
+//nolint:dupl // structurally mirrors loadQueryByID, different types
 func (d *Dashboard) loadCommandByID(
 	ctx context.Context,
 	cmdID id.CommandID,
-) (*command.PersistedCommand, error) { //nolint:dupl // structurally mirrors loadQueryByID, different types
+) (*command.PersistedCommand, error) {
 	if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
 		return scanJournalByID(ctx,
 			func(c context.Context, after string, limit int) ([]*command.PersistedCommand, error) {
@@ -313,10 +315,12 @@ func (d *Dashboard) queryDetailHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // loadQueryByID scans the query journal for a specific query.
+//
+//nolint:dupl // structurally mirrors loadCommandByID, different types
 func (d *Dashboard) loadQueryByID(
 	ctx context.Context,
 	queryID id.RequestID,
-) (*query.PersistedQuery, error) { //nolint:dupl // structurally mirrors loadCommandByID, different types
+) (*query.PersistedQuery, error) {
 	if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
 		return scanJournalByID(ctx,
 			func(c context.Context, after string, limit int) ([]*query.PersistedQuery, error) {
