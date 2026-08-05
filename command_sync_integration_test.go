@@ -143,8 +143,8 @@ func dialSSE(t *testing.T, url, lastEventID string) *http.Response {
 		req.Header.Set("Last-Event-ID", lastEventID)
 	}
 
-	client := &http.Client{ //nolint:exhaustruct // Timeout intentionally omitted for streaming
-		Transport: &http.Transport{ //nolint:exhaustruct // defaults are fine
+	client := &http.Client{
+		Transport: &http.Transport{
 			ResponseHeaderTimeout: 5 * time.Second,
 		},
 	}
@@ -401,7 +401,7 @@ func TestIntegration_ConcurrentReplayAndBroadcast(t *testing.T) {
 			req, _ := http.NewRequestWithContext(ctx, http.MethodGet, server.URL+"/events", nil)
 			req.Header.Set("Last-Event-ID", cursor)
 
-			client := &http.Client{} //nolint:exhaustruct // intentional
+			client := &http.Client{}
 
 			resp, err := client.Do(req)
 			if err != nil {

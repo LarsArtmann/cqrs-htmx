@@ -108,7 +108,7 @@ var _ = Describe("StructuredError", func() {
 
 	Describe("JSON", func() {
 		It("serializes to valid JSON with all fields", func() {
-			se := cqrshtmx.StructuredError{ //nolint:exhaustruct // fixture: tests specific JSON fields
+			se := cqrshtmx.StructuredError{
 				Type:     "rejection",
 				Title:    "Bad Request",
 				Status:   400,
@@ -129,7 +129,7 @@ var _ = Describe("StructuredError", func() {
 		})
 
 		It("omits empty instance field", func() {
-			se := cqrshtmx.StructuredError{ //nolint:exhaustruct // fixture: tests instance omitempty
+			se := cqrshtmx.StructuredError{
 				Type:     "rejection",
 				Title:    "Bad Request",
 				Status:   400,
@@ -146,7 +146,7 @@ var _ = Describe("StructuredError", func() {
 
 	Describe("JSON round-trip", func() {
 		It("marshals and unmarshals correctly", func() {
-			original := cqrshtmx.StructuredError{ //nolint:exhaustruct // fixture: round-trip
+			original := cqrshtmx.StructuredError{
 				Type:     "conflict",
 				Title:    "Conflict",
 				Status:   409,

@@ -167,7 +167,7 @@ func FuzzStructuredErrorJSON(f *testing.F) {
 		"null byte \x00 in message", "trace-id-with-unicode-üñîçødé")
 
 	f.Fuzz(func(t *testing.T, typ, title string, status int, detail, instance string) {
-		se := StructuredError{ //nolint:exhaustruct // cause intentionally omitted in fuzz
+		se := StructuredError{
 			Type:     typ,
 			Title:    title,
 			Status:   status,

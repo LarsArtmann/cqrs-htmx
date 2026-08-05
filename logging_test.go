@@ -27,7 +27,6 @@ func newLoggingCapture(wrapped http.Handler) (http.Handler, *string) {
 
 func newSlogCapture() (func(http.Handler) http.Handler, *bytes.Buffer) {
 	var buf bytes.Buffer
-	//nolint:exhaustruct // test config intentionally uses defaults for other fields
 	logger := slog.New(slog.NewJSONHandler(
 		&buf,
 		&slog.HandlerOptions{Level: slog.LevelInfo},

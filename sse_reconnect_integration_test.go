@@ -91,7 +91,7 @@ func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	// the request to a context whose cancel is deferred here: doing so
 	// cancels the context before the caller reads resp.Body, which causes
 	// intermittent "context canceled" failures under -race with t.Parallel().
-	client := &http.Client{Timeout: 3 * time.Second} //nolint:exhaustruct // Transport/CheckRedirect/Jar use defaults
+	client := &http.Client{Timeout: 3 * time.Second}
 
 	resp, err := client.Do(req)
 	if err != nil {
