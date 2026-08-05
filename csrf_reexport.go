@@ -14,7 +14,7 @@ type (
 	// CSRFConfig is an alias for httputil.CSRFConfig.
 	//
 	// Deprecated: use httputil.CSRFConfig.
-	CSRFConfig   = httputil.CSRFConfig
+	CSRFConfig = httputil.CSRFConfig
 	// ErrorHandler is an alias for httputil.ErrorHandler.
 	//
 	// Deprecated: use httputil.ErrorHandler.
@@ -70,11 +70,4 @@ var (
 	//
 	// Deprecated: use httputil.ErrCSRFConfig.
 	ErrCSRFConfig = httputil.ErrCSRFConfig
-)
-
-const (
-	// defaultCSRFHeaderName mirrors httputil.DefaultCSRFHeaderName.
-	//
-	// Deprecated: use httputil.DefaultCSRFHeaderName.
-	defaultCSRFHeaderName = httputil.DefaultCSRFHeaderName
 )
