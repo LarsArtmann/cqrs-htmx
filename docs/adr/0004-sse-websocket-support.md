@@ -1,6 +1,10 @@
 # ADR 0004: SSE and WebSocket Support
 
-## Status: Accepted
+## Status: Superseded by ADR-0046
+
+> **Superseded** — WebSocket transport was dropped in v5; the library is
+> SSE-only now (see [ADR-0046](0046-drop-websocket-sse-only.md)). The SSE
+> building blocks (`SSEStream`, `Broadcaster`) described below remain valid.
 
 ## Context
 

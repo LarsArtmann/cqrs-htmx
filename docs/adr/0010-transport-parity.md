@@ -1,6 +1,10 @@
 # ADR 0010: Transport Parity (SSE ↔ WebSocket)
 
-## Status: Accepted
+## Status: Superseded by ADR-0046
+
+> **Superseded** — with WebSocket dropped, SSE ↔ WS parity is moot (see
+> [ADR-0046](0046-drop-websocket-sse-only.md)). The error-feedback, ACK, and
+> heartbeat improvements added to SSE here remain in effect.
 
 ## Context
 
