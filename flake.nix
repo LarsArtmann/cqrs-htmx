@@ -73,9 +73,10 @@
               program = pkgs.writeShellApplication {
                 inherit name;
                 runtimeInputs = [
-                goPkg
-                pkgs.jq
-              ] ++ runtimeInputs;
+                  goPkg
+                  pkgs.jq
+                ]
+                ++ runtimeInputs;
                 text = goEnv + text;
               };
             };

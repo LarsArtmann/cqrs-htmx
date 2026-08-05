@@ -28,10 +28,10 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql" // register MySQL driver for database/sql
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
-	_ "github.com/go-sql-driver/mysql" // register MySQL driver for database/sql
 )
 
 // newMySQLDB starts a MySQL 8.4 container and returns a *sql.DB connected
