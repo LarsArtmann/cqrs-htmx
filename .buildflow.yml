@@ -52,6 +52,11 @@ exclude:
   - dist
   - "*.pb.go"
   - "*.gen.go"
+  # Generated/vendored files that must not be reformatted:
+  - "*_templ.go" # committed templ output (verified by nix run .#check-codegen)
+  - "*.html" # all HTML in this repo is generated reports/docs, not source
+  - "*.min.js" # vendored minified JS (htmx.min.js, extensions/*.min.js)
+  - "htmx.min.js" # root-level vendored htmx
 
 # Auto-fix settings
 auto_fix: false

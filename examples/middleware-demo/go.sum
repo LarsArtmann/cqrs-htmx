@@ -71,8 +71,6 @@ github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxm
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-sse v0.4.0 h1:cHeOMbVGcIqeetic8bdZIITo4xsPSpWiPhtvQTxNd+4=
 github.com/larsartmann/go-sse v0.4.0/go.mod h1:B9mLj83rwtrnbqSqBcRuMV8vnOvAaPlJtH+9U/fMeRQ=
-github.com/larsartmann/httputil v0.8.0 h1:jYyElWd/XQj1YqVQEPinsu91EkottEmjwcRBWWht96U=
-github.com/larsartmann/httputil v0.8.0/go.mod h1:I22z9KHES2ChfZ8gG16MGO8qSrtHKS1OMSltXdff0Lc=
 github.com/larsartmann/httputil v0.9.0 h1:mNQfIi0/Z/qlZ68vF4LRGZEKp1sVFidZ2lIsYjM3Fbg=
 github.com/larsartmann/httputil v0.9.0/go.mod h1:I22z9KHES2ChfZ8gG16MGO8qSrtHKS1OMSltXdff0Lc=
 github.com/mattn/go-isatty v0.0.23 h1:cYwCQTQf3HB6xUC+BtyCLZNr7IzbOmoZbmssVNzSyiQ=

@@ -1191,16 +1191,16 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Dependencies
 
-| Dependency                  | Purpose                                   |
-| --------------------------- | ----------------------------------------- |
-| go-cqrs-lite v4.2.0         | CQRS command/query dispatch, pagination   |
-| casbin/casbin/v3            | Authorization                             |
-| go-error-family v0.10.0     | Error classification                      |
-| go-sse v0.3.0               | SSE protocol writer, broadcaster, replay  |
+| Dependency                  | Purpose                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------- |
+| go-cqrs-lite v4.2.0         | CQRS command/query dispatch, pagination                                           |
+| casbin/casbin/v3            | Authorization                                                                     |
+| go-error-family v0.10.0     | Error classification                                                              |
+| go-sse v0.3.0               | SSE protocol writer, broadcaster, replay                                          |
 | larsartmann/httputil v0.9.0 | CSRF, Server-Timing, rate limiting, ClientIP, security headers, compression, CORS |
-| go-branded-id v0.5.0        | Branded types (usermgmt)                  |
-| go-playground/form/v4       | Form decoding                             |
-| templ-components v1.7.0     | UI component library (adminui, loginpage) |
+| go-branded-id v0.5.0        | Branded types (usermgmt)                                                          |
+| go-playground/form/v4       | Form decoding                                                                     |
+| templ-components v1.7.0     | UI component library (adminui, loginpage)                                         |
 
 **Optional sub-module dependencies** (only import the auth strategies you need):
 
