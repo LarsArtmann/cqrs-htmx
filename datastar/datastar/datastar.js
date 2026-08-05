@@ -569,7 +569,10 @@ var it = (e, t, n, r) => {
           }),
           key: o,
           value: n,
-          loadedPluginNames: { actions: new Set(ve.keys()), attributes: new Set(rt.keys()) },
+          loadedPluginNames: {
+            actions: new Set(ve.keys()),
+            attributes: new Set(rt.keys()),
+          },
           rx: void 0,
         },
         f =
@@ -596,7 +599,12 @@ var it = (e, t, n, r) => {
       if (v) {
         let y;
         u.rx = (...$) => (
-          y || (y = En(n, { returnsValue: l.returnsValue, argNames: l.argNames, cleanups: d })),
+          y ||
+            (y = En(n, {
+              returnsValue: l.returnsValue,
+              argNames: l.argNames,
+              cleanups: d,
+            })),
           y(e, ...$)
         );
       }
@@ -822,7 +830,11 @@ var Ie = new Map(),
                 let X = new URLSearchParams(F);
                 if (ot(t)) A ? (Y.body = F) : (Y.body = X);
                 else for (let [M, pe] of X) U.append(M, pe);
-              } else throw i("FetchInvalidContentType", { action: D, contentType: u });
+              } else
+                throw i("FetchInvalidContentType", {
+                  action: D,
+                  contentType: u,
+                });
               return ((E.search = U.toString()), (Y.input = E.toString()), Y);
             };
           re(at, r, {});
@@ -1194,10 +1206,16 @@ p({
                     let O = new FileReader();
                     ((O.onload = () => {
                       if (typeof O.result != "string")
-                        throw i("InvalidFileResultType", { resultType: typeof O.result });
+                        throw i("InvalidFileResultType", {
+                          resultType: typeof O.result,
+                        });
                       let C = O.result.match(Nn);
                       if (!C?.groups) throw i("InvalidDataUri", { result: O.result });
-                      b.push({ name: y.name, contents: C.groups.contents, mime: C.groups.mime });
+                      b.push({
+                        name: y.name,
+                        contents: C.groups.contents,
+                        mime: C.groups.mime,
+                      });
                     }),
                       (O.onloadend = () => $()),
                       O.readAsDataURL(y));
@@ -1316,7 +1334,11 @@ p({
     }
   },
 });
-p({ name: "effect", requirement: { key: "denied", value: "must" }, apply: ({ rx: e }) => w(e) });
+p({
+  name: "effect",
+  requirement: { key: "denied", value: "must" },
+  apply: ({ rx: e }) => w(e),
+});
 p({
   name: "indicator",
   requirement: "exclusive",
@@ -1453,7 +1475,11 @@ p({
     };
     ((i = Q(i, n)), (i = le(i, n)));
     let o = P(t, n, "kebab"),
-      a = { capture: n.has("capture"), passive: n.has("passive"), once: n.has("once") };
+      a = {
+        capture: n.has("capture"),
+        passive: n.has("passive"),
+        once: n.has("once"),
+      };
     if (n.has("outside")) {
       s = document;
       let c = i;
@@ -1703,7 +1729,9 @@ var zt = ({ error: e }, { selector: t, mode: n, namespace: r, elements: s }) => 
         else if (l instanceof HTMLBodyElement) c = document.body;
         else if (l instanceof HTMLHeadElement) c = document.head;
         else if (((c = document.getElementById(l.id)), !c)) {
-          console.warn(e("PatchElementsNoTargetsFound"), { element: { id: l.id } });
+          console.warn(e("PatchElementsNoTargetsFound"), {
+            element: { id: l.id },
+          });
           continue;
         }
         Qt(n, l, [c], !0);

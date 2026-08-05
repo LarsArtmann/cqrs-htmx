@@ -32,7 +32,12 @@
   // tcShowToast is provided by feedback.ToastContainer (rendered server-side).
   document.addEventListener("adminui:toast", function (e) {
     var d = e.detail || {};
-    var kindMap = { ok: "success", err: "error", warn: "warning", info: "info" };
+    var kindMap = {
+      ok: "success",
+      err: "error",
+      warn: "warning",
+      info: "info",
+    };
     if (typeof tcShowToast === "function") {
       tcShowToast(d.message || "", kindMap[d.kind] || "info");
     } else {

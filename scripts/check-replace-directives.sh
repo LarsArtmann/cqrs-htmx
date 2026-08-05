@@ -19,18 +19,18 @@ echo ""
 failed=0
 
 for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | sort); do
-    # Check for absolute paths (starting with / on Unix)
-    if grep -E 'replace.*=> */' "$modfile" 2>/dev/null; then
-        echo "  ABSOLUTE PATH in $modfile"
-        failed=1
-    fi
+	# Check for absolute paths (starting with / on Unix)
+	if grep -E 'replace.*=> */' "$modfile" 2>/dev/null; then
+		echo "  ABSOLUTE PATH in $modfile"
+		failed=1
+	fi
 done
 
 if [[ "$failed" -eq 0 ]]; then
-    echo "✓ All replace directives use relative paths"
+	echo "✓ All replace directives use relative paths"
 else
-    echo ""
-    echo "✗ Absolute paths found in replace directives"
-    echo "  Fix: use relative paths like '../sibling' instead of '/home/user/sibling'"
-    exit 1
+	echo ""
+	echo "✗ Absolute paths found in replace directives"
+	echo "  Fix: use relative paths like '../sibling' instead of '/home/user/sibling'"
+	exit 1
 fi

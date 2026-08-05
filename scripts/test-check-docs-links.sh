@@ -25,27 +25,27 @@ pass=0
 fail=0
 
 assert_contains() {
-    local label="$1" output="$2" pattern="$3"
-    if echo "$output" | grep -qF "$pattern"; then
-        echo "  PASS: $label"
-        pass=$((pass + 1))
-    else
-        echo "  FAIL: $label"
-        echo "        Expected output to contain: $pattern"
-        fail=$((fail + 1))
-    fi
+	local label="$1" output="$2" pattern="$3"
+	if echo "$output" | grep -qF "$pattern"; then
+		echo "  PASS: $label"
+		pass=$((pass + 1))
+	else
+		echo "  FAIL: $label"
+		echo "        Expected output to contain: $pattern"
+		fail=$((fail + 1))
+	fi
 }
 
 assert_not_contains() {
-    local label="$1" output="$2" pattern="$3"
-    if echo "$output" | grep -qF "$pattern"; then
-        echo "  FAIL: $label"
-        echo "        Output should NOT contain: $pattern"
-        fail=$((fail + 1))
-    else
-        echo "  PASS: $label"
-        pass=$((pass + 1))
-    fi
+	local label="$1" output="$2" pattern="$3"
+	if echo "$output" | grep -qF "$pattern"; then
+		echo "  FAIL: $label"
+		echo "        Output should NOT contain: $pattern"
+		fail=$((fail + 1))
+	else
+		echo "  PASS: $label"
+		pass=$((pass + 1))
+	fi
 }
 
 # Create test fixture files that the links will reference
@@ -61,11 +61,11 @@ cp "$CHECKER" "$TMPDIR/scripts/check-docs-links.sh"
 
 # Remove test-only .md files between tests to prevent accumulation
 clean_test_files() {
-    rm -f "$TMPDIR"/test-*.md
+	rm -f "$TMPDIR"/test-*.md
 }
 
 run_checker() {
-    (cd "$TMPDIR" && bash scripts/check-docs-links.sh 2>&1 || true)
+	(cd "$TMPDIR" && bash scripts/check-docs-links.sh 2>&1 || true)
 }
 
 echo ""
@@ -74,7 +74,7 @@ echo ""
 
 # --- Test 1: Known-good links should NOT be flagged ---
 clean_test_files
-cat > "$TMPDIR/test-good.md" << 'EOF'
+cat >"$TMPDIR/test-good.md" <<'EOF'
 # Good Links
 
 See [FEATURES](FEATURES.md) for details.
@@ -91,7 +91,7 @@ assert_contains "Good links summary shown" "$OUTPUT" "OK: All markdown links res
 
 # --- Test 2: Known-broken links SHOULD be flagged ---
 clean_test_files
-cat > "$TMPDIR/test-broken.md" << 'EOF'
+cat >"$TMPDIR/test-broken.md" <<'EOF'
 # Broken Links
 
 See [Nonexistent](does-not-exist.md) file.
@@ -107,7 +107,7 @@ assert_contains "Failure count shown" "$OUTPUT" "broken link"
 # --- Test 3: Go generics should NOT be treated as links ---
 # [T](mapper) looks like [text](url) to a naive regex but is Go code
 clean_test_files
-cat > "$TMPDIR/test-generics.md" << 'EOF'
+cat >"$TMPDIR/test-generics.md" <<'EOF'
 # Go Generics
 
 The function signature is:
@@ -123,7 +123,7 @@ assert_contains "Generics test passes cleanly" "$OUTPUT" "OK: All markdown links
 
 # --- Test 4: Links inside fenced code blocks are ignored ---
 clean_test_files
-cat > "$TMPDIR/test-codeblock.md" << 'EOF'
+cat >"$TMPDIR/test-codeblock.md" <<'EOF'
 # Code Block Links
 
 Some text with [real link](FEATURES.md).
@@ -144,7 +144,7 @@ assert_contains "Real links outside code block checked" "$OUTPUT" "OK"
 
 # --- Test 5: Anchor-only and query-string links are skipped ---
 clean_test_files
-cat > "$TMPDIR/test-anchor.md" << 'EOF'
+cat >"$TMPDIR/test-anchor.md" <<'EOF'
 # Anchor Links
 
 See [section](#section) for details.
@@ -159,7 +159,7 @@ assert_contains "Anchor/query links pass cleanly" "$OUTPUT" "OK"
 
 # --- Test 6: URL links are skipped ---
 clean_test_files
-cat > "$TMPDIR/test-urls.md" << 'EOF'
+cat >"$TMPDIR/test-urls.md" <<'EOF'
 # URL Links
 
 See [GitHub](https://github.com/larsartmann/cqrs-htmx).
@@ -179,8 +179,8 @@ echo "Results: $pass passed, $fail failed"
 echo ""
 
 if [ "$fail" -gt 0 ]; then
-    echo "FAIL: $fail test(s) failed."
-    exit 1
+	echo "FAIL: $fail test(s) failed."
+	exit 1
 fi
 
 echo "All tests passed."

@@ -21,20 +21,20 @@ LIMIT="${SERVICE_METHOD_LIMIT:-80}"
 # Count all methods (exported + unexported) with a *Service receiver in usermgmt.
 # Excludes test files and generated _templ.go files.
 count=$(
-    cd "$REPO_ROOT/usermgmt"
-    grep -rhoP 'func \(\w+ \*Service\) \w+' \
-        --include='*.go' --exclude='*_test.go' . \
-        | sort -u \
-        | wc -l
+	cd "$REPO_ROOT/usermgmt"
+	grep -rhoP 'func \(\w+ \*Service\) \w+' \
+		--include='*.go' --exclude='*_test.go' . |
+		sort -u |
+		wc -l
 )
 
 echo "=== *Service method count: ${count} (limit ${LIMIT}, ADR-0038 trigger at ${LIMIT}) ==="
 
 if [ "$count" -ge "$LIMIT" ]; then
-    echo "FAIL: *usermgmt.Service has ${count} methods — the v5 decomposition" >&2
-    echo "      ceiling (${LIMIT}) has been reached. Decompose before adding more." >&2
-    echo "      See docs/adr/0038-service-decomposition-proposed.md." >&2
-    exit 1
+	echo "FAIL: *usermgmt.Service has ${count} methods — the v5 decomposition" >&2
+	echo "      ceiling (${LIMIT}) has been reached. Decompose before adding more." >&2
+	echo "      See docs/adr/0038-service-decomposition-proposed.md." >&2
+	exit 1
 fi
 
 remaining=$((LIMIT - count))

@@ -6,5 +6,10 @@
   },
   "yaml": {},
   "includes": ["**/*.md", "**/*.yaml", "**/*.yml"],
-  "excludes": ["**/node_modules/**", "**/vendor/**", "**/*_templ.go", "e2e/node_modules/**"]
+  "excludes": [
+    "**/node_modules/**",
+    "**/vendor/**",
+    "**/*_templ.go",
+    "e2e/node_modules/**"
+  ]
 }
