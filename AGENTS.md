@@ -30,7 +30,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 - **adminui** (`adminui/v4`): Ready-made admin dashboard (templ + HTMX)
 - **loginpage** (`loginpage/v4`): Ready-made passwordless login page
 - **datastar** (`datastar/v4`): Optional Datastar frontend adapter — script serving, signal decoding, SSE response builder (ConsoleLog/ConsoleError/DispatchCustomEvent/ReplaceURL/Prefetch etc), Broadcaster with replay + optional SSE heartbeat (`NewBroadcasterWithHeartbeat`), EventBridge with `OnError` callback. 71 tests, 96.7% coverage. Fully isolated (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045.
-- **dashboardui** (`dashboardui/v4`): Ready-made CQRS/ES observability dashboard — projection health, event catalog overview, real-time SSE updates (templ + HTMX)
+- **dashboardui** (`dashboardui/v4`): Ready-made CQRS/ES observability dashboard — projection health, event catalog overview, real-time SSE updates. Builds HTML via `strings.Builder` + `fmt.Fprintf` (not templ). Has a `core/` sub-package (pure data layer: capabilities, pagination, events, overview, payload, format, DLQ) bridged via type aliases in `core_bridge.go`. CSP-safe: all inline `onsubmit` handlers replaced with `data-confirm` pattern, inline scripts moved to external JS.
 - **integration_test**: Cross-module bridge tests
 - **e2e/server**: Playwright E2E test server for offline-sync browser testing
 - **examples/**: `basic`, `datastar-demo`, `catalog-demo`, `admin-demo`, `dashboard-demo`, `middleware-demo`, `observability-demo`
@@ -84,7 +84,7 @@ Both **adminui** and **dashboardui** depend on templ-components. **loginpage** d
 
 ### dashboardui — current adoption and opportunities
 
-dashboardui builds HTML via `strings.Builder` + `fmt.Fprintf` (not templ). It now depends on templ-components for the `icons` package (Heroicons path data). Remaining adoption opportunities (Pareto-ordered):
+dashboardui builds HTML via `strings.Builder` + `fmt.Fprintf` (not templ). It now depends on templ-components for the `icons` package (Heroicons path data). The pure-data layer is extracted into `core/` sub-package (916 LOC: capabilities, pagination, events, overview, payload, format, DLQ) with type aliases bridging it in `core_bridge.go`. All rendering is CSP-safe (no inline `onsubmit` or `<script>` blocks). Remaining adoption opportunities (Pareto-ordered):
 
 1. **`icons.IconPathData`** — **adopted** in `layout.go` (`navIconSVG()` uses `icons.IconPathData()` with a name-mapping function; 9 icons mapped to Heroicons).
 2. **`display.Table`** — replace hand-rolled `<table>` string builders with typed `TableProps`.

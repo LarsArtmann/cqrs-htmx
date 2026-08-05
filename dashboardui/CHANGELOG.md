@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **JSON API mode** (`export.go`, all index handlers): `?format=json` on events, commands, and queries index pages returns a JSON array of row objects.
 - **SSE live event injection** (`layout.go`): JavaScript listener for `dashboard:event` custom events prepends new rows to the events table and refreshes projection health (capped at 50 rows).
 - **Core data layer** (`core/` package): Capabilities, pagination, events, overview, payload, and format functions extracted into a pure-data `core` subpackage, bridged via type aliases in `core_bridge.go`.
+- **Core package unit tests** (`core/*_test.go`): Comprehensive tests for DetectCapabilities, EventFilter, pagination cursor math, FetchOverview, LoadRecentEvents/LoadFilteredEvents/LoadEventByID, FindEventNeighbors, RelativeTime, HumanByteSize, DefaultPayloadRenderer, PrettyJSON, and DLQProjectionLinks.
+- **CSP-safe rendering** (`layout.go`, `handlers_dlq.go`, `handlers_projections.go`, `handlers_snapshots.go`): All 6 inline `onsubmit="return confirm(...)"` handlers replaced with `data-confirm` attribute pattern. Inline toast `<script>` block moved to external `dashboardJS`. Single delegated `submit` listener for `data-confirm` forms. `dashboard.js` now always loaded (was conditional on EventBus).
 - **Demo projection host** (`examples/dashboard-demo/main.go`): Demo now includes a projection host with a `user-read-model` projection so the projections panel and detail view show live data.
 - **Templ migration evaluation** (`docs/planning/templ-migration-evaluation.md`): Documents the tradeoffs of migrating from strings.Builder to templ, with a recommendation to defer.
 
@@ -45,6 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **DLQ format string crash** (`handlers_dlq.go`): Replay and Purge form opening tags had 4 `%s` placeholders but only 3 arguments — would have panicked at runtime. Fixed by adding the missing 4th `esc(proj)` argument.
 - **Heading hierarchy** (all handler files): Corrected heading levels throughout — page titles use `<h2>`, section headers use `<h3>`, sub-sections use `<h3>` instead of incorrectly nested `<h4>` under `<h3>`.
 - **`encodingBadgeClass` semantics** (`format.go`): JSON/empty encoding changed from `badge-ok` (green) to `badge-neutral` (gray) — JSON is not a "success" state.
+- **JSON export encoder** (`export.go`): Removed `encoder.SetEscapeHTML(true)` — method does not exist on `jsontext.Encoder` (stdlib-only API). Replaced with `jsontext.NewEncoder(w, jsontext.WithIndent("  "))` matching the usermgmt export pattern.
 
 ## [v4.1.0] - 2026-07-26
 
