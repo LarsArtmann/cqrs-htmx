@@ -12,6 +12,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -84,11 +85,11 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 
 	Describe("RateLimiter eviction", func() {
 		It("evicts oldest entry when MaxKeys exceeded", func() {
-			handler := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			handler := httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig{
 				Limit:        100,
 				Window:       time.Second,
 				MaxKeys:      2,
-				KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+				KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
 			})
 
 			called := 0
@@ -107,7 +108,7 @@ var _ = Describe("Root Coverage Gaps - Error Mapping", func() {
 		})
 
 		It("exempts requests with empty key", func() {
-			handler := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+			handler := httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig{
 				Limit:        1,
 				Window:       time.Second,
 				KeyExtractor: func(_ *http.Request) string { return "" },

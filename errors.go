@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 )
 
 const defaultLoginRedirect = "/login"
@@ -86,7 +87,7 @@ func explicitErrorStatus(err error) int {
 		return http.StatusInternalServerError
 	case errors.Is(err, ErrUnauthorized):
 		return http.StatusUnauthorized
-	case errors.Is(err, ErrForbidden) || errors.Is(err, ErrCSRFInvalid):
+	case errors.Is(err, ErrForbidden) || errors.Is(err, httputil.ErrCSRFInvalid):
 		return http.StatusForbidden
 	case errors.Is(err, ErrRequestTooLarge):
 		return http.StatusRequestEntityTooLarge
@@ -123,7 +124,7 @@ func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 // that should trigger a login redirect for HTMX requests.
 func isAuthError(err error) bool {
 	if errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrForbidden) ||
-		errors.Is(err, ErrCSRFInvalid) {
+		errors.Is(err, httputil.ErrCSRFInvalid) {
 		return true
 	}
 

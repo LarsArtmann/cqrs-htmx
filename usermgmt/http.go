@@ -11,6 +11,7 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // AuthorizerFunc checks whether a user is authorized for a specific operation.
@@ -42,12 +43,12 @@ type AuthHandler struct {
 	secure                 bool
 	sessionMaxAge          int
 	timeout                time.Duration
-	regLimiter             *cqrshtmx.RateLimiter
-	importLimiter          *cqrshtmx.RateLimiter
-	totpLimiter            *cqrshtmx.RateLimiter
-	verificationLimiter    *cqrshtmx.RateLimiter
-	webauthnLimiter        *cqrshtmx.RateLimiter
-	oauthLimiter           *cqrshtmx.RateLimiter
+	regLimiter             *httputil.KeyedRateLimiter
+	importLimiter          *httputil.KeyedRateLimiter
+	totpLimiter            *httputil.KeyedRateLimiter
+	verificationLimiter    *httputil.KeyedRateLimiter
+	webauthnLimiter        *httputil.KeyedRateLimiter
+	oauthLimiter           *httputil.KeyedRateLimiter
 	oauth2SuccessURL       string
 	oauth2ErrorURL         string
 	importExportAuthorizer AuthorizerFunc
@@ -107,12 +108,12 @@ type RateLimitConfig struct {
 	Window time.Duration
 }
 
-func newLimiterFromConfig(config RateLimitConfig) *cqrshtmx.RateLimiter {
+func newLimiterFromConfig(config RateLimitConfig) *httputil.KeyedRateLimiter {
 	if config.Enabled && config.MaxRequests > 0 {
-		return cqrshtmx.NewRateLimiter(cqrshtmx.RateLimiterConfig{ //nolint:exhaustruct // consumer defaults
+		return httputil.NewKeyedRateLimiter(httputil.KeyedRateLimiterConfig{ //nolint:exhaustruct // consumer defaults
 			Limit:        uint(config.MaxRequests),
 			Window:       config.Window,
-			KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+			KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
 		})
 	}
 	return nil

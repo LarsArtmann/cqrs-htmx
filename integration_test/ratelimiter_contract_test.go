@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 const testRemoteAddr1 = "1.2.3.4:1234"
@@ -16,10 +16,10 @@ const testRemoteAddr1 = "1.2.3.4:1234"
 // RateLimiterConfig API, this test breaks, alerting us to update usermgmt.
 func TestRateLimiterContract(t *testing.T) {
 	t.Run("Check allows requests within limit and blocks beyond", func(t *testing.T) {
-		limiter := cqrshtmx.NewRateLimiter(cqrshtmx.RateLimiterConfig{
+		limiter := httputil.NewKeyedRateLimiter(httputil.KeyedRateLimiterConfig{
 			Limit:        2,
 			Window:       1 * time.Second,
-			KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+			KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
 		})
 
 		r1 := httptest.NewRequest(http.MethodPost, "/register", nil)
@@ -41,10 +41,10 @@ func TestRateLimiterContract(t *testing.T) {
 	})
 
 	t.Run("Check uses different keys for different IPs", func(t *testing.T) {
-		limiter := cqrshtmx.NewRateLimiter(cqrshtmx.RateLimiterConfig{
+		limiter := httputil.NewKeyedRateLimiter(httputil.KeyedRateLimiterConfig{
 			Limit:        1,
 			Window:       1 * time.Second,
-			KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+			KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
 		})
 
 		r1 := httptest.NewRequest(http.MethodPost, "/register", nil)
@@ -69,12 +69,12 @@ func TestRateLimiterContract(t *testing.T) {
 // TestRateLimitConfigTypeCompatibility verifies that the RateLimiterConfig
 // fields usermgmt relies on are stable.
 func TestRateLimitConfigTypeCompatibility(t *testing.T) {
-	var _ *cqrshtmx.RateLimiter
+	var _ *httputil.KeyedRateLimiter
 
-	config := cqrshtmx.RateLimiterConfig{
+	config := httputil.KeyedRateLimiterConfig{
 		Limit:        5,
 		Window:       1 * time.Second,
-		KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+		KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
 	}
 	if config.Limit != 5 {
 		t.Errorf("Limit field: got %d, want 5", config.Limit)

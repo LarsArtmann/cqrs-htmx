@@ -8,6 +8,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -19,7 +20,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 		BeforeEach(func() { app = newCommandApp() })
 
 		It("allows command dispatch with valid CSRF token via HTMX header", func() {
-			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
+			csrfMW := httputil.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(app.Command(
 				"CreateUser",
 				decodeBDDCreateUserJSONWithBody(),
@@ -52,7 +53,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 		})
 
 		It("rejects command dispatch without CSRF token", func() {
-			handler := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())(
+			handler := httputil.CSRFMiddleware(integrationCSRFConfig())(
 				app.Command("CreateUser", decodeBDDCreateUserJSONWithBody()),
 			)
 			w := serve(handler, newPostRequest("/users", testUserJSON, withHTMX))
@@ -60,7 +61,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 		})
 
 		It("rejects command dispatch with invalid CSRF token", func() {
-			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
+			csrfMW := httputil.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(app.Command("CreateUser", decodeBDDCreateUserJSONWithBody()))
 
 			w1 := httptest.NewRecorder()
@@ -86,7 +87,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 			qryApp, err := cqrshtmx.New(cqrshtmx.Config{Queries: qryDisp})
 			Expect(err).NotTo(HaveOccurred())
 
-			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
+			csrfMW := httputil.CSRFMiddleware(integrationCSRFConfig())
 			// First GET to set the CSRF cookie
 			w1 := httptest.NewRecorder()
 			r1 := httptest.NewRequest(http.MethodGet, "/users", nil)
@@ -119,14 +120,14 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 			qryApp, err := cqrshtmx.New(cqrshtmx.Config{Queries: qryDisp})
 			Expect(err).NotTo(HaveOccurred())
 
-			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
+			csrfMW := httputil.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(qryApp.Query(
 				"GetPage",
 				cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) {
 					return &getPageQuery{}, nil
 				}),
 				cqrshtmx.Render(func(w http.ResponseWriter, r *http.Request, _ any) error {
-					token := cqrshtmx.CSRFTokenFromContext(r.Context())
+					token := httputil.CSRFTokenFromContext(r.Context())
 					cqrshtmx.NewResponse(w, r).CSRFToken(token).Apply()
 					_, _ = w.Write([]byte("<div>page</div>"))
 
@@ -161,7 +162,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 		BeforeEach(func() { app = newCommandApp() })
 
 		It("allows command dispatch with CSRFProtect and valid token", func() {
-			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
+			csrfMW := httputil.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(app.Command(
 				"CreateUser",
 				cqrshtmx.CSRFProtect(integrationCSRFConfig()),
@@ -198,7 +199,7 @@ var _ = Describe("Integration: CQRS + CSRF Protection", func() {
 		})
 
 		It("rejects command dispatch with CSRFProtect and invalid token", func() {
-			csrfMW := cqrshtmx.CSRFMiddleware(integrationCSRFConfig())
+			csrfMW := httputil.CSRFMiddleware(integrationCSRFConfig())
 			handler := csrfMW(app.Command(
 				"CreateUser",
 				cqrshtmx.CSRFProtect(integrationCSRFConfig()),

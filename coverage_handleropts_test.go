@@ -10,6 +10,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -23,10 +24,10 @@ var _ = Describe("Root Coverage Gaps - Handler Options and Security", func() {
 
 	Describe("NewRateLimiter monitoring", func() {
 		It("reports active keys", func() {
-			rl := cqrshtmx.NewRateLimiter(cqrshtmx.RateLimiterConfig{
+			rl := httputil.NewKeyedRateLimiter(httputil.KeyedRateLimiterConfig{
 				Limit:        100,
 				Window:       time.Second,
-				KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+				KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
 			})
 			Expect(rl.ActiveKeys()).To(Equal(0))
 

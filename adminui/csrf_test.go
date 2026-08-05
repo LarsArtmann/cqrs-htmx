@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // TestCSRF_FullStackProvesProtection wires the production middleware chain
@@ -35,7 +35,7 @@ func TestCSRF_FullStackProvesProtection(t *testing.T) {
 			next.ServeHTTP(w, r.WithContext(usermgmt.WithUser(r.Context(), user)))
 		})
 	}
-	csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})
+	csrfMW := httputil.CSRFMiddleware(httputil.CSRFConfig{})
 	stack := sessionMW(csrfMW(panel.Middleware()(http.StripPrefix("/admin", panel.Handler()))))
 
 	// Step 1: GET the dashboard to obtain the CSRF cookie + token.

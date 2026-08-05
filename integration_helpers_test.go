@@ -7,6 +7,7 @@ import (
 	"github.com/casbin/casbin/v3"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/httputil"
 	. "github.com/onsi/gomega"
 )
 
@@ -15,20 +16,20 @@ const (
 	emailKey     = "email"
 )
 
-func integrationCSRFConfig() cqrshtmx.CSRFConfig {
-	return cqrshtmx.CSRFConfig{
+func integrationCSRFConfig() httputil.CSRFConfig {
+	return httputil.CSRFConfig{
 		MaxAge:               24 * time.Hour,
 		Secure:               false,
 		SameSite:             http.SameSiteLaxMode,
 		Path:                 "/",
-		ErrorHandler:         cqrshtmx.ForbiddenErrorHandler,
+		ErrorHandler:         httputil.ForbiddenHandler,
 		AllowPlaintextBypass: true, // integration tests run over plain-HTTP httptest, not a browser
 	}
 }
 
 func csrfTokenHandler(csrfMW func(http.Handler) http.Handler, tokenOut *string) http.Handler {
 	return csrfMW(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
-		*tokenOut = cqrshtmx.CSRFTokenFromContext(r.Context())
+		*tokenOut = httputil.CSRFTokenFromContext(r.Context())
 	}))
 }
 
