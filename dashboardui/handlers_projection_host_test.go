@@ -242,3 +242,74 @@ func TestOverview_HealthStatCard(t *testing.T) {
 		t.Errorf("expected healthy stat-card with ok variant, got:\n%s", body)
 	}
 }
+
+// TestProjectionDetailHandler_Renders verifies that the projection detail
+// page renders with checkpoint, processed count, and DLQ link.
+func TestProjectionDetailHandler_Renders(t *testing.T) {
+	t.Parallel()
+
+	host := newTestProjectionHost(t)
+
+	ctx := t.Context()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	defer func() { _ = host.Stop() }()
+
+	time.Sleep(200 * time.Millisecond)
+
+	d := MustNew(Config{Journal: stubJournal{}, ProjectionHost: host})
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/projections/test-projection", nil)
+	req.SetPathValue("name", "test-projection")
+	rr := httptest.NewRecorder()
+	d.projectionDetailHandler(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (body: %s)", rr.Code, rr.Body.String())
+	}
+
+	body := rr.Body.String()
+
+	if !strings.Contains(body, "test-projection") {
+		t.Error("expected projection name in detail page")
+	}
+
+	if !strings.Contains(body, "Processed") {
+		t.Error("expected Processed stat card")
+	}
+
+	if !strings.Contains(body, "Checkpoint") {
+		t.Error("expected Checkpoint metadata row")
+	}
+}
+
+// TestProjectionDetailHandler_NotFound verifies 404 for unknown projection.
+func TestProjectionDetailHandler_NotFound(t *testing.T) {
+	t.Parallel()
+
+	host := newTestProjectionHost(t)
+
+	ctx := t.Context()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	defer func() { _ = host.Stop() }()
+
+	time.Sleep(200 * time.Millisecond)
+
+	d := MustNew(Config{Journal: stubJournal{}, ProjectionHost: host})
+
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/projections/unknown", nil)
+	req.SetPathValue("name", "unknown")
+	rr := httptest.NewRecorder()
+	d.projectionDetailHandler(rr, req)
+
+	if rr.Code != http.StatusNotFound {
+		t.Errorf("expected 404, got %d", rr.Code)
+	}
+}

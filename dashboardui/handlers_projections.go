@@ -171,3 +171,64 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 		return b.String()
 	})
 }
+
+func (d *Dashboard) renderProjectionDetail(p pageData, proj projectionStat) string {
+	return d.renderLayout(p, func() string {
+		var b strings.Builder
+
+		b.WriteString(`<div class="page-header">`)
+		fmt.Fprintf(&b, `<h2>%s</h2>`, esc(proj.Name))
+
+		badgeClass := badgeNeutral
+
+		switch proj.StatusKind {
+		case statusGood:
+			badgeClass = badgeOK
+		case statusWarn:
+			badgeClass = badgeWarn
+		case statusBad:
+			badgeClass = badgeErr
+		}
+
+		fmt.Fprintf(&b, `<span class="%s">%s</span>`, badgeClass, esc(proj.Status))
+		b.WriteString(`</div>`)
+
+		b.WriteString(`<div class="stat-grid">`)
+		statCard(&b, fmt.Sprintf("%d", proj.Processed), "Processed", "")
+		statCard(&b, fmt.Sprintf("%d", proj.Errors), "Errors", "err")
+		statCard(&b, fmt.Sprintf("%d", proj.Restarts), "Restarts", "warn")
+		statCard(&b, proj.Lag, "Lag", "")
+		b.WriteString(`</div>`)
+
+		b.WriteString(`<h3>Details</h3><table class="meta-table">`)
+		metaRowCopyable(&b, "Checkpoint", esc(truncate(proj.Checkpoint, listIDWidth)), proj.Checkpoint)
+		metaRow(&b, "Status", esc(proj.Status))
+
+		if proj.LastError != "" {
+			metaRow(&b, "Last Error", esc(proj.LastError))
+		} else {
+			metaRow(&b, "Last Error", "<span class=\"muted\">none</span>")
+		}
+
+		b.WriteString(`</table>`)
+
+		b.WriteString(`<div class="filter-bar">`)
+		fmt.Fprintf(&b, `<a href="%s/dead-letters/%s" class="btn">View Dead Letters (%d)</a>`, p.BasePath, esc(proj.Name), proj.Errors)
+
+		if !p.ReadOnly {
+			fmt.Fprintf(
+				&b,
+				`<form method="POST" action="%s/projections/%s/reset" class="inline-form" data-confirm="Reset projection %s? This will re-process all events from the beginning."><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Reset Projection</button></form>`,
+				p.BasePath,
+				esc(proj.Name),
+				esc(proj.Name),
+				esc(p.CSRFToken),
+			)
+		}
+
+		fmt.Fprintf(&b, `<a href="%s/projections" class="btn">Back to Projections</a>`, p.BasePath)
+		b.WriteString(`</div>`)
+
+		return b.String()
+	})
+}
