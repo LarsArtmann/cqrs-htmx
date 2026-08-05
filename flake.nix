@@ -36,6 +36,28 @@
             export GOPRIVATE='github.com/larsartmann/*,github.com/LarsArtmann/*'
             export GOEXPERIMENT=jsonv2
             export GOTOOLCHAIN=local
+
+            # forEachGoModule: iterate over all workspace modules from go.work.
+            # Usage: forEachGoModule "command" [exclude_regex]
+            # The root module (.) runs without cd. Optional 2nd arg skips dirs
+            # matching the regex (e.g. '^(e2e/|examples/)' to skip e2e/examples).
+            forEachGoModule() {
+              local cmd="$1"
+              local exclude="''${2:-}"
+              GOWORK= go work edit -json 2>/dev/null | jq -r '.Use[].DiskPath' | while IFS= read -r dir; do
+                dir="''${dir#./}"
+                if [ -n "$exclude" ] && echo "$dir" | grep -qE "$exclude"; then
+                  continue
+                fi
+                if [ -z "$dir" ] || [ "$dir" = "." ]; then
+                  echo "==> Root module"
+                  eval "$cmd"
+                else
+                  echo "==> $dir"
+                  (cd "$dir" && eval "$cmd")
+                fi
+              done
+            }
           '';
 
           goApp =
@@ -50,7 +72,10 @@
               meta = lib.optionalAttrs (description != null) { inherit description; };
               program = pkgs.writeShellApplication {
                 inherit name;
-                runtimeInputs = [ goPkg ] ++ runtimeInputs;
+                runtimeInputs = [
+                goPkg
+                pkgs.jq
+              ] ++ runtimeInputs;
                 text = goEnv + text;
               };
             };
@@ -139,29 +164,9 @@
           apps = {
             test = goApp {
               name = "run-tests";
+              description = "Run Go tests with race detector across all workspace modules (auto-discovered, excludes e2e/examples)";
               text = ''
-                echo "==> Root module"
-                go test ./... -count=1 -race
-                echo "==> identity-model submodule"
-                (cd identity-model && go test ./... -count=1 -race)
-                echo "==> usermgmt submodule"
-                (cd usermgmt && go test ./... -count=1 -race)
-                echo "==> usermgmt/totp submodule"
-                (cd usermgmt/totp && go test ./... -count=1 -race)
-                echo "==> usermgmt/webauthn submodule"
-                (cd usermgmt/webauthn && go test ./... -count=1 -race)
-                echo "==> usermgmt/oauth2 submodule"
-                (cd usermgmt/oauth2 && go test ./... -count=1 -race)
-                echo "==> adminui submodule"
-                (cd adminui && go test ./... -count=1 -race)
-                echo "==> loginpage submodule"
-                (cd loginpage && go test ./... -count=1 -race)
-                echo "==> dashboardui submodule"
-                (cd dashboardui && go test ./... -count=1 -race)
-                echo "==> datastar submodule"
-                (cd datastar && go test ./... -count=1 -race)
-                echo "==> integration_test submodule"
-                (cd integration_test && go test ./... -count=1 -race)
+                forEachGoModule "go test ./... -count=1 -race" '^(e2e/|examples/)'
               '';
             };
 
@@ -348,37 +353,9 @@
 
             build = goApp {
               name = "run-build";
+              description = "Build all workspace modules (auto-discovered from go.work)";
               text = ''
-                echo "==> Root module"
-                go build ./...
-                echo "==> identity-model submodule"
-                (cd identity-model && go build ./...)
-                echo "==> usermgmt submodule"
-                (cd usermgmt && go build ./...)
-                echo "==> usermgmt/totp submodule"
-                (cd usermgmt/totp && go build ./...)
-                echo "==> usermgmt/webauthn submodule"
-                (cd usermgmt/webauthn && go build ./...)
-                echo "==> usermgmt/oauth2 submodule"
-                (cd usermgmt/oauth2 && go build ./...)
-                echo "==> adminui submodule"
-                (cd adminui && go build ./...)
-                echo "==> loginpage submodule"
-                (cd loginpage && go build ./...)
-                echo "==> dashboardui submodule"
-                (cd dashboardui && go build ./...)
-                echo "==> datastar submodule"
-                (cd datastar && go build ./...)
-                echo "==> integration_test submodule"
-                (cd integration_test && go build ./...)
-                echo "==> datastar-demo example"
-                (cd examples/datastar-demo && go build ./...)
-                echo "==> admin-demo example"
-                (cd examples/admin-demo && go build ./...)
-                echo "==> basic example"
-                (cd examples/basic && go build ./...)
-                echo "==> dashboard-demo example"
-                (cd examples/dashboard-demo && go build ./...)
+                forEachGoModule "go build ./..."
                 echo "All modules built successfully."
               '';
             };
