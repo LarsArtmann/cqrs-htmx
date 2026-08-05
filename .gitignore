@@ -29,6 +29,7 @@ vendor/
 # Build artifacts
 /cqrs-htmx
 /dashboard-demo
+/admin-demo
 # Dependencies
 node_modules/
 # Sensitive files
