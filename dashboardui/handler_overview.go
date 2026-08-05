@@ -5,8 +5,6 @@ import (
 	"html"
 	"net/http"
 	"strings"
-
-	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 )
 
 // Display truncation widths for IDs shown in the dashboard UI.
@@ -18,8 +16,6 @@ const (
 	snapshotIDWidth   = 16
 	errorDisplayWidth = 60
 )
-
-const recentEventsLimit = core.RecentEventsLimit
 
 func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Overview", "/", r)

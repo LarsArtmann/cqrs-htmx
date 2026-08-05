@@ -32,11 +32,13 @@ type PayloadRenderer = core.PayloadRenderer
 type DefaultPayloadRenderer = core.DefaultPayloadRenderer
 
 // Unexported aliases used internally by the rendering layer.
-type projectionStat = core.ProjectionStat
-type overviewStats = core.Overview
-type paginationState = core.PageState
-type eventFilter = core.EventFilter
-type dlqProjectionLink = core.DLQProjectionLink
+type (
+	projectionStat    = core.ProjectionStat
+	overviewStats     = core.Overview
+	paginationState   = core.PageState
+	eventFilter       = core.EventFilter
+	dlqProjectionLink = core.DLQProjectionLink
+)
 
 // ===== Status constant aliases =====
 

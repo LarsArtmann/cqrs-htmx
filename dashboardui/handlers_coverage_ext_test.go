@@ -766,7 +766,7 @@ func TestDLQEntryDetailHandler_NotFound(t *testing.T) {
 
 // --- Aggregate Detail Pagination ---
 
-func TestAggregateDetail_Pagination(t *testing.T) {
+func TestAggregateDetail_Pagination(t *testing.T) { //nolint:cyclop // multi-page test
 	// Generate 60 events for a single aggregate — exceeds default page size of 50.
 	events := make([]event.Event, 60)
 	streamID := id.NewStreamID()

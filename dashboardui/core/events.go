@@ -161,7 +161,7 @@ func LoadFilteredEvents(
 // LoadEventByID finds a single event by its EventID. Uses EventByIDLoader
 // when available (O(1)), falls back to scanning the SeekableJournal, then
 // the Journal.
-func LoadEventByID(ctx context.Context, cfg Config, eventID id.EventID) (event.Event, error) { //nolint:cyclop // journal fallback
+func LoadEventByID(ctx context.Context, cfg Config, eventID id.EventID) (event.Event, error) { //nolint:cyclop
 	if cfg.EventByIDLoader != nil {
 		evt, err := cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
 		if err != nil {

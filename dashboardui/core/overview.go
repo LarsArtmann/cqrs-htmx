@@ -23,7 +23,9 @@ const (
 	statusRunning = "running"
 	statusFailed  = "failed"
 
-	RecentEventsLimit  = 5
+	// RecentEventsLimit is the number of recent events shown on the overview.
+	RecentEventsLimit = 5
+	// OverviewCountLimit is the scan cap for event/aggregate totals.
 	OverviewCountLimit = 500
 )
 

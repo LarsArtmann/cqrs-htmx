@@ -211,50 +211,32 @@ func (d *Dashboard) commandDetailHandler(w http.ResponseWriter, r *http.Request)
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) loadCommandByID(ctx context.Context, cmdID id.CommandID) (*command.PersistedCommand, error) {
-	const scanLimit = 5000
-
+// loadCommandByID scans the command journal for a specific command.
+func (d *Dashboard) loadCommandByID(
+	ctx context.Context,
+	cmdID id.CommandID,
+) (*command.PersistedCommand, error) { //nolint:dupl // structurally mirrors loadQueryByID, different types
 	if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
-		var after id.CommandID
+		return scanJournalByID(ctx,
+			func(c context.Context, after string, limit int) ([]*command.PersistedCommand, error) {
+				cursor, _ := id.ParseCommandID(after)
 
-		for {
-			batch, err := seekable.ReadFrom(ctx, after, scanLimit)
-			if err != nil {
-				return nil, errorfamily.WrapInfrastructure(err,
-					"dashboardui.command_detail.scan_failed", "scan command journal")
-			}
-
-			for _, cmd := range batch {
-				if cmd.ID() == cmdID {
-					return cmd, nil
-				}
-			}
-
-			if len(batch) < scanLimit {
-				break
-			}
-
-			after = batch[len(batch)-1].ID()
-		}
-
-		return nil, errorfamily.NewRejection(
-			"dashboardui.command_detail.not_found", fmt.Sprintf("command %s not found", cmdID))
+				return seekable.ReadFrom(c, cursor, limit)
+			},
+			func(cmd *command.PersistedCommand) string { return cmd.ID().String() },
+			cmdID.String(),
+			fmt.Sprintf("command %s not found", cmdID),
+			"dashboardui.command_detail.scan_failed", "scan command journal",
+		)
 	}
 
-	all, err := d.config.CommandJournal.ReadAll(ctx)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err,
-			"dashboardui.command_detail.read_failed", "read command journal")
-	}
-
-	for _, cmd := range all {
-		if cmd.ID() == cmdID {
-			return cmd, nil
-		}
-	}
-
-	return nil, errorfamily.NewRejection(
-		"dashboardui.command_detail.not_found", fmt.Sprintf("command %s not found", cmdID))
+	return findInAll(ctx,
+		d.config.CommandJournal.ReadAll,
+		func(cmd *command.PersistedCommand) string { return cmd.ID().String() },
+		cmdID.String(),
+		fmt.Sprintf("command %s not found", cmdID),
+		"dashboardui.command_detail.read_failed", "read command journal",
+	)
 }
 
 func (d *Dashboard) renderCommandDetail(p pageData, cmd *command.PersistedCommand) string {
@@ -330,50 +312,32 @@ func (d *Dashboard) queryDetailHandler(w http.ResponseWriter, r *http.Request) {
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) loadQueryByID(ctx context.Context, queryID id.RequestID) (*query.PersistedQuery, error) {
-	const scanLimit = 5000
-
+// loadQueryByID scans the query journal for a specific query.
+func (d *Dashboard) loadQueryByID(
+	ctx context.Context,
+	queryID id.RequestID,
+) (*query.PersistedQuery, error) { //nolint:dupl // structurally mirrors loadCommandByID, different types
 	if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
-		var after id.RequestID
+		return scanJournalByID(ctx,
+			func(c context.Context, after string, limit int) ([]*query.PersistedQuery, error) {
+				cursor, _ := id.ParseRequestID(after)
 
-		for {
-			batch, err := seekable.ReadQueriesFrom(ctx, after, scanLimit)
-			if err != nil {
-				return nil, errorfamily.WrapInfrastructure(err,
-					"dashboardui.query_detail.scan_failed", "scan query journal")
-			}
-
-			for _, q := range batch {
-				if q.ID() == queryID {
-					return q, nil
-				}
-			}
-
-			if len(batch) < scanLimit {
-				break
-			}
-
-			after = batch[len(batch)-1].ID()
-		}
-
-		return nil, errorfamily.NewRejection(
-			"dashboardui.query_detail.not_found", fmt.Sprintf("query %s not found", queryID))
+				return seekable.ReadQueriesFrom(c, cursor, limit)
+			},
+			func(q *query.PersistedQuery) string { return q.ID().String() },
+			queryID.String(),
+			fmt.Sprintf("query %s not found", queryID),
+			"dashboardui.query_detail.scan_failed", "scan query journal",
+		)
 	}
 
-	all, err := d.config.QueryJournal.ReadAllQueries(ctx)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(err,
-			"dashboardui.query_detail.read_failed", "read query journal")
-	}
-
-	for _, q := range all {
-		if q.ID() == queryID {
-			return q, nil
-		}
-	}
-
-	return nil, errorfamily.NewRejection(
-		"dashboardui.query_detail.not_found", fmt.Sprintf("query %s not found", queryID))
+	return findInAll(ctx,
+		d.config.QueryJournal.ReadAllQueries,
+		func(q *query.PersistedQuery) string { return q.ID().String() },
+		queryID.String(),
+		fmt.Sprintf("query %s not found", queryID),
+		"dashboardui.query_detail.read_failed", "read query journal",
+	)
 }
 
 func (d *Dashboard) renderQueryDetail(p pageData, q *query.PersistedQuery) string {
@@ -421,4 +385,73 @@ func (d *Dashboard) renderQueryDetail(p pageData, q *query.PersistedQuery) strin
 
 		return b.String()
 	})
+}
+
+// scanJournalByID scans a seekable journal in batches looking for an entry
+// whose ID matches targetID. Returns a rejection error if not found.
+func scanJournalByID[T any](
+	ctx context.Context,
+	read func(ctx context.Context, after string, limit int) ([]T, error),
+	idOf func(T) string,
+	targetID string,
+	notFoundMsg string,
+	errCode, errDesc string,
+) (T, error) {
+	const scanLimit = 5000
+
+	var after string
+
+	for {
+		batch, err := read(ctx, after, scanLimit)
+		if err != nil {
+			var zero T
+
+			return zero, errorfamily.WrapInfrastructure(err, errCode, errDesc)
+		}
+
+		for _, item := range batch {
+			if idOf(item) == targetID {
+				return item, nil
+			}
+		}
+
+		if len(batch) < scanLimit {
+			break
+		}
+
+		after = idOf(batch[len(batch)-1])
+	}
+
+	var zero T
+
+	return zero, errorfamily.NewRejection(
+		"dashboardui.detail.not_found", notFoundMsg)
+}
+
+// findInAll loads all entries and searches linearly for one whose ID matches.
+func findInAll[T any](
+	ctx context.Context,
+	readAll func(ctx context.Context) ([]T, error),
+	idOf func(T) string,
+	targetID string,
+	notFoundMsg string,
+	errCode, errDesc string,
+) (T, error) {
+	all, err := readAll(ctx)
+	if err != nil {
+		var zero T
+
+		return zero, errorfamily.WrapInfrastructure(err, errCode, errDesc)
+	}
+
+	for _, item := range all {
+		if idOf(item) == targetID {
+			return item, nil
+		}
+	}
+
+	var zero T
+
+	return zero, errorfamily.NewRejection(
+		"dashboardui.detail.not_found", notFoundMsg)
 }
