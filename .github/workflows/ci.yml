@@ -256,6 +256,17 @@ jobs:
           echo "dashboardui coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 60) { print \"dashboardui coverage ${COVERAGE}% is below 60% threshold\"; exit 1 } }"
 
+      - name: dashboardui/core coverage check
+        run: |
+          cd dashboardui && go test ./core/... -count=1 -coverprofile=core-coverage.out
+          COVERAGE=$(go tool cover -func=core-coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "dashboardui/core coverage: ${COVERAGE}%"
+          awk "BEGIN { if ($COVERAGE < 80) { print \"dashboardui/core coverage ${COVERAGE}% is below 80% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: datastar coverage check
         run: |
           COVERAGE=$(go tool cover -func=datastar/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
