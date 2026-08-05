@@ -16,17 +16,17 @@ JS asset (`extensions/ws.min.js`), and a constant (`HTMXExtWS`).
 SSE covers every use case the WS surface was designed for, with strictly
 better operational properties:
 
-| Property               | SSE                          | WebSocket                                |
-| ---------------------- | ---------------------------- | ---------------------------------------- |
-| Protocol complexity    | HTTP/1.1 streaming           | Separate framing on top of HTTP upgrade  |
-| Auth/cookies/CSRF      | Native HTTP semantics        | Custom handshake + auth at upgrade       |
-| Proxy/CDN traversal    | Plain HTTP                   | Often blocked, requires sticky sessions  |
-| Reconnection           | Built-in `Last-Event-ID`     | Manual reconnect + replay                |
-| Backpressure           | Standard HTTP flow control   | Manual; buffer bloat on slow consumers   |
-| Server complexity      | `stream.Send()` per client   | Per-conn goroutine + read/write pumps    |
-| Browser API            | `EventSource` (auto-retry)   | `WebSocket` (no auto-retry)              |
-| HTMX extension         | `hx-ext="sse"` (server push) | `hx-ext="ws"` (bi-directional, rarely used server→client only) |
-| htmx 4 status          | Continued investment         | Sunset (htmx 4 ships sse as core)        |
+| Property            | SSE                          | WebSocket                                                      |
+| ------------------- | ---------------------------- | -------------------------------------------------------------- |
+| Protocol complexity | HTTP/1.1 streaming           | Separate framing on top of HTTP upgrade                        |
+| Auth/cookies/CSRF   | Native HTTP semantics        | Custom handshake + auth at upgrade                             |
+| Proxy/CDN traversal | Plain HTTP                   | Often blocked, requires sticky sessions                        |
+| Reconnection        | Built-in `Last-Event-ID`     | Manual reconnect + replay                                      |
+| Backpressure        | Standard HTTP flow control   | Manual; buffer bloat on slow consumers                         |
+| Server complexity   | `stream.Send()` per client   | Per-conn goroutine + read/write pumps                          |
+| Browser API         | `EventSource` (auto-retry)   | `WebSocket` (no auto-retry)                                    |
+| HTMX extension      | `hx-ext="sse"` (server push) | `hx-ext="ws"` (bi-directional, rarely used server→client only) |
+| htmx 4 status       | Continued investment         | Sunset (htmx 4 ships sse as core)                              |
 
 The bi-directional capability WS offers is not exercised by any cqrs-htmx
 consumer pattern: commands and queries are dispatched through the standard HTTP
@@ -74,14 +74,14 @@ over SSE for server→client updates).
   `cqrshtmx.BroadcastOnSuccessWS*`, or `cqrshtmx.BroadcastOnAckWS*` will see
   compile errors and need to migrate to the SSE equivalents. A clear migration
   path is documented in the skill and `docs/guides/`:
-    - `WSBroadcaster.Broadcast(msg)` → `Broadcaster.Broadcast(sse.Event{Data: msg})`
-    - `ParseWSMessage(data)` → `json.Unmarshal` into a typed struct (HEADERS
-      blob is HTMX-specific; consumers can extract via
-      `sse.NewStream(r).Send(...)` round-trip or via the JSON header convention
-      used by the SSE htmx extension)
-    - `WSOOBHTML` → `OOBHTML` (already a 1-line alias)
-    - `DispatchWSCommand`/`DispatchWSQuery` → `app.Command`/`app.Query`
-      endpoints (HTTP, full auth/CSRF/content-negotiation support)
+  - `WSBroadcaster.Broadcast(msg)` → `Broadcaster.Broadcast(sse.Event{Data: msg})`
+  - `ParseWSMessage(data)` → `json.Unmarshal` into a typed struct (HEADERS
+    blob is HTMX-specific; consumers can extract via
+    `sse.NewStream(r).Send(...)` round-trip or via the JSON header convention
+    used by the SSE htmx extension)
+  - `WSOOBHTML` → `OOBHTML` (already a 1-line alias)
+  - `DispatchWSCommand`/`DispatchWSQuery` → `app.Command`/`app.Query`
+    endpoints (HTTP, full auth/CSRF/content-negotiation support)
 - **No backward-compat aliases.** Unlike the SSE re-export and httputil
   deprecation work, this removal is unconditional: WS code is a separate
   paradigm, and keeping aliases would re-introduce the very surface we are
