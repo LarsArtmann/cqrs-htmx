@@ -145,10 +145,7 @@ func (s *Service) classifyDispatchError(err error, userID UserID, kv ...string) 
 }
 
 func (s *Service) logAuth(event string, userID UserID, attrs ...any) {
-	args := make([]any, 0, 4+len(attrs))
-	args = append(args, "event", event, "user_id", userID)
-	args = append(args, attrs...)
-	s.logger.Info("usermgmt: "+event, args...)
+	logAuthEvent(s.logger, event, userID, attrs...)
 }
 
 func (s *Service) revokeSessionsBestEffort(ctx context.Context, userID UserID, failureReason string) {
