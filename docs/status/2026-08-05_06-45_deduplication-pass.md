@@ -35,16 +35,19 @@
 ## E) WHAT WE SHOULD IMPROVE
 
 ### Process gaps I noticed
+
 14. **No `//cqrs-lint:ignore` directive needed** in `service_logging.go` — it's a pure helper with no events, no projections, no HTTP entry points. Verified by reading the new file.
 15. **Threshold was `-t 1` (single statement)** — this surfaced a LOT of idiomatic Go patterns (test `t.Parallel()`, single-line `var out T`, stdlib `http.NewServeMux()`) that are not real duplication. Default `-t 5` would have been more focused on actual maintenance burdens. Worth mentioning to the user.
 16. **I did not write a CHANGELOG.md entry** for the `logAuth` refactor. Per the project's TODO_LIST convention (AGENTS.md), completed work goes to CHANGELOG, not TODO_LIST.
 17. **I did not update AGENTS.md** with the new file location or the convention "logAuthEvent is the canonical structured-auth-log helper" — even though the change is small, this is the kind of cross-session context AGENTS.md exists for.
 
 ### Architectural opportunities I deferred
+
 18. **`Broadcaster.ServeSSE` extension hooks** (see #7) — would benefit dashboardui and any future consumer that wants replay + heartbeat on top of `ServeSSE`. The current dashboardui handler is ~45 lines that could be 3 lines + 2 hook options if `ServeSSE` exposed `ServeSSEOpts`.
 19. **templ-components gap**: `icons.IconSVG(name, opts)` would eliminate 5+ lines of boilerplate per UI consumer (adminui, dashboardui, and likely future loginpage/themed components). Worth proposing to the templ-components repo.
 
 ### Code health signals I noticed
+
 20. **`//go:build ignore` SQL setup files** are template-style ("Copy this file alongside whichever template you use") and shouldn't be counted as production code — but `art-dupl` doesn't know that. They will keep appearing in dedup reports until either (a) they're moved to a separate `templates/` directory, or (b) art-dupl learns to exclude `//go:build ignore` files.
 21. **Example programs (`examples/*/main.go`) intentionally duplicate `pingRequest`, `mux := http.NewServeMux()`, `httptest.NewRequest(...)`** — they are copy-paste-friendly teaching artifacts. Worth excluding via `art-dupl --exclude-pattern "examples/**"` going forward.
 22. **Test files (e.g. `datastar/response_test.go`)** produce 17 of the 17-clone `t.Parallel()` group. Test boilerplate is by design — exclude `*_test.go` from dedup scans with `--exclude-pattern "*_test.go"` for cleaner reports.

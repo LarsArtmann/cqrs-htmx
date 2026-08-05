@@ -20,16 +20,16 @@ The remaining blocker is the **SecurityHeaders split-brain resolution**, which r
 
 ### Code
 
-| Area | What changed | Files |
-|---|---|---|
-| Re-export deprecation | All 39 symbols in `csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go` now carry `// Deprecated:` markers pointing consumers to `github.com/larsartmann/httputil`. | `csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go` |
-| Internal CSRF callers | `csrf_handler.go` and `options_types.go` now use `httputil.CSRFConfig` / `httputil.ErrCSRFInvalid` directly. | `csrf_handler.go`, `options_types.go` |
-| Internal error mapping | `errors.go` now references `httputil.ErrCSRFInvalid` directly. | `errors.go` |
-| Response CSRF header | `response.go` now uses `httputil.DefaultCSRFHeaderName` directly; removed the unexported `defaultCSRFHeaderName` alias and the unused `defaultCSRFCookieName` / `defaultCSRFFieldName` consts. | `response.go`, `csrf_reexport.go` |
-| usermgmt rate limiting | `usermgmt/http.go` and `usermgmt/verification_totp_http.go` now use `httputil.KeyedRateLimiter`, `httputil.NewKeyedRateLimiter`, `httputil.KeyedRateLimiterConfig`, `httputil.KeyExtractorFromRemoteAddr` directly. | `usermgmt/http.go`, `usermgmt/verification_totp_http.go` |
-| Test migration | Bulk-migrated root, adminui, loginpage, and integration_test test files from `cqrshtmx.CSRF*` / `cqrshtmx.RateLimiter*` / `cqrshtmx.ServerTiming*` to `httputil.*`. | 14 test files (see diff summary) |
-| Example migration (admin-demo) | Switched to `httputil.CSRFMiddleware`, `httputil.CSRFConfig`, `httputil.ServerTimingMiddlewareWhen`, and `httputil.NewServer`. | `examples/admin-demo/main.go` |
-| Verification | `go build ./...` passes for root, usermgmt, adminui, loginpage, integration_test, and examples/admin-demo. Root `go test ./... -count=1` is green. No SA1019 warnings from the re-export files themselves. | — |
+| Area                           | What changed                                                                                                                                                                                                        | Files                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Re-export deprecation          | All 39 symbols in `csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go` now carry `// Deprecated:` markers pointing consumers to `github.com/larsartmann/httputil`.                              | `csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go` |
+| Internal CSRF callers          | `csrf_handler.go` and `options_types.go` now use `httputil.CSRFConfig` / `httputil.ErrCSRFInvalid` directly.                                                                                                        | `csrf_handler.go`, `options_types.go`                                    |
+| Internal error mapping         | `errors.go` now references `httputil.ErrCSRFInvalid` directly.                                                                                                                                                      | `errors.go`                                                              |
+| Response CSRF header           | `response.go` now uses `httputil.DefaultCSRFHeaderName` directly; removed the unexported `defaultCSRFHeaderName` alias and the unused `defaultCSRFCookieName` / `defaultCSRFFieldName` consts.                      | `response.go`, `csrf_reexport.go`                                        |
+| usermgmt rate limiting         | `usermgmt/http.go` and `usermgmt/verification_totp_http.go` now use `httputil.KeyedRateLimiter`, `httputil.NewKeyedRateLimiter`, `httputil.KeyedRateLimiterConfig`, `httputil.KeyExtractorFromRemoteAddr` directly. | `usermgmt/http.go`, `usermgmt/verification_totp_http.go`                 |
+| Test migration                 | Bulk-migrated root, adminui, loginpage, and integration_test test files from `cqrshtmx.CSRF*` / `cqrshtmx.RateLimiter*` / `cqrshtmx.ServerTiming*` to `httputil.*`.                                                 | 14 test files (see diff summary)                                         |
+| Example migration (admin-demo) | Switched to `httputil.CSRFMiddleware`, `httputil.CSRFConfig`, `httputil.ServerTimingMiddlewareWhen`, and `httputil.NewServer`.                                                                                      | `examples/admin-demo/main.go`                                            |
+| Verification                   | `go build ./...` passes for root, usermgmt, adminui, loginpage, integration_test, and examples/admin-demo. Root `go test ./... -count=1` is green. No SA1019 warnings from the re-export files themselves.          | —                                                                        |
 
 ### Verification commands run
 
@@ -44,13 +44,13 @@ The remaining blocker is the **SecurityHeaders split-brain resolution**, which r
 
 ### Example migrations to `httputil.NewServer`
 
-| Example | Status | Notes |
-|---|---|---|
-| `examples/admin-demo` | Done | Compiles; uses `httputil.NewServer` + `srv.Start()` pattern. |
-| `examples/catalog-demo` | Partial | `httputil.NewServer` wiring added; needs `goimports` + build verification. |
-| `examples/dashboard-demo` | Partial | Import added and server block partially rewritten; the last `multiedit` call failed due to malformed JSON and must be re-applied. |
-| `examples/middleware-demo` | Not started | Still uses `&http.Server{}`. |
-| `examples/observability-demo` | Not started | Still uses `&http.Server{}`; not in original plan but should be migrated for consistency. |
+| Example                       | Status      | Notes                                                                                                                             |
+| ----------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `examples/admin-demo`         | Done        | Compiles; uses `httputil.NewServer` + `srv.Start()` pattern.                                                                      |
+| `examples/catalog-demo`       | Partial     | `httputil.NewServer` wiring added; needs `goimports` + build verification.                                                        |
+| `examples/dashboard-demo`     | Partial     | Import added and server block partially rewritten; the last `multiedit` call failed due to malformed JSON and must be re-applied. |
+| `examples/middleware-demo`    | Not started | Still uses `&http.Server{}`.                                                                                                      |
+| `examples/observability-demo` | Not started | Still uses `&http.Server{}`; not in original plan but should be migrated for consistency.                                         |
 
 ### `examples/basic` and `examples/datastar-demo`
 
@@ -60,22 +60,22 @@ These already use `httputil.NewServer`. They need a regression build/test check,
 
 ## c) Not Started
 
-| Task | Plan ref | Why not started |
-|---|---|---|
-| Nil-body decoder regression test | M10 / F10 | Will add after examples are stable. |
-| Update `docs/guides/leveraging-httputil.md` | M08 | Blocked until code migrations are complete so the migration table is accurate. |
-| Fix HTML report factual errors | M07 | Blocked until the MaxBodySize/SecurityHeaders narrative is final. |
-| Update `doc.go` | M13 | Waiting on final code state. |
-| Update `AGENTS.md` | M14 | Waiting on final architecture decisions (SecurityHeaders). |
-| Update `SKILL.md` | M16 | Waiting on final API surface. |
-| Update submodule READMEs | M04 | adminui/README.md and loginpage/README.md still reference `cqrshtmx.CSRFMiddleware`. |
-| CHANGELOG entry | M15 | Should be written once all code changes are in. |
-| ROADMAP v5 entry | M20 | Not written yet. |
-| TODO_LIST update | M26 | Not written yet. |
-| Cross-link production-readiness guide | M19 | Not written yet. |
-| Final lint/coverage gate | M18 / M22 | Not run yet. |
-| Full workspace race test | M12 | Not run yet. |
-| Render-verify HTML report | M21 | Not done. |
+| Task                                        | Plan ref  | Why not started                                                                      |
+| ------------------------------------------- | --------- | ------------------------------------------------------------------------------------ |
+| Nil-body decoder regression test            | M10 / F10 | Will add after examples are stable.                                                  |
+| Update `docs/guides/leveraging-httputil.md` | M08       | Blocked until code migrations are complete so the migration table is accurate.       |
+| Fix HTML report factual errors              | M07       | Blocked until the MaxBodySize/SecurityHeaders narrative is final.                    |
+| Update `doc.go`                             | M13       | Waiting on final code state.                                                         |
+| Update `AGENTS.md`                          | M14       | Waiting on final architecture decisions (SecurityHeaders).                           |
+| Update `SKILL.md`                           | M16       | Waiting on final API surface.                                                        |
+| Update submodule READMEs                    | M04       | adminui/README.md and loginpage/README.md still reference `cqrshtmx.CSRFMiddleware`. |
+| CHANGELOG entry                             | M15       | Should be written once all code changes are in.                                      |
+| ROADMAP v5 entry                            | M20       | Not written yet.                                                                     |
+| TODO_LIST update                            | M26       | Not written yet.                                                                     |
+| Cross-link production-readiness guide       | M19       | Not written yet.                                                                     |
+| Final lint/coverage gate                    | M18 / M22 | Not run yet.                                                                         |
+| Full workspace race test                    | M12       | Not run yet.                                                                         |
+| Render-verify HTML report                   | M21       | Not done.                                                                            |
 
 ---
 

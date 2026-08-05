@@ -31,49 +31,49 @@ The user asked "observability-demo <-- can we remove?" I investigated, recommend
 
 ## a) FULLY DONE
 
-| # | Item | Verification |
-|---|------|-------------|
-| 1 | `basic` (11 MB) untracked | `git ls-files basic` = empty |
-| 2 | `observability-demo` (21 MB) untracked | `git ls-files examples/observability-demo/observability-demo` = empty |
-| 3 | `.gitignore` covers all 8 example binary paths at root + in-directory | `git check-ignore` passes for both |
-| 4 | Root module builds | `go build ./...` exit 0 |
-| 5 | observability-demo builds | `go build ./...` exit 0 |
-| 6 | basic example builds | `go build ./...` exit 0 |
-| 7 | Root tests pass | `go test ./... -count=1` ok |
-| 8 | Orphaned `.gitignore` lines consolidated | 2 entries moved to correct sections |
+| #   | Item                                                                  | Verification                                                          |
+| --- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 1   | `basic` (11 MB) untracked                                             | `git ls-files basic` = empty                                          |
+| 2   | `observability-demo` (21 MB) untracked                                | `git ls-files examples/observability-demo/observability-demo` = empty |
+| 3   | `.gitignore` covers all 8 example binary paths at root + in-directory | `git check-ignore` passes for both                                    |
+| 4   | Root module builds                                                    | `go build ./...` exit 0                                               |
+| 5   | observability-demo builds                                             | `go build ./...` exit 0                                               |
+| 6   | basic example builds                                                  | `go build ./...` exit 0                                               |
+| 7   | Root tests pass                                                       | `go test ./... -count=1` ok                                           |
+| 8   | Orphaned `.gitignore` lines consolidated                              | 2 entries moved to correct sections                                   |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's done | What's missing |
-|---|------|-------------|----------------|
-| 1 | `.gitignore` hardening | All 8 current example names covered | No wildcard catch-all pattern; future examples will need manual addition (same fragility that caused this bug) |
-| 2 | Binary hygiene audit | Found + fixed 2 tracked binaries (32 MB) | Didn't check git history for OTHER large binaries that inflate clone size (historical blobs) |
-| 3 | `.gitignore` structure | Consolidated orphaned lines | `examples/basic/.gitignore` still exists as a separate file (redundant with root `/basic` — though they cover different paths, it's confusing) |
+| #   | Item                   | What's done                              | What's missing                                                                                                                                 |
+| --- | ---------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `.gitignore` hardening | All 8 current example names covered      | No wildcard catch-all pattern; future examples will need manual addition (same fragility that caused this bug)                                 |
+| 2   | Binary hygiene audit   | Found + fixed 2 tracked binaries (32 MB) | Didn't check git history for OTHER large binaries that inflate clone size (historical blobs)                                                   |
+| 3   | `.gitignore` structure | Consolidated orphaned lines              | `examples/basic/.gitignore` still exists as a separate file (redundant with root `/basic` — though they cover different paths, it's confusing) |
 
 ---
 
 ## c) NOT STARTED
 
-| # | Item | Why it matters |
-|---|------|----------------|
-| 1 | **CHANGELOG.md entry** for binary removal | 32 MB repo bloat removed — notable enough for [Unreleased] Fixed section. **I forgot this entirely.** |
-| 2 | **Root-cause fix** for `basic` binary at root | The prior session's `go build` produced a binary at root. The output-path mistake isn't documented or guarded against. Could recur with any example. |
-| 3 | **Pre-commit guard** to reject tracked binaries | No automated prevention. The `.gitignore` approach is reactive — someone can still `git add -f` a binary or build to an uncovered path. |
-| 4 | **Git history bloat audit** | The 32 MB of binaries are gone from HEAD but still in history. `git filter-repo` could shrink clone size. Not investigated. |
-| 5 | **Annotate prior status reports** | `docs/status/2026-08-05_11-09_httputil-adoption-100-session-complete.md` lists the binary fix as a next step (4 references). Per docs-health convention, historical snapshots should get inline "DONE" annotations, not rewrites. Not done. |
+| #   | Item                                            | Why it matters                                                                                                                                                                                                                              |
+| --- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **CHANGELOG.md entry** for binary removal       | 32 MB repo bloat removed — notable enough for [Unreleased] Fixed section. **I forgot this entirely.**                                                                                                                                       |
+| 2   | **Root-cause fix** for `basic` binary at root   | The prior session's `go build` produced a binary at root. The output-path mistake isn't documented or guarded against. Could recur with any example.                                                                                        |
+| 3   | **Pre-commit guard** to reject tracked binaries | No automated prevention. The `.gitignore` approach is reactive — someone can still `git add -f` a binary or build to an uncovered path.                                                                                                     |
+| 4   | **Git history bloat audit**                     | The 32 MB of binaries are gone from HEAD but still in history. `git filter-repo` could shrink clone size. Not investigated.                                                                                                                 |
+| 5   | **Annotate prior status reports**               | `docs/status/2026-08-05_11-09_httputil-adoption-100-session-complete.md` lists the binary fix as a next step (4 references). Per docs-health convention, historical snapshots should get inline "DONE" annotations, not rewrites. Not done. |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| # | What | Severity | Why |
-|---|------|----------|-----|
-| 1 | **Empty commit message `32fd7702`** | Medium | Prior session's BuildFlow daemon fired on partial state with a blank message. This commit has 10 real file changes (AGENTS.md, CHANGELOG.md, ROADMAP.md, adminui/handler.go, loginpage/handler.go, etc.) but the message is empty. **Git history hygiene violation** — `git log --oneline` shows a blank line. Not fixable without interactive rebase (which the project prohibits per AGENTS.md: "NEVER `git reset`"). |
-| 2 | **`basic` binary was committed by the PRIOR session** | Medium | Commit `106f8ea0` ("adopt httputil.NewServer") accidentally included an 11 MB ELF binary at repo root. Nobody in the prior session noticed. The daemon blindly committed it. **This is a process failure** — building examples should not produce root-level binaries, and code review (even automated) should catch 11 MB files. |
-| 3 | **I didn't add a CHANGELOG entry** | Low | The fix is committed (`cf83e2da`) but CHANGELOG.md [Unreleased] has no record of it. The prior session's CHANGELOG entry mentions "all 7 examples migrated to httputil.NewServer" but doesn't note the binary that migration accidentally committed. |
-| 4 | **I didn't run `nix run .#lint`** | Low | I only ran `go build` + `go test`. The `.gitignore` change doesn't affect Go code, but I should have at least confirmed lint passes on the root module. |
+| #   | What                                                  | Severity | Why                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --- | ----------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Empty commit message `32fd7702`**                   | Medium   | Prior session's BuildFlow daemon fired on partial state with a blank message. This commit has 10 real file changes (AGENTS.md, CHANGELOG.md, ROADMAP.md, adminui/handler.go, loginpage/handler.go, etc.) but the message is empty. **Git history hygiene violation** — `git log --oneline` shows a blank line. Not fixable without interactive rebase (which the project prohibits per AGENTS.md: "NEVER `git reset`"). |
+| 2   | **`basic` binary was committed by the PRIOR session** | Medium   | Commit `106f8ea0` ("adopt httputil.NewServer") accidentally included an 11 MB ELF binary at repo root. Nobody in the prior session noticed. The daemon blindly committed it. **This is a process failure** — building examples should not produce root-level binaries, and code review (even automated) should catch 11 MB files.                                                                                       |
+| 3   | **I didn't add a CHANGELOG entry**                    | Low      | The fix is committed (`cf83e2da`) but CHANGELOG.md [Unreleased] has no record of it. The prior session's CHANGELOG entry mentions "all 7 examples migrated to httputil.NewServer" but doesn't note the binary that migration accidentally committed.                                                                                                                                                                    |
+| 4   | **I didn't run `nix run .#lint`**                     | Low      | I only ran `go build` + `go test`. The `.gitignore` change doesn't affect Go code, but I should have at least confirmed lint passes on the root module.                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -84,12 +84,14 @@ The user asked "observability-demo <-- can we remove?" I investigated, recommend
 1. **BuildFlow daemon commits blindly.** It committed an 11 MB binary without questioning it. The daemon needs a file-size guard (reject > 1 MB) or a binary-type guard (reject ELF/mach-o/PE headers). This would have prevented both tracked binaries AND the empty commit message.
 
 2. **`.gitignore` uses explicit per-name listing.** The "Example binaries" section lists each binary individually:
+
    ```
    examples/basic/basic
    examples/datastar-demo/datastar-demo
    examples/catalog-demo/catalog-demo
    ...
    ```
+
    This already failed once — `observability-demo` was missing. A catch-all pattern (`examples/*/[binary-name]` or better, a Makefile/Nix-based output directory like `/bin/`) would eliminate the class of bug. **However**, the existing convention is explicit listing, and changing it is a style decision the user should make.
 
 3. **Example build outputs go to wrong directory.** `go build` in `examples/basic` can produce `./basic` (in-directory) or `basic` (root-level) depending on working directory and `-o` flag. No convention or guard ensures consistent output location. All example `go.mod` files should document the canonical build command, or the flake.nix should provide `nix run .#build-examples` that outputs to a gitignored `/bin/` directory.
@@ -209,14 +211,14 @@ The 32 MB of binaries are gone from HEAD but still in history (every clone downl
 
 ## Session metrics
 
-| Metric | Value |
-|--------|-------|
-| Binaries untracked | 2 (`basic` 11 MB + `observability-demo` 21 MB) |
-| Total bytes removed from tracking | 32,412,000 (~32 MB) |
-| `.gitignore` entries fixed | 3 structural changes (consolidation + new coverage) |
-| Builds verified | 3 (root + observability-demo + basic) |
-| Tests run | Root only (`go test ./...`) |
-| Lint run | None this session |
-| Commits | 1 (`cf83e2da`, by auto-commit daemon) |
-| Things I forgot | CHANGELOG entry, full test suite, lint, root-cause investigation, structural .gitignore fix proposal |
-| Honesty rating | **6/10** — fixed the immediate problem competently but missed documentation, verification depth, and root-cause analysis |
+| Metric                            | Value                                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Binaries untracked                | 2 (`basic` 11 MB + `observability-demo` 21 MB)                                                                           |
+| Total bytes removed from tracking | 32,412,000 (~32 MB)                                                                                                      |
+| `.gitignore` entries fixed        | 3 structural changes (consolidation + new coverage)                                                                      |
+| Builds verified                   | 3 (root + observability-demo + basic)                                                                                    |
+| Tests run                         | Root only (`go test ./...`)                                                                                              |
+| Lint run                          | None this session                                                                                                        |
+| Commits                           | 1 (`cf83e2da`, by auto-commit daemon)                                                                                    |
+| Things I forgot                   | CHANGELOG entry, full test suite, lint, root-cause investigation, structural .gitignore fix proposal                     |
+| Honesty rating                    | **6/10** — fixed the immediate problem competently but missed documentation, verification depth, and root-cause analysis |
