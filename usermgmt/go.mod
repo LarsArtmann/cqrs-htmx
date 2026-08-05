@@ -3,6 +3,7 @@ module github.com/larsartmann/cqrs-htmx/usermgmt/v4
 go 1.26.5
 
 require (
+	github.com/go-sql-driver/mysql v1.10.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.1
 	github.com/larsartmann/cqrs-htmx/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.2.0
@@ -20,6 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/httputil v0.9.0
+	github.com/testcontainers/testcontainers-go/modules/mysql v0.43.0
 	modernc.org/sqlite v1.55.0
 	pgregory.net/rapid v1.3.0
 )
@@ -70,7 +72,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-playground/form/v4 v4.3.0 // indirect
-	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/klauspost/compress v1.19.1 // indirect
@@ -100,7 +101,6 @@ require (
 	github.com/shirou/gopsutil/v4 v4.26.5 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/testcontainers/testcontainers-go v0.43.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/mysql v0.43.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
 	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
