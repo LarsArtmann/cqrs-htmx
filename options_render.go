@@ -10,8 +10,8 @@ import (
 // Render sets a custom render function for query results.
 // The function receives the query result and writes the HTTP response.
 func Render(fn RenderFunc) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.render = fn
+	return func(config *handlerConfig) {
+		config.render = fn
 	}
 }
 
@@ -24,8 +24,8 @@ func Render(fn RenderFunc) HandlerOption {
 //	    cqrshtmx.RenderTempl(myPageComponent()),
 //	)
 func RenderTempl(component TemplComponent) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.render = func(w http.ResponseWriter, r *http.Request, _ any) error {
+	return func(config *handlerConfig) {
+		config.render = func(w http.ResponseWriter, r *http.Request, _ any) error {
 			return component.Render(r.Context(), w)
 		}
 	}
@@ -41,8 +41,8 @@ func RenderTempl(component TemplComponent) HandlerOption {
 //	    cqrshtmx.RenderHTML("<div>Hello, HTMX!</div>"),
 //	)
 func RenderHTML(html string) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.render = func(w http.ResponseWriter, _ *http.Request, _ any) error {
+	return func(config *handlerConfig) {
+		config.render = func(w http.ResponseWriter, _ *http.Request, _ any) error {
 			w.Header().Set("Content-Type", ContentTypeHTML)
 			_, _ = w.Write([]byte(html))
 
@@ -62,8 +62,8 @@ func RenderHTML(html string) HandlerOption {
 //	    }),
 //	)
 func RenderTemplResult[T any](mapper func(T) TemplComponent) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+	return func(config *handlerConfig) {
+		config.render = func(w http.ResponseWriter, r *http.Request, result any) error {
 			typed, ok := result.(T)
 			if !ok {
 				return errorfamily.NewRejection("unexpected_result_type",
@@ -79,33 +79,33 @@ func RenderTemplResult[T any](mapper func(T) TemplComponent) HandlerOption {
 
 // Redirect sets a redirect URL for successful execution.
 func Redirect(url string) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.redirect = url
+	return func(config *handlerConfig) {
+		config.redirect = url
 	}
 }
 
 // Trigger sets an HTMX client-side event to fire on success.
 func Trigger(event string) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.trigger = event
+	return func(config *handlerConfig) {
+		config.trigger = event
 	}
 }
 
 // TriggerWithDetail sets an HTMX client-side event with JSON detail.
 func TriggerWithDetail(event string, detail any) HandlerOption {
-	return func(cfg *handlerConfig) {
-		if cfg.triggerDetail == nil {
-			cfg.triggerDetail = make(map[string]any)
+	return func(config *handlerConfig) {
+		if config.triggerDetail == nil {
+			config.triggerDetail = make(map[string]any)
 		}
 
-		cfg.triggerDetail[event] = detail
+		config.triggerDetail[event] = detail
 	}
 }
 
 // PushURL pushes a URL into browser history on success.
 func PushURL(url string) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.pushURL = url
+	return func(config *handlerConfig) {
+		config.pushURL = url
 	}
 }
 
@@ -123,8 +123,8 @@ func PushURL(url string) HandlerOption {
 //	    ),
 //	)
 func RenderIf(check func(*http.Request) bool, match, noMatch RenderFunc) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+	return func(config *handlerConfig) {
+		config.render = func(w http.ResponseWriter, r *http.Request, result any) error {
 			if check(r) {
 				return match(w, r, result)
 			}
@@ -163,8 +163,8 @@ func RenderPartialOrFullFunc(partial, full RenderFunc) HandlerOption {
 //	    ),
 //	)
 func RenderPartialOrFull[T any](partial, full func(T) TemplComponent) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+	return func(config *handlerConfig) {
+		config.render = func(w http.ResponseWriter, r *http.Request, result any) error {
 			typed, ok := result.(T)
 			if !ok {
 				return errorfamily.NewRejection("unexpected_result_type",

@@ -9,61 +9,83 @@ import (
 )
 
 type (
-	RegisterUserCmd          = identitymodel.RegisterUserCmd
-	ChangeEmailCmd           = identitymodel.ChangeEmailCmd
-	ChangeDisplayNameCmd     = identitymodel.ChangeDisplayNameCmd
-	DeleteUserCmd            = identitymodel.DeleteUserCmd
-	AddCredentialCmd         = identitymodel.AddCredentialCmd
-	RemoveCredentialCmd      = identitymodel.RemoveCredentialCmd
-	VerifyEmailCmd           = identitymodel.VerifyEmailCmd
-	EnableTOTPCmd            = identitymodel.EnableTOTPCmd
-	DisableTOTPCmd           = identitymodel.DisableTOTPCmd
-	LinkExternalAccountCmd   = identitymodel.LinkExternalAccountCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	RegisterUserCmd = identitymodel.RegisterUserCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	ChangeEmailCmd = identitymodel.ChangeEmailCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	ChangeDisplayNameCmd = identitymodel.ChangeDisplayNameCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	DeleteUserCmd = identitymodel.DeleteUserCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	AddCredentialCmd = identitymodel.AddCredentialCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	RemoveCredentialCmd = identitymodel.RemoveCredentialCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	VerifyEmailCmd = identitymodel.VerifyEmailCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	EnableTOTPCmd = identitymodel.EnableTOTPCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	DisableTOTPCmd = identitymodel.DisableTOTPCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	LinkExternalAccountCmd = identitymodel.LinkExternalAccountCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	UnlinkExternalAccountCmd = identitymodel.UnlinkExternalAccountCmd
 )
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewRegisterUserCmd(aggID id.StreamID, email, displayName string, roles []Role) *RegisterUserCmd {
 	return identitymodel.NewRegisterUserCmd(aggID, email, displayName, roles)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewChangeEmailCmd(aggID id.StreamID, email string) *ChangeEmailCmd {
 	return identitymodel.NewChangeEmailCmd(aggID, email)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewChangeDisplayNameCmd(aggID id.StreamID, displayName string) *ChangeDisplayNameCmd {
 	return identitymodel.NewChangeDisplayNameCmd(aggID, displayName)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewDeleteUserCmd(aggID id.StreamID, reason string) *DeleteUserCmd {
 	return identitymodel.NewDeleteUserCmd(aggID, reason)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewAddCredentialCmd(aggID id.StreamID, cred WebAuthnCredential) *AddCredentialCmd {
 	return identitymodel.NewAddCredentialCmd(aggID, cred)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewRemoveCredentialCmd(aggID id.StreamID, credID []byte) *RemoveCredentialCmd {
 	return identitymodel.NewRemoveCredentialCmd(aggID, credID)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewVerifyEmailCmd(aggID id.StreamID) *VerifyEmailCmd {
 	return identitymodel.NewVerifyEmailCmd(aggID)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewEnableTOTPCmd(aggID id.StreamID, secret []byte) *EnableTOTPCmd {
 	return identitymodel.NewEnableTOTPCmd(aggID, secret)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewDisableTOTPCmd(aggID id.StreamID) *DisableTOTPCmd {
 	return identitymodel.NewDisableTOTPCmd(aggID)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewLinkExternalAccountCmd(
 	aggID id.StreamID, provider, subject, email, displayName string,
 ) *LinkExternalAccountCmd {
 	return identitymodel.NewLinkExternalAccountCmd(aggID, provider, subject, email, displayName)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewUnlinkExternalAccountCmd(aggID id.StreamID, provider, subject string) *UnlinkExternalAccountCmd {
 	return identitymodel.NewUnlinkExternalAccountCmd(aggID, provider, subject)
 }

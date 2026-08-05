@@ -69,24 +69,24 @@ type Config struct {
 	SSEURL string
 }
 
-// withDefaults returns a copy of cfg with empty fields replaced by defaults and
+// withDefaults returns a copy of config with empty fields replaced by defaults and
 // validates the result.
-func (cfg Config) withDefaults() (Config, error) {
-	if cfg.Service == nil {
-		return cfg, errConfig("Config.Service is required")
+func (config Config) withDefaults() (Config, error) {
+	if config.Service == nil {
+		return config, errConfig("Config.Service is required")
 	}
-	if cfg.Title == "" {
-		cfg.Title = "Admin"
+	if config.Title == "" {
+		config.Title = "Admin"
 	}
-	if cfg.BasePath == "" {
-		cfg.BasePath = defaultBasePath
+	if config.BasePath == "" {
+		config.BasePath = defaultBasePath
 	}
-	cfg.BasePath = trimTrailingSlash(cfg.BasePath)
-	if cfg.AccentColor == "" {
-		cfg.AccentColor = DefaultAccentColor
+	config.BasePath = trimTrailingSlash(config.BasePath)
+	if config.AccentColor == "" {
+		config.AccentColor = DefaultAccentColor
 	}
-	if cfg.Mode == ModeTenantAdmin && cfg.TenantID.Get() == "" {
-		return cfg, errConfig("Config.TenantID is required for ModeTenantAdmin")
+	if config.Mode == ModeTenantAdmin && config.TenantID.Get() == "" {
+		return config, errConfig("Config.TenantID is required for ModeTenantAdmin")
 	}
-	return cfg, nil
+	return config, nil
 }

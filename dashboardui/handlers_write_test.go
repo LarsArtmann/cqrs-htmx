@@ -487,10 +487,10 @@ func TestTimeTravelDetailHandler_LoadToVersionError(t *testing.T) {
 
 // --- Helpers ---
 
-func mustTestDashboardWithConfig(t *testing.T, cfg Config) *Dashboard {
+func mustTestDashboardWithConfig(t *testing.T, config Config) *Dashboard {
 	t.Helper()
 
-	d, err := New(cfg)
+	d, err := New(config)
 	if err != nil {
 		t.Fatalf("New Dashboard: %v", err)
 	}

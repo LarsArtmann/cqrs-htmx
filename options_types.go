@@ -90,10 +90,10 @@ func decodeAndSet[T, R any](
 	mapper func(T) (R, error),
 	setter func(*handlerConfig, func(*http.Request) (R, error)),
 ) HandlerOption {
-	return func(cfg *handlerConfig) {
-		setter(cfg, func(r *http.Request) (R, error) {
+	return func(config *handlerConfig) {
+		setter(config, func(r *http.Request) (R, error) {
 			return decodeRequest(r, func(r *http.Request) (T, error) {
-				return bodyDec(r, cfg.maxBodySize)
+				return bodyDec(r, config.maxBodySize)
 			}, mapper)
 		})
 	}
@@ -107,9 +107,9 @@ func decodeAndSetWithRequest[T, R any](
 	mapper func(r *http.Request, body T) (R, error),
 	setter func(*handlerConfig, func(*http.Request) (R, error)),
 ) HandlerOption {
-	return func(cfg *handlerConfig) {
-		setter(cfg, func(r *http.Request) (R, error) {
-			decoded, err := bodyDec(r, cfg.maxBodySize)
+	return func(config *handlerConfig) {
+		setter(config, func(r *http.Request) (R, error) {
+			decoded, err := bodyDec(r, config.maxBodySize)
 			if err != nil {
 				var zero R
 

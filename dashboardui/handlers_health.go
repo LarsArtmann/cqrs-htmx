@@ -47,9 +47,9 @@ func (d *Dashboard) versionzHandler(w http.ResponseWriter, _ *http.Request) {
 		Module:       modulePath,
 		GoVersion:    runtime.Version(),
 		Capabilities: d.caps,
-		ReadOnly:     d.cfg.ReadOnly,
-		BasePath:     d.cfg.BasePath,
-		Title:        d.cfg.Title,
+		ReadOnly:     d.config.ReadOnly,
+		BasePath:     d.config.BasePath,
+		Title:        d.config.Title,
 	})
 }
 

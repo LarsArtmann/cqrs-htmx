@@ -73,11 +73,11 @@ func newQueryAppNamed(name string, handler func(context.Context, query.Query) (a
 
 // newQueryAppWithConfig builds a query app with the given config overrides
 // (e.g., custom AfterDispatch hook) and a fixed GetUser handler.
-func newQueryAppWithConfig(handler func(context.Context, query.Query) (any, error), cfg cqrshtmx.Config) *cqrshtmx.App {
+func newQueryAppWithConfig(handler func(context.Context, query.Query) (any, error), config cqrshtmx.Config) *cqrshtmx.App {
 	disp := query.NewDispatcher()
 	_ = disp.Register("GetUser", handler)
-	cfg.Queries = disp
-	app, err := cqrshtmx.New(cfg)
+	config.Queries = disp
+	app, err := cqrshtmx.New(config)
 	Expect(err).NotTo(HaveOccurred())
 
 	return app
@@ -94,11 +94,11 @@ func newCommandAppWithHandler(handler func(context.Context, command.Command) err
 
 // newCommandAppWithConfig builds a command app with the given config overrides
 // (e.g., custom AfterDispatch hook) and a fixed CreateUser handler.
-func newCommandAppWithConfig(handler func(context.Context, command.Command) error, cfg cqrshtmx.Config) *cqrshtmx.App {
+func newCommandAppWithConfig(handler func(context.Context, command.Command) error, config cqrshtmx.Config) *cqrshtmx.App {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", handler)
-	cfg.Commands = disp
-	app, err := cqrshtmx.New(cfg)
+	config.Commands = disp
+	app, err := cqrshtmx.New(config)
 	Expect(err).NotTo(HaveOccurred())
 
 	return app

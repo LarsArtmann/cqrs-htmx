@@ -42,12 +42,12 @@ func newIntegrationApp(
 ) (*cqrshtmx.App, *command.Dispatcher) {
 	_ = disp.Register("CreateUser", noOpCommandHandler)
 	_ = disp.Register("DeleteUser", rejectionHandler("user.not_found", "user does not exist"))
-	cfg := cqrshtmx.Config{
+	config := cqrshtmx.Config{
 		Commands:        disp,
 		Enforcer:        enf,
 		UserIDExtractor: headerExtractor("X-User"),
 	}
-	app, err := cqrshtmx.New(cfg)
+	app, err := cqrshtmx.New(config)
 	Expect(err).NotTo(HaveOccurred())
 
 	return app, disp

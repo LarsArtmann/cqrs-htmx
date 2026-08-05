@@ -64,6 +64,13 @@ func emptyState(title, message string) string {
 	return fmt.Sprintf(`<div class="empty-state"><h2>%s</h2><p>%s</p></div>`, esc(title), esc(message))
 }
 
+// isHTMXRequest returns true when the request came from an HTMX-boosted
+// link or explicit hx-get/hx-post. When true, handlers render only the main
+// content (no full HTML shell) for smaller payloads and faster swaps.
+func isHTMXRequest(r *http.Request) bool {
+	return r != nil && r.Header.Get("HX-Request") == "true"
+}
+
 func redirect(w http.ResponseWriter, r *http.Request, path string) {
 	cqrshtmx.HTMXRedirect(w, r, path)
 }

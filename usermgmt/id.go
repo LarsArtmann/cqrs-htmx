@@ -9,30 +9,58 @@ import (
 // are inherited automatically through the type aliases.
 
 type (
-	UserID    = identitymodel.UserID
-	TenantID  = identitymodel.TenantID
-	BotID     = identitymodel.BotID
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	UserID = identitymodel.UserID
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	TenantID = identitymodel.TenantID
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	BotID = identitymodel.BotID
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	ActorKind = identitymodel.ActorKind
-	ActorID   = identitymodel.ActorID
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	ActorID = identitymodel.ActorID
 )
 
 const (
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	ActorUser = identitymodel.ActorUser
-	ActorBot  = identitymodel.ActorBot
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	ActorBot = identitymodel.ActorBot
 )
 
 // Deprecated: NewUserID silently hashes non-ULID strings, masking invalid input.
 // Use [ParseUserID] for strict ULID validation or [SyntheticUserID] for explicit hashing.
-func NewUserID(s string) UserID            { return identitymodel.NewUserID(s) }
-func SyntheticUserID(s string) UserID      { return identitymodel.SyntheticUserID(s) }
+// This is a re-export of identitymodel.NewUserID.
+func NewUserID(s string) UserID { return identitymodel.NewUserID(s) }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func SyntheticUserID(s string) UserID { return identitymodel.SyntheticUserID(s) }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func ParseUserID(s string) (UserID, error) { return identitymodel.ParseUserID(s) }
-func MustParseUserID(s string) UserID      { return identitymodel.MustParseUserID(s) }
-func GenerateUserID() UserID               { return identitymodel.GenerateUserID() }
-func NewTenantID(s string) TenantID        { return identitymodel.NewTenantID(s) }
-func NewBotID(s string) BotID              { return identitymodel.NewBotID(s) }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func MustParseUserID(s string) UserID { return identitymodel.MustParseUserID(s) }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func GenerateUserID() UserID { return identitymodel.GenerateUserID() }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func NewTenantID(s string) TenantID { return identitymodel.NewTenantID(s) }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func NewBotID(s string) BotID { return identitymodel.NewBotID(s) }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewActorID(kind ActorKind, raw string) ActorID {
 	return identitymodel.NewActorID(kind, raw)
 }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func ActorIDFromUser(uid UserID) ActorID { return identitymodel.ActorIDFromUser(uid) }
-func ActorIDFromBot(bid BotID) ActorID   { return identitymodel.ActorIDFromBot(bid) }
-func ParseActorID(s string) ActorID      { return identitymodel.ParseActorID(s) }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func ActorIDFromBot(bid BotID) ActorID { return identitymodel.ActorIDFromBot(bid) }
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func ParseActorID(s string) ActorID { return identitymodel.ParseActorID(s) }

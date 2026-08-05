@@ -261,8 +261,8 @@ func TestMustNew_Success(t *testing.T) {
 		t.Fatal("expected non-nil Dashboard")
 	}
 
-	if d.cfg.PageSize != defaultPageSize {
-		t.Errorf("expected default PageSize %d, got %d", defaultPageSize, d.cfg.PageSize)
+	if d.config.PageSize != defaultPageSize {
+		t.Errorf("expected default PageSize %d, got %d", defaultPageSize, d.config.PageSize)
 	}
 }
 
@@ -380,17 +380,17 @@ func TestMiddleware_ReturnsNonNil(t *testing.T) {
 
 func TestConfig_ReturnsWithDefaults(t *testing.T) {
 	d := mustTestDashboard(t)
-	cfg := d.Config()
+	config := d.Config()
 
-	if cfg.PageSize != defaultPageSize {
-		t.Errorf("expected default PageSize, got %d", cfg.PageSize)
+	if config.PageSize != defaultPageSize {
+		t.Errorf("expected default PageSize, got %d", config.PageSize)
 	}
 
-	if cfg.Title == "" {
+	if config.Title == "" {
 		t.Error("expected non-empty Title after defaults")
 	}
 
-	if cfg.BasePath == "" {
+	if config.BasePath == "" {
 		t.Error("expected non-empty BasePath after defaults")
 	}
 }

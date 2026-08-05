@@ -37,17 +37,17 @@ func (d *Dashboard) renderStreamListingPage(
 	p pageData,
 	listings []listing.StreamListing,
 	page paginationState,
-	cfg streamListPageConfig,
+	config streamListPageConfig,
 ) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		if cfg.subtitle != "" {
-			fmt.Fprintf(&b, `<p class="page-subtitle section-gap">%s</p>`, esc(cfg.subtitle))
+		if config.subtitle != "" {
+			fmt.Fprintf(&b, `<p class="page-subtitle section-gap">%s</p>`, esc(config.subtitle))
 		}
 
 		if len(listings) == 0 {
-			return emptyState(cfg.emptyTitle, cfg.emptyMsg)
+			return emptyState(config.emptyTitle, config.emptyMsg)
 		}
 
 		var rows strings.Builder
@@ -60,10 +60,10 @@ func (d *Dashboard) renderStreamListingPage(
 				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(l.Version.String()),
 				p.BasePath,
-				cfg.linkPath,
+				config.linkPath,
 				esc(string(l.Type)),
 				esc(l.ID.String()),
-				esc(cfg.linkText),
+				esc(config.linkText),
 			)
 		}
 
@@ -73,7 +73,7 @@ func (d *Dashboard) renderStreamListingPage(
 			rows.String(),
 		)
 
-		b.WriteString(renderPagination(p.BasePath, cfg.pagePath, page, ""))
+		b.WriteString(renderPagination(p.BasePath, config.pagePath, page, ""))
 
 		return b.String()
 	})
@@ -119,7 +119,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 		requestedVersion = maxVersion
 	}
 
-	eventsToVersion, err := d.cfg.EventSource.LoadToVersion(r.Context(), ref, requestedVersion)
+	eventsToVersion, err := d.config.EventSource.LoadToVersion(r.Context(), ref, requestedVersion)
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "failed to load version")
 

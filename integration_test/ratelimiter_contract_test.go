@@ -71,15 +71,15 @@ func TestRateLimiterContract(t *testing.T) {
 func TestRateLimitConfigTypeCompatibility(t *testing.T) {
 	var _ *cqrshtmx.RateLimiter
 
-	cfg := cqrshtmx.RateLimiterConfig{
+	config := cqrshtmx.RateLimiterConfig{
 		Limit:        5,
 		Window:       1 * time.Second,
 		KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
 	}
-	if cfg.Limit != 5 {
-		t.Errorf("Limit field: got %d, want 5", cfg.Limit)
+	if config.Limit != 5 {
+		t.Errorf("Limit field: got %d, want 5", config.Limit)
 	}
-	if cfg.KeyExtractor == nil {
+	if config.KeyExtractor == nil {
 		t.Error("KeyExtractor should be settable")
 	}
 }

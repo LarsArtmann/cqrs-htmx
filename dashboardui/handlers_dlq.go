@@ -74,17 +74,17 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 // dead-letter count. When a DeadLetterStore is configured, the count is exact
 // (via List). Otherwise the projection's error counter is used as a fallback.
 func (d *Dashboard) buildDLQProjectionLinks(ctx context.Context) []dlqProjectionLink {
-	if d.cfg.ProjectionHost == nil {
+	if d.config.ProjectionHost == nil {
 		return nil
 	}
 
 	var links []dlqProjectionLink
 
-	for _, ws := range d.cfg.ProjectionHost.Status() {
+	for _, ws := range d.config.ProjectionHost.Status() {
 		count := 0
 
-		if d.cfg.DeadLetterStore != nil {
-			entries, err := d.cfg.DeadLetterStore.List(ctx, ws.Name)
+		if d.config.DeadLetterStore != nil {
+			entries, err := d.config.DeadLetterStore.List(ctx, ws.Name)
 			if err == nil {
 				count = len(entries)
 			}
@@ -103,10 +103,10 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	var entries []projectionhost.DeadLetterEntry
 
-	if d.cfg.DeadLetterStore != nil {
+	if d.config.DeadLetterStore != nil {
 		var err error
 
-		entries, err = d.cfg.DeadLetterStore.List(r.Context(), proj)
+		entries, err = d.config.DeadLetterStore.List(r.Context(), proj)
 		if err != nil {
 			renderError(w, r, http.StatusInternalServerError, "failed to list dead letters")
 
@@ -158,7 +158,7 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 
 		msg := fmt.Sprintf("Replayed %d, %d still failing", len(result.Replayed), len(result.StillFailing))
 		triggerToast(w, "ok", msg)
-		redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+		redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
 	})
 }
 
@@ -199,7 +199,7 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 			"ok",
 		)
 		triggerToast(w, "ok", "Dead letter deleted")
-		redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+		redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
 	})
 }
 
@@ -216,7 +216,7 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 
 		slog.InfoContext(r.Context(), "dashboardui.audit", "op", "dlq.purge", "projection", proj, "result", "ok")
 		triggerToast(w, "ok", "Dead letters purged")
-		redirect(w, r, d.cfg.BasePath+"/dead-letters/"+proj)
+		redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
 	})
 }
 

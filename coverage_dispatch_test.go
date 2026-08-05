@@ -28,10 +28,10 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 
 	Describe("CSRF sameSite all branches", func() {
 		It("maps SameSiteDefaultMode", func() {
-			cfg := cqrshtmx.CSRFConfig{
+			config := cqrshtmx.CSRFConfig{
 				SameSite: http.SameSiteDefaultMode,
 			}
-			mw := cqrshtmx.CSRFMiddleware(cfg)
+			mw := cqrshtmx.CSRFMiddleware(config)
 			handler := mw(okHandler())
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()

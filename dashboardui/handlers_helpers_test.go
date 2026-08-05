@@ -26,7 +26,7 @@ func (fakeDeadLetterStore) Delete(ctx context.Context, projectionName, eventID s
 func (fakeDeadLetterStore) Purge(ctx context.Context, projectionName string) error { return nil }
 
 func TestWithProjectionHost_Missing(t *testing.T) {
-	d := &Dashboard{cfg: Config{}}
+	d := &Dashboard{config: Config{}}
 
 	w := httptest.NewRecorder()
 	called := false
@@ -50,7 +50,7 @@ func TestWithProjectionHost_Missing(t *testing.T) {
 
 func TestWithProjectionHost_Present(t *testing.T) {
 	host := &projectionhost.Host{}
-	d := &Dashboard{cfg: Config{ProjectionHost: host}}
+	d := &Dashboard{config: Config{ProjectionHost: host}}
 
 	w := httptest.NewRecorder()
 
@@ -70,7 +70,7 @@ func TestWithProjectionHost_Present(t *testing.T) {
 }
 
 func TestWithDeadLetterStore_Missing(t *testing.T) {
-	d := &Dashboard{cfg: Config{}}
+	d := &Dashboard{config: Config{}}
 
 	w := httptest.NewRecorder()
 	called := false
@@ -94,7 +94,7 @@ func TestWithDeadLetterStore_Missing(t *testing.T) {
 
 func TestWithDeadLetterStore_Present(t *testing.T) {
 	store := fakeDeadLetterStore{}
-	d := &Dashboard{cfg: Config{DeadLetterStore: store}}
+	d := &Dashboard{config: Config{DeadLetterStore: store}}
 
 	w := httptest.NewRecorder()
 

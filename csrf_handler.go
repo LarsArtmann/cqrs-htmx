@@ -21,9 +21,9 @@ import (
 //	    cqrshtmx.CSRFProtect(cqrshtmx.CSRFConfig{}),
 //	    cqrshtmx.DecodeJSON(...),
 //	)
-func CSRFProtect(cfg CSRFConfig) HandlerOption {
+func CSRFProtect(config CSRFConfig) HandlerOption {
 	return func(hc *handlerConfig) {
-		hc.csrfConfig = &cfg
+		hc.csrfConfig = &config
 	}
 }
 

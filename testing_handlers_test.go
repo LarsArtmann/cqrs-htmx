@@ -141,8 +141,8 @@ func unauthenticatedReadMiddleware() func(http.Handler) http.Handler {
 func newCommandApp() *cqrshtmx.App {
 	disp := command.NewDispatcher()
 	_ = disp.Register("CreateUser", noOpCommandHandler)
-	cfg := cqrshtmx.Config{Commands: disp}
-	app, err := cqrshtmx.New(cfg)
+	config := cqrshtmx.Config{Commands: disp}
+	app, err := cqrshtmx.New(config)
 	Expect(err).NotTo(HaveOccurred())
 
 	return app

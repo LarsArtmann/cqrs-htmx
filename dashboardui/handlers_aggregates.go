@@ -16,10 +16,10 @@ import (
 // stream-index pages (time-travel, snapshots). Returns the listings and the
 // pagination state for rendering Prev/Next controls.
 func (d *Dashboard) listStreamsPaged(r *http.Request) ([]listing.StreamListing, paginationState) {
-	pageSize := parsePageSize(r, d.cfg.PageSize)
+	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 
-	if d.cfg.StreamReader == nil {
+	if d.config.StreamReader == nil {
 		return nil, paginationState{PageSize: pageSize} //nolint:exhaustruct // no data source: only page size matters
 	}
 
@@ -32,7 +32,7 @@ func (d *Dashboard) listStreamsPaged(r *http.Request) ([]listing.StreamListing, 
 		}
 	}
 
-	page, err := d.cfg.StreamReader.List(r.Context(), opts)
+	page, err := d.config.StreamReader.List(r.Context(), opts)
 	if err != nil || page == nil {
 		return nil, paginationState{PageSize: pageSize} //nolint:exhaustruct // error: only page size matters
 	}
@@ -62,7 +62,7 @@ func (d *Dashboard) listStreamsPaged(r *http.Request) ([]listing.StreamListing, 
 func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Aggregates", "/aggregates", r)
 
-	pageSize := parsePageSize(r, d.cfg.PageSize)
+	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 
 	var (
@@ -70,7 +70,7 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 		hasMore  bool
 	)
 
-	if d.cfg.StreamReader != nil { //nolint:nestif // optional data source branching
+	if d.config.StreamReader != nil { //nolint:nestif // optional data source branching
 		opts := listing.ListOptions{Limit: uint(pageSize + 1)}
 
 		if afterCursor != "" {
@@ -80,7 +80,7 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 			}
 		}
 
-		page, err := d.cfg.StreamReader.List(r.Context(), opts)
+		page, err := d.config.StreamReader.List(r.Context(), opts)
 		if err == nil && page != nil {
 			hasMore = len(page.Items) > pageSize
 			if hasMore {

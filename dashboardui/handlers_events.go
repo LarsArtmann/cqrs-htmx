@@ -78,7 +78,7 @@ const filterScanLimit = 500
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Events", "/events", r)
 
-	pageSize := parsePageSize(r, d.cfg.PageSize)
+	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 	afterID, _ := id.ParseEventID(afterCursor)
 	filters := parseEventFilter(r)
@@ -146,8 +146,8 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 //nolint:cyclop // journal fallback
 func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) {
-	if d.cfg.EventByIDLoader != nil {
-		evt, err := d.cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
+	if d.config.EventByIDLoader != nil {
+		evt, err := d.config.EventByIDLoader.LoadByEventID(ctx, eventID)
 		if err != nil {
 			var zero event.Event
 
@@ -158,13 +158,13 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 		return evt, nil
 	}
 
-	if d.cfg.SeekableJournal != nil {
+	if d.config.SeekableJournal != nil {
 		const scanLimit = 5000
 
 		var after id.EventID
 
 		for {
-			batch, err := d.cfg.SeekableJournal.ReadFrom(ctx, after, scanLimit)
+			batch, err := d.config.SeekableJournal.ReadFrom(ctx, after, scanLimit)
 			if err != nil {
 				return nil, errorfamily.WrapInfrastructure(err,
 					"dashboardui.event_detail.scan_failed", "scan journal for event")
@@ -187,8 +187,8 @@ func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (even
 			"dashboardui.event_detail.not_found", "event %s not found in journal scan", eventID)
 	}
 
-	if d.cfg.Journal != nil {
-		all, err := d.cfg.Journal.ReadAll(ctx)
+	if d.config.Journal != nil {
+		all, err := d.config.Journal.ReadAll(ctx)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.event_detail.read_failed", "read journal")
@@ -217,10 +217,10 @@ func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) 
 
 	var prevID, nextID string
 
-	if d.cfg.SeekableJournal != nil {
-		events, err = d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, neighborScanLimit)
-	} else if d.cfg.Journal != nil {
-		events, err = d.cfg.Journal.ReadAll(ctx)
+	if d.config.SeekableJournal != nil {
+		events, err = d.config.SeekableJournal.ReadFrom(ctx, id.EventID{}, neighborScanLimit)
+	} else if d.config.Journal != nil {
+		events, err = d.config.Journal.ReadAll(ctx)
 		if err == nil && len(events) > neighborScanLimit {
 			events = events[:neighborScanLimit]
 		}
@@ -251,7 +251,7 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
-		payload := renderPayload(d.cfg.PayloadRenderer, evt)
+		payload := renderPayload(d.config.PayloadRenderer, evt)
 		meta := evt.Metadata()
 
 		b.WriteString(`<div class="page-header">`)
@@ -343,8 +343,8 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 }
 
 func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limit int) ([]event.Event, error) {
-	if d.cfg.SeekableJournal != nil {
-		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, after, limit)
+	if d.config.SeekableJournal != nil {
+		events, err := d.config.SeekableJournal.ReadFrom(ctx, after, limit)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.recent_events.read_failed", "read recent events")
@@ -353,8 +353,8 @@ func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limi
 		return events, nil
 	}
 
-	if d.cfg.Journal != nil {
-		all, err := d.cfg.Journal.ReadAll(ctx)
+	if d.config.Journal != nil {
+		all, err := d.config.Journal.ReadAll(ctx)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.recent_events.read_all_failed", "read all events")
@@ -386,14 +386,14 @@ func (d *Dashboard) loadFilteredEvents(
 
 	var err error
 
-	if d.cfg.SeekableJournal != nil {
-		raw, err = d.cfg.SeekableJournal.ReadFrom(ctx, after, rawLimit)
+	if d.config.SeekableJournal != nil {
+		raw, err = d.config.SeekableJournal.ReadFrom(ctx, after, rawLimit)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.filtered_events.read_failed", "read events for filtering")
 		}
-	} else if d.cfg.Journal != nil {
-		raw, err = d.cfg.Journal.ReadAll(ctx)
+	} else if d.config.Journal != nil {
+		raw, err = d.config.Journal.ReadAll(ctx)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
 				"dashboardui.filtered_events.read_all_failed", "read all events for filtering")

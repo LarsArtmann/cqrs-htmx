@@ -95,13 +95,13 @@ func FuzzCSRFConfigValidation(f *testing.F) {
 	f.Add("b", "c", "d", "e")
 
 	f.Fuzz(func(_ *testing.T, cookieName, headerName, fieldName, domain string) {
-		cfg := CSRFConfig{
+		config := CSRFConfig{
 			CookieName: cookieName,
 			HeaderName: headerName,
 			FieldName:  fieldName,
 			Domain:     domain,
 		}
-		_ = cfg.Validate()
+		_ = config.Validate()
 	})
 }
 

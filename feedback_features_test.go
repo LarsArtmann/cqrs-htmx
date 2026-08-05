@@ -21,9 +21,9 @@ import (
 var _ = Describe("Feedback-driven features", func() {
 	Describe("DefaultRateLimiterConfig", func() {
 		It("returns usable defaults that work as middleware", func() {
-			cfg := cqrshtmx.DefaultRateLimiterConfig()
-			Expect(cfg.Limit).To(BeNumerically(">", 0))
-			mw := cqrshtmx.RateLimiterMiddleware(cfg)
+			config := cqrshtmx.DefaultRateLimiterConfig()
+			Expect(config.Limit).To(BeNumerically(">", 0))
+			mw := cqrshtmx.RateLimiterMiddleware(config)
 			handler := mw(okHandler())
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
@@ -377,8 +377,8 @@ var _ = Describe("Feedback-driven features", func() {
 })
 
 // mustNewApp is a test helper that panics on error.
-func mustNewApp(cfg cqrshtmx.Config) *cqrshtmx.App {
-	app, err := cqrshtmx.New(cfg)
+func mustNewApp(config cqrshtmx.Config) *cqrshtmx.App {
+	app, err := cqrshtmx.New(config)
 	if err != nil {
 		panic(err)
 	}

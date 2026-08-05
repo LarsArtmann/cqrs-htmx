@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-func setupAuthenticatedHandler(t *testing.T, cfg ServiceConfig) (*Service, http.Handler, string) {
+func setupAuthenticatedHandler(t *testing.T, config ServiceConfig) (*Service, http.Handler, string) {
 	t.Helper()
-	svc, err := NewService(cfg)
+	svc, err := NewService(config)
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}

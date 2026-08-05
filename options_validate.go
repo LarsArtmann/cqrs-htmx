@@ -16,8 +16,8 @@ func validateDispatch[T any](
 	validator func(T) error,
 	label string,
 ) HandlerOption {
-	return func(cfg *handlerConfig) {
-		original := getter(cfg)
+	return func(config *handlerConfig) {
+		original := getter(config)
 		if original == nil {
 			slog.Warn("cqrs-htmx: "+label+" applied before decoder",
 				slog.String("hint", "apply after DecodeJSON/DecodeForm"))
@@ -25,7 +25,7 @@ func validateDispatch[T any](
 			return
 		}
 
-		setter(cfg, func(r *http.Request) (T, error) {
+		setter(config, func(r *http.Request) (T, error) {
 			val, err := original(r)
 			if err != nil {
 				var zero T
@@ -44,12 +44,12 @@ func validateDispatch[T any](
 	}
 }
 
-func getCommandDecoder(cfg *handlerConfig) func(*http.Request) (command.Command, error) {
-	return cfg.commandDecoder
+func getCommandDecoder(config *handlerConfig) func(*http.Request) (command.Command, error) {
+	return config.commandDecoder
 }
 
-func getQueryDecoder(cfg *handlerConfig) func(*http.Request) (query.Query, error) {
-	return cfg.queryDecoder
+func getQueryDecoder(config *handlerConfig) func(*http.Request) (query.Query, error) {
+	return config.queryDecoder
 }
 
 // ValidateCommand wraps the command decoder with a validation step.
@@ -90,8 +90,8 @@ func ValidateQuery(validator func(query.Query) error) HandlerOption {
 // If > 0, it takes precedence over the App-level Config.Timeout.
 // Zero or negative means fall back to App config (default: no timeout).
 func WithTimeout(d time.Duration) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.timeout = d
+	return func(config *handlerConfig) {
+		config.timeout = d
 	}
 }
 
@@ -99,8 +99,8 @@ func WithTimeout(d time.Duration) HandlerOption {
 // If > 0, it takes precedence over the App-level Config.MaxBodySize.
 // Zero or negative means fall back to App config (default: 10 MB).
 func WithMaxBodySize(n int64) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.maxBodySize = n
+	return func(config *handlerConfig) {
+		config.maxBodySize = n
 	}
 }
 
@@ -108,7 +108,7 @@ func WithMaxBodySize(n int64) HandlerOption {
 // when no explicit body is written. Default is 204 No Content.
 // Common values: 200 OK, 201 Created.
 func WithSuccessStatus(code int) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.successStatus = code
+	return func(config *handlerConfig) {
+		config.successStatus = code
 	}
 }

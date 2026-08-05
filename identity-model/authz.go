@@ -15,13 +15,13 @@ type Authz struct {
 
 // NewAuthz creates an Authz with the given optional config. When no config is
 // provided, the default model and a single admin wildcard policy are used.
-func NewAuthz(cfg ...EnforcerConfig) (*Authz, error) {
+func NewAuthz(config ...EnforcerConfig) (*Authz, error) {
 	config := EnforcerConfig{
 		ModelString: DefaultRBACModel,
 		Policies:    DefaultPolicies(),
 	}
-	if len(cfg) > 0 {
-		config = cfg[0]
+	if len(config) > 0 {
+		config = config[0]
 	}
 
 	modelStr := config.ModelString

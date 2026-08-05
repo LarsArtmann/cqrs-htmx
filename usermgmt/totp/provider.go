@@ -34,12 +34,12 @@ type Provider struct {
 }
 
 // New creates a TOTP provider with the given configuration.
-func New(cfg Config) *Provider {
-	issuer := cfg.Issuer
+func New(config Config) *Provider {
+	issuer := config.Issuer
 	if issuer == "" {
 		issuer = "cqrs-htmx"
 	}
-	window := cfg.Window
+	window := config.Window
 	if window == 0 {
 		window = 1
 	}

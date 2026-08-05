@@ -38,17 +38,17 @@ func normalizeEmail(email string) string {
 
 // NewAccountLockout creates an AccountLockout. An optional LockoutConfig can be
 // provided; zero-valued fields fall back to defaults (5 attempts, 15 minutes).
-func NewAccountLockout(cfg ...LockoutConfig) *AccountLockout {
+func NewAccountLockout(config ...LockoutConfig) *AccountLockout {
 	config := LockoutConfig{
 		MaxAttempts: defaultMaxAttempts,
 		Duration:    defaultLockoutDur,
 	}
-	if len(cfg) > 0 {
-		if cfg[0].MaxAttempts > 0 {
-			config.MaxAttempts = cfg[0].MaxAttempts
+	if len(config) > 0 {
+		if config[0].MaxAttempts > 0 {
+			config.MaxAttempts = config[0].MaxAttempts
 		}
-		if cfg[0].Duration > 0 {
-			config.Duration = cfg[0].Duration
+		if config[0].Duration > 0 {
+			config.Duration = config[0].Duration
 		}
 	}
 	return &AccountLockout{

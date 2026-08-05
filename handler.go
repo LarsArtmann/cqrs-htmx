@@ -17,7 +17,7 @@ import (
 func (a *App) dispatchContext(
 	w http.ResponseWriter,
 	r *http.Request,
-	cfg *handlerConfig,
+	config *handlerConfig,
 ) (context.Context, error) {
 	ctx := r.Context()
 
@@ -25,7 +25,7 @@ func (a *App) dispatchContext(
 		ctx = a.beforeDispatch(ctx, r)
 	}
 
-	if err := a.executePreDispatchChecks(w, r, cfg); err != nil {
+	if err := a.executePreDispatchChecks(w, r, config); err != nil {
 		a.afterDispatchHook(ctx, r, err)
 
 		return ctx, err
@@ -40,7 +40,7 @@ func (a *App) handleErr(
 	w http.ResponseWriter,
 	r *http.Request,
 	ctx context.Context,
-	cfg *handlerConfig,
+	config *handlerConfig,
 	err error,
 ) {
 	captureDispatchError(w, err)
@@ -52,8 +52,8 @@ func (a *App) handleErr(
 	)
 	a.errorHandler(w, r, err)
 
-	if cfg.onError != nil {
-		cfg.onError(r, err)
+	if config.onError != nil {
+		config.onError(r, err)
 	}
 
 	a.afterDispatchHook(ctx, r, err)
@@ -74,20 +74,20 @@ func dispatchRequest[Q, R any](
 	a *App,
 	w http.ResponseWriter,
 	r *http.Request,
-	cfg *handlerConfig,
+	config *handlerConfig,
 	typeName, kind string,
 	decoderNil func() bool,
 	decode func(*http.Request) (Q, error),
 	dispatch func(ctx context.Context, q Q) (R, error),
 	respond func(http.ResponseWriter, *http.Request, *handlerConfig, R),
 ) {
-	ctx, err := a.dispatchContext(w, r, cfg)
+	ctx, err := a.dispatchContext(w, r, config)
 	if err != nil {
 		return
 	}
 
 	if decoderNil() {
-		a.handleErr(w, r, ctx, cfg, errDecoderMissing)
+		a.handleErr(w, r, ctx, config, errDecoderMissing)
 
 		return
 	}
@@ -96,7 +96,7 @@ func dispatchRequest[Q, R any](
 	if err != nil {
 		wrappedErr := errorfamily.Wrapf(err, event.Rejection,
 			"cqrshtmx.decode."+kind+"_failed", "decode %s %s", kind, typeName)
-		a.handleErr(w, r, ctx, cfg, wrappedErr)
+		a.handleErr(w, r, ctx, config, wrappedErr)
 
 		return
 	}
@@ -109,31 +109,31 @@ func dispatchRequest[Q, R any](
 		// The decoder was configured but returned (nil, nil): a server-side
 		// wiring bug, not a transient infrastructure problem. Classify as
 		// Corruption (500) so it is not retried as 503.
-		a.handleErr(w, r, ctx, cfg, errDecoderReturnedNil)
+		a.handleErr(w, r, ctx, config, errDecoderReturnedNil)
 
 		return
 	}
 
-	if cfg.requestGuard != nil {
-		if guardErr := cfg.requestGuard(r, v); guardErr != nil {
-			a.handleErr(w, r, ctx, cfg, guardErr)
+	if config.requestGuard != nil {
+		if guardErr := config.requestGuard(r, v); guardErr != nil {
+			a.handleErr(w, r, ctx, config, guardErr)
 
 			return
 		}
 	}
 
-	ctx, cancel := a.timeoutCtx(ctx, cfg)
+	ctx, cancel := a.timeoutCtx(ctx, config)
 	defer cancel()
 
 	result, dispatchErr := dispatch(ctx, v)
 	if dispatchErr != nil {
-		a.handleErr(w, r, ctx, cfg, errorfamily.Wrapf(dispatchErr, errorfamily.Classify(dispatchErr),
+		a.handleErr(w, r, ctx, config, errorfamily.Wrapf(dispatchErr, errorfamily.Classify(dispatchErr),
 			"cqrshtmx.dispatch."+kind+"_failed", "dispatch %s %s", kind, typeName))
 
 		return
 	}
 
-	respond(w, r.WithContext(ctx), cfg, result)
+	respond(w, r.WithContext(ctx), config, result)
 	a.afterDispatchHook(ctx, r, nil)
 }
 
@@ -141,18 +141,18 @@ func (a *App) handleCommandDispatch(
 	w http.ResponseWriter,
 	r *http.Request,
 	cmdType command.Type,
-	cfg *handlerConfig,
+	config *handlerConfig,
 ) {
-	dispatchRequest[any, any](a, w, r, cfg, string(cmdType), "command",
-		func() bool { return cfg.commandDecoder == nil },
-		func(r *http.Request) (any, error) { return cfg.commandDecoder(r) },
+	dispatchRequest[any, any](a, w, r, config, string(cmdType), "command",
+		func() bool { return config.commandDecoder == nil },
+		func(r *http.Request) (any, error) { return config.commandDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
 			cmd, _ := v.(command.Command)
 
 			return nil, a.commands.Dispatch(ctx, cmd)
 		},
-		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, _ any) {
-			a.applyCommandResponse(w, r, cfg)
+		func(w http.ResponseWriter, r *http.Request, config *handlerConfig, _ any) {
+			a.applyCommandResponse(w, r, config)
 		},
 	)
 }
@@ -160,36 +160,36 @@ func (a *App) handleCommandDispatch(
 func (a *App) executePreDispatchChecks(
 	w http.ResponseWriter,
 	r *http.Request,
-	cfg *handlerConfig,
+	config *handlerConfig,
 ) error {
-	if cfg.requireMethod != "" && r.Method != cfg.requireMethod {
+	if config.requireMethod != "" && r.Method != config.requireMethod {
 		a.errorHandler(w, r, errorfamily.Wrapf(ErrMethodNotAllowed, event.Rejection,
-			"cqrshtmx.handler.method_not_allowed", "got %s, want %s", r.Method, cfg.requireMethod))
+			"cqrshtmx.handler.method_not_allowed", "got %s, want %s", r.Method, config.requireMethod))
 
 		return ErrMethodNotAllowed
 	}
 
-	if err := a.executeAuthorization(r, cfg); err != nil {
+	if err := a.executeAuthorization(r, config); err != nil {
 		a.errorHandler(w, r, err)
 
 		return err
 	}
 
-	if err := executeCSRFValidation(w, r, cfg); err != nil {
+	if err := executeCSRFValidation(w, r, config); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// writeDefaultStatus writes cfg.successStatus (or 204 No Content) when the
+// writeDefaultStatus writes config.successStatus (or 204 No Content) when the
 // handler has no explicit body content to write.
-func writeDefaultStatus(w http.ResponseWriter, cfg *handlerConfig) {
-	if !cfg.hasNoExplicitBody() {
+func writeDefaultStatus(w http.ResponseWriter, config *handlerConfig) {
+	if !config.hasNoExplicitBody() {
 		return
 	}
 
-	status := cfg.successStatus
+	status := config.successStatus
 	if status == 0 {
 		status = http.StatusNoContent
 	}
@@ -197,51 +197,51 @@ func writeDefaultStatus(w http.ResponseWriter, cfg *handlerConfig) {
 	w.WriteHeader(status)
 }
 
-func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, cfg *handlerConfig) {
-	if applyHTMXResponse(w, r, cfg) {
+func (a *App) applyCommandResponse(w http.ResponseWriter, r *http.Request, config *handlerConfig) {
+	if applyHTMXResponse(w, r, config) {
 		return
 	}
 
-	writeDefaultStatus(w, cfg)
+	writeDefaultStatus(w, config)
 }
 
 func (a *App) applyQueryResponse(
 	w http.ResponseWriter,
 	r *http.Request,
-	cfg *handlerConfig,
+	config *handlerConfig,
 	result any,
 ) {
-	if applyHTMXResponse(w, r, cfg) {
+	if applyHTMXResponse(w, r, config) {
 		return
 	}
 
-	if cfg.render != nil {
-		if err := cfg.render(w, r, result); err != nil {
-			a.handleErr(w, r, r.Context(), cfg, err)
+	if config.render != nil {
+		if err := config.render(w, r, result); err != nil {
+			a.handleErr(w, r, r.Context(), config, err)
 
 			return
 		}
 	}
 
-	writeDefaultStatus(w, cfg)
+	writeDefaultStatus(w, config)
 }
 
 func (a *App) handleQueryDispatch(
 	w http.ResponseWriter,
 	r *http.Request,
 	qryType query.Type,
-	cfg *handlerConfig,
+	config *handlerConfig,
 ) {
-	dispatchRequest[any, any](a, w, r, cfg, string(qryType), "query",
-		func() bool { return cfg.queryDecoder == nil },
-		func(r *http.Request) (any, error) { return cfg.queryDecoder(r) },
+	dispatchRequest[any, any](a, w, r, config, string(qryType), "query",
+		func() bool { return config.queryDecoder == nil },
+		func(r *http.Request) (any, error) { return config.queryDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
 			qry, _ := v.(query.Query)
 
 			return a.queries.Dispatch(ctx, qry)
 		},
-		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, result any) {
-			a.applyQueryResponse(w, r, cfg, result)
+		func(w http.ResponseWriter, r *http.Request, config *handlerConfig, result any) {
+			a.applyQueryResponse(w, r, config, result)
 		},
 	)
 }
@@ -254,12 +254,12 @@ func handleCommandTypedDispatch[Q command.Command](
 	w http.ResponseWriter,
 	r *http.Request,
 	cmdType command.Type,
-	cfg *handlerConfig,
+	config *handlerConfig,
 ) {
-	dispatchRequest[Q, any](a, w, r, cfg, string(cmdType), "command",
-		func() bool { return cfg.commandDecoder == nil },
+	dispatchRequest[Q, any](a, w, r, config, string(cmdType), "command",
+		func() bool { return config.commandDecoder == nil },
 		func(r *http.Request) (Q, error) {
-			v, err := cfg.commandDecoder(r)
+			v, err := config.commandDecoder(r)
 			if err != nil {
 				var zero Q
 
@@ -280,8 +280,8 @@ func handleCommandTypedDispatch[Q command.Command](
 		func(ctx context.Context, q Q) (any, error) {
 			return nil, a.commands.Dispatch(ctx, q)
 		},
-		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, _ any) {
-			a.applyCommandResponse(w, r, cfg)
+		func(w http.ResponseWriter, r *http.Request, config *handlerConfig, _ any) {
+			a.applyCommandResponse(w, r, config)
 		},
 	)
 }
@@ -295,12 +295,12 @@ func handleQueryTypedDispatch[Q query.Query, R any](
 	w http.ResponseWriter,
 	r *http.Request,
 	qryType query.Type,
-	cfg *handlerConfig,
+	config *handlerConfig,
 ) {
-	dispatchRequest[Q, R](a, w, r, cfg, string(qryType), "query",
-		func() bool { return cfg.queryDecoder == nil },
+	dispatchRequest[Q, R](a, w, r, config, string(qryType), "query",
+		func() bool { return config.queryDecoder == nil },
 		func(r *http.Request) (Q, error) {
-			v, err := cfg.queryDecoder(r)
+			v, err := config.queryDecoder(r)
 			if err != nil {
 				var zero Q
 
@@ -321,8 +321,8 @@ func handleQueryTypedDispatch[Q query.Query, R any](
 		func(ctx context.Context, q Q) (R, error) {
 			return query.DispatchTyped[R](ctx, a.queries, q)
 		},
-		func(w http.ResponseWriter, r *http.Request, cfg *handlerConfig, result R) {
-			a.applyQueryResponse(w, r, cfg, result)
+		func(w http.ResponseWriter, r *http.Request, config *handlerConfig, result R) {
+			a.applyQueryResponse(w, r, config, result)
 		},
 	)
 }

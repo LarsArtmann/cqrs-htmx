@@ -214,10 +214,10 @@ func TestCasbinProjection_EventTypes_IncludesCredentials(t *testing.T) {
 
 // --- AccountLockout integration with BeginLogin ---
 
-func newLockoutTestService(t *testing.T, cfg LockoutConfig) *Service {
+func newLockoutTestService(t *testing.T, config LockoutConfig) *Service {
 	t.Helper()
 	svc, err := NewService(ServiceConfig{
-		Lockout:  NewAccountLockout(cfg),
+		Lockout:  NewAccountLockout(config),
 		WebAuthn: testWebAuthnProvider{},
 	})
 	if err != nil {

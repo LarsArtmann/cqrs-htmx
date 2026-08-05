@@ -26,7 +26,7 @@ import (
 // Recommended starter configuration:
 //
 //	strategy, _ := snapshot.EveryNEvents(500)
-//	cfg := usermgmt.SnapshotConfig{
+//	config := usermgmt.SnapshotConfig{
 //	    Store:    usermgmt.NewMemorySnapshotStore(), // dev/test; use SQL/pebble in production
 //	    Codec:    codec.JSONCodec{},
 //	    Strategy: strategy,
@@ -61,19 +61,19 @@ type SnapshotConfig struct {
 // Generic so the same config applies uniformly to every aggregate State type.
 // Returns nil when snapshotting is disabled (Store is nil) so existing
 // repositories are untouched.
-func snapshotOptions[State any](cfg SnapshotConfig) []decider.RepositoryOption[State] {
-	if cfg.Store == nil {
+func snapshotOptions[State any](config SnapshotConfig) []decider.RepositoryOption[State] {
+	if config.Store == nil {
 		return nil
 	}
 
-	opts := []decider.RepositoryOption[State]{decider.WithSnapshotStore[State](cfg.Store)}
+	opts := []decider.RepositoryOption[State]{decider.WithSnapshotStore[State](config.Store)}
 
-	if cfg.Codec != nil {
-		opts = append(opts, decider.WithCodec[State](cfg.Codec))
+	if config.Codec != nil {
+		opts = append(opts, decider.WithCodec[State](config.Codec))
 	}
 
-	if cfg.Strategy != nil {
-		opts = append(opts, decider.WithSnapshotStrategy[State](cfg.Strategy))
+	if config.Strategy != nil {
+		opts = append(opts, decider.WithSnapshotStrategy[State](config.Strategy))
 	}
 
 	return opts
@@ -85,8 +85,8 @@ func snapshotOptions[State any](cfg SnapshotConfig) []decider.RepositoryOption[S
 // (O(new events) instead of O(total events)). It is best-effort: a cache miss
 // falls back to the normal load path. The decider repository auto-invalidates
 // cache entries after writes, so consistency is preserved.
-func repositoryOptions[State any](cfg SnapshotConfig) []decider.RepositoryOption[State] {
-	opts := snapshotOptions[State](cfg)
+func repositoryOptions[State any](config SnapshotConfig) []decider.RepositoryOption[State] {
+	opts := snapshotOptions[State](config)
 	return append(opts, decider.WithStateCache[State](decider.NewStateCache[State](0)))
 }
 

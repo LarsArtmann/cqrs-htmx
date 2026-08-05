@@ -6,10 +6,13 @@ import (
 )
 
 type (
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	RegisterBotCmd = identitymodel.RegisterBotCmd
-	DeleteBotCmd   = identitymodel.DeleteBotCmd
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	DeleteBotCmd = identitymodel.DeleteBotCmd
 )
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewRegisterBotCmd(
 	aggID id.StreamID,
 	name string,
@@ -20,6 +23,7 @@ func NewRegisterBotCmd(
 	return identitymodel.NewRegisterBotCmd(aggID, name, ownerID, tokenHash, scopes)
 }
 
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func NewDeleteBotCmd(aggID id.StreamID, reason string) *DeleteBotCmd {
 	return identitymodel.NewDeleteBotCmd(aggID, reason)
 }

@@ -17,12 +17,12 @@ type Validatable interface {
 	Validate() error
 }
 
-func setCommandDecoder(cfg *handlerConfig, dec func(*http.Request) (command.Command, error)) {
-	cfg.commandDecoder = dec
+func setCommandDecoder(config *handlerConfig, dec func(*http.Request) (command.Command, error)) {
+	config.commandDecoder = dec
 }
 
-func setQueryDecoder(cfg *handlerConfig, dec func(*http.Request) (query.Query, error)) {
-	cfg.queryDecoder = dec
+func setQueryDecoder(config *handlerConfig, dec func(*http.Request) (query.Query, error)) {
+	config.queryDecoder = dec
 }
 
 // DecodeJSON decodes a JSON request body into a command using the mapper.

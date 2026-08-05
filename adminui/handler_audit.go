@@ -11,9 +11,9 @@ import (
 // filter by aggregate.
 func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
 	var entries []usermgmt.AuditEntry
-	if al := h.cfg.Service.AuditLog(); al != nil {
+	if al := h.config.Service.AuditLog(); al != nil {
 		entries = al.Recent(100)
 	}
 	p := h.page("Audit log", "/audit", user, r)
-	renderPage(w, r, auditPage(p, auditData{Entries: entries, BasePath: h.cfg.BasePath}))
+	renderPage(w, r, auditPage(p, auditData{Entries: entries, BasePath: h.config.BasePath}))
 }

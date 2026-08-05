@@ -215,7 +215,7 @@ func TestEventDetailHandler_EventByIDLoader(t *testing.T) {
 }
 
 func TestLoadEventByID_NoSource(t *testing.T) {
-	d := &Dashboard{cfg: Config{}}
+	d := &Dashboard{config: Config{}}
 
 	_, err := d.loadEventByID(context.Background(), id.NewEventID())
 	if err == nil {
@@ -407,7 +407,7 @@ func TestLoadRecentEvents_JournalError(t *testing.T) {
 }
 
 func TestLoadRecentEvents_NoJournal(t *testing.T) {
-	d := &Dashboard{cfg: Config{}}
+	d := &Dashboard{config: Config{}}
 
 	events, err := d.loadRecentEvents(context.Background(), id.EventID{}, 10)
 	if err != nil {

@@ -31,12 +31,12 @@ type MySQLSetupConfig struct {
 	SnapshotConfig
 }
 
-func NewMySQLEventSourcedSetup(cfg MySQLSetupConfig) (*MySQLEventSourcedSetup, error) {
-	bundle, err := stackmysql.New(cfg.DSN)
+func NewMySQLEventSourcedSetup(config MySQLSetupConfig) (*MySQLEventSourcedSetup, error) {
+	bundle, err := stackmysql.New(config.DSN)
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "usermgmt.mysql_setup.create", "create mysql stack bundle")
 	}
-	return newMySQLSetup(bundle, cfg.AuditLog, cfg.CheckpointStore, cfg.SnapshotConfig)
+	return newMySQLSetup(bundle, config.AuditLog, config.CheckpointStore, config.SnapshotConfig)
 }
 
 func newMySQLSetup(

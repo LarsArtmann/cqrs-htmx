@@ -14,12 +14,12 @@ import (
 // These defaults match the role vocabulary seeded by usermgmt. If your
 // application assigns roles differently, pass your own [Config.Authorizer]
 // (see [RequireAnyRole] and [RequireAuthenticated]).
-func defaultAuthorizer(cfg Config) func(*usermgmt.User) error {
-	if cfg.Mode == ModeTenantAdmin {
-		return RequireAnyRole(cfg.Service, cfg.TenantID.Get(),
+func defaultAuthorizer(config Config) func(*usermgmt.User) error {
+	if config.Mode == ModeTenantAdmin {
+		return RequireAnyRole(config.Service, config.TenantID.Get(),
 			usermgmt.RoleAdmin, usermgmt.RoleOwner)
 	}
-	return RequireAnyRole(cfg.Service, "*",
+	return RequireAnyRole(config.Service, "*",
 		usermgmt.RoleSuperAdmin, usermgmt.RoleAdmin)
 }
 

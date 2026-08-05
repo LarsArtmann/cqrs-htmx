@@ -46,8 +46,8 @@ func BenchmarkRequestLogging(b *testing.B) {
 }
 
 func BenchmarkCSRFMiddleware(b *testing.B) {
-	cfg := cqrshtmx.CSRFConfig{}
-	middleware := cqrshtmx.CSRFMiddleware(cfg)
+	config := cqrshtmx.CSRFConfig{}
+	middleware := cqrshtmx.CSRFMiddleware(config)
 	handler := middleware(okHandler())
 
 	b.Run("GET", func(b *testing.B) {
@@ -61,7 +61,7 @@ func BenchmarkCSRFMiddleware(b *testing.B) {
 
 		var token string
 
-		captureMw := cqrshtmx.CSRFMiddleware(cfg)
+		captureMw := cqrshtmx.CSRFMiddleware(config)
 		captureHandler := captureMw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token = cqrshtmx.CSRFTokenFromContext(r.Context())
 

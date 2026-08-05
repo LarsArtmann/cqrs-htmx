@@ -32,11 +32,11 @@ type Provider struct {
 }
 
 // New creates a WebAuthn provider with the given Relying Party configuration.
-func New(cfg Config) (*Provider, error) {
+func New(config Config) (*Provider, error) {
 	wa, err := webauthn.New(&webauthn.Config{ //nolint:exhaustruct // only required fields set
-		RPID:          cfg.RPID,
-		RPDisplayName: cfg.RPDisplayName,
-		RPOrigins:     cfg.RPOrigins,
+		RPID:          config.RPID,
+		RPDisplayName: config.RPDisplayName,
+		RPOrigins:     config.RPOrigins,
 	})
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err, "webauthn.create_instance", "create instance")

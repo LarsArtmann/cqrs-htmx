@@ -85,8 +85,8 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 		TotalEvents:     "0",
 	}
 
-	if d.cfg.StreamReader != nil {
-		page, err := d.cfg.StreamReader.List(ctx, listing.ListOptions{Limit: uint(d.cfg.PageSize)})
+	if d.config.StreamReader != nil {
+		page, err := d.config.StreamReader.List(ctx, listing.ListOptions{Limit: uint(d.config.PageSize)})
 		if err == nil && page != nil {
 			stats.TotalAggregates = strconv.Itoa(len(page.Items))
 			if page.HasMore {
@@ -95,8 +95,8 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 		}
 	}
 
-	if d.cfg.SeekableJournal != nil { //nolint:nestif // optional data source branching
-		events, err := d.cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, overviewCountLimit)
+	if d.config.SeekableJournal != nil { //nolint:nestif // optional data source branching
+		events, err := d.config.SeekableJournal.ReadFrom(ctx, id.EventID{}, overviewCountLimit)
 		if err == nil {
 			for i, evt := range events {
 				if i >= recentEventsLimit {
@@ -119,8 +119,8 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 				stats.TotalEvents += "+"
 			}
 		}
-	} else if d.cfg.Journal != nil {
-		events, err := d.cfg.Journal.ReadAll(ctx)
+	} else if d.config.Journal != nil {
+		events, err := d.config.Journal.ReadAll(ctx)
 		if err == nil {
 			stats.TotalEvents = strconv.Itoa(len(events))
 			for i, evt := range events {
@@ -141,8 +141,8 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 		}
 	}
 
-	if d.cfg.ProjectionHost != nil {
-		stats.Projections = buildProjectionStats(d.cfg.ProjectionHost)
+	if d.config.ProjectionHost != nil {
+		stats.Projections = buildProjectionStats(d.config.ProjectionHost)
 
 		totalErrors := int64(0)
 		anyBad := false
@@ -355,8 +355,8 @@ func metaRowCopyable(b *strings.Builder, key, displayValue, rawValue string) {
 // projectionHealthPartialHandler returns just the projection health panel HTML
 // for HTMX polling. Registered at GET /-/partials/projection-health.
 func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *http.Request) {
-	projs := buildProjectionStats(d.cfg.ProjectionHost)
-	html := renderProjectionHealthPanel(d.cfg.BasePath, projs)
+	projs := buildProjectionStats(d.config.ProjectionHost)
+	html := renderProjectionHealthPanel(d.config.BasePath, projs)
 	writeHTML(w, r, html, "projection health partial")
 }
 

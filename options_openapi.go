@@ -30,8 +30,8 @@ import (
 //		cqrshtmx.WithOpenAPI(openapi.Post("CreateItem").Summary("Create an item").Op()),
 //	)
 func WithOpenAPI(op openapi.Operation) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.openapiMeta = &op
+	return func(config *handlerConfig) {
+		config.openapiMeta = &op
 	}
 }
 
