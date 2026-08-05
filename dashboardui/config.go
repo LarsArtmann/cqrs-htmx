@@ -2,7 +2,6 @@
 package dashboardui
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -24,13 +23,6 @@ const (
 	maxPageSize                 = 200
 	defaultSSEHeartbeatInterval = 15 * time.Second
 )
-
-// EventByIDLoader loads a single event by its EventID in O(1). Implemented
-// by SQL event stores. If not configured, the dashboard falls back to
-// scanning the event journal for event detail views.
-type EventByIDLoader interface {
-	LoadByEventID(ctx context.Context, eventID id.EventID) (event.Event, error)
-}
 
 // Config wires the dashboard to go-cqrs-lite introspection interfaces.
 // Only EventSource or a Journal is required; everything else is optional
@@ -147,44 +139,6 @@ func (config Config) withDefaults() (Config, error) {
 	return config, nil
 }
 
-// Capabilities describes which panels are available based on the
-// interfaces the consumer provided. The dashboard uses this to decide
-// which nav items to show and which routes to register.
-type Capabilities struct {
-	EventSource     bool
-	EventByIDLoader bool
-	Journal         bool
-	SeekableJournal bool
-	StreamReader    bool
-	ProjectionHost  bool
-	DeadLetterStore bool
-	CommandJournal  bool
-	QueryJournal    bool
-	SnapshotStore   bool
-	EventBus        bool
-}
-
-func (config Config) capabilities() Capabilities {
-	return Capabilities{
-		EventSource:     config.EventSource != nil,
-		EventByIDLoader: config.EventByIDLoader != nil,
-		Journal:         config.Journal != nil,
-		SeekableJournal: config.SeekableJournal != nil,
-		StreamReader:    config.StreamReader != nil,
-		ProjectionHost:  config.ProjectionHost != nil,
-		DeadLetterStore: config.DeadLetterStore != nil,
-		CommandJournal:  config.CommandJournal != nil,
-		QueryJournal:    config.QueryJournal != nil,
-		SnapshotStore:   config.SnapshotStore != nil,
-		EventBus:        config.EventBus != nil,
-	}
-}
-
-// hasEventRead returns true if any event reading interface is available.
-func (c Capabilities) hasEventRead() bool {
-	return c.Journal || c.SeekableJournal
-}
-
 // navItem represents a sidebar navigation entry.
 type navItem struct {
 	Href   string
@@ -202,7 +156,7 @@ func buildNav(caps Capabilities) []navItem {
 
 	add("/", "Overview", "chart")
 
-	if caps.hasEventRead() {
+	if caps.HasEventRead() {
 		add("/events", "Events", "queue")
 	}
 

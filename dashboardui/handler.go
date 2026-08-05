@@ -57,7 +57,7 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	mux.HandleFunc("GET /{$}", d.guard(d.overviewHandler))
 
 	// Event Stream Browser
-	if d.caps.hasEventRead() {
+	if d.caps.HasEventRead() {
 		mux.HandleFunc("GET /events", d.guard(d.eventsIndexHandler))
 		mux.HandleFunc("GET /events/{id}", d.guard(d.eventDetailHandler))
 	}
