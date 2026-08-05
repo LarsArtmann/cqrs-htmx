@@ -119,6 +119,95 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 	renderPage(w, r, html)
 }
 
+func (d *Dashboard) dlqEntryDetailHandler(w http.ResponseWriter, r *http.Request) {
+	proj := r.PathValue("projection")
+	eventID := r.PathValue("eventID")
+
+	var entry projectionhost.DeadLetterEntry
+
+	if d.config.DeadLetterStore != nil {
+		entries, err := d.config.DeadLetterStore.List(r.Context(), proj)
+		if err != nil {
+			renderError(w, r, http.StatusInternalServerError, "failed to load dead letter")
+
+			return
+		}
+
+		for _, e := range entries {
+			if e.EventID == eventID {
+				entry = e
+				break
+			}
+		}
+	}
+
+	if entry.EventID == "" {
+		renderError(w, r, http.StatusNotFound, "dead letter not found")
+
+		return
+	}
+
+	p := d.page("Dead Letter: "+truncate(eventID, eventIDWidth), "/dead-letters", r)
+	html := d.renderDLQEntryDetail(p, proj, entry)
+	renderPage(w, r, html)
+}
+
+func (d *Dashboard) renderDLQEntryDetail(p pageData, proj string, entry projectionhost.DeadLetterEntry) string {
+	return d.renderLayout(p, func() string {
+		var b strings.Builder
+
+		b.WriteString(`<div class="page-header">`)
+		fmt.Fprintf(&b, `<h2>Dead Letter: <code>%s</code></h2>`, esc(truncate(entry.EventID, eventIDWidth)))
+		fmt.Fprintf(&b, `<div class="page-subtitle">Projection: <a href="%s/dead-letters/%s">%s</a></div>`,
+			p.BasePath, esc(proj), esc(proj))
+		b.WriteString(`</div>`)
+
+		b.WriteString(`<div class="two-col-grid">`)
+		b.WriteString(`<div><h3>Error Details</h3><table class="meta-table">`)
+		metaRow(&b, "Event Type", esc(entry.EventType))
+		metaRow(&b, "Event ID", esc(entry.EventID))
+		if entry.StreamID != "" {
+			metaRowCopyable(&b, "Stream ID", esc(entry.StreamID), entry.StreamID)
+		}
+		metaRow(&b, "Failed At", esc(entry.FailedAt.Format("2006-01-02 15:04:05")))
+		if entry.ErrorFamily != "" {
+			fmt.Fprintf(&b, `<tr><td class="meta-key">Error Family</td><td class="meta-val"><span class="badge badge-err">%s</span></td></tr>`, esc(entry.ErrorFamily))
+		}
+		if entry.ErrorCode != "" {
+			metaRow(&b, "Error Code", esc(entry.ErrorCode))
+		}
+		b.WriteString(`</table>`)
+
+		b.WriteString(`<h3>Error Message</h3>`)
+		fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, esc(entry.Error))
+
+		b.WriteString(`</div>`)
+
+		b.WriteString(`<div><h3>Event Payload</h3>`)
+		if entry.Event != nil {
+			payload := renderPayload(d.config.PayloadRenderer, entry.Event)
+			fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, esc(string(payload)))
+		} else {
+			b.WriteString(`<p class="muted">Original event not available</p>`)
+		}
+		b.WriteString(`</div>`)
+
+		b.WriteString(`</div>`)
+
+		if !p.ReadOnly && d.config.DeadLetterStore != nil {
+			b.WriteString(`<div class="filter-bar section-gap">`)
+			fmt.Fprintf(
+				&b,
+				`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" onsubmit="return confirm('Delete this dead letter?')"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Delete</button></form>`,
+				p.BasePath, esc(proj), esc(entry.EventID), esc(p.CSRFToken),
+			)
+			b.WriteString(`</div>`)
+		}
+
+		return b.String()
+	})
+}
+
 func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
 		proj := r.PathValue("projection")
