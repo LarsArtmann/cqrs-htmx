@@ -61,7 +61,7 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 		paginationState{
 			HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev,
 			After: afterCursor, PrevHistory: prevHistory,
-		},
+		}.withCountInfo(len(cmds)),
 	)
 	renderPage(w, r, html)
 }
@@ -149,7 +149,7 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 		paginationState{
 			HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev,
 			After: afterCursor, PrevHistory: prevHistory,
-		},
+		}.withCountInfo(len(queries)),
 	)
 	renderPage(w, r, html)
 }

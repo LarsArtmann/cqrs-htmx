@@ -141,6 +141,40 @@ func renderPaginationInfo(state paginationState) string {
 		state.PageStart, end)
 }
 
+// computePageStart estimates the 1-based index of the first item on the current
+// page from the cursor history. Assumes consistent page sizes across pages.
+func computePageStart(state paginationState) int {
+	entriesInPrev := 0
+	if state.PrevHistory != "" {
+		entriesInPrev = strings.Count(state.PrevHistory, ",") + 1
+	}
+
+	traversed := entriesInPrev
+	if state.After != "" {
+		traversed++
+	}
+
+	if state.PageSize <= 0 {
+		state.PageSize = defaultPageSize
+	}
+
+	return traversed*state.PageSize + 1
+}
+
+// withCountInfo fills in PageStart, PageLen, and TotalCount (when known).
+// TotalCount is only set on the last page (HasNext=false) because that's the
+// only case where the total is known exactly without an extra count query.
+func (s paginationState) withCountInfo(itemLen int) paginationState {
+	s.PageStart = computePageStart(s)
+	s.PageLen = itemLen
+
+	if !s.HasNext && itemLen > 0 {
+		s.TotalCount = strconv.Itoa(s.PageStart + itemLen - 1)
+	}
+
+	return s
+}
+
 // parsePageSize reads the ?limit= query param, clamped to [1, maxPageSize].
 // Falls back to defaultPageSize when unset.
 func parsePageSize(r *http.Request, defaultPageSize int) int {

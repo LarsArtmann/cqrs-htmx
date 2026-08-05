@@ -88,5 +88,6 @@ func (d *Dashboard) renderStreamIndex(
 ) {
 	p := d.page(title, basePath, r)
 	listings, page := d.listStreamsPaged(r)
+	page = page.withCountInfo(len(listings))
 	renderPage(w, r, render(p, listings, page))
 }

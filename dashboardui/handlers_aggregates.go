@@ -104,7 +104,7 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 		HasPrev:     hasPrev,
 		After:       afterCursor,
 		PrevHistory: prevHistory,
-	})
+	}.withCountInfo(len(listings)))
 	renderPage(w, r, html)
 }
 
@@ -210,6 +210,11 @@ func (d *Dashboard) renderAggregateDetail(
 		if hasNext && len(pagedEvents) > 0 {
 			timelinePage.NextCursor = pagedEvents[len(pagedEvents)-1].Version().String()
 		}
+		timelinePage.PageLen = len(pagedEvents)
+		if len(pagedEvents) > 0 {
+			timelinePage.PageStart = int(pagedEvents[0].Version().UInt64())
+		}
+		timelinePage.TotalCount = strconv.Itoa(len(events))
 
 		b.WriteString(renderPagination(
 			p.BasePath,
