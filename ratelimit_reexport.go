@@ -18,11 +18,11 @@ type (
 	// RateLimiter is an alias for httputil.KeyedRateLimiter.
 	//
 	// Deprecated: use httputil.KeyedRateLimiter.
-	RateLimiter       = httputil.KeyedRateLimiter
+	RateLimiter = httputil.KeyedRateLimiter
 	// KeyExtractor is an alias for httputil.KeyExtractor.
 	//
 	// Deprecated: use httputil.KeyExtractor.
-	KeyExtractor      = httputil.KeyExtractor
+	KeyExtractor = httputil.KeyExtractor
 )
 
 var (
@@ -33,11 +33,11 @@ var (
 	// NewRateLimiter is an alias for httputil.NewKeyedRateLimiter.
 	//
 	// Deprecated: use httputil.NewKeyedRateLimiter.
-	NewRateLimiter        = httputil.NewKeyedRateLimiter
+	NewRateLimiter = httputil.NewKeyedRateLimiter
 	// DefaultRateLimiterConfig is an alias for httputil.DefaultKeyedRateLimiterConfig.
 	//
 	// Deprecated: use httputil.DefaultKeyedRateLimiterConfig.
-	DefaultRateLimiterConfig   = httputil.DefaultKeyedRateLimiterConfig
+	DefaultRateLimiterConfig = httputil.DefaultKeyedRateLimiterConfig
 	// KeyExtractorFromRemoteAddr is an alias for httputil.KeyExtractorFromRemoteAddr.
 	//
 	// Deprecated: use httputil.KeyExtractorFromRemoteAddr.
@@ -45,14 +45,14 @@ var (
 	// KeyExtractorFromClientIP is an alias for httputil.KeyExtractorFromClientIP.
 	//
 	// Deprecated: use httputil.KeyExtractorFromClientIP.
-	KeyExtractorFromClientIP   = httputil.KeyExtractorFromClientIP
+	KeyExtractorFromClientIP = httputil.KeyExtractorFromClientIP
 )
 
 const (
 	// DefaultRateLimit mirrors httputil.DefaultRateLimit.
 	//
 	// Deprecated: use httputil.DefaultRateLimit.
-	DefaultRateLimit  = httputil.DefaultRateLimit
+	DefaultRateLimit = httputil.DefaultRateLimit
 	// DefaultRateWindow mirrors httputil.DefaultRateWindow.
 	//
 	// Deprecated: use httputil.DefaultRateWindow.
@@ -60,5 +60,5 @@ const (
 	// DefaultRateTTL mirrors httputil.DefaultRateTTL.
 	//
 	// Deprecated: use httputil.DefaultRateTTL.
-	DefaultRateTTL    = httputil.DefaultRateTTL
+	DefaultRateTTL = httputil.DefaultRateTTL
 )
