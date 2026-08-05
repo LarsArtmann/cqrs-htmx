@@ -264,6 +264,7 @@ func TestProjectionDetailHandler_Renders(t *testing.T) {
 
 	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/projections/test-projection", nil)
 	req.SetPathValue("name", "test-projection")
+
 	rr := httptest.NewRecorder()
 	d.projectionDetailHandler(rr, req)
 
@@ -306,6 +307,7 @@ func TestProjectionDetailHandler_NotFound(t *testing.T) {
 
 	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/projections/unknown", nil)
 	req.SetPathValue("name", "unknown")
+
 	rr := httptest.NewRecorder()
 	d.projectionDetailHandler(rr, req)
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
@@ -194,9 +195,9 @@ func (d *Dashboard) renderProjectionDetail(p pageData, proj projectionStat) stri
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="stat-grid">`)
-		statCard(&b, fmt.Sprintf("%d", proj.Processed), "Processed", "")
-		statCard(&b, fmt.Sprintf("%d", proj.Errors), "Errors", "err")
-		statCard(&b, fmt.Sprintf("%d", proj.Restarts), "Restarts", "warn")
+		statCard(&b, strconv.FormatInt(proj.Processed, 10), "Processed", "")
+		statCard(&b, strconv.FormatInt(proj.Errors, 10), "Errors", "err")
+		statCard(&b, strconv.Itoa(proj.Restarts), "Restarts", "warn")
 		statCard(&b, proj.Lag, "Lag", "")
 		b.WriteString(`</div>`)
 
