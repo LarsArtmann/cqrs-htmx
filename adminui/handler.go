@@ -171,7 +171,7 @@ func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 // Middleware returns the standard middleware chain the panel recommends:
 // panic recovery and baseline security headers (X-Content-Type-Options,
 // X-Frame-Options, Referrer-Policy). It reuses [cqrshtmx.RecoveryMiddleware]
-// and [cqrshtmx.SecurityHeadersMiddleware] from the root module.
+// from the root module and [httputil.SecurityHeaders] for baseline headers.
 //
 // Wrap it around the panel — and compose your session and CSRF middleware:
 //
@@ -181,5 +181,5 @@ func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 // This is optional: the panel works without it, but recovery + security
 // headers are recommended for any production deployment.
 func (h *Handler) Middleware() func(http.Handler) http.Handler {
-	return cqrshtmx.Chain(cqrshtmx.SecurityHeadersMiddleware, cqrshtmx.RecoveryMiddleware)
+	return cqrshtmx.Chain(httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()), cqrshtmx.RecoveryMiddleware)
 }
