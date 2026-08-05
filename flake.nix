@@ -44,7 +44,7 @@
             forEachGoModule() {
               local cmd="$1"
               local exclude="''${2:-}"
-              GOWORK= go work edit -json 2>/dev/null | jq -r '.Use[].DiskPath' | while IFS= read -r dir; do
+              while IFS= read -r dir; do
                 dir="''${dir#./}"
                 if [ -n "$exclude" ] && echo "$dir" | grep -qE "$exclude"; then
                   continue
@@ -56,7 +56,7 @@
                   echo "==> $dir"
                   (cd "$dir" && eval "$cmd")
                 fi
-              done
+              done < <(env GOWORK= go work edit -json 2>/dev/null | jq -r '.Use[].DiskPath')
             }
           '';
 
