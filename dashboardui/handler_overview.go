@@ -1,24 +1,10 @@
 package dashboardui
 
 import (
-	"context"
 	"fmt"
 	"html"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
-
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/listing/v4"
-)
-
-// Projection status kinds drive the color-coding of projection health in the UI.
-const (
-	statusGood    = "good"
-	statusWarn    = "warn"
-	statusBad     = "bad"
-	statusNeutral = "neutral"
 )
 
 // Display truncation widths for IDs shown in the dashboard UI.
@@ -31,164 +17,13 @@ const (
 	errorDisplayWidth = 60
 )
 
-const (
-	recentEventsLimit  = 5
-	overviewCountLimit = 500
-)
+const recentEventsLimit = 5
 
 func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Overview", "/", r)
 	stats := d.overviewStats(r.Context())
 	html := d.renderOverview(p, stats)
 	renderPage(w, r, html)
-}
-
-type overviewStats struct {
-	TotalAggregates string
-	TotalEvents     string
-	Projections     []projectionStat
-	DLQCount        string
-	RecentEvents    []recentEvent
-	HealthStatus    string
-	HealthKind      string
-}
-
-type projectionStat struct {
-	Name       string
-	Status     string
-	Lag        string
-	Processed  int64
-	Errors     int64
-	StatusKind string
-	Restarts   int
-	Checkpoint string
-	LastError  string
-}
-
-type recentEvent struct {
-	Time string `json:"time"`
-	Type string `json:"type"`
-	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
-	StreamID string `json:"streamId"`
-	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
-	StreamType string `json:"streamType"`
-	Version    string `json:"version"`
-	//cqrs-lint:ignore(A032) display DTO; branded IDs add no value in view models
-	EventID    string    `json:"eventId"`
-	OccurredAt time.Time `json:"-"`
-}
-
-//nolint:cyclop,gocognit // multi-source aggregation
-func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
-	stats := overviewStats{
-		TotalAggregates: "0",
-		TotalEvents:     "0",
-	}
-
-	if d.config.StreamReader != nil {
-		page, err := d.config.StreamReader.List(ctx, listing.ListOptions{Limit: uint(d.config.PageSize)})
-		if err == nil && page != nil {
-			stats.TotalAggregates = strconv.Itoa(len(page.Items))
-			if page.HasMore {
-				stats.TotalAggregates += "+"
-			}
-		}
-	}
-
-	if d.config.SeekableJournal != nil { //nolint:nestif // optional data source branching
-		events, err := d.config.SeekableJournal.ReadFrom(ctx, id.EventID{}, overviewCountLimit)
-		if err == nil {
-			for i, evt := range events {
-				if i >= recentEventsLimit {
-					break
-				}
-
-				stats.RecentEvents = append(stats.RecentEvents, recentEvent{
-					Time:       evt.OccurredAt().Format(time.RFC3339),
-					Type:       string(evt.Type()),
-					StreamID:   evt.StreamID().String(),
-					StreamType: string(evt.StreamType()),
-					Version:    evt.Version().String(),
-					EventID:    evt.ID().String(),
-					OccurredAt: evt.OccurredAt(),
-				})
-			}
-
-			stats.TotalEvents = strconv.Itoa(len(events))
-			if len(events) >= overviewCountLimit {
-				stats.TotalEvents += "+"
-			}
-		}
-	} else if d.config.Journal != nil {
-		events, err := d.config.Journal.ReadAll(ctx)
-		if err == nil {
-			stats.TotalEvents = strconv.Itoa(len(events))
-			for i, evt := range events {
-				if i >= recentEventsLimit {
-					break
-				}
-
-				stats.RecentEvents = append(stats.RecentEvents, recentEvent{
-					Time:       evt.OccurredAt().Format(time.RFC3339),
-					Type:       string(evt.Type()),
-					StreamID:   evt.StreamID().String(),
-					StreamType: string(evt.StreamType()),
-					Version:    evt.Version().String(),
-					EventID:    evt.ID().String(),
-					OccurredAt: evt.OccurredAt(),
-				})
-			}
-		}
-	}
-
-	if d.config.ProjectionHost != nil {
-		stats.Projections = buildProjectionStats(d.config.ProjectionHost)
-
-		totalErrors := int64(0)
-		anyBad := false
-		anyWarn := false
-
-		for _, pr := range stats.Projections {
-			totalErrors += pr.Errors
-			switch pr.StatusKind {
-			case statusBad:
-				anyBad = true
-			case statusWarn:
-				anyWarn = true
-			}
-		}
-
-		if totalErrors > 0 {
-			stats.DLQCount = strconv.FormatInt(totalErrors, 10)
-		}
-
-		switch {
-		case anyBad:
-			stats.HealthStatus = "Unhealthy"
-			stats.HealthKind = statusBad
-		case anyWarn:
-			stats.HealthStatus = "Degraded"
-			stats.HealthKind = statusWarn
-		case len(stats.Projections) > 0:
-			stats.HealthStatus = "Healthy"
-			stats.HealthKind = statusGood
-		}
-	}
-
-	return stats
-}
-
-func projectionStatusKind(status string) string {
-	switch strings.ToLower(status) {
-	case statusRunning, "live":
-		return statusGood
-	case "idle", "backoff", "draining":
-		return statusWarn
-	case "stopped", statusFailed:
-		return statusBad
-	default:
-		return statusNeutral
-	}
 }
 
 // healthKindToVariant maps an internal health kind (statusGood/statusWarn/...)

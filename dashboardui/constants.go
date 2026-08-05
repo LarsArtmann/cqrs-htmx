@@ -8,11 +8,6 @@ const (
 )
 
 const (
-	statusRunning = "running"
-	statusFailed  = "failed"
-)
-
-const (
 	jsonKeyStatus = "status"
 	jsonKeyReady  = "ready"
 )
