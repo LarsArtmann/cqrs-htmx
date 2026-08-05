@@ -13,11 +13,32 @@ import (
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Events", "/events", r)
 
+	filters := parseEventFilter(r)
+	sortBy := parseSort(r)
+
+	if fmt := parseFormat(r); fmt != formatHTML {
+		events, err := d.loadFilteredEvents(r.Context(), id.EventID{}, filters, exportLimit)
+		if err != nil {
+			renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
+
+			return
+		}
+
+		sortEvents(events, sortBy)
+
+		switch fmt {
+		case formatCSV:
+			exportEventsCSV(w, events)
+		case formatJSON:
+			exportEventsJSON(w, events)
+		}
+
+		return
+	}
+
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 	afterID, _ := id.ParseEventID(afterCursor)
-	filters := parseEventFilter(r)
-	sortBy := parseSort(r)
 
 	var events []event.Event
 
@@ -247,6 +268,7 @@ func (d *Dashboard) renderEvents(
 		)
 
 		b.WriteString(renderPagination(p.BasePath, "/events", page, combinedParams))
+		b.WriteString(formatLinks(p.BasePath, "/events"))
 
 		return b.String()
 	})
