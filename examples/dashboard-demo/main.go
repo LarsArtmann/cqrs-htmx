@@ -28,6 +28,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
@@ -47,6 +48,22 @@ func main() {
 
 	reader := listing.NewInMemoryStreamReader(store)
 
+	// Projection host so the projections panel and detail view work in the demo.
+	projHost, err := projectionhost.New(store, memorystorage.NewMemoryCheckpointStore())
+	if err != nil {
+		log.Fatalf("projectionhost.New: %v", err)
+	}
+
+	if err := projHost.Register(&demoProjection{name: "user-read-model"}); err != nil {
+		log.Fatalf("Register projection: %v", err)
+	}
+
+	if err := projHost.Start(context.Background()); err != nil {
+		log.Fatalf("projection host start: %v", err)
+	}
+
+	defer func() { _ = projHost.Stop() }()
+
 	dash, err := dashboardui.New(dashboardui.Config{
 		Title:          "CQRS Demo Dashboard",
 		EventSource:    store,
@@ -54,8 +71,9 @@ func main() {
 		StreamReader:   reader,
 		CommandJournal: cmdStore,
 		QueryJournal:   queryStore,
-		SnapshotStore:  snapStore,
-		EventBus:       bus,
+		SnapshotStore:   snapStore,
+		ProjectionHost:  projHost,
+		EventBus:        bus,
 		ReadOnly:       false,
 		PageSize:       25,
 	})
@@ -245,3 +263,20 @@ func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
 		_ = bus.Publish(ctx, evt)
 	}
 }
+
+// demoProjection is a minimal projection that counts processed events for the
+// dashboard demo. It lets the projections panel and detail view show data.
+type demoProjection struct {
+	name  string
+	count int64
+}
+
+func (p *demoProjection) Name() string { return p.name }
+
+func (p *demoProjection) Handle(_ context.Context, _ event.Event) error {
+	p.count++
+
+	return nil
+}
+
+func (p *demoProjection) EventTypes() []event.Type { return nil }
