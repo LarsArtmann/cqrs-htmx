@@ -11,37 +11,6 @@ import (
 
 // ===== Projection Dashboard =====
 
-// buildProjectionStats converts the projection host's WorkerState slice into
-// projectionStat entries with status classification, lag, and additional
-// fields (restarts, checkpoint, last error). Shared across the projections
-// index, the overview, and the health partial.
-func buildProjectionStats(host *projectionhost.Host) []projectionStat {
-	if host == nil {
-		return nil
-	}
-
-	lagPerProj := host.LagPerProjection()
-
-	var stats []projectionStat
-
-	for _, ws := range host.Status() {
-		lag := lagPerProj[ws.Name]
-		stats = append(stats, projectionStat{
-			Name:       ws.Name,
-			Status:     string(ws.Status),
-			Lag:        lag.String(),
-			Processed:  ws.Processed,
-			Errors:     ws.Errors,
-			StatusKind: projectionStatusKind(string(ws.Status)),
-			Restarts:   ws.Restarts,
-			Checkpoint: ws.Checkpoint,
-			LastError:  ws.LastError,
-		})
-	}
-
-	return stats
-}
-
 func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Projections", "/projections", r)
 	projs := buildProjectionStats(d.config.ProjectionHost)

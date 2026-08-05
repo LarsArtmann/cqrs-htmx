@@ -1,7 +1,6 @@
 package dashboardui
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,71 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
-
-// eventFilter holds in-memory filter criteria for the event browser.
-type eventFilter struct {
-	Type       string
-	StreamType string
-	//cqrs-lint:ignore(A032) filter field for HTMX form input
-	StreamID string
-}
-
-func (filter eventFilter) Active() bool {
-	return filter.Type != "" || filter.StreamType != "" || filter.StreamID != ""
-}
-
-func (filter eventFilter) Matches(evt event.Event) bool {
-	if filter.Type != "" && string(evt.Type()) != filter.Type {
-		return false
-	}
-
-	if filter.StreamType != "" && string(evt.StreamType()) != filter.StreamType {
-		return false
-	}
-
-	if filter.StreamID != "" && evt.StreamID().String() != filter.StreamID {
-		return false
-	}
-
-	return true
-}
-
-func parseEventFilter(r *http.Request) eventFilter {
-	q := r.URL.Query()
-
-	return eventFilter{
-		Type:       q.Get("type"),
-		StreamType: q.Get("streamType"),
-		StreamID:   q.Get("streamID"),
-	}
-}
-
-// filterExtraParams builds a query-string fragment preserving active filters
-// across pagination links (e.g., "type=user.created&streamType=User").
-func (filter eventFilter) extraParams() string {
-	if !filter.Active() {
-		return ""
-	}
-
-	var parts []string
-	if filter.Type != "" {
-		parts = append(parts, "type="+filter.Type)
-	}
-
-	if filter.StreamType != "" {
-		parts = append(parts, "streamType="+filter.StreamType)
-	}
-
-	if filter.StreamID != "" {
-		parts = append(parts, "streamID="+filter.StreamID)
-	}
-
-	return strings.Join(parts, "&")
-}
-
-const filterScanLimit = 500
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Events", "/events", r)
@@ -122,7 +57,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		HasPrev:     hasPrev,
 		After:       afterCursor,
 		PrevHistory: prevHistory,
-	}.withCountInfo(len(events)), filters, sortBy)
+	}.WithCountInfo(len(events)), filters, sortBy)
 	renderPage(w, r, html)
 }
 
@@ -148,109 +83,6 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Event: "+truncate(string(evt.Type()), eventTypeWidth), "/events", r)
 	html := d.renderEventDetail(p, evt, prevID, nextID)
 	renderPage(w, r, html)
-}
-
-//nolint:cyclop // journal fallback
-func (d *Dashboard) loadEventByID(ctx context.Context, eventID id.EventID) (event.Event, error) {
-	if d.config.EventByIDLoader != nil {
-		evt, err := d.config.EventByIDLoader.LoadByEventID(ctx, eventID)
-		if err != nil {
-			var zero event.Event
-
-			return zero, errorfamily.WrapInfrastructure(err,
-				"dashboardui.event_detail.load_failed", "load event by ID")
-		}
-
-		return evt, nil
-	}
-
-	if d.config.SeekableJournal != nil {
-		const scanLimit = 5000
-
-		var after id.EventID
-
-		for {
-			batch, err := d.config.SeekableJournal.ReadFrom(ctx, after, scanLimit)
-			if err != nil {
-				return nil, errorfamily.WrapInfrastructure(err,
-					"dashboardui.event_detail.scan_failed", "scan journal for event")
-			}
-
-			for _, evt := range batch {
-				if evt.ID() == eventID {
-					return evt, nil
-				}
-			}
-
-			if len(batch) < scanLimit {
-				break
-			}
-
-			after = batch[len(batch)-1].ID()
-		}
-
-		return nil, errorfamily.Newf(event.Rejection,
-			"dashboardui.event_detail.not_found", "event %s not found in journal scan", eventID)
-	}
-
-	if d.config.Journal != nil {
-		all, err := d.config.Journal.ReadAll(ctx)
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.event_detail.read_failed", "read journal")
-		}
-
-		for _, evt := range all {
-			if evt.ID() == eventID {
-				return evt, nil
-			}
-		}
-	}
-
-	return nil, errorfamily.Newf(event.Infrastructure,
-		"dashboardui.event_detail.no_source", "no event source available to load event %s", eventID)
-}
-
-// findEventNeighbors scans recent events to find the previous and next event IDs
-// relative to eventID. Returns empty strings if not found or at the boundary.
-// This is a best-effort scan limited to the most recent batch of events.
-func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) (string, string) {
-	const neighborScanLimit = 500
-
-	var events []event.Event
-
-	var err error
-
-	var prevID, nextID string
-
-	if d.config.SeekableJournal != nil {
-		events, err = d.config.SeekableJournal.ReadFrom(ctx, id.EventID{}, neighborScanLimit)
-	} else if d.config.Journal != nil {
-		events, err = d.config.Journal.ReadAll(ctx)
-		if err == nil && len(events) > neighborScanLimit {
-			events = events[:neighborScanLimit]
-		}
-	}
-
-	if err != nil || len(events) == 0 {
-		return "", ""
-	}
-
-	for i, evt := range events {
-		if evt.ID() == eventID {
-			if i > 0 {
-				prevID = events[i-1].ID().String()
-			}
-
-			if i < len(events)-1 {
-				nextID = events[i+1].ID().String()
-			}
-
-			return prevID, nextID
-		}
-	}
-
-	return "", ""
 }
 
 func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextID string) string {
@@ -353,82 +185,6 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 	})
 }
 
-func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limit int) ([]event.Event, error) {
-	if d.config.SeekableJournal != nil {
-		events, err := d.config.SeekableJournal.ReadFrom(ctx, after, limit)
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.recent_events.read_failed", "read recent events")
-		}
-
-		return events, nil
-	}
-
-	if d.config.Journal != nil {
-		all, err := d.config.Journal.ReadAll(ctx)
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.recent_events.read_all_failed", "read all events")
-		}
-
-		if len(all) > limit {
-			all = all[:limit]
-		}
-
-		return all, nil
-	}
-
-	return nil, nil
-}
-
-// loadFilteredEvents reads a generous batch from the journal and applies
-// in-memory filters, returning up to pageSize+1 results (the +1 is for
-// HasMore detection). When filters are active we scan up to filterScanLimit
-// raw events per page to find matches.
-func (d *Dashboard) loadFilteredEvents(
-	ctx context.Context,
-	after id.EventID,
-	filter eventFilter,
-	pageSize int,
-) ([]event.Event, error) {
-	rawLimit := max(filterScanLimit, pageSize+1)
-
-	var raw []event.Event
-
-	var err error
-
-	if d.config.SeekableJournal != nil {
-		raw, err = d.config.SeekableJournal.ReadFrom(ctx, after, rawLimit)
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.filtered_events.read_failed", "read events for filtering")
-		}
-	} else if d.config.Journal != nil {
-		raw, err = d.config.Journal.ReadAll(ctx)
-		if err != nil {
-			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.filtered_events.read_all_failed", "read all events for filtering")
-		}
-
-		if len(raw) > rawLimit {
-			raw = raw[:rawLimit]
-		}
-	}
-
-	var filtered []event.Event
-
-	for _, evt := range raw {
-		if filter.Matches(evt) {
-			filtered = append(filtered, evt)
-			if len(filtered) > pageSize {
-				break
-			}
-		}
-	}
-
-	return filtered, nil
-}
-
 func (d *Dashboard) renderEvents(
 	p pageData,
 	events []event.Event,
@@ -470,7 +226,7 @@ func (d *Dashboard) renderEvents(
 			)
 		}
 
-		combinedParams := filter.extraParams()
+		combinedParams := filter.ExtraParams()
 		if sp := sortBy.extraParams(); sp != "" {
 			if combinedParams != "" {
 				combinedParams += "&" + sp
@@ -482,11 +238,11 @@ func (d *Dashboard) renderEvents(
 		fmt.Fprintf(
 			&b,
 			`<div class="table-scroll"><table class="data-table"><thead><tr>%s%s%s%s%s</tr></thead><tbody>%s</tbody></table></div>`,
-			sortHeader(p.BasePath, "/events", "Time", "time", sortBy, filter.extraParams()),
-			sortHeader(p.BasePath, "/events", "Type", "type", sortBy, filter.extraParams()),
+			sortHeader(p.BasePath, "/events", "Time", "time", sortBy, filter.ExtraParams()),
+			sortHeader(p.BasePath, "/events", "Type", "type", sortBy, filter.ExtraParams()),
 			`<th scope="col">Stream ID</th>`,
-			sortHeader(p.BasePath, "/events", "Stream Type", "streamType", sortBy, filter.extraParams()),
-			sortHeader(p.BasePath, "/events", "Version", "version", sortBy, filter.extraParams()),
+			sortHeader(p.BasePath, "/events", "Stream Type", "streamType", sortBy, filter.ExtraParams()),
+			sortHeader(p.BasePath, "/events", "Version", "version", sortBy, filter.ExtraParams()),
 			rows.String(),
 		)
 

@@ -13,53 +13,6 @@ import (
 
 // ===== Aggregate Browser =====
 
-// listStreamsPaged loads a cursor-paginated page of stream listings for the
-// stream-index pages (time-travel, snapshots). Returns the listings and the
-// pagination state for rendering Prev/Next controls.
-func (d *Dashboard) listStreamsPaged(r *http.Request) ([]listing.StreamListing, paginationState) {
-	pageSize := parsePageSize(r, d.config.PageSize)
-	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
-
-	if d.config.StreamReader == nil {
-		return nil, paginationState{PageSize: pageSize} //nolint:exhaustruct // no data source: only page size matters
-	}
-
-	opts := listing.ListOptions{Limit: uint(pageSize + 1)}
-
-	if afterCursor != "" {
-		parsed, err := id.ParseStreamID(afterCursor)
-		if err == nil {
-			opts.After = parsed
-		}
-	}
-
-	page, err := d.config.StreamReader.List(r.Context(), opts)
-	if err != nil || page == nil {
-		return nil, paginationState{PageSize: pageSize} //nolint:exhaustruct // error: only page size matters
-	}
-
-	hasMore := len(page.Items) > pageSize
-
-	listings := page.Items
-	if hasMore {
-		listings = listings[:pageSize]
-	}
-
-	var nextCursor string
-	if hasMore && len(listings) > 0 {
-		nextCursor = listings[len(listings)-1].ID.String()
-	}
-
-	return listings, paginationState{
-		HasNext:     hasMore,
-		NextCursor:  nextCursor,
-		PageSize:    pageSize,
-		HasPrev:     hasPrev,
-		After:       afterCursor,
-		PrevHistory: prevHistory,
-	}
-}
-
 func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Aggregates", "/aggregates", r)
 
@@ -104,7 +57,7 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 		HasPrev:     hasPrev,
 		After:       afterCursor,
 		PrevHistory: prevHistory,
-	}.withCountInfo(len(listings)))
+	}.WithCountInfo(len(listings)))
 	renderPage(w, r, html)
 }
 

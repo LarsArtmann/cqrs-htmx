@@ -1,7 +1,6 @@
 package dashboardui
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -11,13 +10,6 @@ import (
 )
 
 // ===== Dead-Letter Queue =====
-
-// dlqProjectionLink holds a projection name and its dead-letter count for
-// rendering on the DLQ index page.
-type dlqProjectionLink struct {
-	Name  string
-	Count int
-}
 
 func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Dead Letters", "/dead-letters", r)
@@ -68,34 +60,6 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return b.String()
 	})
 	renderPage(w, r, html)
-}
-
-// buildDLQProjectionLinks returns one entry per registered projection with its
-// dead-letter count. When a DeadLetterStore is configured, the count is exact
-// (via List). Otherwise the projection's error counter is used as a fallback.
-func (d *Dashboard) buildDLQProjectionLinks(ctx context.Context) []dlqProjectionLink {
-	if d.config.ProjectionHost == nil {
-		return nil
-	}
-
-	var links []dlqProjectionLink
-
-	for _, ws := range d.config.ProjectionHost.Status() {
-		count := 0
-
-		if d.config.DeadLetterStore != nil {
-			entries, err := d.config.DeadLetterStore.List(ctx, ws.Name)
-			if err == nil {
-				count = len(entries)
-			}
-		} else {
-			count = int(ws.Errors)
-		}
-
-		links = append(links, dlqProjectionLink{Name: ws.Name, Count: count})
-	}
-
-	return links
 }
 
 func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
