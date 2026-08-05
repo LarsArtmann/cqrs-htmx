@@ -14,10 +14,12 @@ import (
 
 // ===== Command/Query Audit =====
 
+//
+//nolint:cyclop // export branching adds complexity
 func (d *Dashboard) commandsIndexHandler(
 	w http.ResponseWriter,
 	r *http.Request,
-) { //nolint:cyclop // export branching adds complexity
+) {
 	p := d.page("Commands", "/commands", r)
 
 	if fmt := parseFormat(r); fmt != formatHTML {
@@ -127,10 +129,12 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 	})
 }
 
+//
+//nolint:cyclop // export branching adds complexity
 func (d *Dashboard) queriesIndexHandler(
 	w http.ResponseWriter,
 	r *http.Request,
-) { //nolint:cyclop // export branching adds complexity
+) {
 	p := d.page("Queries", "/queries", r)
 
 	if fmt := parseFormat(r); fmt != formatHTML {
