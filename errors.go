@@ -344,8 +344,8 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 
 // ProblemDetailsErrorHandler writes errors as RFC 7807 problem details
 // (application/problem+json), using StructuredError — the same shape emitted
-// for SSE and WebSocket error broadcasts. This unifies the error contract
-// across HTTP, SSE, and WS transports: a client sees the same JSON shape
+// for SSE error broadcasts. This unifies the error contract
+// across HTTP and SSE transports: a client sees the same JSON shape
 // regardless of how the error arrives.
 //
 // 5xx detail is redacted to the family's public-safe message by default.

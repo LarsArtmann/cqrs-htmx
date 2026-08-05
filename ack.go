@@ -73,7 +73,7 @@ func CommandIDFromRequest(r *http.Request) string {
 	return r.Header.Get(CommandIDHeader)
 }
 
-// defaultAckEventName is the SSE/WS event name used for ACK broadcasts.
+// defaultAckEventName is the SSE event name used for ACK broadcasts.
 const defaultAckEventName = "sync:ack"
 
 // newAck builds a CommandAck from a dispatch result.

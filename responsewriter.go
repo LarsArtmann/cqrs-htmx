@@ -8,7 +8,7 @@ import (
 
 // delegatingWriter wraps http.ResponseWriter and delegates Flush, Hijack,
 // Push, and Unwrap to the underlying writer when available. Embed this in
-// custom ResponseWriter wrappers to preserve SSE, WebSocket, and HTTP/2
+// custom ResponseWriter wrappers to preserve SSE and HTTP/2
 // capabilities without duplicating the delegation boilerplate.
 //
 // Type assertion note: methods use the embedded ResponseWriter (not the
@@ -25,7 +25,7 @@ func (w delegatingWriter) Flush() {
 	}
 }
 
-// Hijack delegates to the underlying Hijacker so WebSocket upgrades work
+// Hijack delegates to the underlying Hijacker. Used by long-lived connection upgrades
 // through wrappers. Returns http.ErrNotSupported when unavailable.
 func (w delegatingWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	h, ok := w.ResponseWriter.(http.Hijacker)

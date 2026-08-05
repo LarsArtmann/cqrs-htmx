@@ -155,7 +155,7 @@ func (r *ErrorRecorder) DispatchError() error { return r.dispatchErr }
 
 // StatusRecorder wraps http.ResponseWriter to capture the HTTP status code.
 // It embeds delegatingWriter so Flush/Hijack/Push/Unwrap are promoted
-// automatically — preserving SSE, WebSocket, and HTTP/2 capabilities.
+// automatically — preserving SSE and HTTP/2 capabilities.
 // ErrorRecorder is embedded to capture dispatch errors for logging.
 type StatusRecorder struct {
 	delegatingWriter
