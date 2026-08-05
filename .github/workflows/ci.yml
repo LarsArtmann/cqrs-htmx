@@ -422,6 +422,23 @@ jobs:
       - name: Markdown link check
         run: bash scripts/check-docs-links.sh
 
+      - name: Codegen drift check (_templ.go)
+        env:
+          GOEXPERIMENT: jsonv2
+        run: |
+          go install github.com/a-h/templ/cmd/templ@v0.3.1020
+          for mod in adminui loginpage; do
+            echo "==> $mod"
+            (cd "$mod" && templ generate && gofmt -w ./*_templ.go)
+            if ! git diff --exit-code -- "$mod"/*_templ.go; then
+              echo ""
+              echo "FAIL: Generated _templ.go files in $mod differ from committed versions."
+              echo "Run 'templ generate' in $mod/ and commit the result."
+              exit 1
+            fi
+          done
+          echo "Codegen drift check PASSED"
+
   security:
     runs-on: ubuntu-latest
     steps:
