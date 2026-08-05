@@ -58,8 +58,7 @@ func writeJSONResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 
-	encoder := jsontext.NewEncoder(w)
-	encoder.SetEscapeHTML(true)
+	encoder := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 	_ = json.MarshalEncode(encoder, data) //nolint:errchkjson // dynamic export data
 }
 
