@@ -83,7 +83,10 @@ async function goOnline(page, context) {
 // Verifies: htmx:sendError -> sync-client captures envelope -> SharedWorker
 // persists { commandId, envelope, queuedAt, retries } to IndexedDB.
 
-test("offline enqueue persists command envelope to IndexedDB", async ({ page, context }) => {
+test("offline enqueue persists command envelope to IndexedDB", async ({
+  page,
+  context,
+}) => {
   await page.goto("/");
   await expect(page.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
@@ -91,7 +94,9 @@ test("offline enqueue persists command envelope to IndexedDB", async ({ page, co
   );
   await page.waitForTimeout(500);
 
-  await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 5000 }).toBe(0);
+  await expect
+    .poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 5000 })
+    .toBe(0);
 
   await goOffline(page, context);
   await page.waitForTimeout(500);
@@ -99,7 +104,9 @@ test("offline enqueue persists command envelope to IndexedDB", async ({ page, co
   await page.fill('input[name="name"]', "Offline Test Item");
   await page.click('button[type="submit"]');
 
-  await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
+  await expect
+    .poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 })
+    .toBe(1);
 
   const entries = await page.evaluate(QUEUE_ENTRIES);
   expect(entries).toHaveLength(1);
@@ -114,7 +121,10 @@ test("offline enqueue persists command envelope to IndexedDB", async ({ page, co
 // Test 2: Queued command is delivered when connectivity returns.
 // Verifies: online event -> SharedWorker flush -> retry -> server processes.
 
-test("online flush delivers queued command to server", async ({ page, context }) => {
+test("online flush delivers queued command to server", async ({
+  page,
+  context,
+}) => {
   await page.goto("/");
   await expect(page.locator("[data-sync-status]")).toContainText(
     /Connected|Synced|All changes saved/i,
@@ -127,7 +137,9 @@ test("online flush delivers queued command to server", async ({ page, context })
 
   await page.fill('input[name="name"]', "Delivered After Reconnect");
   await page.click('button[type="submit"]');
-  await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
+  await expect
+    .poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 })
+    .toBe(1);
 
   const before = await page.request.get("/api/debug/items");
   expect((await before.json()).length).toBe(0);
@@ -155,7 +167,9 @@ test("online flush delivers queued command to server", async ({ page, context })
 // is cleaned up after ACK. This verifies the ADR-0040 IndexedDB persistence
 // + rebuildAndRetry cross-session recovery path.
 
-test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser }) => {
+test("cross-session rebuildAndRetry delivers and cleans up", async ({
+  browser,
+}) => {
   const context = await browser.newContext();
 
   // Session 1: enqueue while offline, then close.
@@ -172,7 +186,9 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
 
   await page1.fill('input[name="name"]', "Cross-Session Recovery");
   await page1.click('button[type="submit"]');
-  await expect.poll(() => page1.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
+  await expect
+    .poll(() => page1.evaluate(QUEUE_DEPTH), { timeout: 10000 })
+    .toBe(1);
 
   // Close session 1. The worker's round-robin + periodic re-flush will
   // eventually deliver the retry to session 2 (even if the dead port
@@ -206,7 +222,9 @@ test("cross-session rebuildAndRetry delivers and cleans up", async ({ browser })
     .toContain("Cross-Session Recovery");
 
   // Verify queue is cleaned up after ACK
-  await expect.poll(() => page2.evaluate(QUEUE_DEPTH), { timeout: 20000 }).toBe(0);
+  await expect
+    .poll(() => page2.evaluate(QUEUE_DEPTH), { timeout: 20000 })
+    .toBe(0);
 
   await context.close();
 });
@@ -234,7 +252,9 @@ test("multiple offline commands are queued and delivered on reconnect", async ({
     await page.waitForTimeout(300);
   }
 
-  await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(3);
+  await expect
+    .poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 })
+    .toBe(3);
 
   await goOnline(page, context);
 
