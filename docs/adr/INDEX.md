@@ -50,3 +50,4 @@
 | [0044](0044-casbin-first-class-dependency.md)     | Casbin as First-Class Dependency of identity-model                              | Accepted                                                             |
 | [0045](0045-datastar-optional-frontend.md)        | Datastar as Optional Frontend Adapter Module                                    | Accepted                                                             |
 | [0046](0046-drop-websocket-sse-only.md)           | Drop WebSocket Transport in Favor of SSE                                        | Accepted                                                             |
+| [0047](0047-re-export-layer-retirement-plan.md)   | Re-export Layer Retirement Plan (httputil/SSE/identity-model aliases to v5)     | Accepted                                                             |
