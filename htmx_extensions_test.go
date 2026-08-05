@@ -51,9 +51,9 @@ var _ = Describe("HTMXExtensionHandler", func() {
 	})
 
 	It("returns 405 for POST", func() {
-		handler := cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtWS)
+		handler := cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtIdiomorph)
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodPost, "/ext/ws.js", nil)
+		req := httptest.NewRequest(http.MethodPost, "/ext/idiomorph.js", nil)
 		handler.ServeHTTP(w, req)
 
 		Expect(w.Code).To(Equal(http.StatusMethodNotAllowed))
@@ -66,7 +66,7 @@ var _ = Describe("HTMXExtensionHandler", func() {
 
 var _ = Describe("HTMXExtensionsHandler", func() {
 	It("serves a concatenated bundle of multiple extensions", func() {
-		handler := cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph)
+		handler := cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph)
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/ext/bundle.js", nil)
 		handler.ServeHTTP(w, req)
@@ -74,12 +74,11 @@ var _ = Describe("HTMXExtensionsHandler", func() {
 		Expect(w.Code).To(Equal(http.StatusOK))
 		Expect(w.Header().Get("Content-Type")).To(Equal("text/javascript; charset=utf-8"))
 		Expect(w.Header().Get("Cache-Control")).To(Equal("public, max-age=31536000, immutable"))
-		Expect(w.Header().Get("ETag")).To(Equal(`"htmx-ext-bundle-sse-2.2.4,ws-2.0.4,idiomorph-0.7.4"`))
+		Expect(w.Header().Get("ETag")).To(Equal(`"htmx-ext-bundle-sse-2.2.4,idiomorph-0.7.4"`))
 		Expect(w.Body.Len()).To(BeNumerically(">", 0))
 
 		body := w.Body.String()
 		Expect(body).To(ContainSubstring("htmx-ext-sse 2.2.4"))
-		Expect(body).To(ContainSubstring("htmx-ext-ws 2.0.4"))
 		Expect(body).To(ContainSubstring("htmx-ext-idiomorph 0.7.4"))
 	})
 
@@ -119,7 +118,6 @@ var _ = Describe("HTMXExtensionVersion", func() {
 			Expect(cqrshtmx.HTMXExtensionVersion(name)).To(Equal(want))
 		},
 		Entry("sse", cqrshtmx.HTMXExtSSE, "2.2.4"),
-		Entry("ws", cqrshtmx.HTMXExtWS, "2.0.4"),
 		Entry("idiomorph", cqrshtmx.HTMXExtIdiomorph, "0.7.4"),
 	)
 
@@ -131,12 +129,12 @@ var _ = Describe("HTMXExtensionVersion", func() {
 var _ = Describe("HTMXExtensionNames", func() {
 	It("returns all extension names sorted alphabetically", func() {
 		names := cqrshtmx.HTMXExtensionNames()
-		Expect(names).To(Equal([]string{"idiomorph", "sse", "ws"}))
+		Expect(names).To(Equal([]string{"idiomorph", "sse"}))
 	})
 
 	It("returns names that join cleanly for error messages", func() {
 		names := cqrshtmx.HTMXExtensionNames()
-		Expect(strings.Join(names, ", ")).To(Equal("idiomorph, sse, ws"))
+		Expect(strings.Join(names, ", ")).To(Equal("idiomorph, sse"))
 	})
 })
 
@@ -148,7 +146,6 @@ var _ = Describe("HTMXExtensionCDNScriptTag", func() {
 			))
 		},
 		Entry("sse", cqrshtmx.HTMXExtSSE, "https://unpkg.com/htmx-ext-sse@2.2.4/dist/sse.min.js"),
-		Entry("ws", cqrshtmx.HTMXExtWS, "https://unpkg.com/htmx-ext-ws@2.0.4/dist/ws.min.js"),
 		Entry("idiomorph", cqrshtmx.HTMXExtIdiomorph, "https://unpkg.com/idiomorph@0.7.4/dist/idiomorph-ext.min.js"),
 	)
 
