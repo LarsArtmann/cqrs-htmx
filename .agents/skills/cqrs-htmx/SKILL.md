@@ -27,7 +27,7 @@ broadcaster := cqrshtmx.NewBroadcaster()
 broadcaster.Broadcast(evt) // -> all connected clients
 
 // 4. Chain middleware (outer -> inner)
-cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware, cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}), app.Middleware())(mux)
+cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware, httputil.CSRFMiddleware(httputil.CSRFConfig{}), app.Middleware())(mux)
 
 // 5. Map errors -> HTTP status (one function)
 status := cqrshtmx.MapError(err) // Rejection->400, Conflict->409, Transient->503, etc.
@@ -112,12 +112,12 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 http.ListenAndServe(":8080", cqrshtmx.Chain(
     cqrshtmx.RecoveryMiddleware,
     cqrshtmx.SecurityHeadersMiddleware,
-    cqrshtmx.RateLimiterMiddleware(cqrshtmx.DefaultRateLimiterConfig()),
+    httputil.RateLimiterMiddleware(httputil.DefaultRateLimiterConfig()),
     cqrshtmx.RequestLoggingSlog(logger),
 )(mux))
 ```
 
-Available without `App`: `Chain`, `RecoveryMiddleware`, `SecurityHeadersMiddleware` (+`SecurityHeaderSkip`), `RateLimiterMiddleware` (+`DefaultRateLimiterConfig`), `RequestLoggingSlog`, `CSRFMiddleware`, `HTMXScriptHandler`/`HTMXExtensionHandler`, `NewSSEStream`/`Broadcaster`/`JournalSSEStore`, `MapError`/`JSONErrorHandler`, `ServerTimingMiddleware`/`MeasureServerTiming`, `WriteJSON`, `IsHTMXRequest`/`RenderPartial`, `NewResponse(w, r)`.
+Available without `App`: `Chain`, `RecoveryMiddleware`, `SecurityHeadersMiddleware` (+`SecurityHeaderSkip`), `RequestLoggingSlog`, `HTMXScriptHandler`/`HTMXExtensionHandler`, `NewSSEStream`/`Broadcaster`/`JournalSSEStore`, `MapError`/`JSONErrorHandler`, `WriteJSON`, `IsHTMXRequest`/`RenderPartial`, `NewResponse(w, r)`. **Deprecated re-exports (import `github.com/larsartmann/httputil` instead):** `CSRFMiddleware`/`CSRFConfig`, `RateLimiterMiddleware`/`DefaultRateLimiterConfig`, `ServerTimingMiddleware`/`MeasureServerTiming`. These 39 symbols remain as backward-compat aliases but are deprecated and will be removed in v5.
 
 ## Path A -- CQRS + HTMX endpoints (root only)
 
@@ -310,7 +310,7 @@ mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler()) // embedded htmx 2.0.10
 http.ListenAndServe(":8080", cqrshtmx.Chain(
     cqrshtmx.RecoveryMiddleware,
     cqrshtmx.SecurityHeadersMiddleware,
-    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}), // protects mutations; opt-in
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}), // protects mutations; opt-in
     cqrshtmx.HTMXMiddleware,                        // detects HTMX requests
     app.Middleware(),                                // enriches context (user/correlation/request IDs)
 )(mux))
@@ -345,7 +345,7 @@ http.ListenAndServe(":8080", cqrshtmx.Chain(
     cqrshtmx.RecoveryMiddleware,
     cqrshtmx.SecurityHeadersMiddleware,
     sessionMW,                                    // authenticate the cookie first
-    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
     cqrshtmx.HTMXMiddleware,
     app.Middleware(),
 )(mux))
@@ -502,7 +502,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`HealthHandler()`** -- returns `{"status":"ok"}` (200) or `{"status":"unhealthy","error":"..."}` (503).
 - **`SecurityHeaderSkip`** (`"-"`) -- set on `ContentTypeOptions`/`FrameOptions`/`ReferrerPolicy` to suppress that default header entirely (empty string = use the default).
 - **`cqrshtmx.Chain` vs `httputil.Chain`** -- `cqrshtmx.Chain` is the standard middleware composition helper for this library. If you also import `go-httputil`, its `Chain` has the same signature; pick one and use it consistently.
-- **Server-Timing / CSRF / rate-limiting are re-exported from httputil** -- `CSRFMiddleware`, `CSRFConfig`, `RateLimiterMiddleware`, `ServerTiming`, etc. are type/var aliases for the equivalent symbols in `github.com/larsartmann/httputil`. The consumer API is unchanged; the implementation (and all the underlying deps like `justinas/nosurf`) lives in httputil. This is why `nosurf` no longer appears in cqrs-htmx's `go.mod`.
+- **Server-Timing / CSRF / rate-limiting are deprecated re-exports over httputil** -- `CSRFMiddleware`, `CSRFConfig`, `RateLimiterMiddleware`, `ServerTiming`, etc. are now deprecated type/var aliases for the equivalent symbols in `github.com/larsartmann/httputil`. Import httputil directly (these aliases will be removed in v5). The implementation (and deps like `justinas/nosurf`) lives in httputil. See `docs/guides/leveraging-httputil.md` for the migration table.
 - **`cqrshtmx.EventCatalogHandler(catalog)`** -- serves an event schema catalog as immutable JSON (1-year cache, FNV-1a ETag). Use with `usermgmt.DefaultEventCatalog()` or build your own `cqrshtmx.NewEventCatalog()`. Mirrors `OpenAPISpecHandler` pattern. See `docs/guides/event-catalog-guide.md`.
 - **`cqrshtmx.ProjectionStatusHandler(provider)`** -- serves live projection health as JSON (`no-cache`, per-request ETag). Pass any `cqrshtmx.ProjectionStatusProvider` (e.g. `*usermgmt.Service`). Returns 503 when provider is nil. See `docs/guides/projection-health-monitoring.md`.
 - **`svc.RebuildProjection(ctx, name)`** -- stops the projection host, resets the named projection's checkpoint + read-model, creates a fresh host, and replays the entire journal. Available on both `*usermgmt.Service` and `*usermgmt.EventSourcedSetup`. See `docs/guides/rebuild-projection-runbook.md`.
