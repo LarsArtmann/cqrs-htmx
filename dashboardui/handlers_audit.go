@@ -116,6 +116,7 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 			rows.String(),
 		)
 		b.WriteString(renderPagination(p.BasePath, "/commands", page, ""))
+		b.WriteString(formatLinks(p.BasePath, "/commands"))
 
 		return b.String()
 	})
@@ -220,6 +221,7 @@ func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery, p
 			rows.String(),
 		)
 		b.WriteString(renderPagination(p.BasePath, "/queries", page, ""))
+		b.WriteString(formatLinks(p.BasePath, "/queries"))
 
 		return b.String()
 	})
