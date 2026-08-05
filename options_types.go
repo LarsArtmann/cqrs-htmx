@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/v4/openapi"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // CommandDecoder decodes an HTTP request into a command.Command.
@@ -62,7 +63,7 @@ type handlerConfig struct {
 	trigger        string
 	triggerDetail  map[string]any
 	pushURL        string
-	csrfConfig     *CSRFConfig
+	csrfConfig     *httputil.CSRFConfig
 	maxBodySize    int64
 	timeout        time.Duration
 	successStatus  int

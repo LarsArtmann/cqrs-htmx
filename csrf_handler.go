@@ -21,7 +21,7 @@ import (
 //	    cqrshtmx.CSRFProtect(cqrshtmx.CSRFConfig{}),
 //	    cqrshtmx.DecodeJSON(...),
 //	)
-func CSRFProtect(config CSRFConfig) HandlerOption {
+func CSRFProtect(config httputil.CSRFConfig) HandlerOption {
 	return func(hc *handlerConfig) {
 		hc.csrfConfig = &config
 	}
@@ -48,5 +48,5 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, handlerCfg *h
 	w.WriteHeader(rec.Code)
 	_, _ = w.Write(rec.Body.Bytes())
 
-	return ErrCSRFInvalid
+	return httputil.ErrCSRFInvalid
 }
