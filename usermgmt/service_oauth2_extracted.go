@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"log/slog"
@@ -29,13 +30,19 @@ type OAuth2Service struct {
 	dispatcher dispatcher
 	sessions   SessionStore
 	sessionTTL time.Duration
-	logger     *slog.Logger
+	logger        *slog.Logger
+	classifyError errorClassifier
 }
 
 // dispatcher is the subset of *command.Dispatcher that sub-services need.
 type dispatcher interface {
-	Dispatch(ctx context.Context, cmd any) error
+	Dispatch(ctx context.Context, cmd command.Command) error
 }
+
+// classifyOAuth2DispatchError classifies a dispatch error from the OAuth2 flow.
+// It delegates to the same logic as classifyDispatchError on *Service via a
+// function field. In v5 they unify into a shared classifier on the focused service.
+type errorClassifier func(err error, userID UserID, kv ...string) error
 
 // NewOAuth2Service creates an OAuth2Service from the given configuration and
 // shared dependencies. Returns nil if no provider is configured.
@@ -48,19 +55,21 @@ func NewOAuth2Service(
 	sessions SessionStore,
 	sessionTTL time.Duration,
 	logger *slog.Logger,
+	classifyError errorClassifier,
 ) *OAuth2Service {
 	if provider == nil {
 		return nil
 	}
 	return &OAuth2Service{
-		provider:   provider,
-		states:     states,
-		stateTTL:   stateTTL,
-		readModel:  readModel,
-		dispatcher: dispatcher,
-		sessions:   sessions,
-		sessionTTL: sessionTTL,
-		logger:     logger,
+		provider:       provider,
+		states:         states,
+		stateTTL:       stateTTL,
+		readModel:      readModel,
+		dispatcher:     dispatcher,
+		sessions:       sessions,
+		sessionTTL:     sessionTTL,
+		logger:         logger,
+		classifyError:  classifyError,
 	}
 }
 
@@ -182,7 +191,7 @@ func (o *OAuth2Service) Unlink(ctx context.Context, userID UserID, provider stri
 	if err := o.dispatcher.Dispatch(ctx, NewUnlinkExternalAccountCmd(
 		aggID, provider, subject,
 	)); err != nil {
-		return classifyOAuth2DispatchError(err, userID, "subject", subject)
+		return classifyOAuth2DispatchError(o.classifyError, err, userID, "subject", subject)
 	}
 
 	o.logAuth("oauth_unlink", userID, "provider", provider)
@@ -217,7 +226,7 @@ func (o *OAuth2Service) matchOrCreateUser(
 	if err := o.dispatcher.Dispatch(ctx, NewRegisterUserCmd(
 		aggID, info.Email, displayName, []Role{RoleViewer, RoleUser},
 	)); err != nil {
-		return nil, false, classifyOAuth2DispatchError(err, userID)
+		return nil, false, classifyOAuth2DispatchError(o.classifyError, err, userID)
 	}
 
 	user, ok := o.readModel.FindByID(aggID)
@@ -268,7 +277,7 @@ func (o *OAuth2Service) linkExternalAccount(
 	if err := o.dispatcher.Dispatch(ctx, NewLinkExternalAccountCmd(
 		aggID, provider, info.Subject, info.Email, info.DisplayName,
 	)); err != nil {
-		return classifyOAuth2DispatchError(err, userID, "subject", info.Subject)
+		return classifyOAuth2DispatchError(o.classifyError, err, userID, "subject", info.Subject)
 	}
 
 	if info.EmailVerified {
@@ -318,9 +327,7 @@ func (o *OAuth2Service) logAuth(event string, userID UserID, attrs ...any) {
 	o.logger.Info("usermgmt: "+event, args...)
 }
 
-// classifyOAuth2DispatchError classifies a dispatch error from the OAuth2 flow.
-// This mirrors classifyDispatchError on *Service — in v5 they unify into a
-// shared classifier on the focused service.
-func classifyOAuth2DispatchError(err error, userID UserID, kv ...string) error {
-	return classifyDispatchError(err, userID, kv...)
+// classifyOAuth2DispatchError delegates to the shared error classifier.
+func classifyOAuth2DispatchError(classify errorClassifier, err error, userID UserID, kv ...string) error {
+	return classify(err, userID, kv...)
 }
