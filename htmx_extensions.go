@@ -14,24 +14,17 @@ import (
 //go:embed extensions/sse.min.js
 var extSSEJS []byte
 
-//go:embed extensions/ws.min.js
-var extWSJS []byte
-
 //go:embed extensions/idiomorph-ext.min.js
 var extIdiomorphJS []byte
 
 // HTMX extension name constants for use with HTMXExtensionHandler and
 // HTMXExtensionsHandler. These are the extensions that have direct server-side
-// counterparts in cqrs-htmx (SSE + WS building blocks) or are commonly paired
+// counterparts in cqrs-htmx (SSE building blocks) or are commonly paired
 // with them (idiomorph for morph-based partial swaps).
 const (
 	// HTMXExtSSE is the htmx Server-Sent Events extension (htmx-ext-sse).
 	// Pairs with cqrs-htmx SSEStream, Broadcaster, JournalSSEStore.
 	HTMXExtSSE = "sse"
-
-	// HTMXExtWS is the htmx WebSocket extension (htmx-ext-ws).
-	// Pairs with cqrs-htmx WSMessage, WSBroadcaster, DispatchWSCommand.
-	HTMXExtWS = "ws"
 
 	// HTMXExtIdiomorph provides the morph swap strategy via idiomorph.
 	// Commonly used alongside SSE for efficient partial DOM updates.
@@ -49,7 +42,6 @@ type htmxExtension struct {
 //nolint:gochecknoglobals // embedded assets + their metadata; immutable after init.
 var htmxExtensions = map[string]htmxExtension{
 	HTMXExtSSE:       {js: extSSEJS, version: "2.2.4"},
-	HTMXExtWS:        {js: extWSJS, version: "2.0.4"},
 	HTMXExtIdiomorph: {js: extIdiomorphJS, version: "0.7.4"},
 }
 
@@ -59,14 +51,13 @@ var htmxExtensions = map[string]htmxExtension{
 // The handler sets Content-Type, ETag, and Cache-Control headers, supports
 // conditional GET (304 Not Modified), and accepts GET/HEAD only (405 otherwise).
 //
-// Known extension names: HTMXExtSSE ("sse"), HTMXExtWS ("ws"),
-// HTMXExtIdiomorph ("idiomorph"). Call HTMXExtensionNames() to list all.
+// Known extension names: HTMXExtSSE ("sse"), HTMXExtIdiomorph ("idiomorph").
+// Call HTMXExtensionNames() to list all.
 //
 // Panics if name is not a known embedded extension — this is a programming
 // error caught at startup, not a runtime condition.
 //
 //	mux.Handle("GET /ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
-//	mux.Handle("GET /ext/ws.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtWS))
 //	mux.Handle("GET /ext/idiomorph.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtIdiomorph))
 func HTMXExtensionHandler(name string) http.Handler {
 	ext, ok := htmxExtensions[name]
@@ -94,7 +85,7 @@ func HTMXExtensionHandler(name string) http.Handler {
 // Panics if any name is not a known embedded extension, or if no names are given.
 //
 //	mux.Handle("GET /ext/bundle.js",
-//	    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph))
+//	    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph))
 func HTMXExtensionsHandler(names ...string) http.Handler {
 	if len(names) == 0 {
 		//cqrs-lint:ignore(C009) startup-time programmer error: empty variadic call
@@ -166,7 +157,6 @@ func HTMXExtensionNames() []string {
 //nolint:gochecknoglobals // immutable lookup table.
 var htmxExtensionCDNURLs = map[string]string{
 	HTMXExtSSE:       "https://unpkg.com/htmx-ext-sse@%s/dist/sse.min.js",
-	HTMXExtWS:        "https://unpkg.com/htmx-ext-ws@%s/dist/ws.min.js",
 	HTMXExtIdiomorph: "https://unpkg.com/idiomorph@%s/dist/idiomorph-ext.min.js",
 }
 
