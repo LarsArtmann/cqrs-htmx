@@ -30,6 +30,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/httputil"
 )
 
 const (
@@ -103,13 +104,15 @@ func main() {
 	log.Printf("Dashboard at http://localhost%s/dashboard/", addr)
 	log.Println("Press Ctrl+C to stop")
 
-	server := &http.Server{
-		Addr:              addr,
-		Handler:           cqrshtmx.Chain(dash.Middleware())(mux),
-		ReadHeaderTimeout: 10 * time.Second,
+	srv, err := httputil.NewServer(
+		httputil.ServerConfig{Addr: addr},
+		cqrshtmx.Chain(dash.Middleware())(mux),
+	)
+	if err != nil {
+		log.Fatalf("NewServer: %v", err)
 	}
 
-	if err := server.ListenAndServe(); err != nil {
+	if err := <-srv.Start(); err != nil {
 		log.Fatalf("server: %v", err)
 	}
 }
