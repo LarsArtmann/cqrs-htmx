@@ -2,9 +2,11 @@ package dashboardui
 
 import (
 	"encoding/csv"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
+
+	"encoding/json/jsontext"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -56,9 +58,9 @@ func writeJSONResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-store")
 
-	encoder := json.NewEncoder(w)
+	encoder := jsontext.NewEncoder(w)
 	encoder.SetEscapeHTML(true)
-	_ = encoder.Encode(data) //nolint:errchkjson // dynamic export data
+	_ = json.MarshalEncode(encoder, data) //nolint:errchkjson // dynamic export data
 }
 
 // ===== Events =====

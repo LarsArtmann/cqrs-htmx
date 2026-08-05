@@ -26,9 +26,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
@@ -71,9 +71,9 @@ func main() {
 		StreamReader:   reader,
 		CommandJournal: cmdStore,
 		QueryJournal:   queryStore,
-		SnapshotStore:   snapStore,
-		ProjectionHost:  projHost,
-		EventBus:        bus,
+		SnapshotStore:  snapStore,
+		ProjectionHost: projHost,
+		EventBus:       bus,
 		ReadOnly:       false,
 		PageSize:       25,
 	})

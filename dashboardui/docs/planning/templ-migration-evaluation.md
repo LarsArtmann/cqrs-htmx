@@ -35,24 +35,24 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, ...) string {
 
 ### Benefits of Templ
 
-| Benefit | Impact | Notes |
-|---------|--------|-------|
-| **Type-safe HTML** | High | Compile-time guarantee that HTML is well-formed |
-| **Automatic escaping** | High | Eliminates manual `esc()` calls, removes XSS risk surface |
-| **Component composition** | Medium | Layout/table/card components become reusable |
-| **Better tooling** | Medium | LSP support, syntax highlighting, formatting |
-| **Reduced boilerplate** | Medium | No more `fmt.Fprintf(&b, ...)` string building |
-| **Tests on output** | Low | Current tests check string contains — templ doesn't change this |
+| Benefit                   | Impact | Notes                                                           |
+| ------------------------- | ------ | --------------------------------------------------------------- |
+| **Type-safe HTML**        | High   | Compile-time guarantee that HTML is well-formed                 |
+| **Automatic escaping**    | High   | Eliminates manual `esc()` calls, removes XSS risk surface       |
+| **Component composition** | Medium | Layout/table/card components become reusable                    |
+| **Better tooling**        | Medium | LSP support, syntax highlighting, formatting                    |
+| **Reduced boilerplate**   | Medium | No more `fmt.Fprintf(&b, ...)` string building                  |
+| **Tests on output**       | Low    | Current tests check string contains — templ doesn't change this |
 
 ### Costs of Migration
 
-| Cost | Impact | Notes |
-|------|--------|-------|
-| **New build dependency** | Medium | templ codegen required; `_templ.go` committed (existing pattern in repo) |
-| **Large migration effort** | High | ~2,800 lines across 12 files, ~30 render functions |
-| **Module isolation** | Low | dashboardui/v4 is a submodule; templ dep stays local |
-| **Risk of regressions** | Medium | Every page changes; need thorough testing |
-| **Learning curve** | Low | Templ syntax is straightforward for Go developers |
+| Cost                       | Impact | Notes                                                                    |
+| -------------------------- | ------ | ------------------------------------------------------------------------ |
+| **New build dependency**   | Medium | templ codegen required; `_templ.go` committed (existing pattern in repo) |
+| **Large migration effort** | High   | ~2,800 lines across 12 files, ~30 render functions                       |
+| **Module isolation**       | Low    | dashboardui/v4 is a submodule; templ dep stays local                     |
+| **Risk of regressions**    | Medium | Every page changes; need thorough testing                                |
+| **Learning curve**         | Low    | Templ syntax is straightforward for Go developers                        |
 
 ### Risks
 
@@ -66,14 +66,14 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, ...) string {
 
 ### Decision Matrix
 
-| Criterion | Stay with strings.Builder | Migrate to Templ |
-|-----------|--------------------------|-------------------|
-| XSS safety | Manual (error-prone) | Automatic |
-| Maintainability | Low (string concatenation) | High (typed components) |
-| Build complexity | Zero | Adds templ codegen |
-| Migration cost | Zero | ~2,800 lines |
-| Consistency with repo | Inconsistent (adminui uses templ) | Consistent |
-| Performance | Good | Equivalent |
+| Criterion             | Stay with strings.Builder         | Migrate to Templ        |
+| --------------------- | --------------------------------- | ----------------------- |
+| XSS safety            | Manual (error-prone)              | Automatic               |
+| Maintainability       | Low (string concatenation)        | High (typed components) |
+| Build complexity      | Zero                              | Adds templ codegen      |
+| Migration cost        | Zero                              | ~2,800 lines            |
+| Consistency with repo | Inconsistent (adminui uses templ) | Consistent              |
+| Performance           | Good                              | Equivalent              |
 
 ## Recommendation
 
@@ -96,6 +96,7 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, ...) string {
 ## Alternative: html/template
 
 Go's stdlib `html/template` provides auto-escaping without external deps. However:
+
 - It's string-based (no type safety on template data)
 - Template parsing adds startup cost
 - Less ergonomic than templ for component composition
