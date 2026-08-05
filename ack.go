@@ -25,7 +25,7 @@ const (
 )
 
 // Valid reports whether s is one of the declared AckStatus constants. Use this
-// when parsing client-sent acks (e.g. over WebSocket) to reject unknown values.
+// when parsing client-sent acks to reject unknown values.
 func (s AckStatus) Valid() bool {
 	switch s {
 	case AckConfirmed, AckRejected:
@@ -35,7 +35,7 @@ func (s AckStatus) Valid() bool {
 	return false
 }
 
-// CommandAck is the structured acknowledgment payload broadcast over SSE/WS
+// CommandAck is the structured acknowledgment payload broadcast over SSE
 // after a command dispatch completes. The JSON shape is designed to be consumed
 // directly by client-side JavaScript:
 //
@@ -94,11 +94,6 @@ func ackToSSEEvent(ack CommandAck) sse.Event {
 	return sse.Event{Event: defaultAckEventName, Data: ack.ackJSON()}
 }
 
-// ackToWSMessage converts a CommandAck to a WS message string.
-func ackToWSMessage(ack CommandAck) string {
-	return ack.ackJSON()
-}
-
 // BroadcastOnAck returns an [AfterDispatchHook] that broadcasts a [CommandAck]
 // over SSE when the request carries an [X-Command-Id] header. Opt-in: if the
 // header is absent, no ACK is broadcast.
@@ -135,39 +130,5 @@ func (b *Broadcaster) BroadcastOnAckFunc(
 		}
 
 		b.Broadcast(evt)
-	}
-}
-
-// BroadcastOnAckWS returns an [AfterDispatchHook] that broadcasts a [CommandAck]
-// over WebSocket (via [WSBroadcaster]) when the request carries an
-// [X-Command-Id] header. Opt-in, same semantics as [Broadcaster.BroadcastOnAck].
-func (b *WSBroadcaster) BroadcastOnAckWS() AfterDispatchHook {
-	return func(_ context.Context, r *http.Request, err error) {
-		cmdID := CommandIDFromRequest(r)
-		if cmdID == "" {
-			return
-		}
-
-		b.Broadcast(ackToWSMessage(newAck(cmdID, err)))
-	}
-}
-
-// BroadcastOnAckWSFunc returns an [AfterDispatchHook] with a custom ACK mapper
-// for WebSocket transport.
-func (b *WSBroadcaster) BroadcastOnAckWSFunc(
-	fn func(r *http.Request, err error, commandID string) string,
-) AfterDispatchHook {
-	return func(_ context.Context, r *http.Request, err error) {
-		cmdID := CommandIDFromRequest(r)
-		if cmdID == "" {
-			return
-		}
-
-		msg := fn(r, err, cmdID)
-		if msg == "" {
-			return
-		}
-
-		b.Broadcast(msg)
 	}
 }
