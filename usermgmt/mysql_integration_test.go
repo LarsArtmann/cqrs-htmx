@@ -7,9 +7,16 @@
 // gated behind the "integration" build tag so they do NOT run in the normal
 // test suite or CI matrix.
 //
-// Run manually:
+// The test-only deps (testcontainers, go-sql-driver/mysql) are NOT in go.mod
+// because go mod tidy strips deps behind custom build tags. Add them manually
+// before running:
 //
-//	cd usermgmt && GOEXPERIMENT=jsonv2 go test -tags integration -run MySQL -v -timeout 300s ./...
+//	cd usermgmt
+//	GOEXPERIMENT=jsonv2 go get \
+//	  github.com/testcontainers/testcontainers-go/modules/mysql \
+//	  github.com/go-sql-driver/mysql
+//	GOEXPERIMENT=jsonv2 go test -tags integration -run MySQL -v -timeout 300s
+//	GOEXPERIMENT=jsonv2 go mod tidy   # clean up afterward
 //
 // Requires Docker.
 
@@ -21,10 +28,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	tcmysql "github.com/testcontainers/testcontainers-go/modules/mysql"
+	_ "github.com/go-sql-driver/mysql" // register MySQL driver for database/sql
 )
 
 // newMySQLDB starts a MySQL 8.4 container and returns a *sql.DB connected
@@ -162,8 +169,7 @@ func TestMySQLIntegration_OptimisticConcurrency(t *testing.T) {
 		eventEmailChanged, streamID, aggregateTypeUser, 2,
 		EmailChangedPayload{
 			SchemaVersion: currentSchemaVersion,
-			OldEmail:      "concurrency@test.com",
-			NewEmail:      "changed@test.com",
+			Email:         "changed@test.com",
 		},
 	)
 	if err != nil {
@@ -194,27 +200,27 @@ func TestMySQLIntegration_SessionStore(t *testing.T) {
 		t.Fatalf("NewSession: %v", err)
 	}
 
-	// Save.
-	if err := store.Save(ctx, sess); err != nil {
-		t.Fatalf("Save: %v", err)
+	// Create.
+	if err := store.Create(ctx, sess); err != nil {
+		t.Fatalf("Create: %v", err)
 	}
 
-	// Load.
-	loaded, err := store.Load(ctx, sess.ID)
+	// Find.
+	loaded, err := store.Find(ctx, sess.Token)
 	if err != nil {
-		t.Fatalf("Load: %v", err)
+		t.Fatalf("Find: %v", err)
 	}
 	if loaded.UserID != sess.UserID {
 		t.Errorf("UserID = %s, want %s", loaded.UserID, sess.UserID)
 	}
 
 	// Delete.
-	if err := store.Delete(ctx, sess.ID); err != nil {
+	if err := store.Delete(ctx, sess.Token); err != nil {
 		t.Fatalf("Delete: %v", err)
 	}
 
 	// Verify deleted.
-	_, err = store.Load(ctx, sess.ID)
+	_, err = store.Find(ctx, sess.Token)
 	if err == nil {
 		t.Fatal("expected error loading deleted session, got nil")
 	}
@@ -270,6 +276,3 @@ func TestMySQLIntegration_MultipleStreams(t *testing.T) {
 		t.Errorf("ref2: expected 1 event, got %d", len(l2))
 	}
 }
-
-// Ensure the MySQL driver is registered even if no direct calls reference it.
-var _ = mysql.Config{}
