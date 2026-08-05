@@ -116,7 +116,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		HasPrev:     hasPrev,
 		After:       afterCursor,
 		PrevHistory: prevHistory,
-	}, filters)
+	}.withCountInfo(len(events)), filters)
 	renderPage(w, r, html)
 }
 
