@@ -744,6 +744,13 @@
                 check_cov loginpage 79
                 check_cov dashboardui 60
                 check_cov datastar 90
+                # Per-package gate: dashboardui/core is the pure data layer.
+                core_cov=$(cd dashboardui && go test ./core/... -count=1 -coverprofile=/tmp/corecov >/dev/null 2>&1 && go tool cover -func=/tmp/corecov | tail -1 | grep -oP '\d+\.\d+(?=%)')
+                echo "dashboardui/core coverage: ''${core_cov}% (threshold: 80%)"
+                if (( $(echo "$core_cov < 80" | bc -l) )); then
+                  echo "FAIL: dashboardui/core coverage ''${core_cov}% < 80%"
+                  fail=1
+                fi
                 if [ "$fail" -eq 1 ]; then
                   echo "Coverage gate FAILED"
                   exit 1
