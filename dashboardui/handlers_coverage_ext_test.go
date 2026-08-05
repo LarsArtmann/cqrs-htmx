@@ -433,6 +433,7 @@ func TestIsHTMXRequest_NormalRequest(t *testing.T) {
 func TestIsHTMXRequest_BoostedRequest(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
 	r.Header.Set("HX-Request", "true")
+
 	if !isHTMXRequest(r) {
 		t.Fatal("expected true for HTMX request")
 	}
@@ -637,7 +638,7 @@ func TestQueryDetailHandler_Renders(t *testing.T) {
 	q := makeTestQuery(t)
 
 	d, err := New(Config{
-		Journal:     &stubJournal{},
+		Journal:      &stubJournal{},
 		QueryJournal: &fakeQueryJournal{queries: []*query.PersistedQuery{q}},
 	})
 	if err != nil {
@@ -660,7 +661,7 @@ func TestQueryDetailHandler_Renders(t *testing.T) {
 
 func TestQueryDetailHandler_NotFound(t *testing.T) {
 	d, err := New(Config{
-		Journal:     &stubJournal{},
+		Journal:      &stubJournal{},
 		QueryJournal: &fakeQueryJournal{queries: nil},
 	})
 	if err != nil {
@@ -680,7 +681,7 @@ func TestQueryDetailHandler_NotFound(t *testing.T) {
 
 func TestQueryDetailHandler_InvalidID(t *testing.T) {
 	d, err := New(Config{
-		Journal:     &stubJournal{},
+		Journal:      &stubJournal{},
 		QueryJournal: &fakeQueryJournal{},
 	})
 	if err != nil {

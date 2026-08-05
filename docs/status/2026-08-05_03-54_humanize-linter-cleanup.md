@@ -5,11 +5,11 @@
 This session addressed exactly three findings produced by the `/tmp/go-humanize-linter`
 binary when run against the repository root:
 
-| # | File | Line | Rule | Message |
-| - | ---- | ---- | ---- | ------- |
-| 1 | `dashboardui/format.go` | 64 | H001 | manual byte-size formatting (KMGTPE index trick) — use `humanize.Bytes` or `humanize.IBytes` |
-| 2 | `dashboardui/format.go` | 16 | H003 | manual relative-time formatting (`timeSince=true`, `thresholds=true`) — use `humanize.RelTime` |
-| 3 | `dashboardui/format.go` | 16 | H004 | manual pluralization (`namedParams=false`, `equalsOne=true`) — use `humanize.Plural` |
+| #   | File                    | Line | Rule | Message                                                                                        |
+| --- | ----------------------- | ---- | ---- | ---------------------------------------------------------------------------------------------- |
+| 1   | `dashboardui/format.go` | 64   | H001 | manual byte-size formatting (KMGTPE index trick) — use `humanize.Bytes` or `humanize.IBytes`   |
+| 2   | `dashboardui/format.go` | 16   | H003 | manual relative-time formatting (`timeSince=true`, `thresholds=true`) — use `humanize.RelTime` |
+| 3   | `dashboardui/format.go` | 16   | H004 | manual pluralization (`namedParams=false`, `equalsOne=true`) — use `humanize.Plural`           |
 
 No other files were touched. No work outside this scope was performed.
 
@@ -61,7 +61,7 @@ No other files were touched. No work outside this scope was performed.
 
 - **Lint (`nix run .#lint`).** Not run. Should be a one-liner verification.
 - **`nix fmt`.** Not run. The file is already gofmt-clean (`gofmt -l
-  dashboardui/format.go` → no output).
+dashboardui/format.go` → no output).
 - **`nix run .#test`.** Not run. The hermetic flake test path was not
   exercised; only `GOWORK=off go test` was.
 - **`nix run .#coverage-gate`.** Not run. Dashboardui gate is 60% (per
@@ -90,7 +90,7 @@ same string, and the test file was not modified).
    heuristic. The alternative — calling `humanize.RelTime` and post-checking
    `strings.HasSuffix(rel, " seconds ago")` — was uglier (string parsing of
    output, requires `strings` import). The chosen form is the lesser evil,
-   but a comment explaining *why* this looks the way it does would help future
+   but a comment explaining _why_ this looks the way it does would help future
    maintainers.
 3. **No comment was added explaining the deliberate "just now" override.**
    The next person who reads this code will wonder why `humanize.RelTime`
@@ -189,7 +189,7 @@ rather under-promise than fabricate busy-work.)
    to the same line — the `func relativeTime(t time.Time) string` line —
    even though the manual pluralization was actually done at lines 27-58
    inside the switch.** Was H004 the linter reporting the wrong line, or is
-   H004 a structural finding about the *function* (not the specific
+   H004 a structural finding about the _function_ (not the specific
    pluralization site)? If structural, my fix is correct; if per-site, the
    linter may not have actually been checking the plural code paths I
    removed. I can't determine this without reading the linter source code

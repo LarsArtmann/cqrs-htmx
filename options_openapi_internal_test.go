@@ -46,7 +46,11 @@ func TestWithOpenAPI_AliasesCallerValue(t *testing.T) {
 	operation.Summary = "mutated-after-attach"
 
 	if config.openapiMeta.Summary != "first" {
-		t.Fatalf("attached Summary = %q, want %q; attach must snapshot value fields", config.openapiMeta.Summary, "first")
+		t.Fatalf(
+			"attached Summary = %q, want %q; attach must snapshot value fields",
+			config.openapiMeta.Summary,
+			"first",
+		)
 	}
 }
 

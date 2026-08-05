@@ -291,6 +291,7 @@ func (d *Dashboard) renderCommandDetail(p pageData, cmd *command.PersistedComman
 		b.WriteString(`</table></div>`)
 
 		b.WriteString(`<div><h3>Payload</h3>`)
+
 		payload := cmd.Payload()
 		if len(payload) > 0 {
 			pretty := prettyJSON(payload)
@@ -407,6 +408,7 @@ func (d *Dashboard) renderQueryDetail(p pageData, q *query.PersistedQuery) strin
 		b.WriteString(`</table></div>`)
 
 		b.WriteString(`<div><h3>Payload</h3>`)
+
 		payload := q.Payload()
 		if len(payload) > 0 {
 			pretty := prettyJSON(payload)

@@ -60,27 +60,27 @@ Both **adminui** and **dashboardui** depend on templ-components. **loginpage** d
 
 ### adminui — current adoption
 
-| Library package/component     | Status  | Where                                    |
-| ----------------------------- | ------- | ---------------------------------------- |
-| `display.Grid`                | adopted | `dashboard.templ`                        |
-| `display.Card`                | adopted | `dashboard.templ`, `users.templ`         |
-| `display.StatCard`            | adopted | `components.templ`                       |
-| `display.Table`               | adopted | `dashboard.templ`, `users.templ`         |
-| `display.Badge`               | adopted | `components.templ` (wraps as `badge()`)  |
-| `display.EmptyState`          | adopted | `components.templ` (wraps as `empty()`)  |
-| `display.CopyButton`          | adopted | `components.templ`                       |
-| `display.ListNote`            | adopted | `components.templ`                       |
-| `display.Avatar`              | adopted | `layout.templ`                           |
-| `forms.Input`                 | adopted | `users.templ`, `tenants.templ`           |
-| `forms.Select`                | adopted | `tenants.templ`, `members.templ`         |
-| `icons.Name` / `icons.Icon`   | adopted | `icons.go`, `components.templ`           |
-| `utils.BaseProps`             | adopted | `users.templ`, `tenants.templ`           |
-| `layout.AppShell`             | custom  | `layout.templ` (hand-rolled shell; custom CSS vars for `--sidebar-bg`, `--surface`, `--accent`, SSE sync bar, mobile hamburger — AppShell's `lg:` breakpoint and standard Tailwind classes don't match the deeply themed layout) |
-| `feedback.ToastContainer`     | adopted | `components.templ` — via `toastHost(nonce)` wrapper; bridges `adminui:toast` HX-Trigger events to `tcShowToast()` |
-| `htmx.GlobalErrorHandling`    | adopted | `layout.templ` — 5xx retry, network error toast, session-expiry redirect, ARIA announcer |
-| `errorpage.*`                 | missing | No structured error pages (uses bare `http.Error`) |
-| `display.StatusBadge`         | custom  | Uses `badge()` wrapper instead of auto-mapping StatusBadge |
-| `navigation.SidebarNav`       | custom  | Hand-rolled sidebar in `layout.templ`    |
+| Library package/component   | Status  | Where                                                                                                                                                                                                                            |
+| --------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `display.Grid`              | adopted | `dashboard.templ`                                                                                                                                                                                                                |
+| `display.Card`              | adopted | `dashboard.templ`, `users.templ`                                                                                                                                                                                                 |
+| `display.StatCard`          | adopted | `components.templ`                                                                                                                                                                                                               |
+| `display.Table`             | adopted | `dashboard.templ`, `users.templ`                                                                                                                                                                                                 |
+| `display.Badge`             | adopted | `components.templ` (wraps as `badge()`)                                                                                                                                                                                          |
+| `display.EmptyState`        | adopted | `components.templ` (wraps as `empty()`)                                                                                                                                                                                          |
+| `display.CopyButton`        | adopted | `components.templ`                                                                                                                                                                                                               |
+| `display.ListNote`          | adopted | `components.templ`                                                                                                                                                                                                               |
+| `display.Avatar`            | adopted | `layout.templ`                                                                                                                                                                                                                   |
+| `forms.Input`               | adopted | `users.templ`, `tenants.templ`                                                                                                                                                                                                   |
+| `forms.Select`              | adopted | `tenants.templ`, `members.templ`                                                                                                                                                                                                 |
+| `icons.Name` / `icons.Icon` | adopted | `icons.go`, `components.templ`                                                                                                                                                                                                   |
+| `utils.BaseProps`           | adopted | `users.templ`, `tenants.templ`                                                                                                                                                                                                   |
+| `layout.AppShell`           | custom  | `layout.templ` (hand-rolled shell; custom CSS vars for `--sidebar-bg`, `--surface`, `--accent`, SSE sync bar, mobile hamburger — AppShell's `lg:` breakpoint and standard Tailwind classes don't match the deeply themed layout) |
+| `feedback.ToastContainer`   | adopted | `components.templ` — via `toastHost(nonce)` wrapper; bridges `adminui:toast` HX-Trigger events to `tcShowToast()`                                                                                                                |
+| `htmx.GlobalErrorHandling`  | adopted | `layout.templ` — 5xx retry, network error toast, session-expiry redirect, ARIA announcer                                                                                                                                         |
+| `errorpage.*`               | missing | No structured error pages (uses bare `http.Error`)                                                                                                                                                                               |
+| `display.StatusBadge`       | custom  | Uses `badge()` wrapper instead of auto-mapping StatusBadge                                                                                                                                                                       |
+| `navigation.SidebarNav`     | custom  | Hand-rolled sidebar in `layout.templ`                                                                                                                                                                                            |
 
 ### dashboardui — current adoption and opportunities
 

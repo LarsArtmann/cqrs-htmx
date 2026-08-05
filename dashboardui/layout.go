@@ -45,7 +45,9 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 
 	b.WriteString(`<a href="#main-content" class="skip-link">Skip to content</a>`)
 
-	b.WriteString(`<div class="app-layout" data-hx-boost="true" data-hx-target="#main-content" data-hx-select="#main-content" data-hx-swap="outerHTML">`)
+	b.WriteString(
+		`<div class="app-layout" data-hx-boost="true" data-hx-target="#main-content" data-hx-select="#main-content" data-hx-swap="outerHTML">`,
+	)
 
 	b.WriteString(d.renderSidebar(p))
 	b.WriteString(`<div class="sidebar-backdrop" data-sidebar-backdrop></div>`)
@@ -155,14 +157,20 @@ func (d *Dashboard) renderToastContainer() string {
 // Question icon (a "?" symbol) via the library's built-in fallback.
 func navIconSVG(name string) string {
 	paths := icons.IconPathData(mapNavIconName(name))
+
 	var b strings.Builder
-	b.WriteString(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">`)
+	b.WriteString(
+		`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">`,
+	)
+
 	for _, p := range paths {
 		b.WriteString(`<path stroke-linecap="round" stroke-linejoin="round" d="`)
 		b.WriteString(p)
 		b.WriteString(`"/>`)
 	}
+
 	b.WriteString(`</svg>`)
+
 	return b.String()
 }
 

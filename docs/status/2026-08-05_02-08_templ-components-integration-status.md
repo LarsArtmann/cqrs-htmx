@@ -7,6 +7,7 @@
 ## a) FULLY DONE
 
 ### 1. Version bump: v1.6.0 → v1.7.0
+
 - `adminui/go.mod`: bumped `github.com/larsartmann/templ-components` from v1.6.0 to v1.7.0
 - `examples/admin-demo/go.mod`: bumped indirect dependency from v1.6.0 to v1.7.0
 - Both `go.sum` files synced
@@ -14,26 +15,31 @@
 - Tests pass: `go test ./adminui/... -count=1 -race` — ok (4.3s)
 
 ### 2. `feedback.ToastContainer` adoption (adminui)
+
 - Replaced hand-rolled `<div class="toast-host"></div>` in `components.templ` with `@feedback.ToastContainer("")`
 - Regenerated `_templ.go` via `templ generate`
 - **Dead CSS removed** from `tailwind.css`: `.toast-host`, `.toast`, `.toast--err`, `.toast--ok`, `@keyframes toast-in` (30 lines)
 - Regenerated `admin-tw.css` via `nix run .#build-adminui-css` — verified 0 toast-host references remain
 
 ### 3. `htmx.GlobalErrorHandling` adoption (adminui)
+
 - Added `@htmx.GlobalErrorHandling(htmx.DefaultErrorHandlingConfig())` to `layout.templ:99`
 - This provides: network error detection (`htmx:sendError`), 5xx retry logic (2 retries, 1s base delay), family-aware error body parsing, session-expiry 401 auto-reload, ARIA live announcer for screen readers
 - Regenerated `_templ.go`
 
 ### 4. admin.js toast bridge
+
 - Replaced 20-line hand-rolled `toast()` function + DOM creation with 10-line bridge: `adminui:toast` events now call `tcShowToast()` with kind mapping (`ok→success`, `err→error`, `warn→warning`, `info→info`)
 - Fallback `console.warn` if `tcShowToast` unavailable
 
 ### 5. Adoption table in AGENTS.md
+
 - Added "templ-components adoption" section at `AGENTS.md:58-97`
 - Documents current adoption status for adminui (14 components listed with status: adopted/custom/missing)
 - Documents adoption opportunities for dashboardui (6 items) and loginpage (4 items)
 
 ### 6. Integration plan document
+
 - `docs/planning/2026-08-05_templ-components-integration-plan.md`
 - 4 phases: Phase 1 (done), Phase 2 (dashboardui), Phase 3 (loginpage), Phase 4 (adminui deeper)
 
@@ -42,17 +48,20 @@
 ## b) PARTIALLY DONE
 
 ### 1. admin.js toast bridge — kind mapping incomplete
+
 - `triggerToast()` in `render.go:44` accepts kinds: `""`, `"ok"`, `"err"` — these are mapped correctly
 - **But** the library `tcShowToast()` also supports `"warning"` and `"info"` — adminui never sends these, so toasts are limited to success/error/default
 - Could add `"warn"` and `"info"` toast kinds for richer UX (e.g. info for "Member invitation sent", warning for "Tenant has no owner")
 
 ### 2. GlobalErrorHandling — no structured error body
+
 - `GlobalErrorHandling` parses `xhr.responseText` as JSON looking for `{family, code, message, fix}` — the go-error-family shape
 - adminui's `renderPartial`/`renderPage` handlers return HTML, not structured JSON error bodies on errors
 - The library retries 5xx errors and shows generic messages, but the **family-aware parsing** path is never exercised because adminui doesn't return JSON error bodies for HTMX requests
 - This could be improved by having adminui return structured JSON errors for HTMX requests (or using `errorpage.ErrorHandler`)
 
 ### 3. Adoption table — no dashboardui/loginpage entries
+
 - The AGENTS.md table only covers adminui's adopted components
 - dashboardui and loginpage have **zero** templ-components — the table lists "adoption opportunities" but no status rows for them
 
@@ -61,6 +70,7 @@
 ## c) NOT STARTED
 
 ### dashboardui — zero templ-components adoption
+
 - dashboardui builds ALL HTML via `strings.Builder` + `fmt.Fprintf` (113 HTML-building calls across 5,770 lines of Go)
 - Zero templ usage, zero templ-components
 - `navIconSVG()` has 10 hand-rolled inline SVG path strings that could use `icons.Icon`
@@ -70,10 +80,12 @@
 - Hand-rolled toast CSS/JS in `dashboardCSS`/`dashboardJS`
 
 ### loginpage — zero templ-components adoption
+
 - Single `page.templ` with custom `lp-*` CSS classes
 - `recipes.AuthLayout` (v1.7.0) is purpose-built for this but was deferred
 
 ### adminui deeper adoption
+
 - `display.StatusBadge` — could replace `badge()` wrapper
 - `display.CollapsibleSection` — could replace "Danger zone" sections
 - `htmx.ConfirmDelete` — could replace custom confirm dialog in admin.js
@@ -89,6 +101,7 @@
 ### Nothing is catastrophically broken, but:
 
 ### 1. Did NOT verify the toast actually renders correctly end-to-end
+
 - Tests pass (they only check the `HX-Trigger` header, not rendered HTML)
 - Did NOT manually verify the `ToastContainer` renders in a browser
 - Did NOT verify the `tcShowToast()` JS function is actually available when `adminui:toast` fires
@@ -96,15 +109,18 @@
 - The `feedback.ToastContainer` injects its script inline (not `defer`), so it should be available synchronously — but this was NOT verified
 
 ### 2. Did NOT update the CHANGELOG
+
 - Per project convention (AGENTS.md "TODO_LIST convention"), completed work should go to `CHANGELOG.md`
 - The toast migration and version bump are user-visible changes that belong in CHANGELOG
 
 ### 3. Did NOT run `nix run .#lint` for adminui
+
 - Ran `golangci-lint run` directly but got 193 typecheck errors from pre-existing identity-model breakage (uncommitted changes in the working tree that break `usermgmt` compilation)
 - Did NOT verify these are ALL pre-existing — I assumed it, but didn't confirm via `git stash` + re-run
 - The lint result is inconclusive
 
 ### 4. Did NOT verify CSS dark mode for the new ToastContainer
+
 - The library's `ToastContainer` renders toasts with `dark:` Tailwind variants
 - adminui uses `prefers-color-scheme: dark` with custom CSS variables (`--surface`, `--text`, etc.)
 - The library toast styles use standard Tailwind color tokens (`bg-red-50 dark:bg-red-900/20`)
@@ -113,17 +129,20 @@
 - The green/red tokens ARE remapped (`--color-red-600: var(--err)`, `--color-green-600: var(--ok)`) but the `-50`, `-200`, `-800`, `-900/20` shades used by toast borders/backgrounds are NOT in the remap table
 
 ### 5. Did NOT verify the GlobalErrorHandling doesn't conflict with adminui's existing CSRF/error JS
+
 - admin.js already has `htmx:confirm` and `htmx:beforeRequest` listeners for CSRF token injection
 - GlobalErrorHandling adds `htmx:sendError`, `htmx:responseError`, `htmx:afterRequest` listeners
 - No known conflict, but this was NOT tested with an actual error scenario
 
 ### 6. May have introduced a CSP issue
+
 - `GlobalErrorHandling` renders an inline `<script nonce={cfg.Nonce}>` — the nonce defaults to `""` because `DefaultErrorHandlingConfig()` sets `Nonce: ""`
 - adminui's layout does NOT pass a nonce to `GlobalErrorHandling`
 - If a consumer has strict CSP, the empty nonce means the script tag has `nonce=""` which is NOT valid for CSP
 - The existing `toastHost()` also didn't pass a nonce, so this is not a regression — but it's a missed opportunity to fix it
 
 ### 7. Dead `.htmx-indicator` CSS still in tailwind.css
+
 - While cleaning up toast CSS, I noticed `.htmx-indicator` rules are still in `tailwind.css:121-127`
 - These ARE still used (for HTMX loading indicators), so this is NOT dead code
 - But I should have verified this rather than just noticing it
