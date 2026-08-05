@@ -42,6 +42,8 @@ const (
 
 const filterScanLimit = core.FilterScanLimit
 
+const overviewCountLimit = core.OverviewCountLimit
+
 // ===== Thin wrappers (delegate to core, preserve main package API) =====
 
 func buildProjectionStats(host *projectionhost.Host) []projectionStat {
