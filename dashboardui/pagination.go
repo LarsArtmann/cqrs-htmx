@@ -142,6 +142,39 @@ func renderPaginationInfo(state paginationState) string {
 		state.PageStart, end)
 }
 
+var pageSizeOptions = []int{25, 50, 100, 200}
+
+// renderPageSizeSelector renders a dropdown for choosing items per page.
+// Changing the selection navigates to the same path with the new limit,
+// preserving active filters but resetting cursor position.
+func renderPageSizeSelector(basePath, path string, state paginationState, extraParams string) string {
+	current := state.PageSize
+	if current == 0 {
+		current = defaultPageSize
+	}
+
+	var b strings.Builder
+	b.WriteString(`<span class="page-size-selector"><label>Per page: <select onchange="window.location.href=this.value">`)
+
+	for _, opt := range pageSizeOptions {
+		selected := ""
+		if opt == current {
+			selected = " selected"
+		}
+
+		query := "limit=" + strconv.Itoa(opt)
+		if extraParams != "" {
+			query += "&" + extraParams
+		}
+
+		fmt.Fprintf(&b, `<option value="%s%s?%s"%s>%d</option>`, basePath, path, query, selected, opt)
+	}
+
+	b.WriteString(`</select></label></span>`)
+
+	return b.String()
+}
+
 // computePageStart estimates the 1-based index of the first item on the current
 // page from the cursor history. Assumes consistent page sizes across pages.
 func computePageStart(state paginationState) int {

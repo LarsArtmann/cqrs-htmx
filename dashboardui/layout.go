@@ -374,6 +374,10 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .pagination a:hover { background: var(--surface-hover); }
 .pagination .current { border-color: var(--accent); background: var(--accent); color: white; font-weight: 600; }
 .pagination-info { border: none !important; color: var(--muted) !important; font-size: 0.8em !important; margin: 0 4px; }
+.page-size-selector { border: none !important; padding: 0 !important; margin-left: auto; }
+.page-size-selector select { padding: 2px 6px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.8em; background: var(--surface); color: var(--text); }
+.sort-header { color: var(--accent) !important; text-decoration: none !important; font-weight: 500; }
+.sort-header:hover { text-decoration: underline !important; }
 
 /* ===== Version slider (time-travel) ===== */
 .version-links { display: flex; flex-wrap: wrap; gap: 4px; }

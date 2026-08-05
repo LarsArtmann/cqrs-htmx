@@ -82,6 +82,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 	afterID, _ := id.ParseEventID(afterCursor)
 	filters := parseEventFilter(r)
+	sortBy := parseSort(r)
 
 	var events []event.Event
 
@@ -89,6 +90,9 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	if filters.Active() {
 		events, err = d.loadFilteredEvents(r.Context(), afterID, filters, pageSize)
+	} else if sortBy.Active() {
+		// When sorting is active, load up to filterScanLimit events for in-memory sort.
+		events, err = d.loadFilteredEvents(r.Context(), id.EventID{}, eventFilter{}, filterScanLimit)
 	} else {
 		events, err = d.loadRecentEvents(r.Context(), afterID, pageSize+1)
 	}
@@ -104,6 +108,8 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		events = events[:pageSize]
 	}
 
+	sortEvents(events, sortBy)
+
 	var nextCursor string
 	if hasNext && len(events) > 0 {
 		nextCursor = events[len(events)-1].ID().String()
@@ -116,7 +122,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		HasPrev:     hasPrev,
 		After:       afterCursor,
 		PrevHistory: prevHistory,
-	}.withCountInfo(len(events)), filters)
+	}.withCountInfo(len(events)), filters, sortBy)
 	renderPage(w, r, html)
 }
 
@@ -418,7 +424,7 @@ func (d *Dashboard) loadFilteredEvents(
 	return filtered, nil
 }
 
-func (d *Dashboard) renderEvents(p pageData, events []event.Event, page paginationState, filter eventFilter) string {
+func (d *Dashboard) renderEvents(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 		b.WriteString(`<div class="page-header"><h2>Event Stream</h2></div>`)
@@ -453,22 +459,37 @@ func (d *Dashboard) renderEvents(p pageData, events []event.Event, page paginati
 			)
 		}
 
+		combinedParams := filter.extraParams()
+		if sp := sortBy.extraParams(); sp != "" {
+			if combinedParams != "" {
+				combinedParams += "&" + sp
+			} else {
+				combinedParams = sp
+			}
+		}
+
 		fmt.Fprintf(
 			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Time</th><th scope="col">Type</th><th scope="col">Stream ID</th><th scope="col">Stream Type</th><th scope="col">Version</th></tr></thead><tbody>%s</tbody></table></div>`,
+			`<div class="table-scroll"><table class="data-table"><thead><tr>%s%s%s%s%s</tr></thead><tbody>%s</tbody></table></div>`,
+			sortHeader(p.BasePath, "/events", "Time", "time", sortBy, filter.extraParams()),
+			sortHeader(p.BasePath, "/events", "Type", "type", sortBy, filter.extraParams()),
+			`<th scope="col">Stream ID</th>`,
+			sortHeader(p.BasePath, "/events", "Stream Type", "streamType", sortBy, filter.extraParams()),
+			sortHeader(p.BasePath, "/events", "Version", "version", sortBy, filter.extraParams()),
 			rows.String(),
 		)
 
-		b.WriteString(renderPagination(p.BasePath, "/events", page, filter.extraParams()))
+		b.WriteString(renderPagination(p.BasePath, "/events", page, combinedParams))
 
 		return b.String()
 	})
 }
 
 // renderEventFilterBar renders the filter form with current values pre-filled.
+// The form uses hx-get for partial content swapping (no full page reload).
 func renderEventFilterBar(basePath string, filter eventFilter) string {
 	return fmt.Sprintf(
-		`<form method="GET" action="%s/events" class="filter-bar">`+
+		`<form class="filter-bar" hx-get="%s/events" hx-target="#main-content" hx-select="#main-content" hx-swap="outerHTML" hx-push-url="true">`+
 			`<label for="filter-type">Type</label><input id="filter-type" type="text" name="type" value="%s" placeholder="event.type"/>`+
 			`<label for="filter-stream-type">Stream Type</label><input id="filter-stream-type" type="text" name="streamType" value="%s" placeholder="User"/>`+
 			`<label for="filter-stream-id">Stream ID</label><input id="filter-stream-id" type="text" name="streamID" value="%s" placeholder="01H..."/>`+
