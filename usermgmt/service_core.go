@@ -232,16 +232,16 @@ func journalFromStore(store event.Store) event.Journal {
 // in-memory defaults if not provided.
 //
 
-func NewService(cfg ServiceConfig) (*Service, error) {
+func NewService(config ServiceConfig) (*Service, error) {
 	setup, err := NewEventSourcedSetup(EventSourcedConfig{
-		EventStore:         cfg.EventStore,
-		EventBus:           cfg.EventBus,
-		ReadModelDB:        cfg.ReadModelDB,
-		AuditLog:           cfg.AuditLog,
-		CheckpointStore:    cfg.CheckpointStore,
-		OnProjectionFailed: cfg.OnProjectionFailed,
-		SecurityHooks:      cfg.SecurityHooks,
-		SnapshotConfig:     cfg.SnapshotConfig,
+		EventStore:         config.EventStore,
+		EventBus:           config.EventBus,
+		ReadModelDB:        config.ReadModelDB,
+		AuditLog:           config.AuditLog,
+		CheckpointStore:    config.CheckpointStore,
+		OnProjectionFailed: config.OnProjectionFailed,
+		SecurityHooks:      config.SecurityHooks,
+		SnapshotConfig:     config.SnapshotConfig,
 	})
 	if err != nil {
 		return nil, err
@@ -250,8 +250,8 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 	// Use custom Authz if provided (with a fresh projection); otherwise use setup's.
 	authz := setup.casbinProjection.authz
 	casbinProjection := setup.casbinProjection
-	if cfg.Authz != nil {
-		authz = cfg.Authz
+	if config.Authz != nil {
+		authz = config.Authz
 		casbinProjection, err = NewCasbinProjection(authz)
 		if err != nil {
 			return nil, errorfamily.NewTransient("usermgmt.authz.create_casbin_projection", "create casbin projection").
@@ -259,14 +259,14 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		}
 	}
 
-	if cfg.SessionStore == nil {
-		cfg.SessionStore = NewInMemorySessionStore()
+	if config.SessionStore == nil {
+		config.SessionStore = NewInMemorySessionStore()
 	}
-	if cfg.SessionTTL == 0 {
-		cfg.SessionTTL = defaultSessionTTL
+	if config.SessionTTL == 0 {
+		config.SessionTTL = defaultSessionTTL
 	}
 
-	logger := cfg.Logger
+	logger := config.Logger
 	if logger == nil {
 		logger = slog.Default()
 	}
@@ -300,67 +300,67 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 		botReadModel:        setup.BotReadModel,
 		casbinProjection:    casbinProjection,
 		authz:               authz,
-		sessions:            cfg.SessionStore,
-		sessionTTL:          cfg.SessionTTL,
+		sessions:            config.SessionStore,
+		sessionTTL:          config.SessionTTL,
 		logger:              logger,
-		lockout:             cfg.Lockout,
+		lockout:             config.Lockout,
 		bus:                 setup.Bus,
 		store:               setup.Store,
-		auditLog:            cfg.AuditLog,
+		auditLog:            config.AuditLog,
 		projectionHost:      setup.projectionHost,
 		checkpointStore:     setup.checkpointStore,
 		projections:         setup.projections,
 	}
 
-	if cfg.WebAuthn != nil {
-		svc.webauthn = cfg.WebAuthn
-		sessionStore := cfg.WebAuthnSessionStore
+	if config.WebAuthn != nil {
+		svc.webauthn = config.WebAuthn
+		sessionStore := config.WebAuthnSessionStore
 		if sessionStore == nil {
-			mem := newWebAuthnSessionStore(cfg.WebAuthnSessionTTL)
+			mem := newWebAuthnSessionStore(config.WebAuthnSessionTTL)
 			sessionStore = mem
 			svc.stopWebAuthnEviction = mem.startEviction()
 		}
 		svc.webauthnSessions = sessionStore
 	}
 
-	if cfg.EmailVerification != nil {
-		vStore := cfg.VerificationTokenStore
+	if config.EmailVerification != nil {
+		vStore := config.VerificationTokenStore
 		if vStore == nil {
 			mem := newVerificationTokenStore()
 			vStore = mem
 			svc.stopVerificationEviction = mem.startEviction()
 		}
 		svc.verificationTokens = vStore
-		svc.verificationTTL = cfg.EmailVerification.TokenTTL
+		svc.verificationTTL = config.EmailVerification.TokenTTL
 		if svc.verificationTTL == 0 {
 			svc.verificationTTL = VerificationTokenTTL
 		}
-		svc.sendVerificationEmail = cfg.EmailVerification.SendEmail
+		svc.sendVerificationEmail = config.EmailVerification.SendEmail
 	}
 
-	svc.totp = cfg.TOTP
-	if cfg.TOTP != nil {
-		tStore := cfg.PendingTOTPStore
+	svc.totp = config.TOTP
+	if config.TOTP != nil {
+		tStore := config.PendingTOTPStore
 		if tStore == nil {
 			mem := newPendingTOTPStore()
 			tStore = &mem
 			svc.stopPendingTOTPEviction = mem.startEviction()
 		}
 		svc.pendingTOTP = tStore
-		svc.totpPendingTTL = cfg.TOTPPendingSecretTTL
+		svc.totpPendingTTL = config.TOTPPendingSecretTTL
 		if svc.totpPendingTTL == 0 {
 			svc.totpPendingTTL = defaultTOTPPendingTTL
 		}
 	}
 
-	if cfg.OAuth2 != nil {
-		stateStore := cfg.OAuth2StateStore
+	if config.OAuth2 != nil {
+		stateStore := config.OAuth2StateStore
 		if stateStore == nil {
 			stateStore = newOAuth2StateStore()
 		}
-		svc.oauth2 = cfg.OAuth2
+		svc.oauth2 = config.OAuth2
 		svc.oauth2States = stateStore
-		svc.oauth2StateTTL = cfg.OAuth2StateTTL
+		svc.oauth2StateTTL = config.OAuth2StateTTL
 		if svc.oauth2StateTTL == 0 {
 			svc.oauth2StateTTL = defaultOAuthStateTTL
 		}
@@ -369,7 +369,7 @@ func NewService(cfg ServiceConfig) (*Service, error) {
 
 	svc.wireLockoutEviction()
 
-	svc.tokenPepper = cfg.TokenPepper
+	svc.tokenPepper = config.TokenPepper
 
 	return svc, nil
 }

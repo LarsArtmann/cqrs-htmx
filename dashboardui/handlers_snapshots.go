@@ -41,7 +41,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	snap, err := d.cfg.SnapshotStore.Load(r.Context(), ref)
+	snap, err := d.config.SnapshotStore.Load(r.Context(), ref)
 	if err != nil {
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
@@ -129,7 +129,7 @@ func (d *Dashboard) renderSnapshotState(state []byte) string {
 		return esc("(empty)")
 	}
 
-	out, err := d.cfg.PayloadRenderer.Render(state, codec.EncodingJSON)
+	out, err := d.config.PayloadRenderer.Render(state, codec.EncodingJSON)
 	if err == nil && len(out) > 0 {
 		return esc(string(out))
 	}
@@ -138,7 +138,7 @@ func (d *Dashboard) renderSnapshotState(state []byte) string {
 }
 
 func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	if d.cfg.SnapshotStore == nil {
+	if d.config.SnapshotStore == nil {
 		renderError(w, r, http.StatusBadRequest, "snapshot store not configured")
 
 		return
@@ -151,7 +151,7 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := d.cfg.SnapshotStore.Delete(r.Context(), ref); err != nil {
+	if err := d.config.SnapshotStore.Delete(r.Context(), ref); err != nil {
 		slog.InfoContext(
 			r.Context(),
 			"dashboardui.audit",
@@ -184,5 +184,5 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 	)
 
 	triggerToast(w, "ok", "Snapshot deleted")
-	redirect(w, r, d.cfg.BasePath+"/snapshots")
+	redirect(w, r, d.config.BasePath+"/snapshots")
 }

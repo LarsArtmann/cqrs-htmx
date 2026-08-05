@@ -10,8 +10,8 @@ import (
 )
 
 var _ = Describe("Security Headers Middleware", func() {
-	assertSecurityHeader := func(cfg cqrshtmx.SecurityHeadersConfig, header, expected string) {
-		middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
+	assertSecurityHeader := func(config cqrshtmx.SecurityHeadersConfig, header, expected string) {
+		middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(config)
 		handler := middleware(okHandler())
 
 		w := httptest.NewRecorder()
@@ -33,8 +33,8 @@ var _ = Describe("Security Headers Middleware", func() {
 
 	DescribeTable(
 		"configurable security headers",
-		func(cfg cqrshtmx.SecurityHeadersConfig, header, expected string) {
-			assertSecurityHeader(cfg, header, expected)
+		func(config cqrshtmx.SecurityHeadersConfig, header, expected string) {
+			assertSecurityHeader(config, header, expected)
 		},
 		Entry(
 			"CSP",
@@ -98,18 +98,18 @@ var _ = Describe("Security Headers Middleware", func() {
 
 	DescribeTable("SecurityHeaderSkip suppresses default headers",
 		func(field string) {
-			cfg := cqrshtmx.SecurityHeadersConfig{}
+			config := cqrshtmx.SecurityHeadersConfig{}
 
 			switch field {
 			case "ContentTypeOptions":
-				cfg.ContentTypeOptions = cqrshtmx.SecurityHeaderSkip
+				config.ContentTypeOptions = cqrshtmx.SecurityHeaderSkip
 			case "FrameOptions":
-				cfg.FrameOptions = cqrshtmx.SecurityHeaderSkip
+				config.FrameOptions = cqrshtmx.SecurityHeaderSkip
 			case "ReferrerPolicy":
-				cfg.ReferrerPolicy = cqrshtmx.SecurityHeaderSkip
+				config.ReferrerPolicy = cqrshtmx.SecurityHeaderSkip
 			}
 
-			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cfg)
+			middleware := cqrshtmx.SecurityHeadersMiddlewareWithConfig(config)
 			handler := middleware(okHandler())
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))

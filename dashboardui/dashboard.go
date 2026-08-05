@@ -20,7 +20,7 @@ import (
 // provides. The dashboard auto-detects capabilities and shows only
 // relevant panels.
 type Dashboard struct {
-	cfg         Config
+	config      Config
 	caps        Capabilities
 	nav         []navItem
 	broadcaster *cqrshtmx.Broadcaster
@@ -29,28 +29,28 @@ type Dashboard struct {
 	closeOnce   sync.Once
 }
 
-// New builds a dashboard from cfg, applying defaults and validating
+// New builds a dashboard from config, applying defaults and validating
 // the result. Returns an error only for invalid configuration (e.g. no
 // event interfaces provided).
-func New(cfg Config) (*Dashboard, error) {
-	cfg, err := cfg.withDefaults()
+func New(config Config) (*Dashboard, error) {
+	config, err := config.withDefaults()
 	if err != nil {
 		return nil, err
 	}
 
-	caps := cfg.capabilities()
+	caps := config.capabilities()
 
-	if !cfg.ReadOnly && cfg.Authorizer == nil {
+	if !config.ReadOnly && config.Authorizer == nil {
 		slog.Warn("dashboardui: write operations are enabled (ReadOnly=false) but no Authorizer is configured; " +
 			"anyone with network access can reset projections, replay/delete dead letters, and delete snapshots. " +
 			"Set Config.Authorizer or wrap the dashboard with authentication middleware.")
 	}
 
 	d := &Dashboard{
-		cfg:  cfg,
-		caps: caps,
-		nav:  buildNav(caps),
-		done: make(chan struct{}),
+		config: config,
+		caps:   caps,
+		nav:    buildNav(caps),
+		done:   make(chan struct{}),
 	}
 
 	if caps.EventBus {
@@ -59,7 +59,7 @@ func New(cfg Config) (*Dashboard, error) {
 
 		// Build SSE replay store from the configured journal. Enables reconnect
 		// replay (Last-Event-ID) and initial backfill of recent events.
-		if journal := cfg.journalForReplay(); journal != nil {
+		if journal := config.journalForReplay(); journal != nil {
 			d.sseStore = cqrshtmx.NewJournalSSEStore(journal, newSSEEvent)
 		}
 	}
@@ -68,8 +68,8 @@ func New(cfg Config) (*Dashboard, error) {
 }
 
 // MustNew is like [New] but panics on error. For init-time setup.
-func MustNew(cfg Config) *Dashboard {
-	d, err := New(cfg)
+func MustNew(config Config) *Dashboard {
+	d, err := New(config)
 	if err != nil {
 		panic(
 			fmt.Sprintf("dashboardui: %v", err),
@@ -90,26 +90,27 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 
 	return pageData{
 		Title:     title,
-		BasePath:  d.cfg.BasePath,
-		Accent:    d.cfg.AccentColor,
-		Brand:     d.cfg.Title,
+		BasePath:  d.config.BasePath,
+		Accent:    d.config.AccentColor,
+		Brand:     d.config.Title,
 		Nav:       nav,
-		LogoutURL: d.cfg.LogoutURL,
+		LogoutURL: d.config.LogoutURL,
 		CSRFToken: csrfToken(r),
-		ReadOnly:  d.cfg.ReadOnly,
+		ReadOnly:  d.config.ReadOnly,
 		Caps:      d.caps,
+		HTMX:      isHTMXRequest(r),
 	}
 }
 
 // guard wraps a handler with authorization. If Config.Authorizer is nil,
 // all requests are allowed (the consumer must wrap with their own middleware).
 func (d *Dashboard) guard(fn http.HandlerFunc) http.HandlerFunc {
-	if d.cfg.Authorizer == nil {
+	if d.config.Authorizer == nil {
 		return fn
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := d.cfg.Authorizer(r); err != nil {
+		if err := d.config.Authorizer(r); err != nil {
 			http.Error(w, "forbidden", http.StatusForbidden)
 
 			return
@@ -123,7 +124,7 @@ func (d *Dashboard) guard(fn http.HandlerFunc) http.HandlerFunc {
 func (d *Dashboard) Capabilities() Capabilities { return d.caps }
 
 // Config returns the resolved configuration (with defaults applied).
-func (d *Dashboard) Config() Config { return d.cfg }
+func (d *Dashboard) Config() Config { return d.config }
 
 // Close releases dashboard resources. Safe to call multiple times.
 // Signals the event-bus handler to stop, then closes the SSE broadcaster,

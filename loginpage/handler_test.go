@@ -32,17 +32,17 @@ func TestNew_Defaults(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	if h.cfg.Title != "Sign in" {
-		t.Errorf("Title = %q, want %q", h.cfg.Title, "Sign in")
+	if h.config.Title != "Sign in" {
+		t.Errorf("Title = %q, want %q", h.config.Title, "Sign in")
 	}
-	if h.cfg.Redirect != "/" {
-		t.Errorf("Redirect = %q, want %q", h.cfg.Redirect, "/")
+	if h.config.Redirect != "/" {
+		t.Errorf("Redirect = %q, want %q", h.config.Redirect, "/")
 	}
-	if h.cfg.AccentColor != DefaultAccentColor {
-		t.Errorf("AccentColor = %q, want %q", h.cfg.AccentColor, DefaultAccentColor)
+	if h.config.AccentColor != DefaultAccentColor {
+		t.Errorf("AccentColor = %q, want %q", h.config.AccentColor, DefaultAccentColor)
 	}
-	if h.cfg.CredentialName != "Passkey" {
-		t.Errorf("CredentialName = %q, want %q", h.cfg.CredentialName, "Passkey")
+	if h.config.CredentialName != "Passkey" {
+		t.Errorf("CredentialName = %q, want %q", h.config.CredentialName, "Passkey")
 	}
 }
 

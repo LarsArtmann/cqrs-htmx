@@ -15,22 +15,22 @@ import (
 // [usermgmt.NewSessionMiddleware]). Requests without an authenticated user, or
 // users that fail [Config.Authorizer], receive 401/403.
 type Handler struct {
-	cfg Config
-	nav []navItem
+	config Config
+	nav    []navItem
 }
 
-// New builds an admin panel from cfg, applying defaults to empty fields and
+// New builds an admin panel from config, applying defaults to empty fields and
 // validating the result. It returns an error only for invalid configuration
 // (e.g. a nil Service).
-func New(cfg Config) (*Handler, error) {
-	cfg, err := cfg.withDefaults()
+func New(config Config) (*Handler, error) {
+	config, err := config.withDefaults()
 	if err != nil {
 		return nil, err
 	}
-	if cfg.Authorizer == nil {
-		cfg.Authorizer = defaultAuthorizer(cfg)
+	if config.Authorizer == nil {
+		config.Authorizer = defaultAuthorizer(config)
 	}
-	return &Handler{cfg: cfg, nav: buildNav(cfg.Mode)}, nil
+	return &Handler{config: config, nav: buildNav(config.Mode)}, nil
 }
 
 // buildNav returns the sidebar entries for the given mode.
@@ -61,13 +61,13 @@ func (h *Handler) page(title, active string, user *usermgmt.User, r *http.Reques
 	}
 	return pageData{
 		Title:     title,
-		BasePath:  h.cfg.BasePath,
-		Accent:    h.cfg.AccentColor,
-		Brand:     h.cfg.Title,
+		BasePath:  h.config.BasePath,
+		Accent:    h.config.AccentColor,
+		Brand:     h.config.Title,
 		Nav:       nav,
 		User:      user,
-		LogoutURL: h.cfg.LogoutURL,
-		SSEURL:    h.cfg.SSEURL,
+		LogoutURL: h.config.LogoutURL,
+		SSEURL:    h.config.SSEURL,
 		CSRFToken: cqrshtmx.CSRFTokenFormField(r),
 		CSRFMeta:  cqrshtmx.CSRFTokenHTMLMeta(r),
 	}
@@ -82,7 +82,7 @@ func (h *Handler) guard(fn func(http.ResponseWriter, *http.Request, *usermgmt.Us
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
-		if err := h.cfg.Authorizer(user); err != nil {
+		if err := h.config.Authorizer(user); err != nil {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return
 		}
@@ -108,7 +108,7 @@ func (h *Handler) routes() http.Handler {
 	mux.HandleFunc("GET /{$}", h.guard(h.dashboard))
 
 	// --- Users (super admin only) ---
-	if h.cfg.Mode == ModeSuperAdmin {
+	if h.config.Mode == ModeSuperAdmin {
 		mux.HandleFunc("GET /users", h.guard(h.usersIndex))
 		mux.HandleFunc("GET /users/{id}", h.guard(h.userDetail))
 		mux.HandleFunc("POST /users/{id}/delete", h.guard(h.userDelete))
@@ -116,7 +116,7 @@ func (h *Handler) routes() http.Handler {
 	}
 
 	// --- Tenants (super admin) ---
-	if h.cfg.Mode == ModeSuperAdmin {
+	if h.config.Mode == ModeSuperAdmin {
 		mux.HandleFunc("GET /tenants", h.guard(h.tenantsIndex))
 		mux.HandleFunc("GET /tenants/new", h.guard(h.tenantNew))
 		mux.HandleFunc("POST /tenants", h.guard(h.tenantCreate))
@@ -130,7 +130,7 @@ func (h *Handler) routes() http.Handler {
 	}
 
 	// --- Members (tenant admin) ---
-	if h.cfg.Mode == ModeTenantAdmin {
+	if h.config.Mode == ModeTenantAdmin {
 		mux.HandleFunc("GET /members", h.guard(h.membersIndex))
 		mux.HandleFunc("POST /members", h.guard(h.membersAdd))
 		mux.HandleFunc("POST /members/{actor}/delete", h.guard(h.membersRemove))

@@ -11,24 +11,24 @@ import (
 // only assert the returned func is non-nil; this internal test reaches the
 // unexported openapiMeta field to prove the metadata round-trips.
 func TestWithOpenAPI_StoresMetadataOnConfig(t *testing.T) {
-	cfg := &handlerConfig{}
+	config := &handlerConfig{}
 
 	operation := openapi.Post("CreateItem").
 		Summary("Create an item").
 		Op()
 
-	WithOpenAPI(operation)(cfg)
+	WithOpenAPI(operation)(config)
 
-	if cfg.openapiMeta == nil {
+	if config.openapiMeta == nil {
 		t.Fatal("openapiMeta is nil after applying WithOpenAPI")
 	}
 
-	if cfg.openapiMeta.OperationID != operation.OperationID {
-		t.Errorf("openapiMeta.OperationID = %q, want %q", cfg.openapiMeta.OperationID, operation.OperationID)
+	if config.openapiMeta.OperationID != operation.OperationID {
+		t.Errorf("openapiMeta.OperationID = %q, want %q", config.openapiMeta.OperationID, operation.OperationID)
 	}
 
-	if cfg.openapiMeta.Summary != operation.Summary {
-		t.Errorf("openapiMeta.Summary = %q, want %q", cfg.openapiMeta.Summary, operation.Summary)
+	if config.openapiMeta.Summary != operation.Summary {
+		t.Errorf("openapiMeta.Summary = %q, want %q", config.openapiMeta.Summary, operation.Summary)
 	}
 }
 
@@ -37,16 +37,16 @@ func TestWithOpenAPI_StoresMetadataOnConfig(t *testing.T) {
 // Operation, so reassigning a caller-held scalar field afterwards cannot
 // corrupt the attached metadata.
 func TestWithOpenAPI_AliasesCallerValue(t *testing.T) {
-	cfg := &handlerConfig{}
+	config := &handlerConfig{}
 
 	operation := openapi.Post("CreateItem").Summary("first").Op()
 
-	WithOpenAPI(operation)(cfg)
+	WithOpenAPI(operation)(config)
 
 	operation.Summary = "mutated-after-attach"
 
-	if cfg.openapiMeta.Summary != "first" {
-		t.Fatalf("attached Summary = %q, want %q; attach must snapshot value fields", cfg.openapiMeta.Summary, "first")
+	if config.openapiMeta.Summary != "first" {
+		t.Fatalf("attached Summary = %q, want %q; attach must snapshot value fields", config.openapiMeta.Summary, "first")
 	}
 }
 

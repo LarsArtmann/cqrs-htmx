@@ -105,25 +105,25 @@ type Config struct {
 	CredentialName string
 }
 
-func (cfg Config) withDefaults() (Config, error) {
-	if cfg.Service == nil {
-		return cfg, errConfig("Config.Service is required")
+func (config Config) withDefaults() (Config, error) {
+	if config.Service == nil {
+		return config, errConfig("Config.Service is required")
 	}
-	if cfg.Title == "" {
-		cfg.Title = "Sign in"
+	if config.Title == "" {
+		config.Title = "Sign in"
 	}
-	if cfg.Brand == "" {
-		cfg.Brand = cfg.Title
+	if config.Brand == "" {
+		config.Brand = config.Title
 	}
-	if cfg.Redirect == "" {
-		cfg.Redirect = "/"
+	if config.Redirect == "" {
+		config.Redirect = "/"
 	}
-	if cfg.AccentColor == "" {
-		cfg.AccentColor = DefaultAccentColor
+	if config.AccentColor == "" {
+		config.AccentColor = DefaultAccentColor
 	}
-	if cfg.CredentialName == "" {
-		cfg.CredentialName = "Passkey"
+	if config.CredentialName == "" {
+		config.CredentialName = "Passkey"
 	}
-	cfg.AuthPrefix = trimTrailingSlash(cfg.AuthPrefix)
-	return cfg, nil
+	config.AuthPrefix = trimTrailingSlash(config.AuthPrefix)
+	return config, nil
 }

@@ -98,9 +98,9 @@ type Provider struct {
 
 // New initializes all configured providers (performing OIDC discovery if needed)
 // and returns a Provider ready for use.
-func New(ctx context.Context, cfg Config) (*Provider, error) {
-	providers := make(map[string]*initializedProvider, len(cfg.Providers))
-	for name, provCfg := range cfg.Providers {
+func New(ctx context.Context, config Config) (*Provider, error) {
+	providers := make(map[string]*initializedProvider, len(config.Providers))
+	for name, provCfg := range config.Providers {
 		prov, err := initProvider(ctx, name, provCfg)
 		if err != nil {
 			return nil, errorfamily.Wrapf(
@@ -116,12 +116,12 @@ func New(ctx context.Context, cfg Config) (*Provider, error) {
 	return &Provider{providers: providers}, nil
 }
 
-func initProvider(ctx context.Context, name string, cfg ProviderConfig) (*initializedProvider, error) {
-	if err := cfg.Validate(); err != nil {
+func initProvider(ctx context.Context, name string, config ProviderConfig) (*initializedProvider, error) {
+	if err := config.Validate(); err != nil {
 		return nil, err
 	}
 
-	scopes := cfg.Scopes
+	scopes := config.Scopes
 	if len(scopes) == 0 {
 		scopes = []string{oidc.ScopeOpenID, "email", "profile"}
 	}
@@ -129,15 +129,15 @@ func initProvider(ctx context.Context, name string, cfg ProviderConfig) (*initia
 	p := &initializedProvider{ //nolint:exhaustruct // fields set conditionally below
 		name: name,
 		config: &oauth2.Config{ //nolint:exhaustruct // Endpoint set below
-			ClientID:     cfg.ClientID,
-			ClientSecret: cfg.ClientSecret,
-			RedirectURL:  cfg.RedirectURL,
+			ClientID:     config.ClientID,
+			ClientSecret: config.ClientSecret,
+			RedirectURL:  config.RedirectURL,
 			Scopes:       scopes,
 		},
 	}
 
-	if cfg.IssuerURL != "" {
-		oidcProv, err := oidc.NewProvider(ctx, cfg.IssuerURL)
+	if config.IssuerURL != "" {
+		oidcProv, err := oidc.NewProvider(ctx, config.IssuerURL)
 		if err != nil {
 			return nil, errorfamily.Wrapf(
 				err,
@@ -149,15 +149,15 @@ func initProvider(ctx context.Context, name string, cfg ProviderConfig) (*initia
 		}
 		p.oidcProvider = oidcProv
 		p.verifier = oidcProv.Verifier(
-			&oidc.Config{ClientID: cfg.ClientID}, //nolint:exhaustruct // only ClientID needed
+			&oidc.Config{ClientID: config.ClientID}, //nolint:exhaustruct // only ClientID needed
 		)
 		p.config.Endpoint = oidcProv.Endpoint()
 	} else {
 		p.config.Endpoint = oauth2.Endpoint{ //nolint:exhaustruct // only AuthURL+TokenURL needed
-			AuthURL:  cfg.AuthURL,
-			TokenURL: cfg.TokenURL,
+			AuthURL:  config.AuthURL,
+			TokenURL: config.TokenURL,
 		}
-		p.userInfoURL = cfg.UserInfoURL
+		p.userInfoURL = config.UserInfoURL
 	}
 
 	return p, nil

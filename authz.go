@@ -21,18 +21,18 @@ type UserIDExtractor func(r *http.Request) (UserID, error)
 // The subject is extracted from the request context (via UserIDExtractor).
 // If no user ID is found, the request is rejected as unauthorized.
 func Authorize(resource, action string) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.resource = resource
-		cfg.action = action
-		cfg.authMode = authAuthorized
+	return func(config *handlerConfig) {
+		config.resource = resource
+		config.action = action
+		config.authMode = authAuthorized
 	}
 }
 
 // RequireAuth returns a HandlerOption that requires an authenticated user
 // without checking specific Casbin permissions.
 func RequireAuth() HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.authMode = authRequired
+	return func(config *handlerConfig) {
+		config.authMode = authRequired
 	}
 }
 
@@ -63,8 +63,8 @@ type RequestGuardFunc func(r *http.Request, cmdOrQuery any) error
 //	    }),
 //	)
 func RequestGuard(guard RequestGuardFunc) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.requestGuard = guard
+	return func(config *handlerConfig) {
+		config.requestGuard = guard
 	}
 }
 
@@ -94,23 +94,23 @@ func Enforce(enforcer Enforcer, subject, resource, action string) error {
 	return nil
 }
 
-func (a *App) executeAuthorization(r *http.Request, cfg *handlerConfig) error {
-	if cfg.authMode == authNone {
+func (a *App) executeAuthorization(r *http.Request, config *handlerConfig) error {
+	if config.authMode == authNone {
 		return nil
 	}
 
 	userID := UserIDFromContext(r.Context())
 	if userID.IsZero() {
-		if cfg.authMode == authAuthorized {
+		if config.authMode == authAuthorized {
 			return errorfamily.NewRejection("unauthorized",
-				fmt.Sprintf("%s/%s", cfg.resource, cfg.action)).WithCause(ErrUnauthorized)
+				fmt.Sprintf("%s/%s", config.resource, config.action)).WithCause(ErrUnauthorized)
 		}
 
 		return ErrUnauthorized
 	}
 
-	if cfg.authMode == authAuthorized {
-		return Enforce(a.enforcer, userID.String(), cfg.resource, cfg.action)
+	if config.authMode == authAuthorized {
+		return Enforce(a.enforcer, userID.String(), config.resource, config.action)
 	}
 
 	return nil

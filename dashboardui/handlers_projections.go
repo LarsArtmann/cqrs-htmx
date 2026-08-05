@@ -44,30 +44,30 @@ func buildProjectionStats(host *projectionhost.Host) []projectionStat {
 
 func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Projections", "/projections", r)
-	projs := buildProjectionStats(d.cfg.ProjectionHost)
+	projs := buildProjectionStats(d.config.ProjectionHost)
 
 	html := d.renderProjections(p, projs)
 	renderPage(w, r, html)
 }
 
 func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *projectionhost.Host)) {
-	if d.cfg.ProjectionHost == nil {
+	if d.config.ProjectionHost == nil {
 		renderError(w, nil, http.StatusBadRequest, "projection host not configured")
 
 		return
 	}
 
-	fn(d.cfg.ProjectionHost)
+	fn(d.config.ProjectionHost)
 }
 
 func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store projectionhost.DeadLetterStore)) {
-	if d.cfg.DeadLetterStore == nil {
+	if d.config.DeadLetterStore == nil {
 		renderError(w, nil, http.StatusBadRequest, "dead letter store not configured")
 
 		return
 	}
 
-	fn(d.cfg.DeadLetterStore)
+	fn(d.config.DeadLetterStore)
 }
 
 func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +92,7 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 
 		slog.InfoContext(r.Context(), "dashboardui.audit", "op", "projection.reset", "projection", name, "result", "ok")
 		triggerToast(w, "ok", "Projection reset")
-		redirect(w, r, d.cfg.BasePath+"/projections")
+		redirect(w, r, d.config.BasePath+"/projections")
 	})
 }
 

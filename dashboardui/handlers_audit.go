@@ -15,7 +15,7 @@ import (
 func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Commands", "/commands", r)
 
-	pageSize := parsePageSize(r, d.cfg.PageSize)
+	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 	after, _ := id.ParseCommandID(afterCursor)
 
@@ -24,13 +24,13 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 		hasNext bool
 	)
 
-	if d.cfg.CommandJournal != nil { //nolint:nestif // optional data source branching
+	if d.config.CommandJournal != nil { //nolint:nestif // optional data source branching
 		var err error
 
-		if seekable, ok := d.cfg.CommandJournal.(command.SeekableCommandJournal); ok {
+		if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
 			cmds, err = seekable.ReadFrom(r.Context(), after, pageSize+1)
 		} else {
-			cmds, err = d.cfg.CommandJournal.ReadAll(r.Context())
+			cmds, err = d.config.CommandJournal.ReadAll(r.Context())
 			if err == nil && len(cmds) > pageSize {
 				cmds = cmds[:pageSize]
 			}
@@ -101,7 +101,7 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Queries", "/queries", r)
 
-	pageSize := parsePageSize(r, d.cfg.PageSize)
+	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
 	after, _ := id.ParseRequestID(afterCursor)
 
@@ -110,15 +110,15 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 		hasNext bool
 	)
 
-	if d.cfg.QueryJournal != nil { //nolint:nestif // optional data source branching
+	if d.config.QueryJournal != nil { //nolint:nestif // optional data source branching
 		var err error
 
-		if seekable, ok := d.cfg.QueryJournal.(query.SeekableQueryJournal); ok {
+		if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
 			queries, err = seekable.ReadQueriesFrom(r.Context(), after, pageSize+1)
 		} else {
-			queries, err = d.cfg.QueryJournal.ReadAllQueries(r.Context())
-			if err == nil && len(queries) > d.cfg.PageSize {
-				queries = queries[:d.cfg.PageSize]
+			queries, err = d.config.QueryJournal.ReadAllQueries(r.Context())
+			if err == nil && len(queries) > d.config.PageSize {
+				queries = queries[:d.config.PageSize]
 			}
 		}
 

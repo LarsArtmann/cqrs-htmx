@@ -10,9 +10,9 @@ import (
 
 func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
-	matched := filterUsers(h.cfg.Service.ReadModel().AllUsers(), q)
+	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q)
 	users, total := capList(matched)
-	d := usersListData{Users: users, Total: total, Search: q, BasePath: h.cfg.BasePath}
+	d := usersListData{Users: users, Total: total, Search: q, BasePath: h.config.BasePath}
 
 	if cqrshtmx.RenderPartial(r) {
 		renderPartial(w, r, usersTableContent(d))
@@ -45,14 +45,14 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *userm
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
 	}
-	shown, err := h.cfg.Service.GetUser(r.Context(), target)
+	shown, err := h.config.Service.GetUser(r.Context(), target)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 
 	roles := map[string][]usermgmt.Role{}
-	if authz := h.cfg.Service.Authz(); authz != nil {
+	if authz := h.config.Service.Authz(); authz != nil {
 		if domains, derr := authz.DomainsForUser(shown.ID); derr == nil {
 			for _, dom := range domains {
 				if rs, rerr := authz.RolesForUser(shown.ID, dom); rerr == nil && len(rs) > 0 {
@@ -64,9 +64,9 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *userm
 
 	p := h.page(shown.Email, "/users", user, r)
 	renderPage(w, r, userDetailPage(p, userDetailData{
-		User: shown, BasePath: h.cfg.BasePath, TenantRoles: roles,
-		ConfiguredProviders: h.cfg.Service.ConfiguredOAuth2Providers(),
-		UnlinkExternalBase:  h.cfg.BasePath + "/users/" + shown.ID.Get().String() + "/external",
+		User: shown, BasePath: h.config.BasePath, TenantRoles: roles,
+		ConfiguredProviders: h.config.Service.ConfiguredOAuth2Providers(),
+		UnlinkExternalBase:  h.config.BasePath + "/users/" + shown.ID.Get().String() + "/external",
 	}))
 }
 
@@ -80,13 +80,13 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *usermgmt
 	if reason == "" {
 		reason = "deleted via admin panel"
 	}
-	if err := h.cfg.Service.DeleteUser(r.Context(), target, reason); err != nil {
+	if err := h.config.Service.DeleteUser(r.Context(), target, reason); err != nil {
 		triggerToast(w, "err", "Delete failed: "+err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	triggerToast(w, "ok", "User deleted")
-	redirect(w, r, h.cfg.BasePath+"/users")
+	redirect(w, r, h.config.BasePath+"/users")
 }
 
 // userUnlinkExternal removes a single OAuth2/OIDC provider link from a user.
@@ -109,11 +109,11 @@ func (h *Handler) userUnlinkExternal(w http.ResponseWriter, r *http.Request, _ *
 		http.Error(w, "missing provider", http.StatusBadRequest)
 		return
 	}
-	if err := h.cfg.Service.UnlinkExternalAccount(r.Context(), target, provider); err != nil {
+	if err := h.config.Service.UnlinkExternalAccount(r.Context(), target, provider); err != nil {
 		triggerToast(w, "err", "Unlink failed: "+err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	triggerToast(w, "ok", provider+" account unlinked")
-	redirect(w, r, h.cfg.BasePath+"/users/"+target.Get().String())
+	redirect(w, r, h.config.BasePath+"/users/"+target.Get().String())
 }

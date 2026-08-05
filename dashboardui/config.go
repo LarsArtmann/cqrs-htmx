@@ -108,43 +108,43 @@ type Config struct {
 	LogoutURL string
 }
 
-func (cfg Config) withDefaults() (Config, error) {
-	if cfg.EventSource == nil && cfg.Journal == nil && cfg.SeekableJournal == nil {
-		return cfg, errConfig(
+func (config Config) withDefaults() (Config, error) {
+	if config.EventSource == nil && config.Journal == nil && config.SeekableJournal == nil {
+		return config, errConfig(
 			"at least one of Config.EventSource, Config.Journal, or Config.SeekableJournal is required",
 		)
 	}
 
-	if cfg.Title == "" {
-		cfg.Title = defaultTitle
+	if config.Title == "" {
+		config.Title = defaultTitle
 	}
 
-	if cfg.BasePath == "" {
-		cfg.BasePath = defaultBasePath
+	if config.BasePath == "" {
+		config.BasePath = defaultBasePath
 	}
 
-	cfg.BasePath = trimTrailingSlash(cfg.BasePath)
-	if cfg.AccentColor == "" {
-		cfg.AccentColor = defaultAccentColor
+	config.BasePath = trimTrailingSlash(config.BasePath)
+	if config.AccentColor == "" {
+		config.AccentColor = defaultAccentColor
 	}
 
-	if cfg.PageSize == 0 {
-		cfg.PageSize = defaultPageSize
+	if config.PageSize == 0 {
+		config.PageSize = defaultPageSize
 	}
 
-	if cfg.PageSize > maxPageSize {
-		cfg.PageSize = maxPageSize
+	if config.PageSize > maxPageSize {
+		config.PageSize = maxPageSize
 	}
 
-	if cfg.PayloadRenderer == nil {
-		cfg.PayloadRenderer = DefaultPayloadRenderer{}
+	if config.PayloadRenderer == nil {
+		config.PayloadRenderer = DefaultPayloadRenderer{}
 	}
 
-	if cfg.SSEHeartbeatInterval == 0 {
-		cfg.SSEHeartbeatInterval = defaultSSEHeartbeatInterval
+	if config.SSEHeartbeatInterval == 0 {
+		config.SSEHeartbeatInterval = defaultSSEHeartbeatInterval
 	}
 
-	return cfg, nil
+	return config, nil
 }
 
 // Capabilities describes which panels are available based on the
@@ -164,19 +164,19 @@ type Capabilities struct {
 	EventBus        bool
 }
 
-func (cfg Config) capabilities() Capabilities {
+func (config Config) capabilities() Capabilities {
 	return Capabilities{
-		EventSource:     cfg.EventSource != nil,
-		EventByIDLoader: cfg.EventByIDLoader != nil,
-		Journal:         cfg.Journal != nil,
-		SeekableJournal: cfg.SeekableJournal != nil,
-		StreamReader:    cfg.StreamReader != nil,
-		ProjectionHost:  cfg.ProjectionHost != nil,
-		DeadLetterStore: cfg.DeadLetterStore != nil,
-		CommandJournal:  cfg.CommandJournal != nil,
-		QueryJournal:    cfg.QueryJournal != nil,
-		SnapshotStore:   cfg.SnapshotStore != nil,
-		EventBus:        cfg.EventBus != nil,
+		EventSource:     config.EventSource != nil,
+		EventByIDLoader: config.EventByIDLoader != nil,
+		Journal:         config.Journal != nil,
+		SeekableJournal: config.SeekableJournal != nil,
+		StreamReader:    config.StreamReader != nil,
+		ProjectionHost:  config.ProjectionHost != nil,
+		DeadLetterStore: config.DeadLetterStore != nil,
+		CommandJournal:  config.CommandJournal != nil,
+		QueryJournal:    config.QueryJournal != nil,
+		SnapshotStore:   config.SnapshotStore != nil,
+		EventBus:        config.EventBus != nil,
 	}
 }
 
@@ -237,7 +237,7 @@ func buildNav(caps Capabilities) []navItem {
 	return items
 }
 
-// pageData is passed to every templ page renderer.
+// pageData is passed to every page renderer.
 type pageData struct {
 	Title     string
 	BasePath  string
@@ -248,6 +248,10 @@ type pageData struct {
 	CSRFToken string
 	ReadOnly  bool
 	Caps      Capabilities
+	// HTMX is true when the request carries the HX-Request header (boosted
+	// link or explicit hx-get). When true, renderLayout returns only the
+	// <main> content, skipping the full HTML shell for faster swaps.
+	HTMX bool
 }
 
 // StreamRefFromID constructs an id.StreamRef from type + ID strings.
@@ -271,12 +275,12 @@ func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
 // journalForReplay returns the best available journal for SSE reconnect replay.
 // SeekableJournal is preferred (efficient cursor-based ReadFrom); Journal is the fallback.
 // Returns nil if no journal is configured.
-func (cfg Config) journalForReplay() event.Journal { //nolint:ireturn // intentionally returns the Journal interface to abstract over SeekableJournal/Journal
-	if cfg.SeekableJournal != nil {
-		return cfg.SeekableJournal // SeekableJournal embeds Journal
+func (config Config) journalForReplay() event.Journal { //nolint:ireturn // intentionally returns the Journal interface to abstract over SeekableJournal/Journal
+	if config.SeekableJournal != nil {
+		return config.SeekableJournal // SeekableJournal embeds Journal
 	}
 
-	return cfg.Journal
+	return config.Journal
 }
 
 func trimTrailingSlash(s string) string {

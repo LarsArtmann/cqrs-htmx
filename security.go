@@ -119,35 +119,35 @@ func SecurityHeadersMiddleware(next http.Handler) http.Handler {
 // SecurityHeadersMiddlewareWithConfig returns HTTP middleware that sets
 // security headers based on the provided configuration.
 func SecurityHeadersMiddlewareWithConfig(
-	cfg SecurityHeadersConfig,
+	config SecurityHeadersConfig,
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if v := cfg.contentTypeOptions(); v != "" {
+			if v := config.contentTypeOptions(); v != "" {
 				w.Header().Set(headerContentTypeOptions, v)
 			}
 
-			if v := cfg.frameOptions(); v != "" {
+			if v := config.frameOptions(); v != "" {
 				w.Header().Set(headerFrameOptions, v)
 			}
 
-			if v := cfg.referrerPolicy(); v != "" {
+			if v := config.referrerPolicy(); v != "" {
 				w.Header().Set(headerReferrerPolicy, v)
 			}
 
-			if cfg.ContentSecurityPolicy != "" {
-				w.Header().Set(headerCSP, cfg.ContentSecurityPolicy)
+			if config.ContentSecurityPolicy != "" {
+				w.Header().Set(headerCSP, config.ContentSecurityPolicy)
 			}
 
-			if cfg.StrictTransportSecurity != "" {
-				w.Header().Set(headerHSTS, cfg.StrictTransportSecurity)
+			if config.StrictTransportSecurity != "" {
+				w.Header().Set(headerHSTS, config.StrictTransportSecurity)
 			}
 
-			if cfg.PermissionsPolicy != "" {
-				w.Header().Set(headerPermissionsPolicy, cfg.PermissionsPolicy)
+			if config.PermissionsPolicy != "" {
+				w.Header().Set(headerPermissionsPolicy, config.PermissionsPolicy)
 			}
 
-			for k, v := range cfg.Custom {
+			for k, v := range config.Custom {
 				w.Header().Set(k, v)
 			}
 

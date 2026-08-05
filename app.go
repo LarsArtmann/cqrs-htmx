@@ -112,48 +112,48 @@ type AfterDispatchHook func(ctx context.Context, r *http.Request, err error)
 
 // New creates an App from the given Config.
 // Returns an error if both Commands and Queries are nil.
-func New(cfg Config) (*App, error) {
-	if cfg.Commands == nil && cfg.Queries == nil {
+func New(config Config) (*App, error) {
+	if config.Commands == nil && config.Queries == nil {
 		return nil, errorfamily.NewInfrastructure(
 			"config_invalid",
 			"[cqrs-htmx] at least one of Commands or Queries must be non-nil",
 		)
 	}
 
-	loginRedirect := cfg.LoginRedirect
+	loginRedirect := config.LoginRedirect
 	if loginRedirect == "" {
 		loginRedirect = defaultLoginRedirect
 	}
 
-	errorHandler := cfg.ErrorHandler
+	errorHandler := config.ErrorHandler
 	if errorHandler == nil {
-		includeInternal := cfg.IncludeInternalDetails
-		includeRequestID := cfg.IncludeRequestIDInErrors
+		includeInternal := config.IncludeInternalDetails
+		includeRequestID := config.IncludeRequestIDInErrors
 		errorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 			handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, includeInternal, includeRequestID))
 		}
 	}
 
 	return &App{
-		commands:        cfg.Commands,
-		queries:         cfg.Queries,
-		enforcer:        cfg.Enforcer,
-		userIDExtractor: cfg.UserIDExtractor,
+		commands:        config.Commands,
+		queries:         config.Queries,
+		enforcer:        config.Enforcer,
+		userIDExtractor: config.UserIDExtractor,
 		errorHandler:    errorHandler,
 		loginRedirect:   loginRedirect,
-		timeout:         cfg.Timeout,
-		maxBodySize:     cfg.MaxBodySize,
-		serviceName:     cfg.ServiceName,
-		beforeDispatch:  cfg.BeforeDispatch,
-		afterDispatch:   cfg.AfterDispatch,
-		serverTiming:    cfg.ServerTiming,
+		timeout:         config.Timeout,
+		maxBodySize:     config.MaxBodySize,
+		serviceName:     config.ServiceName,
+		beforeDispatch:  config.BeforeDispatch,
+		afterDispatch:   config.AfterDispatch,
+		serverTiming:    config.ServerTiming,
 	}, nil
 }
 
 // MustNew is like New but panics on error. Useful for init-time setup where
 // failure is a programmer error.
-func MustNew(cfg Config) *App {
-	app, err := New(cfg)
+func MustNew(config Config) *App {
+	app, err := New(config)
 	if err != nil {
 		panic(err)
 	}
@@ -200,7 +200,7 @@ func (a *App) EventOptions(ctx context.Context) []event.Option {
 //  4. Dispatch the command through the command.Dispatcher
 //  5. Apply HTMX response headers (redirect, trigger, push URL)
 func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
-	cfg := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
+	config := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
@@ -212,7 +212,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
 		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
-		a.handleCommandDispatch(w, r, cmdType, cfg)
+		a.handleCommandDispatch(w, r, cmdType, config)
 	})
 }
 
@@ -226,7 +226,7 @@ func (a *App) Command(cmdType command.Type, opts ...HandlerOption) http.HandlerF
 //  5. Render the result (via Render option)
 //  6. Apply HTMX response headers
 func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
-	cfg := a.buildHandlerConfigChecked(qryType.IsZero(), "query", opts)
+	config := a.buildHandlerConfigChecked(qryType.IsZero(), "query", opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {
@@ -238,7 +238,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
 		//nolint:contextcheck // ctx is extracted from r inside dispatchContext
-		a.handleQueryDispatch(w, r, qryType, cfg)
+		a.handleQueryDispatch(w, r, qryType, config)
 	})
 }
 
@@ -253,7 +253,7 @@ func (a *App) Query(qryType query.Type, opts ...HandlerOption) http.HandlerFunc 
 //	    cqrshtmx.DecodeJSONTyped[*CreateItemCmd](),
 //	)
 func CommandTyped[Q command.Command](a *App, cmdType command.Type, opts ...HandlerOption) http.HandlerFunc {
-	cfg := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
+	config := a.buildHandlerConfigChecked(cmdType.IsZero(), "command", opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.commands == nil {
@@ -264,7 +264,7 @@ func CommandTyped[Q command.Command](a *App, cmdType command.Type, opts ...Handl
 
 		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
-		handleCommandTypedDispatch[Q](a, w, r, cmdType, cfg)
+		handleCommandTypedDispatch[Q](a, w, r, cmdType, config)
 	})
 }
 
@@ -280,7 +280,7 @@ func CommandTyped[Q command.Command](a *App, cmdType command.Type, opts ...Handl
 //	    cqrshtmx.RenderJSON[*User](),
 //	)
 func QueryTyped[Q query.Query, R any](a *App, qryType query.Type, opts ...HandlerOption) http.HandlerFunc {
-	cfg := a.buildHandlerConfigChecked(qryType.IsZero(), "query", opts)
+	config := a.buildHandlerConfigChecked(qryType.IsZero(), "query", opts)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if a.queries == nil {
@@ -291,7 +291,7 @@ func QueryTyped[Q query.Query, R any](a *App, qryType query.Type, opts ...Handle
 
 		w, r = a.applyServerTiming(w, r)
 		r = a.enrichUserID(r)
-		handleQueryTypedDispatch[Q, R](a, w, r, qryType, cfg)
+		handleQueryTypedDispatch[Q, R](a, w, r, qryType, config)
 	})
 }
 
@@ -308,12 +308,12 @@ func (a *App) buildHandlerConfigChecked(typeIsZero bool, kind string, opts []Han
 		)
 	}
 
-	cfg := buildHandlerConfig(opts)
-	if cfg.maxBodySize == 0 {
-		cfg.maxBodySize = a.maxBodySize
+	config := buildHandlerConfig(opts)
+	if config.maxBodySize == 0 {
+		config.maxBodySize = a.maxBodySize
 	}
 
-	return cfg
+	return config
 }
 
 // Middleware returns an HTTP middleware that enriches the request context
@@ -379,15 +379,15 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 var noopCancel = func() {}
 
 // timeoutCtx returns a context with the handler's timeout applied, if configured.
-// Falls back to the App's timeout if the handler has no override (or cfg is nil).
+// Falls back to the App's timeout if the handler has no override (or config is nil).
 // The caller must call the returned cancel function when done.
 func (a *App) timeoutCtx(
 	ctx context.Context,
-	cfg *handlerConfig,
+	config *handlerConfig,
 ) (context.Context, context.CancelFunc) {
 	var t time.Duration
-	if cfg != nil {
-		t = cfg.timeout
+	if config != nil {
+		t = config.timeout
 	}
 
 	if t <= 0 {
@@ -440,10 +440,10 @@ func (a *App) HealthHandler() http.HandlerFunc {
 }
 
 func buildHandlerConfig(opts []HandlerOption) *handlerConfig {
-	cfg := &handlerConfig{}
+	config := &handlerConfig{}
 	for _, opt := range opts {
-		opt(cfg)
+		opt(config)
 	}
 
-	return cfg
+	return config
 }

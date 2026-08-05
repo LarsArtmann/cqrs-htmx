@@ -57,9 +57,9 @@ func postJSON(t *testing.T, mux *http.ServeMux, path, body string) *httptest.Res
 	return w
 }
 
-func newTestServiceWithConfig(t *testing.T, cfg ServiceConfig) *Service {
+func newTestServiceWithConfig(t *testing.T, config ServiceConfig) *Service {
 	t.Helper()
-	svc, err := NewService(cfg)
+	svc, err := NewService(config)
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}

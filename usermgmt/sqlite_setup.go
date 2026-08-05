@@ -31,16 +31,16 @@ type SQLiteSetupConfig struct {
 // For event signing/encryption (SecurityHooks), use NewEventSourcedSetup with
 // a manually-configured EventStore and EventBus — the stack preset does not
 // expose the injection points needed for wrapping.
-func NewSQLiteEventSourcedSetup(cfg SQLiteSetupConfig) (*SQLiteEventSourcedSetup, error) {
+func NewSQLiteEventSourcedSetup(config SQLiteSetupConfig) (*SQLiteEventSourcedSetup, error) {
 	bundle, err := stacksqlite.New(
-		cfg.DSN,
+		config.DSN,
 		stacksqlite.WithPragmas(sqlopt.WithOptimizations(), sqlopt.WithForeignKeys()),
 	)
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "usermgmt.sqlite_setup.create", "create sqlite stack bundle")
 	}
 
-	return newSQLiteSetup(bundle, cfg.AuditLog, cfg.CheckpointStore, cfg.SnapshotConfig)
+	return newSQLiteSetup(bundle, config.AuditLog, config.CheckpointStore, config.SnapshotConfig)
 }
 
 func newSQLiteSetup(

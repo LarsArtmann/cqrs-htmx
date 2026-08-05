@@ -5,7 +5,7 @@
 // tenant members, and an audit log — backed by a [*usermgmt.Service].
 // Consumers mount it with a single call:
 //
-//	svc, _ := usermgmt.NewService(cfg)
+//	svc, _ := usermgmt.NewService(config)
 //	panel := adminui.New(adminui.Config{Service: svc})
 //	panel.Mount(mux, "/admin")
 //

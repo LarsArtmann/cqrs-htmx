@@ -14,6 +14,15 @@ const brandInitialsLen = 2
 // accessibility (aside, nav, main, header) and CSS classes instead of
 // inline styles.
 func (d *Dashboard) renderLayout(p pageData, content func() string) string {
+	// HTMX partial mode: return only the <main> element and a <title> tag.
+	// HTMX boost extracts the title for the browser tab and swaps #main-content.
+	if p.HTMX {
+		return fmt.Sprintf(
+			"<title>%s · %s</title><main id=\"main-content\" class=\"content-area\">%s</main>",
+			esc(p.Title), esc(p.Brand), content(),
+		)
+	}
+
 	var b strings.Builder
 
 	b.WriteString("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
@@ -34,7 +43,7 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 
 	b.WriteString(`<a href="#main-content" class="skip-link">Skip to content</a>`)
 
-	b.WriteString(`<div class="app-layout" data-hx-boost="true">`)
+	b.WriteString(`<div class="app-layout" data-hx-boost="true" data-hx-target="#main-content" data-hx-select="#main-content" data-hx-swap="outerHTML">`)
 
 	b.WriteString(d.renderSidebar(p))
 	b.WriteString(`<div class="sidebar-backdrop" data-sidebar-backdrop></div>`)

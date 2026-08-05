@@ -6,7 +6,6 @@
  *   2. Light/dark mode via prefers-color-scheme
  *   3. Tailwind @theme color mappings
  *   4. HTMX indicator visibility convention
- *   5. Toast container styles (created dynamically by admin.js)
  *
  * Build: tailwindcss -i tailwind.css -o assets/admin-tw.css --minify
  */
@@ -124,43 +123,6 @@ body {
 .htmx-request .htmx-indicator,
 .htmx-request.htmx-indicator {
   opacity: 1;
-}
-
-/* ---------- Toasts (created dynamically by admin.js) ---------- */
-.toast-host {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.toast {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px 16px;
-  box-shadow: var(--shadow);
-  font-size: 14px;
-  animation: toast-in 0.18s ease;
-}
-.toast--err {
-  border-color: var(--err);
-}
-.toast--ok {
-  border-color: var(--ok);
-}
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* ---------- Honest UI: sync-state lifecycle ---------- */

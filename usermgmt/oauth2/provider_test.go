@@ -31,51 +31,51 @@ func TestProviderConfig_Validate(t *testing.T) {
 }
 
 func TestProviderConfig_Validate_MissingClientID(t *testing.T) {
-	cfg := ProviderConfig{
+	config := ProviderConfig{
 		ClientSecret: "secret",
 		RedirectURL:  "http://localhost/callback",
 		IssuerURL:    "https://accounts.google.com",
 	}
-	if err := cfg.Validate(); err == nil {
+	if err := config.Validate(); err == nil {
 		t.Fatal("expected error for missing ClientID")
 	}
 }
 
 func TestProviderConfig_Validate_MissingClientSecret(t *testing.T) {
-	cfg := ProviderConfig{
+	config := ProviderConfig{
 		ClientID:    "id",
 		RedirectURL: "http://localhost/callback",
 		IssuerURL:   "https://accounts.google.com",
 	}
-	if err := cfg.Validate(); err == nil {
+	if err := config.Validate(); err == nil {
 		t.Fatal("expected error for missing ClientSecret")
 	}
 }
 
 func TestProviderConfig_Validate_MissingRedirectURL(t *testing.T) {
-	cfg := ProviderConfig{
+	config := ProviderConfig{
 		ClientID:     "id",
 		ClientSecret: "secret",
 		IssuerURL:    "https://accounts.google.com",
 	}
-	if err := cfg.Validate(); err == nil {
+	if err := config.Validate(); err == nil {
 		t.Fatal("expected error for missing RedirectURL")
 	}
 }
 
 func TestProviderConfig_Validate_OAuth2EndpointsRequired(t *testing.T) {
-	cfg := ProviderConfig{
+	config := ProviderConfig{
 		ClientID:     "id",
 		ClientSecret: "secret",
 		RedirectURL:  "http://localhost/callback",
 	}
-	if err := cfg.Validate(); err == nil {
+	if err := config.Validate(); err == nil {
 		t.Fatal("expected error when IssuerURL is empty and no explicit endpoints")
 	}
 }
 
 func TestProviderConfig_Validate_OAuth2EndpointsOK(t *testing.T) {
-	cfg := ProviderConfig{
+	config := ProviderConfig{
 		ClientID:     "id",
 		ClientSecret: "secret",
 		RedirectURL:  "http://localhost/callback",
@@ -83,7 +83,7 @@ func TestProviderConfig_Validate_OAuth2EndpointsOK(t *testing.T) {
 		TokenURL:     "https://example.com/token",
 		UserInfoURL:  "https://example.com/userinfo",
 	}
-	if err := cfg.Validate(); err != nil {
+	if err := config.Validate(); err != nil {
 		t.Fatalf("valid OAuth2 config should not error: %v", err)
 	}
 }
@@ -250,7 +250,7 @@ func newFakeOAuth2Server(t *testing.T, userInfo map[string]any) ProviderConfig {
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
 
-	cfg := ProviderConfig{
+	config := ProviderConfig{
 		ClientID:     "test-client-id",
 		ClientSecret: "test-client-secret",
 		RedirectURL:  "http://localhost:8080/callback",
@@ -258,7 +258,7 @@ func newFakeOAuth2Server(t *testing.T, userInfo map[string]any) ProviderConfig {
 		TokenURL:     server.URL + "/token",
 		UserInfoURL:  server.URL + "/userinfo",
 	}
-	return cfg
+	return config
 }
 
 func TestProvider_FinishLogin_PureOAuth2(t *testing.T) {

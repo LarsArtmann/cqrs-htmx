@@ -25,19 +25,19 @@ type PostgresSetupConfig struct {
 	SnapshotConfig
 }
 
-func NewPostgresEventSourcedSetup(cfg PostgresSetupConfig) (*PostgresEventSourcedSetup, error) {
+func NewPostgresEventSourcedSetup(config PostgresSetupConfig) (*PostgresEventSourcedSetup, error) {
 	dsnOpts := []sqlopt.DSNOption{}
-	if cfg.EventDSN != "" {
-		dsnOpts = append(dsnOpts, sqlopt.WithEventDB(cfg.EventDSN))
+	if config.EventDSN != "" {
+		dsnOpts = append(dsnOpts, sqlopt.WithEventDB(config.EventDSN))
 	}
-	if cfg.QueryDSN != "" {
-		dsnOpts = append(dsnOpts, sqlopt.WithQueryDB(cfg.QueryDSN))
+	if config.QueryDSN != "" {
+		dsnOpts = append(dsnOpts, sqlopt.WithQueryDB(config.QueryDSN))
 	}
-	bundle, err := stackpostgres.New(cfg.DSN, stackpostgres.WithDSN(dsnOpts...))
+	bundle, err := stackpostgres.New(config.DSN, stackpostgres.WithDSN(dsnOpts...))
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, "usermgmt.postgres_setup.create", "create postgres stack bundle")
 	}
-	return newPostgresSetup(bundle, cfg.AuditLog, cfg.CheckpointStore, cfg.SnapshotConfig)
+	return newPostgresSetup(bundle, config.AuditLog, config.CheckpointStore, config.SnapshotConfig)
 }
 
 func newPostgresSetup(

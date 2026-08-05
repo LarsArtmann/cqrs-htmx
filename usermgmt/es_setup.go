@@ -173,28 +173,28 @@ func DefaultEventSourcedSetup() (*EventSourcedSetup, error) {
 // detection, repository creation, and projection subscription.
 //
 // The caller should defer closing the bus.
-func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
-	store := cfg.EventStore
+func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error) {
+	store := config.EventStore
 	if store == nil {
 		store = memory.NewMemoryStore()
 	}
 
-	store, err := wrapEventStore(cfg.StoreWrapper, store)
+	store, err := wrapEventStore(config.StoreWrapper, store)
 	if err != nil {
 		return nil, err
 	}
 
-	bus := cfg.EventBus
+	bus := config.EventBus
 	if bus == nil {
 		//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
 		bus = watermill.NewEventBus()
 	}
 
-	if err := applyBusMiddleware(cfg.PublishMiddleware, cfg.HandlerMiddleware, bus); err != nil {
+	if err := applyBusMiddleware(config.PublishMiddleware, config.HandlerMiddleware, bus); err != nil {
 		return nil, err
 	}
 
-	repos, err := buildDeciderRepositories(store, bus, func() { closeBus(bus) }, cfg.SnapshotConfig)
+	repos, err := buildDeciderRepositories(store, bus, func() { closeBus(bus) }, config.SnapshotConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -212,8 +212,8 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 	tenantProj := projection.Projection(tenantReadModel)
 	botProj := projection.Projection(botReadModel)
 
-	if cfg.ReadModelDB != nil {
-		sqlUserRM, err := NewSQLiteUserReadModel(cfg.ReadModelDB)
+	if config.ReadModelDB != nil {
+		sqlUserRM, err := NewSQLiteUserReadModel(config.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
 			return nil, errorfamily.WrapTransient(
@@ -225,7 +225,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		readModel = sqlUserRM.UserReadModel
 		userProj = sqlUserRM
 
-		sqlMembershipRM, err := NewSQLiteMembershipReadModel(cfg.ReadModelDB)
+		sqlMembershipRM, err := NewSQLiteMembershipReadModel(config.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
 			return nil, errorfamily.WrapTransient(
@@ -237,7 +237,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		membershipReadModel = sqlMembershipRM.MembershipReadModel
 		membershipProj = sqlMembershipRM
 
-		sqlTenantRM, err := NewSQLiteTenantReadModel(cfg.ReadModelDB)
+		sqlTenantRM, err := NewSQLiteTenantReadModel(config.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
 			return nil, errorfamily.WrapTransient(
@@ -249,7 +249,7 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		tenantReadModel = sqlTenantRM.TenantReadModel
 		tenantProj = sqlTenantRM
 
-		sqlBotRM, err := NewSQLiteBotReadModel(cfg.ReadModelDB)
+		sqlBotRM, err := NewSQLiteBotReadModel(config.ReadModelDB)
 		if err != nil {
 			closeBus(bus)
 			return nil, errorfamily.WrapTransient(
@@ -276,19 +276,19 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 
 	journal := journalFromStore(store)
 	allProjections := collectProjections(
-		userProj, membershipProj, tenantProj, botProj, casbinProjection, cfg.AuditLog,
+		userProj, membershipProj, tenantProj, botProj, casbinProjection, config.AuditLog,
 	)
 
 	var hostOpts []projectionhost.HostOption
-	if cfg.OnProjectionFailed != nil {
-		hostOpts = append(hostOpts, projectionhost.WithOnFailed(cfg.OnProjectionFailed))
+	if config.OnProjectionFailed != nil {
+		hostOpts = append(hostOpts, projectionhost.WithOnFailed(config.OnProjectionFailed))
 	}
 
 	host, err := startProjectionHost(
 		context.Background(),
 		journal,
 		bus,
-		cfg.CheckpointStore,
+		config.CheckpointStore,
 		allProjections,
 		hostOpts...,
 	)
@@ -310,8 +310,8 @@ func NewEventSourcedSetup(cfg EventSourcedConfig) (*EventSourcedSetup, error) {
 		BotReadModel:         botReadModel,
 		casbinProjection:     casbinProjection,
 		projectionHost:       host,
-		checkpointStore:      cfg.CheckpointStore,
-		auditLog:             cfg.AuditLog,
+		checkpointStore:      config.CheckpointStore,
+		auditLog:             config.AuditLog,
 		projections:          allProjections,
 	}, nil
 }

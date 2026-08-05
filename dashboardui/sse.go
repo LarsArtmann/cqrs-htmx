@@ -52,7 +52,7 @@ func newSSEEvent(evt event.Event) sse.Event {
 // to the internal SSE broadcaster. Called once during [New] when
 // Config.EventBus is configured.
 func (d *Dashboard) startEventBridge() {
-	if d.cfg.EventBus == nil || d.broadcaster == nil {
+	if d.config.EventBus == nil || d.broadcaster == nil {
 		return
 	}
 
@@ -69,7 +69,7 @@ func (d *Dashboard) startEventBridge() {
 	}
 
 	//cqrs-lint:ignore(C027,A005) SSE fan-out bridge for live dashboard updates, not a read-model projection
-	if err := d.cfg.EventBus.SubscribeAll(
+	if err := d.config.EventBus.SubscribeAll(
 		handler,
 	); err != nil {
 		slog.Error("dashboardui: subscribe to event bus", "error", err)
@@ -111,8 +111,8 @@ func (d *Dashboard) sseHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if d.cfg.SSEHeartbeatInterval > 0 {
-		go stream.Heartbeat(stream.Context(), d.cfg.SSEHeartbeatInterval) //nolint:contextcheck
+	if d.config.SSEHeartbeatInterval > 0 {
+		go stream.Heartbeat(stream.Context(), d.config.SSEHeartbeatInterval) //nolint:contextcheck
 	}
 
 	for {

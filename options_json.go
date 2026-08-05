@@ -35,8 +35,8 @@ func RenderJSONStatus[T any](status int) HandlerOption {
 }
 
 func renderJSONWithStatus[T any](status int) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.render = func(w http.ResponseWriter, r *http.Request, result any) error {
+	return func(config *handlerConfig) {
+		config.render = func(w http.ResponseWriter, r *http.Request, result any) error {
 			typed, ok := result.(T)
 			if !ok {
 				return errorfamily.NewRejection("unexpected_result_type",
@@ -58,8 +58,8 @@ func renderJSONWithStatus[T any](status int) HandlerOption {
 //	    cqrshtmx.RequireMethod(http.MethodPost),
 //	)
 func RequireMethod(method string) HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.requireMethod = method
+	return func(config *handlerConfig) {
+		config.requireMethod = method
 	}
 }
 
@@ -96,8 +96,8 @@ func DecodePagination(r *http.Request) query.Pagination {
 //	    cqrshtmx.RenderPaginatedJSON[User](),
 //	)
 func RenderPaginatedJSON[T any]() HandlerOption {
-	return func(cfg *handlerConfig) {
-		cfg.render = func(w http.ResponseWriter, _ *http.Request, result any) error {
+	return func(config *handlerConfig) {
+		config.render = func(w http.ResponseWriter, _ *http.Request, result any) error {
 			typed, ok := result.(query.PaginatedResult[T])
 			if !ok {
 				return errorfamily.NewRejection("unexpected_result_type",

@@ -13,7 +13,7 @@ import (
 // newTestPanel builds a panel backed by an in-memory service and wrapped by
 // middleware that injects the given user into the request context. This mirrors
 // how a consumer mounts the panel behind usermgmt.NewSessionMiddleware.
-func newTestPanel(t *testing.T, user *usermgmt.User, cfg ...Config) (http.Handler, *usermgmt.Service) {
+func newTestPanel(t *testing.T, user *usermgmt.User, config ...Config) (http.Handler, *usermgmt.Service) {
 	t.Helper()
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
 		AuditLog: usermgmt.NewAuditLog(),
@@ -22,8 +22,8 @@ func newTestPanel(t *testing.T, user *usermgmt.User, cfg ...Config) (http.Handle
 		t.Fatalf("NewService: %v", err)
 	}
 	c := Config{Service: svc, Authorizer: RequireAuthenticated()}
-	if len(cfg) > 0 {
-		c = cfg[0]
+	if len(config) > 0 {
+		c = config[0]
 		if c.Authorizer == nil {
 			c.Authorizer = RequireAuthenticated()
 		}

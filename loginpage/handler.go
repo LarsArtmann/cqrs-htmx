@@ -72,20 +72,20 @@ type clientConfig struct {
 
 // Handler serves the login page. It is safe to use as an http.Handler.
 type Handler struct {
-	cfg  Config
-	data PageData
+	config Config
+	data   PageData
 }
 
 // New creates a login page handler from the given Config.
 // Returns an error if Config.Service is nil.
-func New(cfg Config) (*Handler, error) {
-	cfg, err := cfg.withDefaults()
+func New(config Config) (*Handler, error) {
+	config, err := config.withDefaults()
 	if err != nil {
 		return nil, err
 	}
 	return &Handler{
-		cfg:  cfg,
-		data: buildPageData(cfg, nil),
+		config: config,
+		data:   buildPageData(config, nil),
 	}, nil
 }
 
@@ -120,12 +120,12 @@ func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 //
 // Use this when you want full control over the HTML shell but still want the
 // login form, embedded WebAuthn JS, and CSRF integration.
-func NewPageData(cfg Config, r *http.Request) (PageData, error) {
-	cfg, err := cfg.withDefaults()
+func NewPageData(config Config, r *http.Request) (PageData, error) {
+	config, err := config.withDefaults()
 	if err != nil {
 		return PageData{}, err
 	}
-	data := buildPageData(cfg, r)
+	data := buildPageData(config, r)
 	return data, nil
 }
 
@@ -141,8 +141,8 @@ func renderPage(w http.ResponseWriter, r *http.Request, data PageData) {
 
 // buildPageData constructs the page data from config. If r is non-nil, CSRF
 // fields are populated from the request; otherwise they are left empty.
-func buildPageData(cfg Config, r *http.Request) PageData {
-	prefix := cfg.AuthPrefix
+func buildPageData(config Config, r *http.Request) PageData {
+	prefix := config.AuthPrefix
 	endpoints := endpointConfig{
 		LoginBegin:     prefix + "/auth/webauthn/login/begin",
 		LoginFinish:    prefix + "/auth/webauthn/login/finish",
@@ -152,26 +152,26 @@ func buildPageData(cfg Config, r *http.Request) PageData {
 	}
 
 	cc := clientConfig{
-		Redirect:       safeRedirectPath(cfg.Redirect),
+		Redirect:       safeRedirectPath(config.Redirect),
 		Endpoints:      endpoints,
-		CredentialName: cfg.CredentialName,
+		CredentialName: config.CredentialName,
 	}
 	configJSON, err := json.Marshal(cc)
 	if err != nil { // cannot fail for this struct
 		configJSON = []byte(`{"redirect":"/","endpoints":{}}`)
 	}
 
-	hasWebAuthn := cfg.Service.HasWebAuthn()
+	hasWebAuthn := config.Service.HasWebAuthn()
 
 	// Auto-populate OAuth2 buttons from configured providers when not explicitly set.
-	oauth2Buttons := cfg.OAuth2Buttons
+	oauth2Buttons := config.OAuth2Buttons
 	if len(oauth2Buttons) == 0 {
-		for _, name := range cfg.Service.ConfiguredOAuth2Providers() {
+		for _, name := range config.Service.ConfiguredOAuth2Providers() {
 			oauth2Buttons = append(oauth2Buttons, OAuth2ButtonFromProvider(name))
 		}
 	}
 	hasOAuth2 := len(oauth2Buttons) > 0
-	showReg := !cfg.NoRegistration && hasWebAuthn
+	showReg := !config.NoRegistration && hasWebAuthn
 
 	subtitle := "Sign in to your account"
 	if !hasWebAuthn && !hasOAuth2 {
@@ -179,15 +179,15 @@ func buildPageData(cfg Config, r *http.Request) PageData {
 	}
 
 	data := PageData{
-		Title:         cfg.Title,
-		Brand:         cfg.Brand,
+		Title:         config.Title,
+		Brand:         config.Brand,
 		Subtitle:      subtitle,
-		Accent:        cfg.AccentColor,
-		CSSPath:       cfg.CSSPath,
+		Accent:        config.AccentColor,
+		CSSPath:       config.CSSPath,
 		WebAuthn:      hasWebAuthn,
 		OAuth2Buttons: oauth2Buttons,
 		ShowReg:       showReg,
-		authPrefix:    cfg.AuthPrefix,
+		authPrefix:    config.AuthPrefix,
 		inlineCSS:     loginCSS,
 		inlineJS:      loginJS,
 		configJSON:    string(configJSON),

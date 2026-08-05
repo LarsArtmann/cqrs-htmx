@@ -107,26 +107,26 @@ type RateLimitConfig struct {
 	Window time.Duration
 }
 
-func newLimiterFromConfig(cfg RateLimitConfig) *cqrshtmx.RateLimiter {
-	if cfg.Enabled && cfg.MaxRequests > 0 {
+func newLimiterFromConfig(config RateLimitConfig) *cqrshtmx.RateLimiter {
+	if config.Enabled && config.MaxRequests > 0 {
 		return cqrshtmx.NewRateLimiter(cqrshtmx.RateLimiterConfig{ //nolint:exhaustruct // consumer defaults
-			Limit:        uint(cfg.MaxRequests),
-			Window:       cfg.Window,
+			Limit:        uint(config.MaxRequests),
+			Window:       config.Window,
 			KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
 		})
 	}
 	return nil
 }
 
-func applyConfigDefaults(cfg HandlerConfig) HandlerConfig {
-	if cfg.CookieName == "" {
-		cfg.CookieName = defaultCookieName
+func applyConfigDefaults(config HandlerConfig) HandlerConfig {
+	if config.CookieName == "" {
+		config.CookieName = defaultCookieName
 	}
-	if cfg.Secure == nil {
+	if config.Secure == nil {
 		secure := true
-		cfg.Secure = &secure
+		config.Secure = &secure
 	}
-	return cfg
+	return config
 }
 
 const (
@@ -149,10 +149,10 @@ const (
 )
 
 // NewAuthHandler creates an AuthHandler for the given Service with optional config.
-func NewAuthHandler(service *Service, cfg ...HandlerConfig) *AuthHandler {
+func NewAuthHandler(service *Service, config ...HandlerConfig) *AuthHandler {
 	config := applyConfigDefaults(HandlerConfig{})
-	if len(cfg) > 0 {
-		config = applyConfigDefaults(cfg[0])
+	if len(config) > 0 {
+		config = applyConfigDefaults(config[0])
 	}
 	if config.ImportExportAuthorizer == nil {
 		config.ImportExportAuthorizer = RequireAdminRole(service.authz)

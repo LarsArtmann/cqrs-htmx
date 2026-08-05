@@ -3,7 +3,10 @@ package usermgmt
 import identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 
 type (
-	MemberAddedPayload        = identitymodel.MemberAddedPayload
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	MemberAddedPayload = identitymodel.MemberAddedPayload
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	MemberRolesChangedPayload = identitymodel.MemberRolesChangedPayload
-	MemberRemovedPayload      = identitymodel.MemberRemovedPayload
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	MemberRemovedPayload = identitymodel.MemberRemovedPayload
 )

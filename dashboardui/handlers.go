@@ -22,7 +22,7 @@ func (d *Dashboard) loadStreamFromRequest(
 		return id.StreamRef{}, nil, false
 	}
 
-	events, err := d.cfg.EventSource.Load(r.Context(), ref)
+	events, err := d.config.EventSource.Load(r.Context(), ref)
 	if err != nil {
 		renderError(w, r, http.StatusInternalServerError, "failed to load aggregate")
 

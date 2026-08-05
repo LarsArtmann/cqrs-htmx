@@ -9,18 +9,18 @@ import (
 
 func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
 	p := h.page("Dashboard", "/", user, r)
-	svc := h.cfg.Service
+	svc := h.config.Service
 
 	var stats []statCard
-	if h.cfg.Mode == ModeSuperAdmin {
+	if h.config.Mode == ModeSuperAdmin {
 		stats = []statCard{
 			{Label: "Users", Value: strconv.Itoa(svc.ReadModel().Count()), Icon: iconUsers},
 			{Label: "Tenants", Value: strconv.Itoa(len(svc.AllTenants())), Icon: iconTenants},
 		}
 	} else {
-		members := svc.TenantMembers(r.Context(), h.cfg.TenantID)
-		tenantName := h.cfg.TenantID.Get()
-		if t, err := svc.GetTenant(r.Context(), h.cfg.TenantID); err == nil && t.DisplayName != "" {
+		members := svc.TenantMembers(r.Context(), h.config.TenantID)
+		tenantName := h.config.TenantID.Get()
+		if t, err := svc.GetTenant(r.Context(), h.config.TenantID); err == nil && t.DisplayName != "" {
 			tenantName = t.DisplayName
 		}
 		stats = []statCard{
