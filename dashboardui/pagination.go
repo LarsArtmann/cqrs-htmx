@@ -24,6 +24,13 @@ type paginationState struct {
 	// the current one. The implicit first-page cursor ("") is never stored;
 	// an empty history with a non-empty After means "Previous goes to page 1".
 	PrevHistory string
+	// TotalCount, when non-empty, renders a "Showing X–Y of Z" label.
+	// A trailing "+" means the count hit the limit (e.g. "500+").
+	TotalCount string
+	// PageStart is the 1-based index of the first item on the current page.
+	PageStart int
+	// PageLen is the number of items actually shown on the current page.
+	PageLen int
 }
 
 // pushCursor appends cursor to the comma-separated history, skipping empty
@@ -98,6 +105,8 @@ func renderPagination(basePath, path string, state paginationState, extraParams 
 		b.WriteString(`<span class="pagination disabled">← Previous</span>`)
 	}
 
+	b.WriteString(renderPaginationInfo(state))
+
 	if state.HasNext {
 		nextHistory := pushCursor(state.PrevHistory, state.After)
 		query := paginationQuery(state.NextCursor, nextHistory, state.PageSize, extraParams)
@@ -107,6 +116,29 @@ func renderPagination(basePath, path string, state paginationState, extraParams 
 	b.WriteString(`</div>`)
 
 	return b.String()
+}
+
+// renderPaginationInfo renders the "Showing X–Y of Z" label when available.
+func renderPaginationInfo(state paginationState) string {
+	if state.PageLen == 0 {
+		return ""
+	}
+
+	end := state.PageStart + state.PageLen - 1
+	if state.PageStart < 1 {
+		state.PageStart = 1
+	}
+	if end < state.PageStart {
+		end = state.PageStart
+	}
+
+	if state.TotalCount != "" {
+		return fmt.Sprintf(`<span class="pagination-info">Showing %d–%d of %s</span>`,
+			state.PageStart, end, esc(state.TotalCount))
+	}
+
+	return fmt.Sprintf(`<span class="pagination-info">Showing %d–%d</span>`,
+		state.PageStart, end)
 }
 
 // parsePageSize reads the ?limit= query param, clamped to [1, maxPageSize].
