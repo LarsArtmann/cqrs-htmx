@@ -14,12 +14,6 @@
 
 ---
 
-## P0 — Blocking (hermetic build & release)
-
-- [ ] **Publish httputil v0.9.0, bump cqrs-htmx `go.mod`, remove the `go.work` replace.** The hermetic `nix run .#build`/`.#test` (GOWORK=off) is currently broken: `security.go` references `httputil.RecommendedHSTS`/`RecommendedCSP`/`SecurityHeaderSkip`/`ContentTypeOptions` added in the pending v0.9.0 (root `go.mod` is still at v0.8.0). The `go.work` TEMPORARY replace points at `/home/lars/projects/httputil`. Steps: tag httputil v0.9.0, bump root + all sub-module `go.mod`, `go mod tidy`, remove replace, verify `nix run .#test` passes hermetically. Evidence: `go.work:133-138`, AGENTS.md "httputil leverage" gotcha.
-
----
-
 ## P1 — High impact (release follow-through & doc health)
 
 - [~] **Complete MySQL event-store support.** Dialect, read-model constructors, setup template, migration guide, and error classifier are done (`MySQLDialect`, `NewMySQL*ReadModel`, `mysql_setup.go`, `docs/guides/mysql-setup.md`, `classifyMySQLError`). Remaining: (1) integration test against real MySQL via docker/testcontainers; (2) document MySQL support in the root README; (3) `NewMySQLSetup` convenience constructor + MySQL-backed session/snapshot/checkpoint stores. Evidence: `usermgmt/sql_readmodel_mysql.go`, `go-cqrs-lite/storage/sql/dialect.go`.
@@ -28,12 +22,8 @@
 
 ## P2 — Medium impact (tooling & quality)
 
-- [ ] **Publish the `datastar/v4` git tag.** The module is release-ready (71 tests, 96.7% coverage, 0 lint, no local replaces, GOWORK=off clean) but has no published tag — consumers outside the workspace cannot `go get` it. Requires stripping local `replace` directives from demo/integration_test `go.mod` first. Source: ROADMAP "Datastar Future Scope".
+- [ ] **Add remaining BuildFlow tools to the flake devShell.** biome, shfmt, and nixfmt are now wired. Still missing: cspell (spell-checking), vitest, jest — needed for full `--no-verify`-free commits on JS/Markdown files. Source: `docs/status/2026-08-05_02-35_templ-components-adoption-deepening.md`.
 - [~] **Wire remaining `check-*` apps into CI.** `check-docs-links`, `check-service-methods`, `check-domain-counts`, `check-large-files`, and `check-phantom-version` now run in the CI `checks` and `security` jobs. Remaining: `check-codegen` (needs templ version pinning in CI), `check-templates` (needs workspace mode / local replaces), `check-cqrs-lint` (blocked — Nix-only binary; see P3.1).
-- [ ] **Add missing BuildFlow tools to the flake devShell.** biome, shfmt, nixfmt, cspell, vitest, jest are "not found" in the devShell, forcing `--no-verify` on commits that touch JS/Markdown. Source: `docs/status/2026-08-05_02-35_templ-components-adoption-deepening.md`.
-- [ ] **Close `dashboardui/core/` coverage gaps + add to the coverage gate.** `core/` is at 67.2% and ungated. Untested: `ListStreamsPaged` (0%), the `FetchOverview` ProjectionHost health-classification path (48.9%), `ProjectionStats` (25%), `DLQProjectionLinks` with a real host (16.7%), CBOR payload rendering. Source: `docs/status/2026-08-05_06-32_dashboardui-core-extraction-phase2-complete.md`.
-- [ ] **Auto-discover modules from `go.work` in `flake.nix`.** Replace the hardcoded module lists in 6+ flake.nix apps (`test`, `lint`, `coverage`, `build`, `test-flake`, `test-fuzz`, `check-cqrs-lint`) with dynamic discovery via `go work edit -json | jq -r '.Mapping[].DiskPath'`. Requires an architecture decision (shell-in-Nix pattern). Documented in AGENTS.md gotchas.
-- [ ] **Add httputil `SecurityHeaders` field tests.** `PermissionsPolicy`, `Custom`, `ContentTypeOptions` precedence, and the `SecurityHeaderSkip` (`"-"`) sentinel are additive new branches untested in httputil (pending v0.9.0). Source: `docs/status/2026-08-05_11-09_httputil-adoption-100-session-complete.md`.
 
 ---
 
