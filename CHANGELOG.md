@@ -893,3 +893,5 @@ See `docs/migrations/v3-to-v4.md` for detailed before/after examples.
 ### Changed
 
 - Deduplicate `UserIDExtractor` calls — handlers check context first, skip if middleware already set user ID
+
+<!-- noop -->
