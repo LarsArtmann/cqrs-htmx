@@ -30,6 +30,14 @@
 
 ---
 
+## P1 — High Impact (structural debt from 2026-08-05 architecture review)
+
+- [ ] **Extract OAuth2 sub-service from `*Service` as v5 decomposition prototype.** `*Service` has 74 methods (+22 since ADR-0038 on 2026-07-19, trending to ~100 by October). ADR-0038 defers full decomposition to v5, but extracting one focused sub-service validates the composition pattern within v4. OAuth2 (8 methods in `service_oauth2.go`) is the best candidate: self-contained, few cross-domain dependencies. Create an `OAuth2Service` struct that holds the OAuth2-specific fields (providers, stateStore, successURL, errorURL), extract the 8 methods, and have `*Service` embed or hold it. This is a same-package struct decomposition (not a sub-package move — that's blocked by ADR-0019). Validates ADR-0038's proposed pattern before committing to v5. Evidence: `docs/architecture-understanding/2026-08-05_01-40_deep-architecture-review.html`, `docs/modularization/2026-08-05_PROPOSAL.html`.
+
+- [ ] **Remove identity-model re-export layer in v5.** 26 usermgmt files re-export identity-model types (160 deprecated markers added 2026-08-05). Removal is a breaking change (consumers must switch `usermgmt.UserID` → `identitymodel.UserID`), bundled with the v5 major bump alongside ADR-0019/0038. Track: no consumer has requested this; v5 is undated. The deprecation markers are the retirement path — they signal consumers to migrate now. Decision: remove in v5 (confirmed by maintainer 2026-08-05).
+
+---
+
 ## P3 — Technical Debt & Future
 
 - [ ] **Add cqrs-lint strict CI gate to GitHub Actions.** Run cqrs-lint `--strict` in CI to catch catalog/validation findings early. Blocked: cqrs-lint is a Nix-only binary; needs either a Go-installable distribution or a Nix CI runner. The flake.nix `check-cqrs-lint` app exists for local use.

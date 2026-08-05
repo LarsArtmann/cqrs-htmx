@@ -114,14 +114,36 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	p := d.page("Aggregate: "+streamTitlePath(ref), "/aggregates", r)
-	html := d.renderAggregateDetail(p, ref, events)
+	html := d.renderAggregateDetail(p, ref, events, d.aggregateTimelinePagination(r))
 	renderPage(w, r, html)
+}
+
+// aggregateTimelinePagination computes the pagination state for the event
+// timeline on the aggregate detail page. Uses version number as cursor
+// (?after=3 means start after version 3). The timeline is paginated in-memory
+// since EventSource.Load returns all events for a single stream.
+func (d *Dashboard) aggregateTimelinePagination(r *http.Request) paginationState {
+	pageSize := parsePageSize(r, d.config.PageSize)
+	afterCursor, prevHistory, _ := parseCursorParams(r)
+
+	afterVersion := uint64(0)
+	if afterCursor != "" {
+		afterVersion, _ = strconv.ParseUint(afterCursor, 10, 64)
+	}
+
+	return paginationState{
+		PageSize:    pageSize,
+		After:       afterCursor,
+		PrevHistory: prevHistory,
+		HasPrev:     afterVersion > 0,
+	}
 }
 
 func (d *Dashboard) renderAggregateDetail(
 	p pageData,
 	ref id.StreamRef,
 	events []event.Event,
+	page paginationState,
 ) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
@@ -156,9 +178,12 @@ func (d *Dashboard) renderAggregateDetail(
 			return emptyState("No events", "This aggregate has no recorded events.")
 		}
 
+		// In-memory pagination using version numbers as cursors.
+		pagedEvents, hasNext := paginateEventsByVersion(events, page)
+
 		var rows strings.Builder
 
-		for _, evt := range events {
+		for _, evt := range pagedEvents {
 			fmt.Fprintf(
 				&rows,
 				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono copyable" data-copyable="%s" title="Click to copy">%s</code></td></tr>`,
@@ -179,8 +204,55 @@ func (d *Dashboard) renderAggregateDetail(
 			rows.String(),
 		)
 
+		timelinePage := page
+		timelinePage.HasNext = hasNext
+		if hasNext && len(pagedEvents) > 0 {
+			timelinePage.NextCursor = pagedEvents[len(pagedEvents)-1].Version().String()
+		}
+
+		b.WriteString(renderPagination(
+			p.BasePath,
+			"/aggregates/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
+			timelinePage,
+			"",
+		))
+
 		return b.String()
 	})
+}
+
+// paginateEventsByVersion slices the events array for in-memory pagination.
+// Uses the After cursor as a version number: events with version > After are
+// returned, up to PageSize+1 (the +1 is for HasMore detection).
+func paginateEventsByVersion(events []event.Event, page paginationState) ([]event.Event, bool) {
+	afterVersion := uint64(0)
+	if page.After != "" {
+		afterVersion, _ = strconv.ParseUint(page.After, 10, 64)
+	}
+
+	start := 0
+	for i, evt := range events {
+		if evt.Version().UInt64() > afterVersion {
+			start = i
+			break
+		}
+		if i == len(events)-1 {
+			start = len(events)
+		}
+	}
+
+	if start >= len(events) {
+		return nil, false
+	}
+
+	end := min(start+page.PageSize+1, len(events))
+	paged := events[start:end]
+	hasMore := len(paged) > page.PageSize
+	if hasMore {
+		paged = paged[:page.PageSize]
+	}
+
+	return paged, hasMore
 }
 
 func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing, page paginationState) string {

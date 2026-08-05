@@ -83,6 +83,12 @@ The split becomes worthwhile when:
 2. **Dep-tree analysis shows >30% of usermgmt dependencies are pulled in for aggregates the consumer doesn't use.** Current dep-tree: go-cqrs-lite (event/command/decider/projection/projectionhost), casbin, go-error-family, go-branded-id. These are all shared infrastructure — the split would only help if aggregate-specific deps diverge.
 3. **Compile times become a bottleneck** — the current module compiles in ~3s. No urgency.
 
+**Trigger status (2026-08-05 architecture review):** 0 of 3 met. Independently confirmed: zero cross-aggregate co-change, 0% dep divergence, ~3s compile. The v5 deferral is correct. However, `*Service` has grown to 74 methods (+22 since ADR-0038 on 2026-07-19) — track this as the leading indicator. An OAuth2 sub-service extraction prototype is in progress (TODO_LIST) to validate the ADR-0038 composition pattern within v4 before committing to v5.
+
+### Re-export Layer Retirement (v5)
+
+26 usermgmt files re-export identity-model types via type aliases and constructor wrappers. All 160 exported re-export symbols now carry `// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.` markers (added 2026-08-05). Removal is a breaking change bundled with the v5 major bump. Decision confirmed by maintainer 2026-08-05: remove in v5.
+
 ### Proposed Module Boundaries (v5)
 
 ```
