@@ -326,4 +326,5 @@ var _ = Describe("BDD: Realtime (SSE) Consumer Scenarios", func() {
 			})
 		},
 	)
+})
 
