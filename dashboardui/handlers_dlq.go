@@ -377,12 +377,14 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono" title="%s">%s</td><td><code>%s</code></td><td><span class="badge badge-err">%s</span></td><td>%s</td><td>%s</td></tr>`,
+				`<tr><td class="mono" title="%s">%s</td><td><a href="%s/dead-letters/%s/%s"><code>%s</code></a></td><td><span class="badge badge-err">%s</span></td><td>%s</td><td><a href="%s/dead-letters/%s/%s" class="btn">View</a> %s</td></tr>`,
 				esc(e.FailedAt.Format("2006-01-02 15:04:05")),
 				esc(relativeTime(e.FailedAt)),
+				p.BasePath, esc(proj), esc(e.EventID),
 				esc(e.EventType),
 				esc(truncate(e.Error, errorDisplayWidth)),
 				esc(e.ErrorFamily),
+				p.BasePath, esc(proj), esc(e.EventID),
 				actions,
 			)
 		}
