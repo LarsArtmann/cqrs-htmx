@@ -23,6 +23,7 @@ func TestRelativeTime(t *testing.T) {
 		t.Parallel()
 
 		now := time.Now().Add(-10 * time.Second)
+
 		got := RelativeTime(now)
 		if got != "just now" {
 			t.Errorf("RelativeTime(recent) = %q, want %q", got, "just now")
@@ -33,6 +34,7 @@ func TestRelativeTime(t *testing.T) {
 		t.Parallel()
 
 		past := time.Now().Add(-2 * time.Hour)
+
 		got := RelativeTime(past)
 		if !strings.Contains(got, "ago") {
 			t.Errorf("RelativeTime(2h ago) = %q, should contain 'ago'", got)
@@ -89,6 +91,7 @@ func TestDefaultPayloadRenderer_EmptyPayload(t *testing.T) {
 	t.Parallel()
 
 	r := DefaultPayloadRenderer{}
+
 	out, err := r.Render(nil, codec.EncodingJSON)
 	if err != nil {
 		t.Fatalf("Render returned error: %v", err)
@@ -119,6 +122,7 @@ func TestDefaultPayloadRenderer_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
 	r := DefaultPayloadRenderer{}
+
 	_, err := r.Render([]byte("not json"), codec.EncodingJSON)
 	if err == nil {
 		t.Error("expected error for invalid JSON")

@@ -25,6 +25,26 @@ dash.Mount(mux, "/dashboard/")
 Open `/dashboard/` in your browser. The dashboard auto-detects which go-cqrs-lite
 interfaces you wired and shows only relevant panels.
 
+### Using the `core` Sub-Package Directly
+
+The `core/` sub-package contains the pure data layer — capability detection,
+pagination math, event loading/filtering, overview aggregation, and payload
+rendering — with zero HTML generation. Any tool (CLI, metrics exporter, custom
+UI) can import it to inspect a go-cqrs-lite system without pulling in the
+dashboard's rendering code:
+
+```go
+import "github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
+
+cfg := core.Config{
+    SeekableJournal: store,
+    StreamReader:    reader,
+}
+
+overview := core.FetchOverview(ctx, cfg)
+events, _ := core.LoadRecentEvents(ctx, cfg, id.EventID{}, 50)
+```
+
 ## How It Works
 
 The dashboard reads from go-cqrs-lite introspection interfaces. Each optional

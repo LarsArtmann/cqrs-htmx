@@ -190,6 +190,7 @@ func TestLoadFilteredEvents(t *testing.T) {
 	}
 
 	filter := EventFilter{Type: "user.created"}
+
 	events, err := LoadFilteredEvents(context.Background(), cfg, id.EventID{}, filter, 10)
 	if err != nil {
 		t.Fatalf("LoadFilteredEvents returned error: %v", err)
