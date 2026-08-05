@@ -87,3 +87,22 @@ func (s *fakeDeadLetterStore) List(_ context.Context, _ string) ([]projectionhos
 
 func (s *fakeDeadLetterStore) Delete(_ context.Context, _, _ string) error { return nil }
 func (s *fakeDeadLetterStore) Purge(_ context.Context, _ string) error     { return nil }
+
+type fakeCheckpointStore struct{}
+
+func (fakeCheckpointStore) Save(_ context.Context, _ string, _ event.Checkpoint) error {
+	return nil
+}
+
+func (fakeCheckpointStore) Load(_ context.Context, _ string) (event.Checkpoint, error) {
+	return event.Checkpoint{}, nil
+}
+
+// testProjection is a minimal projection.Projection for Host-based tests.
+type testProjection struct {
+	name string
+}
+
+func (p testProjection) Name() string                                  { return p.name }
+func (p testProjection) Handle(_ context.Context, _ event.Event) error { return nil }
+func (p testProjection) EventTypes() []event.Type                      { return nil }
