@@ -37,9 +37,7 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", p.BasePath)
 	fmt.Fprintf(&b, "<script src=\"%s/-/htmx.js\"></script>\n", p.BasePath)
 
-	if p.Caps.EventBus {
-		fmt.Fprintf(&b, "<script src=\"%s/-/dashboard.js\"></script>\n", p.BasePath)
-	}
+	fmt.Fprintf(&b, "<script src=\"%s/-/dashboard.js\"></script>\n", p.BasePath)
 
 	b.WriteString("</head>\n<body>\n")
 
@@ -128,28 +126,10 @@ func (d *Dashboard) renderHeader(p pageData) string {
 
 // renderToastContainer renders the hidden toast notification container.
 // HTMX write operations dispatch Hx-Trigger events that this container
-// listens for and renders as transient toast messages.
+// listens for and renders as transient toast messages. The listener logic
+// lives in dashboardJS (CSP-safe — no inline scripts).
 func (d *Dashboard) renderToastContainer() string {
-	return `<div id="toast-container" class="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>` +
-		`<script>
-(function() {
-  document.body.addEventListener("showToast", function(e) {
-    var d = e.detail || {};
-    var c = document.getElementById("toast-container");
-    if (!c) return;
-    var t = document.createElement("div");
-    t.className = "toast toast-" + (d.kind || "ok");
-    t.setAttribute("role", "alert");
-    t.textContent = d.message || "";
-    c.appendChild(t);
-    requestAnimationFrame(function() { t.classList.add("toast-visible"); });
-    setTimeout(function() {
-      t.classList.remove("toast-visible");
-      setTimeout(function() { t.remove(); }, 300);
-    }, 4000);
-  });
-})();
-</script>`
+	return `<div id="toast-container" class="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>`
 }
 
 // navIconSVG returns an inline SVG icon for the given icon name using the
@@ -543,7 +523,11 @@ const dashboardJS = `
     if (es) es.close();
   });
 
-  connect();
+  // Only connect SSE when the live indicator is present (EventBus configured).
+  // The data-confirm, copyable, and hamburger listeners below work on all pages.
+  if (indicator) {
+    connect();
+  }
 })();
 
 document.addEventListener("dashboard:event", function(e) {
@@ -629,4 +613,31 @@ window.downloadPayload = function(eventID) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-};`
+};
+
+// CSP-safe confirmation dialog: delegated submit listener for forms with
+// data-confirm attribute. Replaces inline onsubmit="return confirm(...)".
+document.addEventListener("submit", function(e) {
+  var form = e.target.closest("[data-confirm]");
+  if (form && !confirm(form.dataset.confirm)) {
+    e.preventDefault();
+  }
+});
+
+// Toast notification listener: renders transient toast messages from
+// Hx-Trigger events. Moved here from an inline <script> for CSP safety.
+document.body.addEventListener("showToast", function(e) {
+  var d = e.detail || {};
+  var c = document.getElementById("toast-container");
+  if (!c) return;
+  var t = document.createElement("div");
+  t.className = "toast toast-" + (d.kind || "ok");
+  t.setAttribute("role", "alert");
+  t.textContent = d.message || "";
+  c.appendChild(t);
+  requestAnimationFrame(function() { t.classList.add("toast-visible"); });
+  setTimeout(function() {
+    t.classList.remove("toast-visible");
+    setTimeout(function() { t.remove(); }, 300);
+  }, 4000);
+});`

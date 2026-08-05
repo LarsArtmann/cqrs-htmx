@@ -92,7 +92,7 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 		if !p.ReadOnly {
 			fmt.Fprintf(
 				&b,
-				`<form method="POST" action="%s/snapshots/%s/%s/delete" class="section-gap-lg" onsubmit="return confirm('Delete this snapshot? This cannot be undone.')">`,
+				`<form method="POST" action="%s/snapshots/%s/%s/delete" class="section-gap-lg" data-confirm="Delete this snapshot? This cannot be undone.">`,
 				p.BasePath,
 				esc(string(ref.Type)),
 				esc(ref.ID.String()),

@@ -91,7 +91,7 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 			var actions string
 			if !p.ReadOnly {
 				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" onsubmit="return confirm('Reset projection %s? This will re-process all events from the beginning.')" aria-label="Reset projection %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Reset projection %s">Reset</button></form>`,
+					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" data-confirm="Reset projection %s? This will re-process all events from the beginning." aria-label="Reset projection %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Reset projection %s">Reset</button></form>`,
 					p.BasePath,
 					esc(proj.Name),
 					esc(proj.Name),
