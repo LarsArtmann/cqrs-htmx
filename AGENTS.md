@@ -35,7 +35,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 - **e2e/server**: Playwright E2E test server for offline-sync browser testing
 - **examples/**: `basic`, `datastar-demo`, `catalog-demo`, `admin-demo`, `dashboard-demo`, `middleware-demo`, `observability-demo`
 
-**Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt. dashboardui → root + usermgmt. datastar → datastar-go SDK only (no root dep). Nothing depends on adminui, loginpage, dashboardui, or datastar.
+**Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt + templ-components. dashboardui → root + usermgmt + templ-components (icons). datastar → datastar-go SDK only (no root dep). Nothing depends on adminui, loginpage, dashboardui, or datastar.
 
 **Key dependencies:** go-cqrs-lite v4.2.0 (CQRS/event sourcing), casbin/v3 (authz), httputil (HTTP middleware: CSRF, Server-Timing, rate limiting), go-error-family (error classification), go-branded-id (typed IDs), go-sse v0.3.0 (SSE/WS broadcaster, stream, replay), a-h/templ (HTML templating), ginkgo/gomega (BDD testing). `justinas/nosurf` and `golang.org/x/time` are now transitive deps via httputil (no longer direct root deps).
 
