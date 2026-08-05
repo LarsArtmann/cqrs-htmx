@@ -25,7 +25,9 @@ func TestHTTPSpecCompliance(t *testing.T) {
 	t.Parallel()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, _ *http.Request) {
+	// NOTE: a specific path (not "GET /", which is a ServeMux subtree match that
+	// would swallow unknown paths and return 200 instead of the expected 404).
+	mux.HandleFunc("GET /index", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		_, _ = io.WriteString(w, "<!doctype html><html><body><h1>ok</h1></body></html>")
 	})
@@ -35,7 +37,7 @@ func TestHTTPSpecCompliance(t *testing.T) {
 		cqrshtmx.RecoveryMiddleware,
 	)(mux)
 
-	httpspec.Run(t, handler, httpspec.WithIndexPath("/"))
+	httpspec.Run(t, handler, httpspec.WithIndexPath("/index"))
 }
 
 // TestHTTPSpecCompliance_RealApp runs the same suite against a stack that
@@ -54,7 +56,7 @@ func TestHTTPSpecCompliance_RealApp(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("GET /", app.Query("Ping",
+	mux.Handle("GET /index", app.Query("Ping",
 		cqrshtmx.DecodeJSONQuery(func(_ struct{}) (query.Query, error) { return pingQuery{}, nil }),
 		cqrshtmx.RenderHTML("<!doctype html><html><body><h1>ok</h1></body></html>"),
 	))
@@ -66,7 +68,7 @@ func TestHTTPSpecCompliance_RealApp(t *testing.T) {
 		app.Middleware(),
 	)(mux)
 
-	httpspec.Run(t, handler, httpspec.WithIndexPath("/"))
+	httpspec.Run(t, handler, httpspec.WithIndexPath("/index"))
 }
 
 // pingQuery is a minimal query.Query for the compliance test.

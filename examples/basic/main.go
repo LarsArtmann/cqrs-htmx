@@ -22,6 +22,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-sse"
+	"github.com/larsartmann/httputil"
 )
 
 // --- Domain types ---
@@ -235,8 +236,18 @@ func main() {
 	mux.HandleFunc("GET /", indexPage)
 
 	addr := ":8096"
+	// Serve with real timeouts via httputil.NewServer (never bare http.ListenAndServe,
+	// which sets no Read/Write/Idle timeouts). See docs/guides/leveraging-httputil.md.
+	cfg := httputil.DefaultServerConfig()
+	cfg.Addr = addr
+	srv, err := httputil.NewServer(cfg, mux)
+	if err != nil {
+		log.Fatalf("invalid server config: %v", err)
+	}
 	fmt.Printf("cqrs-htmx Basic Example\nListening on http://localhost%s\n", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	if err := <-srv.Start(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func indexPage(w http.ResponseWriter, _ *http.Request) {

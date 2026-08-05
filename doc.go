@@ -8,6 +8,16 @@
 // from [github.com/larsartmann/httputil] via type/var aliases, so the consumer API is
 // unchanged while the implementation lives in httputil.
 //
+// # HTTP Middleware (CORS, Compression, Body Limits, Production Server, …)
+//
+// For the everyday HTTP middleware a browser-facing CQRS app needs — CORS, response
+// compression, body-size limits, client-IP extraction behind a proxy, a production
+// server with timeouts, metrics, and dynamic ETagging — import httputil directly.
+// cqrs-htmx deliberately does not re-export these (duck-typing: you import what you
+// need). Every httputil middleware is a func(http.Handler) http.Handler and composes
+// inside cqrshtmx.Chain. See docs/guides/leveraging-httputil.md for the full
+// concern-to-middleware map and copy-paste recipes.
+//
 // # Quick Start
 //
 // Create an [App] with command/query dispatchers and a Casbin enforcer, then use
