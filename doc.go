@@ -110,7 +110,7 @@
 //
 //	err := cqrshtmx.WithHTTPStatus(sentinel, http.StatusNotFound)
 //
-// For unified RFC 7807 error responses across HTTP/SSE/WS, use:
+// For unified RFC 7807 error responses across HTTP and SSE, use:
 //
 //	app, _ := cqrshtmx.New(cqrshtmx.Config{
 //	    ErrorHandler: cqrshtmx.ProblemDetailsErrorHandler,
@@ -138,7 +138,7 @@
 //
 //	go stream.Heartbeat(stream.Context(), 15*time.Second)
 //
-// StructuredError (RFC 7807) provides transport-agnostic error payloads for SSE and WS:
+// StructuredError (RFC 7807) provides transport-agnostic error payloads for SSE:
 //
 //	payload := cqrshtmx.NewStructuredError(err, r)
 //	broadcaster.Broadcast(sse.Event{Event: "error", Data: payload.JSON()})
@@ -164,46 +164,14 @@
 //
 // CommandAck provides structured command confirmation for honest UI sync-state
 // transitions. Clients send X-Command-Id on requests; the server broadcasts
-// an ACK back via SSE or WS when the command completes:
+// an ACK back via SSE when the command completes:
 //
 //	broadcaster := cqrshtmx.NewBroadcaster()
 //	app, _ := cqrshtmx.New(cqrshtmx.Config{
 //	    AfterDispatch: broadcaster.BroadcastOnAck(),
 //	})
 //	// Client receives: {"commandId":"abc","status":"confirmed"}
-//	// or:            {"commandId":"abc","status":"rejected","error":"..."}
-//
-// WebSocket variant for real-time push:
-//
-//	wsBroadcaster := cqrshtmx.NewWSBroadcaster()
-//	app, _ := cqrshtmx.New(cqrshtmx.Config{
-//	    AfterDispatch: wsBroadcaster.BroadcastOnAckWS(),
-//	})
-//
-// # WebSocket
-//
-// Bidirectional WS support with encoder, broadcaster, dispatch bridge, and hooks:
-//
-//	wsB := cqrshtmx.NewWSBroadcaster()
-//	wsB.Broadcast("<div hx-swap-oob='true'>Updated</div>")
-//	cqrshtmx.WriteWSMessage(w, cqrshtmx.WSMessage{Body: map[string]any{"status": "ok"}})
-//
-// Dispatch WS messages as CQRS commands/queries (the WS counterpart to App.Command/Query):
-//
-//	decoder := cqrshtmx.DecodeWSJSON(func(t CreateTaskInput) (command.Command, error) {
-//	    return command.New("CreateTask", t)
-//	})
-//	err := app.DispatchWSCommand(r, "CreateTask", decoder, rawData)
-//	result, err := app.DispatchWSQuery(r, "GetTasks", queryDecoder, rawData)
-//
-// Bridge WS broadcasts to the dispatch lifecycle via AfterDispatch hooks:
-//
-//	app, _ := cqrshtmx.New(cqrshtmx.Config{
-//	    AfterDispatch: wsB.BroadcastOnSuccessWSFunc(func(r *http.Request) string {
-//	        return renderTasksHTML()
-//	    }),
-//	})
-//
+
 // # Submodule: usermgmt
 //
 // The [github.com/larsartmann/cqrs-htmx/usermgmt] submodule provides passwordless

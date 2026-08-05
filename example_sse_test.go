@@ -81,4 +81,3 @@ func ExampleStructuredError() {
 	fmt.Println(se.Status, se.Type)
 	// Output: 400 rejection
 }
-

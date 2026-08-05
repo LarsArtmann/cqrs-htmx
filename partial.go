@@ -41,7 +41,7 @@ func RenderTemplComponent(w http.ResponseWriter, r *http.Request, partial, full 
 //	html := cqrshtmx.OOBHTML("notifications", "<div>new item</div>",
 //	    cqrshtmx.SwapBeforeEnd)
 //
-// Works for both HTTP responses and WebSocket messages.
+// Works for HTTP responses and SSE event data.
 func OOBHTML(id, html string, swapStrategy ...SwapStrategy) string {
 	swap := "true"
 	if len(swapStrategy) > 0 && swapStrategy[0] != "" {

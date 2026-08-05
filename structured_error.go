@@ -11,12 +11,12 @@ import (
 // StructuredError is a transport-agnostic error payload following the
 // RFC 7807 (Problem Details for HTTP APIs) shape. It carries enough
 // context for clients to render or handle errors uniformly across HTTP,
-// SSE, and WebSocket transports.
+// SSE, and HTTP transports.
 //
 // StructuredError implements the error interface and supports errors.Is/
 // errors.As via Unwrap, so it can participate in Go error chains.
 //
-// Serialize as JSON for SSE event data or WebSocket message payloads:
+// Serialize as JSON for SSE event data or HTTP response bodies:
 //
 //	payload := cqrshtmx.NewStructuredError(err, r)
 //	jsonBytes, _ := json.Marshal(payload)
@@ -43,7 +43,7 @@ type StructuredError struct {
 	// this is the raw error message, which describes the caller's input.
 	// For server faults (status >= 500) it is redacted to the error family's
 	// generic public-safe message so internal detail is not leaked to
-	// SSE/WS/HTTP clients. The original error is preserved in cause for
+	// SSE and HTTP clients. The original error is preserved in cause for
 	// server-side logging.
 	Detail string `json:"detail"`
 
@@ -138,7 +138,7 @@ func requestContextOrBackground(r *http.Request) context.Context {
 }
 
 // JSON returns the StructuredError serialized as a JSON string.
-// Convenience method for use in SSEEvent.Data or WS message payloads.
+// Convenience method for use in SSEEvent.Data or HTTP response bodies.
 // Returns a minimum-valid RFC 7807 document if marshalling fails (should not
 // happen for this type).
 func (e StructuredError) JSON() string {
