@@ -14,7 +14,10 @@ import (
 
 // ===== Command/Query Audit =====
 
-func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request) {
+func (d *Dashboard) commandsIndexHandler(
+	w http.ResponseWriter,
+	r *http.Request,
+) { //nolint:cyclop // export branching adds complexity
 	p := d.page("Commands", "/commands", r)
 
 	if fmt := parseFormat(r); fmt != formatHTML {
@@ -31,6 +34,8 @@ func (d *Dashboard) commandsIndexHandler(w http.ResponseWriter, r *http.Request)
 			exportCommandsCSV(w, cmds)
 		case formatJSON:
 			exportCommandsJSON(w, cmds)
+		case formatHTML:
+			// handled below
 		}
 
 		return
@@ -122,7 +127,10 @@ func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand,
 	})
 }
 
-func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) {
+func (d *Dashboard) queriesIndexHandler(
+	w http.ResponseWriter,
+	r *http.Request,
+) { //nolint:cyclop // export branching adds complexity
 	p := d.page("Queries", "/queries", r)
 
 	if fmt := parseFormat(r); fmt != formatHTML {
@@ -139,6 +147,8 @@ func (d *Dashboard) queriesIndexHandler(w http.ResponseWriter, r *http.Request) 
 			exportQueriesCSV(w, queries)
 		case formatJSON:
 			exportQueriesJSON(w, queries)
+		case formatHTML:
+			// handled below
 		}
 
 		return

@@ -13,6 +13,12 @@ import (
 
 const exportLimit = 10000
 
+const (
+	formatCSVParam  = "csv"
+	formatJSONParam = "json"
+	formatParam     = "format"
+)
+
 type responseFormat int
 
 const (
@@ -22,10 +28,10 @@ const (
 )
 
 func parseFormat(r *http.Request) responseFormat {
-	switch r.URL.Query().Get("format") {
-	case "csv":
+	switch r.URL.Query().Get(formatParam) {
+	case formatCSVParam:
 		return formatCSV
-	case "json":
+	case formatJSONParam:
 		return formatJSON
 	default:
 		return formatHTML
@@ -52,7 +58,7 @@ func writeJSONResponse(w http.ResponseWriter, data any) {
 
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(true)
-	_ = encoder.Encode(data)
+	_ = encoder.Encode(data) //nolint:errchkjson // dynamic export data
 }
 
 // ===== Events =====

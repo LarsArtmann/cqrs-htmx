@@ -31,6 +31,8 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 			exportEventsCSV(w, events)
 		case formatJSON:
 			exportEventsJSON(w, events)
+		case formatHTML:
+			// handled below
 		}
 
 		return
