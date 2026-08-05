@@ -151,7 +151,7 @@ linters:
       exclude:
         - os/exec.Cmd
         - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig|EventCatalog|EventMetadata|PayloadField|ProjectionStatusEntry)$
-        - github\.com/larsartmann/httputil\.(CSRFConfig|KeyedRateLimiterConfig)$
+        - github\.com/larsartmann/httputil\.(CSRFConfig|KeyedRateLimiterConfig|SecurityHeadersConfig)$
         - github\.com/larsartmann/cqrs-htmx/v4/openapi\..*$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.(User|UserState|UserReadModel|UserView|EnforcerConfig|HandlerConfig|ActorID|AccountLockout|InMemorySessionStore|WebAuthnCredential)$
         - .+\.testCreateUserCmd$
@@ -309,6 +309,13 @@ linters:
         linters:
           - gochecknoglobals
           - revive
+      - path: security\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
+      - path: doc\.go$
+        linters:
+          - godoclint
       - path: core_bridge\.go$
         linters:
           - wrapcheck
