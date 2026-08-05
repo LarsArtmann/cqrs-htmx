@@ -66,7 +66,10 @@ func (f *fakeStreamReader) List(
 	return f.page, nil
 }
 
-func (f *fakeStreamReader) ListWithStatus(_ context.Context, _ listing.ListOptions) (*listing.Page[listing.StreamStatus], error) {
+func (f *fakeStreamReader) ListWithStatus(
+	_ context.Context,
+	_ listing.ListOptions,
+) (*listing.Page[listing.StreamStatus], error) {
 	return nil, nil
 }
 

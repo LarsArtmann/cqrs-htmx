@@ -69,12 +69,12 @@ func TestPaginationQuery(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		after        string
-		prevHistory  string
-		pageSize     int
-		extraParams  string
-		containsAll  []string
+		name        string
+		after       string
+		prevHistory string
+		pageSize    int
+		extraParams string
+		containsAll []string
 	}{
 		{
 			name:        "first page no filters",
@@ -181,9 +181,9 @@ func TestWithCountInfo(t *testing.T) {
 		t.Parallel()
 
 		s := PageState{
-			PageSize:    50,
-			After:       "cur1",
-			HasNext:     false,
+			PageSize: 50,
+			After:    "cur1",
+			HasNext:  false,
 		}.WithCountInfo(10)
 
 		if s.PageLen != 10 {
@@ -249,6 +249,7 @@ func TestParsePageSize(t *testing.T) {
 			t.Parallel()
 
 			r := httptest.NewRequest(http.MethodGet, tt.query, nil)
+
 			got := ParsePageSize(r, tt.defaultSize)
 			if got != tt.want {
 				t.Errorf("ParsePageSize() = %d, want %d", got, tt.want)
