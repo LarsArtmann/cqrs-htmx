@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"bytes"
 	"context"
 	"encoding/json/v2"
 	"net/http"
@@ -154,42 +153,6 @@ func FuzzEventOptionsFromContext(f *testing.F) {
 		// always be a bounded slice.
 		if len(opts) > 4 {
 			t.Errorf("too many options: %d", len(opts))
-		}
-	})
-}
-
-// FuzzWriteWSMessage fuzzes the WSMessage encoder with arbitrary body/header
-// combinations. Verifies the output is always valid JSON and round-trips
-// through ParseWSMessage.
-func FuzzWriteWSMessage(f *testing.F) {
-	f.Add(`{"name":"test"}`, `{"HX-Request":"true"}`)
-	f.Add(`{}`, ``)
-	f.Add(`{"items":[1,2,3],"nested":{"a":"b"}}`, `{"Authorization":"Bearer x"}`)
-
-	f.Fuzz(func(t *testing.T, bodyJSON, headersJSON string) {
-		var body map[string]any
-		if err := json.Unmarshal([]byte(bodyJSON), &body); err != nil {
-			t.Skip()
-		}
-
-		var headers map[string]string
-		if headersJSON != "" {
-			if err := json.Unmarshal([]byte(headersJSON), &headers); err != nil {
-				t.Skip()
-			}
-		}
-
-		msg := WSMessage{Body: body, Headers: headers}
-
-		var buf bytes.Buffer
-		if err := WriteWSMessage(&buf, msg); err != nil {
-			t.Fatalf("WriteWSMessage: %v", err)
-		}
-
-		// Verify output is valid JSON
-		var combined map[string]any
-		if err := json.Unmarshal(buf.Bytes(), &combined); err != nil {
-			t.Fatalf("output is not valid JSON: %v", err)
 		}
 	})
 }

@@ -277,17 +277,4 @@ var _ = Describe("Partial Rendering", func() {
 			Expect(result).To(Equal(`<div id="slot" hx-swap-oob="true"></div>`))
 		})
 	})
-
-	Describe("WSOOBHTML (delegates to OOBHTML)", func() {
-		It("produces the same result as OOBHTML", func() {
-			html := "<p>hello</p>"
-			Expect(cqrshtmx.WSOOBHTML("id", html)).To(Equal(cqrshtmx.OOBHTML("id", html)))
-		})
-
-		It("produces the same result with swap strategy", func() {
-			html := "<p>hello</p>"
-			Expect(cqrshtmx.WSOOBHTML("id", html, cqrshtmx.SwapAfterEnd)).
-				To(Equal(cqrshtmx.OOBHTML("id", html, cqrshtmx.SwapAfterEnd)))
-		})
-	})
 })

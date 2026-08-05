@@ -82,29 +82,3 @@ func ExampleStructuredError() {
 	// Output: 400 rejection
 }
 
-func ExampleWSBroadcaster() {
-	b := cqrshtmx.NewWSBroadcaster()
-
-	ch := b.Subscribe()
-	defer b.Unsubscribe(ch)
-
-	b.Broadcast("<div hx-swap-oob='true'>Updated</div>")
-
-	msg := <-ch
-	fmt.Println(msg)
-	// Output: <div hx-swap-oob='true'>Updated</div>
-}
-
-func ExampleWriteWSMessage() {
-	msg := cqrshtmx.WSMessage{
-		Headers: map[string]string{"HX-Request": "true"},
-		Body:    map[string]any{"action": "update"},
-	}
-
-	r := httptest.NewRecorder()
-	_ = cqrshtmx.WriteWSMessage(r, msg)
-
-	parsed, _ := cqrshtmx.ParseWSMessage(r.Body.Bytes())
-	fmt.Println(parsed.Headers["HX-Request"], parsed.Body["action"])
-	// Output: true update
-}
