@@ -12,7 +12,9 @@ import (
 
 func makeTestEvent(eventType string, version int) event.Event {
 	streamID := id.NewStreamID()
+
 	evt, _ := event.New(event.Type(eventType), streamID, "TestAgg", event.Version(version), map[string]string{"k": "v"})
+
 	return evt
 }
 

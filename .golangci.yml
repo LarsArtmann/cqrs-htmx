@@ -161,7 +161,7 @@ linters:
         - .+\.cidCapture$
         - .+\.SSEEvent$
         - .+\.stubCarrierError$
-        - .+\.(fakeSeekableJournal|fakeEventByIDLoader)$
+        - .+\.(fakeSeekableJournal|fakeEventByIDLoader|fakeStreamReader|fakeDeadLetterStore)$
         - github\.com/larsartmann/go-cqrs-lite/projectionhost/v4\.DeadLetterEntry$
         - .+\.CommandAck$
         - .+\.JournalSSEStore$
@@ -169,7 +169,7 @@ linters:
         - .+\.lockedRecorder$
         - github\.com/larsartmann/go-sse\.Event$
         - github\.com/larsartmann/cqrs-htmx/dashboardui/v4\.(Config|Dashboard|overviewStats|navItem|sortState|fakeCommandJournal|fakeQueryJournal|fakeEventSource|fakeSnapshotStore)$
-        - github\.com/larsartmann/cqrs-htmx/dashboardui/v4/core\.(PageState|EventFilter|Overview|RecentEvent|ProjectionStat)$
+        - github\.com/larsartmann/cqrs-htmx/dashboardui/v4/core\.(PageState|EventFilter|Overview|RecentEvent|ProjectionStat|Config|Capabilities)$
         - net/http\.Request$
         - .+\.ListOptions$
         - .+\.StreamRef$
