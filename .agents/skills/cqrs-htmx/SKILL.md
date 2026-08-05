@@ -1,6 +1,6 @@
 ---
 name: cqrs-htmx
-description: Build Go web apps with the cqrs-htmx library — CQRS command/query HTTP handlers, HTMX responses, event-sourced user management (WebAuthn/OAuth2/TOTP), and a ready-made admin UI. Use this skill whenever integrating, wiring, mounting, or extending cqrs-htmx, go-cqrs-lite with HTMX, the usermgmt or adminui submodules, or building CQRS/HTMX/SSE/WebSocket/auth features on top of this library — even when the user does not name the library explicitly (e.g. "add a command endpoint", "wire up passkey login", "add an admin panel", "serve HTMX", "broadcast over SSE", "set up CQRS dispatch").
+description: Build Go web apps with the cqrs-htmx library — CQRS command/query HTTP handlers, HTMX responses, event-sourced user management (WebAuthn/OAuth2/TOTP), and a ready-made admin UI. Use this skill whenever integrating, wiring, mounting, or extending cqrs-htmx, go-cqrs-lite with HTMX, the usermgmt or adminui submodules, or building CQRS/HTMX/SSE/auth features on top of this library — even when the user does not name the library explicitly (e.g. "add a command endpoint", "wire up passkey login", "add an admin panel", "serve HTMX", "broadcast over SSE", "set up CQRS dispatch"). WebSocket transport was removed in v5 — see ADR 0046; the library is SSE-only now.
 user-invocable: true
 ---
 
@@ -43,7 +43,7 @@ An app typically composes some subset of these. They are **independent Go module
 
 | Module                | Import path                                              | Provides                                                                                                                                                                                               |
 | --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error->HTTP mapping, SSE + WebSocket, embedded HTMX JS                                          |
+| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error->HTTP mapping, SSE (WebSocket removed in v5 — ADR 0046), embedded HTMX JS                                          |
 | **usermgmt**          | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`           | Event-sourced `Service` (register/login/logout/me), roles/tenants/bots, authz via Casbin, session middleware, SQL + in-memory stores. Auth strategies (WebAuthn/OAuth2/TOTP) are optional sub-modules. |
 | **usermgmt/totp**     | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`      | TOTP MFA (pquerna/otp). Inject `totp.New(...)` as `ServiceConfig.TOTP`.                                                                                                                                |
 | **usermgmt/webauthn** | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4`  | WebAuthn passkeys (go-webauthn). Inject `webauthn.New(...)` as `ServiceConfig.WebAuthn`.                                                                                                               |
@@ -79,7 +79,7 @@ Do you need CQRS dispatch (command/query endpoints)?
                     +- NO  ->  PATH B: root App + usermgmt Service + AuthHandler
                     +- YES ->  PATH C: usermgmt Service + adminui panel (+ root App for custom endpoints)
 
-Realtime (SSE/WS)? -> Use Broadcaster/SSEStream on ANY path.
+Realtime (SSE)? -> Use Broadcaster/SSEStream on ANY path. (WebSocket was removed in v5 — see ADR 0046.)
 Persistence? -> Pass *sql.DB or use NewSQLiteEventSourcedSetup on Path B/C.
 ```
 
@@ -429,9 +429,11 @@ cqrshtmx.NewResponse(w, r).
 cqrshtmx.WriteJSON(w, http.StatusOK, data) // buffers before WriteHeader -- encode failure doesn't commit partial status
 ```
 
-## Realtime (SSE / WebSocket) -- on any path
+## Realtime (SSE) -- on any path
 
 Realtime is **building blocks, not a server**: you own the HTTP handler, the library gives you the stream + fan-out.
+
+> **Note:** The library is **SSE-only** as of v5 (ADR 0046). The WebSocket transport (`WSBroadcaster`, `WSMessage`, `DispatchWSCommand`, etc.) was removed — SSE covers the same use cases with simpler reconnect semantics and no upgrade/auth dance. Consumers who need bi-directional transport should use SSE for server→client and POST endpoints for client→server, or integrate a dedicated WebSocket library directly (the library intentionally avoids pulling in `gorilla/websocket` or similar).
 
 ```go
 broadcaster := cqrshtmx.NewBroadcaster()
@@ -465,16 +467,14 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 - Broadcasts are non-blocking -- slow consumers silently drop events. Pair with idempotency + ACK for guaranteed delivery.
 - Standard event names: `cqrshtmx.SSEEventConnected` (`"connected"`), `cqrshtmx.SSEEventHeartbeat` (`"heartbeat"`).
 
-WebSockets mirror this: `NewWSBroadcaster()`, `WSOOBHTML(...)`, `ParseWSMessageInto[T]`, `app.DispatchWSCommand(...)`. Read `references/realtime.md` for the ACK protocol, idempotency store, reconnection/replay, and heartbeat.
-
 ### Embedded HTMX extensions
 
-The root module embeds 3 extensions that pair with cqrs-htmx's server-side building blocks: SSE (2.2.4), WS (2.0.4), idiomorph (0.7.4).
+The root module embeds 2 extensions that pair with cqrs-htmx's server-side building blocks: SSE (2.2.4) and idiomorph (0.7.4). The WS extension (htmx-ext-ws 2.0.4) was removed in v5 alongside the WS transport — see ADR 0046.
 
 ```go
 // Individual or bundled:
 mux.Handle("GET /ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
-mux.Handle("GET /ext/bundle.js", cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph))
+mux.Handle("GET /ext/bundle.js", cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph))
 ```
 
 Same caching as `HTMXScriptHandler` (ETag, `Cache-Control: 1yr immutable`, 304). Add `<script>` tags after htmx core.
@@ -511,7 +511,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 
 - **`references/core-api.md`** -- full `Config`, every `HandlerOption`, middleware catalogue, context IDs, error->HTTP mapping.
 - **`references/usermgmt.md`** -- Service setup matrix, auth endpoints, WebAuthn/OAuth2/TOTP, roles/tenants/bots, SQL persistence.
-- **`references/realtime.md`** -- SSE + WebSocket, broadcaster, ACK protocol, idempotency, reconnection/replay, heartbeat, event filtering patterns.
+- **`references/realtime.md`** -- SSE broadcaster, ACK protocol, idempotency, reconnection/replay, heartbeat, event filtering patterns.
 - **`references/gotchas.md`** -- the complete consumer gotcha list with fixes.
 - **`docs/guides/leveraging-go-cqrs-lite.md`** -- how to leverage 58 go-cqrs-lite modules from cqrs-htmx (dispatch middleware, OTel/Prometheus, durable scheduling, signing/encryption, catalog docs, scenario testing, sagas, schema evolution).
 - **`docs/guides/production-readiness.md`** -- single checklist for taking a cqrs-htmx app to production (middleware stack, observability, security, projection health, performance).

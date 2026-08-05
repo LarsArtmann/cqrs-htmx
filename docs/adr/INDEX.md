@@ -7,13 +7,13 @@
 | [0001](0001-htmx-go-decision.md)                  | Reject htmx-go Dependency                                                       | Accepted                                                             |
 | [0002](0002-userid-type-split.md)                 | UserID Type Split Between Root Module and usermgmt                              | Accepted                                                             |
 | [0003](0003-numeric-ids-sql-stores.md)            | Numeric IDs for SQL Store Backends                                              | Superseded (UserStore removed; event-sourced now — see ADR 0006)     |
-| [0004](0004-sse-websocket-support.md)             | SSE and WebSocket Support                                                       | Accepted                                                             |
+| [0004](0004-sse-websocket-support.md)             | SSE and WebSocket Support                                                       | Superseded by ADR 0046 (WebSocket dropped, SSE only)                  |
 | [0005](0005-go-cqrs-lite-v230-adoption.md)        | go-cqrs-lite v2.3.0 API Adoption                                                | Accepted                                                             |
 | [0006](0006-event-sourced-user-aggregate.md)      | Event-Sourced User Aggregate                                                    | Accepted                                                             |
 | [0007](0007-dependency-upgrade-v2.4.0.md)         | Dependency Upgrade to v2.4.0 and Idiomatic Error-Family Adoption                | Accepted                                                             |
 | [0008](0008-catalog-sub-package.md)               | Catalog Sub-Package for API Documentation                                       | Superseded by ADR 0020                                               |
 | [0009](0009-go-cqrs-lite-module-selection.md)     | go-cqrs-lite Module Selection                                                   | Accepted                                                             |
-| [0010](0010-transport-parity.md)                  | Transport Parity (SSE ↔ WebSocket)                                              | Accepted                                                             |
+| [0010](0010-transport-parity.md)                  | Transport Parity (SSE ↔ WebSocket)                                              | Superseded by ADR 0046 (parity moot — only SSE remains)              |
 | [0011](0011-event-signing-encryption.md)          | Opt-in Event Signing & Encryption                                               | Accepted                                                             |
 | [0012](0012-sql-session-store.md)                 | SQL SessionStore                                                                | Accepted                                                             |
 | [0013](0013-event-schema-versioning-upcasters.md) | Event Schema Versioning via Upcasters                                           | Accepted                                                             |
@@ -49,3 +49,4 @@
 | [0043](0043-identity-model-extraction.md)         | Extract identity-model as Domain Source of Truth                                | Accepted                                                             |
 | [0044](0044-casbin-first-class-dependency.md)     | Casbin as First-Class Dependency of identity-model                              | Accepted                                                             |
 | [0045](0045-datastar-optional-frontend.md)        | Datastar as Optional Frontend Adapter Module                                    | Accepted                                                             |
+| [0046](0046-drop-websocket-sse-only.md)           | Drop WebSocket Transport in Favor of SSE                                        | Accepted                                                             |
