@@ -339,7 +339,9 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div><h3>Payload</h3>`)
-		fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, esc(string(payload)))
+		fmt.Fprintf(&b, `<div class="filter-bar"><button class="btn" onclick="copyPayload()">Copy</button><button class="btn" onclick="downloadPayload('%s')">Download JSON</button></div>`,
+			esc(evt.ID().String()))
+		fmt.Fprintf(&b, `<pre class="code-block" id="event-payload"><code>%s</code></pre>`, esc(string(payload)))
 		b.WriteString(`</div>`)
 
 		b.WriteString(`</div>`)

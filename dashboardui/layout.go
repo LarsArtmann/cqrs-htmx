@@ -595,4 +595,30 @@ document.addEventListener("click", function(e) {
     var backdrop = document.querySelector("[data-sidebar-backdrop]");
     if (backdrop) backdrop.classList.remove("visible");
   }
-});`
+});
+
+window.copyPayload = function() {
+  var el = document.querySelector("#event-payload code");
+  if (!el) return;
+  var text = el.textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      document.body.dispatchEvent(new CustomEvent("showToast", { detail: { kind: "ok", message: "Payload copied" } }));
+    }).catch(function() {});
+  }
+};
+
+window.downloadPayload = function(eventID) {
+  var el = document.querySelector("#event-payload code");
+  if (!el) return;
+  var text = el.textContent;
+  var blob = new Blob([text], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = (eventID || "event") + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};`
