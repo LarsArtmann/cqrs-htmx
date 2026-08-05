@@ -73,6 +73,7 @@ type eventExportRow struct {
 }
 
 func exportEventsCSV(w http.ResponseWriter, events []event.Event) {
+	headers := []string{"Event ID", "Type", "Stream Type", "Stream ID", "Version", "Occurred At"}
 	rows := make([][]string, len(events))
 
 	for i, evt := range events {
@@ -86,7 +87,7 @@ func exportEventsCSV(w http.ResponseWriter, events []event.Event) {
 		}
 	}
 
-	writeCSV(w, "events.csv", []string{"Event ID", "Type", "Stream Type", "Stream ID", "Version", "Occurred At"}, rows)
+	writeCSV(w, "events.csv", headers, rows)
 }
 
 func exportEventsJSON(w http.ResponseWriter, events []event.Event) {

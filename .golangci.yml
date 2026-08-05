@@ -329,6 +329,9 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
+      - path: dashboardui/export\.go$
+        linters:
+          - goconst
     paths:
       - \.gen\.go$
       - _mock\.go$
