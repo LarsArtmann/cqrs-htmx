@@ -23,8 +23,8 @@ const (
 	statusRunning = "running"
 	statusFailed  = "failed"
 
-	recentEventsLimit  = 5
-	overviewCountLimit = 500
+	RecentEventsLimit  = 5
+	OverviewCountLimit = 500
 )
 
 // ProjectionStat is the display representation of a projection worker's
@@ -128,10 +128,10 @@ func FetchOverview(ctx context.Context, cfg Config) Overview { //nolint:cyclop,g
 	}
 
 	if cfg.SeekableJournal != nil { //nolint:nestif // optional data source branching
-		events, err := cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, overviewCountLimit)
+		events, err := cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, OverviewCountLimit)
 		if err == nil {
 			for i, evt := range events {
-				if i >= recentEventsLimit {
+				if i >= RecentEventsLimit {
 					break
 				}
 
@@ -147,7 +147,7 @@ func FetchOverview(ctx context.Context, cfg Config) Overview { //nolint:cyclop,g
 			}
 
 			stats.TotalEvents = strconv.Itoa(len(events))
-			if len(events) >= overviewCountLimit {
+			if len(events) >= OverviewCountLimit {
 				stats.TotalEvents += "+"
 			}
 		}
@@ -156,7 +156,7 @@ func FetchOverview(ctx context.Context, cfg Config) Overview { //nolint:cyclop,g
 		if err == nil {
 			stats.TotalEvents = strconv.Itoa(len(events))
 			for i, evt := range events {
-				if i >= recentEventsLimit {
+				if i >= RecentEventsLimit {
 					break
 				}
 

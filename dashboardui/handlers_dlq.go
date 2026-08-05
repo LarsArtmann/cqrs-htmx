@@ -174,7 +174,7 @@ func (d *Dashboard) renderDLQEntryDetail(p pageData, proj string, entry projecti
 			b.WriteString(`<div class="filter-bar section-gap">`)
 			fmt.Fprintf(
 				&b,
-				`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" onsubmit="return confirm('Delete this dead letter?')"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Delete</button></form>`,
+				`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" data-confirm="Delete this dead letter?"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Delete</button></form>`,
 				p.BasePath,
 				esc(proj),
 				esc(entry.EventID),
@@ -302,7 +302,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 			if d.caps.ProjectionHost {
 				fmt.Fprintf(
 					&b,
-					`<form method="POST" action="%s/dead-letters/%s/replay" class="inline-form" onsubmit="return confirm('Replay all dead letters for %s?')" aria-label="Replay all dead letters for %s">`,
+					`<form method="POST" action="%s/dead-letters/%s/replay" class="inline-form" data-confirm="Replay all dead letters for %s?" aria-label="Replay all dead letters for %s">`,
 					p.BasePath,
 					esc(proj),
 					esc(proj),
@@ -318,7 +318,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 			if d.caps.DeadLetterStore {
 				fmt.Fprintf(
 					&b,
-					`<form method="POST" action="%s/dead-letters/%s/purge" class="inline-form" onsubmit="return confirm('Purge ALL dead letters for %s? This cannot be undone.')" aria-label="Purge all dead letters for %s">`,
+					`<form method="POST" action="%s/dead-letters/%s/purge" class="inline-form" data-confirm="Purge ALL dead letters for %s? This cannot be undone." aria-label="Purge all dead letters for %s">`,
 					p.BasePath,
 					esc(proj),
 					esc(proj),
@@ -344,7 +344,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 			var actions string
 			if !p.ReadOnly && d.caps.DeadLetterStore {
 				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" onsubmit="return confirm('Delete this dead letter?')" aria-label="Delete dead letter %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Delete dead letter %s">Delete</button></form>`,
+					`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" data-confirm="Delete this dead letter?" aria-label="Delete dead letter %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Delete dead letter %s">Delete</button></form>`,
 					p.BasePath,
 					esc(proj),
 					esc(e.EventID),
