@@ -73,16 +73,8 @@ var (
 )
 
 const (
-	// defaultCSRFCookieName mirrors httputil.DefaultCSRFCookieName.
-	//
-	// Deprecated: use httputil.DefaultCSRFCookieName.
-	defaultCSRFCookieName = httputil.DefaultCSRFCookieName
 	// defaultCSRFHeaderName mirrors httputil.DefaultCSRFHeaderName.
 	//
 	// Deprecated: use httputil.DefaultCSRFHeaderName.
 	defaultCSRFHeaderName = httputil.DefaultCSRFHeaderName
-	// defaultCSRFFieldName mirrors httputil.DefaultCSRFFieldName.
-	//
-	// Deprecated: use httputil.DefaultCSRFFieldName.
-	defaultCSRFFieldName = httputil.DefaultCSRFFieldName
 )

@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"path"
 	"strings"
+
+	"github.com/larsartmann/httputil"
 )
 
 // Response builds HTMX-aware HTTP responses with fluent method chaining.
@@ -167,7 +169,7 @@ func (resp *Response) triggerNotification(level NotificationLevel, message strin
 //	resp := cqrshtmx.NewResponse(w, r)
 //	resp.CSRFToken(token).Apply()
 func (resp *Response) CSRFToken(token string) *Response {
-	resp.w.Header().Set(defaultCSRFHeaderName, token)
+	resp.w.Header().Set(httputil.DefaultCSRFHeaderName, token)
 
 	return resp
 }
