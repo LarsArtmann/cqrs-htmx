@@ -27,6 +27,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
+	"github.com/larsartmann/httputil"
 )
 
 // --- Domain message types (these drive all schema generation) ---
@@ -129,16 +130,18 @@ func main() {
 	mux.Handle("/diagram.d2", docserver.D2Handler(cat))
 	mux.Handle("/health", docserver.HealthCheckHandler(cat))
 
-	srv := &http.Server{
+	srv, err := httputil.NewServer(httputil.ServerConfig{
 		Addr:              *addr,
-		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
+	}, mux)
+	if err != nil {
+		log.Fatalf("NewServer: %v", err)
 	}
 
 	// Graceful shutdown on SIGINT/SIGTERM.
 	go func() {
 		log.Printf("catalog-demo serving API docs on http://localhost%s", *addr)
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := <-srv.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("server error: %v", err)
 		}
 	}()
