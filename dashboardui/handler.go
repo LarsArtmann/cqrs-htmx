@@ -85,6 +85,7 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	if d.caps.DeadLetterStore || d.caps.ProjectionHost {
 		mux.HandleFunc("GET /dead-letters", d.guard(d.dlqIndexHandler))
 		mux.HandleFunc("GET /dead-letters/{projection}", d.guard(d.dlqDetailHandler))
+		mux.HandleFunc("GET /dead-letters/{projection}/{eventID}", d.guard(d.dlqEntryDetailHandler))
 
 		if !d.config.ReadOnly && d.caps.ProjectionHost {
 			mux.HandleFunc("POST /dead-letters/{projection}/replay", d.guard(d.dlqReplayHandler))
@@ -99,11 +100,13 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	// Command Audit
 	if d.caps.CommandJournal {
 		mux.HandleFunc("GET /commands", d.guard(d.commandsIndexHandler))
+		mux.HandleFunc("GET /commands/{id}", d.guard(d.commandDetailHandler))
 	}
 
 	// Query Audit
 	if d.caps.QueryJournal {
 		mux.HandleFunc("GET /queries", d.guard(d.queriesIndexHandler))
+		mux.HandleFunc("GET /queries/{id}", d.guard(d.queryDetailHandler))
 	}
 
 	// Time-Travel

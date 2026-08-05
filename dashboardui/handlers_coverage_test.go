@@ -231,8 +231,8 @@ func TestRenderProjectionHealthPanel_WithProjections(t *testing.T) {
 		}
 	}
 
-	if !strings.Contains(html, `hx-trigger="every 10s"`) {
-		t.Errorf("expected HTMX polling attribute")
+	if !strings.Contains(html, `hx-trigger="every 10s, refresh"`) {
+		t.Errorf("expected HTMX polling attribute with refresh trigger")
 	}
 }
 
