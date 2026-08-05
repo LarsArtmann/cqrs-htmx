@@ -183,7 +183,14 @@
               name = "run-tests-flake";
               description = "Run all Go tests 3x with race detector to detect flaky tests (auto-discovered, excludes e2e/examples)";
               text = ''
-                forEachGoModule "go test ./... -count=3 -race" '^(e2e/|examples/)'
+                runFlake() {
+                  local i
+                  for i in 1 2 3; do
+                    echo "  (flake run $i/3)"
+                    go test ./... -count=1 -race
+                  done
+                }
+                forEachGoModule "runFlake" '^(e2e/|examples/)'
               '';
             };
 
@@ -193,9 +200,13 @@
               text = ''
                 FUZZTIME="''${FUZZTIME:-30s}"
                 runModuleFuzz() {
-                  for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                    echo "    -> $fuzz"
-                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  local pkg fuzzList fuzz
+                  for pkg in $(go list ./... 2>/dev/null || true); do
+                    fuzzList=$(go test -run='^$' -list='Fuzz.*' "$pkg" 2>/dev/null | grep '^Fuzz' || true)
+                    for fuzz in $fuzzList; do
+                      echo "    -> $fuzz ($pkg)"
+                      go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" "$pkg"
+                    done
                   done
                 }
                 forEachGoModule "runModuleFuzz" '^(e2e/|examples/)'
