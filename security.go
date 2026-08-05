@@ -1,157 +1,74 @@
 package cqrshtmx
 
-import "net/http"
+import (
+	"net/http"
 
-const (
-	headerContentTypeOptions = "X-Content-Type-Options"
-	headerFrameOptions       = "X-Frame-Options"
-	headerReferrerPolicy     = "Referrer-Policy"
-	headerCSP                = "Content-Security-Policy"
-	headerHSTS               = "Strict-Transport-Security"
-	headerPermissionsPolicy  = "Permissions-Policy"
-
-	defaultContentTypeOptions = "nosniff"
-	defaultFrameOptions       = "DENY"
-	defaultReferrerPolicy     = "strict-origin-when-cross-origin"
-
-	// RecommendedHSTS is a recommended Strict-Transport-Security value for production.
-	// Use: SecurityHeadersConfig{StrictTransportSecurity: RecommendedHSTS}.
-	RecommendedHSTS = "max-age=31536000; includeSubDomains"
-
-	// RecommendedCSP is a baseline Content-Security-Policy for HTMX applications.
-	// Allows scripts from self (required for HTMX) and styles from self.
-	// Use: SecurityHeadersConfig{ContentSecurityPolicy: RecommendedCSP}.
-	RecommendedCSP = "default-src 'self'; script-src 'self'; style-src 'self'"
-
-	// SecurityHeaderSkip is the sentinel value for suppressing a default
-	// security header. Set any of ContentTypeOptions, FrameOptions, or
-	// ReferrerPolicy to this value to omit that header entirely:
-	//
-	//	cqrshtmx.SecurityHeadersConfig{
-	//	    ContentTypeOptions: cqrshtmx.SecurityHeaderSkip, // do not set X-Content-Type-Options
-	//	    ContentSecurityPolicy: cqrshtmx.RecommendedCSP,
-	//	}
-	SecurityHeaderSkip = "-"
+	"github.com/larsartmann/httputil"
 )
 
-// SecurityHeadersConfig configures which security headers to set.
-// The three "withDefault" fields (ContentTypeOptions, FrameOptions, ReferrerPolicy)
-// fall back to secure defaults when empty. Set any of them to SecurityHeaderSkip
-// ("-" sentinel) to suppress that header entirely. All fields are optional.
-type SecurityHeadersConfig struct {
-	// ContentTypeOptions sets X-Content-Type-Options.
-	// Default: "nosniff". Set to SecurityHeaderSkip to omit.
-	ContentTypeOptions string
+// SecurityHeadersConfig is an alias for httputil.SecurityHeadersConfig.
+//
+// Deprecated: Import github.com/larsartmann/httputil and use
+// httputil.SecurityHeadersConfig directly. Remove in v5.
+type SecurityHeadersConfig = httputil.SecurityHeadersConfig
 
-	// FrameOptions sets X-Frame-Options.
-	// Default: "DENY". Set to SecurityHeaderSkip to omit.
-	FrameOptions string
+// RecommendedHSTS is a recommended Strict-Transport-Security value for production.
+//
+// Deprecated: Use httputil.RecommendedHSTS. Remove in v5.
+var RecommendedHSTS = httputil.RecommendedHSTS
 
-	// ReferrerPolicy sets Referrer-Policy.
-	// Default: "strict-origin-when-cross-origin". Set to SecurityHeaderSkip to omit.
-	ReferrerPolicy string
+// RecommendedCSP is a baseline Content-Security-Policy for HTMX applications.
+//
+// Deprecated: Use httputil.RecommendedCSP. Remove in v5.
+var RecommendedCSP = httputil.RecommendedCSP
 
-	// ContentSecurityPolicy sets Content-Security-Policy.
-	// Default: "" (not set). See RecommendedCSP for a sensible baseline.
-	ContentSecurityPolicy string
-
-	// StrictTransportSecurity sets Strict-Transport-Security.
-	// Default: "" (not set). See RecommendedHSTS for a production value.
-	StrictTransportSecurity string
-
-	// PermissionsPolicy sets Permissions-Policy.
-	// Default: "" (not set)
-	PermissionsPolicy string
-
-	// Custom headers are applied after all other headers.
-	Custom map[string]string
-}
-
-func withDefault(val, def string) string {
-	if val == SecurityHeaderSkip {
-		return "" // sentinel: suppress this header entirely
-	}
-
-	if val != "" {
-		return val
-	}
-
-	return def
-}
-
-func (c *SecurityHeadersConfig) contentTypeOptions() string {
-	return withDefault(c.ContentTypeOptions, defaultContentTypeOptions)
-}
-
-func (c *SecurityHeadersConfig) frameOptions() string {
-	return withDefault(c.FrameOptions, defaultFrameOptions)
-}
-
-func (c *SecurityHeadersConfig) referrerPolicy() string {
-	return withDefault(c.ReferrerPolicy, defaultReferrerPolicy)
-}
+// SecurityHeaderSkip is the sentinel value for suppressing a default security header.
+//
+// Deprecated: Use httputil.SecurityHeaderSkip. Remove in v5.
+var SecurityHeaderSkip = httputil.SecurityHeaderSkip
 
 // SecurityHeadersMiddleware returns HTTP middleware that sets security headers
 // on every response. These headers provide defense-in-depth against common
 // web attacks and are recommended for all production deployments.
 //
-// Headers set:
-//   - X-Content-Type-Options: nosniff
-//   - X-Frame-Options: DENY
-//   - Referrer-Policy: strict-origin-when-cross-origin
+// A zero-value SecurityHeadersConfig applies secure defaults:
+// X-Content-Type-Options: nosniff, X-Frame-Options: DENY,
+// Referrer-Policy: strict-origin-when-cross-origin.
 //
-// Usage:
-//
-//	handler := cqrshtmx.SecurityHeadersMiddleware(mux)
-//
-// Or in a Chain:
-//
-//	handler := cqrshtmx.Chain(
-//	    cqrshtmx.SecurityHeadersMiddleware,
-//	    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
-//	)(mux)
-//
-// For custom headers, use SecurityHeadersMiddlewareWithConfig.
+// Deprecated: Use httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())
+// instead. Remove in v5.
 func SecurityHeadersMiddleware(next http.Handler) http.Handler {
 	return SecurityHeadersMiddlewareWithConfig(SecurityHeadersConfig{})(next)
 }
 
 // SecurityHeadersMiddlewareWithConfig returns HTTP middleware that sets
-// security headers based on the provided configuration.
+// security headers based on the provided configuration. Empty fields fall
+// back to secure defaults; set any field to SecurityHeaderSkip to suppress
+// that header.
+//
+// Deprecated: Use httputil.SecurityHeaders instead. Remove in v5.
 func SecurityHeadersMiddlewareWithConfig(
 	config SecurityHeadersConfig,
 ) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if v := config.contentTypeOptions(); v != "" {
-				w.Header().Set(headerContentTypeOptions, v)
-			}
+	applySecurityDefaults(&config)
 
-			if v := config.frameOptions(); v != "" {
-				w.Header().Set(headerFrameOptions, v)
-			}
+	return httputil.SecurityHeaders(config)
+}
 
-			if v := config.referrerPolicy(); v != "" {
-				w.Header().Set(headerReferrerPolicy, v)
-			}
+// applySecurityDefaults fills in secure defaults for empty fields, matching
+// cqrs-htmx's zero-value-equals-secure-defaults contract. httputil's zero
+// value sets no headers, so this transformation preserves backward
+// compatibility for cqrs-htmx consumers.
+func applySecurityDefaults(config *SecurityHeadersConfig) {
+	if config.ContentTypeOptions == "" && !config.ContentTypeNosniff {
+		config.ContentTypeOptions = "nosniff"
+	}
 
-			if config.ContentSecurityPolicy != "" {
-				w.Header().Set(headerCSP, config.ContentSecurityPolicy)
-			}
+	if config.FrameOptions == "" {
+		config.FrameOptions = "DENY"
+	}
 
-			if config.StrictTransportSecurity != "" {
-				w.Header().Set(headerHSTS, config.StrictTransportSecurity)
-			}
-
-			if config.PermissionsPolicy != "" {
-				w.Header().Set(headerPermissionsPolicy, config.PermissionsPolicy)
-			}
-
-			for k, v := range config.Custom {
-				w.Header().Set(k, v)
-			}
-
-			next.ServeHTTP(w, r)
-		})
+	if config.ReferrerPolicy == "" {
+		config.ReferrerPolicy = "strict-origin-when-cross-origin"
 	}
 }
