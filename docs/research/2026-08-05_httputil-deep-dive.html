@@ -400,6 +400,24 @@
       .issue-nice {
         border-left-color: var(--solution);
       }
+      .issue-resolved {
+        border-left-color: var(--text-faint);
+        opacity: 0.75;
+      }
+      .compare .done {
+        background: var(--solution);
+        color: var(--bg-card);
+        padding: 0.15rem 0.5rem;
+        border-radius: 3px;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .compare tr.resolved td {
+        opacity: 0.6;
+      }
       .issue h3 {
         margin-bottom: 0.3rem;
       }
@@ -932,9 +950,16 @@
             error classifications so stdlib HTTP errors classify through <code>MapError</code>, and
             (4) publish a consumer guide mapping every HTTP concern to its httputil middleware.
           </div>
+          <div class="callout">
+            <strong>Methodology</strong>
+            The adoption score (61/100) is a weighted subjective estimate based on the number of
+            httputil features fully leveraged vs. partially used vs. missed. It was computed
+            manually at the time of writing (2026-08-05) and reflects the codebase state <em>before</em>
+            the re-export deprecation, example migrations, and guide publication documented in
+            <code>docs/guides/leveraging-httputil.md</code>. Scorecard counts may be revised as
+            items are resolved. This report is a point-in-time snapshot, not a live metric.
+          </div>
         </section>
-
-        <section id="usage">
           <h2><span class="num">&#9670;</span>What&rsquo;s already leveraged well</h2>
           <p>
             The current usage is concentrated in three re-export files plus a handful of direct calls.

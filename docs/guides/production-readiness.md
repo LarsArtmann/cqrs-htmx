@@ -78,9 +78,9 @@ graph TD
 
 ### 4. CSRF Protection
 
-- [ ] **Wire CSRF middleware** — `cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{})` (opt-in, not enforced by default)
-- [ ] **Ordering** — `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` — CSRF first
-- [ ] **See** `docs/guides/csrf-trusted-proxies.md`
+- [ ] **Wire CSRF middleware** — `httputil.CSRFMiddleware(httputil.CSRFConfig{})` (opt-in, not enforced by default). The `cqrshtmx.CSRF*` aliases are deprecated re-exports over httputil.
+- [ ] **Ordering** — `Chain(httputil.CSRFMiddleware(...), HTMXMiddleware, app.Middleware())` — CSRF first
+- [ ] **See** `docs/guides/csrf-trusted-proxies.md` and `docs/guides/leveraging-httputil.md` (re-export migration table)
 
 ### 5. Projection Health
 
