@@ -106,6 +106,7 @@ func renderPagination(basePath, path string, state paginationState, extraParams 
 	}
 
 	b.WriteString(renderPaginationInfo(state))
+	b.WriteString(renderPageSizeSelector(basePath, path, state, extraParams))
 
 	if state.HasNext {
 		nextHistory := pushCursor(state.PrevHistory, state.After)

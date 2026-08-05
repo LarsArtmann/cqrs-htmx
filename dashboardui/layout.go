@@ -373,6 +373,7 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .pagination a, .pagination span { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); text-decoration: none; font-size: 0.85em; color: var(--muted); }
 .pagination a:hover { background: var(--surface-hover); }
 .pagination .current { border-color: var(--accent); background: var(--accent); color: white; font-weight: 600; }
+.pagination-info { border: none !important; color: var(--muted) !important; font-size: 0.8em !important; margin: 0 4px; }
 
 /* ===== Version slider (time-travel) ===== */
 .version-links { display: flex; flex-wrap: wrap; gap: 4px; }
