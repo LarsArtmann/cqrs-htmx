@@ -133,8 +133,8 @@ func main() {
 
     // Apply middleware stack
     handler := cqrshtmx.Chain(
-        cqrshtmx.SecurityHeadersMiddleware,
-        cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+        httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+        httputil.CSRFMiddleware(httputil.CSRFConfig{}),
         cqrshtmx.HTMXMiddleware,
         app.Middleware(),
     )(mux)
@@ -664,9 +664,9 @@ mux.Handle("/admin", cqrshtmx.AuthorizeMiddleware(
 
 // Chain multiple middleware
 chained := cqrshtmx.Chain(
-    cqrshtmx.SecurityHeadersMiddleware,
+    httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
     cqrshtmx.RecoveryMiddleware,
-    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
     cqrshtmx.HTMXMiddleware,
     app.Middleware(),
 )(mux)
@@ -696,7 +696,7 @@ handler := cqrshtmx.RequestLoggingSlog(slog.Default())(mux)
 Double-submit cookie CSRF protection with HTMX awareness. Uses [`justinas/nosurf`](https://github.com/justinas/nosurf) internally for token generation and origin validation. Validates `X-CSRF-Token` header (or form field) on state-changing methods:
 
 ```go
-handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+handler := httputil.CSRFMiddleware(httputil.CSRFConfig{
     CookieName: "csrf_token",
     HeaderName: "X-CSRF-Token",
     MaxAge:     24 * time.Hour,
@@ -729,7 +729,7 @@ handler := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 
 ```go
 // Pass token to templates from handler
-token := cqrshtmx.CSRFTokenFromContext(r.Context())
+token := httputil.CSRFTokenFromContext(r.Context())
 
 // Or use Response builder
 resp := cqrshtmx.NewResponse(w, r)
@@ -740,10 +740,10 @@ resp.CSRFToken(token).Apply()
 
 ```go
 data := map[string]any{
-    "CSRFMeta":      cqrshtmx.CSRFTokenHTMLMeta(r),     // <meta name="csrf-token" content="...">
-    "CSRFHXHeaders": cqrshtmx.CSRFTokenHXHeaders(r),    // hx-headers='{"X-CSRF-Token":"..."}'
-    "CSRFFormField": cqrshtmx.CSRFTokenFormField(r),    // <input type="hidden" name="..." value="...">
-    "CSRFToken":     cqrshtmx.CSRFTokenFromContext(r.Context()),
+    "CSRFMeta":      httputil.CSRFTokenHTMLMeta(r),     // <meta name="csrf-token" content="...">
+    "CSRFHXHeaders": httputil.CSRFTokenHXHeaders(r),    // hx-headers='{"X-CSRF-Token":"..."}'
+    "CSRFFormField": httputil.CSRFTokenFormField(r),    // <input type="hidden" name="..." value="...">
+    "CSRFToken":     httputil.CSRFTokenFromContext(r.Context()),
 }
 ```
 
@@ -751,8 +751,8 @@ data := map[string]any{
 
 ```go
 handler := cqrshtmx.Chain(
-    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
-    cqrshtmx.CSRFResponseHeaderMiddleware, // auto-sets X-CSRF-Token on every response
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    httputil.CSRFResponseHeaderMiddleware, // auto-sets X-CSRF-Token on every response
     cqrshtmx.HTMXMiddleware,
     app.Middleware(),
 )(mux)
@@ -762,7 +762,7 @@ handler := cqrshtmx.Chain(
 
 ```go
 app.Command("CreateUser",
-    cqrshtmx.CSRFProtect(cqrshtmx.CSRFConfig{}),
+    cqrshtmx.CSRFProtect(httputil.CSRFConfig{}),
     cqrshtmx.DecodeJSON(...),
 )
 ```
@@ -803,7 +803,7 @@ handler := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
 Defense-in-depth headers on every response. Recommended for all production deployments:
 
 ```go
-handler := cqrshtmx.SecurityHeadersMiddleware(mux)
+handler := httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig())(mux)
 ```
 
 Defaults: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
@@ -811,7 +811,7 @@ Defaults: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-
 For custom headers:
 
 ```go
-handler := cqrshtmx.SecurityHeadersMiddlewareWithConfig(cqrshtmx.SecurityHeadersConfig{
+handler := httputil.SecurityHeaders(httputil.SecurityHeadersConfig{
     ContentSecurityPolicy:   "default-src 'self'",
     StrictTransportSecurity: "max-age=31536000; includeSubDomains",
     PermissionsPolicy:       "camera=(), microphone=(), geolocation=()",
@@ -1039,7 +1039,7 @@ Wire `cqrs-htmx` middleware around the usermgmt auth handler:
 
 ```go
 handler := cqrshtmx.Chain(
-    cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{Secure: true}),
+    httputil.CSRFMiddleware(httputil.CSRFConfig{Secure: true}),
     cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
         Limit:        10,
         Window:       time.Minute,
@@ -1197,12 +1197,10 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | casbin/casbin/v3            | Authorization                             |
 | go-error-family v0.10.0     | Error classification                      |
 | go-sse v0.3.0               | SSE protocol writer, broadcaster, replay  |
-| larsartmann/httputil v0.6.1 | ClientIP extraction                       |
-| justinas/nosurf             | CSRF protection                           |
-| golang.org/x/time           | Token-bucket rate limiting                |
+| larsartmann/httputil v0.9.0 | CSRF, Server-Timing, rate limiting, ClientIP, security headers, compression, CORS |
 | go-branded-id v0.5.0        | Branded types (usermgmt)                  |
 | go-playground/form/v4       | Form decoding                             |
-| templ-components v1.2.0     | UI component library (adminui, loginpage) |
+| templ-components v1.7.0     | UI component library (adminui, loginpage) |
 
 **Optional sub-module dependencies** (only import the auth strategies you need):
 

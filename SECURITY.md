@@ -25,7 +25,7 @@ cqrs-htmx provides defense-in-depth security for CQRS + HTMX Go applications:
 ### Configuration
 
 ```go
-csrfMW := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+csrfMW := httputil.CSRFMiddleware(httputil.CSRFConfig{
     Secure:        true,                     // HTTPS only
     SameSite:      http.SameSiteStrictMode,
     TrustedOrigins: []string{"https://example.com"},

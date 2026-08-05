@@ -143,8 +143,8 @@ func main() {
 
     handler := cqrshtmx.Chain(
         cqrshtmx.RecoveryMiddleware,
-        cqrshtmx.SecurityHeadersMiddleware,
-        cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+        httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+        httputil.CSRFMiddleware(httputil.CSRFConfig{}),
     )(mux)
 
     http.ListenAndServe(":8080", handler)

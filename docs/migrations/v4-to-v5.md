@@ -45,11 +45,12 @@ wb.Broadcast(cqrshtmx.WSOOBHTML("tasks", "<ul>...</ul>"))
 
 ```go
 b := cqrshtmx.NewBroadcaster()
-ch := b.Subscribe() // chan cqrshtmx.SSEEvent
+ch := b.Subscribe() // chan sse.Event
 defer b.Unsubscribe(ch)
 
-// broadcast an SSE event carrying the HTML as data:
-b.Broadcast(cqrshtmx.SSEEvent{Event: "tasks", Data: cqrshtmx.OOBHTML("tasks", "<ul>...</ul>")})
+// broadcast an SSE event carrying the HTML as data.
+// Import "github.com/larsartmann/go-sse" as sse:
+b.Broadcast(sse.Event{Event: "tasks", Data: cqrshtmx.OOBHTML("tasks", "<ul>...</ul>")})
 ```
 
 ### 2. `WSOOBHTML` → `OOBHTML`
@@ -110,7 +111,7 @@ cqrshtmx.WriteWSMessageInto[CreateTaskInput](w, body, headers)
 
 ```go
 out, _ := json.Marshal(body)
-broadcaster.Broadcast(cqrshtmx.SSEEvent{Event: "taskCreated", Data: string(out)})
+broadcaster.Broadcast(sse.Event{Event: "taskCreated", Data: string(out)})
 ```
 
 ### 5. `DispatchWSCommand` / `DispatchWSQuery` → `app.Command` / `app.Query`
@@ -211,7 +212,7 @@ app := cqrshtmx.MustNew(cqrshtmx.Config{
 })
 
 mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
-    stream := cqrshtmx.NewSSEStream(w, r)
+    stream := sse.NewStream(w, r)
     defer stream.Close()
     ch := broadcaster.Subscribe()
     defer broadcaster.Unsubscribe(ch)

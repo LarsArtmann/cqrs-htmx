@@ -18,7 +18,7 @@ same-origin requests behind your proxy.
 ### Nginx (single server)
 
 ```go
-csrf := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+csrf := httputil.CSRFMiddleware(httputil.CSRFConfig{
     TrustedProxies: []string{"127.0.0.1"}, // Nginx on same host
 })
 ```
@@ -37,7 +37,7 @@ location / {
 ### Docker (containerized)
 
 ```go
-csrf := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+csrf := httputil.CSRFMiddleware(httputil.CSRFConfig{
     TrustedProxies: []string{
         "172.16.0.0/12",  // Docker bridge network
     },
@@ -47,7 +47,7 @@ csrf := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 ### Cloudflare (CDN/WAF)
 
 ```go
-csrf := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+csrf := httputil.CSRFMiddleware(httputil.CSRFConfig{
     TrustedProxies: []string{
         "173.245.48.0/20",
         "103.21.244.0/22",
@@ -61,7 +61,7 @@ csrf := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
 ### Kubernetes (Ingress Controller)
 
 ```go
-csrf := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+csrf := httputil.CSRFMiddleware(httputil.CSRFConfig{
     TrustedProxies: []string{
         "10.0.0.0/8",     // Kubernetes pod/service network
     },
