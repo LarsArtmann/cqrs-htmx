@@ -26,10 +26,16 @@ Thumbs.db
 vendor/
 # Test coverage
 /coverage
-# Build artifacts
+# Build artifacts (root-level compiled binaries)
 /cqrs-htmx
-/dashboard-demo
+/basic
+/datastar-demo
+/catalog-demo
 /admin-demo
+/dashboard-demo
+/middleware-demo
+/observability-demo
+/e2e/server/server
 # Dependencies
 node_modules/
 # Sensitive files
@@ -43,6 +49,7 @@ examples/catalog-demo/eventcatalog/
 examples/admin-demo/admin-demo
 examples/dashboard-demo/dashboard-demo
 examples/middleware-demo/middleware-demo
+examples/observability-demo/observability-demo
 # Nix build output
 /result
 # Generated reports (buildflow coverage / jscpd / lint output)
@@ -117,5 +124,3 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 # <<< buildflow-managed (.gitignore) <<<
-examples/observability-demo/observability-demo
-/e2e/server/server
