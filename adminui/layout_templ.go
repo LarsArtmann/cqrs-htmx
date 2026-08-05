@@ -311,11 +311,11 @@ func Layout(p pageData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = toastHost().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = toastHost(p.Nonce).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = htmx.GlobalErrorHandling(htmx.DefaultErrorHandlingConfig()).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = htmx.GlobalErrorHandling(htmx.ErrorHandlingConfig{Nonce: p.Nonce}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

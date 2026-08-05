@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // brandInitialsLen is the number of characters used for the sidebar brand initials.
@@ -148,30 +150,46 @@ func (d *Dashboard) renderToastContainer() string {
 </script>`
 }
 
-// navIconSVG returns a minimal inline SVG icon for the given icon name.
-// Returns an empty string for unknown icons.
+// navIconSVG returns an inline SVG icon for the given icon name using the
+// templ-components Heroicons path data. Unknown names fall back to the
+// Question icon (a "?" symbol) via the library's built-in fallback.
 func navIconSVG(name string) string {
+	paths := icons.IconPathData(mapNavIconName(name))
+	var b strings.Builder
+	b.WriteString(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">`)
+	for _, p := range paths {
+		b.WriteString(`<path stroke-linecap="round" stroke-linejoin="round" d="`)
+		b.WriteString(p)
+		b.WriteString(`"/>`)
+	}
+	b.WriteString(`</svg>`)
+	return b.String()
+}
+
+// mapNavIconName translates dashboardui internal icon names to the
+// templ-components icons.Name constants.
+func mapNavIconName(name string) icons.Name {
 	switch name {
 	case "chart":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M2 17h16V3H2v14zM4 5h3v6H4V5zm5 0h3v8H9V5zm5 0h3v4h-3V5z"/></svg>`
+		return icons.Chart
 	case "queue":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M2 4h16v2H2V4zm0 5h16v2H2V9zm0 5h16v2H2v-2z"/></svg>`
+		return icons.QueueList
 	case "cube":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10 1L2 5v10l8 4 8-4V5l-8-4zm0 2.2L15.5 6 10 8.8 4.5 6 10 3.2zM4 7.7l5 2.5v6.6l-5-2.5V7.7zm7 9.1v-6.6l5-2.5v6.6l-5 2.5z"/></svg>`
+		return icons.Cube
 	case "arrow-path":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10 3a7 7 0 00-7 7h2a5 5 0 015-5V3zm0 14a7 7 0 007-7h-2a5 5 0 01-5 5v2z"/></svg>`
+		return icons.ArrowPath
 	case "bug":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10 2a3 3 0 00-3 3v1H5a2 2 0 00-2 2H2v2h1.1A5.6 5.6 0 005 16.9V18a1 1 0 002 0v-.1c1 .1 3 .1 4 0V18a1 1 0 002 0v-1.1A5.6 5.6 0 0016.9 11H18V9h-1a2 2 0 00-2-2h-2V5a3 3 0 00-3-3z"/></svg>`
+		return icons.BugAnt
 	case "clipboard":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9zM7 4h6v2H7V4zm-3 2h2v10h10V6h2v12H4V6z"/></svg>`
+		return icons.Clipboard
 	case "magnifying-glass":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M9 2a7 7 0 105.3 11.7l3 3a1 1 0 001.4-1.4l-3-3A7 7 0 009 2zm0 2a5 5 0 110 10A5 5 0 019 4z"/></svg>`
+		return icons.Search
 	case "clock":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 2a6 6 0 110 12A6 6 0 0110 4zm-1 2v5l4 2 .8-1.3L11 10V6H9z"/></svg>`
+		return icons.Clock
 	case "archive":
-		return `<svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M2 3v4h16V3H2zm2 1h12v2H4V4zM3 8v9h14V8H3zm4 2h6v1H7v-1z"/></svg>`
+		return icons.ArchiveBox
 	default:
-		return ""
+		return icons.Question
 	}
 }
 

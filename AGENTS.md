@@ -56,7 +56,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 ## templ-components adoption (`github.com/larsartmann/templ-components` v1.7.0)
 
-Only **adminui** depends on templ-components. **dashboardui** and **loginpage** do not use it at all (dashboardui builds HTML via `strings.Builder`; loginpage hand-rolls a single `.templ` page with custom `lp-*` CSS). Before hand-rolling any UI element, check the library first — it has 110+ components across 10 packages.
+Both **adminui** and **dashboardui** depend on templ-components. **loginpage** does not use it (loginpage hand-rolls a single `.templ` page with custom `lp-*` CSS). Before hand-rolling any UI element, check the library first — it has 110+ components across 10 packages.
 
 ### adminui — current adoption
 
@@ -76,17 +76,17 @@ Only **adminui** depends on templ-components. **dashboardui** and **loginpage** 
 | `icons.Name` / `icons.Icon`   | adopted | `icons.go`, `components.templ`           |
 | `utils.BaseProps`             | adopted | `users.templ`, `tenants.templ`           |
 | `layout.AppShell`             | custom  | `layout.templ` (hand-rolled shell; custom CSS vars for `--sidebar-bg`, `--surface`, `--accent`, SSE sync bar, mobile hamburger — AppShell's `lg:` breakpoint and standard Tailwind classes don't match the deeply themed layout) |
-| `feedback.ToastContainer`     | custom  | `components.templ` — hand-rolled `<div class="toast-host">` + admin.js toast function |
-| `htmx.GlobalErrorHandling`    | missing | No global HTMX error handling (network errors, 5xx retry, session-expiry redirect) |
+| `feedback.ToastContainer`     | adopted | `components.templ` — via `toastHost(nonce)` wrapper; bridges `adminui:toast` HX-Trigger events to `tcShowToast()` |
+| `htmx.GlobalErrorHandling`    | adopted | `layout.templ` — 5xx retry, network error toast, session-expiry redirect, ARIA announcer |
 | `errorpage.*`                 | missing | No structured error pages (uses bare `http.Error`) |
 | `display.StatusBadge`         | custom  | Uses `badge()` wrapper instead of auto-mapping StatusBadge |
 | `navigation.SidebarNav`       | custom  | Hand-rolled sidebar in `layout.templ`    |
 
-### dashboardui — adoption opportunities
+### dashboardui — current adoption and opportunities
 
-dashboardui builds ALL HTML via `strings.Builder` + `fmt.Fprintf` (113 HTML-building calls). It does not use templ at all. Adoption opportunities (Pareto-ordered):
+dashboardui builds HTML via `strings.Builder` + `fmt.Fprintf` (not templ). It now depends on templ-components for the `icons` package (Heroicons path data). Remaining adoption opportunities (Pareto-ordered):
 
-1. **`icons.Icon`** — replace hand-rolled `navIconSVG()` switch (10 hard-coded SVG path strings) with `icons.Icon(name, class)`.
+1. **`icons.IconPathData`** — **adopted** in `layout.go` (`navIconSVG()` uses `icons.IconPathData()` with a name-mapping function; 9 icons mapped to Heroicons).
 2. **`display.Table`** — replace hand-rolled `<table>` string builders with typed `TableProps`.
 3. **`feedback.ToastContainer` + `htmx.GlobalErrorHandling`** — replace hand-rolled toast CSS/JS with library equivalents.
 4. **`display.EmptyState`** — replace `emptyState()` string helper.
