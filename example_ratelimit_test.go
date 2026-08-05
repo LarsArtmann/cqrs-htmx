@@ -6,17 +6,17 @@ import (
 	"net/http/httptest"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 func ExampleRateLimiterMiddleware() {
 	mux := http.NewServeMux()
 
 	// Allow 10 requests per minute per IP address.
-	limited := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+	limited := httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig{
 		Limit:        10,
 		Window:       time.Minute,
-		KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+		KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
 	})
 
 	mux.Handle("/", limited(

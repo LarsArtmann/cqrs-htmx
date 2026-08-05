@@ -9,6 +9,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/httputil"
 )
 
 func BenchmarkRequestLogging(b *testing.B) {
@@ -46,8 +47,8 @@ func BenchmarkRequestLogging(b *testing.B) {
 }
 
 func BenchmarkCSRFMiddleware(b *testing.B) {
-	config := cqrshtmx.CSRFConfig{}
-	middleware := cqrshtmx.CSRFMiddleware(config)
+	config := httputil.CSRFConfig{}
+	middleware := httputil.CSRFMiddleware(config)
 	handler := middleware(okHandler())
 
 	b.Run("GET", func(b *testing.B) {
@@ -61,9 +62,9 @@ func BenchmarkCSRFMiddleware(b *testing.B) {
 
 		var token string
 
-		captureMw := cqrshtmx.CSRFMiddleware(config)
+		captureMw := httputil.CSRFMiddleware(config)
 		captureHandler := captureMw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token = cqrshtmx.CSRFTokenFromContext(r.Context())
+			token = httputil.CSRFTokenFromContext(r.Context())
 
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -99,7 +100,7 @@ func BenchmarkCSRFMiddleware(b *testing.B) {
 
 func BenchmarkRateLimiterMiddleware(b *testing.B) {
 	b.Run("Global", func(b *testing.B) {
-		middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+		middleware := httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig{
 			Limit:  10000,
 			Window: time.Minute,
 		})
@@ -110,7 +111,7 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 	})
 
 	b.Run("PerKey", func(b *testing.B) {
-		middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+		middleware := httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig{
 			Limit:        10000,
 			Window:       time.Minute,
 			KeyExtractor: func(_ *http.Request) string { return "client-1" },
@@ -122,10 +123,10 @@ func BenchmarkRateLimiterMiddleware(b *testing.B) {
 	})
 
 	b.Run("RemoteAddr", func(b *testing.B) {
-		middleware := cqrshtmx.RateLimiterMiddleware(cqrshtmx.RateLimiterConfig{
+		middleware := httputil.KeyedRateLimiterMiddleware(httputil.KeyedRateLimiterConfig{
 			Limit:        10000,
 			Window:       time.Minute,
-			KeyExtractor: cqrshtmx.KeyExtractorFromRemoteAddr(),
+			KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
 		})
 		handler := middleware(okHandler())
 

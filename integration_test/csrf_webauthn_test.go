@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // TestCSRF_WithAuthHandler demonstrates wiring CSRF protection around the
@@ -30,7 +31,7 @@ func TestCSRF_WithAuthHandler(t *testing.T) {
 
 	// Compose CSRF (outermost) with session enrichment.
 	wrapped := cqrshtmx.Chain(
-		cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{}),
+		httputil.CSRFMiddleware(httputil.CSRFConfig{}),
 		usermgmt.NewSessionMiddleware(svc, "session_token"),
 	)(mux)
 

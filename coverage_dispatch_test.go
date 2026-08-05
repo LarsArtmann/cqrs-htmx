@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -28,10 +29,10 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 
 	Describe("CSRF sameSite all branches", func() {
 		It("maps SameSiteDefaultMode", func() {
-			config := cqrshtmx.CSRFConfig{
+			config := httputil.CSRFConfig{
 				SameSite: http.SameSiteDefaultMode,
 			}
-			mw := cqrshtmx.CSRFMiddleware(config)
+			mw := httputil.CSRFMiddleware(config)
 			handler := mw(okHandler())
 			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			w := httptest.NewRecorder()
@@ -42,9 +43,9 @@ var _ = Describe("Root Coverage Gaps - Dispatch and CSRF", func() {
 
 	Describe("csrfTokenFromRequest context fallback", func() {
 		It("falls back to context token when gorilla has none", func() {
-			ctx := cqrshtmx.WithCSRFToken(context.Background(), "ctx-token")
+			ctx := httputil.WithCSRFToken(context.Background(), "ctx-token")
 			r := httptest.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
-			token := cqrshtmx.CSRFTokenFromContext(r.Context())
+			token := httputil.CSRFTokenFromContext(r.Context())
 			Expect(token).To(Equal("ctx-token"))
 		})
 	})

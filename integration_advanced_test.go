@@ -7,6 +7,7 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -56,7 +57,7 @@ var _ = Describe("Integration: Body Size and Middleware", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			csrfCfg := integrationCSRFConfig()
-			csrfMW := cqrshtmx.CSRFMiddleware(csrfCfg)
+			csrfMW := httputil.CSRFMiddleware(csrfCfg)
 			handler := app.Command("CreateUser", decodeCreateUserJSON())
 
 			chain := cqrshtmx.Chain(

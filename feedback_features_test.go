@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
+	"github.com/larsartmann/httputil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -21,9 +22,9 @@ import (
 var _ = Describe("Feedback-driven features", func() {
 	Describe("DefaultRateLimiterConfig", func() {
 		It("returns usable defaults that work as middleware", func() {
-			config := cqrshtmx.DefaultRateLimiterConfig()
+			config := httputil.DefaultKeyedRateLimiterConfig()
 			Expect(config.Limit).To(BeNumerically(">", 0))
-			mw := cqrshtmx.RateLimiterMiddleware(config)
+			mw := httputil.KeyedRateLimiterMiddleware(config)
 			handler := mw(okHandler())
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
@@ -336,26 +337,26 @@ var _ = Describe("Feedback-driven features", func() {
 	Describe("CSRFTestToken", func() {
 		It("extracts a valid CSRF token and cookie from the middleware chain", func() {
 			mw := cqrshtmx.Chain(
-				cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+				httputil.CSRFMiddleware(httputil.CSRFConfig{
 					Secure:   false,
 					SameSite: http.SameSiteLaxMode,
 				}),
-				cqrshtmx.CSRFResponseHeaderMiddleware,
+				httputil.CSRFResponseHeaderMiddleware,
 			)
 
-			token, cookie := cqrshtmx.CSRFTestToken(mw)
+			token, cookie := httputil.CSRFTestToken(mw)
 			Expect(token).NotTo(BeEmpty())
 			Expect(cookie).NotTo(BeNil())
 			Expect(cookie.Name).To(Equal("csrf_token"))
 		})
 
 		It("passes a realistic GET-to-POST round-trip with token and cookie", func() {
-			mw := cqrshtmx.CSRFMiddleware(cqrshtmx.CSRFConfig{
+			mw := httputil.CSRFMiddleware(httputil.CSRFConfig{
 				Secure:   false,
 				SameSite: http.SameSiteLaxMode,
 			})
 
-			token, cookie := cqrshtmx.CSRFTestToken(mw)
+			token, cookie := httputil.CSRFTestToken(mw)
 			Expect(token).NotTo(BeEmpty())
 			Expect(cookie).NotTo(BeNil())
 

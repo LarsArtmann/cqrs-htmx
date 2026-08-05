@@ -11,6 +11,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/httputil"
 )
 
 // examplePingDecoder is shared by ExampleApp_Command_BeforeAfter and
@@ -295,11 +296,11 @@ type startKey struct{}
 //	Server-Timing: total;desc="Total request";dur=1, db;dur=0
 func ExampleServerTimingMiddleware() {
 	// Gate Server-Timing behind ?debug=1 — disabled requests pay zero overhead.
-	handler := cqrshtmx.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+	handler := httputil.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
 		return r.URL.Query().Has("debug")
 	})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Time a region that completes BEFORE the response is written.
-		stop := cqrshtmx.MeasureServerTiming(r.Context(), "db")
+		stop := httputil.MeasureServerTiming(r.Context(), "db")
 
 		time.Sleep(time.Millisecond)
 		stop()

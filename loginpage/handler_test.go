@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 )
 
 func newTestService(t *testing.T) *usermgmt.Service {
@@ -387,7 +387,7 @@ func TestNewPageData(t *testing.T) {
 
 func TestNewPageData_WithCSRF(t *testing.T) {
 	svc := newTestService(t)
-	ctx := cqrshtmx.WithCSRFToken(context.Background(), "token-abc")
+	ctx := httputil.WithCSRFToken(context.Background(), "token-abc")
 	r := httptest.NewRequest(http.MethodGet, "/login", nil).WithContext(ctx)
 	data, err := NewPageData(Config{Service: svc}, r)
 	if err != nil {
