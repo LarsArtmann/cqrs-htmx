@@ -180,3 +180,5 @@
 //
 // [go-cqrs-lite]: https://github.com/larsartmann/go-cqrs-lite
 package cqrshtmx
+
+// test pre-commit
