@@ -238,10 +238,10 @@ func (d *Dashboard) loadCommandByID(ctx context.Context, cmdID id.CommandID) (*c
 		}
 
 		return nil, errorfamily.NewRejection(
-						"dashboardui.command_detail.not_found", fmt.Sprintf("command %s not found", cmdID))
-			}
+			"dashboardui.command_detail.not_found", fmt.Sprintf("command %s not found", cmdID))
+	}
 
-			all, err := d.config.CommandJournal.ReadAll(ctx)
+	all, err := d.config.CommandJournal.ReadAll(ctx)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
 			"dashboardui.command_detail.read_failed", "read command journal")
@@ -356,10 +356,10 @@ func (d *Dashboard) loadQueryByID(ctx context.Context, queryID id.RequestID) (*q
 		}
 
 		return nil, errorfamily.NewRejection(
-						"dashboardui.query_detail.not_found", fmt.Sprintf("query %s not found", queryID))
-			}
+			"dashboardui.query_detail.not_found", fmt.Sprintf("query %s not found", queryID))
+	}
 
-			all, err := d.config.QueryJournal.ReadAllQueries(ctx)
+	all, err := d.config.QueryJournal.ReadAllQueries(ctx)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
 			"dashboardui.query_detail.read_failed", "read query journal")

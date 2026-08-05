@@ -36,6 +36,9 @@ type pageData struct {
 	// Also enables the global sync indicator (.sync-bar) in the header. Empty
 	// disables honest UI sync tracking (no SSE connection, no sync bar).
 	SSEURL string
+	// Nonce is the CSP nonce for inline scripts (ToastContainer,
+	// GlobalErrorHandling). Empty when no CSP middleware is active.
+	Nonce string
 }
 
 // statCard is one metric tile on the dashboard.

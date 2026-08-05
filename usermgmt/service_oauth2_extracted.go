@@ -26,10 +26,10 @@ type OAuth2Service struct {
 	stateTTL time.Duration
 
 	// Shared dependencies from the core Service
-	readModel  *UserReadModel
-	dispatcher dispatcher
-	sessions   SessionStore
-	sessionTTL time.Duration
+	readModel     *UserReadModel
+	dispatcher    dispatcher
+	sessions      SessionStore
+	sessionTTL    time.Duration
 	logger        *slog.Logger
 	classifyError errorClassifier
 }
@@ -61,15 +61,15 @@ func NewOAuth2Service(
 		return nil
 	}
 	return &OAuth2Service{
-		provider:       provider,
-		states:         states,
-		stateTTL:       stateTTL,
-		readModel:      readModel,
-		dispatcher:     dispatcher,
-		sessions:       sessions,
-		sessionTTL:     sessionTTL,
-		logger:         logger,
-		classifyError:  classifyError,
+		provider:      provider,
+		states:        states,
+		stateTTL:      stateTTL,
+		readModel:     readModel,
+		dispatcher:    dispatcher,
+		sessions:      sessions,
+		sessionTTL:    sessionTTL,
+		logger:        logger,
+		classifyError: classifyError,
 	}
 }
 
