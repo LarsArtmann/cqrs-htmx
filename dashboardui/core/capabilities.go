@@ -29,19 +29,19 @@ type EventByIDLoader interface {
 // relevant to data fetching, not rendering configuration (Title, BasePath,
 // AccentColor, etc.).
 type Config struct {
-	EventSource      event.EventSource
-	EventByIDLoader  EventByIDLoader
-	Journal          event.Journal
-	SeekableJournal  event.SeekableJournal
-	StreamReader     listing.StreamReader
-	ProjectionHost   *projectionhost.Host
-	DeadLetterStore  projectionhost.DeadLetterStore
-	CommandJournal   command.CommandJournal
-	QueryJournal     query.QueryJournal
-	SnapshotStore    snapshot.SnapshotStore
-	EventBus         event.Bus
-	PageSize         int
-	PayloadRenderer  PayloadRenderer
+	EventSource     event.EventSource
+	EventByIDLoader EventByIDLoader
+	Journal         event.Journal
+	SeekableJournal event.SeekableJournal
+	StreamReader    listing.StreamReader
+	ProjectionHost  *projectionhost.Host
+	DeadLetterStore projectionhost.DeadLetterStore
+	CommandJournal  command.CommandJournal
+	QueryJournal    query.QueryJournal
+	SnapshotStore   snapshot.SnapshotStore
+	EventBus        event.Bus
+	PageSize        int
+	PayloadRenderer PayloadRenderer
 }
 
 // Capabilities describes which panels are available based on the

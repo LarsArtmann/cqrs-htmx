@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 )
 
 // ===== Type aliases (transparent re-exports of core data types) =====
@@ -18,15 +18,22 @@ import (
 // consumers who reference dashboardui.Capabilities, dashboardui.PayloadRenderer,
 // etc. continue to work. Internally, all logic lives in core.
 
+// Capabilities describes which panels are available based on the
+// configured data sources.
 type Capabilities = core.Capabilities
+
+// EventByIDLoader is the interface for loading a single event by ID.
 type EventByIDLoader = core.EventByIDLoader
+
+// PayloadRenderer formats event payloads for display.
 type PayloadRenderer = core.PayloadRenderer
+
+// DefaultPayloadRenderer is the default payload renderer.
 type DefaultPayloadRenderer = core.DefaultPayloadRenderer
 
 // Unexported aliases used internally by the rendering layer.
 type projectionStat = core.ProjectionStat
 type overviewStats = core.Overview
-type recentEvent = core.RecentEvent
 type paginationState = core.PageState
 type eventFilter = core.EventFilter
 type dlqProjectionLink = core.DLQProjectionLink
@@ -82,10 +89,6 @@ func paginationQuery(after, prevHistory string, pageSize int, extraParams string
 	return core.PaginationQuery(after, prevHistory, pageSize, extraParams)
 }
 
-func computePageStart(state paginationState) int {
-	return core.ComputePageStart(state)
-}
-
 func parsePageSize(r *http.Request, defaultSize int) int {
 	return core.ParsePageSize(r, defaultSize)
 }
@@ -108,19 +111,19 @@ func (config Config) capabilities() Capabilities {
 // coreConfig extracts the data-source subset of Config for core functions.
 func (config Config) coreConfig() core.Config {
 	return core.Config{
-		EventSource:      config.EventSource,
-		EventByIDLoader:  config.EventByIDLoader,
-		Journal:          config.Journal,
-		SeekableJournal:  config.SeekableJournal,
-		StreamReader:     config.StreamReader,
-		ProjectionHost:   config.ProjectionHost,
-		DeadLetterStore:  config.DeadLetterStore,
-		CommandJournal:   config.CommandJournal,
-		QueryJournal:     config.QueryJournal,
-		SnapshotStore:    config.SnapshotStore,
-		EventBus:         config.EventBus,
-		PageSize:         config.PageSize,
-		PayloadRenderer:  config.PayloadRenderer,
+		EventSource:     config.EventSource,
+		EventByIDLoader: config.EventByIDLoader,
+		Journal:         config.Journal,
+		SeekableJournal: config.SeekableJournal,
+		StreamReader:    config.StreamReader,
+		ProjectionHost:  config.ProjectionHost,
+		DeadLetterStore: config.DeadLetterStore,
+		CommandJournal:  config.CommandJournal,
+		QueryJournal:    config.QueryJournal,
+		SnapshotStore:   config.SnapshotStore,
+		EventBus:        config.EventBus,
+		PageSize:        config.PageSize,
+		PayloadRenderer: config.PayloadRenderer,
 	}
 }
 
@@ -129,13 +132,7 @@ func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
 }
 
 func (d *Dashboard) buildDLQProjectionLinks(ctx context.Context) []dlqProjectionLink {
-	links := core.DLQProjectionLinks(ctx, d.config.coreConfig())
-	result := make([]dlqProjectionLink, len(links))
-	for i, l := range links {
-		result[i] = dlqProjectionLink(l)
-	}
-
-	return result
+	return core.DLQProjectionLinks(ctx, d.config.coreConfig())
 }
 
 func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limit int) ([]event.Event, error) {

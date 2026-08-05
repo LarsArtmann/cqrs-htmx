@@ -238,11 +238,11 @@ func (d *Dashboard) renderEvents(
 		fmt.Fprintf(
 			&b,
 			`<div class="table-scroll"><table class="data-table"><thead><tr>%s%s%s%s%s</tr></thead><tbody>%s</tbody></table></div>`,
-			sortHeader(p.BasePath, "/events", "Time", "time", sortBy, filter.ExtraParams()),
-			sortHeader(p.BasePath, "/events", "Type", "type", sortBy, filter.ExtraParams()),
+			sortHeader(p.BasePath, "Time", "time", sortBy, filter.ExtraParams()),
+			sortHeader(p.BasePath, "Type", "type", sortBy, filter.ExtraParams()),
 			`<th scope="col">Stream ID</th>`,
-			sortHeader(p.BasePath, "/events", "Stream Type", "streamType", sortBy, filter.ExtraParams()),
-			sortHeader(p.BasePath, "/events", "Version", "version", sortBy, filter.ExtraParams()),
+			sortHeader(p.BasePath, "Stream Type", "streamType", sortBy, filter.ExtraParams()),
+			sortHeader(p.BasePath, "Version", "version", sortBy, filter.ExtraParams()),
 			rows.String(),
 		)
 

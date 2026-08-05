@@ -10,20 +10,16 @@ import (
 // sortState tracks the active sort column and direction for table headers.
 type sortState struct {
 	Column    string // e.g., "time", "type", "version"
-	Direction string // "asc" or "desc"
+	Direction string // sortAsc or sortDesc
 }
+
+const (
+	sortAsc  = "asc"
+	sortDesc = "desc"
+)
 
 func (s sortState) Active() bool {
 	return s.Column != ""
-}
-
-// toggleDirection returns the opposite direction.
-func (s sortState) toggleDirection() string {
-	if s.Direction == "asc" {
-		return "desc"
-	}
-
-	return "asc"
 }
 
 // sortParam returns the query-string fragment for this sort state.
@@ -43,8 +39,8 @@ func parseSort(r *http.Request) sortState {
 	}
 
 	dir := r.URL.Query().Get("dir")
-	if dir != "asc" && dir != "desc" {
-		dir = "asc"
+	if dir != sortAsc && dir != sortDesc {
+		dir = sortAsc
 	}
 
 	return sortState{Column: col, Direction: dir}
@@ -59,7 +55,7 @@ func sortEvents(events []event.Event, s sortState) {
 	switch s.Column {
 	case "time":
 		sort.SliceStable(events, func(i, j int) bool {
-			if s.Direction == "asc" {
+			if s.Direction == sortAsc {
 				return events[i].OccurredAt().Before(events[j].OccurredAt())
 			}
 
@@ -68,7 +64,7 @@ func sortEvents(events []event.Event, s sortState) {
 	case "type":
 		sort.SliceStable(events, func(i, j int) bool {
 			a, b := string(events[i].Type()), string(events[j].Type())
-			if s.Direction == "asc" {
+			if s.Direction == sortAsc {
 				return a < b
 			}
 
@@ -77,7 +73,7 @@ func sortEvents(events []event.Event, s sortState) {
 	case "streamType":
 		sort.SliceStable(events, func(i, j int) bool {
 			a, b := string(events[i].StreamType()), string(events[j].StreamType())
-			if s.Direction == "asc" {
+			if s.Direction == sortAsc {
 				return a < b
 			}
 
@@ -86,7 +82,7 @@ func sortEvents(events []event.Event, s sortState) {
 	case "version":
 		sort.SliceStable(events, func(i, j int) bool {
 			a, b := events[i].Version().UInt64(), events[j].Version().UInt64()
-			if s.Direction == "asc" {
+			if s.Direction == sortAsc {
 				return a < b
 			}
 
@@ -96,17 +92,17 @@ func sortEvents(events []event.Event, s sortState) {
 }
 
 // sortHeader renders a clickable sortable column header with an indicator.
-func sortHeader(basePath, path, label, column string, s sortState, extraParams string) string {
-	direction := "asc"
+func sortHeader(basePath, label, column string, s sortState, extraParams string) string {
+	direction := sortAsc
 	indicator := ""
 
 	if s.Column == column {
-		if s.Direction == "asc" {
+		if s.Direction == sortAsc {
 			indicator = " \u25B2" // ▲
-			direction = "desc"
+			direction = sortDesc
 		} else {
 			indicator = " \u25BC" // ▼
-			direction = "asc"
+			direction = sortAsc
 		}
 	}
 
@@ -115,6 +111,6 @@ func sortHeader(basePath, path, label, column string, s sortState, extraParams s
 		query += "&" + extraParams
 	}
 
-	return `<th scope="col"><a href="` + basePath + path + "?" + query + `" class="sort-header">` +
+	return `<th scope="col"><a href="` + basePath + "/events?" + query + `" class="sort-header">` +
 		label + indicator + `</a></th>`
 }

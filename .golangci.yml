@@ -168,7 +168,8 @@ linters:
         - .+\.sseReadResult$
         - .+\.lockedRecorder$
         - github\.com/larsartmann/go-sse\.Event$
-        - github\.com/larsartmann/cqrs-htmx/dashboardui/v4\.(Config|Dashboard|overviewStats|navItem)$
+        - github\.com/larsartmann/cqrs-htmx/dashboardui/v4\.(Config|Dashboard|overviewStats|navItem|sortState|fakeCommandJournal|fakeQueryJournal|fakeEventSource)$
+        - github\.com/larsartmann/cqrs-htmx/dashboardui/v4/core\.(PageState|EventFilter|Overview|RecentEvent|ProjectionStat)$
         - net/http\.Request$
         - .+\.ListOptions$
         - .+\.StreamRef$
@@ -308,15 +309,26 @@ linters:
         linters:
           - gochecknoglobals
           - revive
+      - path: core_bridge\.go$
+        linters:
+          - wrapcheck
+          - revive
+      - path: core/
+        linters:
+          - wrapcheck
       # HTMX headers (HX-Redirect, HX-Trigger-Name, ...) and the CSRF header
       # (X-CSRF-Token) use ecosystem-standard casing, not Go's canonical form.
       # http.Header.Set/Get canonicalize at the wire level regardless.
-      - text: '"HX-[A-Za-z-]+" is not canonical'
+      - text: 'non-canonical header "HX-'
         linters:
           - canonicalheader
-      - text: '"X-CSRF-Token" is not canonical'
+      - text: 'non-canonical header "X-CSRF-Token"'
         linters:
           - canonicalheader
+      - path: dashboardui/pagination\.go$
+        text: is a global variable
+        linters:
+          - gochecknoglobals
     paths:
       - \.gen\.go$
       - _mock\.go$
