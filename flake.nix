@@ -207,7 +207,26 @@
               description = "Run golangci-lint across all workspace modules (auto-discovered, excludes e2e/examples)";
               runtimeInputs = [ pkgs.golangci-lint ];
               text = ''
-                forEachGoModule "golangci-lint run" '^(e2e/|examples/)'
+                lintFail=0
+                while IFS= read -r dir; do
+                  dir="''${dir#./}"
+                  if [ -n "$dir" ] && echo "$dir" | grep -qE '^(e2e/|examples/)'; then
+                    continue
+                  fi
+                  if [ -z "$dir" ] || [ "$dir" = "." ]; then
+                    echo "==> Root module"
+                    dir="."
+                  else
+                    echo "==> $dir"
+                  fi
+                  if ! (cd "$dir" && golangci-lint run); then
+                    lintFail=1
+                  fi
+                done < <(env GOWORK= go work edit -json 2>/dev/null | jq -r '.Use[].DiskPath')
+                if [ "$lintFail" -eq 1 ]; then
+                  echo "FAIL: one or more modules had lint issues"
+                  exit 1
+                fi
               '';
             };
 
