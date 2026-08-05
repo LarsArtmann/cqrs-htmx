@@ -68,6 +68,11 @@ auto_fix: false
 # the `nix run .#check-codegen` app instead.
 skip_steps:
   - templ-generate
+  # This is a Go library — no JavaScript test framework. The e2e/ directory
+  # uses Playwright (not jest/vitest) and there is no root-level package.json.
+  - jest-test
+  - vitest-test
+  - npm-audit
 
 # Logging
 verbose: false

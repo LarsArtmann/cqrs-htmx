@@ -97,8 +97,18 @@
                 goPkg
                 pkgs.gopls
                 pkgs.golangci-lint
+                pkgs.govulncheck
+                pkgs.ginkgo
                 pkgs.tailwindcss_4
                 pkgs.templ
+                # BuildFlow pre-commit hook formatters/linters
+                pkgs.shfmt # shell scripts (scripts/*.sh)
+                pkgs.nixfmt # flake.nix
+                pkgs.dprint # markdown-format
+                pkgs.prettier # YAML/JSON/CSS/config files
+                pkgs.biome # JS/TS files (admin.js, login.js, sync-*.js)
+                pkgs.codespell # spell check across all files
+                pkgs.treefmt # nix fmt aggregator
               ];
 
               GOWORK = "off";
