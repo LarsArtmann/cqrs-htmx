@@ -127,10 +127,10 @@ func ParsePageSize(r *http.Request, defaultSize int) int {
 
 // ParseCursorParams extracts the after cursor and prev history from the
 // request query string. Shared by all paginated index handlers.
-func ParseCursorParams(r *http.Request) (after, prevHistory string, hasPrev bool) {
-	after = r.URL.Query().Get("after")
-	prevHistory = r.URL.Query().Get("prev")
-	hasPrev = after != ""
+func ParseCursorParams(r *http.Request) (string, string, bool) {
+	after := r.URL.Query().Get("after")
+	prevHistory := r.URL.Query().Get("prev")
+	hasPrev := after != ""
 
 	return after, prevHistory, hasPrev
 }

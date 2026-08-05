@@ -179,7 +179,7 @@ func TestRenderProjectionRow_AllStatusKinds(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		html := renderProjectionRow(projectionStat{ //nolint:exhaustruct // test fixture
+		html := renderProjectionRow(projectionStat{
 			Name: tc.name, Status: "active", StatusKind: tc.statusKind,
 			Processed: 100, Errors: 2,
 		})
@@ -213,11 +213,11 @@ func TestRenderProjectionHealthPanel_Empty(t *testing.T) {
 
 func TestRenderProjectionHealthPanel_WithProjections(t *testing.T) {
 	projs := []projectionStat{
-		{ //nolint:exhaustruct // test fixture
+		{
 			Name: "user-read-model", Status: "running", StatusKind: statusGood,
 			Lag: "0s", Processed: 500, Errors: 0,
 		},
-		{ //nolint:exhaustruct // test fixture
+		{
 			Name: "casbin-projection", Status: "failed", StatusKind: statusBad,
 			Lag: "5m", Processed: 300, Errors: 3,
 		},
@@ -527,14 +527,14 @@ func TestParsePageSize(t *testing.T) {
 // ===== renderPagination =====
 
 func TestRenderPagination_NoPagination(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{}, "") //nolint:exhaustruct // zero-value
+	html := renderPagination("/d", "/events", paginationState{}, "")
 	if html != "" {
 		t.Fatalf("expected empty string for no pagination, got: %s", html)
 	}
 }
 
 func TestRenderPagination_HasNextOnly(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{ //nolint:exhaustruct // test fixture
+	html := renderPagination("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "abc", PageSize: 10,
 	}, "")
 
@@ -552,7 +552,7 @@ func TestRenderPagination_HasNextOnly(t *testing.T) {
 }
 
 func TestRenderPagination_HasPrevOnly(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{ //nolint:exhaustruct // test fixture
+	html := renderPagination("/d", "/events", paginationState{
 		HasPrev: true,
 	}, "")
 
@@ -566,7 +566,7 @@ func TestRenderPagination_HasPrevOnly(t *testing.T) {
 }
 
 func TestRenderPagination_Both(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{ //nolint:exhaustruct // test fixture
+	html := renderPagination("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "xyz", PageSize: 20, HasPrev: true,
 	}, "")
 
@@ -580,7 +580,7 @@ func TestRenderPagination_Both(t *testing.T) {
 }
 
 func TestRenderPagination_WithExtraParams(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{ //nolint:exhaustruct // test fixture
+	html := renderPagination("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "cur", PageSize: 10,
 	}, "type=user.created")
 
