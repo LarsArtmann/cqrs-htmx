@@ -13,7 +13,7 @@ func relativeTime(t time.Time) string {
 		return ""
 	}
 
-	if d := time.Since(t); d < time.Minute {
+	if t.After(time.Now().Add(-time.Minute)) {
 		return "just now"
 	}
 
