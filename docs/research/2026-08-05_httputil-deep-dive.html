@@ -839,248 +839,484 @@
       }
     </style>
   </head>
-  <body>
-    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>Library Deep Dive</span>
+      <span>2026-08-05</span>
+      <span>httputil v0.8.0</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
           <a href="#scorecard">Scorecard</a>
-          <a href="#strengths">Strengths</a>
+          <a href="#usage">Current usage</a>
           <a href="#findings">Findings</a>
-          <a href="#proposal">Proposal</a>
-          <a href="#appendix">Appendix</a>
+          <a href="#opportunities">Top opportunities</a>
+          <a href="#version">Version currency</a>
+          <a href="#conclusion">Conclusion</a>
         </nav>
       </aside>
 
-      <!-- Main content -->
       <main class="main">
-        <!-- Hero -->
         <header class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="bar"></div>
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="eyebrow">REPORT TYPE &middot; YYYY-MM-DD</div>
-          <h1>Report Title</h1>
+          <div class="eyebrow">Library Deep Dive &middot; 2026-08-05</div>
+          <h1>httputil &mdash; Adoption &amp; Utilization Audit</h1>
           <p class="subtitle">
-            One or two sentences that set the frame: who this is for, what was reviewed, and what
-            the reader will take away.
+            How well does <code>cqrs-htmx</code> (a framework-agnostic Go library that wires go-cqrs-lite
+            dispatch to <code>net/http</code> with first-class HTMX support) leverage its sibling HTTP
+            middleware library <code>github.com/larsartmann/httputil</code>? The core migration is
+            excellent &mdash; but testing tooling, production hardening, error classification, and
+            consumer discoverability are largely untapped.
           </p>
           <div class="meta">
-            <span class="tag amber">Scope: example</span>
-            <span class="tag">Version: 1.0.0</span>
-            <span class="tag teal">Status: draft</span>
+            <span class="tag amber">Installed: v0.8.0</span>
+            <span class="tag">Latest: v0.8.0</span>
+            <span class="tag teal">Adoption Score: 61/100</span>
           </div>
         </header>
 
-        <!-- Scorecard -->
         <section id="scorecard" class="scorecard">
+          <div class="score-card score-warn">
+            <div class="score">61</div>
+            <div class="label">Adoption score / 100</div>
+          </div>
           <div class="score-card score-good">
-            <div class="score">8</div>
-            <div class="label">Items passing</div>
+            <div class="score">7</div>
+            <div class="label">Fully leveraged</div>
           </div>
           <div class="score-card score-warn">
-            <div class="score">3</div>
-            <div class="label">Warnings</div>
+            <div class="score">4</div>
+            <div class="label">Partially used</div>
           </div>
           <div class="score-card score-bad">
-            <div class="score">1</div>
-            <div class="label">Blockers</div>
+            <div class="score">10</div>
+            <div class="label">Missed opportunities</div>
           </div>
-          <div class="score-card">
-            <div class="score">12</div>
-            <div class="label">Total reviewed</div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Version gap</div>
           </div>
         </section>
 
-        <!-- Summary -->
         <section id="summary">
           <h2><span class="num">00</span>Summary</h2>
           <p>
-            Replace this with the bottom-line verdict. A good summary tells the reader whether the
-            subject is ready, what the biggest risk is, and what one action would unlock the most
-            value.
+            <code>cqrs-htmx</code> depends on <code>httputil v0.8.0</code> (the latest release) and
+            <em>fully</em> re-exports the three concerns it migrated there &mdash; CSRF, keyed rate
+            limiting, and Server-Timing &mdash; via clean type/var alias layers
+            (<code>csrf_reexport.go</code>, <code>ratelimit_reexport.go</code>,
+            <code>server_timing_reexport.go</code>). That migration is a model of how to extract
+            shared middleware into a focused library. The gap is everywhere <em>else</em>: httputil
+            ships 16 production-grade middlewares (CORS, Compression, ETag, MaxBodySize, Metrics,
+            ClientIP, production <code>Server</code>), an HTTP-spec compliance test kit
+            (<code>httpspec</code>), an error-classification registry, and a validated middleware
+            stack &mdash; and <code>cqrs-htmx</code> taps almost none of it, neither internally nor by
+            guiding consumers toward it.
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
-            State the verdict plainly. If the report is blocking, say so. If it's mostly positive,
-            lead with that.
+            The CSRF / rate-limit / Server-Timing extraction is done right, but <code>cqrs-htmx</code>
+            treats httputil as a 3-feature dependency when it is a 16-middleware + test-kit library.
+            The highest-leverage moves are: (1) adopt httputil&rsquo;s <code>httpspec</code> test kit
+            internally to lock in compliance, (2) stop hand-rolling <code>http.ListenAndServe</code> in
+            examples and use httputil&rsquo;s production <code>Server</code>, (3) register httputil&rsquo;s
+            error classifications so stdlib HTTP errors classify through <code>MapError</code>, and
+            (4) publish a consumer guide mapping every HTTP concern to its httputil middleware.
           </div>
         </section>
 
-        <!-- Strengths -->
-        <section id="strengths">
-          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+        <section id="usage">
+          <h2><span class="num">&#9670;</span>What&rsquo;s already leveraged well</h2>
           <p>
-            Before the criticism: acknowledge what works. This builds trust and keeps the report
-            from reading like a pure complaint list.
+            The current usage is concentrated in three re-export files plus a handful of direct calls.
+            It is high quality &mdash; the aliases preserve the consumer API verbatim while moving the
+            implementation (and transitive deps like <code>justinas/nosurf</code>) into httputil.
           </p>
 
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength one</strong>
-                <span>Explain why it matters and what it enables.</span>
+                <strong>CSRF &mdash; fully migrated &amp; re-exported</strong>
+                <span><code>csrf_reexport.go</code> aliases 12 symbols (CSRFMiddleware, CSRFResponseHeaderMiddleware, CSRFTokenHXHeaders, ValidateCSRF, CSRFTestToken, ErrCSRFInvalid&hellip;) and 3 default consts. <code>csrf_handler.go</code> builds a per-handler <code>CSRFProtect</code> option on top of <code>httputil.ValidateCSRF</code>.</span>
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength two</strong>
-                <span>Reference files, metrics, or patterns where possible.</span>
+                <strong>Keyed rate limiting &mdash; fully migrated &amp; re-exported</strong>
+                <span><code>ratelimit_reexport.go</code> exposes the O(log n) eviction <code>KeyedRateLimiter</code>, both <code>KeyExtractor</code> factories, and the retry/window/TTL defaults.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Server-Timing &mdash; migrated, re-exported, and wired into App</strong>
+                <span><code>server_timing_reexport.go</code> + <code>app.go:335</code> calls <code>httputil.WrapServerTiming</code> so the timing header flows through the dispatch pipeline.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Pagination &amp; query parsing via httputil</strong>
+                <span><code>options_json.go</code> (<code>DecodePagination</code>) and <code>usermgmt/credential_http.go</code> both call <code>httputil.ParseUintQuery</code> instead of reinventing uint query parsing.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Justified, richer re-implementations (not duplication)</strong>
+                <span><code>recovery.go</code>, <code>logging.go</code>, and <code>middleware.go</code> (ContextEnrichment) are <em>intentionally</em> richer than httputil&rsquo;s generic equivalents &mdash; they integrate errorfamily classification, dispatch-error capture, and domain IDs. These are correct divergences, kept on purpose.</span>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- Findings -->
         <section id="findings">
           <h2><span class="num">01</span>Findings</h2>
-          <p>These are the issues that need attention, ordered by impact.</p>
+          <p>
+            Ordered by impact. Each card cites the exact code location (or &ldquo;not used anywhere&rdquo;)
+            and the httputil capability being missed. &ldquo;Not re-exported&rdquo; findings are
+            intentionally consistent with cqrs-htmx&rsquo;s duck-typing philosophy &mdash; the fix is
+            <em>discoverability</em> (a guide), not necessarily re-export.
+          </p>
 
-          <!-- Issue 1 -->
-          <div class="issue issue-critical" id="issue-1">
-            <span class="severity severity-critical">Blocking &middot; High impact</span>
-            <h3>Critical issue title</h3>
-            <div class="where">path/to/file.go:42-58 &middot; short context</div>
+          <div class="issue issue-critical" id="f-httpspec">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>httpspec compliance test kit unused &mdash; no spec regression guard</h3>
+            <div class="where">Not used anywhere. httputil provides <code>httpspec.Run</code> / <code>httpspec.RunSerial</code> (18 standard specs: index-reachable, unknown-&gt;404, HEAD/OPTIONS handled, TRACE/CONNECT rejected, error responses carry Content-Type, no version leak, X-Content-Type-Options present, no duplicate headers, long-URL handled).</div>
             <p>
-              Describe the problem, cite the code or behavior, and explain why it matters to the
-              reader's goals.
+              httputil ships a ready-made HTTP-spec compliance test kit that asserts a handler behaves
+              like a correct HTTP server. <code>cqrs-htmx</code> positions itself as the HTTP layer for
+              CQRS apps, yet its own test suite never verifies that a recommended middleware stack
+              produces a spec-compliant server. This is exactly where httputil&rsquo;s testing tools
+              deliver the most leverage for the least effort &mdash; a single test file locks in
+              behavior that today silently regresses.
             </p>
-            <pre><code>// Example of the problematic pattern
-func BadExample() {}</code></pre>
             <div class="callout callout-teal">
-              <strong>Fix: recommended action</strong>
-              State the concrete fix, including file names, function names, or configuration
-              changes.
+              <strong>Recommendation</strong>
+              Add <code>httpspec_compliance_test.go</code> that builds the recommended stack
+              (SecurityHeaders + Recovery + a real index route) and runs <code>httpspec.Run</code> with
+              <code>WithIndexPath("/")</code>. It both proves the defaults are compliant and documents
+              the contract.
+            </div>
+            <pre><code><span class="tok-comment">// httpspec_compliance_test.go</span>
+<span class="tok-keyword">func</span> <span class="tok-function">TestHTTPSpecCompliance</span>(t *testing.T) {
+    mux := http.<span class="tok-function">NewServeMux</span>()
+    mux.<span class="tok-function">HandleFunc</span>(<span class="tok-string">"GET /"</span>, <span class="tok-keyword">func</span>(w http.ResponseWriter, _ *http.Request) {
+        w.<span class="tok-function">Header</span>().<span class="tok-function">Set</span>(<span class="tok-string">"Content-Type"</span>, <span class="tok-string">"text/html"</span>)
+        io.<span class="tok-function">WriteString</span>(w, <span class="tok-string">"&lt;h1&gt;ok&lt;/h1&gt;"</span>)
+    })
+    h := cqrshtmx.<span class="tok-function">Chain</span>(
+        cqrshtmx.SecurityHeadersMiddleware,
+        cqrshtmx.RecoveryMiddleware,
+    )(mux)
+    httpspec.<span class="tok-function">Run</span>(t, h, httpspec.<span class="tok-function">WithIndexPath</span>(<span class="tok-string">"/"</span>))
+}</code></pre>
+          </div>
+
+          <div class="issue issue-critical" id="f-newserver">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>Examples serve with bare <code>http.ListenAndServe</code> &mdash; zero timeouts</h3>
+            <div class="where"><code>examples/basic/main.go:239</code>, <code>examples/datastar-demo/main.go:31</code>. Four other examples use <code>&amp;http.Server{}</code> but still hand-fill timeouts instead of httputil&rsquo;s validated <code>DefaultServerConfig</code>.</div>
+            <p>
+              The classic Go footgun: <code>http.ListenAndServe</code> sets no
+              <code>ReadTimeout</code>/<code>WriteTimeout</code>/<code>IdleTimeout</code>, leaving the
+              server open to slowloris-style resource exhaustion. httputil provides
+              <code>NewServer(ServerConfig, handler)</code> with a <code>Validate()</code>&rsquod
+              <code>DefaultServerConfig</code> that sets sane timeouts and rejects negative values at
+              construction. <code>cqrs-htmx</code> is a library that exists to help people ship HTTP
+              apps &mdash; its canonical example teaching the unsafe pattern undercuts that mission.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Replace bare <code>ListenAndServe</code> in examples with
+              <code>httputil.NewServer(httputil.DefaultServerConfig(), h)</code>. It demonstrates the
+              library&rsquo;s production path and removes the footgun.
+            </div>
+            <pre><code><span class="tok-comment">// Before</span>
+log.<span class="tok-function">Fatal</span>(http.<span class="tok-function">ListenAndServe</span>(addr, mux)) <span class="tok-comment">// no timeouts</span>
+
+<span class="tok-comment">// After</span>
+srv, err := httputil.<span class="tok-function">NewServer</span>(httputil.<span class="tok-function">DefaultServerConfig</span>(), mux)
+<span class="tok-keyword">if</span> err != <span class="tok-keyword">nil</span> { log.<span class="tok-function">Fatal</span>(err) }
+log.<span class="tok-function">Fatal</span>(srv.<span class="tok-function">ListenAndServe</span>())</code></pre>
+          </div>
+
+          <div class="issue issue-critical" id="f-security-split">
+            <span class="severity severity-critical">Anti-pattern &middot; Split brain</span>
+            <h3>SecurityHeaders exists in BOTH repos with divergent field sets</h3>
+            <div class="where"><code>cqrs-htmx/security.go</code> (richer: <code>PermissionsPolicy</code>, <code>Custom map</code>, <code>SecurityHeaderSkip</code> sentinel) vs <code>httputil/security.go</code> (weaker: <code>ContentTypeNosniff bool</code>, no PermissionsPolicy, no Custom). CSRF / rate-limit / Server-Timing were migrated; SecurityHeaders was not.</div>
+            <p>
+              The migration was incomplete. Three concerns moved cleanly into httputil and became
+              single sources of truth; SecurityHeaders stayed behind as a <em>richer</em> hand-rolled
+              copy while httputil grew a <em>weaker</em> parallel version. Two structs with the same
+              intent and different fields is a maintenance hazard &mdash; a fix in one won&rsquo;t reach
+              the other. The right resolution is to promote cqrs-htmx&rsquo;s richer config
+              (<code>PermissionsPolicy</code>, <code>Custom</code>, <code>SecurityHeaderSkip</code>)
+              into httputil, then re-export it like the other three.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Port <code>PermissionsPolicy</code>, <code>Custom map[string]string</code>, and the
+              <code>"-"</code> sentinel into httputil&rsquo;s <code>SecurityHeadersConfig</code>, then
+              add a <code>security_reexport.go</code> in cqrs-htmx and delete
+              <code>security.go</code>. Single source of truth &mdash; matching the CSRF/rate-limit/
+              Server-Timing precedent.
             </div>
           </div>
 
-          <!-- Issue 2 -->
-          <div class="issue issue-important" id="issue-2">
-            <span class="severity severity-important">Important &middot; Medium impact</span>
-            <h3>Important issue title</h3>
-            <div class="where">path/to/another.go:12-19</div>
+          <div class="issue issue-important" id="f-errorclass">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>httputil error classifications never registered</h3>
+            <div class="where"><code>errors.go:67</code> <code>MapError</code> falls back to <code>errorfamily.Classify(err).HTTPStatus()</code>. <code>httputil.RegisterErrorClassifications()</code> is never called anywhere in cqrs-htmx (grep returns nothing). httputil has no <code>init()</code> that auto-registers.</div>
             <p>
-              Explain the risk. Important issues are not blockers but would make a careful reviewer
-              hesitate before shipping.
+              <code>cqrs-htmx</code> is errorfamily-centric: every error flows through
+              <code>MapError</code>, which classifies via <code>errorfamily.Classify</code>. httputil
+              registers classifications for stdlib sentinels (<code>http.ErrNotSupported</code>,
+              <code>http.ErrAbortHandler</code>, &hellip;) and templates for its own codes
+              (<code>http.write_failed</code>, <code>http.compress_write_failed</code>,
+              <code>http.etag_write_failed</code>). Because cqrs-htmx never calls the registrar, any
+              consumer who layers httputil Compression/ETag middleware on top gets unclassified write
+              errors (no what/why/fix template) if they reach the handler pipeline.
             </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Call <code>httputil.RegisterErrorClassifications()</code> once during
+              <code>New()</code>/<code>MustNew()</code> (idempotent). It completes the errorfamily
+              picture so every HTTP-layer error classifies consistently through
+              <code>MapError</code>.
+            </div>
           </div>
 
-          <!-- Issue 3 -->
-          <div class="issue issue-nice" id="issue-3">
-            <span class="severity severity-nice">Nice to have &middot; Low impact</span>
-            <h3>Nice-to-have improvement</h3>
-            <div class="where">docs/ or config</div>
-            <p>Minor polish, documentation gaps, or future-proofing suggestions go here.</p>
+          <div class="issue issue-important" id="f-discover">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>No consumer guide to httputil&rsquo;s broader middleware catalog</h3>
+            <div class="where"><code>doc.go</code> mentions only the 3 migrated concerns. No guide maps CORS, Compression, MaxBodySize, ClientIP, Metrics, ETag, or production <code>Server</code> for consumers. Consistent with duck-typing (consumers import what they need) &mdash; but they can&rsquo;t import what they don&rsquo;t know exists.</div>
+            <p>
+              httputil has 16 middlewares. A cqrs-htmx consumer building a browser-facing CQRS app
+              almost always wants CORS (browser API access), Compression (htmx.js + JSON payloads),
+              MaxBodySize (protect the JSON decoders cqrs-htmx exposes), and ClientIP (correct rate
+              limiting behind a proxy). None of this is surfaced. The duck-typing philosophy is sound;
+              the discoverability is not. A single guide closes the gap without bloating the API.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add <code>docs/guides/leveraging-httputil.md</code> with a concern&rarr;middleware table
+              and copy-paste recipes (CORS, Compression, MaxBodySize, ClientIP, NewServer, Metrics,
+              ETag, MiddlewareStack, health readiness). Add a pointer in <code>doc.go</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="f-maxbody">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>JSON/form decoders have no body-size guard</h3>
+            <div class="where"><code>options_json.go</code> (<code>RenderJSON</code>), the <code>DecodeJSON</code>/<code>DecodeForm</code> family, and <code>usermgmt/credential_http.go</code> all decode request bodies. <code>cqrs-htmx</code> defines <code>ErrRequestTooLarge</code> (413) but never enforces a size limit. <code>httputil.MaxBodySize(int64)</code> is not referenced anywhere.</div>
+            <p>
+              cqrs-htmx hands consumers unbounded <code>json.NewDecoder(r.Body)</code> decoders and
+              even declares an <code>ErrRequestTooLarge</code> sentinel &mdash; but nothing wires the
+              two together. httputil&rsquo;s <code>MaxBodySize</code> middleware is the missing piece:
+              it rejects oversized bodies before decoding, mapping cleanly onto the 413 path cqrs-htmx
+              already anticipates.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Document <code>httputil.MaxBodySize</code> in the new guide as the recommended guard for
+              mutation endpoints, and show it composing inside <code>cqrshtmx.Chain</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="f-chain">
+            <span class="severity severity-nice">Partially Used &middot; Low impact</span>
+            <h3><code>Chain</code> logic duplicated; cqrs-htmx&rsquo;s variant is unvalidated</h3>
+            <div class="where"><code>middleware.go:79</code> re-implements <code>httputil.Chain</code> with a curried signature (<code>Chain(mw...) func(http.Handler) http.Handler</code> vs httputil&rsquo;s <code>Chain(handler, mw...) http.Handler</code>). Neither enforces ordering. httputil&rsquo;s <code>MiddlewareStack</code> (<code>stack.go</code>) validates &ldquo;Recovery outermost&rdquo; and rejects duplicate names.</div>
+            <p>
+              Two <code>Chain</code> functions with the same name and different signatures is a known
+              papercut (the project&rsquo;s own skill notes &ldquo;pick one and use consistently&rdquo;).
+              The deeper miss is that neither offers ordering validation. httputil&rsquo;s
+              <code>MiddlewareStack</code> catches &ldquo;Recovery not first&rdquo; at build time &mdash;
+              a real correctness guard cqrs-htmx could surface.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Low priority. Either document httputil&rsquo;s <code>MiddlewareStack</code> as the
+              validated alternative, or have <code>cqrshtmx.Chain</code> delegate to it internally.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="f-health">
+            <span class="severity severity-nice">Partially Used &middot; Low impact</span>
+            <h3>Health has liveness but no readiness split</h3>
+            <div class="where"><code>app.go:425</code> <code>App.HealthHandler()</code> returns 200/503 based on dispatcher availability (effectively readiness). httputil&rsquo;s <code>LiveHandler</code>, <code>ReadyHandlerWithProbe</code>, and <code>RegisterHealth(mux)</code> (mounts <code>/healthz</code>, <code>/livez</code>, <code>/readyz</code>) are unused.</div>
+            <p>
+              Kubernetes-style orchestration wants separate liveness (is the process up?) and
+              readiness (are deps ready?). cqrs-htmx exposes one combined handler; httputil offers the
+              split plus a one-call <code>RegisterHealth</code> that mounts the conventional three
+              endpoints. Complementary, not conflicting.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Document httputil&rsquo;s <code>RegisterHealth</code> alongside
+              <code>app.HealthHandler()</code> in the guide for consumers running under orchestrators.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="f-timeout">
+            <span class="severity severity-nice">Partially Used &middot; Low impact</span>
+            <h3>Dispatch-level timeout exists; request-level timeout is undocumented</h3>
+            <div class="where"><code>Config.Timeout</code> (<code>timeout_test.go</code>) sets a deadline on the dispatch context. httputil&rsquo;s <code>Timeout(duration)</code> wraps the whole HTTP handler and is not referenced.</div>
+            <p>
+              These are complementary layers, not duplicates: <code>Config.Timeout</code> bounds the
+              CQRS dispatch; <code>httputil.Timeout</code> bounds the entire request (including decode,
+              render, middleware). Both have value; only one is surfaced.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Mention httputil&rsquo;s request-level <code>Timeout</code> in the guide, noting the
+              distinction from <code>Config.Timeout</code>.
+            </div>
           </div>
         </section>
 
-        <!-- Proposal -->
-        <section id="proposal">
-          <h2><span class="num">02</span>What the solution could look like</h2>
+        <section id="opportunities">
+          <h2><span class="num">02</span>Top opportunities</h2>
           <p>
-            If the findings were fixed, what would the new state be? Show the target API, structure,
-            or workflow.
+            Pareto-ranked by impact &times; ease. The first four are executed as part of this audit;
+            the rest are recommended next steps.
           </p>
-          <pre><code>// Target state after the recommended changes
-type BetterAPI struct {
-    Field string
-}</code></pre>
-          <div class="callout callout-teal">
-            <strong>This is the target</strong>
-            Summarize why this state is better and what it unlocks.
-          </div>
-        </section>
-
-        <!-- Appendix -->
-        <section id="appendix">
-          <h2><span class="num">03</span>Appendix</h2>
-          <p>Methodology, links to related files, or a priority matrix can live here.</p>
           <table class="compare">
             <thead>
               <tr>
-                <th>Issue</th>
-                <th>Severity</th>
-                <th>Effort</th>
-                <th>Status</th>
+                <th>#</th>
+                <th>Opportunity</th>
+                <th>Impact</th>
+                <th>Ease</th>
+                <th>Priority</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Issue one</td>
-                <td class="no">Critical</td>
-                <td>Low</td>
-                <td class="no">Open</td>
+                <td>1</td>
+                <td>Add <code>httpspec</code> compliance test (locks in defaults)</td>
+                <td class="yes">5</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">25</span></td>
               </tr>
               <tr>
-                <td>Issue two</td>
-                <td class="no">Important</td>
-                <td>Medium</td>
-                <td class="yes">In progress</td>
+                <td>2</td>
+                <td>Publish <code>leveraging-httputil.md</code> consumer guide</td>
+                <td class="yes">5</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">25</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Fix bare <code>ListenAndServe</code> in examples &rarr; <code>NewServer</code></td>
+                <td class="yes">4</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">20</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Document MaxBodySize as the decoder guard</td>
+                <td class="yes">4</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">20</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Register httputil error classifications in <code>New()</code></td>
+                <td>3</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">15</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Resolve SecurityHeaders split brain (port richer config to httputil)</td>
+                <td class="yes">4</td>
+                <td>3</td>
+                <td><span class="highlight">12</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Document health readiness split (<code>RegisterHealth</code>)</td>
+                <td>3</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">15</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Document request-level <code>Timeout</code> vs <code>Config.Timeout</code></td>
+                <td>3</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">15</span></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Surface <code>MiddlewareStack</code> validated-chain alternative</td>
+                <td>2</td>
+                <td>4</td>
+                <td>8</td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>Document ClientIP / trusted-proxy for behind-proxy rate limiting</td>
+                <td>3</td>
+                <td>4</td>
+                <td>12</td>
               </tr>
             </tbody>
           </table>
         </section>
 
-        <!-- Footer -->
+        <section id="version">
+          <h2><span class="num">03</span>Version currency</h2>
+          <p>
+            <code>cqrs-htmx</code> is on httputil <strong>v0.8.0</strong>, which is the latest
+            published tag. No version gap. The v0.8.0 release is precisely the one that introduced
+            CSRF, Server-Timing, and keyed rate limiting &mdash; the three concerns cqrs-htmx migrated
+            &mdash; so the dependency is current and the migration target is the right one.
+          </p>
+          <div class="callout callout-teal">
+            <strong>On the latest release</strong>
+            v0.8.0 == latest tag. httputil&rsquo;s own roadmap lists v0.9.0 (observability: OTel
+            tracing, Prometheus metrics recorder) and v1.0 (API freeze, TokenBucketLimiter removal).
+            Watch v0.9.0&rsquo;s metrics recorder &mdash; it pairs directly with the unused
+            <code>Metrics</code> middleware noted in this report.
+          </div>
+        </section>
+
+        <section id="conclusion">
+          <h2><span class="num">04</span>Conclusion</h2>
+          <p>
+            <code>cqrs-htmx</code> leverages httputil superbly for the three concerns it chose to
+            migrate and correctly keeps richer, domain-aware re-implementations (Recovery, Logging,
+            context enrichment) where httputil&rsquo;s generic versions would lose value. The untapped
+            surface is httputil&rsquo;s <em>testing</em> and <em>production</em> tooling &mdash; the
+            <code>httpspec</code> compliance kit, the production <code>Server</code>, the error
+            classification registry &mdash; plus consumer discoverability for the remaining 13
+            middlewares. The single highest-leverage next step is adopting
+            <code>httpspec.Run</code> in the test suite: it turns httputil from a runtime dependency
+            into a correctness partner.
+          </p>
+        </section>
+
         <footer class="footer">
           <p>
-            Generated YYYY-MM-DD &middot; Reviewed against version X.Y.Z &middot; All claims
-            verified against source code where noted
+            Generated 2026-08-05 by the <code>library-deep-dive</code> skill. Evidence verified against
+            <code>cqrs-htmx</code> master (<code>d09849f6</code>) and <code>httputil</code> v0.8.0
+            (<code>8a77900</code>).
           </p>
         </footer>
       </main>
     </div>
-
-    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
-    <script>
-      (function () {
-        if (!("IntersectionObserver" in window)) return;
-        var nav = document.querySelector("[data-nav]");
-        if (!nav) return;
-        var links = nav.querySelectorAll('a[href^="#"]');
-        var ids = Array.from(links).map(function (l) {
-          return l.getAttribute("href").slice(1);
-        });
-        var sections = ids
-          .map(function (id) {
-            return document.getElementById(id);
-          })
-          .filter(Boolean);
-        if (!sections.length) return;
-        var observer = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (entry.isIntersecting) {
-                links.forEach(function (link) {
-                  link.classList.toggle(
-                    "active",
-                    link.getAttribute("href") === "#" + entry.target.id,
-                  );
-                });
-              }
-            });
-          },
-          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
-        );
-        sections.forEach(function (s) {
-          observer.observe(s);
-        });
-      })();
-    </script>
   </body>
 </html>
