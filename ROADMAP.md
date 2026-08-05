@@ -65,7 +65,6 @@ The `datastar/v4` module shipped in [Unreleased] with 71 tests, 96.7% coverage (
 | Offline sync evaluation      | Compare Datastar built-in retry primitives vs `sync-worker.js`                                                | ~4hr   | Datastar's CQRS model (long-lived SSE + short writes with auto-retry) may simplify the sync layer.                     |
 | Broadcaster SSE compression  | Re-export SDK compression options (`WithGzip`, `WithBrotli`, etc.)                                            | ~4hr   | Blocked: `writeEventID` bypasses SDK write path (documented limitation). Requires SDK `SetEventID` method or refactor. |
 | Broadcaster options pattern  | Refactor constructors to `NewBroadcaster(opts ...BroadcasterOption)` with `WithReplay(n)`, `WithHeartbeat(d)` | ~2hr   | Currently 3 separate constructors; no way to combine replay + heartbeat.                                               |
-| WebSocket transport          | WS Broadcaster variant (Datastar supports WS alongside SSE)                                                   | ~8hr   | Root module already has WSBroadcaster; would need Datastar patch format adapter.                                       |
 
 **Open question:** Should the `datastar/v4` tag be published now (module is tested, documented, integration-tested) or wait for additional features? The module has no published tag — consumers outside the workspace cannot `go get` it.
 
@@ -92,6 +91,10 @@ The split becomes worthwhile when:
 ### httputil Re-export Retirement (v5)
 
 3 root-module files (`csrf_reexport.go`, `ratelimit_reexport.go`, `server_timing_reexport.go`) re-export 39 symbols from `github.com/larsartmann/httputil`. All now carry `// Deprecated:` markers (added 2026-08-05). Internal callers, examples, and docs migrated to direct `httputil.*` imports. Removal is bundled with the v5 major bump. The SecurityHeaders split-brain is **resolved**: httputil gained the richer config fields (`PermissionsPolicy`, `Custom`, `ContentTypeOptions`, `SecurityHeaderSkip`, `RecommendedHSTS`/`RecommendedCSP`) in a pending v0.9.0, and `security.go` is now a deprecated alias + delegating wrapper over `httputil.SecurityHeadersConfig`. **Publish step required:** tag httputil v0.9.0, bump cqrs-htmx `go.mod`, remove the `go.work` replace. See `docs/guides/leveraging-httputil.md` for the migration table.
+
+### WebSocket Transport Removal (v5)
+
+Removed in v5 (ADR 0046). The entire WebSocket surface (`ws.go`, `ws_broadcaster.go`, `ws_dispatch.go`, `ws_encoder.go` + 5 test files + `extensions/ws.min.js`) was deleted without a `Deprecated:` phase — the WS code path was small enough, structurally isolated, and zero consumers were using it in production. The library is now SSE-only. Migration recipe in `docs/adr/0046-drop-websocket-sse-only.md`.
 
 ### Proposed Module Boundaries (v5)
 
@@ -141,7 +144,7 @@ _Candidates for future development if consumer demand emerges. Items that became
 
 These are explicitly out of scope for this library:
 
-- **WebSocket upgrade logic** — Consumers should use dedicated libraries (gorilla/websocket, coder/websocket, etc.). The library provides protocol helpers (`WSMessage`, `WSOOBHTML`) only.
+- **WebSocket upgrade logic** — Dropped in v5 (ADR 0046). SSE covers the same use cases. Consumers needing bi-directional transport should integrate a dedicated WebSocket library directly.
 - **ORM integration** — Store interfaces are intentionally simple; consumers provide their own implementations.
 - **Template engine support beyond templ** — The `TemplComponent` duck-typing pattern covers any `Render(ctx, w) error` interface.
 - **Built-in HTTP router** — Framework-agnostic: works with `net/http`, Gin, Chi, etc. — no router dependency.

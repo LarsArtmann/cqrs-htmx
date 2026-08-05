@@ -7,7 +7,7 @@
 | [0001](0001-htmx-go-decision.md)                  | Reject htmx-go Dependency                                                       | Accepted                                                             |
 | [0002](0002-userid-type-split.md)                 | UserID Type Split Between Root Module and usermgmt                              | Accepted                                                             |
 | [0003](0003-numeric-ids-sql-stores.md)            | Numeric IDs for SQL Store Backends                                              | Superseded (UserStore removed; event-sourced now — see ADR 0006)     |
-| [0004](0004-sse-websocket-support.md)             | SSE and WebSocket Support                                                       | Superseded by ADR 0046 (WebSocket dropped, SSE only)                  |
+| [0004](0004-sse-websocket-support.md)             | SSE and WebSocket Support                                                       | Superseded by ADR 0046 (WebSocket dropped, SSE only)                 |
 | [0005](0005-go-cqrs-lite-v230-adoption.md)        | go-cqrs-lite v2.3.0 API Adoption                                                | Accepted                                                             |
 | [0006](0006-event-sourced-user-aggregate.md)      | Event-Sourced User Aggregate                                                    | Accepted                                                             |
 | [0007](0007-dependency-upgrade-v2.4.0.md)         | Dependency Upgrade to v2.4.0 and Idiomatic Error-Family Adoption                | Accepted                                                             |

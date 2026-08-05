@@ -9,6 +9,7 @@
 ## a) FULLY DONE
 
 ### Source-level WS removal (root module)
+
 - **Deleted 4 dedicated WS source files** (via `git rm`):
   - `ws.go` (171 LOC) — `WSMessage`, `ParseWSMessage`, `ParseWSMessageInto`, `WSOOBHTML`, `parseWSHeaders`
   - `ws_broadcaster.go` (96 LOC) — `WSBroadcaster`, `NewWSBroadcaster`, `BroadcastHTML`, `BroadcastOnSuccessWS*`, `BroadcastOnErrorWS*`
@@ -23,6 +24,7 @@
 - **Deleted embedded JS asset** `extensions/ws.min.js` (299 LOC) — the sole reason `extensions/` needed `*.min.js -text` gitattributes workaround
 
 ### Embedded extension surface
+
 - Removed `HTMXExtWS` constant from `htmx_extensions.go`
 - Removed `extWSJS` `//go:embed` directive
 - Removed `HTMXExtWS` from the `htmxExtensions` registry and `htmxExtensionCDNURLs` map
@@ -30,11 +32,13 @@
 - Updated `htmx_extensions_test.go` to drop the `ws` `DescribeTable` entries, the `POST /ext/ws.js` 405 test, the WS bundle ETag expectation, the WS CDN URL entry, and the `ws` name in `HTMXExtensionNames`/`HTMXExtensionVersion`
 
 ### ack.go surgical removal
+
 - Removed `BroadcastOnAckWS()` and `BroadcastOnAckWSFunc()` methods on `WSBroadcaster`
 - Removed `ackToWSMessage` helper
 - Comment updates: "SSE/WS" → "SSE" in `defaultAckEventName` docstring and "when parsing client-sent acks (e.g. over WebSocket)" → "when parsing client-sent acks"
 
 ### Shared test cleanup (surgical)
+
 - `ack_test.go` — removed `TestBroadcastOnAckWS_Success` and `TestBroadcastOnAckWS_NoCommandID`
 - `bdd_realtime_test.go` — removed the "HTMX WebSocket form submissions into typed Go structs" `Describe` block (3 `It` blocks) and the `&` closing of the outer `Describe`; renamed outer from "Realtime (SSE & WebSocket)" → "Realtime (SSE)"
 - `integration_transport_test.go` — removed both `Describe` blocks (`WS dispatch round-trip...` with 4 `It` blocks + `WS message encode/decode round-trip...` with 1 `It` block); dropped unused `query` import
@@ -44,6 +48,7 @@
 - `partial_test.go` — removed `WSOOBHTML (delegates to OOBHTML)` `Describe` block
 
 ### Source comment cleanup
+
 - `doc.go` — removed "WebSocket variant for real-time push" code block, removed the entire `# WebSocket` section (encoder/broadcaster/dispatch bridge/AfterDispatch examples); updated 3 inline `SSE or WS`/`HTTP/SSE/WS`/`SSE and WS` references
 - `errors.go` — "SSE and WebSocket error broadcasts" → "SSE error broadcasts"; "HTTP, SSE, and WS transports" → "HTTP and SSE transports"
 - `structured_error.go` — "SSE, and WebSocket transports" → "SSE, and HTTP transports"; "SSE event data or WebSocket message payloads" → "SSE event data or HTTP response bodies"; "SSE/WS/HTTP clients" → "SSE and HTTP clients"; "SSEEvent.Data or WS message payloads" → "SSEEvent.Data or HTTP response bodies"
@@ -52,6 +57,7 @@
 - `responsewriter.go` — "preserve SSE, WebSocket, and HTTP/2 capabilities" → "preserve SSE and HTTP/2 capabilities"; "Hijack delegates to the underlying Hijacker so WebSocket upgrades work through wrappers" → "Hijack delegates to the underlying Hijacker. Used by long-lived connection upgrades"
 
 ### Verification
+
 - `GOEXPERIMENT=jsonv2 go build ./...` — **PASS** (clean, root + `openapi/` sub-package)
 - `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race` — **PASS** in 4.04s (root) + 1.01s (openapi)
 - `GOEXPERIMENT=jsonv2 go test ./... -cover` — **PASS** root 93.1% (gate 90%), openapi 99.0%
@@ -59,6 +65,7 @@
 - Auto-git daemon captured my file-deletion work in two clean commits: `9869c7f4 chore(ws): remove WebSocket module and untrack binary assets` and `557a6ccd refactor(test): remove orphaned WebSocket test coverage, benchmarks, and examples`
 
 ### Documentation
+
 - **ADR-0046** written: `docs/adr/0046-drop-websocket-sse-only.md` (Accepted). Documents context, decision, positive/negative consequences, and migration recipe for each removed symbol
 - ADR INDEX updated (pending — see PARTIALLY DONE)
 
@@ -103,16 +110,19 @@ Nothing is broken. Two minor process issues:
 ## e) WHAT WE SHOULD IMPROVE
 
 ### Process
+
 - **Explicit LSP-restart discipline.** After batch edits to a Go workspace, the first instinct should be `lsp_restart` + `go build ./...` rather than reading LSP diagnostics that may be stale. Add this to project workflow notes.
 - **Grep-before-edit across the module graph.** When removing a public symbol, grep should include `examples/`, `adminui/`, `dashboardui/`, etc. — not just root. I did the initial grep but didn't re-verify after each deletion phase.
 - **Commit-on-finish preference over auto-commit-daemon work-in-progress.** The daemon's commits were fine but unlabeled with the ADR context. A single, well-crafted final commit referencing ADR-0046 would carry more meaning for future archaeology. Consider whether the daemon's commit cadence should be reduced for in-progress refactors (maybe `--no-verify` workflow for refactors that touch >10 files).
 
 ### Code quality observations I made along the way
+
 - **`ack.go` `defaultAckEventName`** was documented as "SSE/WS event name" — the WS path was already unreachable from external callers since `ackToWSMessage` returned a plain string (not an `sse.Event`), and the matching `BroadcastOnAckWS` was the only consumer. The docstring lie was a small split brain; fixed.
 - **`responsewriter.go` `Hijack`** method docstring claimed "WebSocket upgrades work through wrappers" — but `Hijack` is also used by SSE long-lived responses and by any HTTP upgrade (WebDAV, raw TCP over HTTP, etc.). The corrected docstring ("Used by long-lived connection upgrades") is more honest about its general purpose.
 - **`delegatingWriter`** was named generically but its purpose expanded to cover SSE and HTTP/2 alongside the original WS intent. The new docstring ("preserve SSE and HTTP/2 capabilities") is more accurate but the type name itself is still generic — not a problem, just an observation.
 
 ### Architecture observations
+
 - The WS surface was large enough (14 symbols, ~1200 LOC, 1 embedded asset) that removing it is a meaningful simplification. The trade-off is the breaking-change blast radius for any consumer who used it. **No usage audit was done** before removal — that should happen before a release.
 - ADR-0004 and ADR-0010 are now superseded but the codebase still has their inline doc references intact. The INDEX update should also mark these as Superseded-by-0046 so future readers trace the lineage correctly.
 - The skill (`SKILL.md`) is the user-facing migration surface. Until it's updated, downstream consumers will hit compile errors with no in-repo migration guide.

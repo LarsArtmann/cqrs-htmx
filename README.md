@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.26+](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev/)
 
-Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` in one line per endpoint. HTMX responses, Casbin authorization, CSRF, rate limiting, SSE/WebSocket, and event-sourced user management come built-in — but nothing is forced on you. Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), etc.), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you.
+Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` in one line per endpoint. HTMX responses, Casbin authorization, CSRF, rate limiting, SSE, and event-sourced user management come built-in — but nothing is forced on you. Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), etc.), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you.
 
 ```go
 mux.Handle("POST /items", app.Command("CreateItem",
@@ -15,7 +15,7 @@ mux.Handle("POST /items", app.Command("CreateItem",
     cqrshtmx.PushURL("/items")))            // HTMX: update address bar
 ```
 
-One endpoint, four concerns, in declarative order. The same shape works for queries, form posts, and WebSocket dispatch.
+One endpoint, four concerns, in declarative order. The same shape works for queries, form posts, and SSE handlers.
 
 ## Features at a Glance
 
@@ -35,9 +35,8 @@ One endpoint, four concerns, in declarative order. The same shape works for quer
 - **Security headers** — automatic `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, plus optional CSP/HSTS/Permissions-Policy
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
 - **SSE streaming** — built on [`go-sse`](https://github.com/larsartmann/go-sse) (`sse.Stream`, `sse.Event`); cqrs-htmx adds `Broadcaster` (thread-safe fan-out with CQRS hooks), `JournalSSEStore` (production durable replay via `event.SeekableJournal`), CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive, **ACK protocol** (`BroadcastOnAck` — opt-in command confirmation via `X-Command-Id` header)
-- **WebSocket helpers** — `ParseWSMessage`, `ParseWSMessageInto[T]` (typed), `WSOOBHTML` for OOB swaps, `WSBroadcaster` fan-out, `DispatchWSCommand`/`DispatchWSQuery` CQRS bridge, `BroadcastOnAckWS` for command confirmation
 - **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v4.2.0
-- **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified) with ETag/caching. Opt-in, zero CDN dependency. Embedded HTMX extensions (SSE/WS/idiomorph) also available via `HTMXExtensionHandler`/`HTMXExtensionsHandler`
+- **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified) with ETag/caching. Opt-in, zero CDN dependency. Embedded HTMX extensions (SSE + idiomorph) also available via `HTMXExtensionHandler`/`HTMXExtensionsHandler` (the WS extension was removed in v5 alongside the WS transport — see ADR 0046)
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers. Auth strategies (WebAuthn/Passkeys, TOTP MFA, OAuth2/OIDC) are **optional sub-modules** — import only what you need, zero auth deps in core
 - **SQL event store** — Postgres, SQLite, and MySQL backends via `go-cqrs-lite/storage/v4`. Auto-migrating schema, automatic error classification (Conflict/Transient), and one-call setup constructors for SQLite and Postgres. See [MySQL Setup Guide](docs/guides/mysql-setup.md)
 
@@ -480,87 +479,21 @@ Protocol types come from [go-sse](https://github.com/larsartmann/go-sse); cqrs-h
 
 **cqrs-htmx** (CQRS-coupled):
 
-| Type / Function                   | Description                                                                         |
-| --------------------------------- | ----------------------------------------------------------------------------------- |
-| `NewBroadcaster()`                | Thread-safe fan-out hub                                                             |
-| `broadcaster.Subscribe()`         | Get a receiver channel                                                              |
-| `broadcaster.Unsubscribe(ch)`     | O(1) unsubscribe via channel identity                                               |
-| `broadcaster.Broadcast(event)`    | Non-blocking send to all subscribers (drops to slow consumers)                      |
-| `broadcaster.SubscriberCount()`   | Active subscriber count                                                             |
-| `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch                          |
-| `BroadcastOnSuccessFunc(fn)`      | `AfterDispatchHook` with dynamic event generation                                   |
-| `BroadcastOnError(eventName)`     | `AfterDispatchHook` that broadcasts StructuredError on dispatch failure             |
-| `BroadcastOnErrorFunc(fn)`        | `AfterDispatchHook` with dynamic error event generation                             |
-| `NewStructuredError(err, r)`      | RFC 7807 error payload with type/title/status/detail/instance. `.JSON()` for SSE/WS |
-| `NewJournalSSEStore(...)`         | Production `sse.EventStore` backed by a go-cqrs-lite event journal                  |
+| Type / Function                   | Description                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| `NewBroadcaster()`                | Thread-safe fan-out hub                                                          |
+| `broadcaster.Subscribe()`         | Get a receiver channel                                                           |
+| `broadcaster.Unsubscribe(ch)`     | O(1) unsubscribe via channel identity                                            |
+| `broadcaster.Broadcast(event)`    | Non-blocking send to all subscribers (drops to slow consumers)                   |
+| `broadcaster.SubscriberCount()`   | Active subscriber count                                                          |
+| `BroadcastOnSuccess(event, data)` | `AfterDispatchHook` that broadcasts on successful dispatch                       |
+| `BroadcastOnSuccessFunc(fn)`      | `AfterDispatchHook` with dynamic event generation                                |
+| `BroadcastOnError(eventName)`     | `AfterDispatchHook` that broadcasts StructuredError on dispatch failure          |
+| `BroadcastOnErrorFunc(fn)`        | `AfterDispatchHook` with dynamic error event generation                          |
+| `NewStructuredError(err, r)`      | RFC 7807 error payload with type/title/status/detail/instance. `.JSON()` for SSE |
+| `NewJournalSSEStore(...)`         | Production `sse.EventStore` backed by a go-cqrs-lite event journal               |
 
-## WebSocket Helpers
-
-Protocol helpers for the HTMX WebSocket extension (`hx-ext="ws"`). Library consumers choose their own WebSocket library (gorilla, coder, etc.):
-
-```go
-// Parse incoming HTMX WS message
-msg, err := cqrshtmx.ParseWSMessage(rawJSON)
-msg.Headers    // map[string]string — HTMX headers
-msg.Body       // map[string]any — form field values
-msg.StringBody("field_name")  // typed string access
-
-// Typed parsing (generic)
-type ChatMsg struct { Room string; Message string }
-msg, headers, err := cqrshtmx.ParseWSMessageInto[ChatMsg](rawJSON)
-
-// Encode outbound messages (counterpart to Parse)
-err := cqrshtmx.WriteWSMessage(conn, msg)
-err := cqrshtmx.WriteWSMessageInto(conn, ChatMsg{Room: "dev"}, headers)
-
-// Out-of-band HTML swap
-html := cqrshtmx.WSOOBHTML("notifications", "<div>3 new items</div>", cqrshtmx.SwapInnerHTML)
-
-// Fan-out to multiple WS clients
-wsBroadcaster := cqrshtmx.NewWSBroadcaster()
-ch := wsBroadcaster.Subscribe()
-defer wsBroadcaster.Unsubscribe(ch)
-wsBroadcaster.Broadcast(html)
-
-// Bridge to CQRS: dispatch WS message as command/query
-err := app.DispatchWSCommand(r, "CreateTask", decoder, rawMessage)
-result, err := app.DispatchWSQuery(r, "GetTasks", queryDecoder, rawMessage)
-```
-
-Client-side:
-
-```html
-<div hx-ext="ws" ws-connect="/ws">
-	<form ws-send>
-		<input name="message" />
-		<button>Send</button>
-	</form>
-</div>
-```
-
-### WebSocket API
-
-| Type / Function                             | Description                                                                       |
-| ------------------------------------------- | --------------------------------------------------------------------------------- |
-| `WSMessage`                                 | Incoming HTMX WS message (`Headers`, `Body`). `StringBody(key)` for typed access. |
-| `ParseWSMessage(data)`                      | Parse incoming WS JSON into `WSMessage`. Separates HEADERS from body.             |
-| `ParseWSMessageInto[T](data)`               | Generic typed parser — deserializes body into struct T. Compile-time safe.        |
-| `WriteWSMessage(w, msg)`                    | Encode outbound `WSMessage` to HTMX WS JSON format.                               |
-| `WriteWSMessageInto[T](w, body, headers)`   | Encode typed body struct + headers to HTMX WS JSON.                               |
-| `WSOOBHTML(id, html, strategy...)`          | Wrap HTML with hx-swap-oob for OOB swap.                                          |
-| `NewWSBroadcaster()`                        | Thread-safe fan-out hub for WS messages.                                          |
-| `wsBroadcaster.Subscribe()`                 | Get a receiver channel (`<-chan string`).                                         |
-| `wsBroadcaster.Unsubscribe(ch)`             | O(1) unsubscribe via channel identity.                                            |
-| `wsBroadcaster.Broadcast(msg)`              | Non-blocking send to all subscribers.                                             |
-| `wsBroadcaster.BroadcastHTML(id, html)`     | Convenience: wraps in OOB then broadcasts.                                        |
-| `BroadcastOnSuccessWS(msg)`                 | `AfterDispatchHook` — broadcast on dispatch success.                              |
-| `BroadcastOnSuccessWSFunc(fn)`              | `AfterDispatchHook` — dynamic message generation on success.                      |
-| `BroadcastOnErrorWS()`                      | `AfterDispatchHook` — broadcast StructuredError on failure.                       |
-| `BroadcastOnErrorWSFunc(fn)`                | `AfterDispatchHook` — dynamic error message generation on failure.                |
-| `DispatchWSCommand(r, type, decoder, data)` | Decode WS message → dispatch command. Returns error.                              |
-| `DispatchWSQuery(r, type, decoder, data)`   | Decode WS message → dispatch query. Returns `(result, error)`.                    |
-| `DecodeWSJSON[T](mapper)`                   | Create `WSCommandDecoder` from JSON → T → command mapper.                         |
-| `DecodeWSJSONQuery[T](mapper)`              | Create `WSQueryDecoder` from JSON → T → query mapper.                             |
+> **Note:** The WebSocket helpers were removed in v5 (ADR 0046). The library is SSE-only now. Consumers needing bi-directional transport should use SSE for server→client and POST endpoints for client→server, or integrate a dedicated WebSocket library directly (the library intentionally avoids pulling in `gorilla/websocket` or similar).
 
 ## Embedded HTMX JavaScript
 
@@ -582,21 +515,20 @@ cqrshtmx.HTMXVersion() // "2.0.10"
 
 ### Embedded HTMX Extensions
 
-The library also embeds the 3 HTMX extensions that pair with its server-side building blocks:
+The library embeds the 2 HTMX extensions that pair with its server-side building blocks (the WS extension was removed in v5 alongside the WS transport — see ADR 0046):
 
-| Extension          | Version            | Server-side counterpart                           |
-| ------------------ | ------------------ | ------------------------------------------------- |
-| `HTMXExtSSE`       | htmx-ext-sse 2.2.4 | `sse.Stream`, `Broadcaster`, `JournalSSEStore`    |
-| `HTMXExtWS`        | htmx-ext-ws 2.0.4  | `WSMessage`, `WSBroadcaster`, `DispatchWSCommand` |
-| `HTMXExtIdiomorph` | idiomorph 0.7.4    | Morph-swap for SSE partial updates                |
+| Extension          | Version            | Server-side counterpart                        |
+| ------------------ | ------------------ | ---------------------------------------------- |
+| `HTMXExtSSE`       | htmx-ext-sse 2.2.4 | `sse.Stream`, `Broadcaster`, `JournalSSEStore` |
+| `HTMXExtIdiomorph` | idiomorph 0.7.4    | Morph-swap for SSE partial updates             |
 
 ```go
 // Serve individual extension
 mux.Handle("/ext/sse.js", cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
 
-// Or serve all three as a single bundle (one HTTP request)
+// Or serve both as a single bundle (one HTTP request)
 mux.Handle("/ext/bundle.js",
-    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtWS, cqrshtmx.HTMXExtIdiomorph))
+    cqrshtmx.HTMXExtensionsHandler(cqrshtmx.HTMXExtSSE, cqrshtmx.HTMXExtIdiomorph))
 ```
 
 Same caching headers (ETag, Cache-Control 1yr immutable, 304). Load after htmx core in your layout.
@@ -1183,7 +1115,6 @@ cqrs-htmx/
 ├── sse_event.go        # Deprecated re-exports of go-sse types (sse.Event, WriteEvent, etc.)
 ├── sse_store.go        # Deprecated re-exports (SSEEventStore, ReplayEvents → sse.EventStore, sse.Replay)
 ├── event_store_sse.go  # JournalSSEStore — production sse.EventStore backed by event journal
-├── ws.go               # WebSocket message parser, OOB HTML, typed generic parser
 ├── usermgmt/           # User management submodule (independent Go module)
 │   ├── id.go               # Branded UserID type (go-branded-id)
 │   ├── authz_types.go      # Authz wrapper, AsEnforcer bridge
