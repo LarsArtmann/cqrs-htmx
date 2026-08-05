@@ -172,125 +172,32 @@
 
             test-race = goApp {
               name = "run-tests-race";
-              description = "Run all Go tests with the race detector across all modules";
+              description = "Run all Go tests with the race detector across all workspace modules (auto-discovered, excludes e2e/examples)";
               text = ''
-                echo "==> Root module"
-                go test ./... -count=1 -race
-                echo "==> identity-model submodule"
-                (cd identity-model && go test ./... -count=1 -race)
-                echo "==> adminui submodule"
-                (cd adminui && go test ./... -count=1 -race)
-                echo "==> loginpage submodule"
-                (cd loginpage && go test ./... -count=1 -race)
-                echo "==> dashboardui submodule"
-                (cd dashboardui && go test ./... -count=1 -race)
-                echo "==> usermgmt submodule"
-                (cd usermgmt && go test ./... -count=1 -race)
-                echo "==> integration_test submodule"
-                (cd integration_test && go test ./... -count=1 -race)
+                forEachGoModule "go test ./... -count=1 -race" '^(e2e/|examples/)'
               '';
             };
 
             test-flake = goApp {
               name = "run-tests-flake";
-              description = "Run all Go tests 3x with race detector to detect flaky tests";
+              description = "Run all Go tests 3x with race detector to detect flaky tests (auto-discovered, excludes e2e/examples)";
               text = ''
-                echo "==> Root module (3 iterations)"
-                go test ./... -count=3 -race
-                echo "==> identity-model submodule (3 iterations)"
-                (cd identity-model && go test ./... -count=3 -race)
-                echo "==> usermgmt submodule (3 iterations)"
-                (cd usermgmt && go test ./... -count=3 -race)
-                echo "==> usermgmt/totp submodule (3 iterations)"
-                (cd usermgmt/totp && go test ./... -count=3 -race)
-                echo "==> usermgmt/webauthn submodule (3 iterations)"
-                (cd usermgmt/webauthn && go test ./... -count=3 -race)
-                echo "==> usermgmt/oauth2 submodule (3 iterations)"
-                (cd usermgmt/oauth2 && go test ./... -count=3 -race)
-                echo "==> adminui submodule (3 iterations)"
-                (cd adminui && go test ./... -count=3 -race)
-                echo "==> dashboardui submodule (3 iterations)"
-                (cd dashboardui && go test ./... -count=3 -race)
-                echo "==> loginpage submodule (3 iterations)"
-                (cd loginpage && go test ./... -count=3 -race)
-                echo "==> datastar submodule (3 iterations)"
-                (cd datastar && go test ./... -count=3 -race)
-                echo "==> integration_test submodule (3 iterations)"
-                (cd integration_test && go test ./... -count=3 -race)
+                forEachGoModule "go test ./... -count=3 -race" '^(e2e/|examples/)'
               '';
             };
 
             test-fuzz = goApp {
               name = "run-tests-fuzz";
-              description = "Run all Go fuzz tests across all modules (FUZZTIME env var, default 30s)";
+              description = "Run all Go fuzz tests across all workspace modules (auto-discovered, FUZZTIME env var, default 30s)";
               text = ''
                 FUZZTIME="''${FUZZTIME:-30s}"
-
-                echo "==> Root module fuzz tests"
-                for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done
-
-                echo "==> identity-model submodule fuzz tests"
-                (cd identity-model && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> adminui submodule fuzz tests"
-                (cd adminui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> usermgmt submodule fuzz tests"
-                (cd usermgmt && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> usermgmt/totp submodule fuzz tests"
-                (cd usermgmt/totp && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> usermgmt/webauthn submodule fuzz tests"
-                (cd usermgmt/webauthn && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> usermgmt/oauth2 submodule fuzz tests"
-                (cd usermgmt/oauth2 && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> dashboardui submodule fuzz tests"
-                (cd dashboardui && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> loginpage submodule fuzz tests"
-                (cd loginpage && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> datastar submodule fuzz tests"
-                (cd datastar && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
-
-                echo "==> integration_test submodule fuzz tests"
-                (cd integration_test && for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
-                  echo "    -> $fuzz"
-                  go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
-                done)
+                runModuleFuzz() {
+                  for fuzz in $(go test -run='^$' -list='Fuzz.*' ./... | grep '^Fuzz' || true); do
+                    echo "    -> $fuzz"
+                    go test -run='^$' -fuzz="$fuzz" -fuzztime="$FUZZTIME" ./...
+                  done
+                }
+                forEachGoModule "runModuleFuzz" '^(e2e/|examples/)'
               '';
             };
 
@@ -305,28 +212,9 @@
 
             coverage = goApp {
               name = "run-coverage";
+              description = "Run Go tests with coverage across all workspace modules (auto-discovered, excludes e2e/examples)";
               text = ''
-                echo "==> Root module coverage"
-                go test ./... -count=1 -coverprofile=coverage.out
-                go tool cover -func=coverage.out
-                echo "==> identity-model submodule coverage"
-                (cd identity-model && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                echo "==> usermgmt submodule coverage"
-                (cd usermgmt && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                echo "==> usermgmt/totp submodule coverage"
-                (cd usermgmt/totp && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                echo "==> usermgmt/webauthn submodule coverage"
-                (cd usermgmt/webauthn && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                echo "==> usermgmt/oauth2 submodule coverage"
-                (cd usermgmt/oauth2 && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                echo "==> adminui submodule coverage"
-                (cd adminui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                echo "==> loginpage submodule coverage"
-                (cd loginpage && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                echo "==> dashboardui submodule coverage"
-                (cd dashboardui && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
-                echo "==> datastar submodule coverage"
-                (cd datastar && go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out)
+                forEachGoModule "go test ./... -count=1 -coverprofile=coverage.out && go tool cover -func=coverage.out" '^(e2e/|examples/)'
               '';
             };
 
