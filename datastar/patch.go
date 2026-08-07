@@ -1,166 +1,208 @@
+// Package datastar provides a DataStar adapter for cqrs-htmx applications.
+//
+// This module wraps [go-datastar] and [go-sse] to provide:
+//   - Broadcaster: fan-out SSE patches using sse.Broadcaster[sse.Event]
+//   - EventBridge: declarative CQRS event → Patch mapping
+//   - Re-exports of common go-datastar types for single-import convenience
+//
+// Patches are first-class values implementing [godatastar.Patch] (Event() sse.Event).
+// This means they can be stored, filtered, replayed, and broadcast using go-sse's
+// Broadcaster, EventStore, SubscribeFilter, and Shutdown infrastructure.
+//
+// [go-datastar]: https://github.com/LarsArtmann/go-datastar
+// [go-sse]: https://github.com/LarsArtmann/go-sse
 package datastar
 
 import (
-	sdk "github.com/starfederation/datastar-go/datastar"
+	"net/http"
+
+	godatastar "github.com/larsartmann/go-datastar"
+	"github.com/larsartmann/go-sse"
 )
 
-// Patch represents a Datastar SSE instruction that can be applied to a
-// connected client. Patches are the unit of communication for real-time
-// updates: they describe how the server wants to change the client's DOM
-// (patch-elements), reactive state (patch-signals), or execute actions
-// (remove, script, redirect).
-//
-// Patches are created via the constructor functions and consumed by the
-// Broadcaster, EventBridge, and Response types. The apply method is
-// unexported so only this package can create Patch implementations — this
-// keeps the wire-format contract controlled.
-type Patch interface {
-	apply(sse *sdk.ServerSentEventGenerator) error
-}
+// Patch is a DataStar SSE instruction that produces an [sse.Event].
+// It is an alias for [godatastar.Patch].
+type Patch = godatastar.Patch
 
-// --- Elements Patch ---
+// --- Type re-exports for single-import convenience ---
 
-type elementsPatch struct {
-	html string
-	opts []sdk.PatchElementOption
-}
+type (
+	// ElementPatchOption configures element patching behavior.
+	ElementPatchOption = godatastar.ElementPatchOption
+	// SignalsPatchOption configures signal patching behavior.
+	SignalsPatchOption = godatastar.SignalsPatchOption
+	// ScriptPatchOption configures script execution behavior.
+	ScriptPatchOption = godatastar.ScriptPatchOption
+	// DispatchCustomEventOption configures custom event dispatch.
+	DispatchCustomEventOption = godatastar.DispatchCustomEventOption
+	// ElementPatchMode controls how patched elements merge into the DOM.
+	ElementPatchMode = godatastar.ElementPatchMode
+	// Namespace is the XML namespace for patched elements.
+	Namespace = godatastar.Namespace
+	// EventType is the DataStar SSE event type string.
+	EventType = godatastar.EventType
+	// TemplComponent is the interface satisfied by templ-generated components.
+	TemplComponent = godatastar.TemplComponent
+	// Response is the fluent SSE response builder from go-datastar.
+	Response = godatastar.Response
+)
 
-func (p elementsPatch) apply(sse *sdk.ServerSentEventGenerator) error {
-	return sse.PatchElements(p.html, p.opts...)
-}
+// --- Option re-exports ---
+
+var (
+	// Element patch options
+	WithSelector               = godatastar.WithSelector
+	WithSelectorf              = godatastar.WithSelectorf
+	WithSelectorID             = godatastar.WithSelectorID
+	WithMode                   = godatastar.WithMode
+	WithModeOuter              = godatastar.WithModeOuter
+	WithModeInner              = godatastar.WithModeInner
+	WithModeRemove             = godatastar.WithModeRemove
+	WithModePrepend            = godatastar.WithModePrepend
+	WithModeAppend             = godatastar.WithModeAppend
+	WithModeBefore             = godatastar.WithModeBefore
+	WithModeAfter              = godatastar.WithModeAfter
+	WithModeReplace            = godatastar.WithModeReplace
+	WithNamespace              = godatastar.WithNamespace
+	WithNamespaceHTML          = godatastar.WithNamespaceHTML
+	WithNamespaceSVG           = godatastar.WithNamespaceSVG
+	WithNamespaceMathML        = godatastar.WithNamespaceMathML
+	WithViewTransitions        = godatastar.WithViewTransitions
+	WithViewTransitionsEnabled = godatastar.WithViewTransitionsEnabled
+	WithoutViewTransitions     = godatastar.WithoutViewTransitions
+	WithViewTransitionSelector = godatastar.WithViewTransitionSelector
+	WithElementsEventID        = godatastar.WithElementsEventID
+	WithElementsRetryDuration  = godatastar.WithElementsRetryDuration
+
+	// Signal patch options
+	WithOnlyIfMissing        = godatastar.WithOnlyIfMissing
+	WithSignalsEventID       = godatastar.WithSignalsEventID
+	WithSignalsRetryDuration = godatastar.WithSignalsRetryDuration
+
+	// Script patch options
+	WithScriptAutoRemove    = godatastar.WithScriptAutoRemove
+	WithScriptAttributes    = godatastar.WithScriptAttributes
+	WithScriptAttributeKVs  = godatastar.WithScriptAttributeKVs
+	WithScriptEventID       = godatastar.WithScriptEventID
+	WithScriptRetryDuration = godatastar.WithScriptRetryDuration
+
+	// Custom event options
+	WithCustomEventSelector   = godatastar.WithCustomEventSelector
+	WithCustomEventBubbles    = godatastar.WithCustomEventBubbles
+	WithCustomEventCancelable = godatastar.WithCustomEventCancelable
+	WithCustomEventComposed   = godatastar.WithCustomEventComposed
+	WithCustomEventEventID    = godatastar.WithCustomEventEventID
+
+	// HTTP verb helpers
+	GetSSE    = godatastar.GetSSE
+	PostSSE   = godatastar.PostSSE
+	PutSSE    = godatastar.PutSSE
+	PatchSSE  = godatastar.PatchSSE
+	DeleteSSE = godatastar.DeleteSSE
+)
+
+// --- Mode and namespace constants ---
+
+var (
+	ElementPatchModeOuter   = godatastar.ElementPatchModeOuter
+	ElementPatchModeInner   = godatastar.ElementPatchModeInner
+	ElementPatchModeRemove  = godatastar.ElementPatchModeRemove
+	ElementPatchModeReplace = godatastar.ElementPatchModeReplace
+	ElementPatchModePrepend = godatastar.ElementPatchModePrepend
+	ElementPatchModeAppend  = godatastar.ElementPatchModeAppend
+	ElementPatchModeBefore  = godatastar.ElementPatchModeBefore
+	ElementPatchModeAfter   = godatastar.ElementPatchModeAfter
+
+	NamespaceHTML   = godatastar.NamespaceHTML
+	NamespaceSVG    = godatastar.NamespaceSVG
+	NamespaceMathML = godatastar.NamespaceMathML
+
+	EventTypePatchElements = godatastar.EventTypePatchElements
+	EventTypePatchSignals  = godatastar.EventTypePatchSignals
+)
+
+// --- Patch constructors (thin wrappers around go-datastar) ---
 
 // ElementsPatch creates a patch that morphs HTML elements into the DOM.
-// By default, the elements replace existing elements with the same ID
-// (outer mode). Use options to change the merge behavior:
-//
-//	ds.ElementsPatch(renderTodo(todo), ds.WithSelectorID("todo-list"), ds.WithModeAppend())
-func ElementsPatch(html string, opts ...PatchElementOption) Patch {
-	return elementsPatch{html: html, opts: opts}
+func ElementsPatch(html string, opts ...ElementPatchOption) Patch {
+	return godatastar.NewElementsPatch(html, opts...)
 }
 
-// --- Elements Templ Patch ---
-
-type elementsTemplPatch struct {
-	component TemplComponent
-	opts      []sdk.PatchElementOption
-}
-
-func (p elementsTemplPatch) apply(sse *sdk.ServerSentEventGenerator) error {
-	return sse.PatchElementTempl(p.component, p.opts...)
-}
-
-// ElementsTemplPatch creates a patch that renders a templ component into
-// the DOM. This is the idiomatic way to send server-rendered HTML in
-// cqrs-htmx applications that use templ.
-//
-//	ds.ElementsTemplPatch(todoComponent(todo), ds.WithSelectorID("todo-"+todo.ID))
-func ElementsTemplPatch(component TemplComponent, opts ...PatchElementOption) Patch {
-	return elementsTemplPatch{component: component, opts: opts}
-}
-
-// --- Signals Patch ---
-
-type signalsPatch struct {
-	signals any
-	opts    []sdk.PatchSignalsOption
-}
-
-func (p signalsPatch) apply(sse *sdk.ServerSentEventGenerator) error {
-	return sse.MarshalAndPatchSignals(p.signals, p.opts...)
+// ElementsTemplPatch renders a templ component and patches it into the DOM.
+// Returns an error patch if rendering fails.
+func ElementsTemplPatch(component TemplComponent, opts ...ElementPatchOption) Patch {
+	patch, err := godatastar.ElementsFromTempl(component, opts...)
+	if err != nil {
+		return errorPatch{err: err}
+	}
+	return patch
 }
 
 // SignalsPatch creates a patch that updates the client's reactive signals.
-// The signals argument can be any JSON-marshallable value (typically a
-// map[string]any or a struct).
-//
-//	ds.SignalsPatch(map[string]any{
-//	    "notification": map[string]string{"level": "success", "message": "Created!"},
-//	    "todoCount":    42,
-//	})
-func SignalsPatch(signals any, opts ...PatchSignalsOption) Patch {
-	return signalsPatch{signals: signals, opts: opts}
+func SignalsPatch(signals any, opts ...SignalsPatchOption) Patch {
+	patch, err := godatastar.NewSignalsPatch(signals, opts...)
+	if err != nil {
+		return errorPatch{err: err}
+	}
+	return patch
 }
 
-// --- Signals If Missing Patch ---
-
-type signalsIfMissingPatch struct {
-	signals any
-	opts    []sdk.PatchSignalsOption
+// SignalsIfMissingPatch creates a patch that sets signals only if they don't exist.
+func SignalsIfMissingPatch(signals any, opts ...SignalsPatchOption) Patch {
+	patch, err := godatastar.NewSignalsIfMissingPatch(signals, opts...)
+	if err != nil {
+		return errorPatch{err: err}
+	}
+	return patch
 }
 
-func (p signalsIfMissingPatch) apply(sse *sdk.ServerSentEventGenerator) error {
-	return sse.MarshalAndPatchSignalsIfMissing(p.signals, p.opts...)
-}
-
-// SignalsIfMissingPatch creates a patch that sets signals only if they
-// don't already exist on the client. Useful for initializing default state
-// on connect without overwriting user changes.
-func SignalsIfMissingPatch(signals any, opts ...PatchSignalsOption) Patch {
-	return signalsIfMissingPatch{signals: signals, opts: opts}
-}
-
-// --- Remove Patch ---
-
-type removePatch struct {
-	selector string
-}
-
-func (p removePatch) apply(sse *sdk.ServerSentEventGenerator) error {
-	return sse.RemoveElement(p.selector)
-}
-
-// RemovePatch creates a patch that removes DOM elements matching the CSS
-// selector from the client.
-//
-//	ds.RemovePatch("#todo-" + todoID)
+// RemovePatch creates a patch that removes DOM elements matching the selector.
 func RemovePatch(selector string) Patch {
-	return removePatch{selector: selector}
+	return godatastar.NewRemovePatch(selector)
 }
 
-// --- Script Patch ---
-
-type scriptPatch struct {
-	script string
-	opts   []sdk.ExecuteScriptOption
-}
-
-func (p scriptPatch) apply(sse *sdk.ServerSentEventGenerator) error {
-	return sse.ExecuteScript(p.script, p.opts...)
+// RemoveByIDPatch creates a patch that removes an element by its ID.
+func RemoveByIDPatch(id string) Patch {
+	return godatastar.NewRemoveByIDPatch(id)
 }
 
 // ScriptPatch creates a patch that executes JavaScript on the client.
-// Use sparingly — prefer signal-driven reactivity over direct scripting.
-//
-//	ds.ScriptPatch("console.log('hello')")
-func ScriptPatch(script string, opts ...ExecuteScriptOption) Patch {
-	return scriptPatch{script: script, opts: opts}
-}
-
-// --- Redirect Patch ---
-
-type redirectPatch struct {
-	url string
-}
-
-func (p redirectPatch) apply(sse *sdk.ServerSentEventGenerator) error {
-	return sse.Redirect(p.url)
+func ScriptPatch(script string, opts ...ScriptPatchOption) Patch {
+	return godatastar.NewScriptPatch(script, opts...)
 }
 
 // RedirectPatch creates a patch that navigates the client to a new URL.
-// This sends a window.location.href assignment via an executed script.
-//
-//	ds.RedirectPatch("/dashboard")
 func RedirectPatch(url string) Patch {
-	return redirectPatch{url: url}
+	return godatastar.NewRedirectPatch(url)
 }
 
-// applyAll applies a slice of patches to an SSE generator in order.
-func applyAll(sse *sdk.ServerSentEventGenerator, patches []Patch) error {
-	for _, p := range patches {
-		if err := p.apply(sse); err != nil {
-			return err
-		}
-	}
+// --- Inbound helpers ---
 
-	return nil
+// ReadSignals extracts DataStar signals from an HTTP request.
+func ReadSignals(r *http.Request, signals any) error {
+	return godatastar.ReadSignals(r, signals)
 }
+
+// --- HTTP helpers ---
+
+// NewResponse creates a fluent SSE response builder from an HTTP handler.
+func NewResponse(w http.ResponseWriter, r *http.Request) *Response {
+	return godatastar.NewResponse(sse.NewStream(w, r))
+}
+
+// ScriptHandler serves the embedded DataStar JavaScript client.
+func ScriptHandler() http.Handler { return godatastar.ScriptHandler() }
+
+// ScriptTag returns an HTML script tag for loading the DataStar client.
+func ScriptTag(path string) string { return godatastar.ScriptTag(path) }
+
+// ErrorResponse sends a signals patch with error information.
+func ErrorResponse(stream *sse.Stream, message string, code string) error {
+	return godatastar.ErrorResponse(stream, message, code)
+}
+
+// errorPatch is a Patch that carries a construction error. Its Event() returns
+// an empty sse.Event — the error should be surfaced through error handling.
+type errorPatch struct{ err error }
+
+func (e errorPatch) Event() sse.Event { return sse.Event{} }
