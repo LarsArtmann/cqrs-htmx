@@ -76,10 +76,11 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.9.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect

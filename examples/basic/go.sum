@@ -40,8 +40,8 @@ github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0 h1:crv4LiYKOql624v
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0/go.mod h1:ftzLBt4BpjwVqSWoy9QJoztDJnxMYcsNDv3pDBg25GI=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 h1:/sMxhws4RcEa1fZTZzI9/abXhYs5QBDDBeyrTbGXK9U=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0/go.mod h1:kcwycOA9+V6+pbGbjN3nVRlMPhOAx9ZV8EzDI1Z/R70=
-github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0 h1:R/yYg2D+uF56hxMNY0SwilCLLJ2V+hT/TING73SRjDc=
-github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0/go.mod h1:sv/sV05AhnPWss79CMm9V8n+lpf+1sLf4EivcQQtDAQ=
+github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0 h1:YFWNJCxBn8hdOmTP+bHT+njWS4O/oK7KTLvIoIMSUIc=
+github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0/go.mod h1:M7rBW0SZWtr8Kjv9ucU8dRVC0X4GjAhyqnE80rfbYx4=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 h1:zdDVNIVABTPII8G2Gj6n9RYkTVdyrtGpZoFjJI1/13Y=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0/go.mod h1:nMOU7fUkKn92n973yl8ZrQGasqSTCPjcbszMA1TfeTg=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 h1:MNuyDwX0/RKNRxMie9wSnGI9YCEZGne+1UETzzi40cg=
@@ -56,6 +56,8 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0 h1:IfflVEKfoLckinbp
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0/go.mod h1:PuyvXJMSamLDrCPGLo4Z0cVmao4ZzrfoEK9ho+X60C4=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
+github.com/larsartmann/go-idempotency v0.1.2 h1:Uk0fQTD6j8IISIDnQoi8j1R92rYIwjyI0gKm1FOqDvo=
+github.com/larsartmann/go-idempotency v0.1.2/go.mod h1:ee9VieA/IrJBaZ47+lnbwR9l4Td9VpEnruNJfCjDpyU=
 github.com/larsartmann/go-sse v0.4.0 h1:cHeOMbVGcIqeetic8bdZIITo4xsPSpWiPhtvQTxNd+4=
 github.com/larsartmann/go-sse v0.4.0/go.mod h1:B9mLj83rwtrnbqSqBcRuMV8vnOvAaPlJtH+9U/fMeRQ=
 github.com/larsartmann/httputil v0.9.1 h1:ff0LKvWD7NjFKlGxddPZ/oarKcGiTy9/YnJ1qnDKNck=

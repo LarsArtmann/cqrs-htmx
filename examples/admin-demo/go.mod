@@ -38,7 +38,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
@@ -53,6 +53,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/httputil/server_timing v0.9.1 // indirect
 	github.com/larsartmann/templ-components v1.7.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
