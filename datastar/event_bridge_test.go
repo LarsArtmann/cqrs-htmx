@@ -161,7 +161,7 @@ func TestEventBridgeMultipleMappings(t *testing.T) {
 	})
 
 	bridge.Map("TodoUpdated", func(e event.Event) (ds.Patch, error) {
-		return ds.SignalsPatch(map[string]any{"updated": true}), nil
+		return ds.SignalsPatch(map[string]any{"updated": true})
 	})
 
 	require.Len(t, bridge.MappedEventTypes(), 3)

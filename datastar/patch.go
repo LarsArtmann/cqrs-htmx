@@ -129,31 +129,21 @@ func ElementsPatch(html string, opts ...ElementPatchOption) Patch {
 }
 
 // ElementsTemplPatch renders a templ component and patches it into the DOM.
-// Returns an error patch if rendering fails.
-func ElementsTemplPatch(component TemplComponent, opts ...ElementPatchOption) Patch {
-	patch, err := godatastar.ElementsFromTempl(component, opts...)
-	if err != nil {
-		return errorPatch{err: err}
-	}
-	return patch
+// Returns an error if rendering fails.
+func ElementsTemplPatch(component TemplComponent, opts ...ElementPatchOption) (Patch, error) {
+	return godatastar.ElementsFromTempl(component, opts...)
 }
 
 // SignalsPatch creates a patch that updates the client's reactive signals.
-func SignalsPatch(signals any, opts ...SignalsPatchOption) Patch {
-	patch, err := godatastar.NewSignalsPatch(signals, opts...)
-	if err != nil {
-		return errorPatch{err: err}
-	}
-	return patch
+// Returns an error if marshaling the signals value to JSON fails.
+func SignalsPatch(signals any, opts ...SignalsPatchOption) (Patch, error) {
+	return godatastar.NewSignalsPatch(signals, opts...)
 }
 
 // SignalsIfMissingPatch creates a patch that sets signals only if they don't exist.
-func SignalsIfMissingPatch(signals any, opts ...SignalsPatchOption) Patch {
-	patch, err := godatastar.NewSignalsIfMissingPatch(signals, opts...)
-	if err != nil {
-		return errorPatch{err: err}
-	}
-	return patch
+// Returns an error if marshaling the signals value to JSON fails.
+func SignalsIfMissingPatch(signals any, opts ...SignalsPatchOption) (Patch, error) {
+	return godatastar.NewSignalsIfMissingPatch(signals, opts...)
 }
 
 // RemovePatch creates a patch that removes DOM elements matching the selector.
@@ -204,8 +194,4 @@ func ErrorResponse(stream *sse.Stream, message string, code string) error {
 	return godatastar.ErrorResponse(stream, message, code)
 }
 
-// errorPatch is a Patch that carries a construction error. Its Event() returns
-// an empty sse.Event — the error should be surfaced through error handling.
-type errorPatch struct{ err error }
 
-func (e errorPatch) Event() sse.Event { return sse.Event{} }

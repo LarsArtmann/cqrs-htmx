@@ -103,7 +103,10 @@ func TestBroadcasterBroadcastDeliversPatch(t *testing.T) {
 
 	require.Eventually(t, func() bool { return b.SubscriberCount() == 1 }, 2*time.Second, 5*time.Millisecond)
 
-	b.Broadcast(ds.SignalsPatch(map[string]any{"message": "hello"}))
+	patch, err := ds.SignalsPatch(map[string]any{"message": "hello"})
+	require.NoError(t, err)
+
+	b.Broadcast(patch)
 	b.Close()
 
 	wg.Wait()
@@ -121,8 +124,11 @@ func TestBroadcasterBroadcastMany(t *testing.T) {
 	b := ds.NewBroadcaster()
 	disconnect := connectSubscriber(t, b)
 
+	sigPatch, err := ds.SignalsPatch(map[string]any{"step": 1})
+	require.NoError(t, err)
+
 	b.BroadcastMany(
-		ds.SignalsPatch(map[string]any{"step": 1}),
+		sigPatch,
 		ds.ElementsPatch("<div>update</div>"),
 	)
 

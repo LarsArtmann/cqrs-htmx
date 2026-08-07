@@ -3,7 +3,6 @@ package datastar
 import (
 	"context"
 	"net/http"
-	"time"
 
 	godatastar "github.com/larsartmann/go-datastar"
 	"github.com/larsartmann/go-sse"
@@ -117,10 +116,4 @@ func (b *Broadcaster) OnUnsubscribe(fn func()) {
 // This is a re-export of [godatastar.LastEventID].
 func LastEventID(r *http.Request) sse.EventID {
 	return godatastar.LastEventID(r)
-}
-
-// HeartbeatInterval is a helper that starts a heartbeat loop on the given
-// stream at the given interval. The loop runs until the context is cancelled.
-func HeartbeatInterval(ctx context.Context, stream *sse.Stream, interval time.Duration) {
-	stream.Heartbeat(ctx, interval)
 }

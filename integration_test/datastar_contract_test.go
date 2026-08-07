@@ -47,7 +47,8 @@ func TestDatastarBroadcasterContract(t *testing.T) {
 	require.NotNil(t, b)
 	require.Equal(t, 0, b.SubscriberCount())
 
-	patch := ds.SignalsPatch(map[string]any{"count": 1})
+	patch, err := ds.SignalsPatch(map[string]any{"count": 1})
+	require.NoError(t, err)
 	require.NotNil(t, patch)
 
 	b.Broadcast(patch)
@@ -80,10 +81,16 @@ func TestDatastarEventBridgeContract(t *testing.T) {
 // TestDatastarPatchConstructorsContract verifies all patch constructors
 // return non-nil patches from an external module perspective.
 func TestDatastarPatchConstructorsContract(t *testing.T) {
+	sigPatch, err := ds.SignalsPatch(map[string]any{"k": "v"})
+	require.NoError(t, err)
+
+	sigIfMissingPatch, err := ds.SignalsIfMissingPatch(map[string]any{"k": "v"})
+	require.NoError(t, err)
+
 	patches := []ds.Patch{
 		ds.ElementsPatch("<div>"),
-		ds.SignalsPatch(map[string]any{"k": "v"}),
-		ds.SignalsIfMissingPatch(map[string]any{"k": "v"}),
+		sigPatch,
+		sigIfMissingPatch,
 		ds.RemovePatch("#id"),
 		ds.ScriptPatch("console.log()"),
 		ds.RedirectPatch("/path"),
