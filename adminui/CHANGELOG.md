@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.7.0] - 2026-08-07
+
+### Added
+
+- CSP nonce support for inline scripts.
+- HTMX partial rendering support via `RenderPartialOrFull`.
+- `feedback.ToastContainer` adoption (bridges `adminui:toast` HX-Trigger events).
+- `htmx.GlobalErrorHandling` adoption (5xx retry, network error toast, session-expiry redirect).
+- Offline sync served from root module (`sync-worker.js`, `sync-client.js`).
+
 ## [v4.6.0] - 2026-07-26
 
 ### Changed
