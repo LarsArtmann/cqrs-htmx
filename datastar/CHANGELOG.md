@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [v4.1.0] - 2026-08-07
+
 ### Changed — go-datastar Migration
 
 - **Replaced `starfederation/datastar-go` SDK with `go-datastar` + `go-sse`.** Patches are now first-class values implementing `Patch` (`Event() sse.Event`), not method calls on a live SSE generator. This enables composition with go-sse's `Broadcaster`, `SubscribeFilter`, `Shutdown`, and `Health` infrastructure.

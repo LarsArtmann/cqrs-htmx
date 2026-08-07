@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.7.0] - 2026-08-07
+
+### Added
+
+- State cache wired in all aggregate repositories via `decider.WithStateCache` (O(total events) → O(new events) per Execute).
+- Lockout eviction wired into `NewService` via `wireLockoutEviction()` (prevents unbounded memory growth).
+- `OnProjectionFailed` callback on `EventSourcedConfig`/`ServiceConfig` for terminal projection worker failures.
+- MySQL event-store dialect, read model constructors, and setup template.
+- `ReadinessHandler` + `DebugHandler` composite health checks (root module).
+- UserDelete cascades memberships and bots (prevents orphaned API tokens).
+- Benchmark for state cache cold-vs-warm path (13.7x speedup).
+
 ## [v4.6.0] - 2026-07-26
 
 ### Fixed

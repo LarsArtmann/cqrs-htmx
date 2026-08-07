@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.7.0] - 2026-08-07
+
 ### Added
 
 - **v4→v5 migration guide** (`docs/migrations/v4-to-v5.md`): consumer-facing per-symbol recipes for all 14 removed WebSocket symbols (`WSBroadcaster`→`Broadcaster`, `ParseWSMessage`→`json.Unmarshal`, `DispatchWSCommand`→`app.Command`, etc.). More discoverable than the inline CHANGELOG entry.

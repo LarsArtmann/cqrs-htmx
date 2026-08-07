@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v4.2.0] - 2026-08-07
+
 ### Added
 
 - **Detail views for commands, queries, and DLQ entries** (`handlers_audit.go`, `handlers_dlq.go`, `handler.go`): New routes `/commands/{id}`, `/queries/{id}`, `/dead-letters/{projection}/{eventID}` render full detail pages with metadata tables, copyable IDs, and pretty-printed JSON payloads.
