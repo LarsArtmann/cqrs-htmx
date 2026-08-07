@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
@@ -17,7 +18,9 @@ type Signals struct {
 // writeErrorResponse sends an error as a DataStar signals patch.
 func writeErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	resp := ds.NewResponse(w, r)
-	resp.PatchSignals([]byte(fmt.Sprintf(`{"error":{"message":%q}}`, err.Error())))
+	if err := resp.PatchSignals([]byte(fmt.Sprintf(`{"error":{"message":%q}}`, err.Error()))); err != nil {
+		log.Printf("datastar: writeErrorResponse patch failed: %v", err)
+	}
 }
 
 // readSignals parses the request signals into s, writing an error response
@@ -38,12 +41,14 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 		}
 		if s.Title == "" {
 			resp := ds.NewResponse(w, r)
-			resp.MarshalAndPatchSignals(map[string]any{
+			if err := resp.MarshalAndPatchSignals(map[string]any{
 				"notification": map[string]string{
 					"level":   "error",
 					"message": "Title is required",
 				},
-			})
+			}); err != nil {
+				log.Printf("datastar: patch signals failed: %v", err)
+			}
 			return
 		}
 
@@ -60,13 +65,15 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		resp := ds.NewResponse(w, r)
-		resp.MarshalAndPatchSignals(map[string]any{
+		if err := resp.MarshalAndPatchSignals(map[string]any{
 			"title": "",
 			"notification": map[string]string{
 				"level":   "success",
 				"message": fmt.Sprintf("Created: %s", s.Title),
 			},
-		})
+		}); err != nil {
+			log.Printf("datastar: patch signals failed: %v", err)
+		}
 	}
 }
 
@@ -113,12 +120,14 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		resp := ds.NewResponse(w, r)
-		resp.MarshalAndPatchSignals(map[string]any{
+		if err := resp.MarshalAndPatchSignals(map[string]any{
 			"notification": map[string]string{
 				"level":   "info",
 				"message": "Todo deleted",
 			},
-		})
+		}); err != nil {
+			log.Printf("datastar: patch signals failed: %v", err)
+		}
 	}
 }
 
@@ -167,7 +176,11 @@ func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		resp := ds.NewResponse(w, r)
-		resp.PatchElements(renderTodoList(todos), ds.WithSelectorID("todo-list"), ds.WithModeInner())
-		resp.PatchElements(renderStatsFromQuery(cqrs), ds.WithSelectorID("stats"))
+		if err := resp.PatchElements(renderTodoList(todos), ds.WithSelectorID("todo-list"), ds.WithModeInner()); err != nil {
+			log.Printf("datastar: patch elements failed: %v", err)
+		}
+		if err := resp.PatchElements(renderStatsFromQuery(cqrs), ds.WithSelectorID("stats")); err != nil {
+			log.Printf("datastar: patch elements failed: %v", err)
+		}
 	}
 }

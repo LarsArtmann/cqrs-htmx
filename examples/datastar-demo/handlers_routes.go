@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -32,13 +33,15 @@ func handleSimulate(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		resp := ds.NewResponse(w, r)
-		resp.MarshalAndPatchSignals(map[string]any{
+		if err := resp.MarshalAndPatchSignals(map[string]any{
 			"simulating": true,
 			"notification": map[string]string{
 				"level":   "warning",
 				"message": fmt.Sprintf("Simulating %d users: %v", len(botNames), botNames),
 			},
-		})
+		}); err != nil {
+			log.Printf("datastar: patch signals failed: %v", err)
+		}
 	}
 }
 
