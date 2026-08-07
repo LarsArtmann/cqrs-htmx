@@ -20,28 +20,50 @@ import (
 //
 //	broadcaster.Broadcast(ds.ElementsPatch(renderTodo(todo), ds.WithSelectorID("list")))
 //
+// For reconnection replay, use NewBroadcasterWithReplay. When a client
+// reconnects with a Last-Event-ID header, missed events are replayed from an
+// in-memory ring buffer before the live event stream resumes.
+//
 // The underlying sse.Broadcaster provides SubscribeFilter, Shutdown, Health,
 // and configurable buffer size — all available for free via go-sse.
 type Broadcaster struct {
 	inner *sse.Broadcaster[sse.Event]
+	store *godatastar.MemoryStore
 }
 
-// NewBroadcaster creates a DataStar patch broadcaster with default settings.
+// NewBroadcaster creates a DataStar patch broadcaster with default settings
+// and no replay support.
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{inner: sse.NewBroadcaster[sse.Event]()}
 }
 
 // NewBroadcasterWithBufferSize creates a broadcaster with a custom subscriber
-// buffer size.
+// buffer size and no replay support.
 func NewBroadcasterWithBufferSize(size int) *Broadcaster {
 	return &Broadcaster{inner: sse.NewBroadcaster[sse.Event](sse.WithBufferSize[sse.Event](size))}
 }
 
+// NewBroadcasterWithReplay creates a broadcaster that retains the last capacity
+// events in an in-memory ring buffer for reconnection replay. When a client
+// reconnects with a Last-Event-ID header, missed events are replayed before
+// the live stream resumes.
+func NewBroadcasterWithReplay(capacity int) *Broadcaster {
+	return &Broadcaster{
+		inner: sse.NewBroadcaster[sse.Event](),
+		store: godatastar.NewMemoryStore(capacity),
+	}
+}
+
 // Broadcast sends a patch to all connected clients. The patch's Event() is
 // computed once and the resulting [sse.Event] is fan-out to all subscribers.
-// Slow clients whose channel buffer is full silently miss the event.
+// If replay is enabled, the event is also appended to the store. Slow clients
+// whose channel buffer is full silently miss the event.
 func (b *Broadcaster) Broadcast(patch Patch) {
-	b.inner.Broadcast(patch.Event())
+	evt := patch.Event()
+	b.inner.Broadcast(evt)
+	if b.store != nil {
+		b.store.Append(evt)
+	}
 }
 
 // BroadcastMany sends multiple patches to all connected clients.
@@ -51,9 +73,13 @@ func (b *Broadcaster) BroadcastMany(patches ...Patch) {
 	}
 }
 
-// BroadcastEvent sends a raw [sse.Event] to all connected clients.
+// BroadcastEvent sends a raw [sse.Event] to all connected clients. If replay
+// is enabled, the event is also appended to the store.
 func (b *Broadcaster) BroadcastEvent(evt sse.Event) {
 	b.inner.Broadcast(evt)
+	if b.store != nil {
+		b.store.Append(evt)
+	}
 }
 
 // SubscriberCount returns the number of currently connected SSE clients.
@@ -77,11 +103,20 @@ func (b *Broadcaster) Close() {
 }
 
 // ServeHTTP handles a DataStar SSE connection. It creates an [sse.Stream],
-// subscribes to the broadcaster, and forwards events to the client until
-// the request is cancelled or the connection breaks.
+// replays missed events from the store (if replay is enabled and the client
+// sends a Last-Event-ID), subscribes to the broadcaster, and forwards events
+// to the client until the request is cancelled or the connection breaks.
 func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	stream := sse.NewStream(w, r)
 	defer func() { _ = stream.Close() }()
+
+	if b.store != nil {
+		if lastID := stream.LastEventID(); !lastID.IsZero() {
+			if _, err := sse.Replay(stream, b.store, lastID); err != nil {
+				return
+			}
+		}
+	}
 
 	ch := b.inner.Subscribe()
 	defer b.inner.Unsubscribe(ch)

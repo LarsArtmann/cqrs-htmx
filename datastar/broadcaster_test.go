@@ -2,6 +2,7 @@ package datastar_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/go-sse"
 	"github.com/stretchr/testify/require"
 )
 
@@ -261,4 +263,66 @@ func TestBroadcasterOnSubscribeCallback(t *testing.T) {
 	mu.Unlock()
 
 	disconnect()
+}
+
+func TestBroadcasterReplayOnReconnect(t *testing.T) {
+	t.Parallel()
+
+	b := ds.NewBroadcasterWithReplay(10)
+
+	for i := range 3 {
+		b.BroadcastEvent(sse.Event{
+			ID:    sse.NewEventID(fmt.Sprintf("%d", i+1)),
+			Event: "feed",
+			Data:  fmt.Sprintf("item-%d", i+1),
+		})
+	}
+
+	server := httptest.NewServer(b)
+	defer server.Close()
+
+	var (
+		bodyData string
+		bodyMu   sync.Mutex
+		wg       sync.WaitGroup
+	)
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, server.URL, nil)
+		req.Header.Set("Last-Event-ID", "1")
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		buf := make([]byte, 8192)
+		n, _ := resp.Body.Read(buf)
+
+		bodyMu.Lock()
+		bodyData = string(buf[:n])
+		bodyMu.Unlock()
+	}()
+
+	require.Eventually(t, func() bool { return b.SubscriberCount() == 1 }, 2*time.Second, 5*time.Millisecond)
+
+	time.Sleep(100 * time.Millisecond)
+	b.Close()
+
+	wg.Wait()
+
+	bodyMu.Lock()
+	defer bodyMu.Unlock()
+
+	require.Contains(t, bodyData, "item-2")
+	require.Contains(t, bodyData, "item-3")
+	require.NotContains(t, bodyData, "item-1")
 }
