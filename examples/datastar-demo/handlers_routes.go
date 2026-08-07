@@ -31,7 +31,8 @@ func handleSimulate(cqrs *CQRS) http.HandlerFunc {
 			go SimulateUser(ctx, cqrs, name)
 		}
 
-		ds.NewResponse(w, r).PatchSignals(map[string]any{
+		resp := ds.NewResponse(w, r)
+		resp.MarshalAndPatchSignals(map[string]any{
 			"simulating": true,
 			"notification": map[string]string{
 				"level":   "warning",

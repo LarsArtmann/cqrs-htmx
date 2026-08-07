@@ -2,7 +2,6 @@ package datastar_test
 
 import (
 	"context"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -21,8 +20,6 @@ func TestNewBroadcaster(t *testing.T) {
 	require.Equal(t, 0, b.SubscriberCount())
 }
 
-// connectSubscriber starts b.ServeHTTP in a goroutine with a cancellable context.
-// Returns a disconnect function. Waits until the subscriber is registered before returning.
 func connectSubscriber(t *testing.T, b *ds.Broadcaster) func() {
 	t.Helper()
 
@@ -158,267 +155,104 @@ func TestBroadcasterServeHTTPLifecycle(t *testing.T) {
 	require.Equal(t, 0, b.SubscriberCount())
 }
 
-// readSSEBody connects to serverURL with an optional Last-Event-ID header,
-// waits for the client to connect, gives the server time to flush replay data,
-// then cancels the context and returns whatever was read.
-func readSSEBody(t *testing.T, b *ds.Broadcaster, serverURL, lastEventID string) string {
-	t.Helper()
-
-	var (
-		body string
-		mu   sync.Mutex
-		wg   sync.WaitGroup
-	)
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURL, nil)
-		if err != nil {
-			cancel()
-			return
-		}
-
-		if lastEventID != "" {
-			req.Header.Set("Last-Event-ID", lastEventID)
-		}
-
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			cancel()
-			return
-		}
-		defer func() { _ = resp.Body.Close() }()
-
-		data, _ := io.ReadAll(resp.Body)
-		mu.Lock()
-		body = string(data)
-		mu.Unlock()
-	}()
-
-	require.Eventually(t, func() bool { return b.SubscriberCount() >= 1 }, 2*time.Second, 5*time.Millisecond)
-
-	time.Sleep(100 * time.Millisecond)
-
-	cancel()
-	wg.Wait()
-
-	mu.Lock()
-	defer mu.Unlock()
-
-	return body
-}
-
-func TestBroadcasterReplayOnReconnect(t *testing.T) {
-	t.Parallel()
-
-	b := ds.NewBroadcasterWithReplay(10)
-
-	// Broadcast 3 patches before any client connects
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "first"}))
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "second"}))
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "third"}))
-
-	server := httptest.NewServer(b)
-	defer server.Close()
-
-	body := readSSEBody(t, b, server.URL, "1")
-
-	// Should replay patches 2 and 3 (not 1)
-	require.Contains(t, body, "second")
-	require.Contains(t, body, "third")
-	require.NotContains(t, body, "first")
-	// Should have SSE id: fields for reconnection tracking
-	require.Contains(t, body, "id: 2")
-	require.Contains(t, body, "id: 3")
-}
-
-func TestBroadcasterNoReplayForNewClient(t *testing.T) {
-	t.Parallel()
-
-	b := ds.NewBroadcasterWithReplay(10)
-
-	// Broadcast patches before any client connects
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "old-data"}))
-
-	server := httptest.NewServer(b)
-	defer server.Close()
-
-	// Connect WITHOUT Last-Event-ID — new client gets no replay
-	body := readSSEBody(t, b, server.URL, "")
-
-	// A new client should NOT receive old patches
-	require.NotContains(t, body, "old-data")
-}
-
-func TestBroadcasterReplayDisabledWithZero(t *testing.T) {
-	t.Parallel()
-
-	b := ds.NewBroadcasterWithReplay(0)
-
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "buffered"}))
-
-	server := httptest.NewServer(b)
-	defer server.Close()
-
-	// Even with Last-Event-ID, replay is disabled
-	body := readSSEBody(t, b, server.URL, "0")
-
-	require.NotContains(t, body, "buffered")
-}
-
-func TestBroadcasterReplayWithQueryParam(t *testing.T) {
-	t.Parallel()
-
-	b := ds.NewBroadcasterWithReplay(10)
-
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "alpha"}))
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "beta"}))
-
-	server := httptest.NewServer(b)
-	defer server.Close()
-
-	body := readSSEBody(t, b, server.URL+"?lastEventId=1", "")
-
-	// Should replay patch 2 (beta) but not patch 1 (alpha)
-	require.Contains(t, body, "beta")
-	require.NotContains(t, body, "alpha")
-}
-
-func TestBroadcasterReplayRingBufferEviction(t *testing.T) {
-	t.Parallel()
-
-	b := ds.NewBroadcasterWithReplay(3) // small buffer
-
-	// Broadcast 5 patches — only last 3 are retained
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "p1"}))
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "p2"}))
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "p3"}))
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "p4"}))
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "p5"}))
-
-	server := httptest.NewServer(b)
-	defer server.Close()
-
-	// Connect with Last-Event-ID: 0 (replay everything in buffer)
-	body := readSSEBody(t, b, server.URL, "0")
-
-	// p1 and p2 should have been evicted (buffer holds only last 3)
-	require.NotContains(t, body, "p1")
-	require.NotContains(t, body, "p2")
-	// p3, p4, p5 should be in the replay
-	require.Contains(t, body, "p3")
-	require.Contains(t, body, "p4")
-	require.Contains(t, body, "p5")
-}
-
-func TestBroadcasterHeartbeatKeepsConnectionAlive(t *testing.T) {
-	t.Parallel()
-
-	b := ds.NewBroadcasterWithHeartbeat(10 * time.Millisecond)
-
-	server := httptest.NewServer(b)
-	defer server.Close()
-
-	// readSSEBody sleeps 100ms after connecting — enough for ~10 heartbeats.
-	body := readSSEBody(t, b, server.URL, "")
-
-	require.Contains(t, body, "event: ping")
-}
-
-func TestBroadcasterNoHeartbeatByDefault(t *testing.T) {
+func TestBroadcasterShutdown(t *testing.T) {
 	t.Parallel()
 
 	b := ds.NewBroadcaster()
-	b.Broadcast(ds.SignalsPatch(map[string]any{"msg": "no-heartbeat-here"}))
 
-	server := httptest.NewServer(b)
-	defer server.Close()
+	_ = connectSubscriber(t, b)
+	require.Equal(t, 1, b.SubscriberCount())
 
-	body := readSSEBody(t, b, server.URL, "0")
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 
-	require.Contains(t, body, "no-heartbeat-here")
-	require.NotContains(t, body, "event: ping")
+	err := b.Shutdown(ctx)
+	require.NoError(t, err)
 }
 
-func TestNewSSE(t *testing.T) {
+func TestBroadcasterHealth(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
+	b := ds.NewBroadcaster()
+	health := b.Health()
 
-	sse := ds.NewSSE(w, req)
-	require.NotNil(t, sse)
-	require.NotNil(t, sse.Context())
+	require.Equal(t, 0, health.SubscriberCount)
+	require.False(t, health.Closed)
+	require.False(t, health.Draining)
 }
 
-func TestBroadcasterInvalidLastEventIDHandled(t *testing.T) {
+func TestBroadcasterBroadcastEvent(t *testing.T) {
 	t.Parallel()
 
-	b := ds.NewBroadcasterWithReplay(10)
-	b.Broadcast(ds.SignalsPatch(map[string]any{"seq": "first"}))
-
-	server := httptest.NewServer(b)
-	defer server.Close()
-
-	// Non-numeric Last-Event-ID is treated as 0 — replay everything in buffer.
-	body := readSSEBody(t, b, server.URL, "not-a-number")
-
-	require.Contains(t, body, "first")
-}
-
-func TestBroadcasterNoReplayLivePatchHasNoEventID(t *testing.T) {
-	t.Parallel()
-
-	b := ds.NewBroadcasterWithReplay(0)
+	b := ds.NewBroadcaster()
 
 	server := httptest.NewServer(b)
 	defer server.Close()
 
 	var (
-		body string
-		mu   sync.Mutex
-		wg   sync.WaitGroup
+		bodyData string
+		bodyMu   sync.Mutex
+		wg       sync.WaitGroup
 	)
 
-	ctx, cancel := context.WithCancel(context.Background())
 	wg.Add(1)
 
 	go func() {
 		defer wg.Done()
 
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, server.URL, nil)
-		if err != nil {
-			return
-		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, server.URL, nil)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return
 		}
 		defer func() { _ = resp.Body.Close() }()
 
-		data, _ := io.ReadAll(resp.Body)
-		mu.Lock()
-		body = string(data)
-		mu.Unlock()
+		buf := make([]byte, 8192)
+		n, _ := resp.Body.Read(buf)
+
+		bodyMu.Lock()
+		bodyData = string(buf[:n])
+		bodyMu.Unlock()
 	}()
 
 	require.Eventually(t, func() bool { return b.SubscriberCount() == 1 }, 2*time.Second, 5*time.Millisecond)
 
-	b.Broadcast(ds.SignalsPatch(map[string]any{"live": "patch-data"}))
-	time.Sleep(50 * time.Millisecond)
-	cancel()
-	wg.Wait()
+	// Broadcast a raw event
+	patch := ds.ElementsPatch("<div>raw</div>")
+	b.Broadcast(patch)
 	b.Close()
 
-	mu.Lock()
-	defer mu.Unlock()
+	wg.Wait()
 
-	require.Contains(t, body, "patch-data")
-	require.NotContains(t, body, "id: ") // no event ID line when replay is disabled
+	bodyMu.Lock()
+	defer bodyMu.Unlock()
+
+	require.Contains(t, bodyData, "datastar-patch-elements")
+	require.Contains(t, bodyData, "elements <div>raw</div>")
+}
+
+func TestBroadcasterOnSubscribeCallback(t *testing.T) {
+	t.Parallel()
+
+	b := ds.NewBroadcaster()
+
+	var count int
+	var mu sync.Mutex
+
+	b.OnSubscribe(func() {
+		mu.Lock()
+		count++
+		mu.Unlock()
+	})
+
+	disconnect := connectSubscriber(t, b)
+
+	mu.Lock()
+	require.Equal(t, 1, count)
+	mu.Unlock()
+
+	disconnect()
 }

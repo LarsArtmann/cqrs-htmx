@@ -14,11 +14,17 @@ type Signals struct {
 	ID    string `json:"id"`
 }
 
+// writeErrorResponse sends an error as a DataStar signals patch.
+func writeErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	resp := ds.NewResponse(w, r)
+	resp.PatchSignals([]byte(fmt.Sprintf(`{"error":{"message":%q}}`, err.Error())))
+}
+
 // readSignals parses the request signals into s, writing an error response
 // and returning false on parse failure.
 func readSignals(w http.ResponseWriter, r *http.Request, s *Signals) bool {
 	if err := ds.ReadSignals(r, s); err != nil {
-		ds.ErrorResponse(w, r, err)
+		writeErrorResponse(w, r, err)
 		return false
 	}
 	return true
@@ -31,7 +37,8 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 			return
 		}
 		if s.Title == "" {
-			ds.NewResponse(w, r).PatchSignals(map[string]any{
+			resp := ds.NewResponse(w, r)
+			resp.MarshalAndPatchSignals(map[string]any{
 				"notification": map[string]string{
 					"level":   "error",
 					"message": "Title is required",
@@ -43,16 +50,17 @@ func handleCreateTodo(cqrs *CQRS) http.HandlerFunc {
 		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
 		cmd, err := NewCreateTodo(s.Title)
 		if err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
 		if err := cqrs.Commands.Dispatch(ctx, cmd); err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
-		ds.NewResponse(w, r).PatchSignals(map[string]any{
+		resp := ds.NewResponse(w, r)
+		resp.MarshalAndPatchSignals(map[string]any{
 			"title": "",
 			"notification": map[string]string{
 				"level":   "success",
@@ -72,12 +80,12 @@ func handleToggleTodo(cqrs *CQRS) http.HandlerFunc {
 		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
 		cmd, err := NewToggleTodo(s.ID)
 		if err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
 		if err := cqrs.Commands.Dispatch(ctx, cmd); err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
@@ -95,16 +103,17 @@ func handleDeleteTodo(cqrs *CQRS) http.HandlerFunc {
 		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
 		cmd, err := NewDeleteTodo(s.ID)
 		if err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
 		if err := cqrs.Commands.Dispatch(ctx, cmd); err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
-		ds.NewResponse(w, r).PatchSignals(map[string]any{
+		resp := ds.NewResponse(w, r)
+		resp.MarshalAndPatchSignals(map[string]any{
 			"notification": map[string]string{
 				"level":   "info",
 				"message": "Todo deleted",
@@ -120,23 +129,23 @@ func handleUpdateTodo(cqrs *CQRS) http.HandlerFunc {
 			return
 		}
 		if s.ID == "" {
-			ds.ErrorResponse(w, r, errorfamily.NewRejection("todo.id_required", "id is required"))
+			writeErrorResponse(w, r, errorfamily.NewRejection("todo.id_required", "id is required"))
 			return
 		}
 		if s.Title == "" {
-			ds.ErrorResponse(w, r, errorfamily.NewRejection("todo.title_required", "title is required"))
+			writeErrorResponse(w, r, errorfamily.NewRejection("todo.title_required", "title is required"))
 			return
 		}
 
 		ctx := ContextWithUser(r.Context(), &UserContext{Name: "you"})
 		cmd, err := NewUpdateTodo(s.ID, s.Title)
 		if err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
 		if err := cqrs.Commands.Dispatch(ctx, cmd); err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
@@ -148,17 +157,17 @@ func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		qry, err := NewListTodosQry()
 		if err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 		todos, err := query.DispatchTyped[[]Todo](r.Context(), cqrs.Queries, qry)
 		if err != nil {
-			ds.ErrorResponse(w, r, err)
+			writeErrorResponse(w, r, err)
 			return
 		}
 
-		ds.NewResponse(w, r).
-			PatchElements(renderTodoList(todos), ds.WithSelectorID("todo-list"), ds.WithModeInner()).
-			PatchElements(renderStatsFromQuery(cqrs), ds.WithSelectorID("stats"))
+		resp := ds.NewResponse(w, r)
+		resp.PatchElements(renderTodoList(todos), ds.WithSelectorID("todo-list"), ds.WithModeInner())
+		resp.PatchElements(renderStatsFromQuery(cqrs), ds.WithSelectorID("stats"))
 	}
 }

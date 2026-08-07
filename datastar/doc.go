@@ -1,53 +1,57 @@
-// Package datastar provides an optional Datastar (https://data-star.dev/)
-// frontend adapter for cqrs-htmx applications.
+// Package datastar provides a DataStar adapter for cqrs-htmx applications.
 //
-// Datastar is a hypermedia framework that uses Server-Sent Events for
-// real-time updates, reactive signals for frontend state management, and
-// DOM morphing by default. Its philosophy — backend as source of truth,
-// SSE as default transport, no optimistic updates — aligns perfectly with
-// the CQRS/event-sourcing architecture of cqrs-htmx.
+// This module wraps [go-datastar] and [go-sse] to provide a DataStar protocol
+// layer for CQRS event-sourced applications. It adds two things beyond what
+// go-datastar provides:
 //
-// This module is fully isolated: the root cqrs-htmx module has zero
-// knowledge of Datastar. Consumers who prefer HTMX are completely
-// unaffected. Import this module only when you want Datastar features.
+//   - Broadcaster: fan-out SSE patches via [sse.Broadcaster[sse.Event]]
+//   - EventBridge: declarative domain-event → Patch mapping
+//
+// All DataStar types (patches, options, modes, namespaces) are re-exported
+// from go-datastar for single-import convenience.
 //
 // # Quick Start
 //
-// Serve the embedded Datastar JavaScript and create a real-time SSE endpoint:
+// Serve the embedded DataStar JavaScript and create a real-time SSE endpoint:
 //
 //	mux.Handle("GET /datastar.js", ds.ScriptHandler())
 //
 //	broadcaster := ds.NewBroadcaster()
-//	mux.HandleFunc("GET /events", broadcaster.ServeHTTP)
+//	mux.Handle("GET /events", broadcaster)
 //
 //	bridge := ds.NewEventBridge(broadcaster)
 //	bridge.Map("TodoCreated", func(e event.Event) (ds.Patch, error) {
-//	    return ds.ElementsPatch(renderTodo(e)), nil
+//	    return ds.ElementsPatch(renderTodo(e), ds.WithSelectorID("todo-list")), nil
 //	})
 //
 //	// Wire to your event bus — bridge.Handle processes each domain event:
 //	eventBus.SubscribeAll(bridge.Handle)
 //
-// For command endpoints, decode Datastar signals and respond with patches:
+// For command endpoints, decode DataStar signals and respond with patches:
 //
 //	mux.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
 //	    var s struct{ Title string `json:"title"` }
 //	    if err := ds.ReadSignals(r, &s); err != nil {
-//	        ds.ErrorResponse(w, r, err)
+//	        // handle error
 //	        return
 //	    }
-//	    // ... dispatch command ...
-//	    ds.NewResponse(w, r).
-//	        PatchSignals(map[string]any{"title": ""}).
-//	        PatchElements(renderTodoList(todos), ds.WithSelectorID("todo-list"), ds.WithModeInner())
+//	    resp := ds.NewResponse(w, r)
+//	    resp.PatchSignals(map[string]any{"title": ""})
+//	    resp.PatchElements(renderTodoList(todos), ds.WithSelectorID("todo-list"), ds.WithModeInner())
 //	})
 //
-// # API Surface
+// # Architecture
 //
-//   - ScriptHandler / ScriptHandlerWith / ScriptTag — embed and serve datastar.js
-//   - ReadSignals — decode client signals from requests
-//   - NewResponse — fluent Datastar SSE response builder
-//   - ElementsPatch / SignalsPatch / RemovePatch / ScriptPatch / RedirectPatch — patch constructors
-//   - Broadcaster — fan-out SSE patches to all connected clients
-//   - EventBridge — declarative domain-event-to-Datastar-patch mapping
+// This module is a thin adapter. The real implementation lives in:
+//
+//   - [go-datastar] — DataStar protocol vocabulary (patches as values)
+//   - [go-sse] — SSE transport (Stream, Broadcaster, Replay, Heartbeat)
+//
+// The SDK dependency (starfederation/datastar-go) has been fully replaced.
+// Patches are now first-class values implementing [Patch] (Event() sse.Event),
+// enabling composition with go-sse's Broadcaster, SubscribeFilter, and
+// Shutdown infrastructure.
+//
+// [go-datastar]: https://github.com/LarsArtmann/go-datastar
+// [go-sse]: https://github.com/LarsArtmann/go-sse
 package datastar

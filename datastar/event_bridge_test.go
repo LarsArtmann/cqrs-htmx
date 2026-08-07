@@ -1,6 +1,7 @@
 package datastar_test
 
 import (
+	"errors"
 	"testing"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
@@ -242,4 +243,4 @@ func TestEventBridgeOnErrorNilDropsSilently(t *testing.T) {
 	require.Equal(t, 0, broadcaster.SubscriberCount(), "error handler should not broadcast")
 }
 
-var errHandlerFailed = testError("handler failed")
+var errHandlerFailed = errors.New("handler failed")

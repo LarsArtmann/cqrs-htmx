@@ -18,13 +18,7 @@ require (
 	github.com/pquerna/otp v1.5.0
 )
 
-require (
-	github.com/CAFxX/httpcompression v0.0.9 // indirect
-	github.com/andybalholm/brotli v1.2.2 // indirect
-	github.com/klauspost/compress v1.19.1 // indirect
-	github.com/starfederation/datastar-go v1.2.2 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
-)
+require github.com/larsartmann/go-datastar v0.0.0 // indirect
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
@@ -72,7 +66,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-sse v0.3.0 // indirect
+	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/larsartmann/httputil v0.9.0
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -103,3 +97,7 @@ require (
 )
 
 replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../datastar
+
+replace github.com/larsartmann/go-datastar => ../../go-datastar
+
+replace github.com/larsartmann/go-sse => ../../go-sse
