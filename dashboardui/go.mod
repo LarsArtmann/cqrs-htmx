@@ -5,7 +5,7 @@ go 1.26.5
 
 require (
 	github.com/dustin/go-humanize v1.0.1
-	github.com/larsartmann/cqrs-htmx/v4 v4.6.1
+	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
@@ -40,6 +40,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
+	github.com/larsartmann/httputil/server_timing v0.9.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

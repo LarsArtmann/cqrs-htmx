@@ -3,10 +3,10 @@ module github.com/larsartmann/cqrs-htmx/examples/admin-demo
 go 1.26.5
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.6.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.6.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.6.1
-	github.com/larsartmann/cqrs-htmx/v4 v4.6.1
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-sse v0.4.0
 	github.com/larsartmann/httputil v0.9.1
@@ -29,7 +29,7 @@ require (
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.1 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.3.0 // indirect
@@ -53,6 +53,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
+	github.com/larsartmann/httputil/server_timing v0.9.1 // indirect
 	github.com/larsartmann/templ-components v1.7.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
