@@ -124,9 +124,9 @@ func TestDatastarResponseContract(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/todos", nil)
 
 	resp := ds.NewResponse(w, req)
-	resp.MarshalAndPatchSignals(map[string]any{"title": ""})
-	resp.PatchElements("<div>updated</div>", ds.WithSelectorID("list"))
-	resp.Redirect("/todos")
+	_ = resp.MarshalAndPatchSignals(map[string]any{"title": ""})
+	_ = resp.PatchElements("<div>updated</div>", ds.WithSelectorID("list"))
+	_ = resp.Redirect("/todos")
 
 	require.NotNil(t, resp)
 }
