@@ -94,7 +94,7 @@ func TestScriptPatch(t *testing.T) {
 	require.NotNil(t, patch)
 
 	evt := patch.Event()
-	require.Equal(t, "datastar-execute-script", evt.Event)
+	require.Equal(t, "datastar-patch-elements", evt.Event)
 	require.Contains(t, evt.Data, "console.log('hi')")
 }
 
@@ -105,7 +105,7 @@ func TestRedirectPatch(t *testing.T) {
 	require.NotNil(t, patch)
 
 	evt := patch.Event()
-	require.Equal(t, "datastar-execute-script", evt.Event)
+	require.Equal(t, "datastar-patch-elements", evt.Event)
 	require.Contains(t, evt.Data, "window.location.href")
 	require.Contains(t, evt.Data, "/dashboard")
 }
@@ -120,8 +120,8 @@ func TestPatchEventTypes(t *testing.T) {
 	}{
 		{"elements", ds.ElementsPatch("<div>"), "datastar-patch-elements"},
 		{"remove", ds.RemovePatch("#x"), "datastar-patch-elements"},
-		{"script", ds.ScriptPatch("1+1"), "datastar-execute-script"},
-		{"redirect", ds.RedirectPatch("/"), "datastar-execute-script"},
+		{"script", ds.ScriptPatch("1+1"), "datastar-patch-elements"},
+		{"redirect", ds.RedirectPatch("/"), "datastar-patch-elements"},
 	}
 
 	for _, tt := range tests {
@@ -143,10 +143,10 @@ func TestElementsPatchMultiLineHTML(t *testing.T) {
 	lines := strings.Split(evt.Data, "\n")
 	var elementLines int
 	for _, line := range lines {
-		if strings.HasPrefix(strings.TrimSpace(line), "data: elements") {
+		if strings.HasPrefix(line, "elements ") {
 			elementLines++
 		}
 	}
 
-	require.Equal(t, 4, elementLines, "multi-line HTML should produce one data: elements line per line")
+	require.Equal(t, 4, elementLines, "multi-line HTML should produce one elements line per HTML line")
 }

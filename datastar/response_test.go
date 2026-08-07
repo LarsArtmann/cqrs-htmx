@@ -77,7 +77,7 @@ func TestResponseExecuteScript(t *testing.T) {
 	require.NoError(t, err)
 
 	body := w.Body.String()
-	require.Contains(t, body, "event: datastar-execute-script")
+	require.Contains(t, body, "event: datastar-patch-elements")
 	require.Contains(t, body, "alert('done')")
 }
 
@@ -139,11 +139,13 @@ func TestResponseMultiplePatches(t *testing.T) {
 
 	body := w.Body.String()
 
+	// PatchElements + ExecuteScript both produce patch-elements events;
+	// ExecuteScript wraps the script in a <script> element and sends it via
+	// patch-elements with selector=body, mode=append (matching the DataStar SDK).
 	patchElementsCount := strings.Count(body, "event: datastar-patch-elements")
 	patchSignalsCount := strings.Count(body, "event: datastar-patch-signals")
-	scriptCount := strings.Count(body, "event: datastar-execute-script")
 
-	require.Equal(t, 1, patchElementsCount)
+	require.Equal(t, 2, patchElementsCount, "PatchElements + ExecuteScript should produce 2 patch-elements events")
 	require.Equal(t, 1, patchSignalsCount)
-	require.Equal(t, 1, scriptCount)
+	require.Contains(t, body, "console.log('done')")
 }
