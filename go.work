@@ -129,3 +129,8 @@ replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => /home/lars/projects/
 // workspace-level replace, `go build ./...` fails in workspace mode because the
 // replace in go-cqrs-lite/idempotency/go.mod is only visible within that module's context.
 replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempotency
+
+// Additional replace: httputil/server_timing is a separate Go module (subdirectory
+// of httputil with its own go.mod) with no published tags. The v0.0.0 pseudo-version
+// in go.mod cannot be resolved without this workspace-level replace.
+replace github.com/larsartmann/httputil/server_timing => /home/lars/projects/httputil/server_timing

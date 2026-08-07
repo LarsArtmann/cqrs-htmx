@@ -128,6 +128,8 @@ github.com/larsartmann/go-error-family v0.9.0/go.mod h1:JEvLiYWT8p9WrNXrD1Ow97Dp
 github.com/larsartmann/go-error-family/diagnose v0.1.0/go.mod h1:yjLhP+5go9A50hbzaidbviaTkejBNValDufSLekBAx4=
 github.com/larsartmann/go-retry v0.1.0 h1:JgW2ZV5y3M3TDJOlZzASr3srUMr8i+XI8b/edXtftbw=
 github.com/larsartmann/go-retry v0.1.0/go.mod h1:Lbi4UAbiRgM4BqfRtMFPW8umNF4qnIApNLw0RRoTqVg=
+github.com/larsartmann/go-retry v0.2.0 h1:3ZzkiG58Y7P5sspWMLdioIAFcOX5rSr6xHDXR90+3JQ=
+github.com/larsartmann/go-retry v0.2.0/go.mod h1:Lbi4UAbiRgM4BqfRtMFPW8umNF4qnIApNLw0RRoTqVg=
 github.com/larsartmann/httputil v0.1.0 h1:SFk6OSXhZqdmDNjlFKpfqP6S7WCBIoujEzNmxz3fgEY=
 github.com/larsartmann/httputil v0.1.0/go.mod h1:OfsRBnA+R+2sSJJapE0J/qwMF58e7BdmaExdr+RH1yk=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
