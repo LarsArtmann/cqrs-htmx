@@ -128,6 +128,12 @@ linters:
   exclusions:
     generated: lax
     rules:
+      - text: Tombstones violate event-stream immutability
+        linters:
+          - staticcheck
+      - text: Use domain events for deletion semantics
+        linters:
+          - staticcheck
       - path: errors\.go$
         text: is a global variable
         linters:

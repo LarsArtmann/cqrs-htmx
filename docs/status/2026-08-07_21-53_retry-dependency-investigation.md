@@ -2,7 +2,7 @@
 
 ## Session Summary
 
-User asked: *"Are we using go-cqrs-lite/retry? If so, can we replace it with go-retry v0.2.0?"*
+User asked: _"Are we using go-cqrs-lite/retry? If so, can we replace it with go-retry v0.2.0?"_
 
 **Answer: No usage. Nothing to replace.** The investigation is documented below with full detail on what was done, what was missed, and what remains.
 
@@ -12,20 +12,20 @@ User asked: *"Are we using go-cqrs-lite/retry? If so, can we replace it with go-
 
 ### Dependency Investigation (Complete)
 
-| Task | Status | Detail |
-|------|--------|--------|
-| Searched all `.go` files for `go-cqrs-lite/retry` imports | ✅ Done | **Zero matches** — no direct import exists |
-| Searched all `.go` files for `go-retry` imports | ✅ Done | **Zero matches** — no direct import exists |
-| Searched all `go.mod` files for `retry/v4` | ✅ Done | Found in 2 example modules as `// indirect` |
-| Searched `go.work` for retry replace directives | ✅ Done | Found: `replace github.com/larsartmann/go-cqrs-lite/retry/v4 => /home/lars/projects/go-cqrs-lite/retry` |
-| Ran `go mod why` on both example modules | ✅ Done | Both report: *"main module does not need package"* |
-| Traced the transitive dependency chain | ✅ Done | Published `middleware/v4@v4.2.0` tag still requires `retry/v4@v4.1.0` (local middleware already migrated to `go-retry` directly, but no new tag published) |
-| Inspected `go-cqrs-lite/retry/` package structure | ✅ Done | It is a thin alias shim (`alias.go`) re-exporting `go-retry` v0.2.0 symbols — maintained for backward compat per ADR-0064 |
-| Inspected `go-retry` package structure | ✅ Done | Confirmed module path `github.com/larsartmann/go-retry`, v0.2.0 tag exists, full API documented |
-| Ran `go mod tidy` on both example modules (workspace mode) | ✅ Done | No effect — workspace replace kept the dep |
-| Ran `go mod tidy` on both example modules (GOWORK=off) | ✅ Done | No effect — published middleware tag still requires it |
-| Verified cqrs-htmx has zero direct retry imports | ✅ Done | Confirmed via ripgrep |
-| Reported conclusion to user | ✅ Done | Nothing to replace — will auto-resolve when go-cqrs-lite publishes new middleware tag |
+| Task                                                       | Status  | Detail                                                                                                                                                     |
+| ---------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Searched all `.go` files for `go-cqrs-lite/retry` imports  | ✅ Done | **Zero matches** — no direct import exists                                                                                                                 |
+| Searched all `.go` files for `go-retry` imports            | ✅ Done | **Zero matches** — no direct import exists                                                                                                                 |
+| Searched all `go.mod` files for `retry/v4`                 | ✅ Done | Found in 2 example modules as `// indirect`                                                                                                                |
+| Searched `go.work` for retry replace directives            | ✅ Done | Found: `replace github.com/larsartmann/go-cqrs-lite/retry/v4 => /home/lars/projects/go-cqrs-lite/retry`                                                    |
+| Ran `go mod why` on both example modules                   | ✅ Done | Both report: _"main module does not need package"_                                                                                                         |
+| Traced the transitive dependency chain                     | ✅ Done | Published `middleware/v4@v4.2.0` tag still requires `retry/v4@v4.1.0` (local middleware already migrated to `go-retry` directly, but no new tag published) |
+| Inspected `go-cqrs-lite/retry/` package structure          | ✅ Done | It is a thin alias shim (`alias.go`) re-exporting `go-retry` v0.2.0 symbols — maintained for backward compat per ADR-0064                                  |
+| Inspected `go-retry` package structure                     | ✅ Done | Confirmed module path `github.com/larsartmann/go-retry`, v0.2.0 tag exists, full API documented                                                            |
+| Ran `go mod tidy` on both example modules (workspace mode) | ✅ Done | No effect — workspace replace kept the dep                                                                                                                 |
+| Ran `go mod tidy` on both example modules (GOWORK=off)     | ✅ Done | No effect — published middleware tag still requires it                                                                                                     |
+| Verified cqrs-htmx has zero direct retry imports           | ✅ Done | Confirmed via ripgrep                                                                                                                                      |
+| Reported conclusion to user                                | ✅ Done | Nothing to replace — will auto-resolve when go-cqrs-lite publishes new middleware tag                                                                      |
 
 ---
 
