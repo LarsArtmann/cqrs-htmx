@@ -25,7 +25,8 @@
   document.addEventListener("click", function (e) {
     var t = e.target.closest && e.target.closest(".admin-toggle");
     if (t) toggleSidebar();
-    if (e.target.classList && e.target.classList.contains("admin-scrim")) toggleSidebar();
+    if (e.target.classList && e.target.classList.contains("admin-scrim"))
+      toggleSidebar();
   });
 
   // --- Toasts: bridge adminui:toast HX-Trigger events to templ-components tcShowToast ---
@@ -41,7 +42,10 @@
     if (typeof tcShowToast === "function") {
       tcShowToast(d.message || "", kindMap[d.kind] || "info");
     } else {
-      console.warn("adminui: tcShowToast not available — toast lost:", d.message);
+      console.warn(
+        "adminui: tcShowToast not available — toast lost:",
+        d.message,
+      );
     }
   });
 

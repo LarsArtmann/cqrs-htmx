@@ -146,8 +146,8 @@ github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 h1:rdm5DDmm8IIUX9V57Zik
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0/go.mod h1:8uRRkMbtybkvxYVr1bLyxpX3QT7e6ZoBRzkv89ARSz4=
 github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.0.1 h1:zYRjF4LCJ6A6wJovyCIH2U0k9OkbuwHb9tnyIVbU4UA=
 github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.0.1/go.mod h1:xGPEjHVTRFMTgdceg277KUOaRDme3J3eeJjH5RLmsSw=
-github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0 h1:gq6lOmj5AbfUBh5MfCwdZ+uTFHJ1zEJZQxsNOeaTjJo=
-github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0/go.mod h1:zSIkYBJc4VLgECEHPu1K2xsgt0Z+2PVsF8/fIbczur0=
+github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0 h1:XP8A2KKxtbzjetRFdFHbXngvDFhn4G/W+YWD2mg9ldM=
+github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0/go.mod h1:q8IQGJXIn97D84EEFE5On2kK7TF6+lurFKiz44ShoZ0=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0 h1:crv4LiYKOql624vrc2XvClk9vgo9/qumWU1M0IEPmMc=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0/go.mod h1:ftzLBt4BpjwVqSWoy9QJoztDJnxMYcsNDv3pDBg25GI=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 h1:/sMxhws4RcEa1fZTZzI9/abXhYs5QBDDBeyrTbGXK9U=
@@ -168,6 +168,8 @@ github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0 h1:VXot2cxME0f4qNWD
 github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0/go.mod h1:3qROCiPcvau/ODPHE4gLKAhI02r3wNMV7CbiVrwpGvU=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 h1:MNuyDwX0/RKNRxMie9wSnGI9YCEZGne+1UETzzi40cg=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0/go.mod h1:ROanW4f3Yt7D6dS4GY8DFLpVpAhYp7DIDivZeS0K5y4=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 h1:6751shB8+f6PX4ogTOBArJpdQDLAsLo9nCwmYsSxnjU=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0/go.mod h1:TB0o6rv8eIdLqV9ZxdIsRNTNQuALt/d5/MFtPZp5AjQ=
 github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.1 h1:6HF2lyvw+qDdiR66uhKZQ+JTvPs10AlDfFqTuyocnI4=
 github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.1/go.mod h1:X7lxKalmg+hvB2ReuGmjjw2IlYtn93Z8oD0xrQm0Eg8=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 h1:21iCxbTL4UFtFag4V1oqKEl3raxet/ULXrKqiqHQXug=

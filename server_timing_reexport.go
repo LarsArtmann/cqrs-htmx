@@ -1,7 +1,7 @@
 package cqrshtmx
 
 import (
-	"github.com/larsartmann/httputil/server_timing"
+	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
 // Server-Timing now lives in httputil/server_timing. These aliases preserve
