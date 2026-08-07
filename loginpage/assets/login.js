@@ -1,9 +1,7 @@
 (function () {
   "use strict";
 
-  var config = JSON.parse(
-    document.getElementById("loginpage-config").textContent,
-  );
+  var config = JSON.parse(document.getElementById("loginpage-config").textContent);
 
   // ── Base64URL helpers ────────────────────────────────────────────
   function b64uToBuf(b64u) {
@@ -127,19 +125,15 @@
 
   // ── Friendly error messages ─────────────────────────────────────
   function friendlyError(err) {
-    if (err.name === "NotAllowedError")
-      return "Passkey prompt was cancelled or timed out.";
-    if (err.name === "SecurityError")
-      return "This domain is not authorized for passkeys.";
+    if (err.name === "NotAllowedError") return "Passkey prompt was cancelled or timed out.";
+    if (err.name === "SecurityError") return "This domain is not authorized for passkeys.";
     if (err.name === "AbortError") return "Operation was aborted.";
     return err.message || "An unexpected error occurred.";
   }
 
   function isWebAuthnError(err) {
     return (
-      err.name === "NotAllowedError" ||
-      err.name === "SecurityError" ||
-      err.name === "AbortError"
+      err.name === "NotAllowedError" || err.name === "SecurityError" || err.name === "AbortError"
     );
   }
 
@@ -199,9 +193,7 @@
 
       // 3. Finish login
       var finishUrl =
-        config.endpoints.loginFinish +
-        "?user_id=" +
-        encodeURIComponent(begin.session_key);
+        config.endpoints.loginFinish + "?user_id=" + encodeURIComponent(begin.session_key);
       await postRaw(finishUrl, JSON.stringify(serializeAssertion(cred)));
 
       // 4. Redirect on success

@@ -11,8 +11,7 @@ var x = Object.hasOwn ?? Object.prototype.hasOwnProperty.call;
 var J = (e) =>
     e !== null &&
     typeof e == "object" &&
-    (Object.getPrototypeOf(e) === Object.prototype ||
-      Object.getPrototypeOf(e) === null),
+    (Object.getPrototypeOf(e) === Object.prototype || Object.getPrototypeOf(e) === null),
   vt = (e) => {
     for (let t in e) if (x(e, t)) return !1;
     return !0;
@@ -70,7 +69,7 @@ var Le = [],
     return wt.bind(0, t);
   },
   St = () => {
-    for (; Ne < Qe; ) {
+    for (; Ne < Qe;) {
       let e = Ze[Ne];
       ((Ze[Ne++] = void 0), Rt(e, (e.e &= -65)));
     }
@@ -107,7 +106,7 @@ var Le = [],
     }
     t & 32 && (e.e = t & -33);
     let n = e.s;
-    for (; n; ) {
+    for (; n;) {
       let r = n.c,
         s = r.e;
       (s & 64 && Rt(r, (r.e = s & -65)), (n = n.i));
@@ -141,7 +140,7 @@ var Le = [],
   },
   wt = (e) => {
     let t = e.s;
-    for (; t; ) t = Ce(t, e);
+    for (; t;) t = Ce(t, e);
     let n = e.r;
     (n && Ce(n), (e.e = 0));
   },
@@ -164,12 +163,7 @@ var Le = [],
       s = e.i,
       i = e.n,
       o = e.u;
-    if (
-      (s ? (s.l = r) : (t.a = r),
-      r ? (r.i = s) : (t.s = s),
-      i ? (i.u = o) : (n.m = o),
-      o)
-    )
+    if ((s ? (s.l = r) : (t.a = r), r ? (r.i = s) : (t.s = s), i ? (i.u = o) : (n.m = o), o))
       o.n = i;
     else if (!(n.r = i))
       if ("getter" in n) {
@@ -212,7 +206,7 @@ var Le = [],
         t = e.n;
         continue;
       }
-      for (; n; )
+      for (; n;)
         if (((e = n.t), (n = n.f), e)) {
           t = e.n;
           continue e;
@@ -226,7 +220,7 @@ var Le = [],
   xt = (e) => {
     let t = e.a,
       n = t ? t.i : e.s;
-    for (; n; ) n = Ce(n, e);
+    for (; n;) n = Ce(n, e);
     e.e &= -5;
   },
   Lt = (e, t) => {
@@ -253,7 +247,7 @@ var Le = [],
           continue;
         }
       }
-      for (; r--; ) {
+      for (; r--;) {
         let a = t.r,
           l = a.n;
         if ((l ? ((e = n.t), (n = n.f)) : (e = a), s)) {
@@ -280,7 +274,7 @@ var Le = [],
   },
   un = (e, t) => {
     let n = t.a;
-    for (; n; ) {
+    for (; n;) {
       if (n === e) return !0;
       n = n.l;
     }
@@ -308,8 +302,7 @@ var Le = [],
               ? (s(), r[o])
               : typeof o == "symbol"
                 ? r[o]
-                : ((!x(r, o) || r[o]() == null) &&
-                    ((r[o] = he("")), K(t + o, ""), s(s() + 1)),
+                : ((!x(r, o) || r[o]() == null) && ((r[o] = he("")), K(t + o, ""), s(s() + 1)),
                   r[o]());
         },
         set(i, o, a) {
@@ -337,9 +330,7 @@ var Le = [],
             }
           else
             a != null &&
-              (x(a, Xe)
-                ? ((r[o] = a), K(l, ""))
-                : ((r[o] = he(Oe(a, `${l}.`))), K(l, a)),
+              (x(a, Xe) ? ((r[o] = a), K(l, "")) : ((r[o] = he(Oe(a, `${l}.`))), K(l, a)),
               s(s() + 1));
           return !0;
         },
@@ -359,8 +350,7 @@ var Le = [],
   K = (e, t) => {
     if ((e !== void 0 && t !== void 0 && Le.push([e, t]), !He && Le.length)) {
       let n = xe(Le);
-      ((Le.length = 0),
-        document.dispatchEvent(new CustomEvent(ee, { detail: n })));
+      ((Le.length = 0), document.dispatchEvent(new CustomEvent(ee, { detail: n })));
     }
   },
   k = (e, { ifMissing: t } = {}) => {
@@ -372,8 +362,7 @@ var Le = [],
   Nt = (e, t, n, r, s) => {
     if (J(e)) {
       (x(n, t) && (J(n[t]) || Array.isArray(n[t]))) || (n[t] = {});
-      for (let i in e)
-        e[i] == null ? s || delete n[t][i] : Nt(e[i], i, n[t], `${r + t}.`, s);
+      for (let i in e) e[i] == null ? s || delete n[t][i] : Nt(e[i], i, n[t], `${r + t}.`, s);
     } else (s && x(n, t)) || (n[t] = e);
   },
   Et = (e) => (typeof e == "string" ? RegExp(e.replace(/^\/|\/$/g, "")) : e),
@@ -382,22 +371,17 @@ var Le = [],
       s = Et(t),
       i = [],
       o = [[n, ""]];
-    for (; o.length; ) {
+    for (; o.length;) {
       let [a, l] = o.pop();
       for (let c in a) {
         let u = l + c;
-        J(a[c])
-          ? o.push([a[c], `${u}.`])
-          : r.test(u) && !s.test(u) && i.push([u, oe(u)]);
+        J(a[c]) ? o.push([a[c], `${u}.`]) : r.test(u) && !s.test(u) && i.push([u, oe(u)]);
       }
     }
     return xe(i);
   },
   ne = Oe({});
-var z = (e) =>
-  e instanceof HTMLElement ||
-  e instanceof SVGElement ||
-  e instanceof MathMLElement;
+var z = (e) => e instanceof HTMLElement || e instanceof SVGElement || e instanceof MathMLElement;
 var ae = (e) =>
     e
       .replace(/([A-Z]+)([A-Z][a-z])/g, "$1-$2")
@@ -408,8 +392,7 @@ var ae = (e) =>
       .toLowerCase(),
   Pt = (e) => ae(e).replace(/-./g, (t) => t[1].toUpperCase()),
   Ot = (e) => ae(e).replace(/-/g, "_");
-var fn =
-    /^(?:(?:async\s+)?function\b|(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>)/,
+var fn = /^(?:(?:async\s+)?function\b|(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>)/,
   ce = (e, t = {}) => {
     let { reviveFunctionStrings: n = !1 } = t;
     try {
@@ -506,8 +489,7 @@ var Se = (e) => {
   Ht = (e) => {
     for (let t of e) {
       let n = Ee.get(t);
-      if (n && Ee.delete(t))
-        for (let r of n.values()) for (let s of r.values()) s();
+      if (n && Ee.delete(t)) for (let r of n.values()) for (let s of r.values()) s();
     }
   },
   Dt = W("ignore"),
@@ -529,22 +511,11 @@ var Se = (e) => {
       }
   },
   mn = (e) => {
-    for (let {
-      target: t,
-      type: n,
-      attributeName: r,
-      addedNodes: s,
-      removedNodes: i,
-    } of e)
+    for (let { target: t, type: n, attributeName: r, addedNodes: s, removedNodes: i } of e)
       if (n === "childList") {
         for (let o of i) z(o) && (Ht([o]), Ht(o.querySelectorAll("*")));
         for (let o of s) z(o) && (De([o]), De(o.querySelectorAll("*")));
-      } else if (
-        n === "attributes" &&
-        r.startsWith("data-") &&
-        z(t) &&
-        !It(t)
-      ) {
+      } else if (n === "attributes" && r.startsWith("data-") && z(t) && !It(t)) {
         let o = r.slice(5),
           a = nt(o);
         if (!a) continue;
@@ -579,10 +550,7 @@ var Se = (e) => {
   bn = (e = document.documentElement, t = !0) => {
     (z(e) && De([e], !0),
       De(e.querySelectorAll("*"), !0),
-      t &&
-        (gn.observe(e, { subtree: !0, childList: !0, attributes: !0 }),
-        be.add(e),
-        vn()));
+      t && (gn.observe(e, { subtree: !0, childList: !0, attributes: !0 }), be.add(e), vn()));
   };
 var it = (e, t, n, r) => {
     let s = nt(t);
@@ -609,15 +577,11 @@ var it = (e, t, n, r) => {
         },
         f =
           (l.requirement &&
-            (typeof l.requirement == "string"
-              ? l.requirement
-              : l.requirement.key)) ||
+            (typeof l.requirement == "string" ? l.requirement : l.requirement.key)) ||
           "allowed",
         m =
           (l.requirement &&
-            (typeof l.requirement == "string"
-              ? l.requirement
-              : l.requirement.value)) ||
+            (typeof l.requirement == "string" ? l.requirement : l.requirement.value)) ||
           "allowed",
         h = o != null && o !== "",
         v = n != null && n !== "";
@@ -654,10 +618,7 @@ var it = (e, t, n, r) => {
       b.set(s, d);
     }
   },
-  En = (
-    e,
-    { returnsValue: t = !1, argNames: n = [], cleanups: r = new Map() } = {},
-  ) => {
+  En = (e, { returnsValue: t = !1, argNames: n = [], cleanups: r = new Map() } = {}) => {
     let s = "";
     if (t) {
       let l =
@@ -722,10 +683,7 @@ var it = (e, t, n, r) => {
     } catch (l) {
       throw (
         console.error(l),
-        ye(
-          { expression: { fnContent: s, value: e }, error: l.message },
-          "GenerateExpression",
-        )
+        ye({ expression: { fnContent: s, value: e }, error: l.message }, "GenerateExpression")
       );
     }
   };
@@ -781,9 +739,7 @@ var Ie = new Map(),
       ) => {
         let C = d instanceof AbortController ? d : new AbortController();
         ((d === "auto" || d === "cleanup") &&
-          (Ie.get(t)?.get(a)?.abort(),
-          Ie.has(t) || Ie.set(t, new Map()),
-          Ie.get(t).set(a, C)),
+          (Ie.get(t)?.get(a)?.abort(), Ie.has(t) || Ie.set(t, new Map()), Ie.get(t).set(a, C)),
           d === "cleanup" &&
             (o.get(`@${e}`)?.(),
             o.set(`@${e}`, async () => {
@@ -847,8 +803,7 @@ var Ie = new Map(),
                 ot(t) ? (Y.body = F) : U.set("datastar", F);
               } else if (u === "form") {
                 let T = l ? document.querySelector(l) : r.closest("form");
-                if (!T)
-                  throw i("FetchFormNotFound", { action: D, selector: l });
+                if (!T) throw i("FetchFormNotFound", { action: D, selector: l });
                 if (!T.noValidate && !T.checkValidity()) {
                   T.reportValidity();
                   return;
@@ -886,8 +841,7 @@ var Ie = new Map(),
           try {
             await Ln(r, Ge);
           } catch (E) {
-            if (!Vt(E))
-              throw i("FetchFailed", { method: t, url: a, error: E.message });
+            if (!Vt(E)) throw i("FetchFailed", { method: t, url: a, error: E.message });
           }
         } finally {
           (re(ct, r, {}), de(), o.delete(`@${e}`));
@@ -905,14 +859,12 @@ var at = "started",
   Tn = "retrying",
   An = "retries-failed",
   re = (e, t, n) =>
-    document.dispatchEvent(
-      new CustomEvent(j, { detail: { type: e, el: t, argsRaw: n } }),
-    ),
+    document.dispatchEvent(new CustomEvent(j, { detail: { type: e, el: t, argsRaw: n } })),
   Vt = (e) => `${e}`.includes("text/event-stream"),
   Rn = async (e, t) => {
     let n = e.getReader(),
       r = await n.read();
-    for (; !r.done; ) (t(r.value), (r = await n.read()));
+    for (; !r.done;) (t(r.value), (r = await n.read()));
   },
   wn = (e) => {
     let t,
@@ -923,7 +875,7 @@ var at = "started",
       t ? (t = xn(t, i)) : ((t = i), (n = 0), (r = -1));
       let o = t.length,
         a = 0;
-      for (; n < o; ) {
+      for (; n < o;) {
         s && (t[n] === 10 && (a = ++n), (s = !1));
         let l = -1;
         for (; n < o && l === -1; ++n)
@@ -1012,9 +964,7 @@ ${c}`
       f || document.addEventListener("visibilitychange", de);
       let ie,
         q = () => {
-          (document.removeEventListener("visibilitychange", de),
-            clearTimeout(ie),
-            C.abort());
+          (document.removeEventListener("visibilitychange", de), clearTimeout(ie), C.abort());
         };
       o?.addEventListener("abort", () => {
         (q(), n());
@@ -1044,8 +994,7 @@ ${c}`
                   let Ue = me.headers.get(`datastar-${ae(We)}`);
                   if (we) {
                     let Me = we[We];
-                    Me &&
-                      (Ue = typeof Me == "string" ? Me : JSON.stringify(Me));
+                    Me && (Ue = typeof Me == "string" ? Me : JSON.stringify(Me));
                   }
                   Ue && (gt[We] = Ue);
                 }
@@ -1057,11 +1006,7 @@ ${c}`
               sn = M >= 400 && M < 600;
             if (M !== 200) {
               if (
-                (u?.(),
-                h !== "never" &&
-                  !pe &&
-                  !mt &&
-                  (h === "always" || (h === "error" && sn)))
+                (u?.(), h !== "never" && !pe && !mt && (h === "always" || (h === "error" && sn)))
               ) {
                 T();
                 return;
@@ -1083,22 +1028,12 @@ ${c}`
                 "useViewTransition",
               );
             if (je?.includes("application/json"))
-              return await X(
-                "datastar-patch-signals",
-                A,
-                "signals",
-                y,
-                "onlyIfMissing",
-              );
+              return await X("datastar-patch-signals", A, "signals", y, "onlyIfMissing");
             if (je?.includes("text/javascript")) {
               let G = document.createElement("script"),
                 me = A.headers.get("datastar-script-attributes");
-              if (me)
-                for (let [Be, we] of Object.entries(JSON.parse(me)))
-                  G.setAttribute(Be, we);
-              ((G.textContent = await A.text()),
-                document.head.appendChild(G),
-                q());
+              if (me) for (let [Be, we] of Object.entries(JSON.parse(me))) G.setAttribute(Be, we);
+              ((G.textContent = await A.text()), document.head.appendChild(G), q());
               return;
             }
             if (
@@ -1150,9 +1085,7 @@ p({
                 ? e.setAttribute(a, l.toString())
                 : e.setAttribute(
                     a,
-                    JSON.stringify(l, (c, u) =>
-                      typeof u == "function" ? u.toString() : u,
-                    ),
+                    JSON.stringify(l, (c, u) => (typeof u == "function" ? u.toString() : u)),
                   );
       },
       s = t
@@ -1190,8 +1123,7 @@ var Ve = (e, ...t) => ({
     events: t,
   }),
   lt = (e = !1, ...t) => ({
-    get: (n, r) =>
-      r === "string" || (e && r === "undefined") ? n.value : +n.value,
+    get: (n, r) => (r === "string" || (e && r === "undefined") ? n.value : +n.value),
     set: (n, r) => {
       n.value = `${r}`;
     },
@@ -1214,11 +1146,7 @@ var Ve = (e, ...t) => ({
       c = [],
       u = 0;
     for (let f of l) {
-      if (
-        (c.push([`${r}.${u}`, s.get(f, typeof (x(i, u) ? i[u] : void 0))]),
-        e === f)
-      )
-        break;
+      if ((c.push([`${r}.${u}`, s.get(f, typeof (x(i, u) ? i[u] : void 0))]), e === f)) break;
       u++;
     }
     return (R(c, { ifMissing: !0 }), `${r}.${u}`);
@@ -1260,8 +1188,7 @@ p({
         case "radio":
           (e.getAttribute("name")?.length || e.setAttribute("name", o),
             (c = {
-              get: (d, g) =>
-                d.checked ? (g === "number" ? +d.value : d.value) : Gt,
+              get: (d, g) => (d.checked ? (g === "number" ? +d.value : d.value) : Gt),
               set: (d, g) => {
                 d.checked = g === (typeof g == "number" ? +d.value : d.value);
               },
@@ -1283,8 +1210,7 @@ p({
                           resultType: typeof O.result,
                         });
                       let C = O.result.match(Nn);
-                      if (!C?.groups)
-                        throw i("InvalidDataUri", { result: O.result });
+                      if (!C?.groups) throw i("InvalidDataUri", { result: O.result });
                       b.push({
                         name: y.name,
                         contents: C.groups.contents,
@@ -1333,10 +1259,7 @@ p({
         : e instanceof HTMLTextAreaElement
           ? (c = Ve("value", "input"))
           : e instanceof HTMLElement && e.tagName.includes("-")
-            ? (c =
-                "value" in e
-                  ? Ve("value", "input", "change")
-                  : qt("value", "input", "change"))
+            ? (c = "value" in e ? Ve("value", "input", "change") : qt("value", "input", "change"))
             : e instanceof HTMLElement && "value" in e
               ? (c = Ve("value", "change"))
               : (c = qt("value", "change"));
@@ -1379,10 +1302,8 @@ p({
         (o.disconnect(), (s = e ? { [e]: r() } : r()));
         for (let l in s) {
           let c = l.split(/\s+/).filter((u) => u.length > 0);
-          if (s[l])
-            for (let u of c) t.classList.contains(u) || t.classList.add(u);
-          else
-            for (let u of c) t.classList.contains(u) && t.classList.remove(u);
+          if (s[l]) for (let u of c) t.classList.contains(u) || t.classList.add(u);
+          else for (let u of c) t.classList.contains(u) && t.classList.remove(u);
         }
         o.observe(t, { attributeFilter: ["class"] });
       },
@@ -1601,8 +1522,7 @@ p({
     }
     let i = t.has("exit"),
       o = new IntersectionObserver((a) => {
-        for (let l of a)
-          l.isIntersecting !== i && (r(), o && ft.has(e) && o.disconnect());
+        for (let l of a) l.isIntersecting !== i && (r(), o && ft.has(e) && o.disconnect());
       }, s);
     return (
       o.observe(e),
@@ -1679,9 +1599,7 @@ p({
   apply({ el: e, rx: t }) {
     let n = () => {
         (r.disconnect(),
-          t()
-            ? e.style.display === Ut && e.style.removeProperty(Jt)
-            : e.style.setProperty(Jt, Ut),
+          t() ? e.style.display === Ut && e.style.removeProperty(Jt) : e.style.setProperty(Jt, Ut),
           r.observe(e, { attributeFilter: ["style"] }));
       },
       r = new MutationObserver(n),
@@ -1717,15 +1635,13 @@ p({
         let f = s.get(c);
         !u && u !== 0
           ? f !== void 0 && (f ? r.setProperty(c, f) : r.removeProperty(c))
-          : (f === void 0 && s.set(c, r.getPropertyValue(c)),
-            r.setProperty(c, String(u)));
+          : (f === void 0 && s.set(c, r.getPropertyValue(c)), r.setProperty(c, String(u)));
       },
       o = () => {
         if ((a.disconnect(), e)) i(e, n());
         else {
           let c = n();
-          for (let [u, f] of s)
-            u in c || (f ? r.setProperty(u, f) : r.removeProperty(u));
+          for (let [u, f] of s) u in c || (f ? r.setProperty(u, f) : r.removeProperty(u));
           for (let u in c) i(ae(u), c[u]);
         }
         a.observe(t, { attributeFilter: ["style"] });
@@ -1756,16 +1672,7 @@ p({
   },
 });
 var Kt = (e, t) => e.includes(t),
-  On = [
-    "remove",
-    "outer",
-    "inner",
-    "replace",
-    "prepend",
-    "append",
-    "before",
-    "after",
-  ],
+  On = ["remove", "outer", "inner", "replace", "prepend", "append", "before", "after"],
   Cn = ["html", "svg", "mathml"];
 Se({
   name: "datastar-patch-elements",
@@ -1773,19 +1680,12 @@ Se({
     let n = typeof t.selector == "string" ? t.selector : "",
       r = typeof t.mode == "string" ? t.mode : "outer",
       s = typeof t.namespace == "string" ? t.namespace : "html",
-      i =
-        typeof t.useViewTransition == "string" &&
-        t.useViewTransition.trim() === "true",
-      o =
-        typeof t.viewTransitionSelector == "string"
-          ? t.viewTransitionSelector
-          : "",
+      i = typeof t.useViewTransition == "string" && t.useViewTransition.trim() === "true",
+      o = typeof t.viewTransitionSelector == "string" ? t.viewTransitionSelector : "",
       a = t.elements;
     if (!Kt(On, r)) throw e.error("PatchElementsInvalidMode", { mode: r });
-    if (!n && r !== "outer" && r !== "replace")
-      throw e.error("PatchElementsExpectedSelector");
-    if (!Kt(Cn, s))
-      throw e.error("PatchElementsInvalidNamespace", { namespace: s });
+    if (!n && r !== "outer" && r !== "replace") throw e.error("PatchElementsExpectedSelector");
+    if (!Kt(Cn, s)) throw e.error("PatchElementsInvalidNamespace", { namespace: s });
     let l = { selector: n, mode: r, namespace: s, elements: a };
     if (i && $e()) {
       let c = document.documentElement;
@@ -1797,10 +1697,7 @@ Se({
     } else zt(e, l);
   },
 });
-var zt = (
-    { error: e },
-    { selector: t, mode: n, namespace: r, elements: s },
-  ) => {
+var zt = ({ error: e }, { selector: t, mode: n, namespace: r, elements: s }) => {
     let i = document.createDocumentFragment(),
       o = typeof s != "string" && !!s;
     if (typeof s == "string") {
@@ -1823,10 +1720,7 @@ var zt = (
         for (let d of v.childNodes) i.appendChild(d);
       } else i = h.querySelector("template").content;
     } else
-      s &&
-        (s instanceof DocumentFragment
-          ? (i = s)
-          : s instanceof Element && i.appendChild(s));
+      s && (s instanceof DocumentFragment ? (i = s) : s instanceof Element && i.appendChild(s));
     if (!t && (n === "outer" || n === "replace")) {
       let a = Array.from(i.children);
       for (let l of a) {
@@ -1885,8 +1779,7 @@ var tn = (e) => {
             let o = r ? t : t.cloneNode(!0);
             (Hn(i, o, e), tn(i));
             let a = i.closest("[data-scope-children]");
-            (a && a.dispatchEvent(new CustomEvent(ze, { bubbles: !1 })),
-              (s = !0));
+            (a && a.dispatchEvent(new CustomEvent(ze, { bubbles: !1 })), (s = !0));
           }
         }
         break;
@@ -1909,29 +1802,20 @@ qe.hidden = !0;
 var Re = W("ignore-morph"),
   Fn = `[${Re}]`,
   Hn = (e, t, n = "outer") => {
-    if (
-      (z(e) && z(t) && e.hasAttribute(Re) && t.hasAttribute(Re)) ||
-      e.parentElement?.closest(Fn)
-    )
+    if ((z(e) && z(t) && e.hasAttribute(Re) && t.hasAttribute(Re)) || e.parentElement?.closest(Fn))
       return;
     let r = document.createElement("div");
     (r.append(t), document.body.insertAdjacentElement("afterend", qe));
     let s = e.querySelectorAll("[id]");
     for (let { id: a, tagName: l } of s) ue.has(a) ? Ae.add(a) : ue.set(a, l);
-    (e instanceof Element &&
-      e.id &&
-      (ue.has(e.id) ? Ae.add(e.id) : ue.set(e.id, e.tagName)),
+    (e instanceof Element && e.id && (ue.has(e.id) ? Ae.add(e.id) : ue.set(e.id, e.tagName)),
       fe.clear());
     let i = r.querySelectorAll("[id]");
-    for (let { id: a, tagName: l } of i)
-      fe.has(a) ? Ae.add(a) : ue.get(a) === l && fe.add(a);
+    for (let { id: a, tagName: l } of i) fe.has(a) ? Ae.add(a) : ue.get(a) === l && fe.add(a);
     for (let a of Ae) fe.delete(a);
     (ue.clear(), Ae.clear(), I.clear());
     let o = n === "outer" ? e.parentElement : e;
-    (en(o, s),
-      en(r, i),
-      nn(o, r, n === "outer" ? e : null, e.nextSibling),
-      qe.remove());
+    (en(o, s), en(r, i), nn(o, r, n === "outer" ? e : null, e.nextSibling), qe.remove());
   },
   nn = (e, t, n = null, r = null) => {
     (e instanceof HTMLTemplateElement &&
@@ -1944,7 +1828,7 @@ var Re = W("ignore-morph"),
         if (i) {
           if (i !== n) {
             let o = n;
-            for (; o && o !== i; ) {
+            for (; o && o !== i;) {
               let a = o;
               ((o = o.nextSibling), Xt(a));
             }
@@ -1956,7 +1840,7 @@ var Re = W("ignore-morph"),
       if (s instanceof Element && fe.has(s.id)) {
         let i = document.getElementById(s.id),
           o = i;
-        for (; (o = o.parentNode); ) {
+        for (; (o = o.parentNode);) {
           let a = I.get(o);
           a && (a.delete(s.id), a.size || I.delete(o));
         }
@@ -1976,7 +1860,7 @@ var Re = W("ignore-morph"),
         (e.insertBefore(i, n), (n = i.nextSibling));
       }
     }
-    for (; n && n !== r; ) {
+    for (; n && n !== r;) {
       let s = n;
       ((n = n.nextSibling), Xt(s));
     }
@@ -1988,7 +1872,7 @@ var Re = W("ignore-morph"),
       o = 0,
       a = I.get(e)?.size || 0,
       l = t;
-    for (; l && l !== n; ) {
+    for (; l && l !== n;) {
       if (Yt(l, e)) {
         let c = !1,
           u = I.get(l),
@@ -2007,18 +1891,12 @@ var Re = W("ignore-morph"),
         }
       }
       if (((o += I.get(l)?.size || 0), o > a)) break;
-      (r === null &&
-        s &&
-        Yt(l, s) &&
-        (i++, (s = s.nextSibling), i >= 2 && (r = void 0)),
+      (r === null && s && Yt(l, s) && (i++, (s = s.nextSibling), i >= 2 && (r = void 0)),
         (l = l.nextSibling));
     }
     return r || null;
   },
-  Yt = (e, t) =>
-    e.nodeType === t.nodeType &&
-    e.tagName === t.tagName &&
-    (!e.id || e.id === t.id),
+  Yt = (e, t) => e.nodeType === t.nodeType && e.tagName === t.tagName && (!e.id || e.id === t.id),
   Xt = (e) => {
     I.has(e) ? rn(qe, e, null) : e.parentNode?.removeChild(e);
   },
@@ -2040,26 +1918,15 @@ var Re = W("ignore-morph"),
       let o = (t.getAttribute(kn) ?? "").split(" "),
         a = (c, u, f) => {
           let m = u.hasAttribute(f);
-          return c.hasAttribute(f) !== m && !o.includes(f)
-            ? ((c[f] = m), !0)
-            : !1;
+          return c.hasAttribute(f) !== m && !o.includes(f) ? ((c[f] = m), !0) : !1;
         },
         l = !1;
-      if (
-        r instanceof HTMLInputElement &&
-        s instanceof HTMLInputElement &&
-        s.type !== "file"
-      ) {
+      if (r instanceof HTMLInputElement && s instanceof HTMLInputElement && s.type !== "file") {
         let c = s.getAttribute("value");
-        (r.getAttribute("value") !== c &&
-          !o.includes("value") &&
-          ((r.value = c ?? ""), (l = !0)),
+        (r.getAttribute("value") !== c && !o.includes("value") && ((r.value = c ?? ""), (l = !0)),
           (l = a(r, s, "checked") || l),
           a(r, s, "disabled"));
-      } else if (
-        r instanceof HTMLTextAreaElement &&
-        s instanceof HTMLTextAreaElement
-      ) {
+      } else if (r instanceof HTMLTextAreaElement && s instanceof HTMLTextAreaElement) {
         let c = s.value;
         r.defaultValue !== c && ((r.value = c), (l = !0));
       } else
@@ -2071,34 +1938,24 @@ var Re = W("ignore-morph"),
       for (let { name: c } of Array.from(r.attributes))
         !s.hasAttribute(c) && !o.includes(c) && r.removeAttribute(c);
       (l &&
-        (r instanceof HTMLOptionElement
-          ? r.closest("select")
-          : r
-        )?.dispatchEvent(new Event(ge, { bubbles: !0 })),
-        i &&
-          !r.hasAttribute("data-scope-children") &&
-          r.setAttribute("data-scope-children", ""),
+        (r instanceof HTMLOptionElement ? r.closest("select") : r)?.dispatchEvent(
+          new Event(ge, { bubbles: !0 }),
+        ),
+        i && !r.hasAttribute("data-scope-children") && r.setAttribute("data-scope-children", ""),
         r instanceof HTMLTemplateElement && s instanceof HTMLTemplateElement
           ? (r.innerHTML = s.innerHTML)
           : r.isEqualNode(s) || nn(r, s),
         i && r.dispatchEvent(new CustomEvent(ze, { bubbles: !1 })));
     }
-    return (
-      (n === 8 || n === 3) &&
-        e.nodeValue !== t.nodeValue &&
-        (e.nodeValue = t.nodeValue),
-      e
-    );
+    return ((n === 8 || n === 3) && e.nodeValue !== t.nodeValue && (e.nodeValue = t.nodeValue), e);
   },
   en = (e, t) => {
     for (let n of t)
       if (fe.has(n.id)) {
         let r = n;
-        for (; r && r !== e; ) {
+        for (; r && r !== e;) {
           let s = I.get(r);
-          (s || ((s = new Set()), I.set(r, s)),
-            s.add(n.id),
-            (r = r.parentElement));
+          (s || ((s = new Set()), I.set(r, s)), s.add(n.id), (r = r.parentElement));
         }
       }
   };
