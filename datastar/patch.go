@@ -193,5 +193,3 @@ func Version() string { return godatastar.Version() }
 func ErrorResponse(stream *sse.Stream, message string, code string) error {
 	return godatastar.ErrorResponse(stream, message, code)
 }
-
-

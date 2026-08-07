@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -272,7 +273,7 @@ func TestBroadcasterReplayOnReconnect(t *testing.T) {
 
 	for i := range 3 {
 		b.BroadcastEvent(sse.Event{
-			ID:    sse.NewEventID(fmt.Sprintf("%d", i+1)),
+			ID:    sse.NewEventID(strconv.Itoa(i + 1)),
 			Event: "feed",
 			Data:  fmt.Sprintf("item-%d", i+1),
 		})
