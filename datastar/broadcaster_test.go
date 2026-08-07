@@ -278,51 +278,25 @@ func TestBroadcasterReplayOnReconnect(t *testing.T) {
 		})
 	}
 
-	server := httptest.NewServer(b)
-	defer server.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/events", nil)
+	req.Header.Set("Last-Event-ID", "1")
+	req = req.WithContext(ctx)
 
-	var (
-		bodyData string
-		bodyMu   sync.Mutex
-		wg       sync.WaitGroup
-	)
-
-	wg.Add(1)
-
+	done := make(chan struct{})
 	go func() {
-		defer wg.Done()
-
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, server.URL, nil)
-		req.Header.Set("Last-Event-ID", "1")
-
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return
-		}
-		defer func() { _ = resp.Body.Close() }()
-
-		buf := make([]byte, 8192)
-		n, _ := resp.Body.Read(buf)
-
-		bodyMu.Lock()
-		bodyData = string(buf[:n])
-		bodyMu.Unlock()
+		b.ServeHTTP(w, req)
+		close(done)
 	}()
 
 	require.Eventually(t, func() bool { return b.SubscriberCount() == 1 }, 2*time.Second, 5*time.Millisecond)
 
-	time.Sleep(100 * time.Millisecond)
-	b.Close()
+	cancel()
+	<-done
 
-	wg.Wait()
-
-	bodyMu.Lock()
-	defer bodyMu.Unlock()
-
-	require.Contains(t, bodyData, "item-2")
-	require.Contains(t, bodyData, "item-3")
-	require.NotContains(t, bodyData, "item-1")
+	body := w.Body.String()
+	require.Contains(t, body, "item-2")
+	require.Contains(t, body, "item-3")
+	require.NotContains(t, body, "item-1")
 }
