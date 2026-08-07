@@ -71,22 +71,25 @@
 
 go-sse explicitly has Datastar wire-format support:
 
-| go-sse helper | Purpose | Datastar use case |
-|---|---|---|
-| `KeyedLines(key, value)` | Prefixes each line with `key ` | `data: elements <div>` / `data: selector #foo` |
-| `SendKeyed(event, key, value)` | Single-key SSE event | `datastar-patch-signals` with `signals {...}` |
-| `SendLines(event, lines...)` | Multi-line data event | Full `datastar-patch-elements` with selector + mode + elements |
-| `WriteKeyedLines` | Wire-only single-key convenience | Direct `WriteEvent` usage |
+| go-sse helper                  | Purpose                          | Datastar use case                                              |
+| ------------------------------ | -------------------------------- | -------------------------------------------------------------- |
+| `KeyedLines(key, value)`       | Prefixes each line with `key `   | `data: elements <div>` / `data: selector #foo`                 |
+| `SendKeyed(event, key, value)` | Single-key SSE event             | `datastar-patch-signals` with `signals {...}`                  |
+| `SendLines(event, lines...)`   | Multi-line data event            | Full `datastar-patch-elements` with selector + mode + elements |
+| `WriteKeyedLines`              | Wire-only single-key convenience | Direct `WriteEvent` usage                                      |
 
 go-sse's AGENTS.md literally says (I read this!):
+
 > `KeyedLines` (event.go) prefixes each line of a multi-line value with `key `, producing the newline-joined string for `Event.Data`. This is the building block for keyed-data-line protocols like **DataStar**.
 
 And:
+
 > `SendKeyed` (stream.go) is the stream-level single-key convenience: convenience for the most common **DataStar** pattern (e.g., `patch-signals`).
 
 And go-sse has a **full Datastar example** (`example/datastar/`) that uses these helpers to produce Datastar-compatible SSE without the SDK's `ServerSentEventGenerator`.
 
 **What the SDK's `PatchElements(html, opts...)` actually writes** (the wire format):
+
 ```
 event: datastar-patch-elements
 data: selector #foo
@@ -96,6 +99,7 @@ data: elements <div>...</div>
 ```
 
 **What go-sse can produce:**
+
 ```go
 stream.SendLines("datastar-patch-elements",
     "selector #foo",
@@ -109,6 +113,7 @@ These produce the **same bytes**. The SDK is not doing anything that go-sse can'
 ### Why my analysis was wrong
 
 I conflated two separate concerns:
+
 1. **Patch construction** (building the Datastar instruction: which selector, which mode, which HTML) — this is SDK-specific and legitimately needs the SDK's option types
 2. **SSE wire format encoding** (writing `event:` / `data:` lines to the ResponseWriter) — this is generic SSE that go-sse handles, including Datastar's keyed-data-line variant
 
@@ -117,6 +122,7 @@ The datastar module couples both into `Patch.apply(sse *sdk.ServerSentEventGener
 ### The real answer
 
 The datastar module doesn't use go-sse because:
+
 1. The `Patch` interface was designed to call SDK methods directly (`apply(sse *sdk.ServerSentEventGenerator)`)
 2. This couples patch encoding to the SDK's SSE writer, excluding go-sse's `Stream`
 3. The Broadcaster then had to reimplement fan-out, replay, heartbeat, and Last-Event-ID parsing that go-sse already provides
