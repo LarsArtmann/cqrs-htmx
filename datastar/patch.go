@@ -196,6 +196,9 @@ func ScriptHandler() http.Handler { return godatastar.ScriptHandler() }
 // ScriptTag returns an HTML script tag for loading the DataStar client.
 func ScriptTag(path string) string { return godatastar.ScriptTag(path) }
 
+// Version returns the version of the embedded DataStar JavaScript client.
+func Version() string { return godatastar.Version() }
+
 // ErrorResponse sends a signals patch with error information.
 func ErrorResponse(stream *sse.Stream, message string, code string) error {
 	return godatastar.ErrorResponse(stream, message, code)

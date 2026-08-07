@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed — go-datastar Migration
+
+- **Replaced `starfederation/datastar-go` SDK with `go-datastar` + `go-sse`.** Patches are now first-class values implementing `Patch` (`Event() sse.Event`), not method calls on a live SSE generator. This enables composition with go-sse's `Broadcaster`, `SubscribeFilter`, `Shutdown`, and `Health` infrastructure.
+- **Broadcaster rewritten** to wrap `sse.Broadcaster[sse.Event]`. Gains Shutdown/Health/SubscribeFilter for free. Drops 286 lines of hand-rolled fan-out, replay, and heartbeat code.
+- **Deleted files**: `options.go`, `signals.go`, `response.go`, `errors.go`, `script_handler.go`, `script_embed.go` — all replaced by go-datastar equivalents.
+- **Response API changed**: methods return `error` instead of chaining (`*Response`). Use `MarshalAndPatchSignals(v)` instead of `PatchSignals(map)`.
+- **Broadcaster API changed**: `NewBroadcasterWithReplay` and `NewBroadcasterWithHeartbeat` removed — replay is handled by go-sse EventStore, heartbeat by `sse.Stream.Heartbeat`.
+- Option re-exports renamed to match go-datastar naming (e.g., `WithExecuteScriptAutoRemove` → `WithScriptAutoRemove`, `WithPatchElementsEventID` → `WithElementsEventID`).
+
 ### Added
 
 - Initial Datastar adapter module for cqrs-htmx.

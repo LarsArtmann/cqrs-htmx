@@ -104,7 +104,7 @@ func TestDatastarOptionsContract(t *testing.T) {
 	_ = ds.WithNamespaceMathML
 	_ = ds.WithViewTransitions
 	_ = ds.WithOnlyIfMissing
-	_ = ds.WithExecuteScriptAutoRemove
+	_ = ds.WithScriptAutoRemove
 	_ = ds.NamespaceHTML
 	_ = ds.NamespaceMathML
 	_ = ds.EventTypePatchElements
@@ -116,11 +116,10 @@ func TestDatastarResponseContract(t *testing.T) {
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/todos", nil)
 
-	resp := ds.NewResponse(w, req).
-		PatchSignals(map[string]any{"title": ""}).
-		PatchElements("<div>updated</div>", ds.WithSelectorID("list")).
-		Redirect("/todos").
-		Apply()
+	resp := ds.NewResponse(w, req)
+	resp.MarshalAndPatchSignals(map[string]any{"title": ""})
+	resp.PatchElements("<div>updated</div>", ds.WithSelectorID("list"))
+	resp.Redirect("/todos")
 
 	require.NotNil(t, resp)
 }
