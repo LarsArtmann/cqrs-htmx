@@ -46,31 +46,31 @@ The v4 extraction is now **feature-complete and test-verified**. The remaining w
 
 ## b) PARTIALLY DONE 🟡
 
-| #   | Item                      | What's done                                                                        | What's missing                                                                                                                                                                                                                              |
-| --- | ------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **AGENTS.md deep update** | Architecture tree, Key Decisions, Module Layout, coverage stats all updated for v4 | Key Gotchas section still references v3 patterns (e.g., `#15` mentions "No stdlib error constructors" which is correct, but the test commands section still references the old per-module commands from before the new sub-modules existed) |
-| 2   | **admin-demo example**    | Builds and runs cleanly                                                            | Still uses `ServiceConfig{AuditLog: ...}` with no auth providers injected. Doesn't demonstrate the v4 sub-module import pattern. A demo showing `webauthn.New(Config{...})` injection would be the best documentation.                      |
-| 3   | **TODO_LIST.md**          | 120 items done from v3.5.0 era                                                     | Not updated for v4 at all — needs the auth extraction marked done, new sub-module items added. Shows `v3.5.0` in header.                                                                                                                    |
-| 4   | **FEATURES.md**           | Exists, honest inventory                                                           | Shows `v3.3.0` in header. Auth strategies listed as core features — should reflect optional sub-module status.                                                                                                                              |
-| 5   | **Lint**                  | 0 errors, errorfamily clean                                                        | 50 `exhaustruct` warnings in root test files (pre-existing, not v4-related). All in test code using partial `Config{}` initialization.                                                                                                      |
+| # | Item                      | What's done                                                                        | What's missing                                                                                                                                                                                                                              |
+| - | ------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **AGENTS.md deep update** | Architecture tree, Key Decisions, Module Layout, coverage stats all updated for v4 | Key Gotchas section still references v3 patterns (e.g., `#15` mentions "No stdlib error constructors" which is correct, but the test commands section still references the old per-module commands from before the new sub-modules existed) |
+| 2 | **admin-demo example**    | Builds and runs cleanly                                                            | Still uses `ServiceConfig{AuditLog: ...}` with no auth providers injected. Doesn't demonstrate the v4 sub-module import pattern. A demo showing `webauthn.New(Config{...})` injection would be the best documentation.                      |
+| 3 | **TODO_LIST.md**          | 120 items done from v3.5.0 era                                                     | Not updated for v4 at all — needs the auth extraction marked done, new sub-module items added. Shows `v3.5.0` in header.                                                                                                                    |
+| 4 | **FEATURES.md**           | Exists, honest inventory                                                           | Shows `v3.3.0` in header. Auth strategies listed as core features — should reflect optional sub-module status.                                                                                                                              |
+| 5 | **Lint**                  | 0 errors, errorfamily clean                                                        | 50 `exhaustruct` warnings in root test files (pre-existing, not v4-related). All in test code using partial `Config{}` initialization.                                                                                                      |
 
 ---
 
 ## c) NOT STARTED ❌
 
-| #   | Item                                   | Impact   | Effort | Notes                                                                                                                                    |
-| --- | -------------------------------------- | -------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **v4.0.0 tag + release**               | Critical | 15min  | Tags needed: `v4.0.0`, `usermgmt/v4.0.0`, `adminui/v4.0.0`, `usermgmt/totp/v4.0.0`, `usermgmt/webauthn/v4.0.0`, `usermgmt/oauth2/v4.0.0` |
-| 2   | **Cross-module integration test**      | Medium   | 2h     | Service + real `*webauthn.Provider` + ceremony end-to-end through the Service layer (not just provider-direct)                           |
-| 3   | **admin-demo updated for v4**          | Medium   | 1h     | Show the sub-module injection pattern with a real WebAuthn provider                                                                      |
-| 4   | **TODO_LIST.md updated for v4**        | Low      | 30min  | Mark extraction done, add new follow-up tasks                                                                                            |
-| 5   | **FEATURES.md updated for v4**         | Low      | 30min  | Auth strategies as optional sub-modules                                                                                                  |
-| 6   | **ROADMAP.md updated for v4**          | Low      | 15min  | God-package split as next major initiative                                                                                               |
-| 7   | **Coverage gates for new sub-modules** | Medium   | 30min  | flake.nix `coverage-gate` needs webauthn/oauth2/totp thresholds                                                                          |
-| 8   | **flake.nix apps for new sub-modules** | Medium   | 30min  | `test-webauthn`, `test-oauth2` nix apps                                                                                                  |
-| 9   | **GitHub release notes**               | Medium   | 30min  | `gh release create v4.0.0` with migration guide summary                                                                                  |
-| 10  | **CI workflow for new sub-modules**    | Medium   | 30min  | `.github/workflows/ci.yml` module list needs the 3 new sub-modules                                                                       |
-| 11  | **Root god-package split**             | High     | 8h+    | The 84-file usermgmt god-package. Deferred per modularization proposal                                                                   |
+| #  | Item                                   | Impact   | Effort | Notes                                                                                                                                    |
+| -- | -------------------------------------- | -------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **v4.0.0 tag + release**               | Critical | 15min  | Tags needed: `v4.0.0`, `usermgmt/v4.0.0`, `adminui/v4.0.0`, `usermgmt/totp/v4.0.0`, `usermgmt/webauthn/v4.0.0`, `usermgmt/oauth2/v4.0.0` |
+| 2  | **Cross-module integration test**      | Medium   | 2h     | Service + real `*webauthn.Provider` + ceremony end-to-end through the Service layer (not just provider-direct)                           |
+| 3  | **admin-demo updated for v4**          | Medium   | 1h     | Show the sub-module injection pattern with a real WebAuthn provider                                                                      |
+| 4  | **TODO_LIST.md updated for v4**        | Low      | 30min  | Mark extraction done, add new follow-up tasks                                                                                            |
+| 5  | **FEATURES.md updated for v4**         | Low      | 30min  | Auth strategies as optional sub-modules                                                                                                  |
+| 6  | **ROADMAP.md updated for v4**          | Low      | 15min  | God-package split as next major initiative                                                                                               |
+| 7  | **Coverage gates for new sub-modules** | Medium   | 30min  | flake.nix `coverage-gate` needs webauthn/oauth2/totp thresholds                                                                          |
+| 8  | **flake.nix apps for new sub-modules** | Medium   | 30min  | `test-webauthn`, `test-oauth2` nix apps                                                                                                  |
+| 9  | **GitHub release notes**               | Medium   | 30min  | `gh release create v4.0.0` with migration guide summary                                                                                  |
+| 10 | **CI workflow for new sub-modules**    | Medium   | 30min  | `.github/workflows/ci.yml` module list needs the 3 new sub-modules                                                                       |
+| 11 | **Root god-package split**             | High     | 8h+    | The 84-file usermgmt god-package. Deferred per modularization proposal                                                                   |
 
 ---
 
@@ -130,33 +130,33 @@ The v4 extraction is now **feature-complete and test-verified**. The remaining w
 
 Sorted by impact × urgency ÷ effort.
 
-| #   | Task                                                                          | Impact   | Effort | Category     |
-| --- | ----------------------------------------------------------------------------- | -------- | ------ | ------------ |
-| 1   | **Tag v4.0.0** (6 tags across all modules)                                    | Critical | 15min  | Release      |
-| 2   | **Push v4 to origin**                                                         | Critical | 5min   | Release      |
-| 3   | **Create GitHub release** with migration guide summary                        | Critical | 30min  | Release      |
-| 4   | **Cross-module integration test** (Service + real webauthn.Provider)          | High     | 2h     | Testing      |
-| 5   | **Update admin-demo for v4 auth injection**                                   | High     | 1h     | Examples     |
-| 6   | **Update TODO_LIST.md for v4**                                                | Medium   | 30min  | Process      |
-| 7   | **Update FEATURES.md for v4**                                                 | Medium   | 30min  | Process      |
-| 8   | **Update ROADMAP.md for v4** (god-package split as next initiative)           | Medium   | 15min  | Process      |
-| 9   | **Add coverage gates for new sub-modules** in flake.nix                       | Medium   | 30min  | CI           |
-| 10  | **Add nix apps for sub-module testing** (`test-webauthn`, `test-oauth2`)      | Medium   | 30min  | Tooling      |
-| 11  | **Verify CI workflow covers new sub-modules**                                 | Medium   | 30min  | CI           |
-| 12  | **Make WebAuthn session TTL configurable**                                    | Medium   | 30min  | Feature      |
-| 13  | **Fix 50 exhaustruct lint warnings** (`//nolint:exhaustruct` on test structs) | Low      | 30min  | Quality      |
-| 14  | **Add fuzz tests on JSON boundary** (parseUser, parseSession)                 | Medium   | 1h     | Testing      |
-| 15  | **Root god-package split** (domain layer extraction — the real v4 debt)       | High     | 8h+    | Architecture |
-| 16  | **AGENTS.md Key Gotchas section** update for v4                               | Low      | 20min  | Docs         |
-| 17  | **AGENTS.md test commands** add sub-module commands                           | Low      | 15min  | Docs         |
-| 18  | **Verify GOWORK=off builds for all 11 modules** individually                  | Medium   | 1h     | Quality      |
-| 19  | **Pre-generated RSA key fixture** for OAuth2 tests (perf)                     | Low      | 30min  | Testing      |
-| 20  | **Stale doc cleanup** (scan all .md for v3 references)                        | Low      | 1h     | Docs         |
-| 21  | **SKILL.md gotchas section** verify v4 interface changes                      | Low      | 20min  | Docs         |
-| 22  | **Domain Language doc** add v4 auth strategy terms                            | Low      | 30min  | Docs         |
-| 23  | **Error family strategy for sub-modules** (event.New\* via optional dep?)     | Low      | 2h     | Architecture |
-| 24  | **Benchmark JSON serialization boundary** (quantify the overhead)             | Low      | 1h     | Performance  |
-| 25  | **Consumer migration dry-run** (import cqrs-htmx/v4 in a fresh project)       | Medium   | 1h     | Validation   |
+| #  | Task                                                                          | Impact   | Effort | Category     |
+| -- | ----------------------------------------------------------------------------- | -------- | ------ | ------------ |
+| 1  | **Tag v4.0.0** (6 tags across all modules)                                    | Critical | 15min  | Release      |
+| 2  | **Push v4 to origin**                                                         | Critical | 5min   | Release      |
+| 3  | **Create GitHub release** with migration guide summary                        | Critical | 30min  | Release      |
+| 4  | **Cross-module integration test** (Service + real webauthn.Provider)          | High     | 2h     | Testing      |
+| 5  | **Update admin-demo for v4 auth injection**                                   | High     | 1h     | Examples     |
+| 6  | **Update TODO_LIST.md for v4**                                                | Medium   | 30min  | Process      |
+| 7  | **Update FEATURES.md for v4**                                                 | Medium   | 30min  | Process      |
+| 8  | **Update ROADMAP.md for v4** (god-package split as next initiative)           | Medium   | 15min  | Process      |
+| 9  | **Add coverage gates for new sub-modules** in flake.nix                       | Medium   | 30min  | CI           |
+| 10 | **Add nix apps for sub-module testing** (`test-webauthn`, `test-oauth2`)      | Medium   | 30min  | Tooling      |
+| 11 | **Verify CI workflow covers new sub-modules**                                 | Medium   | 30min  | CI           |
+| 12 | **Make WebAuthn session TTL configurable**                                    | Medium   | 30min  | Feature      |
+| 13 | **Fix 50 exhaustruct lint warnings** (`//nolint:exhaustruct` on test structs) | Low      | 30min  | Quality      |
+| 14 | **Add fuzz tests on JSON boundary** (parseUser, parseSession)                 | Medium   | 1h     | Testing      |
+| 15 | **Root god-package split** (domain layer extraction — the real v4 debt)       | High     | 8h+    | Architecture |
+| 16 | **AGENTS.md Key Gotchas section** update for v4                               | Low      | 20min  | Docs         |
+| 17 | **AGENTS.md test commands** add sub-module commands                           | Low      | 15min  | Docs         |
+| 18 | **Verify GOWORK=off builds for all 11 modules** individually                  | Medium   | 1h     | Quality      |
+| 19 | **Pre-generated RSA key fixture** for OAuth2 tests (perf)                     | Low      | 30min  | Testing      |
+| 20 | **Stale doc cleanup** (scan all .md for v3 references)                        | Low      | 1h     | Docs         |
+| 21 | **SKILL.md gotchas section** verify v4 interface changes                      | Low      | 20min  | Docs         |
+| 22 | **Domain Language doc** add v4 auth strategy terms                            | Low      | 30min  | Docs         |
+| 23 | **Error family strategy for sub-modules** (event.New\* via optional dep?)     | Low      | 2h     | Architecture |
+| 24 | **Benchmark JSON serialization boundary** (quantify the overhead)             | Low      | 1h     | Performance  |
+| 25 | **Consumer migration dry-run** (import cqrs-htmx/v4 in a fresh project)       | Medium   | 1h     | Validation   |
 
 ---
 
@@ -178,13 +178,13 @@ Sorted by impact × urgency ÷ effort.
 
 ## CI Gate Summary
 
-| Gate                    | Status         | Details                                                                                                |
-| ----------------------- | -------------- | ------------------------------------------------------------------------------------------------------ |
-| Build (workspace)       | ✅ Pass        | All 11 modules compile                                                                                 |
-| Test (7 modules, -race) | ✅ Pass        | 1,055 tests total (root 198, usermgmt 764, totp 3, webauthn 20, oauth2 18, adminui 35, integration 17) |
-| errorfamily             | ✅ Pass        | 0 violations in root + usermgmt + adminui (sub-modules intentionally exempt)                           |
+| Gate                    | Status        | Details                                                                                                |
+| ----------------------- | ------------- | ------------------------------------------------------------------------------------------------------ |
+| Build (workspace)       | ✅ Pass       | All 11 modules compile                                                                                 |
+| Test (7 modules, -race) | ✅ Pass       | 1,055 tests total (root 198, usermgmt 764, totp 3, webauthn 20, oauth2 18, adminui 35, integration 17) |
+| errorfamily             | ✅ Pass       | 0 violations in root + usermgmt + adminui (sub-modules intentionally exempt)                           |
 | golangci-lint           | ⚠️ 50 warnings | All `exhaustruct` in root test code (pre-existing, not v4-related)                                     |
-| check-modules           | ✅ Pass        | Budget (root 16/18, usermgmt 21/28, adminui 5/7), drift, replace directives all clean                  |
+| check-modules           | ✅ Pass       | Budget (root 16/18, usermgmt 21/28, adminui 5/7), drift, replace directives all clean                  |
 
 ## Module Dependency State
 

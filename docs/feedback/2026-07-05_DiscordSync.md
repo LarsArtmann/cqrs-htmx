@@ -177,21 +177,21 @@ The skill file is **well-structured** (Path A/B/C decision tree, composition mod
 
 ### What's Painful — Resolutions
 
-| #   | Suggestion                                                         | Status                  | Notes                                                                                                                 |
-| --- | ------------------------------------------------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| 1   | Catalog module confusion — document canonical source               | **PARTIALLY ADDRESSED** | Added discoverability note in SKILL.md; catalog is a go-cqrs-lite module — full resolution requires cross-repo action |
-| 2   | Document which chain helper (`cqrshtmx.Chain` vs `httputil.Chain`) | **DONE**                | Added "Chain vs httputil.Chain" note in SKILL.md discoverability section                                              |
-| 3   | Add "Path 0: Building blocks only (no App)"                        | **DONE**                | Path 0 section added to SKILL.md with full code example + API inventory                                               |
-| 4   | Document Broadcaster channel lifecycle                             | **DONE**                | SSE channel lifecycle documented in SKILL.md + realtime.md: "Unsubscribe closes the channel" + read-loop pattern      |
-| 5   | Document SSE filter patterns                                       | **DONE**                | Recommended filter pattern (parseSSEFilter + filter.matches) documented in realtime.md with code example              |
+| # | Suggestion                                                         | Status                  | Notes                                                                                                                 |
+| - | ------------------------------------------------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| 1 | Catalog module confusion — document canonical source               | **PARTIALLY ADDRESSED** | Added discoverability note in SKILL.md; catalog is a go-cqrs-lite module — full resolution requires cross-repo action |
+| 2 | Document which chain helper (`cqrshtmx.Chain` vs `httputil.Chain`) | **DONE**                | Added "Chain vs httputil.Chain" note in SKILL.md discoverability section                                              |
+| 3 | Add "Path 0: Building blocks only (no App)"                        | **DONE**                | Path 0 section added to SKILL.md with full code example + API inventory                                               |
+| 4 | Document Broadcaster channel lifecycle                             | **DONE**                | SSE channel lifecycle documented in SKILL.md + realtime.md: "Unsubscribe closes the channel" + read-loop pattern      |
+| 5 | Document SSE filter patterns                                       | **DONE**                | Recommended filter pattern (parseSSEFilter + filter.matches) documented in realtime.md with code example              |
 
 ### What's Missing — Resolutions
 
-| #   | Suggestion                                                                          | Status             | Notes                                                                                                                                                   |
-| --- | ----------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `Broadcaster.SubscriberCount()` documentation + `OnSubscribe`/`OnUnsubscribe` hooks | **PARTIALLY DONE** | `SubscriberCount()` documented in SKILL.md + realtime.md. Hooks NOT implemented (deferred)                                                              |
-| 2   | `Broadcaster.Close()` for graceful SSE drain                                        | **DONE**           | `Broadcaster.Close()` + `fanOut.Close()` implemented. Closes all subscriber channels. Tested (3 tests). Documented in SKILL.md, realtime.md, gotchas.md |
-| 3   | `DefaultRateLimiterConfig()` constructor                                            | **DONE**           | Implemented. Returns 100/min per-IP, burst=limit, 10min TTL. Tested (2 tests). Documented in SKILL.md + core-api.md                                     |
+| # | Suggestion                                                                          | Status             | Notes                                                                                                                                                   |
+| - | ----------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `Broadcaster.SubscriberCount()` documentation + `OnSubscribe`/`OnUnsubscribe` hooks | **PARTIALLY DONE** | `SubscriberCount()` documented in SKILL.md + realtime.md. Hooks NOT implemented (deferred)                                                              |
+| 2 | `Broadcaster.Close()` for graceful SSE drain                                        | **DONE**           | `Broadcaster.Close()` + `fanOut.Close()` implemented. Closes all subscriber channels. Tested (3 tests). Documented in SKILL.md, realtime.md, gotchas.md |
+| 3 | `DefaultRateLimiterConfig()` constructor                                            | **DONE**           | Implemented. Returns 100/min per-IP, burst=limit, 10min TTL. Tested (2 tests). Documented in SKILL.md + core-api.md                                     |
 
 ### Skill Feedback — Resolutions
 

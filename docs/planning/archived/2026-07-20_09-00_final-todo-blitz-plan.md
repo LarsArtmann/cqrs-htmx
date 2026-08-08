@@ -14,13 +14,13 @@
 
 ## Execution order (Pareto: impact × 1/effort)
 
-| #   | Task                            | Impact | Effort | Why this order                                                                                           |
-| --- | ------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------------------- |
-| 1   | dedup 100K                      | Med    | XS     | Trivial completion of existing benchmark; fast morale win                                                |
-| 2   | SSE broadcaster load benchmarks | High   | S      | Entirely missing; the broadcaster is core realtime infra, load data is high customer value               |
-| 3   | Property sequence tests         | High   | M      | Fills the REAL gap (single-event tests already pass); catches fold associativity/idempotency regressions |
-| 4   | Admin UI OAuth2 unlink views    | High   | M      | User-facing feature; closes a visible admin gap                                                          |
-| 5   | OpenAPI spec generation         | High   | L      | Architectural; new opt-in API surface, biggest scope, last                                               |
+| # | Task                            | Impact | Effort | Why this order                                                                                           |
+| - | ------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------------------- |
+| 1 | dedup 100K                      | Med    | XS     | Trivial completion of existing benchmark; fast morale win                                                |
+| 2 | SSE broadcaster load benchmarks | High   | S      | Entirely missing; the broadcaster is core realtime infra, load data is high customer value               |
+| 3 | Property sequence tests         | High   | M      | Fills the REAL gap (single-event tests already pass); catches fold associativity/idempotency regressions |
+| 4 | Admin UI OAuth2 unlink views    | High   | M      | User-facing feature; closes a visible admin gap                                                          |
+| 5 | OpenAPI spec generation         | High   | L      | Architectural; new opt-in API surface, biggest scope, last                                               |
 
 ## Subtask breakdown (each ≤ ~12 min)
 

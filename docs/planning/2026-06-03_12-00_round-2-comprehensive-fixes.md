@@ -43,32 +43,32 @@
 
 ### Phase 1: Quick Fixes (High Impact, Low Effort)
 
-| #   | Task                                             | Impact | Effort | File(s)                       |
-| --- | ------------------------------------------------ | ------ | ------ | ----------------------------- |
-| 1   | Remove PtrBool, use new(bool)                    | Low    | 10m    | usermgmt/http.go, \*\_test.go |
-| 2   | Remove ClientIP re-export                        | Low    | 5m     | httputil.go                   |
-| 3   | Remove EnforceAny + enforcerAdapter + AsEnforcer | Medium | 20m    | authz.go, authz_test.go       |
-| 4   | Add UpdateRoles error path tests                 | Medium | 15m    | usermgmt/service_test.go      |
-| 5   | Add readBody error path tests                    | Low    | 10m    | decoder_test.go               |
+| # | Task                                             | Impact | Effort | File(s)                       |
+| - | ------------------------------------------------ | ------ | ------ | ----------------------------- |
+| 1 | Remove PtrBool, use new(bool)                    | Low    | 10m    | usermgmt/http.go, \*\_test.go |
+| 2 | Remove ClientIP re-export                        | Low    | 5m     | httputil.go                   |
+| 3 | Remove EnforceAny + enforcerAdapter + AsEnforcer | Medium | 20m    | authz.go, authz_test.go       |
+| 4 | Add UpdateRoles error path tests                 | Medium | 15m    | usermgmt/service_test.go      |
+| 5 | Add readBody error path tests                    | Low    | 10m    | decoder_test.go               |
 
 ### Phase 2: Coverage Gaps (Medium Impact, Medium Effort)
 
-| #   | Task                                           | Impact | Effort | File(s)          |
-| --- | ---------------------------------------------- | ------ | ------ | ---------------- |
-| 6   | Add Response.Body test                         | Low    | 5m     | coverage_test.go |
-| 7   | Add Response.WriteString non-StringWriter test | Low    | 10m    | coverage_test.go |
-| 8   | Add Response.JSON marshal error test           | Low    | 10m    | coverage_test.go |
-| 9   | Add RequestLoggingSlog tests                   | Medium | 20m    | logging_test.go  |
-| 10  | Add error handler variant tests                | Low    | 15m    | errors_test.go   |
+| #  | Task                                           | Impact | Effort | File(s)          |
+| -- | ---------------------------------------------- | ------ | ------ | ---------------- |
+| 6  | Add Response.Body test                         | Low    | 5m     | coverage_test.go |
+| 7  | Add Response.WriteString non-StringWriter test | Low    | 10m    | coverage_test.go |
+| 8  | Add Response.JSON marshal error test           | Low    | 10m    | coverage_test.go |
+| 9  | Add RequestLoggingSlog tests                   | Medium | 20m    | logging_test.go  |
+| 10 | Add error handler variant tests                | Low    | 15m    | errors_test.go   |
 
 ### Phase 3: Architecture Improvements (High Impact, Medium Effort)
 
-| #   | Task                                     | Impact | Effort | File(s)     |
-| --- | ---------------------------------------- | ------ | ------ | ----------- |
-| 11  | Dedupe RequestLogging/RequestLoggingSlog | Medium | 30m    | logging.go  |
-| 12  | Add typed variant of Response.JSON[T]    | Medium | 15m    | response.go |
-| 13  | Add typed variant of WriteJSON[T]        | Medium | 15m    | httputil.go |
-| 14  | Use samber/lo for slice operations       | Low    | 20m    | Various     |
+| #  | Task                                     | Impact | Effort | File(s)     |
+| -- | ---------------------------------------- | ------ | ------ | ----------- |
+| 11 | Dedupe RequestLogging/RequestLoggingSlog | Medium | 30m    | logging.go  |
+| 12 | Add typed variant of Response.JSON[T]    | Medium | 15m    | response.go |
+| 13 | Add typed variant of WriteJSON[T]        | Medium | 15m    | httputil.go |
+| 14 | Use samber/lo for slice operations       | Low    | 20m    | Various     |
 
 ---
 

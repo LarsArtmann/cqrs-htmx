@@ -167,30 +167,30 @@ nosurf doesn't use HMAC secrets — it uses `crypto/rand` for token generation. 
 ## Files Changed
 
 ```
- app.go                  |   4 +-
- authz.go                |  30 ++++-----
- benchmark_test.go       |  21 ++++--
- coverage_test.go        |   1 -
- csrf.go                 | 171 ++++++++++++++++++++++++------------------------
- csrf_handler.go         |  36 ++++++----
- csrf_test.go            |  63 +++++-------------
- errors.go               |  66 +++++++++----------
- fuzz_test.go            |  12 ++--
- go.mod                  |  14 +---
- go.sum                  |  60 ++---------------
- httputil.go             |  29 ++------
- integration_test.go     |   1 -
- integration_test/go.mod |  17 +----
- integration_test/go.sum |  74 ++-------------------
- internal_test.go        |  93 +++++++++++++++-----------
- options.go              |   6 +-
- usermgmt/authz.go       |  52 +++++++--------
- usermgmt/errors.go      |  22 +++----
- usermgmt/go.mod         |  16 +----
- usermgmt/go.sum         |  81 ++++-------------------
- usermgmt/http.go        |   3 +-
- usermgmt/service.go     |  41 ++++++------
- usermgmt/store.go       |   6 +-
- usermgmt/user.go        |   5 +-
- 25 files changed, 350 insertions(+), 574 deletions(-)
+app.go                  |   4 +-
+authz.go                |  30 ++++-----
+benchmark_test.go       |  21 ++++--
+coverage_test.go        |   1 -
+csrf.go                 | 171 ++++++++++++++++++++++++------------------------
+csrf_handler.go         |  36 ++++++----
+csrf_test.go            |  63 +++++-------------
+errors.go               |  66 +++++++++----------
+fuzz_test.go            |  12 ++--
+go.mod                  |  14 +---
+go.sum                  |  60 ++---------------
+httputil.go             |  29 ++------
+integration_test.go     |   1 -
+integration_test/go.mod |  17 +----
+integration_test/go.sum |  74 ++-------------------
+internal_test.go        |  93 +++++++++++++++-----------
+options.go              |   6 +-
+usermgmt/authz.go       |  52 +++++++--------
+usermgmt/errors.go      |  22 +++----
+usermgmt/go.mod         |  16 +----
+usermgmt/go.sum         |  81 ++++-------------------
+usermgmt/http.go        |   3 +-
+usermgmt/service.go     |  41 ++++++------
+usermgmt/store.go       |   6 +-
+usermgmt/user.go        |   5 +-
+25 files changed, 350 insertions(+), 574 deletions(-)
 ```

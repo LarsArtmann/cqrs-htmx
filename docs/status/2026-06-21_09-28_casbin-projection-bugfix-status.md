@@ -137,33 +137,33 @@ fixed in commit 85ac594:
 
 Sorted by **impact / effort ratio** (highest first).
 
-| #   | Task                                                           | Impact | Effort | Notes                            |
-| --- | -------------------------------------------------------------- | ------ | ------ | -------------------------------- |
-| 1   | **Stamp SchemaVersion in ALL deciders**                        | 8      | 10min  | Consistency fix                  |
-| 2   | **Add `RemoveAllRolesInDomain` to Authz**                      | 7      | 15min  | DRY: 3 callers share pattern     |
-| 3   | **Update Session struct: ActorID + Origin**                    | 9      | 30min  | Impersonation foundation         |
-| 4   | **Update SessionStore interface**                              | 7      | 30min  | Session lifecycle                |
-| 5   | **Implement BeginImpersonation/EndImpersonation**              | 9      | 60min  | Core feature                     |
-| 6   | **Update session middleware for actor+impersonator**           | 8      | 45min  | HTTP integration                 |
-| 7   | **Create Tenant aggregate** (state+events+commands+fold)       | 7      | 90min  | Multi-tenancy                    |
-| 8   | **Wire Tenant aggregate in Service**                           | 6      | 30min  | Service integration              |
-| 9   | **Create Bot aggregate + HMAC-SHA256 pepper**                  | 7      | 60min  | Machine identity                 |
-| 10  | **API token authentication middleware**                        | 6      | 45min  | Bot auth                         |
-| 11  | **Write v1→v2 upcaster for RolesUpdatedPayload**               | 8      | 30min  | Migration support                |
-| 12  | **Migration projection: Roles → Membership**                   | 8      | 60min  | Backward compat                  |
-| 13  | **Remove Roles from UserState**                                | 7      | 45min  | Breaking change, needs migration |
-| 14  | **Tenant read model + queries**                                | 5      | 30min  | Tenant management UI             |
-| 15  | **Membership Service methods** (AddMember, RemoveMember, etc.) | 8      | 45min  | Public API                       |
-| 16  | **Integration test: impersonation → event metadata**           | 9      | 30min  | Audit trail verification         |
-| 17  | **Integration test: cross-tenant isolation**                   | 8      | 30min  | Security verification            |
-| 18  | **Property-based tests for foldMembership**                    | 6      | 30min  | Invariant verification           |
-| 19  | **Catalog integration** (new events/commands)                  | 4      | 30min  | API docs                         |
-| 20  | **Update README examples with ActorID/Membership**             | 4      | 20min  | Docs                             |
-| 21  | **Fix RolesUpdated domain fallback hack**                      | 5      | 15min  | Pre-existing tech debt           |
-| 22  | **Add Service.AddMember/UpdateMemberRoles/RemoveMember**       | 8      | 30min  | Public Service API               |
-| 23  | **Add MembershipHTTPHandler** (REST endpoints)                 | 5      | 45min  | HTTP API for membership          |
-| 24  | **Bot scope → Casbin policy mapping**                          | 6      | 30min  | Fine-grained bot authz           |
-| 25  | **Pepper rotation strategy** (dual-pepper window)              | 3      | 30min  | Ops documentation                |
+| #  | Task                                                           | Impact | Effort | Notes                            |
+| -- | -------------------------------------------------------------- | ------ | ------ | -------------------------------- |
+| 1  | **Stamp SchemaVersion in ALL deciders**                        | 8      | 10min  | Consistency fix                  |
+| 2  | **Add `RemoveAllRolesInDomain` to Authz**                      | 7      | 15min  | DRY: 3 callers share pattern     |
+| 3  | **Update Session struct: ActorID + Origin**                    | 9      | 30min  | Impersonation foundation         |
+| 4  | **Update SessionStore interface**                              | 7      | 30min  | Session lifecycle                |
+| 5  | **Implement BeginImpersonation/EndImpersonation**              | 9      | 60min  | Core feature                     |
+| 6  | **Update session middleware for actor+impersonator**           | 8      | 45min  | HTTP integration                 |
+| 7  | **Create Tenant aggregate** (state+events+commands+fold)       | 7      | 90min  | Multi-tenancy                    |
+| 8  | **Wire Tenant aggregate in Service**                           | 6      | 30min  | Service integration              |
+| 9  | **Create Bot aggregate + HMAC-SHA256 pepper**                  | 7      | 60min  | Machine identity                 |
+| 10 | **API token authentication middleware**                        | 6      | 45min  | Bot auth                         |
+| 11 | **Write v1→v2 upcaster for RolesUpdatedPayload**               | 8      | 30min  | Migration support                |
+| 12 | **Migration projection: Roles → Membership**                   | 8      | 60min  | Backward compat                  |
+| 13 | **Remove Roles from UserState**                                | 7      | 45min  | Breaking change, needs migration |
+| 14 | **Tenant read model + queries**                                | 5      | 30min  | Tenant management UI             |
+| 15 | **Membership Service methods** (AddMember, RemoveMember, etc.) | 8      | 45min  | Public API                       |
+| 16 | **Integration test: impersonation → event metadata**           | 9      | 30min  | Audit trail verification         |
+| 17 | **Integration test: cross-tenant isolation**                   | 8      | 30min  | Security verification            |
+| 18 | **Property-based tests for foldMembership**                    | 6      | 30min  | Invariant verification           |
+| 19 | **Catalog integration** (new events/commands)                  | 4      | 30min  | API docs                         |
+| 20 | **Update README examples with ActorID/Membership**             | 4      | 20min  | Docs                             |
+| 21 | **Fix RolesUpdated domain fallback hack**                      | 5      | 15min  | Pre-existing tech debt           |
+| 22 | **Add Service.AddMember/UpdateMemberRoles/RemoveMember**       | 8      | 30min  | Public Service API               |
+| 23 | **Add MembershipHTTPHandler** (REST endpoints)                 | 5      | 45min  | HTTP API for membership          |
+| 24 | **Bot scope → Casbin policy mapping**                          | 6      | 30min  | Fine-grained bot authz           |
+| 25 | **Pepper rotation strategy** (dual-pepper window)              | 3      | 30min  | Ops documentation                |
 
 ---
 

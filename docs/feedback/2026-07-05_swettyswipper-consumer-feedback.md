@@ -137,22 +137,22 @@ _This feedback is given with gratitude for an excellent library. The critique is
 
 ### What's Confusing or Hard to Discover — Resolutions
 
-| #   | Suggestion                                                                               | Status             | Notes                                                                                                                                            |
-| --- | ---------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Document that App pipeline is JSON-oriented / SSR apps should use it only for middleware | **DONE**           | SKILL.md now has a full "SSR / HTMX apps" section showing `DecodeForm` + `RenderTempl`/`RenderHTML` usage. Also added `RenderHTML` HandlerOption |
-| 2   | Make the UserID story clearer in SKILL.md — add "UserID Identity Flow"                   | **PARTIALLY DONE** | UserID types documented in gotchas.md + SKILL.md gotcha #2. Full flow diagram not added                                                          |
-| 3   | Document the recommended path for `HTMXScriptHandler` vs CDN (templ-components conflict) | **DONE**           | Added templ-components CDN conflict note in SKILL.md "Serving htmx.js" section                                                                   |
-| 4   | HandlerOption ordering — undocumented constraint (validator after decoder)               | **DONE**           | Already documented in gotcha #3; now also has runtime `slog.Warn` when ordering is wrong (existed before, confirmed working)                     |
-| 5   | Missing `event.WithCommandCausality` — dead reference                                    | **NOT DONE**       | Cross-repo issue: the dead reference is in the go-cqrs-lite skill, not cqrs-htmx. Noted in status report                                         |
+| # | Suggestion                                                                               | Status             | Notes                                                                                                                                            |
+| - | ---------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | Document that App pipeline is JSON-oriented / SSR apps should use it only for middleware | **DONE**           | SKILL.md now has a full "SSR / HTMX apps" section showing `DecodeForm` + `RenderTempl`/`RenderHTML` usage. Also added `RenderHTML` HandlerOption |
+| 2 | Make the UserID story clearer in SKILL.md — add "UserID Identity Flow"                   | **PARTIALLY DONE** | UserID types documented in gotchas.md + SKILL.md gotcha #2. Full flow diagram not added                                                          |
+| 3 | Document the recommended path for `HTMXScriptHandler` vs CDN (templ-components conflict) | **DONE**           | Added templ-components CDN conflict note in SKILL.md "Serving htmx.js" section                                                                   |
+| 4 | HandlerOption ordering — undocumented constraint (validator after decoder)               | **DONE**           | Already documented in gotcha #3; now also has runtime `slog.Warn` when ordering is wrong (existed before, confirmed working)                     |
+| 5 | Missing `event.WithCommandCausality` — dead reference                                    | **NOT DONE**       | Cross-repo issue: the dead reference is in the go-cqrs-lite skill, not cqrs-htmx. Noted in status report                                         |
 
 ### What's Missing — Resolutions
 
-| #   | Suggestion                      | Status              | Notes                                                                                                                                                                   |
-| --- | ------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Form decoding (`DecodeForm`)    | **ALREADY EXISTED** | `DecodeForm[T]` existed before this feedback. Now properly documented in SKILL.md SSR section + core-api.md                                                             |
-| 2   | Templ rendering (`RenderTempl`) | **ALREADY EXISTED** | `RenderTempl(component)` + `RenderTemplResult[T](mapper)` existed. Now documented. Also added `RenderHTML(html)` for static HTML                                        |
-| 3   | Pagination helpers              | **ALREADY EXISTED** | `DecodePagination(r)` + `RenderPaginatedJSON[T]()` existed. Fixed doc bug in core-api.md (DecodeFormQuery showed wrong signature)                                       |
-| 4   | Error Response Code Field       | **DONE**            | `JSONErrorHandler` now includes `"code"` field (walks cause chain for deepest domain code). Tested. **Gap:** `ProblemDetailsErrorHandler` does NOT include the code yet |
+| # | Suggestion                      | Status              | Notes                                                                                                                                                                   |
+| - | ------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Form decoding (`DecodeForm`)    | **ALREADY EXISTED** | `DecodeForm[T]` existed before this feedback. Now properly documented in SKILL.md SSR section + core-api.md                                                             |
+| 2 | Templ rendering (`RenderTempl`) | **ALREADY EXISTED** | `RenderTempl(component)` + `RenderTemplResult[T](mapper)` existed. Now documented. Also added `RenderHTML(html)` for static HTML                                        |
+| 3 | Pagination helpers              | **ALREADY EXISTED** | `DecodePagination(r)` + `RenderPaginatedJSON[T]()` existed. Fixed doc bug in core-api.md (DecodeFormQuery showed wrong signature)                                       |
+| 4 | Error Response Code Field       | **DONE**            | `JSONErrorHandler` now includes `"code"` field (walks cause chain for deepest domain code). Tested. **Gap:** `ProblemDetailsErrorHandler` does NOT include the code yet |
 
 ### Scorecard Update (Post-Resolution)
 

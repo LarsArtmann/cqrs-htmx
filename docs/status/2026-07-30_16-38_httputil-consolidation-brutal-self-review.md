@@ -140,58 +140,58 @@
 
 ## f) Up to 50 Things to Get Done Next
 
-| #   | Task                                                                                      | Priority | Effort |
-| --- | ----------------------------------------------------------------------------------------- | -------- | ------ |
-| 1   | Fix httputil depguard: add `justinas/nosurf` to allow list                                | CRITICAL | 2 min  |
-| 2   | Run httputil lint clean (verify 0 issues after depguard fix)                              | CRITICAL | 5 min  |
-| 3   | Run cqrs-htmx lint on root module (verify no new issues from re-exports)                  | HIGH     | 5 min  |
-| 4   | Delete redundant CSRF test files from cqrs-htmx (1288 LOC → ~200 LOC smoke tests)         | HIGH     | 20 min |
-| 5   | Rename `CSRFErrorHandler` → `ErrorHandler` in httputil (it's general-purpose)             | HIGH     | 10 min |
-| 6   | Rename `ForbiddenCSRFHandler` → `ForbiddenHandler` in httputil (consistency)              | HIGH     | 5 min  |
-| 7   | Deprecate httputil's old `TokenBucketLimiter` (add `// Deprecated:` comment)              | HIGH     | 5 min  |
-| 8   | Or: consolidate `TokenBucketLimiter` into `KeyedRateLimiter` (one API to rule them all)   | MEDIUM   | 30 min |
-| 9   | Fix `errors.go` comment block (clean up the awkward `ErrorHandler` alias comment)         | MEDIUM   | 5 min  |
-| 10  | Update httputil/doc.go (add Server-Timing, CSRF, keyed rate limiting)                     | HIGH     | 5 min  |
-| 11  | Update httputil/README.md (new feature list)                                              | HIGH     | 10 min |
-| 12  | Update httputil/CHANGELOG.md                                                              | HIGH     | 5 min  |
-| 13  | Update httputil/AGENTS.md (new deps, new modules, architectural note)                     | HIGH     | 10 min |
-| 14  | Update httputil/FEATURES.md                                                               | MEDIUM   | 10 min |
-| 15  | Update cqrs-htmx/doc.go (note re-export pattern for middleware)                           | MEDIUM   | 5 min  |
-| 16  | Update cqrs-htmx SKILL.md (note re-export pattern)                                        | MEDIUM   | 10 min |
-| 17  | Add `nosurf` to httputil go.mod require block (verify it's not just go.sum)               | HIGH     | 2 min  |
-| 18  | Unify `delegatingWriter` and `responseWrapper` in httputil                                | LOW      | 30 min |
-| 19  | Deduplicate `contentTypePlain` constant (export from httputil or share)                   | LOW      | 5 min  |
-| 20  | Run `nix run .#test` on cqrs-htmx (canonical Nix verification)                            | HIGH     | 10 min |
-| 21  | Run `nix run .#coverage-gate` on cqrs-htmx (verify thresholds still pass)                 | HIGH     | 10 min |
-| 22  | Run `nix run .#test` on httputil (canonical Nix verification)                             | HIGH     | 5 min  |
-| 23  | Publish httputil v0.8.0 tag                                                               | HIGH     | 5 min  |
-| 24  | Remove go.work replace for httputil after tag published                                   | HIGH     | 2 min  |
-| 25  | Update cqrs-htmx go.mod to require httputil v0.8.0                                        | HIGH     | 2 min  |
-| 26  | Push cqrs-htmx to origin                                                                  | HIGH     | 2 min  |
-| 27  | Push httputil to origin                                                                   | HIGH     | 2 min  |
-| 28  | Add `// Deprecated:` on httputil's `RateLimiter` interface pointing to `KeyedRateLimiter` | MEDIUM   | 5 min  |
-| 29  | Consider: should httputil's `RateLimit()` middleware use `KeyedRateLimiter` internally?   | MEDIUM   | 20 min |
-| 30  | Add integration test: cqrs-htmx re-export types ARE httputil types (type identity)        | MEDIUM   | 10 min |
-| 31  | Fix `canonicalheader` warnings (use `X-Csrf-Token` or add nolint)                         | LOW      | 10 min |
-| 32  | Verify examples still compile after nosurf removal from root go.mod                       | HIGH     | 5 min  |
-| 33  | Check if `golang.org/x/time` can be fully removed (not even indirect)                     | LOW      | 5 min  |
-| 34  | Add httputil coverage gate for new files (server_timing, csrf, ratelimit_keyed)           | MEDIUM   | 10 min |
-| 35  | Consider: export `delegatingWriter` from httputil (consumers may want it)                 | LOW      | 5 min  |
-| 36  | Update cqrs-htmx/.golangci.yml if any new lint exceptions needed                          | MEDIUM   | 5 min  |
-| 37  | Update cqrs-htmx/TODO_LIST.md (mark consolidation as done, add follow-ups)                | MEDIUM   | 5 min  |
-| 38  | Review: does `usermgmt/http.go` still compile cleanly with `*cqrshtmx.RateLimiter`?       | VERIFIED | 0 min  |
-| 39  | Add ADR for the httputil consolidation decision                                           | MEDIUM   | 15 min |
-| 40  | Verify: `go mod tidy` doesn't pull nosurf back into cqrs-htmx root                        | HIGH     | 2 min  |
-| 41  | Consider: should httputil's `Chain` be used instead of cqrs-htmx's in tests?              | LOW      | 5 min  |
-| 42  | Check `httputil/httpspec/` tests still pass with new CSRF/Server-Timing additions         | HIGH     | 5 min  |
-| 43  | Add CSRF `TrustedProxies` integration test in httputil                                    | MEDIUM   | 15 min |
-| 44  | Add Server-Timing middleware benchmark through Chain in httputil                          | LOW      | 10 min |
-| 45  | Consider: move `ContentTypePlain` to httputil and alias from cqrs-htmx                    | LOW      | 10 min |
-| 46  | Review all `//nolint:` directives in ported code — may need httputil-specific ones        | MEDIUM   | 10 min |
-| 47  | Update `docs/guides/csrf-trusted-proxies.md` if it references internal helpers            | LOW      | 5 min  |
-| 48  | Verify `flake.nix` coverage gate thresholds still make sense after code moves             | MEDIUM   | 5 min  |
-| 49  | Consider: extract `WrapServerTiming` as a more general `Wrap` pattern                     | LOW      | 10 min |
-| 50  | Celebrate — 2 deps removed, 3 features consolidated, zero consumer API breakage           | DONE     | 0 min  |
+| #  | Task                                                                                      | Priority | Effort |
+| -- | ----------------------------------------------------------------------------------------- | -------- | ------ |
+| 1  | Fix httputil depguard: add `justinas/nosurf` to allow list                                | CRITICAL | 2 min  |
+| 2  | Run httputil lint clean (verify 0 issues after depguard fix)                              | CRITICAL | 5 min  |
+| 3  | Run cqrs-htmx lint on root module (verify no new issues from re-exports)                  | HIGH     | 5 min  |
+| 4  | Delete redundant CSRF test files from cqrs-htmx (1288 LOC → ~200 LOC smoke tests)         | HIGH     | 20 min |
+| 5  | Rename `CSRFErrorHandler` → `ErrorHandler` in httputil (it's general-purpose)             | HIGH     | 10 min |
+| 6  | Rename `ForbiddenCSRFHandler` → `ForbiddenHandler` in httputil (consistency)              | HIGH     | 5 min  |
+| 7  | Deprecate httputil's old `TokenBucketLimiter` (add `// Deprecated:` comment)              | HIGH     | 5 min  |
+| 8  | Or: consolidate `TokenBucketLimiter` into `KeyedRateLimiter` (one API to rule them all)   | MEDIUM   | 30 min |
+| 9  | Fix `errors.go` comment block (clean up the awkward `ErrorHandler` alias comment)         | MEDIUM   | 5 min  |
+| 10 | Update httputil/doc.go (add Server-Timing, CSRF, keyed rate limiting)                     | HIGH     | 5 min  |
+| 11 | Update httputil/README.md (new feature list)                                              | HIGH     | 10 min |
+| 12 | Update httputil/CHANGELOG.md                                                              | HIGH     | 5 min  |
+| 13 | Update httputil/AGENTS.md (new deps, new modules, architectural note)                     | HIGH     | 10 min |
+| 14 | Update httputil/FEATURES.md                                                               | MEDIUM   | 10 min |
+| 15 | Update cqrs-htmx/doc.go (note re-export pattern for middleware)                           | MEDIUM   | 5 min  |
+| 16 | Update cqrs-htmx SKILL.md (note re-export pattern)                                        | MEDIUM   | 10 min |
+| 17 | Add `nosurf` to httputil go.mod require block (verify it's not just go.sum)               | HIGH     | 2 min  |
+| 18 | Unify `delegatingWriter` and `responseWrapper` in httputil                                | LOW      | 30 min |
+| 19 | Deduplicate `contentTypePlain` constant (export from httputil or share)                   | LOW      | 5 min  |
+| 20 | Run `nix run .#test` on cqrs-htmx (canonical Nix verification)                            | HIGH     | 10 min |
+| 21 | Run `nix run .#coverage-gate` on cqrs-htmx (verify thresholds still pass)                 | HIGH     | 10 min |
+| 22 | Run `nix run .#test` on httputil (canonical Nix verification)                             | HIGH     | 5 min  |
+| 23 | Publish httputil v0.8.0 tag                                                               | HIGH     | 5 min  |
+| 24 | Remove go.work replace for httputil after tag published                                   | HIGH     | 2 min  |
+| 25 | Update cqrs-htmx go.mod to require httputil v0.8.0                                        | HIGH     | 2 min  |
+| 26 | Push cqrs-htmx to origin                                                                  | HIGH     | 2 min  |
+| 27 | Push httputil to origin                                                                   | HIGH     | 2 min  |
+| 28 | Add `// Deprecated:` on httputil's `RateLimiter` interface pointing to `KeyedRateLimiter` | MEDIUM   | 5 min  |
+| 29 | Consider: should httputil's `RateLimit()` middleware use `KeyedRateLimiter` internally?   | MEDIUM   | 20 min |
+| 30 | Add integration test: cqrs-htmx re-export types ARE httputil types (type identity)        | MEDIUM   | 10 min |
+| 31 | Fix `canonicalheader` warnings (use `X-Csrf-Token` or add nolint)                         | LOW      | 10 min |
+| 32 | Verify examples still compile after nosurf removal from root go.mod                       | HIGH     | 5 min  |
+| 33 | Check if `golang.org/x/time` can be fully removed (not even indirect)                     | LOW      | 5 min  |
+| 34 | Add httputil coverage gate for new files (server_timing, csrf, ratelimit_keyed)           | MEDIUM   | 10 min |
+| 35 | Consider: export `delegatingWriter` from httputil (consumers may want it)                 | LOW      | 5 min  |
+| 36 | Update cqrs-htmx/.golangci.yml if any new lint exceptions needed                          | MEDIUM   | 5 min  |
+| 37 | Update cqrs-htmx/TODO_LIST.md (mark consolidation as done, add follow-ups)                | MEDIUM   | 5 min  |
+| 38 | Review: does `usermgmt/http.go` still compile cleanly with `*cqrshtmx.RateLimiter`?       | VERIFIED | 0 min  |
+| 39 | Add ADR for the httputil consolidation decision                                           | MEDIUM   | 15 min |
+| 40 | Verify: `go mod tidy` doesn't pull nosurf back into cqrs-htmx root                        | HIGH     | 2 min  |
+| 41 | Consider: should httputil's `Chain` be used instead of cqrs-htmx's in tests?              | LOW      | 5 min  |
+| 42 | Check `httputil/httpspec/` tests still pass with new CSRF/Server-Timing additions         | HIGH     | 5 min  |
+| 43 | Add CSRF `TrustedProxies` integration test in httputil                                    | MEDIUM   | 15 min |
+| 44 | Add Server-Timing middleware benchmark through Chain in httputil                          | LOW      | 10 min |
+| 45 | Consider: move `ContentTypePlain` to httputil and alias from cqrs-htmx                    | LOW      | 10 min |
+| 46 | Review all `//nolint:` directives in ported code — may need httputil-specific ones        | MEDIUM   | 10 min |
+| 47 | Update `docs/guides/csrf-trusted-proxies.md` if it references internal helpers            | LOW      | 5 min  |
+| 48 | Verify `flake.nix` coverage gate thresholds still make sense after code moves             | MEDIUM   | 5 min  |
+| 49 | Consider: extract `WrapServerTiming` as a more general `Wrap` pattern                     | LOW      | 10 min |
+| 50 | Celebrate — 2 deps removed, 3 features consolidated, zero consumer API breakage           | DONE     | 0 min  |
 
 ---
 
@@ -217,25 +217,25 @@ All 9 problems from section (d) are fixed. All 3 questions resolved.
 
 ### Problem resolutions
 
-| #   | Problem                                                    | Resolution                                                                                                                                                                     |
-| --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | httputil depguard BLOCKS nosurf                            | **Fixed.** Added `github.com/justinas/nosurf` to depguard allow list.                                                                                                          |
-| 2   | Two competing rate limiting APIs                           | **Resolved.** Deprecated `TokenBucketLimiter`/`RateLimiter`/`RateLimit()` with 6 `// Deprecated:` markers pointing to `KeyedRateLimiter`. Not deleted (reversible).            |
-| 3   | Two ResponseWriter wrapper types                           | **Deferred.** Low ROI, risk of breaking Flush/Hijack delegation. Documented in plan.                                                                                           |
-| 4   | `ErrorHandler` naming misleading                           | **Fixed.** Renamed `CSRFErrorHandler`→`ErrorHandler` in httputil. The type is general-purpose (`func(w, r, err)`).                                                             |
-| 5   | `ForbiddenErrorHandler` vs `ForbiddenCSRFHandler` mismatch | **Fixed.** Renamed `ForbiddenCSRFHandler`→`ForbiddenHandler` in httputil. cqrs-htmx alias updated.                                                                             |
-| 6   | `canonicalheader` lint warnings                            | **Fixed.** Added text exclusions for `X-CSRF-Token` (httputil) and `HX-*`/`X-CSRF-Token` (cqrs-htmx). Ecosystem-standard casing; http.Header canonicalizes at wire level.      |
-| 7   | 1288 LOC of redundant test files                           | **Fixed.** Deleted 7 files. Moved `writeStringHandler` helper to `testing_handlers_test.go`. All cqrs-htmx-specific coverage retained in integration/benchmark/feedback tests. |
-| 8   | Awkward comment block in errors.go                         | **Fixed.** Cleaned up the stale `ErrorHandler` alias comment. `DefaultErrorHandler` now has a proper doc comment.                                                              |
-| 9   | `contentTypePlain` duplication                             | **Deferred.** Trivial; both packages define it independently. No consumer impact.                                                                                              |
+| # | Problem                                                    | Resolution                                                                                                                                                                     |
+| - | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | httputil depguard BLOCKS nosurf                            | **Fixed.** Added `github.com/justinas/nosurf` to depguard allow list.                                                                                                          |
+| 2 | Two competing rate limiting APIs                           | **Resolved.** Deprecated `TokenBucketLimiter`/`RateLimiter`/`RateLimit()` with 6 `// Deprecated:` markers pointing to `KeyedRateLimiter`. Not deleted (reversible).            |
+| 3 | Two ResponseWriter wrapper types                           | **Deferred.** Low ROI, risk of breaking Flush/Hijack delegation. Documented in plan.                                                                                           |
+| 4 | `ErrorHandler` naming misleading                           | **Fixed.** Renamed `CSRFErrorHandler`→`ErrorHandler` in httputil. The type is general-purpose (`func(w, r, err)`).                                                             |
+| 5 | `ForbiddenErrorHandler` vs `ForbiddenCSRFHandler` mismatch | **Fixed.** Renamed `ForbiddenCSRFHandler`→`ForbiddenHandler` in httputil. cqrs-htmx alias updated.                                                                             |
+| 6 | `canonicalheader` lint warnings                            | **Fixed.** Added text exclusions for `X-CSRF-Token` (httputil) and `HX-*`/`X-CSRF-Token` (cqrs-htmx). Ecosystem-standard casing; http.Header canonicalizes at wire level.      |
+| 7 | 1288 LOC of redundant test files                           | **Fixed.** Deleted 7 files. Moved `writeStringHandler` helper to `testing_handlers_test.go`. All cqrs-htmx-specific coverage retained in integration/benchmark/feedback tests. |
+| 8 | Awkward comment block in errors.go                         | **Fixed.** Cleaned up the stale `ErrorHandler` alias comment. `DefaultErrorHandler` now has a proper doc comment.                                                              |
+| 9 | `contentTypePlain` duplication                             | **Deferred.** Trivial; both packages define it independently. No consumer impact.                                                                                              |
 
 ### Question resolutions
 
-| Q   | Question                                  | Decision                                  | Rationale                                                                                                                   |
-| --- | ----------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Q1  | Delete or deprecate `TokenBucketLimiter`? | **Deprecate**                             | Reversible; external consumers may depend on the `RateLimiter` interface. `// Deprecated:` markers signal the path forward. |
-| Q2  | Cut httputil v0.8.0 now or wait?          | **Prepare now, publish pending approval** | Release-ready (lint clean, tests pass, CHANGELOG written). Not pushed per never-push rule.                                  |
-| Q3  | Rename direction for `ErrorHandler`?      | **Rename in httputil**                    | The type is general-purpose (`func(w, r, err)`), not CSRF-specific. Matches cqrs-htmx's consumer-facing name.               |
+| Q  | Question                                  | Decision                                  | Rationale                                                                                                                   |
+| -- | ----------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Q1 | Delete or deprecate `TokenBucketLimiter`? | **Deprecate**                             | Reversible; external consumers may depend on the `RateLimiter` interface. `// Deprecated:` markers signal the path forward. |
+| Q2 | Cut httputil v0.8.0 now or wait?          | **Prepare now, publish pending approval** | Release-ready (lint clean, tests pass, CHANGELOG written). Not pushed per never-push rule.                                  |
+| Q3 | Rename direction for `ErrorHandler`?      | **Rename in httputil**                    | The type is general-purpose (`func(w, r, err)`), not CSRF-specific. Matches cqrs-htmx's consumer-facing name.               |
 
 ### Additional work done beyond the self-review
 

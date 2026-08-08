@@ -155,19 +155,19 @@ After the initial review, a self-critique revealed several items missed:
 
 ### Additional Fixes Applied
 
-| #   | File                                  | Change                                                                                                                                                                                         |
-| --- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 8   | `options_htmx.go` → `options_json.go` | `RenderJSON` doc was orphaned at bottom of wrong file. Moved to function declaration.                                                                                                          |
-| 9   | `sse_event.go` → `sse_stream.go`      | `SSEStream` doc was orphaned at bottom of `sse_event.go`. Moved to struct declaration.                                                                                                         |
-| 10  | `sse_stream.go` → `sse_store.go`      | `SSEEventStore` doc was orphaned at bottom of `sse_stream.go`. Moved to interface declaration.                                                                                                 |
-| 11  | `sse_event.go`                        | Added missing `SSEEvent` type-level doc comment.                                                                                                                                               |
-| 12  | `ws.go`                               | Removed redundant `maps.Copy` + intermediate `bodyMap` allocation in `ParseWSMessageInto`. After `delete(raw, "HEADERS")`, marshaling `raw` directly is sufficient.                            |
-| 13  | `sse_stream.go`                       | Changed `SSEStream.ctx` field and `Context()` return type from `interface{ Done() <-chan struct{} }` to `context.Context`. Consumers expect `context.Context` from a method named `Context()`. |
-| 14  | `options_render.go`                   | Added missing `Render` function doc comment.                                                                                                                                                   |
-| 15  | `notify.go`                           | Added missing `NotificationLevel.String()` doc comment.                                                                                                                                        |
-| 16  | `usermgmt/service_login.go`           | Added missing `LoginRequest` type doc.                                                                                                                                                         |
-| 17  | `usermgmt/service_register.go`        | Added missing `RegisterRequest` type doc.                                                                                                                                                      |
-| 18  | `usermgmt/service_misc.go`            | Added missing `GetUser` method doc.                                                                                                                                                            |
+| #  | File                                  | Change                                                                                                                                                                                         |
+| -- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 8  | `options_htmx.go` → `options_json.go` | `RenderJSON` doc was orphaned at bottom of wrong file. Moved to function declaration.                                                                                                          |
+| 9  | `sse_event.go` → `sse_stream.go`      | `SSEStream` doc was orphaned at bottom of `sse_event.go`. Moved to struct declaration.                                                                                                         |
+| 10 | `sse_stream.go` → `sse_store.go`      | `SSEEventStore` doc was orphaned at bottom of `sse_stream.go`. Moved to interface declaration.                                                                                                 |
+| 11 | `sse_event.go`                        | Added missing `SSEEvent` type-level doc comment.                                                                                                                                               |
+| 12 | `ws.go`                               | Removed redundant `maps.Copy` + intermediate `bodyMap` allocation in `ParseWSMessageInto`. After `delete(raw, "HEADERS")`, marshaling `raw` directly is sufficient.                            |
+| 13 | `sse_stream.go`                       | Changed `SSEStream.ctx` field and `Context()` return type from `interface{ Done() <-chan struct{} }` to `context.Context`. Consumers expect `context.Context` from a method named `Context()`. |
+| 14 | `options_render.go`                   | Added missing `Render` function doc comment.                                                                                                                                                   |
+| 15 | `notify.go`                           | Added missing `NotificationLevel.String()` doc comment.                                                                                                                                        |
+| 16 | `usermgmt/service_login.go`           | Added missing `LoginRequest` type doc.                                                                                                                                                         |
+| 17 | `usermgmt/service_register.go`        | Added missing `RegisterRequest` type doc.                                                                                                                                                      |
+| 18 | `usermgmt/service_misc.go`            | Added missing `GetUser` method doc.                                                                                                                                                            |
 
 ### What I Should Have Caught Earlier
 

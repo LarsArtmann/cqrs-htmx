@@ -1,8 +1,8 @@
 # Status: loginpage Module — Self-Critique & Remaining Work
 
-**Date:** 2026-07-11 22:45  
-**Session:** Built `loginpage` module from scratch (2 commits), then did brutal self-review  
-**Branch:** master (pushed)  
+**Date:** 2026-07-11 22:45\
+**Session:** Built `loginpage` module from scratch (2 commits), then did brutal self-review\
+**Branch:** master (pushed)\
 **Commits:** `00bef1d` (initial), `0591c9b` (OAuth2 + type model + fixes)
 
 ---
@@ -114,98 +114,98 @@ A new Go module (`github.com/larsartmann/cqrs-htmx/loginpage/v4`) — the 9th mo
 
 ### Critical (Security & Bugs)
 
-| #   | Task                                                                                                                      | Effort | Impact      |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | ------ | ----------- |
-| 1   | **Server-side user ID generation**: Make `RegisterRequest.ID` auto-generated when empty; remove client UUID from login.js | Medium | CRITICAL    |
-| 2   | **Fix coverage gate**: Add tests to reach 80% OR lower threshold to 78% in flake.nix                                      | Low    | CI-breaking |
-| 3   | **WebAuthn browser detection**: Add `window.PublicKeyCredential` check + fallback UI                                      | Low    | High UX     |
+| # | Task                                                                                                                      | Effort | Impact      |
+| - | ------------------------------------------------------------------------------------------------------------------------- | ------ | ----------- |
+| 1 | **Server-side user ID generation**: Make `RegisterRequest.ID` auto-generated when empty; remove client UUID from login.js | Medium | CRITICAL    |
+| 2 | **Fix coverage gate**: Add tests to reach 80% OR lower threshold to 78% in flake.nix                                      | Low    | CI-breaking |
+| 3 | **WebAuthn browser detection**: Add `window.PublicKeyCredential` check + fallback UI                                      | Low    | High UX     |
 
 ### High Value (Developer Experience)
 
-| #   | Task                                                                                     | Effort  | Impact   |
-| --- | ---------------------------------------------------------------------------------------- | ------- | -------- |
-| 4   | **OAuth2 provider auto-detection**: `Names()` on oauth2.Provider + auto-populate buttons | Medium  | High DX  |
-| 5   | **OAuth2 display names**: Map "google" → "Google", "github" → "GitHub"                   | Low     | Polish   |
-| 6   | **Login demo example**: `examples/login-demo/` — go run, open :8098                      | Medium  | Adoption |
-| 7   | **AGENTS.md update**: Document OAuth2Buttons, CredentialName, NewPageData                | Low     | Docs     |
-| 8   | **.gitignore exception**: Add `!loginpage/page_templ.go`                                 | Trivial | DX       |
+| # | Task                                                                                     | Effort  | Impact   |
+| - | ---------------------------------------------------------------------------------------- | ------- | -------- |
+| 4 | **OAuth2 provider auto-detection**: `Names()` on oauth2.Provider + auto-populate buttons | Medium  | High DX  |
+| 5 | **OAuth2 display names**: Map "google" → "Google", "github" → "GitHub"                   | Low     | Polish   |
+| 6 | **Login demo example**: `examples/login-demo/` — go run, open :8098                      | Medium  | Adoption |
+| 7 | **AGENTS.md update**: Document OAuth2Buttons, CredentialName, NewPageData                | Low     | Docs     |
+| 8 | **.gitignore exception**: Add `!loginpage/page_templ.go`                                 | Trivial | DX       |
 
 ### Medium Value (Polish & Correctness)
 
-| #   | Task                                                                         | Effort  | Impact      |
-| --- | ---------------------------------------------------------------------------- | ------- | ----------- |
-| 9   | JS error extraction: handle RFC 7807 StructuredError `title`/`detail` fields | Low     | Correctness |
-| 10  | OAuth2 button brand icons (inline SVG for Google/GitHub/Microsoft)           | Low     | Polish      |
-| 11  | Add `autofocus` to email field only when WebAuthn is the sole method         | Trivial | UX          |
-| 12  | Keyboard navigation: ensure tab order is correct in OAuth2-only mode         | Trivial | A11y        |
-| 13  | `aria-live="polite"` on error div for screen readers                         | Trivial | A11y        |
-| 14  | Loading state for OAuth2 buttons (CSS active state on click)                 | Trivial | UX          |
-| 15  | Empty-state message when OAuth2 provider returns error on callback           | Low     | UX          |
+| #  | Task                                                                         | Effort  | Impact      |
+| -- | ---------------------------------------------------------------------------- | ------- | ----------- |
+| 9  | JS error extraction: handle RFC 7807 StructuredError `title`/`detail` fields | Low     | Correctness |
+| 10 | OAuth2 button brand icons (inline SVG for Google/GitHub/Microsoft)           | Low     | Polish      |
+| 11 | Add `autofocus` to email field only when WebAuthn is the sole method         | Trivial | UX          |
+| 12 | Keyboard navigation: ensure tab order is correct in OAuth2-only mode         | Trivial | A11y        |
+| 13 | `aria-live="polite"` on error div for screen readers                         | Trivial | A11y        |
+| 14 | Loading state for OAuth2 buttons (CSS active state on click)                 | Trivial | UX          |
+| 15 | Empty-state message when OAuth2 provider returns error on callback           | Low     | UX          |
 
 ### Testing & CI
 
-| #   | Task                                                        | Effort  | Impact     |
-| --- | ----------------------------------------------------------- | ------- | ---------- |
-| 16  | Test `buildPageData` with nil request (doesn't panic)       | Trivial | Coverage   |
-| 17  | Test `renderPage` error path (mock templ.Component failure) | Low     | Coverage   |
-| 18  | Test OAuth2 button URL construction with AuthPrefix         | Trivial | Coverage   |
-| 19  | Test `faviconURI` returns valid SafeURL                     | Trivial | Coverage   |
-| 20  | Test `oauthBeginURL` method                                 | Trivial | Coverage   |
-| 21  | Integration test: full handler with WebAuthn mock provider  | Medium  | Confidence |
-| 22  | Integration test: OAuth2 button click → redirect URL        | Low     | Confidence |
-| 23  | Fuzz test: `safeRedirectPath` with random inputs            | Low     | Robustness |
+| #  | Task                                                        | Effort  | Impact     |
+| -- | ----------------------------------------------------------- | ------- | ---------- |
+| 16 | Test `buildPageData` with nil request (doesn't panic)       | Trivial | Coverage   |
+| 17 | Test `renderPage` error path (mock templ.Component failure) | Low     | Coverage   |
+| 18 | Test OAuth2 button URL construction with AuthPrefix         | Trivial | Coverage   |
+| 19 | Test `faviconURI` returns valid SafeURL                     | Trivial | Coverage   |
+| 20 | Test `oauthBeginURL` method                                 | Trivial | Coverage   |
+| 21 | Integration test: full handler with WebAuthn mock provider  | Medium  | Confidence |
+| 22 | Integration test: OAuth2 button click → redirect URL        | Low     | Confidence |
+| 23 | Fuzz test: `safeRedirectPath` with random inputs            | Low     | Robustness |
 
 ### Architecture & Type Model
 
-| #   | Task                                                                                                     | Effort  | Impact        |
-| --- | -------------------------------------------------------------------------------------------------------- | ------- | ------------- |
-| 24  | Consider `PageData` builder pattern instead of struct                                                    | Low     | Clean code    |
-| 25  | Move `firstRune` to a shared util (adminui has `initials()` that's similar)                              | Low     | DRY           |
-| 26  | Consider `OAuth2Button.IconSVG` field for brand icons                                                    | Low     | Extensibility |
-| 27  | Add `Config.RedirectOnExists` for "already registered" flow                                              | Low     | Feature       |
-| 28  | Consider `Config.Labels` map for i18n (button text, error messages)                                      | Medium  | i18n          |
-| 29  | Expose `LoginPageCSS` and `LoginPageJS` as exported vars for consumers who want to serve them separately | Trivial | Flexibility   |
+| #  | Task                                                                                                     | Effort  | Impact        |
+| -- | -------------------------------------------------------------------------------------------------------- | ------- | ------------- |
+| 24 | Consider `PageData` builder pattern instead of struct                                                    | Low     | Clean code    |
+| 25 | Move `firstRune` to a shared util (adminui has `initials()` that's similar)                              | Low     | DRY           |
+| 26 | Consider `OAuth2Button.IconSVG` field for brand icons                                                    | Low     | Extensibility |
+| 27 | Add `Config.RedirectOnExists` for "already registered" flow                                              | Low     | Feature       |
+| 28 | Consider `Config.Labels` map for i18n (button text, error messages)                                      | Medium  | i18n          |
+| 29 | Expose `LoginPageCSS` and `LoginPageJS` as exported vars for consumers who want to serve them separately | Trivial | Flexibility   |
 
 ### Security Hardening
 
-| #   | Task                                                                       | Effort  | Impact   |
-| --- | -------------------------------------------------------------------------- | ------- | -------- |
-| 30  | CSP nonce support: allow consumers to pass a nonce for inline script/style | Medium  | Security |
-| 31  | Rate-limit registration form submissions client-side                       | Low     | Security |
-| 32  | Honeypot field for bot detection                                           | Low     | Security |
-| 33  | Add `Cross-Origin-Opener-Policy` header                                    | Trivial | Security |
-| 34  | Consider `X-Frame-Options: DENY` to prevent clickjacking                   | Trivial | Security |
+| #  | Task                                                                       | Effort  | Impact   |
+| -- | -------------------------------------------------------------------------- | ------- | -------- |
+| 30 | CSP nonce support: allow consumers to pass a nonce for inline script/style | Medium  | Security |
+| 31 | Rate-limit registration form submissions client-side                       | Low     | Security |
+| 32 | Honeypot field for bot detection                                           | Low     | Security |
+| 33 | Add `Cross-Origin-Opener-Policy` header                                    | Trivial | Security |
+| 34 | Consider `X-Frame-Options: DENY` to prevent clickjacking                   | Trivial | Security |
 
 ### Ecosystem Integration
 
-| #   | Task                                                                             | Effort  | Impact        |
-| --- | -------------------------------------------------------------------------------- | ------- | ------------- |
-| 35  | Wire loginpage into `examples/admin-demo/` replacing `/dev-login`                | Medium  | Showcase      |
-| 36  | Add loginpage to the `nix run .#test` and `nix run .#build` apps (DONE — verify) | —       | Done          |
-| 37  | Add loginpage to `check-version-drift.sh` (verify it's covered)                  | Trivial | CI            |
-| 38  | Create ADR for loginpage design decisions                                        | Low     | Documentation |
-| 39  | Add to `docs/migrations/` if upgrading from hand-rolled login                    | Low     | Adoption      |
+| #  | Task                                                                             | Effort  | Impact        |
+| -- | -------------------------------------------------------------------------------- | ------- | ------------- |
+| 35 | Wire loginpage into `examples/admin-demo/` replacing `/dev-login`                | Medium  | Showcase      |
+| 36 | Add loginpage to the `nix run .#test` and `nix run .#build` apps (DONE — verify) | —       | Done          |
+| 37 | Add loginpage to `check-version-drift.sh` (verify it's covered)                  | Trivial | CI            |
+| 38 | Create ADR for loginpage design decisions                                        | Low     | Documentation |
+| 39 | Add to `docs/migrations/` if upgrading from hand-rolled login                    | Low     | Adoption      |
 
 ### Documentation
 
-| #   | Task                                                         | Effort | Impact    |
-| --- | ------------------------------------------------------------ | ------ | --------- |
-| 40  | Package-level example in `doc.go` (Runnable godoc example)   | Low    | DX        |
-| 41  | Screenshots in README for each auth-method combination       | Low    | Adoption  |
-| 42  | Migration guide: "Delete your hand-rolled login_page.go"     | Low    | Adoption  |
-| 43  | Blog post draft: "Passwordless auth in a box with cqrs-htmx" | Medium | Marketing |
+| #  | Task                                                         | Effort | Impact    |
+| -- | ------------------------------------------------------------ | ------ | --------- |
+| 40 | Package-level example in `doc.go` (Runnable godoc example)   | Low    | DX        |
+| 41 | Screenshots in README for each auth-method combination       | Low    | Adoption  |
+| 42 | Migration guide: "Delete your hand-rolled login_page.go"     | Low    | Adoption  |
+| 43 | Blog post draft: "Passwordless auth in a box with cqrs-htmx" | Medium | Marketing |
 
 ### Polish & Nice-to-Haves
 
-| #   | Task                                                            | Effort  | Impact  |
-| --- | --------------------------------------------------------------- | ------- | ------- |
-| 44  | Animated transitions between login/register sections            | Low     | Polish  |
-| 45  | "Remember this device" checkbox (conditional mediation)         | Medium  | Feature |
-| 46  | Passwordless biometric prompt icon (fingerprint SVG)            | Trivial | Polish  |
-| 47  | Configurable card width (`Config.CardWidth`)                    | Trivial | Polish  |
-| 48  | Footer text config (`Config.FooterHTML`)                        | Trivial | Polish  |
-| 49  | Multiple card layouts (centered card, split-screen, full-width) | Medium  | Feature |
-| 50  | Dark/light mode toggle button (not just prefers-color-scheme)   | Low     | Feature |
+| #  | Task                                                            | Effort  | Impact  |
+| -- | --------------------------------------------------------------- | ------- | ------- |
+| 44 | Animated transitions between login/register sections            | Low     | Polish  |
+| 45 | "Remember this device" checkbox (conditional mediation)         | Medium  | Feature |
+| 46 | Passwordless biometric prompt icon (fingerprint SVG)            | Trivial | Polish  |
+| 47 | Configurable card width (`Config.CardWidth`)                    | Trivial | Polish  |
+| 48 | Footer text config (`Config.FooterHTML`)                        | Trivial | Polish  |
+| 49 | Multiple card layouts (centered card, split-screen, full-width) | Medium  | Feature |
+| 50 | Dark/light mode toggle button (not just prefers-color-scheme)   | Low     | Feature |
 
 ---
 

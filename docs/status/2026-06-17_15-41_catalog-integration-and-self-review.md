@@ -129,33 +129,33 @@
 
 Sorted by impact/effort ratio (highest first).
 
-| #   | Task                                                                            | Impact | Effort  | Ratio      |
-| --- | ------------------------------------------------------------------------------- | ------ | ------- | ---------- |
-| 1   | Fix `flake.nix` version from `2.3.0` → `2.4.0`                                  | Medium | Trivial | **∞**      |
-| 2   | Update CHANGELOG `[Unreleased]` with self-review fixes                          | Medium | Trivial | **∞**      |
-| 3   | Run `nix fmt` to verify all formatting                                          | Low    | Trivial | **High**   |
-| 4   | Run `nix flake check` after flake.nix edits                                     | Low    | Trivial | **High**   |
-| 5   | Add golden/snapshot tests for catalog OpenAPI output                            | High   | Medium  | **High**   |
-| 6   | Catalog coverage → 90%+ (test BuildValid errors, HealthCheck body)              | Medium | Low     | **High**   |
-| 7   | `usermgmtcatalog.Default()` — pre-built catalog for 7 cmds + 7 events           | High   | Medium  | **High**   |
-| 8   | Bump `flake.nix` `packages.default` version to match release                    | Medium | Trivial | **High**   |
-| 9   | Cross-reference ADR 0009 → middleware integration doc                           | Low    | Trivial | **Medium** |
-| 10  | Add catalog to `CONTRIBUTING.md` build/test/lint section                        | Low    | Trivial | **Medium** |
-| 11  | Consider `lo.KebabCase` or upstream `caseutil` instead of hand-rolled `toKebab` | Medium | Low     | **Medium** |
-| 12  | Add BDD test for catalog builder (Ginkgo/Gomega to match project style)         | Medium | Medium  | **Medium** |
-| 13  | Swagger UI handler — serve OpenAPI + embedded Swagger UI HTML                   | High   | Medium  | **Medium** |
-| 14  | `usermgmtcatalog` integration test — verify catalog matches actual endpoints    | High   | Low     | **Medium** |
-| 15  | Catalog example in `examples/datastar-demo/`                                    | Medium | Medium  | **Medium** |
-| 16  | Event schema versioning — `SchemaVersion` field on event payloads               | High   | High    | **Medium** |
-| 17  | OAuth2/OIDC integration as alternative to WebAuthn                              | High   | High    | **Medium** |
-| 18  | CSRF protection wiring helper for WebAuthn endpoints                            | Medium | Low     | **Medium** |
-| 19  | Rate limiting wiring helper for WebAuthn endpoints                              | Medium | Low     | **Medium** |
-| 20  | Catalog doc.go: add `BuildValid()` example alongside `Build()`                  | Low    | Trivial | **Low**    |
-| 21  | Property-based testing for catalog schema reflection                            | Medium | Medium  | **Low**    |
-| 22  | Upstream go-cqrs-lite: request dispatcher enumeration API for auto-discovery    | High   | High    | **Low**    |
-| 23  | Benchmark catalog builder + handlers (allocation targets)                       | Low    | Medium  | **Low**    |
-| 24  | Catalog handler middleware support (auth on doc endpoints)                      | Low    | Low     | **Low**    |
-| 25  | D2 diagram SVG rendering endpoint (via d2 CLI or WASM)                          | Low    | High    | **Low**    |
+| #  | Task                                                                            | Impact | Effort  | Ratio      |
+| -- | ------------------------------------------------------------------------------- | ------ | ------- | ---------- |
+| 1  | Fix `flake.nix` version from `2.3.0` → `2.4.0`                                  | Medium | Trivial | **∞**      |
+| 2  | Update CHANGELOG `[Unreleased]` with self-review fixes                          | Medium | Trivial | **∞**      |
+| 3  | Run `nix fmt` to verify all formatting                                          | Low    | Trivial | **High**   |
+| 4  | Run `nix flake check` after flake.nix edits                                     | Low    | Trivial | **High**   |
+| 5  | Add golden/snapshot tests for catalog OpenAPI output                            | High   | Medium  | **High**   |
+| 6  | Catalog coverage → 90%+ (test BuildValid errors, HealthCheck body)              | Medium | Low     | **High**   |
+| 7  | `usermgmtcatalog.Default()` — pre-built catalog for 7 cmds + 7 events           | High   | Medium  | **High**   |
+| 8  | Bump `flake.nix` `packages.default` version to match release                    | Medium | Trivial | **High**   |
+| 9  | Cross-reference ADR 0009 → middleware integration doc                           | Low    | Trivial | **Medium** |
+| 10 | Add catalog to `CONTRIBUTING.md` build/test/lint section                        | Low    | Trivial | **Medium** |
+| 11 | Consider `lo.KebabCase` or upstream `caseutil` instead of hand-rolled `toKebab` | Medium | Low     | **Medium** |
+| 12 | Add BDD test for catalog builder (Ginkgo/Gomega to match project style)         | Medium | Medium  | **Medium** |
+| 13 | Swagger UI handler — serve OpenAPI + embedded Swagger UI HTML                   | High   | Medium  | **Medium** |
+| 14 | `usermgmtcatalog` integration test — verify catalog matches actual endpoints    | High   | Low     | **Medium** |
+| 15 | Catalog example in `examples/datastar-demo/`                                    | Medium | Medium  | **Medium** |
+| 16 | Event schema versioning — `SchemaVersion` field on event payloads               | High   | High    | **Medium** |
+| 17 | OAuth2/OIDC integration as alternative to WebAuthn                              | High   | High    | **Medium** |
+| 18 | CSRF protection wiring helper for WebAuthn endpoints                            | Medium | Low     | **Medium** |
+| 19 | Rate limiting wiring helper for WebAuthn endpoints                              | Medium | Low     | **Medium** |
+| 20 | Catalog doc.go: add `BuildValid()` example alongside `Build()`                  | Low    | Trivial | **Low**    |
+| 21 | Property-based testing for catalog schema reflection                            | Medium | Medium  | **Low**    |
+| 22 | Upstream go-cqrs-lite: request dispatcher enumeration API for auto-discovery    | High   | High    | **Low**    |
+| 23 | Benchmark catalog builder + handlers (allocation targets)                       | Low    | Medium  | **Low**    |
+| 24 | Catalog handler middleware support (auth on doc endpoints)                      | Low    | Low     | **Low**    |
+| 25 | D2 diagram SVG rendering endpoint (via d2 CLI or WASM)                          | Low    | High    | **Low**    |
 
 ---
 

@@ -176,33 +176,33 @@ Commit `586d24b` ("refactor(auth): change UserIDExtractor to return (UserID, err
 
 ## 7. Top 25 Things To Get Done Next
 
-| #   | Task                                                                  | Phase | Effort | Impact   |
-| --- | --------------------------------------------------------------------- | ----- | ------ | -------- |
-| 1   | **Adapt CSRF tests for v1.7.3 or design proper HTTP/HTTPS detection** | P0    | 30m    | Critical |
-| 2   | **Fix rate limiter memory leak (TTL eviction)**                       | P2.3  | 30m    | High     |
-| 3   | **Split `options.go` into `decoder.go` + `handler_config.go`**        | P2.1  | 20m    | High     |
-| 4   | **Extract `isAuthError` helper**                                      | P1.4  | 10m    | Medium   |
-| 5   | **Move `registerErrorClassifications` to `init()`**                   | P2.2  | 5m     | Medium   |
-| 6   | **Warn on empty CSRF Secret**                                         | P1.2  | 10m    | Medium   |
-| 7   | **Warn on `Secure=false`**                                            | P1.3  | 15m    | Medium   |
-| 8   | **Fix `executeCSRFValidation` ResponseWriter conflict**               | P1.1  | 15m    | Medium   |
-| 9   | **Add `//nolint:funlen` to `handleQueryDispatch`**                    | P2.4  | 2m     | Low      |
-| 10  | **Add `RotateCSRFToken()` helper**                                    | P3.1  | 20m    | Medium   |
-| 11  | **Create `example/basic/` directory**                                 | P3.2  | 30m    | High     |
-| 12  | **Add CSRF benchmarks**                                               | P3.3  | 20m    | Medium   |
-| 13  | **Write `SECURITY.md`**                                               | P3.4  | 15m    | Medium   |
-| 14  | **Add `govulncheck` to CI**                                           | P3.5  | 10m    | Medium   |
-| 15  | **Fix BuildFlow pre-commit hook**                                     | P3.6  | 15m    | Low      |
-| 16  | **Improve `sanitizeRedirectURL` test coverage to 100%**               | —     | 10m    | Low      |
-| 17  | **Add CSRF config validation (`SameSite=None` without `Secure`)**     | P4.1  | 15m    | Low      |
-| 18  | **Document Secure flag + reverse proxy**                              | P4.2  | 10m    | Low      |
-| 19  | **Add `CSRFToken` branded type**                                      | P4.3  | 20m    | Low      |
-| 20  | **Functional options for `CSRFConfig`**                               | P4.4  | 30m    | Low      |
-| 21  | **Extract gorilla/csrf adapter to internal package**                  | P4.5  | 30m    | Low      |
-| 22  | **Support double-submit without cookie**                              | P4.6  | 45m    | Low      |
-| 23  | **Add CSRF bypass for trusted origins/internal IPs**                  | P4.7  | 20m    | Low      |
-| 24  | **Integration test with real `httptest.Server`**                      | P4.8  | 30m    | Low      |
-| 25  | **Add snapshot testing with `go-snaps`**                              | P4.9  | 45m    | Low      |
+| #  | Task                                                                  | Phase | Effort | Impact   |
+| -- | --------------------------------------------------------------------- | ----- | ------ | -------- |
+| 1  | **Adapt CSRF tests for v1.7.3 or design proper HTTP/HTTPS detection** | P0    | 30m    | Critical |
+| 2  | **Fix rate limiter memory leak (TTL eviction)**                       | P2.3  | 30m    | High     |
+| 3  | **Split `options.go` into `decoder.go` + `handler_config.go`**        | P2.1  | 20m    | High     |
+| 4  | **Extract `isAuthError` helper**                                      | P1.4  | 10m    | Medium   |
+| 5  | **Move `registerErrorClassifications` to `init()`**                   | P2.2  | 5m     | Medium   |
+| 6  | **Warn on empty CSRF Secret**                                         | P1.2  | 10m    | Medium   |
+| 7  | **Warn on `Secure=false`**                                            | P1.3  | 15m    | Medium   |
+| 8  | **Fix `executeCSRFValidation` ResponseWriter conflict**               | P1.1  | 15m    | Medium   |
+| 9  | **Add `//nolint:funlen` to `handleQueryDispatch`**                    | P2.4  | 2m     | Low      |
+| 10 | **Add `RotateCSRFToken()` helper**                                    | P3.1  | 20m    | Medium   |
+| 11 | **Create `example/basic/` directory**                                 | P3.2  | 30m    | High     |
+| 12 | **Add CSRF benchmarks**                                               | P3.3  | 20m    | Medium   |
+| 13 | **Write `SECURITY.md`**                                               | P3.4  | 15m    | Medium   |
+| 14 | **Add `govulncheck` to CI**                                           | P3.5  | 10m    | Medium   |
+| 15 | **Fix BuildFlow pre-commit hook**                                     | P3.6  | 15m    | Low      |
+| 16 | **Improve `sanitizeRedirectURL` test coverage to 100%**               | —     | 10m    | Low      |
+| 17 | **Add CSRF config validation (`SameSite=None` without `Secure`)**     | P4.1  | 15m    | Low      |
+| 18 | **Document Secure flag + reverse proxy**                              | P4.2  | 10m    | Low      |
+| 19 | **Add `CSRFToken` branded type**                                      | P4.3  | 20m    | Low      |
+| 20 | **Functional options for `CSRFConfig`**                               | P4.4  | 30m    | Low      |
+| 21 | **Extract gorilla/csrf adapter to internal package**                  | P4.5  | 30m    | Low      |
+| 22 | **Support double-submit without cookie**                              | P4.6  | 45m    | Low      |
+| 23 | **Add CSRF bypass for trusted origins/internal IPs**                  | P4.7  | 20m    | Low      |
+| 24 | **Integration test with real `httptest.Server`**                      | P4.8  | 30m    | Low      |
+| 25 | **Add snapshot testing with `go-snaps`**                              | P4.9  | 45m    | Low      |
 
 ---
 

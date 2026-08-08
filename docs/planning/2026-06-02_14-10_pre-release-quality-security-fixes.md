@@ -72,28 +72,28 @@ graph TD
 
 ## Detailed Task List (coarse — ~30-100 min each)
 
-| #   | Task                                                                              | Files                    | Impact        | Effort | Est |
-| --- | --------------------------------------------------------------------------------- | ------------------------ | ------------- | ------ | --- |
-| 1   | Fix nil-enforcer silent bypass: warn + deny when authAuthorized but enforcer==nil | authz.go                 | Security      | S      | 15m |
-| 2   | Fix query dispatch nil decoder result: add nil check like command dispatch        | handler.go               | Correctness   | S      | 10m |
-| 3   | Add tests for nil-enforcer fix + query nil check                                  | authz_test, handler_test | Coverage      | S      | 20m |
-| 4   | Fix rate limiter unbounded heap: track heap index, update in-place                | ratelimit.go             | Memory leak   | M      | 45m |
-| 5   | Add rate limiter heap growth test                                                 | ratelimit_test           | Coverage      | M      | 30m |
-| 6   | Fix CSRF proxy bypass: add TrustedProxies config, only bypass for trusted IPs     | csrf.go, csrf_handler.go | Security      | L      | 60m |
-| 7   | Add CSRF proxy bypass tests                                                       | csrf_test                | Coverage      | M      | 30m |
-| 8   | Fix usermgmt Login: distinguish store errors from not-found                       | usermgmt/service.go      | Correctness   | S      | 15m |
-| 9   | Add Login error classification tests                                              | usermgmt/service_test    | Coverage      | S      | 20m |
-| 10  | Fix Response.Status(): defer WriteHeader, store status code instead               | response.go              | API footgun   | M      | 30m |
-| 11  | Add Response.Status() fluent chain tests                                          | response_test            | Coverage      | S      | 20m |
-| 12  | Sanitize query params in logging: strip sensitive params                          | logging.go               | Security      | S      | 20m |
-| 13  | Add logging sanitization tests                                                    | logging_test             | Coverage      | S      | 15m |
-| 14  | Fix usermgmt UpdateRoles: persist user before updating Casbin                     | usermgmt/service.go      | Consistency   | S      | 15m |
-| 15  | Add UpdateRoles rollback tests                                                    | usermgmt/service_test    | Coverage      | M      | 25m |
-| 16  | Make defaultLoginRedirect a const                                                 | errors.go                | Code quality  | S      | 5m  |
-| 17  | Fix usermgmt InMemoryUserStore.Save clone inconsistency                           | usermgmt/store.go        | Correctness   | S      | 10m |
-| 18  | Full test suite + lint verification                                               | all                      | Release gate  | S      | 10m |
-| 19  | Update AGENTS.md, FEATURES.md, TODO_LIST.md                                       | docs                     | Documentation | S      | 15m |
-| 20  | Final commit + push                                                               | —                        | Delivery      | S      | 5m  |
+| #  | Task                                                                              | Files                    | Impact        | Effort | Est |
+| -- | --------------------------------------------------------------------------------- | ------------------------ | ------------- | ------ | --- |
+| 1  | Fix nil-enforcer silent bypass: warn + deny when authAuthorized but enforcer==nil | authz.go                 | Security      | S      | 15m |
+| 2  | Fix query dispatch nil decoder result: add nil check like command dispatch        | handler.go               | Correctness   | S      | 10m |
+| 3  | Add tests for nil-enforcer fix + query nil check                                  | authz_test, handler_test | Coverage      | S      | 20m |
+| 4  | Fix rate limiter unbounded heap: track heap index, update in-place                | ratelimit.go             | Memory leak   | M      | 45m |
+| 5  | Add rate limiter heap growth test                                                 | ratelimit_test           | Coverage      | M      | 30m |
+| 6  | Fix CSRF proxy bypass: add TrustedProxies config, only bypass for trusted IPs     | csrf.go, csrf_handler.go | Security      | L      | 60m |
+| 7  | Add CSRF proxy bypass tests                                                       | csrf_test                | Coverage      | M      | 30m |
+| 8  | Fix usermgmt Login: distinguish store errors from not-found                       | usermgmt/service.go      | Correctness   | S      | 15m |
+| 9  | Add Login error classification tests                                              | usermgmt/service_test    | Coverage      | S      | 20m |
+| 10 | Fix Response.Status(): defer WriteHeader, store status code instead               | response.go              | API footgun   | M      | 30m |
+| 11 | Add Response.Status() fluent chain tests                                          | response_test            | Coverage      | S      | 20m |
+| 12 | Sanitize query params in logging: strip sensitive params                          | logging.go               | Security      | S      | 20m |
+| 13 | Add logging sanitization tests                                                    | logging_test             | Coverage      | S      | 15m |
+| 14 | Fix usermgmt UpdateRoles: persist user before updating Casbin                     | usermgmt/service.go      | Consistency   | S      | 15m |
+| 15 | Add UpdateRoles rollback tests                                                    | usermgmt/service_test    | Coverage      | M      | 25m |
+| 16 | Make defaultLoginRedirect a const                                                 | errors.go                | Code quality  | S      | 5m  |
+| 17 | Fix usermgmt InMemoryUserStore.Save clone inconsistency                           | usermgmt/store.go        | Correctness   | S      | 10m |
+| 18 | Full test suite + lint verification                                               | all                      | Release gate  | S      | 10m |
+| 19 | Update AGENTS.md, FEATURES.md, TODO_LIST.md                                       | docs                     | Documentation | S      | 15m |
+| 20 | Final commit + push                                                               | —                        | Delivery      | S      | 5m  |
 
 **Total estimated: ~6.5 hours**
 
@@ -103,16 +103,16 @@ graph TD
 
 ### Completed (in working tree, ready to commit)
 
-| #   | Task                                 | Status                                                                                          |
-| --- | ------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| 1   | Fix nil-enforcer silent bypass       | ✅ authz.go:79 — removed nil guard, Enforce() now returns ErrEnforcerNil                        |
-| 2   | Fix query dispatch nil panic         | ✅ handler.go:181-184 — added nil check for qry                                                 |
-| 8   | Fix Login transient error swallowing | ✅ usermgmt/service.go — classifyLoginError helper distinguishes ErrUserNotFound from transient |
-| 12  | Sanitize query params in logging     | ✅ logging.go — removed query param logging from all 3 formatters                               |
-| 13  | Add logging sanitization tests       | ✅ logging_test.go — verified params NOT logged                                                 |
-| 14  | Fix UpdateRoles ordering             | ✅ usermgmt/service.go — persist user before Casbin policy                                      |
-| 16  | Make defaultLoginRedirect const      | ✅ errors.go — var → const                                                                      |
-| 17  | Fix store clone inconsistency        | ✅ usermgmt/store.go — Save() and Create() now clone                                            |
+| #  | Task                                 | Status                                                                                          |
+| -- | ------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| 1  | Fix nil-enforcer silent bypass       | ✅ authz.go:79 — removed nil guard, Enforce() now returns ErrEnforcerNil                        |
+| 2  | Fix query dispatch nil panic         | ✅ handler.go:181-184 — added nil check for qry                                                 |
+| 8  | Fix Login transient error swallowing | ✅ usermgmt/service.go — classifyLoginError helper distinguishes ErrUserNotFound from transient |
+| 12 | Sanitize query params in logging     | ✅ logging.go — removed query param logging from all 3 formatters                               |
+| 13 | Add logging sanitization tests       | ✅ logging_test.go — verified params NOT logged                                                 |
+| 14 | Fix UpdateRoles ordering             | ✅ usermgmt/service.go — persist user before Casbin policy                                      |
+| 16 | Make defaultLoginRedirect const      | ✅ errors.go — var → const                                                                      |
+| 17 | Fix store clone inconsistency        | ✅ usermgmt/store.go — Save() and Create() now clone                                            |
 
 ### Remaining (future sessions)
 

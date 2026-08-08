@@ -149,9 +149,7 @@
   function handleSyncAck(detail) {
     if (!detail || !detail.commandId) return;
 
-    const el = document.querySelector(
-      '[data-command-id="' + detail.commandId + '"]',
-    );
+    const el = document.querySelector('[data-command-id="' + detail.commandId + '"]');
     if (!el) return;
 
     if (detail.status === "confirmed") {
@@ -387,9 +385,7 @@
   // --- Never-silent rollback: on transport error, show rejected ---
   document.addEventListener("htmx:responseError", (e) => {
     const target = e.detail.elt;
-    const syncEl =
-      target.closest("[data-command-id]") ||
-      target.closest("[data-sync-state]");
+    const syncEl = target.closest("[data-command-id]") || target.closest("[data-sync-state]");
     if (syncEl) {
       setSyncState(syncEl, "rejected");
       sync.pending = Math.max(0, sync.pending - 1);
@@ -404,9 +400,7 @@
   // Offline ≠ rejected — the command is queued, not lost.
   document.addEventListener("htmx:sendError", (e) => {
     const target = e.detail.elt;
-    const syncEl =
-      target.closest("[data-command-id]") ||
-      target.closest("[data-sync-state]");
+    const syncEl = target.closest("[data-command-id]") || target.closest("[data-sync-state]");
     if (!syncEl) return;
 
     const cmdID = syncEl.getAttribute("data-command-id");

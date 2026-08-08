@@ -1,9 +1,9 @@
 # ADR 0014: OAuth2/OIDC Integration
 
-**Status:** Accepted  
-**Date:** 2026-06-18  
-**Deciders:** larsartmann  
-**Supersedes:** —  
+**Status:** Accepted\
+**Date:** 2026-06-18\
+**Deciders:** larsartmann\
+**Supersedes:** —\
 **Amended by:** —
 
 ---

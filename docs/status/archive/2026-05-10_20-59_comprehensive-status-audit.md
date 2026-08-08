@@ -89,11 +89,11 @@ Library is in excellent shape. 10 production files, 3,827 total lines, 148 tests
 
 ### 2. Documentation Freshness
 
-| Doc            | Status        | Issue                                                                                                                          |
-| -------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `AGENTS.md`    | ✅ Current    | Updated 2026-05-07                                                                                                             |
-| `CHANGELOG.md` | ✅ Current    | [Unreleased] section up to date                                                                                                |
-| `README.md`    | ✅ Current    | Examples compile, use typed UserID                                                                                             |
+| Doc            | Status       | Issue                                                                                                                          |
+| -------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `AGENTS.md`    | ✅ Current   | Updated 2026-05-07                                                                                                             |
+| `CHANGELOG.md` | ✅ Current   | [Unreleased] section up to date                                                                                                |
+| `README.md`    | ✅ Current   | Examples compile, use typed UserID                                                                                             |
 | `TODO_LIST.md` | ⚠️ Stale      | Dead sentinel removal still marked TODO (done in `3ec00f8`), coverage listed as 95.7% (now 95.5%)                              |
 | `FEATURES.md`  | ⚠️ Very stale | Metrics say 92.6% coverage, 137 specs — actually 95.5% and 148 specs. User Identity description doesn't mention strong typing. |
 
@@ -107,18 +107,18 @@ Library is in excellent shape. 10 production files, 3,827 total lines, 148 tests
 
 ### From TODO_LIST.md P1–P4
 
-| #   | Item                                                            | Priority | Impact | Effort |
-| --- | --------------------------------------------------------------- | -------- | ------ | ------ |
-| 1   | Dispatch lifecycle hooks (`OnBeforeDispatch`/`OnAfterDispatch`) | P3       | High   | Medium |
-| 2   | Request validation middleware                                   | P3       | Medium | Medium |
-| 3   | JSON error response option                                      | P3       | Medium | Low    |
-| 4   | Correlation ID propagation                                      | P3       | High   | Low    |
-| 5   | Timeout propagation                                             | P3       | Medium | Low    |
-| 6   | Godoc examples                                                  | P4       | Medium | Low    |
-| 7   | CONTRIBUTING.md                                                 | P4       | Low    | Low    |
-| 8   | golangci-lint CI/CD                                             | P4       | Medium | Low    |
-| 9   | Benchmark tests                                                 | P4       | Low    | Medium |
-| 10  | Document `.golangci.yml` decisions                              | P4       | Low    | Low    |
+| #  | Item                                                            | Priority | Impact | Effort |
+| -- | --------------------------------------------------------------- | -------- | ------ | ------ |
+| 1  | Dispatch lifecycle hooks (`OnBeforeDispatch`/`OnAfterDispatch`) | P3       | High   | Medium |
+| 2  | Request validation middleware                                   | P3       | Medium | Medium |
+| 3  | JSON error response option                                      | P3       | Medium | Low    |
+| 4  | Correlation ID propagation                                      | P3       | High   | Low    |
+| 5  | Timeout propagation                                             | P3       | Medium | Low    |
+| 6  | Godoc examples                                                  | P4       | Medium | Low    |
+| 7  | CONTRIBUTING.md                                                 | P4       | Low    | Low    |
+| 8  | golangci-lint CI/CD                                             | P4       | Medium | Low    |
+| 9  | Benchmark tests                                                 | P4       | Low    | Medium |
+| 10 | Document `.golangci.yml` decisions                              | P4       | Low    | Low    |
 
 ---
 

@@ -132,45 +132,45 @@ datastar/
 
 Sorted by importance/impact/effort/customer-value. Phases are sequential within a phase; phases can overlap where noted.
 
-| #   | Task                                                                                               | Phase | Impact   | Effort | Depends On    |
-| --- | -------------------------------------------------------------------------------------------------- | ----- | -------- | ------ | ------------- |
-| 1   | Module scaffold: directory, go.mod, go.work entry, .golangci.yml, doc.go, LICENSE                  | P1    | CRITICAL | 30min  | —             |
-| 2   | Download datastar.js v1.0.2 + create embed file + version constant                                 | P1    | CRITICAL | 30min  | T1            |
-| 3   | `DatastarScriptHandler/With/Tag/Version` (mirror `htmx_serve.go` + `sync_serve.go`)                | P1    | HIGH     | 60min  | T2            |
-| 4   | Script handler tests: ETag, cache headers, 304, content-type, method guard                         | P1    | HIGH     | 60min  | T3            |
-| 5   | `DecodeSignals[Q]` + `DecodeSignalsTyped[Q]` (wraps `datastar.ReadSignals` for commands)           | P2    | HIGH     | 60min  | T1            |
-| 6   | `DecodeSignalsQuery[Q]` + `DecodeSignalsQueryTyped[Q]` (GET query param signals)                   | P2    | MED      | 45min  | T5            |
-| 7   | Decoder tests: round-trip signals→struct, empty body, malformed, GET vs POST                       | P2    | HIGH     | 90min  | T5,T6         |
-| 8   | `DatastarResponse` builder: `PatchSignals`, `PatchElements`, `PatchElementsTempl`, `RemoveElement` | P3    | HIGH     | 90min  | T1            |
-| 9   | `DatastarResponse`: `Redirect`, `ExecuteScript`, `ReplaceURL`, `Status`, `Apply`, `Header`         | P3    | MED      | 60min  | T8            |
-| 10  | `DatastarSSEStream`: wraps `datastar.NewSSE`, exposes `Context`, `IsClosed`, `Send`                | P4    | HIGH     | 60min  | T1            |
-| 11  | `SSEStreamHandler`: fan-out + replay (subscribe→connected→replay→pump loop)                        | P4    | HIGH     | 90min  | T10           |
-| 12  | Response + SSE stream tests: all methods, error cases, lifecycle                                   | P3-4  | HIGH     | 90min  | T8,T9,T10,T11 |
-| 13  | `EventBridge` struct + `BridgeConfig` + `Start/Stop` lifecycle                                     | P5    | HIGH     | 60min  | T11           |
-| 14  | `EventBridge.Map/Unmap`: declarative event→patch mapping + templ renderer integration              | P5    | HIGH     | 90min  | T13           |
-| 15  | `EventBridge` signal auto-mapper: domain event fields → signal patches                             | P5    | MED      | 60min  | T14           |
-| 16  | Event bridge tests: event mapping, fan-out, lifecycle, templ rendering                             | P5    | HIGH     | 90min  | T13,T14,T15   |
-| 17  | Demo: update go.mod + rewrite handlers to use `ds.DecodeSignals` + `ds.NewResponse`                | P6    | HIGH     | 100min | T5,T8         |
-| 18  | Demo: replace custom Broadcaster with `cqrshtmx.Broadcaster` + `ds.SSEStreamHandler`               | P6    | HIGH     | 90min  | T11,T17       |
-| 19  | Demo: add `ds.EventBridge` usage + update README + verify build + smoke test                       | P6    | MED      | 45min  | T14,T18       |
-| 20  | Guide: `docs/guides/datastar-integration.md` (full walkthrough with code examples)                 | P7    | MED      | 60min  | T19           |
-| 21  | ADR-0045: `docs/adr/0045-datastar-optional-frontend.md`                                            | P7    | MED      | 45min  | T19           |
-| 22  | Docs: update root README, FEATURES.md, AGENTS.md, ADR INDEX.md                                     | P7    | LOW      | 45min  | T20,T21       |
-| 23  | Lint pass: 0 issues on new module (`GOEXPERIMENT=jsonv2 golangci-lint run`)                        | P8    | HIGH     | 30min  | T4,T7,T12,T16 |
-| 24  | Coverage gate: configure threshold in flake.nix + verify                                           | P8    | MED      | 30min  | T23           |
-| 25  | Integration test: cross-module test in `integration_test/` (datastar module contracts)             | P9    | MED      | 60min  | T16           |
-| 26  | Full workspace build + test: `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race`                    | P8    | HIGH     | 30min  | T24,T25       |
+| #  | Task                                                                                               | Phase | Impact   | Effort | Depends On    |
+| -- | -------------------------------------------------------------------------------------------------- | ----- | -------- | ------ | ------------- |
+| 1  | Module scaffold: directory, go.mod, go.work entry, .golangci.yml, doc.go, LICENSE                  | P1    | CRITICAL | 30min  | —             |
+| 2  | Download datastar.js v1.0.2 + create embed file + version constant                                 | P1    | CRITICAL | 30min  | T1            |
+| 3  | `DatastarScriptHandler/With/Tag/Version` (mirror `htmx_serve.go` + `sync_serve.go`)                | P1    | HIGH     | 60min  | T2            |
+| 4  | Script handler tests: ETag, cache headers, 304, content-type, method guard                         | P1    | HIGH     | 60min  | T3            |
+| 5  | `DecodeSignals[Q]` + `DecodeSignalsTyped[Q]` (wraps `datastar.ReadSignals` for commands)           | P2    | HIGH     | 60min  | T1            |
+| 6  | `DecodeSignalsQuery[Q]` + `DecodeSignalsQueryTyped[Q]` (GET query param signals)                   | P2    | MED      | 45min  | T5            |
+| 7  | Decoder tests: round-trip signals→struct, empty body, malformed, GET vs POST                       | P2    | HIGH     | 90min  | T5,T6         |
+| 8  | `DatastarResponse` builder: `PatchSignals`, `PatchElements`, `PatchElementsTempl`, `RemoveElement` | P3    | HIGH     | 90min  | T1            |
+| 9  | `DatastarResponse`: `Redirect`, `ExecuteScript`, `ReplaceURL`, `Status`, `Apply`, `Header`         | P3    | MED      | 60min  | T8            |
+| 10 | `DatastarSSEStream`: wraps `datastar.NewSSE`, exposes `Context`, `IsClosed`, `Send`                | P4    | HIGH     | 60min  | T1            |
+| 11 | `SSEStreamHandler`: fan-out + replay (subscribe→connected→replay→pump loop)                        | P4    | HIGH     | 90min  | T10           |
+| 12 | Response + SSE stream tests: all methods, error cases, lifecycle                                   | P3-4  | HIGH     | 90min  | T8,T9,T10,T11 |
+| 13 | `EventBridge` struct + `BridgeConfig` + `Start/Stop` lifecycle                                     | P5    | HIGH     | 60min  | T11           |
+| 14 | `EventBridge.Map/Unmap`: declarative event→patch mapping + templ renderer integration              | P5    | HIGH     | 90min  | T13           |
+| 15 | `EventBridge` signal auto-mapper: domain event fields → signal patches                             | P5    | MED      | 60min  | T14           |
+| 16 | Event bridge tests: event mapping, fan-out, lifecycle, templ rendering                             | P5    | HIGH     | 90min  | T13,T14,T15   |
+| 17 | Demo: update go.mod + rewrite handlers to use `ds.DecodeSignals` + `ds.NewResponse`                | P6    | HIGH     | 100min | T5,T8         |
+| 18 | Demo: replace custom Broadcaster with `cqrshtmx.Broadcaster` + `ds.SSEStreamHandler`               | P6    | HIGH     | 90min  | T11,T17       |
+| 19 | Demo: add `ds.EventBridge` usage + update README + verify build + smoke test                       | P6    | MED      | 45min  | T14,T18       |
+| 20 | Guide: `docs/guides/datastar-integration.md` (full walkthrough with code examples)                 | P7    | MED      | 60min  | T19           |
+| 21 | ADR-0045: `docs/adr/0045-datastar-optional-frontend.md`                                            | P7    | MED      | 45min  | T19           |
+| 22 | Docs: update root README, FEATURES.md, AGENTS.md, ADR INDEX.md                                     | P7    | LOW      | 45min  | T20,T21       |
+| 23 | Lint pass: 0 issues on new module (`GOEXPERIMENT=jsonv2 golangci-lint run`)                        | P8    | HIGH     | 30min  | T4,T7,T12,T16 |
+| 24 | Coverage gate: configure threshold in flake.nix + verify                                           | P8    | MED      | 30min  | T23           |
+| 25 | Integration test: cross-module test in `integration_test/` (datastar module contracts)             | P9    | MED      | 60min  | T16           |
+| 26 | Full workspace build + test: `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race`                    | P8    | HIGH     | 30min  | T24,T25       |
 
 **Total estimated effort: ~21.5 hours** (for the 80% value threshold)
 
 **Estimated effort for remaining 20% (future scope, NOT in this plan):**
 
-| #   | Future Task                                                                | Impact | Effort |
-| --- | -------------------------------------------------------------------------- | ------ | ------ |
-| F1  | dashboardui: replace HTMX polling with Datastar signal patches             | HIGH   | ~8hr   |
-| F2  | adminui: optional Datastar rendering mode (templ stays, transport changes) | MED    | ~6hr   |
-| F3  | Offline sync: evaluate Datastar retry primitives vs sync-worker.js         | MED    | ~4hr   |
-| F4  | loginpage: Datastar form state                                             | LOW    | ~3hr   |
+| #  | Future Task                                                                | Impact | Effort |
+| -- | -------------------------------------------------------------------------- | ------ | ------ |
+| F1 | dashboardui: replace HTMX polling with Datastar signal patches             | HIGH   | ~8hr   |
+| F2 | adminui: optional Datastar rendering mode (templ stays, transport changes) | MED    | ~6hr   |
+| F3 | Offline sync: evaluate Datastar retry primitives vs sync-worker.js         | MED    | ~4hr   |
+| F4 | loginpage: Datastar form state                                             | LOW    | ~3hr   |
 
 ---
 

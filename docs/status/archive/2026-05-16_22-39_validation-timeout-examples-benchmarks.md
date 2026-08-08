@@ -195,33 +195,33 @@ The `a.queries.Dispatch(ctx, qry)` call returns an unwrapped error from an exter
 
 ## F) Top #25 Things to Get Done Next
 
-| #   | Priority | Task                                                                                   | Impact | Effort |
-| --- | -------- | -------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | **P0**   | Fix lint regression: resolve all 23 issues to get back to 0                            | HIGH   | MED    |
-| 2   | **P0**   | Fix flaky timeout tests: make them deterministic                                       | HIGH   | LOW    |
-| 3   | **P0**   | Run full test suite with race detector                                                 | HIGH   | LOW    |
-| 4   | **P0**   | Run coverage measurement and verify ≥95.5%                                             | MED    | LOW    |
-| 5   | **P1**   | Update FEATURES.md with all new features + metrics                                     | MED    | LOW    |
-| 6   | **P1**   | Update TODO_LIST.md: mark completed items, add new ones                                | MED    | LOW    |
-| 7   | **P1**   | Update AGENTS.md: new features, gotchas, decisions                                     | MED    | LOW    |
-| 8   | **P1**   | Fix wrapcheck in `dispatchQueryWithTimeout` properly                                   | LOW    | LOW    |
-| 9   | **P1**   | Remove unused `qryType` parameter from `dispatchQueryWithTimeout`                      | LOW    | LOW    |
-| 10  | **P1**   | Add `.golangci.yml` exclusion for test files (noctx, intrange, nilnil)                 | MED    | LOW    |
-| 11  | **P2**   | Unify timeout helpers: single `withTimeout(ctx) (context.Context, context.CancelFunc)` | LOW    | LOW    |
-| 12  | **P2**   | Update benchmark loops to Go 1.24+ `b.Loop()` pattern                                  | LOW    | LOW    |
-| 13  | **P2**   | Add `ExampleValidateCommand` and `ExampleValidateQuery` to godoc examples              | MED    | LOW    |
-| 14  | **P2**   | Add `ExampleJSONErrorHandler` to godoc examples                                        | MED    | LOW    |
-| 15  | **P2**   | Add `ExampleTimeout` to godoc examples showing Config.Timeout usage                    | MED    | LOW    |
-| 16  | **P2**   | Write CONTRIBUTING.md                                                                  | MED    | MED    |
-| 17  | **P2**   | Add GitHub Actions CI/CD with golangci-lint                                            | MED    | MED    |
-| 18  | **P2**   | Document `.golangci.yml` decisions inline                                              | LOW    | LOW    |
-| 19  | **P2**   | Deduplicate remaining 14 clone groups (down from 27)                                   | MED    | HIGH   |
-| 20  | **P3**   | Consider removing dead sentinels (`ErrNoUserID`, `ErrRendererMissing`) for v2          | LOW    | LOW    |
-| 21  | **P3**   | Add request logging middleware                                                         | MED    | MED    |
-| 22  | **P3**   | Add rate limiting middleware                                                           | MED    | MED    |
-| 23  | **P3**   | Refactor `handleQueryDispatch` cyclomatic complexity (currently at limit with nolint)  | LOW    | MED    |
-| 24  | **P3**   | Add WebSocket/SSE helpers for real-time updates                                        | LOW    | HIGH   |
-| 25  | **P3**   | Consider Go workspace (`go.work`) for multi-module structure                           | LOW    | HIGH   |
+| #  | Priority | Task                                                                                   | Impact | Effort |
+| -- | -------- | -------------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | **P0**   | Fix lint regression: resolve all 23 issues to get back to 0                            | HIGH   | MED    |
+| 2  | **P0**   | Fix flaky timeout tests: make them deterministic                                       | HIGH   | LOW    |
+| 3  | **P0**   | Run full test suite with race detector                                                 | HIGH   | LOW    |
+| 4  | **P0**   | Run coverage measurement and verify ≥95.5%                                             | MED    | LOW    |
+| 5  | **P1**   | Update FEATURES.md with all new features + metrics                                     | MED    | LOW    |
+| 6  | **P1**   | Update TODO_LIST.md: mark completed items, add new ones                                | MED    | LOW    |
+| 7  | **P1**   | Update AGENTS.md: new features, gotchas, decisions                                     | MED    | LOW    |
+| 8  | **P1**   | Fix wrapcheck in `dispatchQueryWithTimeout` properly                                   | LOW    | LOW    |
+| 9  | **P1**   | Remove unused `qryType` parameter from `dispatchQueryWithTimeout`                      | LOW    | LOW    |
+| 10 | **P1**   | Add `.golangci.yml` exclusion for test files (noctx, intrange, nilnil)                 | MED    | LOW    |
+| 11 | **P2**   | Unify timeout helpers: single `withTimeout(ctx) (context.Context, context.CancelFunc)` | LOW    | LOW    |
+| 12 | **P2**   | Update benchmark loops to Go 1.24+ `b.Loop()` pattern                                  | LOW    | LOW    |
+| 13 | **P2**   | Add `ExampleValidateCommand` and `ExampleValidateQuery` to godoc examples              | MED    | LOW    |
+| 14 | **P2**   | Add `ExampleJSONErrorHandler` to godoc examples                                        | MED    | LOW    |
+| 15 | **P2**   | Add `ExampleTimeout` to godoc examples showing Config.Timeout usage                    | MED    | LOW    |
+| 16 | **P2**   | Write CONTRIBUTING.md                                                                  | MED    | MED    |
+| 17 | **P2**   | Add GitHub Actions CI/CD with golangci-lint                                            | MED    | MED    |
+| 18 | **P2**   | Document `.golangci.yml` decisions inline                                              | LOW    | LOW    |
+| 19 | **P2**   | Deduplicate remaining 14 clone groups (down from 27)                                   | MED    | HIGH   |
+| 20 | **P3**   | Consider removing dead sentinels (`ErrNoUserID`, `ErrRendererMissing`) for v2          | LOW    | LOW    |
+| 21 | **P3**   | Add request logging middleware                                                         | MED    | MED    |
+| 22 | **P3**   | Add rate limiting middleware                                                           | MED    | MED    |
+| 23 | **P3**   | Refactor `handleQueryDispatch` cyclomatic complexity (currently at limit with nolint)  | LOW    | MED    |
+| 24 | **P3**   | Add WebSocket/SSE helpers for real-time updates                                        | LOW    | HIGH   |
+| 25 | **P3**   | Consider Go workspace (`go.work`) for multi-module structure                           | LOW    | HIGH   |
 
 ---
 

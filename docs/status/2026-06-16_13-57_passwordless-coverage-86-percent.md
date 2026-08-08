@@ -123,33 +123,33 @@ One design concern:
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                           | Impact | Effort |
-| --- | -------------------------------------------------------------- | ------ | ------ |
-| 1   | Wire AccountLockout into BeginLogin                            | High   | 15m    |
-| 2   | Add OAuth2/OIDC provider interface                             | High   | 60m    |
-| 3   | SQL event store implementation                                 | High   | 120m   |
-| 4   | CasbinProjection: add CredentialAdded/Removed to EventTypes()  | Medium | 10m    |
-| 5   | Test CasbinProjection nil-authz error path                     | Medium | 5m     |
-| 6   | Test decide function error branches (event.NewEvent failures)  | Low    | 15m    |
-| 7   | Refactor webauthn_http.go to not read body twice               | Medium | 20m    |
-| 8   | Add GET /auth/credentials endpoint                             | Medium | 15m    |
-| 9   | Add DELETE /auth/credentials/{id} endpoint                     | Medium | 15m    |
-| 10  | Update example_test.go                                         | Medium | 15m    |
-| 11  | WebAuthn session proactive eviction goroutine                  | Low    | 15m    |
-| 12  | Test Authz error paths with broken enforcer                    | Medium | 30m    |
-| 13  | CSRF protection on WebAuthn endpoints                          | Medium | 15m    |
-| 14  | Rate limiting on WebAuthn endpoints                            | Medium | 15m    |
-| 15  | Event schema versioning                                        | Medium | 30m    |
-| 16  | Property-based test for foldUser                               | Low    | 15m    |
-| 17  | Fuzz test for RegisterRequest.Validate                         | Low    | 10m    |
-| 18  | Update docs/DOMAIN_LANGUAGE.md                                 | Low    | 10m    |
-| 19  | README.md passwordless quickstart                              | Medium | 20m    |
-| 20  | CI pipeline for multi-module testing                           | Medium | 30m    |
-| 21  | Integration test: full WebAuthn flow via virtual authenticator | Medium | 60m    |
-| 22  | Add Service.Authz() accessor for consumer-side auth checks     | Low    | 5m     |
-| 23  | Consider pluggable session store interface for Redis           | Medium | 30m    |
-| 24  | Add benchmarks for WebAuthn ceremony methods                   | Low    | 15m    |
-| 25  | Add structured logging to WebAuthn ceremonies                  | Low    | 10m    |
+| #  | Task                                                           | Impact | Effort |
+| -- | -------------------------------------------------------------- | ------ | ------ |
+| 1  | Wire AccountLockout into BeginLogin                            | High   | 15m    |
+| 2  | Add OAuth2/OIDC provider interface                             | High   | 60m    |
+| 3  | SQL event store implementation                                 | High   | 120m   |
+| 4  | CasbinProjection: add CredentialAdded/Removed to EventTypes()  | Medium | 10m    |
+| 5  | Test CasbinProjection nil-authz error path                     | Medium | 5m     |
+| 6  | Test decide function error branches (event.NewEvent failures)  | Low    | 15m    |
+| 7  | Refactor webauthn_http.go to not read body twice               | Medium | 20m    |
+| 8  | Add GET /auth/credentials endpoint                             | Medium | 15m    |
+| 9  | Add DELETE /auth/credentials/{id} endpoint                     | Medium | 15m    |
+| 10 | Update example_test.go                                         | Medium | 15m    |
+| 11 | WebAuthn session proactive eviction goroutine                  | Low    | 15m    |
+| 12 | Test Authz error paths with broken enforcer                    | Medium | 30m    |
+| 13 | CSRF protection on WebAuthn endpoints                          | Medium | 15m    |
+| 14 | Rate limiting on WebAuthn endpoints                            | Medium | 15m    |
+| 15 | Event schema versioning                                        | Medium | 30m    |
+| 16 | Property-based test for foldUser                               | Low    | 15m    |
+| 17 | Fuzz test for RegisterRequest.Validate                         | Low    | 10m    |
+| 18 | Update docs/DOMAIN_LANGUAGE.md                                 | Low    | 10m    |
+| 19 | README.md passwordless quickstart                              | Medium | 20m    |
+| 20 | CI pipeline for multi-module testing                           | Medium | 30m    |
+| 21 | Integration test: full WebAuthn flow via virtual authenticator | Medium | 60m    |
+| 22 | Add Service.Authz() accessor for consumer-side auth checks     | Low    | 5m     |
+| 23 | Consider pluggable session store interface for Redis           | Medium | 30m    |
+| 24 | Add benchmarks for WebAuthn ceremony methods                   | Low    | 15m    |
+| 25 | Add structured logging to WebAuthn ceremonies                  | Low    | 10m    |
 
 ---
 

@@ -19,11 +19,11 @@ Executed the comprehensive docs truth-reconciliation plan that followed the 2026
 
 The plan identified 3 blocking decisions. All resolved with conservative, reversible, standard-practice choices:
 
-| ID  | Question                       | Decision                                     | Rationale                                                                                                                                                                                                                                   |
-| --- | ------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | TOTP sub-module fate           | **Keep `FULLY_FUNCTIONAL`** + cross-ref note | The sub-module genuinely works (88.2% coverage, 3 provider tests). The rejection was about admin UI views, not the sub-module. Downgrading the status would be dishonest about the code. Added "Not promoted" note pointing to Not Planned. |
-| D2  | OAuth2 admin link/unlink views | **Keep as open TODO**                        | OAuth2 is a first-class promoted strategy. Users managing connected providers is a real feature. Reversible — can reject later if undesired.                                                                                                |
-| D3  | Version numbering scheme       | **Keep top `[Unreleased]`** (KaC standard)   | Standard Keep a Changelog practice — don't version until ready to tag. For the orphaned bottom `[Unreleased]`: merged into `[3.3.0]` since its content (Server-Timing, checkpoint replay) shipped in v3.3.0.                                |
+| ID | Question                       | Decision                                     | Rationale                                                                                                                                                                                                                                   |
+| -- | ------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1 | TOTP sub-module fate           | **Keep `FULLY_FUNCTIONAL`** + cross-ref note | The sub-module genuinely works (88.2% coverage, 3 provider tests). The rejection was about admin UI views, not the sub-module. Downgrading the status would be dishonest about the code. Added "Not promoted" note pointing to Not Planned. |
+| D2 | OAuth2 admin link/unlink views | **Keep as open TODO**                        | OAuth2 is a first-class promoted strategy. Users managing connected providers is a real feature. Reversible — can reject later if undesired.                                                                                                |
+| D3 | Version numbering scheme       | **Keep top `[Unreleased]`** (KaC standard)   | Standard Keep a Changelog practice — don't version until ready to tag. For the orphaned bottom `[Unreleased]`: merged into `[3.3.0]` since its content (Server-Timing, checkpoint replay) shipped in v3.3.0.                                |
 
 ---
 
@@ -89,18 +89,18 @@ The plan identified 3 blocking decisions. All resolved with conservative, revers
 
 ## Success Criteria Verification
 
-| #   | Criterion                                                   | Status | Evidence                                                              |
-| --- | ----------------------------------------------------------- | ------ | --------------------------------------------------------------------- |
-| 1   | FEATURES Not Planned == ROADMAP Not Planned (feature-level) | ✅     | FEATURES: 10 feature rejections; ROADMAP: 10 feature + 5 task/process |
-| 2   | go-cqrs-lite version consistent across docs                 | ✅     | All use `v4.0.x`; 0 stale non-historical refs                         |
-| 3   | TODO_LIST has zero `[x]` items                              | ✅     | `grep -c '\[x\]'` = 0                                                 |
-| 4   | CHANGELOG has exactly one `[Unreleased]`                    | ✅     | `grep -c '^## \[Unreleased\]'` = 1                                    |
-| 5   | `nix run .#check-docs-freshness` exits clean                | ✅     | PASSED                                                                |
-| 6   | Every removed `[x]` item accounted for                      | ✅     | 6 in CHANGELOG, 5 in ROADMAP Not Planned                              |
-| 7   | Coverage/test/lint stats match actuals                      | ✅     | Recomputed from `go test -cover`                                      |
-| 8   | All ADR references resolve                                  | ✅     | 21 refs, 0 ghosts in living docs                                      |
-| 9   | CONTRIBUTING module count == go.work                        | ✅     | 12 = 12                                                               |
-| 10  | No status report contradicts current state                  | ✅     | Historical snapshots; living docs are current truth                   |
+| #  | Criterion                                                   | Status | Evidence                                                              |
+| -- | ----------------------------------------------------------- | ------ | --------------------------------------------------------------------- |
+| 1  | FEATURES Not Planned == ROADMAP Not Planned (feature-level) | ✅     | FEATURES: 10 feature rejections; ROADMAP: 10 feature + 5 task/process |
+| 2  | go-cqrs-lite version consistent across docs                 | ✅     | All use `v4.0.x`; 0 stale non-historical refs                         |
+| 3  | TODO_LIST has zero `[x]` items                              | ✅     | `grep -c '\[x\]'` = 0                                                 |
+| 4  | CHANGELOG has exactly one `[Unreleased]`                    | ✅     | `grep -c '^## \[Unreleased\]'` = 1                                    |
+| 5  | `nix run .#check-docs-freshness` exits clean                | ✅     | PASSED                                                                |
+| 6  | Every removed `[x]` item accounted for                      | ✅     | 6 in CHANGELOG, 5 in ROADMAP Not Planned                              |
+| 7  | Coverage/test/lint stats match actuals                      | ✅     | Recomputed from `go test -cover`                                      |
+| 8  | All ADR references resolve                                  | ✅     | 21 refs, 0 ghosts in living docs                                      |
+| 9  | CONTRIBUTING module count == go.work                        | ✅     | 12 = 12                                                               |
+| 10 | No status report contradicts current state                  | ✅     | Historical snapshots; living docs are current truth                   |
 
 ---
 

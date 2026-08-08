@@ -8,17 +8,17 @@
 
 ## a) FULLY DONE (Verified)
 
-| #   | Item                                                                                | Files                                             | Tests Added                                            |
-| --- | ----------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------ |
-| 1   | **Depguard lint rule** (P0) — rejects `encoding/json/v2` + `encoding/json/jsontext` | `.golangci.yml`                                   | Verified catches violation                             |
-| 2   | **CBOR round-trip tests** (P1) — exercises `codec.ForEncoding` path                 | `usermgmt/es_state_test.go`                       | 4 tests (CBOR, JSON baseline, CBOR fold, mixed stream) |
-| 3   | **Decode\*WithRequest tests** (P1) — form, JSON query, form query                   | `feedback_features_test.go`                       | 3 Ginkgo specs                                         |
-| 4   | **CSRFTestToken fix** (P1) — returns `(token, cookie)`                              | `csrf_testing.go`, `feedback_features_test.go`    | 2 specs (extraction + GET→POST round-trip)             |
-| 5   | **StructuredError Code field** (P1) — fixes split brain with JSONErrorHandler       | `structured_error.go`, `structured_error_test.go` | 2 specs (field + JSON output)                          |
-| 6   | **Exhaustive lint fix** (P1) — explicit Transient/Corruption/Infrastructure cases   | `usermgmt/service_register.go`                    | Existing tests pass                                    |
-| 7   | **Empty-body godoc** (P1) — documents zero-value T behavior                         | `options_decode.go`                               | —                                                      |
-| 8   | **writeDispatchError helper** (P2) — consolidates 15 call sites                     | `usermgmt/http.go` + 4 handler files              | Existing tests pass                                    |
-| 9   | **ErrorContext in RequestLoggingSlog** (P2) — error_code/family/context in logs     | `logging.go`, `handler.go`, `logging_test.go`     | 1 spec (full dispatch error logging)                   |
+| # | Item                                                                                | Files                                             | Tests Added                                            |
+| - | ----------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------ |
+| 1 | **Depguard lint rule** (P0) — rejects `encoding/json/v2` + `encoding/json/jsontext` | `.golangci.yml`                                   | Verified catches violation                             |
+| 2 | **CBOR round-trip tests** (P1) — exercises `codec.ForEncoding` path                 | `usermgmt/es_state_test.go`                       | 4 tests (CBOR, JSON baseline, CBOR fold, mixed stream) |
+| 3 | **Decode\*WithRequest tests** (P1) — form, JSON query, form query                   | `feedback_features_test.go`                       | 3 Ginkgo specs                                         |
+| 4 | **CSRFTestToken fix** (P1) — returns `(token, cookie)`                              | `csrf_testing.go`, `feedback_features_test.go`    | 2 specs (extraction + GET→POST round-trip)             |
+| 5 | **StructuredError Code field** (P1) — fixes split brain with JSONErrorHandler       | `structured_error.go`, `structured_error_test.go` | 2 specs (field + JSON output)                          |
+| 6 | **Exhaustive lint fix** (P1) — explicit Transient/Corruption/Infrastructure cases   | `usermgmt/service_register.go`                    | Existing tests pass                                    |
+| 7 | **Empty-body godoc** (P1) — documents zero-value T behavior                         | `options_decode.go`                               | —                                                      |
+| 8 | **writeDispatchError helper** (P2) — consolidates 15 call sites                     | `usermgmt/http.go` + 4 handler files              | Existing tests pass                                    |
+| 9 | **ErrorContext in RequestLoggingSlog** (P2) — error_code/family/context in logs     | `logging.go`, `handler.go`, `logging_test.go`     | 1 spec (full dispatch error logging)                   |
 
 **Verification gates passed:**
 

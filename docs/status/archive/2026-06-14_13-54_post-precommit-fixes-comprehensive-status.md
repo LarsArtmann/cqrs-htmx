@@ -203,33 +203,33 @@ But there are **minor screw-ups / things I'm not proud of**:
 
 Sorted by **Pareto impact** (1% effort → 51% impact first):
 
-| #   | Priority | Effort | Item                                                                                                                                                       | Why                                |
-| --- | -------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| 1   | **P0**   | 5m     | Update `TODO_LIST.md` header `v2.1.0` → `v2.3.0`                                                                                                           | Stale doc contradicts go.mod       |
-| 2   | **P0**   | 5m     | Update `FEATURES.md` header date and metrics                                                                                                               | Stale doc                          |
-| 3   | **P0**   | 5m     | Add Unreleased entry to `CHANGELOG.md` for flake-meta + todo-check fixes                                                                                   | Release hygiene                    |
-| 4   | **P0**   | 10m    | Add `reports/`, `coverage/`, `*.out`, `*.db*` to `.gitignore`                                                                                              | Stop manual cleanup                |
-| 5   | **P0**   | 10m    | Exclude `oxfmt`, `prettier`, `oxlint`, `eslint`, `tsc`, `npm` from `.buildflow.yml` for Go-only repos                                                      | Stop false-positive build failures |
-| 6   | **P0**   | 10m    | Delete `reports/` untracked directory                                                                                                                      | Hygiene                            |
-| 7   | **P1**   | 30m    | Investigate + fix 60 lint issues in `examples/datastar-demo`                                                                                               | Lint 0/60 → 60/60                  |
-| 8   | **P1**   | 30m    | Restart LSP / wipe gopls cache, verify 31 stale warnings are gone                                                                                          | DX                                 |
-| 9   | **P1**   | 1h     | Add per-feature `ExampleXxx` godoc tests for SSE, WS, pagination, security, rate limit, recovery (currently 33 examples for 53 features)                   | Discoverability                    |
-| 10  | **P1**   | 2h     | Add a "library principle" section to AGENTS.md (no opinions, hooks > configs, composition > inheritance)                                                   | Codify the design philosophy       |
-| 11  | **P1**   | 1h     | Write ADR-0006: "Why we don't adopt OTel SDK, WebSocket library, or SQL driver"                                                                            | Codify scope                       |
-| 12  | **P1**   | 1h     | Add pre-push hook (golangci-lint + go test -race)                                                                                                          | Catch issues before push           |
-| 13  | **P1**   | 2h     | Add CI workflow `.github/workflows/ci.yml` (parallel test, lint, coverage)                                                                                 | Visibility on PRs                  |
-| 14  | **P1**   | 2h     | Consolidate docs structure: `docs/adr/`, `docs/status/`, `docs/architecture/`, drop `docs/plan/`, `docs/planning/`, `docs/modularization/`                 | Discoverability                    |
-| 15  | **P1**   | 4h     | Write D2 architecture diagrams: request lifecycle, dispatch, SSE fan-out, auth flow                                                                        | Visual onboarding                  |
-| 16  | **P1**   | 4h     | Add Codecov / coverage badge                                                                                                                               | Regression visibility              |
-| 17  | **P2**   | 1h     | Add `scripts/test.sh` wrapper (sets GOWORK=off, runs each module) — `nix run .#test` already does this but shell alternative is helpful                    | DX                                 |
-| 18  | **P2**   | 2h     | Implement the **blocked BrandNamer TODO** if/when upstream `go-cqrs-lite/core/pkg/id` exposes marker types                                                 | Unblock 1 TODO                     |
-| 19  | **P2**   | 4h     | Add a `examples/`-level `examples/postgres-usermgmt/` showing `UserStore`/`SessionStore` Postgres implementation referencing `usermgmt/docs/SQL_STORES.md` | Consumer reference                 |
-| 20  | **P2**   | 4h     | Add benchmarks for SSE Broadcaster, WebSocket parser, RateLimiter (currently 24 benchmarks; broad coverage missing)                                        | Performance visibility             |
-| 21  | **P2**   | 4h     | Add `Pre-push` `golangci-lint` to flake.nix apps (`nix run .#lint` exists but pre-commit is the gate)                                                      | Catch issues at the right stage    |
-| 22  | **P2**   | 8h     | Add `Config.IncludeRequestIDInErrors` test coverage + docs in godoc                                                                                        | Test gap                           |
-| 23  | **P2**   | 8h     | Audit and refresh all ADRs: confirm 0001-0005 still reflect the codebase (0001 mentions Casbin v1, may need bump)                                          | Doc drift                          |
-| 24  | **P3**   | 1d     | Add a `benchstat`-driven CI step that fails on >5% allocation regression                                                                                   | Performance gate                   |
-| 25  | **P3**   | 2d     | Add a complete `examples/todo-app/` (templ + HTMX + datastar) — real-world reference                                                                       | Showcase                           |
+| #  | Priority | Effort | Item                                                                                                                                                       | Why                                |
+| -- | -------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| 1  | **P0**   | 5m     | Update `TODO_LIST.md` header `v2.1.0` → `v2.3.0`                                                                                                           | Stale doc contradicts go.mod       |
+| 2  | **P0**   | 5m     | Update `FEATURES.md` header date and metrics                                                                                                               | Stale doc                          |
+| 3  | **P0**   | 5m     | Add Unreleased entry to `CHANGELOG.md` for flake-meta + todo-check fixes                                                                                   | Release hygiene                    |
+| 4  | **P0**   | 10m    | Add `reports/`, `coverage/`, `*.out`, `*.db*` to `.gitignore`                                                                                              | Stop manual cleanup                |
+| 5  | **P0**   | 10m    | Exclude `oxfmt`, `prettier`, `oxlint`, `eslint`, `tsc`, `npm` from `.buildflow.yml` for Go-only repos                                                      | Stop false-positive build failures |
+| 6  | **P0**   | 10m    | Delete `reports/` untracked directory                                                                                                                      | Hygiene                            |
+| 7  | **P1**   | 30m    | Investigate + fix 60 lint issues in `examples/datastar-demo`                                                                                               | Lint 0/60 → 60/60                  |
+| 8  | **P1**   | 30m    | Restart LSP / wipe gopls cache, verify 31 stale warnings are gone                                                                                          | DX                                 |
+| 9  | **P1**   | 1h     | Add per-feature `ExampleXxx` godoc tests for SSE, WS, pagination, security, rate limit, recovery (currently 33 examples for 53 features)                   | Discoverability                    |
+| 10 | **P1**   | 2h     | Add a "library principle" section to AGENTS.md (no opinions, hooks > configs, composition > inheritance)                                                   | Codify the design philosophy       |
+| 11 | **P1**   | 1h     | Write ADR-0006: "Why we don't adopt OTel SDK, WebSocket library, or SQL driver"                                                                            | Codify scope                       |
+| 12 | **P1**   | 1h     | Add pre-push hook (golangci-lint + go test -race)                                                                                                          | Catch issues before push           |
+| 13 | **P1**   | 2h     | Add CI workflow `.github/workflows/ci.yml` (parallel test, lint, coverage)                                                                                 | Visibility on PRs                  |
+| 14 | **P1**   | 2h     | Consolidate docs structure: `docs/adr/`, `docs/status/`, `docs/architecture/`, drop `docs/plan/`, `docs/planning/`, `docs/modularization/`                 | Discoverability                    |
+| 15 | **P1**   | 4h     | Write D2 architecture diagrams: request lifecycle, dispatch, SSE fan-out, auth flow                                                                        | Visual onboarding                  |
+| 16 | **P1**   | 4h     | Add Codecov / coverage badge                                                                                                                               | Regression visibility              |
+| 17 | **P2**   | 1h     | Add `scripts/test.sh` wrapper (sets GOWORK=off, runs each module) — `nix run .#test` already does this but shell alternative is helpful                    | DX                                 |
+| 18 | **P2**   | 2h     | Implement the **blocked BrandNamer TODO** if/when upstream `go-cqrs-lite/core/pkg/id` exposes marker types                                                 | Unblock 1 TODO                     |
+| 19 | **P2**   | 4h     | Add a `examples/`-level `examples/postgres-usermgmt/` showing `UserStore`/`SessionStore` Postgres implementation referencing `usermgmt/docs/SQL_STORES.md` | Consumer reference                 |
+| 20 | **P2**   | 4h     | Add benchmarks for SSE Broadcaster, WebSocket parser, RateLimiter (currently 24 benchmarks; broad coverage missing)                                        | Performance visibility             |
+| 21 | **P2**   | 4h     | Add `Pre-push` `golangci-lint` to flake.nix apps (`nix run .#lint` exists but pre-commit is the gate)                                                      | Catch issues at the right stage    |
+| 22 | **P2**   | 8h     | Add `Config.IncludeRequestIDInErrors` test coverage + docs in godoc                                                                                        | Test gap                           |
+| 23 | **P2**   | 8h     | Audit and refresh all ADRs: confirm 0001-0005 still reflect the codebase (0001 mentions Casbin v1, may need bump)                                          | Doc drift                          |
+| 24 | **P3**   | 1d     | Add a `benchstat`-driven CI step that fails on >5% allocation regression                                                                                   | Performance gate                   |
+| 25 | **P3**   | 2d     | Add a complete `examples/todo-app/` (templ + HTMX + datastar) — real-world reference                                                                       | Showcase                           |
 
 ---
 

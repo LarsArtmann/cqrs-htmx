@@ -212,33 +212,33 @@ tenant-scoped consistency.
 
 Sorted by **impact / effort ratio** (highest first).
 
-| #   | Task                                                                    | Impact | Effort | Notes                      |
-| --- | ----------------------------------------------------------------------- | ------ | ------ | -------------------------- |
-| 1   | **Fix RolesForActor to take ActorID, not string**                       | 10     | 5min   | Type-safety bug fix        |
-| 2   | **Remove dead `allMembershipEventTypes` nolint** — wire it or remove it | 9      | 5min   | Dead code cleanup          |
-| 3   | **Fix stale comments** (es_constants.go, es_upcaster_test.go)           | 7      | 5min   | Truth in documentation     |
-| 4   | **Update AGENTS.md** with new types, file list, event/command counts    | 8      | 15min  | Docs freshness             |
-| 5   | **Write ADR 0015** for identity model redesign                          | 9      | 30min  | Process compliance         |
-| 6   | **Resolve MembershipState/Membership split brain**                      | 9      | 30min  | Architectural cleanup      |
-| 7   | **Register membership commands in RegisterCommands**                    | 10     | 45min  | Makes aggregate functional |
-| 8   | **Write decide functions for membership commands**                      | 10     | 45min  | Pure domain logic          |
-| 9   | **Wire membership events into CasbinProjection**                        | 10     | 60min  | Makes authz work           |
-| 10  | **Create MembershipReadModel projection**                               | 8      | 45min  | Query support              |
-| 11  | **Wire Membership repository in Service**                               | 9      | 30min  | Service integration        |
-| 12  | **Stamp SchemaVersion in ALL deciders**                                 | 7      | 15min  | Consistency                |
-| 13  | **Write v1→v2 upcaster for RolesUpdatedPayload**                        | 8      | 30min  | Migration support          |
-| 14  | **Update Session struct: ActorID + Origin**                             | 8      | 30min  | Impersonation foundation   |
-| 15  | **Update SessionStore interface**                                       | 7      | 30min  | Session lifecycle          |
-| 16  | **Implement BeginImpersonation/EndImpersonation**                       | 9      | 60min  | Core feature               |
-| 17  | **Update session middleware for actor+impersonator**                    | 8      | 45min  | HTTP integration           |
-| 18  | **Create Tenant aggregate** (state+events+commands+fold)                | 7      | 90min  | Multi-tenancy              |
-| 19  | **Consider Tenant-owned Membership** (refactor from separate aggregate) | 8      | 60min  | Simpler model              |
-| 20  | **Create Bot aggregate + HMAC pepper hash**                             | 7      | 60min  | Machine identity           |
-| 21  | **API token authentication middleware**                                 | 6      | 45min  | Bot auth                   |
-| 22  | **Migration projection: Roles → Membership**                            | 8      | 60min  | Backward compat            |
-| 23  | **Integration tests for full membership lifecycle**                     | 9      | 45min  | Verify wiring              |
-| 24  | **Update existing tests for ActorID types**                             | 7      | 45min  | Test correctness           |
-| 25  | **Catalog integration** (new events/commands in catalog)                | 4      | 30min  | API docs                   |
+| #  | Task                                                                    | Impact | Effort | Notes                      |
+| -- | ----------------------------------------------------------------------- | ------ | ------ | -------------------------- |
+| 1  | **Fix RolesForActor to take ActorID, not string**                       | 10     | 5min   | Type-safety bug fix        |
+| 2  | **Remove dead `allMembershipEventTypes` nolint** — wire it or remove it | 9      | 5min   | Dead code cleanup          |
+| 3  | **Fix stale comments** (es_constants.go, es_upcaster_test.go)           | 7      | 5min   | Truth in documentation     |
+| 4  | **Update AGENTS.md** with new types, file list, event/command counts    | 8      | 15min  | Docs freshness             |
+| 5  | **Write ADR 0015** for identity model redesign                          | 9      | 30min  | Process compliance         |
+| 6  | **Resolve MembershipState/Membership split brain**                      | 9      | 30min  | Architectural cleanup      |
+| 7  | **Register membership commands in RegisterCommands**                    | 10     | 45min  | Makes aggregate functional |
+| 8  | **Write decide functions for membership commands**                      | 10     | 45min  | Pure domain logic          |
+| 9  | **Wire membership events into CasbinProjection**                        | 10     | 60min  | Makes authz work           |
+| 10 | **Create MembershipReadModel projection**                               | 8      | 45min  | Query support              |
+| 11 | **Wire Membership repository in Service**                               | 9      | 30min  | Service integration        |
+| 12 | **Stamp SchemaVersion in ALL deciders**                                 | 7      | 15min  | Consistency                |
+| 13 | **Write v1→v2 upcaster for RolesUpdatedPayload**                        | 8      | 30min  | Migration support          |
+| 14 | **Update Session struct: ActorID + Origin**                             | 8      | 30min  | Impersonation foundation   |
+| 15 | **Update SessionStore interface**                                       | 7      | 30min  | Session lifecycle          |
+| 16 | **Implement BeginImpersonation/EndImpersonation**                       | 9      | 60min  | Core feature               |
+| 17 | **Update session middleware for actor+impersonator**                    | 8      | 45min  | HTTP integration           |
+| 18 | **Create Tenant aggregate** (state+events+commands+fold)                | 7      | 90min  | Multi-tenancy              |
+| 19 | **Consider Tenant-owned Membership** (refactor from separate aggregate) | 8      | 60min  | Simpler model              |
+| 20 | **Create Bot aggregate + HMAC pepper hash**                             | 7      | 60min  | Machine identity           |
+| 21 | **API token authentication middleware**                                 | 6      | 45min  | Bot auth                   |
+| 22 | **Migration projection: Roles → Membership**                            | 8      | 60min  | Backward compat            |
+| 23 | **Integration tests for full membership lifecycle**                     | 9      | 45min  | Verify wiring              |
+| 24 | **Update existing tests for ActorID types**                             | 7      | 45min  | Test correctness           |
+| 25 | **Catalog integration** (new events/commands in catalog)                | 4      | 30min  | API docs                   |
 
 ---
 

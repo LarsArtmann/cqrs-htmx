@@ -1,35 +1,35 @@
 # Status Report — cqrs-htmx
 
-**Date:** 2026-05-27 02:32  
-**Session:** Bug fixes + architectural improvements from go-modularize status report  
+**Date:** 2026-05-27 02:32\
+**Session:** Bug fixes + architectural improvements from go-modularize status report\
 **Coverage:** 96.9% root, 91.2% usermgmt | **Lint:** 0 issues | **Race:** clean
 
 ---
 
 ## a) FULLY DONE
 
-| #   | Item                                           | Detail                                                                                                                                              |
-| --- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Email normalization in usermgmt**            | `RegisterRequest.Validate()` and `LoginRequest.Validate()` now lowercase emails via `strings.ToLower`                                               |
-| 2   | **Lockout email normalization**                | `AccountLockout` uses `normalizeEmail()` (lowercase + trim) for all keys, preventing case bypass                                                    |
-| 3   | **RecoveryMiddleware deduplication**           | Extracted `shouldRePanic()` and `writePanicResponse()`; both `RecoveryMiddleware()` and `App.RecoveryMiddleware()` now delegate to shared helpers   |
-| 4   | **Hardcoded `"application/json"` → constants** | `httputil.go` uses `ContentTypeJSON`; `usermgmt/http.go` uses local `contentTypeJSON` (respects zero-cross-import boundary)                         |
-| 5   | **`isErr` → direct `errors.Is` calls**         | Removed `isErr()` wrapper entirely; all 7 call sites use `errors.Is` directly                                                                       |
-| 6   | **SwapStrategy validation**                    | Added `SwapStrategy.Valid()` method with exhaustive switch over all 8 known strategies                                                              |
-| 7   | **AccountLockout.IsLocked RLock optimization** | Changed from `Lock` to `RLock` for reads; upgrades to write lock only when expired lockout needs cleanup                                            |
-| 8   | **E2E middleware chain integration test**      | Added 2 tests in `integration_test.go`: full chain dispatch (SecurityHeaders→Recovery→CSRF→HTMX→Context→CQRS) and panic recovery through full chain |
-| 9   | **Case-insensitive test coverage**             | Added `TestService_Register_DuplicateEmail_CaseInsensitive`, `TestService_Login_CaseInsensitive`, `TestAccountLockout_CaseInsensitive`              |
-| 10  | **SwapStrategy.Valid() test coverage**         | Added validation tests for known/unknown strategies in `htmx_test.go`                                                                               |
-| 11  | **Lint clean after all changes**               | 0 issues in root and usermgmt; removed stale `//nolint:contextcheck` directives from recovery.go                                                    |
+| #  | Item                                           | Detail                                                                                                                                              |
+| -- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **Email normalization in usermgmt**            | `RegisterRequest.Validate()` and `LoginRequest.Validate()` now lowercase emails via `strings.ToLower`                                               |
+| 2  | **Lockout email normalization**                | `AccountLockout` uses `normalizeEmail()` (lowercase + trim) for all keys, preventing case bypass                                                    |
+| 3  | **RecoveryMiddleware deduplication**           | Extracted `shouldRePanic()` and `writePanicResponse()`; both `RecoveryMiddleware()` and `App.RecoveryMiddleware()` now delegate to shared helpers   |
+| 4  | **Hardcoded `"application/json"` → constants** | `httputil.go` uses `ContentTypeJSON`; `usermgmt/http.go` uses local `contentTypeJSON` (respects zero-cross-import boundary)                         |
+| 5  | **`isErr` → direct `errors.Is` calls**         | Removed `isErr()` wrapper entirely; all 7 call sites use `errors.Is` directly                                                                       |
+| 6  | **SwapStrategy validation**                    | Added `SwapStrategy.Valid()` method with exhaustive switch over all 8 known strategies                                                              |
+| 7  | **AccountLockout.IsLocked RLock optimization** | Changed from `Lock` to `RLock` for reads; upgrades to write lock only when expired lockout needs cleanup                                            |
+| 8  | **E2E middleware chain integration test**      | Added 2 tests in `integration_test.go`: full chain dispatch (SecurityHeaders→Recovery→CSRF→HTMX→Context→CQRS) and panic recovery through full chain |
+| 9  | **Case-insensitive test coverage**             | Added `TestService_Register_DuplicateEmail_CaseInsensitive`, `TestService_Login_CaseInsensitive`, `TestAccountLockout_CaseInsensitive`              |
+| 10 | **SwapStrategy.Valid() test coverage**         | Added validation tests for known/unknown strategies in `htmx_test.go`                                                                               |
+| 11 | **Lint clean after all changes**               | 0 issues in root and usermgmt; removed stale `//nolint:contextcheck` directives from recovery.go                                                    |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| #   | Item                              | What's Done                                                   | What's Missing                                                                                                                                                                       |
-| --- | --------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | **Content-Type constant rollout** | Root `httputil.go` and usermgmt `http.go` updated             | Test helper `encodeJSONResult` in `testing_test.go` still hardcodes `"application/json"`; integration test request setup still hardcodes Content-Type header ( cosmetic — test-only) |
-| 2   | **Test quality consolidation**    | E2E middleware chain test added; case-insensitive tests added | `assertStatusCode` still duplicated between root and usermgmt; app construction boilerplate still repeated 30+ times; `coverage_test.go` name still suggests coverage chasing        |
+| # | Item                              | What's Done                                                   | What's Missing                                                                                                                                                                       |
+| - | --------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | **Content-Type constant rollout** | Root `httputil.go` and usermgmt `http.go` updated             | Test helper `encodeJSONResult` in `testing_test.go` still hardcodes `"application/json"`; integration test request setup still hardcodes Content-Type header ( cosmetic — test-only) |
+| 2 | **Test quality consolidation**    | E2E middleware chain test added; case-insensitive tests added | `assertStatusCode` still duplicated between root and usermgmt; app construction boilerplate still repeated 30+ times; `coverage_test.go` name still suggests coverage chasing        |
 
 ---
 
@@ -104,33 +104,33 @@ Nothing. All builds/tests pass. No regressions introduced.
 
 Sorted by **Impact × Effort** (highest first):
 
-| #   | Item                                                                                    | Impact | Effort  | Category        |
-| --- | --------------------------------------------------------------------------------------- | ------ | ------- | --------------- |
-| 1   | **Missing edge case tests** (MaxBodySize 413, timeout 503, concurrent lockout)          | MEDIUM | 2 hrs   | Testing         |
-| 2   | **E2E middleware chain integration test**                                               | HIGH   | ✅ DONE | Testing         |
-| 3   | **usermgmt Register rollback error logging** (currently silently swallowed)             | MEDIUM | 30 min  | Error handling  |
-| 4   | **decoder.go form decode: document limitation or use gorilla/schema**                   | MEDIUM | 1 hr    | Robustness      |
-| 5   | **usermgmt HandlerConfig → functional options**                                         | MEDIUM | 2 hrs   | API consistency |
-| 6   | **SessionStore.Find expiration check** (currently returns expired sessions)             | MEDIUM | 30 min  | Correctness     |
-| 7   | **Test helper consolidation** (extract shared app construction, dedup assertStatusCode) | MEDIUM | 1 hr    | Test quality    |
-| 8   | **handleMe public DTO** (don't return full User JSON)                                   | MEDIUM | 30 min  | Security        |
-| 9   | **NewService config validation** (reject negative BcryptCost, zero SessionTTL)          | MEDIUM | 20 min  | Robustness      |
-| 10  | **SwapStrategy validation**                                                             | LOW    | ✅ DONE | Type safety     |
-| 11  | **authMode → typed string**                                                             | LOW    | 15 min  | Debuggability   |
-| 12  | **AccountLockout.IsLocked RLock optimization**                                          | LOW    | ✅ DONE | Performance     |
-| 13  | **coverage_test.go rename** (to behavior-based name)                                    | LOW    | 5 min   | Test quality    |
-| 14  | **User.MarshalJSON explicit allowlist** (currently hides by exclusion)                  | LOW    | 20 min  | Security        |
-| 15  | **HealthHandler deep health check** (verify dispatcher connectivity, not just non-nil)  | LOW    | 30 min  | Observability   |
-| 16  | **CSRFConfig getters → `cmp.Or`** (simplify trio of identical getters)                  | LOW    | 10 min  | Code quality    |
-| 17  | **SecurityHeadersConfig getters → `cmp.Or`**                                            | LOW    | 10 min  | Code quality    |
-| 18  | **Response.Apply() double-sanitize fix** (Redirect already sanitizes)                   | LOW    | 10 min  | Performance     |
-| 19  | **DefaultLogFormatter use contextFields()** (like JSONLogFormatter does)                | LOW    | 10 min  | Consistency     |
-| 20  | **datastar-demo LSP integration** (add to go.work or document stale LSP)                | LOW    | 10 min  | DX              |
-| 21  | **UserID type unification** (root vs usermgmt divergence)                               | HIGH   | 2 hrs   | Architecture    |
-| 22  | **SQL store backend for usermgmt**                                                      | HIGH   | 4 hrs   | Production      |
-| 23  | **OpenTelemetry integration**                                                           | MEDIUM | 2 hrs   | Observability   |
-| 24  | **WebSocket/SSE helpers**                                                               | MEDIUM | 4 hrs   | Feature         |
-| 25  | **BrandNamer for root module marker types**                                             | LOW    | BLOCKED | Upstream        |
+| #  | Item                                                                                    | Impact | Effort  | Category        |
+| -- | --------------------------------------------------------------------------------------- | ------ | ------- | --------------- |
+| 1  | **Missing edge case tests** (MaxBodySize 413, timeout 503, concurrent lockout)          | MEDIUM | 2 hrs   | Testing         |
+| 2  | **E2E middleware chain integration test**                                               | HIGH   | ✅ DONE | Testing         |
+| 3  | **usermgmt Register rollback error logging** (currently silently swallowed)             | MEDIUM | 30 min  | Error handling  |
+| 4  | **decoder.go form decode: document limitation or use gorilla/schema**                   | MEDIUM | 1 hr    | Robustness      |
+| 5  | **usermgmt HandlerConfig → functional options**                                         | MEDIUM | 2 hrs   | API consistency |
+| 6  | **SessionStore.Find expiration check** (currently returns expired sessions)             | MEDIUM | 30 min  | Correctness     |
+| 7  | **Test helper consolidation** (extract shared app construction, dedup assertStatusCode) | MEDIUM | 1 hr    | Test quality    |
+| 8  | **handleMe public DTO** (don't return full User JSON)                                   | MEDIUM | 30 min  | Security        |
+| 9  | **NewService config validation** (reject negative BcryptCost, zero SessionTTL)          | MEDIUM | 20 min  | Robustness      |
+| 10 | **SwapStrategy validation**                                                             | LOW    | ✅ DONE | Type safety     |
+| 11 | **authMode → typed string**                                                             | LOW    | 15 min  | Debuggability   |
+| 12 | **AccountLockout.IsLocked RLock optimization**                                          | LOW    | ✅ DONE | Performance     |
+| 13 | **coverage_test.go rename** (to behavior-based name)                                    | LOW    | 5 min   | Test quality    |
+| 14 | **User.MarshalJSON explicit allowlist** (currently hides by exclusion)                  | LOW    | 20 min  | Security        |
+| 15 | **HealthHandler deep health check** (verify dispatcher connectivity, not just non-nil)  | LOW    | 30 min  | Observability   |
+| 16 | **CSRFConfig getters → `cmp.Or`** (simplify trio of identical getters)                  | LOW    | 10 min  | Code quality    |
+| 17 | **SecurityHeadersConfig getters → `cmp.Or`**                                            | LOW    | 10 min  | Code quality    |
+| 18 | **Response.Apply() double-sanitize fix** (Redirect already sanitizes)                   | LOW    | 10 min  | Performance     |
+| 19 | **DefaultLogFormatter use contextFields()** (like JSONLogFormatter does)                | LOW    | 10 min  | Consistency     |
+| 20 | **datastar-demo LSP integration** (add to go.work or document stale LSP)                | LOW    | 10 min  | DX              |
+| 21 | **UserID type unification** (root vs usermgmt divergence)                               | HIGH   | 2 hrs   | Architecture    |
+| 22 | **SQL store backend for usermgmt**                                                      | HIGH   | 4 hrs   | Production      |
+| 23 | **OpenTelemetry integration**                                                           | MEDIUM | 2 hrs   | Observability   |
+| 24 | **WebSocket/SSE helpers**                                                               | MEDIUM | 4 hrs   | Feature         |
+| 25 | **BrandNamer for root module marker types**                                             | LOW    | BLOCKED | Upstream        |
 
 ---
 

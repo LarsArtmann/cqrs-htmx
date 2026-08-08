@@ -116,20 +116,20 @@ The library is designed around composable primitives:
 
 ### Make more composable
 
-| #   | Recommendation                                                        | Impact            | Effort |
-| --- | --------------------------------------------------------------------- | ----------------- | ------ |
-| 1   | Split `csrf.go` into `csrf.go` + `csrf_helpers.go`                    | File readability  | Low    |
-| 2   | Extract rate limiter max-keys config option                           | Production safety | Low    |
-| 3   | Add `Response.RedirectWithStatus(code int)` for custom redirect codes | Composability     | Low    |
-| 4   | Consider `WithDecoder(d CommandDecoder)` for fully custom decoders    | Extensibility     | Low    |
+| # | Recommendation                                                        | Impact            | Effort |
+| - | --------------------------------------------------------------------- | ----------------- | ------ |
+| 1 | Split `csrf.go` into `csrf.go` + `csrf_helpers.go`                    | File readability  | Low    |
+| 2 | Extract rate limiter max-keys config option                           | Production safety | Low    |
+| 3 | Add `Response.RedirectWithStatus(code int)` for custom redirect codes | Composability     | Low    |
+| 4 | Consider `WithDecoder(d CommandDecoder)` for fully custom decoders    | Extensibility     | Low    |
 
 ### Make more modular
 
-| #   | Recommendation                                      | Impact          | Effort |
-| --- | --------------------------------------------------- | --------------- | ------ |
-| 5   | Deduplicate HTMX accessor pattern (8 → 1 generic)   | Maintainability | Low    |
-| 6   | Deduplicate decoder pattern (4 → 1 generic)         | Maintainability | Low    |
-| 7   | Deduplicate notification surface (12 → shared impl) | Maintainability | Low    |
+| # | Recommendation                                      | Impact          | Effort |
+| - | --------------------------------------------------- | --------------- | ------ |
+| 5 | Deduplicate HTMX accessor pattern (8 → 1 generic)   | Maintainability | Low    |
+| 6 | Deduplicate decoder pattern (4 → 1 generic)         | Maintainability | Low    |
+| 7 | Deduplicate notification surface (12 → shared impl) | Maintainability | Low    |
 
 ---
 

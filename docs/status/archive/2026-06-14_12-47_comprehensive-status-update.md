@@ -206,33 +206,33 @@ There are zero:
 
 Sorted by **impact/effort ratio** (highest first).
 
-| #   | Task                                                                             | Impact | Effort | Category                    |
-| --- | -------------------------------------------------------------------------------- | ------ | ------ | --------------------------- |
-| 1   | **Fix flake.nix meta block**                                                     | High   | 5 min  | DevEx — unblocks pre-commit |
-| 2   | **Update ROADMAP.md** to reflect v2.3.0, current coverage, done items            | Medium | 15 min | Docs                        |
-| 3   | **Add govulncheck to CI** (ci.yml)                                               | High   | 15 min | Security                    |
-| 4   | **Fill DOMAIN_LANGUAGE.md** with actual domain terms                             | Medium | 30 min | Docs                        |
-| 5   | **Split csrf_middleware_test.go** (370 → 2 files under 350)                      | Low    | 15 min | Compliance                  |
-| 6   | **Recover coverage to 96.9%+ root**                                              | Medium | 1-2h   | Quality                     |
-| 7   | **Add go.work to .gitignore** (library convention)                               | Low    | 2 min  | DevEx                       |
-| 8   | **Write v2.2.0 release notes** in CHANGELOG                                      | Medium | 30 min | Release                     |
-| 9   | **Tag v2.2.0 release**                                                           | High   | 5 min  | Release                     |
-| 10  | **Add godoc package-level example** (doc.go)                                     | Medium | 20 min | Docs                        |
-| 11  | **PostgreSQL UserStore implementation** (documented pattern in SQL_STORES.md)    | High   | 4-8h   | Feature                     |
-| 12  | **PostgreSQL SessionStore implementation**                                       | High   | 2-4h   | Feature                     |
-| 13  | **Integration tests against real PostgreSQL** (testcontainers or Docker Compose) | Medium | 2-4h   | Quality                     |
-| 14  | **Database migration tooling** selection + setup                                 | Medium | 2h     | Feature                     |
-| 15  | **Profile dispatch/decode hot paths** for allocation reduction                   | Medium | 2h     | Perf                        |
-| 16  | **Add more cross-module integration tests** (CSRF+CQRS, rate-limit+SSE)          | Medium | 1-2h   | Quality                     |
-| 17  | **Recover usermgmt coverage to 91%+**                                            | Medium | 1h     | Quality                     |
-| 18  | **Consider canonicalheader linter** (HTTP header correctness)                    | Low    | 10 min | Quality                     |
-| 19  | **Add containedctx linter** (catch struct-contained context)                     | Low    | 10 min | Quality                     |
-| 20  | **Document the two UserID types** more prominently in README                     | Low    | 15 min | Docs                        |
-| 21  | **Add SSE connection count monitoring** (like RateLimiter.ActiveKeys)            | Low    | 30 min | Feature                     |
-| 22  | **Consider go-cqrs-lite v2.4+ upgrade** when available                           | Low    | TBD    | Deps                        |
-| 23  | **Add OPTIONS method handling** for CORS preflight                               | Low    | 1h     | Feature                     |
-| 24  | **Native OTel middleware** (hook-based pattern currently documented)             | Medium | 2-4h   | Feature                     |
-| 25  | **Plugin/middleware marketplace documentation**                                  | Low    | 2h     | Docs                        |
+| #  | Task                                                                             | Impact | Effort | Category                    |
+| -- | -------------------------------------------------------------------------------- | ------ | ------ | --------------------------- |
+| 1  | **Fix flake.nix meta block**                                                     | High   | 5 min  | DevEx — unblocks pre-commit |
+| 2  | **Update ROADMAP.md** to reflect v2.3.0, current coverage, done items            | Medium | 15 min | Docs                        |
+| 3  | **Add govulncheck to CI** (ci.yml)                                               | High   | 15 min | Security                    |
+| 4  | **Fill DOMAIN_LANGUAGE.md** with actual domain terms                             | Medium | 30 min | Docs                        |
+| 5  | **Split csrf_middleware_test.go** (370 → 2 files under 350)                      | Low    | 15 min | Compliance                  |
+| 6  | **Recover coverage to 96.9%+ root**                                              | Medium | 1-2h   | Quality                     |
+| 7  | **Add go.work to .gitignore** (library convention)                               | Low    | 2 min  | DevEx                       |
+| 8  | **Write v2.2.0 release notes** in CHANGELOG                                      | Medium | 30 min | Release                     |
+| 9  | **Tag v2.2.0 release**                                                           | High   | 5 min  | Release                     |
+| 10 | **Add godoc package-level example** (doc.go)                                     | Medium | 20 min | Docs                        |
+| 11 | **PostgreSQL UserStore implementation** (documented pattern in SQL_STORES.md)    | High   | 4-8h   | Feature                     |
+| 12 | **PostgreSQL SessionStore implementation**                                       | High   | 2-4h   | Feature                     |
+| 13 | **Integration tests against real PostgreSQL** (testcontainers or Docker Compose) | Medium | 2-4h   | Quality                     |
+| 14 | **Database migration tooling** selection + setup                                 | Medium | 2h     | Feature                     |
+| 15 | **Profile dispatch/decode hot paths** for allocation reduction                   | Medium | 2h     | Perf                        |
+| 16 | **Add more cross-module integration tests** (CSRF+CQRS, rate-limit+SSE)          | Medium | 1-2h   | Quality                     |
+| 17 | **Recover usermgmt coverage to 91%+**                                            | Medium | 1h     | Quality                     |
+| 18 | **Consider canonicalheader linter** (HTTP header correctness)                    | Low    | 10 min | Quality                     |
+| 19 | **Add containedctx linter** (catch struct-contained context)                     | Low    | 10 min | Quality                     |
+| 20 | **Document the two UserID types** more prominently in README                     | Low    | 15 min | Docs                        |
+| 21 | **Add SSE connection count monitoring** (like RateLimiter.ActiveKeys)            | Low    | 30 min | Feature                     |
+| 22 | **Consider go-cqrs-lite v2.4+ upgrade** when available                           | Low    | TBD    | Deps                        |
+| 23 | **Add OPTIONS method handling** for CORS preflight                               | Low    | 1h     | Feature                     |
+| 24 | **Native OTel middleware** (hook-based pattern currently documented)             | Medium | 2-4h   | Feature                     |
+| 25 | **Plugin/middleware marketplace documentation**                                  | Low    | 2h     | Docs                        |
 
 ---
 

@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
@@ -20,7 +20,7 @@ require (
 
 require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-datastar v0.0.2 // indirect
+	github.com/larsartmann/go-datastar v0.0.3 // indirect
 	github.com/larsartmann/httputil/server_timing v0.9.1 // indirect
 )
 

@@ -1,8 +1,8 @@
 # Release Session — Comprehensive Status Report
 
-**Date:** 2026-07-08 06:51  
-**Session goal:** Upgrade all dependencies to latest, fix BuildFlow failures, cut new releases for all modules  
-**BuildFlow:** 43/43 green  
+**Date:** 2026-07-08 06:51\
+**Session goal:** Upgrade all dependencies to latest, fix BuildFlow failures, cut new releases for all modules\
+**BuildFlow:** 43/43 green\
 **Git:** master @ `e359b45` — pushed to origin
 
 ---

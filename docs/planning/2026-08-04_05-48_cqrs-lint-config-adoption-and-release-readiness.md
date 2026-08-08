@@ -164,25 +164,25 @@ graph TD
 
 ## Comprehensive Plan — Tasks (30-100 min each)
 
-| #   | Work Package | Task                                                                                                    | Impact                                          | Effort | Priority | Depends on |
-| --- | ------------ | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------ | -------- | ---------- |
-| 1   | WP1          | Create root `.cqrs-lint.json` with `{"preset": "library"}`                                              | CRITICAL — fixes workspace-wide profile         | 15min  | P0       | —          |
-| 2   | WP1          | Create `examples/*/.cqrs-lint.json` with `{"preset": "production"}` for each example dir (6 files)      | HIGH — prevents example→library profile leakage | 30min  | P0       | #1         |
-| 3   | WP1          | Add `rules.disable` for library-module false positives (F002, F006, F009, F010, F011, S002, S003, S007) | HIGH — eliminates ~25 suppressions via config   | 15min  | P0       | #1         |
-| 4   | WP1          | Verify: `cqrs-lint doctor` shows correct per-module profile                                             | HIGH — confirms config is loaded                | 10min  | P0       | #3         |
-| 5   | WP1          | Verify: `cqrs-lint --strict` still 0 findings                                                           | CRITICAL — no regressions                       | 10min  | P0       | #4         |
-| 6   | WP1          | Verify: `GOEXPERIMENT=jsonv2 go build ./...` still passes                                               | CRITICAL — config doesn't break build           | 5min   | P0       | #5         |
-| 7   | WP1          | Verify: `nix run .#test` still all green                                                                | CRITICAL — config doesn't break tests           | 30min  | P0       | #6         |
-| 8   | WP2          | Audit: grep all `//cqrs-lint:ignore` comments, categorize as "config-handled" vs "legitimate"           | HIGH — identifies removable suppressions        | 30min  | P1       | #5         |
-| 9   | WP2          | Remove config-handled suppressions from library modules (root, identity-model, usermgmt)                | HIGH — reduces suppression noise                | 45min  | P1       | #8         |
-| 10  | WP2          | Remove config-handled suppressions from examples                                                        | MEDIUM — reduces demo noise                     | 30min  | P1       | #9         |
-| 11  | WP2          | Verify: `cqrs-lint --strict --show-suppressed` still clean after removals                               | CRITICAL — no regressions                       | 10min  | P1       | #10        |
-| 12  | WP3          | Write CHANGELOG entry for cqrs-lint config adoption + suppression cleanup                               | MEDIUM — release notes                          | 15min  | P1       | #11        |
-| 13  | WP3          | Update AGENTS.md: document `.cqrs-lint.json` config adoption, correct version reference                 | MEDIUM — future sessions                        | 15min  | P1       | #11        |
-| 14  | WP3          | Update TODO_LIST.md: mark done items, update stale cqrs-lint version reference                          | LOW — housekeeping                              | 10min  | P2       | #13        |
-| 15  | WP4          | Verify datastar/v4 go.mod resolves with `GOWORK=off` (no local replaces leaking)                        | HIGH — release blocker check                    | 15min  | P2       | —          |
-| 16  | WP4          | Dry-run tag-release.sh stripping for datastar module                                                    | MEDIUM — release readiness                      | 30min  | P2       | #15        |
-| 17  | WP3          | Write status report documenting the session                                                             | LOW — documentation                             | 15min  | P2       | #14        |
+| #  | Work Package | Task                                                                                                    | Impact                                          | Effort | Priority | Depends on |
+| -- | ------------ | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------ | -------- | ---------- |
+| 1  | WP1          | Create root `.cqrs-lint.json` with `{"preset": "library"}`                                              | CRITICAL — fixes workspace-wide profile         | 15min  | P0       | —          |
+| 2  | WP1          | Create `examples/*/.cqrs-lint.json` with `{"preset": "production"}` for each example dir (6 files)      | HIGH — prevents example→library profile leakage | 30min  | P0       | #1         |
+| 3  | WP1          | Add `rules.disable` for library-module false positives (F002, F006, F009, F010, F011, S002, S003, S007) | HIGH — eliminates ~25 suppressions via config   | 15min  | P0       | #1         |
+| 4  | WP1          | Verify: `cqrs-lint doctor` shows correct per-module profile                                             | HIGH — confirms config is loaded                | 10min  | P0       | #3         |
+| 5  | WP1          | Verify: `cqrs-lint --strict` still 0 findings                                                           | CRITICAL — no regressions                       | 10min  | P0       | #4         |
+| 6  | WP1          | Verify: `GOEXPERIMENT=jsonv2 go build ./...` still passes                                               | CRITICAL — config doesn't break build           | 5min   | P0       | #5         |
+| 7  | WP1          | Verify: `nix run .#test` still all green                                                                | CRITICAL — config doesn't break tests           | 30min  | P0       | #6         |
+| 8  | WP2          | Audit: grep all `//cqrs-lint:ignore` comments, categorize as "config-handled" vs "legitimate"           | HIGH — identifies removable suppressions        | 30min  | P1       | #5         |
+| 9  | WP2          | Remove config-handled suppressions from library modules (root, identity-model, usermgmt)                | HIGH — reduces suppression noise                | 45min  | P1       | #8         |
+| 10 | WP2          | Remove config-handled suppressions from examples                                                        | MEDIUM — reduces demo noise                     | 30min  | P1       | #9         |
+| 11 | WP2          | Verify: `cqrs-lint --strict --show-suppressed` still clean after removals                               | CRITICAL — no regressions                       | 10min  | P1       | #10        |
+| 12 | WP3          | Write CHANGELOG entry for cqrs-lint config adoption + suppression cleanup                               | MEDIUM — release notes                          | 15min  | P1       | #11        |
+| 13 | WP3          | Update AGENTS.md: document `.cqrs-lint.json` config adoption, correct version reference                 | MEDIUM — future sessions                        | 15min  | P1       | #11        |
+| 14 | WP3          | Update TODO_LIST.md: mark done items, update stale cqrs-lint version reference                          | LOW — housekeeping                              | 10min  | P2       | #13        |
+| 15 | WP4          | Verify datastar/v4 go.mod resolves with `GOWORK=off` (no local replaces leaking)                        | HIGH — release blocker check                    | 15min  | P2       | —          |
+| 16 | WP4          | Dry-run tag-release.sh stripping for datastar module                                                    | MEDIUM — release readiness                      | 30min  | P2       | #15        |
+| 17 | WP3          | Write status report documenting the session                                                             | LOW — documentation                             | 15min  | P2       | #14        |
 
 **Total estimated time: ~5.5 hours**
 

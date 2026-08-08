@@ -34,13 +34,13 @@
 
 ### Commits This Session (5 commits)
 
-| #   | Commit    | Description                                                                                                                     |
-| --- | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `d0dfb3b` | htmx 4.0 research report — comprehensive what's-new HTML doc                                                                    |
-| 2   | `cc6398b` | Cleanup: benchmark `b.Context()`, go.sum pruning, status doc formatting, go-cqrs-lite audit HTML, fixed duplicate `</code>` tag |
-| 3   | `39fb6e5` | `HTMXScriptHandlerWith()` + `HTMXCDNScriptTag()` — pluggable htmx serving (concurrent agent)                                    |
-| 4   | `137bc7c` | Pluggable HTMX: examples, docs, AGENTS.md update (complementary to #3)                                                          |
-| 5   | `321257a` | htmx 4.0 migration readiness audit — codebase-level impact analysis (1481-line HTML)                                            |
+| # | Commit    | Description                                                                                                                     |
+| - | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `d0dfb3b` | htmx 4.0 research report — comprehensive what's-new HTML doc                                                                    |
+| 2 | `cc6398b` | Cleanup: benchmark `b.Context()`, go.sum pruning, status doc formatting, go-cqrs-lite audit HTML, fixed duplicate `</code>` tag |
+| 3 | `39fb6e5` | `HTMXScriptHandlerWith()` + `HTMXCDNScriptTag()` — pluggable htmx serving (concurrent agent)                                    |
+| 4 | `137bc7c` | Pluggable HTMX: examples, docs, AGENTS.md update (complementary to #3)                                                          |
+| 5 | `321257a` | htmx 4.0 migration readiness audit — codebase-level impact analysis (1481-line HTML)                                            |
 
 ### What Was Accomplished
 
@@ -163,33 +163,33 @@
 
 Sorted by **impact/effort ratio** (highest first).
 
-| #   | Task                                                                  | Impact        | Effort | Category      |
-| --- | --------------------------------------------------------------------- | ------------- | ------ | ------------- |
-| 1   | **Tag v2.3.0 release** + finalize CHANGELOG                           | **Critical**  | 30 min | Release       |
-| 2   | **Remove datastar-demo binary from git history** (`git filter-repo`)  | High          | 15 min | Hygiene       |
-| 3   | **Add `go.work` and build outputs to .gitignore**                     | High          | 5 min  | Hygiene       |
-| 4   | **Fix or nolint the 9 root lint issues**                              | Medium        | 30 min | Quality       |
-| 5   | **Fill DOMAIN_LANGUAGE.md** with actual domain terms                  | Medium        | 30 min | Docs          |
-| 6   | **Update ROADMAP.md** to reflect v2.3.x reality                       | Medium        | 15 min | Docs          |
-| 7   | **Update FEATURES.md** with pluggable HTMX, CDN tag, SSE, WS features | Medium        | 30 min | Docs          |
-| 8   | **Split csrf_middleware_test.go** (370 → 2 files ≤350)                | Low           | 15 min | Compliance    |
-| 9   | **Add govulncheck to CI** (ci.yml)                                    | High          | 15 min | Security      |
-| 10  | **Form decode JSON round-trip elimination** (design + implement)      | **Very High** | 4-8h   | Perf          |
-| 11  | **Add pprof handler to datastar-demo**                                | Medium        | 15 min | Observability |
-| 12  | **Recover root coverage to 96.9%+**                                   | Medium        | 1-2h   | Quality       |
-| 13  | **Recover usermgmt coverage to 91%+**                                 | Medium        | 1h     | Quality       |
-| 14  | **Add benchstat CI job** for benchmark regression                     | Medium        | 1h     | CI            |
-| 15  | **Memory pressure test** for rate limiter (10K+ keys)                 | Medium        | 1h     | Testing       |
-| 16  | **Memory pressure test** for broadcaster (10K+ subs)                  | Medium        | 1h     | Testing       |
-| 17  | **PostgreSQL UserStore implementation** (documented pattern)          | High          | 4-8h   | Feature       |
-| 18  | **PostgreSQL SessionStore implementation**                            | High          | 2-4h   | Feature       |
-| 19  | **Integration tests against real PostgreSQL** (testcontainers)        | Medium        | 2-4h   | Quality       |
-| 20  | **Add SSE connection count monitoring** to datastar-demo              | Low           | 15 min | Observability |
-| 21  | **InMemoryUserStore.Save reverse index** for O(1) email updates       | Low           | 1h     | Perf          |
-| 22  | **More cross-module integration tests** (CSRF+CQRS, rate-limit+SSE)   | Medium        | 1-2h   | Quality       |
-| 23  | **Consider compression middleware** (optional gzip)                   | Low           | 2h     | Feature       |
-| 24  | **Document the two UserID types** more prominently in README          | Low           | 15 min | Docs          |
-| 25  | **Native OTel middleware** (hook-based pattern currently documented)  | Medium        | 2-4h   | Feature       |
+| #  | Task                                                                  | Impact        | Effort | Category      |
+| -- | --------------------------------------------------------------------- | ------------- | ------ | ------------- |
+| 1  | **Tag v2.3.0 release** + finalize CHANGELOG                           | **Critical**  | 30 min | Release       |
+| 2  | **Remove datastar-demo binary from git history** (`git filter-repo`)  | High          | 15 min | Hygiene       |
+| 3  | **Add `go.work` and build outputs to .gitignore**                     | High          | 5 min  | Hygiene       |
+| 4  | **Fix or nolint the 9 root lint issues**                              | Medium        | 30 min | Quality       |
+| 5  | **Fill DOMAIN_LANGUAGE.md** with actual domain terms                  | Medium        | 30 min | Docs          |
+| 6  | **Update ROADMAP.md** to reflect v2.3.x reality                       | Medium        | 15 min | Docs          |
+| 7  | **Update FEATURES.md** with pluggable HTMX, CDN tag, SSE, WS features | Medium        | 30 min | Docs          |
+| 8  | **Split csrf_middleware_test.go** (370 → 2 files ≤350)                | Low           | 15 min | Compliance    |
+| 9  | **Add govulncheck to CI** (ci.yml)                                    | High          | 15 min | Security      |
+| 10 | **Form decode JSON round-trip elimination** (design + implement)      | **Very High** | 4-8h   | Perf          |
+| 11 | **Add pprof handler to datastar-demo**                                | Medium        | 15 min | Observability |
+| 12 | **Recover root coverage to 96.9%+**                                   | Medium        | 1-2h   | Quality       |
+| 13 | **Recover usermgmt coverage to 91%+**                                 | Medium        | 1h     | Quality       |
+| 14 | **Add benchstat CI job** for benchmark regression                     | Medium        | 1h     | CI            |
+| 15 | **Memory pressure test** for rate limiter (10K+ keys)                 | Medium        | 1h     | Testing       |
+| 16 | **Memory pressure test** for broadcaster (10K+ subs)                  | Medium        | 1h     | Testing       |
+| 17 | **PostgreSQL UserStore implementation** (documented pattern)          | High          | 4-8h   | Feature       |
+| 18 | **PostgreSQL SessionStore implementation**                            | High          | 2-4h   | Feature       |
+| 19 | **Integration tests against real PostgreSQL** (testcontainers)        | Medium        | 2-4h   | Quality       |
+| 20 | **Add SSE connection count monitoring** to datastar-demo              | Low           | 15 min | Observability |
+| 21 | **InMemoryUserStore.Save reverse index** for O(1) email updates       | Low           | 1h     | Perf          |
+| 22 | **More cross-module integration tests** (CSRF+CQRS, rate-limit+SSE)   | Medium        | 1-2h   | Quality       |
+| 23 | **Consider compression middleware** (optional gzip)                   | Low           | 2h     | Feature       |
+| 24 | **Document the two UserID types** more prominently in README          | Low           | 15 min | Docs          |
+| 25 | **Native OTel middleware** (hook-based pattern currently documented)  | Medium        | 2-4h   | Feature       |
 
 ---
 

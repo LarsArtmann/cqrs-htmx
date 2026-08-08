@@ -306,11 +306,11 @@ graph TD
 
 These items are **blocked on user input** and cannot proceed autonomously:
 
-| #   | Decision                                                                                                           | Impact                                       | Default if no answer                      |
-| --- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- | ----------------------------------------- |
-| 1   | **History rewrite of commit `a5efd93`?** The 12MB binary blob is permanent in history unless rewritten.            | Low (12MB is small; rewrite is irreversible) | Leave it — add to `.gitignore`, move on   |
-| 2   | **HTML report or Markdown guide for skill output?** The library-deep-dive skill prescribes HTML; I wrote Markdown. | Low (formatting preference)                  | Markdown is correct for this repo         |
-| 3   | **Should cqrs-htmx re-export middleware factories?** (M20 evaluates this)                                          | High (affects API surface + dep tree)        | Do NOT re-export — keep library principle |
+| # | Decision                                                                                                           | Impact                                       | Default if no answer                      |
+| - | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- | ----------------------------------------- |
+| 1 | **History rewrite of commit `a5efd93`?** The 12MB binary blob is permanent in history unless rewritten.            | Low (12MB is small; rewrite is irreversible) | Leave it — add to `.gitignore`, move on   |
+| 2 | **HTML report or Markdown guide for skill output?** The library-deep-dive skill prescribes HTML; I wrote Markdown. | Low (formatting preference)                  | Markdown is correct for this repo         |
+| 3 | **Should cqrs-htmx re-export middleware factories?** (M20 evaluates this)                                          | High (affects API surface + dep tree)        | Do NOT re-export — keep library principle |
 
 ---
 

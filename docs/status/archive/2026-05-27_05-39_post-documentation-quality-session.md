@@ -40,13 +40,13 @@
 
 ### Confirmed Bugs (from brutal self-review)
 
-| #   | Bug                                                                                             | Severity | File                    |
-| --- | ----------------------------------------------------------------------------------------------- | -------- | ----------------------- |
-| B1  | `GetUser` wraps ALL errors as `Transient` — `ErrUserNotFound` → 500 instead of 404              | High     | usermgmt/service.go:293 |
-| B2  | `UpdateRoles` same Transient-wrapping bug for all errors                                        | Medium   | usermgmt/service.go:308 |
-| B3  | Rate limiter fast-path doesn't update `lastUsed` — hot keys get evicted under TTL               | Medium   | ratelimit.go:248        |
-| B4  | `FindByID`/`FindByEmail` return pointers to stored objects — callers can mutate store internals | Medium   | usermgmt/store.go:49-68 |
-| B5  | `CSRFTokenHXHeaders` builds JSON via string concat — malformed if token contains `"`            | Low      | csrf_helpers.go:48      |
+| #  | Bug                                                                                             | Severity | File                    |
+| -- | ----------------------------------------------------------------------------------------------- | -------- | ----------------------- |
+| B1 | `GetUser` wraps ALL errors as `Transient` — `ErrUserNotFound` → 500 instead of 404              | High     | usermgmt/service.go:293 |
+| B2 | `UpdateRoles` same Transient-wrapping bug for all errors                                        | Medium   | usermgmt/service.go:308 |
+| B3 | Rate limiter fast-path doesn't update `lastUsed` — hot keys get evicted under TTL               | Medium   | ratelimit.go:248        |
+| B4 | `FindByID`/`FindByEmail` return pointers to stored objects — callers can mutate store internals | Medium   | usermgmt/store.go:49-68 |
+| B5 | `CSRFTokenHXHeaders` builds JSON via string concat — malformed if token contains `"`            | Low      | csrf_helpers.go:48      |
 
 ### Architecture Improvements (from review)
 
@@ -113,33 +113,33 @@ Nothing is catastrophically broken. The codebase compiles, passes all tests, has
 
 Sorted by impact × effort (highest first):
 
-| #   | Task                                                                      | Impact | Effort | Category      |
-| --- | ------------------------------------------------------------------------- | ------ | ------ | ------------- |
-| 1   | Fix `GetUser` error wrapping (Transient → let domain errors pass through) | High   | 15min  | Bug           |
-| 2   | Fix `UpdateRoles` error wrapping (same bug)                               | High   | 10min  | Bug           |
-| 3   | Fix rate limiter `lastUsed` not updated on fast path                      | Medium | 20min  | Bug           |
-| 4   | Fix `CSRFTokenHXHeaders` JSON concat → use `json.Marshal`                 | Low    | 10min  | Bug           |
-| 5   | Defensive copy in `FindByID`/`FindByEmail`                                | Medium | 15min  | Correctness   |
-| 6   | Log auth failures in `SessionMiddleware`                                  | Low    | 15min  | Observability |
-| 7   | Fix `Register` compensation — log rollback errors                         | Low    | 15min  | Correctness   |
-| 8   | Extract password validation to shared function                            | Low    | 15min  | DRY           |
-| 9   | Fix `Authz.Apply` ordering — add before remove                            | Medium | 30min  | Correctness   |
-| 10  | Fix error handler double-call risk in pre-dispatch checks                 | Low    | 30min  | Correctness   |
-| 11  | Add rate limiting on registration endpoint                                | Medium | 1h     | Security      |
-| 12  | Fix `HandlerConfig.Secure` zero-value trap                                | Medium | 30min  | Security      |
-| 13  | Deduplicate `handleCommandDispatch`/`handleQueryDispatch`                 | Medium | 2h     | Architecture  |
-| 14  | Deduplicate `Command()`/`Query()` on App                                  | Medium | 1h     | Architecture  |
-| 15  | Replace `decodeFormValues` with `gorilla/schema`                          | Medium | 1h     | Perf/Quality  |
-| 16  | Add `clock` abstraction for testable time logic                           | Medium | 2h     | Testability   |
-| 17  | Replace hand-rolled `Chain` with `justinas/alice`                         | Low    | 30min  | Quality       |
-| 18  | Replace hand-rolled `StatusRecorder` with `httpsnoop`                     | Low    | 30min  | Quality       |
-| 19  | Group `handlerConfig` into sub-structs                                    | Low    | 1h     | Architecture  |
-| 20  | Return value types from store (or read-only interface)                    | Medium | 30min  | Correctness   |
-| 21  | Fix `WriteJSON` to encode to buffer before WriteHeader                    | Low    | 15min  | Correctness   |
-| 22  | Add structured logging for dispatch failures                              | Medium | 1h     | Observability |
-| 23  | Reduce `any` usage in public API (typed generics)                         | Low    | 2h     | Type safety   |
-| 24  | Fix `Response.JSON` to propagate marshal errors                           | Low    | 30min  | Correctness   |
-| 25  | Hash session tokens before storage                                        | Medium | 1h     | Security      |
+| #  | Task                                                                      | Impact | Effort | Category      |
+| -- | ------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | Fix `GetUser` error wrapping (Transient → let domain errors pass through) | High   | 15min  | Bug           |
+| 2  | Fix `UpdateRoles` error wrapping (same bug)                               | High   | 10min  | Bug           |
+| 3  | Fix rate limiter `lastUsed` not updated on fast path                      | Medium | 20min  | Bug           |
+| 4  | Fix `CSRFTokenHXHeaders` JSON concat → use `json.Marshal`                 | Low    | 10min  | Bug           |
+| 5  | Defensive copy in `FindByID`/`FindByEmail`                                | Medium | 15min  | Correctness   |
+| 6  | Log auth failures in `SessionMiddleware`                                  | Low    | 15min  | Observability |
+| 7  | Fix `Register` compensation — log rollback errors                         | Low    | 15min  | Correctness   |
+| 8  | Extract password validation to shared function                            | Low    | 15min  | DRY           |
+| 9  | Fix `Authz.Apply` ordering — add before remove                            | Medium | 30min  | Correctness   |
+| 10 | Fix error handler double-call risk in pre-dispatch checks                 | Low    | 30min  | Correctness   |
+| 11 | Add rate limiting on registration endpoint                                | Medium | 1h     | Security      |
+| 12 | Fix `HandlerConfig.Secure` zero-value trap                                | Medium | 30min  | Security      |
+| 13 | Deduplicate `handleCommandDispatch`/`handleQueryDispatch`                 | Medium | 2h     | Architecture  |
+| 14 | Deduplicate `Command()`/`Query()` on App                                  | Medium | 1h     | Architecture  |
+| 15 | Replace `decodeFormValues` with `gorilla/schema`                          | Medium | 1h     | Perf/Quality  |
+| 16 | Add `clock` abstraction for testable time logic                           | Medium | 2h     | Testability   |
+| 17 | Replace hand-rolled `Chain` with `justinas/alice`                         | Low    | 30min  | Quality       |
+| 18 | Replace hand-rolled `StatusRecorder` with `httpsnoop`                     | Low    | 30min  | Quality       |
+| 19 | Group `handlerConfig` into sub-structs                                    | Low    | 1h     | Architecture  |
+| 20 | Return value types from store (or read-only interface)                    | Medium | 30min  | Correctness   |
+| 21 | Fix `WriteJSON` to encode to buffer before WriteHeader                    | Low    | 15min  | Correctness   |
+| 22 | Add structured logging for dispatch failures                              | Medium | 1h     | Observability |
+| 23 | Reduce `any` usage in public API (typed generics)                         | Low    | 2h     | Type safety   |
+| 24 | Fix `Response.JSON` to propagate marshal errors                           | Low    | 30min  | Correctness   |
+| 25 | Hash session tokens before storage                                        | Medium | 1h     | Security      |
 
 ---
 

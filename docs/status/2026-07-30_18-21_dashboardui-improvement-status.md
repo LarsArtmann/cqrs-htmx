@@ -43,26 +43,26 @@
 
 ### Fully Implemented (18/18)
 
-| #   | Description                         | Implementation                                                                          |
-| --- | ----------------------------------- | --------------------------------------------------------------------------------------- |
-| 1   | Fix overview TotalAggregates stat   | Reads full PageSize batch; shows accurate count with "+" suffix only when threshold met |
-| 2   | Fix overview TotalEvents stat       | Reads overviewCountLimit=500 events instead of recentEventsLimit=5                      |
-| 3   | Fix Close() false warning           | Removed false slog.Warn; only warns if broadcaster is nil when EventBus is configured   |
-| 4   | Fix SSE JS reconnection bug         | Rewrote JS with connect() that re-attaches event listener on every reconnect            |
-| 5   | Fix dead code import hacks          | Removed `var _ = id.NewStreamID` and `var _ = event.Type("")` from handlers.go          |
-| 6   | Fix doc.go false documentation      | Rewrote to accurately describe raw HTML rendering, not templ-components                 |
-| 7   | Fix unused pageData.LogoutURL       | Wired LogoutURL from Config; renders logout link when set                               |
-| 8   | Fix unused navItem.Icon field       | Added navIconSVG() rendering inline SVG for 9 icon names                                |
-| 9   | Fix csrfMeta always empty           | Removed dead csrfMeta() function                                                        |
-| 10  | Fix csrfToken reads only form value | Now checks X-CSRF-Token header first, then form value                                   |
-| 11  | Fix event table XSS                 | All event types/IDs/stream IDs escaped with esc()                                       |
-| 12  | Fix overview projection XSS         | All projection names/statuses escaped                                                   |
-| 13  | Fix rowsSbNNN naming                | Replaced with meaningful names (rows, b, inner)                                         |
-| 14  | Fix redundant rows variable         | Eliminated intermediate rows variable; use builder directly                             |
-| 15  | Fix CHANGELOG inaccuracy            | Rewrote v4.0.0 section accurately                                                       |
-| 16  | Fix no 404 handling                 | Added notFoundHandler with styled 404 page + catch-all route                            |
-| 17  | Fix no method-not-allowed           | Read-only mode returns 405 (stdlib mux behavior); method mismatches handled             |
-| 18  | Fix htmx.js unused                  | htmx.js is now used (hx-boost, hx-get polling, hx-trigger, hx-swap)                     |
+| #  | Description                         | Implementation                                                                          |
+| -- | ----------------------------------- | --------------------------------------------------------------------------------------- |
+| 1  | Fix overview TotalAggregates stat   | Reads full PageSize batch; shows accurate count with "+" suffix only when threshold met |
+| 2  | Fix overview TotalEvents stat       | Reads overviewCountLimit=500 events instead of recentEventsLimit=5                      |
+| 3  | Fix Close() false warning           | Removed false slog.Warn; only warns if broadcaster is nil when EventBus is configured   |
+| 4  | Fix SSE JS reconnection bug         | Rewrote JS with connect() that re-attaches event listener on every reconnect            |
+| 5  | Fix dead code import hacks          | Removed `var _ = id.NewStreamID` and `var _ = event.Type("")` from handlers.go          |
+| 6  | Fix doc.go false documentation      | Rewrote to accurately describe raw HTML rendering, not templ-components                 |
+| 7  | Fix unused pageData.LogoutURL       | Wired LogoutURL from Config; renders logout link when set                               |
+| 8  | Fix unused navItem.Icon field       | Added navIconSVG() rendering inline SVG for 9 icon names                                |
+| 9  | Fix csrfMeta always empty           | Removed dead csrfMeta() function                                                        |
+| 10 | Fix csrfToken reads only form value | Now checks X-CSRF-Token header first, then form value                                   |
+| 11 | Fix event table XSS                 | All event types/IDs/stream IDs escaped with esc()                                       |
+| 12 | Fix overview projection XSS         | All projection names/statuses escaped                                                   |
+| 13 | Fix rowsSbNNN naming                | Replaced with meaningful names (rows, b, inner)                                         |
+| 14 | Fix redundant rows variable         | Eliminated intermediate rows variable; use builder directly                             |
+| 15 | Fix CHANGELOG inaccuracy            | Rewrote v4.0.0 section accurately                                                       |
+| 16 | Fix no 404 handling                 | Added notFoundHandler with styled 404 page + catch-all route                            |
+| 17 | Fix no method-not-allowed           | Read-only mode returns 405 (stdlib mux behavior); method mismatches handled             |
+| 18 | Fix htmx.js unused                  | htmx.js is now used (hx-boost, hx-get polling, hx-trigger, hx-swap)                     |
 
 ---
 
@@ -117,15 +117,15 @@
 
 ### Partially Implemented (1/12)
 
-| #   | Description                 | Status                                                           |
-| --- | --------------------------- | ---------------------------------------------------------------- |
-| 58  | Reverse chronological order | Not yet implemented (would need ReadReverse or client-side sort) |
+| #  | Description                 | Status                                                           |
+| -- | --------------------------- | ---------------------------------------------------------------- |
+| 58 | Reverse chronological order | Not yet implemented (would need ReadReverse or client-side sort) |
 
 ### Not Implemented (1/12)
 
-| #   | Description               | Notes                                                                             |
-| --- | ------------------------- | --------------------------------------------------------------------------------- |
-| 55  | Load-more infinite scroll | hx-get with hx-trigger="revealed" not yet wired; pagination is page-based for now |
+| #  | Description               | Notes                                                                             |
+| -- | ------------------------- | --------------------------------------------------------------------------------- |
+| 55 | Load-more infinite scroll | hx-get with hx-trigger="revealed" not yet wired; pagination is page-based for now |
 
 ---
 
@@ -152,10 +152,10 @@
 
 ### Partially Implemented (2/17)
 
-| #   | Description         | Status                                                                              |
-| --- | ------------------- | ----------------------------------------------------------------------------------- |
-| 90  | Sidebar always dark | Dark sidebar is intentional design (like adminui); adapts via --sidebar-bg variable |
-| 93  | Header transparency | Uses color-mix(in srgb, var(--surface) 86%, transparent) with backdrop-filter       |
+| #  | Description         | Status                                                                              |
+| -- | ------------------- | ----------------------------------------------------------------------------------- |
+| 90 | Sidebar always dark | Dark sidebar is intentional design (like adminui); adapts via --sidebar-bg variable |
+| 93 | Header transparency | Uses color-mix(in srgb, var(--surface) 86%, transparent) with backdrop-filter       |
 
 ### Not Implemented (0/17)
 
@@ -163,10 +163,10 @@ All P1 CSS items are implemented.
 
 ### Not Implemented P2 (2/17)
 
-| #   | Description       | Notes                                                                         |
-| --- | ----------------- | ----------------------------------------------------------------------------- |
-| 89  | Dark/light toggle | Would need localStorage + JS toggle; prefers-color-scheme works automatically |
-| 94  | Print stylesheet  | Implemented! @media print { ... } hides sidebar/header/toasts                 |
+| #  | Description       | Notes                                                                         |
+| -- | ----------------- | ----------------------------------------------------------------------------- |
+| 89 | Dark/light toggle | Would need localStorage + JS toggle; prefers-color-scheme works automatically |
+| 94 | Print stylesheet  | Implemented! @media print { ... } hides sidebar/header/toasts                 |
 
 ---
 
@@ -174,25 +174,25 @@ All P1 CSS items are implemented.
 
 ### Fully Implemented (8/11)
 
-| #   | Description               | Implementation                                                                 |
-| --- | ------------------------- | ------------------------------------------------------------------------------ |
-| 76  | Row hover highlighting    | .data-table tbody tr:hover { background: var(--surface-hover) }                |
-| 77  | Zebra striping            | .data-table tbody tr:nth-child(even) { background: ... }                       |
-| 78  | Sticky table headers      | .data-table thead th { position: sticky; top: 0; }                             |
-| 80  | Clickable rows            | Event type is a clickable link; aggregate rows link to detail                  |
-| 81  | Right-aligned numerics    | .num { text-align: right; font-variant-numeric: tabular-nums } class available |
-| 82  | Relative time display     | relativeTime() helper + timeCell() with tooltip; applied to DLQ, snapshots     |
-| 83  | Human-readable byte sizes | humanByteSize() helper; applied to snapshot state size                         |
-| 20  | Shared table renderer     | All tables use .data-table class consistently                                  |
+| #  | Description               | Implementation                                                                 |
+| -- | ------------------------- | ------------------------------------------------------------------------------ |
+| 76 | Row hover highlighting    | .data-table tbody tr:hover { background: var(--surface-hover) }                |
+| 77 | Zebra striping            | .data-table tbody tr:nth-child(even) { background: ... }                       |
+| 78 | Sticky table headers      | .data-table thead th { position: sticky; top: 0; }                             |
+| 80 | Clickable rows            | Event type is a clickable link; aggregate rows link to detail                  |
+| 81 | Right-aligned numerics    | .num { text-align: right; font-variant-numeric: tabular-nums } class available |
+| 82 | Relative time display     | relativeTime() helper + timeCell() with tooltip; applied to DLQ, snapshots     |
+| 83 | Human-readable byte sizes | humanByteSize() helper; applied to snapshot state size                         |
+| 20 | Shared table renderer     | All tables use .data-table class consistently                                  |
 
 ### Not Implemented (3/11)
 
-| #   | Description              | Notes                                                   |
-| --- | ------------------------ | ------------------------------------------------------- |
-| 73  | Sortable columns         | Requires server-side sort params or client-side JS sort |
-| 74  | Sort indicators          | Depends on sortable columns                             |
-| 75  | Preserve sort in URL     | Depends on sortable columns                             |
-| 79  | Column visibility toggle | Low priority; would need localStorage + JS              |
+| #  | Description              | Notes                                                   |
+| -- | ------------------------ | ------------------------------------------------------- |
+| 73 | Sortable columns         | Requires server-side sort params or client-side JS sort |
+| 74 | Sort indicators          | Depends on sortable columns                             |
+| 75 | Preserve sort in URL     | Depends on sortable columns                             |
+| 79 | Column visibility toggle | Low priority; would need localStorage + JS              |
 
 ---
 
@@ -300,32 +300,32 @@ All P1 CSS items are implemented.
 
 ### Fully Implemented (5/13)
 
-| #   | Description              | Implementation                                                     |
-| --- | ------------------------ | ------------------------------------------------------------------ |
-| 18  | htmx.js now used         | hx-boost, hx-get, hx-trigger, hx-swap attributes throughout        |
-| 36  | HTMX for partials        | Projection health partial route: GET /-/partials/projection-health |
-| 38  | HTMX polling projections | hx-trigger="every 10s" on projection-health panel                  |
-| 39  | HTMX boost sidebar       | data-hx-boost="true" on .app-layout div                            |
-| 42  | Toast rendering          | Toast container + JS listener for showToast events                 |
+| #  | Description              | Implementation                                                     |
+| -- | ------------------------ | ------------------------------------------------------------------ |
+| 18 | htmx.js now used         | hx-boost, hx-get, hx-trigger, hx-swap attributes throughout        |
+| 36 | HTMX for partials        | Projection health partial route: GET /-/partials/projection-health |
+| 38 | HTMX polling projections | hx-trigger="every 10s" on projection-health panel                  |
+| 39 | HTMX boost sidebar       | data-hx-boost="true" on .app-layout div                            |
+| 42 | Toast rendering          | Toast container + JS listener for showToast events                 |
 
 ### Partially Implemented (3/13)
 
-| #   | Description                 | Status                                                  |
-| --- | --------------------------- | ------------------------------------------------------- |
-| 37  | HTMX polling overview stats | Projection health polls; stats don't auto-refresh       |
-| 41  | OOB swaps for toasts        | Toasts work via JS event listener; not HTMX OOB         |
-| 40  | HTMX indicators             | .htmx-indicator CSS exists; not wired to specific forms |
+| #  | Description                 | Status                                                  |
+| -- | --------------------------- | ------------------------------------------------------- |
+| 37 | HTMX polling overview stats | Projection health polls; stats don't auto-refresh       |
+| 41 | OOB swaps for toasts        | Toasts work via JS event listener; not HTMX OOB         |
+| 40 | HTMX indicators             | .htmx-indicator CSS exists; not wired to specific forms |
 
 ### Not Implemented (5/13)
 
-| #   | Description                  | Notes                                      |
-| --- | ---------------------------- | ------------------------------------------ |
-| 43  | HTMX time-travel slider      | Would need partial route + hx-target       |
-| 44  | HTMX event detail side panel | Would need partial route                   |
-| 45  | hx-push-url on filters       | Not yet (no filters implemented)           |
-| 46  | SSE extension                | Custom JS EventSource used instead         |
-| 47  | Loading states               | .htmx-indicator CSS exists but not applied |
-| 48  | History restoration          | Not yet tested                             |
+| #  | Description                  | Notes                                      |
+| -- | ---------------------------- | ------------------------------------------ |
+| 43 | HTMX time-travel slider      | Would need partial route + hx-target       |
+| 44 | HTMX event detail side panel | Would need partial route                   |
+| 45 | hx-push-url on filters       | Not yet (no filters implemented)           |
+| 46 | SSE extension                | Custom JS EventSource used instead         |
+| 47 | Loading states               | .htmx-indicator CSS exists but not applied |
+| 48 | History restoration          | Not yet tested                             |
 
 ---
 

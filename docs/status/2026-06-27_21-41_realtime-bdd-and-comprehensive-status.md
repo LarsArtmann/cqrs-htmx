@@ -131,33 +131,33 @@ Nothing is broken or actively regressing. But three things deserve a blunt call-
 
 Sorted by impact × urgency (Pareto). Status: 🔴 blocker / 🟠 high / 🟡 medium / 🟢 nice-to-have.
 
-| #   | Priority | Task                                                                                                    |
-| --- | -------- | ------------------------------------------------------------------------------------------------------- |
-| 1   | 🟠       | Raise **adminui coverage** to ≥75% — handler negative paths, authz denial, tenant-scope isolation       |
-| 2   | 🟠       | Type `ActorID`/`ImpersonatorID` in `context.go` (stop storing raw `string`) — CRITICAL type-safety item |
-| 3   | 🟠       | Make `foldUser` return error on unknown events (parity with foldMembership/foldTenant/foldBot)          |
-| 4   | 🟠       | Extract `*http.Request` from `webauthn_service.go` (HTTP out of service layer)                          |
-| 5   | 🟠       | Add interfaces for the 6 ephemeral in-memory stores (multi-instance enabler)                            |
-| 6   | 🟠       | Use branded `Email`/`TenantID`/`BotID` types in domain structs (stop raw `string`)                      |
-| 7   | 🟡       | Reconcile **FEATURES.md/ROADMAP.md metrics** (numbers are stale; adminui missing)                       |
-| 8   | 🟡       | Add adminui to a ROADMAP version milestone (decide: stable vs experimental)                             |
-| 9   | 🟡       | Set adminui **coverage gate** threshold in CI (`.#coverage-gate`)                                       |
-| 10  | 🟡       | Service-level **impersonation tests** through full dispatch                                             |
-| 11  | 🟡       | Service-level **membership tests** through full dispatch                                                |
-| 12  | 🟡       | Projection replay integration test (journal vs live dedup)                                              |
-| 13  | 🟡       | Resolve duplicate `ErrUnauthorized` sentinel across module boundary                                     |
-| 14  | 🟡       | Prevent impossible `TenantState` (Suspended + Deleted simultaneously)                                   |
-| 15  | 🟡       | Validate `actorKindFromString` (silently defaults unknown → ActorUser)                                  |
-| 16  | 🟡       | Consumer **migration guide** (v2→v3: import paths, bus, projections)                                    |
-| 17  | 🟡       | Enable `revive:exported` linter + fix violations                                                        |
-| 18  | 🟢       | Godoc examples for App, Handler, Service entry points                                                   |
-| 19  | 🟢       | Property-based tests for `foldTenant`/`foldBot`/`foldMembership`                                        |
-| 20  | 🟢       | Wire **snapshot integration** (`snapshot/v3`) to speed up startup replay                                |
-| 21  | 🟢       | Remove deprecated `ClientIP()` wrapper                                                                  |
-| 22  | 🟢       | `LastEventIDFromRequest` should delegate to `SSEStream.LastEventID()` (dedupe)                          |
-| 23  | 🟢       | OpenTelemetry real-SDK integration (v3.2.0) — pattern documented, SDK not wired                         |
-| 24  | 🟢       | Redis session/OAuth2 state stores for multi-instance (v3.3.0)                                           |
-| 25  | 🟢       | `VERSIONING.md` documenting semver policy                                                               |
+| #  | Priority | Task                                                                                                    |
+| -- | -------- | ------------------------------------------------------------------------------------------------------- |
+| 1  | 🟠       | Raise **adminui coverage** to ≥75% — handler negative paths, authz denial, tenant-scope isolation       |
+| 2  | 🟠       | Type `ActorID`/`ImpersonatorID` in `context.go` (stop storing raw `string`) — CRITICAL type-safety item |
+| 3  | 🟠       | Make `foldUser` return error on unknown events (parity with foldMembership/foldTenant/foldBot)          |
+| 4  | 🟠       | Extract `*http.Request` from `webauthn_service.go` (HTTP out of service layer)                          |
+| 5  | 🟠       | Add interfaces for the 6 ephemeral in-memory stores (multi-instance enabler)                            |
+| 6  | 🟠       | Use branded `Email`/`TenantID`/`BotID` types in domain structs (stop raw `string`)                      |
+| 7  | 🟡       | Reconcile **FEATURES.md/ROADMAP.md metrics** (numbers are stale; adminui missing)                       |
+| 8  | 🟡       | Add adminui to a ROADMAP version milestone (decide: stable vs experimental)                             |
+| 9  | 🟡       | Set adminui **coverage gate** threshold in CI (`.#coverage-gate`)                                       |
+| 10 | 🟡       | Service-level **impersonation tests** through full dispatch                                             |
+| 11 | 🟡       | Service-level **membership tests** through full dispatch                                                |
+| 12 | 🟡       | Projection replay integration test (journal vs live dedup)                                              |
+| 13 | 🟡       | Resolve duplicate `ErrUnauthorized` sentinel across module boundary                                     |
+| 14 | 🟡       | Prevent impossible `TenantState` (Suspended + Deleted simultaneously)                                   |
+| 15 | 🟡       | Validate `actorKindFromString` (silently defaults unknown → ActorUser)                                  |
+| 16 | 🟡       | Consumer **migration guide** (v2→v3: import paths, bus, projections)                                    |
+| 17 | 🟡       | Enable `revive:exported` linter + fix violations                                                        |
+| 18 | 🟢       | Godoc examples for App, Handler, Service entry points                                                   |
+| 19 | 🟢       | Property-based tests for `foldTenant`/`foldBot`/`foldMembership`                                        |
+| 20 | 🟢       | Wire **snapshot integration** (`snapshot/v3`) to speed up startup replay                                |
+| 21 | 🟢       | Remove deprecated `ClientIP()` wrapper                                                                  |
+| 22 | 🟢       | `LastEventIDFromRequest` should delegate to `SSEStream.LastEventID()` (dedupe)                          |
+| 23 | 🟢       | OpenTelemetry real-SDK integration (v3.2.0) — pattern documented, SDK not wired                         |
+| 24 | 🟢       | Redis session/OAuth2 state stores for multi-instance (v3.3.0)                                           |
+| 25 | 🟢       | `VERSIONING.md` documenting semver policy                                                               |
 
 ---
 

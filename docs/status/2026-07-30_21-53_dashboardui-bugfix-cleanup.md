@@ -1,8 +1,8 @@
 # Status Report: DashboardUI Bugfix Cleanup Session
 
-**Date:** 2026-07-30 21:53  
-**Session scope:** Fix 4 bugs introduced/discovered during sprint session 3  
-**Commit:** `4faba6b` — pushed to `master`  
+**Date:** 2026-07-30 21:53\
+**Session scope:** Fix 4 bugs introduced/discovered during sprint session 3\
+**Commit:** `4faba6b` — pushed to `master`\
 **Previous session:** `e72a8fc` (sprint session 3 — accessibility, mobile, tests, demo)
 
 ---
@@ -11,12 +11,12 @@
 
 ### Bugs fixed this session (4/4)
 
-| #   | Bug                                                                | File                        | Fix                                                             |
-| --- | ------------------------------------------------------------------ | --------------------------- | --------------------------------------------------------------- |
-| 1   | Dead CSS selector `.empty-state h3` (headings changed to `<h2>`)   | `layout.go:307`             | Updated selector to `.empty-state h2`                           |
-| 2   | Unused `timeCell` function (gopls flagged every step of session 3) | `format.go:74`              | Removed entirely. `time` import still used by `relativeTime()`. |
-| 3   | WriteString inefficiency (string `+` concat inside `WriteString`)  | `handlers_snapshots.go:128` | Replaced with `fmt.Fprintf`                                     |
-| 4   | 12MB `dashboard-demo` binary tracked at repo root                  | repo root                   | `git rm --cached` + added `/dashboard-demo` to `.gitignore`     |
+| # | Bug                                                                | File                        | Fix                                                             |
+| - | ------------------------------------------------------------------ | --------------------------- | --------------------------------------------------------------- |
+| 1 | Dead CSS selector `.empty-state h3` (headings changed to `<h2>`)   | `layout.go:307`             | Updated selector to `.empty-state h2`                           |
+| 2 | Unused `timeCell` function (gopls flagged every step of session 3) | `format.go:74`              | Removed entirely. `time` import still used by `relativeTime()`. |
+| 3 | WriteString inefficiency (string `+` concat inside `WriteString`)  | `handlers_snapshots.go:128` | Replaced with `fmt.Fprintf`                                     |
+| 4 | 12MB `dashboard-demo` binary tracked at repo root                  | repo root                   | `git rm --cached` + added `/dashboard-demo` to `.gitignore`     |
 
 ### Verification completed
 

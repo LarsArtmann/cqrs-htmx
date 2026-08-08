@@ -137,33 +137,33 @@
 
 Sorted by impact/effort ratio (highest first).
 
-| #   | Task                                                                        | Impact | Effort | Ratio |
-| --- | --------------------------------------------------------------------------- | ------ | ------ | ----- |
-| 1   | **Fix TODO_LIST.md** — mark OAuth2/OIDC + schema versioning as DONE         | High   | 10min  | ★★★★★ |
-| 2   | **Update FEATURES.md** — add Tenant, Bot, Impersonation, v3 migration       | High   | 30min  | ★★★★★ |
-| 3   | **Update ROADMAP.md** — reflect v3 migration + current state                | High   | 20min  | ★★★★★ |
-| 4   | **Remove `ExternalAccount.Clone()`** dead code                              | Medium | 5min   | ★★★★★ |
-| 5   | **Add service-level tenant tests** (CreateTenant/Suspend/Reactivate/Delete) | High   | 60min  | ★★★★☆ |
-| 6   | **Add service-level bot tests** (RegisterBot/ResolveByToken/Delete)         | High   | 45min  | ★★★★☆ |
-| 7   | **Split `es_decide.go`** into domain-concern files                          | Medium | 45min  | ★★★★☆ |
-| 8   | **Add projection replay integration test** (read-your-writes after replay)  | High   | 30min  | ★★★★☆ |
-| 9   | **Remove deprecated `ClientIP()` wrapper** or update callers                | Low    | 15min  | ★★★☆☆ |
-| 10  | **Enable `revive:exported` linter** and fix violations                      | Medium | 30min  | ★★★☆☆ |
-| 11  | **Add godoc examples** for App, Handler, Service entry points               | Medium | 60min  | ★★★☆☆ |
-| 12  | **Wire OpenTelemetry** — go-cqrs-lite v3 has otel module                    | Medium | 90min  | ★★★☆☆ |
-| 13  | **Expand integration_test** — more cross-module scenarios                   | Medium | 90min  | ★★★☆☆ |
-| 14  | **Add `schema/v3` validator** for event payload validation                  | Medium | 60min  | ★★★☆☆ |
-| 15  | **Add PostgreSQL session store preset**                                     | Medium | 45min  | ★★☆☆☆ |
-| 16  | **Streaming replay** via `SeekableJournal.ReadFrom` instead of `ReadAll`    | Medium | 60min  | ★★☆☆☆ |
-| 17  | **Add Prometheus metrics** endpoint                                         | Low    | 45min  | ★★☆☆☆ |
-| 18  | **Add Redis session store** for multi-instance                              | Low    | 60min  | ★★☆☆☆ |
-| 19  | **Consider `stack.Materialize`** for persistent read models                 | Low    | 120min | ★☆☆☆☆ |
-| 20  | **Profile and optimize** hot paths (dispatch, decode, render)               | Low    | 90min  | ★☆☆☆☆ |
-| 21  | **Add fuzz tests** for projection replay + dedup                            | Medium | 30min  | ★★★☆☆ |
-| 22  | **Add benchmark** for projection replay with large event stores             | Low    | 30min  | ★★☆☆☆ |
-| 23  | **Document migration guide** for consumers upgrading from v2 to v3          | Medium | 45min  | ★★★☆☆ |
-| 24  | **Add CI badge** to README.md                                               | Low    | 10min  | ★★★☆☆ |
-| 25  | **Consider versioned module paths** (`/v3` for cqrs-htmx itself)            | Low    | 60min  | ★☆☆☆☆ |
+| #  | Task                                                                        | Impact | Effort | Ratio |
+| -- | --------------------------------------------------------------------------- | ------ | ------ | ----- |
+| 1  | **Fix TODO_LIST.md** — mark OAuth2/OIDC + schema versioning as DONE         | High   | 10min  | ★★★★★ |
+| 2  | **Update FEATURES.md** — add Tenant, Bot, Impersonation, v3 migration       | High   | 30min  | ★★★★★ |
+| 3  | **Update ROADMAP.md** — reflect v3 migration + current state                | High   | 20min  | ★★★★★ |
+| 4  | **Remove `ExternalAccount.Clone()`** dead code                              | Medium | 5min   | ★★★★★ |
+| 5  | **Add service-level tenant tests** (CreateTenant/Suspend/Reactivate/Delete) | High   | 60min  | ★★★★☆ |
+| 6  | **Add service-level bot tests** (RegisterBot/ResolveByToken/Delete)         | High   | 45min  | ★★★★☆ |
+| 7  | **Split `es_decide.go`** into domain-concern files                          | Medium | 45min  | ★★★★☆ |
+| 8  | **Add projection replay integration test** (read-your-writes after replay)  | High   | 30min  | ★★★★☆ |
+| 9  | **Remove deprecated `ClientIP()` wrapper** or update callers                | Low    | 15min  | ★★★☆☆ |
+| 10 | **Enable `revive:exported` linter** and fix violations                      | Medium | 30min  | ★★★☆☆ |
+| 11 | **Add godoc examples** for App, Handler, Service entry points               | Medium | 60min  | ★★★☆☆ |
+| 12 | **Wire OpenTelemetry** — go-cqrs-lite v3 has otel module                    | Medium | 90min  | ★★★☆☆ |
+| 13 | **Expand integration_test** — more cross-module scenarios                   | Medium | 90min  | ★★★☆☆ |
+| 14 | **Add `schema/v3` validator** for event payload validation                  | Medium | 60min  | ★★★☆☆ |
+| 15 | **Add PostgreSQL session store preset**                                     | Medium | 45min  | ★★☆☆☆ |
+| 16 | **Streaming replay** via `SeekableJournal.ReadFrom` instead of `ReadAll`    | Medium | 60min  | ★★☆☆☆ |
+| 17 | **Add Prometheus metrics** endpoint                                         | Low    | 45min  | ★★☆☆☆ |
+| 18 | **Add Redis session store** for multi-instance                              | Low    | 60min  | ★★☆☆☆ |
+| 19 | **Consider `stack.Materialize`** for persistent read models                 | Low    | 120min | ★☆☆☆☆ |
+| 20 | **Profile and optimize** hot paths (dispatch, decode, render)               | Low    | 90min  | ★☆☆☆☆ |
+| 21 | **Add fuzz tests** for projection replay + dedup                            | Medium | 30min  | ★★★☆☆ |
+| 22 | **Add benchmark** for projection replay with large event stores             | Low    | 30min  | ★★☆☆☆ |
+| 23 | **Document migration guide** for consumers upgrading from v2 to v3          | Medium | 45min  | ★★★☆☆ |
+| 24 | **Add CI badge** to README.md                                               | Low    | 10min  | ★★★☆☆ |
+| 25 | **Consider versioned module paths** (`/v3` for cqrs-htmx itself)            | Low    | 60min  | ★☆☆☆☆ |
 
 ---
 

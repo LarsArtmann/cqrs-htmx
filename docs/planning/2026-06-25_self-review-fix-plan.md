@@ -33,34 +33,34 @@
 
 Sorted by: **Damage fix first** → **Architecture** → **Polish**
 
-| #   | Task                                                                                | Category     | Impact | Effort | Min |
-| --- | ----------------------------------------------------------------------------------- | ------------ | ------ | ------ | --- |
-| 1   | Revert `EventSourcedSetup` to concrete types; keep `*UserReadModel` etc.            | CRITICAL     | HIGH   | LOW    | 10  |
-| 2   | Add `ReadModelDB` to config WITHOUT changing existing field types                   | CRITICAL     | HIGH   | LOW    | 8   |
-| 3   | Fix SecurityHooks: apply `wrapEventStore` + `applyBusMiddleware` in sqlite/postgres | CRITICAL     | HIGH   | MED    | 12  |
-| 4   | Fix postgres_setup.go copy-paste: create NewSQL\*ReadModel for Postgres dialect     | CRITICAL     | HIGH   | MED    | 12  |
-| 5   | Consolidate 4 SQL read models into generic pattern (one file, less duplication)     | ARCHITECTURE | HIGH   | HIGH   | 12  |
-| 6   | Add `json:"..."` tags to all View structs                                           | LINT FIX     | MED    | LOW    | 5   |
-| 7   | Wrap all external errors with `event.WrapTransient` (15 wrapcheck fixes)            | LINT FIX     | HIGH   | MED    | 12  |
-| 8   | Fix staticcheck QF1008: remove embedded field from selectors (4 fixes)              | LINT FIX     | LOW    | LOW    | 3   |
-| 9   | Fix exhaustruct: add new types to exclusion list OR use nolint                      | LINT FIX     | MED    | LOW    | 8   |
-| 10  | Fix goconst: extract string column names to constants                               | LINT FIX     | LOW    | LOW    | 5   |
-| 11  | Fix golines: break long line in newSQLMembershipReadModel                           | LINT FIX     | LOW    | LOW    | 2   |
-| 12  | Fix cyclop: extract helper from NewSQLiteEventSourcedSetup                          | LINT FIX     | MED    | LOW    | 8   |
-| 13  | Fix errcheck in tests: check all m.Handle() returns                                 | LINT FIX     | MED    | LOW    | 8   |
-| 14  | Fix cyclop in restart test: extract helper                                          | LINT FIX     | LOW    | LOW    | 5   |
-| 15  | Run `nix run .#lint` — must show 0 issues                                           | VERIFY       | HIGH   | LOW    | 5   |
-| 16  | Run `nix run .#test` — all 4 modules pass with race                                 | VERIFY       | HIGH   | LOW    | 5   |
-| 17  | Run `branching-flow errorfamily .` — 0 violations                                   | VERIFY       | HIGH   | LOW    | 3   |
-| 18  | Run `nix fmt && nix flake check` — formatting clean                                 | VERIFY       | MED    | LOW    | 3   |
-| 19  | Commit fix batch: "fix: resolve 57 lint issues + breaking API + SecurityHooks bug"  | COMMIT       | HIGH   | LOW    | 3   |
-| 20  | Update AGENTS.md with corrected v3.1.0 adoption details                             | DOCS         | MED    | LOW    | 8   |
-| 21  | Update FEATURES.md / TODO_LIST.md with adoption status                              | DOCS         | LOW    | LOW    | 8   |
-| 22  | Push all changes                                                                    | COMMIT       | HIGH   | LOW    | 2   |
-| 23  | Review: does the generic SQL read model eliminate the DRY violation?                | REVIEW       | MED    | LOW    | 5   |
-| 24  | Review: are all SecurityHooks actually wired end-to-end?                            | REVIEW       | HIGH   | LOW    | 5   |
-| 25  | Review: does Postgres setup use Postgres dialect everywhere?                        | REVIEW       | HIGH   | LOW    | 5   |
-| 26  | Final full pipeline verification                                                    | VERIFY       | HIGH   | LOW    | 5   |
+| #  | Task                                                                                | Category     | Impact | Effort | Min |
+| -- | ----------------------------------------------------------------------------------- | ------------ | ------ | ------ | --- |
+| 1  | Revert `EventSourcedSetup` to concrete types; keep `*UserReadModel` etc.            | CRITICAL     | HIGH   | LOW    | 10  |
+| 2  | Add `ReadModelDB` to config WITHOUT changing existing field types                   | CRITICAL     | HIGH   | LOW    | 8   |
+| 3  | Fix SecurityHooks: apply `wrapEventStore` + `applyBusMiddleware` in sqlite/postgres | CRITICAL     | HIGH   | MED    | 12  |
+| 4  | Fix postgres_setup.go copy-paste: create NewSQL\*ReadModel for Postgres dialect     | CRITICAL     | HIGH   | MED    | 12  |
+| 5  | Consolidate 4 SQL read models into generic pattern (one file, less duplication)     | ARCHITECTURE | HIGH   | HIGH   | 12  |
+| 6  | Add `json:"..."` tags to all View structs                                           | LINT FIX     | MED    | LOW    | 5   |
+| 7  | Wrap all external errors with `event.WrapTransient` (15 wrapcheck fixes)            | LINT FIX     | HIGH   | MED    | 12  |
+| 8  | Fix staticcheck QF1008: remove embedded field from selectors (4 fixes)              | LINT FIX     | LOW    | LOW    | 3   |
+| 9  | Fix exhaustruct: add new types to exclusion list OR use nolint                      | LINT FIX     | MED    | LOW    | 8   |
+| 10 | Fix goconst: extract string column names to constants                               | LINT FIX     | LOW    | LOW    | 5   |
+| 11 | Fix golines: break long line in newSQLMembershipReadModel                           | LINT FIX     | LOW    | LOW    | 2   |
+| 12 | Fix cyclop: extract helper from NewSQLiteEventSourcedSetup                          | LINT FIX     | MED    | LOW    | 8   |
+| 13 | Fix errcheck in tests: check all m.Handle() returns                                 | LINT FIX     | MED    | LOW    | 8   |
+| 14 | Fix cyclop in restart test: extract helper                                          | LINT FIX     | LOW    | LOW    | 5   |
+| 15 | Run `nix run .#lint` — must show 0 issues                                           | VERIFY       | HIGH   | LOW    | 5   |
+| 16 | Run `nix run .#test` — all 4 modules pass with race                                 | VERIFY       | HIGH   | LOW    | 5   |
+| 17 | Run `branching-flow errorfamily .` — 0 violations                                   | VERIFY       | HIGH   | LOW    | 3   |
+| 18 | Run `nix fmt && nix flake check` — formatting clean                                 | VERIFY       | MED    | LOW    | 3   |
+| 19 | Commit fix batch: "fix: resolve 57 lint issues + breaking API + SecurityHooks bug"  | COMMIT       | HIGH   | LOW    | 3   |
+| 20 | Update AGENTS.md with corrected v3.1.0 adoption details                             | DOCS         | MED    | LOW    | 8   |
+| 21 | Update FEATURES.md / TODO_LIST.md with adoption status                              | DOCS         | LOW    | LOW    | 8   |
+| 22 | Push all changes                                                                    | COMMIT       | HIGH   | LOW    | 2   |
+| 23 | Review: does the generic SQL read model eliminate the DRY violation?                | REVIEW       | MED    | LOW    | 5   |
+| 24 | Review: are all SecurityHooks actually wired end-to-end?                            | REVIEW       | HIGH   | LOW    | 5   |
+| 25 | Review: does Postgres setup use Postgres dialect everywhere?                        | REVIEW       | HIGH   | LOW    | 5   |
+| 26 | Final full pipeline verification                                                    | VERIFY       | HIGH   | LOW    | 5   |
 
 **Total**: ~160 min (~2.7h) · 0 tasks >12 min
 

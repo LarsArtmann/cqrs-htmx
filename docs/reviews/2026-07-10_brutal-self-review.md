@@ -154,11 +154,11 @@ All adminui tests check for text content ("Recent activity", "Users", "No users 
 
 ## Prioritized Improvement Plan
 
-| #   | Task                                         | Impact   | Effort | Priority |
-| --- | -------------------------------------------- | -------- | ------ | -------- |
-| 1   | Fix hardcoded `@source` path in tailwind.css | Critical | 5 min  | P0       |
-| 2   | Revert non-mine flake.nix changes            | High     | 5 min  | P0       |
-| 3   | Delete dead `spinner()` component            | Low      | 2 min  | P1       |
-| 4   | Update AGENTS.md with adoption table         | Medium   | 10 min | P1       |
-| 5   | Clean up stale GONOSUMCHECK references       | Low      | 10 min | P1       |
-| 6   | Commit work incrementally                    | Process  | 5 min  | P0       |
+| # | Task                                         | Impact   | Effort | Priority |
+| - | -------------------------------------------- | -------- | ------ | -------- |
+| 1 | Fix hardcoded `@source` path in tailwind.css | Critical | 5 min  | P0       |
+| 2 | Revert non-mine flake.nix changes            | High     | 5 min  | P0       |
+| 3 | Delete dead `spinner()` component            | Low      | 2 min  | P1       |
+| 4 | Update AGENTS.md with adoption table         | Medium   | 10 min | P1       |
+| 5 | Clean up stale GONOSUMCHECK references       | Low      | 10 min | P1       |
+| 6 | Commit work incrementally                    | Process  | 5 min  | P0       |

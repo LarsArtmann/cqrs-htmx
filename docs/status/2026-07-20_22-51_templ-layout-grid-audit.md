@@ -53,15 +53,15 @@
 ### Diff summary
 
 ```
- adminui/layout.templ     | 61 ++++--
- adminui/layout_templ.go  | 14 +-
- adminui/members.templ    |  3 -
- adminui/members_templ.go |  6 +-
- adminui/tenants.templ    |  6 +-
- adminui/tenants_templ.go | 24 +--
- adminui/users.templ      |  5 -
- adminui/users_templ.go   | 26 +-
- 8 files changed, 76 insertions(+), 75 deletions(-)
+adminui/layout.templ     | 61 ++++--
+adminui/layout_templ.go  | 14 +-
+adminui/members.templ    |  3 -
+adminui/members_templ.go |  6 +-
+adminui/tenants.templ    |  6 +-
+adminui/tenants_templ.go | 24 +--
+adminui/users.templ      |  5 -
+adminui/users_templ.go   | 26 +-
+8 files changed, 76 insertions(+), 75 deletions(-)
 ```
 
 ---

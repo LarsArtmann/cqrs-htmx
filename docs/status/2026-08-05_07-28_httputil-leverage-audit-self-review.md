@@ -22,16 +22,16 @@ This report is the honest accounting.
 
 ## a) FULLY DONE (verified at HEAD)
 
-| #   | Deliverable                                                         | File                                               | Evidence                                                                                      |
-| --- | ------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| 1   | HTML deep-dive report (editorial-light template)                    | `docs/research/2026-08-05_httputil-deep-dive.html` | 1322 lines, tag-balanced, in HEAD                                                             |
-| 2   | `httpspec` compliance test (2 cases: bare stack + real App)         | `httpspec_compliance_test.go`                      | passes `-race`, lint-clean                                                                    |
-| 3   | **Bug fix:** nil-body panic in `decoder.go:readBody`                | `decoder.go:60`                                    | guard `if r.Body == nil { return nil, nil }` — covers JSON **and** Form paths (shared helper) |
-| 4   | Consumer guide: concern→middleware map + 6 recipes                  | `docs/guides/leveraging-httputil.md`               | in HEAD                                                                                       |
-| 5   | `doc.go` new "HTTP Middleware" section pointing to httputil + guide | `doc.go:7-17`                                      | gofmt-clean                                                                                   |
-| 6   | `examples/basic` migrated to `httputil.NewServer`                   | `examples/basic/main.go`                           | built, binary rebuilt, go.mod tidied (httputil promoted to direct)                            |
-| 7   | `examples/datastar-demo` migrated to `httputil.NewServer`           | `examples/datastar-demo/main.go`                   | built, binary rebuilt, go.mod tidied                                                          |
-| 8   | `AGENTS.md` memory update (guides 14→15, leverage posture)          | `AGENTS.md:137-138`                                | committed `c3a8f029`                                                                          |
+| # | Deliverable                                                         | File                                               | Evidence                                                                                      |
+| - | ------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 1 | HTML deep-dive report (editorial-light template)                    | `docs/research/2026-08-05_httputil-deep-dive.html` | 1322 lines, tag-balanced, in HEAD                                                             |
+| 2 | `httpspec` compliance test (2 cases: bare stack + real App)         | `httpspec_compliance_test.go`                      | passes `-race`, lint-clean                                                                    |
+| 3 | **Bug fix:** nil-body panic in `decoder.go:readBody`                | `decoder.go:60`                                    | guard `if r.Body == nil { return nil, nil }` — covers JSON **and** Form paths (shared helper) |
+| 4 | Consumer guide: concern→middleware map + 6 recipes                  | `docs/guides/leveraging-httputil.md`               | in HEAD                                                                                       |
+| 5 | `doc.go` new "HTTP Middleware" section pointing to httputil + guide | `doc.go:7-17`                                      | gofmt-clean                                                                                   |
+| 6 | `examples/basic` migrated to `httputil.NewServer`                   | `examples/basic/main.go`                           | built, binary rebuilt, go.mod tidied (httputil promoted to direct)                            |
+| 7 | `examples/datastar-demo` migrated to `httputil.NewServer`           | `examples/datastar-demo/main.go`                   | built, binary rebuilt, go.mod tidied                                                          |
+| 8 | `AGENTS.md` memory update (guides 14→15, leverage posture)          | `AGENTS.md:137-138`                                | committed `c3a8f029`                                                                          |
 
 ---
 

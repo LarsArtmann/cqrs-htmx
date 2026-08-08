@@ -234,14 +234,14 @@ Total: 570+ tests, all pass. Zero pre-existing tests broken.
 ## Files Changed
 
 ```
- .golangci.yml    |  1 +
- AGENTS.md        |  2 +-
- CHANGELOG.md     |  9 +++++++++
- FEATURES.md      |  2 +-
- TODO_LIST.md     |  2 +-
- coverage_test.go | 102 +++++++++++-----------------------------------------
- flake.nix        |  3 +-
- sse_test.go      | 31 ++++++++++-------
- ws.go            | 33 ++++++++++--------
- 9 files changed, 73 insertions(+), 112 deletions(-)
+.golangci.yml    |  1 +
+AGENTS.md        |  2 +-
+CHANGELOG.md     |  9 +++++++++
+FEATURES.md      |  2 +-
+TODO_LIST.md     |  2 +-
+coverage_test.go | 102 +++++++++++-----------------------------------------
+flake.nix        |  3 +-
+sse_test.go      | 31 ++++++++++-------
+ws.go            | 33 ++++++++++--------
+9 files changed, 73 insertions(+), 112 deletions(-)
 ```

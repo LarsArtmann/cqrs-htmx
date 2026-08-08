@@ -156,33 +156,33 @@ Based on the comprehensive performance review (`docs/research/performance-review
 
 Sorted by **impact/effort ratio** (highest first).
 
-| #   | Task                                                                                               | Impact        | Effort | Category      |
-| --- | -------------------------------------------------------------------------------------------------- | ------------- | ------ | ------------- |
-| 1   | **Fill DOMAIN_LANGUAGE.md** with actual domain terms                                               | Medium        | 30 min | Docs          |
-| 2   | **Update ROADMAP.md** to reflect v2.3.1, current coverage                                          | Medium        | 15 min | Docs          |
-| 3   | **Split csrf_middleware_test.go** (370 → 2 files ≤350)                                             | Low           | 15 min | Compliance    |
-| 4   | **Add govulncheck to CI** (ci.yml)                                                                 | High          | 15 min | Security      |
-| 5   | **Form decode JSON round-trip elimination** (design + implement)                                   | **Very High** | 4-8h   | Perf          |
-| 6   | **Add pprof handler to datastar-demo** for production profiling                                    | Medium        | 15 min | Observability |
-| 7   | **Write v2.2.0 release notes** in CHANGELOG                                                        | Medium        | 30 min | Release       |
-| 8   | **Recover root coverage to 96.9%+**                                                                | Medium        | 1-2h   | Quality       |
-| 9   | **Recover usermgmt coverage to 91%+**                                                              | Medium        | 1h     | Quality       |
-| 10  | **Add benchstat CI job** for automated benchmark regression                                        | Medium        | 1h     | CI            |
-| 11  | **Add memory pressure test** for rate limiter (10K+ keys)                                          | Medium        | 1h     | Testing       |
-| 12  | **Add memory pressure test** for broadcaster (10K+ subs)                                           | Medium        | 1h     | Testing       |
-| 13  | **T12: Embed evictionEntry in limiterEntry**                                                       | Medium        | 30 min | Perf          |
-| 14  | **PostgreSQL UserStore implementation** (documented pattern)                                       | High          | 4-8h   | Feature       |
-| 15  | **PostgreSQL SessionStore implementation**                                                         | High          | 2-4h   | Feature       |
-| 16  | **Integration tests against real PostgreSQL** (testcontainers)                                     | Medium        | 2-4h   | Quality       |
-| 17  | **Add SSE connection count monitoring** (ActiveSubscribers method already exists — add to example) | Low           | 15 min | Observability |
-| 18  | **Tag v2.2.0 release**                                                                             | High          | 5 min  | Release       |
-| 19  | **InMemoryUserStore.Save reverse index** for O(1) email updates                                    | Low           | 1h     | Perf          |
-| 20  | **Add more cross-module integration tests** (CSRF+CQRS, rate-limit+SSE)                            | Medium        | 1-2h   | Quality       |
-| 21  | **Consider compression middleware** (optional gzip for responses)                                  | Low           | 2h     | Feature       |
-| 22  | **Update performance review HTML** with post-optimization benchmark results                        | Low           | 30 min | Docs          |
-| 23  | **Document the two UserID types** more prominently in README                                       | Low           | 15 min | Docs          |
-| 24  | **Native OTel middleware** (hook-based pattern currently documented)                               | Medium        | 2-4h   | Feature       |
-| 25  | **OPTIONS method handling** for CORS preflight                                                     | Low           | 1h     | Feature       |
+| #  | Task                                                                                               | Impact        | Effort | Category      |
+| -- | -------------------------------------------------------------------------------------------------- | ------------- | ------ | ------------- |
+| 1  | **Fill DOMAIN_LANGUAGE.md** with actual domain terms                                               | Medium        | 30 min | Docs          |
+| 2  | **Update ROADMAP.md** to reflect v2.3.1, current coverage                                          | Medium        | 15 min | Docs          |
+| 3  | **Split csrf_middleware_test.go** (370 → 2 files ≤350)                                             | Low           | 15 min | Compliance    |
+| 4  | **Add govulncheck to CI** (ci.yml)                                                                 | High          | 15 min | Security      |
+| 5  | **Form decode JSON round-trip elimination** (design + implement)                                   | **Very High** | 4-8h   | Perf          |
+| 6  | **Add pprof handler to datastar-demo** for production profiling                                    | Medium        | 15 min | Observability |
+| 7  | **Write v2.2.0 release notes** in CHANGELOG                                                        | Medium        | 30 min | Release       |
+| 8  | **Recover root coverage to 96.9%+**                                                                | Medium        | 1-2h   | Quality       |
+| 9  | **Recover usermgmt coverage to 91%+**                                                              | Medium        | 1h     | Quality       |
+| 10 | **Add benchstat CI job** for automated benchmark regression                                        | Medium        | 1h     | CI            |
+| 11 | **Add memory pressure test** for rate limiter (10K+ keys)                                          | Medium        | 1h     | Testing       |
+| 12 | **Add memory pressure test** for broadcaster (10K+ subs)                                           | Medium        | 1h     | Testing       |
+| 13 | **T12: Embed evictionEntry in limiterEntry**                                                       | Medium        | 30 min | Perf          |
+| 14 | **PostgreSQL UserStore implementation** (documented pattern)                                       | High          | 4-8h   | Feature       |
+| 15 | **PostgreSQL SessionStore implementation**                                                         | High          | 2-4h   | Feature       |
+| 16 | **Integration tests against real PostgreSQL** (testcontainers)                                     | Medium        | 2-4h   | Quality       |
+| 17 | **Add SSE connection count monitoring** (ActiveSubscribers method already exists — add to example) | Low           | 15 min | Observability |
+| 18 | **Tag v2.2.0 release**                                                                             | High          | 5 min  | Release       |
+| 19 | **InMemoryUserStore.Save reverse index** for O(1) email updates                                    | Low           | 1h     | Perf          |
+| 20 | **Add more cross-module integration tests** (CSRF+CQRS, rate-limit+SSE)                            | Medium        | 1-2h   | Quality       |
+| 21 | **Consider compression middleware** (optional gzip for responses)                                  | Low           | 2h     | Feature       |
+| 22 | **Update performance review HTML** with post-optimization benchmark results                        | Low           | 30 min | Docs          |
+| 23 | **Document the two UserID types** more prominently in README                                       | Low           | 15 min | Docs          |
+| 24 | **Native OTel middleware** (hook-based pattern currently documented)                               | Medium        | 2-4h   | Feature       |
+| 25 | **OPTIONS method handling** for CORS preflight                                                     | Low           | 1h     | Feature       |
 
 ---
 

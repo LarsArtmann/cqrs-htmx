@@ -127,33 +127,33 @@ This is the **third "committed/near-committed broken" failure** flagged in two d
 
 ## f) Top #25 things to get done next
 
-| #   | Task                                                                                                    | Impact                         | Effort |
-| --- | ------------------------------------------------------------------------------------------------------- | ------------------------------ | ------ |
-| 1   | **Drop unused `templ-components` from `adminui/go.mod`/`go.sum`** (`go mod tidy`); verify `go.work.sum` | Critical (kills ghost dep)     | XS     |
-| 2   | **Add consumer-build CI gate** (`GOWORK=off go build ./...` + `go mod tidy -diff` per module)           | Critical (prevents recurrence) | S      |
-| 3   | Raise **adminui coverage ≥75%** (members/tenants write paths, 403 denial, tenant-scope isolation)       | High                           | M      |
-| 4   | Type `ActorID`/`ImpersonatorID` in `context.go` instead of raw `string`                                 | High                           | S      |
-| 5   | Make `foldUser` return error on unknown events (match foldMembership/Tenant/Bot)                        | High                           | XS     |
-| 6   | Extract `*http.Request` from `webauthn_service.go` (parse in HTTP layer)                                | High                           | M      |
-| 7   | Use `UserID` branded type for `BotState.OwnerID` (+ events/readmodel/service)                           | High                           | S      |
-| 8   | Use `TenantID` in Authz domain parameters (authz_roles.go, authz_policies.go)                           | High                           | S      |
-| 9   | Consolidate duplicate `ErrUnauthorized` sentinels across root/usermgmt                                  | Medium                         | S      |
-| 10  | Make `TenantState` impossible-states unrepresentable (prevent `Suspended+Deleted`)                      | Medium                         | XS     |
-| 11  | Wire OpenTelemetry via go-cqrs-lite v3 otel module                                                      | Medium                         | M      |
-| 12  | Define interfaces for the 6 ephemeral in-memory stores (multi-instance)                                 | Medium                         | M      |
-| 13  | Use `Email` branded type in domain model structs (not just ExportUser)                                  | Medium                         | S      |
-| 14  | Wire snapshot integration (`go-cqrs-lite/snapshot/v3`) to cut startup replay                            | Medium                         | M      |
-| 15  | Add v2→v3 consumer migration guide                                                                      | Medium                         | S      |
-| 16  | `LastEventIDFromRequest` should delegate to `SSEStream.LastEventID()` (dedup)                           | Low                            | XS     |
-| 17  | Add godoc examples for `App`, `Handler`, `Service` entry points                                         | Medium                         | S      |
-| 18  | Add `VERSIONING.md` documenting semver policy                                                           | Low                            | XS     |
-| 19  | Remove deprecated `ClientIP()` wrapper (delegates to httputil)                                          | Low                            | XS     |
-| 20  | Service-level impersonation tests through full dispatch                                                 | High                           | M      |
-| 21  | Service-level membership tests through full dispatch                                                    | High                           | M      |
-| 22  | Projection-replay integration test (journal vs live dedup)                                              | Medium                         | M      |
-| 23  | Property-based tests for foldTenant/foldBot/foldMembership                                              | Medium                         | M      |
-| 24  | Redis session store + OAuth2 state store (multi-instance readiness)                                     | Medium                         | L      |
-| 25  | Enable `revive:exported` linter + fix violations                                                        | Low                            | S      |
+| #  | Task                                                                                                    | Impact                         | Effort |
+| -- | ------------------------------------------------------------------------------------------------------- | ------------------------------ | ------ |
+| 1  | **Drop unused `templ-components` from `adminui/go.mod`/`go.sum`** (`go mod tidy`); verify `go.work.sum` | Critical (kills ghost dep)     | XS     |
+| 2  | **Add consumer-build CI gate** (`GOWORK=off go build ./...` + `go mod tidy -diff` per module)           | Critical (prevents recurrence) | S      |
+| 3  | Raise **adminui coverage ≥75%** (members/tenants write paths, 403 denial, tenant-scope isolation)       | High                           | M      |
+| 4  | Type `ActorID`/`ImpersonatorID` in `context.go` instead of raw `string`                                 | High                           | S      |
+| 5  | Make `foldUser` return error on unknown events (match foldMembership/Tenant/Bot)                        | High                           | XS     |
+| 6  | Extract `*http.Request` from `webauthn_service.go` (parse in HTTP layer)                                | High                           | M      |
+| 7  | Use `UserID` branded type for `BotState.OwnerID` (+ events/readmodel/service)                           | High                           | S      |
+| 8  | Use `TenantID` in Authz domain parameters (authz_roles.go, authz_policies.go)                           | High                           | S      |
+| 9  | Consolidate duplicate `ErrUnauthorized` sentinels across root/usermgmt                                  | Medium                         | S      |
+| 10 | Make `TenantState` impossible-states unrepresentable (prevent `Suspended+Deleted`)                      | Medium                         | XS     |
+| 11 | Wire OpenTelemetry via go-cqrs-lite v3 otel module                                                      | Medium                         | M      |
+| 12 | Define interfaces for the 6 ephemeral in-memory stores (multi-instance)                                 | Medium                         | M      |
+| 13 | Use `Email` branded type in domain model structs (not just ExportUser)                                  | Medium                         | S      |
+| 14 | Wire snapshot integration (`go-cqrs-lite/snapshot/v3`) to cut startup replay                            | Medium                         | M      |
+| 15 | Add v2→v3 consumer migration guide                                                                      | Medium                         | S      |
+| 16 | `LastEventIDFromRequest` should delegate to `SSEStream.LastEventID()` (dedup)                           | Low                            | XS     |
+| 17 | Add godoc examples for `App`, `Handler`, `Service` entry points                                         | Medium                         | S      |
+| 18 | Add `VERSIONING.md` documenting semver policy                                                           | Low                            | XS     |
+| 19 | Remove deprecated `ClientIP()` wrapper (delegates to httputil)                                          | Low                            | XS     |
+| 20 | Service-level impersonation tests through full dispatch                                                 | High                           | M      |
+| 21 | Service-level membership tests through full dispatch                                                    | High                           | M      |
+| 22 | Projection-replay integration test (journal vs live dedup)                                              | Medium                         | M      |
+| 23 | Property-based tests for foldTenant/foldBot/foldMembership                                              | Medium                         | M      |
+| 24 | Redis session store + OAuth2 state store (multi-instance readiness)                                     | Medium                         | L      |
+| 25 | Enable `revive:exported` linter + fix violations                                                        | Low                            | S      |
 
 ---
 

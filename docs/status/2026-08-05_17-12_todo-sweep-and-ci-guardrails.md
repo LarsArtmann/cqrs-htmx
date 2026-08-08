@@ -234,7 +234,7 @@ The check is a tripwire, not a complete solution, but I should have documented i
 33. **Create `docs/guides/realtime.md`** — the skill references `references/realtime.md` (skill-internal), but a public consumer guide doesn't exist in `docs/guides/`
 34. **Update `docs/guides/leveraging-httputil.md`** — ensure all "after" examples use current API
 35. **Add a `CONTRIBUTING.md`** — document the pre-commit hook, check scripts, and coverage gates
-36. _*Document the check-* scripts_* — add a `docs/dev/checks.md` or similar explaining each script
+36. __Document the check-_ scripts_* — add a `docs/dev/checks.md` or similar explaining each script
 37. **Add `docs/guides/middleware-ordering.md`** — the CSRF→HTMX→app ordering is documented in AGENTS.md but not as a standalone guide
 38. **Verify all ADR cross-references** — ADR-0046 supersession note should link correctly from all referencing docs
 39. **Update `docs/guides/csrf-trusted-proxies.md`** — uses `cqrshtmx.CSRFConfig` instead of `httputil.CSRFConfig`
@@ -285,8 +285,8 @@ The migration guide currently uses `cqrshtmx.SSEEvent` in its "After (v5)" examp
 | Lines removed        | ~221                                                                                                   |
 | New CI guard scripts | 3                                                                                                      |
 | Build status         | ✅ Clean (root module)                                                                                 |
-| Test status          | ⚠️ Not run (gap)                                                                                       |
-| Lint status          | ⚠️ Not run (gap)                                                                                       |
+| Test status          | ⚠️ Not run (gap)                                                                                        |
+| Lint status          | ⚠️ Not run (gap)                                                                                        |
 | Known gaps           | adminui production code, README stale refs, no script test suites, pre-commit hook untested end-to-end |
 
 ---

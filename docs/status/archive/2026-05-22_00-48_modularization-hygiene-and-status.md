@@ -170,53 +170,53 @@ No regressions, no broken tests, no failing builds, no lint warnings. Clean stat
 
 ### P0 — Build/Test Integrity
 
-| #   | Task                                                           | Impact                             | Effort |
-| --- | -------------------------------------------------------------- | ---------------------------------- | ------ |
-| 1   | Push all changes to origin/master                              | Uncommitted hygiene work goes live | 1 min  |
-| 2   | Verify CI passes on GitHub (all 4 modules)                     | Confirm pipeline works in CI       | 5 min  |
-| 3   | Fix `usermgmt/coverage_test.go:206` nil context (gopls SA1012) | Static analysis hygiene            | 2 min  |
+| # | Task                                                           | Impact                             | Effort |
+| - | -------------------------------------------------------------- | ---------------------------------- | ------ |
+| 1 | Push all changes to origin/master                              | Uncommitted hygiene work goes live | 1 min  |
+| 2 | Verify CI passes on GitHub (all 4 modules)                     | Confirm pipeline works in CI       | 5 min  |
+| 3 | Fix `usermgmt/coverage_test.go:206` nil context (gopls SA1012) | Static analysis hygiene            | 2 min  |
 
 ### P1 — Coverage
 
-| #   | Task                                                                  | Impact               | Effort |
-| --- | --------------------------------------------------------------------- | -------------------- | ------ |
-| 4   | Root: add `Hijack` error path test (60% → 100%)                       | logging.go coverage  | 10 min |
-| 5   | Root: add `sameSite` default case test (66.7% → 100%)                 | csrf.go coverage     | 5 min  |
-| 6   | Root: add `csrfTokenFromRequest` context fallback test (66.7% → 100%) | csrf.go coverage     | 5 min  |
-| 7   | Root: add `WriteJSON` error branch test (75% → 100%)                  | httputil.go coverage | 5 min  |
-| 8   | Usermgmt: add `handleLogout` error/timeout tests (64.3% → 100%)       | http.go coverage     | 15 min |
-| 9   | Usermgmt: add `Apply` failure path tests (69.2% → 100%)               | authz.go coverage    | 10 min |
-| 10  | Usermgmt: add `EnforceEx` denied+error tests (75% → 100%)             | authz.go coverage    | 10 min |
+| #  | Task                                                                  | Impact               | Effort |
+| -- | --------------------------------------------------------------------- | -------------------- | ------ |
+| 4  | Root: add `Hijack` error path test (60% → 100%)                       | logging.go coverage  | 10 min |
+| 5  | Root: add `sameSite` default case test (66.7% → 100%)                 | csrf.go coverage     | 5 min  |
+| 6  | Root: add `csrfTokenFromRequest` context fallback test (66.7% → 100%) | csrf.go coverage     | 5 min  |
+| 7  | Root: add `WriteJSON` error branch test (75% → 100%)                  | httputil.go coverage | 5 min  |
+| 8  | Usermgmt: add `handleLogout` error/timeout tests (64.3% → 100%)       | http.go coverage     | 15 min |
+| 9  | Usermgmt: add `Apply` failure path tests (69.2% → 100%)               | authz.go coverage    | 10 min |
+| 10 | Usermgmt: add `EnforceEx` denied+error tests (75% → 100%)             | authz.go coverage    | 10 min |
 
 ### P2 — Code Quality
 
-| #   | Task                                                                     | Impact               | Effort |
-| --- | ------------------------------------------------------------------------ | -------------------- | ------ |
-| 11  | Extract magic strings in usermgmt (`"Bearer "`, `"session_token"`, etc.) | Maintainability      | 15 min |
-| 12  | Migrate from deprecated `CatalogMeta` to zero-cost catalog API           | Future-proofing      | 30 min |
-| 13  | Upgrade root `go-cqrs-lite/core` v1.4.0 → v1.5.0                         | Version alignment    | 15 min |
-| 14  | Resolve `usermgmt/` `writeJSON` duplication decision                     | Architecture clarity | 10 min |
-| 15  | Consolidate `ErrForbidden`/`ErrUnauthorized` across modules              | Consistency          | 20 min |
+| #  | Task                                                                     | Impact               | Effort |
+| -- | ------------------------------------------------------------------------ | -------------------- | ------ |
+| 11 | Extract magic strings in usermgmt (`"Bearer "`, `"session_token"`, etc.) | Maintainability      | 15 min |
+| 12 | Migrate from deprecated `CatalogMeta` to zero-cost catalog API           | Future-proofing      | 30 min |
+| 13 | Upgrade root `go-cqrs-lite/core` v1.4.0 → v1.5.0                         | Version alignment    | 15 min |
+| 14 | Resolve `usermgmt/` `writeJSON` duplication decision                     | Architecture clarity | 10 min |
+| 15 | Consolidate `ErrForbidden`/`ErrUnauthorized` across modules              | Consistency          | 20 min |
 
 ### P3 — Documentation & DX
 
-| #   | Task                                                    | Impact           | Effort |
-| --- | ------------------------------------------------------- | ---------------- | ------ |
-| 16  | Update README.md to mention all 4 modules               | Consumer clarity | 10 min |
-| 17  | Update FEATURES.md with current feature inventory       | Onboarding       | 15 min |
-| 18  | Update TODO_LIST.md with current task statuses          | Planning         | 10 min |
-| 19  | Add basic HTMX + templ example that uses the library    | DX               | 30 min |
-| 20  | Clarify datastar-demo ownership (move to go-cqrs-lite?) | Repo hygiene     | 5 min  |
+| #  | Task                                                    | Impact           | Effort |
+| -- | ------------------------------------------------------- | ---------------- | ------ |
+| 16 | Update README.md to mention all 4 modules               | Consumer clarity | 10 min |
+| 17 | Update FEATURES.md with current feature inventory       | Onboarding       | 15 min |
+| 18 | Update TODO_LIST.md with current task statuses          | Planning         | 10 min |
+| 19 | Add basic HTMX + templ example that uses the library    | DX               | 30 min |
+| 20 | Clarify datastar-demo ownership (move to go-cqrs-lite?) | Repo hygiene     | 5 min  |
 
 ### P4 — Future
 
-| #   | Task                                                           | Impact            | Effort |
-| --- | -------------------------------------------------------------- | ----------------- | ------ |
-| 21  | Explore SSE/WebSocket helper submodule                         | New capability    | 2 hrs  |
-| 22  | Investigate `TypedHandler[T]` adoption for cqrs-htmx consumers | Type safety       | 1 hr   |
-| 23  | Add more integration tests (cross-module scenarios)            | Reliability       | 30 min |
-| 24  | Consider package-level organization within root (sub-packages) | API surface       | 4 hrs  |
-| 25  | Create v1.0.0 release checklist                                | Release readiness | 1 hr   |
+| #  | Task                                                           | Impact            | Effort |
+| -- | -------------------------------------------------------------- | ----------------- | ------ |
+| 21 | Explore SSE/WebSocket helper submodule                         | New capability    | 2 hrs  |
+| 22 | Investigate `TypedHandler[T]` adoption for cqrs-htmx consumers | Type safety       | 1 hr   |
+| 23 | Add more integration tests (cross-module scenarios)            | Reliability       | 30 min |
+| 24 | Consider package-level organization within root (sub-packages) | API surface       | 4 hrs  |
+| 25 | Create v1.0.0 release checklist                                | Release readiness | 1 hr   |
 
 ---
 

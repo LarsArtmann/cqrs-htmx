@@ -1,6 +1,6 @@
 # Snapshot Testing Options for cqrs-htmx
 
-**Date:** 2026-05-19  
+**Date:** 2026-05-19\
 **Context:** 245 test specs across 19 test files. Many tests use verbose `w.Body.String()` + `ContainSubstring` and header-by-header assertions that are brittle and hard to maintain.
 
 ---
@@ -37,8 +37,8 @@ Expect(meta).To(Equal(`<meta name="csrf-token" content="test-token">`))
 
 ## Option 1: `go-snaps` (RECOMMENDED)
 
-**Library:** `github.com/gkampitakis/go-snaps`  
-**Stars:** ~260 | **Status:** Actively maintained (v0.5.x, 2026)  
+**Library:** `github.com/gkampitakis/go-snaps`\
+**Stars:** ~260 | **Status:** Actively maintained (v0.5.x, 2026)\
 **Go version:** 1.21+
 
 Modern Jest-like snapshot testing with dynamic value masking, JSON/YAML formatters, and automatic snapshot cleanup.
@@ -209,7 +209,7 @@ GOWORK=off UPDATE_SNAPS=true go test ./... -count=1
 
 ## Option 2: `cupaloy`
 
-**Library:** `github.com/bradleyjkemp/cupaloy/v2`  
+**Library:** `github.com/bradleyjkemp/cupaloy/v2`\
 **Stars:** ~330 | **Status:** Stable/maintenance mode (v2.8.0, 2022)
 
 The original Go snapshot library. Extremely simple API.
@@ -507,14 +507,14 @@ Too narrow. Only solves JSON assertions, leaving HTML, headers, and status codes
 
 | Feature                  | go-snaps        | cupaloy     | Golden Files | Custom Matcher |
 | ------------------------ | --------------- | ----------- | ------------ | -------------- |
-| **Dynamic masking**      | ✅ Built-in     | ❌ None     | ⚠️ Manual    | ⚠️ Manual      |
-| **Ginkgo native**        | ✅ Yes          | ✅ Yes      | ⚠️ Clunky    | ✅ Yes         |
-| **JSON formatting**      | ✅ Yes          | ❌ No       | ⚠️ Manual    | ✅ Yes         |
+| **Dynamic masking**      | ✅ Built-in     | ❌ None     | ⚠️ Manual     | ⚠️ Manual       |
+| **Ginkgo native**        | ✅ Yes          | ✅ Yes      | ⚠️ Clunky     | ✅ Yes         |
+| **JSON formatting**      | ✅ Yes          | ❌ No       | ⚠️ Manual     | ✅ Yes         |
 | **Auto cleanup**         | ✅ Yes          | ✅ Yes      | ❌ No        | ❌ No          |
-| **HTTP response helper** | ✅ Easy         | ⚠️ Custom   | ⚠️ Custom    | ❌ No          |
+| **HTTP response helper** | ✅ Easy         | ⚠️ Custom    | ⚠️ Custom     | ❌ No          |
 | **Zero deps**            | ❌ 1 dep        | ❌ 1 dep    | ✅ Yes       | ✅ Yes         |
-| **Active maintenance**   | ✅ 2026         | ⚠️ 2022     | N/A (you)    | N/A (you)      |
-| **CI integration**       | ✅ Built-in     | ✅ Built-in | ⚠️ Custom    | ⚠️ Custom      |
+| **Active maintenance**   | ✅ 2026         | ⚠️ 2022      | N/A (you)    | N/A (you)      |
+| **CI integration**       | ✅ Built-in     | ✅ Built-in | ⚠️ Custom     | ⚠️ Custom       |
 | **Snapshot inline**      | ✅ Experimental | ❌ No       | ❌ No        | ❌ No          |
 | **Learning curve**       | Low             | Very low    | Medium       | Medium         |
 
@@ -588,5 +588,5 @@ cqrs-htmx/
 
 ---
 
-_Document generated: 2026-05-19_  
+_Document generated: 2026-05-19_\
 _Next step: Decide on approach, then implement proof-of-concept on one test file_

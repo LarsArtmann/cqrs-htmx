@@ -148,53 +148,53 @@ A comprehensive deep audit of every production `.go` file (root + usermgmt) reve
 
 ### P0 — Immediate (This Session)
 
-| #   | Item                                                              | Effort | Impact |
-| --- | ----------------------------------------------------------------- | ------ | ------ |
-| 1   | Fix `fmt.Errorf` → `cockroachdb/errors` in root module (20 calls) | 30m    | HIGH   |
-| 2   | Fix `fmt.Errorf` → `cockroachdb/errors` in usermgmt (11 calls)    | 15m    | HIGH   |
-| 3   | Add `RequestLoggingSlog` tests (0% → 80%+)                        | 30m    | HIGH   |
-| 4   | Fix `UserIDFromRequest` to return `UserID`                        | 15m    | HIGH   |
-| 5   | Extract security header constants in `security.go`                | 15m    | MED    |
+| # | Item                                                              | Effort | Impact |
+| - | ----------------------------------------------------------------- | ------ | ------ |
+| 1 | Fix `fmt.Errorf` → `cockroachdb/errors` in root module (20 calls) | 30m    | HIGH   |
+| 2 | Fix `fmt.Errorf` → `cockroachdb/errors` in usermgmt (11 calls)    | 15m    | HIGH   |
+| 3 | Add `RequestLoggingSlog` tests (0% → 80%+)                        | 30m    | HIGH   |
+| 4 | Fix `UserIDFromRequest` to return `UserID`                        | 15m    | HIGH   |
+| 5 | Extract security header constants in `security.go`                | 15m    | MED    |
 
 ### P1 — This Week
 
-| #   | Item                                                         | Effort | Impact |
-| --- | ------------------------------------------------------------ | ------ | ------ |
-| 6   | Add usermgmt godoc (~70 exported symbols)                    | 1h     | MED    |
-| 7   | Test `JSONErrorHandlerWithRedirect`                          | 15m    | MED    |
-| 8   | Extract remaining magic strings (logging, ratelimit, notify) | 30m    | LOW    |
-| 9   | `GroupPolicy.Subject` → `UserID` type                        | 1h     | MED    |
-| 10  | Raise usermgmt coverage to 92%+                              | 1h     | HIGH   |
+| #  | Item                                                         | Effort | Impact |
+| -- | ------------------------------------------------------------ | ------ | ------ |
+| 6  | Add usermgmt godoc (~70 exported symbols)                    | 1h     | MED    |
+| 7  | Test `JSONErrorHandlerWithRedirect`                          | 15m    | MED    |
+| 8  | Extract remaining magic strings (logging, ratelimit, notify) | 30m    | LOW    |
+| 9  | `GroupPolicy.Subject` → `UserID` type                        | 1h     | MED    |
+| 10 | Raise usermgmt coverage to 92%+                              | 1h     | HIGH   |
 
 ### P2 — Next Sprint
 
-| #   | Item                                            | Effort | Impact |
-| --- | ----------------------------------------------- | ------ | ------ |
-| 11  | Add persistent session store interface          | 2h     | HIGH   |
-| 12  | Add `context.Context` to store/authz interfaces | 2h     | MED    |
-| 13  | Password reset flow in usermgmt                 | 2h     | MED    |
-| 14  | SSE/EventStream helper for HTMX real-time       | 3h     | HIGH   |
-| 15  | OAuth2/OIDC integration hooks                   | 3h     | HIGH   |
+| #  | Item                                            | Effort | Impact |
+| -- | ----------------------------------------------- | ------ | ------ |
+| 11 | Add persistent session store interface          | 2h     | HIGH   |
+| 12 | Add `context.Context` to store/authz interfaces | 2h     | MED    |
+| 13 | Password reset flow in usermgmt                 | 2h     | MED    |
+| 14 | SSE/EventStream helper for HTMX real-time       | 3h     | HIGH   |
+| 15 | OAuth2/OIDC integration hooks                   | 3h     | HIGH   |
 
 ### P3 — Backlog
 
-| #   | Item                                     | Effort | Impact |
-| --- | ---------------------------------------- | ------ | ------ |
-| 16  | Email verification flow                  | 2h     | MED    |
-| 17  | Rate limiter min-heap eviction           | 2h     | MED    |
-| 18  | Multi-tenancy via Casbin domains         | 2h     | MED    |
-| 19  | Branded `Email` and `SessionToken` types | 1h     | LOW    |
-| 20  | Visual architecture diagram (D2)         | 1h     | MED    |
+| #  | Item                                     | Effort | Impact |
+| -- | ---------------------------------------- | ------ | ------ |
+| 16 | Email verification flow                  | 2h     | MED    |
+| 17 | Rate limiter min-heap eviction           | 2h     | MED    |
+| 18 | Multi-tenancy via Casbin domains         | 2h     | MED    |
+| 19 | Branded `Email` and `SessionToken` types | 1h     | LOW    |
+| 20 | Visual architecture diagram (D2)         | 1h     | MED    |
 
 ### P4 — Nice to Have
 
-| #   | Item                                   | Effort | Impact |
-| --- | -------------------------------------- | ------ | ------ |
-| 21  | Performance profiling and optimization | 2h     | LOW    |
-| 22  | Expand benchmark suite                 | 1h     | MED    |
-| 23  | OpenTelemetry tracing integration      | 3h     | HIGH   |
-| 24  | Example application (full usage demo)  | 2h     | HIGH   |
-| 25  | Migrate to flake.nix build system      | 2h     | MED    |
+| #  | Item                                   | Effort | Impact |
+| -- | -------------------------------------- | ------ | ------ |
+| 21 | Performance profiling and optimization | 2h     | LOW    |
+| 22 | Expand benchmark suite                 | 1h     | MED    |
+| 23 | OpenTelemetry tracing integration      | 3h     | HIGH   |
+| 24 | Example application (full usage demo)  | 2h     | HIGH   |
+| 25 | Migrate to flake.nix build system      | 2h     | MED    |
 
 ---
 

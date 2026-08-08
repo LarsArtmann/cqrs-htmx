@@ -85,23 +85,23 @@ The P5 section in `TODO_LIST.md` contains 11 open items from the 2026-05-19 comp
 
 ## c) NOT STARTED
 
-| #   | Item                                                                                          | Priority     | Impact                                       |
-| --- | --------------------------------------------------------------------------------------------- | ------------ | -------------------------------------------- |
-| 1   | Fix context mismatch in `applyQueryResponse` (handler.go:124)                                 | Correctness  | Low — render rarely fails from timeout       |
-| 2   | Fix nil context in usermgmt tests (handler_test.go:314,322)                                   | Correctness  | Low — test-only, SA1012 warning              |
-| 3   | Add max-keys cap to rate limiter                                                              | Production   | Medium — memory leak under pathological keys |
-| 4   | Cache CSRF Protect instance                                                                   | Production   | Medium — per-request allocation overhead     |
-| 5   | Generic HTMX accessor (collapse 8 functions)                                                  | Dedup        | Medium — 8→1 function                        |
-| 6   | Generic decoder (collapse 4 functions)                                                        | Dedup        | Medium — 4→1 function                        |
-| 7   | Generic validation (collapse 2 functions)                                                     | Dedup        | Low — 2→1 function                           |
-| 8   | Unified notification implementation                                                           | Dedup        | Medium — merge 2 parallel impls              |
-| 9   | Shared logging context extraction                                                             | Dedup        | Low — 3 blocks → 1 helper                    |
-| 10  | Shared error handler core                                                                     | Dedup        | Low — 2 paths → 1 function                   |
-| 11  | Generic ID helpers (`parseID[T]`)                                                             | Dedup        | Low — 3 functions → 1 generic                |
-| 12  | Split `csrf.go` into `csrf.go` + `csrf_helpers.go`                                            | Organization | Low — readability                            |
-| 13  | usermgmt coverage improvement (85% → 95%+)                                                    | Quality      | Medium                                       |
-| 14  | Update FEATURES.md metrics (coverage: 94.7 → 94.8, add usermgmt branded UserID)               | Docs         | Low                                          |
-| 15  | FEATURES.md still says "29 features" — branded UserID is a feature-level change not reflected | Docs         | Low                                          |
+| #  | Item                                                                                          | Priority     | Impact                                       |
+| -- | --------------------------------------------------------------------------------------------- | ------------ | -------------------------------------------- |
+| 1  | Fix context mismatch in `applyQueryResponse` (handler.go:124)                                 | Correctness  | Low — render rarely fails from timeout       |
+| 2  | Fix nil context in usermgmt tests (handler_test.go:314,322)                                   | Correctness  | Low — test-only, SA1012 warning              |
+| 3  | Add max-keys cap to rate limiter                                                              | Production   | Medium — memory leak under pathological keys |
+| 4  | Cache CSRF Protect instance                                                                   | Production   | Medium — per-request allocation overhead     |
+| 5  | Generic HTMX accessor (collapse 8 functions)                                                  | Dedup        | Medium — 8→1 function                        |
+| 6  | Generic decoder (collapse 4 functions)                                                        | Dedup        | Medium — 4→1 function                        |
+| 7  | Generic validation (collapse 2 functions)                                                     | Dedup        | Low — 2→1 function                           |
+| 8  | Unified notification implementation                                                           | Dedup        | Medium — merge 2 parallel impls              |
+| 9  | Shared logging context extraction                                                             | Dedup        | Low — 3 blocks → 1 helper                    |
+| 10 | Shared error handler core                                                                     | Dedup        | Low — 2 paths → 1 function                   |
+| 11 | Generic ID helpers (`parseID[T]`)                                                             | Dedup        | Low — 3 functions → 1 generic                |
+| 12 | Split `csrf.go` into `csrf.go` + `csrf_helpers.go`                                            | Organization | Low — readability                            |
+| 13 | usermgmt coverage improvement (85% → 95%+)                                                    | Quality      | Medium                                       |
+| 14 | Update FEATURES.md metrics (coverage: 94.7 → 94.8, add usermgmt branded UserID)               | Docs         | Low                                          |
+| 15 | FEATURES.md still says "29 features" — branded UserID is a feature-level change not reflected | Docs         | Low                                          |
 
 ---
 
@@ -141,58 +141,58 @@ The P5 section in `TODO_LIST.md` contains 11 open items from the 2026-05-19 comp
 
 ### Tier 1: Production Safety (do first)
 
-| #   | Item                                                              | Effort | Impact                            |
-| --- | ----------------------------------------------------------------- | ------ | --------------------------------- |
-| 1   | Add `MaxKeys` cap to rate limiter with LRU eviction               | 2h     | Prevents OOM in production        |
-| 2   | Cache CSRF Protect instance at handler creation time              | 1h     | Eliminates per-request allocation |
-| 3   | Fix context mismatch in `applyQueryResponse` (use enriched `ctx`) | 15m    | Correctness consistency           |
-| 4   | Fix nil context in usermgmt tests → `context.TODO()`              | 10m    | Silences SA1012 warnings          |
+| # | Item                                                              | Effort | Impact                            |
+| - | ----------------------------------------------------------------- | ------ | --------------------------------- |
+| 1 | Add `MaxKeys` cap to rate limiter with LRU eviction               | 2h     | Prevents OOM in production        |
+| 2 | Cache CSRF Protect instance at handler creation time              | 1h     | Eliminates per-request allocation |
+| 3 | Fix context mismatch in `applyQueryResponse` (use enriched `ctx`) | 15m    | Correctness consistency           |
+| 4 | Fix nil context in usermgmt tests → `context.TODO()`              | 10m    | Silences SA1012 warnings          |
 
 ### Tier 2: Deduplication (high leverage)
 
-| #   | Item                                                                | Effort | Impact                                      |
-| --- | ------------------------------------------------------------------- | ------ | ------------------------------------------- |
-| 5   | Generic HTMX accessor — collapse 8 functions to 1                   | 1h     | 8→1 function, major readability win         |
-| 6   | Generic decoder — collapse 4 decoder functions to 1                 | 1h     | 4→1, eliminates the most duplicated pattern |
-| 7   | Unified notification — merge `notifyOption` + `triggerNotification` | 30m    | 2→1 implementation                          |
-| 8   | Generic validation — collapse `ValidateCommand`/`ValidateQuery`     | 30m    | 2→1                                         |
+| # | Item                                                                | Effort | Impact                                      |
+| - | ------------------------------------------------------------------- | ------ | ------------------------------------------- |
+| 5 | Generic HTMX accessor — collapse 8 functions to 1                   | 1h     | 8→1 function, major readability win         |
+| 6 | Generic decoder — collapse 4 decoder functions to 1                 | 1h     | 4→1, eliminates the most duplicated pattern |
+| 7 | Unified notification — merge `notifyOption` + `triggerNotification` | 30m    | 2→1 implementation                          |
+| 8 | Generic validation — collapse `ValidateCommand`/`ValidateQuery`     | 30m    | 2→1                                         |
 
 ### Tier 3: Documentation Accuracy
 
-| #   | Item                                                              | Effort | Impact   |
-| --- | ----------------------------------------------------------------- | ------ | -------- |
-| 9   | Update FEATURES.md — add branded UserID, update coverage to 94.8% | 15m    | Accuracy |
-| 10  | Update TODO_LIST.md — mark branded UserID as done, update metrics | 15m    | Accuracy |
-| 11  | Update AGENTS.md architecture tree — add `id.go` to usermgmt      | 5m     | Accuracy |
+| #  | Item                                                              | Effort | Impact   |
+| -- | ----------------------------------------------------------------- | ------ | -------- |
+| 9  | Update FEATURES.md — add branded UserID, update coverage to 94.8% | 15m    | Accuracy |
+| 10 | Update TODO_LIST.md — mark branded UserID as done, update metrics | 15m    | Accuracy |
+| 11 | Update AGENTS.md architecture tree — add `id.go` to usermgmt      | 5m     | Accuracy |
 
 ### Tier 4: Test Quality
 
-| #   | Item                                                                                 | Effort | Impact                   |
-| --- | ------------------------------------------------------------------------------------ | ------ | ------------------------ |
-| 12  | Add explicit tests for `usermgmt/id.go` (NewUserID, IsZero, String, JSON round-trip) | 30m    | Coverage + explicitness  |
-| 13  | Improve usermgmt coverage from 85% → 90%+                                            | 2h     | Reliability              |
-| 14  | Add integration test: usermgmt register → cqrs-htmx dispatch with user context       | 1h     | Cross-module correctness |
+| #  | Item                                                                                 | Effort | Impact                   |
+| -- | ------------------------------------------------------------------------------------ | ------ | ------------------------ |
+| 12 | Add explicit tests for `usermgmt/id.go` (NewUserID, IsZero, String, JSON round-trip) | 30m    | Coverage + explicitness  |
+| 13 | Improve usermgmt coverage from 85% → 90%+                                            | 2h     | Reliability              |
+| 14 | Add integration test: usermgmt register → cqrs-htmx dispatch with user context       | 1h     | Cross-module correctness |
 
 ### Tier 5: Code Organization
 
-| #   | Item                                                                      | Effort | Impact      |
-| --- | ------------------------------------------------------------------------- | ------ | ----------- |
-| 15  | Split `csrf.go` (445 lines) → `csrf.go` + `csrf_helpers.go`               | 30m    | Readability |
-| 16  | Generic ID helpers — `parseID[T]` for ParseUserID/CorrelationID/RequestID | 30m    | 3→1         |
-| 17  | Shared logging context extraction helper                                  | 30m    | 3→1 blocks  |
-| 18  | Shared error handler core extraction                                      | 30m    | 2→1 paths   |
+| #  | Item                                                                      | Effort | Impact      |
+| -- | ------------------------------------------------------------------------- | ------ | ----------- |
+| 15 | Split `csrf.go` (445 lines) → `csrf.go` + `csrf_helpers.go`               | 30m    | Readability |
+| 16 | Generic ID helpers — `parseID[T]` for ParseUserID/CorrelationID/RequestID | 30m    | 3→1         |
+| 17 | Shared logging context extraction helper                                  | 30m    | 3→1 blocks  |
+| 18 | Shared error handler core extraction                                      | 30m    | 2→1 paths   |
 
 ### Tier 6: Future-Proofing
 
-| #   | Item                                                                       | Effort | Impact                                      |
-| --- | -------------------------------------------------------------------------- | ------ | ------------------------------------------- |
-| 19  | Consider `TriggerID` branded type in `HTMXRequest`                         | 30m    | Consistency (was skipped in this migration) |
-| 20  | Add `SessionToken` branded type for session tokens                         | 1h     | Prevents token/ID confusion                 |
-| 21  | Evaluate go-branded-id for numeric IDs (future store backends)             | 1h     | Readiness for SQL stores                    |
-| 22  | Add fuzz tests for decoder functions                                       | 2h     | Robustness                                  |
-| 23  | Benchmark usermgmt operations (auth, session, bcrypt)                      | 1h     | Performance baseline                        |
-| 24  | Consider extracting shared branded ID types to a separate internal package | 2h     | Cross-module type sharing                   |
-| 25  | Investigate LSP stale diagnostics issue (golangci_lint_ls)                 | 2h     | Developer experience                        |
+| #  | Item                                                                       | Effort | Impact                                      |
+| -- | -------------------------------------------------------------------------- | ------ | ------------------------------------------- |
+| 19 | Consider `TriggerID` branded type in `HTMXRequest`                         | 30m    | Consistency (was skipped in this migration) |
+| 20 | Add `SessionToken` branded type for session tokens                         | 1h     | Prevents token/ID confusion                 |
+| 21 | Evaluate go-branded-id for numeric IDs (future store backends)             | 1h     | Readiness for SQL stores                    |
+| 22 | Add fuzz tests for decoder functions                                       | 2h     | Robustness                                  |
+| 23 | Benchmark usermgmt operations (auth, session, bcrypt)                      | 1h     | Performance baseline                        |
+| 24 | Consider extracting shared branded ID types to a separate internal package | 2h     | Cross-module type sharing                   |
+| 25 | Investigate LSP stale diagnostics issue (golangci_lint_ls)                 | 2h     | Developer experience                        |
 
 ---
 
@@ -242,14 +242,14 @@ I cannot determine the right tradeoff here because it depends on your product di
 ### Total Diff Stats
 
 ```
- AGENTS.md                | 16 +++++++----
- usermgmt/authz.go        | 16 +++++------
- usermgmt/authz_test.go   |  6 ++--
- usermgmt/handler_test.go | 16 +++++------
- usermgmt/lockout_test.go |  5 +++-
- usermgmt/service_test.go | 74 ++++++++++++++++++++++++++++++--------------
- usermgmt/user_test.go    | 48 +++++++++++++++----------------
- 7 files changed, 109 insertions(+), 72 deletions(-)
+AGENTS.md                | 16 +++++++----
+usermgmt/authz.go        | 16 +++++------
+usermgmt/authz_test.go   |  6 ++--
+usermgmt/handler_test.go | 16 +++++------
+usermgmt/lockout_test.go |  5 +++-
+usermgmt/service_test.go | 74 ++++++++++++++++++++++++++++++--------------
+usermgmt/user_test.go    | 48 +++++++++++++++----------------
+7 files changed, 109 insertions(+), 72 deletions(-)
 ```
 
 (Plus new files: `usermgmt/id.go`, modified `usermgmt/go.mod`, `usermgmt/go.sum`)

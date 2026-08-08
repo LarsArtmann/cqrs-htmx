@@ -30,44 +30,44 @@ A massive quality session covering **45+ tasks** across 9 priority tiers: bug fi
 
 ### Bug Fixes
 
-| #   | Bug                                                                     | Fix                                  | File(s)           |
-| --- | ----------------------------------------------------------------------- | ------------------------------------ | ----------------- |
-| 1   | `sanitizeRedirectURL("/")` returns `("", false)` — blocks root redirect | Removed `&& u.Path != "/"` condition | `response.go:201` |
+| # | Bug                                                                     | Fix                                  | File(s)           |
+| - | ----------------------------------------------------------------------- | ------------------------------------ | ----------------- |
+| 1 | `sanitizeRedirectURL("/")` returns `("", false)` — blocks root redirect | Removed `&& u.Path != "/"` condition | `response.go:201` |
 
 ### Type Safety (Breaking Changes)
 
-| #   | Change                                                                                 | Files                                     |
-| --- | -------------------------------------------------------------------------------------- | ----------------------------------------- |
-| 2   | `RateLimiterConfig.Limit/Burst/MaxKeys` → `uint`                                       | `ratelimit.go`                            |
-| 3   | `LockoutConfig.MaxAttempts` → `uint`                                                   | `usermgmt/lockout.go`                     |
-| 4   | `AccountLockout.attempts` map values → `uint`                                          | `usermgmt/lockout.go`                     |
-| 5   | `type Role string` with constants (`RoleAdmin`, `RoleUser`, `RoleViewer`, `RoleOwner`) | `usermgmt/authz.go`                       |
-| 6   | `User.Roles` → `[]Role`, `UpdateRoles` accepts `[]Role`                                | `usermgmt/user.go`, `usermgmt/service.go` |
-| 7   | `Policy.Subject` → `Role`, `GroupPolicy.Role` → `Role`                                 | `usermgmt/authz.go`                       |
-| 8   | `RolesForUser` / `ImplicitRolesForUser` → return `[]Role`                              | `usermgmt/authz.go`                       |
-| 9   | `UsersForRole` → accepts `Role` parameter                                              | `usermgmt/authz.go`                       |
-| 10  | All Casbin boundary crossings use `string()` conversion                                | `usermgmt/authz.go`                       |
-| 11  | `formatRoles([]Role) string` helper for logging                                        | `usermgmt/service.go`                     |
+| #  | Change                                                                                 | Files                                     |
+| -- | -------------------------------------------------------------------------------------- | ----------------------------------------- |
+| 2  | `RateLimiterConfig.Limit/Burst/MaxKeys` → `uint`                                       | `ratelimit.go`                            |
+| 3  | `LockoutConfig.MaxAttempts` → `uint`                                                   | `usermgmt/lockout.go`                     |
+| 4  | `AccountLockout.attempts` map values → `uint`                                          | `usermgmt/lockout.go`                     |
+| 5  | `type Role string` with constants (`RoleAdmin`, `RoleUser`, `RoleViewer`, `RoleOwner`) | `usermgmt/authz.go`                       |
+| 6  | `User.Roles` → `[]Role`, `UpdateRoles` accepts `[]Role`                                | `usermgmt/user.go`, `usermgmt/service.go` |
+| 7  | `Policy.Subject` → `Role`, `GroupPolicy.Role` → `Role`                                 | `usermgmt/authz.go`                       |
+| 8  | `RolesForUser` / `ImplicitRolesForUser` → return `[]Role`                              | `usermgmt/authz.go`                       |
+| 9  | `UsersForRole` → accepts `Role` parameter                                              | `usermgmt/authz.go`                       |
+| 10 | All Casbin boundary crossings use `string()` conversion                                | `usermgmt/authz.go`                       |
+| 11 | `formatRoles([]Role) string` helper for logging                                        | `usermgmt/service.go`                     |
 
 ### Naming Improvements
 
-| #   | Old Name                           | New Name                         | File                     |
-| --- | ---------------------------------- | -------------------------------- | ------------------------ |
-| 12  | `RotateCSRFToken`                  | `InvalidateCSRFCookie`           | `csrf.go`                |
-| 13  | `MatchedRule`                      | `MatchedRules`                   | `usermgmt/authz.go`      |
-| 14  | `SessionMiddleware`                | `NewSessionMiddleware`           | `usermgmt/middleware.go` |
-| 15  | `AuthHandlers` / `NewAuthHandlers` | `AuthHandler` / `NewAuthHandler` | `usermgmt/http.go`       |
-| 16  | `GroupPolicy.User`                 | `GroupPolicy.Subject`            | `usermgmt/authz.go`      |
+| #  | Old Name                           | New Name                         | File                     |
+| -- | ---------------------------------- | -------------------------------- | ------------------------ |
+| 12 | `RotateCSRFToken`                  | `InvalidateCSRFCookie`           | `csrf.go`                |
+| 13 | `MatchedRule`                      | `MatchedRules`                   | `usermgmt/authz.go`      |
+| 14 | `SessionMiddleware`                | `NewSessionMiddleware`           | `usermgmt/middleware.go` |
+| 15 | `AuthHandlers` / `NewAuthHandlers` | `AuthHandler` / `NewAuthHandler` | `usermgmt/http.go`       |
+| 16 | `GroupPolicy.User`                 | `GroupPolicy.Subject`            | `usermgmt/authz.go`      |
 
 ### Code Quality
 
-| #   | Change                                                                             | File                  |
-| --- | ---------------------------------------------------------------------------------- | --------------------- |
-| 17  | Extract `minPasswordLength = 8` constant                                           | `usermgmt/service.go` |
-| 18  | Split `csrf.go` (386 lines) → `csrf.go` (320 lines) + `csrf_handler.go` (69 lines) | New file              |
-| 19  | Extract `newStatusRecorder(w)` helper (dedup)                                      | `logging.go`          |
-| 20  | Add `http.Pusher` to `statusRecorder` (HTTP/2 compat)                              | `logging.go`          |
-| 21  | Fix `hasNoExplicitBody()` to check `c.render`                                      | `options.go`          |
+| #  | Change                                                                             | File                  |
+| -- | ---------------------------------------------------------------------------------- | --------------------- |
+| 17 | Extract `minPasswordLength = 8` constant                                           | `usermgmt/service.go` |
+| 18 | Split `csrf.go` (386 lines) → `csrf.go` (320 lines) + `csrf_handler.go` (69 lines) | New file              |
+| 19 | Extract `newStatusRecorder(w)` helper (dedup)                                      | `logging.go`          |
+| 20 | Add `http.Pusher` to `statusRecorder` (HTTP/2 compat)                              | `logging.go`          |
+| 21 | Fix `hasNoExplicitBody()` to check `c.render`                                      | `options.go`          |
 
 ### Test Coverage
 
@@ -87,36 +87,36 @@ A massive quality session covering **45+ tasks** across 9 priority tiers: bug fi
 
 ### Documentation
 
-| #   | What                                                                                  | File                                 |
-| --- | ------------------------------------------------------------------------------------- | ------------------------------------ |
-| 32  | Create `docs/adr/` directory, move `HTMX_GO_DECISION.md` → `0001-htmx-go-decision.md` | `docs/adr/`                          |
-| 33  | Write ADR 0002: UserID type split decision                                            | `docs/adr/0002-userid-type-split.md` |
-| 34  | Document `Trigger` vs `TriggerWithDetail` incompatibility                             | `response.go` godoc                  |
-| 35  | Document `TriggerID` vs `TriggerName` distinction                                     | `htmx.go` godoc                      |
-| 36  | Document `readBody` unlimited behavior when `maxBodySize ≤ 0`                         | `decoder.go` godoc                   |
-| 37  | Archive old status reports (43 → 10, moved to `docs/status/archive/`)                 | `docs/status/`                       |
+| #  | What                                                                                  | File                                 |
+| -- | ------------------------------------------------------------------------------------- | ------------------------------------ |
+| 32 | Create `docs/adr/` directory, move `HTMX_GO_DECISION.md` → `0001-htmx-go-decision.md` | `docs/adr/`                          |
+| 33 | Write ADR 0002: UserID type split decision                                            | `docs/adr/0002-userid-type-split.md` |
+| 34 | Document `Trigger` vs `TriggerWithDetail` incompatibility                             | `response.go` godoc                  |
+| 35 | Document `TriggerID` vs `TriggerName` distinction                                     | `htmx.go` godoc                      |
+| 36 | Document `readBody` unlimited behavior when `maxBodySize ≤ 0`                         | `decoder.go` godoc                   |
+| 37 | Archive old status reports (43 → 10, moved to `docs/status/archive/`)                 | `docs/status/`                       |
 
 ### Integration Tests
 
-| #   | What                                                                                  | File                                   |
-| --- | ------------------------------------------------------------------------------------- | -------------------------------------- |
-| 38  | New `integration_test/` module bridging root + usermgmt                               | `integration_test/go.mod`              |
-| 39  | `TestIntegration_UserIDExtraction_Bridge` — verify usermgmt→cqrshtmx UserID roundtrip | `integration_test/integration_test.go` |
-| 40  | `TestIntegration_UserIDFromRequest_Bridge` — verify ID extraction across modules      | `integration_test/integration_test.go` |
+| #  | What                                                                                  | File                                   |
+| -- | ------------------------------------------------------------------------------------- | -------------------------------------- |
+| 38 | New `integration_test/` module bridging root + usermgmt                               | `integration_test/go.mod`              |
+| 39 | `TestIntegration_UserIDExtraction_Bridge` — verify usermgmt→cqrshtmx UserID roundtrip | `integration_test/integration_test.go` |
+| 40 | `TestIntegration_UserIDFromRequest_Bridge` — verify ID extraction across modules      | `integration_test/integration_test.go` |
 
 ### Fuzz Tests
 
-| #   | What                                                          | File           |
-| --- | ------------------------------------------------------------- | -------------- |
-| 41  | `FuzzDecodeJSONBody` — fuzz JSON decoder with arbitrary input | `fuzz_test.go` |
-| 42  | `FuzzDecodeFormBody` — fuzz form decoder with arbitrary input | `fuzz_test.go` |
-| 43  | `FuzzSanitizeRedirectURL` — fuzz URL sanitization             | `fuzz_test.go` |
+| #  | What                                                          | File           |
+| -- | ------------------------------------------------------------- | -------------- |
+| 41 | `FuzzDecodeJSONBody` — fuzz JSON decoder with arbitrary input | `fuzz_test.go` |
+| 42 | `FuzzDecodeFormBody` — fuzz form decoder with arbitrary input | `fuzz_test.go` |
+| 43 | `FuzzSanitizeRedirectURL` — fuzz URL sanitization             | `fuzz_test.go` |
 
 ### Benchmarks
 
-| #   | What                                                         | File                |
-| --- | ------------------------------------------------------------ | ------------------- |
-| 44  | `BenchmarkSecurityHeadersMiddleware` — security headers perf | `benchmark_test.go` |
+| #  | What                                                         | File                |
+| -- | ------------------------------------------------------------ | ------------------- |
+| 44 | `BenchmarkSecurityHeadersMiddleware` — security headers perf | `benchmark_test.go` |
 
 ---
 
@@ -134,31 +134,31 @@ A massive quality session covering **45+ tasks** across 9 priority tiers: bug fi
 
 ### From the original TODO list (P8/P9 backlog)
 
-| #   | Task                                                 | Impact | Effort |
-| --- | ---------------------------------------------------- | ------ | ------ |
-| 1   | Rate limiter O(log n) eviction (min-heap or LRU)     | Medium | 2h     |
-| 2   | Migrate to `flake.nix` build system                  | Medium | 2h     |
-| 3   | Expand benchmark suite (middleware chain, full flow) | Low    | 1h     |
-| 4   | Add cookie-based session store (not just in-memory)  | High   | 2h     |
-| 5   | Add password reset flow to usermgmt                  | Medium | 2h     |
-| 6   | Add email verification flow to usermgmt              | Medium | 2h     |
-| 7   | Add SSE/EventStream helper for real-time updates     | High   | 3h     |
-| 8   | Add OAuth2/OIDC integration hooks                    | High   | 3h     |
-| 9   | Multi-tenancy support via Casbin domains             | Medium | 2h     |
-| 10  | 100% godoc coverage for all exported types           | Medium | 2h     |
-| 11  | Visual D2 architecture diagram for README            | Medium | 1h     |
-| 12  | Performance profiling and optimization pass          | Low    | 2h     |
+| #  | Task                                                 | Impact | Effort |
+| -- | ---------------------------------------------------- | ------ | ------ |
+| 1  | Rate limiter O(log n) eviction (min-heap or LRU)     | Medium | 2h     |
+| 2  | Migrate to `flake.nix` build system                  | Medium | 2h     |
+| 3  | Expand benchmark suite (middleware chain, full flow) | Low    | 1h     |
+| 4  | Add cookie-based session store (not just in-memory)  | High   | 2h     |
+| 5  | Add password reset flow to usermgmt                  | Medium | 2h     |
+| 6  | Add email verification flow to usermgmt              | Medium | 2h     |
+| 7  | Add SSE/EventStream helper for real-time updates     | High   | 3h     |
+| 8  | Add OAuth2/OIDC integration hooks                    | High   | 3h     |
+| 9  | Multi-tenancy support via Casbin domains             | Medium | 2h     |
+| 10 | 100% godoc coverage for all exported types           | Medium | 2h     |
+| 11 | Visual D2 architecture diagram for README            | Medium | 1h     |
+| 12 | Performance profiling and optimization pass          | Low    | 2h     |
 
 ### Skipped from this session (with rationale)
 
-| #   | Task                                                         | Rationale                                                                                       |
-| --- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| 1   | `GroupPolicy.User` → `UserID` type                           | AGENTS.md #35: Casbin boundary types remain `string` by design                                  |
-| 2   | Extract shared auth subject extraction (authz.go)            | `AuthorizeMiddleware` and `executeAuthorization` serve different roles — intentional separation |
-| 3   | Consolidate session TTL to single source                     | Requires design decision on which is authoritative                                              |
-| 4   | Fix `UpdatedAt` ownership (store vs domain)                  | Requires design decision on domain model purity                                                 |
-| 5   | Fix role storage dual-source in `UpdateRoles`                | Related to session TTL — both need cohesive design                                              |
-| 6   | Remove `httptest.ResponseRecorder` from production CSRF code | Risky refactor, works correctly as-is                                                           |
+| # | Task                                                         | Rationale                                                                                       |
+| - | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| 1 | `GroupPolicy.User` → `UserID` type                           | AGENTS.md #35: Casbin boundary types remain `string` by design                                  |
+| 2 | Extract shared auth subject extraction (authz.go)            | `AuthorizeMiddleware` and `executeAuthorization` serve different roles — intentional separation |
+| 3 | Consolidate session TTL to single source                     | Requires design decision on which is authoritative                                              |
+| 4 | Fix `UpdatedAt` ownership (store vs domain)                  | Requires design decision on domain model purity                                                 |
+| 5 | Fix role storage dual-source in `UpdateRoles`                | Related to session TTL — both need cohesive design                                              |
+| 6 | Remove `httptest.ResponseRecorder` from production CSRF code | Risky refactor, works correctly as-is                                                           |
 
 ---
 
@@ -215,48 +215,48 @@ Consumers upgrading will need to update:
 
 ### P0 — This Session (High Impact, Low Effort)
 
-| #   | Item                                                           | Effort | Impact |
-| --- | -------------------------------------------------------------- | ------ | ------ |
-| 1   | Write `CHANGELOG.md` with migration guide for breaking changes | 30m    | HIGH   |
-| 2   | Add test for `hasNoExplicitBody` render check                  | 5m     | MED    |
-| 3   | Cover `Valid()` token mismatch path                            | 5m     | MED    |
-| 4   | Cover `NewAuthz` custom model string error path                | 5m     | MED    |
-| 5   | Cover `Apply` remove-policy error path                         | 5m     | MED    |
+| # | Item                                                           | Effort | Impact |
+| - | -------------------------------------------------------------- | ------ | ------ |
+| 1 | Write `CHANGELOG.md` with migration guide for breaking changes | 30m    | HIGH   |
+| 2 | Add test for `hasNoExplicitBody` render check                  | 5m     | MED    |
+| 3 | Cover `Valid()` token mismatch path                            | 5m     | MED    |
+| 4 | Cover `NewAuthz` custom model string error path                | 5m     | MED    |
+| 5 | Cover `Apply` remove-policy error path                         | 5m     | MED    |
 
 ### P1 — This Week
 
-| #   | Item                                                    | Effort | Impact |
-| --- | ------------------------------------------------------- | ------ | ------ |
-| 6   | Raise usermgmt coverage to 93%+ (remaining error paths) | 1h     | HIGH   |
-| 7   | Full integration test: register→login→dispatch→HTMX     | 2h     | HIGH   |
-| 8   | Consolidate session TTL to single source                | 30m    | MED    |
-| 9   | Fix `UpdatedAt` ownership (store owns it)               | 30m    | MED    |
-| 10  | Fix role storage dual-source in `UpdateRoles`           | 30m    | MED    |
+| #  | Item                                                    | Effort | Impact |
+| -- | ------------------------------------------------------- | ------ | ------ |
+| 6  | Raise usermgmt coverage to 93%+ (remaining error paths) | 1h     | HIGH   |
+| 7  | Full integration test: register→login→dispatch→HTMX     | 2h     | HIGH   |
+| 8  | Consolidate session TTL to single source                | 30m    | MED    |
+| 9  | Fix `UpdatedAt` ownership (store owns it)               | 30m    | MED    |
+| 10 | Fix role storage dual-source in `UpdateRoles`           | 30m    | MED    |
 
 ### P2 — Next Sprint
 
-| #   | Item                                                       | Effort | Impact |
-| --- | ---------------------------------------------------------- | ------ | ------ |
-| 11  | Rate limiter O(log n) eviction (min-heap)                  | 2h     | MED    |
-| 12  | Migrate to `flake.nix` build system                        | 2h     | MED    |
-| 13  | Expand benchmark suite (middleware chain, full flow)       | 1h     | MED    |
-| 14  | Remove httptest.ResponseRecorder from CSRF production code | 1h     | MED    |
-| 15  | Add cookie-based session store                             | 2h     | HIGH   |
-| 16  | Add password reset flow to usermgmt                        | 2h     | MED    |
+| #  | Item                                                       | Effort | Impact |
+| -- | ---------------------------------------------------------- | ------ | ------ |
+| 11 | Rate limiter O(log n) eviction (min-heap)                  | 2h     | MED    |
+| 12 | Migrate to `flake.nix` build system                        | 2h     | MED    |
+| 13 | Expand benchmark suite (middleware chain, full flow)       | 1h     | MED    |
+| 14 | Remove httptest.ResponseRecorder from CSRF production code | 1h     | MED    |
+| 15 | Add cookie-based session store                             | 2h     | HIGH   |
+| 16 | Add password reset flow to usermgmt                        | 2h     | MED    |
 
 ### P3 — Backlog
 
-| #   | Item                                               | Effort | Impact |
-| --- | -------------------------------------------------- | ------ | ------ |
-| 17  | Add email verification flow to usermgmt            | 2h     | MED    |
-| 18  | Add SSE/EventStream helper for real-time updates   | 3h     | HIGH   |
-| 19  | Add OAuth2/OIDC integration hooks in usermgmt      | 3h     | HIGH   |
-| 20  | Move `coverage.out` to `coverage/` directory       | 5m     | LOW    |
-| 21  | 100% godoc coverage for all exported types         | 2h     | MED    |
-| 22  | Performance profiling and optimization pass        | 2h     | LOW    |
-| 23  | Add multi-tenancy support via Casbin domains       | 2h     | MED    |
-| 24  | Create visual architecture diagram (D2) for README | 1h     | MED    |
-| 25  | Add CSRF fuzz test                                 | 30m    | MED    |
+| #  | Item                                               | Effort | Impact |
+| -- | -------------------------------------------------- | ------ | ------ |
+| 17 | Add email verification flow to usermgmt            | 2h     | MED    |
+| 18 | Add SSE/EventStream helper for real-time updates   | 3h     | HIGH   |
+| 19 | Add OAuth2/OIDC integration hooks in usermgmt      | 3h     | HIGH   |
+| 20 | Move `coverage.out` to `coverage/` directory       | 5m     | LOW    |
+| 21 | 100% godoc coverage for all exported types         | 2h     | MED    |
+| 22 | Performance profiling and optimization pass        | 2h     | LOW    |
+| 23 | Add multi-tenancy support via Casbin domains       | 2h     | MED    |
+| 24 | Create visual architecture diagram (D2) for README | 1h     | MED    |
+| 25 | Add CSRF fuzz test                                 | 30m    | MED    |
 
 ---
 

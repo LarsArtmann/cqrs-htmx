@@ -1,7 +1,7 @@
 # Status Report: go-cqrs-lite v2.3.0 Update
 
-**Date:** 2026-06-12 11:12  
-**Author:** Crush (AI Assistant)  
+**Date:** 2026-06-12 11:12\
+**Author:** Crush (AI Assistant)\
 **Session Focus:** Update go-cqrs-lite dependency to v2.3.0 and adopt new features
 
 ---
@@ -172,33 +172,33 @@ v2.3.0 added `CommandSink`, `CommandSource`, `Store` for persisted command logs.
 
 ## f) Top #25 Things To Do Next
 
-| #   | Task                                                                        | Impact    | Effort | Module  | Status      |
-| --- | --------------------------------------------------------------------------- | --------- | ------ | ------- | ----------- |
-| 1   | Verify nix build/test with go.work replaces                                 | 🔴 High   | 5m     | Root    | Not Started |
-| 2   | Update README.md for `query.MustNew` → `query.New()`                        | 🔴 High   | 10m    | Root    | Not Started |
-| 3   | Add `id.CompareIDs` to test assertions                                      | 🟡 Medium | 10m    | Root    | Not Started |
-| 4   | Refactor test commands to use `RegisterTyped`                               | 🟡 Medium | 20m    | Root    | Not Started |
-| 5   | Bump go.mod versions to v2.3.0 when tags publish                            | 🟡 Medium | 5m     | All     | Not Started |
-| 6   | Add `event.MetadataKey` support to context enrichment                       | 🟡 Medium | 20m    | Root    | Not Started |
-| 7   | Clean up LSP diagnostics (restart gopls)                                    | 🟢 Low    | 2m     | DevEx   | Not Started |
-| 8   | Verify `event.PayloadReadOnly` has no use sites                             | 🟢 Low    | 5m     | Root    | Not Started |
-| 9   | Document `RegisterTyped` usage pattern in AGENTS.md                         | 🟢 Low    | 10m    | Root    | Not Started |
-| 10  | Add `command.ParseType` usage in test helpers                               | 🟢 Low    | 15m    | Root    | Not Started |
-| 11  | Review FEATURES.md for stale API references                                 | 🟢 Low    | 15m    | Root    | Not Started |
-| 12  | Consider `HandlerConfig` → `Optional[T]` refactor                           | 🟡 Medium | 30m    | Root    | Not Started |
-| 13  | Add `context.WithTimeout` deadline test for `EventOptionsFromContext`       | 🟢 Low    | 10m    | Root    | Not Started |
-| 14  | Verify datastar-demo still works end-to-end (run it)                        | 🟡 Medium | 5m     | Example | Not Started |
-| 15  | Check for `fmt.Sprintf` in `MustParse*` wrappers — could use `errors.New`   | 🟢 Low    | 5m     | Root    | Not Started |
-| 16  | Add negative test: `Command("")` panics with query-only app                 | 🟢 Low    | 5m     | Root    | Not Started |
-| 17  | Document go.work replace directive strategy in AGENTS.md                    | 🟢 Low    | 5m     | Root    | Not Started |
-| 18  | Run `go mod tidy -v` and review for unused deps                             | 🟢 Low    | 5m     | All     | Not Started |
-| 19  | Add `id.FromPtr` usage where we deref ID pointers                           | 🟢 Low    | 10m    | Root    | Not Started |
-| 20  | Verify `command.Store` interfaces are documented in architecture            | 🟢 Low    | 10m    | Docs    | Not Started |
-| 21  | Update CHANGELOG.md with v2.3.0 adoption entry                              | 🟢 Low    | 10m    | Root    | Not Started |
-| 22  | Check if `event.NewMetadata` change affects us (now initializes Custom map) | 🟢 Low    | 5m     | Root    | Not Started |
-| 23  | Review `command.WrapTransient` removal — verify not used                    | 🟢 Low    | 2m     | Root    | Not Started |
-| 24  | Search for `event.MustParseType` usage — should be gone                     | 🟢 Low    | 2m     | All     | Not Started |
-| 25  | Consider adding `TypedHandler` examples to `example_test.go`                | 🟢 Low    | 15m    | Root    | Not Started |
+| #  | Task                                                                        | Impact    | Effort | Module  | Status      |
+| -- | --------------------------------------------------------------------------- | --------- | ------ | ------- | ----------- |
+| 1  | Verify nix build/test with go.work replaces                                 | 🔴 High   | 5m     | Root    | Not Started |
+| 2  | Update README.md for `query.MustNew` → `query.New()`                        | 🔴 High   | 10m    | Root    | Not Started |
+| 3  | Add `id.CompareIDs` to test assertions                                      | 🟡 Medium | 10m    | Root    | Not Started |
+| 4  | Refactor test commands to use `RegisterTyped`                               | 🟡 Medium | 20m    | Root    | Not Started |
+| 5  | Bump go.mod versions to v2.3.0 when tags publish                            | 🟡 Medium | 5m     | All     | Not Started |
+| 6  | Add `event.MetadataKey` support to context enrichment                       | 🟡 Medium | 20m    | Root    | Not Started |
+| 7  | Clean up LSP diagnostics (restart gopls)                                    | 🟢 Low    | 2m     | DevEx   | Not Started |
+| 8  | Verify `event.PayloadReadOnly` has no use sites                             | 🟢 Low    | 5m     | Root    | Not Started |
+| 9  | Document `RegisterTyped` usage pattern in AGENTS.md                         | 🟢 Low    | 10m    | Root    | Not Started |
+| 10 | Add `command.ParseType` usage in test helpers                               | 🟢 Low    | 15m    | Root    | Not Started |
+| 11 | Review FEATURES.md for stale API references                                 | 🟢 Low    | 15m    | Root    | Not Started |
+| 12 | Consider `HandlerConfig` → `Optional[T]` refactor                           | 🟡 Medium | 30m    | Root    | Not Started |
+| 13 | Add `context.WithTimeout` deadline test for `EventOptionsFromContext`       | 🟢 Low    | 10m    | Root    | Not Started |
+| 14 | Verify datastar-demo still works end-to-end (run it)                        | 🟡 Medium | 5m     | Example | Not Started |
+| 15 | Check for `fmt.Sprintf` in `MustParse*` wrappers — could use `errors.New`   | 🟢 Low    | 5m     | Root    | Not Started |
+| 16 | Add negative test: `Command("")` panics with query-only app                 | 🟢 Low    | 5m     | Root    | Not Started |
+| 17 | Document go.work replace directive strategy in AGENTS.md                    | 🟢 Low    | 5m     | Root    | Not Started |
+| 18 | Run `go mod tidy -v` and review for unused deps                             | 🟢 Low    | 5m     | All     | Not Started |
+| 19 | Add `id.FromPtr` usage where we deref ID pointers                           | 🟢 Low    | 10m    | Root    | Not Started |
+| 20 | Verify `command.Store` interfaces are documented in architecture            | 🟢 Low    | 10m    | Docs    | Not Started |
+| 21 | Update CHANGELOG.md with v2.3.0 adoption entry                              | 🟢 Low    | 10m    | Root    | Not Started |
+| 22 | Check if `event.NewMetadata` change affects us (now initializes Custom map) | 🟢 Low    | 5m     | Root    | Not Started |
+| 23 | Review `command.WrapTransient` removal — verify not used                    | 🟢 Low    | 2m     | Root    | Not Started |
+| 24 | Search for `event.MustParseType` usage — should be gone                     | 🟢 Low    | 2m     | All     | Not Started |
+| 25 | Consider adding `TypedHandler` examples to `example_test.go`                | 🟢 Low    | 15m    | Root    | Not Started |
 
 ---
 
@@ -229,17 +229,17 @@ The `v2.3.0` root tag exists, but Go module resolution requires per-module tags 
 ## Files Changed (11)
 
 ```
- AGENTS.md                          | 16 ++++++++++------
- app.go                             |  8 ++++++++
- context.go                         | 28 ++++++++++++++++++++++------
- context_test.go                    | 28 ++++++++++++++++++++++++++++
- coverage_test.go                   | 12 ++++++++++++
- examples/datastar-demo/domain.go   | 13 ++++---------
- examples/datastar-demo/go.mod      | 13 ++++++++++++-
- examples/datastar-demo/go.sum      | 36 ++++++++++++++----------------------
- examples/datastar-demo/handlers.go |  7 ++++++-
- go.work                            |  9 +++++++++
- go.work.sum                        | 14 ++++++++++++++
+AGENTS.md                          | 16 ++++++++++------
+app.go                             |  8 ++++++++
+context.go                         | 28 ++++++++++++++++++++++------
+context_test.go                    | 28 ++++++++++++++++++++++++++++
+coverage_test.go                   | 12 ++++++++++++
+examples/datastar-demo/domain.go   | 13 ++++---------
+examples/datastar-demo/go.mod      | 13 ++++++++++++-
+examples/datastar-demo/go.sum      | 36 ++++++++++++++----------------------
+examples/datastar-demo/handlers.go |  7 ++++++-
+go.work                            |  9 +++++++++
+go.work.sum                        | 14 ++++++++++++++
 ```
 
 ## Test Results

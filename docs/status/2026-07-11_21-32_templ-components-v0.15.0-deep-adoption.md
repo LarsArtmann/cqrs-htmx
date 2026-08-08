@@ -1,8 +1,8 @@
 # Status Report: templ-components v0.15.0 Deep Adoption
 
-**Date:** 2026-07-11 21:32  
-**Session goal:** Leverage templ-components v0.15.0 more deeply in adminui  
-**Previous state:** v0.13.0, 15 components adopted  
+**Date:** 2026-07-11 21:32\
+**Session goal:** Leverage templ-components v0.15.0 more deeply in adminui\
+**Previous state:** v0.13.0, 15 components adopted\
 **Current state:** v0.15.0, 19 components adopted, 5 tables replaced
 
 ---
@@ -19,12 +19,12 @@
 
 ### New Component Adoptions (4 new this session, 19 total)
 
-| #   | Component                         | Replaces                                                                | Files Changed                                                                     |
-| --- | --------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| 1   | `display.Table` (Body slot)       | 5 hand-rolled `<table>` blocks                                          | `users.templ`, `dashboard.templ`, `audit.templ`, `tenants.templ`, `members.templ` |
-| 2   | `display.DefinitionList`          | Hand-rolled `<dl>` in user detail                                       | `users.templ` (uses `DetailComponent` for badges + CopyButton)                    |
-| 3   | `display.CopyButton`              | Nothing (new feature)                                                   | `components.templ` → `userIDDetail` helper                                        |
-| 4   | `GridColsAutoFit` + `MinColWidth` | `[grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]` Class hack | `dashboard.templ`, `users.templ`                                                  |
+| # | Component                         | Replaces                                                                | Files Changed                                                                     |
+| - | --------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 1 | `display.Table` (Body slot)       | 5 hand-rolled `<table>` blocks                                          | `users.templ`, `dashboard.templ`, `audit.templ`, `tenants.templ`, `members.templ` |
+| 2 | `display.DefinitionList`          | Hand-rolled `<dl>` in user detail                                       | `users.templ` (uses `DetailComponent` for badges + CopyButton)                    |
+| 3 | `display.CopyButton`              | Nothing (new feature)                                                   | `components.templ` → `userIDDetail` helper                                        |
+| 4 | `GridColsAutoFit` + `MinColWidth` | `[grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]` Class hack | `dashboard.templ`, `users.templ`                                                  |
 
 ### Supporting Changes
 

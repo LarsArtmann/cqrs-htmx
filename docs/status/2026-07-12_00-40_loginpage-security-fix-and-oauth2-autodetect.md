@@ -126,98 +126,98 @@ Starting from commit `0591c9b` (loginpage initial + OAuth2 buttons), this sessio
 
 ### Critical (Testing Gaps)
 
-| #   | Task                                                                                  | Effort  | Impact   |
-| --- | ------------------------------------------------------------------------------------- | ------- | -------- |
-| 1   | **Test `oauth2.Provider.Names()`** — empty, single, multi-sorted                      | Trivial | Coverage |
-| 2   | **Test `Service.ConfiguredOAuth2Providers()`** — nil, no-Names, with-Names            | Trivial | Coverage |
-| 3   | **Investigate and fix oauth2 test failures** — double-quote Subject bug               | Low     | CI-red   |
-| 4   | **Investigate integration test failure** — BasicQuery unexported fields               | Low     | CI-red   |
-| 5   | **Run `nix run .#errorfamily`** — verify 0 violations                                 | Trivial | CI gate  |
-| 6   | **Run `nix run .#coverage-gate`** — verify actual CI gate passes                      | Trivial | CI gate  |
-| 7   | **Run module isolation checks** — `check-module-isolation.sh`, `check-dep-budgets.sh` | Trivial | CI gate  |
-| 8   | **Run `go mod tidy` for oauth2 module** under GOWORK=off                              | Trivial | Hygiene  |
+| # | Task                                                                                  | Effort  | Impact   |
+| - | ------------------------------------------------------------------------------------- | ------- | -------- |
+| 1 | **Test `oauth2.Provider.Names()`** — empty, single, multi-sorted                      | Trivial | Coverage |
+| 2 | **Test `Service.ConfiguredOAuth2Providers()`** — nil, no-Names, with-Names            | Trivial | Coverage |
+| 3 | **Investigate and fix oauth2 test failures** — double-quote Subject bug               | Low     | CI-red   |
+| 4 | **Investigate integration test failure** — BasicQuery unexported fields               | Low     | CI-red   |
+| 5 | **Run `nix run .#errorfamily`** — verify 0 violations                                 | Trivial | CI gate  |
+| 6 | **Run `nix run .#coverage-gate`** — verify actual CI gate passes                      | Trivial | CI gate  |
+| 7 | **Run module isolation checks** — `check-module-isolation.sh`, `check-dep-budgets.sh` | Trivial | CI gate  |
+| 8 | **Run `go mod tidy` for oauth2 module** under GOWORK=off                              | Trivial | Hygiene  |
 
 ### High Value (Documentation & DX)
 
-| #   | Task                                                                                                     | Effort  | Impact      |
-| --- | -------------------------------------------------------------------------------------------------------- | ------- | ----------- |
-| 9   | **Update loginpage README.md** — OAuth2 auto-detection, browser detection, server-side ID, display names | Low     | DX          |
-| 10  | **Update loginpage doc.go** — stale package doc                                                          | Trivial | DX          |
-| 11  | **Commit AGENTS.md** — currently uncommitted in working tree                                             | Trivial | Git hygiene |
-| 12  | **Add consumer migration note** — "You can stop sending `id` in register requests"                       | Trivial | Adoption    |
-| 13  | **Login demo example** (`examples/login-demo/`)                                                          | Medium  | Adoption    |
-| 14  | **Wire loginpage into admin-demo** replacing `/dev-login`                                                | Medium  | Showcase    |
+| #  | Task                                                                                                     | Effort  | Impact      |
+| -- | -------------------------------------------------------------------------------------------------------- | ------- | ----------- |
+| 9  | **Update loginpage README.md** — OAuth2 auto-detection, browser detection, server-side ID, display names | Low     | DX          |
+| 10 | **Update loginpage doc.go** — stale package doc                                                          | Trivial | DX          |
+| 11 | **Commit AGENTS.md** — currently uncommitted in working tree                                             | Trivial | Git hygiene |
+| 12 | **Add consumer migration note** — "You can stop sending `id` in register requests"                       | Trivial | Adoption    |
+| 13 | **Login demo example** (`examples/login-demo/`)                                                          | Medium  | Adoption    |
+| 14 | **Wire loginpage into admin-demo** replacing `/dev-login`                                                | Medium  | Showcase    |
 
 ### Medium Value (Polish & Correctness)
 
-| #   | Task                                                                              | Effort  | Impact      |
-| --- | --------------------------------------------------------------------------------- | ------- | ----------- |
-| 15  | **User-friendly error for ErrEmailExists** — "already registered, try signing in" | Low     | UX          |
-| 16  | **Config.ProviderLabels** — make the display name map configurable                | Low     | Flexibility |
-| 17  | **Client-side email validation** — prevent submitting invalid emails              | Trivial | UX          |
-| 18  | **autofocus on email field only when WebAuthn is sole method** (already done?)    | Trivial | UX          |
-| 19  | **CSS for `lp-no-webauthn`** — uses `lp-no-auth` styling, may need tweaks         | Trivial | Polish      |
-| 20  | **Fuzz test `safeRedirectPath`** — random inputs                                  | Low     | Robustness  |
-| 21  | **Integration test: Service with mock OAuth2Provider → rendered buttons**         | Medium  | Confidence  |
+| #  | Task                                                                              | Effort  | Impact      |
+| -- | --------------------------------------------------------------------------------- | ------- | ----------- |
+| 15 | **User-friendly error for ErrEmailExists** — "already registered, try signing in" | Low     | UX          |
+| 16 | **Config.ProviderLabels** — make the display name map configurable                | Low     | Flexibility |
+| 17 | **Client-side email validation** — prevent submitting invalid emails              | Trivial | UX          |
+| 18 | **autofocus on email field only when WebAuthn is sole method** (already done?)    | Trivial | UX          |
+| 19 | **CSS for `lp-no-webauthn`** — uses `lp-no-auth` styling, may need tweaks         | Trivial | Polish      |
+| 20 | **Fuzz test `safeRedirectPath`** — random inputs                                  | Low     | Robustness  |
+| 21 | **Integration test: Service with mock OAuth2Provider → rendered buttons**         | Medium  | Confidence  |
 
 ### Architecture
 
-| #   | Task                                                                          | Effort  | Impact      |
-| --- | ----------------------------------------------------------------------------- | ------- | ----------- |
-| 22  | **Add `Names()` to `OAuth2Provider` interface** — eliminates duck-typing      | Medium  | Clean API   |
-| 23  | **Configurable knownProviderLabels** — consumer override map                  | Low     | Flexibility |
-| 24  | **CSP nonce support** — allow consumers to pass nonce for inline script/style | Medium  | Security    |
-| 25  | **X-Frame-Options: DENY** header on loginpage responses                       | Trivial | Security    |
-| 26  | **Cross-Origin-Opener-Policy header**                                         | Trivial | Security    |
+| #  | Task                                                                          | Effort  | Impact      |
+| -- | ----------------------------------------------------------------------------- | ------- | ----------- |
+| 22 | **Add `Names()` to `OAuth2Provider` interface** — eliminates duck-typing      | Medium  | Clean API   |
+| 23 | **Configurable knownProviderLabels** — consumer override map                  | Low     | Flexibility |
+| 24 | **CSP nonce support** — allow consumers to pass nonce for inline script/style | Medium  | Security    |
+| 25 | **X-Frame-Options: DENY** header on loginpage responses                       | Trivial | Security    |
+| 26 | **Cross-Origin-Opener-Policy header**                                         | Trivial | Security    |
 
 ### OAuth2 Provider Polish
 
-| #   | Task                                                                     | Effort  | Impact |
-| --- | ------------------------------------------------------------------------ | ------- | ------ |
-| 27  | **OAuth2 button brand icons** — inline SVG for Google/GitHub/Microsoft   | Low     | Polish |
-| 28  | **OAuth2 button brand colors** — Google blue, GitHub black, etc.         | Low     | Polish |
-| 29  | **OAuth2 button loading state** — CSS active on click redirect           | Trivial | UX     |
-| 30  | **Empty-state for OAuth2 callback errors** — error param in redirect URL | Low     | UX     |
+| #  | Task                                                                     | Effort  | Impact |
+| -- | ------------------------------------------------------------------------ | ------- | ------ |
+| 27 | **OAuth2 button brand icons** — inline SVG for Google/GitHub/Microsoft   | Low     | Polish |
+| 28 | **OAuth2 button brand colors** — Google blue, GitHub black, etc.         | Low     | Polish |
+| 29 | **OAuth2 button loading state** — CSS active on click redirect           | Trivial | UX     |
+| 30 | **Empty-state for OAuth2 callback errors** — error param in redirect URL | Low     | UX     |
 
 ### Accessibility
 
-| #   | Task                                                              | Effort  | Impact |
-| --- | ----------------------------------------------------------------- | ------- | ------ |
-| 31  | **Keyboard tab order verification** — especially OAuth2-only mode | Trivial | A11y   |
-| 32  | **Screen reader labels** — `aria-label` on OAuth2 buttons         | Trivial | A11y   |
-| 33  | **Focus management** — when switching login/register sections     | Low     | A11y   |
-| 34  | **Reduced motion support** — disable loading spinner animation    | Trivial | A11y   |
+| #  | Task                                                              | Effort  | Impact |
+| -- | ----------------------------------------------------------------- | ------- | ------ |
+| 31 | **Keyboard tab order verification** — especially OAuth2-only mode | Trivial | A11y   |
+| 32 | **Screen reader labels** — `aria-label` on OAuth2 buttons         | Trivial | A11y   |
+| 33 | **Focus management** — when switching login/register sections     | Low     | A11y   |
+| 34 | **Reduced motion support** — disable loading spinner animation    | Trivial | A11y   |
 
 ### Testing Expansion
 
-| #   | Task                                                                                  | Effort  | Impact     |
-| --- | ------------------------------------------------------------------------------------- | ------- | ---------- |
-| 35  | **Test auto-populate with explicit override** — Config.OAuth2Buttons takes precedence | Trivial | Coverage   |
-| 36  | **Test ConfiguredOAuth2Providers with nil oauth2**                                    | Trivial | Coverage   |
-| 37  | **Test ProviderDisplayName with unknown provider**                                    | Trivial | Coverage   |
-| 38  | **Test buildPageData with AuthPrefix + OAuth2 auto-populate**                         | Trivial | Coverage   |
-| 39  | **JS test harness** — at minimum a test checklist document                            | Medium  | Confidence |
+| #  | Task                                                                                  | Effort  | Impact     |
+| -- | ------------------------------------------------------------------------------------- | ------- | ---------- |
+| 35 | **Test auto-populate with explicit override** — Config.OAuth2Buttons takes precedence | Trivial | Coverage   |
+| 36 | **Test ConfiguredOAuth2Providers with nil oauth2**                                    | Trivial | Coverage   |
+| 37 | **Test ProviderDisplayName with unknown provider**                                    | Trivial | Coverage   |
+| 38 | **Test buildPageData with AuthPrefix + OAuth2 auto-populate**                         | Trivial | Coverage   |
+| 39 | **JS test harness** — at minimum a test checklist document                            | Medium  | Confidence |
 
 ### CI & Infrastructure
 
-| #   | Task                                                    | Effort  | Impact        |
-| --- | ------------------------------------------------------- | ------- | ------------- |
-| 40  | **check-version-drift.sh** — verify loginpage covered   | Trivial | CI            |
-| 41  | **release-checklist.sh** — verify loginpage build check | Trivial | CI            |
-| 42  | **Create ADR for loginpage design decisions**           | Low     | Documentation |
-| 43  | **Add loginpage to `nix run .#lint`** if not already    | Trivial | CI            |
-| 44  | **Verify `nix fmt` passes** on all changed files        | Trivial | Formatting    |
+| #  | Task                                                    | Effort  | Impact        |
+| -- | ------------------------------------------------------- | ------- | ------------- |
+| 40 | **check-version-drift.sh** — verify loginpage covered   | Trivial | CI            |
+| 41 | **release-checklist.sh** — verify loginpage build check | Trivial | CI            |
+| 42 | **Create ADR for loginpage design decisions**           | Low     | Documentation |
+| 43 | **Add loginpage to `nix run .#lint`** if not already    | Trivial | CI            |
+| 44 | **Verify `nix fmt` passes** on all changed files        | Trivial | Formatting    |
 
 ### Polish & Nice-to-Haves
 
-| #   | Task                                                              | Effort  | Impact  |
-| --- | ----------------------------------------------------------------- | ------- | ------- |
-| 45  | **Configurable card width** (`Config.CardWidth`)                  | Trivial | UX      |
-| 46  | **Footer text config** (`Config.FooterText`)                      | Trivial | UX      |
-| 47  | **Multiple card layouts** (centered, split-screen, full-width)    | Medium  | Feature |
-| 48  | **Dark/light mode toggle button** (not just prefers-color-scheme) | Low     | Feature |
-| 49  | **"Remember this device" checkbox** (conditional mediation)       | Medium  | Feature |
-| 50  | **Animated transitions** between login/register sections          | Low     | Polish  |
+| #  | Task                                                              | Effort  | Impact  |
+| -- | ----------------------------------------------------------------- | ------- | ------- |
+| 45 | **Configurable card width** (`Config.CardWidth`)                  | Trivial | UX      |
+| 46 | **Footer text config** (`Config.FooterText`)                      | Trivial | UX      |
+| 47 | **Multiple card layouts** (centered, split-screen, full-width)    | Medium  | Feature |
+| 48 | **Dark/light mode toggle button** (not just prefers-color-scheme) | Low     | Feature |
+| 49 | **"Remember this device" checkbox** (conditional mediation)       | Medium  | Feature |
+| 50 | **Animated transitions** between login/register sections          | Low     | Polish  |
 
 ---
 

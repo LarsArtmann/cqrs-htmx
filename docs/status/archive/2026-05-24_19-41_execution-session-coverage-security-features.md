@@ -1,7 +1,7 @@
 # Comprehensive Status Report — Execution Session
 
-**Date:** 2026-05-24 19:41 | **Session start:** 2026-05-24 ~18:30 | **Duration:** ~70 min  
-**Root Coverage:** 96.7% → **97.3%** | **Usermgmt Coverage:** 91.1% → **91.1%**  
+**Date:** 2026-05-24 19:41 | **Session start:** 2026-05-24 ~18:30 | **Duration:** ~70 min\
+**Root Coverage:** 96.7% → **97.3%** | **Usermgmt Coverage:** 91.1% → **91.1%**\
 **Lint:** 0/0 | **Tests:** 378 specs (+12) | **Race:** ✅ clean (all 3 modules)
 
 ---
@@ -10,32 +10,32 @@
 
 ### New Features (7)
 
-| #   | Feature                                  | Files                             | Impact                                                                                |
-| --- | ---------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------- |
-| 1   | `RecommendedCSP` constant                | security.go                       | Baseline CSP for HTMX apps: `default-src 'self'; script-src 'self'; style-src 'self'` |
-| 2   | `RecommendedHSTS` constant               | security.go                       | Production HSTS: `max-age=31536000; includeSubDomains`                                |
-| 3   | `RequireMethod(method)` HandlerOption    | options.go, handler.go, errors.go | Opt-in 405 Method Not Allowed for wrong HTTP methods                                  |
-| 4   | `App.HealthHandler()`                    | app.go                            | Returns 200/503 JSON for load balancer health checks                                  |
-| 5   | `NotificationLevel.String()`             | notify.go                         | fmt.Stringer for structured logging                                                   |
-| 6   | HX-Redirect URL sanitization             | response.go                       | HTMX redirects now go through `sanitizeRedirectURL()`                                 |
-| 7   | X-Request-ID response header propagation | middleware.go                     | Response includes the request ID when generated/extracted                             |
+| # | Feature                                  | Files                             | Impact                                                                                |
+| - | ---------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------- |
+| 1 | `RecommendedCSP` constant                | security.go                       | Baseline CSP for HTMX apps: `default-src 'self'; script-src 'self'; style-src 'self'` |
+| 2 | `RecommendedHSTS` constant               | security.go                       | Production HSTS: `max-age=31536000; includeSubDomains`                                |
+| 3 | `RequireMethod(method)` HandlerOption    | options.go, handler.go, errors.go | Opt-in 405 Method Not Allowed for wrong HTTP methods                                  |
+| 4 | `App.HealthHandler()`                    | app.go                            | Returns 200/503 JSON for load balancer health checks                                  |
+| 5 | `NotificationLevel.String()`             | notify.go                         | fmt.Stringer for structured logging                                                   |
+| 6 | HX-Redirect URL sanitization             | response.go                       | HTMX redirects now go through `sanitizeRedirectURL()`                                 |
+| 7 | X-Request-ID response header propagation | middleware.go                     | Response includes the request ID when generated/extracted                             |
 
 ### Security Hardening (3)
 
-| #   | Fix                            | Detail                                                                                                                               |
-| --- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | HX-Redirect sanitization       | `Response.Redirect()` was setting `HX-Redirect` without sanitization — could redirect to `//evil.com` or `../../etc/passwd` via HTMX |
-| 2   | `enrichUserID` error logging   | Previously silently swallowed `UserIDExtractor` errors — now logs `slog.Warn` for debugging misconfigured extractors                 |
-| 3   | `ErrMethodNotAllowed` sentinel | Proper error classification (Rejection family → 400 default, explicit 405 override)                                                  |
+| # | Fix                            | Detail                                                                                                                               |
+| - | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | HX-Redirect sanitization       | `Response.Redirect()` was setting `HX-Redirect` without sanitization — could redirect to `//evil.com` or `../../etc/passwd` via HTMX |
+| 2 | `enrichUserID` error logging   | Previously silently swallowed `UserIDExtractor` errors — now logs `slog.Warn` for debugging misconfigured extractors                 |
+| 3 | `ErrMethodNotAllowed` sentinel | Proper error classification (Rejection family → 400 default, explicit 405 override)                                                  |
 
 ### Code Quality (4)
 
-| #   | Fix                             | Detail                                                                             |
-| --- | ------------------------------- | ---------------------------------------------------------------------------------- |
-| 1   | `StatusRecorder.Push` no-wrap   | Removed `fmt.Errorf` wrapping that broke `errors.Is()` matching on push errors     |
-| 2   | `MapError` complexity reduction | Refactored from cyclop-12+ into `explicitErrorStatus()` + `familyStatus()` helpers |
-| 3   | `hijackRecorder` fix            | Added `Hijack()` method — `Hijack` coverage 60% → 100%                             |
-| 4   | `internal_test.go`              | New file for testing unexported types (`authMode.String()` 0% → 100%)              |
+| # | Fix                             | Detail                                                                             |
+| - | ------------------------------- | ---------------------------------------------------------------------------------- |
+| 1 | `StatusRecorder.Push` no-wrap   | Removed `fmt.Errorf` wrapping that broke `errors.Is()` matching on push errors     |
+| 2 | `MapError` complexity reduction | Refactored from cyclop-12+ into `explicitErrorStatus()` + `familyStatus()` helpers |
+| 3 | `hijackRecorder` fix            | Added `Hijack()` method — `Hijack` coverage 60% → 100%                             |
+| 4 | `internal_test.go`              | New file for testing unexported types (`authMode.String()` 0% → 100%)              |
 
 ### Coverage Improvements
 
@@ -80,37 +80,37 @@
 
 ### From the 65-item plan — items not yet attempted:
 
-| #   | Tier     | Item                                                          | Reason                             |
-| --- | -------- | ------------------------------------------------------------- | ---------------------------------- |
-| 1   | T3-03    | StatusRecorder method godoc (4 exported methods)              | Low priority cosmetic              |
-| 2   | T3-05    | Replace decodeFormValues JSON round-trip with gorilla/schema  | API-breaking change, needs design  |
-| 3   | T3-06    | Fix NewUser defaults to RoleViewer but Register adds RoleUser | Needs owner decision on semantics  |
-| 3   | T3-07    | Fix UserStore.Save O(n) email index scan                      | Performance optimization           |
-| 4   | T3-08    | Session.Valid deprecation note                                | Cosmetic                           |
-| 5   | T4-06    | Usermgmt fuzz tests for Validate()                            | Was already done in prior session  |
-| 6   | T4-04/05 | Usermgmt benchmarks (Login, Register, TokenMatches)           | Were already done in prior session |
-| 7   | T5-02    | GracefulShutdowner interface                                  | Design needed                      |
-| 8   | T5-03    | Typed ErrorResponse struct                                    | Design needed                      |
-| 9   | T5-04    | NotificationLevel.MarshalJSON()                               | Low value                          |
-| 10  | T5-05    | SameSite enforcement tests                                    | Low value                          |
-| 11  | T6-03    | datastar-demo basic tests                                     | No test file, main package         |
-| 12  | T6-04    | Clarify datastar-demo ownership                               | Owner decision                     |
-| 13  | T6-05    | Update TODO_LIST.md                                           | Doc maintenance                    |
-| 14  | T6-06    | Update FEATURES.md                                            | Doc maintenance                    |
-| 15  | T6-07    | Update CONTRIBUTING.md                                        | Doc maintenance                    |
-| 16  | T7-01    | OpenTelemetry tracing                                         | Deferred (2h+)                     |
-| 17  | T7-02    | Nix flake migration                                           | Deferred (2h+)                     |
-| 18  | T7-03    | Usermgmt SQL store                                            | Deferred (4h+)                     |
-| 19  | T7-04    | Persistent rate limiter                                       | Deferred                           |
-| 20  | T7-05    | WebSocket/SSE bridge                                          | Deferred                           |
-| 21  | T7-06    | Request coalescing                                            | Deferred                           |
-| 22  | T7-07    | Prometheus metrics middleware                                 | Deferred                           |
-| 23  | T7-08    | Session token rotation                                        | Deferred                           |
-| 24  | T7-09    | Per-session CSRF token binding                                | Deferred                           |
-| 25  | T7-10    | Replace cockroachdb/errors with stdlib                        | Deferred (high risk)               |
-| 26  | TB-01    | BrandNamer for root marker types                              | BLOCKED: upstream unexported       |
-| 27  | TB-02    | Dependabot CVE alerts                                         | BLOCKED: gh auth expired           |
-| 28  | TB-03    | gorilla/csrf CVE remediation                                  | BLOCKED: no upstream fix           |
+| #  | Tier     | Item                                                          | Reason                             |
+| -- | -------- | ------------------------------------------------------------- | ---------------------------------- |
+| 1  | T3-03    | StatusRecorder method godoc (4 exported methods)              | Low priority cosmetic              |
+| 2  | T3-05    | Replace decodeFormValues JSON round-trip with gorilla/schema  | API-breaking change, needs design  |
+| 3  | T3-06    | Fix NewUser defaults to RoleViewer but Register adds RoleUser | Needs owner decision on semantics  |
+| 3  | T3-07    | Fix UserStore.Save O(n) email index scan                      | Performance optimization           |
+| 4  | T3-08    | Session.Valid deprecation note                                | Cosmetic                           |
+| 5  | T4-06    | Usermgmt fuzz tests for Validate()                            | Was already done in prior session  |
+| 6  | T4-04/05 | Usermgmt benchmarks (Login, Register, TokenMatches)           | Were already done in prior session |
+| 7  | T5-02    | GracefulShutdowner interface                                  | Design needed                      |
+| 8  | T5-03    | Typed ErrorResponse struct                                    | Design needed                      |
+| 9  | T5-04    | NotificationLevel.MarshalJSON()                               | Low value                          |
+| 10 | T5-05    | SameSite enforcement tests                                    | Low value                          |
+| 11 | T6-03    | datastar-demo basic tests                                     | No test file, main package         |
+| 12 | T6-04    | Clarify datastar-demo ownership                               | Owner decision                     |
+| 13 | T6-05    | Update TODO_LIST.md                                           | Doc maintenance                    |
+| 14 | T6-06    | Update FEATURES.md                                            | Doc maintenance                    |
+| 15 | T6-07    | Update CONTRIBUTING.md                                        | Doc maintenance                    |
+| 16 | T7-01    | OpenTelemetry tracing                                         | Deferred (2h+)                     |
+| 17 | T7-02    | Nix flake migration                                           | Deferred (2h+)                     |
+| 18 | T7-03    | Usermgmt SQL store                                            | Deferred (4h+)                     |
+| 19 | T7-04    | Persistent rate limiter                                       | Deferred                           |
+| 20 | T7-05    | WebSocket/SSE bridge                                          | Deferred                           |
+| 21 | T7-06    | Request coalescing                                            | Deferred                           |
+| 22 | T7-07    | Prometheus metrics middleware                                 | Deferred                           |
+| 23 | T7-08    | Session token rotation                                        | Deferred                           |
+| 24 | T7-09    | Per-session CSRF token binding                                | Deferred                           |
+| 25 | T7-10    | Replace cockroachdb/errors with stdlib                        | Deferred (high risk)               |
+| 26 | TB-01    | BrandNamer for root marker types                              | BLOCKED: upstream unexported       |
+| 27 | TB-02    | Dependabot CVE alerts                                         | BLOCKED: gh auth expired           |
+| 28 | TB-03    | gorilla/csrf CVE remediation                                  | BLOCKED: no upstream fix           |
 
 ---
 
@@ -144,33 +144,33 @@
 
 Sorted by impact × effort:
 
-| #   | Item                                                                 | Impact | Effort | Type           |
-| --- | -------------------------------------------------------------------- | ------ | ------ | -------------- |
-| 1   | Extract Casbin internal interface for error-path testing             | High   | 30min  | Architecture   |
-| 2   | Fix UserStore.Save O(n) email scan                                   | Medium | 10min  | Performance    |
-| 3   | Update TODO_LIST.md to reflect current state                         | Medium | 15min  | Docs           |
-| 4   | Update FEATURES.md to reflect current state                          | Medium | 15min  | Docs           |
-| 5   | Resolve NewUser RoleViewer vs Register RoleUser confusion            | Medium | 10min  | Correctness    |
-| 6   | Add usermgmt error-injecting mock enforcer + test error paths        | High   | 30min  | Coverage       |
-| 7   | Test usermgmt handleAuthEndpoint/handleLogin timeout paths           | Medium | 15min  | Coverage       |
-| 8   | Test usermgmt Register rollback paths (role fail, session fail)      | Medium | 15min  | Coverage       |
-| 9   | Replace decodeFormValues JSON round-trip with gorilla/schema         | Medium | 30min  | Correctness    |
-| 10  | Add graceful shutdown helper (Shutdowner interface with timeout)     | Medium | 15min  | Feature        |
-| 11  | Add typed ErrorResponse{Error, Code, Details}                        | Medium | 15min  | API            |
-| 12  | Add example tests for WithSuccessStatus, WithMaxBodySize, OnError    | Low    | 10min  | Docs           |
-| 13  | Add usermgmt fuzz tests for Validate() (already done? verify)        | Low    | 5min   | Testing        |
-| 14  | Resolve cockroachdb/errors vs stdlib decision                        | Medium | 60min  | Architecture   |
-| 15  | Add Prometheus metrics middleware                                    | Medium | 60min  | Feature        |
-| 16  | Add OpenTelemetry tracing hooks (BeforeDispatch/AfterDispatch spans) | High   | 120min | Observability  |
-| 17  | Add WebSocket/SSE notification bridge                                | High   | 180min | Feature        |
-| 18  | Add usermgmt SQL store (per ADR 0003)                                | High   | 240min | Feature        |
-| 19  | Session token rotation on role/password change                       | High   | 60min  | Security       |
-| 20  | Per-session CSRF token binding                                       | High   | 120min | Security       |
-| 21  | Nix flake migration                                                  | Medium | 120min | Infrastructure |
-| 22  | CI coverage threshold enforcement (already done — verify)            | Low    | 5min   | Infrastructure |
-| 23  | Clarify datastar-demo ownership (move to go-cqrs-lite?)              | Low    | 5min   | Ownership      |
-| 24  | Add basic datastar-demo smoke test                                   | Low    | 15min  | Testing        |
-| 25  | Resolve dependabot alerts (needs `gh auth login`)                    | Medium | 10min  | Security       |
+| #  | Item                                                                 | Impact | Effort | Type           |
+| -- | -------------------------------------------------------------------- | ------ | ------ | -------------- |
+| 1  | Extract Casbin internal interface for error-path testing             | High   | 30min  | Architecture   |
+| 2  | Fix UserStore.Save O(n) email scan                                   | Medium | 10min  | Performance    |
+| 3  | Update TODO_LIST.md to reflect current state                         | Medium | 15min  | Docs           |
+| 4  | Update FEATURES.md to reflect current state                          | Medium | 15min  | Docs           |
+| 5  | Resolve NewUser RoleViewer vs Register RoleUser confusion            | Medium | 10min  | Correctness    |
+| 6  | Add usermgmt error-injecting mock enforcer + test error paths        | High   | 30min  | Coverage       |
+| 7  | Test usermgmt handleAuthEndpoint/handleLogin timeout paths           | Medium | 15min  | Coverage       |
+| 8  | Test usermgmt Register rollback paths (role fail, session fail)      | Medium | 15min  | Coverage       |
+| 9  | Replace decodeFormValues JSON round-trip with gorilla/schema         | Medium | 30min  | Correctness    |
+| 10 | Add graceful shutdown helper (Shutdowner interface with timeout)     | Medium | 15min  | Feature        |
+| 11 | Add typed ErrorResponse{Error, Code, Details}                        | Medium | 15min  | API            |
+| 12 | Add example tests for WithSuccessStatus, WithMaxBodySize, OnError    | Low    | 10min  | Docs           |
+| 13 | Add usermgmt fuzz tests for Validate() (already done? verify)        | Low    | 5min   | Testing        |
+| 14 | Resolve cockroachdb/errors vs stdlib decision                        | Medium | 60min  | Architecture   |
+| 15 | Add Prometheus metrics middleware                                    | Medium | 60min  | Feature        |
+| 16 | Add OpenTelemetry tracing hooks (BeforeDispatch/AfterDispatch spans) | High   | 120min | Observability  |
+| 17 | Add WebSocket/SSE notification bridge                                | High   | 180min | Feature        |
+| 18 | Add usermgmt SQL store (per ADR 0003)                                | High   | 240min | Feature        |
+| 19 | Session token rotation on role/password change                       | High   | 60min  | Security       |
+| 20 | Per-session CSRF token binding                                       | High   | 120min | Security       |
+| 21 | Nix flake migration                                                  | Medium | 120min | Infrastructure |
+| 22 | CI coverage threshold enforcement (already done — verify)            | Low    | 5min   | Infrastructure |
+| 23 | Clarify datastar-demo ownership (move to go-cqrs-lite?)              | Low    | 5min   | Ownership      |
+| 24 | Add basic datastar-demo smoke test                                   | Low    | 15min  | Testing        |
+| 25 | Resolve dependabot alerts (needs `gh auth login`)                    | Medium | 10min  | Security       |
 
 ---
 

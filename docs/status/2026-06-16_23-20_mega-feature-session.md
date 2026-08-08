@@ -99,33 +99,33 @@ One concern:
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                                     | Impact | Effort |
-| --- | ------------------------------------------------------------------------ | ------ | ------ |
-| 1   | Fix usermgmt lint to zero (dupl, funlen, errcheck)                       | Medium | 15m    |
-| 2   | Integration test: full WebAuthn flow via virtual authenticator           | High   | 120m   |
-| 3   | SQL event store: Postgres test suite + connection pooling                | High   | 60m    |
-| 4   | Email verification flow                                                  | High   | 45m    |
-| 5   | OAuth2/OIDC provider integration                                         | High   | 120m   |
-| 6   | Event upcaster machinery                                                 | Medium | 30m    |
-| 7   | Update AGENTS.md with new features (audit log, SQL store, rate limiting) | Medium | 15m    |
-| 8   | Update CHANGELOG.md with all new features                                | Medium | 15m    |
-| 9   | Update FEATURES.md with new feature inventory                            | Medium | 15m    |
-| 10  | Update TODO_LIST.md — mark completed items                               | Medium | 10m    |
-| 11  | Credential listing sort order (by created_at desc)                       | Low    | 10m    |
-| 12  | Admin UI (templ + HTMX)                                                  | Medium | 120m   |
-| 13  | User import/export (JSON batch)                                          | Low    | 30m    |
-| 14  | MFA (WebAuthn + TOTP)                                                    | Low    | 90m    |
-| 15  | SQL event store: snapshot integration                                    | Low    | 60m    |
-| 16  | Session store: SQL implementation                                        | Low    | 45m    |
-| 17  | WebAuthn credential backup eligibility tracking                          | Low    | 20m    |
-| 18  | Passwordless recovery flow (email-based account recovery)                | Medium | 60m    |
-| 19  | Audit log: HTTP endpoint for querying                                    | Low    | 30m    |
-| 20  | Audit log: persistence to SQL                                            | Low    | 45m    |
-| 21  | Rate limiter: distributed (Redis-backed)                                 | Low    | 60m    |
-| 22  | Coverage push to 90%+ (WebAuthn ceremony methods)                        | Medium | 120m   |
-| 23  | Benchmark: SQL event store vs memory                                     | Low    | 20m    |
-| 24  | Documentation: SQL store usage guide                                     | Low    | 20m    |
-| 25  | CI: add SQLite tests to GitHub Actions                                   | Low    | 10m    |
+| #  | Task                                                                     | Impact | Effort |
+| -- | ------------------------------------------------------------------------ | ------ | ------ |
+| 1  | Fix usermgmt lint to zero (dupl, funlen, errcheck)                       | Medium | 15m    |
+| 2  | Integration test: full WebAuthn flow via virtual authenticator           | High   | 120m   |
+| 3  | SQL event store: Postgres test suite + connection pooling                | High   | 60m    |
+| 4  | Email verification flow                                                  | High   | 45m    |
+| 5  | OAuth2/OIDC provider integration                                         | High   | 120m   |
+| 6  | Event upcaster machinery                                                 | Medium | 30m    |
+| 7  | Update AGENTS.md with new features (audit log, SQL store, rate limiting) | Medium | 15m    |
+| 8  | Update CHANGELOG.md with all new features                                | Medium | 15m    |
+| 9  | Update FEATURES.md with new feature inventory                            | Medium | 15m    |
+| 10 | Update TODO_LIST.md — mark completed items                               | Medium | 10m    |
+| 11 | Credential listing sort order (by created_at desc)                       | Low    | 10m    |
+| 12 | Admin UI (templ + HTMX)                                                  | Medium | 120m   |
+| 13 | User import/export (JSON batch)                                          | Low    | 30m    |
+| 14 | MFA (WebAuthn + TOTP)                                                    | Low    | 90m    |
+| 15 | SQL event store: snapshot integration                                    | Low    | 60m    |
+| 16 | Session store: SQL implementation                                        | Low    | 45m    |
+| 17 | WebAuthn credential backup eligibility tracking                          | Low    | 20m    |
+| 18 | Passwordless recovery flow (email-based account recovery)                | Medium | 60m    |
+| 19 | Audit log: HTTP endpoint for querying                                    | Low    | 30m    |
+| 20 | Audit log: persistence to SQL                                            | Low    | 45m    |
+| 21 | Rate limiter: distributed (Redis-backed)                                 | Low    | 60m    |
+| 22 | Coverage push to 90%+ (WebAuthn ceremony methods)                        | Medium | 120m   |
+| 23 | Benchmark: SQL event store vs memory                                     | Low    | 20m    |
+| 24 | Documentation: SQL store usage guide                                     | Low    | 20m    |
+| 25 | CI: add SQLite tests to GitHub Actions                                   | Low    | 10m    |
 
 ---
 

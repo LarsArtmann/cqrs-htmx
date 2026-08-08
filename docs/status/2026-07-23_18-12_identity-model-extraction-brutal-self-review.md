@@ -15,46 +15,46 @@
 
 ## a) FULLY DONE
 
-| #   | Item                                    | Evidence                                                                                                                                                                                                                                                                         |
-| --- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `identity-model/` Go module created     | `go.mod`, `go.work` updated, builds clean                                                                                                                                                                                                                                        |
-| 2   | ~20 source files with all domain types  | `id.go`, `email.go`, `credential.go`, `external_account.go`, `constants.go`, `events.go`, `commands.go`, `fold.go`, `session.go`, `user.go`, `membership.go`, `authz_types.go`, `authz_model.go`, `errors.go`, `crypto.go`, `random.go`, `payload.go`, `interfaces.go`, `doc.go` |
-| 3   | 34 unit tests, all passing with `-race` | `model_test.go` covers IDs, Email, Session, Role/Action/Effect, crypto, fold functions, User clone, Membership                                                                                                                                                                   |
-| 4   | `.golangci.yml` lint config             | Matches usermgmt patterns, exhaustruct exclusions configured                                                                                                                                                                                                                     |
-| 5   | `README.md` with module overview        | Dependencies, usage examples, design decisions                                                                                                                                                                                                                                   |
-| 6   | Plan document (HTML)                    | `docs/planning/2026-07-23_17-09_identity-model-extraction-plan.html`                                                                                                                                                                                                             |
-| 7   | All commits pushed to working tree      | 4 commits (via pre-commit hook)                                                                                                                                                                                                                                                  |
+| # | Item                                    | Evidence                                                                                                                                                                                                                                                                         |
+| - | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `identity-model/` Go module created     | `go.mod`, `go.work` updated, builds clean                                                                                                                                                                                                                                        |
+| 2 | ~20 source files with all domain types  | `id.go`, `email.go`, `credential.go`, `external_account.go`, `constants.go`, `events.go`, `commands.go`, `fold.go`, `session.go`, `user.go`, `membership.go`, `authz_types.go`, `authz_model.go`, `errors.go`, `crypto.go`, `random.go`, `payload.go`, `interfaces.go`, `doc.go` |
+| 3 | 34 unit tests, all passing with `-race` | `model_test.go` covers IDs, Email, Session, Role/Action/Effect, crypto, fold functions, User clone, Membership                                                                                                                                                                   |
+| 4 | `.golangci.yml` lint config             | Matches usermgmt patterns, exhaustruct exclusions configured                                                                                                                                                                                                                     |
+| 5 | `README.md` with module overview        | Dependencies, usage examples, design decisions                                                                                                                                                                                                                                   |
+| 6 | Plan document (HTML)                    | `docs/planning/2026-07-23_17-09_identity-model-extraction-plan.html`                                                                                                                                                                                                             |
+| 7 | All commits pushed to working tree      | 4 commits (via pre-commit hook)                                                                                                                                                                                                                                                  |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| #   | Item                              | What's done                                                                                   | What's missing                                                                                           |
-| --- | --------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| 1   | **Type extraction from usermgmt** | All types copied to identity-model                                                            | **usermgmt still has ALL its own copies** — this is duplication, not extraction                          |
-| 2   | **Error decoupling**              | Domain errors use only `errorfamily` (no `cqrshtmx.WithHTTPStatus`)                           | Error codes still say `"usermgmt."` prefix (intentional for compat, but a naming smell)                  |
-| 3   | **Test coverage**                 | ID parsing, email, session, crypto, roles, fold user/tenant tested                            | `foldMembership`, `foldBot`, command constructors, session JSON marshaling, edge cases NOT tested        |
-| 4   | **Authz model config**            | `DefaultRBACModel`, `DefaultPolicies`, `DefaultRoleHierarchy` extracted as exported functions | The `Authz` struct itself and all its methods stayed in usermgmt (correct, but the boundary is fuzzy)    |
-| 5   | **Command structs**               | All 19 command structs + constructors extracted                                               | Added accessor methods (`.Email()`, `.Roles()`, etc.) that don't exist in usermgmt — **behavior change** |
+| # | Item                              | What's done                                                                                   | What's missing                                                                                           |
+| - | --------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 1 | **Type extraction from usermgmt** | All types copied to identity-model                                                            | **usermgmt still has ALL its own copies** — this is duplication, not extraction                          |
+| 2 | **Error decoupling**              | Domain errors use only `errorfamily` (no `cqrshtmx.WithHTTPStatus`)                           | Error codes still say `"usermgmt."` prefix (intentional for compat, but a naming smell)                  |
+| 3 | **Test coverage**                 | ID parsing, email, session, crypto, roles, fold user/tenant tested                            | `foldMembership`, `foldBot`, command constructors, session JSON marshaling, edge cases NOT tested        |
+| 4 | **Authz model config**            | `DefaultRBACModel`, `DefaultPolicies`, `DefaultRoleHierarchy` extracted as exported functions | The `Authz` struct itself and all its methods stayed in usermgmt (correct, but the boundary is fuzzy)    |
+| 5 | **Command structs**               | All 19 command structs + constructors extracted                                               | Added accessor methods (`.Email()`, `.Roles()`, etc.) that don't exist in usermgmt — **behavior change** |
 
 ---
 
 ## c) NOT STARTED
 
-| #   | Item                                                                | Why it matters                                                                                                 |
-| --- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 1   | **Wire usermgmt to import identity-model**                          | This is THE ENTIRE POINT. Without this, identity-model is an orphan module with duplicate types.               |
-| 2   | **Type aliases in usermgmt** (`type UserID = identitymodel.UserID`) | Backward compatibility for existing consumers                                                                  |
-| 3   | **Delete duplicate definitions from usermgmt**                      | Currently both modules define `UserState`, `foldUser`, etc. — **split brain**                                  |
-| 4   | **Update integration_test module**                                  | Should test identity-model types work across module boundaries                                                 |
-| 5   | **GOWORK=off replace directives** in identity-model/go.mod          | `GOWORK=off go build` will fail — missing go-cqrs-lite local replaces                                          |
-| 6   | **flake.nix integration**                                           | identity-model not added to build/test/lint automation                                                         |
-| 7   | **AGENTS.md update**                                                | New module not documented in project context                                                                   |
-| 8   | **CHANGELOG.md** entry                                              | No record of this new module                                                                                   |
-| 9   | **Run golangci-lint**                                               | Never actually ran lint on the new module — many warnings visible in diagnostics (tagliatelle, nlreturn, etc.) |
-| 10  | **LICENSE file** in identity-model/                                 | usermgmt has one, identity-model doesn't                                                                       |
-| 11  | **CONTRIBUTING.md**                                                 | usermgmt has one                                                                                               |
-| 12  | **git-town.toml**                                                   | usermgmt has one                                                                                               |
+| #  | Item                                                                | Why it matters                                                                                                 |
+| -- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 1  | **Wire usermgmt to import identity-model**                          | This is THE ENTIRE POINT. Without this, identity-model is an orphan module with duplicate types.               |
+| 2  | **Type aliases in usermgmt** (`type UserID = identitymodel.UserID`) | Backward compatibility for existing consumers                                                                  |
+| 3  | **Delete duplicate definitions from usermgmt**                      | Currently both modules define `UserState`, `foldUser`, etc. — **split brain**                                  |
+| 4  | **Update integration_test module**                                  | Should test identity-model types work across module boundaries                                                 |
+| 5  | **GOWORK=off replace directives** in identity-model/go.mod          | `GOWORK=off go build` will fail — missing go-cqrs-lite local replaces                                          |
+| 6  | **flake.nix integration**                                           | identity-model not added to build/test/lint automation                                                         |
+| 7  | **AGENTS.md update**                                                | New module not documented in project context                                                                   |
+| 8  | **CHANGELOG.md** entry                                              | No record of this new module                                                                                   |
+| 9  | **Run golangci-lint**                                               | Never actually ran lint on the new module — many warnings visible in diagnostics (tagliatelle, nlreturn, etc.) |
+| 10 | **LICENSE file** in identity-model/                                 | usermgmt has one, identity-model doesn't                                                                       |
+| 11 | **CONTRIBUTING.md**                                                 | usermgmt has one                                                                                               |
+| 12 | **git-town.toml**                                                   | usermgmt has one                                                                                               |
 
 ---
 

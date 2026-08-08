@@ -172,33 +172,33 @@ No regressions, no broken APIs, no data loss. All other work is clean.
 
 Sorted by **impact × customer-value ÷ effort**:
 
-| #   | Task                                                                                                 | Impact  | Effort | Category     |
-| --- | ---------------------------------------------------------------------------------------------------- | ------- | ------ | ------------ |
-| 1   | **T5: Generic SQL read model** — consolidate 4 implementations into 1 generic                        | 🔴 High | Med    | Code quality |
-| 2   | **Add testable coverage-gate** — verify FAIL path works (regression test for the `bc` bug)           | 🔴 High | Low    | CI/CD        |
-| 3   | **Postgres Docker test** — test `postgres_setup.go` + Postgres read models locally                   | 🔴 High | Med    | Testing      |
-| 4   | **Tenant restart-survival test** — same pattern as User restart test                                 | 🟡 Med  | Low    | Testing      |
-| 5   | **Bot restart-survival test** — same pattern as User restart test                                    | 🟡 Med  | Low    | Testing      |
-| 6   | **Membership restart-survival test** — same pattern as User restart test                             | 🟡 Med  | Low    | Testing      |
-| 7   | **Error path tests for SQL read models** — mock store that returns errors                            | 🟡 Med  | Med    | Testing      |
-| 8   | **Error path tests for sqlite_setup** — inject failing repo/readmodel                                | 🟡 Med  | Med    | Testing      |
-| 9   | **Migrate `StartProjections` to `CatchUpSubscriber`** — upstream provides this                       | 🟡 Med  | Med    | Architecture |
-| 10  | **Add `WithSecurityHooks` to stack presets** — enables signing/encryption in one-call setups         | 🟡 Med  | High   | Architecture |
-| 11  | **OAuth2 restart-survival** — verify OAuth2 state store survives restart (currently in-memory)       | 🟡 Med  | Med    | Testing      |
-| 12  | **WebAuthn restart-survival** — verify WebAuthn session store survives restart (currently in-memory) | 🟡 Med  | Med    | Testing      |
-| 13  | **Per-package coverage gate** — catch packages dropping to 0%                                        | 🟢 Low  | Low    | CI/CD        |
-| 14  | **Tenant/Bot/Membership integration test through SQLiteSetup** — dispatch commands, verify SQL       | 🟡 Med  | Low    | Testing      |
-| 15  | **`NewSQLUserReadModel` on Postgres** — currently untested, needs Postgres                           | 🟡 Med  | Med    | Testing      |
-| 16  | **Fuzz tests for SQL view stores** — arbitrary UserID/aggID strings                                  | 🟢 Low  | Med    | Testing      |
-| 17  | **Benchmark SQL read model Handle** — measure projection throughput                                  | 🟢 Low  | Med    | Performance  |
-| 18  | **Consolidate sqlite/postgres setup helpers** — share more code between presets                      | 🟡 Med  | Low    | Code quality |
-| 19  | **Document stack preset SecurityHooks limitation in README** — consumer-facing docs                  | 🟢 Low  | Low    | Docs         |
-| 20  | **Add `examples/sqlite-demo`** — show consumers how to use `NewSQLiteEventSourcedSetup`              | 🟡 Med  | Med    | Examples     |
-| 21  | **SQL read model projection lag test** — verify read-your-writes under concurrent load               | 🟡 Med  | High   | Testing      |
-| 22  | **Add `GracefulClose` to Service for stack-based setups** — currently only on EventSourcedSetup      | 🟢 Low  | Low    | API          |
-| 23  | **Audit log persistence** — AuditLog is currently in-memory, should survive restarts                 | 🟡 Med  | High   | Feature      |
-| 24  | **Session store SQL restart-survival** — verify sessions survive process restart                     | 🟡 Med  | Med    | Testing      |
-| 25  | **Coverage badge in README** — auto-update coverage % in README via CI                               | 🟢 Low  | Low    | Docs         |
+| #  | Task                                                                                                 | Impact  | Effort | Category     |
+| -- | ---------------------------------------------------------------------------------------------------- | ------- | ------ | ------------ |
+| 1  | **T5: Generic SQL read model** — consolidate 4 implementations into 1 generic                        | 🔴 High | Med    | Code quality |
+| 2  | **Add testable coverage-gate** — verify FAIL path works (regression test for the `bc` bug)           | 🔴 High | Low    | CI/CD        |
+| 3  | **Postgres Docker test** — test `postgres_setup.go` + Postgres read models locally                   | 🔴 High | Med    | Testing      |
+| 4  | **Tenant restart-survival test** — same pattern as User restart test                                 | 🟡 Med  | Low    | Testing      |
+| 5  | **Bot restart-survival test** — same pattern as User restart test                                    | 🟡 Med  | Low    | Testing      |
+| 6  | **Membership restart-survival test** — same pattern as User restart test                             | 🟡 Med  | Low    | Testing      |
+| 7  | **Error path tests for SQL read models** — mock store that returns errors                            | 🟡 Med  | Med    | Testing      |
+| 8  | **Error path tests for sqlite_setup** — inject failing repo/readmodel                                | 🟡 Med  | Med    | Testing      |
+| 9  | **Migrate `StartProjections` to `CatchUpSubscriber`** — upstream provides this                       | 🟡 Med  | Med    | Architecture |
+| 10 | **Add `WithSecurityHooks` to stack presets** — enables signing/encryption in one-call setups         | 🟡 Med  | High   | Architecture |
+| 11 | **OAuth2 restart-survival** — verify OAuth2 state store survives restart (currently in-memory)       | 🟡 Med  | Med    | Testing      |
+| 12 | **WebAuthn restart-survival** — verify WebAuthn session store survives restart (currently in-memory) | 🟡 Med  | Med    | Testing      |
+| 13 | **Per-package coverage gate** — catch packages dropping to 0%                                        | 🟢 Low  | Low    | CI/CD        |
+| 14 | **Tenant/Bot/Membership integration test through SQLiteSetup** — dispatch commands, verify SQL       | 🟡 Med  | Low    | Testing      |
+| 15 | **`NewSQLUserReadModel` on Postgres** — currently untested, needs Postgres                           | 🟡 Med  | Med    | Testing      |
+| 16 | **Fuzz tests for SQL view stores** — arbitrary UserID/aggID strings                                  | 🟢 Low  | Med    | Testing      |
+| 17 | **Benchmark SQL read model Handle** — measure projection throughput                                  | 🟢 Low  | Med    | Performance  |
+| 18 | **Consolidate sqlite/postgres setup helpers** — share more code between presets                      | 🟡 Med  | Low    | Code quality |
+| 19 | **Document stack preset SecurityHooks limitation in README** — consumer-facing docs                  | 🟢 Low  | Low    | Docs         |
+| 20 | **Add `examples/sqlite-demo`** — show consumers how to use `NewSQLiteEventSourcedSetup`              | 🟡 Med  | Med    | Examples     |
+| 21 | **SQL read model projection lag test** — verify read-your-writes under concurrent load               | 🟡 Med  | High   | Testing      |
+| 22 | **Add `GracefulClose` to Service for stack-based setups** — currently only on EventSourcedSetup      | 🟢 Low  | Low    | API          |
+| 23 | **Audit log persistence** — AuditLog is currently in-memory, should survive restarts                 | 🟡 Med  | High   | Feature      |
+| 24 | **Session store SQL restart-survival** — verify sessions survive process restart                     | 🟡 Med  | Med    | Testing      |
+| 25 | **Coverage badge in README** — auto-update coverage % in README via CI                               | 🟢 Low  | Low    | Docs         |
 
 ---
 

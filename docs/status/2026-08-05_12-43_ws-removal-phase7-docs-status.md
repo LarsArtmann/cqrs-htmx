@@ -177,7 +177,7 @@ When I rewrote the "Embedded HTMX extensions" section, my `new_string` block con
 
 8. **Resolve the `references/realtime.md` SKILL.md drift.** **→ still open — TODO_LIST P1.**
 9. **Create `docs/migrations/v4-to-v5.md`.** **→ still open — TODO_LIST P1.**
-10. **Add CI step to grep for WS symbol leaks.** _*→ still open — folded into TODO_LIST P2 ("wire check-* into CI")._*
+10. **Add CI step to grep for WS symbol leaks.** __→ still open — folded into TODO_LIST P2 ("wire check-_ into CI")._*
 11. **Audit the 2026-06 archived status reports.** **→ still open (low priority) — historical snapshots; leave as-is or annotate when touched.**
 12. ~~**Verify `extensions/ws.min.js` gitattributes workaround is no longer needed.**~~ partially resolved — `extensions/` now contains only `sse.min.js` + `idiomorph-ext.min.js`; the `*.min.js -text` gitattributes entry is now harmless but unverified-removable. **→ still open (cosmetic).**
 13. ~~**Update `examples/datastar-demo/` references.**~~ NOT-DO — datastar adapter never had a WS surface; demo is unaffected.

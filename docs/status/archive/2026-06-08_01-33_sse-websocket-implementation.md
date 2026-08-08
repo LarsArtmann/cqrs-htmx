@@ -143,33 +143,33 @@ Implemented full HTMX SSE extension support and HTMX WebSocket protocol helpers.
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Item                                                          | Impact | Effort | Category      |
-| --- | ------------------------------------------------------------- | ------ | ------ | ------------- |
-| 1   | Godoc examples for SSE/WS (5 examples)                        | High   | Low    | Docs          |
-| 2   | Recover coverage to 96.9%+ (splitSSELines edge cases)         | Medium | Low    | Test          |
-| 3   | SSE + CQRS AfterDispatchHook bridge factory                   | High   | Medium | Feature       |
-| 4   | SSE example app (`examples/sse-demo/`)                        | High   | Medium | Docs          |
-| 5   | SSE reconnection support (Last-Event-ID replay)               | High   | Medium | Feature       |
-| 6   | Typed WS message parser `ParseWSMessageInto[T]`               | Medium | Low    | Feature       |
-| 7   | Broadcaster.Unsubscribe O(1) lookup optimization              | Low    | Low    | Perf          |
-| 8   | SSE integration test in `integration_test/`                   | Medium | Medium | Test          |
-| 9   | Benchmark SSE/WS hot paths                                    | Low    | Low    | Perf          |
-| 10  | Adopt go-cqrs-lite v2 `RegisterTyped`/`DispatchTyped`         | High   | Medium | Deps          |
-| 11  | Adopt go-cqrs-lite v2 `PaginatedResult[T]`                    | Medium | Medium | Deps          |
-| 12  | Comprehensive godoc package examples (existing features)      | Medium | Medium | Docs          |
-| 13  | Expand integration_test module coverage                       | Medium | Medium | Test          |
-| 14  | Profile hot paths (dispatch, decode) for allocation reduction | Low    | Medium | Perf          |
-| 15  | BrandNamer for root module marker types                       | Medium | Low    | Types         |
-| 16  | PostgreSQL store for usermgmt                                 | High   | High   | Store         |
-| 17  | Numeric branded IDs (ADR 0003)                                | High   | Medium | Types         |
-| 18  | Database migration tooling                                    | Medium | Medium | Infra         |
-| 19  | OpenTelemetry middleware (lifecycle hooks)                    | High   | Medium | Observability |
-| 20  | Prometheus metrics middleware                                 | Medium | Medium | Observability |
-| 21  | JWT/OIDC integration helpers                                  | Medium | High   | Auth          |
-| 22  | Redis session store                                           | Medium | High   | Store         |
-| 23  | README.md refresh — add SSE/WS mention                        | Low    | Low    | Docs          |
-| 24  | WebSocket example app                                         | Medium | Medium | Docs          |
-| 25  | Flaky test audit — ensure no time.After patterns              | Low    | Low    | Test          |
+| #  | Item                                                          | Impact | Effort | Category      |
+| -- | ------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | Godoc examples for SSE/WS (5 examples)                        | High   | Low    | Docs          |
+| 2  | Recover coverage to 96.9%+ (splitSSELines edge cases)         | Medium | Low    | Test          |
+| 3  | SSE + CQRS AfterDispatchHook bridge factory                   | High   | Medium | Feature       |
+| 4  | SSE example app (`examples/sse-demo/`)                        | High   | Medium | Docs          |
+| 5  | SSE reconnection support (Last-Event-ID replay)               | High   | Medium | Feature       |
+| 6  | Typed WS message parser `ParseWSMessageInto[T]`               | Medium | Low    | Feature       |
+| 7  | Broadcaster.Unsubscribe O(1) lookup optimization              | Low    | Low    | Perf          |
+| 8  | SSE integration test in `integration_test/`                   | Medium | Medium | Test          |
+| 9  | Benchmark SSE/WS hot paths                                    | Low    | Low    | Perf          |
+| 10 | Adopt go-cqrs-lite v2 `RegisterTyped`/`DispatchTyped`         | High   | Medium | Deps          |
+| 11 | Adopt go-cqrs-lite v2 `PaginatedResult[T]`                    | Medium | Medium | Deps          |
+| 12 | Comprehensive godoc package examples (existing features)      | Medium | Medium | Docs          |
+| 13 | Expand integration_test module coverage                       | Medium | Medium | Test          |
+| 14 | Profile hot paths (dispatch, decode) for allocation reduction | Low    | Medium | Perf          |
+| 15 | BrandNamer for root module marker types                       | Medium | Low    | Types         |
+| 16 | PostgreSQL store for usermgmt                                 | High   | High   | Store         |
+| 17 | Numeric branded IDs (ADR 0003)                                | High   | Medium | Types         |
+| 18 | Database migration tooling                                    | Medium | Medium | Infra         |
+| 19 | OpenTelemetry middleware (lifecycle hooks)                    | High   | Medium | Observability |
+| 20 | Prometheus metrics middleware                                 | Medium | Medium | Observability |
+| 21 | JWT/OIDC integration helpers                                  | Medium | High   | Auth          |
+| 22 | Redis session store                                           | Medium | High   | Store         |
+| 23 | README.md refresh — add SSE/WS mention                        | Low    | Low    | Docs          |
+| 24 | WebSocket example app                                         | Medium | Medium | Docs          |
+| 25 | Flaky test audit — ensure no time.After patterns              | Low    | Low    | Test          |
 
 ---
 

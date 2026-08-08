@@ -167,7 +167,7 @@ The library had all the building blocks (`RenderPartial`, `TemplComponent`, `Ren
 37. **Consider `RenderTemplPage` vs `RenderTemplPartial` naming** — explicit intent vs the current `RenderTempl`/`RenderTemplComponent`
 38. **Add test for `OOBHTML` with empty `id`** — edge case
 39. **Add test for `OOBHTML` with empty `html`** — edge case
-40. **Consider `OOBHTML` returning a ` TemplComponent`** — so it can be composed with `RenderTempl`
+40. **Consider `OOBHTML` returning a `TemplComponent`** — so it can be composed with `RenderTempl`
 41. **Explore whether the `nolint:wrapcheck` on `RenderTemplComponent` is the right call** vs wrapping with `event.WrapInfrastructure`
 42. **Consider moving `OOBHTML` to its own file** (`oob.go`) since it's not strictly "partial rendering"
 43. **Add test for `RenderPartialOrFull` with `hx-boost` requests** — boosted requests should get full pages

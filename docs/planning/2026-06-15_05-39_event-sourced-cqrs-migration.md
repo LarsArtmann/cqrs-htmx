@@ -2,8 +2,8 @@
 
 > Transform usermgmt from CRUD with fire-and-forget events to fully event-sourced CQRS using go-cqrs-lite's Decider pattern, with Casbin as an event-driven projection.
 
-**Date**: 2026-06-15  
-**Status**: PROPOSED  
+**Date**: 2026-06-15\
+**Status**: PROPOSED\
 **Impact**: BREAKING — new module major version (v3)
 
 ---
@@ -49,51 +49,51 @@
 ## 2. Target Architecture
 
 ```
-                                    ┌─────────────────────┐
-                                    │   HTTP Handlers     │
-                                    │ (register/login/    │
-                                    │  logout/me)         │
-                                    └────────┬────────────┘
-                                             │
-                                    ┌────────▼────────────┐
-                                    │      Service        │
-                                    │ (app orchestration) │
-                                    └──┬─────┬──────┬─────┘
-                                       │     │      │
-                          ┌────────────▼┐  ┌─▼──┐  ┌▼──────────────┐
-                          │  Command    │  │Query│  │  Session      │
-                          │ Dispatcher  │  │Disp.│  │  Store        │
-                          └──────┬──────┘  └──┬──┘  │ (unchanged)   │
-                                 │            │      └───────────────┘
-                          ┌──────▼──────┐     │
-                          │ Decider     │     │
-                          │ Repository  │     │
-                          │ [UserState] │     │
-                          └──┬───────┬──┘     │
-                   Load     │       │ Save    │
-                  /Fold     │       │+Publish │
-                             │       │         │
-                    ┌────────▼──┐ ┌──▼───────┐ │
-                    │ Event     │ │ Event    │ │
-                    │ Store     │ │ Bus      │ │
-                    │ (source   │ │ (pub/sub)│ │
-                    │  of truth)│ │         │ │
-                    └───────────┘ └──┬──┬───┘ │
-                                     │  │     │
-                         ┌───────────┘  │     │
-                         ▼              ▼     │
-                ┌─────────────┐ ┌─────────────▼─┐
-                │ UserRead    │ │ Casbin        │
-                │ Model       │ │ Projection    │
-                │ (projection)│ │ (projection)  │
-                └──────┬──────┘ └───────┬───────┘
-                       │                │
-                       ▼                ▼
-                ┌─────────────┐ ┌───────────────┐
-                │ FindByID    │ │ Casbin        │
-                │ FindByEmail │ │ Enforcer      │
-                │ (query side)│ │ (authz checks)│
-                └─────────────┘ └───────────────┘
+                    ┌─────────────────────┐
+                    │   HTTP Handlers     │
+                    │ (register/login/    │
+                    │  logout/me)         │
+                    └────────┬────────────┘
+                             │
+                    ┌────────▼────────────┐
+                    │      Service        │
+                    │ (app orchestration) │
+                    └──┬─────┬──────┬─────┘
+                       │     │      │
+          ┌────────────▼┐  ┌─▼──┐  ┌▼──────────────┐
+          │  Command    │  │Query│  │  Session      │
+          │ Dispatcher  │  │Disp.│  │  Store        │
+          └──────┬──────┘  └──┬──┘  │ (unchanged)   │
+                 │            │      └───────────────┘
+          ┌──────▼──────┐     │
+          │ Decider     │     │
+          │ Repository  │     │
+          │ [UserState] │     │
+          └──┬───────┬──┘     │
+   Load     │       │ Save    │
+  /Fold     │       │+Publish │
+             │       │         │
+    ┌────────▼──┐ ┌──▼───────┐ │
+    │ Event     │ │ Event    │ │
+    │ Store     │ │ Bus      │ │
+    │ (source   │ │ (pub/sub)│ │
+    │  of truth)│ │         │ │
+    └───────────┘ └──┬──┬───┘ │
+                     │  │     │
+         ┌───────────┘  │     │
+         ▼              ▼     │
+┌─────────────┐ ┌─────────────▼─┐
+│ UserRead    │ │ Casbin        │
+│ Model       │ │ Projection    │
+│ (projection)│ │ (projection)  │
+└──────┬──────┘ └───────┬───────┘
+       │                │
+       ▼                ▼
+┌─────────────┐ ┌───────────────┐
+│ FindByID    │ │ Casbin        │
+│ FindByEmail │ │ Enforcer      │
+│ (query side)│ │ (authz checks)│
+└─────────────┘ └───────────────┘
 ```
 
 ### Write Path (Command)
@@ -254,7 +254,7 @@ Tests, edge cases, documentation, cleanup, lockout integration, session integrat
 
 | #                                          | Task                                                                                  | Impact   | Effort | Depends On |
 | ------------------------------------------ | ------------------------------------------------------------------------------------- | -------- | ------ | ---------- |
-| **Phase 1: Domain Core (Pure Functions)**  |
+| **Phase 1: Domain Core (Pure Functions)**  |                                                                                       |          |        |            |
 | 1                                          | Write ADR: Event-Sourced User Aggregate                                               | HIGH     | 30min  | —          |
 | 2                                          | Define event type constants + aggregate type                                          | HIGH     | 15min  | —          |
 | 3                                          | Define event payload structs (6 events)                                               | HIGH     | 30min  | 2          |
@@ -263,18 +263,18 @@ Tests, edge cases, documentation, cleanup, lockout integration, session integrat
 | 6                                          | Write decide functions (6 commands) — pure domain logic                               | CRITICAL | 60min  | 4,5        |
 | 7                                          | Write unit tests for `foldUser()` — table-driven, every event type                    | CRITICAL | 45min  | 5          |
 | 8                                          | Write unit tests for decide functions — guards, validation, event creation            | CRITICAL | 60min  | 6          |
-| **Phase 2: Infrastructure Wiring**         |
+| **Phase 2: Infrastructure Wiring**         |                                                                                       |          |        |            |
 | 9                                          | Add new dependencies to `go.mod` (decider, memory, command, query, projection, id)    | HIGH     | 15min  | —          |
 | 10                                         | Create `Setup()` function — wires memory store + bus + decider repo                   | HIGH     | 45min  | 9,5        |
 | 11                                         | Create command dispatcher registration (`RegisterTyped` for all 6 commands)           | HIGH     | 45min  | 10,6       |
 | 12                                         | Test infrastructure wiring — dispatch a RegisterUser command, verify events saved     | HIGH     | 30min  | 11         |
-| **Phase 3: Projections**                   |
+| **Phase 3: Projections**                   |                                                                                       |          |        |            |
 | 13                                         | Create `UserReadModel` projection (replaces UserStore) — Name, EventTypes, Handle     | CRITICAL | 60min  | 3          |
 | 14                                         | Add email index to UserReadModel (FindByEmail support)                                | HIGH     | 30min  | 13         |
 | 15                                         | Create `CasbinProjection` — updates Casbin policies from events                       | HIGH     | 60min  | 3          |
 | 16                                         | Wire projection Runner — replay from journal + live subscription                      | HIGH     | 30min  | 13,15      |
 | 17                                         | Test projections — replay events, verify read model + Casbin state                    | HIGH     | 45min  | 16         |
-| **Phase 4: Service Layer Rewrite**         |
+| **Phase 4: Service Layer Rewrite**         |                                                                                       |          |        |            |
 | 18                                         | Rewrite `ServiceConfig` — accept EventStore, EventBus, decider.Repository             | CRITICAL | 45min  | 10         |
 | 19                                         | Rewrite `Service.Register()` → hash password, dispatch RegisterUser, create session   | CRITICAL | 60min  | 11         |
 | 20                                         | Rewrite `Service.ChangePassword()` → verify old, hash new, dispatch ChangePassword    | CRITICAL | 45min  | 11         |
@@ -283,21 +283,21 @@ Tests, edge cases, documentation, cleanup, lockout integration, session integrat
 | 23                                         | Rewrite `Service.GetUser()` → query UserReadModel                                     | HIGH     | 15min  | 13         |
 | 24                                         | Add new methods: `ChangeEmail()`, `ChangeDisplayName()`, `DeleteUser()`               | MEDIUM   | 45min  | 11         |
 | 25                                         | Rewrite `Service.Authenticate()` → session check + read model lookup                  | HIGH     | 30min  | 13         |
-| **Phase 5: Session & Lockout Integration** |
+| **Phase 5: Session & Lockout Integration** |                                                                                       |          |        |            |
 | 26                                         | Wire SessionStore into new Service (unchanged interface)                              | MEDIUM   | 30min  | 19         |
 | 27                                         | Wire AccountLockout into new Service.Login                                            | MEDIUM   | 30min  | 22         |
 | 28                                         | Publish UserLoggedInEvent on bus (not on aggregate stream)                            | LOW      | 15min  | 22         |
-| **Phase 6: HTTP Layer**                    |
+| **Phase 6: HTTP Layer**                    |                                                                                       |          |        |            |
 | 29                                         | Update HTTP handlers to match new Service API (minimal changes)                       | MEDIUM   | 30min  | 19-25      |
 | 30                                         | Update error→HTTP status mapping for new error types                                  | LOW      | 15min  | 29         |
-| **Phase 7: Test Rewrite**                  |
+| **Phase 7: Test Rewrite**                  |                                                                                       |          |        |            |
 | 31                                         | Rewrite Service tests — all methods, happy + error paths                              | CRITICAL | 120min | 19-25      |
 | 32                                         | Rewrite handler tests — all routes, cookies, error codes                              | HIGH     | 90min  | 29         |
 | 33                                         | Add integration test: full event-sourced flow (register→login→change→delete)          | HIGH     | 60min  | 31         |
 | 34                                         | Add projection consistency test: write event, verify read model + Casbin              | HIGH     | 45min  | 17         |
 | 35                                         | Update fuzz tests for new validation paths                                            | LOW      | 30min  | 31         |
 | 36                                         | Update benchmarks for new architecture                                                | LOW      | 30min  | 31         |
-| **Phase 8: Cleanup & Documentation**       |
+| **Phase 8: Cleanup & Documentation**       |                                                                                       |          |        |            |
 | 37                                         | Remove old CRUD code (InMemoryUserStore, old Service methods)                         | HIGH     | 30min  | 31         |
 | 38                                         | Update `events.go` — old EventHandler callback replaced by bus subscriptions          | MEDIUM   | 30min  | 28         |
 | 39                                         | Update AGENTS.md — new architecture, dependencies, patterns                           | HIGH     | 45min  | 37         |

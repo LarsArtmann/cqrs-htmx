@@ -1,7 +1,7 @@
 # Status Report: OAuth2/OIDC Integration Complete
 
-**Date:** 2026-06-18 23:53  
-**Branch:** master (pushed to origin)  
+**Date:** 2026-06-18 23:53\
+**Branch:** master (pushed to origin)\
 **Working tree:** Clean
 
 ---
@@ -16,47 +16,47 @@ All 29 tasks from the OAuth2/OIDC integration plan are **COMPLETE and VERIFIED**
 
 ### Phase 1: Domain Layer (Tasks 1-15) — Commit `e51df9f`
 
-| #   | Task                                                           | Status |
-| --- | -------------------------------------------------------------- | ------ |
-| 1   | Refactor foldUser to mutable update pattern                    | ✓ Done |
-| 2   | Add ExternalAccounts []ExternalAccount to UserState            | ✓ Done |
-| 3   | ExternalAccount value type + Clone()                           | ✓ Done |
-| 4   | ExternalAccountLinkedPayload + UnlinkedPayload                 | ✓ Done |
-| 5   | Event constants + allUserEventTypes update                     | ✓ Done |
-| 6   | decideLinkExternalAccount (guards: exists, duplicate)          | ✓ Done |
-| 7   | decideUnlinkExternalAccount (guards: exists, last-auth-method) | ✓ Done |
-| 8   | foldUser: ExternalAccountLinked case                           | ✓ Done |
-| 9   | foldUser: ExternalAccountUnlinked case                         | ✓ Done |
-| 10  | LinkExternalAccountCmd + UnlinkExternalAccountCmd              | ✓ Done |
-| 11  | RegisterCommands wiring via RegisterTyped                      | ✓ Done |
-| 12  | UserReadModel projection (linked/unlinked)                     | ✓ Done |
-| 13  | CasbinProjection event types (ordering no-op)                  | ✓ Done |
-| 14  | Domain decide guard tests (11 tests)                           | ✓ Done |
-| 15  | Domain fold invariant tests (5 tests)                          | ✓ Done |
+| #  | Task                                                           | Status |
+| -- | -------------------------------------------------------------- | ------ |
+| 1  | Refactor foldUser to mutable update pattern                    | ✓ Done |
+| 2  | Add ExternalAccounts []ExternalAccount to UserState            | ✓ Done |
+| 3  | ExternalAccount value type + Clone()                           | ✓ Done |
+| 4  | ExternalAccountLinkedPayload + UnlinkedPayload                 | ✓ Done |
+| 5  | Event constants + allUserEventTypes update                     | ✓ Done |
+| 6  | decideLinkExternalAccount (guards: exists, duplicate)          | ✓ Done |
+| 7  | decideUnlinkExternalAccount (guards: exists, last-auth-method) | ✓ Done |
+| 8  | foldUser: ExternalAccountLinked case                           | ✓ Done |
+| 9  | foldUser: ExternalAccountUnlinked case                         | ✓ Done |
+| 10 | LinkExternalAccountCmd + UnlinkExternalAccountCmd              | ✓ Done |
+| 11 | RegisterCommands wiring via RegisterTyped                      | ✓ Done |
+| 12 | UserReadModel projection (linked/unlinked)                     | ✓ Done |
+| 13 | CasbinProjection event types (ordering no-op)                  | ✓ Done |
+| 14 | Domain decide guard tests (11 tests)                           | ✓ Done |
+| 15 | Domain fold invariant tests (5 tests)                          | ✓ Done |
 
 ### Phase 2-3: Ceremony + HTTP Layer (Tasks 16-27) — Commit `6a704b9`
 
-| #   | Task                                                           | Status |
-| --- | -------------------------------------------------------------- | ------ |
-| 16  | golang.org/x/oauth2 + go-oidc/v3 deps                          | ✓ Done |
-| 17  | OAuth2ProviderConfig + OAuth2Config types                      | ✓ Done |
-| 18  | oauth2StateStore (CSRF + PKCE, mirrors verificationTokenStore) | ✓ Done |
-| 19  | Service.BeginOAuthLogin (state + PKCE → redirect URL)          | ✓ Done |
-| 20  | Service.FinishOAuthLogin (exchange + email match + session)    | ✓ Done |
-| 21  | Email matching (find-by-email → link or auto-register)         | ✓ Done |
-| 22  | OIDC ID token verification (extractFromIDToken)                | ✓ Done |
-| 23  | HTTP handlers (begin/callback/unlink)                          | ✓ Done |
-| 24  | Rate limiting (OAuthRateLimit config)                          | ✓ Done |
-| 25  | Session cookie on successful login                             | ✓ Done |
-| 26  | User struct: ExternalAccounts in JSON + Clone                  | ✓ Done |
-| 27  | Service.UnlinkExternalAccount                                  | ✓ Done |
+| #  | Task                                                           | Status |
+| -- | -------------------------------------------------------------- | ------ |
+| 16 | golang.org/x/oauth2 + go-oidc/v3 deps                          | ✓ Done |
+| 17 | OAuth2ProviderConfig + OAuth2Config types                      | ✓ Done |
+| 18 | oauth2StateStore (CSRF + PKCE, mirrors verificationTokenStore) | ✓ Done |
+| 19 | Service.BeginOAuthLogin (state + PKCE → redirect URL)          | ✓ Done |
+| 20 | Service.FinishOAuthLogin (exchange + email match + session)    | ✓ Done |
+| 21 | Email matching (find-by-email → link or auto-register)         | ✓ Done |
+| 22 | OIDC ID token verification (extractFromIDToken)                | ✓ Done |
+| 23 | HTTP handlers (begin/callback/unlink)                          | ✓ Done |
+| 24 | Rate limiting (OAuthRateLimit config)                          | ✓ Done |
+| 25 | Session cookie on successful login                             | ✓ Done |
+| 26 | User struct: ExternalAccounts in JSON + Clone                  | ✓ Done |
+| 27 | Service.UnlinkExternalAccount                                  | ✓ Done |
 
 ### Phase 4: Tests + Docs (Tasks 28-29) — Commits `6a704b9`, `5332a9b`
 
-| #   | Task                                                            | Status |
-| --- | --------------------------------------------------------------- | ------ |
-| 28  | Integration test: full OAuth flow with fake provider (10 tests) | ✓ Done |
-| 29  | ADR 0014: OAuth2/OIDC integration design decision               | ✓ Done |
+| #  | Task                                                            | Status |
+| -- | --------------------------------------------------------------- | ------ |
+| 28 | Integration test: full OAuth flow with fake provider (10 tests) | ✓ Done |
+| 29 | ADR 0014: OAuth2/OIDC integration design decision               | ✓ Done |
 
 ### Verification
 
@@ -137,33 +137,33 @@ All 29 tasks from the OAuth2/OIDC integration plan are **COMPLETE and VERIFIED**
 
 ## F) Top 25 Things to Do Next (sorted by impact/effort)
 
-| #   | Task                                                                          | Impact | Effort | Score  |
-| --- | ----------------------------------------------------------------------------- | ------ | ------ | ------ |
-| 1   | **Update AGENTS.md** with OAuth2 files, deps, patterns                        | High   | 10m    | **20** |
-| 2   | **Fake OIDC discovery server test** — verify ID token path                    | High   | 20m    | **16** |
-| 3   | **Multi-provider linking test** — Google + GitHub same user                   | High   | 15m    | **16** |
-| 4   | **Concurrent OAuth login test** — two users, same email, race                 | Medium | 15m    | **12** |
-| 5   | **Provider branded type** — `type Provider string`                            | Medium | 15m    | **12** |
-| 6   | **`ClaimsExtractor` option** — custom OIDC claim extraction                   | Medium | 20m    | **12** |
-| 7   | **OAuth2StateStore interface** — like SessionStore, for Redis                 | Medium | 20m    | **12** |
-| 8   | **Upstream go-cqrs-lite: split projection.Run()**                             | High   | 30m    | **10** |
-| 9   | **examples/basic: add OAuth2 provider**                                       | Medium | 20m    | **10** |
-| 10  | **`TrustedEmailProviders` whitelist**                                         | Medium | 15m    | **10** |
-| 11  | **OAuth2 refresh token support** (for long-lived API access)                  | Low    | 30m    | **6**  |
-| 12  | **Account merge admin endpoint** — link orphan OAuth accounts                 | Medium | 30m    | **6**  |
-| 13  | **T4: OTel tracing on OAuth flows**                                           | Medium | 45m    | **5**  |
-| 14  | **T4: Prometheus metrics on OAuth**                                           | Medium | 30m    | **6**  |
-| 15  | **Session store for OAuth state** (Redis adapter)                             | Low    | 45m    | **4**  |
-| 16  | **OAuth2 error HTML pages** — user-friendly callback errors                   | Low    | 20m    | **4**  |
-| 17  | **Rate limit per-provider** — not just per-IP                                 | Low    | 20m    | **4**  |
-| 18  | **OAuth login audit events** — emit to AuditLog                               | Medium | 20m    | **6**  |
-| 19  | **Brute force protection** — lockout on repeated OAuth failures               | Medium | 30m    | **4**  |
-| 20  | **T7: Redis SessionStore**                                                    | Low    | 60m    | **3**  |
-| 21  | **T7: BadgerDB EventStore**                                                   | Low    | 60m    | **3**  |
-| 22  | **Documentation: OAuth2 provider setup guide**                                | Medium | 30m    | **4**  |
-| 23  | **OAuth2 scope validation** — reject if provider doesn't return email scope   | Low    | 15m    | **4**  |
-| 24  | **Token revocation on unlink** — revoke provider access token                 | Low    | 30m    | **2**  |
-| 25  | **WebAuthn + OAuth session linking** — passkey registration after OAuth login | Medium | 45m    | **4**  |
+| #  | Task                                                                          | Impact | Effort | Score  |
+| -- | ----------------------------------------------------------------------------- | ------ | ------ | ------ |
+| 1  | **Update AGENTS.md** with OAuth2 files, deps, patterns                        | High   | 10m    | **20** |
+| 2  | **Fake OIDC discovery server test** — verify ID token path                    | High   | 20m    | **16** |
+| 3  | **Multi-provider linking test** — Google + GitHub same user                   | High   | 15m    | **16** |
+| 4  | **Concurrent OAuth login test** — two users, same email, race                 | Medium | 15m    | **12** |
+| 5  | **Provider branded type** — `type Provider string`                            | Medium | 15m    | **12** |
+| 6  | **`ClaimsExtractor` option** — custom OIDC claim extraction                   | Medium | 20m    | **12** |
+| 7  | **OAuth2StateStore interface** — like SessionStore, for Redis                 | Medium | 20m    | **12** |
+| 8  | **Upstream go-cqrs-lite: split projection.Run()**                             | High   | 30m    | **10** |
+| 9  | **examples/basic: add OAuth2 provider**                                       | Medium | 20m    | **10** |
+| 10 | **`TrustedEmailProviders` whitelist**                                         | Medium | 15m    | **10** |
+| 11 | **OAuth2 refresh token support** (for long-lived API access)                  | Low    | 30m    | **6**  |
+| 12 | **Account merge admin endpoint** — link orphan OAuth accounts                 | Medium | 30m    | **6**  |
+| 13 | **T4: OTel tracing on OAuth flows**                                           | Medium | 45m    | **5**  |
+| 14 | **T4: Prometheus metrics on OAuth**                                           | Medium | 30m    | **6**  |
+| 15 | **Session store for OAuth state** (Redis adapter)                             | Low    | 45m    | **4**  |
+| 16 | **OAuth2 error HTML pages** — user-friendly callback errors                   | Low    | 20m    | **4**  |
+| 17 | **Rate limit per-provider** — not just per-IP                                 | Low    | 20m    | **4**  |
+| 18 | **OAuth login audit events** — emit to AuditLog                               | Medium | 20m    | **6**  |
+| 19 | **Brute force protection** — lockout on repeated OAuth failures               | Medium | 30m    | **4**  |
+| 20 | **T7: Redis SessionStore**                                                    | Low    | 60m    | **3**  |
+| 21 | **T7: BadgerDB EventStore**                                                   | Low    | 60m    | **3**  |
+| 22 | **Documentation: OAuth2 provider setup guide**                                | Medium | 30m    | **4**  |
+| 23 | **OAuth2 scope validation** — reject if provider doesn't return email scope   | Low    | 15m    | **4**  |
+| 24 | **Token revocation on unlink** — revoke provider access token                 | Low    | 30m    | **2**  |
+| 25 | **WebAuthn + OAuth session linking** — passkey registration after OAuth login | Medium | 45m    | **4**  |
 
 ---
 

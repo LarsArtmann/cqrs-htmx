@@ -44,22 +44,22 @@
 
 ## Step 2: Comprehensive Plan (Medium Granularity, 30-100min each)
 
-| #   | Task                                                                                           | Impact | Effort | Type              |
-| --- | ---------------------------------------------------------------------------------------------- | ------ | ------ | ----------------- |
-| 1   | Remove dead sentinels (`ErrNoUserID`, `ErrRendererMissing`) + update tests                     | HIGH   | 30min  | API cleanup       |
-| 2   | Unexport internal sentinels (`ErrCommandsNil`, `ErrQueriesNil`, `ErrDecoderMissing`)           | HIGH   | 45min  | API cleanup       |
-| 3   | Remove deprecated `DefaultNotificationEvent` export                                            | MED    | 30min  | API cleanup       |
-| 4   | Add `NotificationLevel` type (enum: Success, Error, Warning, Info)                             | MED    | 45min  | Type safety       |
-| 5   | Consolidate auth config into typed state (None/AuthOnly/Authorize)                             | MED    | 60min  | Type safety       |
-| 6   | Remove `headerTrue` alias, use `HeaderTrue` everywhere                                         | LOW    | 15min  | Cleanup           |
-| 7   | Fix `JSONErrorHandler` to use per-App `LoginRedirect`                                          | HIGH   | 45min  | Bug fix           |
-| 8   | Extract `"X-Correlation-ID"` to constant                                                       | LOW    | 10min  | Cleanup           |
-| 9   | Unexport standalone HTMX accessors (7 functions)                                               | MED    | 30min  | API cleanup       |
-| 10  | Split `options.go` — extract form decoding to `decode_form.go`                                 | MED    | 30min  | File organization |
-| 11  | Add GitHub Actions CI (build + test + lint + coverage)                                         | HIGH   | 60min  | Infrastructure    |
-| 12  | Update all documentation (AGENTS.md, FEATURES.md, TODO_LIST.md, CHANGELOG.md, CONTRIBUTING.md) | MED    | 45min  | Documentation     |
-| 13  | Tag v1.0.0                                                                                     | HIGH   | 5min   | Release           |
-| 14  | Make repo public                                                                               | HIGH   | 1min   | Release           |
+| #  | Task                                                                                           | Impact | Effort | Type              |
+| -- | ---------------------------------------------------------------------------------------------- | ------ | ------ | ----------------- |
+| 1  | Remove dead sentinels (`ErrNoUserID`, `ErrRendererMissing`) + update tests                     | HIGH   | 30min  | API cleanup       |
+| 2  | Unexport internal sentinels (`ErrCommandsNil`, `ErrQueriesNil`, `ErrDecoderMissing`)           | HIGH   | 45min  | API cleanup       |
+| 3  | Remove deprecated `DefaultNotificationEvent` export                                            | MED    | 30min  | API cleanup       |
+| 4  | Add `NotificationLevel` type (enum: Success, Error, Warning, Info)                             | MED    | 45min  | Type safety       |
+| 5  | Consolidate auth config into typed state (None/AuthOnly/Authorize)                             | MED    | 60min  | Type safety       |
+| 6  | Remove `headerTrue` alias, use `HeaderTrue` everywhere                                         | LOW    | 15min  | Cleanup           |
+| 7  | Fix `JSONErrorHandler` to use per-App `LoginRedirect`                                          | HIGH   | 45min  | Bug fix           |
+| 8  | Extract `"X-Correlation-ID"` to constant                                                       | LOW    | 10min  | Cleanup           |
+| 9  | Unexport standalone HTMX accessors (7 functions)                                               | MED    | 30min  | API cleanup       |
+| 10 | Split `options.go` — extract form decoding to `decode_form.go`                                 | MED    | 30min  | File organization |
+| 11 | Add GitHub Actions CI (build + test + lint + coverage)                                         | HIGH   | 60min  | Infrastructure    |
+| 12 | Update all documentation (AGENTS.md, FEATURES.md, TODO_LIST.md, CHANGELOG.md, CONTRIBUTING.md) | MED    | 45min  | Documentation     |
+| 13 | Tag v1.0.0                                                                                     | HIGH   | 5min   | Release           |
+| 14 | Make repo public                                                                               | HIGH   | 1min   | Release           |
 
 ---
 

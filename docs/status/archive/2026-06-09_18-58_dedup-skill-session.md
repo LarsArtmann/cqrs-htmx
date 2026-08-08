@@ -78,17 +78,17 @@ intended to be tracked. Removed after pushing the dedup work.
 
 The remaining 9 groups (all 2–7 line spans, all in test files):
 
-| #   | Files                                   | Span (lines) | Pattern                                                                                                                |
-| --- | --------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| 1   | `coverage_test.go` + `testing_test.go`  | 3–7          | `testCreateUserCmd` / `bddCreateUserCmd` factory — different types, identical body. Could unify with Go generics.      |
-| 2   | `coverage_test.go` + `httputil_test.go` | 5–6          | 3 ClientIP fallback tests in coverage_test.go not in the existing `httputil_test.go` DescribeTable.                    |
-| 3   | `coverage_test.go`                      | 3            | 3 query-result fixtures that return `{testNameKey: "Alice"}` / `"Test"`. Could be a `queryResultHandler(name)` helper. |
-| 4   | `ratelimit_test.go`                     | 6            | 3 `assertRateLimit(...)` calls with different `Limit`/`Burst`/`Key` — could be a DescribeTable.                        |
-| 5   | `htmx_serve_test.go`                    | 4            | 2 cache/ETag assertion tests, structurally similar but assert different headers.                                       |
-| 6   | `ratelimit_test.go`                     | 7            | 2 TTL eviction tests with different TTLs/keys.                                                                         |
-| 7   | `coverage_test.go` + `example_test.go`  | 5            | `SecurityHeadersMiddlewareWithConfig` wrapping `RecommendedHSTS` + an OK handler.                                      |
-| 8   | `coverage_test.go`                      | 5            | 2 `if expectRedirect` blocks inside a DescribeTable body.                                                              |
-| 9   | `coverage_test.go`                      | 6            | 2 ClientIP XFF tests in coverage_test.go — duplicate of httputil_test.go (could be deleted).                           |
+| # | Files                                   | Span (lines) | Pattern                                                                                                                |
+| - | --------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| 1 | `coverage_test.go` + `testing_test.go`  | 3–7          | `testCreateUserCmd` / `bddCreateUserCmd` factory — different types, identical body. Could unify with Go generics.      |
+| 2 | `coverage_test.go` + `httputil_test.go` | 5–6          | 3 ClientIP fallback tests in coverage_test.go not in the existing `httputil_test.go` DescribeTable.                    |
+| 3 | `coverage_test.go`                      | 3            | 3 query-result fixtures that return `{testNameKey: "Alice"}` / `"Test"`. Could be a `queryResultHandler(name)` helper. |
+| 4 | `ratelimit_test.go`                     | 6            | 3 `assertRateLimit(...)` calls with different `Limit`/`Burst`/`Key` — could be a DescribeTable.                        |
+| 5 | `htmx_serve_test.go`                    | 4            | 2 cache/ETag assertion tests, structurally similar but assert different headers.                                       |
+| 6 | `ratelimit_test.go`                     | 7            | 2 TTL eviction tests with different TTLs/keys.                                                                         |
+| 7 | `coverage_test.go` + `example_test.go`  | 5            | `SecurityHeadersMiddlewareWithConfig` wrapping `RecommendedHSTS` + an OK handler.                                      |
+| 8 | `coverage_test.go`                      | 5            | 2 `if expectRedirect` blocks inside a DescribeTable body.                                                              |
+| 9 | `coverage_test.go`                      | 6            | 2 ClientIP XFF tests in coverage_test.go — duplicate of httputil_test.go (could be deleted).                           |
 
 Per the deduplicate-code skill, the threshold-30 patterns are at the boundary
 where further abstraction yields diminishing returns. The 2-character
@@ -277,7 +277,7 @@ scenarios are acceptable duplication" and warns against
 "blanket-exclud[ing] test files." I made a judgment call to stop at
 threshold 50, but I don't know if that aligns with the project's
 quality bar for v2.x. **Looking at recent git history
-(docs/status/2026-05-19*22-39*\*), the project has historically pushed
+(docs/status/2026-05-19_22-39_\*), the project has historically pushed
 duplication to ZERO at threshold 30**. I may have underperformed.
 
 ---

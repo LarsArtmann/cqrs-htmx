@@ -127,33 +127,33 @@ One design concern remaining:
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                           | Impact | Effort |
-| --- | -------------------------------------------------------------- | ------ | ------ |
-| 1   | Integration test: full WebAuthn flow via virtual authenticator | High   | 120m   |
-| 2   | SQL event store (Postgres) for User aggregate                  | High   | 180m   |
-| 3   | Complete README Config + usermgmt setup examples               | High   | 45m    |
-| 4   | Event schema versioning field on all payloads                  | Medium | 30m    |
-| 5   | bridgeEventHandler error path tests                            | Medium | 15m    |
-| 6   | DefaultEventSourcedSetup error path tests                      | Medium | 20m    |
-| 7   | OAuth2/OIDC provider integration                               | High   | 120m   |
-| 8   | writeJSON error path test (custom ResponseWriter)              | Low    | 15m    |
-| 9   | Redis SessionStore implementation                              | Medium | 60m    |
-| 10  | Property-based testing for foldUser                            | Medium | 45m    |
-| 11  | CSRF protection wiring example in README                       | Medium | 15m    |
-| 12  | Rate limiting wiring example in README                         | Medium | 15m    |
-| 13  | CI pipeline (GitHub Actions multi-module)                      | Medium | 30m    |
-| 14  | Structured logging in WebAuthn ceremonies                      | Low    | 20m    |
-| 15  | Benchmarks for WebAuthn ceremony methods                       | Low    | 20m    |
-| 16  | Fuzz tests for WebAuthn ceremony inputs                        | Low    | 30m    |
-| 17  | Credential listing pagination                                  | Low    | 15m    |
-| 18  | Session token rotation on privilege change                     | Medium | 30m    |
-| 19  | Audit log projection (who did what, when)                      | Medium | 60m    |
-| 20  | Email verification flow (verify email ownership)               | Medium | 45m    |
-| 21  | Password reset via email (recovery flow)                       | Medium | 45m    |
-| 22  | Multi-factor auth (WebAuthn + TOTP)                            | Low    | 90m    |
-| 23  | User import/export (CSV/JSON batch)                            | Low    | 30m    |
-| 24  | Rate-limited registration endpoint                             | Low    | 15m    |
-| 25  | Admin user management UI (templ + HTMX)                        | Low    | 120m   |
+| #  | Task                                                           | Impact | Effort |
+| -- | -------------------------------------------------------------- | ------ | ------ |
+| 1  | Integration test: full WebAuthn flow via virtual authenticator | High   | 120m   |
+| 2  | SQL event store (Postgres) for User aggregate                  | High   | 180m   |
+| 3  | Complete README Config + usermgmt setup examples               | High   | 45m    |
+| 4  | Event schema versioning field on all payloads                  | Medium | 30m    |
+| 5  | bridgeEventHandler error path tests                            | Medium | 15m    |
+| 6  | DefaultEventSourcedSetup error path tests                      | Medium | 20m    |
+| 7  | OAuth2/OIDC provider integration                               | High   | 120m   |
+| 8  | writeJSON error path test (custom ResponseWriter)              | Low    | 15m    |
+| 9  | Redis SessionStore implementation                              | Medium | 60m    |
+| 10 | Property-based testing for foldUser                            | Medium | 45m    |
+| 11 | CSRF protection wiring example in README                       | Medium | 15m    |
+| 12 | Rate limiting wiring example in README                         | Medium | 15m    |
+| 13 | CI pipeline (GitHub Actions multi-module)                      | Medium | 30m    |
+| 14 | Structured logging in WebAuthn ceremonies                      | Low    | 20m    |
+| 15 | Benchmarks for WebAuthn ceremony methods                       | Low    | 20m    |
+| 16 | Fuzz tests for WebAuthn ceremony inputs                        | Low    | 30m    |
+| 17 | Credential listing pagination                                  | Low    | 15m    |
+| 18 | Session token rotation on privilege change                     | Medium | 30m    |
+| 19 | Audit log projection (who did what, when)                      | Medium | 60m    |
+| 20 | Email verification flow (verify email ownership)               | Medium | 45m    |
+| 21 | Password reset via email (recovery flow)                       | Medium | 45m    |
+| 22 | Multi-factor auth (WebAuthn + TOTP)                            | Low    | 90m    |
+| 23 | User import/export (CSV/JSON batch)                            | Low    | 30m    |
+| 24 | Rate-limited registration endpoint                             | Low    | 15m    |
+| 25 | Admin user management UI (templ + HTMX)                        | Low    | 120m   |
 
 ---
 

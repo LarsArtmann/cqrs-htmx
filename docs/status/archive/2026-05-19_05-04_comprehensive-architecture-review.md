@@ -1,8 +1,8 @@
 # Comprehensive Architecture Review & Status Report
 
-**Date:** 2026-05-19 05:04  
-**Branch:** master  
-**Latest Commit:** `91e07a0` fix(ratelimit): prevent config mutation, add meaningful Retry-After  
+**Date:** 2026-05-19 05:04\
+**Branch:** master\
+**Latest Commit:** `91e07a0` fix(ratelimit): prevent config mutation, add meaningful Retry-After\
 **Total Commits This Session:** 3
 
 ---
@@ -237,33 +237,33 @@ Add `.buildflow.yml` to disable incompatible rules.
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Priority | Task                                                                     | Why                                               |
-| --- | -------- | ------------------------------------------------------------------------ | ------------------------------------------------- |
-| 1   | P0       | **Fix BuildFlow pre-commit hook** — disable incompatible rules           | Every commit needs `--no-verify`                  |
-| 2   | P1       | **Extract `isAuthError` helper** — consolidate duplicated HTMX logic     | DRY violation in 2 error handlers                 |
-| 3   | P1       | **Typed `UserIDExtractor`** — return `(UserID, error)` instead of string | Eliminates parsing duplication, explicit failures |
-| 4   | P2       | **Split `options.go`** — extract decoder.go + handler_config.go          | File is 340 lines, too many responsibilities      |
-| 5   | P2       | **Warn on empty CSRF Secret** — tokens don't persist across restarts     | Production footgun                                |
-| 6   | P2       | **Move `registerErrorClassifications` to `init()`**                      | `sync.Once` in hot path is wasteful               |
-| 7   | P2       | **Add token rotation helper (`RotateCSRFToken`)**                        | Security hardening                                |
-| 8   | P2       | **Create `example/basic/` with runnable demo**                           | Consumer onboarding                               |
-| 9   | P3       | **Fix rate limiter unbounded map leak**                                  | Memory leak in production                         |
-| 10  | P3       | **Write `SECURITY.md`**                                                  | Professional security posture                     |
-| 11  | P3       | **Add `govulncheck` to CI**                                              | Vulnerability scanning                            |
-| 12  | P3       | **Suppres or fix `handler.go:86` funlen**                                | Clean lint output                                 |
-| 13  | P4       | **Add `CSRFConfig` validation** (SameSite=None without Secure)           | Prevent broken configs                            |
-| 14  | P4       | **Document Secure flag + reverse proxy** (`X-Forwarded-Proto`)           | Proxy deployments misconfigure Secure             |
-| 15  | P4       | **Add CSRF middleware benchmarks**                                       | Quantify overhead                                 |
-| 16  | P4       | **Add `CSRFToken` branded type** (`type CSRFToken string`)               | Type safety                                       |
-| 17  | P4       | **Functional options for `CSRFConfig`**                                  | Cleaner API                                       |
-| 18  | P4       | **Extract `gorilla/csrf` adapter into internal package**                 | Cleaner separation                                |
-| 19  | P4       | **Document how to test CSRF-protected endpoints**                        | Consumer testing convenience                      |
-| 20  | P4       | **Add configurable token length / entropy**                              | Flexibility for paranoid deployments              |
-| 21  | P4       | **Support double-submit without cookie** (session-backed)                | Alternative pattern                               |
-| 22  | P4       | **Add CSRF bypass for trusted origins/internal IPs**                     | Internal API use case                             |
-| 23  | P4       | **Integration test with real `httptest.Server`**                         | More realistic scenarios                          |
-| 24  | P4       | **Add `CSRFMiddleware` warn-only mode**                                  | Gradual rollout                                   |
-| 25  | P4       | **Add snapshot testing with `go-snaps`**                                 | Reduce brittle assertions                         |
+| #  | Priority | Task                                                                     | Why                                               |
+| -- | -------- | ------------------------------------------------------------------------ | ------------------------------------------------- |
+| 1  | P0       | **Fix BuildFlow pre-commit hook** — disable incompatible rules           | Every commit needs `--no-verify`                  |
+| 2  | P1       | **Extract `isAuthError` helper** — consolidate duplicated HTMX logic     | DRY violation in 2 error handlers                 |
+| 3  | P1       | **Typed `UserIDExtractor`** — return `(UserID, error)` instead of string | Eliminates parsing duplication, explicit failures |
+| 4  | P2       | **Split `options.go`** — extract decoder.go + handler_config.go          | File is 340 lines, too many responsibilities      |
+| 5  | P2       | **Warn on empty CSRF Secret** — tokens don't persist across restarts     | Production footgun                                |
+| 6  | P2       | **Move `registerErrorClassifications` to `init()`**                      | `sync.Once` in hot path is wasteful               |
+| 7  | P2       | **Add token rotation helper (`RotateCSRFToken`)**                        | Security hardening                                |
+| 8  | P2       | **Create `example/basic/` with runnable demo**                           | Consumer onboarding                               |
+| 9  | P3       | **Fix rate limiter unbounded map leak**                                  | Memory leak in production                         |
+| 10 | P3       | **Write `SECURITY.md`**                                                  | Professional security posture                     |
+| 11 | P3       | **Add `govulncheck` to CI**                                              | Vulnerability scanning                            |
+| 12 | P3       | **Suppres or fix `handler.go:86` funlen**                                | Clean lint output                                 |
+| 13 | P4       | **Add `CSRFConfig` validation** (SameSite=None without Secure)           | Prevent broken configs                            |
+| 14 | P4       | **Document Secure flag + reverse proxy** (`X-Forwarded-Proto`)           | Proxy deployments misconfigure Secure             |
+| 15 | P4       | **Add CSRF middleware benchmarks**                                       | Quantify overhead                                 |
+| 16 | P4       | **Add `CSRFToken` branded type** (`type CSRFToken string`)               | Type safety                                       |
+| 17 | P4       | **Functional options for `CSRFConfig`**                                  | Cleaner API                                       |
+| 18 | P4       | **Extract `gorilla/csrf` adapter into internal package**                 | Cleaner separation                                |
+| 19 | P4       | **Document how to test CSRF-protected endpoints**                        | Consumer testing convenience                      |
+| 20 | P4       | **Add configurable token length / entropy**                              | Flexibility for paranoid deployments              |
+| 21 | P4       | **Support double-submit without cookie** (session-backed)                | Alternative pattern                               |
+| 22 | P4       | **Add CSRF bypass for trusted origins/internal IPs**                     | Internal API use case                             |
+| 23 | P4       | **Integration test with real `httptest.Server`**                         | More realistic scenarios                          |
+| 24 | P4       | **Add `CSRFMiddleware` warn-only mode**                                  | Gradual rollout                                   |
+| 25 | P4       | **Add snapshot testing with `go-snaps`**                                 | Reduce brittle assertions                         |
 
 ---
 
@@ -312,5 +312,5 @@ But is this over-engineering for a library that already depends on `go-cqrs-lite
 
 ---
 
-_Report generated: 2026-05-19 05:04_  
+_Report generated: 2026-05-19 05:04_\
 _Next action: Fix BuildFlow pre-commit hook or implement `isAuthError` helper extraction_

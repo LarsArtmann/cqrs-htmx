@@ -18,7 +18,7 @@ cqrs-htmx is a well-scoped integration library with **3 direct dependencies** (g
 | -------------------------------- | --------- | ---------- | ------------------ | -------------------- | ------------------------------------- |
 | **go-cqrs-lite**                 | ✅ Active | **Direct** | ✅ Yes (core)      | ⭐⭐⭐⭐⭐ Excellent | Maintain                              |
 | **go-branded-id**                | ✅ Active | Transitive | ✅ Yes (core)      | ⭐⭐⭐⭐ Good        | Consider direct import                |
-| **go-error-family**              | ✅ Active | Transitive | ⚠️ Should consider | ⭐⭐⭐ Indirect      | Upgrade error model                   |
+| **go-error-family**              | ✅ Active | Transitive | ⚠️ Should consider  | ⭐⭐⭐ Indirect      | Upgrade error model                   |
 | **casbin/casbin/v3**             | ✅ Active | **Direct** | ✅ Yes (core)      | ⭐⭐⭐⭐⭐ Excellent | Maintain                              |
 | **cockroachdb/errors**           | ✅ Active | **Direct** | ✅ Yes (adequate)  | ⭐⭐⭐⭐ Good        | Evaluate migration to go-error-family |
 | **templ-components**             | ✅ Active | Not used   | 📋 Consumer-facing | N/A                  | Document as companion                 |
@@ -28,14 +28,14 @@ cqrs-htmx is a well-scoped integration library with **3 direct dependencies** (g
 | **universal-workflow**           | ✅ Active | N/A        | ❌ No              | N/A                  | —                                     |
 | **ActaFlow**                     | ~80%      | N/A        | ❌ No              | N/A                  | —                                     |
 | **go-filewatcher**               | ✅ Active | N/A        | ❌ No              | N/A                  | —                                     |
-| **go-business-rules**            | ✅ Active | N/A        | ⚠️ Could document  | N/A                  | Optional: docs for consumers          |
+| **go-business-rules**            | ✅ Active | N/A        | ⚠️ Could document   | N/A                  | Optional: docs for consumers          |
 | **go-composable-business-types** | ✅ Active | N/A        | ❌ No              | N/A                  | —                                     |
 | **project-discovery-sdk**        | v0.1.0    | N/A        | ❌ No              | N/A                  | —                                     |
 | **go-localfirst**                | ✅ Active | N/A        | ❌ No              | N/A                  | —                                     |
 | **go-localsync**                 | ✅ Active | N/A        | ❌ No              | N/A                  | —                                     |
 | **go-finding**                   | ✅ Active | N/A        | ❌ No              | N/A                  | —                                     |
 | **gogenfilter**                  | ✅ Active | N/A        | ❌ No              | N/A                  | —                                     |
-| **smart-configs**                | ✅ Active | N/A        | ⚠️ Could document  | N/A                  | Optional: docs for consumers          |
+| **smart-configs**                | ✅ Active | N/A        | ⚠️ Could document   | N/A                  | Optional: docs for consumers          |
 
 ---
 
@@ -189,12 +189,12 @@ These libraries solve problems outside cqrs-htmx's scope:
 
 ## Recommended Actions (Priority Order)
 
-| #   | Priority     | Action                                                                                                                 | Impact                                              | Effort                                                               |
-| --- | ------------ | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------- |
-| 1   | **Low**      | Add `go-error-family` as direct dependency; migrate sentinels from `errors.New()` to `errorfamily.New*()` constructors | Removes `sync.Once` block, adds error codes/context | Medium (breaking if consumers use `errors.Is` on sentinels — verify) |
-| 2   | **Low**      | Document templ-components as recommended companion in README                                                           | Better consumer experience                          | Low (docs only)                                                      |
-| 3   | **Optional** | Add `go-business-rules` example showing validation in `DecodeJSON` mapper                                              | Educational for consumers                           | Low (docs only)                                                      |
-| 4   | **Optional** | Add `smart-configs` example for Casbin/config setup                                                                    | Educational for consumers                           | Low (docs only)                                                      |
+| # | Priority     | Action                                                                                                                 | Impact                                              | Effort                                                               |
+| - | ------------ | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------- |
+| 1 | **Low**      | Add `go-error-family` as direct dependency; migrate sentinels from `errors.New()` to `errorfamily.New*()` constructors | Removes `sync.Once` block, adds error codes/context | Medium (breaking if consumers use `errors.Is` on sentinels — verify) |
+| 2 | **Low**      | Document templ-components as recommended companion in README                                                           | Better consumer experience                          | Low (docs only)                                                      |
+| 3 | **Optional** | Add `go-business-rules` example showing validation in `DecodeJSON` mapper                                              | Educational for consumers                           | Low (docs only)                                                      |
+| 4 | **Optional** | Add `smart-configs` example for Casbin/config setup                                                                    | Educational for consumers                           | Low (docs only)                                                      |
 
 ---
 

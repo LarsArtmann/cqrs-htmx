@@ -143,33 +143,33 @@
 
 Sorted by impact/effort ratio (highest first).
 
-| #   | Task                                                                  | Impact  | Effort | Ratio |
-| --- | --------------------------------------------------------------------- | ------- | ------ | ----- |
-| 1   | **Update FEATURES.md** — add Tenant, Bot, Impersonation, v3 migration | High    | 30min  | ★★★★★ |
-| 2   | **Update ROADMAP.md** — reflect v3 migration + current state          | High    | 20min  | ★★★★★ |
-| 3   | **Remove/update deprecated `ClientIP()`**                             | Low     | 15min  | ★★★★☆ |
-| 4   | **Add service-level impersonation tests**                             | High    | 30min  | ★★★★☆ |
-| 5   | **Add service-level membership tests**                                | High    | 30min  | ★★★★☆ |
-| 6   | **Add projection replay integration test**                            | High    | 30min  | ★★★★☆ |
-| 7   | **Re-measure coverage** after new tests                               | Medium  | 10min  | ★★★★☆ |
-| 8   | **Enable `revive:exported` linter** + fix violations                  | Medium  | 30min  | ★★★☆☆ |
-| 9   | **Write consumer migration guide** (v2→v3)                            | Medium  | 45min  | ★★★☆☆ |
-| 10  | **Add godoc examples** for App, Handler, Service                      | Medium  | 60min  | ★★★☆☆ |
-| 11  | **Wire OpenTelemetry** — go-cqrs-lite v3 otel module                  | Medium  | 90min  | ★★★☆☆ |
-| 12  | **Expand integration tests** — more cross-module scenarios            | Medium  | 90min  | ★★★☆☆ |
-| 13  | **Add `schema/v3` validator** for event payloads                      | Medium  | 60min  | ★★★☆☆ |
-| 14  | **Add fuzz tests** for projection dedup                               | Medium  | 30min  | ★★★☆☆ |
-| 15  | **Add benchmark** for projection replay with large stores             | Low     | 30min  | ★★☆☆☆ |
-| 16  | **Streaming replay** via `SeekableJournal.ReadFrom`                   | Medium  | 60min  | ★★☆☆☆ |
-| 17  | **PostgreSQL session store preset**                                   | Low     | 45min  | ★★☆☆☆ |
-| 18  | **Prometheus metrics** endpoint                                       | Low     | 45min  | ★★☆☆☆ |
-| 19  | **Redis session store**                                               | Low     | 60min  | ★★☆☆☆ |
-| 20  | **Profile and optimize** hot paths                                    | Low     | 90min  | ★☆☆☆☆ |
-| 21  | **`stack.Materialize`** for persistent read models                    | Low     | 120min | ★☆☆☆☆ |
-| 22  | **CI badge** in README.md                                             | Low     | 10min  | ★★★☆☆ |
-| 23  | **Consumer versioning decision** (bump cqrs-htmx to /v3?)             | Product | 0min   | ★☆☆☆☆ |
-| 24  | **Add VERSIONING.md** documenting semver policy                       | Low     | 30min  | ★★☆☆☆ |
-| 25  | **Consider automated release notes** from commit history              | Low     | 30min  | ★☆☆☆☆ |
+| #  | Task                                                                  | Impact  | Effort | Ratio |
+| -- | --------------------------------------------------------------------- | ------- | ------ | ----- |
+| 1  | **Update FEATURES.md** — add Tenant, Bot, Impersonation, v3 migration | High    | 30min  | ★★★★★ |
+| 2  | **Update ROADMAP.md** — reflect v3 migration + current state          | High    | 20min  | ★★★★★ |
+| 3  | **Remove/update deprecated `ClientIP()`**                             | Low     | 15min  | ★★★★☆ |
+| 4  | **Add service-level impersonation tests**                             | High    | 30min  | ★★★★☆ |
+| 5  | **Add service-level membership tests**                                | High    | 30min  | ★★★★☆ |
+| 6  | **Add projection replay integration test**                            | High    | 30min  | ★★★★☆ |
+| 7  | **Re-measure coverage** after new tests                               | Medium  | 10min  | ★★★★☆ |
+| 8  | **Enable `revive:exported` linter** + fix violations                  | Medium  | 30min  | ★★★☆☆ |
+| 9  | **Write consumer migration guide** (v2→v3)                            | Medium  | 45min  | ★★★☆☆ |
+| 10 | **Add godoc examples** for App, Handler, Service                      | Medium  | 60min  | ★★★☆☆ |
+| 11 | **Wire OpenTelemetry** — go-cqrs-lite v3 otel module                  | Medium  | 90min  | ★★★☆☆ |
+| 12 | **Expand integration tests** — more cross-module scenarios            | Medium  | 90min  | ★★★☆☆ |
+| 13 | **Add `schema/v3` validator** for event payloads                      | Medium  | 60min  | ★★★☆☆ |
+| 14 | **Add fuzz tests** for projection dedup                               | Medium  | 30min  | ★★★☆☆ |
+| 15 | **Add benchmark** for projection replay with large stores             | Low     | 30min  | ★★☆☆☆ |
+| 16 | **Streaming replay** via `SeekableJournal.ReadFrom`                   | Medium  | 60min  | ★★☆☆☆ |
+| 17 | **PostgreSQL session store preset**                                   | Low     | 45min  | ★★☆☆☆ |
+| 18 | **Prometheus metrics** endpoint                                       | Low     | 45min  | ★★☆☆☆ |
+| 19 | **Redis session store**                                               | Low     | 60min  | ★★☆☆☆ |
+| 20 | **Profile and optimize** hot paths                                    | Low     | 90min  | ★☆☆☆☆ |
+| 21 | **`stack.Materialize`** for persistent read models                    | Low     | 120min | ★☆☆☆☆ |
+| 22 | **CI badge** in README.md                                             | Low     | 10min  | ★★★☆☆ |
+| 23 | **Consumer versioning decision** (bump cqrs-htmx to /v3?)             | Product | 0min   | ★☆☆☆☆ |
+| 24 | **Add VERSIONING.md** documenting semver policy                       | Low     | 30min  | ★★☆☆☆ |
+| 25 | **Consider automated release notes** from commit history              | Low     | 30min  | ★☆☆☆☆ |
 
 ---
 

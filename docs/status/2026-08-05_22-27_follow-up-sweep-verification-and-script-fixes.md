@@ -197,7 +197,7 @@ I didn't verify whether `.github/workflows/ci.yml` has separate fuzz or flake st
 8. **Run full `nix run .#test-fuzz` with default FUZZTIME=30s** — this session only verified with 1s
 9. **Migrate adminui to direct identity-model imports** — eliminates 133 SA1019 suppression warnings (~26 files)
 10. **Migrate integration_test to direct identity-model imports** — eliminates 22 SA1019 suppression warnings
-11. _*Document htmx.min.js HX-* usage_* — add a comment or AGENTS.md note that the vendored JS correctly uses `HX-*` (HTTP spec case-insensitivity) and should NOT be changed
+11. __Document htmx.min.js HX-_ usage_* — add a comment or AGENTS.md note that the vendored JS correctly uses `HX-*` (HTTP spec case-insensitivity) and should NOT be changed
 12. **Wire `check-codegen` into CI** — needs templ version pinning
 13. **Wire `check-templates` into CI** — needs workspace mode / local replaces
 14. **Wire `check-cqrs-lint` into CI** — blocked on Nix-only binary distribution

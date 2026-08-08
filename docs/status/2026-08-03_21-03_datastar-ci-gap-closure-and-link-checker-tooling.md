@@ -30,7 +30,7 @@ The prior session discovered that `datastar` was added to `go.work` and the cove
 Created `scripts/check-docs-links.sh` — a bash/awk-based link checker that:
 
 - Scans all `.md` files (excluding `.git/`, `node_modules/`, `vendor/`)
-- Skips fenced code blocks (` ``` `)
+- Skips fenced code blocks (`` ``` ``)
 - Filters false positives: URLs, Go generics (`[T](mapper)`), function signatures with spaces
 - Accepts only targets with file extensions or explicit relative paths (`./`, `../`)
 - Checks 175 links, 0 broken
@@ -153,7 +153,7 @@ Removed all 5 JSON tags and 2 `cqrs-lint:ignore(A032)` directives. Updated the A
 34. [ ] **datastar errorfamily**: add to errorfamily gate for consistency
 35. [ ] **Consider adding datastar to `check-phantom-version`**: ensure no zero pseudo-versions in datastar deps
 36. [ ] **Verify e2e/server is intentionally excluded from lint** (test server, not library module)
-37. [ ] _*Verify examples/* are intentionally excluded from lint_* (no .golangci.yml)
+37. [ ] __Verify examples/_ are intentionally excluded from lint_* (no .golangci.yml)
 38. [ ] **Consider committing a reference link-checker test fixture**
 39. [ ] **Audit CONTRIBUTING.md for datastar module references**
 40. [ ] **Consider a `check-modules` enhancement**: verify every go.work module appears in every flake.nix script

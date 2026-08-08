@@ -1,7 +1,7 @@
 # Brutal Self-Review + Pareto Plan: Verification, TOTP, Import/Export
 
-**Date:** 2026-06-17 02:15  
-**Scope:** `usermgmt` submodule after verification/TOTP/import-export hardening session  
+**Date:** 2026-06-17 02:15\
+**Scope:** `usermgmt` submodule after verification/TOTP/import-export hardening session\
 **Build/Test State:** All modules pass `go build ./...`, `go test ./... -race`, and `nix run .#lint`. `gopls` diagnostics are stale/cached and do **not** reflect the actual compiler state.
 
 ---
@@ -111,22 +111,22 @@ No. The passwordless/event-sourced migration removed password handling, which wa
 
 Sorted by **impact / effort / risk reduction**. Estimated times are 30–100 min.
 
-| #   | Task                                                            | Effort | Impact | Module(s)      |
-| --- | --------------------------------------------------------------- | ------ | ------ | -------------- |
-| 1   | Add authorization gate to import/export HTTP endpoints          | 30 min | High   | usermgmt       |
-| 2   | Add rate limiting to import/TOTP/verification endpoints         | 45 min | High   | usermgmt, root |
-| 3   | Extract `AuthHandler.withTimeout` helper and refactor handlers  | 30 min | Med    | usermgmt       |
-| 4   | Add validation to `ImportUser` and wire into import paths       | 45 min | Med    | usermgmt       |
-| 5   | Replace custom `registrationRateLimiter` with root token-bucket | 60 min | Med    | usermgmt       |
-| 6   | Add negative-path tests for TOTP/import/verification handlers   | 60 min | Med    | usermgmt       |
-| 7   | Replace hand-rolled TOTP with `pquerna/otp/totp`                | 75 min | High   | usermgmt       |
-| 8   | Require TOTP code to disable TOTP                               | 45 min | High   | usermgmt       |
-| 9   | Introduce validated `Email` type and propagate                  | 90 min | Med    | usermgmt       |
-| 10  | Rename `ExportFormat` → `UserDataFormat`                        | 30 min | Low    | usermgmt       |
-| 11  | Update project docs (TODO, FEATURES, CHANGELOG, AGENTS)         | 45 min | Low    | root, usermgmt |
-| 12  | Document TOTP secret at-rest retention tradeoff                 | 15 min | Low    | usermgmt       |
-| 13  | Add `ImportExportAuthorizer` interface for custom authorization | 60 min | Low    | usermgmt       |
-| 14  | Property-based tests for foldUser TOTP/email transitions        | 60 min | Low    | usermgmt       |
+| #  | Task                                                            | Effort | Impact | Module(s)      |
+| -- | --------------------------------------------------------------- | ------ | ------ | -------------- |
+| 1  | Add authorization gate to import/export HTTP endpoints          | 30 min | High   | usermgmt       |
+| 2  | Add rate limiting to import/TOTP/verification endpoints         | 45 min | High   | usermgmt, root |
+| 3  | Extract `AuthHandler.withTimeout` helper and refactor handlers  | 30 min | Med    | usermgmt       |
+| 4  | Add validation to `ImportUser` and wire into import paths       | 45 min | Med    | usermgmt       |
+| 5  | Replace custom `registrationRateLimiter` with root token-bucket | 60 min | Med    | usermgmt       |
+| 6  | Add negative-path tests for TOTP/import/verification handlers   | 60 min | Med    | usermgmt       |
+| 7  | Replace hand-rolled TOTP with `pquerna/otp/totp`                | 75 min | High   | usermgmt       |
+| 8  | Require TOTP code to disable TOTP                               | 45 min | High   | usermgmt       |
+| 9  | Introduce validated `Email` type and propagate                  | 90 min | Med    | usermgmt       |
+| 10 | Rename `ExportFormat` → `UserDataFormat`                        | 30 min | Low    | usermgmt       |
+| 11 | Update project docs (TODO, FEATURES, CHANGELOG, AGENTS)         | 45 min | Low    | root, usermgmt |
+| 12 | Document TOTP secret at-rest retention tradeoff                 | 15 min | Low    | usermgmt       |
+| 13 | Add `ImportExportAuthorizer` interface for custom authorization | 60 min | Low    | usermgmt       |
+| 14 | Property-based tests for foldUser TOTP/email transitions        | 60 min | Low    | usermgmt       |
 
 ---
 
@@ -134,40 +134,40 @@ Sorted by **impact / effort / risk reduction**. Estimated times are 30–100 min
 
 ### P0 — Critical Security (do first)
 
-| #   | Task (≤15 min)                                                  | Why it matters                          |
-| --- | --------------------------------------------------------------- | --------------------------------------- |
-| 1a  | Add `ErrForbidden` response when non-admin calls `/auth/export` | Prevents data leakage                   |
-| 1b  | Add same admin check to `/auth/import`                          | Prevents account-creation abuse         |
-| 1c  | Add tests for import/export authorization denial                | Locks in the guard                      |
-| 2a  | Add `HandlerConfig.ImportRateLimit` + limiter wiring            | Prevents import abuse                   |
-| 2b  | Add `HandlerConfig.TOTPRateLimit` + limiter wiring              | Prevents TOTP brute-force               |
-| 2c  | Add `HandlerConfig.VerificationRateLimit` + limiter wiring      | Prevents email-verification token abuse |
-| 2d  | Add handler tests for 429 responses                             | Verification                            |
+| #  | Task (≤15 min)                                                  | Why it matters                          |
+| -- | --------------------------------------------------------------- | --------------------------------------- |
+| 1a | Add `ErrForbidden` response when non-admin calls `/auth/export` | Prevents data leakage                   |
+| 1b | Add same admin check to `/auth/import`                          | Prevents account-creation abuse         |
+| 1c | Add tests for import/export authorization denial                | Locks in the guard                      |
+| 2a | Add `HandlerConfig.ImportRateLimit` + limiter wiring            | Prevents import abuse                   |
+| 2b | Add `HandlerConfig.TOTPRateLimit` + limiter wiring              | Prevents TOTP brute-force               |
+| 2c | Add `HandlerConfig.VerificationRateLimit` + limiter wiring      | Prevents email-verification token abuse |
+| 2d | Add handler tests for 429 responses                             | Verification                            |
 
 ### P1 — Code Quality & Reuse
 
-| #   | Task (≤15 min)                                           | Why it matters                           |
-| --- | -------------------------------------------------------- | ---------------------------------------- |
-| 3a  | Create `AuthHandler.withTimeout(r)` helper               | Removes duplication in 8+ handlers       |
-| 3b  | Replace all handler timeout blocks with helper           | Consistent, testable                     |
-| 4a  | Add `ImportUser.Validate()` with email regex/length      | Invalid imports fail early               |
-| 4b  | Wire validation into `ImportUsersFromJSON/CSV`           | No bypass path                           |
-| 4c  | Add import validation tests                              | Coverage                                 |
-| 5a  | Delete `registrationRateLimiter` and config              | Remove duplication                       |
-| 5b  | Import root `RateLimiterMiddleware` for `/auth/register` | Use existing token-bucket implementation |
-| 5c  | Update registration rate-limit tests                     | Match new behavior                       |
+| #  | Task (≤15 min)                                           | Why it matters                           |
+| -- | -------------------------------------------------------- | ---------------------------------------- |
+| 3a | Create `AuthHandler.withTimeout(r)` helper               | Removes duplication in 8+ handlers       |
+| 3b | Replace all handler timeout blocks with helper           | Consistent, testable                     |
+| 4a | Add `ImportUser.Validate()` with email regex/length      | Invalid imports fail early               |
+| 4b | Wire validation into `ImportUsersFromJSON/CSV`           | No bypass path                           |
+| 4c | Add import validation tests                              | Coverage                                 |
+| 5a | Delete `registrationRateLimiter` and config              | Remove duplication                       |
+| 5b | Import root `RateLimiterMiddleware` for `/auth/register` | Use existing token-bucket implementation |
+| 5c | Update registration rate-limit tests                     | Match new behavior                       |
 
 ### P2 — TOTP Hardening
 
-| #   | Task (≤15 min)                                             | Why it matters            |
-| --- | ---------------------------------------------------------- | ------------------------- |
-| 7a  | Add `github.com/pquerna/otp/totp` to `usermgmt/go.mod`     | Battle-tested library     |
-| 7b  | Replace `generateTOTPSecret/validateTOTP/generateTOTPCode` | Less custom crypto        |
-| 7c  | Preserve event-sourced contract (`TOTPEnabled` secret)     | Backward compat           |
-| 7d  | Add TOTP library tests                                     | Confirm RFC 6238 behavior |
-| 8a  | Add `DisableTOTP` service method signature requiring code  | MFA strip protection      |
-| 8b  | Update HTTP handler to require code                        | API contract              |
-| 8c  | Add disable-without-code and disable-with-wrong-code tests | Coverage                  |
+| #  | Task (≤15 min)                                             | Why it matters            |
+| -- | ---------------------------------------------------------- | ------------------------- |
+| 7a | Add `github.com/pquerna/otp/totp` to `usermgmt/go.mod`     | Battle-tested library     |
+| 7b | Replace `generateTOTPSecret/validateTOTP/generateTOTPCode` | Less custom crypto        |
+| 7c | Preserve event-sourced contract (`TOTPEnabled` secret)     | Backward compat           |
+| 7d | Add TOTP library tests                                     | Confirm RFC 6238 behavior |
+| 8a | Add `DisableTOTP` service method signature requiring code  | MFA strip protection      |
+| 8b | Update HTTP handler to require code                        | API contract              |
+| 8c | Add disable-without-code and disable-with-wrong-code tests | Coverage                  |
 
 ### P3 — Type Model & Naming
 

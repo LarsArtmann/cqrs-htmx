@@ -57,16 +57,16 @@ Both repos were **already upgraded to v3.0.0** before this session. The code, mo
 
 ### go-cqrs-lite
 
-| Item                                    | Status         | Detail                                                                                                                                                                                                                                                                                                  |
-| --------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                                    | Status        | Detail                                                                                                                                                                                                                                                                                                  |
+| --------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `.golangci.yml` indentation reformatted | ⚠️ Uncommitted | 453 ins / 442 del — appears to be a pure whitespace reformat (tabs→4-spaces). **Not authored by this session.** Left untouched per "never revert changes you didn't author" policy.                                                                                                                     |
 | `.golangci.yml` stale build tags        | ⚠️ Known       | `goexperiment.goroutineleakprofile`, `goexperiment.runtimesecret`, `goexperiment.simd` listed in `.golangci.yml` build-tags but **zero `.go` files reference them**. Only `arenas` and `jsonv2` have actual experiment files. TODO_LIST.md claims they were removed but `.golangci.yml` still has them. |
 | `go.work.sum` drift                     | ⚠️ Uncommitted | Stale checksums cleaned by go tooling during test runs. Not committed (build artifact).                                                                                                                                                                                                                 |
 
 ### cqrs-htmx
 
-| Item                                     | Status             | Detail                                                                                                                                                               |
-| ---------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                                     | Status            | Detail                                                                                                                                                               |
+| ---------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `branching-flow errorfamily` enforcement | ⚠️ Documented only | Referenced in AGENTS.md as the gate banning stdlib error constructors, but **NOT wired into CI, pre-commit, or flake.nix**. Relies on external binary being present. |
 | ROADMAP dependency table drift           | ⚠️ Known           | ROADMAP.md line still says `go-error-family v0.4.0` but actual go.mod has `v0.5.0`. AGENTS.md was fixed, ROADMAP was not.                                            |
 | Consumer migration guide (v2→v3)         | ⚠️ Open            | Listed in ROADMAP v3.1.0 as High priority, not started.                                                                                                              |
@@ -167,48 +167,48 @@ Sorted by **impact / effort ratio** (highest first).
 
 ### Critical (silent failures / broken enforcement)
 
-| #   | Task                                                                                             | Repo         | Impact                  | Effort |
-| --- | ------------------------------------------------------------------------------------------------ | ------------ | ----------------------- | ------ |
-| 1   | Remove 3 stale build tags from `.golangci.yml` (`goroutineleakprofile`, `runtimesecret`, `simd`) | go-cqrs-lite | High (lint correctness) | 2 min  |
-| 2   | Wire `branching-flow errorfamily` into pre-commit or CI                                          | cqrs-htmx    | High (enforcement)      | 15 min |
-| 3   | Fix ROADMAP.md dependency table: `go-error-family v0.4.0` → `v0.5.0`                             | cqrs-htmx    | Medium (doc accuracy)   | 2 min  |
-| 4   | Decide on `.golangci.yml` indentation reformat (commit or revert)                                | go-cqrs-lite | Medium (clean tree)     | 5 min  |
+| # | Task                                                                                             | Repo         | Impact                  | Effort |
+| - | ------------------------------------------------------------------------------------------------ | ------------ | ----------------------- | ------ |
+| 1 | Remove 3 stale build tags from `.golangci.yml` (`goroutineleakprofile`, `runtimesecret`, `simd`) | go-cqrs-lite | High (lint correctness) | 2 min  |
+| 2 | Wire `branching-flow errorfamily` into pre-commit or CI                                          | cqrs-htmx    | High (enforcement)      | 15 min |
+| 3 | Fix ROADMAP.md dependency table: `go-error-family v0.4.0` → `v0.5.0`                             | cqrs-htmx    | Medium (doc accuracy)   | 2 min  |
+| 4 | Decide on `.golangci.yml` indentation reformat (commit or revert)                                | go-cqrs-lite | Medium (clean tree)     | 5 min  |
 
 ### High Impact
 
-| #   | Task                                                                               | Repo         | Impact                    | Effort |
-| --- | ---------------------------------------------------------------------------------- | ------------ | ------------------------- | ------ |
-| 5   | Write consumer migration guide (v2→v3: import paths, bus swap, projection rewrite) | cqrs-htmx    | High (consumer UX)        | 60 min |
-| 6   | Add projection replay integration test (journal vs live dedup)                     | cqrs-htmx    | High (correctness)        | 45 min |
-| 7   | Add service-level impersonation tests through full dispatch                        | cqrs-htmx    | High (correctness)        | 45 min |
-| 8   | Add service-level membership tests through full dispatch                           | cqrs-htmx    | High (correctness)        | 45 min |
-| 9   | Add a CI check that rejects hardcoded version paths in scripts                     | go-cqrs-lite | High (prevent recurrence) | 30 min |
-| 10  | Add a doc-drift checker (version strings in docs vs go.mod)                        | both         | Medium (prevent drift)    | 30 min |
+| #  | Task                                                                               | Repo         | Impact                    | Effort |
+| -- | ---------------------------------------------------------------------------------- | ------------ | ------------------------- | ------ |
+| 5  | Write consumer migration guide (v2→v3: import paths, bus swap, projection rewrite) | cqrs-htmx    | High (consumer UX)        | 60 min |
+| 6  | Add projection replay integration test (journal vs live dedup)                     | cqrs-htmx    | High (correctness)        | 45 min |
+| 7  | Add service-level impersonation tests through full dispatch                        | cqrs-htmx    | High (correctness)        | 45 min |
+| 8  | Add service-level membership tests through full dispatch                           | cqrs-htmx    | High (correctness)        | 45 min |
+| 9  | Add a CI check that rejects hardcoded version paths in scripts                     | go-cqrs-lite | High (prevent recurrence) | 30 min |
+| 10 | Add a doc-drift checker (version strings in docs vs go.mod)                        | both         | Medium (prevent drift)    | 30 min |
 
 ### Medium Impact
 
-| #   | Task                                                                                     | Repo         | Impact                      | Effort |
-| --- | ---------------------------------------------------------------------------------------- | ------------ | --------------------------- | ------ |
-| 11  | Enable `revive:exported` linter + fix violations                                         | cqrs-htmx    | Medium (code quality)       | 60 min |
-| 12  | Add godoc examples for App, Handler, Service entry points                                | cqrs-htmx    | Medium (consumer UX)        | 45 min |
-| 13  | Property-based tests for `foldTenant`, `foldBot`, `foldMembership`                       | cqrs-htmx    | Medium (correctness)        | 60 min |
-| 14  | Fuzz tests for projection dedup + identity model deciders                                | cqrs-htmx    | Medium (correctness)        | 60 min |
-| 15  | Verify and wire `BrandNamer` for root module marker types                                | cqrs-htmx    | Medium (type safety)        | 30 min |
-| 16  | Add VERSIONING.md documenting semver policy                                              | cqrs-htmx    | Medium (process)            | 20 min |
-| 17  | Write a script that validates `.golangci.yml` build tags against `//go:build` directives | go-cqrs-lite | Medium (prevent stale tags) | 20 min |
-| 18  | Remove deprecated `ClientIP()` wrapper                                                   | cqrs-htmx    | Low (cleanup)               | 10 min |
-| 19  | Run `nix run .#clean` or delete stale coverage artifacts                                 | both         | Low (hygiene)               | 2 min  |
-| 20  | Update `go.work.sum` in go-cqrs-lite (commit the clean checksums)                        | go-cqrs-lite | Low (hygiene)               | 2 min  |
+| #  | Task                                                                                     | Repo         | Impact                      | Effort |
+| -- | ---------------------------------------------------------------------------------------- | ------------ | --------------------------- | ------ |
+| 11 | Enable `revive:exported` linter + fix violations                                         | cqrs-htmx    | Medium (code quality)       | 60 min |
+| 12 | Add godoc examples for App, Handler, Service entry points                                | cqrs-htmx    | Medium (consumer UX)        | 45 min |
+| 13 | Property-based tests for `foldTenant`, `foldBot`, `foldMembership`                       | cqrs-htmx    | Medium (correctness)        | 60 min |
+| 14 | Fuzz tests for projection dedup + identity model deciders                                | cqrs-htmx    | Medium (correctness)        | 60 min |
+| 15 | Verify and wire `BrandNamer` for root module marker types                                | cqrs-htmx    | Medium (type safety)        | 30 min |
+| 16 | Add VERSIONING.md documenting semver policy                                              | cqrs-htmx    | Medium (process)            | 20 min |
+| 17 | Write a script that validates `.golangci.yml` build tags against `//go:build` directives | go-cqrs-lite | Medium (prevent stale tags) | 20 min |
+| 18 | Remove deprecated `ClientIP()` wrapper                                                   | cqrs-htmx    | Low (cleanup)               | 10 min |
+| 19 | Run `nix run .#clean` or delete stale coverage artifacts                                 | both         | Low (hygiene)               | 2 min  |
+| 20 | Update `go.work.sum` in go-cqrs-lite (commit the clean checksums)                        | go-cqrs-lite | Low (hygiene)               | 2 min  |
 
 ### Future / Lower Priority
 
-| #   | Task                                                                  | Repo         | Impact                 | Effort |
-| --- | --------------------------------------------------------------------- | ------------ | ---------------------- | ------ |
-| 21  | `transport/grpc/` adapter (protobuf command dispatch + event pub/sub) | go-cqrs-lite | High (extensibility)   | 4-8h   |
-| 22  | `transport/nats/` adapter (JetStream publisher/subscriber)            | go-cqrs-lite | Medium (extensibility) | 4-8h   |
-| 23  | `transport/redis/` adapter (Redis Streams)                            | go-cqrs-lite | Medium (extensibility) | 4-8h   |
-| 24  | Secondary indexes / ranged scans for large read-model sets            | go-cqrs-lite | Medium (scalability)   | 4h     |
-| 25  | Surface Pebble Checkpoint + graceful shutdown from stack presets      | go-cqrs-lite | Low (operability)      | 2h     |
+| #  | Task                                                                  | Repo         | Impact                 | Effort |
+| -- | --------------------------------------------------------------------- | ------------ | ---------------------- | ------ |
+| 21 | `transport/grpc/` adapter (protobuf command dispatch + event pub/sub) | go-cqrs-lite | High (extensibility)   | 4-8h   |
+| 22 | `transport/nats/` adapter (JetStream publisher/subscriber)            | go-cqrs-lite | Medium (extensibility) | 4-8h   |
+| 23 | `transport/redis/` adapter (Redis Streams)                            | go-cqrs-lite | Medium (extensibility) | 4-8h   |
+| 24 | Secondary indexes / ranged scans for large read-model sets            | go-cqrs-lite | Medium (scalability)   | 4h     |
+| 25 | Surface Pebble Checkpoint + graceful shutdown from stack presets      | go-cqrs-lite | Low (operability)      | 2h     |
 
 ---
 

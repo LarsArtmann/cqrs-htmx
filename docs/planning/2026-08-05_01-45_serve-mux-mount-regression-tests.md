@@ -55,14 +55,14 @@ The above + `loginpage.Mount` doc caveat (missed in previous session — same fo
 
 ## Level 1: Comprehensive Plan (30-100 min tasks)
 
-| #   | Task                                                                              | Impact       | Effort | Customer Value                              | Module         |
-| --- | --------------------------------------------------------------------------------- | ------------ | ------ | ------------------------------------------- | -------------- |
-| 1   | Add `TestMount_CoexistsWithRootIndex` to `dashboardui/dashboard_test.go`          | **Critical** | 15min  | Catches the exact reported bug              | dashboardui    |
-| 2   | Add `TestPanel_MountCoexistsWithRootIndex` to `adminui/coverage_gaps_test.go`     | High         | 10min  | Guards the same footgun for adminui         | adminui        |
-| 3   | Add `TestMount_CoexistsWithRootIndex` to `loginpage/handler_test.go`              | High         | 10min  | Guards the same footgun for loginpage       | loginpage      |
-| 4   | Add ServeMux conflict doc caveat to `loginpage.Mount`                             | Medium       | 5min   | Completes the doc fix from previous session | loginpage      |
-| 5   | Add `TestRouteRegistrationDoesNotPanic` to `examples/dashboard-demo/main_test.go` | Medium       | 15min  | Catches the bug at the exact source file    | dashboard-demo |
-| 6   | Run lint + test on all 4 changed modules                                          | High         | 15min  | Verification                                | all            |
+| # | Task                                                                              | Impact       | Effort | Customer Value                              | Module         |
+| - | --------------------------------------------------------------------------------- | ------------ | ------ | ------------------------------------------- | -------------- |
+| 1 | Add `TestMount_CoexistsWithRootIndex` to `dashboardui/dashboard_test.go`          | **Critical** | 15min  | Catches the exact reported bug              | dashboardui    |
+| 2 | Add `TestPanel_MountCoexistsWithRootIndex` to `adminui/coverage_gaps_test.go`     | High         | 10min  | Guards the same footgun for adminui         | adminui        |
+| 3 | Add `TestMount_CoexistsWithRootIndex` to `loginpage/handler_test.go`              | High         | 10min  | Guards the same footgun for loginpage       | loginpage      |
+| 4 | Add ServeMux conflict doc caveat to `loginpage.Mount`                             | Medium       | 5min   | Completes the doc fix from previous session | loginpage      |
+| 5 | Add `TestRouteRegistrationDoesNotPanic` to `examples/dashboard-demo/main_test.go` | Medium       | 15min  | Catches the bug at the exact source file    | dashboard-demo |
+| 6 | Run lint + test on all 4 changed modules                                          | High         | 15min  | Verification                                | all            |
 
 **Total estimated time:** ~70 min
 

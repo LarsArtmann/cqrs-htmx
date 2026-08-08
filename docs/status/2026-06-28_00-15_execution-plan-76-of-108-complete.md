@@ -187,33 +187,33 @@ All Tier 4 tasks are labeled "planned: v3.2.0 / v3.3.0 / v4.0.0" in the executio
 
 Ranked by impact × feasibility (highest first):
 
-| #   | Task                                                                                    | Impact | Effort | Why                                                              |
-| --- | --------------------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------- |
-| 1   | **Email branded type sweep** — `User.Email string` → `Email` in all domain structs      | High   | 2h     | Closes biggest type-safety gap; same pattern as BotState.OwnerID |
-| 2   | **Extract \*http.Request from WebAuthn service** — parse in HTTP layer, pass typed data | High   | 2h     | Clean service boundary; transport-agnostic                       |
-| 3   | **adminui coverage to 75%** — page-level render tests for users/tenants/members/audit   | High   | 3h     | Below target; biggest test-risk surface                          |
-| 4   | **Wire coverage-gate into CI** — `nix run .#coverage-gate` as GitHub Action             | Medium | 30min  | Prevents coverage regressions automatically                      |
-| 5   | **RedisSessionStore adapter** — implement `SessionStore` with Redis                     | Medium | 2h     | Interfaces now exist; enables multi-instance                     |
-| 6   | **Projection-replay integration test** — journal events + live events, verify dedup     | Medium | 1h     | Proves read-your-writes consistency end-to-end                   |
-| 7   | **Real Postgres test container** — `testcontainers/postgres` in TestMain                | Medium | 2h     | Catches driver-specific SQL bugs                                 |
-| 8   | **OTel wiring doc page** — `docs/integrations/opentelemetry.md`                         | Medium | 30min  | Adopter guidance for tracing                                     |
-| 9   | **ADR for ephemeral store interfaces** — document the pattern decision                  | Low    | 30min  | Architecture decision record                                     |
-| 10  | **Streaming replay** — `journal.ReadFrom` instead of `ReadAll`                          | Medium | 1h     | Lower memory on large event stores                               |
-| 11  | **stack.Materialize evaluation** — prototype one read model declaratively               | Low    | 2h     | Simpler read model code if it fits                               |
-| 12  | **CatchUpSubscriber adoption** — replace manual replay in StartProjections              | Medium | 1h     | Less code, upstream-maintained dedup                             |
-| 13  | **Replay benchmark** — seed 10K events, measure projection replay time                  | Low    | 1h     | Establishes performance baseline                                 |
-| 14  | **RedisOAuth2StateStore** — implement `OAuth2StateStore` with Redis                     | Low    | 1h     | Multi-instance OAuth2                                            |
-| 15  | **Prometheus metrics middleware** — dispatch latency + error rate                       | Medium | 2h     | Production observability                                         |
-| 16  | **Schema/v3 payload validator** — validate events at registration time                  | Medium | 2h     | Catch invalid payloads early                                     |
-| 17  | **PG session preset** — reduce boilerplate for Postgres session store                   | Low    | 1h     | Consumer DX                                                      |
-| 18  | **BadgerDB event store** — embedded persistence alternative                             | Low    | 3h     | Embedded-store option                                            |
-| 19  | **Migration framework** — goose / golang-migrate / gnorm evaluation                     | Medium | 1h     | Versioned schema migrations                                      |
-| 20  | **Profile dispatch + decode hot paths** — pprof                                         | Low    | 1h     | Find bottlenecks                                                 |
-| 21  | **adminui lint in CI** — add `golangci-lint` job for adminui module                     | Low    | 15min  | CI completeness                                                  |
-| 22  | **ClientIP removal planning** — deprecation timeline for v4                             | Low    | 30min  | Dead code, but breaking change                                   |
-| 23  | **Snapshot integration** — research go-cqrs-lite snapshot API                           | Medium | 2h     | Cut startup replay time                                          |
-| 24  | **BrandNamer upstream PR** — add `Name()` to go-cqrs-lite markers                       | Low    | 1h     | Unblocks root branded type naming                                |
-| 25  | **Full code review pass** — visit every file, check for split brains/ghost systems      | Medium | 4h     | Catches accumulated debt                                         |
+| #  | Task                                                                                    | Impact | Effort | Why                                                              |
+| -- | --------------------------------------------------------------------------------------- | ------ | ------ | ---------------------------------------------------------------- |
+| 1  | **Email branded type sweep** — `User.Email string` → `Email` in all domain structs      | High   | 2h     | Closes biggest type-safety gap; same pattern as BotState.OwnerID |
+| 2  | **Extract \*http.Request from WebAuthn service** — parse in HTTP layer, pass typed data | High   | 2h     | Clean service boundary; transport-agnostic                       |
+| 3  | **adminui coverage to 75%** — page-level render tests for users/tenants/members/audit   | High   | 3h     | Below target; biggest test-risk surface                          |
+| 4  | **Wire coverage-gate into CI** — `nix run .#coverage-gate` as GitHub Action             | Medium | 30min  | Prevents coverage regressions automatically                      |
+| 5  | **RedisSessionStore adapter** — implement `SessionStore` with Redis                     | Medium | 2h     | Interfaces now exist; enables multi-instance                     |
+| 6  | **Projection-replay integration test** — journal events + live events, verify dedup     | Medium | 1h     | Proves read-your-writes consistency end-to-end                   |
+| 7  | **Real Postgres test container** — `testcontainers/postgres` in TestMain                | Medium | 2h     | Catches driver-specific SQL bugs                                 |
+| 8  | **OTel wiring doc page** — `docs/integrations/opentelemetry.md`                         | Medium | 30min  | Adopter guidance for tracing                                     |
+| 9  | **ADR for ephemeral store interfaces** — document the pattern decision                  | Low    | 30min  | Architecture decision record                                     |
+| 10 | **Streaming replay** — `journal.ReadFrom` instead of `ReadAll`                          | Medium | 1h     | Lower memory on large event stores                               |
+| 11 | **stack.Materialize evaluation** — prototype one read model declaratively               | Low    | 2h     | Simpler read model code if it fits                               |
+| 12 | **CatchUpSubscriber adoption** — replace manual replay in StartProjections              | Medium | 1h     | Less code, upstream-maintained dedup                             |
+| 13 | **Replay benchmark** — seed 10K events, measure projection replay time                  | Low    | 1h     | Establishes performance baseline                                 |
+| 14 | **RedisOAuth2StateStore** — implement `OAuth2StateStore` with Redis                     | Low    | 1h     | Multi-instance OAuth2                                            |
+| 15 | **Prometheus metrics middleware** — dispatch latency + error rate                       | Medium | 2h     | Production observability                                         |
+| 16 | **Schema/v3 payload validator** — validate events at registration time                  | Medium | 2h     | Catch invalid payloads early                                     |
+| 17 | **PG session preset** — reduce boilerplate for Postgres session store                   | Low    | 1h     | Consumer DX                                                      |
+| 18 | **BadgerDB event store** — embedded persistence alternative                             | Low    | 3h     | Embedded-store option                                            |
+| 19 | **Migration framework** — goose / golang-migrate / gnorm evaluation                     | Medium | 1h     | Versioned schema migrations                                      |
+| 20 | **Profile dispatch + decode hot paths** — pprof                                         | Low    | 1h     | Find bottlenecks                                                 |
+| 21 | **adminui lint in CI** — add `golangci-lint` job for adminui module                     | Low    | 15min  | CI completeness                                                  |
+| 22 | **ClientIP removal planning** — deprecation timeline for v4                             | Low    | 30min  | Dead code, but breaking change                                   |
+| 23 | **Snapshot integration** — research go-cqrs-lite snapshot API                           | Medium | 2h     | Cut startup replay time                                          |
+| 24 | **BrandNamer upstream PR** — add `Name()` to go-cqrs-lite markers                       | Low    | 1h     | Unblocks root branded type naming                                |
+| 25 | **Full code review pass** — visit every file, check for split brains/ghost systems      | Medium | 4h     | Catches accumulated debt                                         |
 
 ---
 

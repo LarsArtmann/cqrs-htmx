@@ -1,7 +1,7 @@
 # Status: art-dupl Threshold-3 Clone Elimination
 
-**Date:** 2026-07-22 06:05  
-**Session scope:** Eliminate all clone groups found by `art-dupl --semantic --sort total-tokens -t 3`  
+**Date:** 2026-07-22 06:05\
+**Session scope:** Eliminate all clone groups found by `art-dupl --semantic --sort total-tokens -t 3`\
 **Result:** 4 clone groups found, 4 eliminated, 0 remaining at threshold 3 (and 5)
 
 ---

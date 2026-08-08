@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.2.0
-	github.com/larsartmann/httputil v0.9.1
+	github.com/larsartmann/httputil v0.10.0
 )
 
 require (
@@ -14,6 +14,7 @@ require (
 	github.com/google/pprof v0.0.0-20260709232956-b9395ee17fa0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-etag v0.1.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect

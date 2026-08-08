@@ -110,53 +110,53 @@ Down from 95.6% — likely due to the new error context paths needing test cover
 
 ### Priority 1: Fix Session-Introduced Issues (5-10 min each)
 
-| #   | Task                                                               | Impact                               |
-| --- | ------------------------------------------------------------------ | ------------------------------------ |
-| 1   | Fix `golines` formatting in `decoder.go` and `csrf_test.go`        | Zero lint warnings from this session |
-| 2   | Fix `noctx` in `testing_test.go:280` — use `NewRequestWithContext` | 1 less lint warning                  |
-| 3   | Fix `errcheck` in `httputil.go:15` — handle Encode error           | 1 less lint warning                  |
-| 4   | Add doc comments to 4 `StatusRecorder` exported methods            | 4 less lint warnings                 |
-| 5   | Run `gofumpt`/`goimports` on all changed files                     | Formatting consistency               |
+| # | Task                                                               | Impact                               |
+| - | ------------------------------------------------------------------ | ------------------------------------ |
+| 1 | Fix `golines` formatting in `decoder.go` and `csrf_test.go`        | Zero lint warnings from this session |
+| 2 | Fix `noctx` in `testing_test.go:280` — use `NewRequestWithContext` | 1 less lint warning                  |
+| 3 | Fix `errcheck` in `httputil.go:15` — handle Encode error           | 1 less lint warning                  |
+| 4 | Add doc comments to 4 `StatusRecorder` exported methods            | 4 less lint warnings                 |
+| 5 | Run `gofumpt`/`goimports` on all changed files                     | Formatting consistency               |
 
 ### Priority 2: Test Coverage Recovery (30-60 min)
 
-| #   | Task                                                              | Impact                                |
-| --- | ----------------------------------------------------------------- | ------------------------------------- |
-| 6   | Test `decoder.go` error context format strings                    | Verify new error messages are correct |
-| 7   | Test `usermgmt/authz.go` error context wrapping                   | Recover usermgmt coverage to 95%+     |
-| 8   | Test `usermgmt/user.go` `SetPasswordWithCost` error includes cost | Verify new error format               |
-| 9   | Add edge case test for maxBodySize=0 in decoder                   | Defensive coverage                    |
-| 10  | Verify all error context changes don't break `errors.Is` chains   | Regression prevention                 |
+| #  | Task                                                              | Impact                                |
+| -- | ----------------------------------------------------------------- | ------------------------------------- |
+| 6  | Test `decoder.go` error context format strings                    | Verify new error messages are correct |
+| 7  | Test `usermgmt/authz.go` error context wrapping                   | Recover usermgmt coverage to 95%+     |
+| 8  | Test `usermgmt/user.go` `SetPasswordWithCost` error includes cost | Verify new error format               |
+| 9  | Add edge case test for maxBodySize=0 in decoder                   | Defensive coverage                    |
+| 10 | Verify all error context changes don't break `errors.Is` chains   | Regression prevention                 |
 
 ### Priority 3: Documentation & Memory (15-30 min)
 
-| #   | Task                                                                  | Impact           |
-| --- | --------------------------------------------------------------------- | ---------------- |
-| 11  | Update AGENTS.md coverage claim (95.7% → 96.1%/91.7%)                 | Accurate memory  |
-| 12  | Update AGENTS.md with deduplication results                           | Accurate memory  |
-| 13  | Update AGENTS.md lint status (was "7 warnings fixed" → "8 remaining") | Accurate memory  |
-| 14  | Update AGENTS.md with error context enrichment decision               | Future reference |
-| 15  | Review `docs/status/2026-05-21_02-00` content changes                 | Ensure accuracy  |
+| #  | Task                                                                  | Impact           |
+| -- | --------------------------------------------------------------------- | ---------------- |
+| 11 | Update AGENTS.md coverage claim (95.7% → 96.1%/91.7%)                 | Accurate memory  |
+| 12 | Update AGENTS.md with deduplication results                           | Accurate memory  |
+| 13 | Update AGENTS.md lint status (was "7 warnings fixed" → "8 remaining") | Accurate memory  |
+| 14 | Update AGENTS.md with error context enrichment decision               | Future reference |
+| 15 | Review `docs/status/2026-05-21_02-00` content changes                 | Ensure accuracy  |
 
 ### Priority 4: Structural Improvements (1-2 hours)
 
-| #   | Task                                                                        | Impact                     |
-| --- | --------------------------------------------------------------------------- | -------------------------- |
-| 16  | Extract `csrf_test.go` helpers to `csrf_helpers_test.go`                    | Better test organization   |
-| 17  | Consider `httputil.go` WriteJSON returning error instead of void            | API correctness            |
-| 18  | Add integration test for full error context propagation end-to-end          | Confidence in error chains |
-| 19  | Review all `fmt.Errorf` wraps for double-wrapping risk                      | Error chain hygiene        |
-| 20  | Verify `errors.Is(err, ErrDecodeFailed)` still works after context wrapping | Regression test            |
+| #  | Task                                                                        | Impact                     |
+| -- | --------------------------------------------------------------------------- | -------------------------- |
+| 16 | Extract `csrf_test.go` helpers to `csrf_helpers_test.go`                    | Better test organization   |
+| 17 | Consider `httputil.go` WriteJSON returning error instead of void            | API correctness            |
+| 18 | Add integration test for full error context propagation end-to-end          | Confidence in error chains |
+| 19 | Review all `fmt.Errorf` wraps for double-wrapping risk                      | Error chain hygiene        |
+| 20 | Verify `errors.Is(err, ErrDecodeFailed)` still works after context wrapping | Regression test            |
 
 ### Priority 5: Nice-to-Have (Backlog)
 
-| #   | Task                                                         | Impact                               |
-| --- | ------------------------------------------------------------ | ------------------------------------ |
-| 21  | Run art-dupl at threshold 20 to catch smaller clones         | Zero tolerance                       |
-| 22  | Add `//nolint` directives for acceptable lint warnings       | Explicit documentation of exceptions |
-| 23  | Benchmark the error context string formatting overhead       | Performance awareness                |
-| 24  | Consider structured error types instead of formatted strings | Machine-parseable errors             |
-| 25  | Pre-commit hook integration for art-dupl                     | Continuous dedup monitoring          |
+| #  | Task                                                         | Impact                               |
+| -- | ------------------------------------------------------------ | ------------------------------------ |
+| 21 | Run art-dupl at threshold 20 to catch smaller clones         | Zero tolerance                       |
+| 22 | Add `//nolint` directives for acceptable lint warnings       | Explicit documentation of exceptions |
+| 23 | Benchmark the error context string formatting overhead       | Performance awareness                |
+| 24 | Consider structured error types instead of formatted strings | Machine-parseable errors             |
+| 25 | Pre-commit hook integration for art-dupl                     | Continuous dedup monitoring          |
 
 ---
 

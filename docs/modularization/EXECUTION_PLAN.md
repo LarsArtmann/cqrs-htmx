@@ -16,31 +16,31 @@ Fix remaining module hygiene: upgrade datastar-demo dependency versions, run ful
 
 ### Tier 1: Foundational
 
-| #   | Task                                      | Dependencies | Effort | Verification                                | Rollback              |
-| --- | ----------------------------------------- | ------------ | ------ | ------------------------------------------- | --------------------- |
-| T1  | Fix integration_test go.mod (go mod tidy) | None         | 2 min  | `go build ./...` passes in integration_test | ✅ **Done** (776f101) |
+| #  | Task                                      | Dependencies | Effort | Verification                                | Rollback              |
+| -- | ----------------------------------------- | ------------ | ------ | ------------------------------------------- | --------------------- |
+| T1 | Fix integration_test go.mod (go mod tidy) | None         | 2 min  | `go build ./...` passes in integration_test | ✅ **Done** (776f101) |
 
 ### Tier 2: High Leverage
 
-| #   | Task                                       | Dependencies | Effort | Verification                               | Rollback                                  |
-| --- | ------------------------------------------ | ------------ | ------ | ------------------------------------------ | ----------------------------------------- |
-| T2  | Upgrade datastar-demo deps to match root   | None         | 5 min  | `go build ./...` passes in datastar-demo   | `git checkout -- examples/datastar-demo/` |
-| T3  | Update go.work to include integration_test | T1           | 2 min  | `go work sync` succeeds, all modules build | ✅ **Done**                               |
+| #  | Task                                       | Dependencies | Effort | Verification                               | Rollback                                  |
+| -- | ------------------------------------------ | ------------ | ------ | ------------------------------------------ | ----------------------------------------- |
+| T2 | Upgrade datastar-demo deps to match root   | None         | 5 min  | `go build ./...` passes in datastar-demo   | `git checkout -- examples/datastar-demo/` |
+| T3 | Update go.work to include integration_test | T1           | 2 min  | `go work sync` succeeds, all modules build | ✅ **Done**                               |
 
 ### Tier 3: Broad Value
 
-| #   | Task                                   | Dependencies | Effort | Verification                         | Rollback                     |
-| --- | -------------------------------------- | ------------ | ------ | ------------------------------------ | ---------------------------- |
-| T4  | Update CI to test all 4 modules        | T1, T2       | 10 min | CI pipeline passes                   | ✅ **Done**                  |
-| T5  | Fix lint warnings                      | None         | 15 min | `golangci-lint run` reports 0 issues | ✅ **Done**                  |
-| T6  | Run full test suite across all modules | T2           | 5 min  | All tests pass with race detection   | N/A (read-only verification) |
+| #  | Task                                   | Dependencies | Effort | Verification                         | Rollback                     |
+| -- | -------------------------------------- | ------------ | ------ | ------------------------------------ | ---------------------------- |
+| T4 | Update CI to test all 4 modules        | T1, T2       | 10 min | CI pipeline passes                   | ✅ **Done**                  |
+| T5 | Fix lint warnings                      | None         | 15 min | `golangci-lint run` reports 0 issues | ✅ **Done**                  |
+| T6 | Run full test suite across all modules | T2           | 5 min  | All tests pass with race detection   | N/A (read-only verification) |
 
 ### Tier 4: Polish
 
-| #   | Task                                          | Dependencies | Effort | Verification                     | Rollback    |
-| --- | --------------------------------------------- | ------------ | ------ | -------------------------------- | ----------- |
-| T7  | Update AGENTS.md with modularization findings | T6           | 5 min  | AGENTS.md reflects current state | ✅ **Done** |
-| T8  | Update modularization docs                    | T6           | 5 min  | Docs reflect final state         | In progress |
+| #  | Task                                          | Dependencies | Effort | Verification                     | Rollback    |
+| -- | --------------------------------------------- | ------------ | ------ | -------------------------------- | ----------- |
+| T7 | Update AGENTS.md with modularization findings | T6           | 5 min  | AGENTS.md reflects current state | ✅ **Done** |
+| T8 | Update modularization docs                    | T6           | 5 min  | Docs reflect final state         | In progress |
 
 ---
 

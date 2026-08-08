@@ -15,24 +15,24 @@
 
 ### P0 — Must Fix (Production Safety)
 
-| #   | File         | Line | Linter             | Issue                                                                                        |
-| --- | ------------ | ---- | ------------------ | -------------------------------------------------------------------------------------------- |
-| 1   | `errors.go`  | 97   | gosec G705         | XSS via taint analysis — `w.Write([]byte(err.Error()))` writes unsanitized error to response |
-| 2   | `handler.go` | 11   | cyclop             | `handleCommandDispatch` complexity=11, max=10                                                |
-| 3   | `handler.go` | 44   | revive empty-block | Empty `else if` block — dead code path                                                       |
-| 4   | `options.go` | 224  | wrapcheck          | `json.Marshal` error returned unwrapped                                                      |
-| 5   | `options.go` | 227  | wrapcheck          | `json.Unmarshal` error returned unwrapped                                                    |
+| # | File         | Line | Linter             | Issue                                                                                        |
+| - | ------------ | ---- | ------------------ | -------------------------------------------------------------------------------------------- |
+| 1 | `errors.go`  | 97   | gosec G705         | XSS via taint analysis — `w.Write([]byte(err.Error()))` writes unsanitized error to response |
+| 2 | `handler.go` | 11   | cyclop             | `handleCommandDispatch` complexity=11, max=10                                                |
+| 3 | `handler.go` | 44   | revive empty-block | Empty `else if` block — dead code path                                                       |
+| 4 | `options.go` | 224  | wrapcheck          | `json.Marshal` error returned unwrapped                                                      |
+| 5 | `options.go` | 227  | wrapcheck          | `json.Unmarshal` error returned unwrapped                                                    |
 
 ### P1 — Should Fix (Code Quality)
 
-| #   | File        | Line | Linter           | Issue                                                                  |
-| --- | ----------- | ---- | ---------------- | ---------------------------------------------------------------------- |
-| 6   | `app.go`    | 131  | exhaustruct      | `handlerConfig{}` — zero-value init is intentional but linter flags it |
-| 7   | `htmx.go`   | 71   | goconst          | `"true"` string literal has 8 occurrences — extract to constant        |
-| 8   | `htmx.go`   | 39   | revive exported  | Swap strategy const block missing doc comment                          |
-| 9   | `notify.go` | 5    | gochecknoglobals | `NotificationEvent` is a mutable global                                |
-| 10  | `errors.go` | 82   | gochecknoglobals | `LoginRedirect` is a mutable global                                    |
-| 11  | `errors.go` | 10   | gochecknoinits   | `init()` for error classification registration                         |
+| #  | File        | Line | Linter           | Issue                                                                  |
+| -- | ----------- | ---- | ---------------- | ---------------------------------------------------------------------- |
+| 6  | `app.go`    | 131  | exhaustruct      | `handlerConfig{}` — zero-value init is intentional but linter flags it |
+| 7  | `htmx.go`   | 71   | goconst          | `"true"` string literal has 8 occurrences — extract to constant        |
+| 8  | `htmx.go`   | 39   | revive exported  | Swap strategy const block missing doc comment                          |
+| 9  | `notify.go` | 5    | gochecknoglobals | `NotificationEvent` is a mutable global                                |
+| 10 | `errors.go` | 82   | gochecknoglobals | `LoginRedirect` is a mutable global                                    |
+| 11 | `errors.go` | 10   | gochecknoinits   | `init()` for error classification registration                         |
 
 ### P2 — Nice to Have (Lint Hygiene)
 

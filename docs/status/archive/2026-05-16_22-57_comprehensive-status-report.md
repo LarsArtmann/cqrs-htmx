@@ -221,33 +221,33 @@ Git reports: `The '.git/hooks/pre-commit' hook is ignored because it's not set a
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Item                                                                          | Impact | Effort  | Type               |
-| --- | ----------------------------------------------------------------------------- | ------ | ------- | ------------------ |
-| 1   | **Add GitHub Actions CI** (build + test + lint + coverage)                    | HIGH   | Low     | Infrastructure     |
-| 2   | **Fix pre-commit hook** (chmod +x or remove)                                  | LOW    | Trivial | Fix                |
-| 3   | **Consolidate auth test duplication** (5 files → 2)                           | MED    | Medium  | Test quality       |
-| 4   | **Split `handleQueryDispatch`** (reduce cyclop complexity)                    | MED    | Low     | Code quality       |
-| 5   | **Remove deprecated `DefaultNotificationEvent` export**                       | MED    | Trivial | API cleanup        |
-| 6   | **Remove dead sentinels** (`ErrNoUserID`, `ErrRendererMissing`)               | MED    | Trivial | API cleanup        |
-| 7   | **Update `CHANGELOG.md`** for release                                         | MED    | Low     | Documentation      |
-| 8   | **Tag v1.0.0 release** (or v1.x.x)                                            | HIGH   | Trivial | Release            |
-| 9   | **Add coverage gate in CI** (fail if < 95%)                                   | MED    | Low     | Infrastructure     |
-| 10  | **Consolidate MapError test duplication** (3 files → 2)                       | MED    | Low     | Test quality       |
-| 11  | **Consolidate middleware UID test duplication** (4 files → 2)                 | MED    | Low     | Test quality       |
-| 12  | **Add `docs/architecture.md`** with handler flow diagram                      | MED    | Medium  | Documentation      |
-| 13  | **Add `With*` naming plan for v2** (document in ADR)                          | LOW    | Low     | Planning           |
-| 14  | **Add runnable examples/** directory                                          | MED    | Medium  | Documentation      |
-| 15  | **Add pkg.go.dev badge to README**                                            | LOW    | Trivial | Documentation      |
-| 16  | **Consider `type UserID id.UserID` for v2**                                   | MED    | Low     | Planning           |
-| 17  | **Add OpenTelemetry integration** (tracing via lifecycle hooks)               | MED    | Medium  | Feature            |
-| 18  | **Add request logging middleware**                                            | MED    | Medium  | Feature            |
-| 19  | **Add `.editorconfig`**                                                       | LOW    | Trivial | DX                 |
-| 20  | **Standardize doc comment style** across all exports                          | LOW    | Low     | Code quality       |
-| 21  | **Add godoc for unexported handler functions**                                | LOW    | Low     | Code quality       |
-| 22  | **Explore `b.Loop()` for benchmarks** (Go 1.26+)                              | LOW    | Trivial | Modernization      |
-| 23  | **Add integration test for full HTMX lifecycle** (form → dispatch → redirect) | MED    | Medium  | Test quality       |
-| 24  | **Add `go ref` doc for common patterns**                                      | LOW    | Medium  | Documentation      |
-| 25  | **Audit indirect dependencies for removal** (`pkg/errors`, `gogo/protobuf`)   | LOW    | Low     | Dependency hygiene |
+| #  | Item                                                                          | Impact | Effort  | Type               |
+| -- | ----------------------------------------------------------------------------- | ------ | ------- | ------------------ |
+| 1  | **Add GitHub Actions CI** (build + test + lint + coverage)                    | HIGH   | Low     | Infrastructure     |
+| 2  | **Fix pre-commit hook** (chmod +x or remove)                                  | LOW    | Trivial | Fix                |
+| 3  | **Consolidate auth test duplication** (5 files → 2)                           | MED    | Medium  | Test quality       |
+| 4  | **Split `handleQueryDispatch`** (reduce cyclop complexity)                    | MED    | Low     | Code quality       |
+| 5  | **Remove deprecated `DefaultNotificationEvent` export**                       | MED    | Trivial | API cleanup        |
+| 6  | **Remove dead sentinels** (`ErrNoUserID`, `ErrRendererMissing`)               | MED    | Trivial | API cleanup        |
+| 7  | **Update `CHANGELOG.md`** for release                                         | MED    | Low     | Documentation      |
+| 8  | **Tag v1.0.0 release** (or v1.x.x)                                            | HIGH   | Trivial | Release            |
+| 9  | **Add coverage gate in CI** (fail if < 95%)                                   | MED    | Low     | Infrastructure     |
+| 10 | **Consolidate MapError test duplication** (3 files → 2)                       | MED    | Low     | Test quality       |
+| 11 | **Consolidate middleware UID test duplication** (4 files → 2)                 | MED    | Low     | Test quality       |
+| 12 | **Add `docs/architecture.md`** with handler flow diagram                      | MED    | Medium  | Documentation      |
+| 13 | **Add `With*` naming plan for v2** (document in ADR)                          | LOW    | Low     | Planning           |
+| 14 | **Add runnable examples/** directory                                          | MED    | Medium  | Documentation      |
+| 15 | **Add pkg.go.dev badge to README**                                            | LOW    | Trivial | Documentation      |
+| 16 | **Consider `type UserID id.UserID` for v2**                                   | MED    | Low     | Planning           |
+| 17 | **Add OpenTelemetry integration** (tracing via lifecycle hooks)               | MED    | Medium  | Feature            |
+| 18 | **Add request logging middleware**                                            | MED    | Medium  | Feature            |
+| 19 | **Add `.editorconfig`**                                                       | LOW    | Trivial | DX                 |
+| 20 | **Standardize doc comment style** across all exports                          | LOW    | Low     | Code quality       |
+| 21 | **Add godoc for unexported handler functions**                                | LOW    | Low     | Code quality       |
+| 22 | **Explore `b.Loop()` for benchmarks** (Go 1.26+)                              | LOW    | Trivial | Modernization      |
+| 23 | **Add integration test for full HTMX lifecycle** (form → dispatch → redirect) | MED    | Medium  | Test quality       |
+| 24 | **Add `go ref` doc for common patterns**                                      | LOW    | Medium  | Documentation      |
+| 25 | **Audit indirect dependencies for removal** (`pkg/errors`, `gogo/protobuf`)   | LOW    | Low     | Dependency hygiene |
 
 ---
 

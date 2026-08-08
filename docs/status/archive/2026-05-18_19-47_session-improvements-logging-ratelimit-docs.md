@@ -234,20 +234,20 @@ I lean toward **D** — the current middleware should stay simple (documented li
 
 ## File Inventory (Production)
 
-| #   | File            | Lines | Purpose                                     |
-| --- | --------------- | ----- | ------------------------------------------- |
-| 1   | `app.go`        | ~190  | App builder, Config, Command/Query handlers |
-| 2   | `handler.go`    | ~136  | dispatch orchestration, timeout             |
-| 3   | `options.go`    | ~341  | HandlerOption, decoders, validation, authz  |
-| 4   | `response.go`   | ~179  | HTMX response builder (fluent API)          |
-| 5   | `authz.go`      | ~112  | Enforcer, Authorize, Enforce, middleware    |
-| 6   | `context.go`    | ~114  | UserID/CorrelationID context + event opts   |
-| 7   | `errors.go`     | ~158  | Sentinels, MapError, error handlers         |
-| 8   | `htmx.go`       | ~173  | HTMXRequest, accessors, context storage     |
-| 9   | `notify.go`     | ~78   | Notification HandlerOptions + builder       |
-| 10  | `middleware.go` | ~58   | ContextEnrichment, HTMX, Chain              |
-| 11  | `logging.go`    | ~115  | RequestLogging + JSONLogFormatter           |
-| 12  | `ratelimit.go`  | ~120  | RateLimiterMiddleware + KeyExtractor helper |
+| #  | File            | Lines | Purpose                                     |
+| -- | --------------- | ----- | ------------------------------------------- |
+| 1  | `app.go`        | ~190  | App builder, Config, Command/Query handlers |
+| 2  | `handler.go`    | ~136  | dispatch orchestration, timeout             |
+| 3  | `options.go`    | ~341  | HandlerOption, decoders, validation, authz  |
+| 4  | `response.go`   | ~179  | HTMX response builder (fluent API)          |
+| 5  | `authz.go`      | ~112  | Enforcer, Authorize, Enforce, middleware    |
+| 6  | `context.go`    | ~114  | UserID/CorrelationID context + event opts   |
+| 7  | `errors.go`     | ~158  | Sentinels, MapError, error handlers         |
+| 8  | `htmx.go`       | ~173  | HTMXRequest, accessors, context storage     |
+| 9  | `notify.go`     | ~78   | Notification HandlerOptions + builder       |
+| 10 | `middleware.go` | ~58   | ContextEnrichment, HTMX, Chain              |
+| 11 | `logging.go`    | ~115  | RequestLogging + JSONLogFormatter           |
+| 12 | `ratelimit.go`  | ~120  | RateLimiterMiddleware + KeyExtractor helper |
 
 ## Files Changed in This Session
 

@@ -157,9 +157,7 @@
           resolve(e.target.result);
         };
         req.onerror = () => {
-          console.warn(
-            "[sync-worker] IndexedDB unavailable — degrading to in-memory",
-          );
+          console.warn("[sync-worker] IndexedDB unavailable — degrading to in-memory");
           resolve(null);
         };
       } catch (e) {

@@ -117,33 +117,33 @@ All builds pass. All tests pass. No regressions introduced. The one thing that c
 
 ## f) Top 25 Things to Do Next
 
-| #   | Task                                                                                             | Impact   | Effort   | Type           |
-| --- | ------------------------------------------------------------------------------------------------ | -------- | -------- | -------------- |
-| 1   | **Fix 3 version drifts** (pin snapshot/schema/storage-memory to same version across modules)     | High     | 30 min   | Hygiene        |
-| 2   | **Add `nix run .#check-modules` to `.github/workflows/ci.yml`**                                  | High     | 15 min   | CI             |
-| 3   | **Make version-drift script advisory (warn, don't fail)**                                        | Medium   | 10 min   | CI             |
-| 4   | **Commit remaining auto-reformatted templ files**                                                | Low      | 2 min    | Hygiene        |
-| 5   | **v4: Extract `usermgmt/totp` behind `TOTPVerifier`**                                            | Critical | 4h       | Feature        |
-| 6   | **v4: Extract `usermgmt/webauthn` behind `WebAuthnProvider`**                                    | Critical | 8h       | Feature        |
-| 7   | **v4: Extract `usermgmt/oauth2` behind `OAuth2Provider`**                                        | Critical | 6h       | Feature        |
-| 8   | **v4: Extract `usermgmt/sql` as separate module**                                                | High     | 6h       | Feature        |
-| 9   | **Write v3→v4 migration guide** for consumers                                                    | High     | 2h       | Docs           |
-| 10  | **Add dep budget documentation** (why each dep exists, what would remove it)                     | Medium   | 1h       | Docs           |
-| 11  | **Phase 2b: IndexedDB persistent offline queue** (ADR-0030)                                      | High     | 8h       | Feature        |
-| 12  | **Investigate root → separate Go modules** (only real way to reduce consumer deps)               | High     | Research | Architecture   |
-| 13  | **Add `check-dep-budgets.sh` --strict mode** (fail on any new dep without justification comment) | Medium   | 30 min   | CI             |
-| 14  | **Audit all `replace` directives for necessity** (some may be stale)                             | Medium   | 1h       | Hygiene        |
-| 15  | **Write integration test that runs all 4 CI scripts**                                            | Medium   | 1h       | Testing        |
-| 16  | **Add coverage gate to CI for adminui** (currently only root + usermgmt)                         | Medium   | 30 min   | Testing        |
-| 17  | **Investigate eventtest publishing blocker** (prevents `go mod tidy` under GOWORK=off)           | Medium   | Research | Infrastructure |
-| 18  | **Document the auth strategy registration pattern** for v4 consumers                             | Medium   | 1h       | Docs           |
-| 19  | **Add architecture decision record for Sollbruchstellen decision**                               | Low      | 30 min   | Docs           |
-| 20  | **Profile `check-module-isolation.sh`** (currently ~30s, could parallelize)                      | Low      | 30 min   | CI             |
-| 21  | **Add `nix run .#check-modules -- --fix`** mode (auto-pin versions)                              | Low      | 2h       | CI             |
-| 22  | **Write consumer-facing guide: "Which deps do I actually pull in?"**                             | Medium   | 1h       | Docs           |
-| 23  | **Audit usermgmt for internal test dep leaks** (ginkgo/gomega/rapid in prod go.mod)              | Medium   | 1h       | Hygiene        |
-| 24  | **Consider splitting AGENTS.md** (architecture decisions vs operational commands)                | Low      | 30 min   | Docs           |
-| 25  | **Add mermaid diagrams to AGENTS.md** for module DAG visualization                               | Low      | 30 min   | Docs           |
+| #  | Task                                                                                             | Impact   | Effort   | Type           |
+| -- | ------------------------------------------------------------------------------------------------ | -------- | -------- | -------------- |
+| 1  | **Fix 3 version drifts** (pin snapshot/schema/storage-memory to same version across modules)     | High     | 30 min   | Hygiene        |
+| 2  | **Add `nix run .#check-modules` to `.github/workflows/ci.yml`**                                  | High     | 15 min   | CI             |
+| 3  | **Make version-drift script advisory (warn, don't fail)**                                        | Medium   | 10 min   | CI             |
+| 4  | **Commit remaining auto-reformatted templ files**                                                | Low      | 2 min    | Hygiene        |
+| 5  | **v4: Extract `usermgmt/totp` behind `TOTPVerifier`**                                            | Critical | 4h       | Feature        |
+| 6  | **v4: Extract `usermgmt/webauthn` behind `WebAuthnProvider`**                                    | Critical | 8h       | Feature        |
+| 7  | **v4: Extract `usermgmt/oauth2` behind `OAuth2Provider`**                                        | Critical | 6h       | Feature        |
+| 8  | **v4: Extract `usermgmt/sql` as separate module**                                                | High     | 6h       | Feature        |
+| 9  | **Write v3→v4 migration guide** for consumers                                                    | High     | 2h       | Docs           |
+| 10 | **Add dep budget documentation** (why each dep exists, what would remove it)                     | Medium   | 1h       | Docs           |
+| 11 | **Phase 2b: IndexedDB persistent offline queue** (ADR-0030)                                      | High     | 8h       | Feature        |
+| 12 | **Investigate root → separate Go modules** (only real way to reduce consumer deps)               | High     | Research | Architecture   |
+| 13 | **Add `check-dep-budgets.sh` --strict mode** (fail on any new dep without justification comment) | Medium   | 30 min   | CI             |
+| 14 | **Audit all `replace` directives for necessity** (some may be stale)                             | Medium   | 1h       | Hygiene        |
+| 15 | **Write integration test that runs all 4 CI scripts**                                            | Medium   | 1h       | Testing        |
+| 16 | **Add coverage gate to CI for adminui** (currently only root + usermgmt)                         | Medium   | 30 min   | Testing        |
+| 17 | **Investigate eventtest publishing blocker** (prevents `go mod tidy` under GOWORK=off)           | Medium   | Research | Infrastructure |
+| 18 | **Document the auth strategy registration pattern** for v4 consumers                             | Medium   | 1h       | Docs           |
+| 19 | **Add architecture decision record for Sollbruchstellen decision**                               | Low      | 30 min   | Docs           |
+| 20 | **Profile `check-module-isolation.sh`** (currently ~30s, could parallelize)                      | Low      | 30 min   | CI             |
+| 21 | **Add `nix run .#check-modules -- --fix`** mode (auto-pin versions)                              | Low      | 2h       | CI             |
+| 22 | **Write consumer-facing guide: "Which deps do I actually pull in?"**                             | Medium   | 1h       | Docs           |
+| 23 | **Audit usermgmt for internal test dep leaks** (ginkgo/gomega/rapid in prod go.mod)              | Medium   | 1h       | Hygiene        |
+| 24 | **Consider splitting AGENTS.md** (architecture decisions vs operational commands)                | Low      | 30 min   | Docs           |
+| 25 | **Add mermaid diagrams to AGENTS.md** for module DAG visualization                               | Low      | 30 min   | Docs           |
 
 ---
 

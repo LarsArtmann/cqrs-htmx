@@ -1,8 +1,8 @@
 # Comprehensive Status Update: cqrs-htmx/v2
 
-**Generated:** 2026-06-13 10:46 CEST  
-**Branch:** master (ahead of origin by 2 commits)  
-**Version:** v2.1.0 (last tagged), unreleased changes pending  
+**Generated:** 2026-06-13 10:46 CEST\
+**Branch:** master (ahead of origin by 2 commits)\
+**Version:** v2.1.0 (last tagged), unreleased changes pending\
 **Session focus:** Full comprehensive audit — dependencies, v2.3.0 API adoption, test coverage, architecture health
 
 ---
@@ -121,32 +121,32 @@ All modules build, all tests pass, zero race conditions, zero real lint issues. 
 
 ### 1. httputil Consolidation (High Impact, Low Risk)
 
-**Problem:** We reimplement `WriteJSON`, error response formatting, and request ID extraction locally when `larsartmann/httputil v0.2.0` provides them.  
+**Problem:** We reimplement `WriteJSON`, error response formatting, and request ID extraction locally when `larsartmann/httputil v0.2.0` provides them.\
 **Fix:** Audit all local HTTP utilities and delegate to httputil where APIs match. Reduces duplication and ensures consistency across libraries.
 
 ### 2. go-error-family Context Features (Medium Impact, Low Risk)
 
-**Problem:** All error constructors use plain strings: `event.NewTransient("code", "message")`. The `WithContext()` API allows structured key-value pairs for debugging.  
+**Problem:** All error constructors use plain strings: `event.NewTransient("code", "message")`. The `WithContext()` API allows structured key-value pairs for debugging.\
 **Fix:** Add context to transient errors in usermgmt service layer (user IDs, email hints for debugging) without leaking PII.
 
 ### 3. Query RegisterTyped in Root Examples (Low Impact, Zero Risk)
 
-**Problem:** `example_test.go` demonstrates `command.RegisterTyped` but not `query.RegisterTyped`. The datastar-demo has it but it's not in the main example file.  
+**Problem:** `example_test.go` demonstrates `command.RegisterTyped` but not `query.RegisterTyped`. The datastar-demo has it but it's not in the main example file.\
 **Fix:** Add `ExampleRegisterTypedQuery` to `example_test.go` — but Go example naming is tricky since `RegisterTyped` is in the imported `query` package, not our own.
 
 ### 4. strings.Cut Usage (Minor, Zero Risk)
 
-**Problem:** `handlers.go:271` had `strings.Index` where `strings.Cut` is cleaner. Already fixed in this session.  
+**Problem:** `handlers.go:271` had `strings.Index` where `strings.Cut` is cleaner. Already fixed in this session.\
 **Status:** ✅ Fixed.
 
 ### 5. Documentation Freshness
 
-**Problem:** `AGENTS.md` is comprehensive but `docs/adr/` may be stale. The v2.3.0 adoption is documented in status reports but not in formal ADRs.  
+**Problem:** `AGENTS.md` is comprehensive but `docs/adr/` may be stale. The v2.3.0 adoption is documented in status reports but not in formal ADRs.\
 **Fix:** Update `docs/adr/` with decisions about `RegisterTyped`, `DispatchTyped`, `IsZero()` validation, and `FromContext()` deadline propagation.
 
 ### 6. Test Consolidation
 
-**Problem:** Root module has 60 test runs (ginkgo specs) + usermgmt has 208 test runs. Total 273+ individual test assertions. Coverage is excellent (95.6%/90.0%) but the test file count (40) is high relative to production files (33).  
+**Problem:** Root module has 60 test runs (ginkgo specs) + usermgmt has 208 test runs. Total 273+ individual test assertions. Coverage is excellent (95.6%/90.0%) but the test file count (40) is high relative to production files (33).\
 **Fix:** Not a real problem — tests are well-organized. The ratio reflects the library's API surface area.
 
 ---
@@ -267,8 +267,8 @@ nix run .#lint       # ✅ 50 exhaustruct (intentional)
 nix flake check      # ✅ All checks pass
 ```
 
-Race detector: clean across all modules.  
-Coverage: 95.6% root, 90.0% usermgmt.  
+Race detector: clean across all modules.\
+Coverage: 95.6% root, 90.0% usermgmt.\
 Test count: 273+ individual assertions across 273 test runs.
 
 ---

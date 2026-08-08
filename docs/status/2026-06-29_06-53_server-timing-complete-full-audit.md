@@ -158,33 +158,33 @@ The closest thing to "fucked up":
 
 Sorted by **impact / effort ratio** (highest first):
 
-| #   | Task                                            | Impact | Effort | Why                                                                           |
-| --- | ----------------------------------------------- | ------ | ------ | ----------------------------------------------------------------------------- |
-| 1   | **Fill CHANGELOG `[Unreleased]`**               | High   | 10 min | 4 shipped features undocumented; blocks clean release                         |
-| 2   | **catalog-demo `go mod tidy`**                  | Medium | 5 min  | Removes 30 gopsl warnings; pure hygiene                                       |
-| 3   | **Write Server-Timing ADR (0032)**              | Medium | 20 min | 32 ADRs exist for everything else; this gap breaks the pattern                |
-| 4   | **Add Server-Timing to FEATURES.md**            | Low    | 5 min  | Feature inventory must reflect shipped code                                   |
-| 5   | **End-to-end App test for Config.ServerTiming** | High   | 30 min | Proves the integration works through real dispatch, not just the helper       |
-| 6   | **Update ROADMAP v3.3.0**                       | Medium | 10 min | Mark Server-Timing as delivered; clarify OTel/Prometheus status               |
-| 7   | **Wire OpenTelemetry (`OTelMiddleware`)**       | High   | 2-4h   | Completes the v3.3.0 observability promise; go-cqrs-lite otel module exists   |
-| 8   | **usermgmt coverage → 82%**                     | High   | 3-4h   | SQL read models + OAuth2 flow likely gaps; gate is 75%, headroom shrinking    |
-| 9   | **Redis SessionStore**                          | Medium | 4-6h   | Unblocks multi-instance deployments (ROADMAP v3.4.0)                          |
-| 10  | **Redis OAuth2StateStore**                      | Medium | 3-4h   | Pairs with Redis SessionStore for distributed OAuth2                          |
-| 11  | **CatchUpSubscriber adoption**                  | Medium | 3-4h   | Replace manual replay in `StartProjections`; cleaner than checkpoint approach |
-| 12  | **Prometheus metrics middleware**               | Medium | 3-4h   | Dispatch latency histograms; complements Server-Timing for production         |
-| 13  | **OPFS persistence (Phase 2b)**                 | Medium | 6-8h   | Offline queue survives tab close (ADR-0029)                                   |
-| 14  | **Integration tests against real PostgreSQL**   | High   | 4-6h   | Currently only SQLite tested; Postgres path is unproven in CI                 |
-| 15  | **Schema/v3 event payload validator**           | Medium | 4-6h   | Catch malformed events at registration time                                   |
-| 16  | **Database migration tooling**                  | Medium | 4-6h   | `usermgmt/migrations/` exists but no runner integrated                        |
-| 17  | **Streaming replay profiling (10K+ events)**    | Low    | 3-4h   | Validate checkpoint replay at scale                                           |
-| 18  | **PostgreSQL session store preset**             | Low    | 2-3h   | Reduced boilerplate for PG users                                              |
-| 19  | **Hot-path profiling (dispatch, decode)**       | Low    | 4-6h   | Benchmark-driven optimization of dispatch + JSON decode                       |
-| 20  | **Shared `delegatingWriter` base**              | Low    | 1-2h   | DRY StatusRecorder + serverTimingWriter wrapper duplication                   |
-| 21  | **Server-Timing `MeasureForCommit` variant**    | Low    | 1-2h   | Guardrail against the TTFB defer footgun                                      |
-| 22  | **CI: add `-count=3` flake detection**          | Low    | 30 min | Catch race conditions that single-run misses                                  |
-| 23  | **CI: add coverage-gate to pre-push hook**      | Low    | 30 min | Catch coverage regressions before push, not after                             |
-| 24  | **BadgerDB embedded store**                     | Low    | 4-6h   | Alternative to SQLite for embedded deployments                                |
-| 25  | **Admin-demo Server-Timing showcase**           | Low    | 1h     | Show `?debug=1` → Server-Timing header in the runnable demo                   |
+| #  | Task                                            | Impact | Effort | Why                                                                           |
+| -- | ----------------------------------------------- | ------ | ------ | ----------------------------------------------------------------------------- |
+| 1  | **Fill CHANGELOG `[Unreleased]`**               | High   | 10 min | 4 shipped features undocumented; blocks clean release                         |
+| 2  | **catalog-demo `go mod tidy`**                  | Medium | 5 min  | Removes 30 gopsl warnings; pure hygiene                                       |
+| 3  | **Write Server-Timing ADR (0032)**              | Medium | 20 min | 32 ADRs exist for everything else; this gap breaks the pattern                |
+| 4  | **Add Server-Timing to FEATURES.md**            | Low    | 5 min  | Feature inventory must reflect shipped code                                   |
+| 5  | **End-to-end App test for Config.ServerTiming** | High   | 30 min | Proves the integration works through real dispatch, not just the helper       |
+| 6  | **Update ROADMAP v3.3.0**                       | Medium | 10 min | Mark Server-Timing as delivered; clarify OTel/Prometheus status               |
+| 7  | **Wire OpenTelemetry (`OTelMiddleware`)**       | High   | 2-4h   | Completes the v3.3.0 observability promise; go-cqrs-lite otel module exists   |
+| 8  | **usermgmt coverage → 82%**                     | High   | 3-4h   | SQL read models + OAuth2 flow likely gaps; gate is 75%, headroom shrinking    |
+| 9  | **Redis SessionStore**                          | Medium | 4-6h   | Unblocks multi-instance deployments (ROADMAP v3.4.0)                          |
+| 10 | **Redis OAuth2StateStore**                      | Medium | 3-4h   | Pairs with Redis SessionStore for distributed OAuth2                          |
+| 11 | **CatchUpSubscriber adoption**                  | Medium | 3-4h   | Replace manual replay in `StartProjections`; cleaner than checkpoint approach |
+| 12 | **Prometheus metrics middleware**               | Medium | 3-4h   | Dispatch latency histograms; complements Server-Timing for production         |
+| 13 | **OPFS persistence (Phase 2b)**                 | Medium | 6-8h   | Offline queue survives tab close (ADR-0029)                                   |
+| 14 | **Integration tests against real PostgreSQL**   | High   | 4-6h   | Currently only SQLite tested; Postgres path is unproven in CI                 |
+| 15 | **Schema/v3 event payload validator**           | Medium | 4-6h   | Catch malformed events at registration time                                   |
+| 16 | **Database migration tooling**                  | Medium | 4-6h   | `usermgmt/migrations/` exists but no runner integrated                        |
+| 17 | **Streaming replay profiling (10K+ events)**    | Low    | 3-4h   | Validate checkpoint replay at scale                                           |
+| 18 | **PostgreSQL session store preset**             | Low    | 2-3h   | Reduced boilerplate for PG users                                              |
+| 19 | **Hot-path profiling (dispatch, decode)**       | Low    | 4-6h   | Benchmark-driven optimization of dispatch + JSON decode                       |
+| 20 | **Shared `delegatingWriter` base**              | Low    | 1-2h   | DRY StatusRecorder + serverTimingWriter wrapper duplication                   |
+| 21 | **Server-Timing `MeasureForCommit` variant**    | Low    | 1-2h   | Guardrail against the TTFB defer footgun                                      |
+| 22 | **CI: add `-count=3` flake detection**          | Low    | 30 min | Catch race conditions that single-run misses                                  |
+| 23 | **CI: add coverage-gate to pre-push hook**      | Low    | 30 min | Catch coverage regressions before push, not after                             |
+| 24 | **BadgerDB embedded store**                     | Low    | 4-6h   | Alternative to SQLite for embedded deployments                                |
+| 25 | **Admin-demo Server-Timing showcase**           | Low    | 1h     | Show `?debug=1` → Server-Timing header in the runnable demo                   |
 
 ---
 

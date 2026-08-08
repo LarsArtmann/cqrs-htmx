@@ -1,9 +1,9 @@
 # Status — httputil Adoption 100% (Session Complete)
 
-**Date:** 2026-08-05 11:09 CEST  
-**Trigger:** Continuation of `docs/status/2026-08-05_08-55_httputil-adoption-100-mid-session.md`  
-**Plan:** `docs/planning/2026-08-05_08-12_httputil-adoption-100-kill-reexports.md`  
-**Current branch:** master  
+**Date:** 2026-08-05 11:09 CEST\
+**Trigger:** Continuation of `docs/status/2026-08-05_08-55_httputil-adoption-100-mid-session.md`\
+**Plan:** `docs/planning/2026-08-05_08-12_httputil-adoption-100-kill-reexports.md`\
+**Current branch:** master\
 **Session state:** All planned code/doc work landed. One external publish step (httputil v0.9.0) blocks the nix hermetic build and is documented but not actionable from this session.
 
 ---

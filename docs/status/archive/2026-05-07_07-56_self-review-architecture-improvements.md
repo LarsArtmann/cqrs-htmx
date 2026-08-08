@@ -75,23 +75,23 @@ Library is in **strong shape**. This session performed a deep self-review, ident
 
 ## C) NOT STARTED
 
-| #   | Item                                                            | Priority | Notes                                                                       |
-| --- | --------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
-| 1   | Remove dead sentinels (`ErrNoUserID`, `ErrRendererMissing`)     | P2       | Breaking change — deferred to v2                                            |
-| 2   | Export `headerTrue` or provide test helper                      | P1       | 34 test occurrences hardcode `"true"`                                       |
-| 3   | Dispatch lifecycle hooks (`OnBeforeDispatch`/`OnAfterDispatch`) | P3       | For logging/metrics/tracing                                                 |
-| 4   | Request validation middleware                                   | P3       | Schema validation in decode pipeline                                        |
-| 5   | JSON error response option                                      | P3       | DefaultErrorHandler only returns plain text                                 |
-| 6   | Correlation ID propagation                                      | P3       | `WithCorrelationID` / `CorrelationIDFromContext`                            |
-| 7   | Timeout propagation                                             | P3       | Library doesn't set deadlines on context                                    |
-| 8   | Godoc examples                                                  | P4       | `SwapStrategy`, `Config`, `Response`, `HTMXRequest`                         |
-| 9   | `CONTRIBUTING.md`                                               | P4       | Document lint config, test patterns                                         |
-| 10  | `golangci-lint` in CI/CD                                        | P4       | GitHub Actions enforcement                                                  |
-| 11  | Benchmark tests                                                 | P4       | `MapError`, `parseHTMXRequest`, `HTMXMiddleware`                            |
-| 12  | Document `.golangci.yml` decisions                              | P4       | Inline comments explaining exclusions                                       |
-| 13  | Replace `string` user IDs with branded type                     | P2       | `UserIDExtractor` returns raw `string` — type safety hole per how-to-golang |
-| 14  | `handlerConfig` authorize/requireAuth bools → sum type          | P2       | Overlapping flags, possible invalid states                                  |
-| 15  | Replace `decodeFormValues` JSON roundtrip                       | P2       | form→map→json.Marshal→json.Unmarshal is fragile and slow                    |
+| #  | Item                                                            | Priority | Notes                                                                       |
+| -- | --------------------------------------------------------------- | -------- | --------------------------------------------------------------------------- |
+| 1  | Remove dead sentinels (`ErrNoUserID`, `ErrRendererMissing`)     | P2       | Breaking change — deferred to v2                                            |
+| 2  | Export `headerTrue` or provide test helper                      | P1       | 34 test occurrences hardcode `"true"`                                       |
+| 3  | Dispatch lifecycle hooks (`OnBeforeDispatch`/`OnAfterDispatch`) | P3       | For logging/metrics/tracing                                                 |
+| 4  | Request validation middleware                                   | P3       | Schema validation in decode pipeline                                        |
+| 5  | JSON error response option                                      | P3       | DefaultErrorHandler only returns plain text                                 |
+| 6  | Correlation ID propagation                                      | P3       | `WithCorrelationID` / `CorrelationIDFromContext`                            |
+| 7  | Timeout propagation                                             | P3       | Library doesn't set deadlines on context                                    |
+| 8  | Godoc examples                                                  | P4       | `SwapStrategy`, `Config`, `Response`, `HTMXRequest`                         |
+| 9  | `CONTRIBUTING.md`                                               | P4       | Document lint config, test patterns                                         |
+| 10 | `golangci-lint` in CI/CD                                        | P4       | GitHub Actions enforcement                                                  |
+| 11 | Benchmark tests                                                 | P4       | `MapError`, `parseHTMXRequest`, `HTMXMiddleware`                            |
+| 12 | Document `.golangci.yml` decisions                              | P4       | Inline comments explaining exclusions                                       |
+| 13 | Replace `string` user IDs with branded type                     | P2       | `UserIDExtractor` returns raw `string` — type safety hole per how-to-golang |
+| 14 | `handlerConfig` authorize/requireAuth bools → sum type          | P2       | Overlapping flags, possible invalid states                                  |
+| 15 | Replace `decodeFormValues` JSON roundtrip                       | P2       | form→map→json.Marshal→json.Unmarshal is fragile and slow                    |
 
 ---
 
@@ -138,33 +138,33 @@ These are **transitive** dependencies, not direct ones. They don't affect the li
 
 Sorted by impact × feasibility (Pareto order):
 
-| #   | Task                                                                                     | Impact | Work   | Priority |
-| --- | ---------------------------------------------------------------------------------------- | ------ | ------ | -------- |
-| 1   | Add `OnBeforeDispatch`/`OnAfterDispatch` lifecycle hooks                                 | High   | Medium | P3       |
-| 2   | Add `CorrelationID` context propagation (`WithCorrelationID`/`CorrelationIDFromContext`) | High   | Low    | P3       |
-| 3   | Add JSON error response option (configurable error format)                               | High   | Low    | P3       |
-| 4   | Add timeout/deadline propagation via context                                             | High   | Low    | P3       |
-| 5   | Add benchmark tests for hot paths (`MapError`, `parseHTMXRequest`, `HTMXMiddleware`)     | Medium | Low    | P4       |
-| 6   | Add godoc examples (`SwapStrategy`, `Config`, `Response`)                                | Medium | Low    | P4       |
-| 7   | Create `CONTRIBUTING.md`                                                                 | Medium | Low    | P4       |
-| 8   | Add `golangci-lint` to CI/CD (GitHub Actions)                                            | Medium | Low    | P4       |
-| 9   | Export `headerTrue` or add `IsHeaderTrue(s string) bool` test helper                     | Low    | Low    | P1       |
-| 10  | Improve `handleQueryDispatch` coverage to 100% (query + HTMX response options combo)     | Low    | Low    | P1       |
-| 11  | Document `.golangci.yml` exclusion decisions with inline comments                        | Low    | Low    | P4       |
-| 12  | Add request validation middleware (optional `govalid` integration in decode pipeline)    | High   | Medium | P3       |
-| 13  | Replace `decodeFormValues` JSON roundtrip with `schema` decoder                          | Medium | Medium | P2       |
-| 14  | Add `RenderTyped[T]` option for type-safe query rendering                                | Medium | Low    | P2       |
-| 15  | Remove dead sentinels (`ErrNoUserID`, `ErrRendererMissing`) in v2                        | Medium | Low    | P2       |
-| 16  | Migrate `UserIDExtractor` return type from `string` to branded `id.UserID` (v2 breaking) | High   | High   | P2       |
-| 17  | Convert `handlerConfig.authorize`/`requireAuth` bools to sum type `authMode`             | Medium | Medium | P2       |
-| 18  | Add SSE/EventSource helpers for real-time updates                                        | Medium | High   | P3       |
-| 19  | Add rate limiting middleware (using `golang.org/x/time/rate`)                            | Medium | Medium | P3       |
-| 20  | Add request logging middleware (slog integration)                                        | Medium | Medium | P3       |
-| 21  | Remove deprecated `DefaultNotificationEvent` var in v2                                   | Low    | Low    | P2       |
-| 22  | Evaluate `go-faster/yaml` replacement for `gopkg.in/yaml.v3` transitive                  | Low    | High   | -        |
-| 23  | Add `Huma` integration option for API-mode handlers                                      | High   | High   | P3       |
-| 24  | Add OpenTelemetry spans around dispatch                                                  | High   | Medium | P3       |
-| 25  | Write comprehensive README with full API surface examples                                | Medium | Medium | P4       |
+| #  | Task                                                                                     | Impact | Work   | Priority |
+| -- | ---------------------------------------------------------------------------------------- | ------ | ------ | -------- |
+| 1  | Add `OnBeforeDispatch`/`OnAfterDispatch` lifecycle hooks                                 | High   | Medium | P3       |
+| 2  | Add `CorrelationID` context propagation (`WithCorrelationID`/`CorrelationIDFromContext`) | High   | Low    | P3       |
+| 3  | Add JSON error response option (configurable error format)                               | High   | Low    | P3       |
+| 4  | Add timeout/deadline propagation via context                                             | High   | Low    | P3       |
+| 5  | Add benchmark tests for hot paths (`MapError`, `parseHTMXRequest`, `HTMXMiddleware`)     | Medium | Low    | P4       |
+| 6  | Add godoc examples (`SwapStrategy`, `Config`, `Response`)                                | Medium | Low    | P4       |
+| 7  | Create `CONTRIBUTING.md`                                                                 | Medium | Low    | P4       |
+| 8  | Add `golangci-lint` to CI/CD (GitHub Actions)                                            | Medium | Low    | P4       |
+| 9  | Export `headerTrue` or add `IsHeaderTrue(s string) bool` test helper                     | Low    | Low    | P1       |
+| 10 | Improve `handleQueryDispatch` coverage to 100% (query + HTMX response options combo)     | Low    | Low    | P1       |
+| 11 | Document `.golangci.yml` exclusion decisions with inline comments                        | Low    | Low    | P4       |
+| 12 | Add request validation middleware (optional `govalid` integration in decode pipeline)    | High   | Medium | P3       |
+| 13 | Replace `decodeFormValues` JSON roundtrip with `schema` decoder                          | Medium | Medium | P2       |
+| 14 | Add `RenderTyped[T]` option for type-safe query rendering                                | Medium | Low    | P2       |
+| 15 | Remove dead sentinels (`ErrNoUserID`, `ErrRendererMissing`) in v2                        | Medium | Low    | P2       |
+| 16 | Migrate `UserIDExtractor` return type from `string` to branded `id.UserID` (v2 breaking) | High   | High   | P2       |
+| 17 | Convert `handlerConfig.authorize`/`requireAuth` bools to sum type `authMode`             | Medium | Medium | P2       |
+| 18 | Add SSE/EventSource helpers for real-time updates                                        | Medium | High   | P3       |
+| 19 | Add rate limiting middleware (using `golang.org/x/time/rate`)                            | Medium | Medium | P3       |
+| 20 | Add request logging middleware (slog integration)                                        | Medium | Medium | P3       |
+| 21 | Remove deprecated `DefaultNotificationEvent` var in v2                                   | Low    | Low    | P2       |
+| 22 | Evaluate `go-faster/yaml` replacement for `gopkg.in/yaml.v3` transitive                  | Low    | High   | -        |
+| 23 | Add `Huma` integration option for API-mode handlers                                      | High   | High   | P3       |
+| 24 | Add OpenTelemetry spans around dispatch                                                  | High   | Medium | P3       |
+| 25 | Write comprehensive README with full API surface examples                                | Medium | Medium | P4       |
 
 ---
 
@@ -241,13 +241,13 @@ The how-to-golang skill is clear: "Never use primitive strings for domain identi
 
 ## Health Dashboard
 
-| Category        | Status        | Score                                      |
-| --------------- | ------------- | ------------------------------------------ |
-| Correctness     | ✅ Clean      | 100%                                       |
-| Test Coverage   | ✅ Excellent  | 95.7%                                      |
-| Lint            | ✅ Clean      | 0 issues                                   |
-| Architecture    | ✅ Good       | Enforcer interface, ghost system fixed     |
+| Category        | Status       | Score                                      |
+| --------------- | ------------ | ------------------------------------------ |
+| Correctness     | ✅ Clean     | 100%                                       |
+| Test Coverage   | ✅ Excellent | 95.7%                                      |
+| Lint            | ✅ Clean     | 0 issues                                   |
+| Architecture    | ✅ Good      | Enforcer interface, ghost system fixed     |
 | Type Safety     | ⚠️ Acceptable | `string` user IDs, `any` in some places    |
-| Documentation   | ✅ Good       | AGENTS.md, TODO_LIST, FEATURES all current |
+| Documentation   | ✅ Good      | AGENTS.md, TODO_LIST, FEATURES all current |
 | Dependencies    | ⚠️ Acceptable | 2 banned transitive deps (not removable)   |
-| Backward Compat | ✅ Good       | All changes backward compatible            |
+| Backward Compat | ✅ Good      | All changes backward compatible            |

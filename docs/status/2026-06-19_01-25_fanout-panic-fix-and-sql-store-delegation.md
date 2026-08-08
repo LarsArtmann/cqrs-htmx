@@ -180,16 +180,16 @@ The old hand-rolled store closed the DB on `Close()`. The upstream `storage.SQLE
 
 ## Commits This Session
 
-| #   | Hash      | Message                                                                |
-| --- | --------- | ---------------------------------------------------------------------- |
-| 1   | `5ef15d8` | fix: prevent broadcaster panic when unsubscribe races with broadcast   |
-| 2   | `82d4f50` | style: remove naked return in startPeriodicEviction                    |
-| 3   | `ac8d605` | refactor: unify auth response types under a single AuthResult          |
-| 4   | `dd9cc8a` | refactor: add diagnostic context to replay and catalog error paths     |
-| 5   | `55fe6bf` | docs: correct broadcaster note, record SQL store duplication finding   |
-| 6   | `497c897` | fix: resolve goconst lint failures in usermgmt                         |
-| 7   | `d1e6c5e` | docs: warn about channel-race hazard in datastar-demo Broadcaster.Send |
-| 8   | `6e4b9e0` | refactor: delegate SQLEventStore to go-cqrs-lite/storage/v2            |
-| 9   | `9fae505` | docs: document Close() behavior change and resolve SQL store finding   |
+| # | Hash      | Message                                                                |
+| - | --------- | ---------------------------------------------------------------------- |
+| 1 | `5ef15d8` | fix: prevent broadcaster panic when unsubscribe races with broadcast   |
+| 2 | `82d4f50` | style: remove naked return in startPeriodicEviction                    |
+| 3 | `ac8d605` | refactor: unify auth response types under a single AuthResult          |
+| 4 | `dd9cc8a` | refactor: add diagnostic context to replay and catalog error paths     |
+| 5 | `55fe6bf` | docs: correct broadcaster note, record SQL store duplication finding   |
+| 6 | `497c897` | fix: resolve goconst lint failures in usermgmt                         |
+| 7 | `d1e6c5e` | docs: warn about channel-race hazard in datastar-demo Broadcaster.Send |
+| 8 | `6e4b9e0` | refactor: delegate SQLEventStore to go-cqrs-lite/storage/v2            |
+| 9 | `9fae505` | docs: document Close() behavior change and resolve SQL store finding   |
 
 All commits pushed to `origin/master`.

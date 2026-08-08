@@ -119,33 +119,33 @@ Nothing. All code compiles, all tests pass, all commits are clean. The only thin
 
 Sorted by **impact / effort ratio** (highest first):
 
-| #   | Task                                                                                           | Impact | Effort | Phase |
-| --- | ---------------------------------------------------------------------------------------------- | ------ | ------ | ----- |
-| 1   | **Integration test**: SSEEventStore + Broadcaster + ReplayEvents end-to-end in an HTTP handler | 5      | 30m    | P0    |
-| 2   | **Answer Q1**: where does `decide()` run? (gates Phase 2)                                      | 5      | 30m    | P2    |
-| 3   | **Answer Q2**: closed-tab writes required? (gates SW decision)                                 | 5      | 10m    | P2    |
-| 4   | Add SSE endpoint to `examples/admin-demo/` showcasing durable replay                           | 4      | 45m    | Demo  |
-| 5   | Add ACK wiring to `examples/admin-demo/` (X-Command-Id → SSE ack)                              | 4      | 45m    | Demo  |
-| 6   | Honest UI: `.sync-pending` CSS class in `tailwind.css`                                         | 4      | 15m    | P1    |
-| 7   | Honest UI: `.sync-confirmed` + `.sync-rejected` CSS classes                                    | 4      | 15m    | P1    |
-| 8   | Honest UI: sync indicator in `layout.templ` header                                             | 3      | 30m    | P1    |
-| 9   | Honest UI: JS handler for `sync:ack` SSE event in `admin.js`                                   | 5      | 45m    | P1    |
-| 10  | Honest UI: `data-sync-state` attribute transitions (pending→confirmed)                         | 5      | 30m    | P1    |
-| 11  | Honest UI: never-silent rejection rendering (inline error + retry)                             | 5      | 30m    | P1    |
-| 12  | Honest UI: global sync counter (pending/confirmed/failed)                                      | 3      | 30m    | P1    |
-| 13  | Honest UI: `aria-live="polite"` region for confirmed announcements                             | 2      | 15m    | P1    |
-| 14  | Honest UI: retry button handler for rejected items                                             | 3      | 15m    | P1    |
-| 15  | Update `TODO_LIST.md` with plan tasks + status                                                 | 3      | 20m    | Doc   |
-| 16  | Add example: optimistic render on `htmx:beforeRequest`                                         | 4      | 30m    | P1    |
-| 17  | Rebuild `admin-tw.css` after tailwind changes                                                  | 2      | 5m     | P1    |
-| 18  | Run `templ generate` after layout.templ changes                                                | 2      | 5m     | P1    |
-| 19  | BDD test: ACK confirmed/rejected lifecycle (Ginkgo)                                            | 3      | 30m    | QA    |
-| 20  | Research: sqlite-wasm integration approaches (wa-sqlite fork vs upstream)                      | 3      | 60m    | P2    |
-| 21  | Research: Go→WASM decider path (TinyGo feasibility)                                            | 3      | 60m    | P3    |
-| 22  | Decide SW vs SharedWorker topology from Q1+Q2                                                  | 4      | 15m    | P2    |
-| 23  | Service Worker scaffold (`sw.js` + registration)                                               | 3      | 30m    | P2    |
-| 24  | OPFS availability detection + fallback                                                         | 3      | 30m    | P2    |
-| 25  | README.md: document the offline-first sync story                                               | 2      | 30m    | Doc   |
+| #  | Task                                                                                           | Impact | Effort | Phase |
+| -- | ---------------------------------------------------------------------------------------------- | ------ | ------ | ----- |
+| 1  | **Integration test**: SSEEventStore + Broadcaster + ReplayEvents end-to-end in an HTTP handler | 5      | 30m    | P0    |
+| 2  | **Answer Q1**: where does `decide()` run? (gates Phase 2)                                      | 5      | 30m    | P2    |
+| 3  | **Answer Q2**: closed-tab writes required? (gates SW decision)                                 | 5      | 10m    | P2    |
+| 4  | Add SSE endpoint to `examples/admin-demo/` showcasing durable replay                           | 4      | 45m    | Demo  |
+| 5  | Add ACK wiring to `examples/admin-demo/` (X-Command-Id → SSE ack)                              | 4      | 45m    | Demo  |
+| 6  | Honest UI: `.sync-pending` CSS class in `tailwind.css`                                         | 4      | 15m    | P1    |
+| 7  | Honest UI: `.sync-confirmed` + `.sync-rejected` CSS classes                                    | 4      | 15m    | P1    |
+| 8  | Honest UI: sync indicator in `layout.templ` header                                             | 3      | 30m    | P1    |
+| 9  | Honest UI: JS handler for `sync:ack` SSE event in `admin.js`                                   | 5      | 45m    | P1    |
+| 10 | Honest UI: `data-sync-state` attribute transitions (pending→confirmed)                         | 5      | 30m    | P1    |
+| 11 | Honest UI: never-silent rejection rendering (inline error + retry)                             | 5      | 30m    | P1    |
+| 12 | Honest UI: global sync counter (pending/confirmed/failed)                                      | 3      | 30m    | P1    |
+| 13 | Honest UI: `aria-live="polite"` region for confirmed announcements                             | 2      | 15m    | P1    |
+| 14 | Honest UI: retry button handler for rejected items                                             | 3      | 15m    | P1    |
+| 15 | Update `TODO_LIST.md` with plan tasks + status                                                 | 3      | 20m    | Doc   |
+| 16 | Add example: optimistic render on `htmx:beforeRequest`                                         | 4      | 30m    | P1    |
+| 17 | Rebuild `admin-tw.css` after tailwind changes                                                  | 2      | 5m     | P1    |
+| 18 | Run `templ generate` after layout.templ changes                                                | 2      | 5m     | P1    |
+| 19 | BDD test: ACK confirmed/rejected lifecycle (Ginkgo)                                            | 3      | 30m    | QA    |
+| 20 | Research: sqlite-wasm integration approaches (wa-sqlite fork vs upstream)                      | 3      | 60m    | P2    |
+| 21 | Research: Go→WASM decider path (TinyGo feasibility)                                            | 3      | 60m    | P3    |
+| 22 | Decide SW vs SharedWorker topology from Q1+Q2                                                  | 4      | 15m    | P2    |
+| 23 | Service Worker scaffold (`sw.js` + registration)                                               | 3      | 30m    | P2    |
+| 24 | OPFS availability detection + fallback                                                         | 3      | 30m    | P2    |
+| 25 | README.md: document the offline-first sync story                                               | 2      | 30m    | Doc   |
 
 ---
 

@@ -1,8 +1,8 @@
 # Comprehensive Status Report — Post-Audit TODO Execution
 
-**Date:** 2026-05-19 21:49 CEST  
-**Branch:** master  
-**Commits since last push:** 17  
+**Date:** 2026-05-19 21:49 CEST\
+**Branch:** master\
+**Commits since last push:** 17\
 **Status:** All 25 audit items completed, both modules green
 
 ---
@@ -45,20 +45,20 @@ Executed the full 25-item TODO list from the `2026-05-19_21-11_comprehensive-aud
 
 ### Usermgmt Submodule Changes (items #8-12, #16-20, #23-24)
 
-| #   | Item                                   | Commit    | Status                                                                        |
-| --- | -------------------------------------- | --------- | ----------------------------------------------------------------------------- |
-| 8   | Immutable bcryptCost                   | `752bdeb` | Done — `ServiceConfig.BcryptCost`, `SetPasswordWithCost`                      |
-| 9   | context.Context on all Service methods | `921f81e` | Done — Register, Login, Logout, Authenticate, Authorize, GetUser, UpdateRoles |
-| 10  | Input validation                       | `f3b53c2` | Done — email format, password 8+, required fields                             |
-| 11  | TOCTOU race fix                        | `903a698` | Done — `UserStore.Create()` atomic email check                                |
-| 12  | Email index                            | `903a698` | Done — `emails map[string]string`, O(1) FindByEmail                           |
-| 16  | EnforceAny/AsEnforcer adapter          | `8a72a37` | Done — bridges to cqrshtmx.Enforcer interface                                 |
-| 17  | Remove RawEnforcer                     | `8a72a37` | Done — no more casbin internals leak                                          |
-| 18  | cockroachdb/errors                     | `d68f785` | Done — consistent error wrapping with root                                    |
-| 19  | Atomic UpdateRoles                     | `9611324` | Done — `Authz.Apply(PolicyUpdate{...})`                                       |
-| 20  | Structured logging                     | `d5e45a2` | Done — `ServiceConfig.Logger`, failed login + role updates                    |
-| 23  | ChangePassword                         | `5602973` | Done — verifies old password, validates new, rehashes                         |
-| 24  | Account lockout                        | `3424c0f` | Done — configurable max attempts + duration, 429 response                     |
+| #  | Item                                   | Commit    | Status                                                                        |
+| -- | -------------------------------------- | --------- | ----------------------------------------------------------------------------- |
+| 8  | Immutable bcryptCost                   | `752bdeb` | Done — `ServiceConfig.BcryptCost`, `SetPasswordWithCost`                      |
+| 9  | context.Context on all Service methods | `921f81e` | Done — Register, Login, Logout, Authenticate, Authorize, GetUser, UpdateRoles |
+| 10 | Input validation                       | `f3b53c2` | Done — email format, password 8+, required fields                             |
+| 11 | TOCTOU race fix                        | `903a698` | Done — `UserStore.Create()` atomic email check                                |
+| 12 | Email index                            | `903a698` | Done — `emails map[string]string`, O(1) FindByEmail                           |
+| 16 | EnforceAny/AsEnforcer adapter          | `8a72a37` | Done — bridges to cqrshtmx.Enforcer interface                                 |
+| 17 | Remove RawEnforcer                     | `8a72a37` | Done — no more casbin internals leak                                          |
+| 18 | cockroachdb/errors                     | `d68f785` | Done — consistent error wrapping with root                                    |
+| 19 | Atomic UpdateRoles                     | `9611324` | Done — `Authz.Apply(PolicyUpdate{...})`                                       |
+| 20 | Structured logging                     | `d5e45a2` | Done — `ServiceConfig.Logger`, failed login + role updates                    |
+| 23 | ChangePassword                         | `5602973` | Done — verifies old password, validates new, rehashes                         |
+| 24 | Account lockout                        | `3424c0f` | Done — configurable max attempts + duration, 429 response                     |
 
 ---
 

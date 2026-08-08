@@ -130,33 +130,33 @@ Minor issues (all fixed this session):
 
 Sorted by **impact / effort ratio** (highest first):
 
-| #   | Task                                                           | Impact | Effort | Why                                                                        |
-| --- | -------------------------------------------------------------- | ------ | ------ | -------------------------------------------------------------------------- |
-| 1   | **OTel wiring guide** (docs/observability/otel.md)             | High   | 30 min | Closes v3.3.0 promise; zero new code — upstream provides everything        |
-| 2   | **Prometheus wiring guide** (docs/observability/prometheus.md) | Med    | 20 min | Same — upstream `prometheus/v3` does `Setup()` → `/metrics`                |
-| 3   | **Add `responsewriter.go` to AGENTS.md file tree**             | Low    | 3 min  | New file not listed in architecture diagram                                |
-| 4   | **Adopt `projectionhost/v3`**                                  | High   | 3-4h   | Biggest code-reduction: replaces ~100 LOC hand-rolled projection lifecycle |
-| 5   | **Adopt `scenario/v3` for usermgmt decider tests**             | Med    | 2-3h   | BDD Given/When/Then for 7 decide functions; more readable than table tests |
-| 6   | **usermgmt coverage → 82%**                                    | High   | 3-4h   | SQL read models + OAuth2 flow gaps                                         |
-| 7   | **Adopt `CatchUpSubscriber`**                                  | Med    | 2-3h   | Ordered durable projections; pairs with projectionhost                     |
-| 8   | **Adopt `snapshot/v3`**                                        | Med    | 2h     | Aggregates with 100+ events (user with many credentials)                   |
-| 9   | **OPFS persistence (Phase 2b)**                                | Med    | 6-8h   | Offline queue survives tab close                                           |
-| 10  | **Profile dispatch + decode hot paths**                        | Low    | 4h     | Benchmark-driven optimization                                              |
-| 11  | **Benchmark projection replay (10K+ events)**                  | Low    | 3h     | Validate checkpoint replay at scale                                        |
-| 12  | **Adopt `kv.Cache` for read-model caching**                    | Low    | 2h     | Otter LRU for hot read models                                              |
-| 13  | **Adopt `schema/v3` upcasters**                                | Med    | 3h     | Event evolution without rewriting history                                  |
-| 14  | **CI: add `test-flake` to GitHub Actions**                     | Low    | 30 min | Catch intermittent failures in CI                                          |
-| 15  | **TTFB guardrail for Server-Timing**                           | Low    | 1-2h   | `MeasureForCommit` variant or lint detector                                |
-| 16  | **Remove deprecated `ClientIP`**                               | Low    | 1h     | FEATURES.md says PARTIALLY_FUNCTIONAL; scheduled for removal               |
-| 17  | **Admin-demo: add OTel + Prometheus showcase**                 | Low    | 2h     | Runnable demo of both observability axes                                   |
-| 18  | **Document `delegatingWriter` pattern in AGENTS.md**           | Low    | 15 min | Architecture decision for future wrapper authors                           |
-| 19  | **Integration test: real SQLite WAL + projections**            | Med    | 3h     | Validate production SQLite preset end-to-end                               |
-| 20  | **Adopt `deriver/v3` for reactive commands**                   | Low    | 3h     | Event→command derivation; saga alternative                                 |
-| 21  | **Admin UI: Server-Timing metrics panel**                      | Low    | 2h     | Show timing data in the dashboard itself                                   |
-| 22  | **Fuzz test for Server-Timing header formatting**              | Low    | 1h     | Fuzz `HeaderValue()` with adversarial metric names/descriptions            |
-| 23  | **codestyle: document nil-receiver pattern**                   | Low    | 30 min | AGENTS.md convention entry for future opts                                 |
-| 24  | **Adopt `transport/http/v3` SSEBroker**                        | Low    | 2h     | Evaluate replacing hand-rolled SSE with upstream broker                    |
-| 25  | **Migrate `idempotency.go` aliases to thin wrapper**           | Low    | 1h     | Remove local copy, delegate fully to `idempotency/v3`                      |
+| #  | Task                                                           | Impact | Effort | Why                                                                        |
+| -- | -------------------------------------------------------------- | ------ | ------ | -------------------------------------------------------------------------- |
+| 1  | **OTel wiring guide** (docs/observability/otel.md)             | High   | 30 min | Closes v3.3.0 promise; zero new code — upstream provides everything        |
+| 2  | **Prometheus wiring guide** (docs/observability/prometheus.md) | Med    | 20 min | Same — upstream `prometheus/v3` does `Setup()` → `/metrics`                |
+| 3  | **Add `responsewriter.go` to AGENTS.md file tree**             | Low    | 3 min  | New file not listed in architecture diagram                                |
+| 4  | **Adopt `projectionhost/v3`**                                  | High   | 3-4h   | Biggest code-reduction: replaces ~100 LOC hand-rolled projection lifecycle |
+| 5  | **Adopt `scenario/v3` for usermgmt decider tests**             | Med    | 2-3h   | BDD Given/When/Then for 7 decide functions; more readable than table tests |
+| 6  | **usermgmt coverage → 82%**                                    | High   | 3-4h   | SQL read models + OAuth2 flow gaps                                         |
+| 7  | **Adopt `CatchUpSubscriber`**                                  | Med    | 2-3h   | Ordered durable projections; pairs with projectionhost                     |
+| 8  | **Adopt `snapshot/v3`**                                        | Med    | 2h     | Aggregates with 100+ events (user with many credentials)                   |
+| 9  | **OPFS persistence (Phase 2b)**                                | Med    | 6-8h   | Offline queue survives tab close                                           |
+| 10 | **Profile dispatch + decode hot paths**                        | Low    | 4h     | Benchmark-driven optimization                                              |
+| 11 | **Benchmark projection replay (10K+ events)**                  | Low    | 3h     | Validate checkpoint replay at scale                                        |
+| 12 | **Adopt `kv.Cache` for read-model caching**                    | Low    | 2h     | Otter LRU for hot read models                                              |
+| 13 | **Adopt `schema/v3` upcasters**                                | Med    | 3h     | Event evolution without rewriting history                                  |
+| 14 | **CI: add `test-flake` to GitHub Actions**                     | Low    | 30 min | Catch intermittent failures in CI                                          |
+| 15 | **TTFB guardrail for Server-Timing**                           | Low    | 1-2h   | `MeasureForCommit` variant or lint detector                                |
+| 16 | **Remove deprecated `ClientIP`**                               | Low    | 1h     | FEATURES.md says PARTIALLY_FUNCTIONAL; scheduled for removal               |
+| 17 | **Admin-demo: add OTel + Prometheus showcase**                 | Low    | 2h     | Runnable demo of both observability axes                                   |
+| 18 | **Document `delegatingWriter` pattern in AGENTS.md**           | Low    | 15 min | Architecture decision for future wrapper authors                           |
+| 19 | **Integration test: real SQLite WAL + projections**            | Med    | 3h     | Validate production SQLite preset end-to-end                               |
+| 20 | **Adopt `deriver/v3` for reactive commands**                   | Low    | 3h     | Event→command derivation; saga alternative                                 |
+| 21 | **Admin UI: Server-Timing metrics panel**                      | Low    | 2h     | Show timing data in the dashboard itself                                   |
+| 22 | **Fuzz test for Server-Timing header formatting**              | Low    | 1h     | Fuzz `HeaderValue()` with adversarial metric names/descriptions            |
+| 23 | **codestyle: document nil-receiver pattern**                   | Low    | 30 min | AGENTS.md convention entry for future opts                                 |
+| 24 | **Adopt `transport/http/v3` SSEBroker**                        | Low    | 2h     | Evaluate replacing hand-rolled SSE with upstream broker                    |
+| 25 | **Migrate `idempotency.go` aliases to thin wrapper**           | Low    | 1h     | Remove local copy, delegate fully to `idempotency/v3`                      |
 
 ---
 

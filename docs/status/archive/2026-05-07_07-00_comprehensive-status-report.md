@@ -1,7 +1,7 @@
 # Comprehensive Status Report — cqrs-htmx
 
-**Date:** 2026-05-07 07:00  
-**Branch:** master (clean working tree)  
+**Date:** 2026-05-07 07:00\
+**Branch:** master (clean working tree)\
 **Commit:** 367e160 (9 commits ahead of origin 7ebeb89, now pushed)
 
 ---
@@ -165,48 +165,48 @@ The library compiles, passes all tests, has zero lint issues, and all features w
 
 ### Tier 1: Critical — Do Immediately (1-2 hours total)
 
-| #   | Task                                                                    | Impact | Effort | Rationale                                           |
-| --- | ----------------------------------------------------------------------- | ------ | ------ | --------------------------------------------------- |
-| 1   | **Update TODO_LIST.md** — Mark 4 stale items as done                    | High   | 5min   | Current state is misleading                         |
-| 2   | **Update FEATURES.md** — Add `DecodeFormQuery`, fix coverage/test count | High   | 5min   | Public-facing doc is wrong                          |
-| 3   | **Update README.md** — Add `DecodeFormQuery` to decoder table           | Medium | 5min   | API docs are incomplete                             |
-| 4   | **Remove unused first param from `testNotificationTrigger`**            | Low    | 2min   | Dead code in helper                                 |
-| 5   | **Verify XSS safety in DefaultErrorHandler**                            | High   | 5min   | Security: confirm `html.EscapeString` is sufficient |
+| # | Task                                                                    | Impact | Effort | Rationale                                           |
+| - | ----------------------------------------------------------------------- | ------ | ------ | --------------------------------------------------- |
+| 1 | **Update TODO_LIST.md** — Mark 4 stale items as done                    | High   | 5min   | Current state is misleading                         |
+| 2 | **Update FEATURES.md** — Add `DecodeFormQuery`, fix coverage/test count | High   | 5min   | Public-facing doc is wrong                          |
+| 3 | **Update README.md** — Add `DecodeFormQuery` to decoder table           | Medium | 5min   | API docs are incomplete                             |
+| 4 | **Remove unused first param from `testNotificationTrigger`**            | Low    | 2min   | Dead code in helper                                 |
+| 5 | **Verify XSS safety in DefaultErrorHandler**                            | High   | 5min   | Security: confirm `html.EscapeString` is sufficient |
 
 ### Tier 2: Important — Do This Week (4-8 hours)
 
-| #   | Task                                                                                | Impact | Effort | Rationale                |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ | ------------------------ |
-| 6   | **Move LoginRedirect to per-App** — Eliminate `defaultLoginRedirect` global         | High   | 1h     | Race condition risk      |
-| 7   | **Move NotificationEvent to per-App** — Eliminate `DefaultNotificationEvent` global | High   | 1h     | Race condition risk      |
-| 8   | **Extract Casbin interface** — `Enforcer` interface with `Enforce(...)`             | Medium | 2h     | Testability + decoupling |
-| 9   | **Add godoc examples** — `SwapStrategy`, `Config`, `Response`, `HTMXRequest`        | Medium | 2h     | GoDoc quality            |
-| 10  | **Add CI/CD lint enforcement** — GitHub Actions with `golangci-lint`                | High   | 1h     | Prevent regression       |
+| #  | Task                                                                                | Impact | Effort | Rationale                |
+| -- | ----------------------------------------------------------------------------------- | ------ | ------ | ------------------------ |
+| 6  | **Move LoginRedirect to per-App** — Eliminate `defaultLoginRedirect` global         | High   | 1h     | Race condition risk      |
+| 7  | **Move NotificationEvent to per-App** — Eliminate `DefaultNotificationEvent` global | High   | 1h     | Race condition risk      |
+| 8  | **Extract Casbin interface** — `Enforcer` interface with `Enforce(...)`             | Medium | 2h     | Testability + decoupling |
+| 9  | **Add godoc examples** — `SwapStrategy`, `Config`, `Response`, `HTMXRequest`        | Medium | 2h     | GoDoc quality            |
+| 10 | **Add CI/CD lint enforcement** — GitHub Actions with `golangci-lint`                | High   | 1h     | Prevent regression       |
 
 ### Tier 3: Nice to Have — Do Eventually
 
-| #   | Task                                                                                | Impact | Effort | Rationale                  |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ | -------------------------- |
-| 11  | **Add dispatch lifecycle hooks** — `OnBeforeDispatch`/`OnAfterDispatch`             | High   | 3h     | Observability              |
-| 12  | **Add JSON error response option** — Alternative to plain text                      | Medium | 1h     | API flexibility            |
-| 13  | **Add correlation ID propagation** — `WithCorrelationID`/`CorrelationIDFromContext` | Medium | 2h     | Distributed tracing        |
-| 14  | **Extract test builder** — Reduce boilerplate across test files                     | Low    | 2h     | Maintainability            |
-| 15  | **Add benchmark tests** — `MapError`, `parseHTMXRequest`, `HTMXMiddleware`          | Medium | 1h     | Performance baseline       |
-| 16  | **Create CONTRIBUTING.md** — Document conventions                                   | Low    | 1h     | Open source readiness      |
-| 17  | **Document `.golangci.yml` decisions** — Inline comments                            | Low    | 15min  | Config readability         |
-| 18  | **Review `sync.Once` race conditions** — Verify concurrent first-call safety        | Medium | 30min  | Correctness                |
-| 19  | **Add pre-commit hook** — `golangci-lint run` + `go test`                           | Low    | 30min  | Developer experience       |
-| 20  | **Fix LSP stale cache** — Investigate why exclusions aren't picked up               | Low    | 1h     | DX: removes false warnings |
+| #  | Task                                                                                | Impact | Effort | Rationale                  |
+| -- | ----------------------------------------------------------------------------------- | ------ | ------ | -------------------------- |
+| 11 | **Add dispatch lifecycle hooks** — `OnBeforeDispatch`/`OnAfterDispatch`             | High   | 3h     | Observability              |
+| 12 | **Add JSON error response option** — Alternative to plain text                      | Medium | 1h     | API flexibility            |
+| 13 | **Add correlation ID propagation** — `WithCorrelationID`/`CorrelationIDFromContext` | Medium | 2h     | Distributed tracing        |
+| 14 | **Extract test builder** — Reduce boilerplate across test files                     | Low    | 2h     | Maintainability            |
+| 15 | **Add benchmark tests** — `MapError`, `parseHTMXRequest`, `HTMXMiddleware`          | Medium | 1h     | Performance baseline       |
+| 16 | **Create CONTRIBUTING.md** — Document conventions                                   | Low    | 1h     | Open source readiness      |
+| 17 | **Document `.golangci.yml` decisions** — Inline comments                            | Low    | 15min  | Config readability         |
+| 18 | **Review `sync.Once` race conditions** — Verify concurrent first-call safety        | Medium | 30min  | Correctness                |
+| 19 | **Add pre-commit hook** — `golangci-lint run` + `go test`                           | Low    | 30min  | Developer experience       |
+| 20 | **Fix LSP stale cache** — Investigate why exclusions aren't picked up               | Low    | 1h     | DX: removes false warnings |
 
 ### Tier 4: Future — Consider for v2
 
-| #   | Task                                                                            | Impact | Effort | Rationale            |
-| --- | ------------------------------------------------------------------------------- | ------ | ------ | -------------------- |
-| 21  | **Add timeout propagation** — Context deadlines for dispatch                    | Medium | 2h     | Production hardening |
-| 22  | **Add request validation middleware** — Schema validation in decode pipeline    | Medium | 3h     | Consumer convenience |
-| 23  | **Refactor `handlerConfig`** — Split auth/response/decoder into focused structs | Low    | 3h     | Clarity              |
-| 24  | **Add `SwapStrategy` type-safe enum** — Sealed interface pattern                | Low    | 1h     | Type safety          |
-| 25  | **Consider functional options for `Config`** — Replace optional struct fields   | Low    | 2h     | Builder pattern      |
+| #  | Task                                                                            | Impact | Effort | Rationale            |
+| -- | ------------------------------------------------------------------------------- | ------ | ------ | -------------------- |
+| 21 | **Add timeout propagation** — Context deadlines for dispatch                    | Medium | 2h     | Production hardening |
+| 22 | **Add request validation middleware** — Schema validation in decode pipeline    | Medium | 3h     | Consumer convenience |
+| 23 | **Refactor `handlerConfig`** — Split auth/response/decoder into focused structs | Low    | 3h     | Clarity              |
+| 24 | **Add `SwapStrategy` type-safe enum** — Sealed interface pattern                | Low    | 1h     | Type safety          |
+| 25 | **Consider functional options for `Config`** — Replace optional struct fields   | Low    | 2h     | Builder pattern      |
 
 ---
 

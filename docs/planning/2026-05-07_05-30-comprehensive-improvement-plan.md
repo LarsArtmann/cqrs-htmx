@@ -6,41 +6,41 @@
 
 ### 1% → 51% Impact (Do First)
 
-| #   | Task                                             | Impact             | Effort | File         |
-| --- | ------------------------------------------------ | ------------------ | ------ | ------------ |
-| 1   | Fix XSS in DefaultErrorHandler                   | Security           | 15min  | `errors.go`  |
-| 2   | Remove dead empty-block in handleCommandDispatch | Correctness        | 5min   | `handler.go` |
-| 3   | Wrap decodeFormValues errors                     | Error traceability | 10min  | `options.go` |
-| 4   | Reduce handleCommandDispatch complexity to ≤10   | Maintainability    | 20min  | `handler.go` |
+| # | Task                                             | Impact             | Effort | File         |
+| - | ------------------------------------------------ | ------------------ | ------ | ------------ |
+| 1 | Fix XSS in DefaultErrorHandler                   | Security           | 15min  | `errors.go`  |
+| 2 | Remove dead empty-block in handleCommandDispatch | Correctness        | 5min   | `handler.go` |
+| 3 | Wrap decodeFormValues errors                     | Error traceability | 10min  | `options.go` |
+| 4 | Reduce handleCommandDispatch complexity to ≤10   | Maintainability    | 20min  | `handler.go` |
 
 ### 4% → 64% Impact (Do Second)
 
-| #   | Task                                           | Impact       | Effort | File                               |
-| --- | ---------------------------------------------- | ------------ | ------ | ---------------------------------- |
-| 5   | Add nolint directives for intentional patterns | Lint hygiene | 10min  | `app.go`, `errors.go`, `notify.go` |
-| 6   | Extract `"true"` string constant in htmx.go    | Code quality | 5min   | `htmx.go`                          |
-| 7   | Add SwapStrategy doc comment                   | Lint hygiene | 5min   | `htmx.go`                          |
-| 8   | Deduplicate notification test boilerplate      | Test quality | 15min  | `coverage_test.go`                 |
+| # | Task                                           | Impact       | Effort | File                               |
+| - | ---------------------------------------------- | ------------ | ------ | ---------------------------------- |
+| 5 | Add nolint directives for intentional patterns | Lint hygiene | 10min  | `app.go`, `errors.go`, `notify.go` |
+| 6 | Extract `"true"` string constant in htmx.go    | Code quality | 5min   | `htmx.go`                          |
+| 7 | Add SwapStrategy doc comment                   | Lint hygiene | 5min   | `htmx.go`                          |
+| 8 | Deduplicate notification test boilerplate      | Test quality | 15min  | `coverage_test.go`                 |
 
 ### 20% → 80% Impact (Do Third)
 
-| #   | Task                                     | Impact       | Effort | File(s)                                  |
-| --- | ---------------------------------------- | ------------ | ------ | ---------------------------------------- |
-| 9   | Move LoginRedirect to per-App config     | Architecture | 30min  | `app.go`, `errors.go`, `response.go`     |
-| 10  | Move NotificationEvent to per-App config | Architecture | 30min  | `notify.go`, `response.go`, `options.go` |
-| 11  | Extract Casbin interface for testability | Architecture | 20min  | `authz.go`                               |
-| 12  | Add BDD tests for user-facing scenarios  | Testing      | 45min  | new `bdd_test.go`                        |
+| #  | Task                                     | Impact       | Effort | File(s)                                  |
+| -- | ---------------------------------------- | ------------ | ------ | ---------------------------------------- |
+| 9  | Move LoginRedirect to per-App config     | Architecture | 30min  | `app.go`, `errors.go`, `response.go`     |
+| 10 | Move NotificationEvent to per-App config | Architecture | 30min  | `notify.go`, `response.go`, `options.go` |
+| 11 | Extract Casbin interface for testability | Architecture | 20min  | `authz.go`                               |
+| 12 | Add BDD tests for user-facing scenarios  | Testing      | 45min  | new `bdd_test.go`                        |
 
 ### Remaining (Nice to Have)
 
-| #   | Task                              | Impact        | Effort | File(s)                       |
-| --- | --------------------------------- | ------------- | ------ | ----------------------------- |
-| 13  | Add dispatch lifecycle hooks      | Extensibility | 30min  | `options.go`, `handler.go`    |
-| 14  | Add request validation middleware | Features      | 60min  | new file                      |
-| 15  | Add observability/logging hooks   | Observability | 45min  | new file                      |
-| 16  | Add correlation ID propagation    | Tracing       | 30min  | `context.go`, `middleware.go` |
-| 17  | Add JSON error response option    | Features      | 20min  | `errors.go`                   |
-| 18  | Add timeout propagation           | Reliability   | 20min  | `handler.go`                  |
+| #  | Task                              | Impact        | Effort | File(s)                       |
+| -- | --------------------------------- | ------------- | ------ | ----------------------------- |
+| 13 | Add dispatch lifecycle hooks      | Extensibility | 30min  | `options.go`, `handler.go`    |
+| 14 | Add request validation middleware | Features      | 60min  | new file                      |
+| 15 | Add observability/logging hooks   | Observability | 45min  | new file                      |
+| 16 | Add correlation ID propagation    | Tracing       | 30min  | `context.go`, `middleware.go` |
+| 17 | Add JSON error response option    | Features      | 20min  | `errors.go`                   |
+| 18 | Add timeout propagation           | Reliability   | 20min  | `handler.go`                  |
 
 ## D2 Execution Graph
 

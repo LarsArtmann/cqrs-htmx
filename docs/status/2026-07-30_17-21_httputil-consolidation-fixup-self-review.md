@@ -145,38 +145,38 @@ I verified `go.mod` doesn't list nosurf directly (it's indirect via httputil), b
 
 ## f) Up to 50 Things to Get Done Next
 
-| #   | Task                                                                   | Priority | Effort |
-| --- | ---------------------------------------------------------------------- | -------- | ------ |
-| 1   | Publish httputil v0.8.0 tag                                            | CRITICAL | 2 min  |
-| 2   | Bump cqrs-htmx go.mod to httputil v0.8.0                               | CRITICAL | 2 min  |
-| 3   | Remove go.work replace for httputil                                    | CRITICAL | 1 min  |
-| 4   | Run `nix run .#test` on cqrs-htmx (verify after tag)                   | CRITICAL | 10 min |
-| 5   | Run `nix run .#coverage-gate` on cqrs-htmx                             | CRITICAL | 10 min |
-| 6   | Run `go mod tidy` on cqrs-htmx root                                    | HIGH     | 2 min  |
-| 7   | Run `go mod tidy` on httputil                                          | HIGH     | 1 min  |
-| 8   | Push httputil to origin                                                | HIGH     | 2 min  |
-| 9   | Push cqrs-htmx to origin                                               | HIGH     | 2 min  |
-| 10  | Review `nix fmt` diff on cqrs-htmx (26 files formatted)                | HIGH     | 10 min |
-| 11  | Add pre-commit lint hook (golangci-lint on changed files)              | HIGH     | 20 min |
-| 12  | Consolidate `delegatingWriter` and `responseWrapper` in httputil       | MEDIUM   | 30 min |
-| 13  | Deduplicate `contentTypePlain` constant (export from httputil)         | MEDIUM   | 5 min  |
-| 14  | Replace HTMX header string literals with `http.CanonicalHeaderKey`     | MEDIUM   | 30 min |
-| 15  | Add type-identity integration test (cqrs-htmx re-exports ARE httputil) | MEDIUM   | 10 min |
-| 16  | Add ADR for the httputil consolidation decision                        | MEDIUM   | 15 min |
-| 17  | Add CSRF TrustedProxies integration test in httputil                   | MEDIUM   | 15 min |
-| 18  | Write slim smoke tests for CSRFProtect in cqrs-htmx (if coverage gap)  | MEDIUM   | 12 min |
-| 19  | Update cqrs-htmx TODO_LIST.md (add consolidation follow-ups)           | MEDIUM   | 5 min  |
-| 20  | Consider: fold `TokenBucketLimiter` into `KeyedRateLimiter` (v1)       | LOW      | 30 min |
-| 21  | Consider: export `delegatingWriter` from httputil                      | LOW      | 5 min  |
-| 22  | Consider: extract `WrapServerTiming` as a general `Wrap` pattern       | LOW      | 10 min |
-| 23  | Add Server-Timing benchmark through Chain in httputil                  | LOW      | 10 min |
-| 24  | Update docs/guides/csrf-trusted-proxies.md if stale                    | LOW      | 5 min  |
-| 25  | Review all `//nolint:` directives in ported httputil code              | LOW      | 10 min |
-| 26  | Verify httputil coverage gate for new files (csrf, server_timing)      | LOW      | 10 min |
-| 27  | Check if `golang.org/x/time` can be fully removed from cqrs-htmx       | LOW      | 5 min  |
-| 28  | Consider: httputil `Chain` vs cqrs-htmx `Chain` consolidation          | LOW      | 5 min  |
-| 29  | Update cqrs-htmx flake.nix coverage thresholds if needed               | LOW      | 5 min  |
-| 30  | Celebrate — 2 deps removed, 3 features consolidated, 1293 LOC pruned   | DONE     | 0 min  |
+| #  | Task                                                                   | Priority | Effort |
+| -- | ---------------------------------------------------------------------- | -------- | ------ |
+| 1  | Publish httputil v0.8.0 tag                                            | CRITICAL | 2 min  |
+| 2  | Bump cqrs-htmx go.mod to httputil v0.8.0                               | CRITICAL | 2 min  |
+| 3  | Remove go.work replace for httputil                                    | CRITICAL | 1 min  |
+| 4  | Run `nix run .#test` on cqrs-htmx (verify after tag)                   | CRITICAL | 10 min |
+| 5  | Run `nix run .#coverage-gate` on cqrs-htmx                             | CRITICAL | 10 min |
+| 6  | Run `go mod tidy` on cqrs-htmx root                                    | HIGH     | 2 min  |
+| 7  | Run `go mod tidy` on httputil                                          | HIGH     | 1 min  |
+| 8  | Push httputil to origin                                                | HIGH     | 2 min  |
+| 9  | Push cqrs-htmx to origin                                               | HIGH     | 2 min  |
+| 10 | Review `nix fmt` diff on cqrs-htmx (26 files formatted)                | HIGH     | 10 min |
+| 11 | Add pre-commit lint hook (golangci-lint on changed files)              | HIGH     | 20 min |
+| 12 | Consolidate `delegatingWriter` and `responseWrapper` in httputil       | MEDIUM   | 30 min |
+| 13 | Deduplicate `contentTypePlain` constant (export from httputil)         | MEDIUM   | 5 min  |
+| 14 | Replace HTMX header string literals with `http.CanonicalHeaderKey`     | MEDIUM   | 30 min |
+| 15 | Add type-identity integration test (cqrs-htmx re-exports ARE httputil) | MEDIUM   | 10 min |
+| 16 | Add ADR for the httputil consolidation decision                        | MEDIUM   | 15 min |
+| 17 | Add CSRF TrustedProxies integration test in httputil                   | MEDIUM   | 15 min |
+| 18 | Write slim smoke tests for CSRFProtect in cqrs-htmx (if coverage gap)  | MEDIUM   | 12 min |
+| 19 | Update cqrs-htmx TODO_LIST.md (add consolidation follow-ups)           | MEDIUM   | 5 min  |
+| 20 | Consider: fold `TokenBucketLimiter` into `KeyedRateLimiter` (v1)       | LOW      | 30 min |
+| 21 | Consider: export `delegatingWriter` from httputil                      | LOW      | 5 min  |
+| 22 | Consider: extract `WrapServerTiming` as a general `Wrap` pattern       | LOW      | 10 min |
+| 23 | Add Server-Timing benchmark through Chain in httputil                  | LOW      | 10 min |
+| 24 | Update docs/guides/csrf-trusted-proxies.md if stale                    | LOW      | 5 min  |
+| 25 | Review all `//nolint:` directives in ported httputil code              | LOW      | 10 min |
+| 26 | Verify httputil coverage gate for new files (csrf, server_timing)      | LOW      | 10 min |
+| 27 | Check if `golang.org/x/time` can be fully removed from cqrs-htmx       | LOW      | 5 min  |
+| 28 | Consider: httputil `Chain` vs cqrs-htmx `Chain` consolidation          | LOW      | 5 min  |
+| 29 | Update cqrs-htmx flake.nix coverage thresholds if needed               | LOW      | 5 min  |
+| 30 | Celebrate — 2 deps removed, 3 features consolidated, 1293 LOC pruned   | DONE     | 0 min  |
 
 ---
 

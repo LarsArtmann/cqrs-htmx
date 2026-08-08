@@ -73,14 +73,14 @@ go-sse explicitly has Datastar wire-format support:
 
 | go-sse helper                  | Purpose                          | Datastar use case                                              |
 | ------------------------------ | -------------------------------- | -------------------------------------------------------------- |
-| `KeyedLines(key, value)`       | Prefixes each line with `key `   | `data: elements <div>` / `data: selector #foo`                 |
+| `KeyedLines(key, value)`       | Prefixes each line with `key`    | `data: elements <div>` / `data: selector #foo`                 |
 | `SendKeyed(event, key, value)` | Single-key SSE event             | `datastar-patch-signals` with `signals {...}`                  |
 | `SendLines(event, lines...)`   | Multi-line data event            | Full `datastar-patch-elements` with selector + mode + elements |
 | `WriteKeyedLines`              | Wire-only single-key convenience | Direct `WriteEvent` usage                                      |
 
 go-sse's AGENTS.md literally says (I read this!):
 
-> `KeyedLines` (event.go) prefixes each line of a multi-line value with `key `, producing the newline-joined string for `Event.Data`. This is the building block for keyed-data-line protocols like **DataStar**.
+> `KeyedLines` (event.go) prefixes each line of a multi-line value with `key`, producing the newline-joined string for `Event.Data`. This is the building block for keyed-data-line protocols like **DataStar**.
 
 And:
 
@@ -95,7 +95,6 @@ event: datastar-patch-elements
 data: selector #foo
 data: mode inner
 data: elements <div>...</div>
-
 ```
 
 **What go-sse can produce:**

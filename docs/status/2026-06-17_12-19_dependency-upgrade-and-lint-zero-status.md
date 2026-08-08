@@ -175,48 +175,48 @@ Sorted by impact × effort ratio (highest first):
 
 ### Tier 1: High Impact, Low Effort (do now)
 
-| #   | Item                                                                | Impact | Effort |
-| --- | ------------------------------------------------------------------- | ------ | ------ |
-| 1   | **Tag v2.4.0 release** — create git tag matching go.mod             | High   | 5 min  |
-| 2   | **Refresh ROADMAP.md** — update versions, coverage, dependency list | Medium | 10 min |
-| 3   | **Refresh TODO_LIST.md** — mark completed items, update header      | Medium | 10 min |
-| 4   | **Write ADR 0007** — document v2.4.0 upgrade decisions              | Medium | 15 min |
-| 5   | **Update DOMAIN_LANGUAGE.md** — add event-sourcing terms            | Medium | 20 min |
+| # | Item                                                                | Impact | Effort |
+| - | ------------------------------------------------------------------- | ------ | ------ |
+| 1 | **Tag v2.4.0 release** — create git tag matching go.mod             | High   | 5 min  |
+| 2 | **Refresh ROADMAP.md** — update versions, coverage, dependency list | Medium | 10 min |
+| 3 | **Refresh TODO_LIST.md** — mark completed items, update header      | Medium | 10 min |
+| 4 | **Write ADR 0007** — document v2.4.0 upgrade decisions              | Medium | 15 min |
+| 5 | **Update DOMAIN_LANGUAGE.md** — add event-sourcing terms            | Medium | 20 min |
 
 ### Tier 2: High Impact, Medium Effort
 
-| #   | Item                                                                                | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------- | ------ | ------ |
-| 6   | **Fuzz tests for decoder.go** — `FuzzDecodeJSON`, `FuzzDecodeForm`                  | High   | 1h     |
-| 7   | **Fuzz tests for sse_event.go** — `FuzzWriteSSEEvent`, `FuzzParseSSE`               | High   | 1h     |
-| 8   | **Fuzz tests for ws.go** — `FuzzParseWSMessage`, `FuzzParseWSMessageInto`           | High   | 1h     |
-| 9   | **Use `event.Compose` in RegisterRequest.Validate** — replace manual `strings.Join` | Low    | 15 min |
-| 10  | **Improve usermgmt coverage to 90%+** — focus on HTTP handler error paths           | High   | 2-3h   |
-| 11  | **Brand `Email` type** — `type Email = brandid.ID[emailBrand, string]`              | Medium | 30 min |
-| 12  | **Replace `HandlerConfig.Secure *bool` with enum** — clearer intent                 | Medium | 30 min |
+| #  | Item                                                                                | Impact | Effort |
+| -- | ----------------------------------------------------------------------------------- | ------ | ------ |
+| 6  | **Fuzz tests for decoder.go** — `FuzzDecodeJSON`, `FuzzDecodeForm`                  | High   | 1h     |
+| 7  | **Fuzz tests for sse_event.go** — `FuzzWriteSSEEvent`, `FuzzParseSSE`               | High   | 1h     |
+| 8  | **Fuzz tests for ws.go** — `FuzzParseWSMessage`, `FuzzParseWSMessageInto`           | High   | 1h     |
+| 9  | **Use `event.Compose` in RegisterRequest.Validate** — replace manual `strings.Join` | Low    | 15 min |
+| 10 | **Improve usermgmt coverage to 90%+** — focus on HTTP handler error paths           | High   | 2-3h   |
+| 11 | **Brand `Email` type** — `type Email = brandid.ID[emailBrand, string]`              | Medium | 30 min |
+| 12 | **Replace `HandlerConfig.Secure *bool` with enum** — clearer intent                 | Medium | 30 min |
 
 ### Tier 3: Medium Impact, Medium Effort
 
-| #   | Item                                                               | Impact | Effort   |
-| --- | ------------------------------------------------------------------ | ------ | -------- |
-| 13  | **PostgreSQL event store** — persistent storage for User aggregate | High   | 1-2 days |
-| 14  | **PostgreSQL session store** — `SessionStore` interface impl       | High   | 4h       |
-| 15  | **OpenTelemetry tracing middleware** — via lifecycle hooks         | Medium | 4h       |
-| 16  | **Integration test expansion** — more cross-module bridges         | Medium | 2-3h     |
-| 17  | **Profile dispatch + decode hot paths** — allocation reduction     | Medium | 2h       |
-| 18  | **Prometheus metrics middleware** — dispatch latency, error rates  | Medium | 3h       |
+| #  | Item                                                               | Impact | Effort   |
+| -- | ------------------------------------------------------------------ | ------ | -------- |
+| 13 | **PostgreSQL event store** — persistent storage for User aggregate | High   | 1-2 days |
+| 14 | **PostgreSQL session store** — `SessionStore` interface impl       | High   | 4h       |
+| 15 | **OpenTelemetry tracing middleware** — via lifecycle hooks         | Medium | 4h       |
+| 16 | **Integration test expansion** — more cross-module bridges         | Medium | 2-3h     |
+| 17 | **Profile dispatch + decode hot paths** — allocation reduction     | Medium | 2h       |
+| 18 | **Prometheus metrics middleware** — dispatch latency, error rates  | Medium | 3h       |
 
 ### Tier 4: Lower Priority / Future
 
-| #   | Item                                                                                       | Impact | Effort   |
-| --- | ------------------------------------------------------------------------------------------ | ------ | -------- |
-| 19  | **Redis session store** — distributed deployments                                          | Medium | 4h       |
-| 20  | **JWT/OIDC integration helpers** — auth beyond WebAuthn                                    | Medium | 1 day    |
-| 21  | **Database migration tooling** — goose/golang-migrate integration                          | Medium | 4h       |
-| 22  | **Casbin enforcer interface extraction** — decouple from concrete type                     | Low    | 2h       |
-| 23  | **Benchmark CI regression tracking** — automated perf gates                                | Low    | 2h       |
-| 24  | **Godoc runnable examples** — package-level `Example*` functions                           | Low    | 2h       |
-| 25  | **Explore go-cqrs-lite reactive APIs** — `NewCommandBus`/`NewQueryBus` for event streaming | Low    | Research |
+| #  | Item                                                                                       | Impact | Effort   |
+| -- | ------------------------------------------------------------------------------------------ | ------ | -------- |
+| 19 | **Redis session store** — distributed deployments                                          | Medium | 4h       |
+| 20 | **JWT/OIDC integration helpers** — auth beyond WebAuthn                                    | Medium | 1 day    |
+| 21 | **Database migration tooling** — goose/golang-migrate integration                          | Medium | 4h       |
+| 22 | **Casbin enforcer interface extraction** — decouple from concrete type                     | Low    | 2h       |
+| 23 | **Benchmark CI regression tracking** — automated perf gates                                | Low    | 2h       |
+| 24 | **Godoc runnable examples** — package-level `Example*` functions                           | Low    | 2h       |
+| 25 | **Explore go-cqrs-lite reactive APIs** — `NewCommandBus`/`NewQueryBus` for event streaming | Low    | Research |
 
 ---
 

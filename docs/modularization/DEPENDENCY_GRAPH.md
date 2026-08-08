@@ -44,27 +44,27 @@ github.com/larsartmann/cqrs-htmx/examples/datastar-demo
 ## Cross-Module Dependency DAG
 
 ```
-                    ┌───────────────────┐
-                    │   External Deps   │
-                    │  (go-cqrs-lite,   │
-                    │   casbin, etc.)   │
-                    └────────┬──────────┘
-                             │
-              ┌──────────────┼──────────────┐
-              │              │              │
-         ┌────┴────┐   ┌────┴────┐   ┌─────┴──────┐
-         │  root   │   │usermgmt │   │datastar-   │
-         │ (1 pkg) │   │ (1 pkg) │   │  demo      │
-         │21 files │   │10 files │   │ (standalone│
-         └────┬────┘   └────┬────┘   │  example)  │
-              │              │        └────────────┘
-              └──────┬───────┘
-                     │
-              ┌──────┴──────┐
-              │integration_ │
-              │   test      │
-              │ (bridge)    │
-              └─────────────┘
+           ┌───────────────────┐
+           │   External Deps   │
+           │  (go-cqrs-lite,   │
+           │   casbin, etc.)   │
+           └────────┬──────────┘
+                    │
+     ┌──────────────┼──────────────┐
+     │              │              │
+┌────┴────┐   ┌────┴────┐   ┌─────┴──────┐
+│  root   │   │usermgmt │   │datastar-   │
+│ (1 pkg) │   │ (1 pkg) │   │  demo      │
+│21 files │   │10 files │   │ (standalone│
+└────┬────┘   └────┬────┘   │  example)  │
+     │              │        └────────────┘
+     └──────┬───────┘
+            │
+     ┌──────┴──────┐
+     │integration_ │
+     │   test      │
+     │ (bridge)    │
+     └─────────────┘
 ```
 
 **Key property:** root ↔ usermgmt have **zero mutual imports**. Clean DAG.

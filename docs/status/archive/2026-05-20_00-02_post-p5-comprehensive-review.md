@@ -138,33 +138,33 @@ Nothing is fucked up. The codebase compiles, tests pass, lint is clean. The issu
 
 ## F) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                           | Impact   | Effort | Category      |
-| --- | -------------------------------------------------------------- | -------- | ------ | ------------- |
-| 1   | Fix `sanitizeRedirectURL("/")` bug                             | Critical | 5min   | Bug fix       |
-| 2   | Split `csrf.go` → `csrf.go` + `csrf_handler.go`                | High     | 10min  | File size     |
-| 3   | `RateLimiterConfig.Limit/Burst/MaxKeys` → `uint`               | High     | 10min  | Type safety   |
-| 4   | `LockoutConfig.MaxAttempts` → `uint`                           | High     | 5min   | Type safety   |
-| 5   | Introduce `type Role string` in usermgmt + use everywhere      | High     | 15min  | Type safety   |
-| 6   | Add tests for 7 untested authz functions                       | High     | 30min  | Test coverage |
-| 7   | Add test for `usermgmt/user.go:SetPassword`                    | Medium   | 5min   | Test coverage |
-| 8   | Add test for `usermgmt/store.go:WithTTL`                       | Medium   | 5min   | Test coverage |
-| 9   | Extract `newStatusRecorder(w)` helper                          | Low      | 5min   | Dedup         |
-| 10  | Fix `RenderPartial` split brain (function delegates to method) | Low      | 5min   | Dedup         |
-| 11  | Extract shared auth subject extraction (authz.go)              | Medium   | 15min  | Dedup         |
-| 12  | Rename `RotateCSRFToken` → `InvalidateCSRFCookie`              | Low      | 3min   | Naming        |
-| 13  | Rename `AuthHandlers` → `AuthHandler`                          | Low      | 3min   | Naming        |
-| 14  | Rename `GroupPolicy.User` → `GroupPolicy.Subject`              | Medium   | 5min   | Naming        |
-| 15  | Rename `EnforceResult.MatchedRule` → `MatchedRules`            | Low      | 2min   | Naming        |
-| 16  | Rename `SessionMiddleware` → `NewSessionMiddleware`            | Low      | 2min   | Naming        |
-| 17  | Extract `minPasswordLength` constant                           | Low      | 3min   | Magic number  |
-| 18  | Fix `UpdatedAt` ownership (store owns it, not domain methods)  | Medium   | 10min  | Architecture  |
-| 19  | Consolidate session TTL (single source of truth)               | Medium   | 10min  | Architecture  |
-| 20  | Document `Trigger` + `TriggerWithDetail` incompatibility       | Low      | 5min   | Docs          |
-| 21  | Consider `GroupPolicy.User` type as `UserID` not `string`      | Medium   | 5min   | Type safety   |
-| 22  | Fix `hasNoExplicitBody()` to check `c.render`                  | Low      | 5min   | Correctness   |
-| 23  | Add `http.Pusher` to `statusRecorder`                          | Low      | 5min   | HTTP/2 compat |
-| 24  | Document `readBody` unlimited behavior when `maxBodySize <= 0` | Low      | 3min   | Docs          |
-| 25  | Consider removing `executeCSRFValidation` httptest dependency  | Low      | 15min  | Architecture  |
+| #  | Task                                                           | Impact   | Effort | Category      |
+| -- | -------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Fix `sanitizeRedirectURL("/")` bug                             | Critical | 5min   | Bug fix       |
+| 2  | Split `csrf.go` → `csrf.go` + `csrf_handler.go`                | High     | 10min  | File size     |
+| 3  | `RateLimiterConfig.Limit/Burst/MaxKeys` → `uint`               | High     | 10min  | Type safety   |
+| 4  | `LockoutConfig.MaxAttempts` → `uint`                           | High     | 5min   | Type safety   |
+| 5  | Introduce `type Role string` in usermgmt + use everywhere      | High     | 15min  | Type safety   |
+| 6  | Add tests for 7 untested authz functions                       | High     | 30min  | Test coverage |
+| 7  | Add test for `usermgmt/user.go:SetPassword`                    | Medium   | 5min   | Test coverage |
+| 8  | Add test for `usermgmt/store.go:WithTTL`                       | Medium   | 5min   | Test coverage |
+| 9  | Extract `newStatusRecorder(w)` helper                          | Low      | 5min   | Dedup         |
+| 10 | Fix `RenderPartial` split brain (function delegates to method) | Low      | 5min   | Dedup         |
+| 11 | Extract shared auth subject extraction (authz.go)              | Medium   | 15min  | Dedup         |
+| 12 | Rename `RotateCSRFToken` → `InvalidateCSRFCookie`              | Low      | 3min   | Naming        |
+| 13 | Rename `AuthHandlers` → `AuthHandler`                          | Low      | 3min   | Naming        |
+| 14 | Rename `GroupPolicy.User` → `GroupPolicy.Subject`              | Medium   | 5min   | Naming        |
+| 15 | Rename `EnforceResult.MatchedRule` → `MatchedRules`            | Low      | 2min   | Naming        |
+| 16 | Rename `SessionMiddleware` → `NewSessionMiddleware`            | Low      | 2min   | Naming        |
+| 17 | Extract `minPasswordLength` constant                           | Low      | 3min   | Magic number  |
+| 18 | Fix `UpdatedAt` ownership (store owns it, not domain methods)  | Medium   | 10min  | Architecture  |
+| 19 | Consolidate session TTL (single source of truth)               | Medium   | 10min  | Architecture  |
+| 20 | Document `Trigger` + `TriggerWithDetail` incompatibility       | Low      | 5min   | Docs          |
+| 21 | Consider `GroupPolicy.User` type as `UserID` not `string`      | Medium   | 5min   | Type safety   |
+| 22 | Fix `hasNoExplicitBody()` to check `c.render`                  | Low      | 5min   | Correctness   |
+| 23 | Add `http.Pusher` to `statusRecorder`                          | Low      | 5min   | HTTP/2 compat |
+| 24 | Document `readBody` unlimited behavior when `maxBodySize <= 0` | Low      | 3min   | Docs          |
+| 25 | Consider removing `executeCSRFValidation` httptest dependency  | Low      | 15min  | Architecture  |
 
 ---
 

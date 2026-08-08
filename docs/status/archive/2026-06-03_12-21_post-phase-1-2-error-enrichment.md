@@ -86,31 +86,31 @@
 
 ### Phase 3: Clarity (0/5)
 
-| #   | Task                                                    | Effort | Impact |
-| --- | ------------------------------------------------------- | ------ | ------ |
-| 1   | Collapse 6 error handlers to 1 with ErrorHandlerOptions | 60 min | Medium |
-| 2   | Remove PtrBool, use `new(bool)` everywhere              | 20 min | Low    |
-| 3   | Deduplicate RequestLogging/RequestLoggingSlog           | 45 min | Low    |
-| 4   | Remove ClientIP re-export (dead weight from httputil)   | 15 min | Low    |
-| 5   | Clean stale coverage files                              | 10 min | Low    |
+| # | Task                                                    | Effort | Impact |
+| - | ------------------------------------------------------- | ------ | ------ |
+| 1 | Collapse 6 error handlers to 1 with ErrorHandlerOptions | 60 min | Medium |
+| 2 | Remove PtrBool, use `new(bool)` everywhere              | 20 min | Low    |
+| 3 | Deduplicate RequestLogging/RequestLoggingSlog           | 45 min | Low    |
+| 4 | Remove ClientIP re-export (dead weight from httputil)   | 15 min | Low    |
+| 5 | Clean stale coverage files                              | 10 min | Low    |
 
 ### Phase 4: Power (0/5)
 
-| #   | Task                                                      | Effort | Impact |
-| --- | --------------------------------------------------------- | ------ | ------ |
-| 1   | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`) | 90 min | High   |
-| 2   | Add `PaginatedResult[T]` support                          | 45 min | Medium |
-| 3   | Add real integration HTTP tests                           | 90 min | High   |
-| 4   | Add middleware chaining integration test                  | 60 min | Medium |
-| 5   | Add OpenTelemetry via upstream middleware                 | 90 min | High   |
+| # | Task                                                      | Effort | Impact |
+| - | --------------------------------------------------------- | ------ | ------ |
+| 1 | Adopt v2 typed dispatch (`RegisterTyped`/`DispatchTyped`) | 90 min | High   |
+| 2 | Add `PaginatedResult[T]` support                          | 45 min | Medium |
+| 3 | Add real integration HTTP tests                           | 90 min | High   |
+| 4 | Add middleware chaining integration test                  | 60 min | Medium |
+| 5 | Add OpenTelemetry via upstream middleware                 | 90 min | High   |
 
 ### Phase 5: Future (0/3)
 
-| #   | Task                                         | Effort  | Impact |
-| --- | -------------------------------------------- | ------- | ------ |
-| 1   | Reactive event streams (EventBus + HTMX SSE) | 120 min | High   |
-| 2   | SQL UserStore backend (PostgreSQL)           | 240 min | High   |
-| 3   | Fix datastar-demo to use cqrs-htmx           | 120 min | Medium |
+| # | Task                                         | Effort  | Impact |
+| - | -------------------------------------------- | ------- | ------ |
+| 1 | Reactive event streams (EventBus + HTMX SSE) | 120 min | High   |
+| 2 | SQL UserStore backend (PostgreSQL)           | 240 min | High   |
+| 3 | Fix datastar-demo to use cqrs-htmx           | 120 min | Medium |
 
 ### Docs & Hygiene
 
@@ -178,33 +178,33 @@
 
 Sorted by impact × effort (Pareto):
 
-| #   | Task                                                               | Phase | Effort  | Impact       | Rationale                                                                   |
-| --- | ------------------------------------------------------------------ | ----- | ------- | ------------ | --------------------------------------------------------------------------- |
-| 1   | Add real integration HTTP test (register→login→command→query flow) | 4     | 90 min  | **Critical** | Highest-value test gap. Proves modules work together.                       |
-| 2   | Add middleware chaining integration test                           | 4     | 60 min  | **High**     | SessionMiddleware + ContextEnrichment + AuthorizeMiddleware chain untested. |
-| 3   | Collapse 6 error handlers to 1 with ErrorHandlerOptions            | 3     | 60 min  | **Medium**   | Reduces API surface from 6 functions to 1. Easier to understand.            |
-| 4   | Adopt v2 typed dispatch (`CommandTyped`/`QueryTyped`)              | 4     | 90 min  | **High**     | Eliminates manual type assertions. Type-safe consumer API.                  |
-| 5   | Refresh ROADMAP.md — mark Phase 1+2 done, update dates             | 3     | 20 min  | **Medium**   | Stale docs erode trust. Quick win.                                          |
-| 6   | Fix usermgmt README — real content, not placeholder                | 3     | 30 min  | **Medium**   | Professional presentation.                                                  |
-| 7   | Add usermgmt coverage for UpdateRoles error paths (86.4%→95%+)     | 4     | 30 min  | **High**     | Casbin failure paths untested.                                              |
-| 8   | Deduplicate RequestLogging/RequestLoggingSlog                      | 3     | 45 min  | **Low**      | Shared formatter eliminates ~50 lines of duplication.                       |
-| 9   | Remove PtrBool, use `new(bool)` everywhere                         | 3     | 20 min  | **Low**      | Go-idiomatic, removes helper function.                                      |
-| 10  | Remove ClientIP re-export from httputil.go                         | 3     | 15 min  | **Low**      | Dead indirection. Consumers import httputil directly.                       |
-| 11  | Fix datastar-demo to actually use cqrs-htmx                        | 5     | 120 min | **Medium**   | Currently misleading — standalone, not a library demo.                      |
-| 12  | Add `PaginatedResult[T]` support                                   | 4     | 45 min  | **Medium**   | Upstream provides it; easy integration.                                     |
-| 13  | Add OpenTelemetry via upstream middleware                          | 4     | 90 min  | **High**     | Production observability. Lifecycle hooks ready for it.                     |
-| 14  | Clean stale coverage files (usermgmt/cov.out, etc.)                | 3     | 10 min  | **Low**      | Repo hygiene.                                                               |
-| 15  | Investigate LSP stale warnings (events_test.go:154-156)            | 3     | 15 min  | **Low**      | 3 `unusedwrite` warnings in LSP only. Likely cache issue.                   |
-| 16  | Add usermgmt benchmarks for Login/ChangePassword hot paths         | 4     | 30 min  | **Medium**   | Only 3 benchmarks vs 18+ in root.                                           |
-| 17  | Archive stale docs/modularization/ (reference old v1.x)            | 3     | 10 min  | **Low**      | Misleading for anyone reading them.                                         |
-| 18  | Design CSRF TrustedProxies config                                  | 5     | 60 min  | **High**     | Security gap in proxy environments.                                         |
-| 19  | Expose reactive EventBus helper (HTMX SSE integration)             | 5     | 120 min | **High**     | Enables real-time UI updates.                                               |
-| 20  | Implement SQL UserStore (PostgreSQL)                               | 5     | 240 min | **High**     | In-memory only limits production use.                                       |
-| 21  | Add godoc package examples with runnable snippets                  | 4     | 60 min  | **Medium**   | Consumers need copy-paste examples.                                         |
-| 22  | Fix TriggerWithDetail non-determinism (sorted keys)                | 3     | 30 min  | **Low**      | Map iteration order causes flaky HX-Trigger headers.                        |
-| 23  | Update FEATURES.md coverage metrics                                | 3     | 10 min  | **Low**      | Dated 2026-05-27, coverage slightly changed.                                |
-| 24  | Add BrandNamer for root marker types                               | 4     | 30 min  | **Medium**   | Blocked on upstream — needs issue/PR to go-cqrs-lite.                       |
-| 25  | Tag v1.1.0 release                                                 | 5     | 30 min  | **Medium**   | Phase 1+2 done, library is stable enough for tagging.                       |
+| #  | Task                                                               | Phase | Effort  | Impact       | Rationale                                                                   |
+| -- | ------------------------------------------------------------------ | ----- | ------- | ------------ | --------------------------------------------------------------------------- |
+| 1  | Add real integration HTTP test (register→login→command→query flow) | 4     | 90 min  | **Critical** | Highest-value test gap. Proves modules work together.                       |
+| 2  | Add middleware chaining integration test                           | 4     | 60 min  | **High**     | SessionMiddleware + ContextEnrichment + AuthorizeMiddleware chain untested. |
+| 3  | Collapse 6 error handlers to 1 with ErrorHandlerOptions            | 3     | 60 min  | **Medium**   | Reduces API surface from 6 functions to 1. Easier to understand.            |
+| 4  | Adopt v2 typed dispatch (`CommandTyped`/`QueryTyped`)              | 4     | 90 min  | **High**     | Eliminates manual type assertions. Type-safe consumer API.                  |
+| 5  | Refresh ROADMAP.md — mark Phase 1+2 done, update dates             | 3     | 20 min  | **Medium**   | Stale docs erode trust. Quick win.                                          |
+| 6  | Fix usermgmt README — real content, not placeholder                | 3     | 30 min  | **Medium**   | Professional presentation.                                                  |
+| 7  | Add usermgmt coverage for UpdateRoles error paths (86.4%→95%+)     | 4     | 30 min  | **High**     | Casbin failure paths untested.                                              |
+| 8  | Deduplicate RequestLogging/RequestLoggingSlog                      | 3     | 45 min  | **Low**      | Shared formatter eliminates ~50 lines of duplication.                       |
+| 9  | Remove PtrBool, use `new(bool)` everywhere                         | 3     | 20 min  | **Low**      | Go-idiomatic, removes helper function.                                      |
+| 10 | Remove ClientIP re-export from httputil.go                         | 3     | 15 min  | **Low**      | Dead indirection. Consumers import httputil directly.                       |
+| 11 | Fix datastar-demo to actually use cqrs-htmx                        | 5     | 120 min | **Medium**   | Currently misleading — standalone, not a library demo.                      |
+| 12 | Add `PaginatedResult[T]` support                                   | 4     | 45 min  | **Medium**   | Upstream provides it; easy integration.                                     |
+| 13 | Add OpenTelemetry via upstream middleware                          | 4     | 90 min  | **High**     | Production observability. Lifecycle hooks ready for it.                     |
+| 14 | Clean stale coverage files (usermgmt/cov.out, etc.)                | 3     | 10 min  | **Low**      | Repo hygiene.                                                               |
+| 15 | Investigate LSP stale warnings (events_test.go:154-156)            | 3     | 15 min  | **Low**      | 3 `unusedwrite` warnings in LSP only. Likely cache issue.                   |
+| 16 | Add usermgmt benchmarks for Login/ChangePassword hot paths         | 4     | 30 min  | **Medium**   | Only 3 benchmarks vs 18+ in root.                                           |
+| 17 | Archive stale docs/modularization/ (reference old v1.x)            | 3     | 10 min  | **Low**      | Misleading for anyone reading them.                                         |
+| 18 | Design CSRF TrustedProxies config                                  | 5     | 60 min  | **High**     | Security gap in proxy environments.                                         |
+| 19 | Expose reactive EventBus helper (HTMX SSE integration)             | 5     | 120 min | **High**     | Enables real-time UI updates.                                               |
+| 20 | Implement SQL UserStore (PostgreSQL)                               | 5     | 240 min | **High**     | In-memory only limits production use.                                       |
+| 21 | Add godoc package examples with runnable snippets                  | 4     | 60 min  | **Medium**   | Consumers need copy-paste examples.                                         |
+| 22 | Fix TriggerWithDetail non-determinism (sorted keys)                | 3     | 30 min  | **Low**      | Map iteration order causes flaky HX-Trigger headers.                        |
+| 23 | Update FEATURES.md coverage metrics                                | 3     | 10 min  | **Low**      | Dated 2026-05-27, coverage slightly changed.                                |
+| 24 | Add BrandNamer for root marker types                               | 4     | 30 min  | **Medium**   | Blocked on upstream — needs issue/PR to go-cqrs-lite.                       |
+| 25 | Tag v1.1.0 release                                                 | 5     | 30 min  | **Medium**   | Phase 1+2 done, library is stable enough for tagging.                       |
 
 ---
 

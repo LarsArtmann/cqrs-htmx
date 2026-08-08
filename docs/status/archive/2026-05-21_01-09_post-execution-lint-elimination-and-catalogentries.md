@@ -14,46 +14,46 @@ This session executed the top-priority items from the previous brutal self-revie
 
 ## a) FULLY DONE
 
-| #   | Item                                                        | Verification                                                        |
-| --- | ----------------------------------------------------------- | ------------------------------------------------------------------- |
-| 1   | **go-cqrs-lite/core v1.4.0 upgrade** (previous session)     | Build PASS, Tests PASS, committed (`606229a`)                       |
-| 2   | **go-branded-id v0.3.0 upgrade** (previous session)         | Build PASS, Tests PASS, committed (`606229a`)                       |
-| 3   | **Apply() error propagation fix** (previous session)        | Build PASS, Tests PASS, committed (`ac096cc`)                       |
-| 4   | **Breaking change analysis** (previous session)             | Zero impact confirmed across all `.String()` usage                  |
-| 5   | **`std/errors` → `cockroachdb/errors` in usermgmt/http.go** | Build PASS, Tests PASS                                              |
-| 6   | **All 7 lint warnings eliminated**                          | `golangci-lint run` → "0 issues"                                    |
-| 7   | **`CatalogEntries` exposure on App**                        | `CommandCatalogEntries()` + `QueryCatalogEntries()` with tests      |
-| 8   | **`newCommandApp` simplified**                              | Removed unused `opts` param and unused `*command.Dispatcher` return |
-| 9   | **`newPostJSONRequest` simplified**                         | Removed unused `path` parameter, hardcoded `/users`                 |
-| 10  | **Test request helpers use `NewRequestWithContext`**        | Both `newPostJSONRequest` and `newPostRequest` fixed                |
-| 11  | **`codes` slice preallocated in ratelimit_test**            | `make([]int, 0, requests)` replaces `var codes []int`               |
-| 12  | **gochecknoglobals exclusion for test fixture IDs**         | `.golangci.yml` exclusion rule added for `app_test.go`              |
-| 13  | **Nil context test suppressed**                             | `//nolint:staticcheck` for intentional nil-safety test              |
-| 14  | **AGENTS.md updated**                                       | New decisions, gotchas, and architecture entry updated              |
+| #  | Item                                                        | Verification                                                        |
+| -- | ----------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1  | **go-cqrs-lite/core v1.4.0 upgrade** (previous session)     | Build PASS, Tests PASS, committed (`606229a`)                       |
+| 2  | **go-branded-id v0.3.0 upgrade** (previous session)         | Build PASS, Tests PASS, committed (`606229a`)                       |
+| 3  | **Apply() error propagation fix** (previous session)        | Build PASS, Tests PASS, committed (`ac096cc`)                       |
+| 4  | **Breaking change analysis** (previous session)             | Zero impact confirmed across all `.String()` usage                  |
+| 5  | **`std/errors` → `cockroachdb/errors` in usermgmt/http.go** | Build PASS, Tests PASS                                              |
+| 6  | **All 7 lint warnings eliminated**                          | `golangci-lint run` → "0 issues"                                    |
+| 7  | **`CatalogEntries` exposure on App**                        | `CommandCatalogEntries()` + `QueryCatalogEntries()` with tests      |
+| 8  | **`newCommandApp` simplified**                              | Removed unused `opts` param and unused `*command.Dispatcher` return |
+| 9  | **`newPostJSONRequest` simplified**                         | Removed unused `path` parameter, hardcoded `/users`                 |
+| 10 | **Test request helpers use `NewRequestWithContext`**        | Both `newPostJSONRequest` and `newPostRequest` fixed                |
+| 11 | **`codes` slice preallocated in ratelimit_test**            | `make([]int, 0, requests)` replaces `var codes []int`               |
+| 12 | **gochecknoglobals exclusion for test fixture IDs**         | `.golangci.yml` exclusion rule added for `app_test.go`              |
+| 13 | **Nil context test suppressed**                             | `//nolint:staticcheck` for intentional nil-safety test              |
+| 14 | **AGENTS.md updated**                                       | New decisions, gotchas, and architecture entry updated              |
 
 ## b) PARTIALLY DONE
 
-| #   | Item                                          | What's Done                           | What's Missing                                                  |
-| --- | --------------------------------------------- | ------------------------------------- | --------------------------------------------------------------- |
-| 1   | **go-cqrs-lite v1.4.0 feature adoption**      | `CatalogDispatcher` exposed via `App` | `TypedHandler[T]`, `Publisher`/`Subscriber` ISP not yet adopted |
-| 2   | **go-branded-id v0.3.0 feature adoption**     | Dep upgraded, `.Get()` verified       | `BrandNamer`, `ValidateID` not yet adopted                      |
-| 3   | **Integration tests between root + usermgmt** | Nothing yet                           | Full E2E: register → login → dispatch with user context         |
+| # | Item                                          | What's Done                           | What's Missing                                                  |
+| - | --------------------------------------------- | ------------------------------------- | --------------------------------------------------------------- |
+| 1 | **go-cqrs-lite v1.4.0 feature adoption**      | `CatalogDispatcher` exposed via `App` | `TypedHandler[T]`, `Publisher`/`Subscriber` ISP not yet adopted |
+| 2 | **go-branded-id v0.3.0 feature adoption**     | Dep upgraded, `.Get()` verified       | `BrandNamer`, `ValidateID` not yet adopted                      |
+| 3 | **Integration tests between root + usermgmt** | Nothing yet                           | Full E2E: register → login → dispatch with user context         |
 
 ## c) NOT STARTED
 
-| #   | Item                                                                    | Priority |
-| --- | ----------------------------------------------------------------------- | -------- |
-| 1   | Root + usermgmt integration test (register → login → CQRS dispatch E2E) | P0       |
-| 2   | Adopt `TypedHandler[T]` for type-safe query dispatch                    | P1       |
-| 3   | Resolve `usermgmt.UserID` vs `cqrshtmx.UserID` type split               | P1       |
-| 4   | Validate CI pipeline with new dependency versions                       | P1       |
-| 5   | Make `CSRFConfig.Secure` default to `true` with runtime warning         | P2       |
-| 6   | Extract shared `errorStatus` → reuse root's error mapping               | P2       |
-| 7   | Make `Apply()` use Casbin batch methods for atomicity                   | P2       |
-| 8   | Adopt `BrandNamer` for root module marker types                         | P3       |
-| 9   | Adopt `ValidateID` from go-branded-id                                   | P3       |
-| 10  | Rate limiter eviction O(n) → min-heap                                   | P3       |
-| 11  | Dependabot vulnerability investigation (GitHub auth expired)            | P2       |
+| #  | Item                                                                    | Priority |
+| -- | ----------------------------------------------------------------------- | -------- |
+| 1  | Root + usermgmt integration test (register → login → CQRS dispatch E2E) | P0       |
+| 2  | Adopt `TypedHandler[T]` for type-safe query dispatch                    | P1       |
+| 3  | Resolve `usermgmt.UserID` vs `cqrshtmx.UserID` type split               | P1       |
+| 4  | Validate CI pipeline with new dependency versions                       | P1       |
+| 5  | Make `CSRFConfig.Secure` default to `true` with runtime warning         | P2       |
+| 6  | Extract shared `errorStatus` → reuse root's error mapping               | P2       |
+| 7  | Make `Apply()` use Casbin batch methods for atomicity                   | P2       |
+| 8  | Adopt `BrandNamer` for root module marker types                         | P3       |
+| 9  | Adopt `ValidateID` from go-branded-id                                   | P3       |
+| 10 | Rate limiter eviction O(n) → min-heap                                   | P3       |
+| 11 | Dependabot vulnerability investigation (GitHub auth expired)            | P2       |
 
 ## d) TOTALLY FUCKED UP
 
@@ -100,33 +100,33 @@ This session executed the top-priority items from the previous brutal self-revie
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Priority | Item                                                                              | Effort | Impact   |
-| --- | -------- | --------------------------------------------------------------------------------- | ------ | -------- |
-| 1   | **P0**   | **Integration test: root + usermgmt E2E flow (register → login → CQRS dispatch)** | M      | Critical |
-| 2   | **P1**   | **Adopt `TypedHandler[T]` for type-safe query dispatch**                          | M      | High     |
-| 3   | **P1**   | **Validate CI pipeline with new dependency versions**                             | S      | High     |
-| 4   | **P1**   | **Resolve `usermgmt.UserID` vs `cqrshtmx.UserID` type split**                     | M      | Medium   |
-| 5   | **P1**   | **Make `CSRFConfig.Secure` default to `true` with runtime warning**               | S      | Medium   |
-| 6   | **P2**   | **Extract shared `errorStatus` → reuse root's error mapping**                     | S      | Medium   |
-| 7   | **P2**   | **Make `Apply()` use Casbin batch methods for atomicity**                         | M      | Medium   |
-| 8   | **P2**   | **Test `policyWrapErr` paths (0% coverage)**                                      | S      | Medium   |
-| 9   | **P2**   | **Test `statusRecorder.Hijack()` (0% coverage)**                                  | S      | Low      |
-| 10  | **P2**   | **Investigate Dependabot vulnerabilities (re-auth GitHub CLI)**                   | S      | Medium   |
-| 11  | **P2**   | **Unify `RateLimiterConfig.Limit` signedness (uint vs int)**                      | S      | Low      |
-| 12  | **P2**   | **Add `context.Context` timeout to usermgmt HTTP handlers**                       | S      | Medium   |
-| 13  | **P2**   | **Test `sanitizeRedirectURL` error paths (75%)**                                  | S      | Low      |
-| 14  | **P2**   | **Test `sameSite()` CSRF helper (66.7%)**                                         | S      | Low      |
-| 15  | **P2**   | **Test `csrfTokenFromRequest` fallback path (66.7%)**                             | S      | Low      |
-| 16  | **P2**   | **Test `fieldName()` CSRF helper (66.7%)**                                        | S      | Low      |
-| 17  | **P2**   | **Usermgmt: test `handleLogout` (77.8%)**                                         | S      | Low      |
-| 18  | **P2**   | **Usermgmt: test `handleMe` (80%)**                                               | S      | Low      |
-| 19  | **P2**   | **Usermgmt: test `RolesForUser` error path (75%)**                                | S      | Low      |
-| 20  | **P3**   | **Adopt `BrandNamer` for root module marker types**                               | S      | Low      |
-| 21  | **P3**   | **Adopt `ValidateID` from go-branded-id**                                         | S      | Low      |
-| 22  | **P3**   | **Rate limiter eviction O(n) → min-heap**                                         | M      | Low      |
-| 23  | **P3**   | **Fuzz tests for CSRF token validation**                                          | M      | Low      |
-| 24  | **P3**   | **Adopt `Publisher`/`Subscriber` ISP from go-cqrs-lite v1.4.0**                   | S      | Low      |
-| 25  | **P3**   | **Consider `encoding/json/v2` for Go 1.25+**                                      | M      | Low      |
+| #  | Priority | Item                                                                              | Effort | Impact   |
+| -- | -------- | --------------------------------------------------------------------------------- | ------ | -------- |
+| 1  | **P0**   | **Integration test: root + usermgmt E2E flow (register → login → CQRS dispatch)** | M      | Critical |
+| 2  | **P1**   | **Adopt `TypedHandler[T]` for type-safe query dispatch**                          | M      | High     |
+| 3  | **P1**   | **Validate CI pipeline with new dependency versions**                             | S      | High     |
+| 4  | **P1**   | **Resolve `usermgmt.UserID` vs `cqrshtmx.UserID` type split**                     | M      | Medium   |
+| 5  | **P1**   | **Make `CSRFConfig.Secure` default to `true` with runtime warning**               | S      | Medium   |
+| 6  | **P2**   | **Extract shared `errorStatus` → reuse root's error mapping**                     | S      | Medium   |
+| 7  | **P2**   | **Make `Apply()` use Casbin batch methods for atomicity**                         | M      | Medium   |
+| 8  | **P2**   | **Test `policyWrapErr` paths (0% coverage)**                                      | S      | Medium   |
+| 9  | **P2**   | **Test `statusRecorder.Hijack()` (0% coverage)**                                  | S      | Low      |
+| 10 | **P2**   | **Investigate Dependabot vulnerabilities (re-auth GitHub CLI)**                   | S      | Medium   |
+| 11 | **P2**   | **Unify `RateLimiterConfig.Limit` signedness (uint vs int)**                      | S      | Low      |
+| 12 | **P2**   | **Add `context.Context` timeout to usermgmt HTTP handlers**                       | S      | Medium   |
+| 13 | **P2**   | **Test `sanitizeRedirectURL` error paths (75%)**                                  | S      | Low      |
+| 14 | **P2**   | **Test `sameSite()` CSRF helper (66.7%)**                                         | S      | Low      |
+| 15 | **P2**   | **Test `csrfTokenFromRequest` fallback path (66.7%)**                             | S      | Low      |
+| 16 | **P2**   | **Test `fieldName()` CSRF helper (66.7%)**                                        | S      | Low      |
+| 17 | **P2**   | **Usermgmt: test `handleLogout` (77.8%)**                                         | S      | Low      |
+| 18 | **P2**   | **Usermgmt: test `handleMe` (80%)**                                               | S      | Low      |
+| 19 | **P2**   | **Usermgmt: test `RolesForUser` error path (75%)**                                | S      | Low      |
+| 20 | **P3**   | **Adopt `BrandNamer` for root module marker types**                               | S      | Low      |
+| 21 | **P3**   | **Adopt `ValidateID` from go-branded-id**                                         | S      | Low      |
+| 22 | **P3**   | **Rate limiter eviction O(n) → min-heap**                                         | M      | Low      |
+| 23 | **P3**   | **Fuzz tests for CSRF token validation**                                          | M      | Low      |
+| 24 | **P3**   | **Adopt `Publisher`/`Subscriber` ISP from go-cqrs-lite v1.4.0**                   | S      | Low      |
+| 25 | **P3**   | **Consider `encoding/json/v2` for Go 1.25+**                                      | M      | Low      |
 
 ## g) Top #1 Question I Cannot Figure Out Myself
 

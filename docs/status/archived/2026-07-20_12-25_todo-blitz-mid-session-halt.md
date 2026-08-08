@@ -207,13 +207,13 @@
 
 ## Summary scorecard
 
-| #   | TODO                    | Status                                  | Files                | Tested           | Lint          | CHANGELOG  |
-| --- | ----------------------- | --------------------------------------- | -------------------- | ---------------- | ------------- | ---------- |
-| 1   | dedup.Ring 100K         | ✅ DONE                                 | 1                    | ✅               | ✅            | ❌ pending |
-| 2   | SSE load benchmarks     | ✅ DONE                                 | 2 (1 new, 1 trimmed) | ✅               | ✅            | ❌ pending |
-| 3   | Property sequence tests | ✅ DONE                                 | 3 (2 new, 1 edited)  | ✅               | ✅            | ❌ pending |
-| 4   | AdminUI OAuth2 unlink   | 🟡 90% (link intentionally skipped)     | 7                    | ✅               | ✅            | ❌ pending |
-| 5   | OpenAPI spec gen        | 🟡 75% (pkg done; root lint unverified) | 8 (6 new, 2 edited)  | ✅ pkg / ❌ root | ⚠️ unverified | ❌ pending |
+| # | TODO                    | Status                                  | Files                | Tested           | Lint         | CHANGELOG  |
+| - | ----------------------- | --------------------------------------- | -------------------- | ---------------- | ------------ | ---------- |
+| 1 | dedup.Ring 100K         | ✅ DONE                                 | 1                    | ✅               | ✅           | ❌ pending |
+| 2 | SSE load benchmarks     | ✅ DONE                                 | 2 (1 new, 1 trimmed) | ✅               | ✅           | ❌ pending |
+| 3 | Property sequence tests | ✅ DONE                                 | 3 (2 new, 1 edited)  | ✅               | ✅           | ❌ pending |
+| 4 | AdminUI OAuth2 unlink   | 🟡 90% (link intentionally skipped)     | 7                    | ✅               | ✅           | ❌ pending |
+| 5 | OpenAPI spec gen        | 🟡 75% (pkg done; root lint unverified) | 8 (6 new, 2 edited)  | ✅ pkg / ❌ root | ⚠️ unverified | ❌ pending |
 
 **Bottom line:** 3 solid wins, 2 nearly there. The biggest risk is that I halted BEFORE running the canonical `nix run .#lint` / `nix run .#test` gates — the IDE diagnostics are unreliable and I may have left a real lint failure in `options_openapi.go`. Resume there.
 

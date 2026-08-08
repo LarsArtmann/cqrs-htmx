@@ -119,33 +119,33 @@
 
 Sorted by impact ÷ effort.
 
-| #   | Task                                                                          | Repo | Effort | Impact   |
-| --- | ----------------------------------------------------------------------------- | ---- | ------ | -------- |
-| 1   | Tag v0.5.0 (post-v0.4.0 changes shipped but untagged)                         | T    | 5m     | **High** |
-| 2   | Move CSS variables from admin.css → tailwind.css `@theme` (single stylesheet) | C    | 20m    | **High** |
-| 3   | Pick `.dark` class dark-mode strategy, remove `prefers-color-scheme`          | C    | 15m    | **High** |
-| 4   | Add pre-release count-verification test (components ↔ README ↔ FEATURES)      | T    | 15m    | **High** |
-| 5   | Replace adminui badges with `display.Badge` component                         | C    | 20m    | Med      |
-| 6   | Replace adminui buttons with `display.Button` component                       | C    | 25m    | Med      |
-| 7   | Replace adminui cards with `display.Card` / `StatCard`                        | C    | 30m    | Med      |
-| 8   | Replace adminui tables with `display.Table` component                         | C    | 25m    | Med      |
-| 9   | Submit awesome-templ PR (entry content prepared)                              | T    | 10m    | Med      |
-| 10  | Submit templ.guide PR (entry content prepared)                                | T    | 10m    | Med      |
-| 11  | Add `Validate() error` as opt-in dev tool on 3 pilot components               | T    | 30m    | Med      |
-| 12  | Delete admin.css entirely (after tokens move to tailwind.css)                 | C    | 5m     | Med      |
-| 13  | Add Playwright E2E test for adminui (catch selector bugs)                     | C    | 45m    | **High** |
-| 14  | Adopt `forms.Input` in adminui (replaces raw `<input>` Tailwind classes)      | C    | 20m    | Low      |
-| 15  | Adopt `forms.Select` in adminui                                               | C    | 15m    | Low      |
-| 16  | Add `display.PageHeader` to adminui pages (consistent page titles)            | C    | 15m    | Low      |
-| 17  | Add `navigation.SidebarNav` to replace hand-built sidebar                     | C    | 25m    | Med      |
-| 18  | Add `display.EmptyState` to adminui empty states                              | C    | 10m    | Low      |
-| 19  | Expand demo to showcase remaining ~25 components                              | T    | 90m    | Low      |
-| 20  | Design shared identity module for ActorID (root + usermgmt)                   | C    | 60m    | Med      |
-| 21  | Add Email branded type to new (non-event) structs                             | C    | 20m    | Low      |
-| 22  | Write v1.0 API freeze document (formal ADR)                                   | T    | 30m    | Med      |
-| 23  | Add adminui handler test for admin-tw.css content (not just status code)      | C    | 10m    | Low      |
-| 24  | Create `CONTRIBUTING.md` section on "how to add a new component"              | T    | 20m    | Low      |
-| 25  | Evaluate `go-webauthn` fork for `*http.Request` removal                       | C    | 60m    | Med      |
+| #  | Task                                                                          | Repo | Effort | Impact   |
+| -- | ----------------------------------------------------------------------------- | ---- | ------ | -------- |
+| 1  | Tag v0.5.0 (post-v0.4.0 changes shipped but untagged)                         | T    | 5m     | **High** |
+| 2  | Move CSS variables from admin.css → tailwind.css `@theme` (single stylesheet) | C    | 20m    | **High** |
+| 3  | Pick `.dark` class dark-mode strategy, remove `prefers-color-scheme`          | C    | 15m    | **High** |
+| 4  | Add pre-release count-verification test (components ↔ README ↔ FEATURES)      | T    | 15m    | **High** |
+| 5  | Replace adminui badges with `display.Badge` component                         | C    | 20m    | Med      |
+| 6  | Replace adminui buttons with `display.Button` component                       | C    | 25m    | Med      |
+| 7  | Replace adminui cards with `display.Card` / `StatCard`                        | C    | 30m    | Med      |
+| 8  | Replace adminui tables with `display.Table` component                         | C    | 25m    | Med      |
+| 9  | Submit awesome-templ PR (entry content prepared)                              | T    | 10m    | Med      |
+| 10 | Submit templ.guide PR (entry content prepared)                                | T    | 10m    | Med      |
+| 11 | Add `Validate() error` as opt-in dev tool on 3 pilot components               | T    | 30m    | Med      |
+| 12 | Delete admin.css entirely (after tokens move to tailwind.css)                 | C    | 5m     | Med      |
+| 13 | Add Playwright E2E test for adminui (catch selector bugs)                     | C    | 45m    | **High** |
+| 14 | Adopt `forms.Input` in adminui (replaces raw `<input>` Tailwind classes)      | C    | 20m    | Low      |
+| 15 | Adopt `forms.Select` in adminui                                               | C    | 15m    | Low      |
+| 16 | Add `display.PageHeader` to adminui pages (consistent page titles)            | C    | 15m    | Low      |
+| 17 | Add `navigation.SidebarNav` to replace hand-built sidebar                     | C    | 25m    | Med      |
+| 18 | Add `display.EmptyState` to adminui empty states                              | C    | 10m    | Low      |
+| 19 | Expand demo to showcase remaining ~25 components                              | T    | 90m    | Low      |
+| 20 | Design shared identity module for ActorID (root + usermgmt)                   | C    | 60m    | Med      |
+| 21 | Add Email branded type to new (non-event) structs                             | C    | 20m    | Low      |
+| 22 | Write v1.0 API freeze document (formal ADR)                                   | T    | 30m    | Med      |
+| 23 | Add adminui handler test for admin-tw.css content (not just status code)      | C    | 10m    | Low      |
+| 24 | Create `CONTRIBUTING.md` section on "how to add a new component"              | T    | 20m    | Low      |
+| 25 | Evaluate `go-webauthn` fork for `*http.Request` removal                       | C    | 60m    | Med      |
 
 ---
 

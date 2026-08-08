@@ -23,55 +23,55 @@ All issues are now fixed. All 8 CI gates pass. The branch is pushed and ready fo
 
 ## a) FULLY DONE
 
-| #   | Item                                  | Evidence                                                                                                                |
-| --- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | **TOTP extraction**                   | `usermgmt/totp/v4` module, `TOTPProvider` interface, 3 tests (88.2% coverage).                                          |
-| 2   | **WebAuthn extraction**               | `usermgmt/webauthn/v4` module, all `[]byte` interface, session store rewritten. 31 tests (87.5%).                       |
-| 3   | **OAuth2 extraction**                 | `usermgmt/oauth2/v4` module, PKCE moved to provider. 18 tests (92.3%).                                                  |
-| 4   | **Module path bump /v3 → /v4**        | All 130+ files across 11 modules.                                                                                       |
-| 5   | **go.work updated**                   | All 11 modules including 3 new auth sub-modules.                                                                        |
-| 6   | **Migration guide**                   | `docs/migrations/v3-to-v4.md` — all 4 sections with before/after examples.                                              |
-| 7   | **CHANGELOG.md**                      | v4.0.0 section with all breaking changes.                                                                               |
-| 8   | **errorfamily check**                 | 0 violations across root + usermgmt + adminui. Sub-module exemption documented in flake.nix.                            |
-| 9   | **check-modules**                     | All 7 production modules pass isolation, budget, drift, and replace-directive checks.                                   |
-| 10  | **All tests pass with -race**         | 1,073 tests across 7 test modules (root 198, usermgmt 769, totp 3, webauthn 31, oauth2 18, adminui 35, integration 19). |
-| 11  | **Zero auth deps in core usermgmt**   | Verified: `go mod graph` shows NO webauthn/oauth2/oidc/jose/pquerna. 21 direct deps (budget 28).                        |
-| 12  | **Interface assertions**              | `integration_test/auth_interface_assert_test.go` — compile-time for all 3 strategies.                                   |
-| 13  | **WebAuthn cross-module integration** | `integration_test/webauthn_integration_test.go` — full Service → Provider → go-webauthn chain through JSON boundary.    |
-| 14  | **Fuzz tests on JSON boundary**       | `marshalWebAuthnUser` + `parseUser` + `parseSession` — crash-tested with 400K+ iterations.                              |
-| 15  | **Configurable WebAuthn session TTL** | `ServiceConfig.WebAuthnSessionTTL` — was hardcoded 5min, now configurable. Tested.                                      |
-| 16  | **All lint configs fixed**            | usermgmt + adminui `.golangci.yml` `/v3` → `/v4`. 3 new sub-module `.golangci.yml` created. All 6 modules: 0 issues.    |
-| 17  | **Coverage gates recalibrated**       | usermgmt 78→74, adminui 70→66. Reflects post-extraction reality (auth code better tested in sub-modules at 87-92%).     |
-| 18  | **Sub-modules in lint script**        | `nix run .#lint` now covers all 6 modules (was 3).                                                                      |
-| 19  | **README updated for v4**             | Provider injection pattern, sub-module install instructions, v3→v4 migration link.                                      |
-| 20  | **VERSIONING.md**                     | v4 current, v3 maintenance, sub-module paths.                                                                           |
-| 21  | **ADR-0035**                          | Full ADR for auth strategy extraction.                                                                                  |
-| 22  | **Dead branch cleanup**               | `chore/round2-lint-and-audit` deleted (merged into v4).                                                                 |
-| 23  | **CI workflow**                       | All sub-modules in build/test/mod-tidy jobs. Triggers on v4 branch.                                                     |
-| 24  | **flake.nix**                         | All sub-modules in build/test/coverage/fuzz/gate. Version 4.0.0. 3 new nix apps.                                        |
+| #  | Item                                  | Evidence                                                                                                                |
+| -- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1  | **TOTP extraction**                   | `usermgmt/totp/v4` module, `TOTPProvider` interface, 3 tests (88.2% coverage).                                          |
+| 2  | **WebAuthn extraction**               | `usermgmt/webauthn/v4` module, all `[]byte` interface, session store rewritten. 31 tests (87.5%).                       |
+| 3  | **OAuth2 extraction**                 | `usermgmt/oauth2/v4` module, PKCE moved to provider. 18 tests (92.3%).                                                  |
+| 4  | **Module path bump /v3 → /v4**        | All 130+ files across 11 modules.                                                                                       |
+| 5  | **go.work updated**                   | All 11 modules including 3 new auth sub-modules.                                                                        |
+| 6  | **Migration guide**                   | `docs/migrations/v3-to-v4.md` — all 4 sections with before/after examples.                                              |
+| 7  | **CHANGELOG.md**                      | v4.0.0 section with all breaking changes.                                                                               |
+| 8  | **errorfamily check**                 | 0 violations across root + usermgmt + adminui. Sub-module exemption documented in flake.nix.                            |
+| 9  | **check-modules**                     | All 7 production modules pass isolation, budget, drift, and replace-directive checks.                                   |
+| 10 | **All tests pass with -race**         | 1,073 tests across 7 test modules (root 198, usermgmt 769, totp 3, webauthn 31, oauth2 18, adminui 35, integration 19). |
+| 11 | **Zero auth deps in core usermgmt**   | Verified: `go mod graph` shows NO webauthn/oauth2/oidc/jose/pquerna. 21 direct deps (budget 28).                        |
+| 12 | **Interface assertions**              | `integration_test/auth_interface_assert_test.go` — compile-time for all 3 strategies.                                   |
+| 13 | **WebAuthn cross-module integration** | `integration_test/webauthn_integration_test.go` — full Service → Provider → go-webauthn chain through JSON boundary.    |
+| 14 | **Fuzz tests on JSON boundary**       | `marshalWebAuthnUser` + `parseUser` + `parseSession` — crash-tested with 400K+ iterations.                              |
+| 15 | **Configurable WebAuthn session TTL** | `ServiceConfig.WebAuthnSessionTTL` — was hardcoded 5min, now configurable. Tested.                                      |
+| 16 | **All lint configs fixed**            | usermgmt + adminui `.golangci.yml` `/v3` → `/v4`. 3 new sub-module `.golangci.yml` created. All 6 modules: 0 issues.    |
+| 17 | **Coverage gates recalibrated**       | usermgmt 78→74, adminui 70→66. Reflects post-extraction reality (auth code better tested in sub-modules at 87-92%).     |
+| 18 | **Sub-modules in lint script**        | `nix run .#lint` now covers all 6 modules (was 3).                                                                      |
+| 19 | **README updated for v4**             | Provider injection pattern, sub-module install instructions, v3→v4 migration link.                                      |
+| 20 | **VERSIONING.md**                     | v4 current, v3 maintenance, sub-module paths.                                                                           |
+| 21 | **ADR-0035**                          | Full ADR for auth strategy extraction.                                                                                  |
+| 22 | **Dead branch cleanup**               | `chore/round2-lint-and-audit` deleted (merged into v4).                                                                 |
+| 23 | **CI workflow**                       | All sub-modules in build/test/mod-tidy jobs. Triggers on v4 branch.                                                     |
+| 24 | **flake.nix**                         | All sub-modules in build/test/coverage/fuzz/gate. Version 4.0.0. 3 new nix apps.                                        |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| #   | Item                        | What's done                                                       | What's missing                                                                                                                                                                                                                                                |
-| --- | --------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **AGENTS.md coverage stat** | Architecture, Key Decisions, Module Layout all v4-accurate        | Coverage stat still says "95.4% root, 80.1% usermgmt" — should be 94.3% / 74.5% + sub-module numbers                                                                                                                                                          |
-| 2   | **README.md stale refs**    | Setup section updated to v4 provider injection                    | Dependencies table still says "go-cqrs-lite v3.1.0" (should be v3.5.0). File tree comment says "WebAuthnConfig". File tree missing `totp/`, `webauthn/`, `oauth2/` sub-module dirs. Dependencies table lists go-webauthn as usermgmt dep (it's now optional). |
-| 3   | **TODO_LIST.md coverage**   | v4 release section added, extraction marked done                  | Header says "80.1% usermgmt" — should be 74.5% + sub-module numbers                                                                                                                                                                                           |
-| 4   | **errorfamily story**       | Root + usermgmt + adminui pass. Exemption documented in flake.nix | Running `branching-flow errorfamily .` from repo root flags 30 violations in sub-modules (by design)                                                                                                                                                          |
+| # | Item                        | What's done                                                       | What's missing                                                                                                                                                                                                                                                |
+| - | --------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **AGENTS.md coverage stat** | Architecture, Key Decisions, Module Layout all v4-accurate        | Coverage stat still says "95.4% root, 80.1% usermgmt" — should be 94.3% / 74.5% + sub-module numbers                                                                                                                                                          |
+| 2 | **README.md stale refs**    | Setup section updated to v4 provider injection                    | Dependencies table still says "go-cqrs-lite v3.1.0" (should be v3.5.0). File tree comment says "WebAuthnConfig". File tree missing `totp/`, `webauthn/`, `oauth2/` sub-module dirs. Dependencies table lists go-webauthn as usermgmt dep (it's now optional). |
+| 3 | **TODO_LIST.md coverage**   | v4 release section added, extraction marked done                  | Header says "80.1% usermgmt" — should be 74.5% + sub-module numbers                                                                                                                                                                                           |
+| 4 | **errorfamily story**       | Root + usermgmt + adminui pass. Exemption documented in flake.nix | Running `branching-flow errorfamily .` from repo root flags 30 violations in sub-modules (by design)                                                                                                                                                          |
 
 ---
 
 ## c) NOT STARTED
 
-| #   | Item                           | Impact   | Effort | Notes                                                                                                                             |
-| --- | ------------------------------ | -------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **v4.0.0 tag + release**       | Critical | 15min  | Tags: `v4.0.0`, `usermgmt/v4.0.0`, `adminui/v4.0.0`, `usermgmt/totp/v4.0.0`, `usermgmt/webauthn/v4.0.0`, `usermgmt/oauth2/v4.0.0` |
-| 2   | **Merge v4 → master**          | Critical | 10min  | v4 branch is pushed. Needs merge to master or fast-forward.                                                                       |
-| 3   | **Create GitHub release**      | Critical | 30min  | `gh release create v4.0.0` with migration guide summary.                                                                          |
-| 4   | **Consumer migration dry-run** | Medium   | 1h     | Import cqrs-htmx/v4 in a fresh project to verify the consumer experience.                                                         |
-| 5   | **Root god-package split**     | High     | 8h+    | The 87-file usermgmt god-package. Clean seams identified (domain layer, SQL infra). Next major initiative.                        |
+| # | Item                           | Impact   | Effort | Notes                                                                                                                             |
+| - | ------------------------------ | -------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **v4.0.0 tag + release**       | Critical | 15min  | Tags: `v4.0.0`, `usermgmt/v4.0.0`, `adminui/v4.0.0`, `usermgmt/totp/v4.0.0`, `usermgmt/webauthn/v4.0.0`, `usermgmt/oauth2/v4.0.0` |
+| 2 | **Merge v4 → master**          | Critical | 10min  | v4 branch is pushed. Needs merge to master or fast-forward.                                                                       |
+| 3 | **Create GitHub release**      | Critical | 30min  | `gh release create v4.0.0` with migration guide summary.                                                                          |
+| 4 | **Consumer migration dry-run** | Medium   | 1h     | Import cqrs-htmx/v4 in a fresh project to verify the consumer experience.                                                         |
+| 5 | **Root god-package split**     | High     | 8h+    | The 87-file usermgmt god-package. Clean seams identified (domain layer, SQL infra). Next major initiative.                        |
 
 ---
 
@@ -136,33 +136,33 @@ All issues are now fixed. All 8 CI gates pass. The branch is pushed and ready fo
 
 Sorted by impact × urgency ÷ effort.
 
-| #   | Task                                                                       | Impact   | Effort | Category     |
-| --- | -------------------------------------------------------------------------- | -------- | ------ | ------------ |
-| 1   | **Tag v4.0.0** (6 tags across all modules)                                 | Critical | 15min  | Release      |
-| 2   | **Merge v4 → master**                                                      | Critical | 10min  | Release      |
-| 3   | **Create GitHub release** with migration guide summary                     | Critical | 30min  | Release      |
-| 4   | **Fix AGENTS.md coverage stat** (95.4%→94.3%, 80.1%→74.5%)                 | Medium   | 5min   | Docs         |
-| 5   | **Fix README.md stale refs** (go-cqrs-lite v3.1.0→v3.5.0, file tree, deps) | Medium   | 15min  | Docs         |
-| 6   | **Fix TODO_LIST.md coverage stat** (80.1%→74.5%)                           | Low      | 5min   | Docs         |
-| 7   | **Consumer migration dry-run** (import cqrs-htmx/v4 in fresh project)      | Medium   | 1h     | Validation   |
-| 8   | **Add TOTP cross-module integration test** (Service + totp.Provider)       | Medium   | 30min  | Testing      |
-| 9   | **Add OAuth2 cross-module integration test** (Service + oauth2.Provider)   | Medium   | 30min  | Testing      |
-| 10  | **Benchmark JSON serialization boundary** (quantify overhead)              | Low      | 1h     | Performance  |
-| 11  | **Root god-package split** (domain layer extraction)                       | High     | 8h+    | Architecture |
-| 12  | **Pre-generated RSA key fixture** for OAuth2 tests (perf)                  | Low      | 30min  | Testing      |
-| 13  | **Investigate usermgmt coverage drop** (write tests for HTTP handlers)     | Medium   | 2h     | Testing      |
-| 14  | **Domain Language doc** add v4 auth strategy terms                         | Low      | 30min  | Docs         |
-| 15  | **Add sub-module section to CONTRIBUTING.md**                              | Low      | 30min  | Docs         |
-| 16  | **Update SKILL.md** with WebAuthnSessionTTL + integration test patterns    | Low      | 15min  | Docs         |
-| 17  | **Error family strategy for sub-modules** (event.New\* via optional dep?)  | Low      | 2h     | Architecture |
-| 18  | **Verify `go mod tidy` passes for all modules** (CI gate)                  | Medium   | 30min  | CI           |
-| 19  | **Document JSON serialization boundary** in ADR-0035 or new ADR            | Low      | 30min  | Docs         |
-| 20  | **Investigate projectionhost adoption** (replace StartProjections)         | Medium   | 2h     | Architecture |
-| 21  | **Add scenario/v3 BDD tests for auth sub-modules**                         | Low      | 1h     | Testing      |
-| 22  | **Consider CatchUpSubscriber adoption** (ordered durable projections)      | Medium   | 2h     | Architecture |
-| 23  | **Snapshot integration** for high-event-volume aggregates                  | Low      | 2h     | Performance  |
-| 24  | **SharedWorker offline queue** — Phase 2b (OPFS persistence)               | Low      | 4h     | Feature      |
-| 25  | **Configurable TOTP pending-secret TTL** (currently hardcoded 5min)        | Low      | 30min  | Feature      |
+| #  | Task                                                                       | Impact   | Effort | Category     |
+| -- | -------------------------------------------------------------------------- | -------- | ------ | ------------ |
+| 1  | **Tag v4.0.0** (6 tags across all modules)                                 | Critical | 15min  | Release      |
+| 2  | **Merge v4 → master**                                                      | Critical | 10min  | Release      |
+| 3  | **Create GitHub release** with migration guide summary                     | Critical | 30min  | Release      |
+| 4  | **Fix AGENTS.md coverage stat** (95.4%→94.3%, 80.1%→74.5%)                 | Medium   | 5min   | Docs         |
+| 5  | **Fix README.md stale refs** (go-cqrs-lite v3.1.0→v3.5.0, file tree, deps) | Medium   | 15min  | Docs         |
+| 6  | **Fix TODO_LIST.md coverage stat** (80.1%→74.5%)                           | Low      | 5min   | Docs         |
+| 7  | **Consumer migration dry-run** (import cqrs-htmx/v4 in fresh project)      | Medium   | 1h     | Validation   |
+| 8  | **Add TOTP cross-module integration test** (Service + totp.Provider)       | Medium   | 30min  | Testing      |
+| 9  | **Add OAuth2 cross-module integration test** (Service + oauth2.Provider)   | Medium   | 30min  | Testing      |
+| 10 | **Benchmark JSON serialization boundary** (quantify overhead)              | Low      | 1h     | Performance  |
+| 11 | **Root god-package split** (domain layer extraction)                       | High     | 8h+    | Architecture |
+| 12 | **Pre-generated RSA key fixture** for OAuth2 tests (perf)                  | Low      | 30min  | Testing      |
+| 13 | **Investigate usermgmt coverage drop** (write tests for HTTP handlers)     | Medium   | 2h     | Testing      |
+| 14 | **Domain Language doc** add v4 auth strategy terms                         | Low      | 30min  | Docs         |
+| 15 | **Add sub-module section to CONTRIBUTING.md**                              | Low      | 30min  | Docs         |
+| 16 | **Update SKILL.md** with WebAuthnSessionTTL + integration test patterns    | Low      | 15min  | Docs         |
+| 17 | **Error family strategy for sub-modules** (event.New\* via optional dep?)  | Low      | 2h     | Architecture |
+| 18 | **Verify `go mod tidy` passes for all modules** (CI gate)                  | Medium   | 30min  | CI           |
+| 19 | **Document JSON serialization boundary** in ADR-0035 or new ADR            | Low      | 30min  | Docs         |
+| 20 | **Investigate projectionhost adoption** (replace StartProjections)         | Medium   | 2h     | Architecture |
+| 21 | **Add scenario/v3 BDD tests for auth sub-modules**                         | Low      | 1h     | Testing      |
+| 22 | **Consider CatchUpSubscriber adoption** (ordered durable projections)      | Medium   | 2h     | Architecture |
+| 23 | **Snapshot integration** for high-event-volume aggregates                  | Low      | 2h     | Performance  |
+| 24 | **SharedWorker offline queue** — Phase 2b (OPFS persistence)               | Low      | 4h     | Feature      |
+| 25 | **Configurable TOTP pending-secret TTL** (currently hardcoded 5min)        | Low      | 30min  | Feature      |
 
 ---
 

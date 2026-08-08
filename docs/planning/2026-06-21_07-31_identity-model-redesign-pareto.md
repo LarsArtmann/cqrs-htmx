@@ -31,13 +31,13 @@ bump. Mitigated by incremental approach + comprehensive test coverage (500+ exis
 **Why:** Without these 5 type definitions, nothing else compiles. They are the foundation
 every other change depends on. Once they exist, the compiler guides you to wire everything.
 
-| #   | Task                                       | File             | Impact                                           | Effort |
-| --- | ------------------------------------------ | ---------------- | ------------------------------------------------ | ------ |
-| 1   | Add `TenantID` + `BotID` branded types     | `id.go`          | Typed tenant references replace raw strings (P2) | 15min  |
-| 2   | Define `Actor`/`ActorID` sealed interfaces | `id.go`          | Unifies User + Bot under one identity type (P1)  | 30min  |
-| 3   | Define `SessionOrigin` sealed interface    | `user.go`        | Enables impersonation tracking (P4)              | 20min  |
-| 4   | Define `Membership` struct type            | `user.go`        | Decouples roles from User identity (P5)          | 15min  |
-| 5   | Add `RoleSuperAdmin` + Casbin g2 seed      | `authz_types.go` | Enables role hierarchy inheritance (P3)          | 30min  |
+| # | Task                                       | File             | Impact                                           | Effort |
+| - | ------------------------------------------ | ---------------- | ------------------------------------------------ | ------ |
+| 1 | Add `TenantID` + `BotID` branded types     | `id.go`          | Typed tenant references replace raw strings (P2) | 15min  |
+| 2 | Define `Actor`/`ActorID` sealed interfaces | `id.go`          | Unifies User + Bot under one identity type (P1)  | 30min  |
+| 3 | Define `SessionOrigin` sealed interface    | `user.go`        | Enables impersonation tracking (P4)              | 20min  |
+| 4 | Define `Membership` struct type            | `user.go`        | Decouples roles from User identity (P5)          | 15min  |
+| 5 | Add `RoleSuperAdmin` + Casbin g2 seed      | `authz_types.go` | Enables role hierarchy inheritance (P3)          | 30min  |
 
 ### 4% Effort → 64% Value: Data Model Migration
 
@@ -45,15 +45,15 @@ every other change depends on. Once they exist, the compiler guides you to wire 
 right — Membership as a first-class entity, roles off UserState — locks in the architecture.
 Everything downstream (projections, authz, queries) follows from this.
 
-| #   | Task                                        | File(s)                | Impact                               | Effort |
-| --- | ------------------------------------------- | ---------------------- | ------------------------------------ | ------ |
-| 6   | New event/command constants + schema bump   | `es_constants.go`      | Schema v2 foundations                | 30min  |
-| 7   | Membership event payloads                   | `es_events.go` (new)   | Event-sourced membership lifecycle   | 30min  |
-| 8   | Membership commands                         | `es_commands.go` (new) | Command-side of membership lifecycle | 30min  |
-| 9   | MembershipState + foldMembership            | `es_state.go` (new)    | Pure fold for membership aggregate   | 45min  |
-| 10  | Update UserState: remove Roles field        | `es_state.go`          | Roles are no longer User state       | 45min  |
-| 11  | Update foldUser: remove role handling       | `es_state.go`          | Clean separation of concerns         | 30min  |
-| 12  | Update RolesUpdatedPayload: Domain→TenantID | `es_events.go`         | Typed domain in existing events      | 30min  |
+| #  | Task                                        | File(s)                | Impact                               | Effort |
+| -- | ------------------------------------------- | ---------------------- | ------------------------------------ | ------ |
+| 6  | New event/command constants + schema bump   | `es_constants.go`      | Schema v2 foundations                | 30min  |
+| 7  | Membership event payloads                   | `es_events.go` (new)   | Event-sourced membership lifecycle   | 30min  |
+| 8  | Membership commands                         | `es_commands.go` (new) | Command-side of membership lifecycle | 30min  |
+| 9  | MembershipState + foldMembership            | `es_state.go` (new)    | Pure fold for membership aggregate   | 45min  |
+| 10 | Update UserState: remove Roles field        | `es_state.go`          | Roles are no longer User state       | 45min  |
+| 11 | Update foldUser: remove role handling       | `es_state.go`          | Clean separation of concerns         | 30min  |
+| 12 | Update RolesUpdatedPayload: Domain→TenantID | `es_events.go`         | Typed domain in existing events      | 30min  |
 
 ### 20% Effort → 80% Value: Authorization, Context & Audit
 
@@ -61,28 +61,28 @@ Everything downstream (projections, authz, queries) follows from this.
 delivers a FUNCTIONAL system: multi-tenant RBAC, actor-chain audit trail, role hierarchy.
 This is where the redesign becomes usable.
 
-| #   | Task                                          | File(s)                   | Impact                                           | Effort |
-| --- | --------------------------------------------- | ------------------------- | ------------------------------------------------ | ------ |
-| 13  | Casbin g2 role hierarchy in model matcher     | `authz_types.go`          | super_admin > admin > user > viewer inheritance  | 30min  |
-| 14  | Authz methods: RolesForActor, tenant-scoped   | `authz_roles.go`          | Actor-based authorization queries                | 45min  |
-| 15  | CasbinProjection: tenant-scoped policies      | `es_casbin_projection.go` | Correct policy derivation from Membership events | 60min  |
-| 16  | Context: WithActor + WithImpersonator         | `context.go`              | Actor chain in context (P7)                      | 30min  |
-| 17  | EventOptionsFromContext: actor chain metadata | `context.go`              | Event store IS the audit trail (P7)              | 30min  |
+| #  | Task                                          | File(s)                   | Impact                                           | Effort |
+| -- | --------------------------------------------- | ------------------------- | ------------------------------------------------ | ------ |
+| 13 | Casbin g2 role hierarchy in model matcher     | `authz_types.go`          | super_admin > admin > user > viewer inheritance  | 30min  |
+| 14 | Authz methods: RolesForActor, tenant-scoped   | `authz_roles.go`          | Actor-based authorization queries                | 45min  |
+| 15 | CasbinProjection: tenant-scoped policies      | `es_casbin_projection.go` | Correct policy derivation from Membership events | 60min  |
+| 16 | Context: WithActor + WithImpersonator         | `context.go`              | Actor chain in context (P7)                      | 30min  |
+| 17 | EventOptionsFromContext: actor chain metadata | `context.go`              | Event store IS the audit trail (P7)              | 30min  |
 
 ### Remaining 80% Effort → Final 20% Value: Full System
 
-| #   | Task                                            | File(s)                          | Impact                                        | Effort |
-| --- | ----------------------------------------------- | -------------------------------- | --------------------------------------------- | ------ |
-| 18  | Update Session struct: ActorID + Origin         | `user.go`                        | Session carries actor + impersonation origin  | 30min  |
-| 19  | Update SessionStore interface                   | `store.go`                       | Session creation with origin/tenant           | 30min  |
-| 20  | Implement BeginImpersonation + EndImpersonation | `service_impersonation.go` (new) | Full impersonation lifecycle + guards         | 60min  |
-| 21  | Update session middleware: actor+impersonator   | `middleware.go`                  | HTTP → context propagation                    | 45min  |
-| 22  | Create Tenant aggregate (state+events+cmds)     | `es_tenant_*.go` (new)           | Full tenant lifecycle (create/suspend/delete) | 90min  |
-| 23  | Wire Tenant aggregate in NewService             | `service_core.go`                | Service-level tenant management               | 45min  |
-| 24  | Bot aggregate + HMAC-SHA256 pepper hash         | `es_bot_*.go` (new)              | Machine identity + secure token storage       | 60min  |
-| 25  | API token authentication middleware             | `middleware.go`                  | Bearer token → Bot resolution                 | 45min  |
-| 26  | Migration projection: Roles → Membership        | `es_migration.go` (new)          | Backward compat for existing event stores     | 60min  |
-| 27  | Update all tests + integration + docs           | various                          | Full test coverage + documentation            | 90min  |
+| #  | Task                                            | File(s)                          | Impact                                        | Effort |
+| -- | ----------------------------------------------- | -------------------------------- | --------------------------------------------- | ------ |
+| 18 | Update Session struct: ActorID + Origin         | `user.go`                        | Session carries actor + impersonation origin  | 30min  |
+| 19 | Update SessionStore interface                   | `store.go`                       | Session creation with origin/tenant           | 30min  |
+| 20 | Implement BeginImpersonation + EndImpersonation | `service_impersonation.go` (new) | Full impersonation lifecycle + guards         | 60min  |
+| 21 | Update session middleware: actor+impersonator   | `middleware.go`                  | HTTP → context propagation                    | 45min  |
+| 22 | Create Tenant aggregate (state+events+cmds)     | `es_tenant_*.go` (new)           | Full tenant lifecycle (create/suspend/delete) | 90min  |
+| 23 | Wire Tenant aggregate in NewService             | `service_core.go`                | Service-level tenant management               | 45min  |
+| 24 | Bot aggregate + HMAC-SHA256 pepper hash         | `es_bot_*.go` (new)              | Machine identity + secure token storage       | 60min  |
+| 25 | API token authentication middleware             | `middleware.go`                  | Bearer token → Bot resolution                 | 45min  |
+| 26 | Migration projection: Roles → Membership        | `es_migration.go` (new)          | Backward compat for existing event stores     | 60min  |
+| 27 | Update all tests + integration + docs           | various                          | Full test coverage + documentation            | 90min  |
 
 ---
 

@@ -1,8 +1,8 @@
 # Status Report: cqrs-htmx
 
-**Date:** 2026-05-03 07:54  
-**Report Type:** Full Comprehensive Status Update  
-**Git Commit:** `4b74ac4` (initial commit, master branch)  
+**Date:** 2026-05-03 07:54\
+**Report Type:** Full Comprehensive Status Update\
+**Git Commit:** `4b74ac4` (initial commit, master branch)\
 **Working Tree:** Clean
 
 ---
@@ -81,8 +81,8 @@
 
 ## b) PARTIALLY DONE ⚠️
 
-| Item                      | Status   | Details                                                                                                                                                    |
-| ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                      | Status  | Details                                                                                                                                                    |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `enrichContext()`         | ⚠️ Stub  | Currently a no-op `return ctx` — function exists with 0% coverage. Placeholder for future request enrichment (e.g., IP, trace ID, request-scoped metadata) |
 | `HTMXMiddleware`          | ⚠️ No-op | Currently passes through without modifying context. Documented as "detects HTMX requests and adds a flag" but doesn't actually set anything                |
 | `EventOptionsFromContext` | ⚠️ 85.7% | The `id.ParseUserID` failure branch is tested but uses a sentinel empty `id.UserID{}` — may not be the ideal fallback                                      |
@@ -93,36 +93,36 @@
 
 ## c) NOT STARTED ❌
 
-| #   | Item                                    | Priority | Impact                                                                                                             |
-| --- | --------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| 1   | `enrichContext()` actual implementation | Medium   | Currently a no-op stub. Should propagate request metadata (IP, User-Agent, trace ID) into CQRS context             |
-| 2   | `HTMXMiddleware` actual implementation  | Medium   | Currently a no-op pass-through. Should set an HTMX flag in context so downstream handlers can conditionally render |
-| 3   | `golangci-lint` setup & config          | Medium   | No linter configured. AGENTS.md mentions `golangci-lint run` but no `.golangci.yml` exists                         |
-| 4   | CI/CD pipeline                          | High     | No GitHub Actions, no automated test/lint/coverage pipeline                                                        |
-| 5   | GoDoc / pkg.go.dev compatibility        | Medium   | No godoc examples (`Example*` test functions) — pkg.go.dev won't show rich docs                                    |
-| 6   | `DecodeFormQuery[T]`                    | Low      | No form-based query decoder analog to `DecodeForm[T]` for commands                                                 |
-| 7   | Custom login redirect path              | Medium   | `DefaultErrorHandler` hardcodes `HX-Redirect: /login` — should be configurable                                     |
-| 8   | Benchmarks                              | Low      | No `Benchmark*` functions for performance-critical paths                                                           |
-| 9   | `flake.nix` build                       | Low      | Per project policy, should migrate from go commands to nix flake                                                   |
-| 10  | Example application                     | Medium   | No standalone `example/` directory showing full integration                                                        |
-| 11  | Go Report Card badge                    | Low      | No quality badges in README                                                                                        |
-| 12  | CONTRIBUTING.md                         | Low      | No contribution guidelines                                                                                         |
-| 13  | CHANGELOG.md                            | Low      | No changelog for version tracking                                                                                  |
-| 14  | Version tagging                         | Medium   | No git tags, no semver releases                                                                                    |
-| 15  | Pre-commit hooks                        | Low      | No pre-commit configuration for lint/test enforcement                                                              |
+| #  | Item                                    | Priority | Impact                                                                                                             |
+| -- | --------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1  | `enrichContext()` actual implementation | Medium   | Currently a no-op stub. Should propagate request metadata (IP, User-Agent, trace ID) into CQRS context             |
+| 2  | `HTMXMiddleware` actual implementation  | Medium   | Currently a no-op pass-through. Should set an HTMX flag in context so downstream handlers can conditionally render |
+| 3  | `golangci-lint` setup & config          | Medium   | No linter configured. AGENTS.md mentions `golangci-lint run` but no `.golangci.yml` exists                         |
+| 4  | CI/CD pipeline                          | High     | No GitHub Actions, no automated test/lint/coverage pipeline                                                        |
+| 5  | GoDoc / pkg.go.dev compatibility        | Medium   | No godoc examples (`Example*` test functions) — pkg.go.dev won't show rich docs                                    |
+| 6  | `DecodeFormQuery[T]`                    | Low      | No form-based query decoder analog to `DecodeForm[T]` for commands                                                 |
+| 7  | Custom login redirect path              | Medium   | `DefaultErrorHandler` hardcodes `HX-Redirect: /login` — should be configurable                                     |
+| 8  | Benchmarks                              | Low      | No `Benchmark*` functions for performance-critical paths                                                           |
+| 9  | `flake.nix` build                       | Low      | Per project policy, should migrate from go commands to nix flake                                                   |
+| 10 | Example application                     | Medium   | No standalone `example/` directory showing full integration                                                        |
+| 11 | Go Report Card badge                    | Low      | No quality badges in README                                                                                        |
+| 12 | CONTRIBUTING.md                         | Low      | No contribution guidelines                                                                                         |
+| 13 | CHANGELOG.md                            | Low      | No changelog for version tracking                                                                                  |
+| 14 | Version tagging                         | Medium   | No git tags, no semver releases                                                                                    |
+| 15 | Pre-commit hooks                        | Low      | No pre-commit configuration for lint/test enforcement                                                              |
 
 ---
 
 ## d) TOTALLY FUCKED UP 🔥
 
-| #   | Item                                                                          | Severity  | Details                                                                                                                                                                                                                                                             |
-| --- | ----------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `coverage.out` committed to git                                               | 🔥 Medium | Binary coverage artifact is in the repo. Should be in `.gitignore`                                                                                                                                                                                                  |
-| 2   | `errors.Wrapf(err, "%s: %s", ErrDispatchFailed, cmdType)` in handler.go:32    | ⚠️ Subtle | Uses `errors.Wrapf` with `%s` verb on sentinel error — this calls `.Error()` on the sentinel, NOT `%w`. `errors.Is(wrapped, ErrDispatchFailed)` will return **false**. Should use `fmt.Errorf("%w: %s: %v", ErrDispatchFailed, cmdType, err)` to preserve the chain |
-| 3   | Same pattern in handler.go:66                                                 | ⚠️ Subtle | `errors.Wrapf(err, "%s: %s", ErrDispatchFailed, qryType)` — same bug as above                                                                                                                                                                                       |
-| 4   | `UserIDExtractor` called twice per request                                    | 🟡 Minor  | In `app.go:73-76` and `app.go:101-104`, the extractor is called inside `Command()`/`Query()`. Then `ContextEnrichmentMiddleware` also calls it. If both are used, the extractor runs twice. Should be idempotent or documented                                      |
-| 5   | `applyHTMXResponse` calls `resp.Apply()` which sets `Content-Type: text/html` | 🟡 Minor  | This happens even for command handlers returning 204 No Content. The header is set but status is 204, which is technically valid but odd                                                                                                                            |
-| 6   | No `context.WithValue` key collision protection                               | 🟡 Minor  | `contextKey("cqrshtmx_user_id")` could theoretically collide if another library uses the same string. Low risk but not impossible                                                                                                                                   |
+| # | Item                                                                          | Severity  | Details                                                                                                                                                                                                                                                             |
+| - | ----------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `coverage.out` committed to git                                               | 🔥 Medium | Binary coverage artifact is in the repo. Should be in `.gitignore`                                                                                                                                                                                                  |
+| 2 | `errors.Wrapf(err, "%s: %s", ErrDispatchFailed, cmdType)` in handler.go:32    | ⚠️ Subtle  | Uses `errors.Wrapf` with `%s` verb on sentinel error — this calls `.Error()` on the sentinel, NOT `%w`. `errors.Is(wrapped, ErrDispatchFailed)` will return **false**. Should use `fmt.Errorf("%w: %s: %v", ErrDispatchFailed, cmdType, err)` to preserve the chain |
+| 3 | Same pattern in handler.go:66                                                 | ⚠️ Subtle  | `errors.Wrapf(err, "%s: %s", ErrDispatchFailed, qryType)` — same bug as above                                                                                                                                                                                       |
+| 4 | `UserIDExtractor` called twice per request                                    | 🟡 Minor  | In `app.go:73-76` and `app.go:101-104`, the extractor is called inside `Command()`/`Query()`. Then `ContextEnrichmentMiddleware` also calls it. If both are used, the extractor runs twice. Should be idempotent or documented                                      |
+| 5 | `applyHTMXResponse` calls `resp.Apply()` which sets `Content-Type: text/html` | 🟡 Minor  | This happens even for command handlers returning 204 No Content. The header is set but status is 204, which is technically valid but odd                                                                                                                            |
+| 6 | No `context.WithValue` key collision protection                               | 🟡 Minor  | `contextKey("cqrshtmx_user_id")` could theoretically collide if another library uses the same string. Low risk but not impossible                                                                                                                                   |
 
 ---
 
@@ -168,33 +168,33 @@
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                                    | Priority        | Effort | Impact                                     |
-| --- | ----------------------------------------------------------------------- | --------------- | ------ | ------------------------------------------ |
-| 1   | Fix `errors.Wrapf` → `fmt.Errorf(%w)` in handler.go (dispatch wrapping) | 🔥 Critical     | 10 min | Correctness bug — `errors.Is` chain broken |
-| 2   | Add `coverage.out` to `.gitignore`                                      | 🔥 Critical     | 2 min  | Binary artifact in git                     |
-| 3   | Make login redirect path configurable                                   | 🔴 High         | 20 min | Hardcoded `/login` is inflexible           |
-| 4   | Implement or remove `enrichContext()`                                   | 🔴 High         | 15 min | Dead code stub with 0% coverage            |
-| 5   | Implement or remove `HTMXMiddleware`                                    | 🔴 High         | 15 min | Documented no-op is misleading             |
-| 6   | Add `Example*` test functions for pkg.go.dev                            | 🔴 High         | 30 min | Library discoverability                    |
-| 7   | Add GitHub Actions CI workflow                                          | 🟡 Medium       | 30 min | Automated quality gates                    |
-| 8   | Tag v0.1.0 release                                                      | 🟡 Medium       | 5 min  | Version pinning for consumers              |
-| 9   | Deduplicate `UserIDExtractor` calls (document or fix)                   | 🟡 Medium       | 15 min | Double execution per request               |
-| 10  | Increase `handleQueryDispatch` coverage to >90%                         | 🟡 Medium       | 20 min | Currently 71.4%                            |
-| 11  | Increase `decodeFormValues` coverage                                    | 🟡 Medium       | 15 min | Currently 77.8%                            |
-| 12  | Add `golangci-lint` config and run                                      | 🟡 Medium       | 20 min | No linter configured                       |
-| 13  | Add `DecodeFormQuery[T]` for symmetry                                   | 🟢 Low          | 15 min | API completeness                           |
-| 14  | Add benchmark tests for hot paths                                       | 🟢 Low          | 30 min | Performance documentation                  |
-| 15  | Create `example/` directory with full integration demo                  | 🟢 Low          | 60 min | Onboarding experience                      |
-| 16  | Add `CONTRIBUTING.md`                                                   | 🟢 Low          | 15 min | Open source readiness                      |
-| 17  | Add `CHANGELOG.md`                                                      | 🟢 Low          | 10 min | Version tracking                           |
-| 18  | Migrate build to `flake.nix`                                            | 🟢 Low          | 60 min | Project policy compliance                  |
-| 19  | Add Go Report Card and coverage badges to README                        | 🟢 Low          | 10 min | Credibility signals                        |
-| 20  | Add pre-commit hooks (lint + test)                                      | 🟢 Low          | 15 min | Local quality enforcement                  |
-| 21  | Add `Reselect` test coverage                                            | 🟢 Low          | 5 min  | Response builder method not tested         |
-| 22  | Test `Location` method more thoroughly                                  | 🟢 Low          | 5 min  | Currently minimal coverage                 |
-| 23  | Add `HTMXTriggerName()` accessor function                               | 🟢 Low          | 5 min  | Header constant exists but no accessor     |
-| 24  | Context key collision protection (use unexported struct key)            | 🟢 Low          | 5 min  | Defensive programming                      |
-| 25  | Add `go:generate` stringer for `SwapStrategy`                           | ⚪ Nice-to-have | 10 min | Type-safe string conversion                |
+| #  | Task                                                                    | Priority        | Effort | Impact                                     |
+| -- | ----------------------------------------------------------------------- | --------------- | ------ | ------------------------------------------ |
+| 1  | Fix `errors.Wrapf` → `fmt.Errorf(%w)` in handler.go (dispatch wrapping) | 🔥 Critical     | 10 min | Correctness bug — `errors.Is` chain broken |
+| 2  | Add `coverage.out` to `.gitignore`                                      | 🔥 Critical     | 2 min  | Binary artifact in git                     |
+| 3  | Make login redirect path configurable                                   | 🔴 High         | 20 min | Hardcoded `/login` is inflexible           |
+| 4  | Implement or remove `enrichContext()`                                   | 🔴 High         | 15 min | Dead code stub with 0% coverage            |
+| 5  | Implement or remove `HTMXMiddleware`                                    | 🔴 High         | 15 min | Documented no-op is misleading             |
+| 6  | Add `Example*` test functions for pkg.go.dev                            | 🔴 High         | 30 min | Library discoverability                    |
+| 7  | Add GitHub Actions CI workflow                                          | 🟡 Medium       | 30 min | Automated quality gates                    |
+| 8  | Tag v0.1.0 release                                                      | 🟡 Medium       | 5 min  | Version pinning for consumers              |
+| 9  | Deduplicate `UserIDExtractor` calls (document or fix)                   | 🟡 Medium       | 15 min | Double execution per request               |
+| 10 | Increase `handleQueryDispatch` coverage to >90%                         | 🟡 Medium       | 20 min | Currently 71.4%                            |
+| 11 | Increase `decodeFormValues` coverage                                    | 🟡 Medium       | 15 min | Currently 77.8%                            |
+| 12 | Add `golangci-lint` config and run                                      | 🟡 Medium       | 20 min | No linter configured                       |
+| 13 | Add `DecodeFormQuery[T]` for symmetry                                   | 🟢 Low          | 15 min | API completeness                           |
+| 14 | Add benchmark tests for hot paths                                       | 🟢 Low          | 30 min | Performance documentation                  |
+| 15 | Create `example/` directory with full integration demo                  | 🟢 Low          | 60 min | Onboarding experience                      |
+| 16 | Add `CONTRIBUTING.md`                                                   | 🟢 Low          | 15 min | Open source readiness                      |
+| 17 | Add `CHANGELOG.md`                                                      | 🟢 Low          | 10 min | Version tracking                           |
+| 18 | Migrate build to `flake.nix`                                            | 🟢 Low          | 60 min | Project policy compliance                  |
+| 19 | Add Go Report Card and coverage badges to README                        | 🟢 Low          | 10 min | Credibility signals                        |
+| 20 | Add pre-commit hooks (lint + test)                                      | 🟢 Low          | 15 min | Local quality enforcement                  |
+| 21 | Add `Reselect` test coverage                                            | 🟢 Low          | 5 min  | Response builder method not tested         |
+| 22 | Test `Location` method more thoroughly                                  | 🟢 Low          | 5 min  | Currently minimal coverage                 |
+| 23 | Add `HTMXTriggerName()` accessor function                               | 🟢 Low          | 5 min  | Header constant exists but no accessor     |
+| 24 | Context key collision protection (use unexported struct key)            | 🟢 Low          | 5 min  | Defensive programming                      |
+| 25 | Add `go:generate` stringer for `SwapStrategy`                           | ⚪ Nice-to-have | 10 min | Type-safe string conversion                |
 
 ---
 

@@ -28,19 +28,19 @@ go-cqrs-lite v3.0.0 released 2026-06-22 with 11 breaking changes. This plan migr
 
 ## Impact Map — All 11 Breaking Changes vs Our Codebase
 
-| #   | Breaking Change                                                       | ADR  | Affects Us?     | Sites                                                                                       | Effort | Strategy                                                |
-| --- | --------------------------------------------------------------------- | ---- | --------------- | ------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------- |
-| 1   | Delete ghost bus (`memory.MemoryBus` gone)                            | 0028 | **YES**         | 2 (es_setup.go:109, service_core.go:182)                                                    | 10min  | Replace with `watermill.NewEventBus()`                  |
-| 2   | Move `memory/` → `storage/memory/` (stores) + `watermill/` (bus)      | 0029 | **YES**         | 4 (es_setup.go:99, service_core.go:161,172, es_projection_setup.go:68)                      | 15min  | Change import paths; API identical                      |
-| 3   | `event.Version`: `int` → `uint64`                                     | —    | Transparent     | ~20 decider sites                                                                           | 0min   | `version.Increment()` works unchanged                   |
-| 4   | Break `command/query.Metadata` alias                                  | 0031 | **NO**          | 0                                                                                           | 0min   | We don't use `event.EnsureCustom` on cmd/query metadata |
-| 5   | Remove `io.Closer` from 9 core interfaces                             | 0010 | **YES**         | 7 (es_setup.go error paths)                                                                 | 15min  | Type-assert `bus.(io.Closer)` before calling Close()    |
-| 6   | Delete `readmodel/` (merged into `kv/`)                               | 0032 | **NO**          | 0                                                                                           | 0min   | We don't import `readmodel/`                            |
-| 7   | Delete `projection/` (replaced by `event.Projection` + manual replay) | 0030 | **YES — MAJOR** | 1 file (es_projection_setup.go, 138 LOC)                                                    | 90min  | Rewrite: manual journal replay + `bus.SubscribeAll`     |
-| 8   | Move SSE → `transport/http/`                                          | 0025 | **NO**          | 0                                                                                           | 0min   | We have our own SSE, don't use go-cqrs-lite's           |
-| 9   | `query.Handler`: `any` → `TypedHandler[Q,R]`                          | —    | **NO**          | 0                                                                                           | 0min   | We don't register query handlers via dispatcher         |
-| 10  | `Decider.Fold` → `Apply`                                              | —    | **YES**         | 4 (es_setup.go:75, es_bot_decide.go:13, es_membership_decide.go:14, es_tenant_decide.go:13) | 5min   | Rename field `Fold:` → `Apply:`                         |
-| 11  | `event.Event` = `*ImmutableEvent` (concrete type)                     | —    | Transparent     | 93 event import sites                                                                       | 0min   | `type Event = *ImmutableEvent` — all usage unchanged    |
+| #  | Breaking Change                                                       | ADR  | Affects Us?     | Sites                                                                                       | Effort | Strategy                                                |
+| -- | --------------------------------------------------------------------- | ---- | --------------- | ------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------- |
+| 1  | Delete ghost bus (`memory.MemoryBus` gone)                            | 0028 | **YES**         | 2 (es_setup.go:109, service_core.go:182)                                                    | 10min  | Replace with `watermill.NewEventBus()`                  |
+| 2  | Move `memory/` → `storage/memory/` (stores) + `watermill/` (bus)      | 0029 | **YES**         | 4 (es_setup.go:99, service_core.go:161,172, es_projection_setup.go:68)                      | 15min  | Change import paths; API identical                      |
+| 3  | `event.Version`: `int` → `uint64`                                     | —    | Transparent     | ~20 decider sites                                                                           | 0min   | `version.Increment()` works unchanged                   |
+| 4  | Break `command/query.Metadata` alias                                  | 0031 | **NO**          | 0                                                                                           | 0min   | We don't use `event.EnsureCustom` on cmd/query metadata |
+| 5  | Remove `io.Closer` from 9 core interfaces                             | 0010 | **YES**         | 7 (es_setup.go error paths)                                                                 | 15min  | Type-assert `bus.(io.Closer)` before calling Close()    |
+| 6  | Delete `readmodel/` (merged into `kv/`)                               | 0032 | **NO**          | 0                                                                                           | 0min   | We don't import `readmodel/`                            |
+| 7  | Delete `projection/` (replaced by `event.Projection` + manual replay) | 0030 | **YES — MAJOR** | 1 file (es_projection_setup.go, 138 LOC)                                                    | 90min  | Rewrite: manual journal replay + `bus.SubscribeAll`     |
+| 8  | Move SSE → `transport/http/`                                          | 0025 | **NO**          | 0                                                                                           | 0min   | We have our own SSE, don't use go-cqrs-lite's           |
+| 9  | `query.Handler`: `any` → `TypedHandler[Q,R]`                          | —    | **NO**          | 0                                                                                           | 0min   | We don't register query handlers via dispatcher         |
+| 10 | `Decider.Fold` → `Apply`                                              | —    | **YES**         | 4 (es_setup.go:75, es_bot_decide.go:13, es_membership_decide.go:14, es_tenant_decide.go:13) | 5min   | Rename field `Fold:` → `Apply:`                         |
+| 11 | `event.Event` = `*ImmutableEvent` (concrete type)                     | —    | Transparent     | 93 event import sites                                                                       | 0min   | `type Event = *ImmutableEvent` — all usage unchanged    |
 
 ### New Dependencies Added
 
@@ -170,17 +170,17 @@ Integration test fixes, example module bumps, edge-case compilation errors, test
 
 ### Phase 1: Root Module (9 tasks — pure mechanical)
 
-| #   | Task                                                                                    | Est   | Deps  |
-| --- | --------------------------------------------------------------------------------------- | ----- | ----- |
-| F1  | Read root `go.mod`, identify all go-cqrs-lite deps to bump                              | 5min  | —     |
-| F2  | Edit root `go.mod`: replace all `go-cqrs-lite/*/v2 v2.6.0` → `go-cqrs-lite/*/v3 v3.0.0` | 5min  | F1    |
-| F3  | Import bump: `event/v2` → `event/v3` in all root `*.go` (sed)                           | 5min  | F2    |
-| F4  | Import bump: `command/v2` → `command/v3` in all root `*.go` (sed)                       | 5min  | F2    |
-| F5  | Import bump: `id/v2` → `id/v3` in all root `*.go` (sed)                                 | 5min  | F2    |
-| F6  | Import bump: `query/v2` → `query/v3` in all root `*.go` (sed)                           | 5min  | F2    |
-| F7  | Run `go mod tidy` in root (workspace mode)                                              | 5min  | F3-F6 |
-| F8  | Run `go build ./...` in root — fix any compilation errors                               | 10min | F7    |
-| F9  | Run root tests `go test ./... -count=1 -race` — fix failures                            | 10min | F8    |
+| #  | Task                                                                                    | Est   | Deps  |
+| -- | --------------------------------------------------------------------------------------- | ----- | ----- |
+| F1 | Read root `go.mod`, identify all go-cqrs-lite deps to bump                              | 5min  | —     |
+| F2 | Edit root `go.mod`: replace all `go-cqrs-lite/*/v2 v2.6.0` → `go-cqrs-lite/*/v3 v3.0.0` | 5min  | F1    |
+| F3 | Import bump: `event/v2` → `event/v3` in all root `*.go` (sed)                           | 5min  | F2    |
+| F4 | Import bump: `command/v2` → `command/v3` in all root `*.go` (sed)                       | 5min  | F2    |
+| F5 | Import bump: `id/v2` → `id/v3` in all root `*.go` (sed)                                 | 5min  | F2    |
+| F6 | Import bump: `query/v2` → `query/v3` in all root `*.go` (sed)                           | 5min  | F2    |
+| F7 | Run `go mod tidy` in root (workspace mode)                                              | 5min  | F3-F6 |
+| F8 | Run `go build ./...` in root — fix any compilation errors                               | 10min | F7    |
+| F9 | Run root tests `go test ./... -count=1 -race` — fix failures                            | 10min | F8    |
 
 ### Phase 2: Catalog Module (5 tasks — pure mechanical)
 

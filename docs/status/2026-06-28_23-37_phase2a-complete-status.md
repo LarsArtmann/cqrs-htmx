@@ -153,33 +153,33 @@ today), the codebase now has a complete honest-UI + offline-queue stack:
 
 Sorted by impact × effort × customer-value.
 
-| #   | Task                                                                             | Impact   | Effort | Blocked? |
-| --- | -------------------------------------------------------------------------------- | -------- | ------ | -------- |
-| 1   | **Browser-verify offline queue** (DevTools offline → submit → reconnect → retry) | Critical | 15m    | —        |
-| 2   | Add adminui integration test (mount + route render + sync-worker route)          | High     | 30m    | —        |
-| 3   | Security review: X-Command-Id injection/replay surface                           | High     | 30m    | —        |
-| 4   | Implement Redis IdempotencyStore (SET NX + TTL)                                  | High     | 45m    | —        |
-| 5   | Honest UI: inline error message in rejected state                                | High     | 30m    | —        |
-| 6   | Add actor/impersonator context bridge integration test                           | High     | 30m    | —        |
-| 7   | Add adminui sync indicator rendering test (DOM flip)                             | Medium   | 30m    | —        |
-| 8   | Add coverage gate for adminui                                                    | Medium   | 20m    | —        |
-| 9   | Split sql_session_store.go (424 lines)                                           | Medium   | 30m    | —        |
-| 10  | Split service_core.go (418 lines)                                                | Medium   | 30m    | —        |
-| 11  | Split response.go (358 lines)                                                    | Medium   | 20m    | —        |
-| 12  | Split http.go (355 lines)                                                        | Medium   | 20m    | —        |
-| 13  | Honest UI: add retry button to rejected items                                    | Medium   | 30m    | —        |
-| 14  | Consumer wiring recipe: standalone runnable example app                          | Medium   | 45m    | —        |
-| 15  | Add JS unit tests for sync-state handler                                         | Medium   | 30m    | —        |
-| 16  | Signing/encryption runnable example (prove ADR-0011 seams)                       | Medium   | 45m    | —        |
-| 17  | SSE replay benchmark (10K/100K events)                                           | Low      | 30m    | —        |
-| 18  | Split oauth2.go (332 lines)                                                      | Low      | 20m    | —        |
-| 19  | Split app.go (331 lines)                                                         | Low      | 20m    | —        |
-| 20  | Fix responsive .sync-bar mobile layout                                           | Low      | 20m    | —        |
-| 21  | Add PWA manifest to admin-demo                                                   | Low      | 20m    | —        |
-| 22  | Phase 2b design doc (SW + OPFS + Background Sync plugin)                         | Medium   | 30m    | —        |
-| 23  | Evaluate maypok86/otter/v2 for ephemeral stores                                  | Low      | 30m    | —        |
-| 24  | Document X-Command-Id length/charset validation in ADR                           | Medium   | 15m    | —        |
-| 25  | Cut v3.3.0 release                                                               | High     | 30m    | #1, #2   |
+| #  | Task                                                                             | Impact   | Effort | Blocked? |
+| -- | -------------------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1  | **Browser-verify offline queue** (DevTools offline → submit → reconnect → retry) | Critical | 15m    | —        |
+| 2  | Add adminui integration test (mount + route render + sync-worker route)          | High     | 30m    | —        |
+| 3  | Security review: X-Command-Id injection/replay surface                           | High     | 30m    | —        |
+| 4  | Implement Redis IdempotencyStore (SET NX + TTL)                                  | High     | 45m    | —        |
+| 5  | Honest UI: inline error message in rejected state                                | High     | 30m    | —        |
+| 6  | Add actor/impersonator context bridge integration test                           | High     | 30m    | —        |
+| 7  | Add adminui sync indicator rendering test (DOM flip)                             | Medium   | 30m    | —        |
+| 8  | Add coverage gate for adminui                                                    | Medium   | 20m    | —        |
+| 9  | Split sql_session_store.go (424 lines)                                           | Medium   | 30m    | —        |
+| 10 | Split service_core.go (418 lines)                                                | Medium   | 30m    | —        |
+| 11 | Split response.go (358 lines)                                                    | Medium   | 20m    | —        |
+| 12 | Split http.go (355 lines)                                                        | Medium   | 20m    | —        |
+| 13 | Honest UI: add retry button to rejected items                                    | Medium   | 30m    | —        |
+| 14 | Consumer wiring recipe: standalone runnable example app                          | Medium   | 45m    | —        |
+| 15 | Add JS unit tests for sync-state handler                                         | Medium   | 30m    | —        |
+| 16 | Signing/encryption runnable example (prove ADR-0011 seams)                       | Medium   | 45m    | —        |
+| 17 | SSE replay benchmark (10K/100K events)                                           | Low      | 30m    | —        |
+| 18 | Split oauth2.go (332 lines)                                                      | Low      | 20m    | —        |
+| 19 | Split app.go (331 lines)                                                         | Low      | 20m    | —        |
+| 20 | Fix responsive .sync-bar mobile layout                                           | Low      | 20m    | —        |
+| 21 | Add PWA manifest to admin-demo                                                   | Low      | 20m    | —        |
+| 22 | Phase 2b design doc (SW + OPFS + Background Sync plugin)                         | Medium   | 30m    | —        |
+| 23 | Evaluate maypok86/otter/v2 for ephemeral stores                                  | Low      | 30m    | —        |
+| 24 | Document X-Command-Id length/charset validation in ADR                           | Medium   | 15m    | —        |
+| 25 | Cut v3.3.0 release                                                               | High     | 30m    | #1, #2   |
 
 ---
 

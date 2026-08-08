@@ -2,7 +2,6 @@ package usermgmt
 
 import (
 	"context"
-	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -31,14 +30,14 @@ func TestHandler_OAuth2Begin_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/auth/oauth/github/begin", nil)
 	w := httptest.NewRecorder()
 	mux.ServeHTTP(w, req)
-	assertStatusCode(t, w, http.StatusOK)
+	assertStatusCode(t, w, http.StatusFound)
 
-	var resp BeginOAuthLoginResponse
-	if err := json.UnmarshalRead(w.Body, &resp); err != nil {
-		t.Fatalf("decode response: %v", err)
+	loc := w.Header().Get("Location")
+	if loc == "" {
+		t.Fatal("expected non-empty Location header")
 	}
-	if resp.RedirectURL == "" {
-		t.Error("expected non-empty redirect URL")
+	if !strings.HasPrefix(loc, "https://") {
+		t.Errorf("expected HTTPS redirect URL, got %q", loc)
 	}
 }
 
@@ -78,15 +77,10 @@ func TestHandler_OAuth2Callback_Success(t *testing.T) {
 	beginReq := httptest.NewRequest(http.MethodGet, "/auth/oauth/github/begin", nil)
 	beginW := httptest.NewRecorder()
 	mux.ServeHTTP(beginW, beginReq)
-	assertStatusCode(t, beginW, http.StatusOK)
+	assertStatusCode(t, beginW, http.StatusFound)
 
-	var beginResp BeginOAuthLoginResponse
-	if err := json.UnmarshalRead(beginW.Body, &beginResp); err != nil {
-		t.Fatalf("decode begin response: %v", err)
-	}
-
-	// Extract state from redirect URL
-	parsedURL, err := url.Parse(beginResp.RedirectURL)
+	// Extract state from the Location header redirect URL
+	parsedURL, err := url.Parse(beginW.Header().Get("Location"))
 	if err != nil {
 		t.Fatalf("parse redirect URL: %v", err)
 	}
@@ -150,9 +144,7 @@ func TestHandler_OAuth2Callback_SuccessRedirect(t *testing.T) {
 	beginReq := httptest.NewRequest(http.MethodGet, "/auth/oauth/github/begin", nil)
 	beginW := httptest.NewRecorder()
 	mux.ServeHTTP(beginW, beginReq)
-	var beginResp BeginOAuthLoginResponse
-	_ = json.UnmarshalRead(beginW.Body, &beginResp)
-	parsedURL, _ := url.Parse(beginResp.RedirectURL)
+	parsedURL, _ := url.Parse(beginW.Header().Get("Location"))
 	state := parsedURL.Query().Get("state")
 
 	// Complete callback — should redirect to success URL

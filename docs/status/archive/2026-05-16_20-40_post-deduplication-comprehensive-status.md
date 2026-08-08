@@ -157,33 +157,33 @@ The only "fucked up" thing is documentation drift — `FEATURES.md` and `TODO_LI
 
 ## f) Top #25 Things to Get Done Next 🎯
 
-| #   | Priority | Task                                             | Effort | Impact | Notes                                   |
-| --- | -------- | ------------------------------------------------ | ------ | ------ | --------------------------------------- |
-| 1   | P0       | Fix FEATURES.md stale metrics                    | 5m     | High   | Coverage 92.6% → 95.5%, specs 137 → 148 |
-| 2   | P0       | Fix TODO_LIST.md deduplication status            | 5m     | High   | Mark as partially done                  |
-| 3   | P1       | Export `HeaderTrue` or provide test helper       | 30m    | Med    | 34 hardcoded "true" strings             |
-| 4   | P1       | Consolidate testCreateUserCmd + bddCreateUserCmd | 45m    | Med    | Same structure, different names         |
-| 5   | P1       | Extract htmx_test.go request builder patterns    | 30m    | Low    | 6 clone groups, structural patterns     |
-| 6   | P1       | Extract middleware_test.go common handler bodies | 30m    | Low    | 4 clone groups, capture + check pattern |
-| 7   | P2       | Add request validation helper                    | 2h     | High   | Consumer-asked feature                  |
-| 8   | P2       | Add OnBeforeDispatch/OnAfterDispatch hooks       | 2h     | High   | Enables logging, metrics, tracing       |
-| 9   | P2       | Add request logging middleware                   | 1h     | Med    | Structured logging                      |
-| 10  | P2       | Add request/correlation ID propagation           | 1h     | Med    | Context helper                          |
-| 11  | P2       | Add JSON error response option                   | 1h     | Med    | Current: text/plain only                |
-| 12  | P2       | Cover `NewUserID` (0% → 100%)                    | 15m    | Low    | Single test case needed                 |
-| 13  | P2       | Cover form decoder gaps (72.7% → 100%)           | 30m    | Low    | Error path tests                        |
-| 14  | P2       | Cover query dispatch gaps (72.7% → 100%)         | 30m    | Low    | Error path tests                        |
-| 15  | P3       | Add rate limiting middleware                     | 2h     | Med    | Token bucket or leaky bucket            |
-| 16  | P3       | Add timeout/deadline propagation                 | 1h     | Med    | Context.WithTimeout in handlers         |
-| 17  | P3       | Add SSE/WebSocket helpers                        | 4h     | Med    | Real-time HTMX updates                  |
-| 18  | P3       | Add benchmark tests                              | 1h     | Med    | BenchmarkCommandDispatch, etc.          |
-| 19  | P3       | Modularize with go.work                          | 3h     | Low    | Sub-modules for decoders, authz, etc.   |
-| 20  | P3       | Add example applications                         | 4h     | High   | Demo app showing idiomatic usage        |
-| 21  | P4       | Security audit: error message info leakage       | 1h     | Med    | Review all error messages               |
-| 22  | P4       | Add dependabot configuration                     | 15m    | Low    | .github/dependabot.yml                  |
-| 23  | P4       | Add issue templates                              | 30m    | Low    | Bug report, feature request             |
-| 24  | P4       | Add CI/CD pipeline (GitHub Actions)              | 1h     | Med    | Test, lint, coverage on PR              |
-| 25  | P4       | Add pprof endpoints for profiling                | 30m    | Low    | Performance debugging                   |
+| #  | Priority | Task                                             | Effort | Impact | Notes                                   |
+| -- | -------- | ------------------------------------------------ | ------ | ------ | --------------------------------------- |
+| 1  | P0       | Fix FEATURES.md stale metrics                    | 5m     | High   | Coverage 92.6% → 95.5%, specs 137 → 148 |
+| 2  | P0       | Fix TODO_LIST.md deduplication status            | 5m     | High   | Mark as partially done                  |
+| 3  | P1       | Export `HeaderTrue` or provide test helper       | 30m    | Med    | 34 hardcoded "true" strings             |
+| 4  | P1       | Consolidate testCreateUserCmd + bddCreateUserCmd | 45m    | Med    | Same structure, different names         |
+| 5  | P1       | Extract htmx_test.go request builder patterns    | 30m    | Low    | 6 clone groups, structural patterns     |
+| 6  | P1       | Extract middleware_test.go common handler bodies | 30m    | Low    | 4 clone groups, capture + check pattern |
+| 7  | P2       | Add request validation helper                    | 2h     | High   | Consumer-asked feature                  |
+| 8  | P2       | Add OnBeforeDispatch/OnAfterDispatch hooks       | 2h     | High   | Enables logging, metrics, tracing       |
+| 9  | P2       | Add request logging middleware                   | 1h     | Med    | Structured logging                      |
+| 10 | P2       | Add request/correlation ID propagation           | 1h     | Med    | Context helper                          |
+| 11 | P2       | Add JSON error response option                   | 1h     | Med    | Current: text/plain only                |
+| 12 | P2       | Cover `NewUserID` (0% → 100%)                    | 15m    | Low    | Single test case needed                 |
+| 13 | P2       | Cover form decoder gaps (72.7% → 100%)           | 30m    | Low    | Error path tests                        |
+| 14 | P2       | Cover query dispatch gaps (72.7% → 100%)         | 30m    | Low    | Error path tests                        |
+| 15 | P3       | Add rate limiting middleware                     | 2h     | Med    | Token bucket or leaky bucket            |
+| 16 | P3       | Add timeout/deadline propagation                 | 1h     | Med    | Context.WithTimeout in handlers         |
+| 17 | P3       | Add SSE/WebSocket helpers                        | 4h     | Med    | Real-time HTMX updates                  |
+| 18 | P3       | Add benchmark tests                              | 1h     | Med    | BenchmarkCommandDispatch, etc.          |
+| 19 | P3       | Modularize with go.work                          | 3h     | Low    | Sub-modules for decoders, authz, etc.   |
+| 20 | P3       | Add example applications                         | 4h     | High   | Demo app showing idiomatic usage        |
+| 21 | P4       | Security audit: error message info leakage       | 1h     | Med    | Review all error messages               |
+| 22 | P4       | Add dependabot configuration                     | 15m    | Low    | .github/dependabot.yml                  |
+| 23 | P4       | Add issue templates                              | 30m    | Low    | Bug report, feature request             |
+| 24 | P4       | Add CI/CD pipeline (GitHub Actions)              | 1h     | Med    | Test, lint, coverage on PR              |
+| 25 | P4       | Add pprof endpoints for profiling                | 30m    | Low    | Performance debugging                   |
 
 ---
 
@@ -239,5 +239,5 @@ The only "fucked up" thing is documentation drift — `FEATURES.md` and `TODO_LI
 
 ---
 
-_Generated by Crush — comprehensive status update_  
+_Generated by Crush — comprehensive status update_\
 _Date: 2026-05-16 20:40_

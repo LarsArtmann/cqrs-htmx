@@ -15,20 +15,20 @@ What started as "upgrade dependencies" became a full release + structural harden
 
 ## a) FULLY DONE
 
-| #   | Item                                   | Details                                                                                                                                                                                                                                                                 |
-| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **go-cqrs-lite v3.4.0 upgrade**        | All 8 modules upgraded to latest tags.                                                                                                                                                                                                                                  |
-| 2   | **cmdID bug fix (initial)**            | 7 constructors patched to call `id.NewCommandID()`.                                                                                                                                                                                                                     |
-| 3   | **cmdID bug fix (structural)**         | All 20 commands now embed `*command.BasicCommand` — ID/Type/AggregateID are promoted methods, impossible to forget. ~120 lines of boilerplate removed. Constructor signatures unchanged.                                                                                |
-| 4   | **cmdID regression test**              | Table-driven test asserting all 20 constructors produce non-zero `ID()`.                                                                                                                                                                                                |
-| 5   | **Lint debt cleared**                  | `sse_event.go` (gochecknoglobals + wrapcheck), usermgmt (exhaustruct = the cmdID bug). **All 3 modules: 0 issues.**                                                                                                                                                     |
-| 6   | **v3.3.0 tagged + pushed**             | Formal CHANGELOG, ROADMAP, AGENTS.md, TODO_LIST alignment.                                                                                                                                                                                                              |
-| 7   | **Server-Timing middleware**           | W3C Server-Timing header support (from another agent's work, committed + pushed).                                                                                                                                                                                       |
-| 8   | **Checkpoint-based projection replay** | `StartProjections` gains optional `CheckpointStore`. When set + journal seekable, uses `ReadFrom(checkpoint)` instead of `ReadAll()`. Backward-compatible (nil = full replay). Wired through ServiceConfig, EventSourcedConfig, SQLiteSetupConfig, PostgresSetupConfig. |
-| 9   | **ADR-0031**                           | Projection lifecycle decision (PROPOSED): recommends CatchUpSubscriber for v3.4.0.                                                                                                                                                                                      |
-| 10  | **ADR index**                          | `docs/adr/INDEX.md` — all 31 ADRs with status badges.                                                                                                                                                                                                                   |
-| 11  | **scenario/v3 spike (complete)**       | Both happy-path (`Then`) and error-path (`ThenError`) proven. Error-path uses `event.NewConflict(code, "")` as target — `*Error.Is()` matches by code+family.                                                                                                           |
-| 12  | **Pareto execution plans**             | Two plans in `docs/planning/` with mermaid graphs.                                                                                                                                                                                                                      |
+| #  | Item                                   | Details                                                                                                                                                                                                                                                                 |
+| -- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **go-cqrs-lite v3.4.0 upgrade**        | All 8 modules upgraded to latest tags.                                                                                                                                                                                                                                  |
+| 2  | **cmdID bug fix (initial)**            | 7 constructors patched to call `id.NewCommandID()`.                                                                                                                                                                                                                     |
+| 3  | **cmdID bug fix (structural)**         | All 20 commands now embed `*command.BasicCommand` — ID/Type/AggregateID are promoted methods, impossible to forget. ~120 lines of boilerplate removed. Constructor signatures unchanged.                                                                                |
+| 4  | **cmdID regression test**              | Table-driven test asserting all 20 constructors produce non-zero `ID()`.                                                                                                                                                                                                |
+| 5  | **Lint debt cleared**                  | `sse_event.go` (gochecknoglobals + wrapcheck), usermgmt (exhaustruct = the cmdID bug). **All 3 modules: 0 issues.**                                                                                                                                                     |
+| 6  | **v3.3.0 tagged + pushed**             | Formal CHANGELOG, ROADMAP, AGENTS.md, TODO_LIST alignment.                                                                                                                                                                                                              |
+| 7  | **Server-Timing middleware**           | W3C Server-Timing header support (from another agent's work, committed + pushed).                                                                                                                                                                                       |
+| 8  | **Checkpoint-based projection replay** | `StartProjections` gains optional `CheckpointStore`. When set + journal seekable, uses `ReadFrom(checkpoint)` instead of `ReadAll()`. Backward-compatible (nil = full replay). Wired through ServiceConfig, EventSourcedConfig, SQLiteSetupConfig, PostgresSetupConfig. |
+| 9  | **ADR-0031**                           | Projection lifecycle decision (PROPOSED): recommends CatchUpSubscriber for v3.4.0.                                                                                                                                                                                      |
+| 10 | **ADR index**                          | `docs/adr/INDEX.md` — all 31 ADRs with status badges.                                                                                                                                                                                                                   |
+| 11 | **scenario/v3 spike (complete)**       | Both happy-path (`Then`) and error-path (`ThenError`) proven. Error-path uses `event.NewConflict(code, "")` as target — `*Error.Is()` matches by code+family.                                                                                                           |
+| 12 | **Pareto execution plans**             | Two plans in `docs/planning/` with mermaid graphs.                                                                                                                                                                                                                      |
 
 ### Verification Snapshot
 
@@ -64,40 +64,40 @@ aace1d1 chore: upgrade go-cqrs-lite to v3.4.0 across all 8 modules
 
 ## b) PARTIALLY DONE
 
-| #   | Item                                        | Status                                                                                   | Gap                                                                                                                            |
-| --- | ------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | **scenario/v3 BDD adoption**                | Spike proven for both paths.                                                             | Not rolled out across all 578 usermgmt tests. Needs systematic conversion.                                                     |
-| 2   | **Checkpoint replay adoption**              | Implementation done, wired through all config structs.                                   | No SQL-backed CheckpointStore implementation yet — consumers must bring their own (or use `storage.NewMemoryCheckpointStore`). |
-| 3   | **Offline-first Phase 2**                   | Phase 2a shipped.                                                                        | Phase 2b (IndexedDB, ADR-0030) proposed, not implemented.                                                                      |
-| 4   | **CatchUpSubscriber adoption**              | ADR-0031 written with recommendation. Checkpoint replay partially solves the perf issue. | Full adoption (replacing StartProjections with CatchUpSubscriber) deferred — the sync-wait problem remains.                    |
-| 5   | **Untracked `server_timing_bench_test.go`** | New file appeared from another agent.                                                    | Not committed — leaving for user to decide.                                                                                    |
+| # | Item                                        | Status                                                                                   | Gap                                                                                                                            |
+| - | ------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | **scenario/v3 BDD adoption**                | Spike proven for both paths.                                                             | Not rolled out across all 578 usermgmt tests. Needs systematic conversion.                                                     |
+| 2 | **Checkpoint replay adoption**              | Implementation done, wired through all config structs.                                   | No SQL-backed CheckpointStore implementation yet — consumers must bring their own (or use `storage.NewMemoryCheckpointStore`). |
+| 3 | **Offline-first Phase 2**                   | Phase 2a shipped.                                                                        | Phase 2b (IndexedDB, ADR-0030) proposed, not implemented.                                                                      |
+| 4 | **CatchUpSubscriber adoption**              | ADR-0031 written with recommendation. Checkpoint replay partially solves the perf issue. | Full adoption (replacing StartProjections with CatchUpSubscriber) deferred — the sync-wait problem remains.                    |
+| 5 | **Untracked `server_timing_bench_test.go`** | New file appeared from another agent.                                                    | Not committed — leaving for user to decide.                                                                                    |
 
 ---
 
 ## c) NOT STARTED
 
-| #   | Item                              | Why It Matters                                                                                                                                                            |
-| --- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **SQL-backed CheckpointStore**    | Persistent checkpoint survives restarts. Currently no implementation in usermgmt — consumers must use upstream `storage.NewMemoryCheckpointStore` or implement their own. |
-| 2   | **scheduling/v3 for eviction.go** | Replace hand-rolled TTL sweep goroutine with durable Scheduler.                                                                                                           |
-| 3   | **kv.Cache decorator**            | In-process cache for read models.                                                                                                                                         |
-| 4   | **Multi-DB split in presets**     | I/O isolation for production.                                                                                                                                             |
-| 5   | **prometheus/v3 metrics**         | CQRS dispatch observability.                                                                                                                                              |
-| 6   | **graph/v3 read model tier**      | Nodes + edges for traversal-heavy models.                                                                                                                                 |
-| 7   | **deriver/v3**                    | Stateless saga pattern.                                                                                                                                                   |
-| 8   | **transport/grpc**                | gRPC dispatch.                                                                                                                                                            |
-| 9   | **Email branded type**            | Blocked by event serialization. Needs major version + upcaster.                                                                                                           |
-| 10  | **Full scenario/v3 rollout**      | Convert all 578 usermgmt tests to BDD DSL.                                                                                                                                |
+| #  | Item                              | Why It Matters                                                                                                                                                            |
+| -- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **SQL-backed CheckpointStore**    | Persistent checkpoint survives restarts. Currently no implementation in usermgmt — consumers must use upstream `storage.NewMemoryCheckpointStore` or implement their own. |
+| 2  | **scheduling/v3 for eviction.go** | Replace hand-rolled TTL sweep goroutine with durable Scheduler.                                                                                                           |
+| 3  | **kv.Cache decorator**            | In-process cache for read models.                                                                                                                                         |
+| 4  | **Multi-DB split in presets**     | I/O isolation for production.                                                                                                                                             |
+| 5  | **prometheus/v3 metrics**         | CQRS dispatch observability.                                                                                                                                              |
+| 6  | **graph/v3 read model tier**      | Nodes + edges for traversal-heavy models.                                                                                                                                 |
+| 7  | **deriver/v3**                    | Stateless saga pattern.                                                                                                                                                   |
+| 8  | **transport/grpc**                | gRPC dispatch.                                                                                                                                                            |
+| 9  | **Email branded type**            | Blocked by event serialization. Needs major version + upcaster.                                                                                                           |
+| 10 | **Full scenario/v3 rollout**      | Convert all 578 usermgmt tests to BDD DSL.                                                                                                                                |
 
 ---
 
 ## d) TOTALLY FUCKED UP
 
-| #   | Issue                         | Severity | Status                                                                                                                                                                                                              |
-| --- | ----------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **`go mod tidy` broken**      | Medium   | Pre-existing upstream bug (`eventtest@v0.0.0` local replace in go-cqrs-lite). Affects all consumers. Cannot fix from consumer side.                                                                                 |
-| 2   | **Concurrent agent activity** | Low      | Another process is creating files (`server_timing.go`, `server_timing_bench_test.go`) during my sessions. Requiring careful investigation before each commit. Not breaking anything but adds coordination overhead. |
-| 3   | **usermgmt coverage 79.3%**   | Low      | Down from 80.1% — the BasicCommand embedding removed some test-covered code paths (the old ID() methods). Still above the 75% gate but trending down.                                                               |
+| # | Issue                         | Severity | Status                                                                                                                                                                                                              |
+| - | ----------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **`go mod tidy` broken**      | Medium   | Pre-existing upstream bug (`eventtest@v0.0.0` local replace in go-cqrs-lite). Affects all consumers. Cannot fix from consumer side.                                                                                 |
+| 2 | **Concurrent agent activity** | Low      | Another process is creating files (`server_timing.go`, `server_timing_bench_test.go`) during my sessions. Requiring careful investigation before each commit. Not breaking anything but adds coordination overhead. |
+| 3 | **usermgmt coverage 79.3%**   | Low      | Down from 80.1% — the BasicCommand embedding removed some test-covered code paths (the old ID() methods). Still above the 75% gate but trending down.                                                               |
 
 ---
 
@@ -131,33 +131,33 @@ aace1d1 chore: upgrade go-cqrs-lite to v3.4.0 across all 8 modules
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                         | Impact    | Effort  |
-| --- | ------------------------------------------------------------ | --------- | ------- |
-| 1   | **SQL-backed CheckpointStore in usermgmt**                   | High      | 2 hours |
-| 2   | **Investigate `server_timing_bench_test.go`**                | Low       | 5 min   |
-| 3   | **Add mustCommand panic test**                               | Medium    | 15 min  |
-| 4   | **Triage 104 TODO items**                                    | Medium    | 2 hours |
-| 5   | **Roll out scenario/v3 to usermgmt decider tests (batch 1)** | High      | 1 day   |
-| 6   | **Full CatchUpSubscriber adoption (v3.4.0)**                 | Very High | 2 days  |
-| 7   | **Contribute eventtest fix upstream**                        | High      | 1 hour  |
-| 8   | **scheduling/v3 for eviction.go**                            | Medium    | 1 day   |
-| 9   | **kv.Cache decorator for read models**                       | Medium    | 2 hours |
-| 10  | **Multi-DB split in presets**                                | Medium    | 3 hours |
-| 11  | **prometheus/v3 metrics**                                    | Medium    | 2 hours |
-| 12  | **Phase 2b IndexedDB persistence**                           | Medium    | 2 days  |
-| 13  | **OAuth2 real-provider integration test**                    | Medium    | 3 hours |
-| 14  | **Fuzz tests for OAuth2 state + PKCE**                       | Medium    | 2 hours |
-| 15  | **v3.3.1 patch release (unreleased work)**                   | High      | 30 min  |
-| 16  | **Write v3.3.x consumer migration guide**                    | Medium    | 2 hours |
-| 17  | **Update FEATURES.md**                                       | Low       | 1 hour  |
-| 18  | **transport/grpc dispatch**                                  | Low       | 1 day   |
-| 19  | **graph/v3 for RBAC**                                        | Low       | 2 days  |
-| 20  | **deriver/v3**                                               | Low       | 1 day   |
-| 21  | **Email branded type + upcaster**                            | Low       | 1 day   |
-| 22  | **Snapshot integration**                                     | Low       | 1 day   |
-| 23  | **Update ROADMAP planned sections**                          | Low       | 30 min  |
-| 24  | **Clean up docs/status/archive**                             | Low       | 30 min  |
-| 25  | **Version-alignment CI check**                               | Low       | 1 hour  |
+| #  | Task                                                         | Impact    | Effort  |
+| -- | ------------------------------------------------------------ | --------- | ------- |
+| 1  | **SQL-backed CheckpointStore in usermgmt**                   | High      | 2 hours |
+| 2  | **Investigate `server_timing_bench_test.go`**                | Low       | 5 min   |
+| 3  | **Add mustCommand panic test**                               | Medium    | 15 min  |
+| 4  | **Triage 104 TODO items**                                    | Medium    | 2 hours |
+| 5  | **Roll out scenario/v3 to usermgmt decider tests (batch 1)** | High      | 1 day   |
+| 6  | **Full CatchUpSubscriber adoption (v3.4.0)**                 | Very High | 2 days  |
+| 7  | **Contribute eventtest fix upstream**                        | High      | 1 hour  |
+| 8  | **scheduling/v3 for eviction.go**                            | Medium    | 1 day   |
+| 9  | **kv.Cache decorator for read models**                       | Medium    | 2 hours |
+| 10 | **Multi-DB split in presets**                                | Medium    | 3 hours |
+| 11 | **prometheus/v3 metrics**                                    | Medium    | 2 hours |
+| 12 | **Phase 2b IndexedDB persistence**                           | Medium    | 2 days  |
+| 13 | **OAuth2 real-provider integration test**                    | Medium    | 3 hours |
+| 14 | **Fuzz tests for OAuth2 state + PKCE**                       | Medium    | 2 hours |
+| 15 | **v3.3.1 patch release (unreleased work)**                   | High      | 30 min  |
+| 16 | **Write v3.3.x consumer migration guide**                    | Medium    | 2 hours |
+| 17 | **Update FEATURES.md**                                       | Low       | 1 hour  |
+| 18 | **transport/grpc dispatch**                                  | Low       | 1 day   |
+| 19 | **graph/v3 for RBAC**                                        | Low       | 2 days  |
+| 20 | **deriver/v3**                                               | Low       | 1 day   |
+| 21 | **Email branded type + upcaster**                            | Low       | 1 day   |
+| 22 | **Snapshot integration**                                     | Low       | 1 day   |
+| 23 | **Update ROADMAP planned sections**                          | Low       | 30 min  |
+| 24 | **Clean up docs/status/archive**                             | Low       | 30 min  |
+| 25 | **Version-alignment CI check**                               | Low       | 1 hour  |
 
 ---
 

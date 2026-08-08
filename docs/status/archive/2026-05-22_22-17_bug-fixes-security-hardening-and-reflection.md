@@ -172,33 +172,33 @@ All tests pass, all modules build, race detector clean, root lint is 0.
 
 Sorted by **impact / effort** (highest ROI first):
 
-| #   | Task                                                                                                    | Impact | Effort | Category     |
-| --- | ------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------ |
-| 1   | Create `usermgmt/.golangci.yml` with appropriate exclusions                                             | High   | Low    | Lint         |
-| 2   | Fix usermgmt production code lint: `writeJSON` errcheck                                                 | High   | Low    | Bug          |
-| 3   | Fix usermgmt production code lint: `authz.go` wrapcheck (20 issues)                                     | Medium | Low    | Quality      |
-| 4   | Fix usermgmt production code lint: `service.go` wrapcheck (5 issues)                                    | Medium | Low    | Quality      |
-| 5   | Fix usermgmt production code lint: `service.go` unused ctx → rename to `_`                              | Medium | Low    | Quality      |
-| 6   | Fix usermgmt production code lint: `http.go` wrapcheck (json.Unmarshal)                                 | Medium | Low    | Quality      |
-| 7   | Fix usermgmt production code lint: `user.go` wrapcheck (json.Marshal, rand.Read)                        | Medium | Low    | Quality      |
-| 8   | Fix usermgmt production code lint: gci formatting on service.go                                         | Low    | Low    | Quality      |
-| 9   | Fix usermgmt test constants: extract `"secret12"`, `"a@b.com"`, `"session_token"`                       | Low    | Low    | Quality      |
-| 10  | Fix usermgmt test: exhaustruct exclusions in `.golangci.yml`                                            | Low    | Low    | Lint         |
-| 11  | Fix usermgmt test: `t.Parallel()` on all test functions                                                 | Low    | Medium | Quality      |
-| 12  | Fix usermgmt test: gosec cookie warnings (add nolint comments)                                          | Low    | Low    | Quality      |
-| 13  | Fix usermgmt test: noctx warnings (NewRequestWithContext)                                               | Low    | Low    | Quality      |
-| 14  | Fix usermgmt test: nolintlint unused directive                                                          | Low    | Low    | Quality      |
-| 15  | Fix usermgmt test: unparam warnings                                                                     | Low    | Low    | Quality      |
-| 16  | Fix usermgmt test: forcetypeassert check                                                                | Low    | Low    | Quality      |
-| 17  | Split `Session.Valid` → `IsExpired()` + `TokenMatches()`                                                | Medium | Low    | Architecture |
-| 18  | Add `InMemorySessionStore.EvictExpired()` method                                                        | Medium | Low    | Feature      |
-| 19  | Change `usermgmt/contextKey` from `string` to `struct{}`                                                | Low    | Low    | Consistency  |
-| 20  | Thread `context.Context` through usermgmt service methods (phase 1: rename `_` to `ctx` where possible) | Medium | Medium | Architecture |
-| 21  | Add `AccountLockout` TTL eviction for non-locked entries                                                | Medium | Medium | Feature      |
-| 22  | Add compensating transaction for `Register` partial failures                                            | Medium | Medium | Correctness  |
-| 23  | Move timeout context creation before body read in `handleAuthEndpoint`                                  | Medium | Low    | Security     |
-| 24  | Update `Authz.Apply` doc to reflect non-atomic behavior                                                 | Low    | Low    | Docs         |
-| 25  | Evaluate `gorilla/schema` for form decoding                                                             | Medium | Medium | Library      |
+| #  | Task                                                                                                    | Impact | Effort | Category     |
+| -- | ------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------ |
+| 1  | Create `usermgmt/.golangci.yml` with appropriate exclusions                                             | High   | Low    | Lint         |
+| 2  | Fix usermgmt production code lint: `writeJSON` errcheck                                                 | High   | Low    | Bug          |
+| 3  | Fix usermgmt production code lint: `authz.go` wrapcheck (20 issues)                                     | Medium | Low    | Quality      |
+| 4  | Fix usermgmt production code lint: `service.go` wrapcheck (5 issues)                                    | Medium | Low    | Quality      |
+| 5  | Fix usermgmt production code lint: `service.go` unused ctx → rename to `_`                              | Medium | Low    | Quality      |
+| 6  | Fix usermgmt production code lint: `http.go` wrapcheck (json.Unmarshal)                                 | Medium | Low    | Quality      |
+| 7  | Fix usermgmt production code lint: `user.go` wrapcheck (json.Marshal, rand.Read)                        | Medium | Low    | Quality      |
+| 8  | Fix usermgmt production code lint: gci formatting on service.go                                         | Low    | Low    | Quality      |
+| 9  | Fix usermgmt test constants: extract `"secret12"`, `"a@b.com"`, `"session_token"`                       | Low    | Low    | Quality      |
+| 10 | Fix usermgmt test: exhaustruct exclusions in `.golangci.yml`                                            | Low    | Low    | Lint         |
+| 11 | Fix usermgmt test: `t.Parallel()` on all test functions                                                 | Low    | Medium | Quality      |
+| 12 | Fix usermgmt test: gosec cookie warnings (add nolint comments)                                          | Low    | Low    | Quality      |
+| 13 | Fix usermgmt test: noctx warnings (NewRequestWithContext)                                               | Low    | Low    | Quality      |
+| 14 | Fix usermgmt test: nolintlint unused directive                                                          | Low    | Low    | Quality      |
+| 15 | Fix usermgmt test: unparam warnings                                                                     | Low    | Low    | Quality      |
+| 16 | Fix usermgmt test: forcetypeassert check                                                                | Low    | Low    | Quality      |
+| 17 | Split `Session.Valid` → `IsExpired()` + `TokenMatches()`                                                | Medium | Low    | Architecture |
+| 18 | Add `InMemorySessionStore.EvictExpired()` method                                                        | Medium | Low    | Feature      |
+| 19 | Change `usermgmt/contextKey` from `string` to `struct{}`                                                | Low    | Low    | Consistency  |
+| 20 | Thread `context.Context` through usermgmt service methods (phase 1: rename `_` to `ctx` where possible) | Medium | Medium | Architecture |
+| 21 | Add `AccountLockout` TTL eviction for non-locked entries                                                | Medium | Medium | Feature      |
+| 22 | Add compensating transaction for `Register` partial failures                                            | Medium | Medium | Correctness  |
+| 23 | Move timeout context creation before body read in `handleAuthEndpoint`                                  | Medium | Low    | Security     |
+| 24 | Update `Authz.Apply` doc to reflect non-atomic behavior                                                 | Low    | Low    | Docs         |
+| 25 | Evaluate `gorilla/schema` for form decoding                                                             | Medium | Medium | Library      |
 
 ---
 

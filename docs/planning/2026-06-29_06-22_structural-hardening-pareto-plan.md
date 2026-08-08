@@ -22,23 +22,23 @@ After releasing v3.3.0, deep research revealed three corrections to earlier asse
 
 ### 1% that delivers 51% of the result
 
-| #   | Task                                  | Impact                                            | Effort |
-| --- | ------------------------------------- | ------------------------------------------------- | ------ |
-| 1   | Fix scenario spike error-path test    | Proves BDD DSL works for both happy + error paths | 10 min |
-| 2   | Embed BasicCommand in all 20 commands | Structurally eliminates cmdID bug class forever   | 45 min |
+| # | Task                                  | Impact                                            | Effort |
+| - | ------------------------------------- | ------------------------------------------------- | ------ |
+| 1 | Fix scenario spike error-path test    | Proves BDD DSL works for both happy + error paths | 10 min |
+| 2 | Embed BasicCommand in all 20 commands | Structurally eliminates cmdID bug class forever   | 45 min |
 
 ### 4% that delivers 64% of the result
 
-| #   | Task                                            | Impact                                             | Effort |
-| --- | ----------------------------------------------- | -------------------------------------------------- | ------ |
-| 3   | Add checkpoint-based replay to StartProjections | No full journal replay on restart (major perf win) | 30 min |
-| 4   | Update regression test for BasicCommand pattern | Ensures test still guards after embedding          | 10 min |
+| # | Task                                            | Impact                                             | Effort |
+| - | ----------------------------------------------- | -------------------------------------------------- | ------ |
+| 3 | Add checkpoint-based replay to StartProjections | No full journal replay on restart (major perf win) | 30 min |
+| 4 | Update regression test for BasicCommand pattern | Ensures test still guards after embedding          | 10 min |
 
 ### 20% that delivers 80% of the result
 
-| #   | Task                                          | Impact                         | Effort |
-| --- | --------------------------------------------- | ------------------------------ | ------ |
-| 5   | Full verification + CHANGELOG update + commit | Ships the structural hardening | 20 min |
+| # | Task                                          | Impact                         | Effort |
+| - | --------------------------------------------- | ------------------------------ | ------ |
+| 5 | Full verification + CHANGELOG update + commit | Ships the structural hardening | 20 min |
 
 ---
 

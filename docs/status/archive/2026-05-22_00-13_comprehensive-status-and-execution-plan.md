@@ -97,33 +97,33 @@
 
 ## F) Top 25 Next Actions (sorted by impact/effort)
 
-| #   | Action                                           | Impact | Effort | Type         |
-| --- | ------------------------------------------------ | ------ | ------ | ------------ |
-| 1   | Fix 4 revive comments on StatusRecorder methods  | HIGH   | 5min   | Lint fix     |
-| 2   | Fix `WriteJSON` errcheck                         | HIGH   | 2min   | Lint fix     |
-| 3   | Fix `evictionHeap` recvcheck (pointer receivers) | HIGH   | 2min   | Lint fix     |
-| 4   | Fix `forcetypeassert` x2 in ratelimit.go         | HIGH   | 3min   | Lint fix     |
-| 5   | Fix `mockPusher` exhaustruct                     | HIGH   | 2min   | Lint fix     |
-| 6   | Fix `noctx` in testing_test.go                   | HIGH   | 1min   | Lint fix     |
-| 7   | Add `sameSite` coverage (66.7→100%)              | MED    | 10min  | Coverage     |
-| 8   | Add `csrfTokenFromRequest` coverage (66.7→100%)  | MED    | 10min  | Coverage     |
-| 9   | Add `Hijack` coverage (60→100%)                  | MED    | 10min  | Coverage     |
-| 10  | Add `handleLogout` coverage (64.3→85%+)          | MED    | 15min  | Coverage     |
-| 11  | Extract `"Bearer "` constant in usermgmt         | LOW    | 2min   | Cleanup      |
-| 12  | Extract `"session_token"` constant in usermgmt   | LOW    | 2min   | Cleanup      |
-| 13  | Extract password validation messages             | LOW    | 3min   | Cleanup      |
-| 14  | Extract `"usermgmt:"` log prefix constant        | LOW    | 1min   | Cleanup      |
-| 15  | Extract `maxDisplayNameLength` constant          | LOW    | 1min   | Cleanup      |
-| 16  | Add `handleAuthEndpoint` timeout branch coverage | MED    | 15min  | Coverage     |
-| 17  | Add `Apply` error path coverage                  | MED    | 15min  | Coverage     |
-| 18  | Add `MapError` family branch coverage            | MED    | 10min  | Coverage     |
-| 19  | Add `Enforce` nil enforcer test                  | MED    | 5min   | Coverage     |
-| 20  | Add `generateToken` error path test              | LOW    | 5min   | Coverage     |
-| 21  | `writeJSON` dedup (usermgmt → root's WriteJSON)  | MED    | 30min  | Architecture |
-| 22  | Integration test go.mod tidy                     | LOW    | 1min   | Fix          |
-| 23  | TypedHandler[T] API design proposal              | HIGH   | 60min  | Design       |
-| 24  | UserID type split ADR update                     | MED    | 30min  | Design       |
-| 25  | Dependabot alerts investigation                  | MED    | 5min   | Security     |
+| #  | Action                                           | Impact | Effort | Type         |
+| -- | ------------------------------------------------ | ------ | ------ | ------------ |
+| 1  | Fix 4 revive comments on StatusRecorder methods  | HIGH   | 5min   | Lint fix     |
+| 2  | Fix `WriteJSON` errcheck                         | HIGH   | 2min   | Lint fix     |
+| 3  | Fix `evictionHeap` recvcheck (pointer receivers) | HIGH   | 2min   | Lint fix     |
+| 4  | Fix `forcetypeassert` x2 in ratelimit.go         | HIGH   | 3min   | Lint fix     |
+| 5  | Fix `mockPusher` exhaustruct                     | HIGH   | 2min   | Lint fix     |
+| 6  | Fix `noctx` in testing_test.go                   | HIGH   | 1min   | Lint fix     |
+| 7  | Add `sameSite` coverage (66.7→100%)              | MED    | 10min  | Coverage     |
+| 8  | Add `csrfTokenFromRequest` coverage (66.7→100%)  | MED    | 10min  | Coverage     |
+| 9  | Add `Hijack` coverage (60→100%)                  | MED    | 10min  | Coverage     |
+| 10 | Add `handleLogout` coverage (64.3→85%+)          | MED    | 15min  | Coverage     |
+| 11 | Extract `"Bearer "` constant in usermgmt         | LOW    | 2min   | Cleanup      |
+| 12 | Extract `"session_token"` constant in usermgmt   | LOW    | 2min   | Cleanup      |
+| 13 | Extract password validation messages             | LOW    | 3min   | Cleanup      |
+| 14 | Extract `"usermgmt:"` log prefix constant        | LOW    | 1min   | Cleanup      |
+| 15 | Extract `maxDisplayNameLength` constant          | LOW    | 1min   | Cleanup      |
+| 16 | Add `handleAuthEndpoint` timeout branch coverage | MED    | 15min  | Coverage     |
+| 17 | Add `Apply` error path coverage                  | MED    | 15min  | Coverage     |
+| 18 | Add `MapError` family branch coverage            | MED    | 10min  | Coverage     |
+| 19 | Add `Enforce` nil enforcer test                  | MED    | 5min   | Coverage     |
+| 20 | Add `generateToken` error path test              | LOW    | 5min   | Coverage     |
+| 21 | `writeJSON` dedup (usermgmt → root's WriteJSON)  | MED    | 30min  | Architecture |
+| 22 | Integration test go.mod tidy                     | LOW    | 1min   | Fix          |
+| 23 | TypedHandler[T] API design proposal              | HIGH   | 60min  | Design       |
+| 24 | UserID type split ADR update                     | MED    | 30min  | Design       |
+| 25 | Dependabot alerts investigation                  | MED    | 5min   | Security     |
 
 ---
 

@@ -154,33 +154,33 @@ limiter unification made it false — caught and fixed in self-review round 7.
 
 Sorted by impact × effort × customer-value.
 
-| #   | Task                                                                   | Impact   | Effort | Blocked? |
-| --- | ---------------------------------------------------------------------- | -------- | ------ | -------- |
-| 1   | **Answer Q2: closed-tab persistence?** (SharedWorker / Service Worker) | Critical | 5m     | **User** |
-| 2   | Add adminui integration test (mount + route render)                    | High     | 30m    | —        |
-| 3   | Security review: X-Command-Id injection/replay surface                 | High     | 30m    | —        |
-| 4   | Implement Redis IdempotencyStore (SET NX + TTL)                        | High     | 45m    | —        |
-| 5   | Document consumer wiring recipe (SSE + ACK + honest UI)                | Medium   | 30m    | —        |
-| 6   | Split sql_session_store.go (424 lines)                                 | Medium   | 30m    | —        |
-| 7   | Split service_core.go (418 lines)                                      | Medium   | 30m    | —        |
-| 8   | Split response.go (358 lines)                                          | Medium   | 20m    | —        |
-| 9   | Split http.go (355 lines)                                              | Medium   | 20m    | —        |
-| 10  | Add actor/impersonator context bridge integration test                 | High     | 30m    | —        |
-| 11  | Browser-verify admin-demo honest UI lifecycle                          | High     | 30m    | —        |
-| 12  | Honest UI: inline error message in rejected state                      | Medium   | 30m    | —        |
-| 13  | Honest UI: add retry button to rejected items                          | Medium   | 30m    | —        |
-| 14  | Add adminui sync indicator rendering test (DOM flip)                   | Medium   | 30m    | —        |
-| 15  | Add coverage gate for adminui                                          | Medium   | 20m    | —        |
-| 16  | Signing/encryption runnable example (prove ADR-0011 seams)             | Medium   | 45m    | —        |
-| 17  | Add JS unit tests for sync-state handler                               | Medium   | 30m    | —        |
-| 18  | SSE replay benchmark (10K/100K events)                                 | Low      | 30m    | —        |
-| 19  | Split oauth2.go (332 lines)                                            | Low      | 20m    | —        |
-| 20  | Split app.go (331 lines)                                               | Low      | 20m    | —        |
-| 21  | Fix responsive .sync-bar mobile layout                                 | Low      | 20m    | —        |
-| 22  | Add PWA manifest to admin-demo                                         | Low      | 20m    | —        |
-| 23  | Evaluate maypok86/otter/v2 for ephemeral stores                        | Low      | 30m    | —        |
-| 24  | Phase 2 client-side command queue implementation                       | Critical | 2h+    | **Q2**   |
-| 25  | Cut v3.3.0 release                                                     | High     | 30m    | Q2 + #2  |
+| #  | Task                                                                   | Impact   | Effort | Blocked? |
+| -- | ---------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1  | **Answer Q2: closed-tab persistence?** (SharedWorker / Service Worker) | Critical | 5m     | **User** |
+| 2  | Add adminui integration test (mount + route render)                    | High     | 30m    | —        |
+| 3  | Security review: X-Command-Id injection/replay surface                 | High     | 30m    | —        |
+| 4  | Implement Redis IdempotencyStore (SET NX + TTL)                        | High     | 45m    | —        |
+| 5  | Document consumer wiring recipe (SSE + ACK + honest UI)                | Medium   | 30m    | —        |
+| 6  | Split sql_session_store.go (424 lines)                                 | Medium   | 30m    | —        |
+| 7  | Split service_core.go (418 lines)                                      | Medium   | 30m    | —        |
+| 8  | Split response.go (358 lines)                                          | Medium   | 20m    | —        |
+| 9  | Split http.go (355 lines)                                              | Medium   | 20m    | —        |
+| 10 | Add actor/impersonator context bridge integration test                 | High     | 30m    | —        |
+| 11 | Browser-verify admin-demo honest UI lifecycle                          | High     | 30m    | —        |
+| 12 | Honest UI: inline error message in rejected state                      | Medium   | 30m    | —        |
+| 13 | Honest UI: add retry button to rejected items                          | Medium   | 30m    | —        |
+| 14 | Add adminui sync indicator rendering test (DOM flip)                   | Medium   | 30m    | —        |
+| 15 | Add coverage gate for adminui                                          | Medium   | 20m    | —        |
+| 16 | Signing/encryption runnable example (prove ADR-0011 seams)             | Medium   | 45m    | —        |
+| 17 | Add JS unit tests for sync-state handler                               | Medium   | 30m    | —        |
+| 18 | SSE replay benchmark (10K/100K events)                                 | Low      | 30m    | —        |
+| 19 | Split oauth2.go (332 lines)                                            | Low      | 20m    | —        |
+| 20 | Split app.go (331 lines)                                               | Low      | 20m    | —        |
+| 21 | Fix responsive .sync-bar mobile layout                                 | Low      | 20m    | —        |
+| 22 | Add PWA manifest to admin-demo                                         | Low      | 20m    | —        |
+| 23 | Evaluate maypok86/otter/v2 for ephemeral stores                        | Low      | 30m    | —        |
+| 24 | Phase 2 client-side command queue implementation                       | Critical | 2h+    | **Q2**   |
+| 25 | Cut v3.3.0 release                                                     | High     | 30m    | Q2 + #2  |
 
 ---
 

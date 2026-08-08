@@ -57,14 +57,14 @@ The user reacted to painful string-concatenation edits: "Why are we not using te
 
 ## Coarse Plan (6 phases, sorted by impact/effort)
 
-| #   | Phase                           | Impact                          | Effort | Files                               | Est.  |
-| --- | ------------------------------- | ------------------------------- | ------ | ----------------------------------- | ----- |
-| 1   | **Accessibility: aria-labels**  | High (a11y compliance)          | Low    | 3 handler files                     | 15min |
-| 2   | **Mobile responsiveness**       | High (unlocks phone/tablet use) | Medium | layout.go + all handlers            | 45min |
-| 3   | **Tests: new features**         | High (confidence debt)          | Medium | 2 new test files                    | 60min |
-| 4   | **Demo enhancement**            | High (full capability showcase) | Medium | examples/dashboard-demo/main.go     | 45min |
-| 5   | **Documentation**               | High (discoverability)          | Low    | README.md, CHANGELOG.md, ROADMAP.md | 30min |
-| 6   | **Final verification + commit** | Critical (don't ship broken)    | Low    | —                                   | 15min |
+| # | Phase                           | Impact                          | Effort | Files                               | Est.  |
+| - | ------------------------------- | ------------------------------- | ------ | ----------------------------------- | ----- |
+| 1 | **Accessibility: aria-labels**  | High (a11y compliance)          | Low    | 3 handler files                     | 15min |
+| 2 | **Mobile responsiveness**       | High (unlocks phone/tablet use) | Medium | layout.go + all handlers            | 45min |
+| 3 | **Tests: new features**         | High (confidence debt)          | Medium | 2 new test files                    | 60min |
+| 4 | **Demo enhancement**            | High (full capability showcase) | Medium | examples/dashboard-demo/main.go     | 45min |
+| 5 | **Documentation**               | High (discoverability)          | Low    | README.md, CHANGELOG.md, ROADMAP.md | 30min |
+| 6 | **Final verification + commit** | Critical (don't ship broken)    | Low    | —                                   | 15min |
 
 **Total estimated: ~3.5 hours**
 

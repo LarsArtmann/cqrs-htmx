@@ -178,33 +178,33 @@ This session was surgical: one bug found, one bug fixed, two apps added. No regr
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                                                     | Impact | Effort  | Priority |
-| --- | ---------------------------------------------------------------------------------------- | ------ | ------- | -------- |
-| 1   | Commit fuzz corpus files from a long fuzz session (5m+)                                  | High   | Low     | P0       |
-| 2   | Wire `test-fuzz` into GitHub Actions CI                                                  | High   | Low     | P0       |
-| 3   | Add fuzz test for `catalog.Builder.Build()` (schema reflection)                          | High   | Medium  | P1       |
-| 4   | Add fuzz test for `ParseWSMessage` / `ParseWSMessageInto[T]`                             | Medium | Low     | P1       |
-| 5   | Add fuzz test for `WriteSSEEvent` (multi-line/CRLF)                                      | Medium | Low     | P1       |
-| 6   | Stress-test race detector: `ginkgo -repeat=50` on usermgmt                               | Medium | Low     | P1       |
-| 7   | Add `meta.description` to existing apps missing it (`test`, `lint`, `coverage`, `build`) | Low    | Trivial | P1       |
-| 8   | Expand `FuzzSanitizeRedirectURL` seeds with attack vectors (blob:, data:, IDN)           | Medium | Low     | P2       |
-| 9   | Add fuzz test for `CSRFConfig.Translate()` (header/field mapping)                        | Medium | Low     | P2       |
-| 10  | Document fuzz testing workflow in CONTRIBUTING.md                                        | Low    | Low     | P2       |
-| 11  | Add fuzz test for `EventOptionsFromContext` with malformed context values                | Low    | Low     | P2       |
-| 12  | Enrich `FuzzDecodeJSONBody` with real-world JSON payloads from examples                  | Low    | Low     | P2       |
-| 13  | Add `-fuzzminimizetime=1m` to `test-fuzz` app for better crash minimization              | Low    | Trivial | P2       |
-| 14  | Add fuzz test for `ratelimit.go` (concurrent limiter access)                             | Medium | Medium  | P2       |
-| 15  | Add property-based test for `paginate[T]` (credential pagination)                        | Low    | Low     | P2       |
-| 16  | Update ROADMAP.md coverage numbers (95.5%/88.1% vs stale 96.4%/84.1%)                    | Low    | Trivial | P2       |
-| 17  | Update TODO_LIST.md coverage numbers (same staleness)                                    | Low    | Trivial | P2       |
-| 18  | Add fuzz test for `decoder.go` body size limit edge cases                                | Low    | Low     | P3       |
-| 19  | Add fuzz test for `structured_error.go` JSON marshaling                                  | Low    | Low     | P3       |
-| 20  | Consider `go test -fuzz=` parallel worker tuning in CI                                   | Low    | Low     | P3       |
-| 21  | Add benchmark for fuzz target throughput (execs/sec regression detection)                | Low    | Medium  | P3       |
-| 22  | Audit whether any non-test code panics on malformed input (not just fuzz targets)        | Medium | High    | P3       |
-| 23  | Add integration fuzz test: full HTTP request → handler → response cycle                  | Medium | High    | P3       |
-| 24  | Consider adding `test-bench` nix app for benchmark runs                                  | Low    | Low     | P3       |
-| 25  | Review if `go-webauthn` ceremony endpoints need additional fuzz seeds                    | Low    | Low     | P4       |
+| #  | Task                                                                                     | Impact | Effort  | Priority |
+| -- | ---------------------------------------------------------------------------------------- | ------ | ------- | -------- |
+| 1  | Commit fuzz corpus files from a long fuzz session (5m+)                                  | High   | Low     | P0       |
+| 2  | Wire `test-fuzz` into GitHub Actions CI                                                  | High   | Low     | P0       |
+| 3  | Add fuzz test for `catalog.Builder.Build()` (schema reflection)                          | High   | Medium  | P1       |
+| 4  | Add fuzz test for `ParseWSMessage` / `ParseWSMessageInto[T]`                             | Medium | Low     | P1       |
+| 5  | Add fuzz test for `WriteSSEEvent` (multi-line/CRLF)                                      | Medium | Low     | P1       |
+| 6  | Stress-test race detector: `ginkgo -repeat=50` on usermgmt                               | Medium | Low     | P1       |
+| 7  | Add `meta.description` to existing apps missing it (`test`, `lint`, `coverage`, `build`) | Low    | Trivial | P1       |
+| 8  | Expand `FuzzSanitizeRedirectURL` seeds with attack vectors (blob:, data:, IDN)           | Medium | Low     | P2       |
+| 9  | Add fuzz test for `CSRFConfig.Translate()` (header/field mapping)                        | Medium | Low     | P2       |
+| 10 | Document fuzz testing workflow in CONTRIBUTING.md                                        | Low    | Low     | P2       |
+| 11 | Add fuzz test for `EventOptionsFromContext` with malformed context values                | Low    | Low     | P2       |
+| 12 | Enrich `FuzzDecodeJSONBody` with real-world JSON payloads from examples                  | Low    | Low     | P2       |
+| 13 | Add `-fuzzminimizetime=1m` to `test-fuzz` app for better crash minimization              | Low    | Trivial | P2       |
+| 14 | Add fuzz test for `ratelimit.go` (concurrent limiter access)                             | Medium | Medium  | P2       |
+| 15 | Add property-based test for `paginate[T]` (credential pagination)                        | Low    | Low     | P2       |
+| 16 | Update ROADMAP.md coverage numbers (95.5%/88.1% vs stale 96.4%/84.1%)                    | Low    | Trivial | P2       |
+| 17 | Update TODO_LIST.md coverage numbers (same staleness)                                    | Low    | Trivial | P2       |
+| 18 | Add fuzz test for `decoder.go` body size limit edge cases                                | Low    | Low     | P3       |
+| 19 | Add fuzz test for `structured_error.go` JSON marshaling                                  | Low    | Low     | P3       |
+| 20 | Consider `go test -fuzz=` parallel worker tuning in CI                                   | Low    | Low     | P3       |
+| 21 | Add benchmark for fuzz target throughput (execs/sec regression detection)                | Low    | Medium  | P3       |
+| 22 | Audit whether any non-test code panics on malformed input (not just fuzz targets)        | Medium | High    | P3       |
+| 23 | Add integration fuzz test: full HTTP request → handler → response cycle                  | Medium | High    | P3       |
+| 24 | Consider adding `test-bench` nix app for benchmark runs                                  | Low    | Low     | P3       |
+| 25 | Review if `go-webauthn` ceremony endpoints need additional fuzz seeds                    | Low    | Low     | P4       |
 
 ---
 

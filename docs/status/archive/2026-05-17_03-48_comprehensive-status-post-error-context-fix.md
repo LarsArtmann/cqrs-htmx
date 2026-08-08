@@ -54,16 +54,16 @@ Library is **production-ready** at v1.0.0. All 24 features are FULLY_FUNCTIONAL.
 
 ## C) NOT STARTED 📋
 
-| #   | Feature                             | Priority | Notes                                                         |
-| --- | ----------------------------------- | -------- | ------------------------------------------------------------- |
-| 1   | Request/response logging middleware | Medium   | Standard structured logging for HTTP requests                 |
-| 2   | Rate limiting middleware            | Medium   | Per-route or per-user rate limiting                           |
-| 3   | WebSocket/SSE helpers               | Low      | Real-time update patterns (marked NOT_PLANNED in FEATURES.md) |
-| 4   | Go module v2 major version          | Low      | No breaking changes planned yet                               |
-| 5   | OpenTelemetry integration           | Medium   | Tracing spans for dispatch, auth, decode                      |
-| 6   | Health check helpers                | Low      | Standard `/healthz` patterns                                  |
-| 7   | Request ID middleware               | Low      | Similar to correlation ID but with generation                 |
-| 8   | Metrics middleware                  | Medium   | Prometheus-style dispatch metrics                             |
+| # | Feature                             | Priority | Notes                                                         |
+| - | ----------------------------------- | -------- | ------------------------------------------------------------- |
+| 1 | Request/response logging middleware | Medium   | Standard structured logging for HTTP requests                 |
+| 2 | Rate limiting middleware            | Medium   | Per-route or per-user rate limiting                           |
+| 3 | WebSocket/SSE helpers               | Low      | Real-time update patterns (marked NOT_PLANNED in FEATURES.md) |
+| 4 | Go module v2 major version          | Low      | No breaking changes planned yet                               |
+| 5 | OpenTelemetry integration           | Medium   | Tracing spans for dispatch, auth, decode                      |
+| 6 | Health check helpers                | Low      | Standard `/healthz` patterns                                  |
+| 7 | Request ID middleware               | Low      | Similar to correlation ID but with generation                 |
+| 8 | Metrics middleware                  | Medium   | Prometheus-style dispatch metrics                             |
 
 ---
 
@@ -106,33 +106,33 @@ Minor items worth watching:
 
 ## F) Top 25 Things We Should Get Done Next
 
-| #   | Priority | Task                                                                     | Impact | Effort |
-| --- | -------- | ------------------------------------------------------------------------ | ------ | ------ |
-| 1   | P0       | Update FEATURES.md metrics (95.5% coverage)                              | Low    | 5 min  |
-| 2   | P0       | Systematic error-context audit across ALL files                          | Medium | 1 hr   |
-| 3   | P1       | Create `examples/` directory with minimal server                         | High   | 2 hr   |
-| 4   | P1       | OpenTelemetry integration via lifecycle hooks                            | High   | 3 hr   |
-| 5   | P1       | Typed error structs for programmatic inspection                          | Medium | 2 hr   |
-| 6   | P1       | Request/response logging middleware                                      | Medium | 2 hr   |
-| 7   | P2       | Fuzz tests for JSON/Form decoders                                        | Medium | 2 hr   |
-| 8   | P2       | Integration test with real Casbin adapter                                | Medium | 1 hr   |
-| 9   | P2       | Enrich package-level godoc                                               | Low    | 30 min |
-| 10  | P2       | Rate limiting middleware                                                 | Medium | 2 hr   |
-| 11  | P2       | Health check helpers                                                     | Low    | 30 min |
-| 12  | P2       | Request ID generation middleware                                         | Low    | 1 hr   |
-| 13  | P2       | Prometheus metrics middleware via hooks                                  | Medium | 2 hr   |
-| 14  | P3       | Resolve LSP stale diagnostics root cause                                 | Low    | 2 hr   |
-| 15  | P3       | CI: add golangci-lint step with same config                              | Low    | 30 min |
-| 16  | P3       | CI: add golangci-lint v2 version pinning                                 | Low    | 15 min |
-| 17  | P3       | Add `//go:build` constraints if needed for future platform-specific code | Low    | 15 min |
-| 18  | P3       | Benchmark comparison: before/after error context changes                 | Low    | 30 min |
-| 19  | P3       | Investigate `cockroachdb/errors` vs `fmt.Errorf` migration               | Medium | 3 hr   |
-| 20  | P3       | Consider `errors.Join` for multi-error scenarios                         | Low    | 1 hr   |
-| 21  | P4       | Add `CHANGELOG.md` unreleased section template                           | Low    | 10 min |
-| 22  | P4       | Generate Go reference documentation (pkg.go.dev custom)                  | Low    | 2 hr   |
-| 23  | P4       | Version badge auto-update in CI                                          | Low    | 30 min |
-| 24  | P4       | Add SECURITY.md with vulnerability reporting policy                      | Low    | 15 min |
-| 25  | P4       | Roadmap doc: v1.1, v2.0 planning                                         | Low    | 1 hr   |
+| #  | Priority | Task                                                                     | Impact | Effort |
+| -- | -------- | ------------------------------------------------------------------------ | ------ | ------ |
+| 1  | P0       | Update FEATURES.md metrics (95.5% coverage)                              | Low    | 5 min  |
+| 2  | P0       | Systematic error-context audit across ALL files                          | Medium | 1 hr   |
+| 3  | P1       | Create `examples/` directory with minimal server                         | High   | 2 hr   |
+| 4  | P1       | OpenTelemetry integration via lifecycle hooks                            | High   | 3 hr   |
+| 5  | P1       | Typed error structs for programmatic inspection                          | Medium | 2 hr   |
+| 6  | P1       | Request/response logging middleware                                      | Medium | 2 hr   |
+| 7  | P2       | Fuzz tests for JSON/Form decoders                                        | Medium | 2 hr   |
+| 8  | P2       | Integration test with real Casbin adapter                                | Medium | 1 hr   |
+| 9  | P2       | Enrich package-level godoc                                               | Low    | 30 min |
+| 10 | P2       | Rate limiting middleware                                                 | Medium | 2 hr   |
+| 11 | P2       | Health check helpers                                                     | Low    | 30 min |
+| 12 | P2       | Request ID generation middleware                                         | Low    | 1 hr   |
+| 13 | P2       | Prometheus metrics middleware via hooks                                  | Medium | 2 hr   |
+| 14 | P3       | Resolve LSP stale diagnostics root cause                                 | Low    | 2 hr   |
+| 15 | P3       | CI: add golangci-lint step with same config                              | Low    | 30 min |
+| 16 | P3       | CI: add golangci-lint v2 version pinning                                 | Low    | 15 min |
+| 17 | P3       | Add `//go:build` constraints if needed for future platform-specific code | Low    | 15 min |
+| 18 | P3       | Benchmark comparison: before/after error context changes                 | Low    | 30 min |
+| 19 | P3       | Investigate `cockroachdb/errors` vs `fmt.Errorf` migration               | Medium | 3 hr   |
+| 20 | P3       | Consider `errors.Join` for multi-error scenarios                         | Low    | 1 hr   |
+| 21 | P4       | Add `CHANGELOG.md` unreleased section template                           | Low    | 10 min |
+| 22 | P4       | Generate Go reference documentation (pkg.go.dev custom)                  | Low    | 2 hr   |
+| 23 | P4       | Version badge auto-update in CI                                          | Low    | 30 min |
+| 24 | P4       | Add SECURITY.md with vulnerability reporting policy                      | Low    | 15 min |
+| 25 | P4       | Roadmap doc: v1.1, v2.0 planning                                         | Low    | 1 hr   |
 
 ---
 

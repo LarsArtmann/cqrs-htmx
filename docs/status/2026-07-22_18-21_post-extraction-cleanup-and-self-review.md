@@ -1,22 +1,22 @@
 # Status Report: Post-Extraction Cleanup & Self-Review
 
-**Date:** 2026-07-22 18:21  
-**Session scope:** Cleanup of 3 self-identified issues from the offline sync extraction session + brutal self-review.  
+**Date:** 2026-07-22 18:21\
+**Session scope:** Cleanup of 3 self-identified issues from the offline sync extraction session + brutal self-review.\
 **Outcome:** All 7 planned tasks completed. Build passes. Root tests (4.0s) + adminui tests (4.2s) pass with `-race`. Coverage: 93.6% root.
 
 ---
 
 ## A) FULLY DONE
 
-| #   | Task                                                                                                                                                                                                                                                     | Files Touched                                      | Verified                                                   |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
-| 1   | **Deleted `SyncWorkerScriptTag()`** from `sync_serve.go`                                                                                                                                                                                                 | `sync_serve.go`                                    | Build OK, 0 grep matches, no refs in adminui/examples/docs |
-| 2   | **Fixed all wsl_v5 lint warnings** (9 warnings → 0) + removed `SyncWorkerScriptTag` test                                                                                                                                                                 | `sync_serve_test.go` (rewritten: 126→133 lines)    | 8 tests pass with `-race`                                  |
-| 3   | **Updated FEATURES.md** — added `### Offline Sync` section to Root Module; updated adminui row to "Delegates to root module handlers"                                                                                                                    | `FEATURES.md`                                      | Both entries verified on disk                              |
-| 4   | **Wrote ADR-0042** — full ADR for the extraction (context, decision, alternatives, consequences, relationship to ADR-0040)                                                                                                                               | `docs/adr/0042-offline-sync-extraction-to-root.md` | File exists                                                |
-| 5   | **Backfilled ADR INDEX.md** — added missing entries 0038, 0039, 0040, 0041, 0042 (index was stuck at 0037!)                                                                                                                                              | `docs/adr/INDEX.md`                                | All 5 entries verified                                     |
-| 6   | **Updated CHANGELOG.md** — file paths in Phase 2b + hardening entries now reference `sync/sync-worker.js` (root module) instead of `adminui/assets/sync-worker.js`; added ADR-0042 reference to extraction entry; updated "confined to admin UI" wording | `CHANGELOG.md`                                     | 3 string replacements verified                             |
-| 7   | **Full verification** — build, root tests, adminui tests, JS syntax checks, coverage                                                                                                                                                                     | —                                                  | Build OK, tests OK, JS OK, 93.6% coverage                  |
+| # | Task                                                                                                                                                                                                                                                     | Files Touched                                      | Verified                                                   |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
+| 1 | **Deleted `SyncWorkerScriptTag()`** from `sync_serve.go`                                                                                                                                                                                                 | `sync_serve.go`                                    | Build OK, 0 grep matches, no refs in adminui/examples/docs |
+| 2 | **Fixed all wsl_v5 lint warnings** (9 warnings → 0) + removed `SyncWorkerScriptTag` test                                                                                                                                                                 | `sync_serve_test.go` (rewritten: 126→133 lines)    | 8 tests pass with `-race`                                  |
+| 3 | **Updated FEATURES.md** — added `### Offline Sync` section to Root Module; updated adminui row to "Delegates to root module handlers"                                                                                                                    | `FEATURES.md`                                      | Both entries verified on disk                              |
+| 4 | **Wrote ADR-0042** — full ADR for the extraction (context, decision, alternatives, consequences, relationship to ADR-0040)                                                                                                                               | `docs/adr/0042-offline-sync-extraction-to-root.md` | File exists                                                |
+| 5 | **Backfilled ADR INDEX.md** — added missing entries 0038, 0039, 0040, 0041, 0042 (index was stuck at 0037!)                                                                                                                                              | `docs/adr/INDEX.md`                                | All 5 entries verified                                     |
+| 6 | **Updated CHANGELOG.md** — file paths in Phase 2b + hardening entries now reference `sync/sync-worker.js` (root module) instead of `adminui/assets/sync-worker.js`; added ADR-0042 reference to extraction entry; updated "confined to admin UI" wording | `CHANGELOG.md`                                     | 3 string replacements verified                             |
+| 7 | **Full verification** — build, root tests, adminui tests, JS syntax checks, coverage                                                                                                                                                                     | —                                                  | Build OK, tests OK, JS OK, 93.6% coverage                  |
 
 ### Verification evidence
 
@@ -160,7 +160,7 @@ Every single tool call in this session included 14 lines of project diagnostics,
 41. **Add example app using root sync handlers (without adminui)** — `examples/basic/` or a new `examples/sync-demo/` showing minimal wiring.
 42. **Add `SyncVersion()` to the FEATURES.md Notes column** — Currently the version isn't visible in the feature inventory.
 43. **Update AGENTS.md coverage threshold** — Root coverage is now 93.6%, but AGENTS.md says "93.8%". Minor drift.
-44. **Audit all `serveJS` consumers for consistent ETag quoting** — Some use `fmt.Sprintf(\`"htmx-%s"\`)`, others `fmt.Sprintf(\`"cqrshtmx-sync-worker-%s"\`)`. Consistent prefix?
+44. **Audit all `serveJS` consumers for consistent ETag quoting** — Some use `fmt.Sprintf(\`"htmx-%s"\`)`, others`fmt.Sprintf(\`"cqrshtmx-sync-worker-%s"\`)`. Consistent prefix?
 45. **Consider adding `Cache-Control: no-store` to sync-worker.js for dev mode** — Developers iterating on the worker JS will hit the 1-year cache.
 46. **Add WebSocket support to sync system** — Currently SSE-only. WS-based ACK would use the existing `BroadcastOnAckWS` infrastructure.
 47. **Add graceful shutdown to sync-worker.js** — When the worker receives `bye` from the last tab, it could flush pending state and close the IDB connection.

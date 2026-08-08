@@ -73,21 +73,21 @@
 
 ### C1: constants.go (3 tasks)
 
-| #   | Task                                                                                                                           | Time  |
-| --- | ------------------------------------------------------------------------------------------------------------------------------ | ----- |
-| D1  | Create `constants.go` with ContentTypePlain, ContentTypeJSON, ContentTypeProblem, ContentTypeHTML, JSONKeyError, JSONKeyStatus | 3 min |
-| D2  | Remove those constants from `response.go` lines 14-26                                                                          | 2 min |
-| D3  | Build + test root module                                                                                                       | 5 min |
+| #  | Task                                                                                                                           | Time  |
+| -- | ------------------------------------------------------------------------------------------------------------------------------ | ----- |
+| D1 | Create `constants.go` with ContentTypePlain, ContentTypeJSON, ContentTypeProblem, ContentTypeHTML, JSONKeyError, JSONKeyStatus | 3 min |
+| D2 | Remove those constants from `response.go` lines 14-26                                                                          | 2 min |
+| D3 | Build + test root module                                                                                                       | 5 min |
 
 ### C2: check-module-isolation.sh (5 tasks)
 
-| #   | Task                                           | Time   |
-| --- | ---------------------------------------------- | ------ |
-| D4  | Write script header + find all go.mod files    | 5 min  |
-| D5  | Add GOWORK=off go build per module loop        | 5 min  |
-| D6  | Add GOWORK=off go vet per module               | 5 min  |
-| D7  | Test script on all 4 production modules        | 5 min  |
-| D8  | Handle edge cases (examples are main packages) | 10 min |
+| #  | Task                                           | Time   |
+| -- | ---------------------------------------------- | ------ |
+| D4 | Write script header + find all go.mod files    | 5 min  |
+| D5 | Add GOWORK=off go build per module loop        | 5 min  |
+| D6 | Add GOWORK=off go vet per module               | 5 min  |
+| D7 | Test script on all 4 production modules        | 5 min  |
+| D8 | Handle edge cases (examples are main packages) | 10 min |
 
 ### C3: check-dep-budgets.sh (5 tasks)
 

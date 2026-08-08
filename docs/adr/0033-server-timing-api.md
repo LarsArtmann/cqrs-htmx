@@ -7,8 +7,7 @@
 
 We need a way for developers to see per-request performance breakdowns
 (dispatch, decode, auth, database) directly in their browser DevTools or
-curl output, without setting up a full metrics pipeline. The [W3C
-Server-Timing API](https://w3c.github.io/server-timing/) provides a
+curl output, without setting up a full metrics pipeline. The [W3C Server-Timing API](https://w3c.github.io/server-timing/) provides a
 standardized HTTP response header for exactly this purpose.
 
 ### The core constraint

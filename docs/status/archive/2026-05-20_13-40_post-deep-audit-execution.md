@@ -205,33 +205,33 @@ Common Go pattern, but could silently drop encoding errors (e.g., channel values
 
 ## F) Top 25 Things We Should Get Done Next
 
-| #   | Priority | Item                                                                      | Est. Effort | Impact        |
-| --- | -------- | ------------------------------------------------------------------------- | ----------- | ------------- |
-| 1   | P0       | Fix `Authz.Apply()` swallowed errors for RemoveGroups/AddGroups           | 30min       | Correctness   |
-| 2   | P0       | Commit `golangci-lint fmt` formatting changes (18 files)                  | 5min        | Consistency   |
-| 3   | P1       | Remove unused `InMemorySessionStore.ttl` field                            | 10min       | Cleanup       |
-| 4   | P1       | Fix 7 test-only lint warnings (nolint comments or refactor)               | 20min       | Hygiene       |
-| 5   | P1       | Add GitHub Actions CI (build + test + lint)                               | 1hr         | Automation    |
-| 6   | P1       | Make `writeJSON` return or log encoding errors                            | 15min       | Robustness    |
-| 7   | P1       | Remove stale `report/` and `reports/` directories                         | 5min        | Cleanup       |
-| 8   | P2       | Add benchmarks for usermgmt (bcrypt, session creation, authz enforce)     | 1hr         | Performance   |
-| 9   | P2       | Resolve usermgmt vs cqrshtmx UserID type split                            | 2hr         | Architecture  |
-| 10  | P2       | Integration tests between root module and usermgmt                        | 2hr         | Coverage      |
-| 11  | P2       | Context-aware bcrypt (goroutine + cancel channel)                         | 1hr         | Cancellation  |
-| 12  | P2       | Add `//nolint` or CI config to suppress test-only warnings                | 15min       | CI hygiene    |
-| 13  | P2       | Rate limiter eviction optimization (min-heap)                             | 2hr         | Performance   |
-| 14  | P2       | Add usermgmt godoc examples (ExampleNewService, ExampleAuthz)             | 1hr         | Documentation |
-| 15  | P2       | Evaluate go-branded-id for numeric IDs (SQL backend prep)                 | 30min       | Research      |
-| 16  | P3       | Add persistent store interface implementations (SQLite, Postgres)         | 4hr         | Feature       |
-| 17  | P3       | Consolidate `docs/status/archive/` or gitignore it                        | 10min       | Cleanup       |
-| 18  | P3       | OpenAPI spec generation for HTTP endpoints                                | 2hr         | Documentation |
-| 19  | P3       | Add structured error types (not just sentinels) for better error matching | 2hr         | API quality   |
-| 20  | P3       | Session refresh/token rotation                                            | 2hr         | Security      |
-| 21  | P3       | Multi-factor authentication hooks                                         | 3hr         | Security      |
-| 22  | P4       | Add OAuth2/OIDC integration layer                                         | 4hr         | Feature       |
-| 23  | P4       | Rate limiter middleware for usermgmt login endpoint                       | 1hr         | Security      |
-| 24  | P4       | WebSocket/SSE helper for real-time notifications                          | 3hr         | Feature       |
-| 25  | P4       | Example application repository consuming this library                     | 4hr         | Documentation |
+| #  | Priority | Item                                                                      | Est. Effort | Impact        |
+| -- | -------- | ------------------------------------------------------------------------- | ----------- | ------------- |
+| 1  | P0       | Fix `Authz.Apply()` swallowed errors for RemoveGroups/AddGroups           | 30min       | Correctness   |
+| 2  | P0       | Commit `golangci-lint fmt` formatting changes (18 files)                  | 5min        | Consistency   |
+| 3  | P1       | Remove unused `InMemorySessionStore.ttl` field                            | 10min       | Cleanup       |
+| 4  | P1       | Fix 7 test-only lint warnings (nolint comments or refactor)               | 20min       | Hygiene       |
+| 5  | P1       | Add GitHub Actions CI (build + test + lint)                               | 1hr         | Automation    |
+| 6  | P1       | Make `writeJSON` return or log encoding errors                            | 15min       | Robustness    |
+| 7  | P1       | Remove stale `report/` and `reports/` directories                         | 5min        | Cleanup       |
+| 8  | P2       | Add benchmarks for usermgmt (bcrypt, session creation, authz enforce)     | 1hr         | Performance   |
+| 9  | P2       | Resolve usermgmt vs cqrshtmx UserID type split                            | 2hr         | Architecture  |
+| 10 | P2       | Integration tests between root module and usermgmt                        | 2hr         | Coverage      |
+| 11 | P2       | Context-aware bcrypt (goroutine + cancel channel)                         | 1hr         | Cancellation  |
+| 12 | P2       | Add `//nolint` or CI config to suppress test-only warnings                | 15min       | CI hygiene    |
+| 13 | P2       | Rate limiter eviction optimization (min-heap)                             | 2hr         | Performance   |
+| 14 | P2       | Add usermgmt godoc examples (ExampleNewService, ExampleAuthz)             | 1hr         | Documentation |
+| 15 | P2       | Evaluate go-branded-id for numeric IDs (SQL backend prep)                 | 30min       | Research      |
+| 16 | P3       | Add persistent store interface implementations (SQLite, Postgres)         | 4hr         | Feature       |
+| 17 | P3       | Consolidate `docs/status/archive/` or gitignore it                        | 10min       | Cleanup       |
+| 18 | P3       | OpenAPI spec generation for HTTP endpoints                                | 2hr         | Documentation |
+| 19 | P3       | Add structured error types (not just sentinels) for better error matching | 2hr         | API quality   |
+| 20 | P3       | Session refresh/token rotation                                            | 2hr         | Security      |
+| 21 | P3       | Multi-factor authentication hooks                                         | 3hr         | Security      |
+| 22 | P4       | Add OAuth2/OIDC integration layer                                         | 4hr         | Feature       |
+| 23 | P4       | Rate limiter middleware for usermgmt login endpoint                       | 1hr         | Security      |
+| 24 | P4       | WebSocket/SSE helper for real-time notifications                          | 3hr         | Feature       |
+| 25 | P4       | Example application repository consuming this library                     | 4hr         | Documentation |
 
 ---
 
@@ -276,13 +276,13 @@ They have the **same underlying representation** but are **different types** fro
 
 ## Dependency Health
 
-| Dependency          | Version | Status                        |
-| ------------------- | ------- | ----------------------------- |
-| casbin/casbin/v3    | v3.10.0 | Current                       |
-| cockroachdb/errors  | v1.13.0 | Current                       |
+| Dependency          | Version | Status                       |
+| ------------------- | ------- | ---------------------------- |
+| casbin/casbin/v3    | v3.10.0 | Current                      |
+| cockroachdb/errors  | v1.13.0 | Current                      |
 | gorilla/csrf        | v1.7.3  | Current (archived project ⚠️) |
-| go-cqrs-lite/core   | v1.2.0  | Private, current              |
-| golang.org/x/time   | v0.15.0 | Current                       |
-| golang.org/x/crypto | v0.51.0 | Current                       |
+| go-cqrs-lite/core   | v1.2.0  | Private, current             |
+| golang.org/x/time   | v0.15.0 | Current                      |
+| golang.org/x/crypto | v0.51.0 | Current                      |
 
 **⚠️ gorilla/csrf is archived** — The gorilla organization archived all repositories in 2023. While v1.7.3 is stable and functional, no security patches will be released. Long-term, this should be replaced with an actively maintained CSRF library.

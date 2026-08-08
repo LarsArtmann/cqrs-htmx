@@ -151,33 +151,33 @@
 
 Sorted by impact/effort ratio (highest first).
 
-| #   | Task                                                                            | Impact | Effort  | Ratio      |
-| --- | ------------------------------------------------------------------------------- | ------ | ------- | ---------- |
-| 1   | Add `reports/` to `.gitignore`                                                  | Low    | Trivial | **∞**      |
-| 2   | Update `FEATURES.md` catalog coverage 84.9% → 95.3%                             | Low    | Trivial | **∞**      |
-| 3   | Update `TODO_LIST.md` header with catalog coverage percentage                   | Low    | Trivial | **∞**      |
-| 4   | Annotate planning doc T16 as superseded by `GenerateEventCatalog`               | Low    | Trivial | **High**   |
-| 5   | usermgmt coverage → 90%+ (WebAuthn errors, Casbin projection, import/export)    | High   | Medium  | **High**   |
-| 6   | Catalog example in `examples/` showing end-to-end wiring                        | High   | Medium  | **High**   |
-| 7   | `usermgmtcatalog` integration test — verify README recipe matches actual types  | High   | Low     | **High**   |
-| 8   | Event schema versioning framework (upcasters/migrations on `SchemaVersion`)     | High   | High    | **Medium** |
-| 9   | OAuth2/OIDC integration as alternative to WebAuthn                              | High   | High    | **Medium** |
-| 10  | CSRF protection wiring helper for WebAuthn endpoints                            | Medium | Low     | **Medium** |
-| 11  | Rate limiting wiring helper for WebAuthn endpoints                              | Medium | Low     | **Medium** |
-| 12  | Catalog BDD tests (Ginkgo/Gomega to match project style)                        | Medium | Medium  | **Medium** |
-| 13  | Create `docs/DOMAIN_LANGUAGE.md` for event-sourced usermgmt vocabulary          | Medium | Low     | **Medium** |
-| 14  | Property-based tests for `toKebab` and schema reflection                        | Medium | Medium  | **Medium** |
-| 15  | Catalog `.golangci.yml` (match usermgmt pattern for module isolation)           | Low    | Low     | **Medium** |
-| 16  | Swagger UI handler — serve OpenAPI + embedded Swagger UI HTML                   | High   | Medium  | **Medium** |
-| 17  | Add `examples/datastar-demo/datastar-demo` binary to `.gitignore`               | Low    | Trivial | **Low**    |
-| 18  | Benchmark catalog builder + handlers (allocation targets)                       | Low    | Medium  | **Low**    |
-| 19  | Catalog handler middleware support (auth on doc endpoints)                      | Low    | Low     | **Low**    |
-| 20  | D2 diagram SVG rendering endpoint (via d2 CLI or WASM)                          | Low    | High    | **Low**    |
-| 21  | Upstream go-cqrs-lite: request dispatcher enumeration API for auto-discovery    | High   | High    | **Low**    |
-| 22  | Upstream go-cqrs-lite: expose `caseutil.ToKebab` publicly (eliminate `toKebab`) | Low    | High    | **Low**    |
-| 23  | Upstream go-cqrs-lite: export marker types for BrandNamer integration           | Low    | High    | **Low**    |
-| 24  | Suppress BuildFlow structure-linter false positives for root flat package       | Low    | Low     | **Low**    |
-| 25  | Migrate `docs/snapshot-testing-options.md` → ADR or remove (stale research)     | Low    | Trivial | **Low**    |
+| #  | Task                                                                            | Impact | Effort  | Ratio      |
+| -- | ------------------------------------------------------------------------------- | ------ | ------- | ---------- |
+| 1  | Add `reports/` to `.gitignore`                                                  | Low    | Trivial | **∞**      |
+| 2  | Update `FEATURES.md` catalog coverage 84.9% → 95.3%                             | Low    | Trivial | **∞**      |
+| 3  | Update `TODO_LIST.md` header with catalog coverage percentage                   | Low    | Trivial | **∞**      |
+| 4  | Annotate planning doc T16 as superseded by `GenerateEventCatalog`               | Low    | Trivial | **High**   |
+| 5  | usermgmt coverage → 90%+ (WebAuthn errors, Casbin projection, import/export)    | High   | Medium  | **High**   |
+| 6  | Catalog example in `examples/` showing end-to-end wiring                        | High   | Medium  | **High**   |
+| 7  | `usermgmtcatalog` integration test — verify README recipe matches actual types  | High   | Low     | **High**   |
+| 8  | Event schema versioning framework (upcasters/migrations on `SchemaVersion`)     | High   | High    | **Medium** |
+| 9  | OAuth2/OIDC integration as alternative to WebAuthn                              | High   | High    | **Medium** |
+| 10 | CSRF protection wiring helper for WebAuthn endpoints                            | Medium | Low     | **Medium** |
+| 11 | Rate limiting wiring helper for WebAuthn endpoints                              | Medium | Low     | **Medium** |
+| 12 | Catalog BDD tests (Ginkgo/Gomega to match project style)                        | Medium | Medium  | **Medium** |
+| 13 | Create `docs/DOMAIN_LANGUAGE.md` for event-sourced usermgmt vocabulary          | Medium | Low     | **Medium** |
+| 14 | Property-based tests for `toKebab` and schema reflection                        | Medium | Medium  | **Medium** |
+| 15 | Catalog `.golangci.yml` (match usermgmt pattern for module isolation)           | Low    | Low     | **Medium** |
+| 16 | Swagger UI handler — serve OpenAPI + embedded Swagger UI HTML                   | High   | Medium  | **Medium** |
+| 17 | Add `examples/datastar-demo/datastar-demo` binary to `.gitignore`               | Low    | Trivial | **Low**    |
+| 18 | Benchmark catalog builder + handlers (allocation targets)                       | Low    | Medium  | **Low**    |
+| 19 | Catalog handler middleware support (auth on doc endpoints)                      | Low    | Low     | **Low**    |
+| 20 | D2 diagram SVG rendering endpoint (via d2 CLI or WASM)                          | Low    | High    | **Low**    |
+| 21 | Upstream go-cqrs-lite: request dispatcher enumeration API for auto-discovery    | High   | High    | **Low**    |
+| 22 | Upstream go-cqrs-lite: expose `caseutil.ToKebab` publicly (eliminate `toKebab`) | Low    | High    | **Low**    |
+| 23 | Upstream go-cqrs-lite: export marker types for BrandNamer integration           | Low    | High    | **Low**    |
+| 24 | Suppress BuildFlow structure-linter false positives for root flat package       | Low    | Low     | **Low**    |
+| 25 | Migrate `docs/snapshot-testing-options.md` → ADR or remove (stale research)     | Low    | Trivial | **Low**    |
 
 ---
 

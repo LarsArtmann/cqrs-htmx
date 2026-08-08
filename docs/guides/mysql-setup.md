@@ -68,15 +68,15 @@ These use `MySQLDialect{}` internally for correct `?` placeholders, `ON DUPLICAT
 
 ## What's Supported vs. What's Not
 
-| Component               | MySQL support   | Notes                                                              |
-| ----------------------- | --------------- | ------------------------------------------------------------------ |
-| Event store             | ✅ Full         | `NewSQLEventStore(ctx, db, "mysql")`                               |
-| Error classification    | ✅ Full         | `classifyMySQLError` in go-cqrs-lite                               |
-| Duplicate-key detection | ✅ Full         | Error 1062 detection                                               |
+| Component               | MySQL support  | Notes                                                              |
+| ----------------------- | -------------- | ------------------------------------------------------------------ |
+| Event store             | ✅ Full        | `NewSQLEventStore(ctx, db, "mysql")`                               |
+| Error classification    | ✅ Full        | `classifyMySQLError` in go-cqrs-lite                               |
+| Duplicate-key detection | ✅ Full        | Error 1062 detection                                               |
 | Session store           | ⚠️ Placeholders | Uses `?` placeholders (MySQL-compatible), but no dedicated dialect |
 | Snapshot store          | ⚠️ Manual       | Pass the same `*sql.DB` with `MySQLDialect`                        |
 | Checkpoint store        | ⚠️ Manual       | Same as snapshot store                                             |
-| Convenience constructor | ❌ Not yet      | `NewMySQLEventSourcedSetup` is planned                             |
+| Convenience constructor | ❌ Not yet     | `NewMySQLEventSourcedSetup` is planned                             |
 
 ## Connection String Tips
 

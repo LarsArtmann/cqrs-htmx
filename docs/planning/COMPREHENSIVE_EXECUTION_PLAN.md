@@ -1,7 +1,7 @@
 # Comprehensive Execution Plan
 
-**Date:** 2026-05-19  
-**Status:** 9 tests failing on master (commit `586d24b`)  
+**Date:** 2026-05-19\
+**Status:** 9 tests failing on master (commit `586d24b`)\
 **Total Specs:** 249 | **Passing:** 240 | **Failing:** 9 | **Coverage:** ~94%
 
 ---
@@ -355,5 +355,5 @@ Phase 4 (Features)
 
 ---
 
-_Plan created: 2026-05-19_  
+_Plan created: 2026-05-19_\
 _Next action: Fix P0.1 nil decoder panic, then P0.2 CSRF regression_

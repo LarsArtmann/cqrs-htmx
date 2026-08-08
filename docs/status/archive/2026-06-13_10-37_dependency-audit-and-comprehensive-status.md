@@ -161,48 +161,48 @@ The closest things to "problems":
 
 ### Immediate (Quick wins, < 1 hour each)
 
-| #   | Task                                                                                       | Impact        | Effort |
-| --- | ------------------------------------------------------------------------------------------ | ------------- | ------ |
-| 1   | Update FEATURES.md metrics (coverage 95.6/90.0, spec count 479)                            | Docs accuracy | 10 min |
-| 2   | Update TODO_LIST.md header (version, coverage)                                             | Docs accuracy | 5 min  |
-| 3   | Suppress exhaustruct for known builder structs in `.golangci.yml` or with `//nolint`       | Lint clean    | 30 min |
-| 4   | Fix `stringscut` hint in datastar-demo `handlers.go:271` (`strings.Index` → `strings.Cut`) | Code quality  | 5 min  |
-| 5   | Fix `unusedwrite` hints in `usermgmt/events_test.go:154-156`                               | Test quality  | 10 min |
+| # | Task                                                                                       | Impact        | Effort |
+| - | ------------------------------------------------------------------------------------------ | ------------- | ------ |
+| 1 | Update FEATURES.md metrics (coverage 95.6/90.0, spec count 479)                            | Docs accuracy | 10 min |
+| 2 | Update TODO_LIST.md header (version, coverage)                                             | Docs accuracy | 5 min  |
+| 3 | Suppress exhaustruct for known builder structs in `.golangci.yml` or with `//nolint`       | Lint clean    | 30 min |
+| 4 | Fix `stringscut` hint in datastar-demo `handlers.go:271` (`strings.Index` → `strings.Cut`) | Code quality  | 5 min  |
+| 5 | Fix `unusedwrite` hints in `usermgmt/events_test.go:154-156`                               | Test quality  | 10 min |
 
 ### Short-term (1-4 hours each)
 
-| #   | Task                                                                                   | Impact        | Effort |
-| --- | -------------------------------------------------------------------------------------- | ------------- | ------ |
-| 6   | Evaluate httputil consolidation — which reimplementations can delegate                 | Architecture  | 2h     |
-| 7   | Add `App.UseCommandMiddleware()` / `App.UseQueryMiddleware()` to expose `.Use()`       | Feature       | 2h     |
-| 8   | Richer JSON error responses using `Error.WithContext()` + error codes                  | UX            | 3h     |
-| 9   | Document SyncedEnforcer recommendation in usermgmt/authz.go docs                       | Safety        | 1h     |
-| 10  | Add CSRF `TrustedProxies []string` config to fix proxy bypass                          | Security      | 3h     |
-| 11  | Write integration test for CSRF failure logging (nosurf.Reason path)                   | Test coverage | 1h     |
-| 12  | Adopt `command.RegisterTyped[T]` in root module tests (like datastar-demo)             | Code quality  | 2h     |
-| 13  | Document event sourcing integration patterns (how consumers wire Bus/Store/Projection) | Docs          | 2h     |
+| #  | Task                                                                                   | Impact        | Effort |
+| -- | -------------------------------------------------------------------------------------- | ------------- | ------ |
+| 6  | Evaluate httputil consolidation — which reimplementations can delegate                 | Architecture  | 2h     |
+| 7  | Add `App.UseCommandMiddleware()` / `App.UseQueryMiddleware()` to expose `.Use()`       | Feature       | 2h     |
+| 8  | Richer JSON error responses using `Error.WithContext()` + error codes                  | UX            | 3h     |
+| 9  | Document SyncedEnforcer recommendation in usermgmt/authz.go docs                       | Safety        | 1h     |
+| 10 | Add CSRF `TrustedProxies []string` config to fix proxy bypass                          | Security      | 3h     |
+| 11 | Write integration test for CSRF failure logging (nosurf.Reason path)                   | Test coverage | 1h     |
+| 12 | Adopt `command.RegisterTyped[T]` in root module tests (like datastar-demo)             | Code quality  | 2h     |
+| 13 | Document event sourcing integration patterns (how consumers wire Bus/Store/Projection) | Docs          | 2h     |
 
 ### Medium-term (1-2 days each)
 
-| #   | Task                                                                    | Impact          | Effort |
-| --- | ----------------------------------------------------------------------- | --------------- | ------ |
-| 14  | SQL store backend for usermgmt (ADR 0003)                               | Feature         | 2d     |
-| 15  | OpenTelemetry integration via `BeforeDispatchHook`/`AfterDispatchHook`  | Observability   | 1d     |
-| 16  | Expand datastar-demo to showcase ExecuteScript, Redirect, custom events | Example quality | 1d     |
-| 17  | Publish v2.2.0 tagged release (remove integration_test local replaces)  | Release         | 1d     |
-| 18  | BatchEnforce support in `Enforcer` interface for bulk authz checks      | Performance     | 1d     |
+| #  | Task                                                                    | Impact          | Effort |
+| -- | ----------------------------------------------------------------------- | --------------- | ------ |
+| 14 | SQL store backend for usermgmt (ADR 0003)                               | Feature         | 2d     |
+| 15 | OpenTelemetry integration via `BeforeDispatchHook`/`AfterDispatchHook`  | Observability   | 1d     |
+| 16 | Expand datastar-demo to showcase ExecuteScript, Redirect, custom events | Example quality | 1d     |
+| 17 | Publish v2.2.0 tagged release (remove integration_test local replaces)  | Release         | 1d     |
+| 18 | BatchEnforce support in `Enforcer` interface for bulk authz checks      | Performance     | 1d     |
 
 ### Longer-term / Strategic
 
-| #   | Task                                                                              | Impact          | Effort |
-| --- | --------------------------------------------------------------------------------- | --------------- | ------ |
-| 19  | Adopt go-cqrs-lite `middleware/v2` module (circuit breaker, retry, metrics)       | Resilience      | 2d     |
-| 20  | Casbin Watcher support for distributed policy sync                                | Scalability     | 3d     |
-| 21  | Evaluate Casbin Adapter pattern for pluggable policy storage                      | Extensibility   | 2d     |
-| 22  | Add option/variant types to make handler config impossible-states-unrepresentable | Type safety     | 2d     |
-| 23  | Consider go-cqrs-lite `projection/v2` for read-model projections                  | Architecture    | 2d     |
-| 24  | Add graceful shutdown support (`App.Shutdown()` → `Dispatcher.Close()`)           | Production      | 1d     |
-| 25  | Full E2E test example with real HTTP server + SSE client                          | Test confidence | 2d     |
+| #  | Task                                                                              | Impact          | Effort |
+| -- | --------------------------------------------------------------------------------- | --------------- | ------ |
+| 19 | Adopt go-cqrs-lite `middleware/v2` module (circuit breaker, retry, metrics)       | Resilience      | 2d     |
+| 20 | Casbin Watcher support for distributed policy sync                                | Scalability     | 3d     |
+| 21 | Evaluate Casbin Adapter pattern for pluggable policy storage                      | Extensibility   | 2d     |
+| 22 | Add option/variant types to make handler config impossible-states-unrepresentable | Type safety     | 2d     |
+| 23 | Consider go-cqrs-lite `projection/v2` for read-model projections                  | Architecture    | 2d     |
+| 24 | Add graceful shutdown support (`App.Shutdown()` → `Dispatcher.Close()`)           | Production      | 1d     |
+| 25 | Full E2E test example with real HTTP server + SSE client                          | Test confidence | 2d     |
 
 ---
 

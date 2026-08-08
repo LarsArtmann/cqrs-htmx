@@ -176,53 +176,53 @@ Continuation session that cleaned up lint issues from the mega quality session (
 
 ### P0 — Immediate (Next Session)
 
-| #   | Item                                                  | Effort | Impact |
-| --- | ----------------------------------------------------- | ------ | ------ |
-| 1   | Raise usermgmt coverage to 92%+                       | 1h     | HIGH   |
-| 2   | Add persistent session store interface (cookie-based) | 2h     | HIGH   |
-| 3   | Password reset flow in usermgmt                       | 2h     | MED    |
-| 4   | SSE/EventStream helper for HTMX real-time             | 3h     | HIGH   |
+| # | Item                                                  | Effort | Impact |
+| - | ----------------------------------------------------- | ------ | ------ |
+| 1 | Raise usermgmt coverage to 92%+                       | 1h     | HIGH   |
+| 2 | Add persistent session store interface (cookie-based) | 2h     | HIGH   |
+| 3 | Password reset flow in usermgmt                       | 2h     | MED    |
+| 4 | SSE/EventStream helper for HTMX real-time             | 3h     | HIGH   |
 
 ### P1 — This Week
 
-| #   | Item                                 | Effort | Impact |
-| --- | ------------------------------------ | ------ | ------ |
-| 5   | Email verification flow in usermgmt  | 2h     | MED    |
-| 6   | OAuth2/OIDC integration hooks        | 3h     | HIGH   |
-| 7   | Rate limiter min-heap eviction       | 2h     | MED    |
-| 8   | Multi-tenancy via Casbin domains API | 2h     | MED    |
-| 9   | 100% godoc for all exported types    | 2h     | MED    |
-| 10  | Visual architecture diagram (D2)     | 1h     | MED    |
+| #  | Item                                 | Effort | Impact |
+| -- | ------------------------------------ | ------ | ------ |
+| 5  | Email verification flow in usermgmt  | 2h     | MED    |
+| 6  | OAuth2/OIDC integration hooks        | 3h     | HIGH   |
+| 7  | Rate limiter min-heap eviction       | 2h     | MED    |
+| 8  | Multi-tenancy via Casbin domains API | 2h     | MED    |
+| 9  | 100% godoc for all exported types    | 2h     | MED    |
+| 10 | Visual architecture diagram (D2)     | 1h     | MED    |
 
 ### P2 — Next Sprint
 
-| #   | Item                                                            | Effort | Impact |
-| --- | --------------------------------------------------------------- | ------ | ------ |
-| 11  | Performance profiling and optimization pass                     | 2h     | LOW    |
-| 12  | Expand benchmark suite (authz, sessions, full middleware chain) | 1h     | MED    |
-| 13  | Add OpenTelemetry tracing integration                           | 3h     | HIGH   |
-| 14  | Add Prometheus metrics middleware                               | 2h     | MED    |
-| 15  | Create example application (showing full usage)                 | 2h     | HIGH   |
+| #  | Item                                                            | Effort | Impact |
+| -- | --------------------------------------------------------------- | ------ | ------ |
+| 11 | Performance profiling and optimization pass                     | 2h     | LOW    |
+| 12 | Expand benchmark suite (authz, sessions, full middleware chain) | 1h     | MED    |
+| 13 | Add OpenTelemetry tracing integration                           | 3h     | HIGH   |
+| 14 | Add Prometheus metrics middleware                               | 2h     | MED    |
+| 15 | Create example application (showing full usage)                 | 2h     | HIGH   |
 
 ### P3 — Backlog
 
-| #   | Item                                             | Effort | Impact |
-| --- | ------------------------------------------------ | ------ | ------ |
-| 16  | Add WebSocket helper for bidirectional real-time | 3h     | MED    |
-| 17  | Add rate limiter Redis backend                   | 2h     | MED    |
-| 18  | Add session store Redis backend                  | 2h     | MED    |
-| 19  | Add structured event sourcing replay support     | 3h     | HIGH   |
-| 20  | Add CQRS saga/process manager support            | 4h     | MED    |
+| #  | Item                                             | Effort | Impact |
+| -- | ------------------------------------------------ | ------ | ------ |
+| 16 | Add WebSocket helper for bidirectional real-time | 3h     | MED    |
+| 17 | Add rate limiter Redis backend                   | 2h     | MED    |
+| 18 | Add session store Redis backend                  | 2h     | MED    |
+| 19 | Add structured event sourcing replay support     | 3h     | HIGH   |
+| 20 | Add CQRS saga/process manager support            | 4h     | MED    |
 
 ### P4 — Nice to Have
 
-| #   | Item                                                        | Effort | Impact |
-| --- | ----------------------------------------------------------- | ------ | ------ |
-| 21  | Add API versioning middleware                               | 2h     | LOW    |
-| 22  | Add request/response logging with body capture (debug mode) | 1h     | MED    |
-| 23  | Add health check endpoint helper                            | 30m    | MED    |
-| 24  | Add graceful shutdown helper                                | 1h     | MED    |
-| 25  | Create comprehensive CONTRIBUTING.md                        | 1h     | LOW    |
+| #  | Item                                                        | Effort | Impact |
+| -- | ----------------------------------------------------------- | ------ | ------ |
+| 21 | Add API versioning middleware                               | 2h     | LOW    |
+| 22 | Add request/response logging with body capture (debug mode) | 1h     | MED    |
+| 23 | Add health check endpoint helper                            | 30m    | MED    |
+| 24 | Add graceful shutdown helper                                | 1h     | MED    |
+| 25 | Create comprehensive CONTRIBUTING.md                        | 1h     | LOW    |
 
 ---
 

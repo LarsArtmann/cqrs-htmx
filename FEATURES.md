@@ -402,10 +402,10 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | ------------- | ---- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | -------- | ---------------- |
 | Coverage      | ~93% | 81.6%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 84.0%       | 96.7%    | —                |
 | CI gate       | 90%  | 74%      | 70%            | 80%   | 80%      | 80%    | 66%     | 79%       | 60%         | 90%      | —                |
-| Tests passing | ~160 | ~602     | ~109           | 3     | 16       | 21     | ~75     | ~36       | ~50         | ~29      |
-| Lint issues   | 0    | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |
-| ErrorFamily   | 0    | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |
-| Go modules    | 1    | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1        |
+| Tests passing | ~160 | ~602     | ~109           | 3     | 16       | 21     | ~75     | ~36       | ~50         | ~29      |                  |
+| Lint issues   | 0    | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |                  |
+| ErrorFamily   | 0    | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |                  |
+| Go modules    | 1    | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1        |                  |
 
 > _Recompute live: `nix run .#coverage-gate`, `nix run .#lint`, `nix run .#errorfamily`. Lint counts are uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module._
 > _All lint-checked modules pass clean (0 issues each). The SA1019 deprecation migration is complete. The transport is SSE-only since the WebSocket drop (ADR 0046)._

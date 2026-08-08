@@ -136,48 +136,48 @@ Nothing is fucked up. The project is in solid shape:
 
 ### Tier 1: Quick Wins (Under 30 minutes each)
 
-| #   | Task                                                                                                     | Impact           | Effort |
-| --- | -------------------------------------------------------------------------------------------------------- | ---------------- | ------ |
-| 1   | Fix `goconst` violations — extract 6 string literals to named constants in test files                    | Noise reduction  | 5 min  |
-| 2   | Refactor `nestif` in `ws.go:144` — early returns to reduce complexity from 7 to ≤3                       | Code quality     | 10 min |
-| 3   | Add `Content-Length` header to `HTMXScriptHandler` — `strconv.Itoa(len(htmxJS))`                         | HTTP correctness | 2 min  |
-| 4   | Update FEATURES.md metrics — 475 specs, 96.2% root, 90.0% usermgmt, 49 prod files, 26 test files         | Accuracy         | 5 min  |
-| 5   | Add `htmx_serve.go` line to `docs/modularization/DEPENDENCY_GRAPH.md` — new file not in dependency graph | Completeness     | 5 min  |
-| 6   | Fix `nix fmt` — resolve treefmt-nix config error in `flake.nix`                                          | Dev experience   | 15 min |
+| # | Task                                                                                                     | Impact           | Effort |
+| - | -------------------------------------------------------------------------------------------------------- | ---------------- | ------ |
+| 1 | Fix `goconst` violations — extract 6 string literals to named constants in test files                    | Noise reduction  | 5 min  |
+| 2 | Refactor `nestif` in `ws.go:144` — early returns to reduce complexity from 7 to ≤3                       | Code quality     | 10 min |
+| 3 | Add `Content-Length` header to `HTMXScriptHandler` — `strconv.Itoa(len(htmxJS))`                         | HTTP correctness | 2 min  |
+| 4 | Update FEATURES.md metrics — 475 specs, 96.2% root, 90.0% usermgmt, 49 prod files, 26 test files         | Accuracy         | 5 min  |
+| 5 | Add `htmx_serve.go` line to `docs/modularization/DEPENDENCY_GRAPH.md` — new file not in dependency graph | Completeness     | 5 min  |
+| 6 | Fix `nix fmt` — resolve treefmt-nix config error in `flake.nix`                                          | Dev experience   | 15 min |
 
 ### Tier 2: Quality (Under 2 hours each)
 
-| #   | Task                                                                                                                                           | Impact             | Effort  |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------- |
-| 7   | Add `exhaustruct` exclusions for test files in `.golangci.yml` — eliminate 50+ noise warnings                                                  | Signal-to-noise    | 30 min  |
-| 8   | Write SSE example app (`examples/sse-demo/`) — standalone Go server with HTMX sse-connect/sse-swap + Broadcaster + SSEStream                   | Documentation      | 1-2 hrs |
-| 9   | Add WebSocket integration tests — test `WSOOBHTML` output against HTMX WS extension expectations                                               | Test coverage      | 1 hr    |
-| 10  | Write targeted coverage tests for `sse.go` reconnection and bridge paths — push root coverage back to 96.9%+                                   | Coverage           | 1 hr    |
-| 11  | Add `HTMXScriptHandler` to README.md — show the feature in the main documentation                                                              | Discoverability    | 15 min  |
-| 12  | Add HTTP handler test for `HTMXScriptHandler` with `Content-Encoding: gzip` — test that Go's default compression doesn't break embedded assets | Edge case coverage | 30 min  |
+| #  | Task                                                                                                                                           | Impact             | Effort  |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------- |
+| 7  | Add `exhaustruct` exclusions for test files in `.golangci.yml` — eliminate 50+ noise warnings                                                  | Signal-to-noise    | 30 min  |
+| 8  | Write SSE example app (`examples/sse-demo/`) — standalone Go server with HTMX sse-connect/sse-swap + Broadcaster + SSEStream                   | Documentation      | 1-2 hrs |
+| 9  | Add WebSocket integration tests — test `WSOOBHTML` output against HTMX WS extension expectations                                               | Test coverage      | 1 hr    |
+| 10 | Write targeted coverage tests for `sse.go` reconnection and bridge paths — push root coverage back to 96.9%+                                   | Coverage           | 1 hr    |
+| 11 | Add `HTMXScriptHandler` to README.md — show the feature in the main documentation                                                              | Discoverability    | 15 min  |
+| 12 | Add HTTP handler test for `HTMXScriptHandler` with `Content-Encoding: gzip` — test that Go's default compression doesn't break embedded assets | Edge case coverage | 30 min  |
 
 ### Tier 3: Feature Work (2-4 hours each)
 
-| #   | Task                                                                                                           | Impact               | Effort  |
-| --- | -------------------------------------------------------------------------------------------------------------- | -------------------- | ------- |
-| 13  | WebSocket bidirectional response builder — helper for combining OOB HTML fragments into a single WS message    | Feature completeness | 2-3 hrs |
-| 14  | usermgmt SQL/postgres store — persistent UserStore and SessionStore implementations                            | Production readiness | 3-4 hrs |
-| 15  | Typed error response struct — `ErrorResponse{Error: string, Status: int, RequestID: string}` as a public type  | API consistency      | 2 hrs   |
-| 16  | Integration test expansion — cover more cross-module bridges (Enforcer adapter, UserID bridge, full auth flow) | Confidence           | 2-3 hrs |
-| 17  | OpenTelemetry integration — `BeforeDispatchHook`/`AfterDispatchHook` with span creation                        | Observability        | 3-4 hrs |
+| #  | Task                                                                                                           | Impact               | Effort  |
+| -- | -------------------------------------------------------------------------------------------------------------- | -------------------- | ------- |
+| 13 | WebSocket bidirectional response builder — helper for combining OOB HTML fragments into a single WS message    | Feature completeness | 2-3 hrs |
+| 14 | usermgmt SQL/postgres store — persistent UserStore and SessionStore implementations                            | Production readiness | 3-4 hrs |
+| 15 | Typed error response struct — `ErrorResponse{Error: string, Status: int, RequestID: string}` as a public type  | API consistency      | 2 hrs   |
+| 16 | Integration test expansion — cover more cross-module bridges (Enforcer adapter, UserID bridge, full auth flow) | Confidence           | 2-3 hrs |
+| 17 | OpenTelemetry integration — `BeforeDispatchHook`/`AfterDispatchHook` with span creation                        | Observability        | 3-4 hrs |
 
 ### Tier 4: Strategic (Larger efforts)
 
-| #   | Task                                                                                                                            | Impact             | Effort  |
-| --- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------- |
-| 18  | HTMX version upgrade automation — script or justfile to download new HTMX version and update embed + version string             | Maintenance        | 2 hrs   |
-| 19  | Middleware documentation guide — dedicated docs page showing common middleware stacks and ordering                              | Consumer education | 3-4 hrs |
-| 20  | usermgmt password hash migration — cost upgrade path for existing bcrypt hashes                                                 | Security           | 2 hrs   |
-| 21  | OpenAPI/swagger generation — auto-generate API docs from handler types                                                          | API documentation  | 4+ hrs  |
-| 22  | Add `examples/htmx-demo/` — full example app using ALL library features (commands, queries, SSE, WS, CSRF, auth, rate limiting) | Onboarding         | 4+ hrs  |
-| 23  | CI/CD pipeline — GitHub Actions for build, test, lint, coverage on every PR                                                     | Quality gate       | 2-3 hrs |
-| 24  | Performance benchmarks for `HTMXScriptHandler` — measure throughput with `wrk` or `hey`                                         | Optimization data  | 1 hr    |
-| 25  | Library v2.1.0 release preparation — CHANGELOG.md, tag, release notes                                                           | Release            | 2 hrs   |
+| #  | Task                                                                                                                            | Impact             | Effort  |
+| -- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------- |
+| 18 | HTMX version upgrade automation — script or justfile to download new HTMX version and update embed + version string             | Maintenance        | 2 hrs   |
+| 19 | Middleware documentation guide — dedicated docs page showing common middleware stacks and ordering                              | Consumer education | 3-4 hrs |
+| 20 | usermgmt password hash migration — cost upgrade path for existing bcrypt hashes                                                 | Security           | 2 hrs   |
+| 21 | OpenAPI/swagger generation — auto-generate API docs from handler types                                                          | API documentation  | 4+ hrs  |
+| 22 | Add `examples/htmx-demo/` — full example app using ALL library features (commands, queries, SSE, WS, CSRF, auth, rate limiting) | Onboarding         | 4+ hrs  |
+| 23 | CI/CD pipeline — GitHub Actions for build, test, lint, coverage on every PR                                                     | Quality gate       | 2-3 hrs |
+| 24 | Performance benchmarks for `HTMXScriptHandler` — measure throughput with `wrk` or `hey`                                         | Optimization data  | 1 hr    |
+| 25 | Library v2.1.0 release preparation — CHANGELOG.md, tag, release notes                                                           | Release            | 2 hrs   |
 
 ---
 

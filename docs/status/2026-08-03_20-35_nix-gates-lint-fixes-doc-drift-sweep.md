@@ -173,7 +173,7 @@ Fixed across: AGENTS.md, FEATURES.md, ROADMAP.md, TODO_LIST.md, docs/DOMAIN_LANG
 37. [ ] **Update go.work comment block**: add go-idempotency to the list of modules with broken pseudo-versions
 38. [ ] **Consider adding `datastar` to `nix run .#check-phantom-version`**: ensure no zero pseudo-versions creep into datastar's deps
 39. [ ] **Verify e2e/server is NOT in lint** (intentional — it's a test server, not a library module)
-40. [ ] _*Verify examples/* are NOT in lint_* (intentional — examples have no .golangci.yml)
+40. [ ] __Verify examples/_ are NOT in lint_* (intentional — examples have no .golangci.yml)
 41. [ ] **Add `nix run .#check-docs-freshness` to pre-commit hook**: catch version string drift before commit
 42. [ ] **Consider a `make-modules-check` CI step**: verify go.work module count matches flake.nix script coverage
 43. [ ] **datastar CHANGELOG**: verify `datastar/CHANGELOG.md` is up to date with any datastar changes this session (none were made, but verify)

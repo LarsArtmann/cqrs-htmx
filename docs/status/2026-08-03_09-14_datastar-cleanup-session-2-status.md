@@ -1,7 +1,7 @@
 # Datastar Adapter Cleanup — Session 2 Status Report
 
-**Date:** 2026-08-03 09:14  
-**Session goal:** Execute the remaining P0/P1 items from the prior session's 50-item follow-up list  
+**Date:** 2026-08-03 09:14\
+**Session goal:** Execute the remaining P0/P1 items from the prior session's 50-item follow-up list\
 **Result:** 9 of 10 tracked tasks completed. Module verified at **71 tests, 97.3% coverage, 0 lint issues, 0 workspace build errors**. Found 2 real bugs in my own work (documented below).
 
 > **Update 2026-08-03 (commit `9cde5c0`, `dfc18e1`):** Both bugs found in this session (D1 writeHeartbeat SDK bypass, D2 test tautology) were fixed in session 19:34. Coverage corrected from 97.3% to 96.7% after heartbeat refactor. Integration guide updated with new features. Module is in publishable state pending user decision on tagging.
@@ -16,7 +16,7 @@
 
 **Impact:** 19 workspace-wide gopls compiler errors across `adminui`, `examples/admin-demo`, `integration_test`, `loginpage`, `usermgmt` (10+ files). The prior session's status report incorrectly scoped this as "integration_test only."
 
-**Fix:** One line added to `go.work`:  
+**Fix:** One line added to `go.work`:\
 `replace github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 => /home/lars/projects/go-cqrs-lite/flightrecorder`
 
 **Verified:** `go build ./...` across all 19 modules — 0 errors. Full workspace `go test ./...` — all pass.
@@ -189,7 +189,7 @@ If compression is ever enabled on the SSE generator, my raw heartbeat bytes woul
 
 ### 2. `TestResponseReplaceURLInvalidIgnored` test asserts the wrong string
 
-**What I did:** The test for invalid URL handling asserts:  
+**What I did:** The test for invalid URL handling asserts:\
 `require.NotContains(t, w.Body.String(), "replace-url")`
 
 **Why it's wrong:** I verified the actual SDK output for `ReplaceURL` — it produces a `datastar-patch-elements` event containing `window.history.replaceState(...)`. The string `"replace-url"` **never appears** in valid OR invalid output. The assertion passes for both cases — it's a tautology that tests nothing.

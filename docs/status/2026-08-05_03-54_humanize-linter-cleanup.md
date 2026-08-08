@@ -5,11 +5,11 @@
 This session addressed exactly three findings produced by the `/tmp/go-humanize-linter`
 binary when run against the repository root:
 
-| #   | File                    | Line | Rule | Message                                                                                        |
-| --- | ----------------------- | ---- | ---- | ---------------------------------------------------------------------------------------------- |
-| 1   | `dashboardui/format.go` | 64   | H001 | manual byte-size formatting (KMGTPE index trick) — use `humanize.Bytes` or `humanize.IBytes`   |
-| 2   | `dashboardui/format.go` | 16   | H003 | manual relative-time formatting (`timeSince=true`, `thresholds=true`) — use `humanize.RelTime` |
-| 3   | `dashboardui/format.go` | 16   | H004 | manual pluralization (`namedParams=false`, `equalsOne=true`) — use `humanize.Plural`           |
+| # | File                    | Line | Rule | Message                                                                                        |
+| - | ----------------------- | ---- | ---- | ---------------------------------------------------------------------------------------------- |
+| 1 | `dashboardui/format.go` | 64   | H001 | manual byte-size formatting (KMGTPE index trick) — use `humanize.Bytes` or `humanize.IBytes`   |
+| 2 | `dashboardui/format.go` | 16   | H003 | manual relative-time formatting (`timeSince=true`, `thresholds=true`) — use `humanize.RelTime` |
+| 3 | `dashboardui/format.go` | 16   | H004 | manual pluralization (`namedParams=false`, `equalsOne=true`) — use `humanize.Plural`           |
 
 No other files were touched. No work outside this scope was performed.
 

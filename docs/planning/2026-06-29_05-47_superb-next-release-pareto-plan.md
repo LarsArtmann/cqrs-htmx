@@ -22,31 +22,31 @@
 
 These 3 tasks unlock a release, prevent the worst bug from recurring, and fix stale docs:
 
-| #   | Task                                                                                                            | Impact                                                         | Effort |
-| --- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------ |
-| 1   | cmdID regression test — table-driven test asserting all 21 commands produce non-zero ID()                       | Prevents recurrence of the bug that silently broke idempotency | 15 min |
-| 2   | Tag v3.3.0 release — add CHANGELOG entry, update version references                                             | Ships 3 weeks of unreleased work to consumers                  | 15 min |
-| 3   | Fix stale docs — AGENTS.md idempotency claim (already aliases, not local copy), ROADMAP version (v3.2.0→v3.3.0) | Doc integrity                                                  | 15 min |
+| # | Task                                                                                                            | Impact                                                         | Effort |
+| - | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------ |
+| 1 | cmdID regression test — table-driven test asserting all 21 commands produce non-zero ID()                       | Prevents recurrence of the bug that silently broke idempotency | 15 min |
+| 2 | Tag v3.3.0 release — add CHANGELOG entry, update version references                                             | Ships 3 weeks of unreleased work to consumers                  | 15 min |
+| 3 | Fix stale docs — AGENTS.md idempotency claim (already aliases, not local copy), ROADMAP version (v3.2.0→v3.3.0) | Doc integrity                                                  | 15 min |
 
 ### 4% that delivers 64% of the result
 
 Adds TODO triage, ADR index, and a scenario/v3 spike:
 
-| #   | Task                                                                  | Impact                                           | Effort |
-| --- | --------------------------------------------------------------------- | ------------------------------------------------ | ------ |
-| 4   | TODO triage — mark stale items, close done items, reduce 104→~25      | Reduces noise to signal                          | 30 min |
-| 5   | ADR index (`docs/adr/INDEX.md`) — one-line summary per ADR            | Navigability for 30 ADRs                         | 15 min |
-| 6   | scenario/v3 spike — convert ONE usermgmt decider test to scenario DSL | Proves the BDD pattern, unblocks future adoption | 30 min |
+| # | Task                                                                  | Impact                                           | Effort |
+| - | --------------------------------------------------------------------- | ------------------------------------------------ | ------ |
+| 4 | TODO triage — mark stale items, close done items, reduce 104→~25      | Reduces noise to signal                          | 30 min |
+| 5 | ADR index (`docs/adr/INDEX.md`) — one-line summary per ADR            | Navigability for 30 ADRs                         | 15 min |
+| 6 | scenario/v3 spike — convert ONE usermgmt decider test to scenario DSL | Proves the BDD pattern, unblocks future adoption | 30 min |
 
 ### 20% that delivers 80% of the result
 
 Adds the structural improvements that prevent bug classes and modernize infrastructure:
 
-| #   | Task                                                                                    | Impact                                            | Effort |
-| --- | --------------------------------------------------------------------------------------- | ------------------------------------------------- | ------ |
-| 7   | Embed `command.BasicCommand` in usermgmt commands — eliminates the cmdID field entirely | Structurally prevents the cmdID bug class forever | 45 min |
-| 8   | Write ADR-0031: projectionhost vs CatchUpSubscriber decision                            | Documents the async-startup tradeoff              | 30 min |
-| 9   | Clean up `result` symlink + other repo hygiene                                          | Repo cleanliness                                  | 10 min |
+| # | Task                                                                                    | Impact                                            | Effort |
+| - | --------------------------------------------------------------------------------------- | ------------------------------------------------- | ------ |
+| 7 | Embed `command.BasicCommand` in usermgmt commands — eliminates the cmdID field entirely | Structurally prevents the cmdID bug class forever | 45 min |
+| 8 | Write ADR-0031: projectionhost vs CatchUpSubscriber decision                            | Documents the async-startup tradeoff              | 30 min |
+| 9 | Clean up `result` symlink + other repo hygiene                                          | Repo cleanliness                                  | 10 min |
 
 ---
 

@@ -25,15 +25,15 @@
 
 ### 7 Performance Optimizations Applied
 
-| #   | Optimization                                     | File(s)           | Allocs Saved                    | Impact                                                                                               |
-| --- | ------------------------------------------------ | ----------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| 1   | Pre-allocated `noopCancel`                       | `app.go:230`      | 1 closure/dispatch (no timeout) | Eliminates heap alloc on every command/query dispatch when no timeout configured                     |
-| 2   | `Response.WriteString` → `io.StringWriter`       | `response.go:196` | 1 `[]byte(string)`/write        | Net/http ResponseWriter implements `io.StringWriter` in real deployments — avoids string→[]byte copy |
-| 3   | `ClientIP` → `strings.Cut`                       | `httputil.go:33`  | 1 `[]string`/call               | Eliminates `strings.Split` alloc when X-Forwarded-For present                                        |
-| 4   | `sanitizeRedirectURL` → inline `pathEscapesRoot` | `response.go:266` | 1 `[]string`/redirect           | Eliminates `strings.Split` + removed `strings` import from response.go                               |
-| 5   | `DefaultLogFormatter` inline context lookups     | `logging.go:52`   | 1 `map[string]string`/log       | Eliminates intermediate map allocation per logged request                                            |
-| 6   | `applyHTMXResponse` early return                 | `options.go:316`  | 1-2 (Response + context lookup) | Skips Response struct allocation when handler has no HTMX options (most common case)                 |
-| 7   | `setTriggerWithDetail` reorder                   | `response.go:303` | Minor                           | Moves `Header.Get` before `json.Marshal` to avoid marshal cost when no existing trigger              |
+| # | Optimization                                     | File(s)           | Allocs Saved                    | Impact                                                                                               |
+| - | ------------------------------------------------ | ----------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1 | Pre-allocated `noopCancel`                       | `app.go:230`      | 1 closure/dispatch (no timeout) | Eliminates heap alloc on every command/query dispatch when no timeout configured                     |
+| 2 | `Response.WriteString` → `io.StringWriter`       | `response.go:196` | 1 `[]byte(string)`/write        | Net/http ResponseWriter implements `io.StringWriter` in real deployments — avoids string→[]byte copy |
+| 3 | `ClientIP` → `strings.Cut`                       | `httputil.go:33`  | 1 `[]string`/call               | Eliminates `strings.Split` alloc when X-Forwarded-For present                                        |
+| 4 | `sanitizeRedirectURL` → inline `pathEscapesRoot` | `response.go:266` | 1 `[]string`/redirect           | Eliminates `strings.Split` + removed `strings` import from response.go                               |
+| 5 | `DefaultLogFormatter` inline context lookups     | `logging.go:52`   | 1 `map[string]string`/log       | Eliminates intermediate map allocation per logged request                                            |
+| 6 | `applyHTMXResponse` early return                 | `options.go:316`  | 1-2 (Response + context lookup) | Skips Response struct allocation when handler has no HTMX options (most common case)                 |
+| 7 | `setTriggerWithDetail` reorder                   | `response.go:303` | Minor                           | Moves `Header.Get` before `json.Marshal` to avoid marshal cost when no existing trigger              |
 
 ### Measured Benchmark Improvements (allocs/op)
 
@@ -114,53 +114,53 @@ The only notable thing: benchmark numbers show high variance on this machine (AM
 
 ### Performance (High Impact)
 
-| #   | Task                                                                                | Impact                                            | Effort  |
-| --- | ----------------------------------------------------------------------------------- | ------------------------------------------------- | ------- |
-| 1   | Replace form decode JSON round-trip with `gorilla/schema` or custom reflect decoder | **Very High** (eliminates 2 allocs per form POST) | Medium  |
-| 2   | Pre-allocate `HealthHandler` response body as package-level `[]byte`                | Medium                                            | Trivial |
-| 3   | Inline `contextFields()` in `RequestLoggingSlog` to eliminate map alloc             | Medium                                            | Low     |
-| 4   | Add `sync.Pool` for JSON encoding buffers in `JSONLogFormatter`                     | Medium                                            | Low     |
-| 5   | Add real `net/http` server benchmarks (not just `httptest`)                         | High (visibility)                                 | Low     |
-| 6   | Add usermgmt benchmarks (bcrypt, session store, lockout)                            | High (visibility)                                 | Low     |
-| 7   | Pool `map[string]any` in `setTriggerWithDetail` for common case                     | Low-Medium                                        | Low     |
+| # | Task                                                                                | Impact                                            | Effort  |
+| - | ----------------------------------------------------------------------------------- | ------------------------------------------------- | ------- |
+| 1 | Replace form decode JSON round-trip with `gorilla/schema` or custom reflect decoder | **Very High** (eliminates 2 allocs per form POST) | Medium  |
+| 2 | Pre-allocate `HealthHandler` response body as package-level `[]byte`                | Medium                                            | Trivial |
+| 3 | Inline `contextFields()` in `RequestLoggingSlog` to eliminate map alloc             | Medium                                            | Low     |
+| 4 | Add `sync.Pool` for JSON encoding buffers in `JSONLogFormatter`                     | Medium                                            | Low     |
+| 5 | Add real `net/http` server benchmarks (not just `httptest`)                         | High (visibility)                                 | Low     |
+| 6 | Add usermgmt benchmarks (bcrypt, session store, lockout)                            | High (visibility)                                 | Low     |
+| 7 | Pool `map[string]any` in `setTriggerWithDetail` for common case                     | Low-Medium                                        | Low     |
 
 ### Testing & Coverage
 
-| #   | Task                                                             | Impact | Effort |
-| --- | ---------------------------------------------------------------- | ------ | ------ |
-| 8   | Add memory pressure test for rate limiter (10K+ keys)            | Medium | Medium |
-| 9   | Add integration benchmark for full middleware chain              | Medium | Low    |
-| 10  | Add fuzz targets for `sanitizeRedirectURL` edge cases            | Medium | Low    |
-| 11  | Cover remaining uncovered branches in root module (2.9% to 100%) | Low    | Medium |
-| 12  | Cover remaining uncovered branches in usermgmt (8.9% to 100%)    | Low    | Medium |
+| #  | Task                                                             | Impact | Effort |
+| -- | ---------------------------------------------------------------- | ------ | ------ |
+| 8  | Add memory pressure test for rate limiter (10K+ keys)            | Medium | Medium |
+| 9  | Add integration benchmark for full middleware chain              | Medium | Low    |
+| 10 | Add fuzz targets for `sanitizeRedirectURL` edge cases            | Medium | Low    |
+| 11 | Cover remaining uncovered branches in root module (2.9% to 100%) | Low    | Medium |
+| 12 | Cover remaining uncovered branches in usermgmt (8.9% to 100%)    | Low    | Medium |
 
 ### Developer Experience
 
-| #   | Task                                                                          | Impact | Effort  |
-| --- | ----------------------------------------------------------------------------- | ------ | ------- |
-| 13  | Add `pprof` handler to examples for production profiling                      | Medium | Trivial |
-| 14  | Add example app with all middleware wired (CSRF → HTMX → Context → Security)  | High   | Medium  |
-| 15  | Add README benchmark table with ns/op and allocs/op                           | Medium | Low     |
-| 16  | Document performance characteristics in godoc (allocs per call site)          | Medium | Low     |
-| 17  | Add `Response.HTMXHeaders()` method to introspect current HTMX response state | Low    | Low     |
+| #  | Task                                                                          | Impact | Effort  |
+| -- | ----------------------------------------------------------------------------- | ------ | ------- |
+| 13 | Add `pprof` handler to examples for production profiling                      | Medium | Trivial |
+| 14 | Add example app with all middleware wired (CSRF → HTMX → Context → Security)  | High   | Medium  |
+| 15 | Add README benchmark table with ns/op and allocs/op                           | Medium | Low     |
+| 16 | Document performance characteristics in godoc (allocs per call site)          | Medium | Low     |
+| 17 | Add `Response.HTMXHeaders()` method to introspect current HTMX response state | Low    | Low     |
 
 ### Architecture & Correctness
 
-| #   | Task                                                                                           | Impact               | Effort  |
-| --- | ---------------------------------------------------------------------------------------------- | -------------------- | ------- |
-| 18  | Extract `decodeFormBody` to use `encoding` package interface                                   | High (extensibility) | Medium  |
-| 19  | Add OpenTelemetry span creation in lifecycle hooks example                                     | Medium               | Low     |
-| 20  | Review `enrichUserID` — could combine `slog.Warn` into structured logging with request context | Low                  | Trivial |
-| 21  | Add `Response.Clone()` for testing patterns where response is inspected                        | Low                  | Low     |
+| #  | Task                                                                                           | Impact               | Effort  |
+| -- | ---------------------------------------------------------------------------------------------- | -------------------- | ------- |
+| 18 | Extract `decodeFormBody` to use `encoding` package interface                                   | High (extensibility) | Medium  |
+| 19 | Add OpenTelemetry span creation in lifecycle hooks example                                     | Medium               | Low     |
+| 20 | Review `enrichUserID` — could combine `slog.Warn` into structured logging with request context | Low                  | Trivial |
+| 21 | Add `Response.Clone()` for testing patterns where response is inspected                        | Low                  | Low     |
 
 ### Maintenance
 
-| #   | Task                                                                         | Impact | Effort  |
-| --- | ---------------------------------------------------------------------------- | ------ | ------- |
-| 22  | Update `FEATURES.md` metrics (coverage is now 97.1%/91.1%, not 95.9%/92.1%)  | Low    | Trivial |
-| 23  | Update `AGENTS.md` with noopCancel, io.StringWriter, pathEscapesRoot gotchas | Low    | Low     |
-| 24  | Remove or archive stale `docs/status/` reports (29 files)                    | Low    | Trivial |
-| 25  | Add `just` or `task` runner for common benchmark commands                    | Low    | Trivial |
+| #  | Task                                                                         | Impact | Effort  |
+| -- | ---------------------------------------------------------------------------- | ------ | ------- |
+| 22 | Update `FEATURES.md` metrics (coverage is now 97.1%/91.1%, not 95.9%/92.1%)  | Low    | Trivial |
+| 23 | Update `AGENTS.md` with noopCancel, io.StringWriter, pathEscapesRoot gotchas | Low    | Low     |
+| 24 | Remove or archive stale `docs/status/` reports (29 files)                    | Low    | Trivial |
+| 25 | Add `just` or `task` runner for common benchmark commands                    | Low    | Trivial |
 
 ---
 

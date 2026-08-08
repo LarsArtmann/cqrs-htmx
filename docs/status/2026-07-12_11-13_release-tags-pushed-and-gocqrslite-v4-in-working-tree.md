@@ -1,8 +1,8 @@
 # Status Report: Release Tags Pushed + go-cqrs-lite v4 Upgrade in Working Tree
 
-**Date:** 2026-07-12 11:13  
-**Session start:** ~01:00 (previous session), ~02:17 (first status report), ~02:35 (tagging), ~11:13 (this report)  
-**Commits this session:** 2 (`781a157`, `97b7490`)  
+**Date:** 2026-07-12 11:13\
+**Session start:** ~01:00 (previous session), ~02:17 (first status report), ~02:35 (tagging), ~11:13 (this report)\
+**Commits this session:** 2 (`781a157`, `97b7490`)\
 **Tags pushed:** `loginpage/v4.0.0`, `usermgmt/v4.3.0`, `usermgmt/oauth2/v4.1.0`
 
 ---

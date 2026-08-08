@@ -108,43 +108,43 @@ Nothing is broken. All tests pass, lint is clean, nix checks pass.
 
 ### P1 — Quick wins (< 15 min each)
 
-| #   | Item                                              | Impact   | Effort |
-| --- | ------------------------------------------------- | -------- | ------ |
-| 1   | Commit the v2 migration                           | Critical | 2 min  |
-| 2   | Update FEATURES.md #34 → REMOVED                  | Low      | 2 min  |
-| 3   | Add root `go.sum` to git                          | Low      | 1 min  |
-| 4   | Remove unused replace directives from root go.mod | Low      | 2 min  |
-| 5   | Update TODO_LIST.md version refs → v2.0.0         | Low      | 5 min  |
-| 6   | Update ROADMAP.md version refs → v2.0.0           | Low      | 5 min  |
-| 7   | Clean up go.work.sum stale entries                | Low      | 2 min  |
+| # | Item                                              | Impact   | Effort |
+| - | ------------------------------------------------- | -------- | ------ |
+| 1 | Commit the v2 migration                           | Critical | 2 min  |
+| 2 | Update FEATURES.md #34 → REMOVED                  | Low      | 2 min  |
+| 3 | Add root `go.sum` to git                          | Low      | 1 min  |
+| 4 | Remove unused replace directives from root go.mod | Low      | 2 min  |
+| 5 | Update TODO_LIST.md version refs → v2.0.0         | Low      | 5 min  |
+| 6 | Update ROADMAP.md version refs → v2.0.0           | Low      | 5 min  |
+| 7 | Clean up go.work.sum stale entries                | Low      | 2 min  |
 
 ### P2 — Medium effort (30 min - 2 hours)
 
-| #   | Item                                                             | Impact | Effort |
-| --- | ---------------------------------------------------------------- | ------ | ------ |
-| 8   | Add `CommandTyped`/`QueryTyped` HandlerOption for typed dispatch | High   | 1 hr   |
-| 9   | Expose `PaginatedResult[T]` support in query handlers            | Medium | 30 min |
-| 10  | Update all docs/modularization/\*.md version refs                | Low    | 15 min |
-| 11  | Run `nix run .#coverage` to verify coverage maintained           | Medium | 5 min  |
-| 12  | Add integration test for v2 dispatcher.Close() behavior          | Medium | 30 min |
-| 13  | Verify datastar-demo still works end-to-end                      | Medium | 15 min |
-| 14  | Clean LSP cache and verify zero LSP errors                       | Low    | 10 min |
+| #  | Item                                                             | Impact | Effort |
+| -- | ---------------------------------------------------------------- | ------ | ------ |
+| 8  | Add `CommandTyped`/`QueryTyped` HandlerOption for typed dispatch | High   | 1 hr   |
+| 9  | Expose `PaginatedResult[T]` support in query handlers            | Medium | 30 min |
+| 10 | Update all docs/modularization/\*.md version refs                | Low    | 15 min |
+| 11 | Run `nix run .#coverage` to verify coverage maintained           | Medium | 5 min  |
+| 12 | Add integration test for v2 dispatcher.Close() behavior          | Medium | 30 min |
+| 13 | Verify datastar-demo still works end-to-end                      | Medium | 15 min |
+| 14 | Clean LSP cache and verify zero LSP errors                       | Low    | 10 min |
 
 ### P3 — Larger efforts (2+ hours)
 
-| #   | Item                                                   | Impact    | Effort |
-| --- | ------------------------------------------------------ | --------- | ------ |
-| 15  | Adopt reactive EventBus for real-time notifications    | Very High | 4 hr   |
-| 16  | SSE out-of-band updates via EventBus + HTMX            | Very High | 4 hr   |
-| 17  | OpenTelemetry integration using upstream middleware    | High      | 3 hr   |
-| 18  | Evaluate generic middleware adoption vs our own        | High      | 2 hr   |
-| 19  | SQL store backend for usermgmt                         | High      | 8 hr   |
-| 20  | Command audit trail via CommandStore                   | Medium    | 3 hr   |
-| 21  | Circuit breaker middleware for external deps           | Medium    | 2 hr   |
-| 22  | Usermgmt domain events → EventBus reactive projections | High      | 4 hr   |
-| 23  | JWT/OIDC auth integration                              | High      | 6 hr   |
-| 24  | Redis session store for usermgmt                       | Medium    | 4 hr   |
-| 25  | BadgerDB event store adapter                           | Medium    | 6 hr   |
+| #  | Item                                                   | Impact    | Effort |
+| -- | ------------------------------------------------------ | --------- | ------ |
+| 15 | Adopt reactive EventBus for real-time notifications    | Very High | 4 hr   |
+| 16 | SSE out-of-band updates via EventBus + HTMX            | Very High | 4 hr   |
+| 17 | OpenTelemetry integration using upstream middleware    | High      | 3 hr   |
+| 18 | Evaluate generic middleware adoption vs our own        | High      | 2 hr   |
+| 19 | SQL store backend for usermgmt                         | High      | 8 hr   |
+| 20 | Command audit trail via CommandStore                   | Medium    | 3 hr   |
+| 21 | Circuit breaker middleware for external deps           | Medium    | 2 hr   |
+| 22 | Usermgmt domain events → EventBus reactive projections | High      | 4 hr   |
+| 23 | JWT/OIDC auth integration                              | High      | 6 hr   |
+| 24 | Redis session store for usermgmt                       | Medium    | 4 hr   |
+| 25 | BadgerDB event store adapter                           | Medium    | 6 hr   |
 
 ---
 

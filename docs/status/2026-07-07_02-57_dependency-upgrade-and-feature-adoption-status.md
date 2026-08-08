@@ -1,7 +1,7 @@
 # Session Status: Dependency Upgrade + go-cqrs-lite v3.7.0 Feature Adoption
 
-**Date:** 2026-07-07 02:57  
-**Session scope:** Upgrade ALL dependencies to latest, then audit go-cqrs-lite v3.7.0 feature adoption  
+**Date:** 2026-07-07 02:57\
+**Session scope:** Upgrade ALL dependencies to latest, then audit go-cqrs-lite v3.7.0 feature adoption\
 **Branch:** master
 
 ---
@@ -111,33 +111,33 @@
 
 ## f) NEXT 25 THINGS TO DO 📋
 
-| #   | Priority | Task                                                                                                                                                            |
-| --- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **P0**   | Write CBOR round-trip test for `unmarshalPayload` — verify a CBOR-encoded event decodes correctly                                                               |
-| 2   | **P0**   | Fix exhaustive lint in `service_register.go:109` — add explicit cases for Transient/Corruption/Infrastructure (or add `//nolint:exhaustive` with justification) |
-| 3   | **P1**   | Research go-cqrs-lite v3.6.0 + v3.7.0 release notes/changelog (check git log in the repo, not GitHub web)                                                       |
-| 4   | **P1**   | Research httputil v0.5.0 changes — is there anything new beyond ClientIP we should adopt?                                                                       |
-| 5   | **P1**   | Research templ-components v0.7.0-v0.9.0 changes — new components/icons available?                                                                               |
-| 6   | **P1**   | Refactor `es_readmodel.go:Handle` — extract the 12-case switch into a dispatch table or per-event-type handler map (fixes maintidx)                             |
-| 7   | **P2**   | Benchmark dedup.Ring vs old map for typical journal sizes (100, 1K, 10K, 100K events)                                                                           |
-| 8   | **P2**   | Verify GoChannel bus buffer size fits within dedup.Ring's 1024 capacity (4-10x margin claim)                                                                    |
-| 9   | **P2**   | Consider adopting `testutil.NewCmd` in test files to reduce boilerplate command construction                                                                    |
-| 10  | **P2**   | Consider adopting `testutil.CapturingSlogHandler` in projection tests to assert lifecycle logging                                                               |
-| 11  | **P2**   | Evaluate `projectionhost` for admin-demo's SQLite setup — could replace manual `StartProjections` with managed lifecycle                                        |
-| 12  | **P2**   | Fix gopls hints: `errors.As` → `AsType[*event.Error]` in `service_register.go:120`                                                                              |
-| 13  | **P2**   | Fix gopls hints: unnecessary type arguments in scenario test files (6+ files)                                                                                   |
-| 14  | **P3**   | Document CBOR adoption path in a new ADR — how consumers opt in, migration steps                                                                                |
-| 15  | **P3**   | Consider adding `event.WithCodec(codec.CBORCodec{})` as a config option in `EventSourcedConfig`                                                                 |
-| 16  | **P3**   | Evaluate `scheduling.TimerStore` for session expiry — could replace `eviction.go` TTL sweep goroutine                                                           |
-| 17  | **P3**   | Consider `stack.TypedRepository` migration — bind command types at compile time across all deciders                                                             |
-| 18  | **P3**   | Update `docs/migrations/v3-to-v4.md` with the v3.7.0 eventtest replace directive requirement                                                                    |
-| 19  | **P3**   | Add a CI job that checks `.vendor-local/eventtest/go.mod` versions match the root module's go-cqrs-lite versions                                                |
-| 20  | **P4**   | Explore `prometheus` package in go-cqrs-lite — metrics integration?                                                                                             |
-| 21  | **P4**   | Explore `middleware` package in go-cqrs-lite — command/query middleware?                                                                                        |
-| 22  | **P4**   | Consider CBOR as default encoding for new events (performance: ~30-50% smaller than JSON for typical payloads)                                                  |
-| 23  | **P4**   | Add integration test exercising CBOR end-to-end: create event with CBOR → store → replay → decode in projection                                                 |
-| 24  | **P4**   | Evaluate `stack.QueryAuditMiddleware` for query audit logging in admin-demo                                                                                     |
-| 25  | **P4**   | Run coverage gate to verify the new dedup.Ring and codec.ForEncoding paths are covered                                                                          |
+| #  | Priority | Task                                                                                                                                                            |
+| -- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **P0**   | Write CBOR round-trip test for `unmarshalPayload` — verify a CBOR-encoded event decodes correctly                                                               |
+| 2  | **P0**   | Fix exhaustive lint in `service_register.go:109` — add explicit cases for Transient/Corruption/Infrastructure (or add `//nolint:exhaustive` with justification) |
+| 3  | **P1**   | Research go-cqrs-lite v3.6.0 + v3.7.0 release notes/changelog (check git log in the repo, not GitHub web)                                                       |
+| 4  | **P1**   | Research httputil v0.5.0 changes — is there anything new beyond ClientIP we should adopt?                                                                       |
+| 5  | **P1**   | Research templ-components v0.7.0-v0.9.0 changes — new components/icons available?                                                                               |
+| 6  | **P1**   | Refactor `es_readmodel.go:Handle` — extract the 12-case switch into a dispatch table or per-event-type handler map (fixes maintidx)                             |
+| 7  | **P2**   | Benchmark dedup.Ring vs old map for typical journal sizes (100, 1K, 10K, 100K events)                                                                           |
+| 8  | **P2**   | Verify GoChannel bus buffer size fits within dedup.Ring's 1024 capacity (4-10x margin claim)                                                                    |
+| 9  | **P2**   | Consider adopting `testutil.NewCmd` in test files to reduce boilerplate command construction                                                                    |
+| 10 | **P2**   | Consider adopting `testutil.CapturingSlogHandler` in projection tests to assert lifecycle logging                                                               |
+| 11 | **P2**   | Evaluate `projectionhost` for admin-demo's SQLite setup — could replace manual `StartProjections` with managed lifecycle                                        |
+| 12 | **P2**   | Fix gopls hints: `errors.As` → `AsType[*event.Error]` in `service_register.go:120`                                                                              |
+| 13 | **P2**   | Fix gopls hints: unnecessary type arguments in scenario test files (6+ files)                                                                                   |
+| 14 | **P3**   | Document CBOR adoption path in a new ADR — how consumers opt in, migration steps                                                                                |
+| 15 | **P3**   | Consider adding `event.WithCodec(codec.CBORCodec{})` as a config option in `EventSourcedConfig`                                                                 |
+| 16 | **P3**   | Evaluate `scheduling.TimerStore` for session expiry — could replace `eviction.go` TTL sweep goroutine                                                           |
+| 17 | **P3**   | Consider `stack.TypedRepository` migration — bind command types at compile time across all deciders                                                             |
+| 18 | **P3**   | Update `docs/migrations/v3-to-v4.md` with the v3.7.0 eventtest replace directive requirement                                                                    |
+| 19 | **P3**   | Add a CI job that checks `.vendor-local/eventtest/go.mod` versions match the root module's go-cqrs-lite versions                                                |
+| 20 | **P4**   | Explore `prometheus` package in go-cqrs-lite — metrics integration?                                                                                             |
+| 21 | **P4**   | Explore `middleware` package in go-cqrs-lite — command/query middleware?                                                                                        |
+| 22 | **P4**   | Consider CBOR as default encoding for new events (performance: ~30-50% smaller than JSON for typical payloads)                                                  |
+| 23 | **P4**   | Add integration test exercising CBOR end-to-end: create event with CBOR → store → replay → decode in projection                                                 |
+| 24 | **P4**   | Evaluate `stack.QueryAuditMiddleware` for query audit logging in admin-demo                                                                                     |
+| 25 | **P4**   | Run coverage gate to verify the new dedup.Ring and codec.ForEncoding paths are covered                                                                          |
 
 ---
 

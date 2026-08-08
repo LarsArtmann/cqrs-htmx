@@ -1,7 +1,7 @@
 # Status Report — TODO Blitz Completion & Self-Review
 
-**Date:** 2026-07-20 14:23  
-**Session scope:** Resume OpenAPI integration verification → full workspace gates → doc updates → brutal self-review  
+**Date:** 2026-07-20 14:23\
+**Session scope:** Resume OpenAPI integration verification → full workspace gates → doc updates → brutal self-review\
 **Overall verdict:** 🟡 **Functional but has a concurrency bug and process violations — not production-ready**
 
 > **Update 2026-07-20 (commit in `2026-07-20_23-04`):** The critical OpenAPISpecHandler data race
@@ -60,8 +60,8 @@ All 5 TODO items were already committed by the prior session. This session verif
 
 `WithOpenAPI(op)` stores operation metadata on `handlerConfig.openapiMeta`. **No collector or generator reads this field.** The metadata is currently pure dead weight — attached to the config and discarded. This is by design (the doc comment says "pure documentation — no runtime effect on dispatch"), but it means the feature is incomplete as a spec-generation tool. A real collector would need to walk all registered handlers and assemble their `openapiMeta` into a spec — but cqrs-htmx doesn't own the consumer's router, so this is architecturally impossible without a registration API.
 
-**What exists:** The `HandlerOption`, the field, the type.  
-**What's missing:** Any way to retrieve or aggregate the metadata.  
+**What exists:** The `HandlerOption`, the field, the type.\
+**What's missing:** Any way to retrieve or aggregate the metadata.\
 **Impact:** Low — consumers build specs explicitly via the `openapi.Builder`, not via `WithOpenAPI`. The option is forward-looking infrastructure.
 
 ### 2. `OpenAPISpecHandler` — works but has a concurrency bug (see §d)

@@ -1,8 +1,8 @@
 # Comprehensive Status Report: Plan Phases 1–3 Execution Complete
 
-**Date:** 2026-05-19 16:19 CEST  
-**Branch:** master  
-**Latest Commit:** `891369c` — refactor(architecture): execute comprehensive plan — P1.1–P3.5  
+**Date:** 2026-05-19 16:19 CEST\
+**Branch:** master\
+**Latest Commit:** `891369c` — refactor(architecture): execute comprehensive plan — P1.1–P3.5\
 **Reporter:** Crush (AI Engineering Partner)
 
 ---
@@ -180,33 +180,33 @@ Commit `586d24b` bundled 5 changes, 2 breaking:
 
 ## 7. Top 25 Things To Get Done Next
 
-| #   | Task                                             | Effort | Impact   |
-| --- | ------------------------------------------------ | ------ | -------- |
-| 1   | Add tests for `RotateCSRFToken`                  | 10m    | High     |
-| 2   | Add tests for `CSRFConfig.Validate`              | 10m    | High     |
-| 3   | Add tests for TTL eviction (clock injection)     | 20m    | High     |
-| 4   | Create `example/basic/` directory                | 30m    | High     |
-| 5   | Move `registerErrorClassifications` to `init()`  | 5m     | Medium   |
-| 6   | Improve `sanitizeRedirectURL` coverage to 100%   | 10m    | Low      |
-| 7   | Add `CSRFToken` branded type                     | 20m    | Low      |
-| 8   | Functional options for `CSRFConfig`              | 30m    | Low      |
-| 9   | Extract gorilla/csrf adapter to internal package | 30m    | Low      |
-| 10  | Document Secure flag + reverse proxy             | 10m    | Low      |
-| 11  | Design gorilla/csrf v1.7.3+ adaptation strategy  | 30m    | Critical |
-| 12  | Add snapshot testing with `go-snaps`             | 45m    | Low      |
-| 13  | Integration test with real `httptest.Server`     | 30m    | Low      |
-| 14  | CSRF bypass for trusted origins/internal IPs     | 20m    | Low      |
-| 15  | Support double-submit without cookie             | 45m    | Low      |
-| 16  | Add `CSRFMiddleware` warn-only mode              | 20m    | Low      |
-| 17  | Add CSRF config validation for more edge cases   | 15m    | Low      |
-| 18  | Refactor limiter to accept clock interface       | 20m    | Medium   |
-| 19  | Add pprof endpoints for profiling                | 30m    | Low      |
-| 20  | Add issue templates to GitHub                    | 20m    | Low      |
-| 21  | Update FEATURES.md with latest metrics           | 10m    | Low      |
-| 22  | Update TODO_LIST.md with completed items         | 10m    | Low      |
-| 23  | Add fuzz tests for `sanitizeRedirectURL`         | 20m    | Medium   |
-| 24  | Add property-based tests for rate limiter        | 30m    | Medium   |
-| 25  | Benchmark `dispatchContext` overhead             | 15m    | Low      |
+| #  | Task                                             | Effort | Impact   |
+| -- | ------------------------------------------------ | ------ | -------- |
+| 1  | Add tests for `RotateCSRFToken`                  | 10m    | High     |
+| 2  | Add tests for `CSRFConfig.Validate`              | 10m    | High     |
+| 3  | Add tests for TTL eviction (clock injection)     | 20m    | High     |
+| 4  | Create `example/basic/` directory                | 30m    | High     |
+| 5  | Move `registerErrorClassifications` to `init()`  | 5m     | Medium   |
+| 6  | Improve `sanitizeRedirectURL` coverage to 100%   | 10m    | Low      |
+| 7  | Add `CSRFToken` branded type                     | 20m    | Low      |
+| 8  | Functional options for `CSRFConfig`              | 30m    | Low      |
+| 9  | Extract gorilla/csrf adapter to internal package | 30m    | Low      |
+| 10 | Document Secure flag + reverse proxy             | 10m    | Low      |
+| 11 | Design gorilla/csrf v1.7.3+ adaptation strategy  | 30m    | Critical |
+| 12 | Add snapshot testing with `go-snaps`             | 45m    | Low      |
+| 13 | Integration test with real `httptest.Server`     | 30m    | Low      |
+| 14 | CSRF bypass for trusted origins/internal IPs     | 20m    | Low      |
+| 15 | Support double-submit without cookie             | 45m    | Low      |
+| 16 | Add `CSRFMiddleware` warn-only mode              | 20m    | Low      |
+| 17 | Add CSRF config validation for more edge cases   | 15m    | Low      |
+| 18 | Refactor limiter to accept clock interface       | 20m    | Medium   |
+| 19 | Add pprof endpoints for profiling                | 30m    | Low      |
+| 20 | Add issue templates to GitHub                    | 20m    | Low      |
+| 21 | Update FEATURES.md with latest metrics           | 10m    | Low      |
+| 22 | Update TODO_LIST.md with completed items         | 10m    | Low      |
+| 23 | Add fuzz tests for `sanitizeRedirectURL`         | 20m    | Medium   |
+| 24 | Add property-based tests for rate limiter        | 30m    | Medium   |
+| 25 | Benchmark `dispatchContext` overhead             | 15m    | Low      |
 
 ---
 
@@ -228,13 +228,13 @@ This makes testing TTL eviction impossible without:
 1. Sleeping for 10+ minutes (impractical)
 2. Using `testify/mock` or a custom clock interface
 
-**Option A: Clock Interface**  
+**Option A: Clock Interface**\
 Add a `clock interface { Now() time.Time }` field to `perKeyLimiter`. Production uses `realClock{}`, tests use `fakeClock{}`. This adds ~10 lines of boilerplate but makes eviction fully testable.
 
-**Option B: Export TTL Config**  
+**Option B: Export TTL Config**\
 Make `ttl` configurable via `RateLimiterConfig` (currently hardcoded to 10 min). Tests can set TTL to 1 nanosecond, wait a microsecond, then verify eviction. Simpler but less elegant.
 
-**Option C: Leave Untested**  
+**Option C: Leave Untested**\
 The eviction logic is straightforward (delete if `now - lastUsed > ttl`). The `sync.RWMutex` + double-check pattern is already tested indirectly. Maybe this doesn't need explicit tests.
 
 **My instinct:** Option B is the pragmatic middle ground — export TTL as a config option with a 10-minute default. Tests can use a tiny TTL. But I don't know if exposing TTL in the public API is desirable (adds complexity for consumers) or if you'd prefer the internal-only clock injection approach (Option A).
@@ -244,16 +244,16 @@ The eviction logic is straightforward (delete if `now - lastUsed > ttl`). The `s
 ## 9. Files Changed (Commit `891369c`)
 
 ```
- .buildflow.yml           |  34 +++++++++
- .github/workflows/ci.yml |   8 +++
- SECURITY.md              | 147 +++++++++++++++++++++++++++++++++
- TODO_LIST.md             |   2 +-
- app.go                   |   2 +
- benchmark_test.go        |  42 +++++++++++
- csrf.go                  |  21 ++++++
- options.go               |   1 -
- ratelimit.go             |   2 +-
- 9 files changed, 255 insertions(+), 4 deletions(-)
+.buildflow.yml           |  34 +++++++++
+.github/workflows/ci.yml |   8 +++
+SECURITY.md              | 147 +++++++++++++++++++++++++++++++++
+TODO_LIST.md             |   2 +-
+app.go                   |   2 +
+benchmark_test.go        |  42 +++++++++++
+csrf.go                  |  21 ++++++
+options.go               |   1 -
+ratelimit.go             |   2 +-
+9 files changed, 255 insertions(+), 4 deletions(-)
 ```
 
 **New files:** `.buildflow.yml`, `SECURITY.md`
@@ -287,5 +287,5 @@ golangci-lint: 0 issues
 
 ---
 
-_Report generated: 2026-05-19 16:19 CEST_  
+_Report generated: 2026-05-19 16:19 CEST_\
 _Next action: Decide on clock interface vs exported TTL for rate limiter testability (see Section 8)_

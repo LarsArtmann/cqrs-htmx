@@ -73,38 +73,38 @@ All features from the 19 status reports in `docs/status/` are complete:
 
 ### High-Value Missing Work
 
-| #   | Item                                                                  | Impact      |
-| --- | --------------------------------------------------------------------- | ----------- |
-| 1   | usermgmt: `Service` methods don't accept `context.Context`            | Critical    |
-| 2   | usermgmt: TOCTOU race in `Register()` (FindByEmail → Save unlocked)   | Security    |
-| 3   | usermgmt: No email/password validation                                | Security    |
-| 4   | usermgmt: `errorStatus()` duplicates parent's `MapError()`            | DRY         |
-| 5   | usermgmt: Cookie `MaxAge` hardcoded (86400) vs session TTL (24h)      | Correctness |
-| 6   | Root: `ValidateCommand`/`ValidateQuery` silently no-op on nil decoder | Security    |
-| 7   | Root: Rate limiter magic numbers (100, 1m, 10m) → package constants   | Clarity     |
-| 8   | Root: Content-Type strings scattered as magic strings                 | DRY         |
-| 9   | usermgmt: `UpdateRoles()` is non-atomic (remove all, add all)         | Correctness |
-| 10  | usermgmt: `FindByEmail` is O(n) — needs email index                   | Performance |
+| #  | Item                                                                  | Impact      |
+| -- | --------------------------------------------------------------------- | ----------- |
+| 1  | usermgmt: `Service` methods don't accept `context.Context`            | Critical    |
+| 2  | usermgmt: TOCTOU race in `Register()` (FindByEmail → Save unlocked)   | Security    |
+| 3  | usermgmt: No email/password validation                                | Security    |
+| 4  | usermgmt: `errorStatus()` duplicates parent's `MapError()`            | DRY         |
+| 5  | usermgmt: Cookie `MaxAge` hardcoded (86400) vs session TTL (24h)      | Correctness |
+| 6  | Root: `ValidateCommand`/`ValidateQuery` silently no-op on nil decoder | Security    |
+| 7  | Root: Rate limiter magic numbers (100, 1m, 10m) → package constants   | Clarity     |
+| 8  | Root: Content-Type strings scattered as magic strings                 | DRY         |
+| 9  | usermgmt: `UpdateRoles()` is non-atomic (remove all, add all)         | Correctness |
+| 10 | usermgmt: `FindByEmail` is O(n) — needs email index                   | Performance |
 
 ### Lower-Priority Missing Work
 
-| #   | Item                                                                | Impact        |
-| --- | ------------------------------------------------------------------- | ------------- |
-| 11  | `handleErr` helper to deduplicate error handler + afterDispatchHook | DRY (6×)      |
-| 12  | Generic context accessor helper (3× repeated pattern)               | DRY           |
-| 13  | `Response.CSRFToken()` has no direct test                           | Coverage      |
-| 14  | `Response.NotifySuccess/Error/Warning/Info` have no direct tests    | Coverage      |
-| 15  | `DefaultLogFormatter` has no direct test                            | Coverage      |
-| 16  | `HTMXRequest.RenderPartial()` method has no direct test             | Coverage      |
-| 17  | `bcryptCost` is a mutable `var` — should be `ServiceConfig` field   | Correctness   |
-| 18  | `RawEnforcer()` leaks implementation detail                         | API design    |
-| 19  | `Authz` should satisfy parent's `Enforcer` interface                | Integration   |
-| 20  | usermgmt: Password reset / forgot password flow                     | Feature       |
-| 21  | usermgmt: Email verification                                        | Feature       |
-| 22  | usermgmt: Account lockout after N failed attempts                   | Security      |
-| 23  | usermgmt: Audit logging (policy changes, logins, role assignments)  | Observability |
-| 24  | usermgmt: Profile update / user deletion via Service                | Feature       |
-| 25  | usermgmt: No logging anywhere (failed auth silently swallowed)      | Debugging     |
+| #  | Item                                                                | Impact        |
+| -- | ------------------------------------------------------------------- | ------------- |
+| 11 | `handleErr` helper to deduplicate error handler + afterDispatchHook | DRY (6×)      |
+| 12 | Generic context accessor helper (3× repeated pattern)               | DRY           |
+| 13 | `Response.CSRFToken()` has no direct test                           | Coverage      |
+| 14 | `Response.NotifySuccess/Error/Warning/Info` have no direct tests    | Coverage      |
+| 15 | `DefaultLogFormatter` has no direct test                            | Coverage      |
+| 16 | `HTMXRequest.RenderPartial()` method has no direct test             | Coverage      |
+| 17 | `bcryptCost` is a mutable `var` — should be `ServiceConfig` field   | Correctness   |
+| 18 | `RawEnforcer()` leaks implementation detail                         | API design    |
+| 19 | `Authz` should satisfy parent's `Enforcer` interface                | Integration   |
+| 20 | usermgmt: Password reset / forgot password flow                     | Feature       |
+| 21 | usermgmt: Email verification                                        | Feature       |
+| 22 | usermgmt: Account lockout after N failed attempts                   | Security      |
+| 23 | usermgmt: Audit logging (policy changes, logins, role assignments)  | Observability |
+| 24 | usermgmt: Profile update / user deletion via Service                | Feature       |
+| 25 | usermgmt: No logging anywhere (failed auth silently swallowed)      | Debugging     |
 
 ---
 
@@ -184,33 +184,33 @@ They do NOT interoperate:
 
 Sorted by **Impact / Effort** ratio (highest first):
 
-| #   | Task                                                     | Effort | Impact   | Type          |
-| --- | -------------------------------------------------------- | ------ | -------- | ------------- |
-| 1   | Bridge usermgmt→cqrs-htmx: SessionMiddleware sets UserID | 10min  | Critical | Integration   |
-| 2   | Fix statusRecorder: add Flusher/Hijacker                 | 10min  | Critical | Bug fix       |
-| 3   | Extract rate limiter default constants                   | 5min   | Medium   | DRY           |
-| 4   | Extract Content-Type string constants                    | 5min   | Medium   | DRY           |
-| 5   | Cookie MaxAge from sessionTTL                            | 5min   | Medium   | Correctness   |
-| 6   | Use strings.CutPrefix in extractToken                    | 3min   | Low      | Modernize     |
-| 7   | Extract handleErr helper (deduplicate 6×)                | 10min  | Medium   | DRY           |
-| 8   | Make bcryptCost immutable via ServiceConfig              | 10min  | Medium   | Correctness   |
-| 9   | Add context.Context to Service methods                   | 20min  | High     | API design    |
-| 10  | Validate user input (email, password, display name)      | 15min  | High     | Security      |
-| 11  | Fix TOCTOU race in Register()                            | 10min  | High     | Security      |
-| 12  | Add FindByEmail index to InMemoryUserStore               | 10min  | Medium   | Performance   |
-| 13  | Test Response.CSRFToken() directly                       | 5min   | Low      | Coverage      |
-| 14  | Test Response.NotifySuccess/Error/Warning/Info           | 10min  | Low      | Coverage      |
-| 15  | Test DefaultLogFormatter directly                        | 5min   | Low      | Coverage      |
-| 16  | Make Authz satisfy parent Enforcer interface             | 15min  | High     | Integration   |
-| 17  | Remove RawEnforcer(), expose specific ops                | 10min  | Medium   | API design    |
-| 18  | usermgmt: use cockroachdb/errors                         | 10min  | Medium   | Consistency   |
-| 19  | Atomic UpdateRoles via Authz.Apply                       | 10min  | Medium   | Correctness   |
-| 20  | usermgmt: Add slog-based logging                         | 15min  | Medium   | Observability |
-| 21  | Generic context accessor helper                          | 15min  | Low      | DRY           |
-| 22  | ValidateCommand/ValidateQuery: warn on nil decoder       | 5min   | Medium   | Security      |
-| 23  | Short CSRF secret warning in Validate()                  | 5min   | Medium   | Security      |
-| 24  | usermgmt: Password change method                         | 15min  | Medium   | Feature       |
-| 25  | usermgmt: Account lockout after N failures               | 20min  | High     | Security      |
+| #  | Task                                                     | Effort | Impact   | Type          |
+| -- | -------------------------------------------------------- | ------ | -------- | ------------- |
+| 1  | Bridge usermgmt→cqrs-htmx: SessionMiddleware sets UserID | 10min  | Critical | Integration   |
+| 2  | Fix statusRecorder: add Flusher/Hijacker                 | 10min  | Critical | Bug fix       |
+| 3  | Extract rate limiter default constants                   | 5min   | Medium   | DRY           |
+| 4  | Extract Content-Type string constants                    | 5min   | Medium   | DRY           |
+| 5  | Cookie MaxAge from sessionTTL                            | 5min   | Medium   | Correctness   |
+| 6  | Use strings.CutPrefix in extractToken                    | 3min   | Low      | Modernize     |
+| 7  | Extract handleErr helper (deduplicate 6×)                | 10min  | Medium   | DRY           |
+| 8  | Make bcryptCost immutable via ServiceConfig              | 10min  | Medium   | Correctness   |
+| 9  | Add context.Context to Service methods                   | 20min  | High     | API design    |
+| 10 | Validate user input (email, password, display name)      | 15min  | High     | Security      |
+| 11 | Fix TOCTOU race in Register()                            | 10min  | High     | Security      |
+| 12 | Add FindByEmail index to InMemoryUserStore               | 10min  | Medium   | Performance   |
+| 13 | Test Response.CSRFToken() directly                       | 5min   | Low      | Coverage      |
+| 14 | Test Response.NotifySuccess/Error/Warning/Info           | 10min  | Low      | Coverage      |
+| 15 | Test DefaultLogFormatter directly                        | 5min   | Low      | Coverage      |
+| 16 | Make Authz satisfy parent Enforcer interface             | 15min  | High     | Integration   |
+| 17 | Remove RawEnforcer(), expose specific ops                | 10min  | Medium   | API design    |
+| 18 | usermgmt: use cockroachdb/errors                         | 10min  | Medium   | Consistency   |
+| 19 | Atomic UpdateRoles via Authz.Apply                       | 10min  | Medium   | Correctness   |
+| 20 | usermgmt: Add slog-based logging                         | 15min  | Medium   | Observability |
+| 21 | Generic context accessor helper                          | 15min  | Low      | DRY           |
+| 22 | ValidateCommand/ValidateQuery: warn on nil decoder       | 5min   | Medium   | Security      |
+| 23 | Short CSRF secret warning in Validate()                  | 5min   | Medium   | Security      |
+| 24 | usermgmt: Password change method                         | 15min  | Medium   | Feature       |
+| 25 | usermgmt: Account lockout after N failures               | 20min  | High     | Security      |
 
 ---
 

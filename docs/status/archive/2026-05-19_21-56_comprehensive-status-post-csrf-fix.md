@@ -177,48 +177,48 @@ cqrs-htmx is a Go library (NOT an application) that makes it easy to use go-cqrs
 
 ### P0 — Immediate (This Session)
 
-| #   | Item                                                   | Effort | Impact |
-| --- | ------------------------------------------------------ | ------ | ------ |
-| 1   | Add userID context to usermgmt error returns (8 sites) | 1h     | HIGH   |
-| 2   | Raise usermgmt test coverage to 90%+                   | 2h     | HIGH   |
-| 3   | Implement rate limiter map cleanup (periodic eviction) | 30m    | MED    |
-| 4   | Create docs/adr/ with ADR-001 through ADR-005          | 1h     | MED    |
+| # | Item                                                   | Effort | Impact |
+| - | ------------------------------------------------------ | ------ | ------ |
+| 1 | Add userID context to usermgmt error returns (8 sites) | 1h     | HIGH   |
+| 2 | Raise usermgmt test coverage to 90%+                   | 2h     | HIGH   |
+| 3 | Implement rate limiter map cleanup (periodic eviction) | 30m    | MED    |
+| 4 | Create docs/adr/ with ADR-001 through ADR-005          | 1h     | MED    |
 
 ### P1 — This Week
 
-| #   | Item                                                        | Effort | Impact |
-| --- | ----------------------------------------------------------- | ------ | ------ |
-| 5   | Reduce test clone groups (40 → 15) via shared helpers       | 2h     | MED    |
-| 6   | Add fuzz tests for decoder and form parsing                 | 1h     | MED    |
-| 7   | Expand benchmark suite (CSRF, rate limit, middleware)       | 1h     | MED    |
-| 8   | Fix hierarchical-errors blank identifier warnings (5 sites) | 30m    | LOW    |
-| 9   | Create CHANGELOG.md from git history                        | 1h     | MED    |
-| 10  | Add GitHub release workflow (tag-triggered)                 | 1h     | MED    |
+| #  | Item                                                        | Effort | Impact |
+| -- | ----------------------------------------------------------- | ------ | ------ |
+| 5  | Reduce test clone groups (40 → 15) via shared helpers       | 2h     | MED    |
+| 6  | Add fuzz tests for decoder and form parsing                 | 1h     | MED    |
+| 7  | Expand benchmark suite (CSRF, rate limit, middleware)       | 1h     | MED    |
+| 8  | Fix hierarchical-errors blank identifier warnings (5 sites) | 30m    | LOW    |
+| 9  | Create CHANGELOG.md from git history                        | 1h     | MED    |
+| 10 | Add GitHub release workflow (tag-triggered)                 | 1h     | MED    |
 
 ### P2 — Next Sprint
 
-| #   | Item                                              | Effort | Impact |
-| --- | ------------------------------------------------- | ------ | ------ |
-| 11  | Migrate to flake.nix build system                 | 2h     | MED    |
-| 12  | Add OpenTelemetry integration for lifecycle hooks | 2h     | MED    |
-| 13  | Add SSE/EventStream helper for real-time updates  | 3h     | HIGH   |
-| 14  | Add cookie session store (not just in-memory)     | 2h     | HIGH   |
-| 15  | Add password reset flow to usermgmt               | 2h     | MED    |
-| 16  | Add email verification flow to usermgmt           | 2h     | MED    |
+| #  | Item                                              | Effort | Impact |
+| -- | ------------------------------------------------- | ------ | ------ |
+| 11 | Migrate to flake.nix build system                 | 2h     | MED    |
+| 12 | Add OpenTelemetry integration for lifecycle hooks | 2h     | MED    |
+| 13 | Add SSE/EventStream helper for real-time updates  | 3h     | HIGH   |
+| 14 | Add cookie session store (not just in-memory)     | 2h     | HIGH   |
+| 15 | Add password reset flow to usermgmt               | 2h     | MED    |
+| 16 | Add email verification flow to usermgmt           | 2h     | MED    |
 
 ### P3 — Backlog
 
-| #   | Item                                                            | Effort | Impact |
-| --- | --------------------------------------------------------------- | ------ | ------ |
-| 17  | Move coverage.out to coverage/ directory                        | 5m     | LOW    |
-| 18  | Archive old docs/status/ reports                                | 10m    | LOW    |
-| 19  | Add godoc for all exported types (100% coverage)                | 2h     | MED    |
-| 20  | Add integration tests with real HTTP server (net/http/httptest) | 1h     | MED    |
-| 21  | Create visual architecture diagram (D2)                         | 1h     | MED    |
-| 22  | Add configurable session cookie settings (HttpOnly, Secure)     | 30m    | MED    |
-| 23  | Add OAuth2/OIDC integration hooks in usermgmt                   | 3h     | HIGH   |
-| 24  | Add multi-tenancy support via Casbin domains                    | 2h     | MED    |
-| 25  | Performance profiling and optimization pass                     | 2h     | LOW    |
+| #  | Item                                                            | Effort | Impact |
+| -- | --------------------------------------------------------------- | ------ | ------ |
+| 17 | Move coverage.out to coverage/ directory                        | 5m     | LOW    |
+| 18 | Archive old docs/status/ reports                                | 10m    | LOW    |
+| 19 | Add godoc for all exported types (100% coverage)                | 2h     | MED    |
+| 20 | Add integration tests with real HTTP server (net/http/httptest) | 1h     | MED    |
+| 21 | Create visual architecture diagram (D2)                         | 1h     | MED    |
+| 22 | Add configurable session cookie settings (HttpOnly, Secure)     | 30m    | MED    |
+| 23 | Add OAuth2/OIDC integration hooks in usermgmt                   | 3h     | HIGH   |
+| 24 | Add multi-tenancy support via Casbin domains                    | 2h     | MED    |
+| 25 | Performance profiling and optimization pass                     | 2h     | LOW    |
 
 ---
 

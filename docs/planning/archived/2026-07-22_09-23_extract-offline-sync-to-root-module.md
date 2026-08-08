@@ -91,39 +91,39 @@ graph TD
 
 ### Tier 1: 1% effort → 51% result
 
-| #   | Task                                | Effort | Impact   |
-| --- | ----------------------------------- | ------ | -------- |
-| 1   | Copy sync-worker.js to root `sync/` | 5min   | Critical |
-| 2   | Create sync_embed.go (embed decls)  | 5min   | Critical |
-| 3   | Create sync_serve.go (handlers)     | 10min  | Critical |
+| # | Task                                | Effort | Impact   |
+| - | ----------------------------------- | ------ | -------- |
+| 1 | Copy sync-worker.js to root `sync/` | 5min   | Critical |
+| 2 | Create sync_embed.go (embed decls)  | 5min   | Critical |
+| 3 | Create sync_serve.go (handlers)     | 10min  | Critical |
 
 ### Tier 2: 4% effort → 64% result
 
-| #   | Task                                   | Effort | Impact |
-| --- | -------------------------------------- | ------ | ------ |
-| 4   | Extract sync-client.js from admin.js   | 20min  | High   |
-| 5   | Add SyncClientHandler to sync_serve.go | 5min   | High   |
-| 6   | Create sync_serve_test.go              | 10min  | Medium |
+| # | Task                                   | Effort | Impact |
+| - | -------------------------------------- | ------ | ------ |
+| 4 | Extract sync-client.js from admin.js   | 20min  | High   |
+| 5 | Add SyncClientHandler to sync_serve.go | 5min   | High   |
+| 6 | Create sync_serve_test.go              | 10min  | Medium |
 
 ### Tier 3: 20% effort → 80% result
 
-| #   | Task                          | Effort | Impact |
-| --- | ----------------------------- | ------ | ------ |
-| 7   | Update adminui/assets.go      | 5min   | Medium |
-| 8   | Update adminui/handler.go     | 5min   | High   |
-| 9   | Strip sync code from admin.js | 10min  | High   |
-| 10  | Update layout.templ           | 5min   | Medium |
-| 11  | Regenerate layout_templ.go    | 5min   | Medium |
+| #  | Task                          | Effort | Impact |
+| -- | ----------------------------- | ------ | ------ |
+| 7  | Update adminui/assets.go      | 5min   | Medium |
+| 8  | Update adminui/handler.go     | 5min   | High   |
+| 9  | Strip sync code from admin.js | 10min  | High   |
+| 10 | Update layout.templ           | 5min   | Medium |
+| 11 | Regenerate layout_templ.go    | 5min   | Medium |
 
 ### Tier 4: remaining 20%
 
-| #   | Task                           | Effort | Impact   |
-| --- | ------------------------------ | ------ | -------- |
-| 12  | Update recipe doc              | 10min  | Medium   |
-| 13  | Update AGENTS.md               | 5min   | Low      |
-| 14  | Update CHANGELOG.md            | 5min   | Low      |
-| 15  | Update FEATURES.md             | 5min   | Low      |
-| 16  | Final build + test + JS syntax | 10min  | Critical |
+| #  | Task                           | Effort | Impact   |
+| -- | ------------------------------ | ------ | -------- |
+| 12 | Update recipe doc              | 10min  | Medium   |
+| 13 | Update AGENTS.md               | 5min   | Low      |
+| 14 | Update CHANGELOG.md            | 5min   | Low      |
+| 15 | Update FEATURES.md             | 5min   | Low      |
+| 16 | Final build + test + JS syntax | 10min  | Critical |
 
 ## Verschlimmbesser Risk Assessment
 

@@ -151,33 +151,33 @@ There's a `coverage.out` file in the root — this should be in `.gitignore`.
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Item                                                         | Impact | Effort   | Type               |
-| --- | ------------------------------------------------------------ | ------ | -------- | ------------------ |
-| 1   | **Tag v1.0.0**                                               | HIGH   | Trivial  | Release            |
-| 2   | **Make repo public**                                         | HIGH   | Trivial  | Release            |
-| 3   | **Delete `coverage.out` from repo, add to `.gitignore`**     | MED    | Trivial  | Cleanup            |
-| 4   | **Fix pre-commit hook permissions**                          | LOW    | Trivial  | Fix                |
-| 5   | **Test `JSONErrorHandlerWithRedirect` with custom redirect** | MED    | 10min    | Test quality       |
-| 6   | **Test `NewUserID()`**                                       | MED    | 5min     | Test quality       |
-| 7   | **Consolidate auth test duplication** (4 files → 1-2)        | MED    | Medium   | Test quality       |
-| 8   | **Consolidate MapError test duplication** (4 files → 1-2)    | MED    | Low      | Test quality       |
-| 9   | **Consolidate middleware test duplication** (4 files → 2)    | MED    | Low      | Test quality       |
-| 10  | **Consolidate HTMX response test duplication** (5 files → 2) | MED    | Medium   | Test quality       |
-| 11  | **Rename/merge `coverage_test.go`**                          | MED    | Medium   | Test quality       |
-| 12  | **Extract Content-Type constants**                           | LOW    | 10min    | Code quality       |
-| 13  | **Extract notification detail map builder**                  | LOW    | 10min    | DRY                |
-| 14  | **Add multi-value form field test**                          | LOW    | 10min    | Test coverage      |
-| 15  | **Add `ErrDispatchFailed` → 503 test**                       | LOW    | 5min     | Test coverage      |
-| 16  | **Test `RequireAuth` + enforcer present branch**             | LOW    | 5min     | Test coverage      |
-| 17  | **Consider removing `app.Middleware()` wrapper**             | LOW    | 5min     | API cleanup        |
-| 18  | **Add Go module badge to README**                            | LOW    | Trivial  | Documentation      |
-| 19  | **Add pkg.go/dev link to README**                            | LOW    | Trivial  | Documentation      |
-| 20  | **Consider `With*` naming for v2**                           | LOW    | Planning | API planning       |
-| 21  | **Consider `type UserID id.UserID` for v2**                  | LOW    | Planning | Type safety        |
-| 22  | **Consider `ShouldRenderPartial` rename for v2**             | LOW    | Planning | Naming             |
-| 23  | **Add runnable examples directory**                          | MED    | Medium   | Documentation      |
-| 24  | **Add OpenTelemetry integration via lifecycle hooks**        | MED    | Medium   | Feature            |
-| 25  | **Audit indirect dependencies for removal**                  | LOW    | Low      | Dependency hygiene |
+| #  | Item                                                         | Impact | Effort   | Type               |
+| -- | ------------------------------------------------------------ | ------ | -------- | ------------------ |
+| 1  | **Tag v1.0.0**                                               | HIGH   | Trivial  | Release            |
+| 2  | **Make repo public**                                         | HIGH   | Trivial  | Release            |
+| 3  | **Delete `coverage.out` from repo, add to `.gitignore`**     | MED    | Trivial  | Cleanup            |
+| 4  | **Fix pre-commit hook permissions**                          | LOW    | Trivial  | Fix                |
+| 5  | **Test `JSONErrorHandlerWithRedirect` with custom redirect** | MED    | 10min    | Test quality       |
+| 6  | **Test `NewUserID()`**                                       | MED    | 5min     | Test quality       |
+| 7  | **Consolidate auth test duplication** (4 files → 1-2)        | MED    | Medium   | Test quality       |
+| 8  | **Consolidate MapError test duplication** (4 files → 1-2)    | MED    | Low      | Test quality       |
+| 9  | **Consolidate middleware test duplication** (4 files → 2)    | MED    | Low      | Test quality       |
+| 10 | **Consolidate HTMX response test duplication** (5 files → 2) | MED    | Medium   | Test quality       |
+| 11 | **Rename/merge `coverage_test.go`**                          | MED    | Medium   | Test quality       |
+| 12 | **Extract Content-Type constants**                           | LOW    | 10min    | Code quality       |
+| 13 | **Extract notification detail map builder**                  | LOW    | 10min    | DRY                |
+| 14 | **Add multi-value form field test**                          | LOW    | 10min    | Test coverage      |
+| 15 | **Add `ErrDispatchFailed` → 503 test**                       | LOW    | 5min     | Test coverage      |
+| 16 | **Test `RequireAuth` + enforcer present branch**             | LOW    | 5min     | Test coverage      |
+| 17 | **Consider removing `app.Middleware()` wrapper**             | LOW    | 5min     | API cleanup        |
+| 18 | **Add Go module badge to README**                            | LOW    | Trivial  | Documentation      |
+| 19 | **Add pkg.go/dev link to README**                            | LOW    | Trivial  | Documentation      |
+| 20 | **Consider `With*` naming for v2**                           | LOW    | Planning | API planning       |
+| 21 | **Consider `type UserID id.UserID` for v2**                  | LOW    | Planning | Type safety        |
+| 22 | **Consider `ShouldRenderPartial` rename for v2**             | LOW    | Planning | Naming             |
+| 23 | **Add runnable examples directory**                          | MED    | Medium   | Documentation      |
+| 24 | **Add OpenTelemetry integration via lifecycle hooks**        | MED    | Medium   | Feature            |
+| 25 | **Audit indirect dependencies for removal**                  | LOW    | Low      | Dependency hygiene |
 
 ---
 

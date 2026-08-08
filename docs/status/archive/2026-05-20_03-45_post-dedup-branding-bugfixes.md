@@ -195,48 +195,48 @@ cqrs-htmx is a **Go library** (not an application) that makes it easy to use go-
 
 ### P0 — This Session (High Impact, Low Effort)
 
-| #   | Item                                               | Effort | Impact |
-| --- | -------------------------------------------------- | ------ | ------ |
-| 1   | Split `csrf.go` → config + middleware + validation | 15m    | HIGH   |
-| 2   | Extract `minPasswordLength` constant in usermgmt   | 3m     | MED    |
-| 3   | `type Role string` with constants in usermgmt      | 15m    | HIGH   |
-| 4   | `GroupPolicy.User` → `UserID` type                 | 5m     | MED    |
-| 5   | `RateLimiterConfig.Limit/Burst` → `uint`           | 10m    | LOW    |
+| # | Item                                               | Effort | Impact |
+| - | -------------------------------------------------- | ------ | ------ |
+| 1 | Split `csrf.go` → config + middleware + validation | 15m    | HIGH   |
+| 2 | Extract `minPasswordLength` constant in usermgmt   | 3m     | MED    |
+| 3 | `type Role string` with constants in usermgmt      | 15m    | HIGH   |
+| 4 | `GroupPolicy.User` → `UserID` type                 | 5m     | MED    |
+| 5 | `RateLimiterConfig.Limit/Burst` → `uint`           | 10m    | LOW    |
 
 ### P1 — This Week
 
-| #   | Item                                        | Effort | Impact |
-| --- | ------------------------------------------- | ------ | ------ |
-| 6   | Raise usermgmt coverage to 92%+             | 2h     | HIGH   |
-| 7   | Integration tests root ↔ usermgmt           | 2h     | HIGH   |
-| 8   | Create `docs/adr/` with numbered ADRs       | 1h     | MED    |
-| 9   | Add fuzz tests for decoder and form parsing | 1h     | MED    |
-| 10  | Resolve UserID type split decision          | 30m    | HIGH   |
+| #  | Item                                        | Effort | Impact |
+| -- | ------------------------------------------- | ------ | ------ |
+| 6  | Raise usermgmt coverage to 92%+             | 2h     | HIGH   |
+| 7  | Integration tests root ↔ usermgmt           | 2h     | HIGH   |
+| 8  | Create `docs/adr/` with numbered ADRs       | 1h     | MED    |
+| 9  | Add fuzz tests for decoder and form parsing | 1h     | MED    |
+| 10 | Resolve UserID type split decision          | 30m    | HIGH   |
 
 ### P2 — Next Sprint
 
-| #   | Item                                                  | Effort | Impact |
-| --- | ----------------------------------------------------- | ------ | ------ |
-| 11  | Rate limiter O(log n) eviction (min-heap)             | 2h     | MED    |
-| 12  | Migrate to flake.nix build system                     | 2h     | MED    |
-| 13  | Expand benchmark suite (CSRF, rate limit, middleware) | 1h     | MED    |
-| 14  | Fix `RenderPartial` split brain (context vs header)   | 30m    | LOW    |
-| 15  | Add cookie session store (not just in-memory)         | 2h     | HIGH   |
-| 16  | Add password reset flow to usermgmt                   | 2h     | MED    |
+| #  | Item                                                  | Effort | Impact |
+| -- | ----------------------------------------------------- | ------ | ------ |
+| 11 | Rate limiter O(log n) eviction (min-heap)             | 2h     | MED    |
+| 12 | Migrate to flake.nix build system                     | 2h     | MED    |
+| 13 | Expand benchmark suite (CSRF, rate limit, middleware) | 1h     | MED    |
+| 14 | Fix `RenderPartial` split brain (context vs header)   | 30m    | LOW    |
+| 15 | Add cookie session store (not just in-memory)         | 2h     | HIGH   |
+| 16 | Add password reset flow to usermgmt                   | 2h     | MED    |
 
 ### P3 — Backlog
 
-| #   | Item                                               | Effort | Impact |
-| --- | -------------------------------------------------- | ------ | ------ |
-| 17  | Add email verification flow to usermgmt            | 2h     | MED    |
-| 18  | Add SSE/EventStream helper for real-time updates   | 3h     | HIGH   |
-| 19  | Add OAuth2/OIDC integration hooks in usermgmt      | 3h     | HIGH   |
-| 20  | Move `coverage.out` to `coverage/` directory       | 5m     | LOW    |
-| 21  | Archive old `docs/status/` reports (42 → 10)       | 30m    | LOW    |
-| 22  | Add 100% godoc coverage for all exported types     | 2h     | MED    |
-| 23  | Performance profiling and optimization pass        | 2h     | LOW    |
-| 24  | Add multi-tenancy support via Casbin domains       | 2h     | MED    |
-| 25  | Create visual architecture diagram (D2) for README | 1h     | MED    |
+| #  | Item                                               | Effort | Impact |
+| -- | -------------------------------------------------- | ------ | ------ |
+| 17 | Add email verification flow to usermgmt            | 2h     | MED    |
+| 18 | Add SSE/EventStream helper for real-time updates   | 3h     | HIGH   |
+| 19 | Add OAuth2/OIDC integration hooks in usermgmt      | 3h     | HIGH   |
+| 20 | Move `coverage.out` to `coverage/` directory       | 5m     | LOW    |
+| 21 | Archive old `docs/status/` reports (42 → 10)       | 30m    | LOW    |
+| 22 | Add 100% godoc coverage for all exported types     | 2h     | MED    |
+| 23 | Performance profiling and optimization pass        | 2h     | LOW    |
+| 24 | Add multi-tenancy support via Casbin domains       | 2h     | MED    |
+| 25 | Create visual architecture diagram (D2) for README | 1h     | MED    |
 
 ---
 

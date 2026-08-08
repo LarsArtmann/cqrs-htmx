@@ -94,7 +94,7 @@ All are caused by cqrs-lint v0.2.2's one-suppression-per-code-line limitation. W
 
 After fixing all suppressions, ran `gofmt -w` on all changed files to ensure formatting compliance. This added spaces to `//cqrs-lint:ignore(...)` comments (converting them to `// cqrs-lint:ignore(...)`), which cqrs-lint v0.2.2 silently ignores. Result: 11 suppressions broke, cqrs-lint exit code went from 0 to 1 with 11 new stale warnings and 11 new non-suppressed findings.
 
-**Root cause:** Go 1.19+ gofmt reformats comments that appear immediately before a declaration (doc comments) by normalizing `//` to `// ` (space after slashes). This is gofmt's standard behavior, not a bug. But cqrs-lint v0.2.2's parser requires `//cqrs-lint:ignore` with NO space.
+**Root cause:** Go 1.19+ gofmt reformats comments that appear immediately before a declaration (doc comments) by normalizing `//` to `//` (space after slashes). This is gofmt's standard behavior, not a bug. But cqrs-lint v0.2.2's parser requires `//cqrs-lint:ignore` with NO space.
 
 **Attempted fix 1:** Added blank lines between suppression comments and declarations. This made gofmt happy BUT cqrs-lint v0.2.2 does not skip blank lines when looking for suppressions — it reads only the immediately-preceding line. Result: suppressions broke again (11 stale warnings).
 

@@ -182,33 +182,33 @@ One cosmetic issue: the sed command in the earlier session accidentally added `P
 
 ## f) Top #25 Things To Get Done Next
 
-| #   | Priority | Task                                                              | Impact | Effort | Category      |
-| --- | -------- | ----------------------------------------------------------------- | ------ | ------ | ------------- |
-| 1   | H        | Commit this status report + update TODO_LIST.md                   | L      | 5min   | Docs          |
-| 2   | H        | Split `service.go` (425 lines) into per-operation files           | M      | 20min  | Refactor      |
-| 3   | H        | Add event JSON marshaling tests                                   | M      | 10min  | Test          |
-| 4   | H        | Add `EventHandler` async dispatch example in docs                 | M      | 15min  | Docs          |
-| 5   | M        | Move `maxDisplayNameLength` constant to `user.go`                 | L      | 3min   | Refactor      |
-| 6   | M        | Add `BenchmarkUser_AddRole` + `BenchmarkUser_RemoveRole`          | L      | 5min   | Test          |
-| 7   | M        | Test event slice isolation (mutability)                           | M      | 5min   | Test          |
-| 8   | M        | SQL store backend (`PostgresUserStore`)                           | H      | 2h     | Feature       |
-| 9   | M        | Event store bridge to `go-cqrs-lite` event bus                    | H      | 1h     | Feature       |
-| 10  | M        | Role branded type (`brandid.ID[roleBrand, string]`)               | M      | 30min  | Type Safety   |
-| 11  | M        | `PasswordHash` as named type                                      | L      | 15min  | Type Safety   |
-| 12  | M        | TOTP/2FA support                                                  | H      | 2h     | Feature       |
-| 13  | M        | Account deletion with cascading cleanup                           | H      | 1h     | Feature       |
-| 14  | M        | Password strength scoring (zxcvbn)                                | M      | 30min  | Security      |
-| 15  | L        | Update `CHANGELOG.md` with session changes                        | L      | 10min  | Docs          |
-| 16  | L        | Add `go doc` example for `EventHandler` usage                     | L      | 10min  | Docs          |
-| 17  | L        | `User` field privacy — make exported fields private with getters? | M      | 1h     | Architecture  |
-| 18  | L        | Event ordering guarantee tests                                    | L      | 15min  | Test          |
-| 19  | L        | Add `SessionRenew` operation (extend TTL)                         | M      | 30min  | Feature       |
-| 20  | L        | `User.Deactivate()` / `User.Reactivate()`                         | M      | 30min  | Feature       |
-| 21  | L        | Rate limiting per endpoint in `AuthHandler`                       | M      | 1h     | Security      |
-| 22  | L        | OpenTelemetry middleware using lifecycle hooks                    | H      | 2h     | Observability |
-| 23  | L        | WebSocket/SSE notification helpers                                | M      | 2h     | Feature       |
-| 24  | L        | `go generate` for event type registry                             | L      | 1h     | Tooling       |
-| 25  | L        | Property-based tests for `Register`/`Login` invariants            | M      | 1h     | Test          |
+| #  | Priority | Task                                                              | Impact | Effort | Category      |
+| -- | -------- | ----------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | H        | Commit this status report + update TODO_LIST.md                   | L      | 5min   | Docs          |
+| 2  | H        | Split `service.go` (425 lines) into per-operation files           | M      | 20min  | Refactor      |
+| 3  | H        | Add event JSON marshaling tests                                   | M      | 10min  | Test          |
+| 4  | H        | Add `EventHandler` async dispatch example in docs                 | M      | 15min  | Docs          |
+| 5  | M        | Move `maxDisplayNameLength` constant to `user.go`                 | L      | 3min   | Refactor      |
+| 6  | M        | Add `BenchmarkUser_AddRole` + `BenchmarkUser_RemoveRole`          | L      | 5min   | Test          |
+| 7  | M        | Test event slice isolation (mutability)                           | M      | 5min   | Test          |
+| 8  | M        | SQL store backend (`PostgresUserStore`)                           | H      | 2h     | Feature       |
+| 9  | M        | Event store bridge to `go-cqrs-lite` event bus                    | H      | 1h     | Feature       |
+| 10 | M        | Role branded type (`brandid.ID[roleBrand, string]`)               | M      | 30min  | Type Safety   |
+| 11 | M        | `PasswordHash` as named type                                      | L      | 15min  | Type Safety   |
+| 12 | M        | TOTP/2FA support                                                  | H      | 2h     | Feature       |
+| 13 | M        | Account deletion with cascading cleanup                           | H      | 1h     | Feature       |
+| 14 | M        | Password strength scoring (zxcvbn)                                | M      | 30min  | Security      |
+| 15 | L        | Update `CHANGELOG.md` with session changes                        | L      | 10min  | Docs          |
+| 16 | L        | Add `go doc` example for `EventHandler` usage                     | L      | 10min  | Docs          |
+| 17 | L        | `User` field privacy — make exported fields private with getters? | M      | 1h     | Architecture  |
+| 18 | L        | Event ordering guarantee tests                                    | L      | 15min  | Test          |
+| 19 | L        | Add `SessionRenew` operation (extend TTL)                         | M      | 30min  | Feature       |
+| 20 | L        | `User.Deactivate()` / `User.Reactivate()`                         | M      | 30min  | Feature       |
+| 21 | L        | Rate limiting per endpoint in `AuthHandler`                       | M      | 1h     | Security      |
+| 22 | L        | OpenTelemetry middleware using lifecycle hooks                    | H      | 2h     | Observability |
+| 23 | L        | WebSocket/SSE notification helpers                                | M      | 2h     | Feature       |
+| 24 | L        | `go generate` for event type registry                             | L      | 1h     | Tooling       |
+| 25 | L        | Property-based tests for `Register`/`Login` invariants            | M      | 1h     | Test          |
 
 ---
 

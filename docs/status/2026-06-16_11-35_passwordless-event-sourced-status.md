@@ -105,33 +105,33 @@ Nothing is broken. All tests pass. All modules build. No panics, no race conditi
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                                       | Impact | Effort |
-| --- | -------------------------------------------------------------------------- | ------ | ------ |
-| 1   | Push to remote                                                             | High   | 1m     |
-| 2   | Update AGENTS.md for passwordless architecture                             | High   | 15m    |
-| 3   | Update CHANGELOG.md with passwordless BREAKING entry                       | High   | 10m    |
-| 4   | Wire AccountLockout into BeginLogin flow                                   | Medium | 15m    |
-| 5   | Add OAuth2/OIDC provider interface                                         | High   | 60m    |
-| 6   | Add tests for es_commands.go constructors (batch test)                     | Low    | 10m    |
-| 7   | Add tests for user.go Clone/HasRole/HasCredential/MarshalJSON              | Medium | 10m    |
-| 8   | Add tests for store.go InMemorySessionStore edge cases                     | Low    | 10m    |
-| 9   | Add test for Authz.RemoveAllRolesForUser                                   | Medium | 10m    |
-| 10  | Update example_test.go for passwordless API                                | Medium | 15m    |
-| 11  | Add webauthn_adapter.go nil-transport edge case tests                      | Low    | 5m     |
-| 12  | Refactor webauthn_http.go body parsing to be less fragile                  | Medium | 15m    |
-| 13  | Add SQL store implementation (event.Store + SessionStore)                  | High   | 120m   |
-| 14  | Add event schema versioning                                                | Medium | 30m    |
-| 15  | Add projection consistency integration test                                | Medium | 20m    |
-| 16  | Add fuzz test for foldUser (property: idempotent fold)                     | Low    | 15m    |
-| 17  | Update docs/DOMAIN_LANGUAGE.md for passwordless terms                      | Low    | 10m    |
-| 18  | Add WebAuthn session expiry eviction goroutine                             | Low    | 15m    |
-| 19  | Add POST /auth/credentials DELETE endpoint for credential removal via HTTP | Medium | 15m    |
-| 20  | Add GET /auth/credentials endpoint for listing user's credentials          | Medium | 10m    |
-| 21  | Add rate limiting to WebAuthn endpoints                                    | Medium | 15m    |
-| 22  | Add CSRF protection to WebAuthn POST endpoints                             | Medium | 10m    |
-| 23  | Consider adding `github.com/mark3labs/mcp-go` for MCP integration          | Low    | 30m    |
-| 24  | Add README.md update for passwordless quickstart                           | Medium | 20m    |
-| 25  | Add CI pipeline for multi-module testing                                   | Medium | 30m    |
+| #  | Task                                                                       | Impact | Effort |
+| -- | -------------------------------------------------------------------------- | ------ | ------ |
+| 1  | Push to remote                                                             | High   | 1m     |
+| 2  | Update AGENTS.md for passwordless architecture                             | High   | 15m    |
+| 3  | Update CHANGELOG.md with passwordless BREAKING entry                       | High   | 10m    |
+| 4  | Wire AccountLockout into BeginLogin flow                                   | Medium | 15m    |
+| 5  | Add OAuth2/OIDC provider interface                                         | High   | 60m    |
+| 6  | Add tests for es_commands.go constructors (batch test)                     | Low    | 10m    |
+| 7  | Add tests for user.go Clone/HasRole/HasCredential/MarshalJSON              | Medium | 10m    |
+| 8  | Add tests for store.go InMemorySessionStore edge cases                     | Low    | 10m    |
+| 9  | Add test for Authz.RemoveAllRolesForUser                                   | Medium | 10m    |
+| 10 | Update example_test.go for passwordless API                                | Medium | 15m    |
+| 11 | Add webauthn_adapter.go nil-transport edge case tests                      | Low    | 5m     |
+| 12 | Refactor webauthn_http.go body parsing to be less fragile                  | Medium | 15m    |
+| 13 | Add SQL store implementation (event.Store + SessionStore)                  | High   | 120m   |
+| 14 | Add event schema versioning                                                | Medium | 30m    |
+| 15 | Add projection consistency integration test                                | Medium | 20m    |
+| 16 | Add fuzz test for foldUser (property: idempotent fold)                     | Low    | 15m    |
+| 17 | Update docs/DOMAIN_LANGUAGE.md for passwordless terms                      | Low    | 10m    |
+| 18 | Add WebAuthn session expiry eviction goroutine                             | Low    | 15m    |
+| 19 | Add POST /auth/credentials DELETE endpoint for credential removal via HTTP | Medium | 15m    |
+| 20 | Add GET /auth/credentials endpoint for listing user's credentials          | Medium | 10m    |
+| 21 | Add rate limiting to WebAuthn endpoints                                    | Medium | 15m    |
+| 22 | Add CSRF protection to WebAuthn POST endpoints                             | Medium | 10m    |
+| 23 | Consider adding `github.com/mark3labs/mcp-go` for MCP integration          | Low    | 30m    |
+| 24 | Add README.md update for passwordless quickstart                           | Medium | 20m    |
+| 25 | Add CI pipeline for multi-module testing                                   | Medium | 30m    |
 
 ---
 

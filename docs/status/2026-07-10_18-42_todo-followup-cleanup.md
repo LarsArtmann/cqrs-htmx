@@ -1,9 +1,9 @@
 # Status Report: TODO Execution + Follow-Up Session
 
-**Date:** 2026-07-10 18:42  
-**Session span:** Two sessions — initial TODO execution (prior) + follow-up cleanup (this session)  
-**Branch:** master  
-**Files changed:** 21 modified + 2 untracked = 23 total  
+**Date:** 2026-07-10 18:42\
+**Session span:** Two sessions — initial TODO execution (prior) + follow-up cleanup (this session)\
+**Branch:** master\
+**Files changed:** 21 modified + 2 untracked = 23 total\
 **Diff:** +566 / -38 lines
 
 ---
@@ -138,7 +138,7 @@ No regressions, no broken changes, no data loss. The only thing that **was** fuc
 
 9. **`oauth2_http.go:104` still uses `writeError`** for the OAuth2 callback error path — this one writes a custom status + message derived from error classification. It's a different pattern (redirect-based error handling, not JSON). Not wrong, but a third error-writing pattern alongside `writeError` and `writeDispatchError`.
 
-10. **Test for Transient/Conflict in RequestLoggingSlog does not check error*ctx***: The Rejection test checks `error_ctx_user_id`, but the Transient and Conflict tests only check `error_family` and `error_code`. They don't add `.WithContext()` to the error so there's nothing to check — but it means we're not testing that Transient/Conflict errors CAN carry context through the logging path.
+10. **Test for Transient/Conflict in RequestLoggingSlog does not check error_ctx_**: The Rejection test checks `error_ctx_user_id`, but the Transient and Conflict tests only check `error_family` and `error_code`. They don't add `.WithContext()` to the error so there's nothing to check — but it means we're not testing that Transient/Conflict errors CAN carry context through the logging path.
 
 ---
 
@@ -172,7 +172,7 @@ No regressions, no broken changes, no data loss. The only thing that **was** fuc
 18. **Property-based tests for event fold functions** — `foldUser`, `foldMembership`, `foldTenant`, `foldBot`.
 19. **Contract tests** between root and usermgmt (RateLimiter boundary).
 20. **Integration test importing published version** (not local replace).
-21. **Test that error*ctx*\* traverses wrapped errors for Transient/Conflict families** (not just Rejection).
+21. **Test that error_ctx_\* traverses wrapped errors for Transient/Conflict families** (not just Rejection).
 22. **Benchmark dedup.Ring vs old map** for typical journal sizes.
 
 ### P2 — Architecture

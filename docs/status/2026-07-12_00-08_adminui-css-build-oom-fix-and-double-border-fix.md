@@ -1,8 +1,8 @@
 # Status: adminui CSS Build OOM Fix + Table-in-Card Double Border Fix
 
-**Date:** 2026-07-12 00:08  
-**Session:** Fix 3 known issues from previous templ-components v0.15.0 adoption session  
-**Commit:** `cffbe35` — fix(adminui): eliminate 55 GB CSS build OOM and fix Table-in-Card double border  
+**Date:** 2026-07-12 00:08\
+**Session:** Fix 3 known issues from previous templ-components v0.15.0 adoption session\
+**Commit:** `cffbe35` — fix(adminui): eliminate 55 GB CSS build OOM and fix Table-in-Card double border\
 **Previous session:** Upgraded v0.13.0 → v0.15.0, adopted 4 new components (Table, DefinitionList, CopyButton, GridColsAutoFit), replaced 5 hand-rolled tables
 
 ---

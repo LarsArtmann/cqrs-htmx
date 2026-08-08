@@ -1,10 +1,10 @@
 # Status Report — cqrs-htmx
 
-**Date:** 2026-06-28 21:02  
-**Branch:** `master` (clean, pushed)  
-**Commit:** `7d3f5aa`  
-**Coverage:** 95.4% root, 80.1% usermgmt  
-**Lint:** 0 issues across all 4 modules  
+**Date:** 2026-06-28 21:02\
+**Branch:** `master` (clean, pushed)\
+**Commit:** `7d3f5aa`\
+**Coverage:** 95.4% root, 80.1% usermgmt\
+**Lint:** 0 issues across all 4 modules\
 **Tests:** 932 total (133 root + 747 usermgmt + 35 adminui + 17 integration) — all pass with `-race`
 
 ---
@@ -177,33 +177,33 @@ green" without running the umbrella `nix run .#test` end-to-end. That has been
 
 Sorted by impact × effort × customer-value.
 
-| #   | Task                                                                    | Impact   | Effort | Module           | Blocked?  |
-| --- | ----------------------------------------------------------------------- | -------- | ------ | ---------------- | --------- |
-| 1   | **Answer Q1: where does `decide()` run?** (Queue-Only / WASM / TS Port) | Critical | 5m     | —                | **User**  |
-| 2   | **Answer Q2: closed-tab persistence?** (SharedWorker / Service Worker)  | Critical | 5m     | —                | **User**  |
-| 3   | Add adminui integration test (mount + route render)                     | High     | 12m    | integration_test | —         |
-| 4   | Security review: command ID injection/replay surface                    | High     | 12m    | root             | —         |
-| 5   | Wire idempotency into admin-demo BeforeDispatchHook                     | High     | 10m    | admin-demo       | —         |
-| 6   | Add actor/impersonator context bridge integration test                  | High     | 12m    | integration_test | —         |
-| 7   | Document consumer wiring recipe (SSE + ACK + honest UI)                 | Medium   | 12m    | docs             | —         |
-| 8   | Design rate-limit config unification (root ↔ usermgmt)                  | Medium   | 10m    | usermgmt         | —         |
-| 9   | Replace usermgmt perIPRateLimiter with root RateLimiterMiddleware       | Medium   | 12m    | usermgmt         | #8        |
-| 10  | Honest UI: inline error message in rejected state                       | Medium   | 12m    | adminui          | —         |
-| 11  | Honest UI: add retry button to rejected items                           | Medium   | 12m    | adminui          | —         |
-| 12  | Add adminui sync indicator rendering test                               | Medium   | 12m    | adminui          | —         |
-| 13  | Fix responsive `.sync-bar` mobile layout                                | Low      | 8m     | adminui          | —         |
-| 14  | Add JS unit tests for sync-state handler                                | Medium   | 12m    | adminui          | —         |
-| 15  | Design shared ActorID type (root without importing usermgmt)            | High     | 12m    | root             | —         |
-| 16  | Implement root ActorID with safe constructors                           | High     | 12m    | root             | #15       |
-| 17  | Add conversion helpers root ↔ usermgmt ActorID                          | Medium   | 8m     | integration_test | #16       |
-| 18  | SSE replay benchmark (10K/100K events)                                  | Low      | 12m    | root             | —         |
-| 19  | Browser-verify admin-demo honest UI lifecycle                           | High     | 12m    | admin-demo       | —         |
-| 20  | Evaluate maypok86/otter/v2 for ephemeral stores                         | Low      | 12m    | usermgmt         | —         |
-| 21  | Remove or un-deprecate ClientIP                                         | Low      | 8m     | root             | —         |
-| 22  | Add PWA manifest to admin-demo                                          | Low      | 10m    | admin-demo       | —         |
-| 23  | Regenerate admin-tw.css from tailwind source                            | Low      | 12m    | adminui          | npm       |
-| 24  | OPFS/IndexedDB technical spike for Phase 2                              | Medium   | 12m    | docs             | **Q2**    |
-| 25  | Cut v3.3.0 release                                                      | High     | 12m    | repo             | **Q1+Q2** |
+| #  | Task                                                                    | Impact   | Effort | Module           | Blocked?  |
+| -- | ----------------------------------------------------------------------- | -------- | ------ | ---------------- | --------- |
+| 1  | **Answer Q1: where does `decide()` run?** (Queue-Only / WASM / TS Port) | Critical | 5m     | —                | **User**  |
+| 2  | **Answer Q2: closed-tab persistence?** (SharedWorker / Service Worker)  | Critical | 5m     | —                | **User**  |
+| 3  | Add adminui integration test (mount + route render)                     | High     | 12m    | integration_test | —         |
+| 4  | Security review: command ID injection/replay surface                    | High     | 12m    | root             | —         |
+| 5  | Wire idempotency into admin-demo BeforeDispatchHook                     | High     | 10m    | admin-demo       | —         |
+| 6  | Add actor/impersonator context bridge integration test                  | High     | 12m    | integration_test | —         |
+| 7  | Document consumer wiring recipe (SSE + ACK + honest UI)                 | Medium   | 12m    | docs             | —         |
+| 8  | Design rate-limit config unification (root ↔ usermgmt)                  | Medium   | 10m    | usermgmt         | —         |
+| 9  | Replace usermgmt perIPRateLimiter with root RateLimiterMiddleware       | Medium   | 12m    | usermgmt         | #8        |
+| 10 | Honest UI: inline error message in rejected state                       | Medium   | 12m    | adminui          | —         |
+| 11 | Honest UI: add retry button to rejected items                           | Medium   | 12m    | adminui          | —         |
+| 12 | Add adminui sync indicator rendering test                               | Medium   | 12m    | adminui          | —         |
+| 13 | Fix responsive `.sync-bar` mobile layout                                | Low      | 8m     | adminui          | —         |
+| 14 | Add JS unit tests for sync-state handler                                | Medium   | 12m    | adminui          | —         |
+| 15 | Design shared ActorID type (root without importing usermgmt)            | High     | 12m    | root             | —         |
+| 16 | Implement root ActorID with safe constructors                           | High     | 12m    | root             | #15       |
+| 17 | Add conversion helpers root ↔ usermgmt ActorID                          | Medium   | 8m     | integration_test | #16       |
+| 18 | SSE replay benchmark (10K/100K events)                                  | Low      | 12m    | root             | —         |
+| 19 | Browser-verify admin-demo honest UI lifecycle                           | High     | 12m    | admin-demo       | —         |
+| 20 | Evaluate maypok86/otter/v2 for ephemeral stores                         | Low      | 12m    | usermgmt         | —         |
+| 21 | Remove or un-deprecate ClientIP                                         | Low      | 8m     | root             | —         |
+| 22 | Add PWA manifest to admin-demo                                          | Low      | 10m    | admin-demo       | —         |
+| 23 | Regenerate admin-tw.css from tailwind source                            | Low      | 12m    | adminui          | npm       |
+| 24 | OPFS/IndexedDB technical spike for Phase 2                              | Medium   | 12m    | docs             | **Q2**    |
+| 25 | Cut v3.3.0 release                                                      | High     | 12m    | repo             | **Q1+Q2** |
 
 ---
 

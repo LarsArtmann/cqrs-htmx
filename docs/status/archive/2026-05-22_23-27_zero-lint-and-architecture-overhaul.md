@@ -76,18 +76,18 @@ The project is in **excellent shape**. Two major sessions today brought the user
 
 ## c) NOT STARTED
 
-| #   | Item                                      | Priority | Notes                                                                     |
-| --- | ----------------------------------------- | -------- | ------------------------------------------------------------------------- |
-| 1   | Dependabot vulnerability fixes            | High     | 2 moderate vulnerabilities reported by GitHub. Not inspected yet.         |
-| 2   | Register compensating transaction tests   | Medium   | Rollback paths need mock store/authz to trigger failures                  |
-| 3   | Usermgmt coverage recovery to 91%+        | Medium   | EvictExpired, EvictStale, TokenMatches, and context paths need more tests |
-| 4   | Root coverage push to 97%+                | Low      | WriteJSON at 80%, Hijack at 60%, heap Push at 75%                         |
-| 5   | Store interface mock/fake implementations | Medium   | Would enable testing of error paths in Service methods                    |
-| 6   | Integration test expansion                | Low      | Only 4 tests — could add more cross-module scenarios                      |
-| 7   | datastar-demo tests                       | Low      | Main package, no tests exist                                              |
-| 8   | go-cqrs-lite v1.5.0 upgrade               | Low      | Root uses v1.4.0, datastar-demo uses v1.5.0. Could unify.                 |
-| 9   | API documentation (godoc)                 | Low      | Most types documented but could be more thorough                          |
-| 10  | CONTRIBUTING.md update                    | Low      | Should reflect current state (context-aware stores, etc.)                 |
+| #  | Item                                      | Priority | Notes                                                                     |
+| -- | ----------------------------------------- | -------- | ------------------------------------------------------------------------- |
+| 1  | Dependabot vulnerability fixes            | High     | 2 moderate vulnerabilities reported by GitHub. Not inspected yet.         |
+| 2  | Register compensating transaction tests   | Medium   | Rollback paths need mock store/authz to trigger failures                  |
+| 3  | Usermgmt coverage recovery to 91%+        | Medium   | EvictExpired, EvictStale, TokenMatches, and context paths need more tests |
+| 4  | Root coverage push to 97%+                | Low      | WriteJSON at 80%, Hijack at 60%, heap Push at 75%                         |
+| 5  | Store interface mock/fake implementations | Medium   | Would enable testing of error paths in Service methods                    |
+| 6  | Integration test expansion                | Low      | Only 4 tests — could add more cross-module scenarios                      |
+| 7  | datastar-demo tests                       | Low      | Main package, no tests exist                                              |
+| 8  | go-cqrs-lite v1.5.0 upgrade               | Low      | Root uses v1.4.0, datastar-demo uses v1.5.0. Could unify.                 |
+| 9  | API documentation (godoc)                 | Low      | Most types documented but could be more thorough                          |
+| 10 | CONTRIBUTING.md update                    | Low      | Should reflect current state (context-aware stores, etc.)                 |
 
 ---
 
@@ -137,33 +137,33 @@ Nothing is fucked up. The project is in the best shape it has ever been:
 
 ## f) Top 25 Things We Should Get Done Next!
 
-| #   | Item                                        | Impact          | Effort  |
-| --- | ------------------------------------------- | --------------- | ------- |
-| 1   | Fix Dependabot CVEs (2 moderate)            | Security        | Small   |
-| 2   | Recover usermgmt coverage to 91%+           | Quality         | Medium  |
-| 3   | Add Register rollback path tests            | Correctness     | Medium  |
-| 4   | Create mock/fake UserStore + SessionStore   | Testability     | Medium  |
-| 5   | Test Logout error path (66.7% coverage)     | Quality         | Small   |
-| 6   | Test handleLogout (64.3% coverage)          | Quality         | Small   |
-| 7   | Test handleRegister error path (87.5%)      | Quality         | Small   |
-| 8   | Add EvictExpired concurrent test            | Correctness     | Small   |
-| 9   | Add EvictStale concurrent test              | Correctness     | Small   |
-| 10  | Add TokenMatches benchmark                  | Performance     | Small   |
-| 11  | Root coverage: WriteJSON 80% → 95%+         | Quality         | Small   |
-| 12  | Root coverage: Hijack 60% → 90%+            | Quality         | Small   |
-| 13  | Root coverage: heap Push 75% → 95%+         | Quality         | Small   |
-| 14  | Align go-cqrs-lite version (v1.4→v1.5)      | Consistency     | Medium  |
-| 15  | Add usermgmt godoc examples                 | Docs            | Medium  |
-| 16  | Update CONTRIBUTING.md                      | Docs            | Small   |
-| 17  | Add golangci.yml to integration_test        | Consistency     | Small   |
-| 18  | Fix LSP stale cache for usermgmt            | DX              | Unknown |
-| 19  | Add usermgmt fuzz tests for Validate()      | Robustness      | Medium  |
-| 20  | Add usermgmt benchmarks for bcrypt hot path | Performance     | Small   |
-| 21  | Review datastar-demo for improvements       | Quality         | Medium  |
-| 22  | Add Session.MaxAge to cookie TTL alignment  | Correctness     | Small   |
-| 23  | Consider go-cqrs-lite catalog v2 migration  | Future-proofing | Large   |
-| 24  | Add OpenTelemetry tracing hooks             | Observability   | Large   |
-| 25  | Evaluate nix flake migration for CI         | DX              | Large   |
+| #  | Item                                        | Impact          | Effort  |
+| -- | ------------------------------------------- | --------------- | ------- |
+| 1  | Fix Dependabot CVEs (2 moderate)            | Security        | Small   |
+| 2  | Recover usermgmt coverage to 91%+           | Quality         | Medium  |
+| 3  | Add Register rollback path tests            | Correctness     | Medium  |
+| 4  | Create mock/fake UserStore + SessionStore   | Testability     | Medium  |
+| 5  | Test Logout error path (66.7% coverage)     | Quality         | Small   |
+| 6  | Test handleLogout (64.3% coverage)          | Quality         | Small   |
+| 7  | Test handleRegister error path (87.5%)      | Quality         | Small   |
+| 8  | Add EvictExpired concurrent test            | Correctness     | Small   |
+| 9  | Add EvictStale concurrent test              | Correctness     | Small   |
+| 10 | Add TokenMatches benchmark                  | Performance     | Small   |
+| 11 | Root coverage: WriteJSON 80% → 95%+         | Quality         | Small   |
+| 12 | Root coverage: Hijack 60% → 90%+            | Quality         | Small   |
+| 13 | Root coverage: heap Push 75% → 95%+         | Quality         | Small   |
+| 14 | Align go-cqrs-lite version (v1.4→v1.5)      | Consistency     | Medium  |
+| 15 | Add usermgmt godoc examples                 | Docs            | Medium  |
+| 16 | Update CONTRIBUTING.md                      | Docs            | Small   |
+| 17 | Add golangci.yml to integration_test        | Consistency     | Small   |
+| 18 | Fix LSP stale cache for usermgmt            | DX              | Unknown |
+| 19 | Add usermgmt fuzz tests for Validate()      | Robustness      | Medium  |
+| 20 | Add usermgmt benchmarks for bcrypt hot path | Performance     | Small   |
+| 21 | Review datastar-demo for improvements       | Quality         | Medium  |
+| 22 | Add Session.MaxAge to cookie TTL alignment  | Correctness     | Small   |
+| 23 | Consider go-cqrs-lite catalog v2 migration  | Future-proofing | Large   |
+| 24 | Add OpenTelemetry tracing hooks             | Observability   | Large   |
+| 25 | Evaluate nix flake migration for CI         | DX              | Large   |
 
 ---
 

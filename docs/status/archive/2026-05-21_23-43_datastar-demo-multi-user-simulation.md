@@ -101,33 +101,33 @@ Nothing partially done — the demo is functionally complete.
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Priority | Item                                                                      |
-| --- | -------- | ------------------------------------------------------------------------- |
-| 1   | HIGH     | Add HTML escaping to `renderTodo` — prevent XSS from user-provided titles |
-| 2   | HIGH     | Add `.gitignore` entry for `examples/datastar-demo/datastar-demo` binary  |
-| 3   | HIGH     | Add stop/cancel mechanism for simulate bots (UI toggle)                   |
-| 4   | MED      | Add basic tests for the demo (at least domain + handlers)                 |
-| 5   | MED      | Consider a `datastar` adapter in the main cqrs-htmx library               |
-| 6   | MED      | Verify the demo works in multiple browsers (Chrome, Firefox, Safari)      |
-| 7   | MED      | Add error handling for SSE write failures in event stream handler         |
-| 8   | MED      | Rate-limit the simulate endpoint to prevent accidental double-start       |
-| 9   | LOW      | Add templ integration to the demo (replace raw HTML strings)              |
-| 10  | LOW      | Add a "clear all" button to the demo                                      |
-| 11  | LOW      | Show event count in the event stream panel                                |
-| 12  | LOW      | Add keyboard shortcut (Enter) for the add todo form                       |
-| 13  | LOW      | Persist todos across server restarts (file-backed event store)            |
-| 14  | LOW      | Add pagination or "load more" to the todo list                            |
-| 15  | LOW      | Show todo creation timestamps in the UI                                   |
-| 16  | LOW      | Add undo functionality (event sourcing makes this natural)                |
-| 17  | LOW      | Color-code event log entries by user                                      |
-| 18  | LOW      | Add a "replay events" debug panel showing full event store                |
-| 19  | LOW      | WebSocket transport option (Datastar supports SSE only)                   |
-| 20  | LOW      | Dockerfile for the demo                                                   |
-| 21  | LOW      | Deploy demo somewhere accessible                                          |
-| 22  | LOW      | Compare response sizes: Datastar SSE vs HTMX headers for same operations  |
-| 23  | LOW      | Benchmark: how many concurrent SSE clients before server struggles?       |
-| 24  | LOW      | Add load testing script for the demo                                      |
-| 25  | LOW      | Write a blog post / README section comparing the two approaches           |
+| #  | Priority | Item                                                                      |
+| -- | -------- | ------------------------------------------------------------------------- |
+| 1  | HIGH     | Add HTML escaping to `renderTodo` — prevent XSS from user-provided titles |
+| 2  | HIGH     | Add `.gitignore` entry for `examples/datastar-demo/datastar-demo` binary  |
+| 3  | HIGH     | Add stop/cancel mechanism for simulate bots (UI toggle)                   |
+| 4  | MED      | Add basic tests for the demo (at least domain + handlers)                 |
+| 5  | MED      | Consider a `datastar` adapter in the main cqrs-htmx library               |
+| 6  | MED      | Verify the demo works in multiple browsers (Chrome, Firefox, Safari)      |
+| 7  | MED      | Add error handling for SSE write failures in event stream handler         |
+| 8  | MED      | Rate-limit the simulate endpoint to prevent accidental double-start       |
+| 9  | LOW      | Add templ integration to the demo (replace raw HTML strings)              |
+| 10 | LOW      | Add a "clear all" button to the demo                                      |
+| 11 | LOW      | Show event count in the event stream panel                                |
+| 12 | LOW      | Add keyboard shortcut (Enter) for the add todo form                       |
+| 13 | LOW      | Persist todos across server restarts (file-backed event store)            |
+| 14 | LOW      | Add pagination or "load more" to the todo list                            |
+| 15 | LOW      | Show todo creation timestamps in the UI                                   |
+| 16 | LOW      | Add undo functionality (event sourcing makes this natural)                |
+| 17 | LOW      | Color-code event log entries by user                                      |
+| 18 | LOW      | Add a "replay events" debug panel showing full event store                |
+| 19 | LOW      | WebSocket transport option (Datastar supports SSE only)                   |
+| 20 | LOW      | Dockerfile for the demo                                                   |
+| 21 | LOW      | Deploy demo somewhere accessible                                          |
+| 22 | LOW      | Compare response sizes: Datastar SSE vs HTMX headers for same operations  |
+| 23 | LOW      | Benchmark: how many concurrent SSE clients before server struggles?       |
+| 24 | LOW      | Add load testing script for the demo                                      |
+| 25 | LOW      | Write a blog post / README section comparing the two approaches           |
 
 ---
 

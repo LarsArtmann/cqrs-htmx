@@ -77,31 +77,31 @@
 
 ### Critical Security (Pre-v1.1.0)
 
-| #   | Item                                                | File    | Risk     |
-| --- | --------------------------------------------------- | ------- | -------- |
-| 1   | CSRF proxy bypass — r.TLS == nil trusts all proxies | csrf.go | Security |
+| # | Item                                                | File    | Risk     |
+| - | --------------------------------------------------- | ------- | -------- |
+| 1 | CSRF proxy bypass — r.TLS == nil trusts all proxies | csrf.go | Security |
 
 ### Architecture Improvements
 
-| #   | Item                                                  | Impact    | Effort |
-| --- | ----------------------------------------------------- | --------- | ------ |
-| 2   | Collapse 6 error handlers to 1 with options           | Medium    | 1 hr   |
-| 3   | Deduplicate RequestLogging/RequestLoggingSlog         | Low       | 30 min |
-| 4   | Adopt v2 typed dispatch (RegisterTyped/DispatchTyped) | High      | 1.5 hr |
-| 5   | Add PaginatedResult[T] support                        | Medium    | 30 min |
-| 6   | Real integration HTTP tests                           | High      | 2 hr   |
-| 7   | SQL store backend                                     | Very High | 8 hr   |
-| 8   | OpenTelemetry integration                             | High      | 3 hr   |
-| 9   | Reactive event streams (EventBus)                     | Very High | 4 hr   |
+| # | Item                                                  | Impact    | Effort |
+| - | ----------------------------------------------------- | --------- | ------ |
+| 2 | Collapse 6 error handlers to 1 with options           | Medium    | 1 hr   |
+| 3 | Deduplicate RequestLogging/RequestLoggingSlog         | Low       | 30 min |
+| 4 | Adopt v2 typed dispatch (RegisterTyped/DispatchTyped) | High      | 1.5 hr |
+| 5 | Add PaginatedResult[T] support                        | Medium    | 30 min |
+| 6 | Real integration HTTP tests                           | High      | 2 hr   |
+| 7 | SQL store backend                                     | Very High | 8 hr   |
+| 8 | OpenTelemetry integration                             | High      | 3 hr   |
+| 9 | Reactive event streams (EventBus)                     | Very High | 4 hr   |
 
 ### Type Safety
 
-| #   | Item                                           | Impact |
-| --- | ---------------------------------------------- | ------ |
-| 10  | WriteJSON[T](w, status, v T) generic variant   | Medium |
-| 11  | Response.JSONTyped[T](v T)                     | Medium |
-| 12  | Typed EventHandler[T any] instead of event any | High   |
-| 13  | Remove EnforceAny/AsEnforcer adapter triad     | Medium |
+| #  | Item                                           | Impact |
+| -- | ---------------------------------------------- | ------ |
+| 10 | WriteJSON[T](w, status, v T) generic variant   | Medium |
+| 11 | Response.JSONTyped[T](v T)                     | Medium |
+| 12 | Typed EventHandler[T any] instead of event any | High   |
+| 13 | Remove EnforceAny/AsEnforcer adapter triad     | Medium |
 
 ---
 
@@ -152,33 +152,33 @@
 
 Sorted by impact/effort ratio (highest first):
 
-| #   | Item                                          | Impact    | Effort | Module           |
-| --- | --------------------------------------------- | --------- | ------ | ---------------- |
-| 1   | Fix CSRF proxy bypass                         | High      | 1 hr   | root             |
-| 2   | Collapse 6 error handlers to 1 with options   | Medium    | 1 hr   | root             |
-| 3   | Adopt v2 typed dispatch                       | High      | 1.5 hr | root             |
-| 4   | Add PaginatedResult[T] support                | Medium    | 30 min | root             |
-| 5   | Add real integration HTTP tests               | High      | 2 hr   | integration_test |
-| 6   | Deduplicate RequestLogging/RequestLoggingSlog | Low       | 30 min | root             |
-| 7   | Add middleware chaining integration tests     | Medium    | 1 hr   | integration_test |
-| 8   | Add OpenTelemetry via upstream middleware     | High      | 3 hr   | root             |
-| 9   | Reactive event streams (EventBus)             | Very High | 4 hr   | root             |
-| 10  | SQL store backend                             | Very High | 8 hr   | usermgmt         |
-| 11  | Add WriteJSON[T] generic variant              | Medium    | 15 min | root             |
-| 12  | Add Response.JSONTyped[T]                     | Medium    | 15 min | root             |
-| 13  | Use samber/lo for slice operations            | Low       | 20 min | various          |
-| 14  | Remove EnforceAny/AsEnforcer triad            | Medium    | 30 min | usermgmt         |
-| 15  | Fix TriggerWithDetail non-determinism         | Low       | 30 min | root             |
-| 16  | Add RequestLoggingSlog tests                  | Low       | 20 min | root             |
-| 17  | Add error handler variant tests               | Low       | 15 min | root             |
-| 18  | Update ROADMAP.md date/status                 | Low       | 10 min | docs             |
-| 19  | Clean stale coverage files                    | Low       | 5 min  | repo             |
-| 20  | Redis session store                           | Medium    | 4 hr   | usermgmt         |
-| 21  | JWT/OIDC integration                          | High      | 6 hr   | usermgmt         |
-| 22  | Fix datastar-demo to use cqrs-htmx            | Medium    | 2 hr   | examples         |
-| 23  | Add decodeFormValues json.Marshal error test  | Low       | 10 min | root             |
-| 24  | Add HealthHandler unhealthy branch test       | Low       | 10 min | root             |
-| 25  | Add enrichUserID extractor error test         | Low       | 10 min | root             |
+| #  | Item                                          | Impact    | Effort | Module           |
+| -- | --------------------------------------------- | --------- | ------ | ---------------- |
+| 1  | Fix CSRF proxy bypass                         | High      | 1 hr   | root             |
+| 2  | Collapse 6 error handlers to 1 with options   | Medium    | 1 hr   | root             |
+| 3  | Adopt v2 typed dispatch                       | High      | 1.5 hr | root             |
+| 4  | Add PaginatedResult[T] support                | Medium    | 30 min | root             |
+| 5  | Add real integration HTTP tests               | High      | 2 hr   | integration_test |
+| 6  | Deduplicate RequestLogging/RequestLoggingSlog | Low       | 30 min | root             |
+| 7  | Add middleware chaining integration tests     | Medium    | 1 hr   | integration_test |
+| 8  | Add OpenTelemetry via upstream middleware     | High      | 3 hr   | root             |
+| 9  | Reactive event streams (EventBus)             | Very High | 4 hr   | root             |
+| 10 | SQL store backend                             | Very High | 8 hr   | usermgmt         |
+| 11 | Add WriteJSON[T] generic variant              | Medium    | 15 min | root             |
+| 12 | Add Response.JSONTyped[T]                     | Medium    | 15 min | root             |
+| 13 | Use samber/lo for slice operations            | Low       | 20 min | various          |
+| 14 | Remove EnforceAny/AsEnforcer triad            | Medium    | 30 min | usermgmt         |
+| 15 | Fix TriggerWithDetail non-determinism         | Low       | 30 min | root             |
+| 16 | Add RequestLoggingSlog tests                  | Low       | 20 min | root             |
+| 17 | Add error handler variant tests               | Low       | 15 min | root             |
+| 18 | Update ROADMAP.md date/status                 | Low       | 10 min | docs             |
+| 19 | Clean stale coverage files                    | Low       | 5 min  | repo             |
+| 20 | Redis session store                           | Medium    | 4 hr   | usermgmt         |
+| 21 | JWT/OIDC integration                          | High      | 6 hr   | usermgmt         |
+| 22 | Fix datastar-demo to use cqrs-htmx            | Medium    | 2 hr   | examples         |
+| 23 | Add decodeFormValues json.Marshal error test  | Low       | 10 min | root             |
+| 24 | Add HealthHandler unhealthy branch test       | Low       | 10 min | root             |
+| 25 | Add enrichUserID extractor error test         | Low       | 10 min | root             |
 
 ---
 

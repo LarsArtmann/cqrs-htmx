@@ -69,19 +69,19 @@ graph TD
 
 > Sorted by: Impact (customer value) × Confidence (reduces risk) ÷ Effort
 
-| #   | Task                                                                                                          | Impact                                   | Effort | Est | Status |
-| --- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------ | --- | ------ |
-| 1   | Write rendering test: assert Layout HTML contains `#tc-toast-container`, `tcShowToast`, `#tc-error-announcer` | CRITICAL — proves Phase 1 actually works | S      | 30m | TODO   |
-| 2   | Run the test, fix any failures discovered                                                                     | CRITICAL — gates everything              | S      | 30m | TODO   |
-| 3   | Add CHANGELOG entry for toast migration + GlobalErrorHandling + v1.7.0 bump                                   | HIGH — convention compliance             | S      | 30m | TODO   |
-| 4   | Verify admin.js has no event listener conflicts with GlobalErrorHandling (code review only)                   | HIGH — prevents runtime regressions      | S      | 30m | TODO   |
-| 5   | Build + smoke test admin-demo example                                                                         | MEDIUM — consumer-facing validation      | S      | 30m | TODO   |
-| 6   | Thread CSP nonce through GlobalErrorHandling config                                                           | MEDIUM — CSP-ready for consumers         | S      | 30m | TODO   |
-| 7   | Git commit Phase 1A+1B with detailed message                                                                  | HIGH — checkpoint                        | S      | 30m | TODO   |
-| 8   | Git commit Phase 2 (nonce) with detailed message                                                              | HIGH — checkpoint                        | S      | 30m | TODO   |
-| 9   | Git push                                                                                                      | MEDIUM — remote backup                   | S      | 30m | TODO   |
-| 10  | dashboardui: add templ-components dep + replace `navIconSVG` with `icons.IconPathData` bridge                 | HIGH — first dashboardui adoption        | M      | 60m | TODO   |
-| 11  | Update AGENTS.md adoption table after dashboardui icons                                                       | LOW — documentation                      | S      | 30m | TODO   |
+| #  | Task                                                                                                          | Impact                                   | Effort | Est | Status |
+| -- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------ | --- | ------ |
+| 1  | Write rendering test: assert Layout HTML contains `#tc-toast-container`, `tcShowToast`, `#tc-error-announcer` | CRITICAL — proves Phase 1 actually works | S      | 30m | TODO   |
+| 2  | Run the test, fix any failures discovered                                                                     | CRITICAL — gates everything              | S      | 30m | TODO   |
+| 3  | Add CHANGELOG entry for toast migration + GlobalErrorHandling + v1.7.0 bump                                   | HIGH — convention compliance             | S      | 30m | TODO   |
+| 4  | Verify admin.js has no event listener conflicts with GlobalErrorHandling (code review only)                   | HIGH — prevents runtime regressions      | S      | 30m | TODO   |
+| 5  | Build + smoke test admin-demo example                                                                         | MEDIUM — consumer-facing validation      | S      | 30m | TODO   |
+| 6  | Thread CSP nonce through GlobalErrorHandling config                                                           | MEDIUM — CSP-ready for consumers         | S      | 30m | TODO   |
+| 7  | Git commit Phase 1A+1B with detailed message                                                                  | HIGH — checkpoint                        | S      | 30m | TODO   |
+| 8  | Git commit Phase 2 (nonce) with detailed message                                                              | HIGH — checkpoint                        | S      | 30m | TODO   |
+| 9  | Git push                                                                                                      | MEDIUM — remote backup                   | S      | 30m | TODO   |
+| 10 | dashboardui: add templ-components dep + replace `navIconSVG` with `icons.IconPathData` bridge                 | HIGH — first dashboardui adoption        | M      | 60m | TODO   |
+| 11 | Update AGENTS.md adoption table after dashboardui icons                                                       | LOW — documentation                      | S      | 30m | TODO   |
 
 **Total estimated: 6 hours**
 

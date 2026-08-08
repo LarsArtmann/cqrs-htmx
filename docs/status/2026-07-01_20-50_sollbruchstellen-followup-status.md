@@ -137,33 +137,33 @@ All builds pass. All tests pass. All CI scripts pass strict mode. No regressions
 
 ## f) Top 25 Things to Do Next
 
-| #   | Task                                                                                              | Impact   | Effort   | Type           |
-| --- | ------------------------------------------------------------------------------------------------- | -------- | -------- | -------------- |
-| 1   | **Stop BuildFlow auto-bumping go-cqrs-lite** (pin in .buildflow.yml or fix v3.5.0 compat)         | Critical | 30 min   | Infrastructure |
-| 2   | **Remove `OPEN` placeholder from TODO_LIST.md**                                                   | Low      | 1 min    | Hygiene        |
-| 3   | **Start v4 branch: extract `usermgmt/totp`** behind TOTPVerifier (Service already implements it!) | Critical | 2h       | Feature        |
-| 4   | **Add adminui coverage gate to CI** (currently 66.8%, no gate)                                    | High     | 15 min   | CI             |
-| 5   | **v4: Extract `usermgmt/webauthn`** behind WebAuthnProvider                                       | Critical | 8h       | Feature        |
-| 6   | **v4: Extract `usermgmt/oauth2`** behind OAuth2Provider                                           | Critical | 6h       | Feature        |
-| 7   | **Write v3→v4 migration guide** for consumers                                                     | High     | 2h       | Docs           |
-| 8   | **Phase 2b: IndexedDB persistent offline queue** (ADR-0030)                                       | High     | 8h       | Feature        |
-| 9   | **Audit test deps in production go.mod** (ginkgo/gomega/rapid)                                    | Medium   | 1h       | Hygiene        |
-| 10  | **Investigate eventtest publishing blocker**                                                      | Medium   | Research | Infrastructure |
-| 11  | **Evaluate root → separate Go modules** for v4 (consumer dep reduction)                           | High     | Research | Architecture   |
-| 12  | **Add architecture ADR for Sollbruchstellen decision**                                            | Medium   | 30 min   | Docs           |
-| 13  | **Write consumer dep guide: "What deps do I pull in?"**                                           | Medium   | 1h       | Docs           |
-| 14  | **Profile and parallelize `check-module-isolation.sh`** (currently ~30s)                          | Low      | 30 min   | CI             |
-| 15  | **Add `check-dep-budgets.sh --strict` mode** with justification requirement                       | Low      | 30 min   | CI             |
-| 16  | **Consider splitting AGENTS.md** (500+ lines)                                                     | Low      | 30 min   | Docs           |
-| 17  | **Add mermaid module DAG to AGENTS.md**                                                           | Low      | 30 min   | Docs           |
-| 18  | **Write integration tests for CI scripts**                                                        | Medium   | 1h       | Testing        |
-| 19  | **v4: Extract `usermgmt/sql`** as separate concern                                                | High     | 6h       | Feature        |
-| 20  | **Audit replace directives for stale entries**                                                    | Medium   | 1h       | Hygiene        |
-| 21  | **Upgrade to go-cqrs-lite v3.5.0 properly** (fix codec.ForEncoding usage)                         | Medium   | 2h       | Maintenance    |
-| 22  | **Add dep budget documentation** (why each dep exists)                                            | Low      | 1h       | Docs           |
-| 23  | **Document auth strategy registration pattern** for v4 consumers                                  | Medium   | 1h       | Docs           |
-| 24  | **Consider `nix run .#check-modules -- --fix`** auto-pinning                                      | Low      | 2h       | CI             |
-| 25  | **Review adminui test coverage gaps** (66.8% → target 75%+)                                       | Medium   | 3h       | Testing        |
+| #  | Task                                                                                              | Impact   | Effort   | Type           |
+| -- | ------------------------------------------------------------------------------------------------- | -------- | -------- | -------------- |
+| 1  | **Stop BuildFlow auto-bumping go-cqrs-lite** (pin in .buildflow.yml or fix v3.5.0 compat)         | Critical | 30 min   | Infrastructure |
+| 2  | **Remove `OPEN` placeholder from TODO_LIST.md**                                                   | Low      | 1 min    | Hygiene        |
+| 3  | **Start v4 branch: extract `usermgmt/totp`** behind TOTPVerifier (Service already implements it!) | Critical | 2h       | Feature        |
+| 4  | **Add adminui coverage gate to CI** (currently 66.8%, no gate)                                    | High     | 15 min   | CI             |
+| 5  | **v4: Extract `usermgmt/webauthn`** behind WebAuthnProvider                                       | Critical | 8h       | Feature        |
+| 6  | **v4: Extract `usermgmt/oauth2`** behind OAuth2Provider                                           | Critical | 6h       | Feature        |
+| 7  | **Write v3→v4 migration guide** for consumers                                                     | High     | 2h       | Docs           |
+| 8  | **Phase 2b: IndexedDB persistent offline queue** (ADR-0030)                                       | High     | 8h       | Feature        |
+| 9  | **Audit test deps in production go.mod** (ginkgo/gomega/rapid)                                    | Medium   | 1h       | Hygiene        |
+| 10 | **Investigate eventtest publishing blocker**                                                      | Medium   | Research | Infrastructure |
+| 11 | **Evaluate root → separate Go modules** for v4 (consumer dep reduction)                           | High     | Research | Architecture   |
+| 12 | **Add architecture ADR for Sollbruchstellen decision**                                            | Medium   | 30 min   | Docs           |
+| 13 | **Write consumer dep guide: "What deps do I pull in?"**                                           | Medium   | 1h       | Docs           |
+| 14 | **Profile and parallelize `check-module-isolation.sh`** (currently ~30s)                          | Low      | 30 min   | CI             |
+| 15 | **Add `check-dep-budgets.sh --strict` mode** with justification requirement                       | Low      | 30 min   | CI             |
+| 16 | **Consider splitting AGENTS.md** (500+ lines)                                                     | Low      | 30 min   | Docs           |
+| 17 | **Add mermaid module DAG to AGENTS.md**                                                           | Low      | 30 min   | Docs           |
+| 18 | **Write integration tests for CI scripts**                                                        | Medium   | 1h       | Testing        |
+| 19 | **v4: Extract `usermgmt/sql`** as separate concern                                                | High     | 6h       | Feature        |
+| 20 | **Audit replace directives for stale entries**                                                    | Medium   | 1h       | Hygiene        |
+| 21 | **Upgrade to go-cqrs-lite v3.5.0 properly** (fix codec.ForEncoding usage)                         | Medium   | 2h       | Maintenance    |
+| 22 | **Add dep budget documentation** (why each dep exists)                                            | Low      | 1h       | Docs           |
+| 23 | **Document auth strategy registration pattern** for v4 consumers                                  | Medium   | 1h       | Docs           |
+| 24 | **Consider `nix run .#check-modules -- --fix`** auto-pinning                                      | Low      | 2h       | CI             |
+| 25 | **Review adminui test coverage gaps** (66.8% → target 75%+)                                       | Medium   | 3h       | Testing        |
 
 ---
 

@@ -1,10 +1,10 @@
 # Status Report: cqrs-htmx
 
-**Date:** 2026-05-03 08:53  
-**Report Type:** Full Comprehensive Status Update  
-**Git Branch:** master  
-**Latest Commit:** `6b68181` — Extract notification helpers to notify.go  
-**Working Tree:** Clean  
+**Date:** 2026-05-03 08:53\
+**Report Type:** Full Comprehensive Status Update\
+**Git Branch:** master\
+**Latest Commit:** `6b68181` — Extract notification helpers to notify.go\
+**Working Tree:** Clean\
 **Remote:** Up to date (`origin/master`)
 
 ---
@@ -61,18 +61,18 @@ Since the last status report (07:54), **9 commits** landed fixing bugs, adding f
 
 ### Session Commits (since last report)
 
-| #   | Commit    | Description                                                                      |
-| --- | --------- | -------------------------------------------------------------------------------- |
-| 1   | `327ddf9` | Fix `errors.Wrapf` → `fmt.Errorf(%w)` in dispatch wrapping — **correctness bug** |
-| 2   | `d07f2e2` | Remove dead `enrichContext()` no-op stub                                         |
-| 3   | `9645578` | Add `HTMXRequest` context, real `HTMXMiddleware`, `RenderPartial()`              |
-| 4   | `96ed85c` | Make login redirect configurable via `LoginRedirect`                             |
-| 5   | `d30d036` | Add `RenderTempl` + `RenderTemplResult[T]` for templ integration                 |
-| 6   | `cf93605` | Deduplicate `UserIDExtractor` calls between handlers and middleware              |
-| 7   | `5126c4e` | Add notification trigger helpers (NotifySuccess/Error/Warning/Info)              |
-| 8   | `c54e040` | Add notification and HTMX accessor tests, coverage 90.3% → 92.8%                 |
-| 9   | `2498a6c` | Update README and AGENTS.md with all new features                                |
-| 10  | `6b68181` | Extract notify.go for file size limit                                            |
+| #  | Commit    | Description                                                                      |
+| -- | --------- | -------------------------------------------------------------------------------- |
+| 1  | `327ddf9` | Fix `errors.Wrapf` → `fmt.Errorf(%w)` in dispatch wrapping — **correctness bug** |
+| 2  | `d07f2e2` | Remove dead `enrichContext()` no-op stub                                         |
+| 3  | `9645578` | Add `HTMXRequest` context, real `HTMXMiddleware`, `RenderPartial()`              |
+| 4  | `96ed85c` | Make login redirect configurable via `LoginRedirect`                             |
+| 5  | `d30d036` | Add `RenderTempl` + `RenderTemplResult[T]` for templ integration                 |
+| 6  | `cf93605` | Deduplicate `UserIDExtractor` calls between handlers and middleware              |
+| 7  | `5126c4e` | Add notification trigger helpers (NotifySuccess/Error/Warning/Info)              |
+| 8  | `c54e040` | Add notification and HTMX accessor tests, coverage 90.3% → 92.8%                 |
+| 9  | `2498a6c` | Update README and AGENTS.md with all new features                                |
+| 10 | `6b68181` | Extract notify.go for file size limit                                            |
 
 ### Features Added This Session
 
@@ -109,8 +109,8 @@ Since the last status report (07:54), **9 commits** landed fixing bugs, adding f
 
 ## b) PARTIALLY DONE ⚠️
 
-| Item                      | Status   | Details                                                                                                                                                    |
-| ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item                      | Status  | Details                                                                                                                                                    |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Test coverage             | ⚠️ 92.8% | 14 functions below 100%. Lowest: `IsHistoryRestore`, `HTMXTriggerName`, `HTMXPrompt`, `HTMXCurrentURL` at 66.7% (2-branch functions — one branch untested) |
 | `handleQueryDispatch`     | ⚠️ 72.7% | Non-HTMX redirect branch and some error paths partially covered                                                                                            |
 | `Command()`               | ⚠️ 71.4% | The `enrichUserID` context-already-set branch not exercised                                                                                                |
@@ -121,32 +121,32 @@ Since the last status report (07:54), **9 commits** landed fixing bugs, adding f
 
 ## c) NOT STARTED ❌
 
-| #   | Item                                       | Priority | Impact                                                        |
-| --- | ------------------------------------------ | -------- | ------------------------------------------------------------- |
-| 1   | CI/CD pipeline (GitHub Actions)            | High     | No automated test/lint/coverage                               |
-| 2   | GoDoc examples (`Example*` test functions) | Medium   | pkg.go.dev won't show rich docs                               |
-| 3   | `DecodeFormQuery[T]`                       | Low      | No form-based query decoder                                   |
-| 4   | Example application (`example/`)           | Medium   | No standalone demo                                            |
-| 5   | `flake.nix` build                          | Low      | Project policy recommends nix                                 |
-| 6   | Benchmarks                                 | Low      | No performance baselines                                      |
-| 7   | Pre-commit hooks                           | Low      | No local quality enforcement                                  |
-| 8   | Version tagging (`v0.1.0`)                 | Medium   | No semver release                                             |
-| 9   | CONTRIBUTING.md                            | Low      | No contribution guidelines                                    |
-| 10  | Go Report Card badge                       | Low      | No quality badge in README                                    |
-| 11  | `golangci-lint` run + fixes                | Medium   | Config exists but hasn't been run against the code            |
-| 12  | HTMX Swap type with timing/scroll options  | Low      | donseba/go-htmx has `NewSwap().Swap(duration).ScrollBottom()` |
-| 13  | SSE (Server-Sent Events) support           | Low      | donseba/go-htmx has SSE manager                               |
-| 14  | `coverage.out` in `.gitignore` check       | Low      | May still be tracked                                          |
+| #  | Item                                       | Priority | Impact                                                        |
+| -- | ------------------------------------------ | -------- | ------------------------------------------------------------- |
+| 1  | CI/CD pipeline (GitHub Actions)            | High     | No automated test/lint/coverage                               |
+| 2  | GoDoc examples (`Example*` test functions) | Medium   | pkg.go.dev won't show rich docs                               |
+| 3  | `DecodeFormQuery[T]`                       | Low      | No form-based query decoder                                   |
+| 4  | Example application (`example/`)           | Medium   | No standalone demo                                            |
+| 5  | `flake.nix` build                          | Low      | Project policy recommends nix                                 |
+| 6  | Benchmarks                                 | Low      | No performance baselines                                      |
+| 7  | Pre-commit hooks                           | Low      | No local quality enforcement                                  |
+| 8  | Version tagging (`v0.1.0`)                 | Medium   | No semver release                                             |
+| 9  | CONTRIBUTING.md                            | Low      | No contribution guidelines                                    |
+| 10 | Go Report Card badge                       | Low      | No quality badge in README                                    |
+| 11 | `golangci-lint` run + fixes                | Medium   | Config exists but hasn't been run against the code            |
+| 12 | HTMX Swap type with timing/scroll options  | Low      | donseba/go-htmx has `NewSwap().Swap(duration).ScrollBottom()` |
+| 13 | SSE (Server-Sent Events) support           | Low      | donseba/go-htmx has SSE manager                               |
+| 14 | `coverage.out` in `.gitignore` check       | Low      | May still be tracked                                          |
 
 ---
 
 ## d) TOTALLY FUCKED UP 🔥
 
-| #   | Item                                        | Severity | Details                                                                                                                                           |
-| --- | ------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `coverage.out` still committed              | 🔥 Low   | 278KB binary in git. Was added to `.gitignore` but the tracked file wasn't removed with `git rm --cached`                                         |
-| 2   | `git-town.toml` tracked                     | ⚠️ Minor | Personal tool config committed to repo                                                                                                            |
-| 3   | `setTriggerWithDetail` JSON merge edge case | 🟡 Minor | When existing header is not valid JSON, it falls back to `existing+","+name` — but the `name` won't have its detail payload, silently losing data |
+| # | Item                                        | Severity | Details                                                                                                                                           |
+| - | ------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `coverage.out` still committed              | 🔥 Low   | 278KB binary in git. Was added to `.gitignore` but the tracked file wasn't removed with `git rm --cached`                                         |
+| 2 | `git-town.toml` tracked                     | ⚠️ Minor  | Personal tool config committed to repo                                                                                                            |
+| 3 | `setTriggerWithDetail` JSON merge edge case | 🟡 Minor | When existing header is not valid JSON, it falls back to `existing+","+name` — but the `name` won't have its detail payload, silently losing data |
 
 ---
 
@@ -182,33 +182,33 @@ Since the last status report (07:54), **9 commits** landed fixing bugs, adding f
 
 ## f) Top 25 Things We Should Get Done Next
 
-| #   | Task                                                      | Priority  | Effort | Impact                             |
-| --- | --------------------------------------------------------- | --------- | ------ | ---------------------------------- |
-| 1   | Run `golangci-lint` and fix all findings                  | 🔴 High   | 30 min | Config exists, never run           |
-| 2   | Remove `coverage.out` from git tracking                   | 🔴 High   | 1 min  | Binary artifact in repo            |
-| 3   | Remove `git-town.toml` from tracking                      | 🔴 High   | 1 min  | Personal tool config               |
-| 4   | Push coverage to 95%+                                     | 🔴 High   | 30 min | 14 functions below 100%            |
-| 5   | Add `Example*` test functions for pkg.go.dev              | 🟡 Medium | 30 min | Library discoverability            |
-| 6   | Set up GitHub Actions CI workflow                         | 🟡 Medium | 30 min | Automated quality gates            |
-| 7   | Tag `v0.1.0` release                                      | 🟡 Medium | 5 min  | Version pinning                    |
-| 8   | Create `example/` directory with full integration demo    | 🟡 Medium | 60 min | Onboarding experience              |
-| 9   | Test `enrichUserID` context-already-set branch            | 🟡 Medium | 10 min | `Command()` at 71.4%               |
-| 10  | Test `handleQueryDispatch` non-HTMX redirect path         | 🟡 Medium | 10 min | 72.7% coverage                     |
-| 11  | Add `DecodeFormQuery[T]` for symmetry                     | 🟢 Low    | 15 min | API completeness                   |
-| 12  | Add benchmark tests for hot paths                         | 🟢 Low    | 30 min | Performance baselines              |
-| 13  | Add HTMX Swap builder with timing/scroll                  | 🟢 Low    | 30 min | Parity with go-htmx                |
-| 14  | Add SSE (Server-Sent Events) support                      | 🟢 Low    | 60 min | Real-time updates                  |
-| 15  | Migrate build to `flake.nix`                              | 🟢 Low    | 60 min | Project policy                     |
-| 16  | Add pre-commit hooks (lint + test)                        | 🟢 Low    | 15 min | Local enforcement                  |
-| 17  | Add `CONTRIBUTING.md`                                     | 🟢 Low    | 15 min | Open source readiness              |
-| 18  | Add Go Report Card badge to README                        | 🟢 Low    | 5 min  | Credibility                        |
-| 19  | Add `go:generate stringer` for `SwapStrategy`             | ⚪ Nice   | 10 min | Type-safe conversion               |
-| 20  | Investigate `encoding/json/v2` per library policy         | ⚪ Nice   | 30 min | Policy mandates v2                 |
-| 21  | Add `Reselect` direct test                                | ⚪ Nice   | 5 min  | Currently only tested via chaining |
-| 22  | Context key collision protection (unexported struct)      | ⚪ Nice   | 5 min  | Defensive programming              |
-| 23  | Add `HTMXRequest` string representation for debugging     | ⚪ Nice   | 10 min | Developer experience               |
-| 24  | Test `setTriggerWithDetail` JSON merge fallback edge case | ⚪ Nice   | 10 min | Silent data loss path              |
-| 25  | Add `Refresh` HandlerOption                               | ⚪ Nice   | 5 min  | Response has it, options don't     |
+| #  | Task                                                      | Priority  | Effort | Impact                             |
+| -- | --------------------------------------------------------- | --------- | ------ | ---------------------------------- |
+| 1  | Run `golangci-lint` and fix all findings                  | 🔴 High   | 30 min | Config exists, never run           |
+| 2  | Remove `coverage.out` from git tracking                   | 🔴 High   | 1 min  | Binary artifact in repo            |
+| 3  | Remove `git-town.toml` from tracking                      | 🔴 High   | 1 min  | Personal tool config               |
+| 4  | Push coverage to 95%+                                     | 🔴 High   | 30 min | 14 functions below 100%            |
+| 5  | Add `Example*` test functions for pkg.go.dev              | 🟡 Medium | 30 min | Library discoverability            |
+| 6  | Set up GitHub Actions CI workflow                         | 🟡 Medium | 30 min | Automated quality gates            |
+| 7  | Tag `v0.1.0` release                                      | 🟡 Medium | 5 min  | Version pinning                    |
+| 8  | Create `example/` directory with full integration demo    | 🟡 Medium | 60 min | Onboarding experience              |
+| 9  | Test `enrichUserID` context-already-set branch            | 🟡 Medium | 10 min | `Command()` at 71.4%               |
+| 10 | Test `handleQueryDispatch` non-HTMX redirect path         | 🟡 Medium | 10 min | 72.7% coverage                     |
+| 11 | Add `DecodeFormQuery[T]` for symmetry                     | 🟢 Low    | 15 min | API completeness                   |
+| 12 | Add benchmark tests for hot paths                         | 🟢 Low    | 30 min | Performance baselines              |
+| 13 | Add HTMX Swap builder with timing/scroll                  | 🟢 Low    | 30 min | Parity with go-htmx                |
+| 14 | Add SSE (Server-Sent Events) support                      | 🟢 Low    | 60 min | Real-time updates                  |
+| 15 | Migrate build to `flake.nix`                              | 🟢 Low    | 60 min | Project policy                     |
+| 16 | Add pre-commit hooks (lint + test)                        | 🟢 Low    | 15 min | Local enforcement                  |
+| 17 | Add `CONTRIBUTING.md`                                     | 🟢 Low    | 15 min | Open source readiness              |
+| 18 | Add Go Report Card badge to README                        | 🟢 Low    | 5 min  | Credibility                        |
+| 19 | Add `go:generate stringer` for `SwapStrategy`             | ⚪ Nice   | 10 min | Type-safe conversion               |
+| 20 | Investigate `encoding/json/v2` per library policy         | ⚪ Nice   | 30 min | Policy mandates v2                 |
+| 21 | Add `Reselect` direct test                                | ⚪ Nice   | 5 min  | Currently only tested via chaining |
+| 22 | Context key collision protection (unexported struct)      | ⚪ Nice   | 5 min  | Defensive programming              |
+| 23 | Add `HTMXRequest` string representation for debugging     | ⚪ Nice   | 10 min | Developer experience               |
+| 24 | Test `setTriggerWithDetail` JSON merge fallback edge case | ⚪ Nice   | 10 min | Silent data loss path              |
+| 25 | Add `Refresh` HandlerOption                               | ⚪ Nice   | 5 min  | Response has it, options don't     |
 
 ---
 

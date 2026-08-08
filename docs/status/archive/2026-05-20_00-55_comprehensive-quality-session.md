@@ -95,18 +95,18 @@ Generic helpers in place:
 
 ## Remaining Items (from P5 review, prioritized)
 
-| #   | Task                                             | Impact   | Effort |
-| --- | ------------------------------------------------ | -------- | ------ |
-| 1   | Fix `sanitizeRedirectURL("/")` bug               | Critical | 5min   |
-| 2   | Split `csrf.go` → config + handler               | High     | 10min  |
-| 3   | `RateLimiterConfig.Limit/Burst/MaxKeys` → `uint` | High     | 10min  |
-| 4   | `LockoutConfig.MaxAttempts` → `uint`             | High     | 5min   |
-| 5   | Introduce `type Role string` in usermgmt         | High     | 15min  |
-| 6   | Extract `newStatusRecorder(w)` helper            | Low      | 5min   |
-| 7   | Fix `RenderPartial` split brain                  | Low      | 5min   |
-| 8   | Naming cleanup (6 items)                         | Low      | 30min  |
-| 9   | `minPasswordLength` constant                     | Low      | 3min   |
-| 10  | `GroupPolicy.User` → `UserID` type               | Medium   | 5min   |
+| #  | Task                                             | Impact   | Effort |
+| -- | ------------------------------------------------ | -------- | ------ |
+| 1  | Fix `sanitizeRedirectURL("/")` bug               | Critical | 5min   |
+| 2  | Split `csrf.go` → config + handler               | High     | 10min  |
+| 3  | `RateLimiterConfig.Limit/Burst/MaxKeys` → `uint` | High     | 10min  |
+| 4  | `LockoutConfig.MaxAttempts` → `uint`             | High     | 5min   |
+| 5  | Introduce `type Role string` in usermgmt         | High     | 15min  |
+| 6  | Extract `newStatusRecorder(w)` helper            | Low      | 5min   |
+| 7  | Fix `RenderPartial` split brain                  | Low      | 5min   |
+| 8  | Naming cleanup (6 items)                         | Low      | 30min  |
+| 9  | `minPasswordLength` constant                     | Low      | 3min   |
+| 10 | `GroupPolicy.User` → `UserID` type               | Medium   | 5min   |
 
 ---
 

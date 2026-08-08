@@ -107,7 +107,7 @@ Sorted by impact/dependency order.
 | M11 | Create usermgmt/oauth2/ module (go.mod, provider.go, config.go)                                         | Critical | 90min  | M10      |
 | M12 | Rewrite service_oauth2.go: Service methods delegate to OAuth2Provider                                   | Critical | 60min  | M10,M11  |
 | M13 | Update service_core.go: Service struct + ServiceConfig + initOAuth2 for OAuth2Provider                  | Critical | 45min  | M12      |
-| M14 | Create oauth2*stub_test.go + update all core tests (oauth2*\*.go)                                       | Critical | 60min  | M13      |
+| M14 | Create oauth2_stub_test.go + update all core tests (oauth2_\*.go)                                       | Critical | 60min  | M13      |
 | M15 | Move OIDC/JWT integration tests to oauth2 module                                                        | Medium   | 30min  | M11,M14  |
 | M16 | Remove oauth2/oidc/go-jose from usermgmt/go.mod + tidy                                                  | Critical | 15min  | M14      |
 | M17 | Build + test ALL modules (workspace + GOWORK=off per module)                                            | Critical | 30min  | M16      |
@@ -119,21 +119,21 @@ Sorted by impact/dependency order.
 
 ### Phase 1: WebAuthn Interface Redesign (M1)
 
-| #   | Task                                                                     | Est   |
-| --- | ------------------------------------------------------------------------ | ----- |
-| F1  | Rewrite WebAuthnProvider interface in auth_interfaces.go ([]byte params) | 10min |
-| F2  | Rewrite WebAuthnSessionStore in store_interfaces.go ([]byte data)        | 5min  |
-| F3  | Remove `webauthn` import from store_interfaces.go                        | 2min  |
+| #  | Task                                                                     | Est   |
+| -- | ------------------------------------------------------------------------ | ----- |
+| F1 | Rewrite WebAuthnProvider interface in auth_interfaces.go ([]byte params) | 10min |
+| F2 | Rewrite WebAuthnSessionStore in store_interfaces.go ([]byte data)        | 5min  |
+| F3 | Remove `webauthn` import from store_interfaces.go                        | 2min  |
 
 ### Phase 2: WebAuthn Session Store Rewrite (M2)
 
-| #   | Task                                                                           | Est   |
-| --- | ------------------------------------------------------------------------------ | ----- |
-| F4  | Define webauthnSessionEntry struct ([]byte + time.Time) in webauthn_session.go | 5min  |
-| F5  | Rewrite webauthnSessionStore methods (Save/Get/Delete with []byte)             | 10min |
-| F6  | Rewrite EvictExpired to use TTL-based eviction                                 | 5min  |
-| F7  | Remove WebAuthnConfig from webauthn_session.go (moves to webauthn module)      | 5min  |
-| F8  | Remove `webauthn` import from webauthn_session.go                              | 2min  |
+| #  | Task                                                                           | Est   |
+| -- | ------------------------------------------------------------------------------ | ----- |
+| F4 | Define webauthnSessionEntry struct ([]byte + time.Time) in webauthn_session.go | 5min  |
+| F5 | Rewrite webauthnSessionStore methods (Save/Get/Delete with []byte)             | 10min |
+| F6 | Rewrite EvictExpired to use TTL-based eviction                                 | 5min  |
+| F7 | Remove WebAuthnConfig from webauthn_session.go (moves to webauthn module)      | 5min  |
+| F8 | Remove `webauthn` import from webauthn_session.go                              | 2min  |
 
 ### Phase 3: WebAuthn Module Creation (M3)
 

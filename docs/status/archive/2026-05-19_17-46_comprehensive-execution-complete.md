@@ -27,40 +27,40 @@
 
 ### a) FULLY DONE ✅ (12 commits)
 
-| #   | Task                                                                      | Commit    | Files Changed                                     | Tests Added |
-| --- | ------------------------------------------------------------------------- | --------- | ------------------------------------------------- | ----------- |
-| 1   | Fix data race in `ratelimit.go` (removed `entry.lastUsed` write)          | `fdb1187` | `ratelimit.go`                                    | —           |
-| 2   | Fix `CSRFConfig.Validate()` sentinel (`ErrEnforcerNil` → `ErrCSRFConfig`) | `f8f6540` | `csrf.go`, `errors.go`                            | —           |
-| 3   | Fix `CSRFConfig.Validate()` SameSite=None returning wrong error           | `134e7b6` | `csrf.go`                                         | —           |
-| 4   | Add `ErrCSRFConfig` sentinel + classification                             | `134e7b6` | `errors.go`                                       | —           |
-| 5   | Add tests for `RotateCSRFToken` (3 specs)                                 | `134e7b6` | `csrf_test.go`                                    | 3           |
-| 6   | Add tests for `CSRFConfig.Validate()` (4 specs)                           | `134e7b6` | `csrf_test.go`                                    | 4           |
-| 7   | Add configurable TTL to `RateLimiterConfig`                               | `b7b11a2` | `ratelimit.go`                                    | —           |
-| 8   | Add TTL eviction tests (2 specs)                                          | `b7b11a2` | `ratelimit_test.go`                               | 2           |
-| 9   | Add `MaxBodySize` to `Config` + bounded body reading                      | `f4d6bc2` | `app.go`, `decoder.go`, `options.go`, `errors.go` | —           |
-| 10  | Add body size limit integration tests (2 specs)                           | `f4d6bc2` | `integration_test.go`                             | 2           |
-| 11  | Add `RequestID` branded type + helpers                                    | `bffa615` | `context.go`                                      | —           |
-| 12  | Auto-generate `RequestID` in `ContextEnrichmentMiddleware`                | `bffa615` | `middleware.go`                                   | —           |
-| 13  | Add `RequestID` middleware tests (3 specs)                                | `bffa615` | `middleware_test.go`                              | 3           |
-| 14  | Add `RequestID` propagation to `EventOptionsFromContext`                  | `bffa615` | `context.go`                                      | —           |
-| 15  | Add `RequestLoggingSlog` middleware for structured logging                | `f938507` | `logging.go`                                      | —           |
-| 16  | Add `RequestLoggingSlog` tests (2 specs)                                  | `f938507` | `logging_test.go`                                 | 2           |
-| 17  | Add `SecurityHeadersConfig` builder                                       | `47dae81` | `security.go`                                     | —           |
-| 18  | Add `SecurityHeadersMiddlewareWithConfig` (CSP/HSTS/custom)               | `47dae81` | `security.go`                                     | —           |
-| 19  | Add security headers config tests (4 specs)                               | `47dae81` | `security_test.go`                                | 4           |
-| 20  | Add per-handler `WithTimeout` override                                    | `d0307d0` | `options.go`, `app.go`, `handler.go`              | —           |
-| 21  | Add rate limiter hooks (`OnAllowed`, `OnRejected`, `RejectionHandler`)    | `7b6495b` | `ratelimit.go`                                    | —           |
-| 22  | Add rate limiter hooks tests (3 specs)                                    | `7b6495b` | `ratelimit_test.go`                               | 3           |
-| 23  | Update `.golangci.yml` exclusions (CSRFConfig, SecurityHeadersConfig)     | multi     | `.golangci.yml`                                   | —           |
-| 24  | Remove unused `nolint:exhaustruct` from `benchmark_test.go`               | `134e7b6` | `benchmark_test.go`                               | —           |
+| #  | Task                                                                      | Commit    | Files Changed                                     | Tests Added |
+| -- | ------------------------------------------------------------------------- | --------- | ------------------------------------------------- | ----------- |
+| 1  | Fix data race in `ratelimit.go` (removed `entry.lastUsed` write)          | `fdb1187` | `ratelimit.go`                                    | —           |
+| 2  | Fix `CSRFConfig.Validate()` sentinel (`ErrEnforcerNil` → `ErrCSRFConfig`) | `f8f6540` | `csrf.go`, `errors.go`                            | —           |
+| 3  | Fix `CSRFConfig.Validate()` SameSite=None returning wrong error           | `134e7b6` | `csrf.go`                                         | —           |
+| 4  | Add `ErrCSRFConfig` sentinel + classification                             | `134e7b6` | `errors.go`                                       | —           |
+| 5  | Add tests for `RotateCSRFToken` (3 specs)                                 | `134e7b6` | `csrf_test.go`                                    | 3           |
+| 6  | Add tests for `CSRFConfig.Validate()` (4 specs)                           | `134e7b6` | `csrf_test.go`                                    | 4           |
+| 7  | Add configurable TTL to `RateLimiterConfig`                               | `b7b11a2` | `ratelimit.go`                                    | —           |
+| 8  | Add TTL eviction tests (2 specs)                                          | `b7b11a2` | `ratelimit_test.go`                               | 2           |
+| 9  | Add `MaxBodySize` to `Config` + bounded body reading                      | `f4d6bc2` | `app.go`, `decoder.go`, `options.go`, `errors.go` | —           |
+| 10 | Add body size limit integration tests (2 specs)                           | `f4d6bc2` | `integration_test.go`                             | 2           |
+| 11 | Add `RequestID` branded type + helpers                                    | `bffa615` | `context.go`                                      | —           |
+| 12 | Auto-generate `RequestID` in `ContextEnrichmentMiddleware`                | `bffa615` | `middleware.go`                                   | —           |
+| 13 | Add `RequestID` middleware tests (3 specs)                                | `bffa615` | `middleware_test.go`                              | 3           |
+| 14 | Add `RequestID` propagation to `EventOptionsFromContext`                  | `bffa615` | `context.go`                                      | —           |
+| 15 | Add `RequestLoggingSlog` middleware for structured logging                | `f938507` | `logging.go`                                      | —           |
+| 16 | Add `RequestLoggingSlog` tests (2 specs)                                  | `f938507` | `logging_test.go`                                 | 2           |
+| 17 | Add `SecurityHeadersConfig` builder                                       | `47dae81` | `security.go`                                     | —           |
+| 18 | Add `SecurityHeadersMiddlewareWithConfig` (CSP/HSTS/custom)               | `47dae81` | `security.go`                                     | —           |
+| 19 | Add security headers config tests (4 specs)                               | `47dae81` | `security_test.go`                                | 4           |
+| 20 | Add per-handler `WithTimeout` override                                    | `d0307d0` | `options.go`, `app.go`, `handler.go`              | —           |
+| 21 | Add rate limiter hooks (`OnAllowed`, `OnRejected`, `RejectionHandler`)    | `7b6495b` | `ratelimit.go`                                    | —           |
+| 22 | Add rate limiter hooks tests (3 specs)                                    | `7b6495b` | `ratelimit_test.go`                               | 3           |
+| 23 | Update `.golangci.yml` exclusions (CSRFConfig, SecurityHeadersConfig)     | multi     | `.golangci.yml`                                   | —           |
+| 24 | Remove unused `nolint:exhaustruct` from `benchmark_test.go`               | `134e7b6` | `benchmark_test.go`                               | —           |
 
 ### b) PARTIALLY DONE ⚠️ (3 items)
 
-| #   | Task                                                    | Why Partial                                                            |
-| --- | ------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 1   | P2.2 Replace `decodeFormValues` with go-playground/form | Deferred — adds external dependency; needs careful integration testing |
-| 2   | P3.3 Enhance `ErrorHandler` with status code            | Deferred — breaking API change; needs `ErrorHandlerV2` design          |
-| 3   | P4.4 `GzipMiddleware`                                   | Deferred — nice-to-have; no consumer demand yet                        |
+| # | Task                                                    | Why Partial                                                            |
+| - | ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| 1 | P2.2 Replace `decodeFormValues` with go-playground/form | Deferred — adds external dependency; needs careful integration testing |
+| 2 | P3.3 Enhance `ErrorHandler` with status code            | Deferred — breaking API change; needs `ErrorHandlerV2` design          |
+| 3 | P4.4 `GzipMiddleware`                                   | Deferred — nice-to-have; no consumer demand yet                        |
 
 ### c) NOT STARTED ❌ (0 items)
 

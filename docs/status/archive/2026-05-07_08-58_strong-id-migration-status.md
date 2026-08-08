@@ -84,18 +84,18 @@ Migrated user identity from primitive `string` to strongly-typed `id.UserID` (UL
 
 ### From TODO_LIST.md P1–P4 (unchanged from previous session):
 
-| #   | Item                                                                     | Priority |
-| --- | ------------------------------------------------------------------------ | -------- |
-| 1   | Export `HeaderTrue` or provide test helper (tests hardcode `"true"` 34×) | P1       |
-| 2   | Dispatch lifecycle hooks (`OnBeforeDispatch`/`OnAfterDispatch`)          | P3       |
-| 3   | Request validation middleware                                            | P3       |
-| 4   | JSON error response option                                               | P3       |
-| 5   | Correlation ID propagation                                               | P3       |
-| 6   | Timeout propagation                                                      | P3       |
-| 7   | Godoc examples                                                           | P4       |
-| 8   | CONTRIBUTING.md                                                          | P4       |
-| 9   | golangci-lint CI/CD                                                      | P4       |
-| 10  | Benchmark tests                                                          | P4       |
+| #  | Item                                                                     | Priority |
+| -- | ------------------------------------------------------------------------ | -------- |
+| 1  | Export `HeaderTrue` or provide test helper (tests hardcode `"true"` 34×) | P1       |
+| 2  | Dispatch lifecycle hooks (`OnBeforeDispatch`/`OnAfterDispatch`)          | P3       |
+| 3  | Request validation middleware                                            | P3       |
+| 4  | JSON error response option                                               | P3       |
+| 5  | Correlation ID propagation                                               | P3       |
+| 6  | Timeout propagation                                                      | P3       |
+| 7  | Godoc examples                                                           | P4       |
+| 8  | CONTRIBUTING.md                                                          | P4       |
+| 9  | golangci-lint CI/CD                                                      | P4       |
+| 10 | Benchmark tests                                                          | P4       |
 
 ---
 

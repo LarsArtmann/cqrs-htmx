@@ -1,7 +1,7 @@
 # Comprehensive Status Report — 2026-06-17 08:57
 
-**Project:** cqrs-htmx — Go library for go-cqrs-lite + HTMX + templ + Casbin  
-**Session:** Verification/TOTP/Import-Export Hardening — Brutal Self-Review Execution  
+**Project:** cqrs-htmx — Go library for go-cqrs-lite + HTMX + templ + Casbin\
+**Session:** Verification/TOTP/Import-Export Hardening — Brutal Self-Review Execution\
 **Branch:** `master` (in sync with origin)
 
 ---
@@ -173,33 +173,33 @@ The closest thing to "fucked up" is that `contextcheck` linter warnings appeared
 
 ## F) Top #25 Things We Should Get Done Next!
 
-| #   | Task                                                             | Impact | Effort |
-| --- | ---------------------------------------------------------------- | ------ | ------ |
-| 1   | Fix 16 lint issues (errorlint + exhaustruct + contextcheck)      | High   | 15 min |
-| 2   | Add TOTP secret retention ADR (docs/adr/0007)                    | Medium | 30 min |
-| 3   | Add CSRF wiring example in README or examples/                   | High   | 30 min |
-| 4   | WebAuthn endpoint rate limiting (register begin/finish, login)   | High   | 45 min |
-| 5   | Coverage recovery: test ImportExportAuthorizer nil, rate edges   | Medium | 45 min |
-| 6   | Property-based tests for foldUser TOTP/email transitions         | Medium | 60 min |
-| 7   | Integration test: WebAuthn + TOTP end-to-end                     | High   | 90 min |
-| 8   | Propagate Email to RegisterRequest + ImportUser                  | Medium | 60 min |
-| 9   | Consolidate usermgmt rate limiter (token-bucket semantics)       | Medium | 60 min |
-| 10  | ExportUser JSON marshaling test (Email type serialization)       | Low    | 15 min |
-| 11  | SQL event store production deployment guide                      | High   | 2 hrs  |
-| 12  | Postgres integration test for SQLEventStore                      | High   | 2 hrs  |
-| 13  | OAuth2/OIDC integration (social login)                           | Medium | 4 hrs  |
-| 14  | Event schema versioning migration strategy                       | Medium | 2 hrs  |
-| 15  | TOTP secret encryption at rest (AES-GCM in event payloads)       | Medium | 90 min |
-| 16  | HTMX 4.0 beta testing with HTMXScriptHandlerWith                 | Low    | 60 min |
-| 17  | Consolidate ephemeral stores (WebAuthn sessions + TOTP + verify) | Low    | 60 min |
-| 18  | Add usermgmt coverage CI gate (block PRs below 85%)              | Medium | 30 min |
-| 19  | Add `go.work` summary check to CI (all modules build together)   | Low    | 30 min |
-| 20  | Migrate `registrationRateLimiter` name → `ipRateLimiter`         | Low    | 15 min |
-| 21  | Add `DisableTOTP` without code test (negative path)              | Low    | 15 min |
-| 22  | Document timeout recommendation for HandlerConfig.Timeout        | Low    | 15 min |
-| 23  | Add benchmarks for new TOTP validation (pquerna/otp overhead)    | Low    | 30 min |
-| 24  | Create `examples/auth-app/` with full WebAuthn + TOTP demo       | High   | 4 hrs  |
-| 25  | Release v2.2.0 with changelog tag and GitHub release notes       | Medium | 30 min |
+| #  | Task                                                             | Impact | Effort |
+| -- | ---------------------------------------------------------------- | ------ | ------ |
+| 1  | Fix 16 lint issues (errorlint + exhaustruct + contextcheck)      | High   | 15 min |
+| 2  | Add TOTP secret retention ADR (docs/adr/0007)                    | Medium | 30 min |
+| 3  | Add CSRF wiring example in README or examples/                   | High   | 30 min |
+| 4  | WebAuthn endpoint rate limiting (register begin/finish, login)   | High   | 45 min |
+| 5  | Coverage recovery: test ImportExportAuthorizer nil, rate edges   | Medium | 45 min |
+| 6  | Property-based tests for foldUser TOTP/email transitions         | Medium | 60 min |
+| 7  | Integration test: WebAuthn + TOTP end-to-end                     | High   | 90 min |
+| 8  | Propagate Email to RegisterRequest + ImportUser                  | Medium | 60 min |
+| 9  | Consolidate usermgmt rate limiter (token-bucket semantics)       | Medium | 60 min |
+| 10 | ExportUser JSON marshaling test (Email type serialization)       | Low    | 15 min |
+| 11 | SQL event store production deployment guide                      | High   | 2 hrs  |
+| 12 | Postgres integration test for SQLEventStore                      | High   | 2 hrs  |
+| 13 | OAuth2/OIDC integration (social login)                           | Medium | 4 hrs  |
+| 14 | Event schema versioning migration strategy                       | Medium | 2 hrs  |
+| 15 | TOTP secret encryption at rest (AES-GCM in event payloads)       | Medium | 90 min |
+| 16 | HTMX 4.0 beta testing with HTMXScriptHandlerWith                 | Low    | 60 min |
+| 17 | Consolidate ephemeral stores (WebAuthn sessions + TOTP + verify) | Low    | 60 min |
+| 18 | Add usermgmt coverage CI gate (block PRs below 85%)              | Medium | 30 min |
+| 19 | Add `go.work` summary check to CI (all modules build together)   | Low    | 30 min |
+| 20 | Migrate `registrationRateLimiter` name → `ipRateLimiter`         | Low    | 15 min |
+| 21 | Add `DisableTOTP` without code test (negative path)              | Low    | 15 min |
+| 22 | Document timeout recommendation for HandlerConfig.Timeout        | Low    | 15 min |
+| 23 | Add benchmarks for new TOTP validation (pquerna/otp overhead)    | Low    | 30 min |
+| 24 | Create `examples/auth-app/` with full WebAuthn + TOTP demo       | High   | 4 hrs  |
+| 25 | Release v2.2.0 with changelog tag and GitHub release notes       | Medium | 30 min |
 
 ---
 

@@ -159,33 +159,33 @@ The previous session's status report (`docs/status/2026-06-12_11-12_go-cqrs-lite
 
 ## f) Top #25 Things To Do Next
 
-| #   | Task                                                                  | Impact    | Effort | Module           | Notes                                                                               |
-| --- | --------------------------------------------------------------------- | --------- | ------ | ---------------- | ----------------------------------------------------------------------------------- |
-| 1   | Fix exhaustruct exclusion regex for test files                        | 🟡 Medium | 10m    | Root             | Add `.*_test` pattern or broader regex                                              |
-| 2   | Add `meta.description` to flake.nix apps                              | 🟢 Low    | 5m     | Nix              | Cosmetic, eliminates `nix flake check` warnings                                     |
-| 3   | Update AGENTS.md LSP gotcha (#6)                                      | 🟢 Low    | 5m     | Docs             | No longer 31 stale warnings — now 0 after fix                                       |
-| 4   | HandlerConfig → Optional[T] or ValidatedConfig                        | 🟡 Medium | 30m    | Root             | Eliminates zero-value ambiguity for maxBodySize, timeout, etc.                      |
-| 5   | Add `event.WithSource` support to context enrichment                  | 🟢 Low    | 15m    | Root             | v2.3.0 has `event.WithSource` — could propagate service name                        |
-| 6   | Consider `command.RegisterTyped` in BDD tests                         | 🟢 Low    | 20m    | Root             | Would demonstrate best practice even for simple handlers                            |
-| 7   | Add integration test for deadline propagation                         | 🟢 Low    | 15m    | integration_test | Verify deadline flows through full HTTP → dispatch → event pipeline                 |
-| 8   | Add `id.CompareIDs` to SSE test event ordering                        | 🟢 Low    | 10m    | Root             | SSE broadcast order could use `CompareIDs` for sorted verification                  |
-| 9   | Bump minimum Go version in go.mod if v2.3.0 requires it               | 🟢 Low    | 5m     | All              | go-cqrs-lite v2.3.0 may require Go 1.26+ — verify                                   |
-| 10  | Add `query.ParseType` usage example in godoc                          | 🟢 Low    | 10m    | Root             | New v2.3.0 API, consumers may want a reference                                      |
-| 11  | Consider SSE event store backed by `event.ReconstructEventFromFields` | 🟢 Low    | 30m    | Root             | v2.3.0 API for canonical reconstruction — useful for persistent SSE replay          |
-| 12  | Review go-cqrs-lite `command.Store` interfaces for docs               | 🟢 Low    | 10m    | Docs             | v2.3.0 added CommandSink/CommandSource — document relevance                         |
-| 13  | Update datastar-demo to use `command.ParseType`                       | 🟢 Low    | 5m     | Example          | Replace raw `command.Type("...")` with validated constructor                        |
-| 14  | Add benchmark for deadline propagation overhead                       | 🟢 Low    | 15m    | Root             | Measure `event.FromContext(ctx)` cost in hot path                                   |
-| 15  | Clean up pre-existing status reports (archive old ones)               | 🟢 Low    | 5m     | Docs             | Move outdated reports to archive/                                                   |
-| 16  | Add flake.nix app for running datastar-demo                           | 🟢 Low    | 10m    | Nix              | `nix run .#datastar-demo` for quick testing                                         |
-| 17  | Verify `event.NewMetadata` Custom map init doesn't affect us          | 🟢 Low    | 5m     | Root             | Confirmed no Metadata literal construction — but re-verify after any future changes |
-| 18  | Consider `id.FromPtr` for nil-safe UserIDFromContext                  | 🟢 Low    | 10m    | Root             | If we ever store `*UserID` in context, `FromPtr` prevents nil deref                 |
-| 19  | Add `command.RegisterTyped` pattern to README.md                      | 🟡 Medium | 15m    | Docs             | Show consumers how to use type-safe handlers                                        |
-| 20  | Verify datastar-demo works with real HTTP server                      | 🟡 Medium | 10m    | Example          | Build passes, but runtime smoke test would be nice                                  |
-| 21  | Add `event.DecodePayloads[T]` adoption when projection support lands  | 🟢 Low    | 15m    | Root             | Future feature — no projection code today                                           |
-| 22  | Consider adding `event.MetadataKeyClientID` to context enrichment     | 🟢 Low    | 20m    | Root             | Could propagate client IP as custom metadata                                        |
-| 23  | Update CONTRIBUTING.md with v2.3.0 info if needed                     | 🟢 Low    | 5m     | Docs             | May reference old version or APIs                                                   |
-| 24  | Verify `codec/v2` transitive dep doesn't bloat consumer binaries      | 🟢 Low    | 10m    | Root             | v2.3.0 added CBOR codec — check if it's imported when not used                      |
-| 25  | Consider versioned module docs (go.dev)                               | 🟢 Low    | 20m    | Docs             | Ensure pkg.go.dev renders correctly for v2                                          |
+| #  | Task                                                                  | Impact    | Effort | Module           | Notes                                                                               |
+| -- | --------------------------------------------------------------------- | --------- | ------ | ---------------- | ----------------------------------------------------------------------------------- |
+| 1  | Fix exhaustruct exclusion regex for test files                        | 🟡 Medium | 10m    | Root             | Add `.*_test` pattern or broader regex                                              |
+| 2  | Add `meta.description` to flake.nix apps                              | 🟢 Low    | 5m     | Nix              | Cosmetic, eliminates `nix flake check` warnings                                     |
+| 3  | Update AGENTS.md LSP gotcha (#6)                                      | 🟢 Low    | 5m     | Docs             | No longer 31 stale warnings — now 0 after fix                                       |
+| 4  | HandlerConfig → Optional[T] or ValidatedConfig                        | 🟡 Medium | 30m    | Root             | Eliminates zero-value ambiguity for maxBodySize, timeout, etc.                      |
+| 5  | Add `event.WithSource` support to context enrichment                  | 🟢 Low    | 15m    | Root             | v2.3.0 has `event.WithSource` — could propagate service name                        |
+| 6  | Consider `command.RegisterTyped` in BDD tests                         | 🟢 Low    | 20m    | Root             | Would demonstrate best practice even for simple handlers                            |
+| 7  | Add integration test for deadline propagation                         | 🟢 Low    | 15m    | integration_test | Verify deadline flows through full HTTP → dispatch → event pipeline                 |
+| 8  | Add `id.CompareIDs` to SSE test event ordering                        | 🟢 Low    | 10m    | Root             | SSE broadcast order could use `CompareIDs` for sorted verification                  |
+| 9  | Bump minimum Go version in go.mod if v2.3.0 requires it               | 🟢 Low    | 5m     | All              | go-cqrs-lite v2.3.0 may require Go 1.26+ — verify                                   |
+| 10 | Add `query.ParseType` usage example in godoc                          | 🟢 Low    | 10m    | Root             | New v2.3.0 API, consumers may want a reference                                      |
+| 11 | Consider SSE event store backed by `event.ReconstructEventFromFields` | 🟢 Low    | 30m    | Root             | v2.3.0 API for canonical reconstruction — useful for persistent SSE replay          |
+| 12 | Review go-cqrs-lite `command.Store` interfaces for docs               | 🟢 Low    | 10m    | Docs             | v2.3.0 added CommandSink/CommandSource — document relevance                         |
+| 13 | Update datastar-demo to use `command.ParseType`                       | 🟢 Low    | 5m     | Example          | Replace raw `command.Type("...")` with validated constructor                        |
+| 14 | Add benchmark for deadline propagation overhead                       | 🟢 Low    | 15m    | Root             | Measure `event.FromContext(ctx)` cost in hot path                                   |
+| 15 | Clean up pre-existing status reports (archive old ones)               | 🟢 Low    | 5m     | Docs             | Move outdated reports to archive/                                                   |
+| 16 | Add flake.nix app for running datastar-demo                           | 🟢 Low    | 10m    | Nix              | `nix run .#datastar-demo` for quick testing                                         |
+| 17 | Verify `event.NewMetadata` Custom map init doesn't affect us          | 🟢 Low    | 5m     | Root             | Confirmed no Metadata literal construction — but re-verify after any future changes |
+| 18 | Consider `id.FromPtr` for nil-safe UserIDFromContext                  | 🟢 Low    | 10m    | Root             | If we ever store `*UserID` in context, `FromPtr` prevents nil deref                 |
+| 19 | Add `command.RegisterTyped` pattern to README.md                      | 🟡 Medium | 15m    | Docs             | Show consumers how to use type-safe handlers                                        |
+| 20 | Verify datastar-demo works with real HTTP server                      | 🟡 Medium | 10m    | Example          | Build passes, but runtime smoke test would be nice                                  |
+| 21 | Add `event.DecodePayloads[T]` adoption when projection support lands  | 🟢 Low    | 15m    | Root             | Future feature — no projection code today                                           |
+| 22 | Consider adding `event.MetadataKeyClientID` to context enrichment     | 🟢 Low    | 20m    | Root             | Could propagate client IP as custom metadata                                        |
+| 23 | Update CONTRIBUTING.md with v2.3.0 info if needed                     | 🟢 Low    | 5m     | Docs             | May reference old version or APIs                                                   |
+| 24 | Verify `codec/v2` transitive dep doesn't bloat consumer binaries      | 🟢 Low    | 10m    | Root             | v2.3.0 added CBOR codec — check if it's imported when not used                      |
+| 25 | Consider versioned module docs (go.dev)                               | 🟢 Low    | 20m    | Docs             | Ensure pkg.go.dev renders correctly for v2                                          |
 
 ---
 

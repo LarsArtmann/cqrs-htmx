@@ -1,7 +1,7 @@
 # Comprehensive Execution Plan — What Was Missed & What Comes Next
 
-**Date:** 2026-05-19 16:20 CEST  
-**Source:** Self-critique + deep architecture analysis  
+**Date:** 2026-05-19 16:20 CEST\
+**Source:** Self-critique + deep architecture analysis\
 **Constraint:** Each task ≤ 12 minutes
 
 ---
@@ -10,23 +10,23 @@
 
 ### 🔴 Critical Bugs Introduced in This Session
 
-| #   | Bug                                                                                        | Location                                    | Impact                                      |
-| --- | ------------------------------------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------- |
-| 1   | **Data race**: `entry.lastUsed = time.Now()` writes without lock after `RUnlock()`         | `ratelimit.go:147`                          | Race condition under concurrent load        |
-| 2   | **Wrong sentinel**: `CSRFConfig.Validate()` returns `ErrEnforcerNil` for empty CSRF secret | `csrf.go:136`                               | Semantically incorrect error classification |
-| 3   | **Coverage dropped 1.2%**: New code has 0% tests                                           | `RotateCSRFToken`, `Validate`, TTL eviction | 93.7% vs 94.9% before                       |
+| # | Bug                                                                                        | Location                                    | Impact                                      |
+| - | ------------------------------------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------- |
+| 1 | **Data race**: `entry.lastUsed = time.Now()` writes without lock after `RUnlock()`         | `ratelimit.go:147`                          | Race condition under concurrent load        |
+| 2 | **Wrong sentinel**: `CSRFConfig.Validate()` returns `ErrEnforcerNil` for empty CSRF secret | `csrf.go:136`                               | Semantically incorrect error classification |
+| 3 | **Coverage dropped 1.2%**: New code has 0% tests                                           | `RotateCSRFToken`, `Validate`, TTL eviction | 93.7% vs 94.9% before                       |
 
 ### 🟡 Architecture Gaps Not Addressed
 
-| #   | Gap                                           | Why It Matters                                                       |
-| --- | --------------------------------------------- | -------------------------------------------------------------------- |
-| 4   | **No body size limits** on JSON/form decoders | DoS vulnerability — attacker sends multi-GB request body             |
-| 5   | **decodeFormValues uses JSON round-trip**     | Breaks nested structs, time fields, custom unmarshalers              |
-| 6   | **ErrorHandler receives no status code**      | Forces re-derivation of HTTP status from error in every handler      |
-| 7   | **No RequestID** — only CorrelationID         | Can't distinguish multiple requests with same correlation ID         |
-| 8   | **RequestLogging writes plain strings**       | No structured logging integration (slog, zap, etc.)                  |
-| 9   | **No per-handler timeout override**           | Global `Config.Timeout` only — can't set tighter limits per endpoint |
-| 10  | **SecurityHeadersMiddleware is static**       | No builder for CSP, HSTS, or custom headers                          |
+| #  | Gap                                           | Why It Matters                                                       |
+| -- | --------------------------------------------- | -------------------------------------------------------------------- |
+| 4  | **No body size limits** on JSON/form decoders | DoS vulnerability — attacker sends multi-GB request body             |
+| 5  | **decodeFormValues uses JSON round-trip**     | Breaks nested structs, time fields, custom unmarshalers              |
+| 6  | **ErrorHandler receives no status code**      | Forces re-derivation of HTTP status from error in every handler      |
+| 7  | **No RequestID** — only CorrelationID         | Can't distinguish multiple requests with same correlation ID         |
+| 8  | **RequestLogging writes plain strings**       | No structured logging integration (slog, zap, etc.)                  |
+| 9  | **No per-handler timeout override**           | Global `Config.Timeout` only — can't set tighter limits per endpoint |
+| 10 | **SecurityHeadersMiddleware is static**       | No builder for CSP, HSTS, or custom headers                          |
 
 ---
 
@@ -44,8 +44,8 @@
 
 **Decision:** Option B — `atomic.Int64` storing Unix nanoseconds. Zero contention, type-safe.
 
-**Files:** `ratelimit.go`  
-**Est. Time:** 8 min  
+**Files:** `ratelimit.go`\
+**Est. Time:** 8 min\
 **Impact:** 🔥 Critical — correctness under concurrency
 
 ---
@@ -56,8 +56,8 @@
 
 **Fix:** Create `ErrCSRFConfig` sentinel and return it instead.
 
-**Files:** `csrf.go`, `errors.go`  
-**Est. Time:** 5 min  
+**Files:** `csrf.go`, `errors.go`\
+**Est. Time:** 5 min\
 **Impact:** 🔥 Critical — error classification correctness
 
 ---
@@ -66,7 +66,7 @@
 
 ### P1.1 Add Tests for `RotateCSRFToken`
 
-**Coverage:** 0% → target 100%  
+**Coverage:** 0% → target 100%\
 **What to test:**
 
 - Cookie has `MaxAge=-1`
@@ -75,15 +75,15 @@
 - Cookie uses correct name from config
 - Cookie uses correct path, domain, secure, sameSite from config
 
-**Files:** `csrf_test.go`  
-**Est. Time:** 10 min  
+**Files:** `csrf_test.go`\
+**Est. Time:** 10 min\
 **Impact:** High — recovers coverage
 
 ---
 
 ### P1.2 Add Tests for `CSRFConfig.Validate()`
 
-**Coverage:** 0% → target 100%  
+**Coverage:** 0% → target 100%\
 **What to test:**
 
 - Empty Secret → returns error
@@ -91,15 +91,15 @@
 - Valid config → returns nil
 - SameSite=None + Secure=true → returns nil
 
-**Files:** `csrf_test.go`  
-**Est. Time:** 10 min  
+**Files:** `csrf_test.go`\
+**Est. Time:** 10 min\
 **Impact:** High — recovers coverage
 
 ---
 
 ### P1.3 Add Tests for TTL Eviction
 
-**Coverage:** ~50% → target 100% for eviction paths  
+**Coverage:** ~50% → target 100% for eviction paths\
 **What to test:**
 
 - Entry accessed within TTL → not evicted
@@ -110,8 +110,8 @@
 
 **Decision:** Use a short TTL (1ms) in tests, sleep 2ms, then verify eviction. This is reliable and fast.
 
-**Files:** `ratelimit_test.go`  
-**Est. Time:** 12 min  
+**Files:** `ratelimit_test.go`\
+**Est. Time:** 12 min\
 **Impact:** High — validates correctness of fix
 
 ---
@@ -123,8 +123,8 @@
 - Returns `ErrCSRFInvalid` on failure
 - Does NOT write to the original `ResponseWriter`
 
-**Files:** `csrf_test.go`  
-**Est. Time:** 10 min  
+**Files:** `csrf_test.go`\
+**Est. Time:** 10 min\
 **Impact:** Medium — prevents regression
 
 ---
@@ -141,8 +141,8 @@
 
 **Library consideration:** None needed — `http.MaxBytesReader` is stdlib.
 
-**Files:** `decoder.go`, `app.go`  
-**Est. Time:** 10 min  
+**Files:** `decoder.go`, `app.go`\
+**Est. Time:** 10 min\
 **Impact:** 🔥 High — DoS prevention
 
 ---
@@ -168,8 +168,8 @@ This breaks for: nested structs, time fields, custom unmarshalers, slices with s
 
 **Decision:** Use `github.com/go-playground/form/v4`. It's lightweight, well-tested, and purpose-built.
 
-**Files:** `decoder.go`, `go.mod`  
-**Est. Time:** 12 min  
+**Files:** `decoder.go`, `go.mod`\
+**Est. Time:** 12 min\
 **Impact:** High — robustness
 
 ---
@@ -184,8 +184,8 @@ This breaks for: nested structs, time fields, custom unmarshalers, slices with s
 var ErrCSRFConfig = errors.New("invalid CSRF configuration")
 ```
 
-**Files:** `errors.go`  
-**Est. Time:** 3 min  
+**Files:** `errors.go`\
+**Est. Time:** 3 min\
 **Impact:** Medium — error domain correctness
 
 ---
@@ -205,8 +205,8 @@ func WithRequestID(ctx context.Context, requestID RequestID) context.Context
 
 **Existing code check:** `go-cqrs-lite/core/pkg/id` — check if `RequestID` exists. If not, use `id.ULID` or create a branded type locally.
 
-**Files:** `context.go`  
-**Est. Time:** 10 min  
+**Files:** `context.go`\
+**Est. Time:** 10 min\
 **Impact:** Medium — observability
 
 ---
@@ -231,8 +231,8 @@ type ErrorHandlerV2 func(w http.ResponseWriter, r *http.Request, status int, err
 
 **Decision:** Provide `ErrorHandlerV2` as new type, update internal callers to use it. Keep `ErrorHandler` for backward compat.
 
-**Files:** `errors.go`, `handler.go`, `app.go`  
-**Est. Time:** 12 min  
+**Files:** `errors.go`, `handler.go`, `app.go`\
+**Est. Time:** 12 min\
 **Impact:** Medium — API ergonomics
 
 ---
@@ -247,8 +247,8 @@ type ErrorHandlerV2 func(w http.ResponseWriter, r *http.Request, status int, err
 
 **Decision:** Add `SlogLogWriter(logger *slog.Logger) LogWriter` function that logs structured key-value pairs.
 
-**Files:** `logging.go`  
-**Est. Time:** 10 min  
+**Files:** `logging.go`\
+**Est. Time:** 10 min\
 **Impact:** Medium — modern Go idioms
 
 ---
@@ -259,8 +259,8 @@ type ErrorHandlerV2 func(w http.ResponseWriter, r *http.Request, status int, err
 
 **Part of P2.1.** Add the field so consumers can configure body size limits.
 
-**Files:** `app.go`  
-**Est. Time:** 3 min  
+**Files:** `app.go`\
+**Est. Time:** 3 min\
 **Impact:** Low — but required for P2.1
 
 ---
@@ -273,8 +273,8 @@ type ErrorHandlerV2 func(w http.ResponseWriter, r *http.Request, status int, err
 
 **Decision:** Create `SecurityHeadersConfig` struct with optional CSP, HSTS, and custom headers. `SecurityHeadersMiddleware` accepts an optional config.
 
-**Files:** `security.go`  
-**Est. Time:** 12 min  
+**Files:** `security.go`\
+**Est. Time:** 12 min\
 **Impact:** Medium — consumer flexibility
 
 ---
@@ -287,8 +287,8 @@ type ErrorHandlerV2 func(w http.ResponseWriter, r *http.Request, status int, err
 
 **Decision:** Add `timeout time.Duration` to `handlerConfig`. Add `WithTimeout(d time.Duration) HandlerOption`. `timeoutCtx()` checks handler config first, falls back to app config.
 
-**Files:** `options.go`, `app.go`, `handler.go`  
-**Est. Time:** 10 min  
+**Files:** `options.go`, `app.go`, `handler.go`\
+**Est. Time:** 10 min\
 **Impact:** Low — consumer flexibility
 
 ---
@@ -301,8 +301,8 @@ type ErrorHandlerV2 func(w http.ResponseWriter, r *http.Request, status int, err
 
 **Decision:** Write a simple gzip middleware using stdlib. Check `Accept-Encoding: gzip`, wrap `ResponseWriter` with `gzip.Writer`, set `Content-Encoding: gzip`.
 
-**Files:** New `gzip.go`  
-**Est. Time:** 12 min  
+**Files:** New `gzip.go`\
+**Est. Time:** 12 min\
 **Impact:** Low — performance
 
 ---
@@ -321,33 +321,33 @@ OnRejected   func(r *http.Request, retryAfter string)
 RejectionHandler func(w http.ResponseWriter, r *http.Request, retryAfter string)
 ```
 
-**Files:** `ratelimit.go`  
-**Est. Time:** 10 min  
+**Files:** `ratelimit.go`\
+**Est. Time:** 10 min\
 **Impact:** Low — observability
 
 ---
 
 ## Full Prioritized Table
 
-| Phase | #   | Task                                                 | Effort (min) | Impact      | Customer Value | Why This Priority                 |
-| ----- | --- | ---------------------------------------------------- | ------------ | ----------- | -------------- | --------------------------------- |
-| P0    | 1   | Fix data race in `ratelimit.go`                      | 8            | 🔥 Critical | 🔥 Critical    | Correctness bug under concurrency |
-| P0    | 2   | Fix `CSRFConfig.Validate()` sentinel                 | 5            | 🔥 Critical | 🔥 Critical    | Wrong error domain                |
-| P1    | 3   | Tests for `RotateCSRFToken`                          | 10           | High        | High           | Coverage recovery                 |
-| P1    | 4   | Tests for `CSRFConfig.Validate()`                    | 10           | High        | High           | Coverage recovery                 |
-| P1    | 5   | Tests for TTL eviction                               | 12           | High        | High           | Validates race fix                |
-| P1    | 6   | Regression test for ResponseWriter fix               | 10           | Medium      | Medium         | Prevents regression               |
-| P2    | 7   | Body size limits on decoders                         | 10           | 🔥 High     | 🔥 High        | DoS prevention                    |
-| P2    | 8   | Replace `decodeFormValues` with `go-playground/form` | 12           | High        | High           | Robustness                        |
-| P3    | 9   | Create `ErrCSRFConfig` sentinel                      | 3            | Medium      | Low            | Error correctness                 |
-| P3    | 10  | Add `RequestID` type                                 | 10           | Medium      | Medium         | Observability                     |
-| P3    | 11  | Enhance `ErrorHandler` with status code              | 12           | Medium      | Medium         | API ergonomics                    |
-| P3    | 12  | Add `slog` integration to logging                    | 10           | Medium      | Medium         | Modern idioms                     |
-| P4    | 13  | `MaxBodySize` in `Config`                            | 3            | Low         | Low            | Required for #7                   |
-| P4    | 14  | `SecurityHeadersConfig` builder                      | 12           | Medium      | Medium         | Consumer flexibility              |
-| P4    | 15  | Per-handler timeout override                         | 10           | Low         | Low            | Consumer flexibility              |
-| P4    | 16  | `GzipMiddleware`                                     | 12           | Low         | Low            | Performance                       |
-| P4    | 17  | Rate limiter hooks                                   | 10           | Low         | Low            | Observability                     |
+| Phase | #  | Task                                                 | Effort (min) | Impact      | Customer Value | Why This Priority                 |
+| ----- | -- | ---------------------------------------------------- | ------------ | ----------- | -------------- | --------------------------------- |
+| P0    | 1  | Fix data race in `ratelimit.go`                      | 8            | 🔥 Critical | 🔥 Critical    | Correctness bug under concurrency |
+| P0    | 2  | Fix `CSRFConfig.Validate()` sentinel                 | 5            | 🔥 Critical | 🔥 Critical    | Wrong error domain                |
+| P1    | 3  | Tests for `RotateCSRFToken`                          | 10           | High        | High           | Coverage recovery                 |
+| P1    | 4  | Tests for `CSRFConfig.Validate()`                    | 10           | High        | High           | Coverage recovery                 |
+| P1    | 5  | Tests for TTL eviction                               | 12           | High        | High           | Validates race fix                |
+| P1    | 6  | Regression test for ResponseWriter fix               | 10           | Medium      | Medium         | Prevents regression               |
+| P2    | 7  | Body size limits on decoders                         | 10           | 🔥 High     | 🔥 High        | DoS prevention                    |
+| P2    | 8  | Replace `decodeFormValues` with `go-playground/form` | 12           | High        | High           | Robustness                        |
+| P3    | 9  | Create `ErrCSRFConfig` sentinel                      | 3            | Medium      | Low            | Error correctness                 |
+| P3    | 10 | Add `RequestID` type                                 | 10           | Medium      | Medium         | Observability                     |
+| P3    | 11 | Enhance `ErrorHandler` with status code              | 12           | Medium      | Medium         | API ergonomics                    |
+| P3    | 12 | Add `slog` integration to logging                    | 10           | Medium      | Medium         | Modern idioms                     |
+| P4    | 13 | `MaxBodySize` in `Config`                            | 3            | Low         | Low            | Required for #7                   |
+| P4    | 14 | `SecurityHeadersConfig` builder                      | 12           | Medium      | Medium         | Consumer flexibility              |
+| P4    | 15 | Per-handler timeout override                         | 10           | Low         | Low            | Consumer flexibility              |
+| P4    | 16 | `GzipMiddleware`                                     | 12           | Low         | Low            | Performance                       |
+| P4    | 17 | Rate limiter hooks                                   | 10           | Low         | Low            | Observability                     |
 
 **Total estimated time:** ~159 minutes (~2.5 hours of focused work)
 
@@ -384,5 +384,5 @@ RejectionHandler func(w http.ResponseWriter, r *http.Request, retryAfter string)
 
 ---
 
-_Plan created: 2026-05-19 16:20 CEST_  
+_Plan created: 2026-05-19 16:20 CEST_\
 _Next action: Execute P0.1 (fix data race)_

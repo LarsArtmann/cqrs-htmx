@@ -46,22 +46,22 @@ This is the most important section. The rest is housekeeping.
 
 ## a) FULLY DONE
 
-| #   | Item                                                                                            | Evidence                                                                                                                                                                                               |
-| --- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Diagnosed why `cqrs-lint` reported "Nothing to lint" on a project with 50+ go-cqrs-lite imports | Root cause = broken `command/v4@v4.0.0` publish (zero pseudo-version for dispatcher) → `go/packages` fails → loader silently `continue`s                                                               |
-| 2   | Confirmed the build is genuinely broken (exit 1, not a linter-only issue)                       | `go build ./...` returns 24 lines of `invalid version: unknown revision 000000000000`                                                                                                                  |
-| 3   | Identified the upstream source of the publish bug                                               | `go-cqrs-lite/command/go.mod:6` has `dispatcher/v4 v4.0.0-00010101000000-000000000000` with a `replace => ../dispatcher` that gets stripped on publish                                                 |
-| 4   | Discovered the `lint` vs `doctor` disagreement (worse than the original symptom)                | Both exit 0; `lint` says nothing found, `doctor` prints a confident postgres profile                                                                                                                   |
-| 5   | Pinned the silent-failure to exact source locations                                             | `loader.go:86-90` (module skip), `loader.go:94-101` (per-package error skip), `main.go:171-177` (nil return), `doctor.go:18-22` (dead error check), `feature_detect.go:28-64` (reads errored packages) |
-| 6   | Wrote feedback doc to go-cqrs-lite                                                              | `docs/feedback/2026-07-17_cqrs-htmx_cqrs-lint-feedback.md` (5 bugs, 5 fixes, message redesign)                                                                                                         |
+| # | Item                                                                                            | Evidence                                                                                                                                                                                               |
+| - | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | Diagnosed why `cqrs-lint` reported "Nothing to lint" on a project with 50+ go-cqrs-lite imports | Root cause = broken `command/v4@v4.0.0` publish (zero pseudo-version for dispatcher) → `go/packages` fails → loader silently `continue`s                                                               |
+| 2 | Confirmed the build is genuinely broken (exit 1, not a linter-only issue)                       | `go build ./...` returns 24 lines of `invalid version: unknown revision 000000000000`                                                                                                                  |
+| 3 | Identified the upstream source of the publish bug                                               | `go-cqrs-lite/command/go.mod:6` has `dispatcher/v4 v4.0.0-00010101000000-000000000000` with a `replace => ../dispatcher` that gets stripped on publish                                                 |
+| 4 | Discovered the `lint` vs `doctor` disagreement (worse than the original symptom)                | Both exit 0; `lint` says nothing found, `doctor` prints a confident postgres profile                                                                                                                   |
+| 5 | Pinned the silent-failure to exact source locations                                             | `loader.go:86-90` (module skip), `loader.go:94-101` (per-package error skip), `main.go:171-177` (nil return), `doctor.go:18-22` (dead error check), `feature_detect.go:28-64` (reads errored packages) |
+| 6 | Wrote feedback doc to go-cqrs-lite                                                              | `docs/feedback/2026-07-17_cqrs-htmx_cqrs-lint-feedback.md` (5 bugs, 5 fixes, message redesign)                                                                                                         |
 
 ## b) PARTIALLY DONE
 
-| #   | Item                                                     | What's missing                                                                                               |
-| --- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| 1   | cqrs-lint bug analysis (5 bugs identified)               | Zero of the 5 bugs are **fixed**. I wrote the fix code into a markdown doc instead of into the source files. |
-| 2   | cqrs-htmx build diagnosis                                | Diagnosed but not unblocked. No `replace` directives applied, build still red.                               |
-| 3   | Version reconciliation (0.2.0 installed vs 0.2.1 source) | Noted the discrepancy, asserted "logic identical" without diffing. Unverified.                               |
+| # | Item                                                     | What's missing                                                                                               |
+| - | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1 | cqrs-lint bug analysis (5 bugs identified)               | Zero of the 5 bugs are **fixed**. I wrote the fix code into a markdown doc instead of into the source files. |
+| 2 | cqrs-htmx build diagnosis                                | Diagnosed but not unblocked. No `replace` directives applied, build still red.                               |
+| 3 | Version reconciliation (0.2.0 installed vs 0.2.1 source) | Noted the discrepancy, asserted "logic identical" without diffing. Unverified.                               |
 
 ## c) NOT STARTED
 

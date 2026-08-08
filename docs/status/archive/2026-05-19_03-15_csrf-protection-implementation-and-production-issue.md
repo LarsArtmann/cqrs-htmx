@@ -1,8 +1,8 @@
 # Comprehensive Status Report — cqrs-htmx
 
-**Date:** 2026-05-19 03:15:50  
-**Branch:** master  
-**Commits since last report:** 5 (db00550 → b9f4714 → 27c1a42 → 7610bc5 → working tree)  
+**Date:** 2026-05-19 03:15:50\
+**Branch:** master\
+**Commits since last report:** 5 (db00550 → b9f4714 → 27c1a42 → 7610bc5 → working tree)\
 **Test Specs:** 225 | **Coverage:** 91.5% | **Lint Issues:** 0 | **Race Detector:** CLEAN
 
 ---
@@ -249,33 +249,33 @@ Rotate CSRF token on login/logout to prevent fixation attacks.
 
 ## f) Top #25 Things We Should Get Done Next
 
-| #   | Priority | Task                                                                  | Why                                     |
-| --- | -------- | --------------------------------------------------------------------- | --------------------------------------- |
-| 1   | P0       | **Fix production CSRF 403** — add template helpers and auto-injection | Consumer app is broken RIGHT NOW        |
-| 2   | P0       | Add `CSRFTokenHTMLMeta()` and `CSRFTokenHXHeaders()` helpers          | Make frontend integration trivial       |
-| 3   | P0       | Create complete CSRF + HTMX working example                           | Prove the integration works end-to-end  |
-| 4   | P1       | Auto-inject `X-CSRF-Token` header on all responses                    | Remove boilerplate from handlers        |
-| 5   | P1       | Fix query handler nil decoder panic                                   | Pre-existing bug, will bite someone     |
-| 6   | P1       | Add CSRF token rotation on login/logout                               | Security hardening                      |
-| 7   | P2       | Improve CSRF test coverage to 95%+                                    | Currently pulling overall coverage down |
-| 8   | P2       | Add `gosec` to CI pipeline                                            | Catch security issues automatically     |
-| 9   | P2       | Add `govulncheck` to CI pipeline                                      | Vulnerability scanning                  |
-| 10  | P2       | Add security headers middleware                                       | Defense in depth                        |
-| 11  | P2       | Write SECURITY.md                                                     | Professional security posture           |
-| 12  | P3       | Add CSRF token to form field helper (not just header)                 | Support non-HTMX form submissions       |
-| 13  | P3       | Add `CSRFTokenFromCookie(r)` exported helper                          | Consumer convenience                    |
-| 14  | P3       | Document cookie security tradeoffs                                    | Help consumers make informed choices    |
-| 15  | P3       | Add SameSite=None + Secure validation                                 | Prevent broken configurations           |
-| 16  | P3       | Benchmark CSRF middleware overhead                                    | Performance transparency                |
-| 17  | P3       | Support multiple CSRF token extractors                                | Flexibility for exotic setups           |
-| 18  | P4       | Add configurable token length                                         | Trade security vs cookie size           |
-| 19  | P4       | Add token entropy logging/metrics                                     | Observability                           |
-| 20  | P4       | Support double-submit without cookie (session-backed)                 | Alternative pattern                     |
-| 21  | P4       | Add CSRF bypass for trusted origins                                   | Internal API use case                   |
-| 22  | P4       | Integration test with real `httptest.Server`                          | More realistic test scenarios           |
-| 23  | P4       | Document CSRF + reverse proxy considerations                          | X-Forwarded-Proto handling              |
-| 24  | P4       | Add `CSRFMiddleware` option to skip on error (warn-only mode)         | Gradual rollout                         |
-| 25  | P4       | Consider gorilla/csrf compatibility layer                             | Migration path for existing apps        |
+| #  | Priority | Task                                                                  | Why                                     |
+| -- | -------- | --------------------------------------------------------------------- | --------------------------------------- |
+| 1  | P0       | **Fix production CSRF 403** — add template helpers and auto-injection | Consumer app is broken RIGHT NOW        |
+| 2  | P0       | Add `CSRFTokenHTMLMeta()` and `CSRFTokenHXHeaders()` helpers          | Make frontend integration trivial       |
+| 3  | P0       | Create complete CSRF + HTMX working example                           | Prove the integration works end-to-end  |
+| 4  | P1       | Auto-inject `X-CSRF-Token` header on all responses                    | Remove boilerplate from handlers        |
+| 5  | P1       | Fix query handler nil decoder panic                                   | Pre-existing bug, will bite someone     |
+| 6  | P1       | Add CSRF token rotation on login/logout                               | Security hardening                      |
+| 7  | P2       | Improve CSRF test coverage to 95%+                                    | Currently pulling overall coverage down |
+| 8  | P2       | Add `gosec` to CI pipeline                                            | Catch security issues automatically     |
+| 9  | P2       | Add `govulncheck` to CI pipeline                                      | Vulnerability scanning                  |
+| 10 | P2       | Add security headers middleware                                       | Defense in depth                        |
+| 11 | P2       | Write SECURITY.md                                                     | Professional security posture           |
+| 12 | P3       | Add CSRF token to form field helper (not just header)                 | Support non-HTMX form submissions       |
+| 13 | P3       | Add `CSRFTokenFromCookie(r)` exported helper                          | Consumer convenience                    |
+| 14 | P3       | Document cookie security tradeoffs                                    | Help consumers make informed choices    |
+| 15 | P3       | Add SameSite=None + Secure validation                                 | Prevent broken configurations           |
+| 16 | P3       | Benchmark CSRF middleware overhead                                    | Performance transparency                |
+| 17 | P3       | Support multiple CSRF token extractors                                | Flexibility for exotic setups           |
+| 18 | P4       | Add configurable token length                                         | Trade security vs cookie size           |
+| 19 | P4       | Add token entropy logging/metrics                                     | Observability                           |
+| 20 | P4       | Support double-submit without cookie (session-backed)                 | Alternative pattern                     |
+| 21 | P4       | Add CSRF bypass for trusted origins                                   | Internal API use case                   |
+| 22 | P4       | Integration test with real `httptest.Server`                          | More realistic test scenarios           |
+| 23 | P4       | Document CSRF + reverse proxy considerations                          | X-Forwarded-Proto handling              |
+| 24 | P4       | Add `CSRFMiddleware` option to skip on error (warn-only mode)         | Gradual rollout                         |
+| 25 | P4       | Consider gorilla/csrf compatibility layer                             | Migration path for existing apps        |
 
 ---
 
@@ -386,5 +386,5 @@ All changes tested: 225 specs pass, race detector clean, lint 0 issues.
 
 ---
 
-_Report generated: 2026-05-19 03:15:50_  
+_Report generated: 2026-05-19 03:15:50_\
 _Next action required: Fix production CSRF 403 issue in consumer application_
