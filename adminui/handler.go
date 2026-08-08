@@ -185,8 +185,10 @@ func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 // This is optional: the panel works without it, but recovery + security
 // headers are recommended for any production deployment.
 func (h *Handler) Middleware() func(http.Handler) http.Handler {
+	securityCfg := httputil.DefaultSecurityHeadersConfig()
+	securityCfg.PermissionsPolicy = "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
 	return cqrshtmx.Chain(
-		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+		httputil.SecurityHeaders(securityCfg),
 		httputil.Nonce(httputil.DefaultNonceConfig()),
 		cqrshtmx.RecoveryMiddleware,
 	)

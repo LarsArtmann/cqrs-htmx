@@ -16,7 +16,9 @@ For everything else — the everyday HTTP middleware a browser-facing CQRS app n
 | ---------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Cross-origin browser API access                | `httputil.CORS(cfg)` + `DefaultCORSConfig()`                                     | `DenyUnmatched: true` by default since v0.7.0; wildcard `*.example.com` rejects lookalikes.                                                                                                                                                                  |
 | Response compression (htmx.js, JSON, SSE text) | `httputil.Compression(cfg)` + `DefaultCompressionConfig()`                       | Pooled gzip/deflate writers; skips already-compressed content types.                                                                                                                                                                                         |
-| Body-size guard for JSON/form decoders         | `httputil.MaxBodySize(maxBytes)`                                                 | Rejects oversized bodies _before_ decode → pairs with `cqrshtmx.ErrRequestTooLarge` (413).                                                                                                                                                                   |
+| Body-size guard for JSON/form decoders         | `httputil.MaxBodySize(maxBytes)`                                                 | Rejects oversized bodies _before_ decode → pairs with `cqrshtmx.ErrRequestTooLarge` (413). Use as an outer middleware guard (defense-in-depth) alongside the per-handler `cqrshtmx.WithMaxBodySize`. See Recipe 8 below.                                                                   |
+| Decompression bomb protection                  | `httputil.Decompression(cfg)` + `DefaultDecompressionConfig()`                    | Transparently decompresses gzip/deflate request bodies with bomb protection (`MaxDecompressionSize`, default 16 MiB). Essential for endpoints that accept `Content-Encoding: gzip`. See Recipe 7 below.                                                     |
+| CSP nonce per request                           | `httputil.Nonce(cfg)` + `DefaultNonceConfig()` + `NonceFromRequest(r)`            | Generates a cryptographic nonce per request, stores in context, optionally sets CSP header. Used by adminui's `Middleware()` chain. `NonceAttr(r)` returns `nonce="..."` for templates.                                                                   |
 | Client IP behind a reverse proxy               | `httputil.ClientIPMiddleware`, `httputil.ClientIP(r)`, `httputil.IsTrustedProxy` | Trusted-proxy CIDR matching; feeds `KeyExtractorFromClientIP` for correct rate limiting.                                                                                                                                                                     |
 | Production server with timeouts                | `httputil.NewServer(cfg, h)` + `DefaultServerConfig()`                           | `Validate()`d config; sane `Read`/`Write`/`Idle`/`ReadHeader` timeouts. **Never use bare `http.ListenAndServe`.**                                                                                                                                            |
 | Metrics recording                              | `httputil.Metrics(cfg)` + `DefaultMetricsConfig()` + `MetricsRecorder` interface | Plug in Prometheus/etc. via the interface.                                                                                                                                                                                                                   |
@@ -106,10 +108,11 @@ httputil.RegisterHealth(mux)
 
 ### 5. Register error classifications once at startup
 
+> **Note:** As of v4.x, `cqrshtmx.New()` calls `httputil.RegisterErrorClassifications()` automatically (via `sync.Once`). You only need to call it manually if you use httputil middleware without creating a `cqrshtmx.App`.
+
 ```go
 func main() {
-    // Makes stdlib HTTP errors + httputil middleware codes classify through
-    // cqrshtmx.MapError (via errorfamily.Classify). Idempotent.
+    // Already called by cqrshtmx.New() — but if you use httputil standalone:
     httputil.RegisterErrorClassifications()
     // ... build app, serve ...
 }
@@ -205,9 +208,44 @@ The following 39 symbols in `cqrs-htmx/v4` are **deprecated** (type/var aliases 
 
 For these, use the `cqrshtmx.*` version. For everything in the table above, use `httputil.*`.
 
+### 7. Decompression — security hardening against compressed-body bombs
+
+cqrs-htmx's `decoder.go` reads request bodies with `io.LimitReader` to cap size, but this sees the **compressed** byte stream — a 1 KB gzipped body can decompress to gigabytes, bypassing the limit. `httputil.Decompression` middleware transparently decompresses `Content-Encoding: gzip/deflate` request bodies **with a hard ceiling** (`MaxDecompressionSize`, default 16 MiB) before the decoder sees them.
+
+```go
+handler := cqrshtmx.Chain(
+    cqrshtmx.RecoveryMiddleware,
+    httputil.Decompression(httputil.DefaultDecompressionConfig()), // bomb protection
+    httputil.MaxBodySize(1 << 20),                                 // 1 MiB post-decompress
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    app.Middleware(),
+)(mux)
+```
+
+The middleware is safe to leave in the chain even when no clients send compressed bodies — it passes through requests without `Content-Encoding` unchanged.
+
+### 8. MaxBodySize — outer middleware guard (defense-in-depth)
+
+cqrs-htmx provides per-handler body-size limiting via `cqrshtmx.WithMaxBodySize(n)`, which caps the body during JSON/form decoding. But a middleware-level guard rejects oversized bodies **before any processing** — before CSRF validation, before context enrichment, before the handler pipeline runs. This is defense-in-depth: even if a handler forgets `WithMaxBodySize`, the middleware catches it.
+
+```go
+handler := cqrshtmx.Chain(
+    cqrshtmx.RecoveryMiddleware,
+    httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+    httputil.MaxBodySize(10 << 20), // 10 MiB hard ceiling for the entire API
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    cqrshtmx.HTMXMiddleware,
+    app.Middleware(),
+)(mux)
+```
+
+For handlers that need a smaller limit (e.g., a login form at 4 KB), compose with `WithMaxBodySize` — the tighter per-handler limit wins.
+
 ## See also
 
-- `docs/research/2026-08-05_httputil-deep-dive.html` — full adoption audit of httputil in this codebase.
+- `docs/research/2026-08-09_httputil-deep-dive.html` — latest adoption audit of httputil v0.11.0 in this codebase.
+- `docs/research/2026-08-05_httputil-deep-dive.html` — prior adoption audit (v0.8.0).
+- `examples/middleware-showcase/` — runnable example demonstrating Compression, CORS, ETag, RateLimiting, Metrics, and MiddlewareStack.
 - `docs/guides/production-readiness.md` — production checklist (middleware stack, observability, security).
 - `docs/guides/dispatch-middleware-ordering.md` — CQRS-layer (not HTTP-layer) middleware ordering.
 - httputil's own `FEATURES.md` and `CHANGELOG.md` for the full 16-middleware catalogue.

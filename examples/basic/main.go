@@ -235,12 +235,20 @@ func main() {
 
 	mux.HandleFunc("GET /", indexPage)
 
+	// Standard health endpoints: /health, /health/live, /health/ready.
+	// The readiness probe checks that both dispatchers are wired.
+	httputil.RegisterHealth(mux)
+	mux.HandleFunc("GET /health/ready", httputil.ReadyHandlerWithProbe(func() bool {
+		return app.HasCommands() && app.HasQueries()
+	}))
+
 	addr := ":8096"
 	// Serve with real timeouts via httputil.NewServer (never bare http.ListenAndServe,
 	// which sets no Read/Write/Idle timeouts). See docs/guides/leveraging-httputil.md.
+	// Compression wraps the mux for smaller JSON/HTML payloads (5-10x for text).
 	cfg := httputil.DefaultServerConfig()
 	cfg.Addr = addr
-	srv, err := httputil.NewServer(cfg, mux)
+	srv, err := httputil.NewServer(cfg, httputil.Compression(httputil.DefaultCompressionConfig())(mux))
 	if err != nil {
 		log.Fatalf("invalid server config: %v", err)
 	}

@@ -30,8 +30,10 @@ func (d *Dashboard) Mount(mux *http.ServeMux, pattern string) {
 
 // Middleware returns the recommended middleware chain for the dashboard.
 func (d *Dashboard) Middleware() func(http.Handler) http.Handler {
+	securityCfg := httputil.DefaultSecurityHeadersConfig()
+	securityCfg.PermissionsPolicy = "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
 	return cqrshtmx.Chain(
-		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+		httputil.SecurityHeaders(securityCfg),
 		cqrshtmx.RecoveryMiddleware,
 	)
 }

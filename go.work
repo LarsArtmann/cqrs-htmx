@@ -12,6 +12,7 @@ use (
 	./examples/dashboard-demo
 	./examples/datastar-demo
 	./examples/middleware-demo
+	./examples/middleware-showcase
 	./examples/observability-demo
 	./identity-model
 	./integration_test
