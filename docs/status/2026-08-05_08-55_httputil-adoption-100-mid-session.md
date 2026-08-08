@@ -1,9 +1,9 @@
 # Status — httputil Adoption 100% (Mid-Session)
 
-**Date:** 2026-08-05 08:55 CEST  
-**Trigger:** "Get us to 100! Oh and btw I kinda HATE re-exports (99% of the time)!"  
-**Plan:** `docs/planning/2026-08-05_08-12_httputil-adoption-100-kill-reexports.md`  
-**Current branch:** master  
+**Date:** 2026-08-05 08:55 CEST\
+**Trigger:** "Get us to 100! Oh and btw I kinda HATE re-exports (99% of the time)!"\
+**Plan:** `docs/planning/2026-08-05_08-12_httputil-adoption-100-kill-reexports.md`\
+**Current branch:** master\
 **Session state:** Work in progress — significant code changes landed, several workstreams still open.
 
 ---

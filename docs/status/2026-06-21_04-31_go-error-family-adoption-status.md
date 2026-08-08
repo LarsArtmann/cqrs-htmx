@@ -174,33 +174,33 @@ Initially used `WrapInfrastructure` for projection decode errors in `es_readmode
 
 ## f) Top 25 Things to Get Done Next
 
-| #   | Task                                                                              | Impact | Effort | Priority   |
-| --- | --------------------------------------------------------------------------------- | ------ | ------ | ---------- |
-| 1   | Commit uncommitted Wrapf/nolint/AGENTS.md changes                                 | HIGH   | 2min   | 🔴 NOW     |
-| 2   | Fix 12 double-wrapped sentinels → return directly                                 | HIGH   | 15min  | 🔴 NOW     |
-| 3   | Add `branching-flow errorfamily --exit-code` to flake.nix as `.#errorfamily` app  | HIGH   | 10min  | 🔴 NOW     |
-| 4   | Add errorfamily check to pre-commit hook                                          | MEDIUM | 5min   | 🔴 NOW     |
-| 5   | Add `branching-flow errorfamily .` to `nix run .#lint`                            | MEDIUM | 5min   | 🟡 NEXT    |
-| 6   | Verify `examples/catalog-demo` is clean (not yet checked)                         | LOW    | 2min   | 🟡 NEXT    |
-| 7   | Extract error codes to typed constants in each package                            | MEDIUM | 30min  | 🟡 NEXT    |
-| 8   | Change `DefaultErrorHandler` to use `Message` field for response body             | HIGH   | 20min  | 🟡 NEXT    |
-| 9   | Add test: all error codes follow naming convention                                | LOW    | 15min  | 🟡 NEXT    |
-| 10  | Unify `errorStatus` (usermgmt) and `MapError` (root) → single family-based mapper | HIGH   | 45min  | 🟠 LATER   |
-| 11  | Add `errorfamily --format sarif` output for CI dashboards                         | LOW    | 10min  | 🟠 LATER   |
-| 12  | Replace `fmt.Sprintf` exceptions in http.go with `event.NewRejection`             | LOW    | 5min   | 🟠 LATER   |
-| 13  | Add `WithContext` to sentinels for structured error context                       | MEDIUM | 20min  | 🟠 LATER   |
-| 14  | Document error code taxonomy in `docs/DOMAIN_LANGUAGE.md`                         | LOW    | 15min  | 🟠 LATER   |
-| 15  | Audit `StructuredError` usage — make it the default error response format         | MEDIUM | 30min  | 🟠 LATER   |
-| 16  | Add errorfamily to `nix flake check`                                              | LOW    | 5min   | 🟠 LATER   |
-| 17  | Consider `errorfamily.Registry.Clone()` for test isolation                        | LOW    | 15min  | ⚪ SOMEDAY |
-| 18  | Add OpenTelemetry integration for classified errors (span attributes from family) | LOW    | 30min  | ⚪ SOMEDAY |
-| 19  | Evaluate `samber/oops` bridge for application-layer enrichment                    | LOW    | 20min  | ⚪ SOMEDAY |
-| 20  | Add retry middleware using `event.IsRetryable` (Transient family)                 | MEDIUM | 45min  | ⚪ SOMEDAY |
-| 21  | Add `errorfamily.ExitCode` to CLI examples in datastar-demo                       | LOW    | 10min  | ⚪ SOMEDAY |
-| 22  | Add changelog entry for go-error-family v0.4.0 adoption                           | LOW    | 10min  | ⚪ SOMEDAY |
-| 23  | Consider branded error code type (`type ErrorCode string`)                        | LOW    | 30min  | ⚪ SOMEDAY |
-| 24  | Add migration guide for consumers updating to latest version                      | LOW    | 20min  | ⚪ SOMEDAY |
-| 25  | Evaluate `RegisterStdlibDefaults` for third-party errors (sql, context, os)       | LOW    | 15min  | ⚪ SOMEDAY |
+| #  | Task                                                                              | Impact | Effort | Priority   |
+| -- | --------------------------------------------------------------------------------- | ------ | ------ | ---------- |
+| 1  | Commit uncommitted Wrapf/nolint/AGENTS.md changes                                 | HIGH   | 2min   | 🔴 NOW     |
+| 2  | Fix 12 double-wrapped sentinels → return directly                                 | HIGH   | 15min  | 🔴 NOW     |
+| 3  | Add `branching-flow errorfamily --exit-code` to flake.nix as `.#errorfamily` app  | HIGH   | 10min  | 🔴 NOW     |
+| 4  | Add errorfamily check to pre-commit hook                                          | MEDIUM | 5min   | 🔴 NOW     |
+| 5  | Add `branching-flow errorfamily .` to `nix run .#lint`                            | MEDIUM | 5min   | 🟡 NEXT    |
+| 6  | Verify `examples/catalog-demo` is clean (not yet checked)                         | LOW    | 2min   | 🟡 NEXT    |
+| 7  | Extract error codes to typed constants in each package                            | MEDIUM | 30min  | 🟡 NEXT    |
+| 8  | Change `DefaultErrorHandler` to use `Message` field for response body             | HIGH   | 20min  | 🟡 NEXT    |
+| 9  | Add test: all error codes follow naming convention                                | LOW    | 15min  | 🟡 NEXT    |
+| 10 | Unify `errorStatus` (usermgmt) and `MapError` (root) → single family-based mapper | HIGH   | 45min  | 🟠 LATER   |
+| 11 | Add `errorfamily --format sarif` output for CI dashboards                         | LOW    | 10min  | 🟠 LATER   |
+| 12 | Replace `fmt.Sprintf` exceptions in http.go with `event.NewRejection`             | LOW    | 5min   | 🟠 LATER   |
+| 13 | Add `WithContext` to sentinels for structured error context                       | MEDIUM | 20min  | 🟠 LATER   |
+| 14 | Document error code taxonomy in `docs/DOMAIN_LANGUAGE.md`                         | LOW    | 15min  | 🟠 LATER   |
+| 15 | Audit `StructuredError` usage — make it the default error response format         | MEDIUM | 30min  | 🟠 LATER   |
+| 16 | Add errorfamily to `nix flake check`                                              | LOW    | 5min   | 🟠 LATER   |
+| 17 | Consider `errorfamily.Registry.Clone()` for test isolation                        | LOW    | 15min  | ⚪ SOMEDAY |
+| 18 | Add OpenTelemetry integration for classified errors (span attributes from family) | LOW    | 30min  | ⚪ SOMEDAY |
+| 19 | Evaluate `samber/oops` bridge for application-layer enrichment                    | LOW    | 20min  | ⚪ SOMEDAY |
+| 20 | Add retry middleware using `event.IsRetryable` (Transient family)                 | MEDIUM | 45min  | ⚪ SOMEDAY |
+| 21 | Add `errorfamily.ExitCode` to CLI examples in datastar-demo                       | LOW    | 10min  | ⚪ SOMEDAY |
+| 22 | Add changelog entry for go-error-family v0.4.0 adoption                           | LOW    | 10min  | ⚪ SOMEDAY |
+| 23 | Consider branded error code type (`type ErrorCode string`)                        | LOW    | 30min  | ⚪ SOMEDAY |
+| 24 | Add migration guide for consumers updating to latest version                      | LOW    | 20min  | ⚪ SOMEDAY |
+| 25 | Evaluate `RegisterStdlibDefaults` for third-party errors (sql, context, os)       | LOW    | 15min  | ⚪ SOMEDAY |
 
 ---
 
