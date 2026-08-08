@@ -4,10 +4,10 @@ go 1.26.5
 
 require (
 	github.com/a-h/templ v0.3.1020
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.1
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/httputil v0.10.0
+	github.com/larsartmann/httputil v0.11.0
 )
 
 require (
@@ -33,7 +33,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0-20260808205557-5709c34eac8d // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
@@ -43,7 +43,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect

@@ -24,8 +24,8 @@ github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxm
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-etag v0.1.0 h1:SoKC4HnftEfR7HSwUVUQ7acHpoL5uU27kXI//Q22D6M=
 github.com/larsartmann/go-etag v0.1.0/go.mod h1:c2PnfOTTSerzR/EKI3vMIJYvEddG7fBeGDpllyskc2w=
-github.com/larsartmann/httputil v0.10.0 h1:qXkobUqC0xNvxb49aHwZryG7IIgwvjZt9Q/d8CDenIg=
-github.com/larsartmann/httputil v0.10.0/go.mod h1:UeK0ol/n1UNlkwPk5V1HelslUGoTr2MNr1lAPugMfFg=
+github.com/larsartmann/httputil v0.11.0 h1:X0toNjNAgl1HKLLGF5xLH+gbFJbagzSrGbkd0UI4pwk=
+github.com/larsartmann/httputil v0.11.0/go.mod h1:UeK0ol/n1UNlkwPk5V1HelslUGoTr2MNr1lAPugMfFg=
 github.com/larsartmann/httputil/server_timing v0.9.1 h1:CRu7kPj7tshqhrDd3dlmY7cMARMPhdVp4YkgfUiyyZs=
 github.com/larsartmann/httputil/server_timing v0.9.1/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
 github.com/onsi/ginkgo/v2 v2.32.0 h1:Hw7s2pVrQo/8Yz5N77qdnpHaoc+c6cC9WIV1Jce+J6E=

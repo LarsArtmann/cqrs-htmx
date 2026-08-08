@@ -44,8 +44,8 @@ github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0 h1:YFWNJCxBn8hdOmTP+bH
 github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0/go.mod h1:M7rBW0SZWtr8Kjv9ucU8dRVC0X4GjAhyqnE80rfbYx4=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 h1:zdDVNIVABTPII8G2Gj6n9RYkTVdyrtGpZoFjJI1/13Y=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0/go.mod h1:nMOU7fUkKn92n973yl8ZrQGasqSTCPjcbszMA1TfeTg=
-github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0 h1:MNuyDwX0/RKNRxMie9wSnGI9YCEZGne+1UETzzi40cg=
-github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0/go.mod h1:ROanW4f3Yt7D6dS4GY8DFLpVpAhYp7DIDivZeS0K5y4=
+github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0 h1:K+vOErEJf09qDC2Nn/PakPvZij/aU9m1ZpVN+mrSbBE=
+github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0/go.mod h1:jWGHC3WjyPppawf4jQWqv6lv88RZBeQ4Ea0ZiZE7Gnk=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 h1:6751shB8+f6PX4ogTOBArJpdQDLAsLo9nCwmYsSxnjU=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0/go.mod h1:TB0o6rv8eIdLqV9ZxdIsRNTNQuALt/d5/MFtPZp5AjQ=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 h1:R83WOCkHeghtG9F9YsBaM7t44ax0Fj7QBG3huRvHoqQ=
@@ -62,8 +62,8 @@ github.com/larsartmann/go-idempotency v0.1.2 h1:Uk0fQTD6j8IISIDnQoi8j1R92rYIwjyI
 github.com/larsartmann/go-idempotency v0.1.2/go.mod h1:ee9VieA/IrJBaZ47+lnbwR9l4Td9VpEnruNJfCjDpyU=
 github.com/larsartmann/go-sse v0.4.0 h1:cHeOMbVGcIqeetic8bdZIITo4xsPSpWiPhtvQTxNd+4=
 github.com/larsartmann/go-sse v0.4.0/go.mod h1:B9mLj83rwtrnbqSqBcRuMV8vnOvAaPlJtH+9U/fMeRQ=
-github.com/larsartmann/httputil v0.10.0 h1:qXkobUqC0xNvxb49aHwZryG7IIgwvjZt9Q/d8CDenIg=
-github.com/larsartmann/httputil v0.10.0/go.mod h1:UeK0ol/n1UNlkwPk5V1HelslUGoTr2MNr1lAPugMfFg=
+github.com/larsartmann/httputil v0.11.0 h1:X0toNjNAgl1HKLLGF5xLH+gbFJbagzSrGbkd0UI4pwk=
+github.com/larsartmann/httputil v0.11.0/go.mod h1:UeK0ol/n1UNlkwPk5V1HelslUGoTr2MNr1lAPugMfFg=
 github.com/larsartmann/httputil/server_timing v0.10.0 h1:03A0RPelrWEPUjxozXBp74sOBo4Z1myTiBccvM5gvbU=
 github.com/larsartmann/httputil/server_timing v0.10.0/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
 github.com/oklog/ulid/v2 v2.1.2 h1:IEclFb9JNvzYA6MW2SCxbLzcHTVsfqm3PrqGQJH5zec=

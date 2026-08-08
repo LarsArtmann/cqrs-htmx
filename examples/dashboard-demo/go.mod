@@ -11,10 +11,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
-	github.com/larsartmann/httputil v0.10.0
+	github.com/larsartmann/httputil v0.11.0
 )
 
 require (

@@ -6,9 +6,9 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0
 	github.com/larsartmann/go-sse v0.4.0
-	github.com/larsartmann/httputil v0.10.0
+	github.com/larsartmann/httputil v0.11.0
 )
 
 require (
