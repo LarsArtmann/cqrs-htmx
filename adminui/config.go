@@ -72,7 +72,10 @@ type Config struct {
 
 	// NonceFunc returns a per-request CSP nonce for inline scripts (used by
 	// ToastContainer and GlobalErrorHandling). Return "" if CSP is not active.
-	// When nil, all inline scripts render with no nonce attribute.
+	// When nil, the nonce is read from the request context via
+	// httputil.NonceFromRequest, which works automatically when the consumer
+	// adds httputil.Nonce middleware (included in [Handler.Middleware]).
+	// Set this only to override the default behavior with a custom nonce source.
 	NonceFunc func(*http.Request) string
 }
 

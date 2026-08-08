@@ -75,12 +75,16 @@ func (h *Handler) page(title, active string, user *usermgmt.User, r *http.Reques
 	}
 }
 
-// nonce returns the per-request CSP nonce, or "" when no NonceFunc is set.
+// nonce returns the per-request CSP nonce. When Config.NonceFunc is set
+// (backward compatibility), it takes precedence. Otherwise the nonce is read
+// from the request context via httputil.NonceFromRequest, which works
+// automatically when the consumer adds httputil.Nonce middleware (included in
+// the recommended Middleware() chain). Returns "" when neither is available.
 func (h *Handler) nonce(r *http.Request) string {
-	if h.config.NonceFunc == nil {
-		return ""
+	if h.config.NonceFunc != nil {
+		return h.config.NonceFunc(r)
 	}
-	return h.config.NonceFunc(r)
+	return httputil.NonceFromRequest(r)
 }
 
 // guard wraps a handler with authentication + authorization. The wrapped
@@ -183,6 +187,7 @@ func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
 func (h *Handler) Middleware() func(http.Handler) http.Handler {
 	return cqrshtmx.Chain(
 		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+		httputil.Nonce(httputil.DefaultNonceConfig()),
 		cqrshtmx.RecoveryMiddleware,
 	)
 }

@@ -4,12 +4,14 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
@@ -110,9 +112,17 @@ type BeforeDispatchHook func(ctx context.Context, r *http.Request) context.Conte
 // Use this for logging, metrics, or cleanup.
 type AfterDispatchHook func(ctx context.Context, r *http.Request, err error)
 
+// registerErrorClassificationsOnce ensures httputil error classifications are
+// registered exactly once per process. This lets errors from httputil middleware
+// (compression write failures, hijack failures, etc.) classify correctly through
+// MapError via errorfamily.Classify.
+var registerErrorClassificationsOnce sync.Once
+
 // New creates an App from the given Config.
 // Returns an error if both Commands and Queries are nil.
 func New(config Config) (*App, error) {
+	registerErrorClassificationsOnce.Do(httputil.RegisterErrorClassifications)
+
 	if config.Commands == nil && config.Queries == nil {
 		return nil, errorfamily.NewInfrastructure(
 			"config_invalid",
