@@ -36,6 +36,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/httputil"
+	servertiming "github.com/larsartmann/httputil/server_timing"
 )
 
 const (
@@ -127,7 +128,7 @@ func main() {
 
 	fmt.Printf("admin-demo\nOpen http://localhost%s/  (auto-signs in as %s)\n", addr, adminEmail)
 
-	handler := httputil.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
+	handler := servertiming.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
 		return r.URL.Query().Has("debug")
 	})(logging(mux))
 
