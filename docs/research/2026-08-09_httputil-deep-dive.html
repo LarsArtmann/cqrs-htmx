@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>httputil v0.11.0 — Adoption & Utilization Audit</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         ========================================================================= */
+
+      :root {
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas,
+          monospace;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Layout shell --- */
+      .shell {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        min-height: 100vh;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        background: var(--surface-sunken);
+        border-right: 1px solid var(--border);
+        padding: 32px 20px;
+        font-size: 13px;
+      }
+      .sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+      .sidebar nav a {
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 6px 10px;
+        border-left: 2px solid transparent;
+        transition: all 0.15s;
+      }
+      .sidebar nav a:hover {
+        color: var(--text);
+        background: var(--surface-raised);
+        border-left-color: var(--accent);
+      }
+      .sidebar nav a.section-title {
+        font-weight: 700;
+        color: var(--text);
+        margin-top: 16px;
+        padding-left: 10px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .sidebar nav a.section-title:first-child { margin-top: 0; }
+      .content { padding: 48px 56px; max-width: 920px; }
+
+      @media (max-width: 1024px) {
+        .shell { grid-template-columns: 1fr; }
+        .sidebar {
+          position: relative; height: auto; border-right: none;
+          border-bottom: 1px solid var(--border); padding: 16px;
+        }
+        .sidebar nav { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+        .sidebar nav a { border-left: none; border-bottom: 2px solid transparent; }
+        .sidebar nav a:hover { border-bottom-color: var(--accent); border-left-color: transparent; }
+        .sidebar nav a.section-title { width: 100%; margin-top: 12px; }
+        .content { padding: 24px; }
+      }
+
+      /* --- Hero --- */
+      .hero {
+        border-bottom: 2px solid var(--border-strong);
+        padding-bottom: 32px;
+        margin-bottom: 40px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-faint);
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+      .hero h1 {
+        font-family: var(--font-heading);
+        font-size: 36px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-bottom: 12px;
+      }
+      .subtitle {
+        font-size: 17px;
+        color: var(--text-muted);
+        max-width: 680px;
+        line-height: 1.5;
+      }
+      .meta { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+      .tag {
+        display: inline-block;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+      }
+      .tag.amber { background: var(--amber-light); border-color: var(--warning); }
+      .tag.teal { background: var(--teal-light); border-color: var(--solution); }
+      .tag.red { background: var(--coral-light); border-color: var(--problem); }
+
+      /* --- Scorecard --- */
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 40px;
+      }
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 20px;
+        text-align: center;
+      }
+      .score-card .score {
+        font-family: var(--font-heading);
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 4px;
+      }
+      .score-card .label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-faint);
+        font-weight: 600;
+      }
+      .score-good { color: var(--solution); }
+      .score-warn { color: #c98400; }
+      .score-bad { color: var(--problem); }
+
+      /* --- Callouts --- */
+      .callout {
+        padding: 16px 20px;
+        margin: 20px 0;
+        border-left: 4px solid;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      .callout strong { font-weight: 700; }
+      .callout-teal { border-color: var(--solution); background: var(--teal-light); }
+      .callout-amber { border-color: var(--warning); background: var(--amber-light); }
+      .callout-rose { border-color: var(--problem); background: var(--coral-light); }
+
+      /* --- Strengths --- */
+      .strengths { list-style: none; margin: 16px 0; }
+      .strength {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .strength:last-child { border-bottom: none; }
+      .strength::before {
+        content: "\2713";
+        color: var(--solution);
+        font-weight: 800;
+        flex-shrink: 0;
+        font-size: 16px;
+      }
+      .strength-body { flex: 1; }
+      .strength-body strong { font-weight: 700; }
+      .strength-body .where {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-faint);
+        margin-top: 2px;
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 24px;
+        margin: 20px 0;
+      }
+      .issue-critical { border-left: 4px solid var(--problem); }
+      .issue-important { border-left: 4px solid var(--warning); }
+      .issue-nice { border-left: 4px solid var(--solution); }
+      .severity {
+        display: inline-block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+        padding: 2px 8px;
+        margin-bottom: 8px;
+      }
+      .severity-critical { background: var(--coral-light); color: var(--problem); }
+      .severity-important { background: var(--amber-light); color: #c98400; }
+      .severity-nice { background: var(--teal-light); color: var(--solution); }
+      .issue h3 {
+        font-family: var(--font-heading);
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        line-height: 1.3;
+      }
+      .where {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-faint);
+        margin-bottom: 12px;
+      }
+      .issue p {
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        color: var(--text-muted);
+      }
+      .issue p strong { color: var(--text); }
+
+      /* --- Code blocks --- */
+      pre {
+        background: var(--surface-sunken);
+        padding: 14px 16px;
+        overflow-x: auto;
+        margin: 12px 0;
+        border: 1px solid var(--border);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+      p code, li code, td code {
+        background: var(--surface-sunken);
+        padding: 1px 5px;
+        font-size: 12px;
+      }
+      .tok-keyword { color: #c678dd; }
+      .tok-function { color: #61afef; }
+      .tok-type { color: #e5c07b; }
+      .tok-string { color: #98c379; }
+      .tok-number { color: #d19a66; }
+      .tok-comment { color: #7f848e; font-style: italic; }
+      .tok-property { color: #e06c75; }
+
+      /* --- Tables --- */
+      .compare {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 14px;
+      }
+      .compare th {
+        text-align: left;
+        padding: 10px 12px;
+        background: var(--surface-sunken);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 700;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .compare td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .compare td.yes { color: var(--solution); font-weight: 600; }
+      .compare td.no { color: var(--problem); font-weight: 600; }
+      .compare .highlight {
+        display: inline-block;
+        background: var(--accent);
+        color: var(--surface-raised);
+        padding: 2px 8px;
+        font-weight: 700;
+        font-size: 13px;
+      }
+
+      /* --- Misc --- */
+      h2 {
+        font-family: var(--font-heading);
+        font-size: 26px;
+        font-weight: 800;
+        margin-top: 48px;
+        margin-bottom: 16px;
+        letter-spacing: -0.01em;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+      h3 { font-family: var(--font-heading); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+      p { margin-bottom: 12px; line-height: 1.65; }
+      ul, ol { margin: 8px 0 12px 20px; }
+      li { margin-bottom: 4px; }
+      .footer {
+        margin-top: 60px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--text-faint);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <nav>
+          <a class="section-title" href="#hero">Report</a>
+          <a href="#hero">Overview</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#summary">Summary</a>
+          <a class="section-title" href="#current-usage">Usage</a>
+          <a href="#current-usage">Current Usage</a>
+          <a href="#architecture">Architecture</a>
+          <a class="section-title" href="#critical">Critical</a>
+          <a href="#broken-refs">Broken Compiler Refs</a>
+          <a class="section-title" href="#missed">Missed</a>
+          <a href="#missed-nonce">Nonce Middleware</a>
+          <a href="#missed-compression">Compression</a>
+          <a href="#missed-cors">CORS</a>
+          <a href="#missed-etag">ETag</a>
+          <a href="#missed-decompression">Decompression</a>
+          <a href="#missed-metrics">Metrics</a>
+          <a href="#missed-errorclass">Error Classification</a>
+          <a href="#missed-mwstack">MiddlewareStack</a>
+          <a href="#missed-health">Health Handlers</a>
+          <a href="#missed-body">MaxBodySize</a>
+          <a href="#missed-requestid">RequestID</a>
+          <a class="section-title" href="#partial">Partial</a>
+          <a href="#partial-ratelimit">Rate Limiting</a>
+          <a href="#partial-security">Security Config</a>
+          <a href="#partial-clientip">ClientIP</a>
+          <a class="section-title" href="#leveraged">Leveraged</a>
+          <a href="#leveraged-csrf">CSRF</a>
+          <a href="#leveraged-server">Server</a>
+          <a href="#leveraged-servertiming">Server-Timing</a>
+          <a class="section-title" href="#version">Version</a>
+          <a href="#version-currency">Version Currency</a>
+          <a href="#opportunities">Top Opportunities</a>
+          <a href="#conclusion">Conclusion</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <header class="hero" id="hero">
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-08-09</div>
+          <h1>httputil v0.11.0 &mdash; Adoption &amp; Utilization Audit</h1>
+          <p class="subtitle">
+            cqrs-htmx depends on httputil for CSRF, security headers, production serving, and
+            Server-Timing. This audit maps every httputil capability against actual usage to find
+            missed opportunities, hand-rolled duplicates, and broken references.
+          </p>
+          <div class="meta">
+            <span class="tag teal">Version: v0.11.0 (latest)</span>
+            <span class="tag">Module: github.com/larsartmann/httputil</span>
+            <span class="tag amber">Adoption Score: 64/100</span>
+            <span class="tag red">3 broken compiler refs</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-warn">
+            <div class="score">64</div>
+            <div class="label">Adoption score / 100</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">7</div>
+            <div class="label">Fully leveraged</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">3</div>
+            <div class="label">Partially used</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">10</div>
+            <div class="label">Missed opportunities</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">1</div>
+            <div class="label">Anti-patterns</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            cqrs-htmx has solid adoption of the four features it migrated to httputil (CSRF, security
+            headers, production server, Server-Timing) and is on the latest v0.11.0. However, it misses
+            almost every advanced middleware feature httputil offers &mdash; Nonce, Compression, CORS,
+            ETag, Decompression, Metrics, and RegisterErrorClassifications are all unused. Three
+            compiler-breaking references to <code>httputil.ServerTimingMiddlewareWhen</code> /
+            <code>httputil.MeasureServerTiming</code> (which live in the <code>server_timing</code>
+            sub-module, not the httputil root) break <code>go test ./...</code> for the root module and
+            <code>go build</code> for admin-demo. adminui hand-rolls a <code>NonceFunc</code> callback
+            that duplicates httputil&rsquo;s entire Nonce/CSP system &mdash; the same pattern that caused
+            a CSP bug in another consumer.
+          </div>
+        </section>
+
+        <h2 id="current-usage">Current Usage</h2>
+        <p>
+          cqrs-htmx is a <strong>library</strong>, not an application. It follows a duck-typing
+          philosophy: CORS, compression, body limits, and other everyday HTTP middleware are
+          intentionally not re-exported &mdash; consumers import httputil directly. This is a sound
+          design decision documented in <code>doc.go</code> and <code>docs/guides/leveraging-httputil.md</code>.
+          However, the audit evaluates both <em>internal usage</em> (does cqrs-htmx use httputil where
+          it should?) and <em>example coverage</em> (do the examples demonstrate the full range?).
+        </p>
+
+        <ul class="strengths">
+          <li class="strength">
+            <div class="strength-body">
+              <strong>CSRF protection</strong> &mdash; deep integration: <code>ValidateCSRF</code>, <code>ErrCSRFInvalid</code>, <code>CSRFTokenFormField</code>, <code>CSRFTokenHTMLMeta</code>, <code>CSRFResponseHeaderMiddleware</code>. Properly wired through the handler pipeline with per-handler validation.
+              <div class="where">csrf_handler.go, errors.go, adminui/handler.go, loginpage/handler.go, csrf_reexport.go</div>
+            </div>
+          </li>
+          <li class="strength">
+            <div class="strength-body">
+              <strong>Security headers</strong> &mdash; <code>SecurityHeaders(DefaultSecurityHeadersConfig())</code> used in adminui and dashboardui. Deprecated alias in <code>security.go</code> delegates correctly.
+              <div class="where">adminui/handler.go:185, dashboardui/handler.go:34, security.go</div>
+            </div>
+          </li>
+          <li class="strength">
+            <div class="strength-body">
+              <strong>Production server</strong> &mdash; all 7 examples use <code>httputil.NewServer</code> with <code>ServerConfig</code>. Never bare <code>http.ListenAndServe</code>.
+              <div class="where">examples/basic, admin-demo, dashboard-demo, middleware-demo, observability-demo, catalog-demo, datastar-demo</div>
+            </div>
+          </li>
+          <li class="strength">
+            <div class="strength-body">
+              <strong>Server-Timing</strong> &mdash; <code>servertiming.WrapServerTiming</code> used in <code>app.go</code> for opt-in timing via Config predicate. Correct sub-module import.
+              <div class="where">app.go:335</div>
+            </div>
+          </li>
+          <li class="strength">
+            <div class="strength-body">
+              <strong>ParseUintQuery</strong> &mdash; used in usermgmt for pagination parameter parsing.
+              <div class="where">usermgmt/credential_http.go, usermgmt/verification_totp_http.go</div>
+            </div>
+          </li>
+          <li class="strength">
+            <div class="strength-body">
+              <strong>httpspec compliance</strong> &mdash; 18-spec behavioral suite runs against the recommended middleware stack and the full App dispatch pipeline.
+              <div class="where">httpspec_compliance_test.go</div>
+            </div>
+          </li>
+          <li class="strength">
+            <div class="strength-body">
+              <strong>Version currency</strong> &mdash; on latest v0.11.0 (released same day as this audit).
+              <div class="where">go.mod:18</div>
+            </div>
+          </li>
+        </ul>
+
+        <h2 id="architecture">Usage Architecture</h2>
+        <p>
+          httputil is imported across <strong>14 module go.mod files</strong> and <strong>30+ Go source files</strong>.
+          The root module uses httputil for: CSRF (validation + token helpers + error integration), security headers
+          (delegated wrapper), Server-Timing (WrapServerTiming in the App pipeline), and ParseUintQuery (pagination).
+          The <code>server_timing</code> sub-module is imported directly in <code>app.go</code> and re-exported via
+          deprecated aliases. All 7 examples use <code>httputil.NewServer</code>. Three re-export files
+          (<code>csrf_reexport.go</code>, <code>ratelimit_reexport.go</code>, <code>server_timing_reexport.go</code>)
+          provide 39 deprecated backward-compat aliases planned for v5 removal.
+        </p>
+        <p>
+          <strong>Hand-rolled alternatives</strong> exist for: Request ID (<code>ContextEnrichmentMiddleware</code>),
+          Recovery (<code>RecoveryMiddleware</code> with errorfamily), Logging (<code>RequestLoggingSlog</code> with
+          dispatch-error capture), Body Size (<code>decoder.go</code> inline LimitReader), Nonce (adminui
+          <code>NonceFunc</code> callback), Health (<code>HealthHandler</code> + <code>readiness.go</code>), and
+          StatusRecorder (with <code>ErrorRecorder</code>). Several of these are <em>intentionally richer</em> than
+          the httputil equivalent &mdash; see the Not Applicable section.
+        </p>
+
+        <h2 id="critical">Critical Findings</h2>
+
+        <div class="issue issue-critical" id="broken-refs">
+          <span class="severity severity-critical">Anti-Pattern &middot; Breaks compilation</span>
+          <h3>Broken compiler references &mdash; <code>httputil.ServerTimingMiddlewareWhen</code> does not exist in httputil root</h3>
+          <div class="where">example_app_test.go:299,303 &middot; examples/admin-demo/main.go:130</div>
+          <p>
+            Three call sites reference <code>httputil.ServerTimingMiddlewareWhen</code> and <code>httputil.MeasureServerTiming</code>,
+            but these symbols live in the <strong><code>server_timing</code> sub-module</strong> (package <code>servertiming</code>),
+            not the httputil root package. The root module&rsquo;s <code>go test ./...</code> fails to compile, and
+            <code>examples/admin-demo</code> fails to build. This appears to have been introduced when Server-Timing was
+            extracted into a sub-module in v0.10.0 &mdash; the call sites were never updated.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Import <code>github.com/larsartmann/httputil/server_timing</code> and use <code>servertiming.ServerTimingMiddlewareWhen</code>
+            and <code>servertiming.MeasureServerTiming</code>. Alternatively, use the deprecated cqrs-htmx aliases
+            <code>cqrshtmx.ServerTimingMiddlewareWhen</code> and <code>cqrshtmx.MeasureServerTiming</code>.
+          </div>
+          <pre><code><span class="tok-comment">// Before (broken):</span>
+handler := <span class="tok-function">httputil.ServerTimingMiddlewareWhen</span>(func(r *http.Request) bool {
+    return r.URL.Query().Has(<span class="tok-string">"debug"</span>)
+})(mux)
+
+<span class="tok-comment">// After (fixed):</span>
+<span class="tok-keyword">import</span> servertiming <span class="tok-string">"github.com/larsartmann/httputil/server_timing"</span>
+
+handler := <span class="tok-function">servertiming.ServerTimingMiddlewareWhen</span>(func(r *http.Request) bool {
+    return r.URL.Query().Has(<span class="tok-string">"debug"</span>)
+})(mux)</code></pre>
+        </div>
+
+        <h2 id="missed">Missed Opportunities</h2>
+
+        <div class="issue issue-critical" id="missed-nonce">
+          <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+          <h3>Nonce middleware (v0.10.0) unused &mdash; adminui hand-rolls a weaker NonceFunc callback</h3>
+          <div class="where">adminui/config.go:73-76 (NonceFunc) &middot; adminui/handler.go:78-84 (nonce()) &middot; httputil/nonce.go (unused)</div>
+          <p>
+            httputil v0.10.0 added a complete CSP nonce middleware: <code>Nonce(cfg)</code> generates a cryptographically
+            random nonce (20 bytes / 160 bits default), stores it in request context, optionally sets the
+            <code>Content-Security-Policy</code> header, and provides <code>NonceFromRequest</code>, <code>NonceAttr</code>
+            (returns <code>nonce="..."</code> for templates), <code>RecommendedCSPWithNonce</code>, and
+            <code>ProductionCSPWithNonce</code>. All validated, fuzz-tested, and benchmarked.
+          </p>
+          <p>
+            adminui instead exposes <code>NonceFunc func(*http.Request) string</code> &mdash; pushing nonce generation,
+            CSP header construction, and context propagation entirely to the consumer. When <code>NonceFunc</code> is nil
+            (the default), <strong>no nonce is generated and no CSP header is set</strong>. This is the exact same
+            pattern that caused a CSP bug in another consumer (see httputil&rsquo;s
+            <code>docs/feedback/new/2026-08-09_consumer-reinvents-nonce-csp-system.md</code>).
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Replace adminui&rsquo;s <code>NonceFunc</code> with <code>httputil.Nonce(httputil.DefaultNonceConfig())</code>
+            in the middleware chain. Use <code>httputil.NonceFromRequest(r)</code> in the page data struct instead of
+            the callback. This gives adminui per-request nonces with CSP headers, <code>NonceAttr</code> for templates,
+            and bomb-proof CSP construction for free.
+          </div>
+          <pre><code><span class="tok-comment">// Before: consumer must implement nonce generation</span>
+panel, _ := adminui.New(adminui.Config{
+    NonceFunc: func(r *http.Request) string {
+        <span class="tok-comment">// consumer hand-rolls crypto/rand + base64 + context storage...</span>
+        return generateMyOwnNonce(r)
+    },
+})
+
+<span class="tok-comment">// After: httputil.Nonce middleware + NonceFromRequest</span>
+handler := cqrshtmx.Chain(
+    httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+    httputil.Nonce(httputil.DefaultNonceConfig()),  <span class="tok-comment">// CSP nonce per request</span>
+    panel.Mount,
+)(mux)
+
+<span class="tok-comment">// In adminui handler:</span>
+nonce := httputil.NonceFromRequest(r)  <span class="tok-comment">// replaces h.nonce(r)</span></code></pre>
+        </div>
+
+        <div class="issue issue-critical" id="missed-compression">
+          <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+          <h3>Compression middleware unused &mdash; all JSON, HTML fragments, and SSE sent uncompressed</h3>
+          <div class="where">Not used anywhere &middot; httputil/compression.go (unused) &middot; documented in leveraging-httputil.md but no example</div>
+          <p>
+            httputil provides pooled gzip/deflate response compression with RFC 7231 q-value negotiation, automatic
+            skipping of small responses and already-compressed content types, and configurable compression levels.
+            For a library whose primary use case is serving HTML fragments over HTMX and JSON API responses,
+            compression is a significant performance win (typically 5-10x smaller payloads for text-heavy responses).
+            No example demonstrates the pattern.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Add <code>httputil.Compression(httputil.DefaultCompressionConfig())</code> to at least one example&rsquo;s
+            middleware chain (e.g., <code>examples/basic/main.go</code>) and document it as a recommended default.
+          </div>
+        </div>
+
+        <div class="issue issue-critical" id="missed-cors">
+          <span class="severity severity-critical">Missed Opportunity &middot; Medium impact</span>
+          <h3>CORS middleware unused &mdash; no example demonstrates browser-facing API configuration</h3>
+          <div class="where">Not used anywhere &middot; httputil/cors.go (unused) &middot; documented in leveraging-httputil.md but no example</div>
+          <p>
+            httputil&rsquo;s CORS middleware supports wildcard origins (<code>*.example.com</code>), credential policies,
+            preflight caching, and <code>DenyUnmatched: true</code> by default (secure-by-default since v0.7.0). The
+            <code>leveraging-httputil.md</code> guide has a recipe, but no runnable example exists. For a library
+            designed for browser-facing CQRS apps, CORS is a common need.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Add a CORS-configured example or extend an existing example to show the pattern.
+          </div>
+        </div>
+
+        <div class="issue issue-critical" id="missed-etag">
+          <span class="severity severity-critical">Missed Opportunity &middot; Medium impact</span>
+          <h3>ETag middleware (v0.10.0) unused for dynamic responses</h3>
+          <div class="where">Not used anywhere &middot; httputil/etag.go (unused) &middot; cqrs-htmx has its own static-asset ETagging only</div>
+          <p>
+            cqrs-htmx has its own FNV-1a ETagging for static assets (htmx.js, OpenAPI spec, event catalog &mdash; 1-year
+            immutable cache). But dynamic query responses (JSON API, paginated lists) do not get ETagged.
+            <code>httputil.ETag(etag.DefaultETagConfig())</code> buffers GET/HEAD responses, computes an FNV-64a hash,
+            and returns 304 Not Modified on <code>If-None-Match</code> match. This would eliminate redundant data
+            transfer for repeated query responses.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Add <code>httputil.ETag(etag.DefaultETagConfig())</code> to the middleware chain in examples that serve
+            query responses. Document the ordering constraint: ETag must be inside (after) Compression.
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="missed-decompression">
+          <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+          <h3>Decompression middleware (v0.9.0) unused &mdash; no bomb protection for compressed request bodies</h3>
+          <div class="where">Not used anywhere &middot; httputil/decompression.go (unused)</div>
+          <p>
+            httputil&rsquo;s <code>Decompression</code> middleware transparently decompresses gzip/deflate request bodies
+            based on <code>Content-Encoding</code>, with built-in bomb protection (<code>MaxDecompressionSize</code>,
+            default 16 MiB). cqrs-htmx&rsquo;s <code>decoder.go</code> uses <code>io.LimitReader</code> for body size,
+            but this does <strong>not</strong> handle decompression bomb attacks &mdash; a 1 KB gzipped body can
+            decompress to gigabytes, and the LimitReader sees the compressed stream.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Document <code>httputil.Decompression(httputil.DefaultDecompressionConfig())</code> in the
+            leveraging-httputil guide as a security hardening step for endpoints that accept compressed bodies.
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="missed-metrics">
+          <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+          <h3>Metrics middleware unused &mdash; no Prometheus integration path demonstrated</h3>
+          <div class="where">Not used anywhere &middot; httputil/metrics.go (unused)</div>
+          <p>
+            httputil provides a <code>MetricsRecorder</code> interface and <code>Metrics(cfg)</code> middleware that
+            records method, path, status, and duration per request. This is a clean plug-in point for Prometheus,
+            OpenTelemetry, or any custom metrics backend. No example or integration shows how to wire it.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Add a metrics example showing a <code>MetricsRecorder</code> implementation (e.g., Prometheus counters) wired
+            into the middleware chain.
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="missed-errorclass">
+          <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+          <h3>RegisterErrorClassifications() never called &mdash; httputil error codes won&rsquo;t classify through MapError</h3>
+          <div class="where">Not called anywhere &middot; httputil/errors.go (RegisterErrorClassifications)</div>
+          <p>
+            httputil classifies its internal errors (write failures, hijack failures, compression failures) with
+            behavioral families via go-error-family. <code>RegisterErrorClassifications()</code> registers stdlib HTTP
+            error sentinels and error message templates so they classify through <code>cqrshtmx.MapError</code> via
+            <code>errorfamily.Classify</code>. Without this call, <code>http.write_failed</code>,
+            <code>http.compress_write_failed</code>, <code>http.hijack_unsupported</code>, and
+            <code>http.hijack_failed</code> won&rsquo;t get proper error family classification &mdash; they&rsquo;ll fall
+            through to the default 500 instead of being classified as Transient (retryable) or Infrastructure.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Call <code>httputil.RegisterErrorClassifications()</code> once at startup in <code>App</code> initialization
+            (or document it as a consumer responsibility in the leveraging-httputil guide).
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="missed-mwstack">
+          <span class="severity severity-important">Missed Opportunity &middot; Low impact</span>
+          <h3>MiddlewareStack unused &mdash; examples use bare Chain without validation</h3>
+          <div class="where">Not used anywhere &middot; httputil/stack.go (unused) &middot; cqrs-htmx uses its own Chain</div>
+          <p>
+            <code>httputil.NewMiddlewareStack()</code> provides a named, validated middleware stack builder: it enforces
+            &ldquo;Recovery outermost&rdquo;, rejects duplicate names, and validates the stack before building.
+            <code>cqrshtmx.Chain</code> is a bare composition helper with no validation. Examples that compose 6+
+            middleware would benefit from the safety guarantees.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Not urgent &mdash; <code>cqrshtmx.Chain</code> works fine for library code. Consider demonstrating
+            <code>MiddlewareStack</code> in one example as a &ldquo;safer alternative&rdquo; pattern.
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="missed-health">
+          <span class="severity severity-important">Missed Opportunity &middot; Low impact</span>
+          <h3>Health handlers duplicated &mdash; cqrs-htmx hand-rolls what httputil provides</h3>
+          <div class="where">app.go:411-425 (HealthHandler) &middot; readiness.go:1-136 (ReadinessHandler, NamedCheck, DebugHandler) &middot; dashboardui/handlers_health.go:1-80 &middot; httputil/health.go (unused)</div>
+          <p>
+            cqrs-htmx hand-rolls <code>HealthHandler()</code> (checks dispatcher availability), <code>ReadinessHandler</code>
+            (parallel health checks with JSON response, 136 lines), and <code>DebugHandler</code>. dashboardui hand-rolls
+            <code>healthzHandler</code>, <code>readyzHandler</code>, and <code>versionzHandler</code>. httputil provides
+            <code>HealthHandler()</code>, <code>LiveHandler()</code>, <code>ReadyHandler()</code>,
+            <code>ReadyHandlerWithProbe(func() bool)</code>, and <code>RegisterHealth(mux)</code> (mounts /health,
+            /health/live, /health/ready in one call).
+          </p>
+          <p>
+            The hand-rolled version is <em>partially</em> justified &mdash; cqrs-htmx&rsquo;s <code>HealthHandler</code>
+            checks dispatcher availability (domain-aware). But <code>ReadyHandlerWithProbe</code> could replace the
+            simpler readiness checks, and <code>RegisterHealth</code> would standardize the endpoint paths.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Use <code>httputil.RegisterHealth(mux)</code> for the standard liveness/readiness endpoints. Keep
+            cqrs-htmx&rsquo;s domain-aware <code>HealthHandler</code> for the dispatcher-availability check, but compose
+            it as the probe function: <code>httputil.ReadyHandlerWithProbe(func() bool { return app.HasDispatchers() })</code>.
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="missed-body">
+          <span class="severity severity-important">Missed Opportunity &middot; Low impact</span>
+          <h3>MaxBodySize middleware unused &mdash; decoder.go hand-rolls inline LimitReader</h3>
+          <div class="where">decoder.go:59-68 (readBody with io.LimitReader) &middot; httputil/maxbodysize.go (unused)</div>
+          <p>
+            cqrs-htmx&rsquo;s <code>decoder.go</code> reads request bodies with <code>io.ReadAll(io.LimitReader(r.Body, maxBodySize+1))</code>
+            &mdash; a hand-rolled body size limit. httputil&rsquo;s <code>MaxBodySize(maxBytes)</code> provides
+            middleware-level enforcement that rejects oversized bodies <strong>before</strong> they reach the decoder
+            (immediate 413), with <code>MaxBodySizeConfig.Validate()</code> and <code>DefaultMaxBodySizeConfig()</code>
+            (1 MiB default).
+          </p>
+          <p>
+            The current approach is <em>partially</em> justified &mdash; the per-handler <code>WithMaxBodySize(n)</code>
+            option needs inline limiting, not middleware. But a middleware-level guard as a safety net (rejecting
+            oversized bodies before any processing) would be defense-in-depth.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Document <code>httputil.MaxBodySize(1 &lt;&lt; 20)</code> as a recommended outer middleware guard in the
+            leveraging-httputil guide. Keep the per-handler <code>WithMaxBodySize</code> for fine-grained control.
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="missed-requestid">
+          <span class="severity severity-important">Missed Opportunity &middot; Low impact</span>
+          <h3>RequestID middleware unused &mdash; ContextEnrichmentMiddleware hand-rolls 40+ lines of ID logic</h3>
+          <div class="where">middleware.go:18-63 (ContextEnrichmentMiddleware) &middot; httputil/requestid.go (unused)</div>
+          <p>
+            cqrs-htmx&rsquo;s <code>ContextEnrichmentMiddleware</code> extracts <code>X-Request-ID</code>, parses or
+            generates a ULID, stores it in context, and writes it back to the response header &mdash; 40+ lines.
+            httputil&rsquo;s <code>RequestID(cfg)</code> provides the same with <code>RequestIDConfig.GenerateID</code>
+            for custom ID generation, <code>RequestIDConfig.IncomingHeader</code> / <code>ResponseHeader</code> for
+            configurable header names, and <code>RequestIDFromContext</code>.
+          </p>
+          <p>
+            The hand-rolled version is <em>partially</em> justified &mdash; it also handles correlation IDs and user ID
+            extraction in the same middleware, which httputil.RequestID does not. But the request ID portion could
+            delegate to httputil and compose the correlation/user logic on top.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Low priority &mdash; the current implementation works and is domain-aware. Consider delegating the request
+            ID generation to <code>httputil.RequestID</code> with <code>GenerateID: func() string { return NewRequestID().String() }</code>
+            in a future refactor, composing correlation/user ID extraction on top.
+          </div>
+        </div>
+
+        <h2 id="partial">Partially Used</h2>
+
+        <div class="issue issue-important" id="partial-ratelimit">
+          <span class="severity severity-important">Partially Used &middot; Re-export only</span>
+          <h3>Rate limiting &mdash; deprecated aliases only, no runtime usage or example</h3>
+          <div class="where">ratelimit_reexport.go (11 aliases) &middot; no runtime call in cqrs-htmx &middot; no example</div>
+          <p>
+            <code>KeyedRateLimiterMiddleware</code>, <code>NewKeyedRateLimiter</code>, <code>KeyExtractorFromRemoteAddr</code>,
+            <code>KeyExtractorFromClientIP</code>, and 7 other symbols are re-exported as deprecated aliases. But
+            cqrs-htmx itself never uses them at runtime, and no example demonstrates the rate-limiting pattern.
+            The <code>leveraging-httputil.md</code> guide has a recipe, but it&rsquo;s not runnable.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            Add a rate-limiting example showing <code>httputil.KeyedRateLimiterMiddleware(httputil.DefaultKeyedRateLimiterConfig())</code>
+            composed with <code>httputil.ClientIPMiddleware</code> for correct per-client limiting behind a proxy.
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="partial-security">
+          <span class="severity severity-important">Partially Used &middot; Default config only</span>
+          <h3>SecurityHeadersConfig enriched fields unused &mdash; PermissionsPolicy, ContentTypeOptions, Custom, SecurityHeaderSkip</h3>
+          <div class="where">adminui/handler.go:185, dashboardui/handler.go:34 &middot; both use DefaultSecurityHeadersConfig() only</div>
+          <p>
+            v0.9.0 enriched <code>SecurityHeadersConfig</code> with <code>PermissionsPolicy</code>,
+            <code>ContentTypeOptions</code> (string, takes precedence over <code>ContentTypeNosniff</code> bool),
+            <code>Custom map[string]string</code>, and the <code>SecurityHeaderSkip = "-"</code> sentinel. adminui and
+            dashboardui use <code>DefaultSecurityHeadersConfig()</code> without any customization &mdash; no
+            <code>Permissions-Policy</code> header, no custom headers.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            adminui and dashboardui should set a production-appropriate <code>PermissionsPolicy</code> (e.g.,
+            <code>"geolocation=(), microphone=(), camera=()"</code>) and consider <code>ProductionCSPWithNonce</code>
+            via the Nonce middleware (see the Nonce finding above).
+          </div>
+        </div>
+
+        <div class="issue issue-important" id="partial-clientip">
+          <span class="severity severity-important">Partially Used &middot; Test only</span>
+          <h3>ClientIP &mdash; tested but never wired into any middleware chain</h3>
+          <div class="where">httputil_test.go:52,66,73 (test assertions) &middot; no runtime usage</div>
+          <p>
+            <code>httputil.ClientIP(r)</code> is tested in <code>httputil_test.go</code> but never used in any middleware
+            chain, example, or submodule. <code>ClientIPMiddleware</code> and <code>ClientIPFromContext</code> are also
+            unused. For correct rate limiting behind a reverse proxy, <code>ClientIPMiddleware</code> must be in the
+            chain so <code>KeyExtractorFromClientIP</code> sees the real client IP instead of the proxy&rsquo;s IP.
+          </p>
+          <div class="callout callout-teal">
+            <strong>Recommendation</strong>
+            When adding a rate-limiting example, include <code>httputil.ClientIPMiddleware</code> in the chain before
+            the rate limiter.
+          </div>
+        </div>
+
+        <h2 id="leveraged">Fully Leveraged</h2>
+
+        <div class="issue issue-nice" id="leveraged-csrf">
+          <span class="severity severity-nice">Fully Leveraged</span>
+          <h3>CSRF protection &mdash; deep, correct integration</h3>
+          <div class="where">csrf_handler.go, errors.go, adminui/handler.go, loginpage/handler.go, csrf_reexport.go</div>
+          <p>
+            cqrs-htmx uses httputil&rsquo;s CSRF middleware correctly and deeply: <code>ValidateCSRF</code> for per-handler
+            validation, <code>ErrCSRFInvalid</code> for error mapping (routed to 403),
+            <code>CSRFTokenFormField</code> and <code>CSRFTokenHTMLMeta</code> for template integration in adminui and
+            loginpage, <code>CSRFResponseHeaderMiddleware</code> for HTMX token propagation, and
+            <code>CSRFTestToken</code> for test helpers. The deprecated re-exports preserve backward compatibility.
+          </p>
+        </div>
+
+        <div class="issue issue-nice" id="leveraged-server">
+          <span class="severity severity-nice">Fully Leveraged</span>
+          <h3>Production server &mdash; all examples use NewServer with real timeouts</h3>
+          <div class="where">examples/basic, admin-demo, dashboard-demo, middleware-demo, observability-demo, catalog-demo, datastar-demo</div>
+          <p>
+            Every example uses <code>httputil.NewServer(cfg, handler)</code> with <code>ServerConfig</code> &mdash; never
+            bare <code>http.ListenAndServe</code>. Two examples use <code>DefaultServerConfig()</code> for full timeout
+            defaults; the rest set <code>Addr</code> explicitly.
+          </p>
+        </div>
+
+        <div class="issue issue-nice" id="leveraged-servertiming">
+          <span class="severity severity-nice">Fully Leveraged</span>
+          <h3>Server-Timing &mdash; correct sub-module usage with predicate gating</h3>
+          <div class="where">app.go:335 (WrapServerTiming) &middot; server_timing_reexport.go (aliases)</div>
+          <p>
+            The root module imports <code>servertiming "github.com/larsartmann/httputil/server_timing"</code> directly
+            and uses <code>servertiming.WrapServerTiming(w, r)</code> in <code>App.applyServerTiming</code> &mdash;
+            correctly gated behind <code>Config.ServerTiming</code> predicate. Deprecated aliases preserve backward
+            compatibility for consumers. (Note: the example/test call sites that reference these via the httputil root
+            are broken &mdash; see the critical finding above.)
+          </p>
+        </div>
+
+        <h2 id="not-applicable">Not Applicable (Intentionally Hand-Rolled)</h2>
+        <p>
+          These features are hand-rolled in cqrs-htmx for good reason &mdash; the hand-rolled version is domain-aware
+          and strictly richer than the httputil equivalent. Switching to httputil would <strong>lose functionality</strong>.
+        </p>
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>cqrs-htmx version</th>
+              <th>Why httputil&rsquo;s is weaker</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Recovery</td>
+              <td><code>RecoveryMiddleware</code> &mdash; errorfamily integration, dispatch error handler, request ID recovery from response headers</td>
+              <td>httputil.Recovery just logs + 500; no errorfamily, no dispatch error handler</td>
+            </tr>
+            <tr>
+              <td>Logging</td>
+              <td><code>RequestLoggingSlog</code> &mdash; captures dispatch errors, request/correlation/user IDs</td>
+              <td>httputil.Logging only logs method/path/status/duration/clientIP</td>
+            </tr>
+            <tr>
+              <td>ResponseRecorder</td>
+              <td><code>StatusRecorder</code> &mdash; embeds <code>ErrorRecorder</code> for dispatch error capture</td>
+              <td>httputil.ResponseRecorder captures status only</td>
+            </tr>
+            <tr>
+              <td>Chain</td>
+              <td><code>cqrshtmx.Chain</code> &mdash; same signature, same behavior</td>
+              <td>Identical; no benefit to switching</td>
+            </tr>
+            <tr>
+              <td>Timeout</td>
+              <td><code>App.timeout</code> &mdash; per-dispatch (CQRS-level) timeout</td>
+              <td>httputil.Timeout is per-request; different concern (use both)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="version">Version Currency</h2>
+        <section id="version-currency">
+          <div class="callout callout-teal">
+            <strong>On the latest version.</strong>
+            cqrs-htmx references httputil v0.11.0 (released 2026-08-09, same day as this audit). No version gap exists.
+          </div>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Version</th>
+                <th>Date</th>
+                <th>Notable Change</th>
+                <th>Adoption Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>v0.11.0</td>
+                <td>2026-08-09</td>
+                <td>Validate-at-construction for all middleware; Nonce hardening</td>
+                <td class="yes">Installed (latest)</td>
+              </tr>
+              <tr>
+                <td>v0.10.0</td>
+                <td>2026-08-08</td>
+                <td>CSP Nonce middleware; Decompression; ETag adapter; TLSConfig; Decompression bomb protection</td>
+                <td class="no">Nonce/Decompression/ETag all missed</td>
+              </tr>
+              <tr>
+                <td>v0.9.1</td>
+                <td>2026-08-06</td>
+                <td>ETag RFC 7232 weak comparison fix</td>
+                <td class="no">ETag not used</td>
+              </tr>
+              <tr>
+                <td>v0.9.0</td>
+                <td>2026-08-05</td>
+                <td>SecurityHeadersConfig enriched; Decompression; MaxBodySizeConfig; ServerConfig.ShutdownTimeout; KeyedRateLimiterConfig.Validate</td>
+                <td class="no">Enriched fields unused; Decompression unused</td>
+              </tr>
+              <tr>
+                <td>v0.8.0</td>
+                <td>2026-07-31</td>
+                <td>CSRF; Server-Timing; KeyedRateLimit (extracted to sub-module in v0.10.0)</td>
+                <td class="yes">CSRF + Server-Timing adopted</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <h2 id="opportunities">Top Opportunities</h2>
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Opportunity</th>
+              <th>Impact</th>
+              <th>Ease</th>
+              <th>Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Fix broken <code>httputil.ServerTimingMiddlewareWhen</code> refs (3 call sites)</td>
+              <td class="yes">5</td>
+              <td class="yes">5</td>
+              <td><span class="highlight">25</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Call <code>RegisterErrorClassifications()</code> at startup</td>
+              <td class="yes">4</td>
+              <td class="yes">5</td>
+              <td><span class="highlight">20</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Replace adminui <code>NonceFunc</code> with <code>httputil.Nonce</code> middleware</td>
+              <td class="yes">5</td>
+              <td>3</td>
+              <td><span class="highlight">15</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Add Compression to at least one example</td>
+              <td class="yes">4</td>
+              <td class="yes">5</td>
+              <td><span class="highlight">20</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Add CORS to an example</td>
+              <td>3</td>
+              <td class="yes">5</td>
+              <td><span class="highlight">15</span></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Add ETag to query-response examples</td>
+              <td>3</td>
+              <td>4</td>
+              <td><span class="highlight">12</span></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Document Decompression as security hardening</td>
+              <td>3</td>
+              <td class="yes">5</td>
+              <td><span class="highlight">15</span></td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Add Metrics example with Prometheus recorder</td>
+              <td>3</td>
+              <td>3</td>
+              <td><span class="highlight">9</span></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>Add rate-limiting example with ClientIPMiddleware</td>
+              <td>3</td>
+              <td>4</td>
+              <td><span class="highlight">12</span></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>Use <code>PermissionsPolicy</code> in adminui/dashboardui SecurityHeadersConfig</td>
+              <td>2</td>
+              <td class="yes">5</td>
+              <td><span class="highlight">10</span></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>Compose <code>ReadyHandlerWithProbe</code> with app health check</td>
+              <td>2</td>
+              <td>3</td>
+              <td><span class="highlight">6</span></td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>Document <code>MaxBodySize</code> as outer middleware guard</td>
+              <td>2</td>
+              <td class="yes">5</td>
+              <td><span class="highlight">10</span></td>
+            </tr>
+            <tr>
+              <td>13</td>
+              <td>Demonstrate <code>MiddlewareStack</code> in one example</td>
+              <td>1</td>
+              <td>4</td>
+              <td><span class="highlight">4</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="conclusion">Conclusion</h2>
+        <p>
+          cqrs-htmx is on the latest httputil v0.11.0 and has solid adoption of the four features it migrated
+          (CSRF, security headers, production server, Server-Timing). The duck-typing philosophy of not re-exporting
+          everyday HTTP middleware is sound for a library. However, the project misses nearly every advanced middleware
+          feature added in v0.9.0-v0.11.0 (Nonce, Compression, CORS, ETag, Decompression, Metrics), hand-rolls a weaker
+          nonce system in adminui, and has three compiler-breaking references that prevent <code>go test ./...</code>
+          from passing. The single highest-leverage next step is fixing the broken references (5-minute fix, unblocks
+          the test suite), followed by calling <code>RegisterErrorClassifications()</code> and adopting
+          <code>httputil.Nonce</code> in adminui.
+        </p>
+
+        <div class="footer">
+          <p>Generated 2026-08-09 by Crush library-deep-dive skill &middot; httputil v0.11.0 audit for cqrs-htmx v4 &middot; Source: /home/lars/projects/httputil/ and /home/lars/projects/cqrs-htmx/</p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
