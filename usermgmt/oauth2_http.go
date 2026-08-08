@@ -32,7 +32,7 @@ func (h *AuthHandler) handleOAuth2Begin(w http.ResponseWriter, r *http.Request) 
 			writeDispatchError(w, r, err)
 			return
 		}
-		writeJSON(w, http.StatusOK, resp)
+		http.Redirect(w, r, resp.RedirectURL, http.StatusFound)
 	})
 }
 
