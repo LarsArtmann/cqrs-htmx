@@ -14,6 +14,7 @@ use (
 	./examples/middleware-demo
 	./examples/middleware-showcase
 	./examples/observability-demo
+	./examples/samber-do-demo
 	./identity-model
 	./integration_test
 	./loginpage
