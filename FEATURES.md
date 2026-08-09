@@ -381,6 +381,20 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ---
 
+## systemadapter Module (`github.com/larsartmann/cqrs-htmx/systemadapter/v4`)
+
+> NEW [Unreleased] — WORK IN PROGRESS. Bridges cqrs-htmx with go-cqrs-lite's `system/` composition root and `metaengine/` storage planner. See `docs/guides/leveraging-system-metaengine.md`.
+
+| Feature             | Status                    | Notes                                                                                                                                                                                                                          |
+| ------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Domain Config       | 🟡 `PARTIALLY_FUNCTIONAL` | `DomainConfig()` returns `system.DomainConfig` with all 4 deciders, all 20 commands, and `ProjectionTypeDecoder`. Has dead options code (`DomainConfigOption`, `domainConfigBuilder`) that needs cleanup. 3 tests passing.     |
+| Event Type Decoder  | 🟢 `FULLY_FUNCTIONAL`     | `EventTypeDecoder()` returns `*projectionadapter.TypeDecoder` mapping all 21 event types to payload structs. Test verifies all 21 types registered.                                                                            |
+| Projection Layer    | 🟡 `PARTIALLY_FUNCTIONAL` | `NewProjectionLayer(sys)` creates `projectionhost.Host` from system's journal + bus, registers all 6 usermgmt projections. Two-host architecture (system internal + ProjectionLayer) is an open design question.              |
+| Lint Status         | 🔴 `BROKEN`               | 104 lint issues (contextcheck ×10, SA1019 ×43, exhaustruct ×23, err113 ×4, errcheck ×4, mnd ×4, wsl_v5 ×7, wrapcheck ×2, goimports ×3, gci ×1, nlreturn ×3). Excluded from `nix run .#lint`. Remediation tracked in TODO_LIST. |
+| Gate Integration    | 🔴 `BROKEN`               | NOT in coverage-gate, CI workflow, check-module-isolation, or check-dep-budgets. Integration tracked in TODO_LIST.                                                                                                             |
+
+---
+
 ## Not Planned
 
 | Feature                         | Reason                                                                                                                                                                                                                  |
