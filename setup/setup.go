@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -89,26 +90,7 @@ func New(cfg Config) (*Bundle, error) {
 
 	// 4. CQRS/ES observability dashboard — wired from the shared stores.
 	if !cfg.DisableDashboard {
-		dashCfg := dashboardui.Config{ //nolint:exhaustruct // selective fields below
-			Title:           cfg.Title + " · CQRS Dashboard",
-			EventSource:     store,
-			EventBus:        bus,
-			ProjectionHost:  svc.ProjectionHost(),
-			PageSize:        cfg.DashboardPageSize,
-			LogoutURL:       cfg.LogoutURL,
-			AccentColor:     cfg.AccentColor,
-		}
-		if journal, ok := store.(event.Journal); ok {
-			dashCfg.Journal = journal
-		}
-
-		if cfg.DashboardReadOnly != nil {
-			dashCfg.ReadOnly = *cfg.DashboardReadOnly
-		} else {
-			dashCfg.ReadOnly = true
-		}
-
-		dash, err := dashboardui.New(dashCfg)
+		dash, err := dashboardui.New(buildDashboardConfig(cfg, store, bus, svc.ProjectionHost()))
 		if err != nil {
 			cleanup()
 
@@ -151,4 +133,35 @@ func MustNew(cfg Config) *Bundle {
 	}
 
 	return b
+}
+
+// buildDashboardConfig constructs the dashboardui.Config from the setup Config,
+// wiring shared stores and applying dashboard-specific defaults.
+func buildDashboardConfig(
+	cfg Config,
+	store event.Store,
+	bus event.Bus,
+	projectionHost *projectionhost.Host,
+) dashboardui.Config {
+	dashCfg := dashboardui.Config{
+		Title:          cfg.Title + " · CQRS Dashboard",
+		EventSource:    store,
+		EventBus:       bus,
+		ProjectionHost: projectionHost,
+		PageSize:       cfg.DashboardPageSize,
+		LogoutURL:      cfg.LogoutURL,
+		AccentColor:    cfg.AccentColor,
+	}
+
+	if journal, ok := store.(event.Journal); ok {
+		dashCfg.Journal = journal
+	}
+
+	if cfg.DashboardReadOnly != nil {
+		dashCfg.ReadOnly = *cfg.DashboardReadOnly
+	} else {
+		dashCfg.ReadOnly = true
+	}
+
+	return dashCfg
 }
