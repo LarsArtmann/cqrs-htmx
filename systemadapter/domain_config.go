@@ -49,6 +49,7 @@ func DomainConfig() system.DomainConfig {
 	return system.DomainConfig{
 		Commands:              registerAllCommands,
 		ProjectionTypeDecoder: EventTypeDecoder(),
+		Projections:           DeclarativeProjections(),
 	}
 }
 

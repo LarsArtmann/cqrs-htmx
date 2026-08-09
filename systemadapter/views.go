@@ -79,12 +79,13 @@ type ExternalAccountLink struct {
 	UserID          string `json:"user_id"`
 }
 
-// PolicyEntry represents a single Casbin policy entry (subject, domain, role).
+// PolicyEntry represents a single authorization policy: which roles a subject
+// holds in a domain. Keyed by the stream ID of the aggregate that produced it.
 type PolicyEntry struct {
-	Key     string `json:"key"`
-	Subject string `json:"subject"`
-	Role    string `json:"role"`
-	Domain  string `json:"domain"`
+	Key     string   `json:"key"`
+	Subject string   `json:"subject"`
+	Domain  string   `json:"domain"`
+	Roles   []string `json:"roles"`
 }
 
 // AuditEntryView is a single entry in the append-only audit log.
