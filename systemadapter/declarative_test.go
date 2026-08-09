@@ -24,7 +24,6 @@ func setupDeclarativeSystem(t *testing.T) *system.System {
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
-			{Role: system.RoleProjections, Engines: []string{"primary"}},
 		},
 	}
 
