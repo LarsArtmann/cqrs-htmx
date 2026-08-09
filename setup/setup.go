@@ -54,7 +54,7 @@ func New(cfg Config) (*Bundle, error) {
 	}
 
 	// 3. Admin panel.
-	if cfg.EnableAdmin {
+	if !cfg.DisableAdmin {
 		admin, err := adminui.New(adminui.Config{ //nolint:exhaustruct // defaults applied internally
 			Service:     svc,
 			Title:       cfg.Title,
@@ -70,7 +70,7 @@ func New(cfg Config) (*Bundle, error) {
 	}
 
 	// 4. CQRS/ES observability dashboard — wired from the shared stores.
-	if cfg.EnableDashboard {
+	if !cfg.DisableDashboard {
 		dashCfg := dashboardui.Config{
 			Title:          cfg.Title + " · CQRS Dashboard",
 			EventSource:    store,
@@ -97,7 +97,7 @@ func New(cfg Config) (*Bundle, error) {
 	}
 
 	// 5. Login page.
-	if cfg.EnableLogin {
+	if !cfg.DisableLogin {
 		login, err := loginpage.New(loginpage.Config{ //nolint:exhaustruct // defaults applied internally
 			Service:  svc,
 			Title:    cfg.Title,

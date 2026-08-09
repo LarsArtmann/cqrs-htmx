@@ -53,16 +53,17 @@ type Config struct {
 	// Session configuration.
 	CookieName string // default: "session"
 
-	// Feature flags — control which panels are mounted (default: all true).
+	// Feature flags — control which panels are mounted.
+	// Go zero-value (false) = ENABLED. Set true to disable a panel.
 	//
 	// Disable panels you don't need to reduce the route surface:
 	//
-	//   EnableDashboard: false, // no CQRS observability panel
-	//   EnableAdmin:     false, // no user management panel
-	//   EnableLogin:     false, // use your own login page
-	EnableAdmin     bool
-	EnableDashboard bool
-	EnableLogin     bool
+	//   DisableDashboard: true, // no CQRS observability panel
+	//   DisableAdmin:     true, // no user management panel
+	//   DisableLogin:     true, // use your own login page
+	DisableAdmin     bool
+	DisableDashboard bool
+	DisableLogin     bool
 }
 
 func (c Config) withDefaults() Config {
