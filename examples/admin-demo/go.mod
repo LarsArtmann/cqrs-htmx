@@ -10,6 +10,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-sse v0.4.0
 	github.com/larsartmann/httputil v0.11.0
+	github.com/larsartmann/httputil/server_timing v0.10.0
 )
 
 require (
@@ -58,7 +59,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-etag v0.1.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
-	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
 	github.com/larsartmann/templ-components v1.8.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

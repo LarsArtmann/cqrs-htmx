@@ -55,7 +55,7 @@ func (r *logRecorder) Record(method, path string, status int, duration time.Dura
 type dataResponse struct {
 	Message   string    `json:"message"`
 	Count     int64     `json:"count"`
-	ServerTime time.Time `json:"server_time"`
+	ServerTime time.Time `json:"serverTime"`
 }
 
 var requestCount atomic.Int64
@@ -173,7 +173,10 @@ func main() {
 	fmt.Printf("httputil Middleware Showcase\nListening on http://localhost%s\n", addr)
 	fmt.Printf("Stack: %v\n", stack.Names())
 
-	srv, err := httputil.NewServer(httputil.ServerConfig{Addr: addr}, handler)
+	// Serve with real timeouts via httputil.NewServer (never bare http.ListenAndServe).
+	serverCfg := httputil.DefaultServerConfig()
+	serverCfg.Addr = addr
+	srv, err := httputil.NewServer(serverCfg, handler)
 	if err != nil {
 		panic(fmt.Sprintf("invalid server config: %v", err))
 	}
