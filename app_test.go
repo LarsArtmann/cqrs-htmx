@@ -10,6 +10,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -43,6 +44,14 @@ var _ = Describe("App", func() {
 		It("returns error when both dispatchers are nil", func() {
 			_, err := cqrshtmx.New(cqrshtmx.Config{})
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("auto-registers httputil error classifications", func() {
+			_, err := cqrshtmx.New(cqrshtmx.Config{Commands: command.NewDispatcher()})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(errorfamily.Classify(http.ErrNotSupported).HTTPStatus()).
+				To(Equal(http.StatusServiceUnavailable))
 		})
 
 		It("uses Config.LoginRedirect for HTMX auth errors", func() {

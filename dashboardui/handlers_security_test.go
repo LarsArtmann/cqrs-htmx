@@ -274,3 +274,28 @@ func TestPagination_PreservesFilterInLinks(t *testing.T) {
 		}
 	}
 }
+
+func TestMiddleware_PermissionsPolicy(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	d, _ := New(Config{EventSource: store, Journal: store})
+
+	mw := d.Middleware()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})).ServeHTTP(rec, req)
+
+	pp := rec.Header().Get("Permissions-Policy")
+	if pp == "" {
+		t.Fatal("expected Permissions-Policy header to be set")
+	}
+
+	for _, want := range []string{"geolocation=()", "microphone=()", "camera=()", "payment=()", "usb=()"} {
+		if !strings.Contains(pp, want) {
+			t.Errorf("Permissions-Policy missing %q, got %q", want, pp)
+		}
+	}
+}

@@ -229,3 +229,44 @@ func TestNew_TenantAdminRequiresTenantID(t *testing.T) {
 		t.Error("expected error for tenant-admin without TenantID")
 	}
 }
+
+func TestMiddleware_PermissionsPolicyAndNonce(t *testing.T) {
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{AuditLog: usermgmt.NewAuditLog()})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	panel, err := New(Config{Service: svc, Authorizer: RequireAuthenticated()})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mw := panel.Middleware()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})).ServeHTTP(rec, req)
+
+	pp := rec.Header().Get("Permissions-Policy")
+	if pp == "" {
+		t.Fatal("expected Permissions-Policy header to be set")
+	}
+
+	for _, want := range []string{"geolocation=()", "microphone=()", "camera=()", "payment=()", "usb=()"} {
+		if !strings.Contains(pp, want) {
+			t.Errorf("Permissions-Policy missing %q, got %q", want, pp)
+		}
+	}
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if csp == "" {
+		t.Fatal("expected Content-Security-Policy header to be set")
+	}
+
+	if !strings.Contains(csp, "nonce-") {
+		t.Errorf("expected CSP to contain a nonce, got %q", csp)
+	}
+}
