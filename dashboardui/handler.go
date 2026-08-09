@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/httputil"
 )
 
 // Handler returns the root HTTP handler for the dashboard. All internal
@@ -29,14 +28,11 @@ func (d *Dashboard) Mount(mux *http.ServeMux, pattern string) {
 }
 
 // Middleware returns the recommended middleware chain for the dashboard.
+// It delegates to [cqrshtmx.RecommendedSecurityMiddleware] so that the
+// dashboard has the same security posture as adminui: security headers,
+// per-request CSP nonce, and panic recovery.
 func (d *Dashboard) Middleware() func(http.Handler) http.Handler {
-	securityCfg := httputil.DefaultSecurityHeadersConfig()
-	securityCfg.PermissionsPolicy = "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
-
-	return cqrshtmx.Chain(
-		httputil.SecurityHeaders(securityCfg),
-		cqrshtmx.RecoveryMiddleware,
-	)
+	return cqrshtmx.RecommendedSecurityMiddleware()
 }
 
 func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registration is inherently a long switch on capabilities

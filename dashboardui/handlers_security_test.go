@@ -299,3 +299,38 @@ func TestMiddleware_PermissionsPolicy(t *testing.T) {
 		}
 	}
 }
+
+func TestMiddleware_CSPWithNonceAndSecurityHeaders(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	d, _ := New(Config{EventSource: store, Journal: store})
+
+	mw := d.Middleware()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	mw(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})).ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if csp == "" {
+		t.Fatal("expected Content-Security-Policy header to be set")
+	}
+	if !strings.Contains(csp, "nonce-") {
+		t.Errorf("expected CSP to contain a nonce (Nonce middleware should be in chain), got %q", csp)
+	}
+	if !strings.Contains(csp, "'self'") {
+		t.Errorf("expected CSP to allow 'self', got %q", csp)
+	}
+
+	for _, tc := range []struct{ header, want string }{
+		{"X-Content-Type-Options", "nosniff"},
+		{"X-Frame-Options", "DENY"},
+		{"Referrer-Policy", "strict-origin-when-cross-origin"},
+	} {
+		if got := rec.Header().Get(tc.header); got != tc.want {
+			t.Errorf("%s = %q, want %q", tc.header, got, tc.want)
+		}
+	}
+}

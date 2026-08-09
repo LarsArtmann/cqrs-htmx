@@ -118,6 +118,19 @@ type AfterDispatchHook func(ctx context.Context, r *http.Request, err error)
 // MapError via errorfamily.Classify.
 var registerErrorClassificationsOnce sync.Once
 
+// RegisterErrorClassifications registers httputil error classifications so
+// that errors originating from httputil middleware (compression write
+// failures, hijack failures, etc.) classify correctly through [MapError] via
+// errorfamily.Classify.
+//
+// [New] calls this automatically via a sync.Once guard. Call this function
+// once at startup if you use httputil middleware without creating an App
+// (e.g., a static file server with only httputil.Compression). Safe to call
+// multiple times — the underlying registration is idempotent.
+func RegisterErrorClassifications() {
+	registerErrorClassificationsOnce.Do(httputil.RegisterErrorClassifications)
+}
+
 // New creates an App from the given Config.
 // Returns an error if both Commands and Queries are nil.
 func New(config Config) (*App, error) {
