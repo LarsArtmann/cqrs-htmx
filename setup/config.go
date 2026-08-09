@@ -51,7 +51,7 @@ type Config struct {
 	AdminPath     string // default: "/admin/"
 	DashboardPath string // default: "/dashboard/"
 	LoginRedirect string // default: "/admin/" — where to redirect after login
-	HealthPath    string // default: "/health" — health check endpoint (set to "" to disable)
+	HealthPath    string // default: "/health" — health check endpoint
 
 	// Session configuration.
 	CookieName string        // default: "session"
