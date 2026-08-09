@@ -2,9 +2,11 @@ package setup
 
 import (
 	"database/sql"
+	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Config is the single entry point for configuring a full-stack cqrs-htmx application.
@@ -18,14 +20,14 @@ import (
 type Config struct {
 	// Auth providers (all optional). Import the sub-modules and inject:
 	//
-	//   import totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
-	//   TOTP: totp.New(totp.Config{Issuer: "MyApp"}),
+	//	import totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
+	//	TOTP: totp.New(totp.Config{Issuer: "MyApp"}),
 	//
-	//   import webauthn "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
-	//   WebAuthn: webauthn.New(webauthn.Config{RPID: "myapp.com", ...}),
+	//	import webauthn "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
+	//	WebAuthn: webauthn.New(webauthn.Config{RPID: "myapp.com", ...}),
 	//
-	//   import oauth2 "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
-	//   OAuth2: oauth2.New(oauth2.Config{Providers: ...}),
+	//	import oauth2 "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
+	//	OAuth2: oauth2.New(oauth2.Config{Providers: ...}),
 	TOTP     identitymodel.TOTPProvider
 	WebAuthn identitymodel.WebAuthnProvider
 	OAuth2   identitymodel.OAuth2Provider
@@ -49,18 +51,42 @@ type Config struct {
 	AdminPath     string // default: "/admin/"
 	DashboardPath string // default: "/dashboard/"
 	LoginRedirect string // default: "/admin/" — where to redirect after login
+	HealthPath    string // default: "/health" — health check endpoint (set to "" to disable)
 
 	// Session configuration.
-	CookieName string // default: "session"
+	CookieName string        // default: "session"
+	SessionTTL time.Duration // default: 0 (use usermgmt default of 24h)
+
+	// LogoutURL is shown as a link in the admin and dashboard panels (default: "" = hidden).
+	LogoutURL string
+
+	// SSEURL enables the admin panel's real-time sync indicator (default: "" = disabled).
+	SSEURL string
+
+	// OnProjectionFailed fires when a projection worker exhausts its restart budget.
+	// Use for alerting (Slack, PagerDuty, etc.). Nil = no callback.
+	OnProjectionFailed func(projectionName, lastError string)
+
+	// DashboardReadOnly controls whether the CQRS dashboard allows write operations
+	// (projection reset, DLQ replay). Nil = true (safe default). Set to false at your
+	// own risk — the dashboard will have no authorizer unless you add one manually.
+	DashboardReadOnly *bool
+
+	// DashboardPageSize controls the number of rows per page in dashboard tables
+	// (default: 0 = use dashboardui default of 50, max 200).
+	DashboardPageSize int
+
+	// LoginNoRegistration hides the registration section on the login page (default: false).
+	LoginNoRegistration bool
 
 	// Feature flags — control which panels are mounted.
 	// Go zero-value (false) = ENABLED. Set true to disable a panel.
 	//
 	// Disable panels you don't need to reduce the route surface:
 	//
-	//   DisableDashboard: true, // no CQRS observability panel
-	//   DisableAdmin:     true, // no user management panel
-	//   DisableLogin:     true, // use your own login page
+	//	DisableDashboard: true, // no CQRS observability panel
+	//	DisableAdmin:     true, // no user management panel
+	//	DisableLogin:     true, // use your own login page
 	DisableAdmin     bool
 	DisableDashboard bool
 	DisableLogin     bool
@@ -92,5 +118,38 @@ func (c Config) withDefaults() Config {
 		cfg.CookieName = "session"
 	}
 
+	if cfg.HealthPath == "" {
+		cfg.HealthPath = "/health"
+	}
+
 	return cfg
+}
+
+// validate checks the resolved config for common misconfigurations and returns
+// a rejection error describing the first issue found, or nil if the config is sound.
+func (c Config) validate() error {
+	if c.AdminPath != "" && !startsWithSlash(c.AdminPath) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config", "AdminPath must start with %q (got %q)", "/", c.AdminPath)
+	}
+
+	if c.DashboardPath != "" && !startsWithSlash(c.DashboardPath) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config", "DashboardPath must start with %q (got %q)", "/", c.DashboardPath)
+	}
+
+	if c.HealthPath != "" && !startsWithSlash(c.HealthPath) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config", "HealthPath must start with %q (got %q)", "/", c.HealthPath)
+	}
+
+	if c.CookieName == "" {
+		return errorfamily.NewRejection("setup.invalid_config", "CookieName must not be empty")
+	}
+
+	return nil
+}
+
+func startsWithSlash(s string) bool {
+	return len(s) > 0 && s[0] == '/'
 }

@@ -32,15 +32,15 @@ type Bundle struct {
 	Auth *usermgmt.AuthHandler
 
 	// Admin is the admin panel handler (user/tenant/membership management).
-	// Nil if Config.EnableAdmin is false.
+	// Nil if Config.DisableAdmin is true.
 	Admin *adminui.Handler
 
 	// Dashboard is the CQRS/ES observability dashboard.
-	// Nil if Config.EnableDashboard is false.
+	// Nil if Config.DisableDashboard is true.
 	Dashboard *dashboardui.Dashboard
 
 	// Login is the login page handler.
-	// Nil if Config.EnableLogin is false.
+	// Nil if Config.DisableLogin is true.
 	Login *loginpage.Handler
 
 	// Stores holds the shared event infrastructure.
@@ -90,9 +90,27 @@ func (b *Bundle) Middleware() func(http.Handler) http.Handler {
 	return cqrshtmx.RecommendedSecurityMiddleware()
 }
 
-// Close gracefully shuts down all background resources (projections, eviction goroutines).
-// Call on server shutdown. Safe to call multiple times.
+// Handler is a convenience method that mounts all routes and wraps the mux with
+// [Bundle.Middleware]. It eliminates the boilerplate of calling Mount + Middleware separately:
+//
+//	mux := http.NewServeMux()
+//	http.ListenAndServe(":8080", bundle.Handler(mux))
+//
+// If you need custom middleware between security and your routes, use [Bundle.Mount]
+// and [Bundle.Middleware] directly.
+func (b *Bundle) Handler(mux *http.ServeMux) http.Handler {
+	b.Mount(mux)
+
+	return b.Middleware()(mux)
+}
+
+// Close gracefully shuts down all background resources (projections, eviction goroutines,
+// dashboard SSE broadcaster). Call on server shutdown. Safe to call multiple times.
 func (b *Bundle) Close() error {
+	if b.Dashboard != nil {
+		b.Dashboard.Close()
+	}
+
 	if b.Service != nil {
 		if err := b.Service.Close(); err != nil {
 			return errorfamily.WrapInfrastructure(err, "setup.bundle_close", "failed to close service")

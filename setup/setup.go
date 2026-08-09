@@ -11,8 +11,6 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-const defaultPageSize = 25
-
 // New creates a fully wired [Bundle] from a single [Config].
 //
 // It creates the shared event infrastructure (or uses provided stores), constructs the
@@ -22,6 +20,10 @@ const defaultPageSize = 25
 // All defaults are overridable via Config fields. Stores default to in-memory.
 func New(cfg Config) (*Bundle, error) {
 	cfg = cfg.withDefaults()
+
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
 
 	// 1. Shared event infrastructure.
 	store := cfg.EventStore
@@ -36,13 +38,15 @@ func New(cfg Config) (*Bundle, error) {
 
 	// 2. User management service — injects the shared stores.
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct // setup applies selective defaults
-		EventStore:  store,
-		EventBus:    bus,
-		ReadModelDB: cfg.ReadModelDB,
-		AuditLog:    usermgmt.NewAuditLog(),
-		TOTP:        cfg.TOTP,
-		WebAuthn:    cfg.WebAuthn,
-		OAuth2:      cfg.OAuth2,
+		EventStore:         store,
+		EventBus:           bus,
+		ReadModelDB:        cfg.ReadModelDB,
+		AuditLog:           usermgmt.NewAuditLog(),
+		TOTP:               cfg.TOTP,
+		WebAuthn:           cfg.WebAuthn,
+		OAuth2:             cfg.OAuth2,
+		SessionTTL:         cfg.SessionTTL,
+		OnProjectionFailed: cfg.OnProjectionFailed,
 	})
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")
@@ -55,15 +59,27 @@ func New(cfg Config) (*Bundle, error) {
 		config:  cfg,
 	}
 
+	// cleanup closes all resources created so far, in reverse creation order.
+	// Called on any creation failure to prevent leaks.
+	cleanup := func() {
+		if bundle.Dashboard != nil {
+			bundle.Dashboard.Close()
+		}
+
+		_ = svc.Close()
+	}
+
 	// 3. Admin panel.
 	if !cfg.DisableAdmin {
 		admin, err := adminui.New(adminui.Config{ //nolint:exhaustruct // defaults applied internally
 			Service:     svc,
 			Title:       cfg.Title,
 			AccentColor: cfg.AccentColor,
+			LogoutURL:   cfg.LogoutURL,
+			SSEURL:      cfg.SSEURL,
 		})
 		if err != nil {
-			_ = svc.Close()
+			cleanup()
 
 			return nil, errorfamily.WrapRejection(err, "setup.admin_creation_failed", "failed to create admin panel")
 		}
@@ -73,20 +89,28 @@ func New(cfg Config) (*Bundle, error) {
 
 	// 4. CQRS/ES observability dashboard — wired from the shared stores.
 	if !cfg.DisableDashboard {
-		dashCfg := dashboardui.Config{
-			Title:          cfg.Title + " · CQRS Dashboard",
-			EventSource:    store,
-			EventBus:       bus,
-			ProjectionHost: svc.ProjectionHost(),
-			PageSize:       defaultPageSize,
+		dashCfg := dashboardui.Config{ //nolint:exhaustruct // selective fields below
+			Title:           cfg.Title + " · CQRS Dashboard",
+			EventSource:     store,
+			EventBus:        bus,
+			ProjectionHost:  svc.ProjectionHost(),
+			PageSize:        cfg.DashboardPageSize,
+			LogoutURL:       cfg.LogoutURL,
+			AccentColor:     cfg.AccentColor,
 		}
 		if journal, ok := store.(event.Journal); ok {
 			dashCfg.Journal = journal
 		}
 
+		if cfg.DashboardReadOnly != nil {
+			dashCfg.ReadOnly = *cfg.DashboardReadOnly
+		} else {
+			dashCfg.ReadOnly = true
+		}
+
 		dash, err := dashboardui.New(dashCfg)
 		if err != nil {
-			_ = svc.Close()
+			cleanup()
 
 			return nil, errorfamily.WrapRejection(
 				err,
@@ -101,12 +125,14 @@ func New(cfg Config) (*Bundle, error) {
 	// 5. Login page.
 	if !cfg.DisableLogin {
 		login, err := loginpage.New(loginpage.Config{ //nolint:exhaustruct // defaults applied internally
-			Service:  svc,
-			Title:    cfg.Title,
-			Redirect: cfg.LoginRedirect,
+			Service:        svc,
+			Title:          cfg.Title,
+			Redirect:       cfg.LoginRedirect,
+			AccentColor:    cfg.AccentColor,
+			NoRegistration: cfg.LoginNoRegistration,
 		})
 		if err != nil {
-			_ = svc.Close()
+			cleanup()
 
 			return nil, errorfamily.WrapRejection(err, "setup.login_creation_failed", "failed to create login page")
 		}
