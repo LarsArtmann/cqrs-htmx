@@ -806,3 +806,182 @@ func TestNew_AllConfigFields(t *testing.T) {
 		t.Fatal("Login is nil")
 	}
 }
+
+func TestNew_ConfigValidation_InvalidLoginRedirect(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:         "Invalid Redirect",
+		LoginRedirect: "admin/dashboard",
+	})
+	if err == nil {
+		t.Fatal("expected error for LoginRedirect not starting with / or http")
+	}
+}
+
+func TestNew_ConfigValidation_ValidLoginRedirect_HTTPS(t *testing.T) {
+	t.Parallel()
+
+	bundle, err := setup.New(setup.Config{
+		Title:         "HTTPS Redirect",
+		LoginRedirect: "https://example.com/dashboard",
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = bundle.Close() }()
+}
+
+func TestNew_DashboardReadOnly_ExplicitTrue(t *testing.T) {
+	t.Parallel()
+
+	readOnly := true
+
+	bundle := setup.MustNew(setup.Config{
+		Title:             "Explicit ReadOnly",
+		DashboardReadOnly: &readOnly,
+	})
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Dashboard == nil {
+		t.Fatal("Dashboard is nil")
+	}
+
+	cfg := bundle.Dashboard.Config()
+	if !cfg.ReadOnly {
+		t.Fatal("Dashboard should be read-only when DashboardReadOnly is explicitly true")
+	}
+}
+
+func TestNew_StoresSharedBetweenServiceAndDashboard(t *testing.T) {
+	t.Parallel()
+
+	store := memorystorage.NewMemoryStore()
+	bus := watermill.NewEventBus()
+
+	bundle, err := setup.New(setup.Config{
+		Title:      "Shared Stores",
+		EventStore: store,
+		EventBus:   bus,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Stores.EventStore != store {
+		t.Fatal("EventStore in Stores is not the provided instance")
+	}
+
+	if bundle.Stores.EventBus != bus {
+		t.Fatal("EventBus in Stores is not the provided instance")
+	}
+}
+
+func TestNew_CustomCookieName(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{
+		Title:      "Custom Cookie",
+		CookieName: "my-session-cookie",
+	})
+	defer func() { _ = bundle.Close() }()
+
+	mw := bundle.SessionMiddleware()
+	if mw == nil {
+		t.Fatal("SessionMiddleware returned nil")
+	}
+}
+
+func TestMount_HealthEndpoint_ContentJSON(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{Title: "Content-Type Test"})
+	defer func() { _ = bundle.Close() }()
+
+	mux := http.NewServeMux()
+	bundle.Mount(mux)
+
+	server := httptest.NewServer(bundle.Middleware()(mux))
+	defer server.Close()
+
+	resp, err := http.Get(server.URL + "/health")
+	if err != nil {
+		t.Fatalf("GET /health: %v", err)
+	}
+	defer resp.Body.Close()
+
+	ct := resp.Header.Get("Content-Type")
+	if !strings.HasPrefix(ct, "application/json") {
+		t.Fatalf("GET /health: Content-Type = %q, want application/json", ct)
+	}
+}
+
+func TestNew_CustomPaths_NoTrailingSlash(t *testing.T) {
+	t.Parallel()
+
+	// AdminPath without trailing slash — Mount should still register the route.
+	// The session middleware wraps it, so unauthenticated access should be blocked.
+	bundle := setup.MustNew(setup.Config{
+		Title:     "No Trailing Slash",
+		AdminPath: "/manage", // no trailing slash
+	})
+	defer func() { _ = bundle.Close() }()
+
+	mux := http.NewServeMux()
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Mount panicked with non-trailing-slash admin path: %v", r)
+		}
+	}()
+
+	bundle.Mount(mux)
+}
+
+func TestNew_CustomEventStore_DefaultBus(t *testing.T) {
+	t.Parallel()
+
+	store := memorystorage.NewMemoryStore()
+
+	bundle, err := setup.New(setup.Config{
+		Title:      "Custom Store Default Bus",
+		EventStore: store,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Stores.EventStore != store {
+		t.Fatal("EventStore is not the custom store")
+	}
+
+	if bundle.Stores.EventBus == nil {
+		t.Fatal("EventBus should be auto-created")
+	}
+}
+
+func TestNew_DefaultStore_CustomBus(t *testing.T) {
+	t.Parallel()
+
+	bus := watermill.NewEventBus()
+
+	bundle, err := setup.New(setup.Config{
+		Title:    "Default Store Custom Bus",
+		EventBus: bus,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Stores.EventStore == nil {
+		t.Fatal("EventStore should be auto-created")
+	}
+
+	if bundle.Stores.EventBus != bus {
+		t.Fatal("EventBus is not the custom bus")
+	}
+}

@@ -2,6 +2,7 @@ package setup
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -143,6 +144,12 @@ func (c Config) validate() error {
 			"setup.invalid_config", "HealthPath must start with %q (got %q)", "/", c.HealthPath)
 	}
 
+	if c.LoginRedirect != "" && !startsWithSlash(c.LoginRedirect) && !startsWithScheme(c.LoginRedirect) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config",
+			"LoginRedirect must start with %q or a URL scheme (got %q)", "/", c.LoginRedirect)
+	}
+
 	if c.CookieName == "" {
 		return errorfamily.NewRejection("setup.invalid_config", "CookieName must not be empty")
 	}
@@ -152,4 +159,8 @@ func (c Config) validate() error {
 
 func startsWithSlash(s string) bool {
 	return len(s) > 0 && s[0] == '/'
+}
+
+func startsWithScheme(s string) bool {
+	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 }
