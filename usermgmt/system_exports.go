@@ -51,7 +51,10 @@ func DecideDisableTOTP(aggID id.StreamID) decider.DecideFunc[UserState] {
 }
 
 // DecideLinkExternalAccount is the exported version of decideLinkExternalAccount for system.New() integration.
-func DecideLinkExternalAccount(aggID id.StreamID, provider, subject, email, displayName string) decider.DecideFunc[UserState] {
+func DecideLinkExternalAccount(
+	aggID id.StreamID,
+	provider, subject, email, displayName string,
+) decider.DecideFunc[UserState] {
 	return decideLinkExternalAccount(aggID, provider, subject, email, displayName)
 }
 
@@ -110,5 +113,3 @@ func DecideRegisterBot(aggID id.StreamID, name string, ownerID UserID, tokenHash
 func DecideDeleteBot(aggID id.StreamID, reason string) decider.DecideFunc[BotState] {
 	return decideDeleteBot(aggID, reason)
 }
-
-
