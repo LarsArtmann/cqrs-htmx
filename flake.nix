@@ -620,7 +620,7 @@
                 check_cov dashboardui 60
                 check_cov datastar 90
                 check_cov setup 80
-                check_cov systemadapter 60
+                check_cov systemadapter 70
                 # Per-package gate: dashboardui/core is the pure data layer.
                 core_cov=$(cd dashboardui && go test ./core/... -count=1 -coverprofile=/tmp/corecov >/dev/null 2>&1 && go tool cover -func=/tmp/corecov | tail -1 | grep -oP '\d+\.\d+(?=%)')
                 echo "dashboardui/core coverage: ''${core_cov}% (threshold: 80%)"

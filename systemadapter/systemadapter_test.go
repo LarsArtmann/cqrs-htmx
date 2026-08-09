@@ -47,7 +47,8 @@ func sqliteDeployment(t *testing.T) system.DeploymentConfig {
 
 // setupTestSystem creates a system + projection layer for testing.
 // The caller must defer pl.Stop() and sys.Close().
-func setupTestSystem(t *testing.T, deployment system.DeploymentConfig) (*system.System, *systemadapter.ProjectionLayer) {
+func setupTestSystem(t *testing.T, deployment system.DeploymentConfig,
+) (*system.System, *systemadapter.ProjectionLayer) {
 	t.Helper()
 
 	ctx := context.Background()
@@ -59,12 +60,12 @@ func setupTestSystem(t *testing.T, deployment system.DeploymentConfig) (*system.
 
 	pl, err := systemadapter.NewProjectionLayer(sys)
 	if err != nil {
-		sys.Close()
+		_ = sys.Close()
 		t.Fatalf("NewProjectionLayer failed: %v", err)
 	}
 
 	if err := pl.Start(ctx); err != nil {
-		sys.Close()
+		_ = sys.Close()
 		t.Fatalf("ProjectionLayer.Start failed: %v", err)
 	}
 
@@ -220,8 +221,16 @@ func TestDomainConfig_MembershipCommands(t *testing.T) {
 	}
 
 	// Add the user as a member of the tenant with admin role.
-	actorID := identitymodel.ActorIDFromUser(identitymodel.NewUserID(userID.String()))
-	memberCmd := identitymodel.NewAddMemberCmd(actorID, identitymodel.NewTenantID(tenantID.String()), []identitymodel.Role{identitymodel.RoleAdmin})
+	adminUserID, err := identitymodel.ParseUserID(userID.String())
+	if err != nil {
+		t.Fatalf("ParseUserID failed: %v", err)
+	}
+
+	actorID := identitymodel.ActorIDFromUser(adminUserID)
+	memberCmd := identitymodel.NewAddMemberCmd(
+		actorID, identitymodel.NewTenantID(tenantID.String()),
+		[]identitymodel.Role{identitymodel.RoleAdmin},
+	)
 	if err := sys.CommandDispatcher().Dispatch(ctx, memberCmd); err != nil {
 		t.Fatalf("Dispatch AddMember failed: %v", err)
 	}
@@ -274,7 +283,12 @@ func TestDomainConfig_BotCommands(t *testing.T) {
 	tokenHash := []byte{0x01, 0x02, 0x03}
 	scopes := []string{"read:users", "write:users"}
 
-	botCmd := identitymodel.NewRegisterBotCmd(botID, "ci-bot", identitymodel.NewUserID(ownerID.String()), tokenHash, scopes)
+	ownerUserID, err := identitymodel.ParseUserID(ownerID.String())
+	if err != nil {
+		t.Fatalf("ParseUserID failed: %v", err)
+	}
+
+	botCmd := identitymodel.NewRegisterBotCmd(botID, "ci-bot", ownerUserID, tokenHash, scopes)
 	if err := sys.CommandDispatcher().Dispatch(ctx, botCmd); err != nil {
 		t.Fatalf("Dispatch RegisterBot failed: %v", err)
 	}
@@ -293,12 +307,12 @@ func TestDomainConfig_BotCommands(t *testing.T) {
 		t.Errorf("bot name = %q, want %q", bot.Name, "ci-bot")
 	}
 
-	if bot.OwnerID != identitymodel.NewUserID(ownerID.String()) {
+	if bot.OwnerID != ownerUserID {
 		t.Errorf("bot ownerID = %v, want %v", bot.OwnerID, ownerID)
 	}
 
 	// Verify lookup by owner.
-	byOwner := pl.Bot.FindByOwner(identitymodel.NewUserID(ownerID.String()))
+	byOwner := pl.Bot.FindByOwner(ownerUserID)
 	if len(byOwner) != 1 {
 		t.Errorf("FindByOwner returned %d bots, want 1", len(byOwner))
 	}
@@ -333,18 +347,19 @@ func TestDomainConfig_CasbinProjection(t *testing.T) {
 		t.Fatalf("WaitForDrain failed: %v", err)
 	}
 
-	// Admin should be able to read resources in any domain.
-	allowed, err := pl.Authz.Enforce(adminID.String(), "*", "resource", identitymodel.ActionRead)
+	// Admin should be able to read resources in their own domain.
+	// CasbinProjection adds roles with domain=subject (user's own ID).
+	allowed, err := pl.Authz.Enforce(adminID.String(), adminID.String(), "resource", identitymodel.ActionRead)
 	if err != nil {
 		t.Fatalf("Enforce(admin) failed: %v", err)
 	}
 
 	if !allowed {
-		t.Error("admin user should be allowed to read resources")
+		t.Error("admin user should be allowed to read resources in their own domain")
 	}
 
-	// Plain user should be denied.
-	denied, err := pl.Authz.Enforce(plainID.String(), "*", "resource", identitymodel.ActionRead)
+	// Plain user should be denied (no roles assigned).
+	denied, err := pl.Authz.Enforce(plainID.String(), plainID.String(), "resource", identitymodel.ActionRead)
 	if err != nil {
 		t.Fatalf("Enforce(plain) failed: %v", err)
 	}

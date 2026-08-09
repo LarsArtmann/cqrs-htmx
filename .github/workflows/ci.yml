@@ -311,7 +311,7 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=systemadapter/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "systemadapter coverage: ${COVERAGE}%"
-          awk "BEGIN { if ($COVERAGE < 60) { print \"systemadapter coverage ${COVERAGE}% is below 60% threshold\"; exit 1 } }"
+          awk "BEGIN { if ($COVERAGE < 70) { print \"systemadapter coverage ${COVERAGE}% is below 70% threshold\"; exit 1 } }"
 
   lint:
     runs-on: ubuntu-latest
