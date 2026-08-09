@@ -220,8 +220,8 @@ func TestDomainConfig_MembershipCommands(t *testing.T) {
 	}
 
 	// Add the user as a member of the tenant with admin role.
-	actorID := identitymodel.ActorIDFromUser(identitymodel.UserID(userID))
-	memberCmd := identitymodel.NewAddMemberCmd(actorID, identitymodel.TenantID(tenantID), []identitymodel.Role{identitymodel.RoleAdmin})
+	actorID := identitymodel.ActorIDFromUser(identitymodel.NewUserID(userID.String()))
+	memberCmd := identitymodel.NewAddMemberCmd(actorID, identitymodel.NewTenantID(tenantID.String()), []identitymodel.Role{identitymodel.RoleAdmin})
 	if err := sys.CommandDispatcher().Dispatch(ctx, memberCmd); err != nil {
 		t.Fatalf("Dispatch AddMember failed: %v", err)
 	}
@@ -245,7 +245,7 @@ func TestDomainConfig_MembershipCommands(t *testing.T) {
 	}
 
 	// Verify lookup by tenant.
-	byTenant := pl.Membership.FindByTenant(string(tenantID))
+	byTenant := pl.Membership.FindByTenant(tenantID.String())
 	if len(byTenant) != 1 {
 		t.Errorf("FindByTenant returned %d memberships, want 1", len(byTenant))
 	}
@@ -274,7 +274,7 @@ func TestDomainConfig_BotCommands(t *testing.T) {
 	tokenHash := []byte{0x01, 0x02, 0x03}
 	scopes := []string{"read:users", "write:users"}
 
-	botCmd := identitymodel.NewRegisterBotCmd(botID, "ci-bot", identitymodel.UserID(ownerID), tokenHash, scopes)
+	botCmd := identitymodel.NewRegisterBotCmd(botID, "ci-bot", identitymodel.NewUserID(ownerID.String()), tokenHash, scopes)
 	if err := sys.CommandDispatcher().Dispatch(ctx, botCmd); err != nil {
 		t.Fatalf("Dispatch RegisterBot failed: %v", err)
 	}
@@ -293,12 +293,12 @@ func TestDomainConfig_BotCommands(t *testing.T) {
 		t.Errorf("bot name = %q, want %q", bot.Name, "ci-bot")
 	}
 
-	if bot.OwnerID != identitymodel.UserID(ownerID) {
+	if bot.OwnerID != identitymodel.NewUserID(ownerID.String()) {
 		t.Errorf("bot ownerID = %v, want %v", bot.OwnerID, ownerID)
 	}
 
 	// Verify lookup by owner.
-	byOwner := pl.Bot.FindByOwner(identitymodel.UserID(ownerID))
+	byOwner := pl.Bot.FindByOwner(identitymodel.NewUserID(ownerID.String()))
 	if len(byOwner) != 1 {
 		t.Errorf("FindByOwner returned %d bots, want 1", len(byOwner))
 	}
@@ -386,7 +386,7 @@ func TestDomainConfig_SQLiteDeployment(t *testing.T) {
 	}
 
 	// Verify events persisted to the SQLite journal by loading the stream.
-	events, err := sys.EventStore().Load(ctx, id.NewStreamRef(streamID, identitymodel.AggregateTypeUser))
+	events, err := sys.EventStore().Load(ctx, id.NewStreamRef(identitymodel.AggregateTypeUser, streamID))
 	if err != nil {
 		t.Fatalf("EventStore.Load failed: %v", err)
 	}
