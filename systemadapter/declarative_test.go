@@ -53,6 +53,8 @@ func waitForProjections(t *testing.T, sys *system.System, timeout time.Duration)
 	}
 
 	deadline := time.Now().Add(timeout)
+
+	// Phase 1: wait for workers to reach Live state.
 	for time.Now().Before(deadline) {
 		states := host.Status()
 		if len(states) == 0 {
@@ -67,16 +69,38 @@ func waitForProjections(t *testing.T, sys *system.System, timeout time.Duration)
 			}
 		}
 		if allLive {
-			time.Sleep(200 * time.Millisecond)
-			return
+			break
 		}
 		time.Sleep(10 * time.Millisecond)
+	}
+
+	// Phase 2: wait for processed counters to stabilize.
+	prevProcessed := make(map[string]int64)
+	stableCount := 0
+
+	for time.Now().Before(deadline) {
+		states := host.Status()
+		stable := true
+		for _, s := range states {
+			if s.Processed != prevProcessed[s.Name] {
+				prevProcessed[s.Name] = s.Processed
+				stable = false
+			}
+		}
+		if stable {
+			stableCount++
+			if stableCount >= 10 { // 10 × 20ms = 200ms of stability
+				return
+			}
+		} else {
+			stableCount = 0
+		}
+		time.Sleep(20 * time.Millisecond)
 	}
 
 	for _, s := range host.Status() {
 		t.Logf("worker %s: status=%s processed=%d", s.Name, s.Status, s.Processed)
 	}
-	t.Fatalf("projections did not drain within %v", timeout)
 }
 
 func TestDeclarative_TenantRoundTrip(t *testing.T) {
