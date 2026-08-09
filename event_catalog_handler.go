@@ -80,7 +80,7 @@ func serveImmutableJSON(w http.ResponseWriter, r *http.Request, etag string, dat
 		return
 	}
 
-	_, _ = w.Write(data)
+	writeAll(w, data)
 }
 
 func (s *immutableJSONServer) serve(w http.ResponseWriter, r *http.Request) {

@@ -274,8 +274,8 @@ func appendDispatchErrorAttrs(attrs []slog.Attr, err error) []slog.Attr {
 	// that were wrapped by dispatch error handling.
 	current := err
 	for current != nil {
-		var evtErr *event.Error
-		if errors.As(current, &evtErr) && evtErr != nil {
+		evtErr, ok := errors.AsType[*event.Error](current)
+		if ok {
 			for k, v := range evtErr.ErrorContext() {
 				attrs = append(attrs, slog.String("error_ctx_"+k, v))
 			}

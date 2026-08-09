@@ -122,7 +122,8 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID sse.Ev
 		events, err := s.journal.ReadAll(ctx)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
-				"cqrshtmx.sse.journal_readall_failed", "read all events from journal")
+				"cqrshtmx.sse.journal_readall_failed", "read all events from journal").
+				WithContext("last_id", lastID.Get())
 		}
 
 		limit := s.maxReplay
@@ -151,7 +152,8 @@ func (s *JournalSSEStore) eventsAfterSeekable(ctx context.Context, lastID sse.Ev
 	events, err := s.seekable.ReadFrom(ctx, afterID, limit)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
-			"cqrshtmx.sse.journal_read_failed", "read events from journal")
+			"cqrshtmx.sse.journal_read_failed", "read events from journal").
+			WithContext("last_id", lastID.Get())
 	}
 
 	return s.mapEvents(events), nil
@@ -163,7 +165,8 @@ func (s *JournalSSEStore) eventsAfterFullScan(ctx context.Context, lastID sse.Ev
 	events, err := s.journal.ReadAll(ctx)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,
-			"cqrshtmx.sse.journal_readall_failed", "read all events from journal")
+			"cqrshtmx.sse.journal_readall_failed", "read all events from journal").
+			WithContext("last_id", lastID.Get())
 	}
 
 	if lastID.Get() == "" {

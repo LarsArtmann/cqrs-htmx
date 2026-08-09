@@ -49,7 +49,7 @@ func serveJS(js []byte, etag string) http.Handler {
 			return
 		}
 
-		_, _ = w.Write(js)
+		writeAll(w, js)
 	})
 }
 

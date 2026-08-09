@@ -44,7 +44,7 @@ func RenderHTML(html string) HandlerOption {
 	return func(config *handlerConfig) {
 		config.render = func(w http.ResponseWriter, _ *http.Request, _ any) error {
 			w.Header().Set("Content-Type", ContentTypeHTML)
-			_, _ = w.Write([]byte(html))
+			writeAll(w, []byte(html))
 
 			return nil
 		}

@@ -243,7 +243,7 @@ func plainBodyWriter(r *http.Request, includeInternal, includeRequestID bool) fu
 			detail = prefixRequestID(r, detail)
 		}
 
-		_, _ = io.WriteString(w, detail)
+		writeAllString(w, detail)
 	}
 }
 
@@ -338,7 +338,7 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 			response[JSONKeyRequestID] = rid.String()
 		}
 
-		_ = json.MarshalWrite(w, response)
+		writeAll(w, response)
 	}
 }
 
@@ -376,7 +376,6 @@ func ProblemDetailsErrorHandlerWithRedirect(
 		w.WriteHeader(status)
 
 		payload := NewStructuredError(err, r)
-		data, _ := json.Marshal(payload)
-		_, _ = w.Write(data)
+		writeAll(w, payload.JSONBytes())
 	})
 }

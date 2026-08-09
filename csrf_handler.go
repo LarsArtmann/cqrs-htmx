@@ -46,7 +46,7 @@ func executeCSRFValidation(w http.ResponseWriter, r *http.Request, handlerCfg *h
 	}
 
 	w.WriteHeader(rec.Code)
-	_, _ = w.Write(rec.Body.Bytes())
+	writeAll(w, rec.Body.Bytes())
 
 	return httputil.ErrCSRFInvalid
 }

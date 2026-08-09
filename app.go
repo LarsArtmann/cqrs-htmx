@@ -451,14 +451,14 @@ func (a *App) HealthHandler() http.HandlerFunc {
 		if !hasDispatchers {
 			w.Header().Set("Content-Type", ContentTypeJSON)
 			w.WriteHeader(http.StatusServiceUnavailable)
-			_, _ = w.Write(unhealthyBody)
+			writeAll(w, unhealthyBody)
 
 			return
 		}
 
 		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(healthyBody)
+		writeAll(w, healthyBody)
 	}
 }
 
