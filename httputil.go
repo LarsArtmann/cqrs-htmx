@@ -29,6 +29,7 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	buf.WriteByte('\n')
 	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.WriteHeader(status)
+
 	if _, err := buf.WriteTo(w); err != nil {
 		slog.Debug("cqrshtmx: response write failed", "error", err)
 	}

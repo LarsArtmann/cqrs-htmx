@@ -27,6 +27,7 @@ func writeAllString(w io.Writer, s string) {
 		if _, err := sw.WriteString(s); err != nil {
 			slog.Debug("cqrshtmx: response write failed", "error", err)
 		}
+
 		return
 	}
 

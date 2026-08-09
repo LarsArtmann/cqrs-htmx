@@ -2,6 +2,7 @@ package cqrshtmx
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/larsartmann/go-sse"
@@ -113,9 +114,9 @@ func (b *Broadcaster) broadcastOnErrorHook(mapper func(r *http.Request, err erro
 func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	stream := sse.NewStream(w, r)
 	defer func() {
-		// Deferred close — the error is intentionally discarded because the
-		// connection is already terminating (client disconnect or loop exit).
-		_ = stream.Close()
+		if err := stream.Close(); err != nil {
+			slog.Debug("cqrshtmx: sse stream close failed", "error", err)
+		}
 	}()
 
 	//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection

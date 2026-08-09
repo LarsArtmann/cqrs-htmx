@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"hash/fnv"
 	"net/http"
 	"strconv"
 
@@ -58,15 +57,23 @@ func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error) {
 }
 
 // hashTag derives a short, stable cache tag from the spec bytes using the
-// standard library's FNV-1a 64-bit hash. It is not cryptographically
-// significant — it only needs to change when the content changes, so a stale
-// spec is refetched.
+// FNV-1a 64-bit hash. It is not cryptographically significant — it only needs
+// to change when the content changes, so a stale spec is refetched.
+//
+// Implemented inline (rather than hash/fnv) to avoid the hash.Hash.Write
+// interface, which requires discarding an error return value that can never
+// occur for a pure in-memory hash computation.
 func hashTag(data []byte) string {
-	h := fnv.New64a()
+	const (
+		offsetBasis uint64 = 14695981039346656037
+		prime       uint64 = 1099511628211
+	)
 
-	// hash.Hash.Write is documented to never return an error; the blank
-	// identifier is required by the io.Writer interface signature.
-	_, _ = h.Write(data)
+	hash := offsetBasis
+	for _, b := range data {
+		hash ^= uint64(b)
+		hash *= prime
+	}
 
-	return strconv.FormatUint(h.Sum64(), 16)
+	return strconv.FormatUint(hash, 16)
 }
