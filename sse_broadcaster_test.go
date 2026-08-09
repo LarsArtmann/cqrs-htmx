@@ -295,4 +295,36 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			Expect(body).To(Equal("event: todoCreated\ndata: <li>Buy milk</li>\n\n"))
 		})
 	})
+
+	Describe("Raw accessor and cross-transport sharing", func() {
+		It("exposes the underlying sse.Broadcaster via Raw", func() {
+			b := cqrshtmx.NewBroadcaster()
+			Expect(b.Raw()).NotTo(BeNil())
+		})
+
+		It("wraps an existing sse.Broadcaster via NewBroadcasterFromRaw", func() {
+			raw := sse.NewBroadcaster[sse.Event]()
+			b := cqrshtmx.NewBroadcasterFromRaw(raw)
+			Expect(b.Raw()).To(Equal(raw))
+		})
+
+		It("shares fan-out across wrappers created from the same raw broadcaster", func() {
+			raw := sse.NewBroadcaster[sse.Event]()
+			b1 := cqrshtmx.NewBroadcasterFromRaw(raw)
+			b2 := cqrshtmx.NewBroadcasterFromRaw(raw)
+
+			ch := b1.Subscribe()
+			defer b1.Unsubscribe(ch)
+
+			evt := sse.Event{Event: "cross", Data: "transport"}
+			b2.Broadcast(evt)
+
+			Eventually(ch).Should(Receive(Equal(evt)))
+		})
+
+		It("satisfies the RawBroadcaster interface", func() {
+			var iface cqrshtmx.RawBroadcaster = cqrshtmx.NewBroadcaster()
+			Expect(iface.Raw()).NotTo(BeNil())
+		})
+	})
 })

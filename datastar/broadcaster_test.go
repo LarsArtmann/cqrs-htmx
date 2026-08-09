@@ -301,3 +301,37 @@ func TestBroadcasterReplayOnReconnect(t *testing.T) {
 	require.Contains(t, body, "item-3")
 	require.NotContains(t, body, "item-1")
 }
+
+func TestBroadcasterRaw(t *testing.T) {
+	t.Parallel()
+	b := ds.NewBroadcaster()
+	require.NotNil(t, b.Raw())
+}
+
+func TestNewBroadcasterFromRaw(t *testing.T) {
+	t.Parallel()
+	raw := sse.NewBroadcaster[sse.Event]()
+	b := ds.NewBroadcasterFromRaw(raw)
+	require.Equal(t, raw, b.Raw())
+}
+
+func TestBroadcasterRawSharesFanOut(t *testing.T) {
+	t.Parallel()
+	raw := sse.NewBroadcaster[sse.Event]()
+	b := ds.NewBroadcasterFromRaw(raw)
+
+	ch := raw.Subscribe()
+	defer raw.Unsubscribe(ch)
+
+	b.BroadcastEvent(sse.Event{Event: "cross", Data: "transport"})
+
+	require.Eventually(t, func() bool {
+		select {
+		case evt := <-ch:
+			require.Equal(t, "cross", evt.Event)
+			return true
+		default:
+			return false
+		}
+	}, 2*time.Second, 5*time.Millisecond)
+}
