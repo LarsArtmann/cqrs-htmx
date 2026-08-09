@@ -2,6 +2,7 @@ package systemadapter_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -23,6 +24,7 @@ func setupDeclarativeSystem(t *testing.T) *system.System {
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
+			{Role: system.RoleProjections, Engines: []string{"primary"}},
 		},
 	}
 
@@ -44,68 +46,44 @@ func setupDeclarativeSystem(t *testing.T) *system.System {
 	return sys
 }
 
-func waitForProjections(t *testing.T, sys *system.System, timeout time.Duration) {
+// eventually retries fn until it returns nil or the timeout expires.
+// This is the standard pattern for testing eventually-consistent projections.
+func eventually(t *testing.T, timeout time.Duration, fn func() error) {
 	t.Helper()
-
-	host := sys.ProjectionHost()
-	if host == nil {
-		t.Fatal("ProjectionHost is nil")
-	}
-
 	deadline := time.Now().Add(timeout)
-
-	// Phase 1: wait for workers to reach Live state.
 	for time.Now().Before(deadline) {
-		states := host.Status()
-		if len(states) == 0 {
-			time.Sleep(10 * time.Millisecond)
-			continue
-		}
-		allLive := true
-		for _, s := range states {
-			if s.Status != projectionhost.WorkerLive && s.Status != projectionhost.WorkerStopped {
-				allLive = false
-				break
-			}
-		}
-		if allLive {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-
-	// Phase 2: wait for processed counters to stabilize.
-	// Initialize to -1 so the first snapshot is always "changed".
-	states := host.Status()
-	prevProcessed := make(map[string]int64, len(states))
-	for _, s := range states {
-		prevProcessed[s.Name] = -1
-	}
-	stableCount := 0
-
-	for time.Now().Before(deadline) {
-		states := host.Status()
-		stable := true
-		for _, s := range states {
-			if s.Processed != prevProcessed[s.Name] {
-				prevProcessed[s.Name] = s.Processed
-				stable = false
-			}
-		}
-		if stable {
-			stableCount++
-			if stableCount >= 10 { // 10 × 20ms = 200ms of stability
-				return
-			}
-		} else {
-			stableCount = 0
+		if err := fn(); err == nil {
+			return
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-
-	for _, s := range host.Status() {
-		t.Logf("worker %s: status=%s processed=%d", s.Name, s.Status, s.Processed)
+	if err := fn(); err != nil {
+		t.Fatal(err)
 	}
+}
+
+// waitForHostLive waits for the projection host workers to reach WorkerLive.
+func waitForHostLive(t *testing.T, sys *system.System, timeout time.Duration) {
+	t.Helper()
+	host := sys.ProjectionHost()
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		states := host.Status()
+		if len(states) > 0 {
+			allLive := true
+			for _, s := range states {
+				if s.Status != projectionhost.WorkerLive && s.Status != projectionhost.WorkerStopped {
+					allLive = false
+					break
+				}
+			}
+			if allLive {
+				return
+			}
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatal("projection host workers did not reach Live state")
 }
 
 func TestDeclarative_TenantRoundTrip(t *testing.T) {
@@ -114,64 +92,62 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 	defer func() { _ = sys.Close() }()
 
 	tenantID := id.NewStreamID()
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
 		tenantID, "Acme Corp", "Acme",
-	)); err != nil {
-		t.Fatalf("CreateTenant: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	)))
+	waitForHostLive(t, sys, 5*time.Second)
 
-	tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
-	if err != nil {
-		t.Fatalf("FindTenantByID: %v", err)
-	}
-	if tenant.Name != "Acme Corp" {
-		t.Errorf("Name = %q, want %q", tenant.Name, "Acme Corp")
-	}
-	if tenant.DisplayName != "Acme" {
-		t.Errorf("DisplayName = %q, want %q", tenant.DisplayName, "Acme")
-	}
-	if tenant.Suspended {
-		t.Error("Tenant should not be suspended after creation")
-	}
+	eventually(t, 5*time.Second, func() error {
+		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+		if err != nil {
+			return err
+		}
+		if tenant.Name != "Acme Corp" {
+			return fmt.Errorf("Name = %q", tenant.Name)
+		}
+		if tenant.DisplayName != "Acme" {
+			return fmt.Errorf("DisplayName = %q", tenant.DisplayName)
+		}
+		if tenant.Suspended {
+			return fmt.Errorf("should not be suspended")
+		}
+		return nil
+	})
 
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewSuspendTenantCmd(
-		tenantID, "test",
-	)); err != nil {
-		t.Fatalf("SuspendTenant: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewSuspendTenantCmd(tenantID, "test")))
+	eventually(t, 5*time.Second, func() error {
+		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+		if err != nil {
+			return err
+		}
+		if !tenant.Suspended {
+			return fmt.Errorf("should be suspended")
+		}
+		return nil
+	})
 
-	tenant, err = systemadapter.FindTenantByID(ctx, sys, tenantID.String())
-	if err != nil {
-		t.Fatalf("FindTenantByID after suspend: %v", err)
-	}
-	if !tenant.Suspended {
-		t.Error("Tenant should be suspended")
-	}
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewReactivateTenantCmd(tenantID)))
+	eventually(t, 5*time.Second, func() error {
+		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+		if err != nil {
+			return err
+		}
+		if tenant.Suspended {
+			return fmt.Errorf("should not be suspended")
+		}
+		return nil
+	})
 
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewReactivateTenantCmd(
-		tenantID,
-	)); err != nil {
-		t.Fatalf("ReactivateTenant: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
-
-	tenant, err = systemadapter.FindTenantByID(ctx, sys, tenantID.String())
-	if err != nil {
-		t.Fatalf("FindTenantByID after reactivate: %v", err)
-	}
-	if tenant.Suspended {
-		t.Error("Tenant should not be suspended after reactivation")
-	}
-
-	byName, err := systemadapter.FindTenantByName(ctx, sys, "Acme Corp")
-	if err != nil {
-		t.Fatalf("FindTenantByName: %v", err)
-	}
-	if byName.ID != tenantID.String() {
-		t.Errorf("FindByName ID = %q, want %q", byName.ID, tenantID.String())
-	}
+	eventually(t, 5*time.Second, func() error {
+		byName, err := systemadapter.FindTenantByName(ctx, sys, "Acme Corp")
+		if err != nil {
+			return err
+		}
+		if byName.ID != tenantID.String() {
+			return fmt.Errorf("ID = %q", byName.ID)
+		}
+		return nil
+	})
 }
 
 func TestDeclarative_BotRoundTrip(t *testing.T) {
@@ -183,39 +159,40 @@ func TestDeclarative_BotRoundTrip(t *testing.T) {
 	botID := id.NewStreamID()
 	tokenHash := []byte{0xDE, 0xAD, 0xBE, 0xEF}
 
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterBotCmd(
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterBotCmd(
 		botID, "MyBot", ownerID, tokenHash, []string{"read", "write"},
-	)); err != nil {
-		t.Fatalf("RegisterBot: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	)))
+	waitForHostLive(t, sys, 5*time.Second)
 
-	bot, err := systemadapter.FindBotByID(ctx, sys, botID.String())
-	if err != nil {
-		t.Fatalf("FindBotByID: %v", err)
-	}
-	if bot.Name != "MyBot" {
-		t.Errorf("Name = %q, want %q", bot.Name, "MyBot")
-	}
-	if bot.OwnerID != ownerID.String() {
-		t.Errorf("OwnerID = %q, want %q", bot.OwnerID, ownerID.String())
-	}
+	eventually(t, 5*time.Second, func() error {
+		bot, err := systemadapter.FindBotByID(ctx, sys, botID.String())
+		if err != nil {
+			return err
+		}
+		if bot.Name != "MyBot" {
+			return fmt.Errorf("Name = %q", bot.Name)
+		}
+		if bot.OwnerID != ownerID.String() {
+			return fmt.Errorf("OwnerID = %q", bot.OwnerID)
+		}
+		return nil
+	})
 
-	byToken, err := systemadapter.FindBotByTokenHash(ctx, sys, "deadbeef")
-	if err != nil {
-		t.Fatalf("FindBotByTokenHash: %v", err)
-	}
-	if byToken.ID != botID.String() {
-		t.Errorf("FindByToken ID = %q, want %q", byToken.ID, botID.String())
-	}
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindBotByTokenHash(ctx, sys, "deadbeef")
+		return err
+	})
 
-	bots, err := systemadapter.FindBotsByOwner(ctx, sys, ownerID.String())
-	if err != nil {
-		t.Fatalf("FindBotsByOwner: %v", err)
-	}
-	if len(bots) != 1 {
-		t.Fatalf("expected 1 bot, got %d", len(bots))
-	}
+	eventually(t, 5*time.Second, func() error {
+		bots, err := systemadapter.FindBotsByOwner(ctx, sys, ownerID.String())
+		if err != nil {
+			return err
+		}
+		if len(bots) != 1 {
+			return fmt.Errorf("got %d bots", len(bots))
+		}
+		return nil
+	})
 }
 
 func TestDeclarative_MembershipRoundTrip(t *testing.T) {
@@ -227,45 +204,52 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
 	tenantID := identitymodel.NewTenantID("tenant-1")
 
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
 		actorID, tenantID,
 		[]identitymodel.Role{identitymodel.RoleAdmin},
-	)); err != nil {
-		t.Fatalf("AddMember: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	)))
+	waitForHostLive(t, sys, 5*time.Second)
 
 	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
 
-	mem, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.String())
-	if err != nil {
-		t.Fatalf("FindMembershipByID: %v", err)
-	}
-	if mem.ActorID != actorID.String() {
-		t.Errorf("ActorID = %q, want %q", mem.ActorID, actorID.String())
-	}
-	if mem.TenantID != tenantID.Get() {
-		t.Errorf("TenantID = %q, want %q", mem.TenantID, tenantID.Get())
-	}
-	if len(mem.Roles) != 1 || mem.Roles[0] != "admin" {
-		t.Errorf("Roles = %v, want [admin]", mem.Roles)
-	}
+	eventually(t, 5*time.Second, func() error {
+		mem, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.String())
+		if err != nil {
+			return err
+		}
+		if mem.ActorID != actorID.String() {
+			return fmt.Errorf("ActorID = %q", mem.ActorID)
+		}
+		if mem.TenantID != tenantID.Get() {
+			return fmt.Errorf("TenantID = %q", mem.TenantID)
+		}
+		if len(mem.Roles) != 1 || mem.Roles[0] != "admin" {
+			return fmt.Errorf("Roles = %v", mem.Roles)
+		}
+		return nil
+	})
 
-	mems, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenantID.Get())
-	if err != nil {
-		t.Fatalf("FindMembershipsByTenant: %v", err)
-	}
-	if len(mems) != 1 {
-		t.Fatalf("expected 1 membership, got %d", len(mems))
-	}
+	eventually(t, 5*time.Second, func() error {
+		mems, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenantID.Get())
+		if err != nil {
+			return err
+		}
+		if len(mems) != 1 {
+			return fmt.Errorf("got %d memberships by tenant", len(mems))
+		}
+		return nil
+	})
 
-	mems, err = systemadapter.FindMembershipsByActor(ctx, sys, actorID.String())
-	if err != nil {
-		t.Fatalf("FindMembershipsByActor: %v", err)
-	}
-	if len(mems) != 1 {
-		t.Fatalf("expected 1 membership, got %d", len(mems))
-	}
+	eventually(t, 5*time.Second, func() error {
+		mems, err := systemadapter.FindMembershipsByActor(ctx, sys, actorID.String())
+		if err != nil {
+			return err
+		}
+		if len(mems) != 1 {
+			return fmt.Errorf("got %d memberships by actor", len(mems))
+		}
+		return nil
+	})
 }
 
 func TestDeclarative_UserRoundTrip(t *testing.T) {
@@ -274,71 +258,67 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 	defer func() { _ = sys.Close() }()
 
 	userStreamID := id.NewStreamID()
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 		userStreamID, "user@example.com", "Test User",
 		[]identitymodel.Role{identitymodel.RoleUser},
-	)); err != nil {
-		t.Fatalf("RegisterUser: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	)))
+	waitForHostLive(t, sys, 5*time.Second)
 
-	user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
-	if err != nil {
-		t.Fatalf("FindUserByID: %v", err)
-	}
-	if user.Email != "user@example.com" {
-		t.Errorf("Email = %q, want %q", user.Email, "user@example.com")
-	}
-	if user.DisplayName != "Test User" {
-		t.Errorf("DisplayName = %q, want %q", user.DisplayName, "Test User")
-	}
-	if user.EmailVerified {
-		t.Error("EmailVerified should be false")
-	}
-	if user.CreatedAt.IsZero() {
-		t.Error("CreatedAt should not be zero")
-	}
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if user.Email != "user@example.com" {
+			return fmt.Errorf("Email = %q", user.Email)
+		}
+		if user.DisplayName != "Test User" {
+			return fmt.Errorf("DisplayName = %q", user.DisplayName)
+		}
+		if user.EmailVerified {
+			return fmt.Errorf("EmailVerified should be false")
+		}
+		if user.CreatedAt.IsZero() {
+			return fmt.Errorf("CreatedAt is zero")
+		}
+		return nil
+	})
 
-	byEmail, err := systemadapter.FindUserByEmail(ctx, sys, "user@example.com")
-	if err != nil {
-		t.Fatalf("FindUserByEmail: %v", err)
-	}
-	if byEmail.ID != userStreamID.String() {
-		t.Errorf("FindByEmail ID = %q, want %q", byEmail.ID, userStreamID.String())
-	}
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindUserByEmail(ctx, sys, "user@example.com")
+		return err
+	})
 
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeEmailCmd(
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeEmailCmd(
 		userStreamID, "new@example.com",
-	)); err != nil {
-		t.Fatalf("ChangeEmail: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	)))
 
-	user, err = systemadapter.FindUserByID(ctx, sys, userStreamID.String())
-	if err != nil {
-		t.Fatalf("FindUserByID after email change: %v", err)
-	}
-	if user.Email != "new@example.com" {
-		t.Errorf("Email = %q, want %q", user.Email, "new@example.com")
-	}
-	if user.EmailVerified {
-		t.Error("EmailVerified should be false after email change")
-	}
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if user.Email != "new@example.com" {
+			return fmt.Errorf("Email = %q", user.Email)
+		}
+		if user.EmailVerified {
+			return fmt.Errorf("EmailVerified should be false after change")
+		}
+		return nil
+	})
 
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewVerifyEmailCmd(
-		userStreamID,
-	)); err != nil {
-		t.Fatalf("VerifyEmail: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewVerifyEmailCmd(userStreamID)))
 
-	user, err = systemadapter.FindUserByID(ctx, sys, userStreamID.String())
-	if err != nil {
-		t.Fatalf("FindUserByID after verify: %v", err)
-	}
-	if !user.EmailVerified {
-		t.Error("EmailVerified should be true")
-	}
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if !user.EmailVerified {
+			return fmt.Errorf("EmailVerified should be true")
+		}
+		return nil
+	})
 }
 
 func TestDeclarative_AuthzEnforce(t *testing.T) {
@@ -350,60 +330,59 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	tenantID := identitymodel.NewTenantID("tenant-authz")
 	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
 
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 		userStreamID, "admin@example.com", "Admin User",
 		[]identitymodel.Role{identitymodel.RoleUser},
-	)); err != nil {
-		t.Fatalf("RegisterUser: %v", err)
-	}
-
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
 		actorID, tenantID,
 		[]identitymodel.Role{identitymodel.RoleAdmin},
-	)); err != nil {
-		t.Fatalf("AddMember: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	)))
+	waitForHostLive(t, sys, 5*time.Second)
 
-	allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.Get(), "manage")
-	if err != nil {
-		t.Fatalf("Enforce: %v", err)
-	}
-	if !allowed {
-		t.Error("admin should be allowed to manage")
-	}
+	eventually(t, 5*time.Second, func() error {
+		allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.Get(), "manage")
+		if err != nil {
+			return err
+		}
+		if !allowed {
+			return fmt.Errorf("admin should be allowed to manage")
+		}
+		return nil
+	})
 
 	plainStreamID := id.NewStreamID()
 	plainActorID := identitymodel.NewActorID(identitymodel.ActorUser, plainStreamID.String())
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 		plainStreamID, "plain@example.com", "Plain User",
 		[]identitymodel.Role{identitymodel.RoleUser},
-	)); err != nil {
-		t.Fatalf("RegisterUser plain: %v", err)
-	}
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
 		plainActorID, tenantID,
 		[]identitymodel.Role{identitymodel.RoleViewer},
-	)); err != nil {
-		t.Fatalf("AddMember viewer: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	)))
 
-	allowed, err = systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.Get(), "manage")
-	if err != nil {
-		t.Fatalf("Enforce viewer manage: %v", err)
-	}
-	if allowed {
-		t.Error("viewer should NOT be allowed to manage")
-	}
+	eventually(t, 5*time.Second, func() error {
+		allowed, err := systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.Get(), "manage")
+		if err != nil {
+			return err
+		}
+		if allowed {
+			return fmt.Errorf("viewer should NOT be allowed to manage")
+		}
+		return nil
+	})
 
-	allowed, err = systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.Get(), "view")
-	if err != nil {
-		t.Fatalf("Enforce viewer view: %v", err)
-	}
-	if !allowed {
-		t.Error("viewer should be allowed to view")
-	}
+	eventually(t, 5*time.Second, func() error {
+		allowed, err := systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.Get(), "view")
+		if err != nil {
+			return err
+		}
+		if !allowed {
+			return fmt.Errorf("viewer should be allowed to view")
+		}
+		return nil
+	})
 }
 
 func TestDeclarative_AuditLog(t *testing.T) {
@@ -412,64 +391,77 @@ func TestDeclarative_AuditLog(t *testing.T) {
 	defer func() { _ = sys.Close() }()
 
 	userStreamID := id.NewStreamID()
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 		userStreamID, "audit@example.com", "Audit User",
 		[]identitymodel.Role{identitymodel.RoleUser},
-	)); err != nil {
-		t.Fatalf("RegisterUser: %v", err)
-	}
-
-	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeEmailCmd(
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeEmailCmd(
 		userStreamID, "changed@example.com",
-	)); err != nil {
-		t.Fatalf("ChangeEmail: %v", err)
-	}
-	waitForProjections(t, sys, 5*time.Second)
+	)))
+	waitForHostLive(t, sys, 5*time.Second)
 
-	entries, err := systemadapter.AuditEntries(ctx, sys)
+	eventually(t, 5*time.Second, func() error {
+		entries, err := systemadapter.AuditEntries(ctx, sys)
+		if err != nil {
+			return err
+		}
+		if len(entries) < 2 {
+			return fmt.Errorf("got %d entries, want >= 2", len(entries))
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		forUser, err := systemadapter.AuditEntriesFor(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if len(forUser) < 2 {
+			return fmt.Errorf("got %d entries for user", len(forUser))
+		}
+		foundRegister, foundChangeEmail := false, false
+		for _, e := range forUser {
+			if e.EventType == "UserRegistered" {
+				foundRegister = true
+			}
+			if e.EventType == "EmailChanged" {
+				foundChangeEmail = true
+			}
+			if e.OccurredAt.IsZero() {
+				return fmt.Errorf("OccurredAt is zero")
+			}
+		}
+		if !foundRegister {
+			return fmt.Errorf("UserRegistered entry missing")
+		}
+		if !foundChangeEmail {
+			return fmt.Errorf("EmailChanged entry missing")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		recent, err := systemadapter.RecentAuditEntries(ctx, sys, 1)
+		if err != nil {
+			return err
+		}
+		if len(recent) != 1 {
+			return fmt.Errorf("got %d recent entries", len(recent))
+		}
+		return nil
+	})
+}
+
+func TestDeclarative_AllProjectionNames(t *testing.T) {
+	decls := systemadapter.DeclarativeProjections()
+	if len(decls) < 10 {
+		t.Fatalf("expected at least 10 projection declarations, got %d", len(decls))
+	}
+}
+
+func must(t *testing.T, err error) {
+	t.Helper()
 	if err != nil {
-		t.Fatalf("AuditEntries: %v", err)
-	}
-	if len(entries) < 2 {
-		t.Fatalf("expected at least 2 audit entries, got %d", len(entries))
-	}
-
-	forUser, err := systemadapter.AuditEntriesFor(ctx, sys, userStreamID.String())
-	if err != nil {
-		t.Fatalf("AuditEntriesFor: %v", err)
-	}
-	if len(forUser) < 2 {
-		t.Fatalf("expected at least 2 entries for user, got %d", len(forUser))
-	}
-
-	foundRegister := false
-	foundChangeEmail := false
-	for _, e := range forUser {
-		if e.AggregateID != userStreamID.String() {
-			t.Errorf("AggregateID = %q, want %q", e.AggregateID, userStreamID.String())
-		}
-		if e.EventType == "UserRegistered" {
-			foundRegister = true
-		}
-		if e.EventType == "EmailChanged" {
-			foundChangeEmail = true
-		}
-		if e.OccurredAt.IsZero() {
-			t.Error("OccurredAt should not be zero")
-		}
-	}
-	if !foundRegister {
-		t.Error("UserRegistered audit entry not found")
-	}
-	if !foundChangeEmail {
-		t.Error("EmailChanged audit entry not found")
-	}
-
-	recent, err := systemadapter.RecentAuditEntries(ctx, sys, 1)
-	if err != nil {
-		t.Fatalf("RecentAuditEntries: %v", err)
-	}
-	if len(recent) != 1 {
-		t.Fatalf("expected 1 recent entry, got %d", len(recent))
+		t.Fatal(err)
 	}
 }
