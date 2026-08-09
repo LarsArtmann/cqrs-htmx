@@ -31,7 +31,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.0.0 // indirect
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.1 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
@@ -47,7 +47,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-etag v0.1.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
@@ -91,7 +91,7 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.75.1 // indirect
+	modernc.org/libc v1.75.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 	modernc.org/sqlite v1.56.0 // indirect
