@@ -90,7 +90,7 @@ func NewProjectionLayer(sys *system.System) (*ProjectionLayer, error) {
 
 	host, err := projectionhost.New(journal, cpStore,
 		projectionhost.WithSubscriber(bus),
-		projectionhost.WithDeadLetterStore(dlqStore),
+		projectionhost.WithDeadLetterStore(dlqStore, 10),
 		projectionhost.WithMaxRestarts(3),
 		projectionhost.WithBackoff(100*time.Millisecond, 5*time.Second),
 	)
@@ -134,10 +134,10 @@ func (pl *ProjectionLayer) Stop() error {
 func (pl *ProjectionLayer) WaitForDrain(timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		states := pl.Host.WorkerStates()
+		states := pl.Host.Status()
 		allReady := true
 		for _, s := range states {
-			if s != projectionhost.WorkerLive && s != projectionhost.WorkerStopped {
+			if s.Status != projectionhost.WorkerLive && s.Status != projectionhost.WorkerStopped {
 				allReady = false
 				break
 			}

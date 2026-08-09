@@ -8,16 +8,16 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.7.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
 	github.com/pquerna/otp v1.5.0
 )
 
@@ -25,10 +25,14 @@ require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-datastar v0.0.3 // indirect
-	github.com/larsartmann/httputil/server_timing v0.9.1 // indirect
-	github.com/larsartmann/templ-components v1.7.0 // indirect
+	github.com/larsartmann/go-etag v0.1.0 // indirect
+	github.com/larsartmann/go-idempotency v0.1.2 // indirect
+	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
+	github.com/larsartmann/templ-components v1.8.0 // indirect
 )
 
 require (
@@ -57,14 +61,14 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.7.0
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.1.1 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.2.0 // indirect
@@ -73,12 +77,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.4.0 // indirect
-	github.com/larsartmann/httputil v0.9.1
+	github.com/larsartmann/httputil v0.11.0
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -107,7 +111,17 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
+replace github.com/larsartmann/cqrs-htmx/v4 => ../
+
+replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
+
 replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../datastar
+
+replace github.com/larsartmann/cqrs-htmx/adminui/v4 => ../adminui
+
+replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../dashboardui
+
+replace github.com/larsartmann/cqrs-htmx/loginpage/v4 => ../loginpage
 
 replace github.com/larsartmann/go-datastar => ../../go-datastar
 

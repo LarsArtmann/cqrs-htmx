@@ -62,28 +62,9 @@ type domainConfigBuilder struct {
 func defaultDomainConfig() domainConfigBuilder {
 	return domainConfigBuilder{
 		domainConfig: system.DomainConfig{
-			Commands:            registerAllCommands,
+			Commands:              registerAllCommands,
 			ProjectionTypeDecoder: EventTypeDecoder(),
 		},
-	}
-}
-
-// WithProjectionHostOptions adds options to the projection host created by
-// system.New() (e.g. batch size, dead-letter store, restart policy).
-func WithProjectionHostOptions(opts ...any) DomainConfigOption {
-	return func(b *domainConfigBuilder) {
-		// system.DomainConfig.ProjectionHostOptions is []projectionhost.HostOption
-		// but we accept any to avoid importing projectionhost here.
-		// The consumer can also set these directly on the DomainConfig before
-		// passing it to system.New().
-	}
-}
-
-// WithDomainMiddleware adds command middleware to the domain config.
-// These are applied to every command dispatched through the system.
-func WithDomainMiddleware(mw ...any) DomainConfigOption {
-	return func(b *domainConfigBuilder) {
-		// Middleware is set via system.DomainConfig.Middleware
 	}
 }
 

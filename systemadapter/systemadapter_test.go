@@ -3,6 +3,7 @@ package systemadapter_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
@@ -29,24 +30,19 @@ func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {
 	}
 	defer sys.Close()
 
-	rms, err := systemadapter.NewReadModels()
+	pl, err := systemadapter.NewProjectionLayer(sys)
 	if err != nil {
-		t.Fatalf("NewReadModels failed: %v", err)
+		t.Fatalf("NewProjectionLayer failed: %v", err)
 	}
+	defer pl.Stop()
 
-	if err := systemadapter.RegisterProjections(sys.ProjectionHost(), rms); err != nil {
-		t.Fatalf("RegisterProjections failed: %v", err)
-	}
-
-	if err := sys.Start(ctx); err != nil {
-		t.Fatalf("sys.Start failed: %v", err)
+	if err := pl.Start(ctx); err != nil {
+		t.Fatalf("ProjectionLayer.Start failed: %v", err)
 	}
 
 	streamID := id.NewStreamID()
 	cmd := identitymodel.NewRegisterUserCmd(
-		streamID,
-		"test@example.com",
-		"Test User",
+		streamID, "test@example.com", "Test User",
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)
 
@@ -54,7 +50,11 @@ func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {
 		t.Fatalf("Dispatch RegisterUser failed: %v", err)
 	}
 
-	user, ok := rms.User.FindByID(streamID)
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	user, ok := pl.User.FindByID(streamID)
 	if !ok {
 		t.Fatal("user not found in read model after RegisterUser command")
 	}
@@ -110,7 +110,7 @@ func TestEventTypeDecoder_All21EventTypesRegistered(t *testing.T) {
 	}
 }
 
-func TestDomainConfig_WithProjections(t *testing.T) {
+func TestDomainConfig_TenantAndAuditLog(t *testing.T) {
 	ctx := context.Background()
 
 	domain := systemadapter.DomainConfig()
@@ -120,7 +120,6 @@ func TestDomainConfig_WithProjections(t *testing.T) {
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
-			{Role: system.RoleProjections, Engines: []string{"primary"}},
 		},
 	}
 
@@ -130,17 +129,14 @@ func TestDomainConfig_WithProjections(t *testing.T) {
 	}
 	defer sys.Close()
 
-	rms, err := systemadapter.NewReadModels()
+	pl, err := systemadapter.NewProjectionLayer(sys)
 	if err != nil {
-		t.Fatalf("NewReadModels failed: %v", err)
+		t.Fatalf("NewProjectionLayer failed: %v", err)
 	}
+	defer pl.Stop()
 
-	if err := systemadapter.RegisterProjections(sys.ProjectionHost(), rms); err != nil {
-		t.Fatalf("RegisterProjections failed: %v", err)
-	}
-
-	if err := sys.Start(ctx); err != nil {
-		t.Fatalf("sys.Start failed: %v", err)
+	if err := pl.Start(ctx); err != nil {
+		t.Fatalf("ProjectionLayer.Start failed: %v", err)
 	}
 
 	tenantStreamID := id.NewStreamID()
@@ -149,7 +145,11 @@ func TestDomainConfig_WithProjections(t *testing.T) {
 		t.Fatalf("Dispatch CreateTenant failed: %v", err)
 	}
 
-	tenant, ok := rms.Tenant.FindByID(tenantStreamID)
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	tenant, ok := pl.Tenant.FindByID(tenantStreamID)
 	if !ok {
 		t.Fatal("tenant not found in read model")
 	}
@@ -157,7 +157,17 @@ func TestDomainConfig_WithProjections(t *testing.T) {
 		t.Errorf("tenant name = %q, want %q", tenant.Name, "acme")
 	}
 
-	auditEntries := rms.AuditLog.Entries()
+	// AuditLog only handles user events, so register a user to check it
+	userStreamID := id.NewStreamID()
+	userCmd := identitymodel.NewRegisterUserCmd(userStreamID, "test@example.com", "Test", nil)
+	if err := sys.CommandDispatcher().Dispatch(ctx, userCmd); err != nil {
+		t.Fatalf("Dispatch RegisterUser failed: %v", err)
+	}
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	auditEntries := pl.AuditLog.Entries()
 	if len(auditEntries) == 0 {
 		t.Error("no audit log entries recorded")
 	}

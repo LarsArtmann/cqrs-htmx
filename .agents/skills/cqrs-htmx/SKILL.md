@@ -516,6 +516,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`docs/guides/production-readiness.md`** -- single checklist for taking a cqrs-htmx app to production (middleware stack, observability, security, projection health, performance).
 - **`docs/guides/dispatch-middleware-ordering.md`** -- correct ordering rules for dispatch middleware (recovery, circuit breaker, retry, tracing, metrics, logging).
 - **`docs/guides/fullstack-wiring.md`** -- the integration guide: one-call `setup/v4` SDK, manual wiring, feature flags, persistence, middleware ordering, and optional health/auditlog integrations.
+- **`docs/guides/sse-and-datastar.md`** -- the Broadcaster duality guide: `Raw()` accessor, `NewBroadcasterFromRaw` cross-transport hub sharing, `RawBroadcaster` interface, and HTMX vs Datastar transport comparison.
 - **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof), `examples/middleware-showcase/` (all 8 httputil HTTP middleware in a single validated `MiddlewareStack`: recovery, security headers, metrics, CORS, client IP, rate limiting, compression, ETag).
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.
 

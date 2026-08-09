@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration) | **Modules:** 21 in `go.work` | **`*Service` methods:** 72 (leading v5 indicator; see ROADMAP) | **Coverage:** Root ~93% (gate 90%), openapi 99.0%, usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%), setup 85.3% (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** All 12 lint-checked modules at 0 issues (2026-08-09). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
+**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, fullstack UI integration test) | **Modules:** 21 in `go.work` | **`*Service` methods:** 72 (leading v5 indicator; see ROADMAP) | **Coverage:** Root ~93% (gate 90%), openapi 99.0%, usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%), setup 85.3% (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** All 12 lint-checked modules at 0 issues (2026-08-09). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 
 ## Status Legend
 
@@ -21,10 +21,6 @@
 ---
 
 ## P2 — Medium impact (tooling & quality)
-
-- [ ] **Document Broadcaster duality and expose underlying `sse.Broadcaster`.** Root's `cqrshtmx.Broadcaster` and datastar's `datastar.Broadcaster` both wrap `sse.Broadcaster[sse.Event]` but are separate types with no shared abstraction. Add a `Raw()` accessor (or interface) so consumers can share one fan-out hub for cross-transport scenarios. Write `docs/guides/sse-and-datastar.md`. Source: architecture review Finding 3.
-
-- [ ] **Add fullstack integration test to `integration_test/`.** Mount adminui + dashboardui + loginpage against a real `*usermgmt.Service`. Verify: admin panel renders with seeded user, dashboard shows projection health, login page renders correct auth buttons based on Service config. No integration test currently mounts any UI module. Source: architecture review Finding 6.
 
 - [ ] **Create `cqrs-htmx/health/v4` module — go-health + go-health-dashboard integration.** New optional Go module bridging usermgmt projection health → go-health checks. `health.NewProbe(svc, opts)` auto-registers `ProjectionStatusProvider` as a health check. `health.NewDashboard(probe, opts)` returns a pre-configured `*dashboard.Dashboard`. Separate module so consumers who don't need it pay zero dep cost. Source: architecture review §3.
 
