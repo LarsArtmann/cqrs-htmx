@@ -22,7 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- **httputil v0.9.0 → v0.11.0** (all module `go.mod` files): httputil v0.11.0 published and bumped across root, usermgmt, adminui, loginpage, dashboardui, integration_test, e2e/server, and all 8 examples. `go.work` replace directives for httputil and `httputil/server_timing` removed. Hermetic `nix run .#build` and `nix run .#test` verified (GOWORK=off). Completes the httputil adoption story: all re-export symbols deprecated, all internal callers migrated to direct `httputil.*` imports, go.work replace-free.
+- **httputil v0.9.0 → v0.11.0** (all module `go.mod` files): httputil v0.11.0 published and bumped across root, usermgmt, adminui, loginpage, dashboardui, integration_test, e2e/server, and all 9 examples. `go.work` replace directives for httputil and `httputil/server_timing` removed. Hermetic `nix run .#build` and `nix run .#test` verified (GOWORK=off). Completes the httputil adoption story: all re-export symbols deprecated, all internal callers migrated to direct `httputil.*` imports, go.work replace-free.
 - **ServerTiming import fix** (`example_app_test.go`, `examples/admin-demo/main.go`): Migrated broken `httputil.ServerTimingMiddlewareWhen`/`httputil.MeasureServerTiming` references to `servertiming.ServerTimingMiddlewareWhen`/`servertiming.MeasureServerTiming` from the `httputil/server_timing` sub-module.
 - **adminui compiled Tailwind CSS minified** (`adminui/assets/tailwind.css`): production CSS bundle minified for smaller embedded payload.
 

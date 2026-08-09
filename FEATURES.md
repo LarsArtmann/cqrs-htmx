@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 84.0% dashboardui (gate 60%), 96.7% datastar (gate 90%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 11 lint-checked modules (2026-08-09)
+**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 83.3% dashboardui (gate 60%), 97.4% datastar (gate 90%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 11 lint-checked modules (2026-08-09)
 
 ## Status legend
 
@@ -376,7 +376,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | Broadcaster + Replay | 🟢 `FULLY_FUNCTIONAL` | `NewBroadcaster()` — fan-out SSE patches to all clients with bounded ring buffer replay (default 256). `NewBroadcasterWithReplay(n)` for custom size, 0 to disable. `NewBroadcasterWithHeartbeat(interval)` for proxy keep-alive. `Last-Event-ID` header + `?lastEventId=` query param support |
 | EventBridge          | 🟢 `FULLY_FUNCTIONAL` | `NewEventBridge(broadcaster)` + `Map(eventType, fn)` + `Handle(event.Event)` + `OnError(callback)` — declarative domain-event-to-patch mapping with error observability                                                                                                                        |
 | SDK Re-exports       | 🟢 `FULLY_FUNCTIONAL` | All `With*` options, type aliases, constants — single-import convenience (`ds.WithSelectorID` instead of importing SDK separately)                                                                                                                                                             |
-| Coverage             | 🟢 `FULLY_FUNCTIONAL` | 96.7% (gate 90%). 71 tests across 8 test files                                                                                                                                                                                                                                                 |
+| Coverage             | 🟢 `FULLY_FUNCTIONAL` | 97.4% (gate 90%). 54 tests across 5 test files                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -401,9 +401,9 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Metric        | Root | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | datastar | integration_test |
 | ------------- | ---- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | -------- | ---------------- |
-| Coverage      | ~93% | 81.6%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 84.0%       | 96.7%    | —                |
+| Coverage      | ~93% | 81.6%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 83.3%       | 97.4%    | —                |
 | CI gate       | 90%  | 74%      | 70%            | 80%   | 80%      | 80%    | 66%     | 79%       | 60%         | 90%      | —                |
-| Tests passing | ~160 | ~602     | ~109           | 3     | 16       | 21     | ~75     | ~36       | ~50         | ~29      |                  |
+| Tests passing | ~133 | ~615     | ~109           | 5     | 16       | 21     | ~85     | ~37       | ~153        | ~54      | ~37              |
 | Lint issues   | 0    | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |                  |
 | ErrorFamily   | 0    | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |                  |
 | Go modules    | 1    | 1        | 1              | 1     | 1        | 1      | 1       | 1         | 1           | 1        |                  |
