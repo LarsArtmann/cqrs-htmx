@@ -1,6 +1,7 @@
 package systemadapter
 
 import (
+	"bytes"
 	"encoding/hex"
 	"time"
 
@@ -313,7 +314,7 @@ func updateCredentialRemoved() metaengine.Fold {
 		func(e projectionadapter.EventWithID[identitymodel.CredentialRemovedPayload], prev UserView) UserView {
 			filtered := prev.Credentials[:0]
 			for _, c := range prev.Credentials {
-				if !bytesEqual(c.ID, e.Payload.ID) {
+				if !bytes.Equal(c.ID, e.Payload.ID) {
 					filtered = append(filtered, c)
 				}
 			}
@@ -570,16 +571,4 @@ func rolesToStrings(roles []identitymodel.Role) []string {
 		result[i] = string(r)
 	}
 	return result
-}
-
-func bytesEqual(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }
