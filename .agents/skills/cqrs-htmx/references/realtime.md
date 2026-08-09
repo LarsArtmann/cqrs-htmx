@@ -71,9 +71,25 @@ b.Unsubscribe(ch)         // O(1) via channel pointer identity; closes the chann
 b.Broadcast(evt)          // non-blocking; slow consumers have events dropped
 b.SubscriberCount() int   // current subscriber count (useful for metrics)
 b.Close()                 // graceful shutdown: closes all channels, blocks new subscriptions
+b.Raw()                   // → *sse.Broadcaster[sse.Event] (access SubscribeFilter, share hub)
 ```
 
 Thread-safe. Non-blocking broadcast means a slow client won't block the publisher — events are dropped if the channel is full. Subscribe/Unsubscribe are safe for concurrent use. **Unsubscribe closes the channel** — callers must not send on it. **Close** closes all subscriber channels at once; after Close, Subscribe returns an already-closed channel. Call Close on server shutdown for graceful SSE drain.
+
+### Cross-transport hub sharing
+
+`Raw()` exposes the underlying `*sse.Broadcaster[sse.Event]` so consumers can access advanced go-sse features (`SubscribeFilter`, custom health) or share one fan-out hub across HTMX and Datastar transports:
+
+```go
+hub := sse.NewBroadcaster[sse.Event]()
+htmxBc := cqrshtmx.NewBroadcasterFromRaw(hub)
+dsBc := ds.NewBroadcasterFromRaw(hub) // datastar.Broadcaster from same hub
+
+// Broadcast from either wrapper reaches ALL subscribers
+htmxBc.Broadcast(sse.Event{Event: "update", Data: html})
+```
+
+The `cqrshtmx.RawBroadcaster` interface (`Raw() *sse.Broadcaster[sse.Event]`) is satisfied by both `*cqrshtmx.Broadcaster` and `*datastar.Broadcaster`. See `docs/guides/sse-and-datastar.md`.
 
 ### Standard event names
 
