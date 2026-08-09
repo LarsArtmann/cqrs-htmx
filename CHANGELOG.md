@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`RegisterErrorClassifications()` auto-call in `New()`** (`app.go`): `cqrshtmx.New()` now calls `httputil.RegisterErrorClassifications()` via `sync.Once` on first invocation. Consumers no longer need to call it manually — stdlib HTTP errors (`http.ErrNotSupported`, `http.ErrAbortHandler`, etc.) classify correctly through `MapError` automatically.
+- **adminui Nonce middleware** (`adminui/handler.go`): `Middleware()` chain now includes `httputil.Nonce(httputil.DefaultNonceConfig())`. The `nonce(r)` method falls back to `httputil.NonceFromRequest(r)` when `NonceFunc` is nil, providing automatic CSP nonce support for consumers who use the recommended middleware chain.
+- **PermissionsPolicy security header** (`adminui/handler.go`, `dashboardui/handler.go`): Both `Middleware()` methods now set `Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()` via enriched `SecurityHeadersConfig`.
+- **`examples/middleware-showcase/`**: New example module demonstrating all 8 httputil HTTP middleware (Recovery, SecurityHeaders, Metrics, CORS, ClientIP, KeyedRateLimiter, Compression, ETag) in a single validated `MiddlewareStack` with `Validate()` + `Build()`.
+- **Health endpoints + Compression in `examples/basic`** (`examples/basic/main.go`): Added `httputil.RegisterHealth(mux)`, `httputil.ReadyHandlerWithProbe(...)`, and `httputil.Compression(...)` wrapper.
+- **New guide recipes** (`docs/guides/leveraging-httputil.md`): Recipe 7 (Decompression bomb protection), Recipe 8 (MaxBodySize defense-in-depth), Nonce row in concern map, updated RegisterErrorClassifications recipe noting auto-call in `New()`.
+
+### Changed
+
+- **ServerTiming import fix** (`example_app_test.go`, `examples/admin-demo/main.go`): Migrated broken `httputil.ServerTimingMiddlewareWhen`/`httputil.MeasureServerTiming` references to `servertiming.ServerTimingMiddlewareWhen`/`servertiming.MeasureServerTiming` from the `httputil/server_timing` sub-module.
+
+### Fixed
+
+- **Binary in .gitignore** (`.gitignore`): Added `examples/middleware-showcase/middleware-showcase` to prevent accidental binary commits from `go build` in example directories.
+
 ## [v4.7.0] - 2026-08-07
 
 ### Added
