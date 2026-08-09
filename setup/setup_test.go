@@ -18,7 +18,7 @@ func TestNew_DefaultConfig_AllPanelsEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 
 	if bundle.Service == nil {
 		t.Fatal("Service is nil")
@@ -65,7 +65,7 @@ func TestNew_DisableAllPanels(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 
 	if bundle.Admin != nil {
 		t.Fatal("Admin should be nil when DisableAdmin is true")
@@ -94,7 +94,7 @@ func TestMount_LoginPageReachable(t *testing.T) {
 	bundle := setup.MustNew(setup.Config{
 		Title: "Mount Test",
 	})
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 
 	mux := http.NewServeMux()
 	bundle.Mount(mux)
@@ -121,7 +121,7 @@ func TestMount_AdminRedirectsWithoutSession(t *testing.T) {
 	bundle := setup.MustNew(setup.Config{
 		Title: "Admin Test",
 	})
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 
 	mux := http.NewServeMux()
 	bundle.Mount(mux)
@@ -146,7 +146,7 @@ func TestProjectionHost_Exposed(t *testing.T) {
 	bundle := setup.MustNew(setup.Config{
 		Title: "ProjectionHost Test",
 	})
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 
 	host := bundle.Service.ProjectionHost()
 	if host == nil {
@@ -166,7 +166,7 @@ func TestMustNew_SucceedsWithDefaults(t *testing.T) {
 	bundle := setup.MustNew(setup.Config{
 		Title: "MustNew Test",
 	})
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 }
 
 func TestMiddleware_ReturnsNonNil(t *testing.T) {
@@ -175,7 +175,7 @@ func TestMiddleware_ReturnsNonNil(t *testing.T) {
 	bundle := setup.MustNew(setup.Config{
 		Title: "Middleware Test",
 	})
-	defer bundle.Close()
+	defer func() { _ = bundle.Close() }()
 
 	if bundle.Middleware() == nil {
 		t.Fatal("Middleware() returned nil")

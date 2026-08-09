@@ -11,6 +11,8 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+const defaultPageSize = 25
+
 // New creates a fully wired [Bundle] from a single [Config].
 //
 // It creates the shared event infrastructure (or uses provided stores), constructs the
@@ -46,7 +48,7 @@ func New(cfg Config) (*Bundle, error) {
 		return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")
 	}
 
-	bundle := &Bundle{
+	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login assigned conditionally below
 		Service: svc,
 		Auth:    usermgmt.NewAuthHandler(svc),
 		Stores:  &Stores{EventStore: store, EventBus: bus},
@@ -76,7 +78,7 @@ func New(cfg Config) (*Bundle, error) {
 			EventSource:    store,
 			EventBus:       bus,
 			ProjectionHost: svc.ProjectionHost(),
-			PageSize:       25,
+			PageSize:       defaultPageSize,
 		}
 		if journal, ok := store.(event.Journal); ok {
 			dashCfg.Journal = journal

@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
 )
 
@@ -93,7 +94,9 @@ func (b *Bundle) Middleware() func(http.Handler) http.Handler {
 // Call on server shutdown. Safe to call multiple times.
 func (b *Bundle) Close() error {
 	if b.Service != nil {
-		return b.Service.Close()
+		if err := b.Service.Close(); err != nil {
+			return errorfamily.WrapInfrastructure(err, "setup.bundle_close", "failed to close service")
+		}
 	}
 
 	return nil

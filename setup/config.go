@@ -3,7 +3,7 @@ package setup
 import (
 	"database/sql"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
@@ -13,7 +13,7 @@ import (
 // Everything else has sensible defaults: in-memory stores, no auth providers,
 // all UI panels enabled.
 //
-// Field types use usermgmt interfaces (TOTPProvider, WebAuthnProvider, OAuth2Provider)
+// Field types are identity-model interfaces (TOTPProvider, WebAuthnProvider, OAuth2Provider)
 // so consumers import only the auth strategy sub-modules they need.
 type Config struct {
 	// Auth providers (all optional). Import the sub-modules and inject:
@@ -26,9 +26,9 @@ type Config struct {
 	//
 	//   import oauth2 "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
 	//   OAuth2: oauth2.New(oauth2.Config{Providers: ...}),
-	TOTP     usermgmt.TOTPProvider
-	WebAuthn usermgmt.WebAuthnProvider
-	OAuth2   usermgmt.OAuth2Provider
+	TOTP     identitymodel.TOTPProvider
+	WebAuthn identitymodel.WebAuthnProvider
+	OAuth2   identitymodel.OAuth2Provider
 
 	// Persistence overrides (all optional — defaults to in-memory).
 	//
