@@ -27,6 +27,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"sync/atomic"
@@ -53,20 +54,21 @@ func (r *logRecorder) Record(method, path string, status int, duration time.Dura
 }
 
 type dataResponse struct {
-	Message   string    `json:"message"`
-	Count     int64     `json:"count"`
+	Message    string    `json:"message"`
+	Count      int64     `json:"count"`
 	ServerTime time.Time `json:"serverTime"`
 }
 
-var requestCount atomic.Int64
-
 func main() {
+	var requestCount atomic.Int64
+
 	mux := http.NewServeMux()
 
 	// --- Endpoints ---
 
 	mux.HandleFunc("GET /api/data", func(w http.ResponseWriter, r *http.Request) {
 		count := requestCount.Add(1)
+
 		resp := dataResponse{
 			Message:    "Hello from the middleware showcase!",
 			Count:      count,
@@ -104,6 +106,7 @@ func main() {
 	// 2. Security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy).
 	secCfg := httputil.DefaultSecurityHeadersConfig()
 	secCfg.PermissionsPolicy = "geolocation=(), microphone=(), camera=()"
+
 	if err := stack.Add(httputil.MiddlewareSecurityHeaders, httputil.SecurityHeaders(secCfg)); err != nil {
 		panic(fmt.Sprintf("add security-headers: %v", err))
 	}
@@ -111,7 +114,8 @@ func main() {
 	// 3. Metrics — logs every request with method/path/status/duration.
 	//    Replace logRecorder with a Prometheus recorder in production.
 	logger := slog.Default()
-	if err := stack.Add("metrics", httputil.Metrics(httputil.MetricsConfig{
+
+	if err := stack.Add("metrics", httputil.Metrics(httputil.MetricsConfig{ //nolint:exhaustruct // example only
 		Recorder: &logRecorder{log: logger},
 	})); err != nil {
 		panic(fmt.Sprintf("add metrics: %v", err))
@@ -137,6 +141,7 @@ func main() {
 	rlCfg.Limit = 100
 	rlCfg.Window = time.Minute
 	rlCfg.Burst = 20
+
 	if err := stack.Add(httputil.MiddlewareKeyedRateLimit,
 		httputil.KeyedRateLimiterMiddleware(rlCfg),
 	); err != nil {
@@ -170,16 +175,17 @@ func main() {
 	handler := stack.Build(mux)
 
 	addr := ":8099"
-	fmt.Printf("httputil Middleware Showcase\nListening on http://localhost%s\n", addr)
-	fmt.Printf("Stack: %v\n", stack.Names())
+	log.Printf("httputil Middleware Showcase — listening on http://localhost%s (stack: %v)", addr, stack.Names())
 
 	// Serve with real timeouts via httputil.NewServer (never bare http.ListenAndServe).
-	serverCfg := httputil.DefaultServerConfig()
+	serverCfg := httputil.DefaultServerConfig() //nolint:exhaustruct // example only
 	serverCfg.Addr = addr
+
 	srv, err := httputil.NewServer(serverCfg, handler)
 	if err != nil {
 		panic(fmt.Sprintf("invalid server config: %v", err))
 	}
+
 	if err := <-srv.Start(); err != nil {
 		panic(err)
 	}
