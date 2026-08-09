@@ -32,6 +32,7 @@ func (d *Dashboard) Mount(mux *http.ServeMux, pattern string) {
 func (d *Dashboard) Middleware() func(http.Handler) http.Handler {
 	securityCfg := httputil.DefaultSecurityHeadersConfig()
 	securityCfg.PermissionsPolicy = "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+
 	return cqrshtmx.Chain(
 		httputil.SecurityHeaders(securityCfg),
 		cqrshtmx.RecoveryMiddleware,
