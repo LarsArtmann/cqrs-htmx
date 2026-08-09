@@ -1,14 +1,14 @@
 package setup
 
 import (
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // New creates a fully wired [Bundle] from a single [Config].
@@ -29,7 +29,7 @@ func New(cfg Config) (*Bundle, error) {
 
 	bus := cfg.EventBus
 	if bus == nil {
-		bus = event.NewBus()
+		bus = watermill.NewEventBus()
 	}
 
 	// 2. User management service — injects the shared stores.
@@ -43,7 +43,7 @@ func New(cfg Config) (*Bundle, error) {
 		OAuth2:     cfg.OAuth2,
 	})
 	if err != nil {
-		return nil, errorfamily.Wrap(err, "setup: failed to create usermgmt service")
+		return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")
 	}
 
 	bundle := &Bundle{
@@ -62,7 +62,7 @@ func New(cfg Config) (*Bundle, error) {
 		})
 		if err != nil {
 			_ = svc.Close()
-			return nil, errorfamily.Wrap(err, "setup: failed to create admin panel")
+			return nil, errorfamily.WrapRejection(err, "setup.admin_creation_failed", "failed to create admin panel")
 		}
 		bundle.Admin = admin
 	}
@@ -82,7 +82,7 @@ func New(cfg Config) (*Bundle, error) {
 		dash, err := dashboardui.New(dashCfg)
 		if err != nil {
 			_ = svc.Close()
-			return nil, errorfamily.Wrap(err, "setup: failed to create CQRS dashboard")
+			return nil, errorfamily.WrapRejection(err, "setup.dashboard_creation_failed", "failed to create CQRS dashboard")
 		}
 		bundle.Dashboard = dash
 	}
@@ -96,7 +96,7 @@ func New(cfg Config) (*Bundle, error) {
 		})
 		if err != nil {
 			_ = svc.Close()
-			return nil, errorfamily.Wrap(err, "setup: failed to create login page")
+			return nil, errorfamily.WrapRejection(err, "setup.login_creation_failed", "failed to create login page")
 		}
 		bundle.Login = login
 	}
