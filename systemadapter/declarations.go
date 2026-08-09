@@ -5,8 +5,8 @@ import (
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -197,12 +197,14 @@ func insertMembership() metaengine.Fold {
 }
 
 func updateMembershipRoles() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventMemberRolesChanged),
+	return metaengine.OnTyped(
+		string(identitymodel.EventMemberRolesChanged),
 		projectionadapter.EventWithID[identitymodel.MemberRolesChangedPayload]{},
 		func(e projectionadapter.EventWithID[identitymodel.MemberRolesChangedPayload], prev MembershipView) MembershipView {
 			prev.Roles = rolesToStrings(e.Payload.Roles)
 			return prev
-		})
+		},
+	)
 }
 
 func removeMembership() metaengine.Fold {
@@ -255,11 +257,11 @@ func insertUser() metaengine.Fold {
 		projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]{},
 		func(e projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]) (string, UserView) {
 			return e.ID, UserView{
-				ID:        e.ID,
-				Email:     e.Payload.Email,
+				ID:          e.ID,
+				Email:       e.Payload.Email,
 				DisplayName: e.Payload.DisplayName,
-				CreatedAt: e.OccurredAt,
-				UpdatedAt: e.OccurredAt,
+				CreatedAt:   e.OccurredAt,
+				UpdatedAt:   e.OccurredAt,
 			}
 		})
 }
@@ -394,7 +396,8 @@ func removeUser() metaengine.Fold {
 
 func externalAccountLinkScan() metaengine.QueryDecl[system.ScanInput, ExternalAccountLink] {
 	return metaengine.Query[system.ScanInput, ExternalAccountLink]("external_account_links",
-		metaengine.OnTyped(string(identitymodel.EventExternalAccountLinked),
+		metaengine.OnTyped(
+			string(identitymodel.EventExternalAccountLinked),
 			projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]{},
 			func(e projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]) (string, ExternalAccountLink) {
 				return e.ID + ":" + e.Payload.Provider + ":" + e.Payload.Subject,
@@ -402,13 +405,16 @@ func externalAccountLinkScan() metaengine.QueryDecl[system.ScanInput, ExternalAc
 						ProviderSubject: e.Payload.Provider + ":" + e.Payload.Subject,
 						UserID:          e.ID,
 					}
-			}),
-		metaengine.OnTyped(string(identitymodel.EventExternalAccountUnlinked),
+			},
+		),
+		metaengine.OnTyped(
+			string(identitymodel.EventExternalAccountUnlinked),
 			projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload]{},
 			func(e projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload], prev ExternalAccountLink) ExternalAccountLink {
 				_ = prev
 				return ExternalAccountLink{}
-			}),
+			},
+		),
 		metaengine.FilterOnField[ExternalAccountLink]("ProviderSubject", metaengine.FilterEq),
 	)
 }

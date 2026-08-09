@@ -54,21 +54,27 @@ func waitForProjections(t *testing.T, sys *system.System, timeout time.Duration)
 
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
+		states := host.Status()
+		if len(states) == 0 {
+			time.Sleep(10 * time.Millisecond)
+			continue
+		}
 		allLive := true
-		for _, s := range host.Status() {
+		for _, s := range states {
 			if s.Status != projectionhost.WorkerLive && s.Status != projectionhost.WorkerStopped {
 				allLive = false
 				break
 			}
 		}
-		if allLive && len(host.Status()) > 0 {
+		if allLive {
+			time.Sleep(200 * time.Millisecond)
 			return
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
 
 	for _, s := range host.Status() {
-		t.Logf("worker %s: status=%s", s.Name, s.Status)
+		t.Logf("worker %s: status=%s processed=%d", s.Name, s.Status, s.Processed)
 	}
 	t.Fatalf("projections did not drain within %v", timeout)
 }
