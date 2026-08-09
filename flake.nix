@@ -215,13 +215,13 @@
 
             lint = goApp {
               name = "run-lint";
-              description = "Run golangci-lint across all workspace modules (auto-discovered, excludes e2e/examples/systemadapter)";
+              description = "Run golangci-lint across all workspace modules (auto-discovered, excludes e2e/examples)";
               runtimeInputs = [ pkgs.golangci-lint ];
               text = ''
                 lintFail=0
                 while IFS= read -r dir; do
                   dir="''${dir#./}"
-                  if [ -n "$dir" ] && echo "$dir" | grep -qE '^(e2e/|examples/|systemadapter$)'; then
+                  if [ -n "$dir" ] && echo "$dir" | grep -qE '^(e2e/|examples/)'; then
                     continue
                   fi
                   if [ -z "$dir" ] || [ "$dir" = "." ]; then
@@ -620,6 +620,7 @@
                 check_cov dashboardui 60
                 check_cov datastar 90
                 check_cov setup 80
+                check_cov systemadapter 60
                 # Per-package gate: dashboardui/core is the pure data layer.
                 core_cov=$(cd dashboardui && go test ./core/... -count=1 -coverprofile=/tmp/corecov >/dev/null 2>&1 && go tool cover -func=/tmp/corecov | tail -1 | grep -oP '\d+\.\d+(?=%)')
                 echo "dashboardui/core coverage: ''${core_cov}% (threshold: 80%)"

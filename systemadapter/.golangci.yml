@@ -96,6 +96,9 @@ linters:
     - depguard
     # gochecknoinits — no init functions but keeping parity with other modules.
     - gochecknoinits
+    # funlen — declarative registration functions (20 commands, 21 event types)
+    # are inherently long. Splitting them reduces readability.
+    - funlen
   settings:
     cyclop:
       max-complexity: 12
