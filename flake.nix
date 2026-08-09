@@ -215,13 +215,13 @@
 
             lint = goApp {
               name = "run-lint";
-              description = "Run golangci-lint across all workspace modules (auto-discovered, excludes e2e/examples)";
+              description = "Run golangci-lint across all workspace modules (auto-discovered, excludes e2e/examples/systemadapter)";
               runtimeInputs = [ pkgs.golangci-lint ];
               text = ''
                 lintFail=0
                 while IFS= read -r dir; do
                   dir="''${dir#./}"
-                  if [ -n "$dir" ] && echo "$dir" | grep -qE '^(e2e/|examples/)'; then
+                  if [ -n "$dir" ] && echo "$dir" | grep -qE '^(e2e/|examples/|systemadapter$)'; then
                     continue
                   fi
                   if [ -z "$dir" ] || [ "$dir" = "." ]; then

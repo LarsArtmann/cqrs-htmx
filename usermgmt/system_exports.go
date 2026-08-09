@@ -66,7 +66,12 @@ func DecideUnlinkExternalAccount(aggID id.StreamID, provider, subject string) de
 // Membership decide exports
 
 // DecideAddMember is the exported version of decideAddMember for system.New() integration.
-func DecideAddMember(aggID id.StreamID, actorID ActorID, tenantID TenantID, roles []Role) decider.DecideFunc[MembershipState] {
+func DecideAddMember(
+	aggID id.StreamID,
+	actorID ActorID,
+	tenantID TenantID,
+	roles []Role,
+) decider.DecideFunc[MembershipState] {
 	return decideAddMember(aggID, actorID, tenantID, roles)
 }
 
@@ -105,7 +110,13 @@ func DecideDeleteTenant(aggID id.StreamID, reason string) decider.DecideFunc[Ten
 // Bot decide exports
 
 // DecideRegisterBot is the exported version of decideRegisterBot for system.New() integration.
-func DecideRegisterBot(aggID id.StreamID, name string, ownerID UserID, tokenHash []byte, scopes []string) decider.DecideFunc[BotState] {
+func DecideRegisterBot(
+	aggID id.StreamID,
+	name string,
+	ownerID UserID,
+	tokenHash []byte,
+	scopes []string,
+) decider.DecideFunc[BotState] {
 	return decideRegisterBot(aggID, name, ownerID, tokenHash, scopes)
 }
 

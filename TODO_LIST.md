@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, fullstack UI integration test) | **Modules:** 21 in `go.work` | **`*Service` methods:** 72 (leading v5 indicator; see ROADMAP) | **Coverage:** Root ~93% (gate 90%), openapi 99.0%, usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%), setup 85.3% (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** All 12 lint-checked modules at 0 issues (2026-08-09). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
+**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, fullstack UI integration test, systemadapter module + system/metaengine integration) | **Modules:** 24 in `go.work` (22 production + 10 examples + e2e) | **`*Service` methods:** 72 (leading v5 indicator; see ROADMAP) | **Coverage:** Root ~93% (gate 90%), openapi 99.0%, usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%), setup 85.3% (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** All 12 lint-checked modules at 0 issues (2026-08-09). systemadapter excluded (work-in-progress, 104 issues pending remediation). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 
 ## Status Legend
 
@@ -21,6 +21,10 @@
 ---
 
 ## P2 — Medium impact (tooling & quality)
+
+- [ ] **`systemadapter/v4` lint remediation + gate integration.** The work-in-progress systemadapter module has 104 lint issues (contextcheck ×10, SA1019 ×43, exhaustruct ×23, err113 ×4, errcheck ×4, mnd ×4, wsl_v5 ×7, wrapcheck ×2, goimports ×3, gci ×1, nlreturn ×3). The module is currently excluded from `nix run .#lint` via flake.nix regex. Remediation requires: (1) migrate `usermgmt.*State` to direct `identity-model` imports (43 SA1019), (2) add `.golangci.yml` with appropriate exclusions or add nolint directives, (3) use `errorfamily` constructors instead of `fmt.Errorf` (err113), (4) add coverage-gate threshold, (5) add to CI workflow, `check-module-isolation.sh`, `check-dep-budgets.sh`. Evidence: `systemadapter/domain_config.go`, `systemadapter/projections.go`. Source: `docs/status/2026-08-09_08-36_system-metaengine-integration.md`.
+
+- [ ] **Expand fullstack UI integration test.** The 3-test suite in `integration_test/fullstack_ui_test.go` covers only rendering and unauthenticated blocking. Missing assertions (from original TODO spec): (1) admin panel renders WITH a seeded user (register → session → GET /admin/ → assert user data in HTML), (2) dashboard shows projection health data (assert projection names/health appear in rendered HTML), (3) login page renders correct auth buttons based on Service config (configure with TOTP → verify button appears; without → verify absence). Evidence: `integration_test/fullstack_ui_test.go`. Source: `docs/status/2026-08-09_08-36_broadcaster-raw-api-and-fullstack-ui-test.md`.
 
 - [ ] **Create `cqrs-htmx/health/v4` module — go-health + go-health-dashboard integration.** New optional Go module bridging usermgmt projection health → go-health checks. `health.NewProbe(svc, opts)` auto-registers `ProjectionStatusProvider` as a health check. `health.NewDashboard(probe, opts)` returns a pre-configured `*dashboard.Dashboard`. Separate module so consumers who don't need it pay zero dep cost. Source: architecture review §3.
 
@@ -42,6 +46,7 @@
 - [ ] **Re-investigate datastar/go-sse architecture decision.** The prior analysis (`docs/status/archived/2026-08-07_06-25_datastar-go-sse-analysis-self-review.md`) claimed go-sse cannot produce Datastar wire format — but go-sse has `KeyedLines`/`SendKeyed`/`SendLines` designed for Datastar. The exclusion is a design choice (Patch coupling to SDK), not a technical incompatibility. Needs either an ADR documenting the decision or a migration to go-sse.
 - [ ] **Add golines alignment to `nix fmt` pipeline.** `golines` is available but not integrated into treefmt. Would catch alignment drift automatically. May need `pkgs.golines` from nixpkgs or a wrapper.
 - [ ] **Consider a Go-based markdown link checker.** The current `check-docs-links.sh` uses awk regex which handles common cases but may miss edge cases. A Go checker using goldmark would be more robust. The awk checker + test suite is sufficient for now.
+- [ ] **Rewrite `origin/v4` branch history to strip 3 remaining binary blobs (~27.7 MB).** The master branch was cleaned via `git filter-repo` (731.8 MB → 0 blobs), but the `v4` branch has independent binary contamination (`examples/basic/basic` 9.8MB, `examples/datastar-demo/datastar-demo` 8.9MB ×2) that does not share ancestry with master. Requires `git filter-repo` on the v4 branch + force-push. Source: `docs/status/2026-08-09_06-15_git-binary-cleanup-history-rewrite.md`.
 
 ---
 

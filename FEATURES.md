@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 83.3% dashboardui (gate 60%), 97.4% datastar (gate 90%), 85.3% setup (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 12 lint-checked modules (2026-08-09)
+**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, systemadapter module; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 83.3% dashboardui (gate 60%), 97.4% datastar (gate 90%), 85.3% setup (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 12 lint-checked modules (2026-08-09). systemadapter excluded (work-in-progress).
 
 ## Status legend
 
@@ -133,6 +133,7 @@
 | SSE Broadcaster    | 🟢 `FULLY_FUNCTIONAL` | `Broadcaster` — thread-safe fan-out via generic `fanOut[T]`. O(1) Unsubscribe via channel identity. Buffered channels (64). Non-blocking broadcast drops to slow consumers. `SubscriberCount()`. `Close()` for graceful shutdown. v4.2.0.                                                                                       |
 | SSE Reconnection   | 🟢 `FULLY_FUNCTIONAL` | `LastEventIDFromRequest(r)`, `SSEEventStore` interface, `ReplayEvents(stream, store, lastID)` — full reconnection support per SSE spec. **`JournalSSEStore`** provides the production impl backed by `event.SeekableJournal` (cursor-based `ReadFrom`). Falls back to `ReadAll`+filter. `WithMaxReplay(n)` limits initial sync. |
 | SSE + CQRS Bridge  | 🟢 `FULLY_FUNCTIONAL` | `BroadcastOnSuccess(event, data)` / `BroadcastOnSuccessFunc(fn)` / `BroadcastOnError(eventName)` / `BroadcastOnErrorFunc(fn)` — AfterDispatchHook factories for SSE Broadcaster.                                                                                                                                                |
+| Cross-Transport Hub | 🟢 `FULLY_FUNCTIONAL` | `Raw() *sse.Broadcaster[sse.Event]` accessor on both `cqrshtmx.Broadcaster` and `datastar.Broadcaster`. `NewBroadcasterFromRaw(raw)` wraps an existing broadcaster for sharing one fan-out hub across HTMX and Datastar transports. `RawBroadcaster` structural interface for duck-typed sharing. `[Unreleased]`. |
 | ACK Protocol (SSE) | 🟢 `FULLY_FUNCTIONAL` | `CommandAck` + `BroadcastOnAck()` / `BroadcastOnAckFunc(fn)` — structured `{commandId, status, error}` ACK via SSE when request carries `X-Command-Id` header (opt-in). See ADR 0024.                                                                                                                                           |
 
 ### Real-Time — WebSocket (removed in v5)
@@ -376,7 +377,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 | Broadcaster + Replay | 🟢 `FULLY_FUNCTIONAL` | `NewBroadcaster()` — fan-out SSE patches to all clients with bounded ring buffer replay (default 256). `NewBroadcasterWithReplay(n)` for custom size, 0 to disable. `NewBroadcasterWithHeartbeat(interval)` for proxy keep-alive. `Last-Event-ID` header + `?lastEventId=` query param support |
 | EventBridge          | 🟢 `FULLY_FUNCTIONAL` | `NewEventBridge(broadcaster)` + `Map(eventType, fn)` + `Handle(event.Event)` + `OnError(callback)` — declarative domain-event-to-patch mapping with error observability                                                                                                                        |
 | SDK Re-exports       | 🟢 `FULLY_FUNCTIONAL` | All `With*` options, type aliases, constants — single-import convenience (`ds.WithSelectorID` instead of importing SDK separately)                                                                                                                                                             |
-| Coverage             | 🟢 `FULLY_FUNCTIONAL` | 97.4% (gate 90%). 54 tests across 5 test files                                                                                                                                                                                                                                                 |
+| Coverage             | 🟢 `FULLY_FUNCTIONAL` | 97.4% (gate 90%). 57 tests across 6 test files                                                                                                                                                                                                                                                 |
 
 ---
 
