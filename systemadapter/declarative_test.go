@@ -75,7 +75,12 @@ func waitForProjections(t *testing.T, sys *system.System, timeout time.Duration)
 	}
 
 	// Phase 2: wait for processed counters to stabilize.
-	prevProcessed := make(map[string]int64)
+	// Initialize to -1 so the first snapshot is always "changed".
+	states := host.Status()
+	prevProcessed := make(map[string]int64, len(states))
+	for _, s := range states {
+		prevProcessed[s.Name] = -1
+	}
 	stableCount := 0
 
 	for time.Now().Before(deadline) {
