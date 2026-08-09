@@ -47,15 +47,17 @@ func setupDeclarativeSystem(t *testing.T) *system.System {
 }
 
 // eventually retries fn until it returns nil or the timeout expires.
-// This is the standard pattern for testing eventually-consistent projections.
+// The initial sleep gives the projection worker time to receive events
+// from the bus before the first query attempt.
 func eventually(t *testing.T, timeout time.Duration, fn func() error) {
 	t.Helper()
+	time.Sleep(100 * time.Millisecond) // let events reach the projection worker
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
 		if err := fn(); err == nil {
 			return
 		}
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 	if err := fn(); err != nil {
 		t.Fatal(err)
@@ -95,7 +97,7 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
 		tenantID, "Acme Corp", "Acme",
 	)))
-	waitForHostLive(t, sys, 5*time.Second)
+
 
 	eventually(t, 5*time.Second, func() error {
 		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
@@ -162,7 +164,7 @@ func TestDeclarative_BotRoundTrip(t *testing.T) {
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterBotCmd(
 		botID, "MyBot", ownerID, tokenHash, []string{"read", "write"},
 	)))
-	waitForHostLive(t, sys, 5*time.Second)
+
 
 	eventually(t, 5*time.Second, func() error {
 		bot, err := systemadapter.FindBotByID(ctx, sys, botID.String())
@@ -208,7 +210,7 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 		actorID, tenantID,
 		[]identitymodel.Role{identitymodel.RoleAdmin},
 	)))
-	waitForHostLive(t, sys, 5*time.Second)
+
 
 	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
 
@@ -262,7 +264,7 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 		userStreamID, "user@example.com", "Test User",
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)))
-	waitForHostLive(t, sys, 5*time.Second)
+
 
 	eventually(t, 5*time.Second, func() error {
 		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
@@ -338,7 +340,6 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 		actorID, tenantID,
 		[]identitymodel.Role{identitymodel.RoleAdmin},
 	)))
-	waitForHostLive(t, sys, 5*time.Second)
 
 	eventually(t, 5*time.Second, func() error {
 		allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.Get(), "manage")
@@ -398,7 +399,7 @@ func TestDeclarative_AuditLog(t *testing.T) {
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeEmailCmd(
 		userStreamID, "changed@example.com",
 	)))
-	waitForHostLive(t, sys, 5*time.Second)
+
 
 	eventually(t, 5*time.Second, func() error {
 		entries, err := systemadapter.AuditEntries(ctx, sys)
