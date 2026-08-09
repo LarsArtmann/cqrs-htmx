@@ -9,8 +9,8 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/samber/do/v2"
