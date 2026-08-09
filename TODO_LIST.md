@@ -30,8 +30,6 @@
 
 - [ ] **Create `cqrs-htmx/auditlog/v4` module — samber-do-auditlog integration.** New optional Go module: `auditlog.WithAuditLog(opts) []do.HookProvider` for one-line DI audit logging. `auditlog.MountReport(mux, report)` for the HTML visualization viewer. Closes the gap explicitly noted in the samber-do-demo status doc. Source: architecture review §3.
 
-- [ ] **Write `docs/guides/fullstack-wiring.md` — the integration guide.** Single guide showing the 4 integration paths (setup-only, +health, +auditlog, full-stack). Decision tree: "do you need health checks? → add health/v4". Cross-link from README and SKILL.md. Source: architecture review Step 7.
-
 - [ ] **Add remaining BuildFlow tools to the flake devShell.** biome, shfmt, and nixfmt are now wired. Still missing: cspell (spell-checking), vitest, jest — needed for full `--no-verify`-free commits on JS/Markdown files. Source: `docs/status/archived/2026-08-05_02-35_templ-components-adoption-deepening.md`.
 - [~] **Wire remaining `check-*` apps into CI.** `check-docs-links`, `check-service-methods`, `check-domain-counts`, `check-large-files`, and `check-phantom-version` now run in the CI `checks` and `security` jobs. Remaining: `check-codegen` (needs templ version pinning in CI), `check-templates` (needs workspace mode / local replaces), `check-cqrs-lint` (blocked — Nix-only binary; see P3.1).
 

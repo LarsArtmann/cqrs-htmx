@@ -143,6 +143,8 @@ func main() {
 }
 ```
 
+> **Want the full stack in one call?** The [`setup/v4`](setup/) module creates shared stores, the user management service, admin dashboard, observability dashboard, and login page with correct middleware ordering in a single `setup.New()` call. See the [Full-Stack Wiring Guide](docs/guides/fullstack-wiring.md).
+
 ## Config
 
 `New(Config)` creates an `App`. `Commands` or `Queries` must be non-nil:

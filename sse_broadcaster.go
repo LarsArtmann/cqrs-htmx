@@ -25,9 +25,32 @@ type Broadcaster struct {
 	*sse.Broadcaster[sse.Event]
 }
 
+// RawBroadcaster is implemented by Broadcaster types that expose their
+// underlying [*sse.Broadcaster]. This enables sharing a single fan-out hub
+// across transports (e.g., HTMX SSE and DataStar SSE from the same event
+// source). Both the root [*Broadcaster] and datastar's *Broadcaster satisfy
+// this interface structurally (duck typing — no import required).
+type RawBroadcaster interface {
+	Raw() *sse.Broadcaster[sse.Event]
+}
+
 // NewBroadcaster creates a new event broadcaster with no subscribers.
 func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{Broadcaster: sse.NewBroadcaster[sse.Event]()}
+}
+
+// NewBroadcasterFromRaw wraps an existing [*sse.Broadcaster] in a [*Broadcaster],
+// enabling cross-transport fan-out hub sharing. Use this when you want HTMX
+// SSE and DataStar SSE to share the same underlying event distribution.
+func NewBroadcasterFromRaw(raw *sse.Broadcaster[sse.Event]) *Broadcaster {
+	return &Broadcaster{Broadcaster: raw}
+}
+
+// Raw returns the underlying [*sse.Broadcaster] so consumers can access
+// advanced features (SubscribeFilter, custom health checks) or share the
+// fan-out hub with another Broadcaster via NewBroadcasterFromRaw.
+func (b *Broadcaster) Raw() *sse.Broadcaster[sse.Event] {
+	return b.Broadcaster
 }
 
 // BroadcastOnSuccess creates an AfterDispatchHook that broadcasts an SSE event

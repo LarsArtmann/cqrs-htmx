@@ -515,6 +515,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`docs/guides/leveraging-go-cqrs-lite.md`** -- how to leverage 58 go-cqrs-lite modules from cqrs-htmx (dispatch middleware, OTel/Prometheus, durable scheduling, signing/encryption, catalog docs, scenario testing, sagas, schema evolution).
 - **`docs/guides/production-readiness.md`** -- single checklist for taking a cqrs-htmx app to production (middleware stack, observability, security, projection health, performance).
 - **`docs/guides/dispatch-middleware-ordering.md`** -- correct ordering rules for dispatch middleware (recovery, circuit breaker, retry, tracing, metrics, logging).
+- **`docs/guides/fullstack-wiring.md`** -- the integration guide: one-call `setup/v4` SDK, manual wiring, feature flags, persistence, middleware ordering, and optional health/auditlog integrations.
 - **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof), `examples/middleware-showcase/` (all 8 httputil HTTP middleware in a single validated `MiddlewareStack`: recovery, security headers, metrics, CORS, client IP, rate limiting, compression, ETag).
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.
 

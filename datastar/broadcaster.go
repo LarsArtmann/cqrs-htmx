@@ -54,6 +54,21 @@ func NewBroadcasterWithReplay(capacity int) *Broadcaster {
 	}
 }
 
+// NewBroadcasterFromRaw wraps an existing [*sse.Broadcaster] in a [*Broadcaster],
+// enabling cross-transport fan-out hub sharing without replay support. Use this
+// when you want HTMX SSE and DataStar SSE to share the same underlying event
+// distribution.
+func NewBroadcasterFromRaw(raw *sse.Broadcaster[sse.Event]) *Broadcaster {
+	return &Broadcaster{inner: raw}
+}
+
+// Raw returns the underlying [*sse.Broadcaster] so consumers can access
+// advanced features (SubscribeFilter, direct Subscribe) or share the fan-out
+// hub with another Broadcaster via NewBroadcasterFromRaw.
+func (b *Broadcaster) Raw() *sse.Broadcaster[sse.Event] {
+	return b.inner
+}
+
 // Broadcast sends a patch to all connected clients. The patch's Event() is
 // computed once and the resulting [sse.Event] is fan-out to all subscribers.
 // If replay is enabled, the event is also appended to the store. Slow clients
