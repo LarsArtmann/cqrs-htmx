@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0) | **Modules:** 21 in `go.work` | **`*Service` methods:** 72 (leading v5 indicator; see ROADMAP) | **Coverage:** Root ~93% (gate 90%), openapi 99.0%, usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%) — recompute via `nix run .#coverage-gate` | **Lint:** All 11 lint-checked modules at 0 issues (2026-08-09). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
+**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration) | **Modules:** 21 in `go.work` | **`*Service` methods:** 72 (leading v5 indicator; see ROADMAP) | **Coverage:** Root ~93% (gate 90%), openapi 99.0%, usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%), setup 85.3% (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** All 12 lint-checked modules at 0 issues (2026-08-09). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 
 ## Status Legend
 
@@ -15,10 +15,6 @@
 ---
 
 ## P1 — High impact (release follow-through & doc health)
-
-- [ ] **Wire `setup/v4` into flake.nix `forEachGoModule` apps and CI.** The module is added to `go.work` and builds/tests pass, but needs to be included in the CI workflow and verified by `nix run .#coverage-gate`. The `forEachGoModule` apps (`build`, `test`, `lint`, `coverage`) auto-discover from `go.work`, but `coverage-gate` uses a hardcoded list. Source: `setup/` module (8 tests, race-clean).
-
-- [~] **`cqrs-htmx/setup/v4` module — internal wiring kit (BUILT, needs flake/CI integration).** New optional Go module (zero external deps) providing: `setup.New(Config) (*Bundle, error)` — one-call composition root that creates shared stores, constructs `usermgmt.Service` with all auth strategies, and builds admin/dashboard/login UI panels. `Bundle.Mount(mux)` mounts all routes with correct middleware ordering. 8 tests, race-clean. Added `Service.ProjectionHost()` accessor to usermgmt. Remaining: flake.nix `coverage-gate` entry, CI workflow update, lint config. Source: `setup/` module.
 
 - [~] **Complete MySQL event-store support.** Dialect, read-model constructors, setup template, migration guide, integration test (testcontainers), and error classifier are done (`MySQLDialect`, `NewMySQL*ReadModel`, `mysql_setup.go`, `docs/guides/mysql-setup.md`, `classifyMySQLError`, `mysql_integration_test.go`). Remaining: (1) document MySQL support in the root README; (2) `NewMySQLSetup` convenience constructor + MySQL-backed session/snapshot/checkpoint stores. Evidence: `usermgmt/sql_readmodel_mysql.go`, `go-cqrs-lite/storage/sql/dialect.go`.
 

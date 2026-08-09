@@ -19,6 +19,7 @@ use (
 	./integration_test
 	./loginpage
 	./setup
+	./systemadapter
 	./usermgmt
 	./usermgmt/oauth2
 	./usermgmt/totp

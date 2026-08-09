@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 83.3% dashboardui (gate 60%), 97.4% datastar (gate 90%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 11 lint-checked modules (2026-08-09)
+**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 83.3% dashboardui (gate 60%), 97.4% datastar (gate 90%), 85.3% setup (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 12 lint-checked modules (2026-08-09)
 
 ## Status legend
 
