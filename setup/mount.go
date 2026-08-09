@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
 )
 
@@ -87,10 +88,8 @@ func (b *Bundle) healthHandler() http.HandlerFunc {
 		cqrshtmx.NewNamedCheck("projections", func() error {
 			for _, s := range b.Service.ProjectionStatuses() {
 				if s.Status == "failed" {
-					return errorfamily.NewInfrastructure(
-						"setup.projection_failed",
-						"projection %q has failed: %s", s.Name, s.LastError,
-					)
+					return errorfamily.Newf(errorfamily.Infrastructure,
+						"setup.projection_failed", "projection %q has failed: %s", s.Name, s.LastError)
 				}
 			}
 
