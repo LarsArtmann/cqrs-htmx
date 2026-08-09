@@ -23,6 +23,7 @@ MODULES=(
 	"loginpage"
 	"dashboardui"
 	"datastar"
+	"setup"
 	"integration_test"
 )
 

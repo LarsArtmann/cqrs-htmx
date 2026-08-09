@@ -146,6 +146,13 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Build setup submodule
+        run: cd setup && go build ./...
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -232,6 +239,13 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Test setup submodule
+        run: cd setup && go test ./... -count=1 -race -coverprofile=coverage.out
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Coverage check
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
@@ -272,6 +286,12 @@ jobs:
           COVERAGE=$(go tool cover -func=datastar/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "datastar coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 90) { print \"datastar coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+
+      - name: setup coverage check
+        run: |
+          COVERAGE=$(go tool cover -func=setup/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "setup coverage: ${COVERAGE}%"
+          awk "BEGIN { if ($COVERAGE < 80) { print \"setup coverage ${COVERAGE}% is below 80% threshold\"; exit 1 } }"
 
   lint:
     runs-on: ubuntu-latest
@@ -358,6 +378,17 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: golangci-lint (setup)
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.12.2
+          working-directory: setup
+          args: "--timeout=5m"
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
   mod-tidy:
     runs-on: ubuntu-latest
     steps:
@@ -369,7 +400,7 @@ jobs:
 
       - name: Verify go mod tidy (all modules)
         run: |
-          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
+          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui setup integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
             echo "=== Checking $mod ==="
             (cd "$mod" && go mod tidy -diff)
           done
@@ -460,7 +491,7 @@ jobs:
       - name: Error family check
         run: |
           echo "=== Error Family Check ==="
-          go run scripts/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage datastar
+          go run scripts/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage datastar setup
           echo "OK: All modules pass errorfamily check."
         env:
           GOEXPERIMENT: jsonv2

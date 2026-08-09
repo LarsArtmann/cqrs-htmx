@@ -25,6 +25,7 @@ declare -A DEP_BUDGET=(
 	["loginpage"]=5         # loginpage: 3 current (cqrs-htmx, usermgmt, templ)
 	["dashboardui"]=16      # dashboardui: 13 current (cqrs-htmx, usermgmt, templ, casbin, branded-id, cqrs-lite event/id/codec/metadata, ulid, rapid, watermill)
 	["datastar"]=5          # datastar: 4 current (datastar-go SDK, cqrs-lite event/id, templ)
+	["setup"]=14            # setup: 11 current (cqrs-htmx, usermgmt, identity-model, adminui, dashboardui, loginpage, cqrs-lite event/memory/watermill, error-family, httputil)
 )
 
 # Modules that don't need budget checks
