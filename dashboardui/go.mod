@@ -57,6 +57,8 @@ require (
 	modernc.org/sqlite v1.55.0 // indirect
 )
 
+replace github.com/larsartmann/cqrs-htmx/v4 => ../
+
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 //cqrs-lint:ignore(E009) dashboard IS the transport/view layer
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
