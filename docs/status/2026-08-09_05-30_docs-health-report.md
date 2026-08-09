@@ -75,6 +75,8 @@
 | `nix run .#check-codegen` | PASSED |
 | `nix run .#check-cqrs-lint` | All modules pass strict |
 | `bash scripts/check-docs-links.sh` | 181 links, all resolve |
+| `nix run .#check-templates` | All SQL setup templates compile |
+| `nix run .#errorfamily` | All modules pass |
 | `nix fmt` | 0 files changed (already formatted) |
 
 ---
@@ -82,5 +84,5 @@
 ## Remaining concerns (not blocking)
 
 1. **AGENTS.md is 46.5 KB** (verify-checklist flags >30 KB). Pre-existing accumulated context — not structural decay. A future session could split gotchas into a separate reference file.
-2. **48 unannotated archived August reports:** Per the docs-health skill, "Leave it alone" is always valid for old reports. The harvest guide says "Reading every historical report" is an anti-pattern — "recent reports carry the signal; old ones carry noise." The 6 most recent (Aug 7-9) were annotated; the rest are left as historical snapshots.
+2. **200+ unannotated archived reports:** Per the docs-health skill, "Leave it alone" is always valid for old reports. The harvest guide says "Reading every historical report" is an anti-pattern — "recent reports carry the signal; old ones carry noise." The 6 most recent (Aug 7-9) were annotated with resolution appendices; the rest are left as historical snapshots.
 3. **Coverage percentages are ephemeral:** Every living doc header includes them. The common-mistakes guide recommends deleting them from AGENTS.md. A future cleanup could replace hardcoded values with a pointer to `nix run .#coverage-gate`.

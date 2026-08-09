@@ -479,6 +479,14 @@ func (s *Service) ReadModel() *UserReadModel { return s.readModel }
 // AuditLog returns the configured audit log, or nil if not configured.
 func (s *Service) AuditLog() *AuditLog { return s.auditLog }
 
+// ProjectionHost returns the internal projection host that manages read-model
+// and Casbin projections. Returns nil if the service was constructed without
+// event-sourced setup.
+//
+// Consumers building observability dashboards (e.g. dashboardui) can use this
+// to wire projection health panels without constructing a separate host.
+func (s *Service) ProjectionHost() *projectionhost.Host { return s.projectionHost }
+
 func (s *Service) emailFromEvent(evt event.Event) string {
 	user, ok := s.readModel.FindByID(evt.StreamID())
 	if !ok {
