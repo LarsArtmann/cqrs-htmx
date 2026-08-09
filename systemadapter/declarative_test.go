@@ -209,14 +209,14 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 	if mem.ActorID != actorID.String() {
 		t.Errorf("ActorID = %q, want %q", mem.ActorID, actorID.String())
 	}
-	if mem.TenantID != tenantID.String() {
-		t.Errorf("TenantID = %q, want %q", mem.TenantID, tenantID.String())
+	if mem.TenantID != tenantID.Get() {
+		t.Errorf("TenantID = %q, want %q", mem.TenantID, tenantID.Get())
 	}
 	if len(mem.Roles) != 1 || mem.Roles[0] != "admin" {
 		t.Errorf("Roles = %v, want [admin]", mem.Roles)
 	}
 
-	mems, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenantID.String())
+	mems, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenantID.Get())
 	if err != nil {
 		t.Fatalf("FindMembershipsByTenant: %v", err)
 	}
@@ -330,7 +330,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.String(), "manage")
+	allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.Get(), "manage")
 	if err != nil {
 		t.Fatalf("Enforce: %v", err)
 	}
@@ -354,7 +354,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	allowed, err = systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.String(), "manage")
+	allowed, err = systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.Get(), "manage")
 	if err != nil {
 		t.Fatalf("Enforce viewer manage: %v", err)
 	}
@@ -362,7 +362,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 		t.Error("viewer should NOT be allowed to manage")
 	}
 
-	allowed, err = systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.String(), "view")
+	allowed, err = systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.Get(), "view")
 	if err != nil {
 		t.Fatalf("Enforce viewer view: %v", err)
 	}
