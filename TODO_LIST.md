@@ -16,11 +16,25 @@
 
 ## P1 — High impact (release follow-through & doc health)
 
+- [ ] **Create `examples/fullstack-demo/` — the kitchen-sink composition proof.** Mount root App + usermgmt Service + totp + adminui + dashboardui + loginpage + SSE broadcaster in one runnable example. Proves all modules compose, surfaces integration friction, serves as the copy-paste template for real apps. No example currently wires more than 2 UI modules together. Source: `docs/architecture-understanding/2026-08-09_05-36_module-integration-composability.html` (Finding 5).
+
+- [ ] **Create `cqrs-htmx/setup/v4` module — internal wiring kit.** New optional Go module (zero external deps) providing: `setup.DashboardConfig(svc *usermgmt.Service) dashboardui.Config` (eliminates 12-field manual wiring), `setup.MountAll(mux, opts) *MountedPanels` (mounts admin + dashboard + login + auth routes in one call), `setup.FullstackConfig` struct. Depends only on internal siblings. Added to `go.work`; flake.nix `forEachGoModule` apps pick it up automatically. Source: architecture review Finding 1 + 2.
+
 - [~] **Complete MySQL event-store support.** Dialect, read-model constructors, setup template, migration guide, integration test (testcontainers), and error classifier are done (`MySQLDialect`, `NewMySQL*ReadModel`, `mysql_setup.go`, `docs/guides/mysql-setup.md`, `classifyMySQLError`, `mysql_integration_test.go`). Remaining: (1) document MySQL support in the root README; (2) `NewMySQLSetup` convenience constructor + MySQL-backed session/snapshot/checkpoint stores. Evidence: `usermgmt/sql_readmodel_mysql.go`, `go-cqrs-lite/storage/sql/dialect.go`.
 
 ---
 
 ## P2 — Medium impact (tooling & quality)
+
+- [ ] **Document Broadcaster duality and expose underlying `sse.Broadcaster`.** Root's `cqrshtmx.Broadcaster` and datastar's `datastar.Broadcaster` both wrap `sse.Broadcaster[sse.Event]` but are separate types with no shared abstraction. Add a `Raw()` accessor (or interface) so consumers can share one fan-out hub for cross-transport scenarios. Write `docs/guides/sse-and-datastar.md`. Source: architecture review Finding 3.
+
+- [ ] **Add fullstack integration test to `integration_test/`.** Mount adminui + dashboardui + loginpage against a real `*usermgmt.Service`. Verify: admin panel renders with seeded user, dashboard shows projection health, login page renders correct auth buttons based on Service config. No integration test currently mounts any UI module. Source: architecture review Finding 6.
+
+- [ ] **Create `cqrs-htmx/health/v4` module — go-health + go-health-dashboard integration.** New optional Go module bridging usermgmt projection health → go-health checks. `health.NewProbe(svc, opts)` auto-registers `ProjectionStatusProvider` as a health check. `health.NewDashboard(probe, opts)` returns a pre-configured `*dashboard.Dashboard`. Separate module so consumers who don't need it pay zero dep cost. Source: architecture review §3.
+
+- [ ] **Create `cqrs-htmx/auditlog/v4` module — samber-do-auditlog integration.** New optional Go module: `auditlog.WithAuditLog(opts) []do.HookProvider` for one-line DI audit logging. `auditlog.MountReport(mux, report)` for the HTML visualization viewer. Closes the gap explicitly noted in the samber-do-demo status doc. Source: architecture review §3.
+
+- [ ] **Write `docs/guides/fullstack-wiring.md` — the integration guide.** Single guide showing the 4 integration paths (setup-only, +health, +auditlog, full-stack). Decision tree: "do you need health checks? → add health/v4". Cross-link from README and SKILL.md. Source: architecture review Step 7.
 
 - [ ] **Add remaining BuildFlow tools to the flake devShell.** biome, shfmt, and nixfmt are now wired. Still missing: cspell (spell-checking), vitest, jest — needed for full `--no-verify`-free commits on JS/Markdown files. Source: `docs/status/archived/2026-08-05_02-35_templ-components-adoption-deepening.md`.
 - [~] **Wire remaining `check-*` apps into CI.** `check-docs-links`, `check-service-methods`, `check-domain-counts`, `check-large-files`, and `check-phantom-version` now run in the CI `checks` and `security` jobs. Remaining: `check-codegen` (needs templ version pinning in CI), `check-templates` (needs workspace mode / local replaces), `check-cqrs-lint` (blocked — Nix-only binary; see P3.1).

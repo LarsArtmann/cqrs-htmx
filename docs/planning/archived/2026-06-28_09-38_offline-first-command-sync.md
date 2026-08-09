@@ -1,7 +1,7 @@
 # Offline-First Command Sync — Comprehensive Execution Plan
 
 > **Created:** 2026-06-28 09:38
-> **Context:** Research session ([brainstorming doc](../brainstorming/2026-06-27_offline-first-command-sync-research.html)) concluded that cqrs-htmx should sync **commands, not events** — because commands are re-decidable and events are not. This plan turns that research into executable work.
+> **Context:** Research session ([brainstorming doc](../../brainstorming/2026-06-27_offline-first-command-sync-research.html)) concluded that cqrs-htmx should sync **commands, not events** — because commands are re-decidable and events are not. This plan turns that research into executable work.
 > **Principle:** Every change must compile, pass tests, and not break existing consumers. Library principle: never force opinions.
 
 ---

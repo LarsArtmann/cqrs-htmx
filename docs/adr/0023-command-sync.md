@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-06-28
-**Related:** [Brainstorming doc](../brainstorming/2026-06-27_offline-first-command-sync-research.html), [Execution plan](../planning/2026-06-28_09-38_offline-first-command-sync.md)
+**Related:** [Brainstorming doc](../brainstorming/2026-06-27_offline-first-command-sync-research.html), [Execution plan](../planning/archived/2026-06-28_09-38_offline-first-command-sync.md)
 
 ## Context
 

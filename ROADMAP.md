@@ -137,6 +137,32 @@ usermgmt/totp/v5             ← (unchanged: auth strategy sub-module)
 
 ---
 
+## Composition & Integration Layer (Researched — Proposed)
+
+Architecture review (`docs/architecture-understanding/2026-08-09_05-36_module-integration-composability.html`) found the library's weakest dimension is **Composability (3/5)**: individual modules are superbly decoupled, but there is no wiring layer to help consumers compose them. The full-stack prebundle question (should we offer a model that includes samber-do-auditlog + go-health-dashboard?) was answered **yes, but as optional integration modules** — never as hard dependencies.
+
+### Proposed New Modules
+
+| Module | Purpose | External Deps | Effort |
+| ------ | ------- | ------------- | ------ |
+| `cqrs-htmx/setup/v4` | Internal wiring kit: `DashboardConfig(svc)` adapter, `MountAll(mux, opts)` helper, `FullstackConfig` struct | Zero (internal siblings only) | ~6hr |
+| `cqrs-htmx/health/v4` | go-health + go-health-dashboard integration: projection health → health checks, pre-configured dashboard | go-health, go-health-dashboard, templ-components | ~6hr |
+| `cqrs-htmx/auditlog/v4` | samber-do-auditlog integration: `WithAuditLog(opts)` hook providers, HTML report viewer mount | samber-do-auditlog, samber/do | ~3hr |
+
+### Why Separate Modules (Not Hard Deps)
+
+The library principle ("never enforce defaults consumers might disagree with") prohibits bundling external deps into existing modules. go-health-dashboard pulls templ, templ-components, go-datastar, go-sse, go-health — if bundled into root, every Path A consumer (root only, no auth) would get these transitively. Separate optional modules = three independent opt-in points, mirroring how `usermgmt/totp`, `usermgmt/webauthn`, and `usermgmt/oauth2` already work.
+
+### Phased Delivery
+
+1. **Phase 1 (v4.x):** `examples/fullstack-demo/` + `setup/v4` module. Zero external deps. Eliminates the composition gap for the majority of consumers. ~80% of the value.
+2. **Phase 2 (v4.x/v5):** `health/v4` + `auditlog/v4`. Independent modules, ship when ready. High-value for production users.
+3. **Phase 3:** `docs/guides/fullstack-wiring.md` integration guide + README/SKILL.md cross-links. Discoverability layer.
+
+**Status:** proposed, not yet started. Actionable items harvested to TODO_LIST (P1 + P2).
+
+---
+
 ## Operational Tooling Ideas
 
 _Candidates for future development if consumer demand emerges. Items that became actionable have graduated to TODO_LIST._

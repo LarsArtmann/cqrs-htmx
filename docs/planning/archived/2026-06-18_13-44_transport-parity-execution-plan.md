@@ -8,7 +8,7 @@
 
 ## Context
 
-The [Web Communication Matrix](../research/2026-06-18_web-communication-matrix.html) identified 5 critical gaps preventing cqrs-htmx from claiming full transport coverage. Today:
+The [Web Communication Matrix](../../research/2026-06-18_web-communication-matrix.html) identified 5 critical gaps preventing cqrs-htmx from claiming full transport coverage. Today:
 
 - **SSE** silently swallows command failures (`BroadcastOnSuccess` early-returns on `err != nil`)
 - **SSE** has no heartbeat (proxies/LBs kill idle connections after 30–60s)
@@ -87,7 +87,7 @@ Sorted by importance/impact/effort/customer-value.
 | M08 | Update README SSE/WS sections                         | Docs   | High     | 45 min | `README.md`                                              |
 | M09 | Update FEATURES.md with new capabilities              | Docs   | Medium   | 30 min | `FEATURES.md`                                            |
 | M10 | Update AGENTS.md architecture tree                    | Docs   | Medium   | 30 min | `AGENTS.md`                                              |
-| M11 | Update matrix HTML to reflect new state               | Docs   | Medium   | 30 min | `docs/research/2026-06-18_web-communication-matrix.html` |
+| M11 | Update matrix HTML to reflect new state               | Docs   | Medium   | 30 min | `do../../research/2026-06-18_web-communication-matrix.html` |
 | M12 | Add CHANGELOG entries                                 | Docs   | Low      | 20 min | `CHANGELOG.md`                                           |
 | M13 | Update doc.go with new exports                        | Docs   | Low      | 20 min | `doc.go`                                                 |
 | M14 | Integration tests: SSE error + heartbeat flow         | Test   | Medium   | 45 min | `sse_integration_test.go`                                |

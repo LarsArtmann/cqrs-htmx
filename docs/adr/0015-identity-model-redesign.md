@@ -137,7 +137,7 @@ request. Argon2id's 10-100ms per bot API call is unjustified.
 ## Related
 
 - [Brainstorming Report](../brainstorming/2026-06-21_actor-tenant-impersonation-redesign.html)
-- [Pareto Plan](../planning/2026-06-21_07-31_identity-model-redesign-pareto.md)
-- [Wiring Plan](../planning/2026-06-21_08-23_membership-wiring-execution.md)
-- [Self-Review](../status/2026-06-21_07-58_identity-redesign-brutal-self-review.md)
+- [Pareto Plan](../planning/archived/2026-06-21_07-31_identity-model-redesign-pareto.md)
+- [Wiring Plan](../planning/archived/2026-06-21_08-23_membership-wiring-execution.md)
+- [Self-Review](../status/archived/2026-06-21_07-58_identity-redesign-brutal-self-review.md)
 - ADR 0006 (event-sourced user aggregate)

@@ -3,7 +3,7 @@
 **Created:** 2026-06-21 07:31 | **Author:** Crush | **Status:** PLANNING → EXECUTION
 
 **Scope:** Implement the Actor/Tenant/Membership/Impersonation redesign from
-[`docs/brainstorming/2026-06-21_actor-tenant-impersonation-redesign.html`](../brainstorming/2026-06-21_actor-tenant-impersonation-redesign.html)
+[`do../../brainstorming/2026-06-21_actor-tenant-impersonation-redesign.html`](../../brainstorming/2026-06-21_actor-tenant-impersonation-redesign.html)
 
 **Constraint:** DO NOT BREAK BUILD. Every task ends with `go build ./...` + `go test ./...` green.
 
