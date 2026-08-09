@@ -1,7 +1,5 @@
 # httputil v0.11.0 Adoption — Cleanup & Hardening Status
 
-> **STATUS: FULLY RESOLVED (2026-08-09).** All quality gates verified passing. Binary untracked. 3 tests added for new behavior. AGENTS.md and CHANGELOG.md updated. The remaining “not started” items (NonceFunc deprecation, shared helper, dashboardui Nonce, RegisterErrorClassifications re-export) were all resolved by the subsequent consolidation session (04:47) via `RecommendedSecurityMiddleware()`. All work is in CHANGELOG.md [Unreleased].
-
 _Date: 2026-08-09 04:21_
 
 ---
@@ -370,3 +368,9 @@ manually. A re-export in the root module would let them call
 `cqrshtmx.RegisterErrorClassifications()` without importing httputil directly.
 Is this worth adding, or does the duck-typing philosophy say "import httputil
 directly"?
+
+---
+
+## Resolution
+
+**STATUS: FULLY RESOLVED (2026-08-09).** All quality gates verified passing. Binary untracked. 3 tests added for new behavior. AGENTS.md and CHANGELOG.md updated. The remaining “not started” items (NonceFunc deprecation, shared helper, dashboardui Nonce, RegisterErrorClassifications re-export) were all resolved by the subsequent consolidation session (04:47) via `RecommendedSecurityMiddleware()`. All work is in CHANGELOG.md [Unreleased].

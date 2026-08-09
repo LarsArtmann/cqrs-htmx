@@ -1,7 +1,5 @@
 # httputil v0.11.0 Deep-Dive Audit — Action Execution Status
 
-> **STATUS: FULLY RESOLVED (2026-08-09).** All work from this session was completed by the subsequent cleanup (04:21) and consolidation (04:47) sessions. Key resolutions: lint warnings fixed (11→0), AGENTS.md updated, CHANGELOG [Unreleased] entries added, `RecommendedSecurityMiddleware()` factory created, Nonce middleware added to both adminui and dashboardui, `RegisterErrorClassifications()` exported + auto-called in `New()`, comprehensive nonce/security tests added, `examples/middleware-showcase` created, all 8 quality gates verified passing. Remaining open items (leveraging-httputil.md recipe update) tracked in TODO_LIST.md. All work is in CHANGELOG.md [Unreleased].
-
 _Date: 2026-08-09 02:03_
 
 ---
@@ -360,3 +358,9 @@ The report recommended replacing it entirely. I made it backward-compatible
 consumers to httputil.Nonce but keeps the escape hatch. Removing it entirely is
 cleaner but breaks any consumer who set `NonceFunc` explicitly. What's the
 preferred approach for v4.x (backward-compatible) vs v5 (breaking)?
+
+---
+
+## Resolution
+
+**STATUS: FULLY RESOLVED (2026-08-09).** All work from this session was completed by the subsequent cleanup (04:21) and consolidation (04:47) sessions. Key resolutions: lint warnings fixed (11→0), AGENTS.md updated, CHANGELOG [Unreleased] entries added, `RecommendedSecurityMiddleware()` factory created, Nonce middleware added to both adminui and dashboardui, `RegisterErrorClassifications()` exported + auto-called in `New()`, comprehensive nonce/security tests added, `examples/middleware-showcase` created, all 8 quality gates verified passing. Remaining open items (leveraging-httputil.md recipe update) tracked in TODO_LIST.md. All work is in CHANGELOG.md [Unreleased].

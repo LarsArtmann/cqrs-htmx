@@ -1,7 +1,5 @@
 # Status Report — 2026-08-07 21:53 — Retry Dependency Investigation
 
-> **STATUS: FULLY RESOLVED.** Investigation complete: `go-cqrs-lite/retry` has zero direct imports in cqrs-htmx source code. Retry is a pure alias shim over `go-retry` (ADR-0064). The stale `retry/v4 // indirect` in example go.mod files is a transitive dep from published `middleware/v4@v4.2.0` tag — `go mod tidy` is a no-op. No action needed.
-
 ## Session Summary
 
 User asked: _"Are we using go-cqrs-lite/retry? If so, can we replace it with go-retry v0.2.0?"_
@@ -130,3 +128,9 @@ Git status at session start said "clean" but now there are uncommitted changes I
 ### G3. Should go-cqrs-lite cut a new `middleware/v4` tag now?
 
 The local middleware module already migrated to `go-retry` directly, but no new tag has been published. This is a go-cqrs-lite decision, not a cqrs-htmx one. Is now the right time, or are there other pending middleware changes that should go in the same release?
+
+---
+
+## Resolution
+
+**STATUS: FULLY RESOLVED.** Investigation complete: `go-cqrs-lite/retry` has zero direct imports in cqrs-htmx source code. Retry is a pure alias shim over `go-retry` (ADR-0064). The stale `retry/v4 // indirect` in example go.mod files is a transitive dep from published `middleware/v4@v4.2.0` tag — `go mod tidy` is a no-op. No action needed.

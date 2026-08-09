@@ -1,7 +1,5 @@
 # Security Middleware Consolidation & httputil Max-Leverage Status
 
-> **STATUS: FULLY RESOLVED (2026-08-09).** `RecommendedSecurityMiddleware()` + `RecommendedPermissionsPolicy` shipped and tested. Both adminui and dashboardui delegate to it. `RegisterErrorClassifications()` exported + auto-called in `New()`. Nonce middleware in both UIs. 10 test functions across root/adminui/dashboardui. All 8 quality gates verified. httputil v0.11.0 published and adopted across all modules (go.work replace removed). Remaining items tracked in TODO_LIST.md (leveraging-httputil.md recipe, cross-module dep drift). All work is in CHANGELOG.md [Unreleased].
-
 _Date: 2026-08-09 04:47_
 
 ---
@@ -381,3 +379,9 @@ dashboardui's `Middleware()` behavior (now includes Nonce/CSP). SemVer says
 new API = minor bump (v4.8.0), behavior change in an existing method could
 arguably be breaking (but `Middleware()` is opt-in). I don't know if you want
 to batch these with other pending work or cut a release now.
+
+---
+
+## Resolution
+
+**STATUS: FULLY RESOLVED (2026-08-09).** `RecommendedSecurityMiddleware()` + `RecommendedPermissionsPolicy` shipped and tested. Both adminui and dashboardui delegate to it. `RegisterErrorClassifications()` exported + auto-called in `New()`. Nonce middleware in both UIs. 10 test functions across root/adminui/dashboardui. All 8 quality gates verified. httputil v0.11.0 published and adopted across all modules (go.work replace removed). Remaining items tracked in TODO_LIST.md (leveraging-httputil.md recipe, cross-module dep drift). All work is in CHANGELOG.md [Unreleased].
