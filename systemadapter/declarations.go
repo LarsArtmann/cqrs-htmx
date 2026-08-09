@@ -509,51 +509,41 @@ func removeUserPolicy() metaengine.Fold {
 func auditLogScan() metaengine.QueryDecl[system.ScanInput, AuditEntryView] {
 	return metaengine.Query[system.ScanInput, AuditEntryView]("audit_log",
 		auditFold(string(identitymodel.EventUserRegistered),
-			projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]{},
-			"register"),
+			identitymodel.UserRegisteredPayload{}, "register"),
 		auditFold(string(identitymodel.EventEmailChanged),
-			projectionadapter.EventWithID[identitymodel.EmailChangedPayload]{},
-			"change_email"),
+			identitymodel.EmailChangedPayload{}, "change_email"),
 		auditFold(string(identitymodel.EventDisplayNameChanged),
-			projectionadapter.EventWithID[identitymodel.DisplayNameChangedPayload]{},
-			"change_display_name"),
+			identitymodel.DisplayNameChangedPayload{}, "change_display_name"),
 		auditFold(string(identitymodel.EventUserDeleted),
-			projectionadapter.EventWithID[identitymodel.UserDeletedPayload]{},
-			"delete_user"),
+			identitymodel.UserDeletedPayload{}, "delete_user"),
 		auditFold(string(identitymodel.EventCredentialAdded),
-			projectionadapter.EventWithID[identitymodel.CredentialAddedPayload]{},
-			"add_credential"),
+			identitymodel.CredentialAddedPayload{}, "add_credential"),
 		auditFold(string(identitymodel.EventCredentialRemoved),
-			projectionadapter.EventWithID[identitymodel.CredentialRemovedPayload]{},
-			"remove_credential"),
+			identitymodel.CredentialRemovedPayload{}, "remove_credential"),
 		auditFold(string(identitymodel.EventEmailVerified),
-			projectionadapter.EventWithID[identitymodel.EmailVerifiedPayload]{},
-			"verify_email"),
+			identitymodel.EmailVerifiedPayload{}, "verify_email"),
 		auditFold(string(identitymodel.EventTOTPEnabled),
-			projectionadapter.EventWithID[identitymodel.TOTPEnabledPayload]{},
-			"enable_totp"),
+			identitymodel.TOTPEnabledPayload{}, "enable_totp"),
 		auditFold(string(identitymodel.EventTOTPDisabled),
-			projectionadapter.EventWithID[identitymodel.TOTPDisabledPayload]{},
-			"disable_totp"),
+			identitymodel.TOTPDisabledPayload{}, "disable_totp"),
 		auditFold(string(identitymodel.EventExternalAccountLinked),
-			projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]{},
-			"link_external_account"),
+			identitymodel.ExternalAccountLinkedPayload{}, "link_external_account"),
 		auditFold(string(identitymodel.EventExternalAccountUnlinked),
-			projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload]{},
-			"unlink_external_account"),
+			identitymodel.ExternalAccountUnlinkedPayload{}, "unlink_external_account"),
 		auditFold(string(identitymodel.EventRolesUpdated),
-			projectionadapter.EventWithID[identitymodel.RolesUpdatedPayload]{},
-			"update_roles"),
+			identitymodel.RolesUpdatedPayload{}, "update_roles"),
 		metaengine.FilterOnField[AuditEntryView]("AggregateID", metaengine.FilterEq),
 		metaengine.SortOnField[AuditEntryView]("OccurredAt", true),
 	)
 }
 
-// auditFold creates an insert fold that appends an AuditEntryView for each user event.
+// auditFold creates an insert fold that records an AuditEntryView for a user event.
 // The key is a composite of stream ID + event type + timestamp to ensure uniqueness.
-func auditFold[E any](eventType string, sample E, action string) metaengine.Fold {
-	return metaengine.OnTyped(eventType, sample,
-		func(e projectionadapter.EventWithID[E]) (string, AuditEntryView) {
+// P is the event payload type; the sample is constructed as EventWithID[P].
+func auditFold[P any](eventType string, payload P, action string) metaengine.Fold {
+	return metaengine.OnTyped(eventType,
+		projectionadapter.EventWithID[P]{Payload: payload},
+		func(e projectionadapter.EventWithID[P]) (string, AuditEntryView) {
 			return e.ID + ":" + eventType + ":" + e.OccurredAt.Format(time.RFC3339Nano),
 				AuditEntryView{
 					EventType:   eventType,

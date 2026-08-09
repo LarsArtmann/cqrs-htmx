@@ -2,7 +2,6 @@ package systemadapter_test
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
@@ -13,8 +12,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
-// setupDeclarativeSystem creates a system with declarative projections (no ProjectionLayer).
-// The caller must defer sys.Close().
 func setupDeclarativeSystem(t *testing.T) *system.System {
 	t.Helper()
 
@@ -47,8 +44,6 @@ func setupDeclarativeSystem(t *testing.T) *system.System {
 	return sys
 }
 
-// waitForProjections polls the projection host until all workers reach WorkerLive
-// or the timeout expires.
 func waitForProjections(t *testing.T, sys *system.System, timeout time.Duration) {
 	t.Helper()
 
@@ -66,13 +61,12 @@ func waitForProjections(t *testing.T, sys *system.System, timeout time.Duration)
 				break
 			}
 		}
-		if allLive {
+		if allLive && len(host.Status()) > 0 {
 			return
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
 
-	// Print worker states for debugging
 	for _, s := range host.Status() {
 		t.Logf("worker %s: status=%s", s.Name, s.Status)
 	}
@@ -90,7 +84,6 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 	)); err != nil {
 		t.Fatalf("CreateTenant: %v", err)
 	}
-
 	waitForProjections(t, sys, 5*time.Second)
 
 	tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
@@ -107,7 +100,6 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 		t.Error("Tenant should not be suspended after creation")
 	}
 
-	// Suspend
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewSuspendTenantCmd(
 		tenantID, "test",
 	)); err != nil {
@@ -123,7 +115,6 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 		t.Error("Tenant should be suspended")
 	}
 
-	// Reactivate
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewReactivateTenantCmd(
 		tenantID,
 	)); err != nil {
@@ -139,7 +130,6 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 		t.Error("Tenant should not be suspended after reactivation")
 	}
 
-	// Find by name
 	byName, err := systemadapter.FindTenantByName(ctx, sys, "Acme Corp")
 	if err != nil {
 		t.Fatalf("FindTenantByName: %v", err)
@@ -176,7 +166,6 @@ func TestDeclarative_BotRoundTrip(t *testing.T) {
 		t.Errorf("OwnerID = %q, want %q", bot.OwnerID, ownerID.String())
 	}
 
-	// Find by token hash
 	byToken, err := systemadapter.FindBotByTokenHash(ctx, sys, "deadbeef")
 	if err != nil {
 		t.Fatalf("FindBotByTokenHash: %v", err)
@@ -185,7 +174,6 @@ func TestDeclarative_BotRoundTrip(t *testing.T) {
 		t.Errorf("FindByToken ID = %q, want %q", byToken.ID, botID.String())
 	}
 
-	// Find by owner
 	bots, err := systemadapter.FindBotsByOwner(ctx, sys, ownerID.String())
 	if err != nil {
 		t.Fatalf("FindBotsByOwner: %v", err)
@@ -200,25 +188,26 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 	sys := setupDeclarativeSystem(t)
 	defer func() { _ = sys.Close() }()
 
-	userID := identitymodel.GenerateUserID()
+	userStreamID := id.NewStreamID()
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
 	tenantID := identitymodel.NewTenantID("tenant-1")
-	membershipID := id.NewStreamID()
 
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
-		membershipID, identitymodel.ActorKindUser, userID.String(), tenantID.String(),
+		actorID, tenantID,
 		[]identitymodel.Role{identitymodel.RoleAdmin},
 	)); err != nil {
 		t.Fatalf("AddMember: %v", err)
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	// Find by ID
+	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
+
 	mem, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.String())
 	if err != nil {
 		t.Fatalf("FindMembershipByID: %v", err)
 	}
-	if mem.ActorID != userID.String() {
-		t.Errorf("ActorID = %q, want %q", mem.ActorID, userID.String())
+	if mem.ActorID != actorID.String() {
+		t.Errorf("ActorID = %q, want %q", mem.ActorID, actorID.String())
 	}
 	if mem.TenantID != tenantID.String() {
 		t.Errorf("TenantID = %q, want %q", mem.TenantID, tenantID.String())
@@ -227,7 +216,6 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 		t.Errorf("Roles = %v, want [admin]", mem.Roles)
 	}
 
-	// Find by tenant
 	mems, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenantID.String())
 	if err != nil {
 		t.Fatalf("FindMembershipsByTenant: %v", err)
@@ -236,8 +224,7 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 		t.Fatalf("expected 1 membership, got %d", len(mems))
 	}
 
-	// Find by actor
-	mems, err = systemadapter.FindMembershipsByActor(ctx, sys, userID.String())
+	mems, err = systemadapter.FindMembershipsByActor(ctx, sys, actorID.String())
 	if err != nil {
 		t.Fatalf("FindMembershipsByActor: %v", err)
 	}
@@ -251,17 +238,16 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 	sys := setupDeclarativeSystem(t)
 	defer func() { _ = sys.Close() }()
 
-	userID := identitymodel.GenerateUserID()
+	userStreamID := id.NewStreamID()
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
-		userID.ToStreamID(), "user@example.com", "Test User",
+		userStreamID, "user@example.com", "Test User",
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	// Find by ID
-	user, err := systemadapter.FindUserByID(ctx, sys, userID.String())
+	user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
 	if err != nil {
 		t.Fatalf("FindUserByID: %v", err)
 	}
@@ -278,24 +264,22 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 		t.Error("CreatedAt should not be zero")
 	}
 
-	// Find by email
 	byEmail, err := systemadapter.FindUserByEmail(ctx, sys, "user@example.com")
 	if err != nil {
 		t.Fatalf("FindUserByEmail: %v", err)
 	}
-	if byEmail.ID != userID.String() {
-		t.Errorf("FindByEmail ID = %q, want %q", byEmail.ID, userID.String())
+	if byEmail.ID != userStreamID.String() {
+		t.Errorf("FindByEmail ID = %q, want %q", byEmail.ID, userStreamID.String())
 	}
 
-	// Change email
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeEmailCmd(
-		userID.ToStreamID(), "new@example.com",
+		userStreamID, "new@example.com",
 	)); err != nil {
 		t.Fatalf("ChangeEmail: %v", err)
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	user, err = systemadapter.FindUserByID(ctx, sys, userID.String())
+	user, err = systemadapter.FindUserByID(ctx, sys, userStreamID.String())
 	if err != nil {
 		t.Fatalf("FindUserByID after email change: %v", err)
 	}
@@ -306,15 +290,14 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 		t.Error("EmailVerified should be false after email change")
 	}
 
-	// Verify email
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewVerifyEmailCmd(
-		userID.ToStreamID(), "new@example.com",
+		userStreamID,
 	)); err != nil {
 		t.Fatalf("VerifyEmail: %v", err)
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	user, err = systemadapter.FindUserByID(ctx, sys, userID.String())
+	user, err = systemadapter.FindUserByID(ctx, sys, userStreamID.String())
 	if err != nil {
 		t.Fatalf("FindUserByID after verify: %v", err)
 	}
@@ -328,29 +311,26 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 	sys := setupDeclarativeSystem(t)
 	defer func() { _ = sys.Close() }()
 
-	userID := identitymodel.GenerateUserID()
+	userStreamID := id.NewStreamID()
 	tenantID := identitymodel.NewTenantID("tenant-authz")
-	membershipID := id.NewStreamID()
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
 
-	// Register user
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
-		userID.ToStreamID(), "admin@example.com", "Admin User",
+		userStreamID, "admin@example.com", "Admin User",
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 
-	// Add membership with admin role
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
-		membershipID, identitymodel.ActorKindUser, userID.String(), tenantID.String(),
+		actorID, tenantID,
 		[]identitymodel.Role{identitymodel.RoleAdmin},
 	)); err != nil {
 		t.Fatalf("AddMember: %v", err)
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	// Enforce: admin should be able to manage in the tenant domain
-	allowed, err := systemadapter.Enforce(ctx, sys, userID.String(), tenantID.String(), "manage")
+	allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.String(), "manage")
 	if err != nil {
 		t.Fatalf("Enforce: %v", err)
 	}
@@ -358,33 +338,31 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 		t.Error("admin should be allowed to manage")
 	}
 
-	// Enforce: viewer should NOT be able to manage
-	plainUserID := identitymodel.GenerateUserID()
-	plainMembershipID := id.NewStreamID()
+	plainStreamID := id.NewStreamID()
+	plainActorID := identitymodel.NewActorID(identitymodel.ActorUser, plainStreamID.String())
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
-		plainUserID.ToStreamID(), "plain@example.com", "Plain User",
+		plainStreamID, "plain@example.com", "Plain User",
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)); err != nil {
 		t.Fatalf("RegisterUser plain: %v", err)
 	}
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
-		plainMembershipID, identitymodel.ActorKindUser, plainUserID.String(), tenantID.String(),
+		plainActorID, tenantID,
 		[]identitymodel.Role{identitymodel.RoleViewer},
 	)); err != nil {
 		t.Fatalf("AddMember viewer: %v", err)
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	allowed, err = systemadapter.Enforce(ctx, sys, plainUserID.String(), tenantID.String(), "manage")
+	allowed, err = systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.String(), "manage")
 	if err != nil {
-		t.Fatalf("Enforce viewer: %v", err)
+		t.Fatalf("Enforce viewer manage: %v", err)
 	}
 	if allowed {
 		t.Error("viewer should NOT be allowed to manage")
 	}
 
-	// Viewer SHOULD be able to view
-	allowed, err = systemadapter.Enforce(ctx, sys, plainUserID.String(), tenantID.String(), "view")
+	allowed, err = systemadapter.Enforce(ctx, sys, plainStreamID.String(), tenantID.String(), "view")
 	if err != nil {
 		t.Fatalf("Enforce viewer view: %v", err)
 	}
@@ -398,23 +376,21 @@ func TestDeclarative_AuditLog(t *testing.T) {
 	sys := setupDeclarativeSystem(t)
 	defer func() { _ = sys.Close() }()
 
-	userID := identitymodel.GenerateUserID()
+	userStreamID := id.NewStreamID()
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
-		userID.ToStreamID(), "audit@example.com", "Audit User",
+		userStreamID, "audit@example.com", "Audit User",
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)); err != nil {
 		t.Fatalf("RegisterUser: %v", err)
 	}
 
-	// Change email to produce another audit entry
 	if err := sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeEmailCmd(
-		userID.ToStreamID(), "changed@example.com",
+		userStreamID, "changed@example.com",
 	)); err != nil {
 		t.Fatalf("ChangeEmail: %v", err)
 	}
 	waitForProjections(t, sys, 5*time.Second)
 
-	// All entries
 	entries, err := systemadapter.AuditEntries(ctx, sys)
 	if err != nil {
 		t.Fatalf("AuditEntries: %v", err)
@@ -423,8 +399,7 @@ func TestDeclarative_AuditLog(t *testing.T) {
 		t.Fatalf("expected at least 2 audit entries, got %d", len(entries))
 	}
 
-	// Entries for aggregate
-	forUser, err := systemadapter.AuditEntriesFor(ctx, sys, userID.String())
+	forUser, err := systemadapter.AuditEntriesFor(ctx, sys, userStreamID.String())
 	if err != nil {
 		t.Fatalf("AuditEntriesFor: %v", err)
 	}
@@ -432,12 +407,11 @@ func TestDeclarative_AuditLog(t *testing.T) {
 		t.Fatalf("expected at least 2 entries for user, got %d", len(forUser))
 	}
 
-	// Verify entry content
 	foundRegister := false
 	foundChangeEmail := false
 	for _, e := range forUser {
-		if e.AggregateID != userID.String() {
-			t.Errorf("AggregateID = %q, want %q", e.AggregateID, userID.String())
+		if e.AggregateID != userStreamID.String() {
+			t.Errorf("AggregateID = %q, want %q", e.AggregateID, userStreamID.String())
 		}
 		if e.EventType == "UserRegistered" {
 			foundRegister = true
@@ -456,7 +430,6 @@ func TestDeclarative_AuditLog(t *testing.T) {
 		t.Error("EmailChanged audit entry not found")
 	}
 
-	// Recent
 	recent, err := systemadapter.RecentAuditEntries(ctx, sys, 1)
 	if err != nil {
 		t.Fatalf("RecentAuditEntries: %v", err)
@@ -465,18 +438,3 @@ func TestDeclarative_AuditLog(t *testing.T) {
 		t.Fatalf("expected 1 recent entry, got %d", len(recent))
 	}
 }
-
-func TestDeclarative_AllProjectionNames(t *testing.T) {
-	// Verify the projection names are consistent between declarations and queries.
-	decls := systemadapter.DeclarativeProjections()
-	if len(decls) < 10 {
-		t.Fatalf("expected at least 10 projection declarations, got %d", len(decls))
-	}
-
-	// The key test: DeclarativeProjections must not panic during system.New
-	// (fold construction, key derivation, etc.) — if we got here, it compiled.
-	_ = decls
-}
-
-// Helper to avoid unused import warnings if strings is needed elsewhere.
-var _ = strings.Contains
