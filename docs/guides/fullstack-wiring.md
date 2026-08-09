@@ -36,12 +36,12 @@ func main() {
 
 ### What you get
 
-| Route           | Panel                                         | Auth                     |
-| --------------- | --------------------------------------------- | ------------------------ |
-| `/auth/*`       | Registration, login (TOTP/WebAuthn/OAuth2)    | Public (registration)    |
-| `/admin/*`      | Admin dashboard (users, tenants, memberships) | Session + CSRF           |
-| `/dashboard/*`  | CQRS/ES observability (events, projections)   | Session                  |
-| `/`             | Login page                                    | Public                   |
+| Route          | Panel                                         | Auth                  |
+| -------------- | --------------------------------------------- | --------------------- |
+| `/auth/*`      | Registration, login (TOTP/WebAuthn/OAuth2)    | Public (registration) |
+| `/admin/*`     | Admin dashboard (users, tenants, memberships) | Session + CSRF        |
+| `/dashboard/*` | CQRS/ES observability (events, projections)   | Session               |
+| `/`            | Login page                                    | Public                |
 
 ### Customization
 
@@ -145,6 +145,7 @@ RecommendedSecurityMiddleware()    — security headers, per-request CSP nonce, 
 ```
 
 Non-negotiable rules:
+
 1. **Session OUTSIDE CSRF** — authenticate before checking CSRF.
 2. **CSRF on mutations only** — GET (SSE, views) skips CSRF.
 3. **Security OUTERMOST** — recovery catches panics from everything.

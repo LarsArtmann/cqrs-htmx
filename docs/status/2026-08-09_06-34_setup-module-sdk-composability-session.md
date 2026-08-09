@@ -18,49 +18,49 @@ Three phases of work:
 
 ## A) FULLY DONE ✓
 
-| Item | Evidence |
-|------|----------|
-| Architecture review HTML report | `docs/architecture-understanding/2026-08-09_05-36_module-integration-composability.html` — 7-dimension scored rubric, 6 findings, 7-step roadmap, 3 proposed new modules |
-| `setup/v4` Go module created | `setup/` — `go.mod`, `doc.go`, `config.go`, `setup.go`, `bundle.go`, `mount.go`, `setup_test.go` |
-| `Service.ProjectionHost()` accessor | Added to `usermgmt/service_core.go` — the key missing bridge enabling dashboard wiring |
-| Shared store wiring | `setup.New` creates shared `MemoryStore` + `watermill.EventBus`, injects into `ServiceConfig.EventStore`/`EventBus`, feeds same stores to `dashboardui.Config` |
-| Feature flags (inverted bools) | `DisableAdmin`/`DisableDashboard`/`DisableLogin` — Go zero-value = all enabled |
-| 8 tests, race-clean | `setup_test.go` — all pass with `-race -count=1` |
-| Full workspace build | `go build ./...` passes (22 modules now) |
-| All touched module tests pass | root, usermgmt, adminui, dashboardui, loginpage, setup — all green |
-| `go.work` updated | `./setup` added to `use` block |
-| `docs/guides/fullstack-wiring.md` rewritten | Shows real SDK API as primary path, manual wiring as fallback |
-| TODO_LIST updated | Setup module marked `[~]` (built, needs flake/CI), external integration modules `[ ]` |
-| ROADMAP updated | New "Composition & Integration Layer" section with proposed `health/v4` and `auditlog/v4` |
-| Doc links verified | `check-docs-links.sh` — 187 links, all resolve |
-| AGENTS.md updated | Guide count 16 → 17, architecture review link added |
+| Item                                        | Evidence                                                                                                                                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Architecture review HTML report             | `docs/architecture-understanding/2026-08-09_05-36_module-integration-composability.html` — 7-dimension scored rubric, 6 findings, 7-step roadmap, 3 proposed new modules |
+| `setup/v4` Go module created                | `setup/` — `go.mod`, `doc.go`, `config.go`, `setup.go`, `bundle.go`, `mount.go`, `setup_test.go`                                                                         |
+| `Service.ProjectionHost()` accessor         | Added to `usermgmt/service_core.go` — the key missing bridge enabling dashboard wiring                                                                                   |
+| Shared store wiring                         | `setup.New` creates shared `MemoryStore` + `watermill.EventBus`, injects into `ServiceConfig.EventStore`/`EventBus`, feeds same stores to `dashboardui.Config`           |
+| Feature flags (inverted bools)              | `DisableAdmin`/`DisableDashboard`/`DisableLogin` — Go zero-value = all enabled                                                                                           |
+| 8 tests, race-clean                         | `setup_test.go` — all pass with `-race -count=1`                                                                                                                         |
+| Full workspace build                        | `go build ./...` passes (22 modules now)                                                                                                                                 |
+| All touched module tests pass               | root, usermgmt, adminui, dashboardui, loginpage, setup — all green                                                                                                       |
+| `go.work` updated                           | `./setup` added to `use` block                                                                                                                                           |
+| `docs/guides/fullstack-wiring.md` rewritten | Shows real SDK API as primary path, manual wiring as fallback                                                                                                            |
+| TODO_LIST updated                           | Setup module marked `[~]` (built, needs flake/CI), external integration modules `[ ]`                                                                                    |
+| ROADMAP updated                             | New "Composition & Integration Layer" section with proposed `health/v4` and `auditlog/v4`                                                                                |
+| Doc links verified                          | `check-docs-links.sh` — 187 links, all resolve                                                                                                                           |
+| AGENTS.md updated                           | Guide count 16 → 17, architecture review link added                                                                                                                      |
 
 ---
 
 ## B) PARTIALLY DONE [~]
 
-| Item | Status | What remains |
-|------|--------|-------------|
-| `setup/v4` module | **Built and tested** but NOT in flake.nix CI pipeline | `coverage-gate` uses a hardcoded module list — setup needs to be added. CI workflow (`.github/workflows/ci.yml`) needs the module listed. Lint config (`.golangci.yml`) not created for the module. |
-| `Service.ProjectionHost()` accessor | **Added and building** | No test in usermgmt specifically for this accessor (covered transitively by setup tests). |
-| Architecture review roadmap | **Written** (7 steps) | Only Step 2 (setup module) was executed. Steps 1 (fullstack example), 3-7 not started. |
-| Fullstack wiring guide | **Rewritten** with SDK API | The "Manual Wiring" section references `store.(event.Journal)` type assertion which is correct for memory store but untested for custom stores. |
+| Item                                | Status                                                | What remains                                                                                                                                                                                        |
+| ----------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `setup/v4` module                   | **Built and tested** but NOT in flake.nix CI pipeline | `coverage-gate` uses a hardcoded module list — setup needs to be added. CI workflow (`.github/workflows/ci.yml`) needs the module listed. Lint config (`.golangci.yml`) not created for the module. |
+| `Service.ProjectionHost()` accessor | **Added and building**                                | No test in usermgmt specifically for this accessor (covered transitively by setup tests).                                                                                                           |
+| Architecture review roadmap         | **Written** (7 steps)                                 | Only Step 2 (setup module) was executed. Steps 1 (fullstack example), 3-7 not started.                                                                                                              |
+| Fullstack wiring guide              | **Rewritten** with SDK API                            | The "Manual Wiring" section references `store.(event.Journal)` type assertion which is correct for memory store but untested for custom stores.                                                     |
 
 ---
 
 ## C) NOT STARTED
 
-| Item | Why it matters |
-|------|---------------|
-| `setup/v4` added to `.github/workflows/ci.yml` | CI won't build/test the new module |
-| `setup/v4` added to flake.nix `coverage-gate` | Coverage gate won't run for setup |
-| `.golangci.yml` created for `setup/` | Lint won't run on the module (`nix run .#lint` auto-discovers from `go.work`, but the module needs its own lint config if it diverges) |
-| `setup/v4` tag published | Consumers can't `go get` without local replace |
-| `health/v4` module (go-health-dashboard integration) | Proposed in roadmap, zero code written |
-| `auditlog/v4` module (samber-do-auditlog integration) | Proposed in roadmap, zero code written |
-| Broadcaster duality documentation | Root `cqrshtmx.Broadcaster` vs datastar `datastar.Broadcaster` — no guide explaining when to use which |
-| Fullstack integration test in `integration_test/` | No test mounts all UI panels end-to-end |
-| `setup/v4` `go.sum` committed | May need `go mod tidy` verification |
+| Item                                                  | Why it matters                                                                                                                         |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `setup/v4` added to `.github/workflows/ci.yml`        | CI won't build/test the new module                                                                                                     |
+| `setup/v4` added to flake.nix `coverage-gate`         | Coverage gate won't run for setup                                                                                                      |
+| `.golangci.yml` created for `setup/`                  | Lint won't run on the module (`nix run .#lint` auto-discovers from `go.work`, but the module needs its own lint config if it diverges) |
+| `setup/v4` tag published                              | Consumers can't `go get` without local replace                                                                                         |
+| `health/v4` module (go-health-dashboard integration)  | Proposed in roadmap, zero code written                                                                                                 |
+| `auditlog/v4` module (samber-do-auditlog integration) | Proposed in roadmap, zero code written                                                                                                 |
+| Broadcaster duality documentation                     | Root `cqrshtmx.Broadcaster` vs datastar `datastar.Broadcaster` — no guide explaining when to use which                                 |
+| Fullstack integration test in `integration_test/`     | No test mounts all UI panels end-to-end                                                                                                |
+| `setup/v4` `go.sum` committed                         | May need `go mod tidy` verification                                                                                                    |
 
 ---
 
@@ -68,7 +68,7 @@ Three phases of work:
 
 ### 1. Proposed an example as the #1 deliverable (user correctly rejected this)
 
-**What happened:** The architecture review's Step 1 was "create `examples/fullstack-demo/`". The user's response: *"Why do you want this to be a fucking example?!?! I want a SDK that I can just import and use NOT code I need to copy everywhere that gets stale!"*
+**What happened:** The architecture review's Step 1 was "create `examples/fullstack-demo/`". The user's response: _"Why do you want this to be a fucking example?!?! I want a SDK that I can just import and use NOT code I need to copy everywhere that gets stale!"_
 
 **Root cause:** I defaulted to the existing repo pattern (9 examples) rather than thinking from the user's perspective. An example is documentation that rots. An SDK module is a product feature.
 
