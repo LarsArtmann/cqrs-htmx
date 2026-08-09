@@ -10,8 +10,9 @@ import (
 	"log/slog"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/samber/do/v2"
 )
 
@@ -20,7 +21,6 @@ import (
 type AppConfig struct {
 	Addr       string
 	TOTPIssuer string
-	Logger     *slog.Logger
 }
 
 // Container wraps the samber/do injector. It is the composition root — the
@@ -37,13 +37,20 @@ func NewContainer(cfg AppConfig) (*Container, func()) {
 
 	registerProviders(injector, cfg)
 
+	// Eagerly invoke the lifecycle wrapper so that injector.Shutdown() will
+	// call usermgmt.Service.Close() even if no consumer ever resolved the
+	// Service. This mirrors the ProvideValue pattern for resource-holding
+	// services that have background goroutines.
+	if _, err := do.Invoke[*serviceLifecycle](injector); err != nil {
+		slog.Error("failed to initialize service lifecycle", "error", err)
+	}
+
 	return &Container{injector: injector}, func() {
 		// injector.Shutdown() calls Shutdown() on every service that
 		// implements do.Shutdowner* — in reverse invocation order.
-		// This is how usermgmt.Service.Close() gets called automatically.
 		report := injector.Shutdown()
 		if len(report.Services) > 0 {
-			cfg.Logger.Debug("DI container shut down", "services", len(report.Services))
+			slog.Debug("DI container shut down", "services", len(report.Services))
 		}
 	}
 }
@@ -52,8 +59,8 @@ func NewContainer(cfg AppConfig) (*Container, func()) {
 // demonstrates a specific samber/do pattern.
 func registerProviders(injector do.Injector, cfg AppConfig) {
 	// --- Eager foundation (ProvideValue) ---
-	// Config and logger must exist immediately because lazy providers
-	// depend on them at construction time.
+	// Config must exist immediately because lazy providers depend on it
+	// at construction time.
 	do.ProvideValue(injector, cfg)
 
 	// --- Lazy singletons (Provide) ---
@@ -61,14 +68,6 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 	// dependency order. This is the default for most services.
 
 	do.Provide(injector, func(i do.Injector) (*slog.Logger, error) {
-		// Demonstrate overriding logger from config; falls back to default.
-		appCfg, err := do.Invoke[AppConfig](i)
-		if err != nil {
-			return nil, err
-		}
-		if appCfg.Logger != nil {
-			return appCfg.Logger, nil
-		}
 		return slog.Default(), nil
 	})
 
@@ -102,46 +101,69 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 		})
 	})
 
+	// serviceLifecycle — adapts *usermgmt.Service to samber/do's
+	// ShutdownerWithContextAndError interface. injector.Shutdown() will
+	// call Shutdown(ctx) on this wrapper, which delegates to Close().
+	// This is the canonical pattern for integrating third-party types that
+	// have their own Close/Shutdown methods but don't implement samber/do's
+	// lifecycle interfaces directly.
+	do.Provide(injector, func(i do.Injector) (*serviceLifecycle, error) {
+		svc, err := do.Invoke[*usermgmt.Service](i)
+		if err != nil {
+			return nil, err
+		}
+		return &serviceLifecycle{svc: svc}, nil
+	})
+
 	// Broadcaster — lazy singleton for SSE live updates.
 	do.Provide(injector, func(_ do.Injector) (*cqrshtmx.Broadcaster, error) {
 		return cqrshtmx.NewBroadcaster(), nil
 	})
 
 	// cqrshtmx.App — lazy singleton that wires command/query dispatchers
-	// with HTMX handler generation. Depends on nothing from the container
-	// directly (dispatchers are created inline for this demo), but in a
-	// real app you'd resolve them via do.Invoke.
-	do.Provide(injector, func(_ do.Injector) (*cqrshtmx.App, error) {
-		return cqrshtmx.MustNew(cqrshtmx.Config{ //nolint:exhaustruct // demo
-			// In a real app: resolve dispatchers from the container
-			// cmdDisp, _ := do.Invoke[*command.Dispatcher](i)
-			// qryDisp, _ := do.Invoke[*query.Dispatcher](i)
-		}), nil
+	// with HTMX handler generation. Resolves the command dispatcher from
+	// the container, showing provider-to-provider dependency resolution.
+	do.Provide(injector, func(i do.Injector) (*cqrshtmx.App, error) {
+		disp, err := do.Invoke[*command.Dispatcher](i)
+		if err != nil {
+			return nil, err
+		}
+		return cqrshtmx.New(cqrshtmx.Config{ //nolint:exhaustruct // demo
+			Commands: disp,
+		})
+	})
+
+	// Command dispatcher — lazy singleton. In a real app you'd register
+	// handlers here too, before returning the dispatcher.
+	do.Provide(injector, func(_ do.Injector) (*command.Dispatcher, error) {
+		return command.NewDispatcher(), nil
 	})
 }
 
-// --- Lifecycle wrappers ---
+// --- Lifecycle adapter ---
 
-// usermgmtServiceLifecycle wraps *usermgmt.Service to implement
+// serviceLifecycle wraps *usermgmt.Service to implement
 // do.ShutdownerWithContextAndError. samber/do's injector.Shutdown() will
 // automatically call this method, which delegates to Service.Close().
 //
-// This is the canonical pattern for integrating third-party types that have
-// their own Close/Shutdown methods but don't implement samber/do's interfaces.
-type usermgmtServiceLifecycle struct {
+// This is the canonical pattern for adapting third-party Close()-based types
+// into samber/do's lifecycle interface.
+type serviceLifecycle struct {
 	svc *usermgmt.Service
 }
 
 // Compile-time guard — catches missing interface methods at build time.
-var _ do.ShutdownerWithContextAndError = (*usermgmtServiceLifecycle)(nil)
+var _ do.ShutdownerWithContextAndError = (*serviceLifecycle)(nil)
 
-func (l *usermgmtServiceLifecycle) Shutdown(ctx context.Context) error {
+func (l *serviceLifecycle) Shutdown(_ context.Context) error {
 	return l.svc.Close()
 }
 
-// Service resolves the usermgmt.Service from the container. This is the
-// accessor pattern — callers should use typed methods like this rather than
-// raw do.Invoke at every call site.
+// --- Typed accessors ---
+// Callers should use typed methods like these rather than raw do.Invoke at
+// every call site. This centralizes resolution and makes refactoring easier.
+
+// Service resolves the usermgmt.Service from the container.
 func (c *Container) Service() (*usermgmt.Service, error) {
 	return do.Invoke[*usermgmt.Service](c.injector)
 }
