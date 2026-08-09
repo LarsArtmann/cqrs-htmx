@@ -58,3 +58,5 @@ require (
 )
 
 replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../../dashboardui
+
+replace github.com/larsartmann/cqrs-htmx/v4 => ../..

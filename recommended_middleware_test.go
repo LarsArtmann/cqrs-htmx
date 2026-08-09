@@ -34,6 +34,7 @@ func TestRecommendedSecurityMiddleware_SetsAllHeaders(t *testing.T) {
 	if pp == "" {
 		t.Fatal("expected Permissions-Policy header")
 	}
+
 	for _, want := range []string{"geolocation=()", "microphone=()", "camera=()", "payment=()", "usb=()"} {
 		if !strings.Contains(pp, want) {
 			t.Errorf("Permissions-Policy missing %q, got %q", want, pp)
@@ -44,6 +45,7 @@ func TestRecommendedSecurityMiddleware_SetsAllHeaders(t *testing.T) {
 	if !strings.Contains(csp, "nonce-") {
 		t.Errorf("expected CSP to contain a nonce, got %q", csp)
 	}
+
 	if !strings.Contains(csp, "'self'") {
 		t.Errorf("expected CSP to allow 'self', got %q", csp)
 	}
@@ -53,6 +55,7 @@ func TestRecommendedSecurityMiddleware_NonceAvailableInContext(t *testing.T) {
 	mw := RecommendedSecurityMiddleware()
 
 	var nonceFromCtx string
+
 	handler := mw(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		nonceFromCtx = httputil.NonceFromRequest(r)
 	}))

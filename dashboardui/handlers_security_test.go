@@ -320,6 +320,7 @@ func TestMiddleware_CSPWithNonceAndSecurityHeaders(t *testing.T) {
 	if !strings.Contains(csp, "nonce-") {
 		t.Errorf("expected CSP to contain a nonce (Nonce middleware should be in chain), got %q", csp)
 	}
+
 	if !strings.Contains(csp, "'self'") {
 		t.Errorf("expected CSP to allow 'self', got %q", csp)
 	}

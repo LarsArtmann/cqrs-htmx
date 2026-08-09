@@ -122,4 +122,3 @@ func TestMiddleware_SetsSecurityHeaders(t *testing.T) {
 		}
 	}
 }
-
