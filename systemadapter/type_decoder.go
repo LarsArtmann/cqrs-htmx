@@ -1,7 +1,7 @@
 package systemadapter
 
 import (
-	"github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 )
 

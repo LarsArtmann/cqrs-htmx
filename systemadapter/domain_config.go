@@ -25,7 +25,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
