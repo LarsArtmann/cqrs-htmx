@@ -2,7 +2,6 @@ package cqrshtmx
 
 import (
 	"encoding/json/v2"
-	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -203,7 +202,7 @@ func (resp *Response) Body(data []byte) *Response {
 		return resp
 	}
 
-	_, _ = resp.w.Write(data)
+	writeAll(resp.w, data)
 
 	return resp
 }
@@ -216,11 +215,7 @@ func (resp *Response) WriteString(s string) *Response {
 		return resp
 	}
 
-	if sw, ok := resp.w.(io.StringWriter); ok {
-		_, _ = sw.WriteString(s)
-	} else {
-		_, _ = resp.w.Write([]byte(s))
-	}
+	writeAllString(resp.w, s)
 
 	return resp
 }
@@ -242,7 +237,7 @@ func (resp *Response) JSON(v any) *Response {
 		return resp
 	}
 
-	_, _ = resp.w.Write(encoded)
+	writeAll(resp.w, encoded)
 
 	return resp
 }

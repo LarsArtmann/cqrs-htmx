@@ -1,9 +1,7 @@
 package cqrshtmx
 
 import (
-	"encoding/json/v2"
 	"errors"
-	"io"
 	"net/http"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -338,7 +336,7 @@ func jsonBodyWriter(r *http.Request, includeInternal bool) func(http.ResponseWri
 			response[JSONKeyRequestID] = rid.String()
 		}
 
-		writeAll(w, response)
+		marshalJSONForResponse(w, response)
 	}
 }
 
@@ -376,6 +374,6 @@ func ProblemDetailsErrorHandlerWithRedirect(
 		w.WriteHeader(status)
 
 		payload := NewStructuredError(err, r)
-		writeAll(w, payload.JSONBytes())
+		marshalJSONForResponse(w, payload)
 	})
 }

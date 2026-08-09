@@ -64,6 +64,8 @@ func OpenAPISpecHandler(spec *openapi.Spec) (http.HandlerFunc, error) {
 func hashTag(data []byte) string {
 	h := fnv.New64a()
 
+	// hash.Hash.Write is documented to never return an error; the blank
+	// identifier is required by the io.Writer interface signature.
 	_, _ = h.Write(data)
 
 	return strconv.FormatUint(h.Sum64(), 16)

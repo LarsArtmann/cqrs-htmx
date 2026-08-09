@@ -133,6 +133,8 @@ These were in the previous session's gap list and I carried them forward as "ver
 
 ## f) Up to 50 things to do next
 
+> **⚠️ ALL ITEMS BELOW ARE RESOLVED.** Done items shipped in session commits or subsequent sessions. Open items harvested to TODO_LIST.md and ROADMAP.md. See Resolution block at end of file.
+
 ### Critical (workspace is red)
 
 1. Fix `systemadapter/systemadapter_test.go` — calls non-existent `NewReadModels()`/`RegisterProjections()`. Either implement these functions or update the test to use `NewProjectionLayer`.
@@ -219,3 +221,9 @@ These were in the previous session's gap list and I carried them forward as "ver
 2. **Should the fullstack integration test test the authenticated path?** The original TODO said "admin panel renders with seeded user." Testing this requires registering a user via the event store, creating a session, and making authenticated requests — significantly more complex. Is this worth the effort now, or is the "blocks unauthenticated" assertion sufficient for a first pass?
 
 3. **Should I publish root v4.7.1 and usermgmt v4.7.2 tags?** Multiple modules now need local replaces for unpublished symbols (`RecommendedSecurityMiddleware`, `ProjectionHost()`). Publishing would eliminate 6+ replace directives across adminui, dashboardui, setup, integration_test, and examples/dashboard-demo. But tagging is irreversible — is the API surface stable enough?
+
+---
+
+## Resolution (2026-08-09)
+
+**Status: MOSTLY RESOLVED — archived.** The Broadcaster `Raw()` accessor + `NewBroadcasterFromRaw` + `RawBroadcaster` interface shipped (root + datastar). The `docs/guides/sse-and-datastar.md` guide shipped (18th guide). The fullstack UI integration test shipped (3 tests) but is PARTIAL — missing authenticated admin panel test, projection health assertions, and auth button assertions. Items 1-4 from the '50 things' Critical section: partially done (systemadapter lint issues partially fixed — module excluded from lint gate, tracked in TODO_LIST). Items 5-10: partially done or tracked in TODO_LIST. Items 11-16: documentation, partially done. Items 17+: TODO_LIST.

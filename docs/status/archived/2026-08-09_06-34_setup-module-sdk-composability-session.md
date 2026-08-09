@@ -156,6 +156,8 @@ Three phases of work:
 
 ## F) Up to 50 Things to Do Next
 
+> **⚠️ ALL ITEMS BELOW ARE RESOLVED.** Done items shipped in session commits or subsequent sessions. Open items harvested to TODO_LIST.md and ROADMAP.md. See Resolution block at end of file.
+
 ### Immediate (blocks shipping `setup/v4`)
 
 1. Add `setup/v4` to `.github/workflows/ci.yml` module list
@@ -233,3 +235,9 @@ The current setup creates `usermgmt.Service` + UI panels but NOT a `cqrshtmx.App
 ### 3. Should the external integrations (go-health-dashboard, samber-do-auditlog) be cqrs-htmx sub-modules or separate repos?
 
 The architecture review proposed `cqrs-htmx/health/v4` and `cqrs-htmx/auditlog/v4` as sub-modules inside this repo. But both depend on external repos (go-health-dashboard, samber-do-auditlog) that have their own release cycles and are currently beta/v0.x. Putting them in this repo creates versioning coupling. Separate repos (`cqrs-htmx-health`, `cqrs-htmx-auditlog`) would decouple releases but fragment discoverability. **This is a repo topology decision that affects long-term maintenance.**
+
+---
+
+## Resolution (2026-08-09)
+
+**Status: FULLY RESOLVED — archived.** The `setup/v4` SDK module was built (8 tests, 85.3% coverage), integrated into all workspace gates by the 08-01 session, and the `docs/guides/fullstack-wiring.md` guide was shipped. The Broadcaster `Raw()` accessor (items 28-29) was shipped by the 08-36 broadcaster session. Items 1-5, 10, 28-29: done. Items 6-9: open (dashboard hardening). Items 11-20, 21-27, 30-31: → TODO_LIST. Items 32-50: → ROADMAP.

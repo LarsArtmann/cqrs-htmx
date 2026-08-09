@@ -43,7 +43,7 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 
 		if len(checks) == 0 {
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`{"status":"ok"}`))
+			writeAll(w, []byte(`{"status":"ok"}`))
 
 			return
 		}
@@ -94,8 +94,7 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 			w.WriteHeader(http.StatusOK)
 		}
 
-		body, _ := json.Marshal(result)
-		_, _ = w.Write(body)
+		marshalJSONForResponse(w, result)
 	}
 }
 
@@ -131,6 +130,6 @@ func DebugHandler(info map[string]any) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-cache")
 
-		_, _ = w.Write(body)
+		writeAll(w, body)
 	}
 }

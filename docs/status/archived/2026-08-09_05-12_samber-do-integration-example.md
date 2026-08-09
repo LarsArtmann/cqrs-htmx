@@ -143,6 +143,8 @@ This is not directly my fault (the daemon writes its own messages), but it means
 
 ## f) Up to 50 things we should get done next
 
+> **⚠️ ALL ITEMS BELOW ARE RESOLVED.** Done items shipped in session commits or subsequent sessions. Open items harvested to TODO_LIST.md and ROADMAP.md. See Resolution block at end of file.
+
 ### Critical (do NOW)
 
 1. **`git rm --cached samber-do-demo`** — untrack root-level binary
@@ -220,3 +222,9 @@ Currently the example resolves `*cqrshtmx.App` but does nothing with it (`_ = ap
 ### 3. Should we add samber/do as an optional dependency to the root module?
 
 Currently samber/do is ONLY in the example's `go.mod`. An alternative approach would be to add a thin `di/` sub-package to the root module (like `openapi/`) with helper functions like `cqrshtmx.NewServiceLifecycle(svc)` that returns a `do.ShutdownerWithContextAndError`. This would make the lifecycle adapter pattern reusable without forcing samber/do on all consumers. **Is this worth the added dependency surface, or should it stay example-only?**
+
+---
+
+## Resolution (2026-08-09)
+
+**Status: FULLY RESOLVED — archived.** The `examples/samber-do-demo/` module and `docs/guides/leveraging-samber-do.md` guide shipped. The 25MB binary contamination (items 1-3 in Critical section) was resolved by the git history cleanup session (`2026-08-09_06-15_git-binary-cleanup-history-rewrite.md`) — 731.8 MB of binary blobs stripped from master history. Items 1-7 from the '50 things' Critical section: done (binaries untracked, gitignore hardened). Items 8-16: mostly done or tracked. Items 17+: ROADMAP material.

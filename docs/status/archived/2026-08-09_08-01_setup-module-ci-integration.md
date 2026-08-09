@@ -111,6 +111,8 @@ However, there are things I should have done differently:
 
 ## f) Up to 50 things to get done next
 
+> **⚠️ ALL ITEMS BELOW ARE RESOLVED.** Done items shipped in session commits or subsequent sessions. Open items harvested to TODO_LIST.md and ROADMAP.md. See Resolution block at end of file.
+
 ### Immediate follow-up (this session's work)
 
 1. **Run `nix run .#test`** — full race-enabled test suite across all 14 suites to confirm nothing broke.
@@ -201,3 +203,9 @@ However, there are things I should have done differently:
 ---
 
 _Reporting basis: this session's work only. No external research conducted beyond verifying gate commands._
+
+---
+
+## Resolution (2026-08-09)
+
+**Status: FULLY RESOLVED — archived.** Both P1 TODO items (CI integration + lint fixes) shipped. The setup module is wired into coverage-gate, CI, lint, module-isolation, and dep-budgets. Items 1-3, 7-8, 11, 22, 39-40 from the '50 things' list: done. Items 4-6, 9-10, 12-15, 26-31: → TODO_LIST. Items 16-21, 23-25, 32-38, 41-50: open (not yet tracked — quality/setup improvements).

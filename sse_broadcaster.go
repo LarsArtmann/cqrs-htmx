@@ -112,13 +112,19 @@ func (b *Broadcaster) broadcastOnErrorHook(mapper func(r *http.Request, err erro
 // the client disconnects, then unsubscribes and closes the stream.
 func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	stream := sse.NewStream(w, r)
-	defer func() { _ = stream.Close() }()
+	defer func() {
+		// Deferred close — the error is intentionally discarded because the
+		// connection is already terminating (client disconnect or loop exit).
+		_ = stream.Close()
+	}()
 
 	//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 
-	_ = stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"})
+	if err := stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"}); err != nil {
+		return
+	}
 
 	for {
 		select {

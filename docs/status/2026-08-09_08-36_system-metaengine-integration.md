@@ -143,6 +143,8 @@ Three exported functions:
 
 ## f) Up to 50 things to do next
 
+> **⚠️ PARTIALLY RESOLVED.** Items 1-2 done (go mod tidy). Items 3-50: mostly OPEN — lint remediation, gate integration, and metaengine work tracked in TODO_LIST.md.
+
 1. Run `go mod tidy` on `systemadapter/go.mod`
 2. Run `go mod tidy` on `examples/system-demo/go.mod`
 3. Run `nix run .#lint` and fix all issues in systemadapter
@@ -209,3 +211,16 @@ The system creates its own internal `projectionhost.Host` when metaengine projec
 ### 3. Should we publish the go-cqrs-lite system/metaengine/record tags before or after cutting a systemadapter tag?
 
 The systemadapter go.mod references `system/v4 v4.1.0`, `metaengine/v4 v4.6.0`, `projectionadapter/v4 v4.3.0`, `record/v4 v4.0.0`. These tags exist but their go.mod files have broken zero pseudo-versions for sibling requires. The local replaces mask this. We can't publish systemadapter without either (a) clean go-cqrs-lite tags, or (b) systemadapter carrying its own replace directives (ugly). Which should we prioritize?
+
+---
+
+## Resolution (2026-08-09)
+
+**Status: PARTIALLY RESOLVED — remains in docs/status/.** The systemadapter module ships with working DomainConfig, EventTypeDecoder, and NewProjectionLayer (3 tests pass, builds clean). `go mod tidy` run. However, significant work remains:
+- **104 lint issues** (contextcheck, SA1019, exhaustruct, err113, etc.) — module excluded from lint gate, remediation tracked in TODO_LIST
+- **NOT in coverage-gate, CI, module-isolation, or dep-budgets** — tracked in TODO_LIST
+- **Dead code** in DomainConfig (DomainConfigOption, domainConfigBuilder)
+- **Metaengine fold declarations** not implemented (documented in guide only)
+- **Two-host architecture** (ProjectionLayer + system internal host) is an open design question
+
+Items 1-2 from '50 things' (go mod tidy): done. Items 3-13: partially done or open. Items 14-50: mostly open — see TODO_LIST for tracked items.

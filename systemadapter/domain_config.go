@@ -38,33 +38,17 @@ import (
 // specifies engines and buses. The system handles repository creation, event
 // store wiring, bus fan-out, and projection host lifecycle automatically.
 //
-// Additional projections (read models, Casbin authz) can be registered on the
-// system's projection host between system.New() and sys.Start():
+// Additional projections (read models, Casbin authz) can be registered via
+// NewProjectionLayer(sys) between system.New() and sys.Start():
 //
 //	sys, _ := system.New(ctx, systemadapter.DomainConfig(), deployment)
-//	systemadapter.RegisterProjections(sys.ProjectionHost(), sys.EventStore())
+//	pl, _ := systemadapter.NewProjectionLayer(sys)
+//	pl.Start(ctx)
 //	sys.Start(ctx)
-func DomainConfig(opts ...DomainConfigOption) system.DomainConfig {
-	cfg := defaultDomainConfig()
-	for _, opt := range opts {
-		opt(&cfg)
-	}
-	return cfg.domainConfig
-}
-
-// DomainConfigOption customizes the DomainConfig.
-type DomainConfigOption func(*domainConfigBuilder)
-
-type domainConfigBuilder struct {
-	domainConfig system.DomainConfig
-}
-
-func defaultDomainConfig() domainConfigBuilder {
-	return domainConfigBuilder{
-		domainConfig: system.DomainConfig{
-			Commands:              registerAllCommands,
-			ProjectionTypeDecoder: EventTypeDecoder(),
-		},
+func DomainConfig() system.DomainConfig {
+	return system.DomainConfig{
+		Commands:              registerAllCommands,
+		ProjectionTypeDecoder: EventTypeDecoder(),
 	}
 }
 

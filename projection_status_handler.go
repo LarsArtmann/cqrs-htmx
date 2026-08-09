@@ -45,7 +45,7 @@ func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc
 		if provider == nil {
 			w.Header().Set("Content-Type", ContentTypeJSON)
 			w.WriteHeader(http.StatusServiceUnavailable)
-			_, _ = w.Write([]byte(`{"error":"no projection status provider configured"}`))
+			writeAll(w, []byte(`{"error":"no projection status provider configured"}`))
 
 			return
 		}
@@ -56,7 +56,7 @@ func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc
 		if err != nil {
 			w.Header().Set("Content-Type", ContentTypeJSON)
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(`{"error":"failed to serialize projection status"}`))
+			writeAll(w, []byte(`{"error":"failed to serialize projection status"}`))
 
 			return
 		}
@@ -73,6 +73,6 @@ func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc
 			return
 		}
 
-		_, _ = w.Write(data)
+		writeAll(w, data)
 	}
 }
