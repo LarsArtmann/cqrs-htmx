@@ -21,7 +21,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 ## Architecture
 
-**Multi-module Go workspace.** 19 independent Go modules under one `go.work`:
+**Multi-module Go workspace.** 20 independent Go modules under one `go.work`:
 
 - **Root** (`cqrs-htmx/v4`): Core library — HTTP handler builder, HTMX/SSE helpers, authz (Casbin), error mapping, pagination, `openapi/` sub-package (dependency-free OpenAPI 3.1 spec builder + `WithOpenAPI`/`OpenAPISpecHandler`). CSRF, Server-Timing, and keyed rate limiting are now thin re-exports over `httputil` (see `_reexport.go` files). **WebSocket transport removed in v5** — SSE only (see ADR 0046).
 - **identity-model** (`identity-model/v4`): Pure domain types for event-sourced identity management — IDs (UserID/TenantID/BotID/ActorID), events (21 payload structs), commands (20 structs with accessor methods), fold functions (FoldUser/FoldMembership/FoldTenant/FoldBot), state structs, Authz engine (Casbin-backed), Session, User, Membership, ExternalAccount, WebAuthnCredential, crypto helpers, domain errors (errorfamily-only, no HTTP dependency), upcaster registry, exported constants (event types, command types, aggregate types, schema version). Casbin is a first-class dependency.

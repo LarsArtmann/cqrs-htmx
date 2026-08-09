@@ -1,5 +1,7 @@
 # Security Middleware Consolidation & httputil Max-Leverage Status
 
+> **STATUS: FULLY RESOLVED (2026-08-09).** `RecommendedSecurityMiddleware()` + `RecommendedPermissionsPolicy` shipped and tested. Both adminui and dashboardui delegate to it. `RegisterErrorClassifications()` exported + auto-called in `New()`. Nonce middleware in both UIs. 10 test functions across root/adminui/dashboardui. All 8 quality gates verified. httputil v0.11.0 published and adopted across all modules (go.work replace removed). Remaining items tracked in TODO_LIST.md (leveraging-httputil.md recipe, cross-module dep drift). All work is in CHANGELOG.md [Unreleased].
+
 _Date: 2026-08-09 04:47_
 
 ---

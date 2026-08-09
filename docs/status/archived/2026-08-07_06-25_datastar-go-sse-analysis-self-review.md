@@ -1,5 +1,7 @@
 # Status Report: Why datastar/ Doesn't Use go-sse — Analysis & Brutal Self-Review
 
+> **STATUS: INVESTIGATION COMPLETE — re-investigation needed.** The analysis was delivered but contains a significant blind spot: it claimed go-sse cannot produce Datastar wire format, but go-sse has `KeyedLines`/`SendKeyed`/`SendLines` designed for Datastar. The exclusion is a design choice (Patch interface coupling to SDK), not a technical incompatibility. Tracked in TODO_LIST.md as “Re-investigate datastar/go-sse architecture decision” — needs either an ADR documenting the decision or a migration to go-sse.
+
 **Date:** 2026-08-07 06:25
 **Session scope:** Single investigation — why `./datastar` doesn't depend on `github.com/larsartmann/go-sse`
 **Verdict:** Analysis delivered but **contains a significant blind spot** that undermines the central conclusion.
