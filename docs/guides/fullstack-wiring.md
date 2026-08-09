@@ -28,9 +28,7 @@ func main() {
     defer bundle.Close()
 
     mux := http.NewServeMux()
-    bundle.Mount(mux)
-
-    http.ListenAndServe(":8080", bundle.Middleware()(mux))
+    http.ListenAndServe(":8080", bundle.Handler(mux))
 }
 ```
 
@@ -41,6 +39,7 @@ func main() {
 | `/auth/*`      | Registration, login (TOTP/WebAuthn/OAuth2)    | Public (registration) |
 | `/admin/*`     | Admin dashboard (users, tenants, memberships) | Session + CSRF        |
 | `/dashboard/*` | CQRS/ES observability (events, projections)   | Session               |
+| `/health`      | Readiness check (verifies projection health)  | Public                |
 | `/`            | Login page                                    | Public                |
 
 ### Customization

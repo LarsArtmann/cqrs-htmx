@@ -7,10 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
-
-	"github.com/larsartmann/cqrs-htmx/setup/v4"
 )
 
 // --- Existing tests (kept and improved) ---
@@ -326,7 +325,7 @@ func TestNew_HealthEndpoint_CustomPath(t *testing.T) {
 	t.Parallel()
 
 	bundle := setup.MustNew(setup.Config{
-		Title:     "Health Custom",
+		Title:      "Health Custom",
 		HealthPath: "/healthz",
 	})
 	defer func() { _ = bundle.Close() }()
@@ -405,6 +404,7 @@ func TestNew_Handler_ReturnsNonNil(t *testing.T) {
 	defer func() { _ = bundle.Close() }()
 
 	mux := http.NewServeMux()
+
 	handler := bundle.Handler(mux)
 	if handler == nil {
 		t.Fatal("Handler() returned nil")
@@ -493,7 +493,7 @@ func TestNew_LoginNoRegistration(t *testing.T) {
 	t.Parallel()
 
 	bundle := setup.MustNew(setup.Config{
-		Title:              "No Registration",
+		Title:               "No Registration",
 		LoginNoRegistration: true,
 	})
 	defer func() { _ = bundle.Close() }()
@@ -535,6 +535,7 @@ func TestNew_OnProjectionFailed_Callback(t *testing.T) {
 	t.Parallel()
 
 	callbackCalled := false
+
 	bundle, err := setup.New(setup.Config{
 		Title: "Projection Failed Test",
 		OnProjectionFailed: func(projectionName, lastError string) {
@@ -544,6 +545,7 @@ func TestNew_OnProjectionFailed_Callback(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
 	defer func() { _ = bundle.Close() }()
 
 	if callbackCalled {
@@ -573,6 +575,7 @@ func TestNew_DashboardReadOnly_ExplicitFalse(t *testing.T) {
 	t.Parallel()
 
 	writable := false
+
 	bundle := setup.MustNew(setup.Config{
 		Title:             "Writable Dashboard",
 		DashboardReadOnly: &writable,
@@ -630,8 +633,8 @@ func TestNew_SelectiveDisable(t *testing.T) {
 
 	// Disable only admin, keep dashboard and login
 	bundle := setup.MustNew(setup.Config{
-		Title:         "Selective Disable",
-		DisableAdmin:  true,
+		Title:        "Selective Disable",
+		DisableAdmin: true,
 	})
 	defer func() { _ = bundle.Close() }()
 
@@ -765,6 +768,7 @@ func TestNew_AllConfigFields(t *testing.T) {
 	t.Parallel()
 
 	writable := false
+
 	bundle, err := setup.New(setup.Config{
 		Title:               "Full Config",
 		AccentColor:         "#abcdef",
@@ -783,6 +787,7 @@ func TestNew_AllConfigFields(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New with full config: %v", err)
 	}
+
 	defer func() { _ = bundle.Close() }()
 
 	if bundle.Service == nil {
