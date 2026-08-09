@@ -12,7 +12,7 @@ import (
 func TestNew_DefaultConfig_AllPanelsEnabled(t *testing.T) {
 	t.Parallel()
 
-	bundle, err := setup.New(setup.Config{ //nolint:exhaustruct // testing defaults
+	bundle, err := setup.New(setup.Config{
 		Title: "Test App",
 	})
 	if err != nil {
@@ -23,24 +23,31 @@ func TestNew_DefaultConfig_AllPanelsEnabled(t *testing.T) {
 	if bundle.Service == nil {
 		t.Fatal("Service is nil")
 	}
+
 	if bundle.Auth == nil {
 		t.Fatal("Auth is nil")
 	}
+
 	if bundle.Admin == nil {
 		t.Fatal("Admin is nil")
 	}
+
 	if bundle.Dashboard == nil {
 		t.Fatal("Dashboard is nil")
 	}
+
 	if bundle.Login == nil {
 		t.Fatal("Login is nil")
 	}
+
 	if bundle.Stores == nil {
 		t.Fatal("Stores is nil")
 	}
+
 	if bundle.Stores.EventStore == nil {
 		t.Fatal("EventStore is nil")
 	}
+
 	if bundle.Stores.EventBus == nil {
 		t.Fatal("EventBus is nil")
 	}
@@ -63,15 +70,19 @@ func TestNew_DisableAllPanels(t *testing.T) {
 	if bundle.Admin != nil {
 		t.Fatal("Admin should be nil when DisableAdmin is true")
 	}
+
 	if bundle.Dashboard != nil {
 		t.Fatal("Dashboard should be nil when DisableDashboard is true")
 	}
+
 	if bundle.Login != nil {
 		t.Fatal("Login should be nil when DisableLogin is true")
 	}
+
 	if bundle.Service == nil {
 		t.Fatal("Service is nil even with no UI panels")
 	}
+
 	if bundle.Auth == nil {
 		t.Fatal("Auth is nil even with no UI panels")
 	}
@@ -80,7 +91,7 @@ func TestNew_DisableAllPanels(t *testing.T) {
 func TestMount_LoginPageReachable(t *testing.T) {
 	t.Parallel()
 
-	bundle := setup.MustNew(setup.Config{ //nolint:exhaustruct // testing defaults
+	bundle := setup.MustNew(setup.Config{
 		Title: "Mount Test",
 	})
 	defer bundle.Close()
@@ -96,6 +107,7 @@ func TestMount_LoginPageReachable(t *testing.T) {
 		t.Fatalf("GET /: %v", err)
 	}
 	defer resp.Body.Close()
+
 	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
@@ -106,7 +118,7 @@ func TestMount_LoginPageReachable(t *testing.T) {
 func TestMount_AdminRedirectsWithoutSession(t *testing.T) {
 	t.Parallel()
 
-	bundle := setup.MustNew(setup.Config{ //nolint:exhaustruct // testing defaults
+	bundle := setup.MustNew(setup.Config{
 		Title: "Admin Test",
 	})
 	defer bundle.Close()
@@ -131,7 +143,7 @@ func TestMount_AdminRedirectsWithoutSession(t *testing.T) {
 func TestProjectionHost_Exposed(t *testing.T) {
 	t.Parallel()
 
-	bundle := setup.MustNew(setup.Config{ //nolint:exhaustruct // testing defaults
+	bundle := setup.MustNew(setup.Config{
 		Title: "ProjectionHost Test",
 	})
 	defer bundle.Close()
@@ -151,7 +163,7 @@ func TestMustNew_SucceedsWithDefaults(t *testing.T) {
 		}
 	}()
 
-	bundle := setup.MustNew(setup.Config{ //nolint:exhaustruct // testing defaults
+	bundle := setup.MustNew(setup.Config{
 		Title: "MustNew Test",
 	})
 	defer bundle.Close()
@@ -160,7 +172,7 @@ func TestMustNew_SucceedsWithDefaults(t *testing.T) {
 func TestMiddleware_ReturnsNonNil(t *testing.T) {
 	t.Parallel()
 
-	bundle := setup.MustNew(setup.Config{ //nolint:exhaustruct // test
+	bundle := setup.MustNew(setup.Config{
 		Title: "Middleware Test",
 	})
 	defer bundle.Close()
@@ -168,9 +180,11 @@ func TestMiddleware_ReturnsNonNil(t *testing.T) {
 	if bundle.Middleware() == nil {
 		t.Fatal("Middleware() returned nil")
 	}
+
 	if bundle.SessionMiddleware() == nil {
 		t.Fatal("SessionMiddleware() returned nil")
 	}
+
 	if bundle.CSRFMiddleware() == nil {
 		t.Fatal("CSRFMiddleware() returned nil")
 	}
@@ -179,13 +193,14 @@ func TestMiddleware_ReturnsNonNil(t *testing.T) {
 func TestClose_Idempotent(t *testing.T) {
 	t.Parallel()
 
-	bundle := setup.MustNew(setup.Config{ //nolint:exhaustruct // test
+	bundle := setup.MustNew(setup.Config{
 		Title: "Close Test",
 	})
 
 	if err := bundle.Close(); err != nil {
 		t.Fatalf("first Close: %v", err)
 	}
+
 	if err := bundle.Close(); err != nil {
 		t.Fatalf("second Close: %v", err)
 	}
