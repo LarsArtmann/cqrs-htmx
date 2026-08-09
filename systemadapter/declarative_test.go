@@ -2,7 +2,7 @@ package systemadapter_test
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 	"time"
 
@@ -42,38 +42,27 @@ func setupDeclarativeSystem(t *testing.T) *system.System {
 		t.Fatal("ProjectionHost is nil — declarative projections not wired")
 	}
 
+	waitForProjectionsLive(t, sys)
+
 	return sys
 }
 
-// eventually retries fn until it returns nil or the timeout expires.
-// The initial sleep gives the projection worker time to receive events
-// from the bus before the first query attempt.
-func eventually(t *testing.T, timeout time.Duration, fn func() error) {
-	t.Helper()
-	time.Sleep(100 * time.Millisecond) // let events reach the projection worker
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if err := fn(); err == nil {
-			return
-		}
-		time.Sleep(50 * time.Millisecond)
-	}
-	if err := fn(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-// waitForHostLive waits for the projection host workers to reach WorkerLive.
-func waitForHostLive(t *testing.T, sys *system.System, timeout time.Duration) {
+// waitForProjectionsLive blocks until all projection host workers reach
+// WorkerLive status. This is critical for race-free testing: the GoChannel bus
+// uses Persistent=false, meaning events published before the subscriber
+// registers are dropped. Once workers are live,
+// BlockPublishUntilSubscriberAck makes Dispatch synchronous — the event is
+// fully processed by all projections before Dispatch returns.
+func waitForProjectionsLive(t *testing.T, sys *system.System) {
 	t.Helper()
 	host := sys.ProjectionHost()
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		states := host.Status()
 		if len(states) > 0 {
 			allLive := true
 			for _, s := range states {
-				if s.Status != projectionhost.WorkerLive && s.Status != projectionhost.WorkerStopped {
+				if s.Status != projectionhost.WorkerLive {
 					allLive = false
 					break
 				}
@@ -82,10 +71,38 @@ func waitForHostLive(t *testing.T, sys *system.System, timeout time.Duration) {
 				return
 			}
 		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	t.Fatalf("projection workers did not reach WorkerLive within 10s; states: %+v", host.Status())
+}
+
+// eventually retries fn until it returns nil or the timeout expires.
+// Once projection workers are live, Dispatch is synchronous so assertions
+// typically pass on the first try. This is a safety net for edge cases.
+func eventually(t *testing.T, timeout time.Duration, fn func() error) {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if err := fn(); err == nil {
+			return
+		}
 		time.Sleep(10 * time.Millisecond)
 	}
-	t.Fatal("projection host workers did not reach Live state")
+	if err := fn(); err != nil {
+		t.Fatal(err)
+	}
 }
+
+func must(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Tenant
+// ---------------------------------------------------------------------------
 
 func TestDeclarative_TenantRoundTrip(t *testing.T) {
 	ctx := context.Background()
@@ -97,20 +114,19 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 		tenantID, "Acme Corp", "Acme",
 	)))
 
-
 	eventually(t, 5*time.Second, func() error {
 		tenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
 		if err != nil {
 			return err
 		}
 		if tenant.Name != "Acme Corp" {
-			return fmt.Errorf("Name = %q", tenant.Name)
+			return errors.New("Name mismatch")
 		}
 		if tenant.DisplayName != "Acme" {
-			return fmt.Errorf("DisplayName = %q", tenant.DisplayName)
+			return errors.New("DisplayName mismatch")
 		}
 		if tenant.Suspended {
-			return fmt.Errorf("should not be suspended")
+			return errors.New("should not be suspended")
 		}
 		return nil
 	})
@@ -122,7 +138,7 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 			return err
 		}
 		if !tenant.Suspended {
-			return fmt.Errorf("should be suspended")
+			return errors.New("should be suspended")
 		}
 		return nil
 	})
@@ -134,7 +150,7 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 			return err
 		}
 		if tenant.Suspended {
-			return fmt.Errorf("should not be suspended")
+			return errors.New("should not be suspended")
 		}
 		return nil
 	})
@@ -145,11 +161,57 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 			return err
 		}
 		if byName.ID != tenantID.String() {
-			return fmt.Errorf("ID = %q", byName.ID)
+			return errors.New("ID mismatch")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		all, err := systemadapter.AllTenants(ctx, sys)
+		if err != nil {
+			return err
+		}
+		if len(all) != 1 {
+			return errors.New("expected 1 tenant")
 		}
 		return nil
 	})
 }
+
+func TestDeclarative_TenantDelete(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	tenantID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
+		tenantID, "ToDelete", "TD",
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewDeleteTenantCmd(tenantID, "cleanup")))
+
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+		if err == nil {
+			return errors.New("tenant should be deleted")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		all, err := systemadapter.AllTenants(ctx, sys)
+		if err != nil {
+			return err
+		}
+		if len(all) != 0 {
+			return errors.New("expected 0 tenants after delete")
+		}
+		return nil
+	})
+}
+
+// ---------------------------------------------------------------------------
+// Bot
+// ---------------------------------------------------------------------------
 
 func TestDeclarative_BotRoundTrip(t *testing.T) {
 	ctx := context.Background()
@@ -164,17 +226,16 @@ func TestDeclarative_BotRoundTrip(t *testing.T) {
 		botID, "MyBot", ownerID, tokenHash, []string{"read", "write"},
 	)))
 
-
 	eventually(t, 5*time.Second, func() error {
 		bot, err := systemadapter.FindBotByID(ctx, sys, botID.String())
 		if err != nil {
 			return err
 		}
 		if bot.Name != "MyBot" {
-			return fmt.Errorf("Name = %q", bot.Name)
+			return errors.New("Name mismatch")
 		}
 		if bot.OwnerID != ownerID.String() {
-			return fmt.Errorf("OwnerID = %q", bot.OwnerID)
+			return errors.New("OwnerID mismatch")
 		}
 		return nil
 	})
@@ -190,11 +251,49 @@ func TestDeclarative_BotRoundTrip(t *testing.T) {
 			return err
 		}
 		if len(bots) != 1 {
-			return fmt.Errorf("got %d bots", len(bots))
+			return errors.New("expected 1 bot")
 		}
 		return nil
 	})
 }
+
+func TestDeclarative_BotDelete(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	ownerID := identitymodel.GenerateUserID()
+	botID := id.NewStreamID()
+	tokenHash := []byte{0x01, 0x02}
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterBotCmd(
+		botID, "DeleteBot", ownerID, tokenHash, []string{"read"},
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewDeleteBotCmd(botID, "retired")))
+
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindBotByID(ctx, sys, botID.String())
+		if err == nil {
+			return errors.New("bot should be deleted")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		bots, err := systemadapter.FindBotsByOwner(ctx, sys, ownerID.String())
+		if err != nil {
+			return err
+		}
+		if len(bots) != 0 {
+			return errors.New("expected 0 bots after delete")
+		}
+		return nil
+	})
+}
+
+// ---------------------------------------------------------------------------
+// Membership
+// ---------------------------------------------------------------------------
 
 func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 	ctx := context.Background()
@@ -210,7 +309,6 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 		[]identitymodel.Role{identitymodel.RoleAdmin},
 	)))
 
-
 	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
 
 	eventually(t, 5*time.Second, func() error {
@@ -219,13 +317,13 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 			return err
 		}
 		if mem.ActorID != actorID.String() {
-			return fmt.Errorf("ActorID = %q", mem.ActorID)
+			return errors.New("ActorID mismatch")
 		}
 		if mem.TenantID != tenantID.Get() {
-			return fmt.Errorf("TenantID = %q", mem.TenantID)
+			return errors.New("TenantID mismatch")
 		}
 		if len(mem.Roles) != 1 || mem.Roles[0] != "admin" {
-			return fmt.Errorf("Roles = %v", mem.Roles)
+			return errors.New("Roles mismatch")
 		}
 		return nil
 	})
@@ -236,7 +334,7 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 			return err
 		}
 		if len(mems) != 1 {
-			return fmt.Errorf("got %d memberships by tenant", len(mems))
+			return errors.New("expected 1 membership by tenant")
 		}
 		return nil
 	})
@@ -247,11 +345,98 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 			return err
 		}
 		if len(mems) != 1 {
-			return fmt.Errorf("got %d memberships by actor", len(mems))
+			return errors.New("expected 1 membership by actor")
 		}
 		return nil
 	})
 }
+
+func TestDeclarative_MembershipRolesUpdate(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
+	tenantID := identitymodel.NewTenantID("tenant-roles")
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
+		actorID, tenantID,
+		[]identitymodel.Role{identitymodel.RoleViewer},
+	)))
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewUpdateMemberRolesCmd(
+		actorID, tenantID,
+		[]identitymodel.Role{identitymodel.RoleAdmin, identitymodel.RoleUser},
+	)))
+
+	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
+
+	eventually(t, 5*time.Second, func() error {
+		mem, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.String())
+		if err != nil {
+			return err
+		}
+		if len(mem.Roles) != 2 {
+			return errors.New("expected 2 roles")
+		}
+		foundAdmin, foundUser := false, false
+		for _, r := range mem.Roles {
+			if r == "admin" {
+				foundAdmin = true
+			}
+			if r == "user" {
+				foundUser = true
+			}
+		}
+		if !foundAdmin || !foundUser {
+			return errors.New("missing expected roles")
+		}
+		return nil
+	})
+}
+
+func TestDeclarative_MembershipRemove(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
+	tenantID := identitymodel.NewTenantID("tenant-remove")
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
+		actorID, tenantID,
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRemoveMemberCmd(actorID, tenantID)))
+
+	membershipID := identitymodel.DeriveMembershipID(actorID, tenantID)
+
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindMembershipByID(ctx, sys, membershipID.String())
+		if err == nil {
+			return errors.New("membership should be removed")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		mems, err := systemadapter.FindMembershipsByTenant(ctx, sys, tenantID.Get())
+		if err != nil {
+			return err
+		}
+		if len(mems) != 0 {
+			return errors.New("expected 0 memberships after remove")
+		}
+		return nil
+	})
+}
+
+// ---------------------------------------------------------------------------
+// User
+// ---------------------------------------------------------------------------
 
 func TestDeclarative_UserRoundTrip(t *testing.T) {
 	ctx := context.Background()
@@ -264,23 +449,22 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 		[]identitymodel.Role{identitymodel.RoleUser},
 	)))
 
-
 	eventually(t, 5*time.Second, func() error {
 		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
 		if err != nil {
 			return err
 		}
 		if user.Email != "user@example.com" {
-			return fmt.Errorf("Email = %q", user.Email)
+			return errors.New("Email mismatch")
 		}
 		if user.DisplayName != "Test User" {
-			return fmt.Errorf("DisplayName = %q", user.DisplayName)
+			return errors.New("DisplayName mismatch")
 		}
 		if user.EmailVerified {
-			return fmt.Errorf("EmailVerified should be false")
+			return errors.New("EmailVerified should be false")
 		}
 		if user.CreatedAt.IsZero() {
-			return fmt.Errorf("CreatedAt is zero")
+			return errors.New("CreatedAt is zero")
 		}
 		return nil
 	})
@@ -300,10 +484,10 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 			return err
 		}
 		if user.Email != "new@example.com" {
-			return fmt.Errorf("Email = %q", user.Email)
+			return errors.New("Email mismatch after change")
 		}
 		if user.EmailVerified {
-			return fmt.Errorf("EmailVerified should be false after change")
+			return errors.New("EmailVerified should be false after change")
 		}
 		return nil
 	})
@@ -316,11 +500,249 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 			return err
 		}
 		if !user.EmailVerified {
-			return fmt.Errorf("EmailVerified should be true")
+			return errors.New("EmailVerified should be true")
 		}
 		return nil
 	})
 }
+
+func TestDeclarative_UserDisplayNameChange(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userStreamID, "display@example.com", "Original",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeDisplayNameCmd(
+		userStreamID, "Updated Name",
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if user.DisplayName != "Updated Name" {
+			return errors.New("DisplayName mismatch")
+		}
+		return nil
+	})
+}
+
+func TestDeclarative_UserCredentials(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userStreamID, "cred@example.com", "Cred User",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+
+	credID := []byte{0xAA, 0xBB, 0xCC}
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddCredentialCmd(
+		userStreamID, identitymodel.WebAuthnCredential{
+			CredentialCore: identitymodel.CredentialCore{
+				ID:              credID,
+				PublicKey:       []byte{0x01, 0x02, 0x03},
+				AttestationType: "none",
+				Transports:      []string{"internal"},
+				Name:            "My Passkey",
+			},
+		},
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if len(user.Credentials) != 1 {
+			return errors.New("expected 1 credential")
+		}
+		if user.Credentials[0].AttestationType != "none" {
+			return errors.New("AttestationType mismatch")
+		}
+		if user.Credentials[0].Name != "My Passkey" {
+			return errors.New("Name mismatch")
+		}
+		return nil
+	})
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRemoveCredentialCmd(userStreamID, credID)))
+
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if len(user.Credentials) != 0 {
+			return errors.New("expected 0 credentials after remove")
+		}
+		return nil
+	})
+}
+
+func TestDeclarative_UserTOTP(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userStreamID, "totp@example.com", "TOTP User",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewEnableTOTPCmd(
+		userStreamID, []byte("secret-key"),
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if !user.TOTPEnabled {
+			return errors.New("TOTP should be enabled")
+		}
+		return nil
+	})
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewDisableTOTPCmd(userStreamID)))
+
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if user.TOTPEnabled {
+			return errors.New("TOTP should be disabled")
+		}
+		return nil
+	})
+}
+
+func TestDeclarative_UserExternalAccounts(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userStreamID, "ext@example.com", "Ext User",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewLinkExternalAccountCmd(
+		userStreamID, "github", "gh-123", "ext@github.com", "Ext User",
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if len(user.ExternalAccounts) != 1 {
+			return errors.New("expected 1 external account")
+		}
+		if user.ExternalAccounts[0].Provider != "github" {
+			return errors.New("Provider mismatch")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		byExt, err := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "gh-123")
+		if err != nil {
+			return err
+		}
+		if byExt.ID != userStreamID.String() {
+			return errors.New("user ID mismatch from external account lookup")
+		}
+		return nil
+	})
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewUnlinkExternalAccountCmd(
+		userStreamID, "github", "gh-123",
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		user, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if len(user.ExternalAccounts) != 0 {
+			return errors.New("expected 0 external accounts after unlink")
+		}
+		return nil
+	})
+}
+
+func TestDeclarative_UserDelete(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userStreamID, "delete@example.com", "Delete Me",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewDeleteUserCmd(userStreamID, "test")))
+
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err == nil {
+			return errors.New("user should be deleted")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		all, err := systemadapter.AllUsers(ctx, sys)
+		if err != nil {
+			return err
+		}
+		if len(all) != 0 {
+			return errors.New("expected 0 users after delete")
+		}
+		return nil
+	})
+}
+
+func TestDeclarative_AllUsers(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	for i := 0; i < 3; i++ {
+		uid := id.NewStreamID()
+		must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+			uid, "user%d@example.com", "User",
+			[]identitymodel.Role{identitymodel.RoleUser},
+		)))
+	}
+
+	eventually(t, 5*time.Second, func() error {
+		all, err := systemadapter.AllUsers(ctx, sys)
+		if err != nil {
+			return err
+		}
+		if len(all) != 3 {
+			return errors.New("expected 3 users")
+		}
+		return nil
+	})
+}
+
+// ---------------------------------------------------------------------------
+// Authz
+// ---------------------------------------------------------------------------
 
 func TestDeclarative_AuthzEnforce(t *testing.T) {
 	ctx := context.Background()
@@ -346,7 +768,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 			return err
 		}
 		if !allowed {
-			return fmt.Errorf("admin should be allowed to manage")
+			return errors.New("admin should be allowed to manage")
 		}
 		return nil
 	})
@@ -368,7 +790,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 			return err
 		}
 		if allowed {
-			return fmt.Errorf("viewer should NOT be allowed to manage")
+			return errors.New("viewer should NOT be allowed to manage")
 		}
 		return nil
 	})
@@ -379,11 +801,42 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 			return err
 		}
 		if !allowed {
-			return fmt.Errorf("viewer should be allowed to view")
+			return errors.New("viewer should be allowed to view")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		entries, err := systemadapter.FindPolicies(ctx, sys, userStreamID.String(), tenantID.Get())
+		if err != nil {
+			return err
+		}
+		if len(entries) == 0 {
+			return errors.New("expected at least 1 policy entry")
+		}
+		return nil
+	})
+
+	userPolID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userPolID, "pol@example.com", "Pol User",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+	eventually(t, 5*time.Second, func() error {
+		pol, err := systemadapter.FindPolicyByStreamID(ctx, sys, userPolID.String())
+		if err != nil {
+			return err
+		}
+		if pol.Subject != userPolID.String() {
+			return errors.New("policy subject mismatch")
 		}
 		return nil
 	})
 }
+
+// ---------------------------------------------------------------------------
+// AuditLog
+// ---------------------------------------------------------------------------
 
 func TestDeclarative_AuditLog(t *testing.T) {
 	ctx := context.Background()
@@ -399,14 +852,13 @@ func TestDeclarative_AuditLog(t *testing.T) {
 		userStreamID, "changed@example.com",
 	)))
 
-
 	eventually(t, 5*time.Second, func() error {
 		entries, err := systemadapter.AuditEntries(ctx, sys)
 		if err != nil {
 			return err
 		}
 		if len(entries) < 2 {
-			return fmt.Errorf("got %d entries, want >= 2", len(entries))
+			return errors.New("expected >= 2 audit entries")
 		}
 		return nil
 	})
@@ -417,7 +869,7 @@ func TestDeclarative_AuditLog(t *testing.T) {
 			return err
 		}
 		if len(forUser) < 2 {
-			return fmt.Errorf("got %d entries for user", len(forUser))
+			return errors.New("expected >= 2 entries for user")
 		}
 		foundRegister, foundChangeEmail := false, false
 		for _, e := range forUser {
@@ -428,14 +880,14 @@ func TestDeclarative_AuditLog(t *testing.T) {
 				foundChangeEmail = true
 			}
 			if e.OccurredAt.IsZero() {
-				return fmt.Errorf("OccurredAt is zero")
+				return errors.New("OccurredAt is zero")
 			}
 		}
 		if !foundRegister {
-			return fmt.Errorf("UserRegistered entry missing")
+			return errors.New("UserRegistered entry missing")
 		}
 		if !foundChangeEmail {
-			return fmt.Errorf("EmailChanged entry missing")
+			return errors.New("EmailChanged entry missing")
 		}
 		return nil
 	})
@@ -446,22 +898,19 @@ func TestDeclarative_AuditLog(t *testing.T) {
 			return err
 		}
 		if len(recent) != 1 {
-			return fmt.Errorf("got %d recent entries", len(recent))
+			return errors.New("expected 1 recent entry")
 		}
 		return nil
 	})
 }
 
+// ---------------------------------------------------------------------------
+// Sanity
+// ---------------------------------------------------------------------------
+
 func TestDeclarative_AllProjectionNames(t *testing.T) {
 	decls := systemadapter.DeclarativeProjections()
 	if len(decls) < 10 {
 		t.Fatalf("expected at least 10 projection declarations, got %d", len(decls))
-	}
-}
-
-func must(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatal(err)
 	}
 }
