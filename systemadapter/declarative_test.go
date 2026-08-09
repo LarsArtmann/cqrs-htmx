@@ -42,38 +42,42 @@ func setupDeclarativeSystem(t *testing.T) *system.System {
 		t.Fatal("ProjectionHost is nil — declarative projections not wired")
 	}
 
-	waitForProjectionsLive(t, sys)
+	waitForProjectionsReady(t, sys)
 
 	return sys
 }
 
-// waitForProjectionsLive blocks until all projection host workers reach
-// WorkerLive status. This is critical for race-free testing: the GoChannel bus
-// uses Persistent=false, meaning events published before the subscriber
-// registers are dropped. Once workers are live,
-// BlockPublishUntilSubscriberAck makes Dispatch synchronous — the event is
-// fully processed by all projections before Dispatch returns.
-func waitForProjectionsLive(t *testing.T, sys *system.System) {
+// waitForProjectionsReady blocks until all projection host workers reach
+// WorkerStopped status. This is critical for race-free testing.
+//
+// The projection host's worker drains the journal, then calls SubscribeAll
+// (which returns immediately — it spawns a background event-loop goroutine),
+// then exits cleanly (WorkerStopped). Once stopped, the bus subscription is
+// permanently active. Combined with BlockPublishUntilSubscriberAck=true on the
+// GoChannel bus, Dispatch becomes effectively synchronous: Publish blocks until
+// the subscriber's event-loop goroutine receives, processes, and acks the
+// message — all before Dispatch returns.
+func waitForProjectionsReady(t *testing.T, sys *system.System) {
 	t.Helper()
 	host := sys.ProjectionHost()
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		states := host.Status()
 		if len(states) > 0 {
-			allLive := true
+			allDone := true
 			for _, s := range states {
-				if s.Status != projectionhost.WorkerLive {
-					allLive = false
+				if s.Status != projectionhost.WorkerStopped {
+					allDone = false
 					break
 				}
 			}
-			if allLive {
+			if allDone {
 				return
 			}
 		}
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 	}
-	t.Fatalf("projection workers did not reach WorkerLive within 10s; states: %+v", host.Status())
+	t.Fatalf("projection workers did not reach stopped state within 10s; states: %+v", host.Status())
 }
 
 // eventually retries fn until it returns nil or the timeout expires.
@@ -636,6 +640,18 @@ func TestDeclarative_UserExternalAccounts(t *testing.T) {
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 		userStreamID, "ext@example.com", "Ext User",
 		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+
+	// Add a credential first so unlinking the external account doesn't
+	// violate the "last auth method" invariant.
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddCredentialCmd(
+		userStreamID, identitymodel.WebAuthnCredential{
+			CredentialCore: identitymodel.CredentialCore{
+				ID:              []byte{0x01},
+				PublicKey:       []byte{0x02},
+				AttestationType: "none",
+			},
+		},
 	)))
 
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewLinkExternalAccountCmd(
