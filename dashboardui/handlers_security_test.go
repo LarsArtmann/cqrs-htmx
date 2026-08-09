@@ -317,6 +317,7 @@ func TestMiddleware_CSPWithNonceAndSecurityHeaders(t *testing.T) {
 	if csp == "" {
 		t.Fatal("expected Content-Security-Policy header to be set")
 	}
+
 	if !strings.Contains(csp, "nonce-") {
 		t.Errorf("expected CSP to contain a nonce (Nonce middleware should be in chain), got %q", csp)
 	}
