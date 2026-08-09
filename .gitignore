@@ -36,6 +36,7 @@ vendor/
 /middleware-demo
 /observability-demo
 /e2e/server/server
+/samber-do-demo
 # Dependencies
 node_modules/
 # Sensitive files
