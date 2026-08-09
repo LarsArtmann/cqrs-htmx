@@ -27,7 +27,7 @@ broadcaster := cqrshtmx.NewBroadcaster()
 broadcaster.Broadcast(evt) // -> all connected clients
 
 // 4. Chain middleware (outer -> inner)
-cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware, httputil.CSRFMiddleware(httputil.CSRFConfig{}), app.Middleware())(mux)
+cqrshtmx.Chain(cqrshtmx.RecommendedSecurityMiddleware(), httputil.CSRFMiddleware(httputil.CSRFConfig{}), app.Middleware())(mux)
 
 // 5. Map errors -> HTTP status (one function)
 status := cqrshtmx.MapError(err) // Rejection->400, Conflict->409, Transient->503, etc.
@@ -110,8 +110,7 @@ mux.HandleFunc("GET /events", func(w http.ResponseWriter, r *http.Request) {
 })
 
 http.ListenAndServe(":8080", cqrshtmx.Chain(
-    cqrshtmx.RecoveryMiddleware,
-    cqrshtmx.SecurityHeadersMiddleware,
+    cqrshtmx.RecommendedSecurityMiddleware(),
     httputil.RateLimiterMiddleware(httputil.DefaultRateLimiterConfig()),
     cqrshtmx.RequestLoggingSlog(logger),
 )(mux))
@@ -308,8 +307,7 @@ mux.Handle("POST /games/{id}/delete", app.Command("DeleteGame",
 mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler()) // embedded htmx 2.0.10, ETag + 1yr cache
 
 http.ListenAndServe(":8080", cqrshtmx.Chain(
-    cqrshtmx.RecoveryMiddleware,
-    cqrshtmx.SecurityHeadersMiddleware,
+    cqrshtmx.RecommendedSecurityMiddleware(),
     httputil.CSRFMiddleware(httputil.CSRFConfig{}), // protects mutations; opt-in
     cqrshtmx.HTMXMiddleware,                        // detects HTMX requests
     app.Middleware(),                                // enriches context (user/correlation/request IDs)
@@ -342,8 +340,7 @@ mux.Handle("POST /widgets", app.Command("CreateWidget", cqrshtmx.DecodeJSON(/*..
 // Session goes OUTSIDE CSRF:
 sessionMW := usermgmt.NewSessionMiddleware(svc, "session")
 http.ListenAndServe(":8080", cqrshtmx.Chain(
-    cqrshtmx.RecoveryMiddleware,
-    cqrshtmx.SecurityHeadersMiddleware,
+    cqrshtmx.RecommendedSecurityMiddleware(),
     sessionMW,                                    // authenticate the cookie first
     httputil.CSRFMiddleware(httputil.CSRFConfig{}),
     cqrshtmx.HTMXMiddleware,
@@ -503,6 +500,8 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`SecurityHeaderSkip`** (`"-"`) -- set on `ContentTypeOptions`/`FrameOptions`/`ReferrerPolicy` to suppress that default header entirely (empty string = use the default). Now deprecated alias for `httputil.SecurityHeaderSkip`.
 - **`cqrshtmx.Chain` vs `httputil.Chain`** -- `cqrshtmx.Chain` is the standard middleware composition helper for this library. If you also import `go-httputil`, its `Chain` has the same signature; pick one and use it consistently.
 - **Server-Timing / CSRF / rate-limiting are deprecated re-exports over httputil** -- `CSRFMiddleware`, `CSRFConfig`, `RateLimiterMiddleware`, `ServerTiming`, etc. are now deprecated type/var aliases for the equivalent symbols in `github.com/larsartmann/httputil`. Import httputil directly (these aliases will be removed in v5). The implementation (and deps like `justinas/nosurf`) lives in httputil. See `docs/guides/leveraging-httputil.md` for the migration table.
+- **`cqrshtmx.RegisterErrorClassifications()`** -- registers httputil error classifications so errors from httputil middleware classify correctly through `MapError`. `New()` calls this automatically via `sync.Once`. Call it once at startup if you use httputil middleware without creating an App (e.g., a static file server with `httputil.Compression`). Safe to call multiple times.
+- **`cqrshtmx.RecommendedSecurityMiddleware()`** -- returns the baseline production middleware chain: `SecurityHeaders` (with `RecommendedPermissionsPolicy`) + per-request CSP `Nonce` + `RecoveryMiddleware`. Both `adminui.Handler.Middleware()` and `dashboardui.Dashboard.Middleware()` delegate to it, so mounting either UI gives the same security posture. Use it directly for your own UIs: `cqrshtmx.Chain(cqrshtmx.RecommendedSecurityMiddleware(), sessionMW, app.Middleware())(mux)`.
 - **`cqrshtmx.EventCatalogHandler(catalog)`** -- serves an event schema catalog as immutable JSON (1-year cache, FNV-1a ETag). Use with `usermgmt.DefaultEventCatalog()` or build your own `cqrshtmx.NewEventCatalog()`. Mirrors `OpenAPISpecHandler` pattern. See `docs/guides/event-catalog-guide.md`.
 - **`cqrshtmx.ProjectionStatusHandler(provider)`** -- serves live projection health as JSON (`no-cache`, per-request ETag). Pass any `cqrshtmx.ProjectionStatusProvider` (e.g. `*usermgmt.Service`). Returns 503 when provider is nil. See `docs/guides/projection-health-monitoring.md`.
 - **`svc.RebuildProjection(ctx, name)`** -- stops the projection host, resets the named projection's checkpoint + read-model, creates a fresh host, and replays the entire journal. Available on both `*usermgmt.Service` and `*usermgmt.EventSourcedSetup`. See `docs/guides/rebuild-projection-runbook.md`.
@@ -516,7 +515,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 - **`docs/guides/leveraging-go-cqrs-lite.md`** -- how to leverage 58 go-cqrs-lite modules from cqrs-htmx (dispatch middleware, OTel/Prometheus, durable scheduling, signing/encryption, catalog docs, scenario testing, sagas, schema evolution).
 - **`docs/guides/production-readiness.md`** -- single checklist for taking a cqrs-htmx app to production (middleware stack, observability, security, projection health, performance).
 - **`docs/guides/dispatch-middleware-ordering.md`** -- correct ordering rules for dispatch middleware (recovery, circuit breaker, retry, tracing, metrics, logging).
-- **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof).
+- **Repo examples**: `examples/basic/` (minimal CQRS+HTMX+SSE), `examples/admin-demo/` (full admin showcase), `examples/middleware-demo/` (dispatch middleware composition proof), `examples/middleware-showcase/` (all 8 httputil HTTP middleware in a single validated `MiddlewareStack`: recovery, security headers, metrics, CORS, client IP, rate limiting, compression, ETag).
 - **ADR docs**: `docs/adr/` -- the _why_ behind each design.
 
 When the user asks for something not covered inline here, **read the matching reference file before improvising** -- it almost always contains the exact API and the ordering constraints.
