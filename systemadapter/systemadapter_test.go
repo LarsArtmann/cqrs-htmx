@@ -2,6 +2,7 @@ package systemadapter_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -11,11 +12,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
-func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {
-	ctx := context.Background()
-
-	domain := systemadapter.DomainConfig()
-	deployment := system.DeploymentConfig{
+// memoryDeployment returns a DeploymentConfig using the in-memory driver,
+// suitable for fast unit tests.
+func memoryDeployment() system.DeploymentConfig {
+	return system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
 			"primary": {Driver: "memory"},
 		},
@@ -23,22 +23,60 @@ func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {
 			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
 		},
 	}
+}
 
-	sys, err := system.New(ctx, domain, deployment)
+// sqliteDeployment returns a DeploymentConfig using the SQLite in-memory driver.
+// The DSN uses mode=memory&cache=shared so connections in the same process
+// share the same database.
+func sqliteDeployment(t *testing.T) system.DeploymentConfig {
+	t.Helper()
+
+	return system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {
+				Driver:  "sqlite",
+				DSN:     fmt.Sprintf("file:%s?mode=memory&cache=shared", t.Name()),
+				Pragmas: []string{"journal_mode=wal"},
+			},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+		},
+	}
+}
+
+// setupTestSystem creates a system + projection layer for testing.
+// The caller must defer pl.Stop() and sys.Close().
+func setupTestSystem(t *testing.T, deployment system.DeploymentConfig) (*system.System, *systemadapter.ProjectionLayer) {
+	t.Helper()
+
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, systemadapter.DomainConfig(), deployment)
 	if err != nil {
 		t.Fatalf("system.New failed: %v", err)
 	}
-	defer sys.Close()
 
 	pl, err := systemadapter.NewProjectionLayer(sys)
 	if err != nil {
+		sys.Close()
 		t.Fatalf("NewProjectionLayer failed: %v", err)
 	}
-	defer pl.Stop()
 
 	if err := pl.Start(ctx); err != nil {
+		sys.Close()
 		t.Fatalf("ProjectionLayer.Start failed: %v", err)
 	}
+
+	return sys, pl
+}
+
+func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {
+	ctx := context.Background()
+	sys, pl := setupTestSystem(t, memoryDeployment())
+
+	defer func() { _ = sys.Close() }()
+	defer func() { _ = pl.Stop() }()
 
 	streamID := id.NewStreamID()
 	cmd := identitymodel.NewRegisterUserCmd(
@@ -62,6 +100,7 @@ func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {
 	if user.Email != "test@example.com" {
 		t.Errorf("email = %q, want %q", user.Email, "test@example.com")
 	}
+
 	if user.DisplayName != "Test User" {
 		t.Errorf("displayName = %q, want %q", user.DisplayName, "Test User")
 	}
@@ -112,34 +151,13 @@ func TestEventTypeDecoder_All21EventTypesRegistered(t *testing.T) {
 
 func TestDomainConfig_TenantAndAuditLog(t *testing.T) {
 	ctx := context.Background()
+	sys, pl := setupTestSystem(t, memoryDeployment())
 
-	domain := systemadapter.DomainConfig()
-	deployment := system.DeploymentConfig{
-		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "memory"},
-		},
-		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
-		},
-	}
-
-	sys, err := system.New(ctx, domain, deployment)
-	if err != nil {
-		t.Fatalf("system.New failed: %v", err)
-	}
-	defer sys.Close()
-
-	pl, err := systemadapter.NewProjectionLayer(sys)
-	if err != nil {
-		t.Fatalf("NewProjectionLayer failed: %v", err)
-	}
-	defer pl.Stop()
-
-	if err := pl.Start(ctx); err != nil {
-		t.Fatalf("ProjectionLayer.Start failed: %v", err)
-	}
+	defer func() { _ = sys.Close() }()
+	defer func() { _ = pl.Stop() }()
 
 	tenantStreamID := id.NewStreamID()
+
 	tenantCmd := identitymodel.NewCreateTenantCmd(tenantStreamID, "acme", "Acme Corp")
 	if err := sys.CommandDispatcher().Dispatch(ctx, tenantCmd); err != nil {
 		t.Fatalf("Dispatch CreateTenant failed: %v", err)
@@ -153,16 +171,19 @@ func TestDomainConfig_TenantAndAuditLog(t *testing.T) {
 	if !ok {
 		t.Fatal("tenant not found in read model")
 	}
+
 	if tenant.Name != "acme" {
 		t.Errorf("tenant name = %q, want %q", tenant.Name, "acme")
 	}
 
-	// AuditLog only handles user events, so register a user to check it
+	// AuditLog only handles user events, so register a user to check it.
 	userStreamID := id.NewStreamID()
+
 	userCmd := identitymodel.NewRegisterUserCmd(userStreamID, "test@example.com", "Test", nil)
 	if err := sys.CommandDispatcher().Dispatch(ctx, userCmd); err != nil {
 		t.Fatalf("Dispatch RegisterUser failed: %v", err)
 	}
+
 	if err := pl.WaitForDrain(5 * time.Second); err != nil {
 		t.Fatalf("WaitForDrain failed: %v", err)
 	}
@@ -170,5 +191,207 @@ func TestDomainConfig_TenantAndAuditLog(t *testing.T) {
 	auditEntries := pl.AuditLog.Entries()
 	if len(auditEntries) == 0 {
 		t.Error("no audit log entries recorded")
+	}
+}
+
+func TestDomainConfig_MembershipCommands(t *testing.T) {
+	ctx := context.Background()
+	sys, pl := setupTestSystem(t, memoryDeployment())
+
+	defer func() { _ = sys.Close() }()
+	defer func() { _ = pl.Stop() }()
+
+	// Create prerequisites: a user and a tenant.
+	userID := id.NewStreamID()
+	tenantID := id.NewStreamID()
+
+	userCmd := identitymodel.NewRegisterUserCmd(userID, "member@example.com", "Member", nil)
+	if err := sys.CommandDispatcher().Dispatch(ctx, userCmd); err != nil {
+		t.Fatalf("Dispatch RegisterUser failed: %v", err)
+	}
+
+	tenantCmd := identitymodel.NewCreateTenantCmd(tenantID, "corp", "Corp")
+	if err := sys.CommandDispatcher().Dispatch(ctx, tenantCmd); err != nil {
+		t.Fatalf("Dispatch CreateTenant failed: %v", err)
+	}
+
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	// Add the user as a member of the tenant with admin role.
+	actorID := identitymodel.ActorIDFromUser(identitymodel.UserID(userID))
+	memberCmd := identitymodel.NewAddMemberCmd(actorID, identitymodel.TenantID(tenantID), []identitymodel.Role{identitymodel.RoleAdmin})
+	if err := sys.CommandDispatcher().Dispatch(ctx, memberCmd); err != nil {
+		t.Fatalf("Dispatch AddMember failed: %v", err)
+	}
+
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	// Verify membership in the read model via aggregate ID (the command's StreamID).
+	membership, ok := pl.Membership.FindByAggregateID(memberCmd.StreamID())
+	if !ok {
+		t.Fatal("membership not found in read model after AddMember command")
+	}
+
+	if membership.ActorID != actorID {
+		t.Errorf("membership actorID = %v, want %v", membership.ActorID, actorID)
+	}
+
+	if !membership.HasRole(identitymodel.RoleAdmin) {
+		t.Errorf("membership should have admin role, roles = %v", membership.Roles)
+	}
+
+	// Verify lookup by tenant.
+	byTenant := pl.Membership.FindByTenant(string(tenantID))
+	if len(byTenant) != 1 {
+		t.Errorf("FindByTenant returned %d memberships, want 1", len(byTenant))
+	}
+}
+
+func TestDomainConfig_BotCommands(t *testing.T) {
+	ctx := context.Background()
+	sys, pl := setupTestSystem(t, memoryDeployment())
+
+	defer func() { _ = sys.Close() }()
+	defer func() { _ = pl.Stop() }()
+
+	// Register a user as the bot owner.
+	ownerID := id.NewStreamID()
+	userCmd := identitymodel.NewRegisterUserCmd(ownerID, "owner@example.com", "Owner", nil)
+	if err := sys.CommandDispatcher().Dispatch(ctx, userCmd); err != nil {
+		t.Fatalf("Dispatch RegisterUser failed: %v", err)
+	}
+
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	// Register a bot.
+	botID := id.NewStreamID()
+	tokenHash := []byte{0x01, 0x02, 0x03}
+	scopes := []string{"read:users", "write:users"}
+
+	botCmd := identitymodel.NewRegisterBotCmd(botID, "ci-bot", identitymodel.UserID(ownerID), tokenHash, scopes)
+	if err := sys.CommandDispatcher().Dispatch(ctx, botCmd); err != nil {
+		t.Fatalf("Dispatch RegisterBot failed: %v", err)
+	}
+
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	// Verify bot in the read model.
+	bot, ok := pl.Bot.FindByID(botCmd.StreamID())
+	if !ok {
+		t.Fatal("bot not found in read model after RegisterBot command")
+	}
+
+	if bot.Name != "ci-bot" {
+		t.Errorf("bot name = %q, want %q", bot.Name, "ci-bot")
+	}
+
+	if bot.OwnerID != identitymodel.UserID(ownerID) {
+		t.Errorf("bot ownerID = %v, want %v", bot.OwnerID, ownerID)
+	}
+
+	// Verify lookup by owner.
+	byOwner := pl.Bot.FindByOwner(identitymodel.UserID(ownerID))
+	if len(byOwner) != 1 {
+		t.Errorf("FindByOwner returned %d bots, want 1", len(byOwner))
+	}
+}
+
+func TestDomainConfig_CasbinProjection(t *testing.T) {
+	ctx := context.Background()
+	sys, pl := setupTestSystem(t, memoryDeployment())
+
+	defer func() { _ = sys.Close() }()
+	defer func() { _ = pl.Stop() }()
+
+	// Register a user with admin role — CasbinProjection will add
+	// role assignments to the enforcer.
+	adminID := id.NewStreamID()
+	adminCmd := identitymodel.NewRegisterUserCmd(
+		adminID, "admin@example.com", "Admin",
+		[]identitymodel.Role{identitymodel.RoleAdmin},
+	)
+	if err := sys.CommandDispatcher().Dispatch(ctx, adminCmd); err != nil {
+		t.Fatalf("Dispatch RegisterUser(admin) failed: %v", err)
+	}
+
+	// Register a user with no roles — should be denied.
+	plainID := id.NewStreamID()
+	plainCmd := identitymodel.NewRegisterUserCmd(plainID, "plain@example.com", "Plain", nil)
+	if err := sys.CommandDispatcher().Dispatch(ctx, plainCmd); err != nil {
+		t.Fatalf("Dispatch RegisterUser(plain) failed: %v", err)
+	}
+
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	// Admin should be able to read resources in any domain.
+	allowed, err := pl.Authz.Enforce(adminID.String(), "*", "resource", identitymodel.ActionRead)
+	if err != nil {
+		t.Fatalf("Enforce(admin) failed: %v", err)
+	}
+
+	if !allowed {
+		t.Error("admin user should be allowed to read resources")
+	}
+
+	// Plain user should be denied.
+	denied, err := pl.Authz.Enforce(plainID.String(), "*", "resource", identitymodel.ActionRead)
+	if err != nil {
+		t.Fatalf("Enforce(plain) failed: %v", err)
+	}
+
+	if denied {
+		t.Error("plain user without roles should be denied")
+	}
+}
+
+func TestDomainConfig_SQLiteDeployment(t *testing.T) {
+	ctx := context.Background()
+	sys, pl := setupTestSystem(t, sqliteDeployment(t))
+
+	defer func() { _ = sys.Close() }()
+	defer func() { _ = pl.Stop() }()
+
+	// Full CQRS round-trip: dispatch RegisterUser, drain, query read model.
+	streamID := id.NewStreamID()
+	cmd := identitymodel.NewRegisterUserCmd(
+		streamID, "sqlite@example.com", "SQLite User",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)
+
+	if err := sys.CommandDispatcher().Dispatch(ctx, cmd); err != nil {
+		t.Fatalf("Dispatch RegisterUser failed: %v", err)
+	}
+
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	user, ok := pl.User.FindByID(streamID)
+	if !ok {
+		t.Fatal("user not found in read model after RegisterUser (SQLite)")
+	}
+
+	if user.Email != "sqlite@example.com" {
+		t.Errorf("email = %q, want %q", user.Email, "sqlite@example.com")
+	}
+
+	// Verify events persisted to the SQLite journal by loading the stream.
+	events, err := sys.EventStore().Load(ctx, id.NewStreamRef(streamID, identitymodel.AggregateTypeUser))
+	if err != nil {
+		t.Fatalf("EventStore.Load failed: %v", err)
+	}
+
+	if len(events) == 0 {
+		t.Fatal("no events loaded from SQLite journal")
 	}
 }

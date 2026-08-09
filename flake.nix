@@ -740,7 +740,7 @@
                   set -euo pipefail
                   echo "=== cqrs-lint strict check ==="
                   fail=0
-                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar; do
+                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter; do
                     echo "==> $mod"
                     if ! (cd "$mod" && cqrs-lint --strict . >/dev/null 2>&1); then
                       echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --verbose .' for details)"
