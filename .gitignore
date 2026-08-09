@@ -51,6 +51,7 @@ examples/dashboard-demo/dashboard-demo
 examples/middleware-demo/middleware-demo
 examples/middleware-showcase/middleware-showcase
 examples/observability-demo/observability-demo
+examples/samber-do-demo/samber-do-demo
 # Nix build output
 /result
 # Generated reports (buildflow coverage / jscpd / lint output)

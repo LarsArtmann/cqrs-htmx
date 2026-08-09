@@ -1,6 +1,6 @@
 # DashboardUI Improvement Ideas
 
-> **Pruned:** 2026-08-05 — The original 883-line file contained 350+ items, ~80% already resolved. This rewrite keeps only genuinely open work, cross-referenced against the current codebase. See the [Pareto execution plan](../docs/planning/2026-08-05_01-49_dashboardui-pareto-execution-plan.md) for detailed breakdowns and effort estimates.
+> **Pruned:** 2026-08-05 — The original 883-line file contained 350+ items, ~80% already resolved. This rewrite keeps only genuinely open work, cross-referenced against the current codebase.
 
 ---
 

@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`examples/middleware-showcase/`**: New example module demonstrating all 8 httputil HTTP middleware (Recovery, SecurityHeaders, Metrics, CORS, ClientIP, KeyedRateLimiter, Compression, ETag) in a single validated `MiddlewareStack` with `Validate()` + `Build()`.
 - **Health endpoints + Compression in `examples/basic`** (`examples/basic/main.go`): Added `httputil.RegisterHealth(mux)`, `httputil.ReadyHandlerWithProbe(...)`, and `httputil.Compression(...)` wrapper.
 - **New guide recipes** (`docs/guides/leveraging-httputil.md`): Recipe 7 (Decompression bomb protection), Recipe 8 (MaxBodySize defense-in-depth), Nonce row in concern map, updated RegisterErrorClassifications recipe noting auto-call in `New()`.
+- **`examples/samber-do-demo/`** + **`docs/guides/leveraging-samber-do.md`**: New example module and comprehensive guide demonstrating best-practice `samber/do` v2 dependency-injection wiring of cqrs-htmx. Shows composition root with cleanup, eager/lazy providers, named auth providers (`"auth.totp"`), lifecycle adapter bridging `Service.Close()` to `do.ShutdownerWithContextAndError`, test container with `do.OverrideNamed`, singleton verification, and anti-pattern checklist (DO-1 through DO-8). 5 tests, all passing. The library itself does NOT depend on samber/do — this is consumer-facing guidance only.
 
 ### Changed
 
