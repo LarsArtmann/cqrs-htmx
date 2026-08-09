@@ -3,6 +3,9 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.26.5
 
 require (
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.2.0
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.0
@@ -19,9 +22,13 @@ require (
 )
 
 require (
+	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
+	github.com/a-h/templ v0.3.1020 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-datastar v0.0.3 // indirect
 	github.com/larsartmann/httputil/server_timing v0.9.1 // indirect
+	github.com/larsartmann/templ-components v1.7.0 // indirect
 )
 
 require (
@@ -68,7 +75,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.4.0 // indirect
 	github.com/larsartmann/httputil v0.9.1
