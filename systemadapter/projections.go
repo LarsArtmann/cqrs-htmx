@@ -2,9 +2,11 @@ package systemadapter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
@@ -12,6 +14,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+)
+
+const (
+	maxRestarts       = 3
+	dlqThreshold      = 10
+	backoffMin        = 100 * time.Millisecond
+	backoffMax        = 5 * time.Second
+	drainPollInterval = 10 * time.Millisecond
 )
 
 // ProjectionLayer manages a dedicated projectionhost.Host for usermgmt read models,
@@ -39,7 +49,7 @@ type ProjectionLayer struct {
 	Tenant     *usermgmt.TenantReadModel
 	Bot        *usermgmt.BotReadModel
 	Casbin     *usermgmt.CasbinProjection
-	Authz      *usermgmt.Authz
+	Authz      *identitymodel.Authz
 	AuditLog   *usermgmt.AuditLog
 }
 
@@ -51,18 +61,21 @@ type ProjectionLayer struct {
 // Must be called AFTER system.New() but BEFORE sys.Start() (so the bus is ready).
 func NewProjectionLayer(sys *system.System) (*ProjectionLayer, error) {
 	store := sys.EventStore()
+
 	if store == nil {
-		return nil, fmt.Errorf("systemadapter: system has no event store")
+		return nil, errors.New("systemadapter: system has no event store")
 	}
 
 	journal, ok := store.(event.SeekableJournal)
+
 	if !ok {
 		return nil, fmt.Errorf("systemadapter: event store does not implement SeekableJournal (got %T)", store)
 	}
 
 	bus := sys.Bus()
+
 	if bus == nil {
-		return nil, fmt.Errorf("systemadapter: system has no event bus")
+		return nil, errors.New("systemadapter: system has no event bus")
 	}
 
 	authz, err := usermgmt.NewAuthz()
@@ -76,6 +89,7 @@ func NewProjectionLayer(sys *system.System) (*ProjectionLayer, error) {
 	}
 
 	pl := &ProjectionLayer{
+		Host:       nil,
 		User:       usermgmt.NewUserReadModel(),
 		Membership: usermgmt.NewMembershipReadModel(),
 		Tenant:     usermgmt.NewTenantReadModel(),
@@ -90,9 +104,9 @@ func NewProjectionLayer(sys *system.System) (*ProjectionLayer, error) {
 
 	host, err := projectionhost.New(journal, cpStore,
 		projectionhost.WithSubscriber(bus),
-		projectionhost.WithDeadLetterStore(dlqStore, 10),
-		projectionhost.WithMaxRestarts(3),
-		projectionhost.WithBackoff(100*time.Millisecond, 5*time.Second),
+		projectionhost.WithDeadLetterStore(dlqStore, dlqThreshold),
+		projectionhost.WithMaxRestarts(maxRestarts),
+		projectionhost.WithBackoff(backoffMin, backoffMax),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("systemadapter: create projection host: %w", err)
@@ -114,18 +128,27 @@ func NewProjectionLayer(sys *system.System) (*ProjectionLayer, error) {
 	}
 
 	pl.Host = host
+
 	return pl, nil
 }
 
 // Start launches the projection host workers. Must be called once after
 // NewProjectionLayer and before dispatching commands.
 func (pl *ProjectionLayer) Start(ctx context.Context) error {
-	return pl.Host.Start(ctx)
+	if err := pl.Host.Start(ctx); err != nil {
+		return fmt.Errorf("systemadapter: start projection host: %w", err)
+	}
+
+	return nil
 }
 
 // Stop gracefully stops the projection host. Safe to call multiple times.
 func (pl *ProjectionLayer) Stop() error {
-	return pl.Host.Stop()
+	if err := pl.Host.Stop(); err != nil {
+		return fmt.Errorf("systemadapter: stop projection host: %w", err)
+	}
+
+	return nil
 }
 
 // WaitForDrain blocks until all projection workers have processed all published
@@ -133,19 +156,25 @@ func (pl *ProjectionLayer) Stop() error {
 // read-your-writes consistency after command dispatch.
 func (pl *ProjectionLayer) WaitForDrain(timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
+
 	for time.Now().Before(deadline) {
 		states := pl.Host.Status()
 		allReady := true
+
 		for _, s := range states {
 			if s.Status != projectionhost.WorkerLive && s.Status != projectionhost.WorkerStopped {
 				allReady = false
+
 				break
 			}
 		}
+
 		if allReady && len(states) > 0 {
 			return nil
 		}
-		time.Sleep(10 * time.Millisecond)
+
+		time.Sleep(drainPollInterval)
 	}
+
 	return fmt.Errorf("systemadapter: projection drain timed out after %s", timeout)
 }

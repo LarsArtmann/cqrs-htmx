@@ -1,0 +1,182 @@
+version: "2"
+run:
+  timeout: 5m
+  go: 1.26.5
+  build-tags:
+    - goexperiment.arenas
+    - goexperiment.goroutineleakprofile
+    - goexperiment.jsonv2
+    - goexperiment.runtimesecret
+    - goexperiment.simd
+  allow-parallel-runners: true
+  allow-serial-runners: true
+  issues-exit-code: 1
+  tests: true
+output:
+  formats: {}
+linters:
+  enable:
+    - bodyclose
+    - copyloopvar
+    - cyclop
+    - dupl
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - forcetypeassert
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - gosec
+    - gosmopolitan
+    - govet
+    - ineffassign
+    - interfacebloat
+    - intrange
+    - loggercheck
+    - maintidx
+    - mirror
+    - misspell
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - noctx
+    - nolintlint
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - protogetter
+    - reassign
+    - recvcheck
+    - revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - testifylint
+    - thelper
+    - unconvert
+    - unparam
+    - unused
+    - usetesting
+    - wastedassign
+    - wrapcheck
+    - zerologlint
+  disable:
+    # exhaustruct flags struct literals with many optional fields (DomainConfig,
+    # sample payloads in type_decoder.go). These are intentionally partial.
+    - exhaustruct
+    # err113 flags dynamic errors. This bridge module uses fmt.Errorf for
+    # validation messages — the project pattern uses event.New but that requires
+    # importing event/v4 for error construction, which is not warranted here.
+    - err113
+    # contextcheck false-positives on the declarative command-handler closures
+    # that pass ctx to system.Execute.
+    - contextcheck
+    # wsl_v5 and nlreturn are aggressive whitespace/formatting linters that
+    # conflict with the established code style.
+    - wsl_v5
+    - nlreturn
+    # mnd flags configuration constants used inline (3, 5, 10). These are
+    # extracted to named constants in projections.go.
+    - mnd
+    # gochecknoglobals flags the sample struct literals in type_decoder.go.
+    - gochecknoglobals
+    # depguard denies encoding/json/v2 — required for GOEXPERIMENT=jsonv2.
+    - depguard
+    # gochecknoinits — no init functions but keeping parity with other modules.
+    - gochecknoinits
+  settings:
+    cyclop:
+      max-complexity: 12
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+    revive:
+      rules:
+        - disabled: true
+          name: exported
+        - disabled: true
+          name: package-comments
+    testifylint:
+      disable:
+        - go-require
+      enable-all: true
+  exclusions:
+    generated: lax
+    rules:
+      - path: _test\.go
+        linters:
+          - wrapcheck
+      - path: _test\.go
+        linters:
+          - goconst
+      - path: _test\.go
+        linters:
+          - paralleltest
+      - path: _test\.go
+        linters:
+          - unparam
+      - path: _test\.go
+        linters:
+          - cyclop
+      - path: _test\.go
+        linters:
+          - funlen
+      - path: _test\.go
+        linters:
+          - noctx
+      - path: _test\.go
+        linters:
+          - errchkjson
+      - path: _test\.go
+        linters:
+          - nilnil
+      - path: _test\.go
+        linters:
+          - errcheck
+      - path: _test\.go
+        linters:
+          - exhaustruct
+      - path: _test\.go
+        linters:
+          - testpackage
+      # SA1019: identity-model re-export chain via usermgmt. The Authz type
+      # alias is used through usermgmt.NewAuthz() — the deprecation marker is
+      # on the type alias name, not the constructor.
+      - text: 'Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly'
+        linters:
+          - staticcheck
+    paths:
+      - \.gen\.go$
+      - _mock\.go$
+      - _templ\.go$
+      - vendor/
+formatters:
+  enable:
+    - gci
+    - goimports
+    - gofumpt
+    - golines
+  settings:
+    golines:
+      max-len: 120
+  exclusions:
+    generated: lax
+    paths:
+      - _mock\.go$
+      - _templ\.go$
+      - vendor/
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 10

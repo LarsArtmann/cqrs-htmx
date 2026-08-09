@@ -5,7 +5,7 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, systemadapter module + system/metaengine integration) | **Lint:** 0 issues across all 12 lint-checked modules (2026-08-09). systemadapter excluded (work-in-progress, 104 issues). | **Coverage gates:** root ~93% (gate 90%), usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 84.0% (gate 60%), datastar 97.4% (gate 90%), setup 85.3% (gate 80%) | **`*Service` methods:** 72 (leading v5 indicator)
+**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, systemadapter module + system/metaengine integration) | **Lint:** 0 issues across all 12 lint-checked modules (2026-08-09). systemadapter excluded (work-in-progress, 104 issues). | **Coverage gates:** root ~93% (gate 90%), usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 84.0% (gate 60%), datastar 97.4% (gate 90%), setup 85.3% (gate 80%) | **`*Service` methods:** 73 (leading v5 indicator)
 
 ## Current State
 

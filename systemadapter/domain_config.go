@@ -109,9 +109,9 @@ func registerBotDecider(sys *system.System) {
 func registerUserCommands(sys *system.System) {
 	must(system.RegisterCommand[*identitymodel.RegisterUserCmd, usermgmt.UserState](
 		sys, identitymodel.CmdRegisterUser,
-		func(_ context.Context, c *identitymodel.RegisterUserCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.RegisterUserCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideRegisterUser(c.StreamID(), c.Email(), c.DisplayName(), c.Roles()),
 			)
 		},
@@ -119,9 +119,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.ChangeEmailCmd, usermgmt.UserState](
 		sys, identitymodel.CmdChangeEmail,
-		func(_ context.Context, c *identitymodel.ChangeEmailCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.ChangeEmailCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideChangeEmail(c.StreamID(), c.Email()),
 			)
 		},
@@ -129,9 +129,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.ChangeDisplayNameCmd, usermgmt.UserState](
 		sys, identitymodel.CmdChangeDisplayName,
-		func(_ context.Context, c *identitymodel.ChangeDisplayNameCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.ChangeDisplayNameCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideChangeDisplayName(c.StreamID(), c.DisplayName()),
 			)
 		},
@@ -139,9 +139,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.DeleteUserCmd, usermgmt.UserState](
 		sys, identitymodel.CmdDeleteUser,
-		func(_ context.Context, c *identitymodel.DeleteUserCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.DeleteUserCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideDeleteUser(c.StreamID(), c.Reason()),
 			)
 		},
@@ -149,9 +149,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.AddCredentialCmd, usermgmt.UserState](
 		sys, identitymodel.CmdAddCredential,
-		func(_ context.Context, c *identitymodel.AddCredentialCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.AddCredentialCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideAddCredential(c.StreamID(), c.Credential()),
 			)
 		},
@@ -159,9 +159,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.RemoveCredentialCmd, usermgmt.UserState](
 		sys, identitymodel.CmdRemoveCredential,
-		func(_ context.Context, c *identitymodel.RemoveCredentialCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.RemoveCredentialCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideRemoveCredential(c.StreamID(), c.CredentialID()),
 			)
 		},
@@ -169,9 +169,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.VerifyEmailCmd, usermgmt.UserState](
 		sys, identitymodel.CmdVerifyEmail,
-		func(_ context.Context, c *identitymodel.VerifyEmailCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.VerifyEmailCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideVerifyEmail(c.StreamID()),
 			)
 		},
@@ -179,9 +179,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.EnableTOTPCmd, usermgmt.UserState](
 		sys, identitymodel.CmdEnableTOTP,
-		func(_ context.Context, c *identitymodel.EnableTOTPCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.EnableTOTPCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideEnableTOTP(c.StreamID(), c.Secret()),
 			)
 		},
@@ -189,9 +189,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.DisableTOTPCmd, usermgmt.UserState](
 		sys, identitymodel.CmdDisableTOTP,
-		func(_ context.Context, c *identitymodel.DisableTOTPCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.DisableTOTPCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideDisableTOTP(c.StreamID()),
 			)
 		},
@@ -199,9 +199,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.LinkExternalAccountCmd, usermgmt.UserState](
 		sys, identitymodel.CmdLinkExternalAccount,
-		func(_ context.Context, c *identitymodel.LinkExternalAccountCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.LinkExternalAccountCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideLinkExternalAccount(
 					c.StreamID(), c.Provider(), c.Subject(), c.Email(), c.DisplayName(),
 				),
@@ -211,9 +211,9 @@ func registerUserCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.UnlinkExternalAccountCmd, usermgmt.UserState](
 		sys, identitymodel.CmdUnlinkExternalAccount,
-		func(_ context.Context, c *identitymodel.UnlinkExternalAccountCmd) system.Op[usermgmt.UserState] {
+		func(ctx context.Context, c *identitymodel.UnlinkExternalAccountCmd) system.Op[usermgmt.UserState] {
 			return system.Execute[usermgmt.UserState](
-				nil, c.StreamID(), identitymodel.AggregateTypeUser,
+				ctx, c.StreamID(), identitymodel.AggregateTypeUser,
 				usermgmt.DecideUnlinkExternalAccount(c.StreamID(), c.Provider(), c.Subject()),
 			)
 		},
@@ -225,9 +225,9 @@ func registerUserCommands(sys *system.System) {
 func registerMembershipCommands(sys *system.System) {
 	must(system.RegisterCommand[*identitymodel.AddMemberCmd, usermgmt.MembershipState](
 		sys, identitymodel.CmdAddMember,
-		func(_ context.Context, c *identitymodel.AddMemberCmd) system.Op[usermgmt.MembershipState] {
+		func(ctx context.Context, c *identitymodel.AddMemberCmd) system.Op[usermgmt.MembershipState] {
 			return system.Execute[usermgmt.MembershipState](
-				nil, c.StreamID(), identitymodel.AggregateTypeMembership,
+				ctx, c.StreamID(), identitymodel.AggregateTypeMembership,
 				usermgmt.DecideAddMember(c.StreamID(), c.ActorID(), c.TenantID(), c.Roles()),
 			)
 		},
@@ -235,9 +235,9 @@ func registerMembershipCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.UpdateMemberRolesCmd, usermgmt.MembershipState](
 		sys, identitymodel.CmdUpdateMemberRoles,
-		func(_ context.Context, c *identitymodel.UpdateMemberRolesCmd) system.Op[usermgmt.MembershipState] {
+		func(ctx context.Context, c *identitymodel.UpdateMemberRolesCmd) system.Op[usermgmt.MembershipState] {
 			return system.Execute[usermgmt.MembershipState](
-				nil, c.StreamID(), identitymodel.AggregateTypeMembership,
+				ctx, c.StreamID(), identitymodel.AggregateTypeMembership,
 				usermgmt.DecideUpdateMemberRoles(c.StreamID(), c.Roles()),
 			)
 		},
@@ -245,9 +245,9 @@ func registerMembershipCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.RemoveMemberCmd, usermgmt.MembershipState](
 		sys, identitymodel.CmdRemoveMember,
-		func(_ context.Context, c *identitymodel.RemoveMemberCmd) system.Op[usermgmt.MembershipState] {
+		func(ctx context.Context, c *identitymodel.RemoveMemberCmd) system.Op[usermgmt.MembershipState] {
 			return system.Execute[usermgmt.MembershipState](
-				nil, c.StreamID(), identitymodel.AggregateTypeMembership,
+				ctx, c.StreamID(), identitymodel.AggregateTypeMembership,
 				usermgmt.DecideRemoveMember(c.StreamID()),
 			)
 		},
@@ -259,9 +259,9 @@ func registerMembershipCommands(sys *system.System) {
 func registerTenantCommands(sys *system.System) {
 	must(system.RegisterCommand[*identitymodel.CreateTenantCmd, usermgmt.TenantState](
 		sys, identitymodel.CmdCreateTenant,
-		func(_ context.Context, c *identitymodel.CreateTenantCmd) system.Op[usermgmt.TenantState] {
+		func(ctx context.Context, c *identitymodel.CreateTenantCmd) system.Op[usermgmt.TenantState] {
 			return system.Execute[usermgmt.TenantState](
-				nil, c.StreamID(), identitymodel.AggregateTypeTenant,
+				ctx, c.StreamID(), identitymodel.AggregateTypeTenant,
 				usermgmt.DecideCreateTenant(c.StreamID(), c.Name(), c.DisplayName()),
 			)
 		},
@@ -269,9 +269,9 @@ func registerTenantCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.SuspendTenantCmd, usermgmt.TenantState](
 		sys, identitymodel.CmdSuspendTenant,
-		func(_ context.Context, c *identitymodel.SuspendTenantCmd) system.Op[usermgmt.TenantState] {
+		func(ctx context.Context, c *identitymodel.SuspendTenantCmd) system.Op[usermgmt.TenantState] {
 			return system.Execute[usermgmt.TenantState](
-				nil, c.StreamID(), identitymodel.AggregateTypeTenant,
+				ctx, c.StreamID(), identitymodel.AggregateTypeTenant,
 				usermgmt.DecideSuspendTenant(c.StreamID(), c.Reason()),
 			)
 		},
@@ -279,9 +279,9 @@ func registerTenantCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.ReactivateTenantCmd, usermgmt.TenantState](
 		sys, identitymodel.CmdReactivateTenant,
-		func(_ context.Context, c *identitymodel.ReactivateTenantCmd) system.Op[usermgmt.TenantState] {
+		func(ctx context.Context, c *identitymodel.ReactivateTenantCmd) system.Op[usermgmt.TenantState] {
 			return system.Execute[usermgmt.TenantState](
-				nil, c.StreamID(), identitymodel.AggregateTypeTenant,
+				ctx, c.StreamID(), identitymodel.AggregateTypeTenant,
 				usermgmt.DecideReactivateTenant(c.StreamID()),
 			)
 		},
@@ -289,9 +289,9 @@ func registerTenantCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.DeleteTenantCmd, usermgmt.TenantState](
 		sys, identitymodel.CmdDeleteTenant,
-		func(_ context.Context, c *identitymodel.DeleteTenantCmd) system.Op[usermgmt.TenantState] {
+		func(ctx context.Context, c *identitymodel.DeleteTenantCmd) system.Op[usermgmt.TenantState] {
 			return system.Execute[usermgmt.TenantState](
-				nil, c.StreamID(), identitymodel.AggregateTypeTenant,
+				ctx, c.StreamID(), identitymodel.AggregateTypeTenant,
 				usermgmt.DecideDeleteTenant(c.StreamID(), c.Reason()),
 			)
 		},
@@ -303,9 +303,9 @@ func registerTenantCommands(sys *system.System) {
 func registerBotCommands(sys *system.System) {
 	must(system.RegisterCommand[*identitymodel.RegisterBotCmd, usermgmt.BotState](
 		sys, identitymodel.CmdRegisterBot,
-		func(_ context.Context, c *identitymodel.RegisterBotCmd) system.Op[usermgmt.BotState] {
+		func(ctx context.Context, c *identitymodel.RegisterBotCmd) system.Op[usermgmt.BotState] {
 			return system.Execute[usermgmt.BotState](
-				nil, c.StreamID(), identitymodel.AggregateTypeBot,
+				ctx, c.StreamID(), identitymodel.AggregateTypeBot,
 				usermgmt.DecideRegisterBot(
 					c.StreamID(), c.Name(), c.OwnerID(), c.TokenHash(), c.Scopes(),
 				),
@@ -315,9 +315,9 @@ func registerBotCommands(sys *system.System) {
 
 	must(system.RegisterCommand[*identitymodel.DeleteBotCmd, usermgmt.BotState](
 		sys, identitymodel.CmdDeleteBot,
-		func(_ context.Context, c *identitymodel.DeleteBotCmd) system.Op[usermgmt.BotState] {
+		func(ctx context.Context, c *identitymodel.DeleteBotCmd) system.Op[usermgmt.BotState] {
 			return system.Execute[usermgmt.BotState](
-				nil, c.StreamID(), identitymodel.AggregateTypeBot,
+				ctx, c.StreamID(), identitymodel.AggregateTypeBot,
 				usermgmt.DecideDeleteBot(c.StreamID(), c.Reason()),
 			)
 		},
