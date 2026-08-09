@@ -736,7 +736,7 @@ func TestDeclarative_AllUsers(t *testing.T) {
 	sys := setupDeclarativeSystem(t)
 	defer func() { _ = sys.Close() }()
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		uid := id.NewStreamID()
 		must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
 			uid, "user%d@example.com", "User",
@@ -928,5 +928,115 @@ func TestDeclarative_AllProjectionNames(t *testing.T) {
 	decls := systemadapter.DeclarativeProjections()
 	if len(decls) < 10 {
 		t.Fatalf("expected at least 10 projection declarations, got %d", len(decls))
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Equivalence: declarative queries vs ProjectionLayer read models
+// ---------------------------------------------------------------------------
+
+// TestDeclarative_EquivalenceWithProjectionLayer dispatches the same event
+// stream through a system that runs BOTH the declarative projections (internal
+// host) and the ProjectionLayer (external host). It then queries both and
+// asserts they return equivalent data.
+func TestDeclarative_EquivalenceWithProjectionLayer(t *testing.T) {
+	ctx := context.Background()
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
+		},
+	}
+
+	sys, err := system.New(ctx, systemadapter.DomainConfig(), deployment)
+	if err != nil {
+		t.Fatalf("system.New failed: %v", err)
+	}
+
+	pl, err := systemadapter.NewProjectionLayer(sys)
+	if err != nil {
+		_ = sys.Close()
+		t.Fatalf("NewProjectionLayer failed: %v", err)
+	}
+
+	// Start ProjectionLayer first (must be before sys.Start per doc).
+	if err := pl.Start(ctx); err != nil {
+		_ = sys.Close()
+		t.Fatalf("ProjectionLayer.Start failed: %v", err)
+	}
+
+	// Start system — this starts the internal declarative projection host.
+	if err := sys.Start(ctx); err != nil {
+		_ = pl.Stop()
+		_ = sys.Close()
+		t.Fatalf("sys.Start failed: %v", err)
+	}
+
+	waitForProjectionsReady(t, sys)
+	must(t, pl.WaitForDrain(5*time.Second))
+
+	defer func() { _ = pl.Stop() }()
+	defer func() { _ = sys.Close() }()
+
+	// Dispatch a tenant and a user.
+	tenantID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
+		tenantID, "Equivalence Corp", "Equiv",
+	)))
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewSuspendTenantCmd(tenantID, "testing")))
+
+	userStreamID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userStreamID, "equiv@example.com", "Equiv User",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewChangeEmailCmd(
+		userStreamID, "changed@example.com",
+	)))
+
+	// Compare tenant.
+	plTenant, ok := pl.Tenant.FindByID(tenantID)
+	if !ok {
+		t.Fatal("ProjectionLayer: tenant not found")
+	}
+	declTenant, err := systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+	if err != nil {
+		t.Fatalf("declarative: FindTenantByID failed: %v", err)
+	}
+	if plTenant.Name != declTenant.Name {
+		t.Errorf("tenant Name: pl=%q decl=%q", plTenant.Name, declTenant.Name)
+	}
+	if plTenant.DisplayName != declTenant.DisplayName {
+		t.Errorf("tenant DisplayName: pl=%q decl=%q", plTenant.DisplayName, declTenant.DisplayName)
+	}
+	if plTenant.Suspended != declTenant.Suspended {
+		t.Errorf("tenant Suspended: pl=%v decl=%v", plTenant.Suspended, declTenant.Suspended)
+	}
+
+	// Compare user.
+	plUser, ok := pl.User.FindByID(userStreamID)
+	if !ok {
+		t.Fatal("ProjectionLayer: user not found")
+	}
+	declUser, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+	if err != nil {
+		t.Fatalf("declarative: FindUserByID failed: %v", err)
+	}
+	if plUser.Email != declUser.Email {
+		t.Errorf("user Email: pl=%q decl=%q", plUser.Email, declUser.Email)
+	}
+	if plUser.DisplayName != declUser.DisplayName {
+		t.Errorf("user DisplayName: pl=%q decl=%q", plUser.DisplayName, declUser.DisplayName)
+	}
+	if plUser.EmailVerified != declUser.EmailVerified {
+		t.Errorf("user EmailVerified: pl=%v decl=%v", plUser.EmailVerified, declUser.EmailVerified)
+	}
+	if plUser.TOTPEnabled != declUser.TOTPEnabled {
+		t.Errorf("user TOTPEnabled: pl=%v decl=%v", plUser.TOTPEnabled, declUser.TOTPEnabled)
 	}
 }
