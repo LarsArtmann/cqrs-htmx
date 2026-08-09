@@ -7,10 +7,10 @@
 
 ## Scores
 
-| Dimension | Score | Summary |
-| --------- | ----- | ------- |
-| **Accuracy** | 9.5/10 | All split brains fixed; claims verified against code and gate output. Minor: coverage percentages are ephemeral. |
-| **Fitness** | 9.0/10 | All must-have docs present. No structural decay. TODO_LIST 100% actionable. AGENTS.md above size flag (pre-existing). |
+| Dimension    | Score  | Summary                                                                                                               |
+| ------------ | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| **Accuracy** | 9.5/10 | All split brains fixed; claims verified against code and gate output. Minor: coverage percentages are ephemeral.      |
+| **Fitness**  | 9.0/10 | All must-have docs present. No structural decay. TODO_LIST 100% actionable. AGENTS.md above size flag (pre-existing). |
 
 ---
 
@@ -18,32 +18,32 @@
 
 ### Critical — split brains across living docs
 
-| Finding | Files affected | Fix applied |
-| ------- | -------------- | ----------- |
-| Datastar test count wrong (43/71 claimed, actual 54) | AGENTS.md, ROADMAP.md, FEATURES.md | Updated to 54 |
-| Datastar coverage wrong (84.6%/96.7% claimed, actual 97.4%) | AGENTS.md, ROADMAP.md, FEATURES.md, TODO_LIST.md | Updated to 97.4% |
-| Module count wrong (20 claimed, actual 21) | AGENTS.md, ROADMAP.md, TODO_LIST.md | Updated to 21 |
-| "19 modules lint-clean" (ROADMAP) — should be "11 lint-checked modules" | ROADMAP.md | Fixed |
-| "All inter-module version refs resolved" (ROADMAP) — false, cross-module drift remains | ROADMAP.md | Changed to "Cross-module dep version drift remains (see TODO_LIST)" |
-| FEATURES Metrics table stale test counts (root ~160/~133, dashboardui ~50/~153, datastar ~29/~54) | FEATURES.md | Updated to actual `func Test` counts |
-| Datastar test files wrong (8 claimed, actual 5) | FEATURES.md | Updated to 5 |
-| go-sse version v0.3.0 (actual v0.4.0) | ROADMAP.md | Updated |
-| Examples count 8 (actual 9 — samber-do-demo added) | ROADMAP.md, CHANGELOG.md | Updated to 9 |
-| ROADMAP module list missing samber-do-demo | ROADMAP.md | Added |
-| Coverage values drifted from gate output (dashboardui 84.0%/83.8%, root 93.3%/93.5%) | ROADMAP.md, FEATURES.md, TODO_LIST.md | Aligned with `nix run .#coverage-gate` |
+| Finding                                                                                           | Files affected                                   | Fix applied                                                         |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
+| Datastar test count wrong (43/71 claimed, actual 54)                                              | AGENTS.md, ROADMAP.md, FEATURES.md               | Updated to 54                                                       |
+| Datastar coverage wrong (84.6%/96.7% claimed, actual 97.4%)                                       | AGENTS.md, ROADMAP.md, FEATURES.md, TODO_LIST.md | Updated to 97.4%                                                    |
+| Module count wrong (20 claimed, actual 21)                                                        | AGENTS.md, ROADMAP.md, TODO_LIST.md              | Updated to 21                                                       |
+| "19 modules lint-clean" (ROADMAP) — should be "11 lint-checked modules"                           | ROADMAP.md                                       | Fixed                                                               |
+| "All inter-module version refs resolved" (ROADMAP) — false, cross-module drift remains            | ROADMAP.md                                       | Changed to "Cross-module dep version drift remains (see TODO_LIST)" |
+| FEATURES Metrics table stale test counts (root ~160/~133, dashboardui ~50/~153, datastar ~29/~54) | FEATURES.md                                      | Updated to actual `func Test` counts                                |
+| Datastar test files wrong (8 claimed, actual 5)                                                   | FEATURES.md                                      | Updated to 5                                                        |
+| go-sse version v0.3.0 (actual v0.4.0)                                                             | ROADMAP.md                                       | Updated                                                             |
+| Examples count 8 (actual 9 — samber-do-demo added)                                                | ROADMAP.md, CHANGELOG.md                         | Updated to 9                                                        |
+| ROADMAP module list missing samber-do-demo                                                        | ROADMAP.md                                       | Added                                                               |
+| Coverage values drifted from gate output (dashboardui 84.0%/83.8%, root 93.3%/93.5%)              | ROADMAP.md, FEATURES.md, TODO_LIST.md            | Aligned with `nix run .#coverage-gate`                              |
 
 ### Medium — annotation placement violations
 
-| Finding | Files affected | Fix applied |
-| ------- | -------------- | ----------- |
+| Finding                                                                     | Files affected                               | Fix applied                                             |
+| --------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------- |
 | 6 archived reports had banners between H1 and body (anti-pattern per skill) | 6 Aug 7-9 reports in `docs/status/archived/` | Moved banners to end-of-file `## Resolution` appendices |
 
 ### Structural — archive backlog
 
-| Finding | Count | Fix applied |
-| ------- | ----- | ----------- |
-| Pre-August status reports cluttering `docs/status/` | 157 files | Archived to `docs/status/archived/` via `git mv` |
-| Old planning docs cluttering `docs/planning/` | 44 files | Archived to `docs/planning/archived/` via `git mv` |
+| Finding                                             | Count     | Fix applied                                        |
+| --------------------------------------------------- | --------- | -------------------------------------------------- |
+| Pre-August status reports cluttering `docs/status/` | 157 files | Archived to `docs/status/archived/` via `git mv`   |
+| Old planning docs cluttering `docs/planning/`       | 44 files  | Archived to `docs/planning/archived/` via `git mv` |
 
 ---
 
@@ -67,17 +67,17 @@
 
 ## Verification gates (all canonical nix gates)
 
-| Gate | Result |
-| ---- | ------ |
-| `nix run .#lint` | 0 issues / 11 modules |
-| `nix run .#coverage-gate` | All 11 gates PASSED |
-| `nix run .#test` | All 14 suites pass |
-| `nix run .#check-codegen` | PASSED |
-| `nix run .#check-cqrs-lint` | All modules pass strict |
-| `bash scripts/check-docs-links.sh` | 181 links, all resolve |
-| `nix run .#check-templates` | All SQL setup templates compile |
-| `nix run .#errorfamily` | All modules pass |
-| `nix fmt` | 0 files changed (already formatted) |
+| Gate                               | Result                              |
+| ---------------------------------- | ----------------------------------- |
+| `nix run .#lint`                   | 0 issues / 11 modules               |
+| `nix run .#coverage-gate`          | All 11 gates PASSED                 |
+| `nix run .#test`                   | All 14 suites pass                  |
+| `nix run .#check-codegen`          | PASSED                              |
+| `nix run .#check-cqrs-lint`        | All modules pass strict             |
+| `bash scripts/check-docs-links.sh` | 181 links, all resolve              |
+| `nix run .#check-templates`        | All SQL setup templates compile     |
+| `nix run .#errorfamily`            | All modules pass                    |
+| `nix fmt`                          | 0 files changed (already formatted) |
 
 ---
 

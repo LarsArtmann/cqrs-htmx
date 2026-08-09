@@ -34,13 +34,13 @@ func New(cfg Config) (*Bundle, error) {
 
 	// 2. User management service — injects the shared stores.
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct // setup applies selective defaults
-		EventStore: store,
-		EventBus:   bus,
+		EventStore:  store,
+		EventBus:    bus,
 		ReadModelDB: cfg.ReadModelDB,
-		AuditLog:   usermgmt.NewAuditLog(),
-		TOTP:       cfg.TOTP,
-		WebAuthn:   cfg.WebAuthn,
-		OAuth2:     cfg.OAuth2,
+		AuditLog:    usermgmt.NewAuditLog(),
+		TOTP:        cfg.TOTP,
+		WebAuthn:    cfg.WebAuthn,
+		OAuth2:      cfg.OAuth2,
 	})
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")
@@ -62,14 +62,16 @@ func New(cfg Config) (*Bundle, error) {
 		})
 		if err != nil {
 			_ = svc.Close()
+
 			return nil, errorfamily.WrapRejection(err, "setup.admin_creation_failed", "failed to create admin panel")
 		}
+
 		bundle.Admin = admin
 	}
 
 	// 4. CQRS/ES observability dashboard — wired from the shared stores.
 	if cfg.EnableDashboard {
-		dashCfg := dashboardui.Config{ //nolint:exhaustruct // capability detection handles nils
+		dashCfg := dashboardui.Config{
 			Title:          cfg.Title + " · CQRS Dashboard",
 			EventSource:    store,
 			EventBus:       bus,
@@ -79,11 +81,18 @@ func New(cfg Config) (*Bundle, error) {
 		if journal, ok := store.(event.Journal); ok {
 			dashCfg.Journal = journal
 		}
+
 		dash, err := dashboardui.New(dashCfg)
 		if err != nil {
 			_ = svc.Close()
-			return nil, errorfamily.WrapRejection(err, "setup.dashboard_creation_failed", "failed to create CQRS dashboard")
+
+			return nil, errorfamily.WrapRejection(
+				err,
+				"setup.dashboard_creation_failed",
+				"failed to create CQRS dashboard",
+			)
 		}
+
 		bundle.Dashboard = dash
 	}
 
@@ -96,8 +105,10 @@ func New(cfg Config) (*Bundle, error) {
 		})
 		if err != nil {
 			_ = svc.Close()
+
 			return nil, errorfamily.WrapRejection(err, "setup.login_creation_failed", "failed to create login page")
 		}
+
 		bundle.Login = login
 	}
 
@@ -110,5 +121,6 @@ func MustNew(cfg Config) *Bundle {
 	if err != nil {
 		panic(err)
 	}
+
 	return b
 }

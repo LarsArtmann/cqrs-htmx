@@ -194,6 +194,7 @@ RecommendedSecurityMiddleware()    — security headers, per-request CSP nonce, 
 ```
 
 The non-negotiable rules:
+
 1. **Session middleware OUTSIDE CSRF** — authenticate before checking CSRF.
 2. **CSRF only on mutations** — GET requests (SSE, dashboard views) skip CSRF.
 3. **Security middleware OUTERMOST** — recovery must catch panics from everything.

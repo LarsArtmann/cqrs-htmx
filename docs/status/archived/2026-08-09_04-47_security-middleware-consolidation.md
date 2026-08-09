@@ -25,6 +25,7 @@ comprehensive tests.
 **Commits `5812751f`, `fcba3c2c` (auto-git).**
 
 New file `recommended_middleware.go` exports:
+
 - **`RecommendedPermissionsPolicy`** — constant string
   `"geolocation=(), microphone=(), camera=(), payment=(), usb=()"`. Was
   duplicated in 3 locations (adminui, dashboardui, middleware-showcase).
@@ -69,23 +70,24 @@ functions in `page()` and `nonce()`).
 
 **Commits `5812751f`, `806e5fed` (auto-git).**
 
-| File | Test | What it verifies |
-|------|------|-----------------|
-| `recommended_middleware_test.go` | `TestRecommendedSecurityMiddleware_SetsAllHeaders` | Security headers (nosniff, DENY, referrer-policy), Permissions-Policy (all 5 features), CSP with nonce + 'self' |
-| `recommended_middleware_test.go` | `TestRecommendedSecurityMiddleware_NonceAvailableInContext` | Nonce from `httputil.NonceFromRequest(r)` is non-empty and matches the CSP header |
-| `recommended_middleware_test.go` | `TestRecommendedSecurityMiddleware_RecoversFromPanic` | Panic returns 500 instead of crashing |
-| `recommended_middleware_test.go` | `TestRegisterErrorClassifications_Idempotent` | Calling 3x doesn't panic; classification still works |
-| `adminui/nonce_test.go` | `TestNonce_FallbackToNonceFromRequest` | When `NonceFunc` is nil and Nonce middleware is in chain, `nonce(r)` returns non-empty |
-| `adminui/nonce_test.go` | `TestNonce_NonceFuncTakesPrecedence` | When `NonceFunc` is set, it takes priority over `NonceFromRequest` |
-| `adminui/nonce_test.go` | `TestNonce_EmptyWithoutMiddlewareOrFunc` | Without middleware and without NonceFunc, `nonce(r)` returns "" |
-| `adminui/nonce_test.go` | `TestMiddleware_SetsSecurityHeaders` | adminui Middleware sets X-Content-Type-Options, X-Frame-Options, Referrer-Policy |
-| `dashboardui/handlers_security_test.go` | `TestMiddleware_CSPWithNonceAndSecurityHeaders` | dashboardui CSP contains nonce + 'self'; all 3 security headers present |
+| File                                    | Test                                                        | What it verifies                                                                                                |
+| --------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `recommended_middleware_test.go`        | `TestRecommendedSecurityMiddleware_SetsAllHeaders`          | Security headers (nosniff, DENY, referrer-policy), Permissions-Policy (all 5 features), CSP with nonce + 'self' |
+| `recommended_middleware_test.go`        | `TestRecommendedSecurityMiddleware_NonceAvailableInContext` | Nonce from `httputil.NonceFromRequest(r)` is non-empty and matches the CSP header                               |
+| `recommended_middleware_test.go`        | `TestRecommendedSecurityMiddleware_RecoversFromPanic`       | Panic returns 500 instead of crashing                                                                           |
+| `recommended_middleware_test.go`        | `TestRegisterErrorClassifications_Idempotent`               | Calling 3x doesn't panic; classification still works                                                            |
+| `adminui/nonce_test.go`                 | `TestNonce_FallbackToNonceFromRequest`                      | When `NonceFunc` is nil and Nonce middleware is in chain, `nonce(r)` returns non-empty                          |
+| `adminui/nonce_test.go`                 | `TestNonce_NonceFuncTakesPrecedence`                        | When `NonceFunc` is set, it takes priority over `NonceFromRequest`                                              |
+| `adminui/nonce_test.go`                 | `TestNonce_EmptyWithoutMiddlewareOrFunc`                    | Without middleware and without NonceFunc, `nonce(r)` returns ""                                                 |
+| `adminui/nonce_test.go`                 | `TestMiddleware_SetsSecurityHeaders`                        | adminui Middleware sets X-Content-Type-Options, X-Frame-Options, Referrer-Policy                                |
+| `dashboardui/handlers_security_test.go` | `TestMiddleware_CSPWithNonceAndSecurityHeaders`             | dashboardui CSP contains nonce + 'self'; all 3 security headers present                                         |
 
 ### 6. go.mod replaces added for hermetic builds
 
 **Commits `a36e238a`, `f0aca88f` (auto-git).**
 
 Added `replace github.com/larsartmann/cqrs-htmx/v4 => ../` to:
+
 - `adminui/go.mod`
 - `dashboardui/go.mod`
 - `examples/dashboard-demo/go.mod`
@@ -112,17 +114,17 @@ published v4.7.0 tag, which doesn't have `RecommendedSecurityMiddleware`.
 
 ### 9. All quality gates verified passing
 
-| Gate | Result |
-|------|--------|
-| `nix run .#build` | All 19 modules build |
-| `nix run .#lint` | 0 issues across all 11 lint-checked modules |
-| `nix run .#test` | All 14 test suites pass |
-| `nix run .#coverage-gate` | All 11 gates pass (root 93.5%, adminui 68.7%, dashboardui 83.8%) |
-| `nix run .#check-cqrs-lint` | All modules pass strict |
-| `nix run .#check-codegen` | Committed _templ.go current |
-| `nix run .#check-templates` | All 4 SQL setup files compile |
-| `nix run .#test-flake` | 3x repetitions, all pass |
-| `nix flake check --no-build` | All checks pass |
+| Gate                         | Result                                                           |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `nix run .#build`            | All 19 modules build                                             |
+| `nix run .#lint`             | 0 issues across all 11 lint-checked modules                      |
+| `nix run .#test`             | All 14 test suites pass                                          |
+| `nix run .#coverage-gate`    | All 11 gates pass (root 93.5%, adminui 68.7%, dashboardui 83.8%) |
+| `nix run .#check-cqrs-lint`  | All modules pass strict                                          |
+| `nix run .#check-codegen`    | Committed _templ.go current                                      |
+| `nix run .#check-templates`  | All 4 SQL setup files compile                                    |
+| `nix run .#test-flake`       | 3x repetitions, all pass                                         |
+| `nix flake check --no-build` | All checks pass                                                  |
 
 ---
 

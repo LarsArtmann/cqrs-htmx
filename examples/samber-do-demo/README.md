@@ -8,17 +8,17 @@ cqrs-htmx is a **library**, not an application — it deliberately avoids imposi
 
 ## Patterns Demonstrated
 
-| Pattern | File | What it shows |
-|---------|------|---------------|
-| Composition root with cleanup | `container.go` `NewContainer` | `do.New()` wrapped with returned cleanup function |
-| Eager foundation values | `container.go` `ProvideValue` | `AppConfig` registered eagerly |
-| Lazy singletons | `container.go` `Provide` | `*usermgmt.Service`, `*cqrshtmx.App` |
-| Named services | `container.go` `ProvideNamed` | TOTP provider registered as `"auth.totp"` |
-| Lifecycle adapter | `container.go` `serviceLifecycle` | Third-party `Close()` adapted to `ShutdownerWithContextAndError` |
-| Typed accessors | `container.go` `Container.Service()` | Centralized resolution instead of raw `do.Invoke` |
-| Test container with overrides | `container_test.go` | `do.OverrideNamed` to swap TOTP for a stub |
-| Singleton verification | `container_test.go` | Asserts same instance on repeated invocations |
-| Shutdown verification | `container_test.go` | Cleanup function calls `Close()` via lifecycle adapter |
+| Pattern                       | File                                 | What it shows                                                    |
+| ----------------------------- | ------------------------------------ | ---------------------------------------------------------------- |
+| Composition root with cleanup | `container.go` `NewContainer`        | `do.New()` wrapped with returned cleanup function                |
+| Eager foundation values       | `container.go` `ProvideValue`        | `AppConfig` registered eagerly                                   |
+| Lazy singletons               | `container.go` `Provide`             | `*usermgmt.Service`, `*cqrshtmx.App`                             |
+| Named services                | `container.go` `ProvideNamed`        | TOTP provider registered as `"auth.totp"`                        |
+| Lifecycle adapter             | `container.go` `serviceLifecycle`    | Third-party `Close()` adapted to `ShutdownerWithContextAndError` |
+| Typed accessors               | `container.go` `Container.Service()` | Centralized resolution instead of raw `do.Invoke`                |
+| Test container with overrides | `container_test.go`                  | `do.OverrideNamed` to swap TOTP for a stub                       |
+| Singleton verification        | `container_test.go`                  | Asserts same instance on repeated invocations                    |
+| Shutdown verification         | `container_test.go`                  | Cleanup function calls `Close()` via lifecycle adapter           |
 
 ## Running
 

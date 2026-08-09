@@ -41,7 +41,7 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	// Admin panel — behind session + CSRF + panel security middleware.
 	if b.Admin != nil {
 		sessionMW := b.SessionMiddleware()
-		csrfMW := httputil.CSRFMiddleware(httputil.CSRFConfig{}) //nolint:exhaustruct // defaults are correct
+		csrfMW := httputil.CSRFMiddleware(httputil.CSRFConfig{})
 		panelMW := b.Admin.Middleware()
 
 		mux.Handle(
@@ -71,5 +71,6 @@ func trimTrailing(s string) string {
 	if len(s) > 1 && s[len(s)-1] == '/' {
 		return s[:len(s)-1]
 	}
+
 	return s
 }

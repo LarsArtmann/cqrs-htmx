@@ -100,14 +100,14 @@ broken compiler references, wire missing features, create examples, update docs.
 The new `examples/middleware-showcase/main.go` has lint warnings that need
 cleanup before `nix run .#lint` passes for this module:
 
-| Warning | Line | Fix needed |
-|---------|------|------------|
-| `wsl_v5` (3x) | 106, 139, 180 | Add blank lines before `if` blocks |
-| `exhaustruct` (2x) | 114, 176 | Add `//nolint:exhaustruct` to MetricsConfig and ServerConfig (examples legitimately use partial init) |
-| `forbidigo` (2x) | 173, 174 | Replace `fmt.Printf` with `log.Printf` or add nolint |
-| `gci` | 56 | Run `gofmt` / fix import ordering |
-| `tagliatelle` | 58 | Already fixed (`serverTime`) but LSP may be stale |
-| `gochecknoglobals` | 61 | Move `requestCount` into `main()` or add nolint |
+| Warning            | Line          | Fix needed                                                                                            |
+| ------------------ | ------------- | ----------------------------------------------------------------------------------------------------- |
+| `wsl_v5` (3x)      | 106, 139, 180 | Add blank lines before `if` blocks                                                                    |
+| `exhaustruct` (2x) | 114, 176      | Add `//nolint:exhaustruct` to MetricsConfig and ServerConfig (examples legitimately use partial init) |
+| `forbidigo` (2x)   | 173, 174      | Replace `fmt.Printf` with `log.Printf` or add nolint                                                  |
+| `gci`              | 56            | Run `gofmt` / fix import ordering                                                                     |
+| `tagliatelle`      | 58            | Already fixed (`serverTime`) but LSP may be stale                                                     |
+| `gochecknoglobals` | 61            | Move `requestCount` into `main()` or add nolint                                                       |
 
 These are cosmetic — the example builds and runs correctly. But the project
 standard is 0 lint issues across all modules.
@@ -346,8 +346,8 @@ commits need pushing regardless.
 
 ### 2. Should the middleware-showcase example be a separate module or merged into middleware-demo?
 
-middleware-demo shows go-cqrs-lite *dispatch* middleware (retry, circuit breaker).
-middleware-showcase shows httputil *HTTP* middleware (compression, CORS, etc.).
+middleware-demo shows go-cqrs-lite _dispatch_ middleware (retry, circuit breaker).
+middleware-showcase shows httputil _HTTP_ middleware (compression, CORS, etc.).
 They're complementary but having two "middleware" examples could confuse consumers.
 Merge them into one comprehensive example, or keep separate with clear naming?
 

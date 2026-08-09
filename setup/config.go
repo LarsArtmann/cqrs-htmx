@@ -70,20 +70,26 @@ func (c Config) withDefaults() Config {
 	if cfg.Title == "" {
 		cfg.Title = "cqrs-htmx"
 	}
+
 	if cfg.AccentColor == "" {
 		cfg.AccentColor = "#0ea5e9"
 	}
+
 	if cfg.AdminPath == "" {
 		cfg.AdminPath = "/admin/"
 	}
+
 	if cfg.DashboardPath == "" {
 		cfg.DashboardPath = "/dashboard/"
 	}
+
 	if cfg.LoginRedirect == "" {
 		cfg.LoginRedirect = "/admin/"
 	}
+
 	if cfg.CookieName == "" {
 		cfg.CookieName = "session"
 	}
+
 	return cfg
 }

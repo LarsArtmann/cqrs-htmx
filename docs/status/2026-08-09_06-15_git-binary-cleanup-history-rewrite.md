@@ -139,13 +139,13 @@ This session's task: **get the binaries out of git — including history.**
 
 ## Session Metrics
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Binary blobs in master history (>5MB) | 52 (731.8 MB) | **0** |
-| Binary blobs in v4 history (>1MB) | 3 (27.7 MB) | 3 (27.7 MB) — unchanged |
-| Local `.git/objects` | ~210 MB | **201 MB** (v4 objects still referenced) |
-| Tags preserved | 100 | **100** (all force-pushed) |
-| Commits in master | ~1982 (pre-rewrite) | **1970** (12 binary-only commits dropped) |
-| `origin/master` sync | Diverged (local ahead) | **In sync** (at time of push; auto-git daemon has since added 1+ commits) |
-| Build status | Unknown | **Passes** (`go build ./...` exit 0) |
-| Test status (samber-do-demo) | Unknown | **5/5 pass** |
+| Metric                                | Before                 | After                                                                     |
+| ------------------------------------- | ---------------------- | ------------------------------------------------------------------------- |
+| Binary blobs in master history (>5MB) | 52 (731.8 MB)          | **0**                                                                     |
+| Binary blobs in v4 history (>1MB)     | 3 (27.7 MB)            | 3 (27.7 MB) — unchanged                                                   |
+| Local `.git/objects`                  | ~210 MB                | **201 MB** (v4 objects still referenced)                                  |
+| Tags preserved                        | 100                    | **100** (all force-pushed)                                                |
+| Commits in master                     | ~1982 (pre-rewrite)    | **1970** (12 binary-only commits dropped)                                 |
+| `origin/master` sync                  | Diverged (local ahead) | **In sync** (at time of push; auto-git daemon has since added 1+ commits) |
+| Build status                          | Unknown                | **Passes** (`go build ./...` exit 0)                                      |
+| Test status (samber-do-demo)          | Unknown                | **5/5 pass**                                                              |

@@ -75,23 +75,23 @@ Above PLUS:
 
 Sorted by importance/impact/effort/customer-value.
 
-| #   | Task                                                  | Phase  | Impact   | Effort | Files                                                    |
-| --- | ----------------------------------------------------- | ------ | -------- | ------ | -------------------------------------------------------- |
-| M01 | `StructuredError` type + JSON marshaling + tests      | 1%     | Critical | 45 min | `structured_error.go`, `structured_error_test.go`        |
-| M02 | `BroadcastOnError` / `BroadcastOnErrorFunc` + tests   | 1%     | Critical | 45 min | `sse_broadcaster.go`, `sse_bridge_test.go`               |
-| M03 | `SSEStream.Heartbeat(ctx, interval)` + tests          | 4%     | Critical | 30 min | `sse_stream.go`, `sse_event_test.go`                     |
-| M04 | `WriteWSMessage[T]` / `WriteWSMessageInto[T]` + tests | 20%    | High     | 30 min | `ws_encoder.go`, `ws_encoder_test.go`                    |
-| M05 | `WSBroadcaster` + tests                               | 20%    | High     | 45 min | `ws_broadcaster.go`, `ws_broadcaster_test.go`            |
-| M06 | `WSDispatchHandler(app)` + tests                      | 20%    | High     | 60 min | `ws_dispatch.go`, `ws_dispatch_test.go`                  |
-| M07 | `SSEStream.OnDisconnect(fn)` + tests                  | 20%    | Medium   | 20 min | `sse_stream.go`, `sse_stream_test.go`                    |
-| M08 | Update README SSE/WS sections                         | Docs   | High     | 45 min | `README.md`                                              |
-| M09 | Update FEATURES.md with new capabilities              | Docs   | Medium   | 30 min | `FEATURES.md`                                            |
-| M10 | Update AGENTS.md architecture tree                    | Docs   | Medium   | 30 min | `AGENTS.md`                                              |
+| #   | Task                                                  | Phase  | Impact   | Effort | Files                                                       |
+| --- | ----------------------------------------------------- | ------ | -------- | ------ | ----------------------------------------------------------- |
+| M01 | `StructuredError` type + JSON marshaling + tests      | 1%     | Critical | 45 min | `structured_error.go`, `structured_error_test.go`           |
+| M02 | `BroadcastOnError` / `BroadcastOnErrorFunc` + tests   | 1%     | Critical | 45 min | `sse_broadcaster.go`, `sse_bridge_test.go`                  |
+| M03 | `SSEStream.Heartbeat(ctx, interval)` + tests          | 4%     | Critical | 30 min | `sse_stream.go`, `sse_event_test.go`                        |
+| M04 | `WriteWSMessage[T]` / `WriteWSMessageInto[T]` + tests | 20%    | High     | 30 min | `ws_encoder.go`, `ws_encoder_test.go`                       |
+| M05 | `WSBroadcaster` + tests                               | 20%    | High     | 45 min | `ws_broadcaster.go`, `ws_broadcaster_test.go`               |
+| M06 | `WSDispatchHandler(app)` + tests                      | 20%    | High     | 60 min | `ws_dispatch.go`, `ws_dispatch_test.go`                     |
+| M07 | `SSEStream.OnDisconnect(fn)` + tests                  | 20%    | Medium   | 20 min | `sse_stream.go`, `sse_stream_test.go`                       |
+| M08 | Update README SSE/WS sections                         | Docs   | High     | 45 min | `README.md`                                                 |
+| M09 | Update FEATURES.md with new capabilities              | Docs   | Medium   | 30 min | `FEATURES.md`                                               |
+| M10 | Update AGENTS.md architecture tree                    | Docs   | Medium   | 30 min | `AGENTS.md`                                                 |
 | M11 | Update matrix HTML to reflect new state               | Docs   | Medium   | 30 min | `do../../research/2026-06-18_web-communication-matrix.html` |
-| M12 | Add CHANGELOG entries                                 | Docs   | Low      | 20 min | `CHANGELOG.md`                                           |
-| M13 | Update doc.go with new exports                        | Docs   | Low      | 20 min | `doc.go`                                                 |
-| M14 | Integration tests: SSE error + heartbeat flow         | Test   | Medium   | 45 min | `sse_integration_test.go`                                |
-| M15 | Final verification: build + test + lint + commit      | Verify | Critical | 30 min | —                                                        |
+| M12 | Add CHANGELOG entries                                 | Docs   | Low      | 20 min | `CHANGELOG.md`                                              |
+| M13 | Update doc.go with new exports                        | Docs   | Low      | 20 min | `doc.go`                                                    |
+| M14 | Integration tests: SSE error + heartbeat flow         | Test   | Medium   | 45 min | `sse_integration_test.go`                                   |
+| M15 | Final verification: build + test + lint + commit      | Verify | Critical | 30 min | —                                                           |
 
 **Total: ~10.5 hours of planned work (with buffer; actual likely ~4 hours)**
 

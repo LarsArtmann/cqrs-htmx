@@ -6,7 +6,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.7.0
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.2.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.1
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0

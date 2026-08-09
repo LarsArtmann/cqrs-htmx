@@ -87,12 +87,12 @@ Added resolution banners to 6 recent reports (Aug 7-9). But the docs-health skil
 
 The Metrics table at the bottom of FEATURES.md has stale test counts. Actual counts (from `grep -c "^func Test"`):
 
-| Module    | Doc says | Actual |
-| --------- | -------- | ------ |
-| Root      | ~160     | 133    |
-| usermgmt  | ~602     | 615    |
-| dashboardui | ~50    | 153    |
-| datastar  | ~29      | 54     |
+| Module      | Doc says | Actual |
+| ----------- | -------- | ------ |
+| Root        | ~160     | 133    |
+| usermgmt    | ~602     | 615    |
+| dashboardui | ~50      | 153    |
+| datastar    | ~29      | 54     |
 
 The dashboardui count is wildly off (50 vs 153). The datastar count is also wrong (29 vs 54).
 
@@ -115,6 +115,7 @@ The skill references `references/verify-checklist.md`, `references/harvest-guide
 ### 3. Did NOT read the HTML review/research files
 
 The user said "View ALL `**/2026-08-0*` files!" The glob returned HTML files too:
+
 - `docs/reviews/2026-08-05_naming-review.html`
 - `docs/reviews/2026-08-05_data-model-review.html`
 - `docs/research/2026-08-05_httputil-deep-dive.html`
@@ -147,12 +148,12 @@ Formatting may be inconsistent in the edited files.
 
 ### 1. SPLIT BRAIN: datastar test count disagrees across 4 docs
 
-| Location                          | Claims    | Actual |
-| --------------------------------- | --------- | ------ |
-| `AGENTS.md:32`                    | 43 tests, 84.6% coverage | 54 tests, 96.7% coverage |
-| `ROADMAP.md:66`                   | 71 tests   | 54     |
-| `FEATURES.md:379`                 | 71 tests across 8 test files | 54 tests across 5 files |
-| `FEATURES.md:406` (Metrics table) | ~29        | 54     |
+| Location                          | Claims                       | Actual                   |
+| --------------------------------- | ---------------------------- | ------------------------ |
+| `AGENTS.md:32`                    | 43 tests, 84.6% coverage     | 54 tests, 96.7% coverage |
+| `ROADMAP.md:66`                   | 71 tests                     | 54                       |
+| `FEATURES.md:379`                 | 71 tests across 8 test files | 54 tests across 5 files  |
+| `FEATURES.md:406` (Metrics table) | ~29                          | 54                       |
 
 Four different numbers across four docs, all wrong. The actual count is **54 tests across 5 test files** (verified via `grep -c "^func Test" datastar/*_test.go`). The AGENTS.md description also says "84.6% coverage" while everywhere else says "96.7%" — the 84.6% was the old number before coverage tests were added. **This was NOT fixed.**
 

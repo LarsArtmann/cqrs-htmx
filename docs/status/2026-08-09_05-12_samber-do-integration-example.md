@@ -10,45 +10,45 @@
 
 ### Example module (`examples/samber-do-demo/`)
 
-| Artifact | Status | Notes |
-|----------|--------|-------|
-| `container.go` — Composition root with `NewContainer`, lifecycle adapter, typed accessors | DONE | All canonical patterns: ProvideValue, Provide, ProvideNamed, lifecycle adapter, eager lifecycle invocation |
-| `main.go` — Runnable server on :8098 with health check + index page | DONE | Builds, runs, serves HTTP |
-| `seed.go` — Seeds a demo user via `usermgmt.Service` | DONE | |
-| `container_test.go` — 5 tests covering singleton, override, shutdown | DONE | All 5 tests pass |
-| `go.mod` + `go.sum` | DONE | `go mod tidy` clean, samber/do v2.1.0, all deps resolve |
-| `README.md` | DONE | Pattern table, run instructions, design decisions |
-| Added to `go.work` | DONE | Auto-discovered by `forEachGoModule` |
-| `.gitignore` entry | DONE | `examples/samber-do-demo/samber-do-demo` added |
-| `go vet` passes | DONE | Clean |
-| `go build` passes | DONE | Clean |
-| `go test` passes | DONE | 5/5 pass |
+| Artifact                                                                                  | Status | Notes                                                                                                      |
+| ----------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------- |
+| `container.go` — Composition root with `NewContainer`, lifecycle adapter, typed accessors | DONE   | All canonical patterns: ProvideValue, Provide, ProvideNamed, lifecycle adapter, eager lifecycle invocation |
+| `main.go` — Runnable server on :8098 with health check + index page                       | DONE   | Builds, runs, serves HTTP                                                                                  |
+| `seed.go` — Seeds a demo user via `usermgmt.Service`                                      | DONE   |                                                                                                            |
+| `container_test.go` — 5 tests covering singleton, override, shutdown                      | DONE   | All 5 tests pass                                                                                           |
+| `go.mod` + `go.sum`                                                                       | DONE   | `go mod tidy` clean, samber/do v2.1.0, all deps resolve                                                    |
+| `README.md`                                                                               | DONE   | Pattern table, run instructions, design decisions                                                          |
+| Added to `go.work`                                                                        | DONE   | Auto-discovered by `forEachGoModule`                                                                       |
+| `.gitignore` entry                                                                        | DONE   | `examples/samber-do-demo/samber-do-demo` added                                                             |
+| `go vet` passes                                                                           | DONE   | Clean                                                                                                      |
+| `go build` passes                                                                         | DONE   | Clean                                                                                                      |
+| `go test` passes                                                                          | DONE   | 5/5 pass                                                                                                   |
 
 ### Integration guide (`docs/guides/leveraging-samber-do.md`)
 
-| Section | Status |
-|---------|--------|
-| Why this guide exists (library vs application distinction) | DONE |
-| When to use a DI container with cqrs-htmx (decision table) | DONE |
-| cqrs-htmx types to samber/do patterns mapping table | DONE |
-| Recipe 1: Composition root with cleanup | DONE |
-| Recipe 2: Eager foundation values | DONE |
-| Recipe 3: Lazy singleton (usermgmt.Service) | DONE |
-| Recipe 4: Named services (multiple auth providers) | DONE |
-| Recipe 5: Lifecycle adapter (Close to Shutdown bridge) | DONE |
-| Recipe 6: do.Package for modular registration | DONE |
-| Recipe 7: Test container with overrides | DONE |
-| Recipe 8: Health checks via do.Healthchecker | DONE |
-| Recipe 9: Scopes for multi-tenant isolation | DONE |
-| Anti-pattern checklist (DO-1 through DO-8) | DONE |
+| Section                                                    | Status |
+| ---------------------------------------------------------- | ------ |
+| Why this guide exists (library vs application distinction) | DONE   |
+| When to use a DI container with cqrs-htmx (decision table) | DONE   |
+| cqrs-htmx types to samber/do patterns mapping table        | DONE   |
+| Recipe 1: Composition root with cleanup                    | DONE   |
+| Recipe 2: Eager foundation values                          | DONE   |
+| Recipe 3: Lazy singleton (usermgmt.Service)                | DONE   |
+| Recipe 4: Named services (multiple auth providers)         | DONE   |
+| Recipe 5: Lifecycle adapter (Close to Shutdown bridge)     | DONE   |
+| Recipe 6: do.Package for modular registration              | DONE   |
+| Recipe 7: Test container with overrides                    | DONE   |
+| Recipe 8: Health checks via do.Healthchecker               | DONE   |
+| Recipe 9: Scopes for multi-tenant isolation                | DONE   |
+| Anti-pattern checklist (DO-1 through DO-8)                 | DONE   |
 
 ### Documentation updates
 
-| File | Update | Status |
-|------|--------|--------|
-| `AGENTS.md` | examples list (added samber-do-demo), guides count (15 to 16) | DONE |
-| `CHANGELOG.md` | Unreleased/Added entry | DONE |
-| `.gitignore` | Binary entry added | DONE |
+| File           | Update                                                        | Status |
+| -------------- | ------------------------------------------------------------- | ------ |
+| `AGENTS.md`    | examples list (added samber-do-demo), guides count (15 to 16) | DONE   |
+| `CHANGELOG.md` | Unreleased/Added entry                                        | DONE   |
+| `.gitignore`   | Binary entry added                                            | DONE   |
 
 ---
 
@@ -96,6 +96,7 @@ This is the biggest failure of the session.
 **Root cause:** I built the code BEFORE adding the `.gitignore` entry, and the auto-git daemon committed the result. I also didn't anticipate that `go build ./...` from workspace root would place the binary at root level.
 
 **What I should have done:**
+
 1. Add `.gitignore` entries FIRST, before any `go build`
 2. Run `go clean` after building to remove binaries
 3. Check `git status` before letting the auto-git daemon commit
@@ -106,6 +107,7 @@ This is the biggest failure of the session.
 ### Auto-git daemon committed fabricated commit messages
 
 The auto-git daemon created commits with messages describing things that didn't happen:
+
 - `40b20a18` says "refactor samber-do-demo with proper DI patterns and httputil v0.11.0" — I didn't refactor; I created it fresh in one go. The httputil version bump narrative is fabricated.
 - `e67fb9ed` says "update docs and sync samber-do-demo for v4.7.0 release" — this commit touched ROADMAP.md, FEATURES.md, TODO_LIST.md which I never edited. The daemon may have picked up changes from a prior session.
 

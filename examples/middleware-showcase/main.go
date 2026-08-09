@@ -25,7 +25,7 @@
 package main
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"log"
 	"log/slog"
@@ -75,7 +75,7 @@ func main() {
 			ServerTime: time.Now().UTC(),
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(resp)
+		_ = json.MarshalWrite(w, resp)
 	})
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, _ *http.Request) {

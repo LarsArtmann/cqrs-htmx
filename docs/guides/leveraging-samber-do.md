@@ -14,29 +14,29 @@ This is correct for a library. But **applications** that consume cqrs-htmx often
 
 ## When to use a DI container with cqrs-htmx
 
-| Situation | Use samber/do? | Why |
-|-----------|----------------|-----|
-| Simple app, <5 services | No | Plain construction is clearer |
-| Multiple auth providers (TOTP + WebAuthn + OAuth2) | Yes | Named services prevent wire-up duplication |
-| Test containers with dependency overrides | Yes | `do.Override*` is cleaner than manual swap |
-| Long-running service with health checks | Yes | `do.Healthchecker*` interface for readiness probes |
-| Library code (inside cqrs-htmx itself) | **Never** | Libraries must not impose a container |
+| Situation                                          | Use samber/do? | Why                                                |
+| -------------------------------------------------- | -------------- | -------------------------------------------------- |
+| Simple app, <5 services                            | No             | Plain construction is clearer                      |
+| Multiple auth providers (TOTP + WebAuthn + OAuth2) | Yes            | Named services prevent wire-up duplication         |
+| Test containers with dependency overrides          | Yes            | `do.Override*` is cleaner than manual swap         |
+| Long-running service with health checks            | Yes            | `do.Healthchecker*` interface for readiness probes |
+| Library code (inside cqrs-htmx itself)             | **Never**      | Libraries must not impose a container              |
 
 ## cqrs-htmx types → samber/do patterns
 
-| cqrs-htmx type | Lifetime | samber/do function | Rationale |
-|----------------|----------|--------------------|-----------|
-| `AppConfig` (your config struct) | Eager | `do.ProvideValue` | Must exist before any lazy provider resolves |
-| `*slog.Logger` | Eager or lazy | `do.ProvideValue` or `do.Provide` | Eager if you want it available immediately |
-| `*usermgmt.Service` | Lazy singleton | `do.Provide` | Heavy to construct (event store, projections, goroutines) |
-| `*cqrshtmx.App` | Lazy singleton | `do.Provide` | Depends on dispatchers |
-| `*cqrshtmx.Broadcaster` | Lazy singleton | `do.Provide` | Lightweight, but only needed if SSE is used |
-| `usermgmt.TOTPProvider` | Named lazy | `do.ProvideNamed("auth.totp", ...)` | Multiple auth strategies coexist |
-| `usermgmt.WebAuthnProvider` | Named lazy | `do.ProvideNamed("auth.webauthn", ...)` | Same reason |
-| `usermgmt.OAuth2Provider` | Named lazy | `do.ProvideNamed("auth.oauth2", ...)` | Same reason |
-| `*command.Dispatcher` | Lazy singleton | `do.Provide` | Shared across all command handlers |
-| `*query.Dispatcher` | Lazy singleton | `do.Provide` | Shared across all query handlers |
-| `*sql.DB` (read model) | Eager | `do.ProvideValue` | Connection pool must be alive even if no query ran yet |
+| cqrs-htmx type                   | Lifetime       | samber/do function                      | Rationale                                                 |
+| -------------------------------- | -------------- | --------------------------------------- | --------------------------------------------------------- |
+| `AppConfig` (your config struct) | Eager          | `do.ProvideValue`                       | Must exist before any lazy provider resolves              |
+| `*slog.Logger`                   | Eager or lazy  | `do.ProvideValue` or `do.Provide`       | Eager if you want it available immediately                |
+| `*usermgmt.Service`              | Lazy singleton | `do.Provide`                            | Heavy to construct (event store, projections, goroutines) |
+| `*cqrshtmx.App`                  | Lazy singleton | `do.Provide`                            | Depends on dispatchers                                    |
+| `*cqrshtmx.Broadcaster`          | Lazy singleton | `do.Provide`                            | Lightweight, but only needed if SSE is used               |
+| `usermgmt.TOTPProvider`          | Named lazy     | `do.ProvideNamed("auth.totp", ...)`     | Multiple auth strategies coexist                          |
+| `usermgmt.WebAuthnProvider`      | Named lazy     | `do.ProvideNamed("auth.webauthn", ...)` | Same reason                                               |
+| `usermgmt.OAuth2Provider`        | Named lazy     | `do.ProvideNamed("auth.oauth2", ...)`   | Same reason                                               |
+| `*command.Dispatcher`            | Lazy singleton | `do.Provide`                            | Shared across all command handlers                        |
+| `*query.Dispatcher`              | Lazy singleton | `do.Provide`                            | Shared across all query handlers                          |
+| `*sql.DB` (read model)           | Eager          | `do.ProvideValue`                       | Connection pool must be alive even if no query ran yet    |
 
 ## Recipes
 
@@ -229,16 +229,16 @@ Child scopes can resolve parent services; parent scopes cannot see child service
 
 ## Anti-pattern checklist (cqrs-htmx specific)
 
-| Rule | What to avoid | Fix |
-|------|---------------|-----|
-| DO-1 | `do.MustInvoke[*usermgmt.Service]` inside an HTTP handler | Inject the Service into the handler struct at startup |
-| DO-2 | `do.New()` without `defer cleanup()` | Always return and defer the cleanup function |
-| DO-3 | `do.Override*` in production code (non-test) | Use aliasing or `ProvideNamed` instead |
-| DO-4 | Package-level `var injector = do.New()` | Pass the container from `main()` |
-| DO-5 | `do.Invoke` inside a request loop | Resolve once before the loop |
+| Rule | What to avoid                                                       | Fix                                                        |
+| ---- | ------------------------------------------------------------------- | ---------------------------------------------------------- |
+| DO-1 | `do.MustInvoke[*usermgmt.Service]` inside an HTTP handler           | Inject the Service into the handler struct at startup      |
+| DO-2 | `do.New()` without `defer cleanup()`                                | Always return and defer the cleanup function               |
+| DO-3 | `do.Override*` in production code (non-test)                        | Use aliasing or `ProvideNamed` instead                     |
+| DO-4 | Package-level `var injector = do.New()`                             | Pass the container from `main()`                           |
+| DO-5 | `do.Invoke` inside a request loop                                   | Resolve once before the loop                               |
 | DO-6 | `serviceLifecycle.Shutdown()` calls `do.Invoke` for another service | Shutdown must be self-contained — close only `svc.Close()` |
-| DO-7 | `do.Invoke` inside business-logic methods | Only accessors and constructors may invoke |
-| DO-8 | Service struct stores `do.Injector` as a field | Only `Container` may hold the injector |
+| DO-7 | `do.Invoke` inside business-logic methods                           | Only accessors and constructors may invoke                 |
+| DO-8 | Service struct stores `do.Injector` as a field                      | Only `Container` may hold the injector                     |
 
 ## Complete reference
 
