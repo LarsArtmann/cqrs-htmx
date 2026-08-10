@@ -170,6 +170,13 @@ type ServiceConfig struct {
 	// secrets manager or environment variable). When nil, RegisterBot and
 	// ResolveBotByToken return errors.
 	TokenPepper TokenPepper
+
+	// DrainTimeout is the maximum time to wait for projection workers to finish
+	// their initial journal drain during startup. Defaults to 30 seconds when
+	// zero. Increase this for deployments with large event journals or slow
+	// storage (e.g., SQLite on contended disk). A transient error is returned
+	// when the drain cannot complete within this budget.
+	DrainTimeout time.Duration
 }
 
 // wrapEventStore applies the optional StoreWrapper (e.g. transparent encryption)
@@ -243,6 +250,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		OnProjectionFailed: config.OnProjectionFailed,
 		SecurityHooks:      config.SecurityHooks,
 		SnapshotConfig:     config.SnapshotConfig,
+		DrainTimeout:       config.DrainTimeout,
 	})
 	if err != nil {
 		return nil, err

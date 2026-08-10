@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -87,6 +88,13 @@ type EventSourcedConfig struct {
 	// volume aggregates. When the Store field is nil (the default), repositories
 	// replay the full event journal on every Load — zero behavior change.
 	SnapshotConfig
+
+	// DrainTimeout is the maximum time to wait for projection workers to finish
+	// their initial journal drain during startup. Defaults to 30 seconds when
+	// zero. Increase this for deployments with large event journals or slow
+	// storage. A transient error is returned when the drain cannot complete
+	// within this budget.
+	DrainTimeout time.Duration
 }
 
 // EventSourcedSetup holds the wired infrastructure for the event-sourced user aggregate.
@@ -290,6 +298,7 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 		bus,
 		config.CheckpointStore,
 		allProjections,
+		config.DrainTimeout,
 		hostOpts...,
 	)
 	if err != nil {

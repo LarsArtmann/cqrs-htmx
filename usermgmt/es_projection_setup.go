@@ -49,6 +49,7 @@ func StartProjections(
 		bus,
 		cpStore,
 		collectProjections(readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog),
+		0, // default drain timeout (30s)
 	)
 }
 
@@ -63,6 +64,7 @@ func startProjectionHost(
 	bus event.Subscriber,
 	cpStore event.CheckpointStore,
 	projections []projection.Projection,
+	drainTimeout time.Duration,
 	hostOpts ...projectionhost.HostOption,
 ) (*projectionhost.Host, error) {
 	seekable, ok := journal.(event.SeekableJournal)
@@ -108,7 +110,7 @@ func startProjectionHost(
 			"start projection host")
 	}
 
-	if err := waitForDrain(host); err != nil {
+	if err := waitForDrain(host, drainTimeout); err != nil {
 		//cqrs-lint:ignore(C023) best-effort cleanup in error path
 		_ = host.Stop()
 		return nil, err
@@ -154,13 +156,16 @@ func collectProjections(
 // once SubscribeAll returns — the live handler is registered and active, but
 // the worker goroutine has exited. Both WorkerLive and WorkerStopped are valid
 // drain-complete terminal states for non-blocking subscribers.
-func waitForDrain(host *projectionhost.Host) error {
-	const (
-		pollInterval = 10 * time.Millisecond
-		drainTimeout = 30 * time.Second
-	)
+func waitForDrain(host *projectionhost.Host, timeout time.Duration) error {
+	const defaultDrainTimeout = 30 * time.Second
 
-	timer := time.NewTimer(drainTimeout)
+	if timeout <= 0 {
+		timeout = defaultDrainTimeout
+	}
+
+	pollInterval := 10 * time.Millisecond
+
+	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 
 	ticker := time.NewTicker(pollInterval)
@@ -192,7 +197,7 @@ func waitForDrain(host *projectionhost.Host) error {
 		case <-timer.C:
 			return errorfamily.NewTransient(
 				"usermgmt.projection.drain_timeout",
-				fmt.Sprintf("projection drain timed out after %s", drainTimeout),
+				fmt.Sprintf("projection drain timed out after %s", timeout),
 			)
 		}
 	}
