@@ -14,6 +14,7 @@
 **Previous approach (broken):** The old `eventually` helper used a 100ms initial sleep + 50ms polling. Under `-race`, the goroutine scheduler introduces enough jitter that 100ms was sometimes insufficient for the event to propagate. This gave ~40% pass rate.
 
 **Previous broken attempts:**
+
 1. `waitForHostLive` + fixed 50ms delay → ~40% pass rate (WorkerLive is too transient — the worker passes through it and exits)
 2. Processed-counter stabilization (200ms window) → ~20% pass rate (counter looks stable before events arrive)
 3. `eventually` retry pattern with 20ms polling → ~30% pass rate (too aggressive, events not yet processed)
@@ -27,19 +28,19 @@
 
 Added 11 new test functions covering previously-untested code paths:
 
-| Test | Covers |
-|------|--------|
-| `TestDeclarative_TenantDelete` | `removeTenant` fold, `AllTenants` after delete |
-| `TestDeclarative_BotDelete` | `removeBot` fold, `FindBotsByOwner` after delete |
-| `TestDeclarative_MembershipRolesUpdate` | `updateMembershipRoles` fold, `updateMemberPolicy` fold |
-| `TestDeclarative_MembershipRemove` | `removeMembership` fold, `removeMemberPolicy` fold |
-| `TestDeclarative_UserDisplayNameChange` | `updateDisplayNameChanged` fold |
-| `TestDeclarative_UserCredentials` | `updateCredentialAdded`, `updateCredentialRemoved` folds |
-| `TestDeclarative_UserTOTP` | `updateTOTPEnabled`, `updateTOTPDisabled` folds |
-| `TestDeclarative_UserExternalAccounts` | `updateExternalAccountLinked`, `updateExternalAccountUnlinked` folds, `FindUserByExternalAccount` query, `externalAccountLinkScan` projection |
-| `TestDeclarative_UserDelete` | `removeUser` fold, `AllUsers` after delete |
-| `TestDeclarative_AllUsers` | `AllUsers` query with multiple users |
-| `TestDeclarative_EquivalenceWithProjectionLayer` | Cross-validates declarative queries vs ProjectionLayer read models |
+| Test                                             | Covers                                                                                                                                        |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TestDeclarative_TenantDelete`                   | `removeTenant` fold, `AllTenants` after delete                                                                                                |
+| `TestDeclarative_BotDelete`                      | `removeBot` fold, `FindBotsByOwner` after delete                                                                                              |
+| `TestDeclarative_MembershipRolesUpdate`          | `updateMembershipRoles` fold, `updateMemberPolicy` fold                                                                                       |
+| `TestDeclarative_MembershipRemove`               | `removeMembership` fold, `removeMemberPolicy` fold                                                                                            |
+| `TestDeclarative_UserDisplayNameChange`          | `updateDisplayNameChanged` fold                                                                                                               |
+| `TestDeclarative_UserCredentials`                | `updateCredentialAdded`, `updateCredentialRemoved` folds                                                                                      |
+| `TestDeclarative_UserTOTP`                       | `updateTOTPEnabled`, `updateTOTPDisabled` folds                                                                                               |
+| `TestDeclarative_UserExternalAccounts`           | `updateExternalAccountLinked`, `updateExternalAccountUnlinked` folds, `FindUserByExternalAccount` query, `externalAccountLinkScan` projection |
+| `TestDeclarative_UserDelete`                     | `removeUser` fold, `AllUsers` after delete                                                                                                    |
+| `TestDeclarative_AllUsers`                       | `AllUsers` query with multiple users                                                                                                          |
+| `TestDeclarative_EquivalenceWithProjectionLayer` | Cross-validates declarative queries vs ProjectionLayer read models                                                                            |
 
 ### 3. Code Quality Fixes
 
@@ -66,18 +67,18 @@ Added 11 new test functions covering previously-untested code paths:
 
 ### Coverage Gaps Remaining (89.2%, some functions below 100%)
 
-| Function | Coverage | Missing scenario |
-|----------|----------|------------------|
-| `updateUserPolicy` | 33.3% | `RolesUpdated` event is legacy — no command emits it. Can only be tested by directly applying the fold. |
-| `actionLevel` | 50.0% | Untested action levels: "use"/"write"/"edit" (level 2), "super"/"everything" (level 4), unknown action (0, false) |
-| `roleGrantsAction` | 75.0% | `super_admin` and `owner` roles not directly tested |
-| `FindUserByEmail` | 66.7% | Not-found path (empty result) untested |
-| `FindTenantByName` | 66.7% | Not-found path untested |
-| `FindBotByTokenHash` | 66.7% | Not-found path untested |
-| `FindUserByExternalAccount` | 66.7% | Not-found path untested |
-| `updateCredentialRemoved` | 87.5% | Removing a non-existent credential ID (no-op filter) |
-| `updateExternalAccountUnlinked` | 87.5% | Unlinking a non-existent external account (no-op filter) |
-| `Enforce` | 87.5% | Unknown action / empty policies path |
+| Function                        | Coverage | Missing scenario                                                                                                  |
+| ------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------- |
+| `updateUserPolicy`              | 33.3%    | `RolesUpdated` event is legacy — no command emits it. Can only be tested by directly applying the fold.           |
+| `actionLevel`                   | 50.0%    | Untested action levels: "use"/"write"/"edit" (level 2), "super"/"everything" (level 4), unknown action (0, false) |
+| `roleGrantsAction`              | 75.0%    | `super_admin` and `owner` roles not directly tested                                                               |
+| `FindUserByEmail`               | 66.7%    | Not-found path (empty result) untested                                                                            |
+| `FindTenantByName`              | 66.7%    | Not-found path untested                                                                                           |
+| `FindBotByTokenHash`            | 66.7%    | Not-found path untested                                                                                           |
+| `FindUserByExternalAccount`     | 66.7%    | Not-found path untested                                                                                           |
+| `updateCredentialRemoved`       | 87.5%    | Removing a non-existent credential ID (no-op filter)                                                              |
+| `updateExternalAccountUnlinked` | 87.5%    | Unlinking a non-existent external account (no-op filter)                                                          |
+| `Enforce`                       | 87.5%    | Unknown action / empty policies path                                                                              |
 
 ### Declarative Projections Architecture (from prior session)
 
@@ -246,6 +247,7 @@ The previous session burned ~4 rounds of trial-and-error on timing-based approac
 ### 1. Should the ExternalAccountLink fix change the key format?
 
 The current insert key is `e.ID + ":" + provider + ":" + subject`. The unlink event has `provider` and `subject` but not `e.ID` (well, it has `e.ID` from `EventWithID`, but that's the user stream ID, not the link's composite key). Options:
+
 - **Option A:** Change the insert key to just `provider + ":" + subject` (drops the stream ID, making removes work via `deriveKeys`)
 - **Option B:** Add a custom key extractor to the remove fold (requires upstream metaengine support for explicit key functions on remove folds)
 - **Option C:** Keep the current hacky update-to-empty but add a post-filter in `FindUserByExternalAccount` to skip zero-value entries
@@ -259,6 +261,7 @@ The `EventWithID.OccurredAt` field is uncommitted in go-cqrs-lite. The local rep
 ### 3. Should the declarative projections replace or coexist with ProjectionLayer?
 
 The current design has both hosts running simultaneously. This doubles memory usage and processes every event twice. Options:
+
 - **Replace:** Mark ProjectionLayer deprecated, remove it in v5, consumers use declarative only
 - **Coexist:** Keep both, let consumers choose (current state)
 - **Auto-detect:** If declarative projections are wired in DomainConfig, skip creating ProjectionLayer read models

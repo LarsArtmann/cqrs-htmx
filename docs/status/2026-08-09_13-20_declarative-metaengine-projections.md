@@ -17,18 +17,18 @@ Added `OccurredAt time.Time` field to `EventWithID[P]` struct. Both `Register[E]
 
 **New file** with 10 view structs covering all 6 projections:
 
-| Struct | Projection | Key Fields |
-|---|---|---|
-| `TenantView` | Tenant | ID, Name, DisplayName, Suspended |
-| `BotView` | Bot | ID, Name, OwnerID, TokenHash, Scopes |
-| `BotTokenView` | Bot secondary index | TokenHash (hex), BotID |
-| `MembershipView` | Membership | ID, ActorID, TenantID, Roles |
-| `UserView` | User | ID, Email, DisplayName, Credentials, ExternalAccounts, EmailVerified, TOTPEnabled, CreatedAt, UpdatedAt |
-| `CredentialView` | User sub-struct | ID, PublicKey, AttestationType, Transports, etc. |
-| `ExternalAccountView` | User sub-struct | Provider, Subject, Email, DisplayName |
-| `ExternalAccountLink` | User secondary index | ProviderSubject, UserID |
-| `PolicyEntry` | Authz | Key, Subject, Domain, Roles |
-| `AuditEntryView` | AuditLog | EventType, AggregateID, OccurredAt, Action |
+| Struct                | Projection           | Key Fields                                                                                              |
+| --------------------- | -------------------- | ------------------------------------------------------------------------------------------------------- |
+| `TenantView`          | Tenant               | ID, Name, DisplayName, Suspended                                                                        |
+| `BotView`             | Bot                  | ID, Name, OwnerID, TokenHash, Scopes                                                                    |
+| `BotTokenView`        | Bot secondary index  | TokenHash (hex), BotID                                                                                  |
+| `MembershipView`      | Membership           | ID, ActorID, TenantID, Roles                                                                            |
+| `UserView`            | User                 | ID, Email, DisplayName, Credentials, ExternalAccounts, EmailVerified, TOTPEnabled, CreatedAt, UpdatedAt |
+| `CredentialView`      | User sub-struct      | ID, PublicKey, AttestationType, Transports, etc.                                                        |
+| `ExternalAccountView` | User sub-struct      | Provider, Subject, Email, DisplayName                                                                   |
+| `ExternalAccountLink` | User secondary index | ProviderSubject, UserID                                                                                 |
+| `PolicyEntry`         | Authz                | Key, Subject, Domain, Roles                                                                             |
+| `AuditEntryView`      | AuditLog             | EventType, AggregateID, OccurredAt, Action                                                              |
 
 **Design decision:** `TOTPSecret` intentionally excluded from `UserView` (security — secrets should not be in read model projections). `Deleted` boolean dropped from `TenantView`/`BotView` (deletion becomes a Remove fold, not a soft-delete flag).
 
@@ -36,23 +36,24 @@ Added `OccurredAt time.Time` field to `EventWithID[P]` struct. Both `Register[E]
 
 **New file** with `DeclarativeProjections()` returning `[]system.ProjectionDeclaration` — 13 `metaengine.Query` declarations wrapped via `system.RawQuery()`:
 
-| Query Name | Type | Purpose |
-|---|---|---|
-| `tenant_by_id` | `Lookup[string, TenantView]` | Point lookup by stream ID |
-| `tenants` | `Scan[TenantView]` | Filter by Name, Suspended |
-| `bot_by_id` | `Lookup[string, BotView]` | Point lookup by stream ID |
-| `bots` | `Scan[BotView]` | Filter by OwnerID |
-| `bot_tokens` | `Scan[BotTokenView]` | Secondary index: hex token hash → bot ID |
-| `membership_by_id` | `Lookup[string, MembershipView]` | Point lookup by stream ID |
-| `memberships` | `Scan[MembershipView]` | Filter by ActorID, TenantID |
-| `user_by_id` | `Lookup[string, UserView]` | Point lookup by stream ID |
-| `users` | `Scan[UserView]` | Filter by Email, EmailVerified; sort by CreatedAt |
-| `external_account_links` | `Scan[ExternalAccountLink]` | Secondary index: provider:subject → user ID |
-| `authz_policy_by_id` | `Lookup[string, PolicyEntry]` | Policy lookup by aggregate stream ID |
-| `authz_policies` | `Scan[PolicyEntry]` | Filter by Subject, Domain |
-| `audit_log` | `Scan[AuditEntryView]` | Filter by AggregateID; sort by OccurredAt desc |
+| Query Name               | Type                             | Purpose                                           |
+| ------------------------ | -------------------------------- | ------------------------------------------------- |
+| `tenant_by_id`           | `Lookup[string, TenantView]`     | Point lookup by stream ID                         |
+| `tenants`                | `Scan[TenantView]`               | Filter by Name, Suspended                         |
+| `bot_by_id`              | `Lookup[string, BotView]`        | Point lookup by stream ID                         |
+| `bots`                   | `Scan[BotView]`                  | Filter by OwnerID                                 |
+| `bot_tokens`             | `Scan[BotTokenView]`             | Secondary index: hex token hash → bot ID          |
+| `membership_by_id`       | `Lookup[string, MembershipView]` | Point lookup by stream ID                         |
+| `memberships`            | `Scan[MembershipView]`           | Filter by ActorID, TenantID                       |
+| `user_by_id`             | `Lookup[string, UserView]`       | Point lookup by stream ID                         |
+| `users`                  | `Scan[UserView]`                 | Filter by Email, EmailVerified; sort by CreatedAt |
+| `external_account_links` | `Scan[ExternalAccountLink]`      | Secondary index: provider:subject → user ID       |
+| `authz_policy_by_id`     | `Lookup[string, PolicyEntry]`    | Policy lookup by aggregate stream ID              |
+| `authz_policies`         | `Scan[PolicyEntry]`              | Filter by Subject, Domain                         |
+| `audit_log`              | `Scan[AuditEntryView]`           | Filter by AggregateID; sort by OccurredAt desc    |
 
 **Fold handlers** registered for all 21 identity-model event types via `metaengine.OnTyped()`:
+
 - Insert folds: `TenantCreated`, `BotRegistered`, `MemberAdded`, `UserRegistered`, `ExternalAccountLinked`, 12 audit event types
 - Update folds: `TenantSuspended`, `TenantReactivated`, `EmailChanged`, `DisplayNameChanged`, `CredentialAdded`, `CredentialRemoved`, `EmailVerified`, `TOTPEnabled`, `TOTPDisabled`, `ExternalAccountUnlinked`, `RolesUpdated`, `MemberRolesChanged`
 - Remove folds: `TenantDeleted`, `BotDeleted`, `MemberRemoved`, `UserDeleted`
@@ -93,6 +94,7 @@ The `ProjectionLayer` backward compatibility is fully intact. Existing tests usi
 **File:** `systemadapter/declarative_test.go`
 
 7 tests written:
+
 1. `TestDeclarative_TenantRoundTrip` — create → suspend → reactivate → find by name
 2. `TestDeclarative_BotRoundTrip` — register → find by ID, token hash, owner
 3. `TestDeclarative_MembershipRoundTrip` — add member → find by ID, actor, tenant
@@ -102,6 +104,7 @@ The `ProjectionLayer` backward compatibility is fully intact. Existing tests usi
 7. `TestDeclarative_AllProjectionNames` — sanity check on declaration count
 
 **Test results:**
+
 - **GOMAXPROCS=1:** 10/10 runs pass (all 7 tests, every run)
 - **Race detector (default GOMAXPROCS):** ~40% pass rate. AuthzEnforce and AuditLog fail intermittently.
 
@@ -110,11 +113,13 @@ The `ProjectionLayer` backward compatibility is fully intact. Existing tests usi
 ### Coverage at 67.2% (BELOW 70% gate)
 
 **Uncovered query helpers** (0% coverage):
+
 - `AllTenants`, `AllUsers`, `FindUserByExternalAccount`
 - `FindPolicyByStreamID`
 - `AuditEntriesFor`, `RecentAuditEntries`
 
 **Low-coverage fold handlers** (12-25%):
+
 - `updateDisplayNameChanged`, `updateCredentialAdded`, `updateCredentialRemoved`
 - `updateTOTPEnabled`, `updateTOTPDisabled`
 - `updateExternalAccountLinked`, `updateExternalAccountUnlinked`
@@ -145,6 +150,7 @@ The `ProjectionLayer` backward compatibility is fully intact. Existing tests usi
 **The tests are NOT reliably green under `-race`.** They pass 100% with `GOMAXPROCS=1` but ~60% failure rate with default scheduling. This is **unacceptable for CI**.
 
 **What went wrong in the approach:**
+
 1. First attempt: `waitForHostLive` + fixed 50ms delay → ~40% pass rate
 2. Second attempt: processed-counter stabilization (200ms window) → ~20% pass rate (counter looks stable before events arrive)
 3. Third attempt: `eventually` retry pattern with 20ms polling → ~30% pass rate (too aggressive polling, events not yet processed)
@@ -287,6 +293,7 @@ The old Casbin enforcer did this via Casbin's built-in role manager. The declara
 ### 3. Should I keep the ProjectionLayer indefinitely or set a deprecation timeline?
 
 The plan says "keep as backward-compat shim." But the declarative projections now duplicate ALL the logic. Every event handler change needs to be reflected in both places. Should I:
+
 - (a) Keep both forever (maintenance burden)
 - (b) Mark deprecated now, remove in v5
 - (c) Make ProjectionLayer internally delegate to the declarative queries (best of both, but requires bridging `map[string]any` → typed views)

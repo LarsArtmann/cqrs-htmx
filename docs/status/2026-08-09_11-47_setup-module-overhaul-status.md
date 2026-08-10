@@ -246,6 +246,7 @@ and 46 tests at 87.4% coverage. The module is in good shape but several improvem
 
 Currently setup cherry-picks fields. There are ~10 more ServiceConfig fields (Logger, SnapshotConfig,
 SecurityHooks, EmailVerification, Lockout, etc.) not exposed. Two options:
+
 - **A:** Expose everything (setup becomes a 1:1 passthrough — verbose Config but maximum flexibility)
 - **B:** Keep cherry-picking (setup stays simple, consumers who need advanced fields use `usermgmt.NewService` directly)
 - **C:** Add an `Advanced usermgmt.ServiceConfig` escape hatch field for power users
@@ -258,6 +259,7 @@ Currently `/health` only checks projection status. A real readiness check should
 event store is reachable (e.g., `db.Ping()` for SQL stores). But setup doesn't know if the store is
 SQL-backed or in-memory, and the `event.Store` interface doesn't have a `Health()` or `Ping()` method.
 Should I:
+
 - **A:** Type-assert the store to `*sql.DB` and call Ping?
 - **B:** Add a `HealthCheck func() error` to Config for consumers to inject?
 - **C:** Leave it as projection-only (KISS)?
@@ -266,6 +268,7 @@ Should I:
 
 The root module's `cqrshtmx.Broadcaster` is the standard SSE fan-out mechanism. Currently consumers
 must create their own. Setup could:
+
 - **A:** Always create one and expose it as `Bundle.Broadcaster`
 - **B:** Conditionally create one if `Config.SSEURL != ""`
 - **C:** Not create one (consumer's responsibility — setup shouldn't assume SSE is needed)
@@ -276,13 +279,13 @@ This affects whether setup should also auto-mount an SSE endpoint.
 
 ## Metrics Summary
 
-| Metric         | Before | After  | Delta    |
-| -------------- | ------ | ------ | -------- |
-| Tests          | 8      | 46     | +38      |
-| Coverage       | 85.3%  | 87.4%  | +2.1pp   |
-| Lint issues    | 0      | 0      | 0        |
-| Config fields  | 12     | 22     | +10      |
-| Source LOC     | ~350   | ~643   | +293     |
-| Test LOC       | ~208   | ~987   | +779     |
-| Bundle methods | 4      | 6      | +2       |
-| Bugs fixed    | 0 known | 4     | +4       |
+| Metric         | Before  | After | Delta  |
+| -------------- | ------- | ----- | ------ |
+| Tests          | 8       | 46    | +38    |
+| Coverage       | 85.3%   | 87.4% | +2.1pp |
+| Lint issues    | 0       | 0     | 0      |
+| Config fields  | 12      | 22    | +10    |
+| Source LOC     | ~350    | ~643  | +293   |
+| Test LOC       | ~208    | ~987  | +779   |
+| Bundle methods | 4       | 6     | +2     |
+| Bugs fixed     | 0 known | 4     | +4     |

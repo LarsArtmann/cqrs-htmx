@@ -11,35 +11,35 @@
 
 ### Lint fixes (13 issues → 0)
 
-| File | Issue | Fix |
-| --- | --- | --- |
-| `config.go:29-31` | SA1019 ×3 (deprecated usermgmt re-export aliases) | Migrated to direct `identitymodel.TOTPProvider`/`WebAuthnProvider`/`OAuth2Provider` imports |
-| `setup.go:79` | mnd (magic number `25`) | Extracted `const defaultPageSize = 25` |
-| `setup.go:49` | exhaustruct (Bundle missing Admin/Dashboard/Login) | Added `//nolint:exhaustruct` (conditional assignment below) |
-| `bundle.go:96` | wrapcheck (unwrapped `Service.Close()` error) | Wrapped via `errorfamily.WrapInfrastructure(err, "setup.bundle_close", ...)` |
-| `setup_test.go` ×7 | errcheck (unchecked `defer bundle.Close()`) | Converted to `defer func() { _ = bundle.Close() }()` |
+| File               | Issue                                              | Fix                                                                                         |
+| ------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `config.go:29-31`  | SA1019 ×3 (deprecated usermgmt re-export aliases)  | Migrated to direct `identitymodel.TOTPProvider`/`WebAuthnProvider`/`OAuth2Provider` imports |
+| `setup.go:79`      | mnd (magic number `25`)                            | Extracted `const defaultPageSize = 25`                                                      |
+| `setup.go:49`      | exhaustruct (Bundle missing Admin/Dashboard/Login) | Added `//nolint:exhaustruct` (conditional assignment below)                                 |
+| `bundle.go:96`     | wrapcheck (unwrapped `Service.Close()` error)      | Wrapped via `errorfamily.WrapInfrastructure(err, "setup.bundle_close", ...)`                |
+| `setup_test.go` ×7 | errcheck (unchecked `defer bundle.Close()`)        | Converted to `defer func() { _ = bundle.Close() }()`                                        |
 
 ### Gate integration
 
-| Gate | Status | Evidence |
-| --- | --- | --- |
-| `nix run .#coverage-gate` | **PASS** — setup 85.3% (gate 80%) | Added `check_cov setup 80` in `flake.nix:622` |
-| `nix run .#lint` | **PASS** — 0 issues across 12 modules | Auto-discovered from `go.work`; setup passes with 0 issues |
-| `nix run .#build` | **PASS** — 21 modules including setup | Auto-discovered from `go.work` |
-| `nix run .#check-cqrs-lint` | **PASS** — all modules pass strict | Verified post-report |
-| `nix flake check --no-build` | **PASS** — all checks passed | Verified post-report |
-| CI: build job | **ADDED** — `cd setup && go build ./...` | `ci.yml:149-155` |
-| CI: test job | **ADDED** — `cd setup && go test ... -race -coverprofile=coverage.out` | `ci.yml:242-248` |
-| CI: coverage check | **ADDED** — 80% threshold | `ci.yml:290-294` |
-| CI: lint job | **ADDED** — `golangci-lint (setup)` | `ci.yml:381-389` |
-| CI: mod-tidy job | **ADDED** — `setup` in module list | `ci.yml:403` |
-| CI: errorfamily scanner | **ADDED** — `setup` in module list | `ci.yml:494` |
-| `check-module-isolation.sh` | **ADDED** — `setup` in MODULES array | `scripts/check-module-isolation.sh:26` |
-| `check-dep-budgets.sh` | **ADDED** — setup budget 14 (actual 11) | `scripts/check-dep-budgets.sh:28` |
-| `go mod tidy` (setup) | **CLEAN** — identity-model promoted to direct | Verified via `go mod tidy -diff` |
-| `go vet` (setup) | **PASS** — 0 issues | Verified post-report |
-| `check-docs-links.sh` | **PASS** — 187 links | Verified |
-| `check-domain-counts.sh` | **PASS** — no drift | Verified |
+| Gate                         | Status                                                                 | Evidence                                                   |
+| ---------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `nix run .#coverage-gate`    | **PASS** — setup 85.3% (gate 80%)                                      | Added `check_cov setup 80` in `flake.nix:622`              |
+| `nix run .#lint`             | **PASS** — 0 issues across 12 modules                                  | Auto-discovered from `go.work`; setup passes with 0 issues |
+| `nix run .#build`            | **PASS** — 21 modules including setup                                  | Auto-discovered from `go.work`                             |
+| `nix run .#check-cqrs-lint`  | **PASS** — all modules pass strict                                     | Verified post-report                                       |
+| `nix flake check --no-build` | **PASS** — all checks passed                                           | Verified post-report                                       |
+| CI: build job                | **ADDED** — `cd setup && go build ./...`                               | `ci.yml:149-155`                                           |
+| CI: test job                 | **ADDED** — `cd setup && go test ... -race -coverprofile=coverage.out` | `ci.yml:242-248`                                           |
+| CI: coverage check           | **ADDED** — 80% threshold                                              | `ci.yml:290-294`                                           |
+| CI: lint job                 | **ADDED** — `golangci-lint (setup)`                                    | `ci.yml:381-389`                                           |
+| CI: mod-tidy job             | **ADDED** — `setup` in module list                                     | `ci.yml:403`                                               |
+| CI: errorfamily scanner      | **ADDED** — `setup` in module list                                     | `ci.yml:494`                                               |
+| `check-module-isolation.sh`  | **ADDED** — `setup` in MODULES array                                   | `scripts/check-module-isolation.sh:26`                     |
+| `check-dep-budgets.sh`       | **ADDED** — setup budget 14 (actual 11)                                | `scripts/check-dep-budgets.sh:28`                          |
+| `go mod tidy` (setup)        | **CLEAN** — identity-model promoted to direct                          | Verified via `go mod tidy -diff`                           |
+| `go vet` (setup)             | **PASS** — 0 issues                                                    | Verified post-report                                       |
+| `check-docs-links.sh`        | **PASS** — 187 links                                                   | Verified                                                   |
+| `check-domain-counts.sh`     | **PASS** — no drift                                                    | Verified                                                   |
 
 ### Documentation updates
 

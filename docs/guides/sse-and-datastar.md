@@ -6,33 +6,33 @@
 
 cqrs-htmx has two SSE broadcaster types, one per frontend transport:
 
-| Type | Module | Transport | Purpose |
-| --- | --- | --- | --- |
-| `cqrshtmx.Broadcaster` | Root (`cqrs-htmx/v4`) | HTMX SSE | Fan-out `sse.Event` to HTMX clients, with CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) |
-| `datastar.Broadcaster` | `datastar/v4` | Datastar SSE | Fan-out Datastar patches (elements, signals, redirects) to Datastar clients, with optional replay ring buffer |
+| Type                   | Module                | Transport    | Purpose                                                                                                              |
+| ---------------------- | --------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `cqrshtmx.Broadcaster` | Root (`cqrs-htmx/v4`) | HTMX SSE     | Fan-out `sse.Event` to HTMX clients, with CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) |
+| `datastar.Broadcaster` | `datastar/v4`         | Datastar SSE | Fan-out Datastar patches (elements, signals, redirects) to Datastar clients, with optional replay ring buffer        |
 
 Both wrap the same underlying type: `*sse.Broadcaster[sse.Event]` from [go-sse](https://github.com/larsartmann/go-sse). This is intentional — go-sse provides the core fan-out mechanics (subscribe, broadcast, health, graceful shutdown, buffer sizing, replay), and each Broadcaster adds transport-specific ergonomics on top.
 
 ## Architecture
 
 ```
-                    ┌─────────────────────────────────┐
-                    │     sse.Broadcaster[sse.Event]   │  ← go-sse (core fan-out)
-                    │  Subscribe / Broadcast / Health   │
-                    │  Shutdown / OnSubscribe / etc.   │
-                    └──────────────┬──────────────────┘
-                                   │
-               ┌───────────────────┴───────────────────┐
-               │                                       │
-    ┌──────────┴──────────┐              ┌─────────────┴──────────────┐
-    │ cqrshtmx.Broadcaster │              │  datastar.Broadcaster      │
-    │  (embeds *sse.BC)    │              │  (wraps unexported inner)  │
-    │                       │              │                            │
-    │  + BroadcastOnSuccess │              │  + Broadcast(patch)        │
-    │  + BroadcastOnError   │              │  + BroadcastMany           │
-    │  + ServeSSE           │              │  + ServeHTTP               │
-    │  + Raw()              │              │  + Raw()                   │
-    └───────────────────────┘              └────────────────────────────┘
+                ┌─────────────────────────────────┐
+                │     sse.Broadcaster[sse.Event]   │  ← go-sse (core fan-out)
+                │  Subscribe / Broadcast / Health   │
+                │  Shutdown / OnSubscribe / etc.   │
+                └──────────────┬──────────────────┘
+                               │
+           ┌───────────────────┴───────────────────┐
+           │                                       │
+┌──────────┴──────────┐              ┌─────────────┴──────────────┐
+│ cqrshtmx.Broadcaster │              │  datastar.Broadcaster      │
+│  (embeds *sse.BC)    │              │  (wraps unexported inner)  │
+│                       │              │                            │
+│  + BroadcastOnSuccess │              │  + Broadcast(patch)        │
+│  + BroadcastOnError   │              │  + BroadcastMany           │
+│  + ServeSSE           │              │  + ServeHTTP               │
+│  + Raw()              │              │  + Raw()                   │
+└───────────────────────┘              └────────────────────────────┘
 ```
 
 ### Key difference
@@ -102,10 +102,10 @@ func main() {
 
 ### Why share?
 
-| Approach | Subscribers | Event copies |
-| --- | --- | --- |
+| Approach              | Subscribers                                                                  | Event copies                 |
+| --------------------- | ---------------------------------------------------------------------------- | ---------------------------- |
 | Separate broadcasters | HTMX clients see HTMX events only; Datastar clients see Datastar events only | 2 broadcast calls per update |
-| Shared hub | All clients see all events | 1 broadcast call per update |
+| Shared hub            | All clients see all events                                                   | 1 broadcast call per update  |
 
 Sharing is the right choice when HTMX and Datastar pages display the same real-time data (e.g., a live dashboard with both an HTMX table view and a Datastar chart view).
 
@@ -135,13 +135,13 @@ func RegisterRealtime(mux *http.ServeMux, bc cqrshtmx.RawBroadcaster) {
 
 ## Choosing a Transport
 
-| Criterion | HTMX | Datastar |
-| --- | --- | --- |
-| **Philosophy** | Server renders HTML fragments | Server sends signals, client morphs DOM |
-| **Bundle size** | 0 JS (uses HTMX, loaded separately) | 11.76 KiB (`datastar.js`) |
-| **Reactive state** | None (server is source of truth) | Signals (client-side reactive state) |
-| **Use when** | CRUD forms, tables, navigation | Live dashboards, interactive widgets, optimistic-feeling UI |
-| **Coexistence** | Both can run in the same app — different routes, different endpoints | Same |
+| Criterion          | HTMX                                                                 | Datastar                                                    |
+| ------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Philosophy**     | Server renders HTML fragments                                        | Server sends signals, client morphs DOM                     |
+| **Bundle size**    | 0 JS (uses HTMX, loaded separately)                                  | 11.76 KiB (`datastar.js`)                                   |
+| **Reactive state** | None (server is source of truth)                                     | Signals (client-side reactive state)                        |
+| **Use when**       | CRUD forms, tables, navigation                                       | Live dashboards, interactive widgets, optimistic-feeling UI |
+| **Coexistence**    | Both can run in the same app — different routes, different endpoints | Same                                                        |
 
 For full-stack wiring with both transports, see the [Full-Stack Wiring Guide](fullstack-wiring.md).
 

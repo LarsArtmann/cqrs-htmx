@@ -9,24 +9,27 @@
 ## a) FULLY DONE (shipped, committed, tested)
 
 ### 1. go.work replaces for system/ and metaengine/
+
 - Added 9 new replace directives: `system/v4`, `metaengine/v4`, `metaengine/sqliteengine/v4`, `metaengine/projectionadapter/v4`, `metaengine/pebbleengine/v4`, `metaengine/pgengine/v4`, `metaengine/duckdbengine/v4`, `record/v4`, `testutil/pgtestcontainer/v4`.
 - All required because these tags have broken zero pseudo-versions (same root cause as existing go-cqrs-lite replaces).
 - **Build passes:** `go build ./...` — 23 modules, zero errors.
 
 ### 2. usermgmt/system_exports.go — 20 exported decide functions
+
 - All 20 `decide*` functions exported as `Decide*` (e.g., `decideRegisterUser` → `DecideRegisterUser`).
 - Needed because `system.RegisterCommand` handlers must return `system.Execute[State](ctx, streamID, streamType, decideFn)` — the decide function must be callable from outside the package.
 - These are thin wrappers: `return decideRegisterUser(aggID, ...)`.
 - **usermgmt tests pass:** `go test ./usermgmt/ -count=1 -race` — 19s, zero failures.
 
 ### 3. systemadapter/ module — core API
+
 Three exported functions:
 
-| Export | Purpose |
-|--------|---------|
-| `DomainConfig()` | Returns `system.DomainConfig` with all 4 deciders (`RegisterDecider`), all 20 commands (`RegisterCommand` + `Execute[State]`), and `ProjectionTypeDecoder` set to `EventTypeDecoder()` |
-| `EventTypeDecoder()` | Returns `*projectionadapter.TypeDecoder` mapping all 21 event types to payload structs via `projectionadapter.Register[P](eventType, sample)` |
-| `NewProjectionLayer(sys)` | Creates `projectionhost.Host` from system's `SeekableJournal` + `event.Bus`, registers all 6 usermgmt projections (4 read models + Casbin + AuditLog) |
+| Export                    | Purpose                                                                                                                                                                                |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DomainConfig()`          | Returns `system.DomainConfig` with all 4 deciders (`RegisterDecider`), all 20 commands (`RegisterCommand` + `Execute[State]`), and `ProjectionTypeDecoder` set to `EventTypeDecoder()` |
+| `EventTypeDecoder()`      | Returns `*projectionadapter.TypeDecoder` mapping all 21 event types to payload structs via `projectionadapter.Register[P](eventType, sample)`                                          |
+| `NewProjectionLayer(sys)` | Creates `projectionhost.Host` from system's `SeekableJournal` + `event.Bus`, registers all 6 usermgmt projections (4 read models + Casbin + AuditLog)                                  |
 
 - **3 tests passing (race-clean):**
   - `TestDomainConfig_RegisterUserEndToEnd` — command → system → projection → read model query
@@ -34,13 +37,16 @@ Three exported functions:
   - `TestDomainConfig_TenantAndAuditLog` — tenant creation + audit log
 
 ### 4. examples/system-demo/
+
 - Runnable demo: `system.New(ctx, systemadapter.DomainConfig(), deployment)` → `NewProjectionLayer` → `Start` → dispatch commands → query read models → print topology/health.
 - Builds clean.
 
 ### 5. docs/guides/leveraging-system-metaengine.md
+
 - Full integration guide: quick start, deployment configs (memory/SQLite/separate projection engine), introspection, safety checks, lifecycle, metaengine projections.
 
 ### 6. AGENTS.md updated
+
 - systemadapter/ added to module list with description.
 - system-demo added to examples list.
 - New bullet point documenting the system/metaengine integration.
@@ -50,16 +56,19 @@ Three exported functions:
 ## b) PARTIALLY DONE
 
 ### 1. flake.nix integration
+
 - `systemadapter/` is in `go.work` but **NOT** added to `flake.nix`.
 - The `forEachGoModule` auto-discovery SHOULD pick it up for `build`, `test`, `lint`, `coverage` — but this has NOT been verified.
 - `coverage-gate` uses hardcoded thresholds — no gate added for systemadapter.
 - `.github/workflows/ci.yml` may need manual update for the new module.
 
 ### 2. Lint verification
+
 - Tests pass, build passes, but **lint has NOT been run** (`nix run .#lint`).
 - Likely issues: exhaustruct on `DeploymentConfig` literals, testpackage violations, potential wrapcheck on systemadapter re-exports.
 
 ### 3. Coverage gate
+
 - No coverage threshold set for systemadapter. Given 3 tests over ~360 LOC of domain_config.go + ~120 LOC projections.go + ~90 LOC type_decoder.go, coverage is probably 70-80%.
 
 ---
@@ -67,27 +76,33 @@ Three exported functions:
 ## c) NOT STARTED
 
 ### 1. cqrs-lint integration
+
 - `.cqrs-lint.json` not updated to include systemadapter.
 - The module IS a library consumer of go-cqrs-lite, so it should be linted.
 
 ### 2. Metaengine fold declarations for usermgmt read models
+
 - The current approach uses the existing `projection.Projection` implementations (readModelCore-based).
 - The metaengine path (declaring queries with fold functions → `metaengine.Plan` → auto-planned indexes/ADTs) is documented in the guide but **not implemented**.
 - This is the "bigger vision" integration where read models become planned, cost-optimized projections.
 
 ### 3. System-based setup.New alternative
+
 - `setup.New()` still wires infrastructure manually. No `setup.NewFromSystem()` exists.
 - The systemadapter provides the building blocks, but there's no one-liner that says "give me a setup.Bundle from system.New()".
 
 ### 4. Casbin projection integration with system
+
 - The CasbinProjection runs on the ProjectionLayer's host, not the system's internal projection host.
 - If a consumer also declares metaengine projections, they'd have TWO projection hosts running.
 - No unified host management yet.
 
 ### 5. SQLite-backed persistence test
+
 - Tests only use `Driver: "memory"`. No test verifies the SQLite deployment path works end-to-end.
 
 ### 6. CI workflow update
+
 - `.github/workflows/ci.yml` likely doesn't know about systemadapter or examples/system-demo.
 
 ---
@@ -95,13 +110,16 @@ Three exported functions:
 ## d) TOTALLY FUCKED UP
 
 ### 1. DomainConfig has dead code
+
 - `DomainConfigOption`, `domainConfigBuilder`, `WithProjectionHostOptions`, `WithDomainMiddleware` exist but are **empty stubs** that do nothing. `DomainConfig()` accepts opts but ignores them.
 - I started building an options pattern, realized it added no value, and left the dead code instead of cleaning it up.
 
 ### 2. No go mod tidy on systemadapter
+
 - `go.mod` was written by hand. `go mod tidy` was never run on it. The indirect deps are likely wrong or missing.
 
 ### 3. Example go.mod has manual replaces
+
 - `examples/system-demo/go.mod` has `replace` directives that mirror the workspace, which could conflict with published versions once tags are cut.
 
 ---
@@ -217,6 +235,7 @@ The systemadapter go.mod references `system/v4 v4.1.0`, `metaengine/v4 v4.6.0`, 
 ## Resolution (2026-08-09)
 
 **Status: PARTIALLY RESOLVED — remains in docs/status/.** The systemadapter module ships with working DomainConfig, EventTypeDecoder, and NewProjectionLayer (3 tests pass, builds clean). `go mod tidy` run. However, significant work remains:
+
 - **104 lint issues** (contextcheck, SA1019, exhaustruct, err113, etc.) — module excluded from lint gate, remediation tracked in TODO_LIST
 - **NOT in coverage-gate, CI, module-isolation, or dep-budgets** — tracked in TODO_LIST
 - **Dead code** in DomainConfig (DomainConfigOption, domainConfigBuilder)

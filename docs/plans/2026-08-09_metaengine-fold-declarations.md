@@ -44,18 +44,19 @@ system.New(DomainConfig{
 
 The metaengine `On[E]()` function accepts these handler shapes (verified from `fold.go`):
 
-| Handler shape | Fold kind | Meaning |
-|---|---|---|
-| `func(E) (key, val)` | `FoldInsert` | Insert/upsert by key |
-| `func(E, prev) val` | `FoldUpdate` | Update existing by key (prev is the current value or zero) |
-| `func(E) Remove[V]()` | `FoldRemove` | Remove by key |
-| `func(E) Append{Value}` | `FoldAppend` | Append to a log (requires LogBackend engine) |
+| Handler shape           | Fold kind    | Meaning                                                    |
+| ----------------------- | ------------ | ---------------------------------------------------------- |
+| `func(E) (key, val)`    | `FoldInsert` | Insert/upsert by key                                       |
+| `func(E, prev) val`     | `FoldUpdate` | Update existing by key (prev is the current value or zero) |
+| `func(E) Remove[V]()`   | `FoldRemove` | Remove by key                                              |
+| `func(E) Append{Value}` | `FoldAppend` | Append to a log (requires LogBackend engine)               |
 
 The `Evolve[R]()` builder's `OnEvolution[R, E]()` wraps these into explicit folds with `(event E, result *R)` mutation handlers for the `func(E, prev) val` shape.
 
 ### What the fold handler receives
 
 The `TypeDecoder` wraps each payload in `EventWithID[E]`:
+
 ```go
 type EventWithID[E any] struct {
     ID      string   // evt.StreamID().String()
@@ -91,20 +92,20 @@ type UserView struct {
 
 #### Fold declarations (12 events, all explicit)
 
-| Event | Fold kind | Handler logic |
-|---|---|---|
-| `UserRegistered` | Insert | `func(e EventWithID[UserRegisteredPayload]) (string, UserView)` — key=e.ID, val=UserView{Email, DisplayName, CreatedAt} |
-| `EmailChanged` | Update | `func(e EventWithID[EmailChangedPayload], prev UserView) UserView` — prev.Email=e.Payload.Email, prev.EmailVerified=false |
-| `DisplayNameChanged` | Update | Set prev.DisplayName from payload |
-| `CredentialAdded` | Update | Append to prev.Credentials |
-| `CredentialRemoved` | Update | Filter out by credential ID |
-| `UserDeleted` | Remove | `metaengine.Remove[UserView]()` keyed by e.ID |
-| `EmailVerified` | Update | Set prev.EmailVerified=true |
-| `TOTPEnabled` | Update | Set prev.TOTPEnabled=true |
-| `TOTPDisabled` | Update | Set prev.TOTPEnabled=false |
-| `ExternalAccountLinked` | Update | Append to prev.ExternalAccounts |
-| `ExternalAccountUnlinked` | Update | Filter out by provider+subject |
-| `RolesUpdated` | Skip | No-op (roles live in authz). Use `metaengine.Skip` |
+| Event                     | Fold kind | Handler logic                                                                                                             |
+| ------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `UserRegistered`          | Insert    | `func(e EventWithID[UserRegisteredPayload]) (string, UserView)` — key=e.ID, val=UserView{Email, DisplayName, CreatedAt}   |
+| `EmailChanged`            | Update    | `func(e EventWithID[EmailChangedPayload], prev UserView) UserView` — prev.Email=e.Payload.Email, prev.EmailVerified=false |
+| `DisplayNameChanged`      | Update    | Set prev.DisplayName from payload                                                                                         |
+| `CredentialAdded`         | Update    | Append to prev.Credentials                                                                                                |
+| `CredentialRemoved`       | Update    | Filter out by credential ID                                                                                               |
+| `UserDeleted`             | Remove    | `metaengine.Remove[UserView]()` keyed by e.ID                                                                             |
+| `EmailVerified`           | Update    | Set prev.EmailVerified=true                                                                                               |
+| `TOTPEnabled`             | Update    | Set prev.TOTPEnabled=true                                                                                                 |
+| `TOTPDisabled`            | Update    | Set prev.TOTPEnabled=false                                                                                                |
+| `ExternalAccountLinked`   | Update    | Append to prev.ExternalAccounts                                                                                           |
+| `ExternalAccountUnlinked` | Update    | Filter out by provider+subject                                                                                            |
+| `RolesUpdated`            | Skip      | No-op (roles live in authz). Use `metaengine.Skip`                                                                        |
 
 #### Query declarations
 
@@ -142,11 +143,11 @@ type MembershipView struct {
 
 #### Fold declarations (3 events, all explicit)
 
-| Event | Fold kind | Handler logic |
-|---|---|---|
-| `MemberAdded` | Insert | `func(e EventWithID[MemberAddedPayload]) (string, MembershipView)` — key=e.ID |
-| `MemberRolesChanged` | Update | Replace prev.Roles from payload |
-| `MemberRemoved` | Remove | Keyed by e.ID |
+| Event                | Fold kind | Handler logic                                                                 |
+| -------------------- | --------- | ----------------------------------------------------------------------------- |
+| `MemberAdded`        | Insert    | `func(e EventWithID[MemberAddedPayload]) (string, MembershipView)` — key=e.ID |
+| `MemberRolesChanged` | Update    | Replace prev.Roles from payload                                               |
+| `MemberRemoved`      | Remove    | Keyed by e.ID                                                                 |
 
 #### Query declarations
 
@@ -178,12 +179,12 @@ type TenantView struct {
 
 #### Fold declarations (4 events)
 
-| Event | Fold kind | Handler logic |
-|---|---|---|
-| `TenantCreated` | Insert | key=e.ID, val=TenantView{Name, DisplayName} |
-| `TenantSuspended` | Update | prev.Suspended=true |
-| `TenantReactivated` | Update | prev.Suspended=false |
-| `TenantDeleted` | Remove | Keyed by e.ID |
+| Event               | Fold kind | Handler logic                               |
+| ------------------- | --------- | ------------------------------------------- |
+| `TenantCreated`     | Insert    | key=e.ID, val=TenantView{Name, DisplayName} |
+| `TenantSuspended`   | Update    | prev.Suspended=true                         |
+| `TenantReactivated` | Update    | prev.Suspended=false                        |
+| `TenantDeleted`     | Remove    | Keyed by e.ID                               |
 
 #### Query declarations
 
@@ -212,10 +213,10 @@ type BotView struct {
 
 #### Fold declarations (2 events)
 
-| Event | Fold kind | Handler logic |
-|---|---|---|
-| `BotRegistered` | Insert | key=e.ID, val=BotView from payload |
-| `BotDeleted` | Remove | Keyed by e.ID |
+| Event           | Fold kind | Handler logic                      |
+| --------------- | --------- | ---------------------------------- |
+| `BotRegistered` | Insert    | key=e.ID, val=BotView from payload |
+| `BotDeleted`    | Remove    | Keyed by e.ID                      |
 
 #### Query declarations
 
@@ -247,16 +248,16 @@ type PolicyEntry struct {
 
 #### Fold declarations (cross-aggregate — 8 event types produce changes)
 
-| Event | Fold kind | Handler logic |
-|---|---|---|
-| `UserRegistered` | MultiInsert | For each role in payload → insert PolicyEntry{subject=e.ID, role, domain=e.ID} |
-| `RolesUpdated` | MultiInsert + Remove | Remove all for subject+domain, then insert new roles |
-| `UserDeleted` | Remove | All entries where subject=e.ID (requires multi-key remove — see §5.3) |
-| `MemberAdded` | MultiInsert | For each role → insert PolicyEntry{subject=actorID, role, domain=tenantID} |
-| `MemberRolesChanged` | MultiInsert + Remove | Remove all for actor+tenant, then insert new roles |
-| `MemberRemoved` | Remove | All entries for actor in tenant domain |
-| `TenantDeleted` | Remove | All entries where domain=e.ID |
-| `BotDeleted` | Remove | All entries where subject=e.ID |
+| Event                | Fold kind            | Handler logic                                                                  |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------ |
+| `UserRegistered`     | MultiInsert          | For each role in payload → insert PolicyEntry{subject=e.ID, role, domain=e.ID} |
+| `RolesUpdated`       | MultiInsert + Remove | Remove all for subject+domain, then insert new roles                           |
+| `UserDeleted`        | Remove               | All entries where subject=e.ID (requires multi-key remove — see §5.3)          |
+| `MemberAdded`        | MultiInsert          | For each role → insert PolicyEntry{subject=actorID, role, domain=tenantID}     |
+| `MemberRolesChanged` | MultiInsert + Remove | Remove all for actor+tenant, then insert new roles                             |
+| `MemberRemoved`      | Remove               | All entries for actor in tenant domain                                         |
+| `TenantDeleted`      | Remove               | All entries where domain=e.ID                                                  |
+| `BotDeleted`         | Remove               | All entries where subject=e.ID                                                 |
 
 **No-op events (subscribed for ordering only in current impl):** `CredentialAdded`, `CredentialRemoved`, `ExternalAccountLinked`, `ExternalAccountUnlinked` — these don't affect authz policies. Drop them entirely.
 
@@ -283,6 +284,7 @@ func Enforce(sys *system.System, sub, dom, obj string, act Action) (bool, error)
 ```
 
 **Challenge:** The current Casbin enforcer supports role inheritance (admin inherits from user). In the fold model, this becomes either:
+
 - A query-time check (traverse role hierarchy)
 - Pre-expanded policy entries at insert time (flatten hierarchy)
 
@@ -360,6 +362,7 @@ system.QuerySet[AuditEntryView]("audit_log").Filterable("aggregate_id").Done()
 ### 5.2 Missing Event Metadata in Fold Handlers
 
 **Problem:** `EventWithID[E]` provides `ID` (stream ID) and `Payload`, but NOT:
+
 - `evt.OccurredAt()` — needed by UserView (CreatedAt/UpdatedAt) and AuditEntryView (OccurredAt)
 - `evt.Metadata().UserID` — needed by AuditEntryView
 
@@ -468,73 +471,73 @@ The current `ProjectionLayer.WaitForDrain()` polls `Host.Status()` until all wor
 
 **Goal:** Extend the metaengine to support the fold patterns we need.
 
-| Step | Task | Effort |
-|---|---|---|
-| 1.1 | Extend `EventWithID[E]` with `OccurredAt time.Time` field | Trivial |
-| 1.2 | Add `MultiInsert` fold support for Casbin (multiple entries from one event) | Small |
-| 1.3 | Verify `LogBackend` support in SQLite engine (for AuditLog) | Research |
-| 1.4 | Add `system.Get[R]` / `system.Find[R]` convenience methods (already exist) | Verify |
+| Step | Task                                                                        | Effort   |
+| ---- | --------------------------------------------------------------------------- | -------- |
+| 1.1  | Extend `EventWithID[E]` with `OccurredAt time.Time` field                   | Trivial  |
+| 1.2  | Add `MultiInsert` fold support for Casbin (multiple entries from one event) | Small    |
+| 1.3  | Verify `LogBackend` support in SQLite engine (for AuditLog)                 | Research |
+| 1.4  | Add `system.Get[R]` / `system.Find[R]` convenience methods (already exist)  | Verify   |
 
 ### Phase 2: View Structs & Evolutions (identity-model or systemadapter)
 
 **Goal:** Define the result types and fold declarations.
 
-| Step | Task | Effort |
-|---|---|---|
-| 2.1 | Define `UserView`, `MembershipView`, `TenantView`, `BotView`, `PolicyEntry`, `AuditEntryView` structs | Small |
-| 2.2 | Define `CredentialView`, `ExternalAccountView` sub-structs | Small |
-| 2.3 | Define `ExternalAccountLink`, `BotTokenView` secondary index structs | Small |
-| 2.4 | Write `usermgmt.Evolutions()` returning `[]system.EvolutionSpec` for all 6 result types | Medium |
-| 2.5 | Write `usermgmt.Projections()` returning `[]system.ProjectionDeclaration` for all lookups/queries | Medium |
+| Step | Task                                                                                                  | Effort |
+| ---- | ----------------------------------------------------------------------------------------------------- | ------ |
+| 2.1  | Define `UserView`, `MembershipView`, `TenantView`, `BotView`, `PolicyEntry`, `AuditEntryView` structs | Small  |
+| 2.2  | Define `CredentialView`, `ExternalAccountView` sub-structs                                            | Small  |
+| 2.3  | Define `ExternalAccountLink`, `BotTokenView` secondary index structs                                  | Small  |
+| 2.4  | Write `usermgmt.Evolutions()` returning `[]system.EvolutionSpec` for all 6 result types               | Medium |
+| 2.5  | Write `usermgmt.Projections()` returning `[]system.ProjectionDeclaration` for all lookups/queries     | Medium |
 
 ### Phase 3: Wire into systemadapter.DomainConfig
 
 **Goal:** Update DomainConfig to declare projections instead of using ProjectionLayer.
 
-| Step | Task | Effort |
-|---|---|---|
-| 3.1 | Add `Evolutions` and `Projections` fields to the DomainConfig returned by `systemadapter.DomainConfig()` | Small |
-| 3.2 | Verify `system.New()` creates the internal projection host with these declarations | Small |
-| 3.3 | Verify `sys.MetaEngine()` returns non-nil store | Small |
-| 3.4 | Verify `system.Get[R]()` / `system.Find[R]()` work for each view type | Medium |
+| Step | Task                                                                                                     | Effort |
+| ---- | -------------------------------------------------------------------------------------------------------- | ------ |
+| 3.1  | Add `Evolutions` and `Projections` fields to the DomainConfig returned by `systemadapter.DomainConfig()` | Small  |
+| 3.2  | Verify `system.New()` creates the internal projection host with these declarations                       | Small  |
+| 3.3  | Verify `sys.MetaEngine()` returns non-nil store                                                          | Small  |
+| 3.4  | Verify `system.Get[R]()` / `system.Find[R]()` work for each view type                                    | Medium |
 
 ### Phase 4: Query Helpers
 
 **Goal:** Provide Go-friendly query methods that replace the current read model API.
 
-| Step | Task | Effort |
-|---|---|---|
-| 4.1 | Write `systemadapter.FindUserByID(ctx, sys, id)` → `system.Get[UserView]` | Small |
-| 4.2 | Write `systemadapter.FindUserByEmail(ctx, sys, email)` → `system.Find[UserView]` | Small |
-| 4.3 | Write remaining user queries (FindByExternalAccount, AllUsers, Count) | Small |
-| 4.4 | Write membership queries (FindByAggregateID, FindByActor, FindByTenant) | Small |
-| 4.5 | Write tenant queries (FindByID, FindByName, All) | Small |
-| 4.6 | Write bot queries (FindByID, FindByTokenHash, FindByOwner) | Small |
-| 4.7 | Write authz enforcement helper (Enforce) | Medium |
-| 4.8 | Write audit log queries (Entries, EntriesFor, Recent, Count) | Small |
+| Step | Task                                                                             | Effort |
+| ---- | -------------------------------------------------------------------------------- | ------ |
+| 4.1  | Write `systemadapter.FindUserByID(ctx, sys, id)` → `system.Get[UserView]`        | Small  |
+| 4.2  | Write `systemadapter.FindUserByEmail(ctx, sys, email)` → `system.Find[UserView]` | Small  |
+| 4.3  | Write remaining user queries (FindByExternalAccount, AllUsers, Count)            | Small  |
+| 4.4  | Write membership queries (FindByAggregateID, FindByActor, FindByTenant)          | Small  |
+| 4.5  | Write tenant queries (FindByID, FindByName, All)                                 | Small  |
+| 4.6  | Write bot queries (FindByID, FindByTokenHash, FindByOwner)                       | Small  |
+| 4.7  | Write authz enforcement helper (Enforce)                                         | Medium |
+| 4.8  | Write audit log queries (Entries, EntriesFor, Recent, Count)                     | Small  |
 
 ### Phase 5: Retire ProjectionLayer
 
 **Goal:** Remove the separate host and the old read model implementations.
 
-| Step | Task | Effort |
-|---|---|---|
-| 5.1 | Mark `ProjectionLayer` as deprecated | Trivial |
-| 5.2 | Add migration guide (ProjectionLayer → systemadapter queries) | Medium |
-| 5.3 | Update all tests to use `system.Get[R]` / `system.Find[R]` instead of `pl.User.FindByID()` | Large |
-| 5.4 | Update `examples/system-demo/main.go` | Small |
-| 5.5 | Update adminui/dashboardui if they reference ProjectionLayer | Medium |
-| 5.6 | Remove ProjectionLayer (or keep as backward-compat shim) | Medium |
+| Step | Task                                                                                       | Effort  |
+| ---- | ------------------------------------------------------------------------------------------ | ------- |
+| 5.1  | Mark `ProjectionLayer` as deprecated                                                       | Trivial |
+| 5.2  | Add migration guide (ProjectionLayer → systemadapter queries)                              | Medium  |
+| 5.3  | Update all tests to use `system.Get[R]` / `system.Find[R]` instead of `pl.User.FindByID()` | Large   |
+| 5.4  | Update `examples/system-demo/main.go`                                                      | Small   |
+| 5.5  | Update adminui/dashboardui if they reference ProjectionLayer                               | Medium  |
+| 5.6  | Remove ProjectionLayer (or keep as backward-compat shim)                                   | Medium  |
 
 ### Phase 6: Testing & Verification
 
-| Step | Task | Effort |
-|---|---|---|
-| 6.1 | Equivalence test: same events → same query results as old read models | Large |
-| 6.2 | SQLite engine test for all 6 projections | Medium |
-| 6.3 | Authz enforcement test (admin allowed, plain denied, role inheritance) | Medium |
-| 6.4 | Performance comparison (old read model vs metaengine queries) | Optional |
-| 6.5 | Drain/read-your-writes test | Small |
+| Step | Task                                                                   | Effort   |
+| ---- | ---------------------------------------------------------------------- | -------- |
+| 6.1  | Equivalence test: same events → same query results as old read models  | Large    |
+| 6.2  | SQLite engine test for all 6 projections                               | Medium   |
+| 6.3  | Authz enforcement test (admin allowed, plain denied, role inheritance) | Medium   |
+| 6.4  | Performance comparison (old read model vs metaengine queries)          | Optional |
+| 6.5  | Drain/read-your-writes test                                            | Small    |
 
 ---
 
@@ -597,15 +600,15 @@ allowed, _ := systemadapter.Enforce(ctx, sys, sub, dom, obj, act)
 
 ## 10. Risk Assessment
 
-| Risk | Probability | Impact | Mitigation |
-|---|---|---|---|
-| EventWithID extension breaks go-cqrs-lite consumers | Low | Medium | Additive change — existing code ignores extra fields |
-| LogBackend not supported by SQLite engine | Medium | Low | Fall back to insert-fold QuerySet for AuditLog |
-| Multi-key remove for Casbin not supported | Medium | Medium | Rely on domain-layer cascade (DeleteUser → individual MemberRemoved events) |
-| Role inheritance not expressible in fold model | Low | Medium | Pre-expand role hierarchy at insert time |
-| Performance regression vs hand-tuned maps | Low | Low | Memory engine uses `MapBackend` — same O(1) lookups |
-| Secondary index projections (token hash, external account) add complexity | Medium | Low | Keep them as separate lightweight Lookup projections |
-| adminui/dashboardui break when ProjectionLayer is removed | High | High | Keep ProjectionLayer as backward-compat shim; deprecate later |
+| Risk                                                                      | Probability | Impact | Mitigation                                                                  |
+| ------------------------------------------------------------------------- | ----------- | ------ | --------------------------------------------------------------------------- |
+| EventWithID extension breaks go-cqrs-lite consumers                       | Low         | Medium | Additive change — existing code ignores extra fields                        |
+| LogBackend not supported by SQLite engine                                 | Medium      | Low    | Fall back to insert-fold QuerySet for AuditLog                              |
+| Multi-key remove for Casbin not supported                                 | Medium      | Medium | Rely on domain-layer cascade (DeleteUser → individual MemberRemoved events) |
+| Role inheritance not expressible in fold model                            | Low         | Medium | Pre-expand role hierarchy at insert time                                    |
+| Performance regression vs hand-tuned maps                                 | Low         | Low    | Memory engine uses `MapBackend` — same O(1) lookups                         |
+| Secondary index projections (token hash, external account) add complexity | Medium      | Low    | Keep them as separate lightweight Lookup projections                        |
+| adminui/dashboardui break when ProjectionLayer is removed                 | High        | High   | Keep ProjectionLayer as backward-compat shim; deprecate later               |
 
 ---
 

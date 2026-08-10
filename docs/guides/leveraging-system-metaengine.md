@@ -11,10 +11,10 @@ go-cqrs-lite provides two powerful modules that cqrs-htmx consumers can benefit 
 
 The **`systemadapter/`** submodule bridges cqrs-htmx's identity-model domain (4 aggregates, 20 commands, 21 events) into the `system.New()` API with three exports:
 
-| Export | Purpose |
-|--------|---------|
-| `DomainConfig()` | Pre-wires all deciders + commands + TypeDecoder into a `system.DomainConfig` |
-| `EventTypeDecoder()` | Maps all 21 event types to their payload structs for `projectionadapter` |
+| Export                    | Purpose                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `DomainConfig()`          | Pre-wires all deciders + commands + TypeDecoder into a `system.DomainConfig`                       |
+| `EventTypeDecoder()`      | Maps all 21 event types to their payload structs for `projectionadapter`                           |
 | `NewProjectionLayer(sys)` | Creates usermgmt read models, Casbin authz, and audit log backed by the system's event store + bus |
 
 ## Quick Start
@@ -71,12 +71,12 @@ The `DomainConfig()` function returns a `system.DomainConfig` that registers:
 
 ### 4 Deciders (via `system.RegisterDecider`)
 
-| Aggregate | Stream Type | Decider | State Type |
-|-----------|-------------|---------|------------|
-| User | `"User"` | `usermgmt.UserDecider()` | `UserState` |
+| Aggregate  | Stream Type    | Decider                        | State Type        |
+| ---------- | -------------- | ------------------------------ | ----------------- |
+| User       | `"User"`       | `usermgmt.UserDecider()`       | `UserState`       |
 | Membership | `"Membership"` | `usermgmt.MembershipDecider()` | `MembershipState` |
-| Tenant | `"Tenant"` | `usermgmt.TenantDecider()` | `TenantState` |
-| Bot | `"Bot"` | `usermgmt.BotDecider()` | `BotState` |
+| Tenant     | `"Tenant"`     | `usermgmt.TenantDecider()`     | `TenantState`     |
+| Bot        | `"Bot"`        | `usermgmt.BotDecider()`        | `BotState`        |
 
 ### 20 Commands (via `system.RegisterCommand`)
 
@@ -90,15 +90,15 @@ A `projectionadapter.TypeDecoder` mapping every event type string to its payload
 
 The `ProjectionLayer` creates a dedicated `projectionhost.Host` backed by the system's event infrastructure:
 
-| Component | Type | Purpose |
-|-----------|------|---------|
-| `pl.User` | `*UserReadModel` | Query users by ID, email, external account |
-| `pl.Membership` | `*MembershipReadModel` | Query memberships by tenant/actor |
-| `pl.Tenant` | `*TenantReadModel` | Query tenants by ID, name |
-| `pl.Bot` | `*BotReadModel` | Query bots by owner |
-| `pl.Casbin` | `*CasbinProjection` | Authorization policy projection |
-| `pl.Authz` | `*Authz` | Casbin enforcer for authz checks |
-| `pl.AuditLog` | `*AuditLog` | Append-only audit trail |
+| Component       | Type                   | Purpose                                    |
+| --------------- | ---------------------- | ------------------------------------------ |
+| `pl.User`       | `*UserReadModel`       | Query users by ID, email, external account |
+| `pl.Membership` | `*MembershipReadModel` | Query memberships by tenant/actor          |
+| `pl.Tenant`     | `*TenantReadModel`     | Query tenants by ID, name                  |
+| `pl.Bot`        | `*BotReadModel`        | Query bots by owner                        |
+| `pl.Casbin`     | `*CasbinProjection`    | Authorization policy projection            |
+| `pl.Authz`      | `*Authz`               | Casbin enforcer for authz checks           |
+| `pl.AuditLog`   | `*AuditLog`            | Append-only audit trail                    |
 
 The projection host uses checkpoint-based catch-up (survives restarts with persistent checkpoint stores) and supports dead-letter queues for poison messages.
 
@@ -178,6 +178,7 @@ if report.HasErrors() {
 ```
 
 Rules:
+
 - `volatile-source-of-truth` — warns if using memory driver with non-relaxed durability
 - `durability-downgrade` — warns if source-of-truth durability is Relaxed
 
