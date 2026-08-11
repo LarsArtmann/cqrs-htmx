@@ -322,8 +322,9 @@ func (d *Dashboard) renderCommandDetail(p pageData, cmd *command.PersistedComman
 			metaRowCopyable(&b, "Causation ID", esc(causID), causID)
 		}
 
-		if userID := meta.UserID.String(); userID != "" {
-			metaRowCopyable(&b, "User ID", esc(userID), userID)
+		if actorID := meta.ActorID; !actorID.IsZero() {
+			actorPrefixed := actorID.PrefixedString()
+			metaRowCopyable(&b, "Actor ID", esc(actorPrefixed), actorPrefixed)
 		}
 
 		b.WriteString(`</table></div>`)
@@ -423,8 +424,9 @@ func (d *Dashboard) renderQueryDetail(p pageData, q *query.PersistedQuery) strin
 			metaRowCopyable(&b, "Causation ID", esc(causID), causID)
 		}
 
-		if userID := meta.UserID.String(); userID != "" {
-			metaRowCopyable(&b, "User ID", esc(userID), userID)
+		if actorID := meta.ActorID; !actorID.IsZero() {
+			actorPrefixed := actorID.PrefixedString()
+			metaRowCopyable(&b, "Actor ID", esc(actorPrefixed), actorPrefixed)
 		}
 
 		b.WriteString(`</table></div>`)

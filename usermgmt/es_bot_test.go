@@ -55,10 +55,7 @@ func TestFoldBot_Deleted(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create deleted event: %v", err)
 	}
-	deletedEvt, err = event.MarkTombstone(deletedEvt)
-	if err != nil {
-		t.Fatalf("mark tombstone: %v", err)
-	}
+
 	state, err = foldBot(state, deletedEvt)
 	if err != nil {
 		t.Fatalf("foldBot: %v", err)
@@ -183,7 +180,6 @@ func TestBotReadModel_DeleteRemovesFromIndexes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create event: %v", err)
 	}
-	deletedEvt, _ = event.MarkTombstone(deletedEvt)
 
 	if err := rm.Handle(ctx, deletedEvt); err != nil {
 		t.Fatalf("Handle delete: %v", err)

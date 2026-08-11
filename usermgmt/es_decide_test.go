@@ -93,8 +93,8 @@ func TestDecideDeleteUser_Success(t *testing.T) {
 	if len(events) != 1 {
 		t.Fatalf("got %d events, want 1", len(events))
 	}
-	if events[0].Metadata().Custom[event.MetadataKeyTombstone] == "" {
-		t.Error("expected tombstone metadata")
+	if events[0].Type() != eventUserDeleted {
+		t.Errorf("expected event type %s, got %s", eventUserDeleted, events[0].Type())
 	}
 }
 

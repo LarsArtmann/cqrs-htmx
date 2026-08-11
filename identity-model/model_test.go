@@ -81,7 +81,10 @@ func TestActorID_RoundTrip(t *testing.T) {
 		t.Errorf("expected ActorUser, got %v", actor.Kind())
 	}
 	prefixed := actor.PrefixedString()
-	parsed := ParseActorID(prefixed)
+	parsed, err := ParseActorID(prefixed)
+	if err != nil {
+		t.Fatalf("ParseActorID(%q): %v", prefixed, err)
+	}
 	if parsed.Kind() != ActorUser {
 		t.Errorf("parsed kind mismatch: got %v", parsed.Kind())
 	}
@@ -97,7 +100,10 @@ func TestActorID_BotRoundTrip(t *testing.T) {
 		t.Fatalf("expected ActorBot")
 	}
 	prefixed := actor.PrefixedString()
-	parsed := ParseActorID(prefixed)
+	parsed, err := ParseActorID(prefixed)
+	if err != nil {
+		t.Fatalf("ParseActorID(%q): %v", prefixed, err)
+	}
 	if parsed.Kind() != ActorBot {
 		t.Errorf("parsed kind mismatch: got %v", parsed.Kind())
 	}

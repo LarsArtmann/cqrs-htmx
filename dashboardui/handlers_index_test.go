@@ -32,7 +32,7 @@ func (f *fakeStreamReader) ListWithStatus(
 	statuses := make([]listing.StreamStatus, len(f.items))
 
 	for i, item := range f.items {
-		statuses[i] = listing.StreamStatus{Ref: item, Status: event.TombstoneActive}
+		statuses[i] = listing.StreamStatus{Ref: item, Status: listing.StatusActive}
 	}
 
 	return &listing.Page[listing.StreamStatus]{Items: statuses, HasMore: false}, nil
@@ -87,7 +87,7 @@ func (c *cursorStreamReader) ListWithStatus(
 
 	statuses := make([]listing.StreamStatus, len(page.Items))
 	for i, item := range page.Items {
-		statuses[i] = listing.StreamStatus{Ref: item, Status: event.TombstoneActive}
+		statuses[i] = listing.StreamStatus{Ref: item, Status: listing.StatusActive}
 	}
 
 	return &listing.Page[listing.StreamStatus]{Items: statuses, HasMore: page.HasMore}, nil

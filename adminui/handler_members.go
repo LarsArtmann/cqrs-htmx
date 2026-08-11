@@ -35,7 +35,10 @@ func (h *Handler) membersAdd(w http.ResponseWriter, r *http.Request, _ *usermgmt
 
 // membersRemove handles "remove member" in tenant-admin mode.
 func (h *Handler) membersRemove(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	actor := usermgmt.ParseActorID(r.PathValue("actor"))
+	actor, ok := parseActorFromPath(w, r, h.config.BasePath+"/members")
+	if !ok {
+		return
+	}
 	h.doRemoveMember(w, r, h.config.TenantID, actor, h.config.BasePath+"/members")
 }
 
@@ -45,16 +48,41 @@ func (h *Handler) tenantAddMember(w http.ResponseWriter, r *http.Request, _ *use
 	h.doAddMember(w, r, tenantID, h.config.BasePath+"/tenants/"+tenantID.Get())
 }
 
+// parseActorFromPath extracts and validates the actor ID from the URL path.
+// Returns ok=false if the actor ID is missing or invalid.
+func parseActorFromPath(w http.ResponseWriter, r *http.Request, back string) (usermgmt.ActorID, bool) {
+	actor, err := usermgmt.ParseActorID(r.PathValue("actor"))
+	if err != nil {
+		triggerToast(w, "err", "Invalid actor ID")
+		redirect(w, r, back)
+		return usermgmt.ActorID{}, false
+	}
+	return actor, true
+}
+
 // parseTenantMemberPath extracts the tenant ID and actor ID from path values.
 // Used by super-admin member handlers that take both from the URL.
-func parseTenantMemberPath(r *http.Request) (usermgmt.TenantID, usermgmt.ActorID) {
-	return usermgmt.NewTenantID(r.PathValue("id")), usermgmt.ParseActorID(r.PathValue("actor"))
+// Returns ok=false if the actor ID is invalid.
+func parseTenantMemberPath(
+	w http.ResponseWriter, r *http.Request, back string,
+) (usermgmt.TenantID, usermgmt.ActorID, bool) {
+	actor, err := usermgmt.ParseActorID(r.PathValue("actor"))
+	if err != nil {
+		triggerToast(w, "err", "Invalid actor ID")
+		redirect(w, r, back)
+		return usermgmt.TenantID{}, usermgmt.ActorID{}, false
+	}
+	return usermgmt.NewTenantID(r.PathValue("id")), actor, true
 }
 
 // tenantRemoveMember handles "remove member" in super-admin mode.
 func (h *Handler) tenantRemoveMember(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	tenantID, actor := parseTenantMemberPath(r)
-	h.doRemoveMember(w, r, tenantID, actor, h.config.BasePath+"/tenants/"+tenantID.Get())
+	back := h.config.BasePath + "/tenants/" + r.PathValue("id")
+	tenantID, actor, ok := parseTenantMemberPath(w, r, back)
+	if !ok {
+		return
+	}
+	h.doRemoveMember(w, r, tenantID, actor, back)
 }
 
 func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID usermgmt.TenantID, back string) {
@@ -105,14 +133,21 @@ func (h *Handler) doRemoveMember(
 
 // membersUpdateRole handles "change role" in tenant-admin mode.
 func (h *Handler) membersUpdateRole(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	actor := usermgmt.ParseActorID(r.PathValue("actor"))
+	actor, ok := parseActorFromPath(w, r, h.config.BasePath+"/members")
+	if !ok {
+		return
+	}
 	h.doUpdateRole(w, r, h.config.TenantID, actor, h.config.BasePath+"/members")
 }
 
 // tenantUpdateMemberRole handles "change role" in super-admin mode.
 func (h *Handler) tenantUpdateMemberRole(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	tenantID, actor := parseTenantMemberPath(r)
-	h.doUpdateRole(w, r, tenantID, actor, h.config.BasePath+"/tenants/"+tenantID.Get())
+	back := h.config.BasePath + "/tenants/" + r.PathValue("id")
+	tenantID, actor, ok := parseTenantMemberPath(w, r, back)
+	if !ok {
+		return
+	}
+	h.doUpdateRole(w, r, tenantID, actor, back)
 }
 
 func (h *Handler) doUpdateRole(

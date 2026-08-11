@@ -2,9 +2,7 @@ package identitymodel
 
 import (
 	"crypto/sha256"
-	"encoding/json/v2"
 	"fmt"
-	"strings"
 
 	brandid "github.com/larsartmann/go-branded-id"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -94,98 +92,55 @@ type BotID = brandid.ID[botBrand, string]
 func NewBotID(s string) BotID { return brandid.NewID[botBrand](s) }
 
 // ActorKind discriminates between human and machine actors.
-type ActorKind int
+// This is an alias of id.ActorKind from go-cqrs-lite, ensuring full
+// interoperability with event/command metadata (ADR-0111).
+type ActorKind = id.ActorKind
 
 const (
 	// ActorUser represents a human actor authenticated via WebAuthn or OAuth2.
-	ActorUser ActorKind = iota
+	ActorUser = id.ActorUser
 	// ActorBot represents a machine actor authenticated via API token.
-	ActorBot
+	ActorBot = id.ActorBot
+	// ActorSystem represents an internal system process (scheduler, GC, etc.).
+	ActorSystem = id.ActorSystem
+	// ActorService represents a named service producing records on behalf of users.
+	ActorService = id.ActorService
 )
 
 const (
-	ActorKindUserStr = "user"
-	ActorKindBotStr  = "bot"
+	ActorKindUserStr    = "user"
+	ActorKindBotStr     = "bot"
+	ActorKindSystemStr  = "system"
+	ActorKindServiceStr = "service"
 )
 
-// String returns the lowercase kind name used in prefixed identifiers.
-func (k ActorKind) String() string {
-	switch k {
-	case ActorUser:
-		return ActorKindUserStr
-	case ActorBot:
-		return ActorKindBotStr
-	default:
-		return "unknown"
-	}
-}
-
-// ActorID is a kind-discriminated identifier for any actor (user or bot).
-type ActorID struct {
-	kind ActorKind
-	raw  string
-}
+// ActorID is a kind-discriminated identifier for any actor (user, bot,
+// system, or service). This is an alias of id.ActorID from go-cqrs-lite,
+// ensuring full interoperability with event/command metadata (ADR-0111).
+type ActorID = id.ActorID
 
 // NewActorID creates an ActorID from a kind and raw string value.
 func NewActorID(kind ActorKind, raw string) ActorID {
-	switch kind {
-	case ActorUser, ActorBot:
-	default:
-		//cqrs-lint:ignore(C009) exhaustive switch guard: impossible state if enum values are used
-		panic(
-			fmt.Sprintf("NewActorID: invalid ActorKind %d", kind),
-		)
-	}
-	return ActorID{kind: kind, raw: raw}
+	return id.NewActorID(kind, raw)
 }
 
 // ActorIDFromUser creates an ActorID from a UserID.
 func ActorIDFromUser(uid UserID) ActorID {
-	return ActorID{kind: ActorUser, raw: uid.Get().String()}
+	return id.NewUserActor(uid)
 }
 
 // ActorIDFromBot creates an ActorID from a BotID.
 func ActorIDFromBot(bid BotID) ActorID {
-	return ActorID{kind: ActorBot, raw: bid.Get()}
+	return id.NewBotActor(bid.Get())
 }
 
-// Kind returns the actor kind (user or bot).
-func (a ActorID) Kind() ActorKind { return a.kind }
-
-// String returns the raw identifier string without kind prefix.
-func (a ActorID) String() string { return a.raw }
-
-// IsZero reports whether the ActorID is uninitialized.
-func (a ActorID) IsZero() bool { return a.raw == "" }
-
-// PrefixedString returns the identifier with kind prefix (e.g. "user:01JX...").
-func (a ActorID) PrefixedString() string {
-	return fmt.Sprintf("%s:%s", a.kind, a.raw)
-}
-
-// ParseActorID reconstructs an [ActorID] from a [ActorID.PrefixedString] value.
-func ParseActorID(s string) ActorID {
-	if after, ok := strings.CutPrefix(s, ActorKindBotStr+":"); ok {
-		return ActorID{kind: ActorBot, raw: after}
+// ParseActorID reconstructs an ActorID from its prefixed string form
+// ("kind:raw"). Returns an error for malformed input.
+func ParseActorID(s string) (ActorID, error) {
+	a, err := id.ParseActorID(s)
+	if err != nil {
+		return a, errorfamily.Wrapf(err, event.Rejection,
+			"identitymodel.actor_id.parse", "parse ActorID %q", s)
 	}
-	if _, after, ok := strings.Cut(s, ":"); ok {
-		return ActorID{kind: ActorUser, raw: after}
-	}
-	return ActorID{kind: ActorUser, raw: s}
-}
-
-// MarshalJSON encodes ActorID as its prefixed string form.
-func (a ActorID) MarshalJSON() ([]byte, error) {
-	return marshalJSONOrWrap(a.PrefixedString(), "usermgmt.actor_id.marshal", "marshal ActorID")
-}
-
-// UnmarshalJSON decodes ActorID from its prefixed string form.
-func (a *ActorID) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return errorfamily.WrapRejection(
-			err, "usermgmt.actor_id.unmarshal", "unmarshal ActorID")
-	}
-	*a = ParseActorID(s)
-	return nil
+	return a, nil
 }

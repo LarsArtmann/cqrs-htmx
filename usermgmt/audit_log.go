@@ -10,14 +10,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
 
-// AuditEntry represents a single auditable user action derived from events.
+// AuditEntry represents a single auditable action derived from events.
 //
-// AggregateID and UserID use branded types to prevent accidental cross-assignment
-// with other string-typed identifiers. Both serialize as JSON strings.
+// AggregateID and ActorID use branded/kind-discriminated types to prevent
+// accidental cross-assignment. ActorID serializes as "kind:raw" (e.g.
+// "user:01JX...", "system:scheduler"). UserID is populated only when the
+// actor is a human user (Kind == ActorUser) — it is a convenience field
+// for filtering by user identity.
 type AuditEntry struct {
 	EventType   event.Type  `json:"event_type"`
 	AggregateID id.StreamID `json:"aggregate_id"`
 	OccurredAt  time.Time   `json:"occurred_at"`
+	ActorID     id.ActorID  `json:"actor_id"`
 	UserID      UserID      `json:"user_id,omitzero"`
 	Email       string      `json:"email,omitempty"`
 	Action      string      `json:"action"`
@@ -63,8 +67,15 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 		EventType:   evt.Type(),
 		AggregateID: evt.StreamID(),
 		OccurredAt:  evt.OccurredAt(),
-		UserID:      NewUserID(evt.Metadata().UserID.String()),
+		ActorID:     evt.Metadata().ActorID,
 		Action:      auditActionFor(evt.Type()),
+	}
+
+	// Only populate UserID when the actor is a human user. Bot, system,
+	// and service actors have non-UserID identifiers — storing them as
+	// UserID would create invalid references in the audit trail.
+	if actor := evt.Metadata().ActorID; actor.Kind() == id.ActorUser {
+		entry.UserID = NewUserID(actor.String())
 	}
 
 	a.entries = append(a.entries, entry)

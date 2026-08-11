@@ -7,30 +7,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // makeMaterializeTenantEvent builds a tenant event for adapter tests.
-// If markTombstone is true, the event is tombstone-marked (for delete).
 func makeMaterializeTenantEvent(
 	t *testing.T,
 	eventType event.Type,
 	aggID id.StreamID,
 	payload any,
-	markTombstone bool,
 ) event.Event {
 	t.Helper()
 	evt := makeEventFor(t, eventType, 1, aggID, aggregateTypeTenant, payload)
-	if !markTombstone {
-		return evt
-	}
-	marked, err := event.MarkTombstone(evt)
-	if err != nil {
-		t.Fatalf("MarkTombstone %s: %v", eventType, err)
-	}
-	return marked
+
+	return evt
 }
 
 func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
@@ -71,6 +64,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 			}
 			return existing, nil
 		},
+		DeleteTypes: []event.Type{eventTenantDeleted},
 	}
 
 	proj := NewMaterializeProjection(mat, "tenant-test", allTenantEventTypes)
@@ -94,7 +88,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 		Name:          "acme",
 		DisplayName:   "ACME Corp",
 	}
-	createEvt := makeMaterializeTenantEvent(t, eventTenantCreated, aggID, createPayload, false)
+	createEvt := makeMaterializeTenantEvent(t, eventTenantCreated, aggID, createPayload)
 	if err := proj.Handle(ctx, createEvt); err != nil {
 		t.Fatalf("Handle TenantCreated: %v", err)
 	}
@@ -112,7 +106,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 
 	// --- Suspend ---
 	suspendPayload := TenantSuspendedPayload{SchemaVersion: currentSchemaVersion, Reason: "unpaid"}
-	suspendEvt := makeMaterializeTenantEvent(t, eventTenantSuspended, aggID, suspendPayload, false)
+	suspendEvt := makeMaterializeTenantEvent(t, eventTenantSuspended, aggID, suspendPayload)
 	if err := proj.Handle(ctx, suspendEvt); err != nil {
 		t.Fatalf("Handle TenantSuspended: %v", err)
 	}
@@ -123,7 +117,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 
 	// --- Reactivate ---
 	reactivatePayload := TenantReactivatedPayload{SchemaVersion: currentSchemaVersion}
-	reactivateEvt := makeMaterializeTenantEvent(t, eventTenantReactivated, aggID, reactivatePayload, false)
+	reactivateEvt := makeMaterializeTenantEvent(t, eventTenantReactivated, aggID, reactivatePayload)
 	if err := proj.Handle(ctx, reactivateEvt); err != nil {
 		t.Fatalf("Handle TenantReactivated: %v", err)
 	}
@@ -134,7 +128,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 
 	// --- Delete (tombstone-marked) ---
 	deletePayload := TenantDeletedPayload{SchemaVersion: currentSchemaVersion, Reason: "gone"}
-	deleteEvt := makeMaterializeTenantEvent(t, eventTenantDeleted, aggID, deletePayload, true)
+	deleteEvt := makeMaterializeTenantEvent(t, eventTenantDeleted, aggID, deletePayload)
 	if err := proj.Handle(ctx, deleteEvt); err != nil {
 		t.Fatalf("Handle TenantDeleted: %v", err)
 	}
@@ -144,12 +138,12 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 	}
 
 	// Verify the record is still in the store (Materialize soft-deletes, never hard-deletes)
-	all, err := mat.List(ctx, stack.IncludeTombstoned)
+	all, err := mat.List(ctx, listing.DeleteInclude)
 	if err != nil {
 		t.Fatalf("List Include: %v", err)
 	}
 	if len(all) != 1 {
-		t.Errorf("List IncludeTombstoned: len=%d, want 1", len(all))
+		t.Errorf("List DeleteInclude: len=%d, want 1", len(all))
 	}
 }
 

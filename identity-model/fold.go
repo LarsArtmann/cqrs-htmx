@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -356,11 +357,15 @@ func FoldBot(
 func ActorKindFromString(s string) (ActorKind, error) {
 	switch s {
 	case ActorKindUserStr:
-		return ActorUser, nil
+		return id.ActorUser, nil
 	case ActorKindBotStr:
-		return ActorBot, nil
+		return id.ActorBot, nil
+	case ActorKindSystemStr:
+		return id.ActorSystem, nil
+	case ActorKindServiceStr:
+		return id.ActorService, nil
 	default:
-		return ActorUser, errorfamily.NewRejection(
+			return id.ActorUnknown, errorfamily.NewRejection(
 			"usermgmt.membership.unknown_actor_kind",
 			"unknown actor kind: "+s,
 		)

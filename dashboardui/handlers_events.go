@@ -167,8 +167,9 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 			metaRowCopyable(&b, "Causation ID", esc(causID), causID)
 		}
 
-		if userID := meta.UserID.String(); userID != "" {
-			metaRowCopyable(&b, "User ID", esc(userID), userID)
+		if actorID := meta.ActorID; !actorID.IsZero() {
+			actorPrefixed := actorID.PrefixedString()
+			metaRowCopyable(&b, "Actor ID", esc(actorPrefixed), actorPrefixed)
 		}
 
 		if reqID := meta.RequestID.String(); reqID != "" {

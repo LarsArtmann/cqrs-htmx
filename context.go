@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	brandid "github.com/larsartmann/go-branded-id"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -183,20 +182,16 @@ func UserIDFromContext(ctx context.Context) UserID {
 	return v
 }
 
-// actorBrand is the phantom brand type for ActorID, giving compile-time
-// protection against mixing ActorID with other string-based IDs.
-type actorBrand struct{}
+// ActorID is the effective actor (user, bot, system, or service) in the
+// request context. This is an alias of id.ActorID from go-cqrs-lite (ADR-0111),
+// ensuring full interoperability with event/command metadata.
+type ActorID = id.ActorID
 
-func (actorBrand) Name() string { return "Actor" }
-
-// ActorID is a branded identifier for the effective actor (user or bot) in
-// the request context. The string form is a prefixed ID like "user:01JX...".
-// Use NewActorID to construct from a string; use .Get() to extract the raw
-// string for storage or serialization.
-type ActorID = brandid.ID[actorBrand, string]
-
-// NewActorID constructs an ActorID from a prefixed string (e.g. "user:01JX...").
-func NewActorID(s string) ActorID { return brandid.NewID[actorBrand](s) }
+// ParseActorID reconstructs an ActorID from its prefixed string form
+// (e.g. "user:01JX...", "system:scheduler").
+//
+//nolint:wrapcheck // thin re-export of id.ParseActorID
+func ParseActorID(s string) (ActorID, error) { return id.ParseActorID(s) }
 
 // ImpersonatorID is the same type as ActorID — an impersonator IS an actor.
 // The distinction is contextual (stored under impersonatorIDKey{}, not
@@ -252,11 +247,11 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 	// ImpersonatorID = who is REALLY authenticated (the admin).
 	// When both are set, every event carries the full chain for compliance queries.
 	if actorID := ActorIDFromContext(ctx); !actorID.IsZero() {
-		opts = append(opts, event.WithCustom(MetadataKeyActorID, actorID.Get()))
+		opts = append(opts, event.WithActor(actorID))
 	}
 
 	if impersonatorID := ImpersonatorIDFromContext(ctx); !impersonatorID.IsZero() {
-		opts = append(opts, event.WithCustom(MetadataKeyImpersonatorID, impersonatorID.Get()))
+		opts = append(opts, event.WithCustom(MetadataKeyImpersonatorID, impersonatorID.PrefixedString()))
 	}
 
 	if cid := CorrelationIDFromContext(ctx); !cid.IsZero() {

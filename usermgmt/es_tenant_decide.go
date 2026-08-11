@@ -118,7 +118,6 @@ func decideReactivateTenant(
 	}
 }
 
-//nolint:dupl // mirrors decideDeleteBot; tombstone deletion is structurally identical
 func decideDeleteTenant(
 	aggID id.StreamID,
 	reason string,
@@ -151,14 +150,6 @@ func decideDeleteTenant(
 				"create TenantDeleted event",
 			)
 		}
-		marked, markErr := event.MarkTombstone(evt)
-		if markErr != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				markErr,
-				"usermgmt.tenant_delete.tombstone_failed",
-				"mark tenant tombstone",
-			)
-		}
-		return []event.Event{marked}, nil
+		return []event.Event{evt}, nil
 	}
 }

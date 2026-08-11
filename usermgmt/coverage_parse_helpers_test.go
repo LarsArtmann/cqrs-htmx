@@ -45,7 +45,10 @@ func TestParseActorID_RoundTrip(t *testing.T) {
 			t.Parallel()
 			original := NewActorID(tc.kind, tc.raw)
 			prefixed := original.PrefixedString()
-			parsed := ParseActorID(prefixed)
+			parsed, err := ParseActorID(prefixed)
+			if err != nil {
+				t.Fatalf("ParseActorID(%q): %v", prefixed, err)
+			}
 			if parsed.Kind() != tc.kind {
 				t.Errorf("kind: got %v, want %v", parsed.Kind(), tc.kind)
 			}
@@ -56,17 +59,14 @@ func TestParseActorID_RoundTrip(t *testing.T) {
 	}
 }
 
-// TestParseActorID_NoPrefix verifies that a string without a prefix
-// is treated as a user actor.
+// TestParseActorID_NoPrefix verifies that a string without a kind prefix
+// is rejected (the prefixed format "kind:raw" is mandatory).
 func TestParseActorID_NoPrefix(t *testing.T) {
 	t.Parallel()
 
-	parsed := ParseActorID("just-an-id")
-	if parsed.Kind() != ActorUser {
-		t.Errorf("expected ActorUser, got %v", parsed.Kind())
-	}
-	if parsed.String() != "just-an-id" {
-		t.Errorf("expected raw 'just-an-id', got %q", parsed.String())
+	_, err := ParseActorID("just-an-id")
+	if err == nil {
+		t.Error("expected error for unprefixed string, got nil")
 	}
 }
 

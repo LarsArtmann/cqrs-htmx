@@ -86,10 +86,6 @@ func TestFoldTenant_Deleted(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create deleted event: %v", err)
 	}
-	markEvt, err = event.MarkTombstone(markEvt)
-	if err != nil {
-		t.Fatalf("mark tombstone: %v", err)
-	}
 	state, err = foldTenant(state, markEvt)
 	if err != nil {
 		t.Fatalf("foldTenant: %v", err)
@@ -113,10 +109,6 @@ func TestFoldTenant_DeletedClearsSuspended(t *testing.T) {
 	)
 	if err != nil {
 		t.Fatalf("create deleted event: %v", err)
-	}
-	markEvt, err = event.MarkTombstone(markEvt)
-	if err != nil {
-		t.Fatalf("mark tombstone: %v", err)
 	}
 	state, err = foldTenant(state, markEvt)
 	if err != nil {

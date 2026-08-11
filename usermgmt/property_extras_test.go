@@ -62,8 +62,7 @@ func TestFoldTenantProperty_DeletedClearsSuspended(t *testing.T) {
 		evt := mustPropTenantEvent(eventTenantDeleted, 2, TenantDeletedPayload{
 			SchemaVersion: currentSchemaVersion,
 		})
-		marked, _ := event.MarkTombstone(evt)
-		state, err := foldTenant(base, marked)
+		state, err := foldTenant(base, evt)
 		if err != nil {
 			t.Fatalf("foldTenant: %v", err)
 		}
@@ -134,8 +133,7 @@ func TestFoldBotProperty_DeletedSetsDeletedFlag(t *testing.T) {
 			SchemaVersion: currentSchemaVersion,
 			Reason:        rapid.StringMatching(`[a-z]{3,10}`).Draw(t, "reason"),
 		})
-		marked, _ := event.MarkTombstone(evt)
-		state, err := foldBot(state, marked)
+		state, err := foldBot(state, evt)
 		if err != nil {
 			t.Fatalf("foldBot: %v", err)
 		}

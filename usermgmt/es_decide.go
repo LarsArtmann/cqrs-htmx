@@ -85,14 +85,6 @@ func decideDeleteUser(
 				"create UserDeleted event",
 			)
 		}
-		marked, markErr := event.MarkTombstone(evt)
-		if markErr != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				markErr,
-				"usermgmt.delete_user.tombstone_failed",
-				"mark tombstone",
-			)
-		}
-		return []event.Event{marked}, nil
+		return []event.Event{evt}, nil
 	}
 }

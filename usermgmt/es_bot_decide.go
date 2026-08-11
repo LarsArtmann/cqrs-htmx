@@ -72,7 +72,6 @@ func decideRegisterBot(
 	}
 }
 
-//nolint:dupl // mirrors decideDeleteTenant; tombstone deletion is structurally identical
 func decideDeleteBot(
 	aggID id.StreamID,
 	reason string,
@@ -105,14 +104,6 @@ func decideDeleteBot(
 				"create BotDeleted event",
 			)
 		}
-		marked, markErr := event.MarkTombstone(evt)
-		if markErr != nil {
-			return nil, errorfamily.WrapInfrastructure(
-				markErr,
-				"usermgmt.bot_delete.tombstone_failed",
-				"mark bot tombstone",
-			)
-		}
-		return []event.Event{marked}, nil
+		return []event.Event{evt}, nil
 	}
 }

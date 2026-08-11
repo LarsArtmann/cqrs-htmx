@@ -27,18 +27,27 @@ use (
 	./usermgmt/webauthn
 )
 
-// REQUIRED: local replaces to work around the go-cqrs-lite publish bug where
-// submodule go.mod files use zero pseudo-versions (v4.0.0-00010101000000-000000000000)
-// for sibling requires. Despite the tag-release.sh script stripping `replace`
-// directives, it does NOT re-resolve the `require` lines, so the broken
-// pseudo-versions are exposed at publish time. As of 2026-07-18 this affects
-// 13 of ~40 submodule LATEST tags (v4.0.1/v4.0.2 included), not just v4.0.0.
-// Do NOT remove these replaces until go-cqrs-lite cuts a clean consolidated
-// release (v4.0.3+ or v4.1.0) from a tree where every submodule go.mod has
-// been `go mod tidy`-resolved against real published versions. See
-// go-cqrs-lite/scripts/tag-release.sh for the broken release flow and
-// /home/lars/projects/docs/status/2026-07-18_08-58_go-cqrs-lite-latest-tag-build-alignment.md
-// (appendix) for the full audit of which tags are clean vs broken.
+// REQUIRED: local replaces for go-cqrs-lite master.
+//
+// UPDATE 2026-08-11: The original pseudo-version publish bug is FIXED —
+// published tags (event/v4.4.0, command/v4.4.0, etc.) now have clean go.mod
+// files with real version references. Verified via hermetic GOWORK=off builds.
+//
+// The replaces are STILL required because go-cqrs-lite master has unreleased
+// API changes that cqrs-htmx has migrated to:
+//   - ADR-0114: Tombstone-as-domain-event (event.MarkTombstone removed;
+//     deletion is now signaled by event type + stack.Materialize.DeleteTypes)
+//   - ADR-0111: Branded ActorID (record.CommonMetadata.UserID → ActorID
+//     id.ActorID, a kind-discriminated struct with Kind()/String()/Raw())
+//
+// cqrs-htmx uses meta.ActorID.String() and emits deletion events directly.
+// Published tags (event/v4.4.0, record/v4.0.0) still have the OLD API
+// (UserID string, MarkTombstone). Hermetic GOWORK=off builds of usermgmt
+// and dashboardui will FAIL until go-cqrs-lite publishes tags with these
+// changes (event/v4.5.0+, record/v4.2.0+, command/v4.5.0+, query/v4.4.0+).
+//
+// Removal condition: go-cqrs-lite cuts tags from a tree that includes
+// ADR-0114 + ADR-0111, and cqrs-htmx go.mod files are bumped to reference them.
 replace github.com/larsartmann/go-cqrs-lite => /home/lars/projects/go-cqrs-lite
 
 replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => /home/lars/projects/go-cqrs-lite/catalog
@@ -129,9 +138,8 @@ replace github.com/larsartmann/go-cqrs-lite/transport/http/v4 => /home/lars/proj
 
 replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => /home/lars/projects/go-cqrs-lite/watermill
 
-// Additional replace: system/ and metaengine/ submodules. Required because
-// system/v4 and several metaengine engine submodules have broken zero pseudo-versions
-// in their published tags (same root cause as the other go-cqrs-lite replaces above).
+// Additional replace: system/, metaengine/, and record/ submodules.
+// Same reason as the main go-cqrs-lite block above (unreleased ADR-0114/ADR-0111 API).
 // Added 2026-08-09 to enable cqrs-htmx ↔ go-cqrs-lite system/metaengine integration.
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => /home/lars/projects/go-cqrs-lite/record
 
@@ -151,13 +159,13 @@ replace github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 => /home/
 
 replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => /home/lars/projects/go-cqrs-lite/testutil/pgtestcontainer
 
-// Additional replace: go-idempotency is a transitive dep of go-cqrs-lite/idempotency
-// with a zero pseudo-version (v0.0.0). The repo has no published tags. Without this
-// workspace-level replace, `go build ./...` fails in workspace mode because the
-// replace in go-cqrs-lite/idempotency/go.mod is only visible within that module's context.
+// Additional replace: go-idempotency is a transitive dep of go-cqrs-lite/idempotency.
+// Now published (v0.1.2) but the workspace-level replace is still needed because the
+// local go-cqrs-lite/idempotency (via main replace above) references it and the module-local
+// replace is not visible in workspace mode.
 replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempotency
 
 // Additional replace: httputil/server_timing is a separate Go module (subdirectory
-// of httputil with its own go.mod) with no published tags. The v0.0.0 pseudo-version
-// in go.mod cannot be resolved without this workspace-level replace.
+// of httputil with its own go.mod). Now published (server_timing/v0.10.0) but kept
+// for workspace consistency with local httputil development.
 replace github.com/larsartmann/httputil/server_timing => /home/lars/projects/httputil/server_timing

@@ -26,6 +26,10 @@ const (
 	ActorUser = identitymodel.ActorUser
 	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 	ActorBot = identitymodel.ActorBot
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	ActorSystem = identitymodel.ActorSystem
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	ActorService = identitymodel.ActorService
 )
 
 // Deprecated: NewUserID silently hashes non-ULID strings, masking invalid input.
@@ -63,4 +67,4 @@ func ActorIDFromUser(uid UserID) ActorID { return identitymodel.ActorIDFromUser(
 func ActorIDFromBot(bid BotID) ActorID { return identitymodel.ActorIDFromBot(bid) }
 
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
-func ParseActorID(s string) ActorID { return identitymodel.ParseActorID(s) }
+func ParseActorID(s string) (ActorID, error) { return identitymodel.ParseActorID(s) }

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -264,23 +265,14 @@ func unmarshalSessionOrigin(originType, data string) (SessionOrigin, error) {
 }
 
 // parseActorIDPrefixed reconstructs an ActorID from its prefixed string form
-// ("user:<id>" / "bot:<id>"), the inverse of ActorID.PrefixedString.
+// ("user:<id>" / "bot:<id>" / "system:<name>" / "service:<id>"),
+// the inverse of ActorID.PrefixedString.
 func parseActorIDPrefixed(s string) ActorID {
-	if s == "" {
+	a, err := id.ParseActorID(s)
+	if err != nil {
 		return ActorID{}
 	}
-	kindStr, raw, found := strings.Cut(s, ":")
-	if !found {
-		return ActorID{}
-	}
-	switch kindStr {
-	case actorKindUserStr:
-		return NewActorID(ActorUser, raw)
-	case actorKindBotStr:
-		return NewActorID(ActorBot, raw)
-	default:
-		return ActorID{}
-	}
+	return a
 }
 
 // Close closes the underlying database connection.

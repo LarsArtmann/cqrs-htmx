@@ -9,7 +9,6 @@ type MembershipState = identitymodel.MembershipState
 
 var (
 	actorKindUserStr = identitymodel.ActorKindUserStr
-	actorKindBotStr  = identitymodel.ActorKindBotStr
 
 	foldMembership      = identitymodel.FoldMembership
 	actorKindFromString = identitymodel.ActorKindFromString

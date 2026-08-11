@@ -80,7 +80,10 @@ func TestParseActorID_RoundTrips(t *testing.T) {
 		usermgmt.NewActorID(usermgmt.ActorBot, "deploy-bot"),
 	}
 	for _, original := range cases {
-		got := usermgmt.ParseActorID(original.PrefixedString())
+		got, err := usermgmt.ParseActorID(original.PrefixedString())
+		if err != nil {
+			t.Fatalf("ParseActorID(%q): %v", original.PrefixedString(), err)
+		}
 		if got.PrefixedString() != original.PrefixedString() {
 			t.Errorf("round-trip %q -> %q", original.PrefixedString(), got.PrefixedString())
 		}

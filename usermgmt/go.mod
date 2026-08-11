@@ -33,7 +33,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
