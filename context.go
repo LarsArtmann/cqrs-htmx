@@ -107,10 +107,6 @@ var (
 	impersonatorIDKeyInstance = contextKey[ImpersonatorID]{name: "impersonator_id"}
 )
 
-// MetadataKeyActorID is the event metadata custom-data key for the effective
-// identity — who the request acts AS. Written by EventOptionsFromContext.
-const MetadataKeyActorID = "actor_id"
-
 // MetadataKeyImpersonatorID is the event metadata custom-data key for the real
 // authenticated identity (the admin). Written by EventOptionsFromContext when
 // impersonation is active.

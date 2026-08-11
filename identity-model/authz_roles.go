@@ -91,12 +91,22 @@ func (a *Authz) UsersForRole(role Role, domain TenantID) ([]string, error) {
 }
 
 // RolesForActor returns the direct roles assigned to an actor in a tenant.
+// Only user actors can have tenant-scoped roles in the Casbin model.
+// Non-user actors (bot, system, service) return nil roles — deny by default.
 func (a *Authz) RolesForActor(actorID ActorID, tenantID TenantID) ([]Role, error) {
+	if actorID.Kind() != ActorUser {
+		return nil, nil
+	}
 	return a.RolesForUser(NewUserID(actorID.String()), tenantID)
 }
 
 // ImplicitRolesForActor returns all roles assigned to an actor in a tenant,
 // including those inherited via the g2 role hierarchy.
+// Only user actors can have tenant-scoped roles in the Casbin model.
+// Non-user actors (bot, system, service) return nil roles — deny by default.
 func (a *Authz) ImplicitRolesForActor(actorID ActorID, tenantID TenantID) ([]Role, error) {
+	if actorID.Kind() != ActorUser {
+		return nil, nil
+	}
 	return a.ImplicitRolesForUser(NewUserID(actorID.String()), tenantID)
 }

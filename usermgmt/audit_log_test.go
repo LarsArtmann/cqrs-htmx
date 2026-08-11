@@ -153,3 +153,67 @@ func TestService_AuditLog_NilWhenNotConfigured(t *testing.T) {
 		t.Error("AuditLog() should return nil when not configured")
 	}
 }
+
+func TestAuditLog_BotActorDoesNotPopulateUserID(t *testing.T) {
+	auditLog := NewAuditLog()
+	botActor := id.NewBotActor("bot-001")
+	aggID := id.NewStreamID()
+	evt, err := event.New(
+		eventUserRegistered, aggID, aggregateTypeUser, 1,
+		map[string]string{"email": "bot@test.com"},
+		event.WithActor(botActor),
+	)
+	if err != nil {
+		t.Fatalf("event.New: %v", err)
+	}
+	if err := auditLog.Handle(context.Background(), evt); err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	entries := auditLog.Entries()
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+	entry := entries[0]
+
+	var zero UserID
+	if entry.UserID != zero {
+		t.Errorf("UserID should be zero for bot actor, got %s", entry.UserID.Get())
+	}
+	if entry.ActorID.Kind() != id.ActorBot {
+		t.Errorf("ActorID kind = %v, want ActorBot", entry.ActorID.Kind())
+	}
+	if entry.ActorID.String() != "bot-001" {
+		t.Errorf("ActorID raw = %q, want %q", entry.ActorID.String(), "bot-001")
+	}
+}
+
+func TestAuditLog_UserActorPopulatesUserID(t *testing.T) {
+	auditLog := NewAuditLog()
+	uid := GenerateUserID()
+	aggID := id.NewStreamID()
+	evt, err := event.New(
+		eventUserRegistered, aggID, aggregateTypeUser, 1,
+		map[string]string{"email": "human@test.com"},
+		event.WithActor(id.NewUserActor(uid)),
+	)
+	if err != nil {
+		t.Fatalf("event.New: %v", err)
+	}
+	if err := auditLog.Handle(context.Background(), evt); err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	entries := auditLog.Entries()
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+	entry := entries[0]
+
+	if entry.UserID != uid {
+		t.Errorf("UserID = %s, want %s", entry.UserID.Get(), uid.Get())
+	}
+	if entry.ActorID.Kind() != id.ActorUser {
+		t.Errorf("ActorID kind = %v, want ActorUser", entry.ActorID.Kind())
+	}
+}

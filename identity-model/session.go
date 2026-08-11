@@ -44,14 +44,19 @@ func newSession(actorID ActorID, origin SessionOrigin, ttl time.Duration) (*Sess
 			fmt.Sprintf("generate token for actor %q", actorID.PrefixedString())).WithCause(err)
 	}
 	now := time.Now().UTC()
-	return &Session{
+	sess := &Session{
 		Token:     token,
-		UserID:    NewUserID(actorID.String()),
 		ActorID:   actorID,
 		Origin:    origin,
 		CreatedAt: now,
 		ExpiresAt: now.Add(ttl),
-	}, nil
+	}
+	// Only populate UserID when the actor is a human user. Bot, system,
+	// and service actors have non-UserID identifiers.
+	if actorID.Kind() == ActorUser {
+		sess.UserID = NewUserID(actorID.String())
+	}
+	return sess, nil
 }
 
 // IsExpired reports whether the session has passed its expiration time.
