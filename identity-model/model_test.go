@@ -137,6 +137,39 @@ func TestActorKind_String(t *testing.T) {
 	}
 }
 
+func TestActorKindFromString_AllKinds(t *testing.T) {
+	cases := []struct {
+		str  string
+		want ActorKind
+	}{
+		{ActorKindUserStr, id.ActorUser},
+		{ActorKindBotStr, id.ActorBot},
+		{ActorKindSystemStr, id.ActorSystem},
+		{ActorKindServiceStr, id.ActorService},
+	}
+	for _, tc := range cases {
+		got, err := ActorKindFromString(tc.str)
+		if err != nil {
+			t.Errorf("ActorKindFromString(%q) unexpected error: %v", tc.str, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("ActorKindFromString(%q) = %v, want %v", tc.str, got, tc.want)
+		}
+		// Round-trip: kind → string → kind must match.
+		if got.String() != tc.str {
+			t.Errorf("round-trip mismatch: ActorKind(%v).String() = %q, want %q", got, got.String(), tc.str)
+		}
+	}
+}
+
+func TestActorKindFromString_UnknownReturnsError(t *testing.T) {
+	_, err := ActorKindFromString("nonexistent")
+	if err == nil {
+		t.Fatal("expected error for unknown actor kind")
+	}
+}
+
 func TestEmail_Parse(t *testing.T) {
 	email, err := ParseEmail("  Alice@Example.COM ")
 	if err != nil {
@@ -223,6 +256,36 @@ func TestSession_Impersonation(t *testing.T) {
 	}
 	if imp.Reason != "audit-investigation" {
 		t.Errorf("reason mismatch: got %q", imp.Reason)
+	}
+}
+
+func TestSession_BotActorDoesNotPopulateUserID(t *testing.T) {
+	botActor := id.NewBotActor("ci-bot")
+	session, err := newSession(botActor, DirectLogin{AuthenticatedAs: botActor}, time.Hour)
+	if err != nil {
+		t.Fatalf("newSession failed: %v", err)
+	}
+	var zero UserID
+	if session.UserID != zero {
+		t.Errorf("bot session UserID should be zero, got %s", session.UserID.Get())
+	}
+	if session.ActorID.Kind() != id.ActorBot {
+		t.Errorf("ActorID kind = %v, want ActorBot", session.ActorID.Kind())
+	}
+}
+
+func TestSession_SystemActorDoesNotPopulateUserID(t *testing.T) {
+	sysActor := id.NewSystemActor("scheduler")
+	session, err := newSession(sysActor, DirectLogin{AuthenticatedAs: sysActor}, time.Hour)
+	if err != nil {
+		t.Fatalf("newSession failed: %v", err)
+	}
+	var zero UserID
+	if session.UserID != zero {
+		t.Errorf("system session UserID should be zero, got %s", session.UserID.Get())
+	}
+	if session.ActorID.Kind() != id.ActorSystem {
+		t.Errorf("ActorID kind = %v, want ActorSystem", session.ActorID.Kind())
 	}
 }
 

@@ -109,7 +109,7 @@ loginpage uses templ but hand-rolls everything with custom `lp-*` CSS:
 ## Gotchas
 
 - **`GOEXPERIMENT=jsonv2` is mandatory:** Build fails without it. Never add depguard rules banning `encoding/json/v2`.
-- **`ActorID` differs by module:** Root's is `brandid.ID` (use `NewActorID("...")`). usermgmt's is a kind-discriminated struct (use `NewActorID(kind, raw)`).
+- **`ActorID` is consolidated (ADR-0111):** All three modules (root, identity-model, usermgmt) now alias `id.ActorID` from go-cqrs-lite. Supports 5 kinds: User, Bot, System, Service, Unknown. Use `id.NewUserActor(uid)` / `id.NewBotActor(raw)` / `id.NewSystemActor(name)` / `id.NewServiceActor(id)` for typed construction, or `ParseActorID("kind:raw")` (returns error) for parsing prefixed strings. The old `cqrshtmx.NewActorID(string)` is deleted.
 - **CSRF middleware ordering:** `Chain(CSRFMiddleware, HTMXMiddleware, app.Middleware())` — CSRF first.
 - **`HandlerConfig.Secure` is `*bool`:** nil defaults to true. Use `new(bool)` for false.
 - **Registration is email-only:** No password field. Auth is exclusively via WebAuthn passkeys.

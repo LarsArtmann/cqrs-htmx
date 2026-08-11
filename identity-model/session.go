@@ -44,6 +44,7 @@ func newSession(actorID ActorID, origin SessionOrigin, ttl time.Duration) (*Sess
 			fmt.Sprintf("generate token for actor %q", actorID.PrefixedString())).WithCause(err)
 	}
 	now := time.Now().UTC()
+	//nolint:exhaustruct // intentional: UserID is conditionally set below
 	sess := &Session{
 		Token:     token,
 		ActorID:   actorID,

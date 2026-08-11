@@ -439,3 +439,81 @@ func TestAuthz_NewAuthz_WithConfig(t *testing.T) {
 		t.Fatal("expected allowed via configured group")
 	}
 }
+
+func TestAuthz_RolesForActor_NonUserActorsReturnNil(t *testing.T) {
+	a := newTestAuthz(t)
+	tid := NewTenantID("tenant-a")
+
+	// Seed a user with admin so we know the enforcer is populated.
+	uid, userAid := userActorPair("seed-user")
+	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
+		t.Fatalf("add group: %v", err)
+	}
+
+	// Verify the seed user gets roles (positive control).
+	roles, err := a.RolesForActor(userAid, tid)
+	if err != nil {
+		t.Fatalf("RolesForActor seed user: %v", err)
+	}
+	if len(roles) == 0 {
+		t.Fatal("seed user should have roles")
+	}
+
+	for _, tc := range []struct {
+		name string
+		aid  ActorID
+	}{
+		{"bot", NewActorID(ActorBot, "bot-001")},
+		{"system", NewActorID(ActorSystem, "scheduler")},
+		{"service", NewActorID(ActorService, "api-gateway")},
+		{"unknown", NewActorID(0, "")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := a.RolesForActor(tc.aid, tid)
+			if err != nil {
+				t.Fatalf("RolesForActor: %v", err)
+			}
+			if got != nil {
+				t.Errorf("non-user %s actor should return nil roles, got %v", tc.name, got)
+			}
+		})
+	}
+}
+
+func TestAuthz_ImplicitRolesForActor_NonUserActorsReturnNil(t *testing.T) {
+	a := newTestAuthz(t)
+	tid := NewTenantID("tenant-a")
+
+	uid, userAid := userActorPair("seed-user2")
+	if err := a.AddGroupPolicy(GroupPolicy{Subject: uid.String(), Role: RoleAdmin, Domain: tid.Get()}); err != nil {
+		t.Fatalf("add group: %v", err)
+	}
+
+	// Verify the seed user gets implicit roles (positive control).
+	roles, err := a.ImplicitRolesForActor(userAid, tid)
+	if err != nil {
+		t.Fatalf("ImplicitRolesForActor seed user: %v", err)
+	}
+	if len(roles) == 0 {
+		t.Fatal("seed user should have implicit roles")
+	}
+
+	for _, tc := range []struct {
+		name string
+		aid  ActorID
+	}{
+		{"bot", NewActorID(ActorBot, "bot-002")},
+		{"system", NewActorID(ActorSystem, "gc")},
+		{"service", NewActorID(ActorService, "notification-worker")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := a.ImplicitRolesForActor(tc.aid, tid)
+			if err != nil {
+				t.Fatalf("ImplicitRolesForActor: %v", err)
+			}
+			if got != nil {
+				t.Errorf("non-user %s actor should return nil implicit roles, got %v", tc.name, got)
+			}
+		})
+	}
+}

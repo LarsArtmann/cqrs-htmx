@@ -14,6 +14,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`event.WithActor(id.ActorID)` propagation** (`context.go`): `EventOptionsFromContext` now uses `event.WithActor()` (native `CommonMetadata.ActorID`) instead of the old custom-metadata hack (`event.WithCustom(MetadataKeyActorID, ...)`). This means ActorID on events is now queryable via `evt.Metadata().ActorID` — no more parsing custom metadata strings.
 - **dashboardui "Actor ID" display** (`dashboardui/handlers_events.go`, `handlers_audit.go`): All metadata display sections now show "Actor ID" with the self-describing prefixed format (`user:01JX...`, `system:scheduler`) instead of the misleading "User ID" label that showed only the raw string.
 - **ADR-0114 migration (tombstone-as-domain-event)**: Removed all `event.MarkTombstone` calls — deletion events are now emitted directly. The event type (e.g. `user.deleted`) IS the tombstone signal. Affects `usermgmt/es_decide.go`, `es_bot_decide.go`, `es_tenant_decide.go`, and 5 test files.
+- **Comprehensive ActorID kind-guard tests** (`identity-model/authz_engine_test.go`, `identity-model/model_test.go`, `usermgmt/audit_log_test.go`): Tests verifying that non-user actors (bot, system, service) return nil roles from `RolesForActor`/`ImplicitRolesForActor`, do not populate `AuditEntry.UserID` or `Session.UserID`, and that `ActorKindFromString` round-trips all 5 kinds.
+
+### Fixed
+
+- **Security: authz kind guard** (`identity-model/authz_roles.go`): `RolesForActor` and `ImplicitRolesForActor` now short-circuit for non-user actors (bot, system, service) instead of blindly converting their IDs to `UserID` via `NewUserID(actorID.String())`. Without this guard, a bot actor would have its bot ID SHA-256-hashed into a UserID and used for Casbin role lookups, producing silently wrong authorization decisions. Same bug pattern as the audit_log fix.
+- **Security: session kind guard** (`identity-model/session.go`): `newSession` now only populates `Session.UserID` when the actor is `ActorUser`. Bot, system, and service actors previously had their identifiers blindly converted to `UserID` via `NewUserID(actorID.String())`, creating invalid user references in session records.
+- **Dead code removal** (`context.go`): Removed `MetadataKeyActorID` constant — no longer used after `EventOptionsFromContext` switched to `event.WithActor()`. Only `MetadataKeyImpersonatorID` remains in use.
+- **Stale documentation** (`usermgmt/middleware.go`, `AGENTS.md`): Fixed middleware comment that referenced deleted `cqrshtmx.NewActorID(id)` API (now `cqrshtmx.ParseActorID(id)`). Rewrote AGENTS.md `ActorID differs by module` gotcha — the old text told readers to use `NewActorID("...")` which no longer exists; now documents the consolidation with correct constructor names.
 
 ### Changed
 
