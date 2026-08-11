@@ -72,6 +72,7 @@ The go-cqrs-lite pseudo-version publish bug is **FIXED** — published tags have
 ## f) Up to 50 Things to Get Done Next
 
 ### High Priority (correctness)
+
 1. Guard `audit_log.go` ActorID → UserID with `Kind() == ActorUser` check
 2. Audit production `Materialize` read model configs for `DeleteTypes` (user, bot, tenant)
 3. Verify production `OnTombstone` callbacks fire on delete events
@@ -79,6 +80,7 @@ The go-cqrs-lite pseudo-version publish bug is **FIXED** — published tags have
 5. Verify examples compile (especially admin-demo, dashboard-demo which depend on usermgmt)
 
 ### Medium Priority (cleanup)
+
 6. Remove dead `markTombstone bool` param from `makeMaterializeTenantEvent`
 7. Run `go mod tidy` on all modules to sync `go.work.sum`
 8. Write CHANGELOG entry for ADR-0114/ADR-0111 migration
@@ -96,6 +98,7 @@ The go-cqrs-lite pseudo-version publish bug is **FIXED** — published tags have
 20. Verify `listing.StatusActive` is the semantically correct replacement for `event.TombstoneActive` in all contexts
 
 ### Go-cqrs-lite upstream
+
 21. Determine which exact tags go-cqrs-lite needs to publish (event/v4.5.0? record/v4.2.0?)
 22. Check if `command.Metadata` and `query.Metadata` also embed `CommonMetadata.ActorID` on master
 23. Verify `id.ActorID` struct migration is complete across all go-cqrs-lite packages
@@ -105,6 +108,7 @@ The go-cqrs-lite pseudo-version publish bug is **FIXED** — published tags have
 27. Review go-cqrs-lite `docs/migration/tombstone-to-domain-events.md` for any cqrs-htmx-relevant patterns I missed
 
 ### Documentation
+
 28. Update `docs/guides/` if any guide references MarkTombstone or UserID metadata
 29. Update `docs/guides/leveraging-go-cqrs-lite.md` for ADR-0114 patterns
 30. Update `docs/guides/leveraging-system-metaengine.md` if systemadapter uses tombstone API
@@ -113,12 +117,14 @@ The go-cqrs-lite pseudo-version publish bug is **FIXED** — published tags have
 33. Check if `docs/guides/event-replay-and-rebuild.md` references tombstone detection
 
 ### Testing
+
 34. Write a test that verifies non-user actors don't populate AuditEntry.UserID
 35. Write a test that verifies `DeleteTypes` triggers `OnTombstone` in production config (not just test config)
 36. Run `nix run .#test-fuzz` to verify fuzz tests still pass after migration
 37. Run `nix run .#test-flake` (3x) to verify no flaky tests introduced
 
 ### Technical Debt
+
 38. Consider whether `AuditEntry` should have an `ActorID` field instead of `UserID` (richer model)
 39. Consider whether dashboardui should display ActorID kind (User/Bot/System) instead of just "User ID"
 40. Evaluate if the `makeMaterializeTenantEvent` helper should be split into create/delete variants
@@ -129,6 +135,7 @@ The go-cqrs-lite pseudo-version publish bug is **FIXED** — published tags have
 45. Verify `RebuildProjection` still works correctly with domain-event-based deletion
 
 ### Release Readiness
+
 46. Verify the hermetic nix build (`GOWORK=off`) failure is documented in flake.nix or build scripts
 47. Ensure CI pipeline knows that workspace replaces are required until tags are published
 48. Consider versioning: should cqrs-htmx cut v4.8.0 with these changes?

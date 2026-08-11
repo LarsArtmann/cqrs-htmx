@@ -86,6 +86,7 @@ The three-way `ActorID` split brain is **consolidated** — root, identity-model
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (correctness + security)
+
 1. Fix `RolesForActor` kind guard in `identity-model/authz_roles.go:95`
 2. Fix `ImplicitRolesForActor` kind guard in `identity-model/authz_roles.go:101`
 3. Write test: bot actor does not populate `AuditEntry.UserID`
@@ -94,6 +95,7 @@ The three-way `ActorID` split brain is **consolidated** — root, identity-model
 6. Write test: service actor kind round-trips through `ActorKindFromString`
 
 ### Documentation
+
 7. Update AGENTS.md `ActorID differs by module` gotcha (currently WRONG)
 8. Update AGENTS.md identity-model description (mention 5-kind support)
 9. Add consolidation note to AGENTS.md (three types → one)
@@ -102,12 +104,14 @@ The three-way `ActorID` split brain is **consolidated** — root, identity-model
 12. Update `docs/guides/` if any guide references old ActorID patterns
 
 ### Event payload decision
+
 13. Decide: keep `ActorKind string` + `ActorID string` in payloads, or consolidate to `ActorID string` (PrefixedString)
 14. If consolidating: write upcaster for old 2-field format
 15. If consolidating: bump schema version on affected events
 16. If keeping: document the decision and explain why
 
 ### Verification gates (ALL must pass)
+
 17. `nix run .#test` (full suite via nix)
 18. `nix run .#lint` (workspace-wide via nix)
 19. `nix run .#coverage-gate` (all 12 gates)
@@ -120,6 +124,7 @@ The three-way `ActorID` split brain is **consolidated** — root, identity-model
 26. `nix fmt` (formatting)
 
 ### Cleanup
+
 27. Check if `fmt` import in `identity-model/id.go` is still needed (only `MustParseUserID` uses it)
 28. Check if `strings` import anywhere became unused after identity-model changes
 29. Remove dead `actorBrand` type if not referenced anywhere
@@ -128,6 +133,7 @@ The three-way `ActorID` split brain is **consolidated** — root, identity-model
 32. Audit all `NewUserID(actorID.String())` call sites across ALL modules for the same kind-guard bug
 
 ### System/Service actor support
+
 33. Wire `id.NewSystemActor()` into actual system-initiated event paths
 34. Wire `id.NewServiceActor()` into service-to-service event paths
 35. Consider whether `ActorSystem` should be used for projection rebuilds
@@ -135,11 +141,13 @@ The three-way `ActorID` split brain is **consolidated** — root, identity-model
 37. Add actor kind to session origin display in adminui
 
 ### Examples
+
 38. Verify `examples/basic` doesn't reference old `NewActorID(string)` API
 39. Verify `examples/admin-demo` handles the ParseActorID error return
 40. Check if any example demonstrates the actor kind system
 
 ### Root module cleanup
+
 41. Consider removing `MetadataKeyActorID` if truly unused
 42. Update `EventOptionsFromContext` doc comment (no longer uses custom metadata for actor)
 43. Check if `MetadataKeyImpersonatorID` should also move to native metadata
@@ -147,6 +155,7 @@ The three-way `ActorID` split brain is **consolidated** — root, identity-model
 45. Consider adding `WithServiceActor(ctx, serviceID)` convenience function
 
 ### Architecture
+
 46. Consider whether `AuditEntry` should drop `UserID` entirely (ActorID with Kind is richer)
 47. Consider whether dashboardui should show actor kind as a badge/label
 48. Consider whether the authz engine should key on ActorID (not UserID) for role lookups

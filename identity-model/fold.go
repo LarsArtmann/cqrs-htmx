@@ -365,7 +365,7 @@ func ActorKindFromString(s string) (ActorKind, error) {
 	case ActorKindServiceStr:
 		return id.ActorService, nil
 	default:
-			return id.ActorUnknown, errorfamily.NewRejection(
+		return id.ActorUnknown, errorfamily.NewRejection(
 			"usermgmt.membership.unknown_actor_kind",
 			"unknown actor kind: "+s,
 		)

@@ -79,8 +79,8 @@ github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0 h1:VXot2cxME0f4qNWD
 github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.2.0/go.mod h1:3qROCiPcvau/ODPHE4gLKAhI02r3wNMV7CbiVrwpGvU=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0 h1:K+vOErEJf09qDC2Nn/PakPvZij/aU9m1ZpVN+mrSbBE=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.3.0/go.mod h1:jWGHC3WjyPppawf4jQWqv6lv88RZBeQ4Ea0ZiZE7Gnk=
-github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 h1:6751shB8+f6PX4ogTOBArJpdQDLAsLo9nCwmYsSxnjU=
-github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0/go.mod h1:TB0o6rv8eIdLqV9ZxdIsRNTNQuALt/d5/MFtPZp5AjQ=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0 h1:ymxobjemAsCLMGCEYiDWDtsXuFFhEuJecgoExVO4qtw=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0/go.mod h1:Ng5QOIespmZ+WStPtAeGi8Gy4T9TZ5JkhieR83xBqD0=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 h1:21iCxbTL4UFtFag4V1oqKEl3raxet/ULXrKqiqHQXug=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0/go.mod h1:P6dGBngkTkmj28RL6iCu+TmoSri3wkfseO4I8ElHCUU=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.1.0 h1:R83WOCkHeghtG9F9YsBaM7t44ax0Fj7QBG3huRvHoqQ=
@@ -105,8 +105,8 @@ github.com/larsartmann/httputil v0.11.0 h1:X0toNjNAgl1HKLLGF5xLH+gbFJbagzSrGbkd0
 github.com/larsartmann/httputil v0.11.0/go.mod h1:UeK0ol/n1UNlkwPk5V1HelslUGoTr2MNr1lAPugMfFg=
 github.com/larsartmann/httputil/server_timing v0.10.0 h1:03A0RPelrWEPUjxozXBp74sOBo4Z1myTiBccvM5gvbU=
 github.com/larsartmann/httputil/server_timing v0.10.0/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
-github.com/larsartmann/templ-components v1.8.0 h1:H5mfGaqmf++RS2P6UD90+A8y9fLi+nRBVtl05GzoHyE=
-github.com/larsartmann/templ-components v1.8.0/go.mod h1:odUy+VjdriptId0EP9RfbP/JNQgH/JIpku7xL1KjF3Y=
+github.com/larsartmann/templ-components v1.8.1 h1:VzQcWEsGYZzYeJjxVHW5Qyr5vXdmhTlICcrtxj/mPlY=
+github.com/larsartmann/templ-components v1.8.1/go.mod h1:odUy+VjdriptId0EP9RfbP/JNQgH/JIpku7xL1KjF3Y=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
 github.com/maruel/natural v1.3.0/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
 github.com/mattn/go-isatty v0.0.23 h1:cYwCQTQf3HB6xUC+BtyCLZNr7IzbOmoZbmssVNzSyiQ=

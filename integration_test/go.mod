@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.7.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.1
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.2
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.2.0
@@ -27,7 +27,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.8.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-datastar v0.1.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.1.0 // indirect
 	github.com/larsartmann/go-etag v0.1.0 // indirect
