@@ -4,10 +4,10 @@
   "private": true,
   "description": "Playwright E2E tests for the cqrs-htmx offline sync SharedWorker (ADR-0029 + ADR-0040)",
   "scripts": {
-    "test": "npx playwright test",
-    "test:headed": "npx playwright test --headed",
-    "test:debug": "npx playwright test --debug",
-    "report": "npx playwright show-report"
+    "test": "pnpm dlx playwright test",
+    "test:headed": "pnpm dlx playwright test --headed",
+    "test:debug": "pnpm dlx playwright test --debug",
+    "report": "pnpm dlx playwright show-report"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",

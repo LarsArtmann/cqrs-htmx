@@ -550,7 +550,7 @@
           new features, the rewritten extension system, and migration implications for
           <strong>cqrs-htmx</strong>. Sources:
           <a href="https://four.htmx.org/" style="color: var(--accent)">four.htmx.org</a>
-          docs, npm registry, and migration guide.
+          docs, pnpm registry, and migration guide.
         </p>
         <div class="header-meta">
           <div><strong>4.0.0-beta4</strong> Current</div>
@@ -586,7 +586,7 @@
         <h2>Overview</h2>
         <p class="section-desc">
           htmx 4.0 is the next major version, skipping v3 entirely. It's currently in beta
-          (<code>4.0.0-beta4</code>) under the npm <code>next</code> tag. The docs site at
+          (<code>4.0.0-beta4</code>) under the pnpm <code>next</code> tag. The docs site at
           <a href="https://four.htmx.org" style="color: var(--accent)">four.htmx.org</a> carries a
           prominent banner: <em>"htmx 4.0 is under construction."</em>
         </p>
@@ -1261,7 +1261,7 @@
             <code>.ts</code>, <code>.jinja</code>, <code>.erb</code>, <code>.hbs</code> by default.
           </p>
           <div class="code-block">
-            npx htmx.org@next upgrade-check -- ./path/to/project/root npx htmx.org@next
+            pnpm dlx htmx.org@next upgrade-check -- ./path/to/project/root pnpm dlx htmx.org@next
             upgrade-check --ext .vue ./path/to/project/root
           </div>
         </div>
@@ -1714,7 +1714,7 @@
             <ul class="clean">
               <li>Rename <code>hx-disable</code> → <code>hx-ignore</code></li>
               <li>Rename <code>hx-disabled-elt</code> → <code>hx-disable</code></li>
-              <li>Run <code>npx htmx.org@next upgrade-check</code></li>
+              <li>Run <code>pnpm dlx htmx.org@next upgrade-check</code></li>
               <li>Remove <code>hx-ext</code> attributes (not needed)</li>
               <li>Remove <code>hx-vars</code>, <code>hx-params</code>, <code>hx-prompt</code></li>
             </ul>
@@ -1747,8 +1747,8 @@
             >script</span
           >&gt;
 
-          <span class="cmt"># npm</span>
-          npm install htmx.org@4.0.0-beta4
+          <span class="cmt"># pnpm</span>
+          pnpm add htmx.org@4.0.0-beta4
 
           <span class="cmt"># ES Module</span>
           &lt;<span class="tag">script</span> <span class="attr">type</span>=<span class="str"
@@ -1881,7 +1881,7 @@
 
         <div class="callout">
           <strong>Recommendation:</strong> No rush — v4 is still beta. Stable v2.0.10 remains the
-          npm <code>latest</code>. Wait for v4 stable release, then:
+          pnpm <code>latest</code>. Wait for v4 stable release, then:
           <ol style="margin: 8px 0 0 20px; font-size: 14px; color: var(--text-dim)">
             <li>Run <code>upgrade-check</code> against any example apps</li>
             <li>Replace embedded <code>htmx.min.js</code> with v4 dist</li>
@@ -1910,7 +1910,7 @@
           <a href="https://four.htmx.org/docs/get-started/migration">Migration Guide</a> ·
           <a href="https://four.htmx.org/reference">API Reference</a> ·
           <a href="https://four.htmx.org/extensions">Extensions</a> ·
-          <a href="https://www.npmjs.com/package/htmx.org">npm: htmx.org</a>
+          <a href="https://www.npmjs.com/package/htmx.org">pnpm: htmx.org</a>
         </p>
         <p style="margin-top: 8px">
           Research compiled 2026-06-14 · cqrs-htmx project · htmx 4.0.0-beta4

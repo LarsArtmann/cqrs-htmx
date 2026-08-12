@@ -6,7 +6,7 @@ _Session: Embedded HTMX JS — Self-Hosted Script Serving_
 
 ## Executive Summary
 
-Added embedded HTMX v2.0.9 JavaScript serving to the library. Consumers can now serve HTMX directly from their Go binary with a single handler — no CDN dependency required. This is an opt-in feature: consumers who prefer CDN or npm can continue as before.
+Added embedded HTMX v2.0.9 JavaScript serving to the library. Consumers can now serve HTMX directly from their Go binary with a single handler — no CDN dependency required. This is an opt-in feature: consumers who prefer CDN or pnpm can continue as before.
 
 **All 475 Ginkgo specs pass. All 3 modules build clean. Race detector clean. Zero new lint issues.**
 

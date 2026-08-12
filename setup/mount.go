@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
 )
 
@@ -76,25 +75,19 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	}
 }
 
-// healthHandler builds a readiness check handler that verifies the projection
-// host is not in a failed state. If the service is nil (should not happen in
-// normal usage), it returns a simple 200 OK.
+// healthHandler builds a readiness check handler that verifies all projection
+// workers have caught up and none have failed. It returns 503 while any
+// projection is still draining its initial journal backlog (essential for
+// async startup — see Config.AsyncStartup), and 200 once every worker reaches
+// "live" state. If the service is nil (should not happen in normal usage), it
+// returns a simple 200 OK.
 func (b *Bundle) healthHandler() http.HandlerFunc {
 	if b.Service == nil {
 		return cqrshtmx.ReadinessHandler()
 	}
 
 	return cqrshtmx.ReadinessHandler(
-		cqrshtmx.NewNamedCheck("projections", func() error {
-			for _, s := range b.Service.ProjectionStatuses() {
-				if s.Status == "failed" {
-					return errorfamily.Newf(errorfamily.Infrastructure,
-						"setup.projection_failed", "projection %q has failed: %s", s.Name, s.LastError)
-				}
-			}
-
-			return nil
-		}),
+		cqrshtmx.ProjectionReadinessCheck(b.Service),
 	)
 }
 

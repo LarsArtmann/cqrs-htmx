@@ -104,7 +104,7 @@ shipped, and CI umbrella verified end-to-end.
 | ClientIP cleanup                                   | Low    | FEATURES.md marks deprecated    |
 | Otter cache evaluation for ephemeral stores        | Low    | Long-tail optimization          |
 | PWA manifest for admin-demo                        | Low    | Post-Phase 2                    |
-| Tailwind CSS regeneration                          | Low    | Blocked on npm install          |
+| Tailwind CSS regeneration                          | Low    | Blocked on pnpm install          |
 | v3.3.0 release                                     | High   | Blocked on Phase 2 decisions    |
 
 ---
@@ -165,8 +165,8 @@ green" without running the umbrella `nix run .#test` end-to-end. That has been
 8. **SSE benchmark** — No baseline for replay performance with 10K/100K
    events. Consumers deploying to production need to know the limits.
 
-9. **Tailwind regeneration** — `admin-tw.css` may be stale. Needs `npm install`
-   - `npx tailwindcss build` to regenerate. Blocked on Node.js availability.
+9. **Tailwind regeneration** — `admin-tw.css` may be stale. Needs `pnpm install`
+   - `pnpm dlx tailwindcss build` to regenerate. Blocked on Node.js availability.
 
 10. **Deprecation cleanup** — `ClientIP` is marked `PARTIALLY_FUNCTIONAL` in
     FEATURES.md but still exported. Either fix or remove.
@@ -201,7 +201,7 @@ Sorted by impact × effort × customer-value.
 | 20 | Evaluate maypok86/otter/v2 for ephemeral stores                         | Low      | 12m    | usermgmt         | —         |
 | 21 | Remove or un-deprecate ClientIP                                         | Low      | 8m     | root             | —         |
 | 22 | Add PWA manifest to admin-demo                                          | Low      | 10m    | admin-demo       | —         |
-| 23 | Regenerate admin-tw.css from tailwind source                            | Low      | 12m    | adminui          | npm       |
+| 23 | Regenerate admin-tw.css from tailwind source                            | Low      | 12m    | adminui          | pnpm       |
 | 24 | OPFS/IndexedDB technical spike for Phase 2                              | Medium   | 12m    | docs             | **Q2**    |
 | 25 | Cut v3.3.0 release                                                      | High     | 12m    | repo             | **Q1+Q2** |
 

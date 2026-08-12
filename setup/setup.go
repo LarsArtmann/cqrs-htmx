@@ -48,6 +48,7 @@ func New(cfg Config) (*Bundle, error) {
 		OAuth2:             cfg.OAuth2,
 		SessionTTL:         cfg.SessionTTL,
 		OnProjectionFailed: cfg.OnProjectionFailed,
+		AsyncStartup:       cfg.AsyncStartup,
 	})
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")

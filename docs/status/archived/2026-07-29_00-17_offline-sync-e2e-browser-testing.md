@@ -29,7 +29,7 @@ Built the complete E2E test infrastructure (Go test server + Playwright + 4 test
 
 ### Key Discovery: Playwright + Bun + NixOS Gotchas
 
-- Bun is the JS runtime (`bun x playwright test`). npm not available.
+- Bun is the JS runtime (`bun x playwright test`). pnpm not available.
 - Playwright's downloaded Chromium cannot run on NixOS (no FHS dynamic linker). Must use system Chromium via `E2E_BROWSER_PATH` env var → `launchOptions.executablePath` in config.
 - **Critical Playwright transformer limitation:** TypeScript type assertions (`as any[]`, `import('@playwright/test').Page` in function signatures) inside test files cause silent build failures ("No tests found"). Must use string-based `page.evaluate()` or parameterless functions. This cost ~2 hours of debugging.
 

@@ -1405,7 +1405,7 @@
             Replace embedded htmx.min.js with v4 build (or use CDN via
             <code>HTMXCDNScriptTag</code>)
           </li>
-          <li>Run <code>npx htmx.org@next upgrade-check</code> against templates</li>
+          <li>Run <code>pnpm dlx htmx.org@next upgrade-check</code> against templates</li>
           <li>Rename <code>hx-disable</code> → <code>hx-ignore</code> in all templates</li>
           <li>Add <code>:inherited</code> to <code>hx-headers</code> if on parent elements</li>
           <li>Replace <code>queue:</code> modifiers with <code>hx-sync</code></li>
@@ -1434,7 +1434,7 @@
           <strong>Do NOT adopt htmx 4.0 yet.</strong> As of this audit, htmx 4.0 is in beta (<code
             >4.0.0-beta4</code
           >
-          on npm <code>next</code> tag). The library principle dictates that consumers inherit the
+          on pnpm <code>next</code> tag). The library principle dictates that consumers inherit the
           risk of our dependencies. Shipping a beta HTMX version embedded in a library would expose
           every consumer to potential breaking changes between beta releases.
         </div>

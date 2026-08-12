@@ -132,7 +132,7 @@ Each task decomposed into atomic steps. Sorted within parent task by execution o
 | Sub-ID | Parent | Step                                                        | Est    | Validates                |
 | ------ | ------ | ----------------------------------------------------------- | ------ | ------------------------ |
 | S01a   | T01    | Run `nix run .#e2e` — observe output                        | 10 min | E2E passes or fails      |
-| S01b   | T01    | If fails: debug and fix (npm install, playwright install)   | 12 min | E2E passes               |
+| S01b   | T01    | If fails: debug and fix (pnpm install, playwright install)   | 12 min | E2E passes               |
 | S02a   | T02    | Run `go mod tidy` on root module                            | 3 min  | Dependency resolution    |
 | S02b   | T02    | Run `go mod tidy` on all 17 sub-modules                     | 8 min  | Dependency resolution    |
 | S02c   | T02    | Resolve storage/v4 version drift (align all to v4.5.0)      | 5 min  | Consistent versions      |

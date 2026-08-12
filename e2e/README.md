@@ -14,7 +14,7 @@ The E2E suite (`tests/sync.spec.ts`) exercises the offline command retry pipelin
 ## Prerequisites
 
 - Node.js 18+ (or [Bun](https://bun.sh))
-- Playwright browsers: `npx playwright install --with-deps chromium`
+- Playwright browsers: `pnpm dlx playwright install --with-deps chromium`
 
 ## How to run
 
@@ -22,10 +22,10 @@ The E2E suite (`tests/sync.spec.ts`) exercises the offline command retry pipelin
 cd e2e
 
 # Install dependencies (first time only)
-bun install   # or: npm install
+bun install   # or: pnpm install
 
 # Run the test suite (headless)
-bun run test  # or: npm test
+bun run test  # or: pnpm test
 
 # Run with visible browser
 bun run test:headed

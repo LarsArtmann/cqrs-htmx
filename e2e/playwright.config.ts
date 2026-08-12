@@ -7,8 +7,8 @@ import { defineConfig, devices } from "@playwright/test";
  * before tests and stops it after. GOEXPERIMENT=jsonv2 is mandatory for
  * the cqrs-htmx module to build.
  *
- * Run: npx playwright test
- * Debug: npx playwright test --headed --debug
+ * Run: pnpm dlx playwright test
+ * Debug: pnpm dlx playwright test --headed --debug
  */
 export default defineConfig({
   testDir: "./tests",

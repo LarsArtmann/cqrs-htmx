@@ -93,8 +93,26 @@ type EventSourcedConfig struct {
 	// their initial journal drain during startup. Defaults to 30 seconds when
 	// zero. Increase this for deployments with large event journals or slow
 	// storage. A transient error is returned when the drain cannot complete
-	// within this budget.
+	// within this budget. Ignored when AsyncStartup is true.
 	DrainTimeout time.Duration
+
+	// AsyncStartup controls whether NewEventSourcedSetup blocks until projection
+	// workers finish their initial journal drain. When false (the default),
+	// construction blocks until all projections reach a terminal drain state
+	// (or DrainTimeout elapses) — preserving the historical synchronous startup
+	// behavior.
+	//
+	// Set to true to start the HTTP server immediately while projections catch
+	// up in the background. This eliminates the startup outage window caused by
+	// full-journal replay on every restart (deployments with large event
+	// journals can see multi-minute downtime otherwise). When true, gate reads
+	// behind a readiness check (cqrshtmx.ProjectionReadinessCheck) so the
+	// reverse proxy retries on 503 until projections reach "live" state.
+	//
+	// With async startup, projection failures during drain are no longer
+	// returned as construction errors — monitor them via ProjectionStatuses(),
+	// the /health readiness endpoint, or the OnProjectionFailed callback.
+	AsyncStartup bool
 }
 
 // EventSourcedSetup holds the wired infrastructure for the event-sourced user aggregate.
@@ -299,6 +317,7 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 		config.CheckpointStore,
 		allProjections,
 		config.DrainTimeout,
+		!config.AsyncStartup,
 		hostOpts...,
 	)
 	if err != nil {

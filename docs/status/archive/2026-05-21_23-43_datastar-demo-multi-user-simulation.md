@@ -23,7 +23,7 @@ _Session: Datastar vs HTMX comparison + multi-user simulation demo_
 - **User attribution**: Domain events carry `User` field ("you" or bot name), threaded through context into command handlers
 - **10 simulated users**: Background goroutines create/toggle/delete todos through the same CQRS pipeline, all events broadcast to every connected client
 - **Race-condition fix**: Full todo list re-render on every broadcast event (eliminates `PatchElementsNoTargetsFound` errors from concurrent bot activity)
-- **CDN URL fix**: Corrected from `npm/@starfederation/datastar@1.0.0-beta.11` to `gh/starfederation/datastar@v1.0.1`
+- **CDN URL fix**: Corrected from `pnpm/@starfederation/datastar@1.0.0-beta.11` to `gh/starfederation/datastar@v1.0.1`
 - **Verified**: Build ✓, vet ✓, all endpoints tested (create, toggle, delete, list, simulate, event stream), no panics or server errors
 
 ---
@@ -49,7 +49,7 @@ Nothing partially done — the demo is functionally complete.
 ### 1. CDN URL 404 (FIXED)
 
 - **What**: `https://cdn.jsdelivr.net/npm/@starfederation/datastar@1.0.0-beta.11/bundles/datastar.js` → 404
-- **Cause**: Wrong CDN path (npm vs gh) and wrong version (beta.11 vs v1.0.1)
+- **Cause**: Wrong CDN path (pnpm vs gh) and wrong version (beta.11 vs v1.0.1)
 - **Fix**: `https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.1/bundles/datastar.js`
 
 ### 2. Single-channel broadcast bug (FIXED)

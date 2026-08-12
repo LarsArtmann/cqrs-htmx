@@ -48,7 +48,7 @@
 >
 > 1. **Lint gate red** — T01 lockout wiring raised `NewService` complexity 30→32; T15 tests omit struct fields. Fix: extract lockout wiring to a helper; add `//nolint:exhaustruct` or full init.
 > 2. **Weakened snapshot test (T07)** — assertion loosened to make WithStateCache pass instead of a dedicated cache-path test.
-> 3. **E2E app untested (T14)** — `bun`/`npx` not in nix `runtimeInputs`.
+> 3. **E2E app untested (T14)** — `bun`/`pnpm dlx` not in nix `runtimeInputs`.
 > 4. **No CHANGELOG / TODO_LIST / ROADMAP sync** — convention violation; completed work not recorded in CHANGELOG, stale items remain in TODO_LIST, `WithStateCache` not marked done in ROADMAP.
 > 5. **MySQL dialect (T18) incomplete** — no `classifyMySQLError`, no integration test, no docs.
 > 6. **OnProjectionFailed (T08) untested at runtime** — wiring correct by construction only.

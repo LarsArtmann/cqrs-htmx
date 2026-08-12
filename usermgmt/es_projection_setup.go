@@ -49,15 +49,23 @@ func StartProjections(
 		bus,
 		cpStore,
 		collectProjections(readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog),
-		0, // default drain timeout (30s)
+		0,    // default drain timeout (30s)
+		true, // block: read-your-writes on startup (documented contract)
 	)
 }
 
 // startProjectionHost is the shared projection-host factory used by both
 // StartProjections (initial startup) and RebuildProjection (rebuild after
 // reset). It validates the journal, creates a projectionhost.Host with a
-// dead-letter store, registers all projections, starts the host, and blocks
-// until every projection has drained its initial journal backlog.
+// dead-letter store, registers all projections, and starts the host.
+//
+// When block is true, it blocks until every projection has drained its initial
+// journal backlog (read-your-writes on startup). When block is false, it
+// returns immediately after starting the host — projections catch up in the
+// background. Use block=false for async startup (ServiceConfig.SyncDrain) so
+// the HTTP server can bind while projections replay; gate reads behind a
+// readiness check (cqrshtmx.ProjectionReadinessCheck) until workers reach
+// "live" state.
 func startProjectionHost(
 	ctx context.Context,
 	journal event.Journal,
@@ -65,6 +73,7 @@ func startProjectionHost(
 	cpStore event.CheckpointStore,
 	projections []projection.Projection,
 	drainTimeout time.Duration,
+	block bool,
 	hostOpts ...projectionhost.HostOption,
 ) (*projectionhost.Host, error) {
 	seekable, ok := journal.(event.SeekableJournal)
@@ -110,10 +119,12 @@ func startProjectionHost(
 			"start projection host")
 	}
 
-	if err := waitForDrain(host, drainTimeout); err != nil {
-		//cqrs-lint:ignore(C023) best-effort cleanup in error path
-		_ = host.Stop()
-		return nil, err
+	if block {
+		if err := waitForDrain(host, drainTimeout); err != nil {
+			//cqrs-lint:ignore(C023) best-effort cleanup in error path
+			_ = host.Stop()
+			return nil, err
+		}
 	}
 
 	return host, nil

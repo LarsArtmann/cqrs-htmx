@@ -41,7 +41,7 @@ EventCatalog is a **static-site generator** built on **Astro 5.x + React 18** wi
                        │  parsed by generators
                        ▼
 ┌─────────────────────────────────────────────────────┐
-│  GENERATORS (separate npm packages)                  │
+│  GENERATORS (separate pnpm packages)                  │
 │  • @eventcatalog/generator-asyncapi                  │
 │  • @eventcatalog/generator-openapi                   │
 │  • @eventcatalog/generator-confluent-schema-registry │
@@ -329,7 +329,7 @@ generators: [
 ],
 ```
 
-Run with `npm run generate` → each generator calls SDK functions (`writeEventToService`, `writeServiceToDomain`) to create MDX files on disk.
+Run with `pnpm run generate` → each generator calls SDK functions (`writeEventToService`, `writeServiceToDomain`) to create MDX files on disk.
 
 ### AsyncAPI generator — mapping
 

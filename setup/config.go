@@ -68,6 +68,18 @@ type Config struct {
 	// Use for alerting (Slack, PagerDuty, etc.). Nil = no callback.
 	OnProjectionFailed func(projectionName, lastError string)
 
+	// AsyncStartup controls whether New blocks until projections finish their
+	// initial journal drain. When false (the default), the bundle blocks until
+	// all projections catch up before returning — the HTTP server cannot bind
+	// until drain completes (multi-minute outage on large journals).
+	//
+	// Set to true for production: New returns immediately, the HTTP server binds
+	// right away, and the /health endpoint returns 503 (not ready) until every
+	// projection reaches "live" state, then 200. Point your reverse proxy's
+	// health check at /health so it retries during the catch-up window instead
+	// of returning 502. See docs/guides/async-projection-startup.md.
+	AsyncStartup bool
+
 	// DashboardReadOnly controls whether the CQRS dashboard allows write operations
 	// (projection reset, DLQ replay). Nil = true (safe default). Set to false at your
 	// own risk — the dashboard will have no authorizer unless you add one manually.

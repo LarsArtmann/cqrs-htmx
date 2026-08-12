@@ -29,7 +29,7 @@ Executed all 18 tasks from the Pareto plan. 16 tasks are fully done and verified
 
 **Fix applied (3 layers):**
 
-- Replaced `pkgs.nodePackages.npm` with `pkgs.nodejs` (includes npm/npx)
+- Replaced `pkgs.nodePackages.npm` with `pkgs.nodejs` (includes pnpm/npx)
 - Added `export GOEXPERIMENT=jsonv2` to the script text
 - Added NixOS Chromium auto-detection via `E2E_BROWSER_PATH` env var + `pkgs.chromium` in runtimeInputs
 - Added `pkgs.curl` to runtimeInputs (used for health check but was missing)

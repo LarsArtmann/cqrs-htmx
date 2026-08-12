@@ -175,8 +175,27 @@ type ServiceConfig struct {
 	// their initial journal drain during startup. Defaults to 30 seconds when
 	// zero. Increase this for deployments with large event journals or slow
 	// storage (e.g., SQLite on contended disk). A transient error is returned
-	// when the drain cannot complete within this budget.
+	// when the drain cannot complete within this budget. Ignored when
+	// AsyncStartup is true.
 	DrainTimeout time.Duration
+
+	// AsyncStartup controls whether NewService blocks until projection workers
+	// finish their initial journal drain. When false (the default), NewService
+	// blocks until all projections catch up — preserving the historical
+	// synchronous startup (the HTTP server cannot bind until drain completes).
+	//
+	// Set to true for async startup: NewService returns immediately after the
+	// projection host starts, so the HTTP server binds while projections replay
+	// the journal in the background. This eliminates multi-minute restart
+	// outages on deployments with large event journals. Gate reads behind a
+	// readiness check (cqrshtmx.ProjectionReadinessCheck) — point your reverse
+	// proxy's health check at /health, which returns 503 until every projection
+	// reaches "live" state, then 200.
+	//
+	// Recommended for production deployments. With async startup, projection
+	// failures during drain surface via ProjectionStatuses(), the /health
+	// endpoint, or OnProjectionFailed — not as a NewService error.
+	AsyncStartup bool
 }
 
 // wrapEventStore applies the optional StoreWrapper (e.g. transparent encryption)
@@ -251,6 +270,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		SecurityHooks:      config.SecurityHooks,
 		SnapshotConfig:     config.SnapshotConfig,
 		DrainTimeout:       config.DrainTimeout,
+		AsyncStartup:       config.AsyncStartup,
 	})
 	if err != nil {
 		return nil, err

@@ -694,11 +694,11 @@
                   if command -v bun >/dev/null 2>&1; then
                     bun install --frozen-lockfile 2>/dev/null || bun install
                     bun run test
-                  elif command -v npx >/dev/null 2>&1; then
-                    npx playwright install chromium
-                    npx playwright test
+                  elif command -v pnpm dlx >/dev/null 2>&1; then
+                    pnpm dlx playwright install chromium
+                    pnpm dlx playwright test
                   else
-                    echo "FAIL: Neither bun nor npx found. Install Node.js or Bun to run E2E tests."
+                    echo "FAIL: Neither bun nor pnpm dlx found. Install Node.js or Bun to run E2E tests."
                     exit 1
                   fi
                 '';

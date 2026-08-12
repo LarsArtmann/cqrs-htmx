@@ -131,7 +131,7 @@ _None._ All committed code builds, tests, and lints. There are two pre-existing 
 
 3. **Browser verification of admin-demo** — The demo code is correct and builds, but I did not launch it in a real browser to visually confirm the pending→confirmed lifecycle.
 
-4. **Tailwind rebuild** — I appended raw CSS to `admin-tw.css` because the Tailwind CLI could not resolve `@import "tailwindcss"` without an npm install. When the project has node_modules/tailwindcss available, regenerate `admin-tw.css` from `tailwind.css` to ensure consistency.
+4. **Tailwind rebuild** — I appended raw CSS to `admin-tw.css` because the Tailwind CLI could not resolve `@import "tailwindcss"` without an pnpm install. When the project has node_modules/tailwindcss available, regenerate `admin-tw.css` from `tailwind.css` to ensure consistency.
 
 5. **OPFS/IndexedDB decision documentation** — Phase 2 research covers the question but does not include a detailed technical spike for `sqlite-wasm` + OPFS in SharedWorker.
 
@@ -154,7 +154,7 @@ _None._ All committed code builds, tests, and lints. There are two pre-existing 
 | 7  | Fix integration_test goconst lint warnings                   | Low      | 10m      | —                 |
 | 8  | Add retry button to rejected UI items (templ + JS)           | Medium   | 1d       | —                 |
 | 9  | Inline error message rendering for rejected state            | Medium   | 1d       | —                 |
-| 10 | Regenerate `admin-tw.css` via Tailwind CLI with node_modules | Low      | 30m      | npm install       |
+| 10 | Regenerate `admin-tw.css` via Tailwind CLI with node_modules | Low      | 30m      | pnpm install       |
 | 11 | Document consumer wiring recipe (SSE + ACK + honest UI)      | Medium   | 1d       | —                 |
 | 12 | Add adminui tests for sync indicator rendering               | Medium   | 1d       | —                 |
 | 13 | Add JS unit tests for sync-state handler                     | Medium   | 2d       | —                 |

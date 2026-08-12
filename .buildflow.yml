@@ -72,7 +72,7 @@ skip_steps:
   # uses Playwright (not jest/vitest) and there is no root-level package.json.
   - jest-test
   - vitest-test
-  - npm-audit
+  - pnpm-audit
   # Not installed in devShell; biome handles JS formatting/linting.
   - eslint
   # Nix dead-code linter — not installed.
