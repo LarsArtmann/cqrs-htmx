@@ -11,7 +11,7 @@
 
 This session executed a docs-health AUDIT (BUILD + HARVEST + VERIFY + ANNOTATE + ARCHIVE) across 8 source files. All 5 living docs were updated, 7 historical reports annotated + archived. Then, during verification, I discovered the build is **genuinely broken** — go-cqrs-lite master (`af4b60841`) reverted the ADR-0111 API. I had **wrongly annotated** the build break as "PHANTOM" in report 20-57 based on report 21-19's false claim of "stale LSP state." I corrected this, marked coverage numbers as `[unverified]` across all living docs, added a P0 build-break item, committed, and pushed.
 
-**The deepest failure:** I trusted status reports I was *simultaneously annotating as unreliable*. The docs-health skill says "verify, don't trust" — I verified code *structure* (does the function exist?) but not *compilation* (does the code build?). The one command that mattered — `go build ./...` — was the one I deferred to "after the docs are done." That's backwards. You verify FIRST, then document the verification.
+**The deepest failure:** I trusted status reports I was _simultaneously annotating as unreliable_. The docs-health skill says "verify, don't trust" — I verified code _structure_ (does the function exist?) but not _compilation_ (does the code build?). The one command that mattered — `go build ./...` — was the one I deferred to "after the docs are done." That's backwards. You verify FIRST, then document the verification.
 
 ---
 
