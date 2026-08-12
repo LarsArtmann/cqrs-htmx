@@ -10,6 +10,8 @@ import (
 // projectionDrainReady statuses mean the worker has finished its initial journal
 // drain and registered its live handler (or gracefully stopped after doing so).
 // These are the same terminal states waitForDrain treats as drain-complete.
+//
+//nolint:gochecknoglobals // immutable lookup table
 var projectionDrainReady = map[string]struct{}{
 	"live":    {},
 	"stopped": {},
