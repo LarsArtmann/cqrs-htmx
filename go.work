@@ -56,6 +56,10 @@ replace github.com/larsartmann/go-cqrs-lite/codec/v4 => /home/lars/projects/go-c
 
 replace github.com/larsartmann/go-cqrs-lite/command/v4 => /home/lars/projects/go-cqrs-lite/command
 
+replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => /home/lars/projects/go-cqrs-lite/commandlifecycle
+
+replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 => /home/lars/projects/go-cqrs-lite/commandlifecycle/projections
+
 replace github.com/larsartmann/go-cqrs-lite/decider/v4 => /home/lars/projects/go-cqrs-lite/decider
 
 replace github.com/larsartmann/go-cqrs-lite/dedup/v4 => /home/lars/projects/go-cqrs-lite/dedup
