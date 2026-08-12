@@ -196,7 +196,7 @@ func TestNewEventSourcedSetup_AsyncStartup(t *testing.T) {
 	t.Parallel()
 
 	setup, err := NewEventSourcedSetup(EventSourcedConfig{
-		AsyncStartup: true, //nolint:exhaustruct // test only sets the field under test
+		AsyncStartup: true,
 	})
 	if err != nil {
 		t.Fatalf("NewEventSourcedSetup: %v", err)

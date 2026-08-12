@@ -28,15 +28,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260812165929-11e7746d6a7e // indirect
 	github.com/larsartmann/go-datastar v0.1.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.1.0 // indirect
 	github.com/larsartmann/go-etag v0.1.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
 	github.com/larsartmann/templ-components v1.8.1 // indirect
-	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 // indirect
 )
 
 require (

@@ -62,7 +62,7 @@ func StartProjections(
 // When block is true, it blocks until every projection has drained its initial
 // journal backlog (read-your-writes on startup). When block is false, it
 // returns immediately after starting the host — projections catch up in the
-// background. Use block=false for async startup (ServiceConfig.SyncDrain) so
+// background. Use block=false for async startup (ServiceConfig.AsyncStartup) so
 // the HTTP server can bind while projections replay; gate reads behind a
 // readiness check (cqrshtmx.ProjectionReadinessCheck) until workers reach
 // "live" state.

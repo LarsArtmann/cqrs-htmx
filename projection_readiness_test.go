@@ -16,14 +16,15 @@ func TestProjectionReadinessCheck(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		statuses []cqrshtmx.ProjectionStatusEntry
-		wantErr  bool
+		name        string
+		nilProvider bool
+		statuses    []cqrshtmx.ProjectionStatusEntry
+		wantErr     bool
 	}{
 		{
-			name:     "nil_provider_passes",
-			statuses: nil,
-			wantErr:  false,
+			name:        "nil_provider_passes",
+			nilProvider: true,
+			wantErr:     false,
 		},
 		{
 			name:     "empty_statuses_passes",
@@ -88,8 +89,8 @@ func TestProjectionReadinessCheck(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var provider *mockStatusProvider
-			if tt.statuses != nil || tt.name != "nil_provider_passes" {
+			var provider cqrshtmx.ProjectionStatusProvider
+			if !tt.nilProvider {
 				provider = &mockStatusProvider{statuses: tt.statuses}
 			}
 
@@ -120,8 +121,8 @@ func TestProjectionReadinessCheck_FailedPriority(t *testing.T) {
 	}
 
 	check := cqrshtmx.ProjectionReadinessCheck(provider)
-	err := check.Check()
 
+	err := check.Check()
 	if err == nil {
 		t.Fatal("expected error for failed projection, got nil")
 	}

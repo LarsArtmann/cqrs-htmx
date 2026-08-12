@@ -57,7 +57,7 @@ func ProjectionReadinessCheck(provider ProjectionStatusProvider) NamedCheck {
 
 		if len(draining) > 0 {
 			return errorfamily.NewTransient("projection.draining",
-				fmt.Sprintf("projections still draining: %s", strings.Join(draining, ", ")))
+				"projections still draining: "+strings.Join(draining, ", "))
 		}
 
 		return nil
