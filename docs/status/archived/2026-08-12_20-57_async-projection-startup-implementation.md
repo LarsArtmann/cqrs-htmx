@@ -3,6 +3,8 @@
 **Date:** 2026-08-12 20:57
 **Session scope:** Implement feedback from `docs/feedback/new/2026-08-12_projection-drain-startup-downtime.md` — synchronous projection drain causes multi-minute downtime on every restart.
 
+> **SUPERSEDED** (2026-08-12): This session implemented the feature but never ran tests (see "TOTALLY FUCKED UP" below). Session 21-19 discovered the "build break" was **stale LSP state** — the build was clean the entire time. All tests pass, lint clean, coverage verified. Feature shipped as `af59f3f7`, `e4b7e366`, `b9058c8c`, `d2d3bca2`. See `docs/status/2026-08-12_21-19_async-projection-startup-verified.md` for the definitive report.
+
 ---
 
 ## What This Session Did
@@ -64,20 +66,16 @@ Implemented **Option A** from the feedback document: async projection startup wi
 
 ## d) TOTALLY FUCKED UP
 
-1. **The build is broken and I used it as an excuse to not run tests.** The `event.WithActor` break (`context.go:246`) is pre-existing (go-cqrs-lite snapshot reverted ADR-0111 API). But I should have at minimum:
-   - Tried `go vet` on individual files
-   - Tried building with `GOWORK=off` per-module (usermgmt doesn't import `event.WithActor` directly — the break is in the root module's `context.go`)
-   - Investigated whether the go-cqrs-lite fix is trivial (it might be a one-line change: `event.WithActor(actorID)` → `event.WithUserID(actorID.String())` or similar)
-   - **Worst case:** I should have tried `go test ./usermgmt/...` from within the usermgmt module with `GOWORK=off` — it might work since usermgmt doesn't depend on root's `context.go`
-2. **I wrote a `nil_provider_passes` test case but the mock logic is convoluted.** The test checks `if tt.statuses != nil || tt.name != "nil_provider_passes"` to decide whether to create a provider. This is fragile — it relies on the test name string matching a condition. Should have used a `nilProvider bool` field in the test struct instead.
-3. **I initially designed with `SyncDrain *bool` (pointer) then refactored to `AsyncStartup bool`.** This wasted an edit cycle. Should have recognized immediately that a plain bool with zero-value=false (backward compatible) is the idiomatic Go pattern, matching `HandlerConfig.Secure *bool` only when nil-vs-false-vs-true tri-state is genuinely needed.
+1. ~~**The build is broken and I used it as an excuse to not run tests.**~~ **PHANTOM PROBLEM** — the `event.WithActor` break was stale LSP/gopls cache, NOT a real build error. Session 21-19 ran `go build ./...` and it passed cleanly. The build was NEVER broken. The real fuck-up was trusting `<project_diagnostics>` instead of running the compiler.
+2. ~~**I wrote a `nil_provider_passes` test case but the mock logic is convoluted.**~~ **DONE** — fixed in session 21-19 (`b9058c8c`): replaced fragile name-string check with explicit `nilProvider bool` struct field.
+3. ~~**I initially designed with `SyncDrain *bool` (pointer) then refactored to `AsyncStartup bool`.**~~ **DONE** — refactored to plain `bool` (zero-value = false = backward compatible) within the same session.
 
 ---
 
 ## e) WHAT WE SHOULD IMPROVE
 
-1. **Fix the go-cqrs-lite break FIRST.** The build has been broken since the snapshot revert. No test, lint, or coverage gate can run until it's fixed. This is the #1 blocker for ALL development, not just this session. The fix is likely in go-cqrs-lite (restore `WithActor`) or in cqrs-htmx's `context.go` (adapt to whatever the snapshot renamed it to).
-2. **Always attempt GOWORK=off per-module builds/tests.** The workspace build fails because root's `context.go` breaks. But `usermgmt/` with `GOWORK=off` resolves go-cqrs-lite from published tags (v4.4.0) which has the OLD API that `context.go` doesn't compile against (root doesn't import usermgmt at build time in GOWORK=off). So `cd usermgmt && GOWORK=off go test ./...` might actually work. I never tried this.
+1. ~~**Fix the go-cqrs-lite break FIRST.**~~ **PHANTOM** — the build was never broken (stale LSP). This item is moot.
+2. ~~**Always attempt GOWORK=off per-module builds/tests.**~~ **PHANTOM** — same root cause. The workspace build was always clean.
 3. **The `ProjectionReadinessCheck` status strings are duplicated from `projectionhost.WorkerStatus` constants.** If go-cqrs-lite adds/renames a status, the readiness check silently breaks. Consider exporting the constants or adding a compile-time check.
 4. **`ProjectionReadinessCheck` could expose drain progress** — return a structured response showing which projections are draining and their progress, not just an error string. Currently it returns `"projections still draining: user-read-model, casbin-projection"`.
 5. **The `setup.Bundle` health handler behavioral change should be documented** — it now returns 503 during backoff (transient retry state), not just on terminal failure. Consumers relying on `/health` always returning 200 during normal operation may see intermittent 503s if projections hit errors. This is more correct but is a breaking behavioral change.

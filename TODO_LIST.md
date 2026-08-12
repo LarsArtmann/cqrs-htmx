@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, fullstack UI integration test, systemadapter module + system/metaengine integration) | **Modules:** 24 in `go.work` (13 production + 10 examples + e2e/server) | **`*Service` methods:** 73 (leading v5 indicator; see ROADMAP) | **Coverage:** Root ~93% (gate 90%), openapi 99.0%, usermgmt 81.6% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%), setup 85.3% (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** All 12 lint-checked modules at 0 issues (2026-08-09). systemadapter excluded (work-in-progress, 104 issues pending remediation). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
+**Updated:** 2026-08-12 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (async projection startup, ActorID consolidation/ADR-0111, ADR-0114 tombstone migration, security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, fullstack UI integration test, systemadapter module + system/metaengine integration) | **Modules:** 24 in `go.work` (13 production + 10 examples + e2e/server) | **`*Service` methods:** 73 (leading v5 indicator; see ROADMAP) | **Coverage:** Root 92.8% (gate 90%), openapi 99.0%, usermgmt 81.2% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%), setup 87.9% (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** All 12 lint-checked modules at 0 issues (2026-08-12). systemadapter excluded (work-in-progress, 104 issues pending remediation). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
 
 ## Status Legend
 
@@ -17,6 +17,10 @@
 ## P1 — High impact (release follow-through & doc health)
 
 - [~] **Complete MySQL event-store support.** Dialect, read-model constructors, setup template, migration guide, integration test (testcontainers), and error classifier are done (`MySQLDialect`, `NewMySQL*ReadModel`, `mysql_setup.go`, `docs/guides/mysql-setup.md`, `classifyMySQLError`, `mysql_integration_test.go`). Remaining: (1) document MySQL support in the root README; (2) `NewMySQLSetup` convenience constructor + MySQL-backed session/snapshot/checkpoint stores. Evidence: `usermgmt/sql_readmodel_mysql.go`, `go-cqrs-lite/storage/sql/dialect.go`.
+
+- [ ] **Write async startup integration test.** No test starts a real HTTP server with `AsyncStartup=true` and verifies the `/health` endpoint transitions from 503 (draining) to 200 (ready) as projections catch up. The unit tests verify `ProjectionReadinessCheck` logic and `AsyncStartup` config wiring separately, but the end-to-end lifecycle is untested. This is the single most valuable missing test for the async startup feature. Evidence: `projection_readiness.go`, `usermgmt/es_projection_setup_test.go`. Source: `docs/status/archived/2026-08-12_21-19_async-projection-startup-verified.md`.
+
+- [ ] **Run full nix verification gates after recent changes.** The ActorID consolidation (ADR-0111), ADR-0114 tombstone migration, async projection startup, and go-cqrs-lite snapshot breakage repair were each verified with per-module `go test`/`golangci-lint`, but the full workspace gates (`nix run .#coverage-gate`, `nix run .#lint`, `nix run .#check-cqrs-lint`, `nix run .#test-fuzz`, `nix run .#test-flake`, `nix flake check --no-build`) have not been run as a unified suite since 2026-08-09. Source: `docs/status/archived/2026-08-12_21-19_async-projection-startup-verified.md`.
 
 ---
 
@@ -47,6 +51,9 @@
 - [ ] **Add golines alignment to `nix fmt` pipeline.** `golines` is available but not integrated into treefmt. Would catch alignment drift automatically. May need `pkgs.golines` from nixpkgs or a wrapper.
 - [ ] **Consider a Go-based markdown link checker.** The current `check-docs-links.sh` uses awk regex which handles common cases but may miss edge cases. A Go checker using goldmark would be more robust. The awk checker + test suite is sufficient for now.
 - [ ] **Rewrite `origin/v4` branch history to strip 3 remaining binary blobs (~27.7 MB).** The master branch was cleaned via `git filter-repo` (731.8 MB → 0 blobs), but the `v4` branch has independent binary contamination (`examples/basic/basic` 9.8MB, `examples/datastar-demo/datastar-demo` 8.9MB ×2) that does not share ancestry with master. Requires `git filter-repo` on the v4 branch + force-push. Source: `docs/status/2026-08-09_06-15_git-binary-cleanup-history-rewrite.md`.
+- [ ] **Write ADR-0048: Liveness/Readiness Decoupling.** Document the architectural decision to decouple HTTP server liveness from projection readiness via `AsyncStartup` + `ProjectionReadinessCheck`. The repo has 47+ ADRs; this decoupling is architecturally significant. Source: `docs/status/archived/2026-08-12_21-19_async-projection-startup-verified.md`.
+- [ ] **Cross-reference async startup from `docs/guides/projection-health-monitoring.md`.** The existing projection health guide doesn't link to the new `docs/guides/async-projection-startup.md` guide. Quick doc cross-reference.
+- [ ] **Extract `ActorID.AsUserID() (UserID, bool)` helper.** Three call sites (`audit_log.go`, `authz_roles.go`, `session.go`) have the same `if actorID.Kind() == ActorUser { NewUserID(actorID.String()) }` kind-guard pattern. A helper would eliminate boilerplate and prevent future bugs (forgetting the guard). Source: `docs/status/archived/2026-08-11_17-31_actorid-cleanup-self-review.md`.
 
 ---
 

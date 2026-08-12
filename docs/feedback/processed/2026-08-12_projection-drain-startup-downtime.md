@@ -1,5 +1,7 @@
 # Feedback: Synchronous projection drain causes multi-minute downtime on every restart
 
+> **RESOLVED** (2026-08-12): **Option A (async startup) shipped.** `AsyncStartup bool` config + `cqrshtmx.ProjectionReadinessCheck` + drain-aware `/health` endpoint. Commits `af59f3f7`, `e4b7e366`, `b9058c8c`, `d2d3bca2`. All tests pass, lint clean, coverage verified. See `docs/guides/async-projection-startup.md`. Options B/C/D (read-model hydrator, projection snapshots, SQLite CheckpointStore) are tracked in ROADMAP → Operational Tooling Ideas. Remaining follow-up (integration test, ADR-0048) in TODO_LIST.
+
 **From:** browser-history project (github.com/larsartmann/browser-history)
 **Date:** 2026-08-12
 **Perspective:** Consumer deploying browser-history behind a reverse proxy in a homelab

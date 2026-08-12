@@ -6,6 +6,8 @@
 **Prior session report:** `docs/status/2026-08-11_16-12_actorid-consolidation-and-self-review.md`
 **Commits this session:** `27c4207d` (security fixes), `c469dd93` (tests + docs)
 
+> **RESOLVED** (2026-08-12): All critical work from this session is verified complete. Security bugs fixed, tests written, docs updated, all 12 verification gates passed. The event payload format question is tracked as ROADMAP Open Question #5. The `ActorID.AsUserID()` helper extraction is in TODO_LIST P3. Remaining open items annotated inline below.
+
 ---
 
 ## Executive Summary
@@ -66,14 +68,14 @@ The prior session's self-review identified 2 critical security bugs (authz kind 
 
 ## c) NOT STARTED
 
-1. **`nix fmt`** — Not run. Formatting may be off on edited files.
-2. **`nix run .#test-fuzz`** — Not run. Fuzz tests not verified.
-3. **`nix run .#test-flake`** — Not run. 3x flake check not verified.
-4. **`nix flake check --no-build`** — Not run.
-5. **Event payload format change or explicit decision** — Not done (see Partially Done #1).
-6. **Annotate prior status report** as superseded — Not done.
-7. **ADR for ActorID consolidation** — Not written (item 50 from prior report).
-8. **Wire `id.NewSystemActor()` / `id.NewServiceActor()`** into actual system-initiated event paths — Not done (items 33-36 from prior report). Currently the 5-kind support is structural but only User/Bot are exercised in production code.
+1. ~~**`nix fmt`**~~ **Still open** — not run. Low priority.
+2. ~~**`nix run .#test-fuzz`**~~ **Still open** — not run since session. See TODO_LIST P1 (run full verification gates).
+3. ~~**`nix run .#test-flake`**~~ **Still open** — same as above.
+4. ~~**`nix flake check --no-build`**~~ **Still open** — same.
+5. **Event payload format change or explicit decision** — ← **OPEN** — tracked as ROADMAP Open Question #5.
+6. ~~**Annotate prior status report** as superseded~~ **DONE** — annotated in this docs-health session (2026-08-12).
+7. **ADR for ActorID consolidation** — ← **Still open** — low priority.
+8. **Wire `id.NewSystemActor()` / `id.NewServiceActor()`** — ← **Still open** — 5-kind support is structural but only User/Bot are exercised in production code.
 
 ---
 

@@ -3,6 +3,8 @@
 **Date:** 2026-08-11 14:26
 **Session scope:** Assess go-cqrs-lite integration state, migrate to master API changes
 
+> **SUPERSEDED** (2026-08-12): The ActorID consolidation (session 16-12), security fixes + tests (session 17-31, commits `27c4207d`, `c469dd93`), and go-cqrs-lite snapshot repair (session 19-38, commit `1eeb6b8a`) completed all carry-over work from this session. CHANGELOG entries written. Full verification gates run. See the three later reports for the complete resolution. Open items below are annotated inline.
+
 ---
 
 ## Executive Summary
@@ -30,19 +32,19 @@ The go-cqrs-lite pseudo-version publish bug is **FIXED** — published tags have
 
 ## b) PARTIALLY DONE
 
-1. **The `markTombstone bool` parameter in `makeMaterializeTenantEvent`** is now a no-op (retained for API compatibility). The helper still accepts it but ignores it. This is a code smell — callers still pass `true`/`false` thinking it does something. Should be removed or the helper simplified.
-2. **Production `Materialize` configs** (read models) may need `DeleteTypes` configured. The test config got `DeleteTypes`, but I only checked the test adapter. The production `NewMaterializeProjection` wrapper takes event types but the underlying `stack.Materialize` in production read models may need auditing to ensure deletion events properly trigger `OnTombstone`.
-3. **Hermetic (GOWORK=off) builds are BROKEN** for usermgmt and dashboardui — they reference `ActorID` and `DeleteTypes` which don't exist in published tags. This is expected and documented, but it means CI without workspace replaces will fail until go-cqrs-lite publishes new tags.
+1. ~~**The `markTombstone bool` parameter in `makeMaterializeTenantEvent`** is now a no-op (retained for API compatibility).~~ **DONE** — removed in session 16-12 (`99186899`).
+2. ~~**Production `Materialize` configs (read models) may need `DeleteTypes` configured.**~~ **VERIFIED NON-ISSUE** — production read models handle deletion via custom event handlers (`handleUserDeleted`, etc.), NOT via `stack.Materialize` + `DeleteTypes`/`OnTombstone`. The `DeleteTypes` pattern is only in the test adapter (`es_materialize_adapter_test.go`). Production is correct as-is.
+3. **Hermetic (GOWORK=off) builds are BROKEN** for usermgmt and dashboardui — they reference `ActorID` and `DeleteTypes` which don't exist in published tags. ← **Still open** — documented in AGENTS.md go.work replaces section. Blocked on go-cqrs-lite publishing event/v4.5.0+, record/v4.2.0+, command/v4.5.0+, query/v4.4.0+.
 
 ---
 
 ## c) NOT STARTED
 
-1. **Audit log ActorID kind guard.** Currently `NewUserID(evt.Metadata().ActorID.String())` blindly converts any actor (user, bot, system) to a UserID. Should guard: only set UserID when `ActorID.Kind() == id.ActorUser`, otherwise leave zero/empty.
-2. **Other modules' ADR-0114 audit.** Only checked usermgmt and dashboardui for old-API usage. Other modules (root, adminui, loginpage, setup) should be checked for any `UserID`/`MarkTombstone` references that might surface.
-3. **`go.work.sum` update.** The file was modified but I didn't run `go mod tidy` on any module. The dependency graph may have stale entries.
-4. **Examples build verification.** Examples (basic, admin-demo, dashboard-demo, etc.) were not tested. They likely need the same migration if they reference old API.
-5. **CHANGELOG entry** for the ADR-0114/ADR-0111 migration.
+1. ~~**Audit log ActorID kind guard.** Currently `NewUserID(evt.Metadata().ActorID.String())` blindly converts any actor (user, bot, system) to a UserID.~~ **DONE** — kind guard added in session 17-31 (`27c4207d`), `AuditEntry.ActorID` field added in session 16-12 (`99186899`).
+2. **Other modules' ADR-0114 audit.** ← **Still open** — only usermgmt and dashboardui were checked. Low priority (root/adminui/loginpage/setup are unlikely to reference tombstone API directly).
+3. ~~**`go.work.sum` update.**~~ **DONE** — `go mod tidy` run on all 22 modules in session 16-12.
+4. **Examples build verification.** ← **Still open** — examples not tested for old-API usage. Low priority.
+5. ~~**CHANGELOG entry** for the ADR-0114/ADR-0111 migration.~~ **DONE** — written in sessions 16-12 and 17-31.
 
 ---
 

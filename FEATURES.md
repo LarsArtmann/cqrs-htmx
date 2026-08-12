@@ -4,7 +4,7 @@
 > the actual code — not the marketing claims. Updated as features ship, change,
 > or break.
 
-**Updated:** 2026-08-09 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, systemadapter module; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** ~93% root (gate 90%), 81.6% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 83.3% dashboardui (gate 60%), 97.4% datastar (gate 90%), 85.3% setup (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 12 lint-checked modules (2026-08-09). systemadapter excluded (work-in-progress).
+**Updated:** 2026-08-12 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (async projection startup, ActorID consolidation/ADR-0111, ADR-0114 tombstone migration, security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, systemadapter module; see AGENTS.md for per-sub-module versions) | **Source:** All .go files analyzed | **Coverage:** 92.8% root (gate 90%), 81.2% usermgmt (gate 74%), 74.9% identity-model (gate 70%), 83.3% dashboardui (gate 60%), 97.4% datastar (gate 90%), 87.9% setup (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** 0 issues across all 12 lint-checked modules (2026-08-12). systemadapter excluded (work-in-progress).
 
 ## Status legend
 
@@ -82,7 +82,7 @@
 | User Identity  | 🟢 `FULLY_FUNCTIONAL` | `UserIDExtractor` → context → event metadata. `WithUserID`/`UserIDFromContext` (branded `id.UserID`). `IsAuthenticated(r)` helper.                               |
 | Correlation ID | 🟢 `FULLY_FUNCTIONAL` | `WithCorrelationID`/`CorrelationIDFromContext` (branded `id.CorrelationID`). Auto-extracted from `X-Correlation-ID`. Propagated to event metadata.               |
 | Request ID     | 🟢 `FULLY_FUNCTIONAL` | `RequestID` (branded `id.RequestID`). `NewRequestID`/`ParseRequestID`/`MustParseRequestID`. Propagated to event metadata and `X-Request-ID` response header.     |
-| Actor ID       | 🟢 `FULLY_FUNCTIONAL` | `WithActorID`/`ActorIDFromContext` — supports user and bot actors in context. Impersonator support: `WithImpersonatorID`/`ImpersonatorIDFromContext`.            |
+| Actor ID       | 🟢 `FULLY_FUNCTIONAL` | `WithActorID`/`ActorIDFromContext` — consolidated `id.ActorID` (ADR-0111) supporting 5 kinds: User, Bot, System, Service, Unknown. Impersonator support: `WithImpersonatorID`/`ImpersonatorIDFromContext`.            |
 | Event Options  | 🟢 `FULLY_FUNCTIONAL` | `EventOptionsFromContext(ctx)` / `EventOptionsFromContextWithSource(ctx, serviceName)` — propagates user, correlation, request IDs + deadline to event metadata. |
 
 ### Error Handling
@@ -120,6 +120,7 @@
 | ClientIP (deprecated)  | 🟢 `FULLY_FUNCTIONAL` | Delegates to `httputil.ClientIP`. Use `larsartmann/httputil` directly.                                                                                                                                                                                                                                                                                                     |
 | Event Catalog          | 🟢 `FULLY_FUNCTIONAL` | `EventCatalog` type with `Register`/`Events`/`JSON`. `EventCatalogHandler(catalog)` serves immutable JSON (1-year cache, FNV-1a ETag, 304 on match). Mirrors `OpenAPISpecHandler` pattern. Published Language for projection builders.                                                                                                                                     |
 | Projection Status      | 🟢 `FULLY_FUNCTIONAL` | `ProjectionStatusHandler(provider)` serves live projection health as JSON (`no-cache`, per-request ETag). `ProjectionStatusProvider` interface — implemented by `*usermgmt.Service` and `*usermgmt.EventSourcedSetup`. 503 when provider nil.                                                                                                                              |
+| Async Startup          | 🟢 `FULLY_FUNCTIONAL` | `AsyncStartup bool` on `ServiceConfig`/`EventSourcedConfig`/`setup.Config` (default `false` = backward-compatible synchronous drain). When `true`, the HTTP server binds immediately while projections replay the journal in the background — eliminates multi-minute restart downtime on deploy/crash-restart. Pair with `ProjectionReadinessCheck(provider)` which returns 503 while any worker is `idle`/`running`/`backoff`/`draining`/`failed` and 200 when all reach `live`/`stopped`. `setup.Bundle` mounts it at `/health` automatically. See `docs/guides/async-projection-startup.md`. `[Unreleased]`. |
 
 | Partial Rendering | 🟢 `FULLY_FUNCTIONAL` | `RenderPartialOrFull[T](partial, full)` — auto-selects partial vs full render based on `HX-Request`. `RenderPartialOrFullFunc`, `RenderIf(check, match, noMatch)`, `RenderTemplComponent(w, r, partial, full)`, `OOBHTML(id, html, swap...)`. Eliminates boilerplate HTMX partial/full branching. v4.5.0. |
 | HTMX Redirect Helpers | 🟢 `FULLY_FUNCTIONAL` | `HTMXRedirect(w, r, path)` + `SafeRedirectPath(path)` (`redirect.go`) — HTMX-aware redirect that respects the `HX-Request` header (emits `HX-Redirect` for HTMX clients, falls back to standard `http.Redirect`). `SafeRedirectPath` guards against open-redirect by normalizing untrusted paths to site-relative URLs. Extracted during the 2026-07-26 dedup sweep; exercised by adminui + loginpage handler tests. Shipped in v4.6.0. |
@@ -197,7 +198,7 @@ The entire WebSocket surface was removed in v5 (ADR 0046). SSE is the only real-
 | Bot Management       | 🟢 `FULLY_FUNCTIONAL` | 2 events (Registered/Deleted), 2 commands, BotDecider, BotReadModel (FindByID/FindByTokenHash). Service: RegisterBot/DeleteBot/GetBot/ResolveBotByToken. Token hashing with HMAC-SHA256 + pepper. |
 | Membership RBAC      | 🟢 `FULLY_FUNCTIONAL` | 3 events (Added/RolesChanged/Removed), 3 commands, MembershipDecider, MembershipReadModel (FindByActor/FindByTenant). Derives Casbin group policies from membership events.                       |
 | Impersonation        | 🟢 `FULLY_FUNCTIONAL` | `BeginImpersonation(callerID, targetID, reason)` → creates session with Impersonation origin. `EndImpersonation(token)`. Guards: caller must exist, target must exist, reason required.           |
-| ActorID              | 🟢 `FULLY_FUNCTIONAL` | Kind-discriminated union (ActorUser/ActorBot). `ActorIDFromUser`/`ActorIDFromBot`. Used throughout identity model for unified user/bot authorization.                                             |
+| ActorID              | 🟢 `FULLY_FUNCTIONAL` | Consolidated `id.ActorID` (ADR-0111) — kind-discriminated union supporting 5 kinds: User, Bot, System, Service, Unknown. `ActorIDFromUser`/`ActorIDFromBot`/`id.NewSystemActor`/`id.NewServiceActor`. Security: non-user actors are kind-guarded in authz, audit log, and session creation (no UserID pollution). Used throughout identity model for unified actor authorization. |
 | API Token Middleware | 🟢 `FULLY_FUNCTIONAL` | `NewAPITokenMiddleware(service)` validates Bearer tokens via ResolveBotByToken. `RequireBot(next)` rejects requests without Bot in context. `WithBot`/`BotFromContext` context helpers.           |
 
 ### OAuth2/OIDC (ADR-0014)
@@ -270,7 +271,7 @@ The entire WebSocket surface was removed in v5 (ADR 0046). SSE is the only real-
 
 | Feature           | Status                | Notes                                                                                                                                                                                                                                    |
 | ----------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Domain IDs        | 🟢 `FULLY_FUNCTIONAL` | `UserID`, `TenantID`, `BotID`, `ActorID` (kind-discriminated: ActorUser/ActorBot), `SessionID`. Backed by go-branded-id. `NewUserID`/`ParseUserID`/`SyntheticUserID`/`GenerateUserID` constructors.                                      |
+| Domain IDs        | 🟢 `FULLY_FUNCTIONAL` | `UserID`, `TenantID`, `BotID`, `ActorID` (consolidated `id.ActorID` — 5 kinds: User, Bot, System, Service, Unknown), `SessionID`. Backed by go-branded-id. `NewUserID`/`ParseUserID`/`SyntheticUserID`/`GenerateUserID` constructors.                                      |
 | Event Payloads    | 🟢 `FULLY_FUNCTIONAL` | 21 event payload structs across User (12), Membership (3), Tenant (4), Bot (2). Schema versioning with `CurrentSchemaVersion`. (RolesUpdated is legacy, kept for replay compat.)                                                         |
 | Commands          | 🟢 `FULLY_FUNCTIONAL` | 20 command structs with accessor methods (`c.Email()`, `c.Roles()`, etc.). All embed `*command.BasicCommand` (ADR-0032).                                                                                                                 |
 | Fold Functions    | 🟢 `FULLY_FUNCTIONAL` | `FoldUser`/`FoldMembership`/`FoldTenant`/`FoldBot` — pure state reconstruction from event streams. Strict: unknown events return Rejection error.                                                                                        |
@@ -414,10 +415,10 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Metrics
 
-| Metric        | Root | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | datastar | integration_test |
+| Metric        | Root | usermgmt | identity-model | totp  | webauthn | oauth2 | adminui | loginpage | dashboardui | datastar | setup            | integration_test |
 | ------------- | ---- | -------- | -------------- | ----- | -------- | ------ | ------- | --------- | ----------- | -------- | ---------------- |
-| Coverage      | ~93% | 81.6%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 83.3%       | 97.4%    | —                |
-| CI gate       | 90%  | 74%      | 70%            | 80%   | 80%      | 80%    | 66%     | 79%       | 60%         | 90%      | —                |
+| Coverage      | 92.8% | 81.2%    | 74.9%          | 88.2% | 89.2%    | 88.3%  | 68.7%   | 79.9%     | 83.3%       | 97.4%    | 87.9%           | —                |
+| CI gate       | 90%  | 74%      | 70%            | 80%   | 80%      | 80%    | 66%     | 79%       | 60%         | 90%      | 80%             | —                |
 | Tests passing | ~133 | ~615     | ~109           | 5     | 16       | 21     | ~85     | ~37       | ~153        | ~54      | ~37              |
 | Lint issues   | 0    | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |                  |
 | ErrorFamily   | 0    | 0        | 0              | 0     | 0        | 0      | 0       | 0         | 0           | 0        |                  |
