@@ -38,6 +38,7 @@ The synchronous drain pattern conflates "the process is alive" with "the read mo
 - **Readiness** = all projections have caught up and reads will reflect all writes
 
 A well-designed system starts the HTTP server immediately and gates reads behind a readiness check. During the catch-up window:
+
 - Writes can be accepted (events appended to the journal — projections catch up async)
 - Reads can return stale-but-valid data, or return 503 from `/readyz` if strict consistency is required
 - Health checks pass (process is alive and serving)
@@ -55,6 +56,7 @@ cqrs-htmx already HAS a `ReadinessHandler` (`readiness.go`) and a `ProjectionSta
 The reason: the read models are in-memory maps hydrated by projections. If `CheckpointStore` skips past the events that populated those maps, the maps are empty after restart — `FindByUserID` returns "not found."
 
 This is a **catch-22**:
+
 - No checkpoint → full replay every restart → 2-4 min downtime
 - Checkpoint set → skip replayed events → in-memory maps empty → broken read models
 
@@ -68,13 +70,13 @@ There is no "hydrate read models from a SQL snapshot, then resume from checkpoin
 
 ## Impact
 
-| Scenario | Current behavior | Impact |
-|----------|-----------------|--------|
-| Deploy (`nh os switch`) | 2-4 min 502 outage | Deploy windows must be planned around downtime |
-| Crash + auto-restart | 2-4 min outage per restart | Cascading failures during instability |
-| Large event journal | Drain time grows linearly | Gets worse over time; no plateau |
-| Slow disk I/O (build storm) | Drain takes even longer | Worst-case outage when system is already stressed |
-| Pre-deploy health checks | Can't reach `/health` during drain | Post-deploy smoke tests fail during drain window |
+| Scenario                    | Current behavior                   | Impact                                            |
+| --------------------------- | ---------------------------------- | ------------------------------------------------- |
+| Deploy (`nh os switch`)     | 2-4 min 502 outage                 | Deploy windows must be planned around downtime    |
+| Crash + auto-restart        | 2-4 min outage per restart         | Cascading failures during instability             |
+| Large event journal         | Drain time grows linearly          | Gets worse over time; no plateau                  |
+| Slow disk I/O (build storm) | Drain takes even longer            | Worst-case outage when system is already stressed |
+| Pre-deploy health checks    | Can't reach `/health` during drain | Post-deploy smoke tests fail during drain window  |
 
 ---
 
@@ -98,6 +100,7 @@ type ServiceConfig struct {
 ```
 
 When `SyncDrain = false`:
+
 1. `NewService()` starts projection workers and returns immediately
 2. The consumer's HTTP server binds and starts accepting connections
 3. `ReadinessHandler` returns 503 until all projections reach `WorkerLive`
@@ -163,12 +166,12 @@ browser-history already has the right pieces — it just doesn't wire them to us
 
 ## Comparison to other systems
 
-| System | Startup replay | Outage window |
-|--------|---------------|---------------|
-| Kafka Streams | Replays from last committed offset, not from beginning | Seconds |
-| EventStoreDB (Projections) | Emits emitted events continuously; restart resumes from checkpoint | Seconds |
-| Axon Framework (Java) | Supports snapshotting + token-based tracking; async by default | Seconds |
-| cqrs-htmx (current) | Full journal replay, synchronous, blocks HTTP server | Minutes |
+| System                     | Startup replay                                                     | Outage window |
+| -------------------------- | ------------------------------------------------------------------ | ------------- |
+| Kafka Streams              | Replays from last committed offset, not from beginning             | Seconds       |
+| EventStoreDB (Projections) | Emits emitted events continuously; restart resumes from checkpoint | Seconds       |
+| Axon Framework (Java)      | Supports snapshotting + token-based tracking; async by default     | Seconds       |
+| cqrs-htmx (current)        | Full journal replay, synchronous, blocks HTTP server               | Minutes       |
 
 The synchronous full-replay pattern is appropriate for **integration tests** and **first-run bootstrap**. It is not appropriate as the only startup mode for production deployments.
 
@@ -176,12 +179,12 @@ The synchronous full-replay pattern is appropriate for **integration tests** and
 
 ## Summary
 
-| Aspect | Current state | With async startup |
-|--------|--------------|-------------------|
-| Deploy downtime | 2-4 minutes (502 from reverse proxy) | Seconds (server binds immediately) |
-| Crash recovery | 2-4 minute outage per restart | Seconds (server binds, projections catch up) |
-| Scaling with journal size | Drain time grows linearly forever | Checkpoint/snapshot bounds replay |
-| Readiness signaling | Binary (server up = ready) | Gradual (`/readyz` reflects projection lag) |
-| Health check accuracy | `/health` unreachable during drain (looks dead) | `/health` 200 (alive), `/readyz` 503 (not ready) |
+| Aspect                    | Current state                                   | With async startup                               |
+| ------------------------- | ----------------------------------------------- | ------------------------------------------------ |
+| Deploy downtime           | 2-4 minutes (502 from reverse proxy)            | Seconds (server binds immediately)               |
+| Crash recovery            | 2-4 minute outage per restart                   | Seconds (server binds, projections catch up)     |
+| Scaling with journal size | Drain time grows linearly forever               | Checkpoint/snapshot bounds replay                |
+| Readiness signaling       | Binary (server up = ready)                      | Gradual (`/readyz` reflects projection lag)      |
+| Health check accuracy     | `/health` unreachable during drain (looks dead) | `/health` 200 (alive), `/readyz` 503 (not ready) |
 
 The fix is not architectural redesign — it's **decoupling liveness from readiness**. The library already has `ReadinessHandler`, `ProjectionStatusHandler`, and `ProjectionStatuses()`. The missing piece is choosing to use them during the startup window instead of blocking the entire server behind a synchronous drain.

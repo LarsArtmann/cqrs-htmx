@@ -55,24 +55,24 @@ graph TD
 
 ## Task Breakdown — Phase 1 (30-100 min tasks)
 
-| # | Task | Impact | Effort | Status |
-|---|------|--------|--------|--------|
-| 1 | Add `block bool` param to `startProjectionHost` + update all 5 call sites | CRITICAL | 15min | ✅ DONE |
-| 2 | Add `AsyncStartup bool` to `ServiceConfig` + `EventSourcedConfig` + forward | HIGH | 15min | ✅ DONE |
-| 3 | Create `cqrshtmx.ProjectionReadinessCheck` in root module | HIGH | 20min | ✅ DONE |
-| 4 | Wire `setup.Config.AsyncStartup` + `setup.New` forwarding | HIGH | 10min | ✅ DONE |
-| 5 | Replace setup `healthHandler` inline check with `ProjectionReadinessCheck` | HIGH | 10min | ✅ DONE |
-| 6 | Write root readiness tests (11 table-driven cases + HTTP integration) | HIGH | 20min | ✅ DONE |
-| 7 | Write usermgmt async startup tests (skip-drain timing + config wiring) | HIGH | 20min | ✅ DONE |
-| 8 | Fix nil-provider typed-nil test panic | MEDIUM | 5min | ✅ DONE |
-| 9 | Run full test suite with race detector | HIGH | 30min | ✅ DONE |
-| 10 | Run lint on root + usermgmt + setup | HIGH | 15min | ✅ DONE |
-| 11 | Fix gochecknoglobals lint finding | MEDIUM | 2min | ✅ DONE |
-| 12 | Write `docs/guides/async-projection-startup.md` | MEDIUM | 30min | ✅ DONE |
-| 13 | Update CHANGELOG.md + AGENTS.md | MEDIUM | 10min | ✅ DONE |
-| 14 | Move feedback doc to `processed/` | LOW | 1min | ✅ DONE |
-| 15 | Write this planning document | LOW | 15min | ✅ DONE |
-| 16 | Git commit + push | HIGH | 10min | ⏳ NEXT |
+| #  | Task                                                                        | Impact   | Effort | Status  |
+| -- | --------------------------------------------------------------------------- | -------- | ------ | ------- |
+| 1  | Add `block bool` param to `startProjectionHost` + update all 5 call sites   | CRITICAL | 15min  | ✅ DONE |
+| 2  | Add `AsyncStartup bool` to `ServiceConfig` + `EventSourcedConfig` + forward | HIGH     | 15min  | ✅ DONE |
+| 3  | Create `cqrshtmx.ProjectionReadinessCheck` in root module                   | HIGH     | 20min  | ✅ DONE |
+| 4  | Wire `setup.Config.AsyncStartup` + `setup.New` forwarding                   | HIGH     | 10min  | ✅ DONE |
+| 5  | Replace setup `healthHandler` inline check with `ProjectionReadinessCheck`  | HIGH     | 10min  | ✅ DONE |
+| 6  | Write root readiness tests (11 table-driven cases + HTTP integration)       | HIGH     | 20min  | ✅ DONE |
+| 7  | Write usermgmt async startup tests (skip-drain timing + config wiring)      | HIGH     | 20min  | ✅ DONE |
+| 8  | Fix nil-provider typed-nil test panic                                       | MEDIUM   | 5min   | ✅ DONE |
+| 9  | Run full test suite with race detector                                      | HIGH     | 30min  | ✅ DONE |
+| 10 | Run lint on root + usermgmt + setup                                         | HIGH     | 15min  | ✅ DONE |
+| 11 | Fix gochecknoglobals lint finding                                           | MEDIUM   | 2min   | ✅ DONE |
+| 12 | Write `docs/guides/async-projection-startup.md`                             | MEDIUM   | 30min  | ✅ DONE |
+| 13 | Update CHANGELOG.md + AGENTS.md                                             | MEDIUM   | 10min  | ✅ DONE |
+| 14 | Move feedback doc to `processed/`                                           | LOW      | 1min   | ✅ DONE |
+| 15 | Write this planning document                                                | LOW      | 15min  | ✅ DONE |
+| 16 | Git commit + push                                                           | HIGH     | 10min  | ⏳ NEXT |
 
 ---
 
@@ -80,22 +80,22 @@ graph TD
 
 These are the remaining tasks for future sessions, NOT this session.
 
-| # | Task | Impact | Effort | Status |
-|---|------|--------|--------|--------|
-| 17 | Run `nix run .#coverage-gate` for root/usermgmt/setup thresholds | HIGH | 10min | 🔲 TODO |
-| 18 | Run `nix run .#check-cqrs-lint` and add suppressions if needed | MEDIUM | 10min | 🔲 TODO |
-| 19 | Write integration test: AsyncStartup=true → /health 503→200 transition | HIGH | 12min | 🔲 TODO |
-| 20 | Test backoff behavioral change (health returns 503 during backoff) | MEDIUM | 10min | 🔲 TODO |
-| 21 | Document the backoff behavioral change in guide | MEDIUM | 8min | 🔲 TODO |
-| 22 | Write ADR-0048: Liveness/Readiness Decoupling | MEDIUM | 12min | 🔲 TODO |
-| 23 | Update `docs/guides/production-readiness.md` checklist | LOW | 8min | 🔲 TODO |
-| 24 | Cross-reference from `projection-health-monitoring.md` | LOW | 5min | 🔲 TODO |
-| 25 | Add `AsyncStartup` to `FEATURES.md` | LOW | 5min | 🔲 TODO |
-| 26 | Create `examples/async-startup-demo/` with Caddy config | LOW | 12min | 🔲 TODO |
-| 27 | Option B: `ReadModelHydrator` interface design | LOW | 12min | 🔲 RESEARCH |
-| 28 | Option D: SQLite CheckpointStore implementation | LOW | 12min | 🔲 RESEARCH |
-| 29 | Verify RebuildProjection still works with AsyncStartup=true | MEDIUM | 10min | 🔲 TODO |
-| 30 | Add `WaitForDrain(ctx)` method on Service for post-async-startup blocking | LOW | 10min | 🔲 TODO |
+| #  | Task                                                                      | Impact | Effort | Status      |
+| -- | ------------------------------------------------------------------------- | ------ | ------ | ----------- |
+| 17 | Run `nix run .#coverage-gate` for root/usermgmt/setup thresholds          | HIGH   | 10min  | 🔲 TODO     |
+| 18 | Run `nix run .#check-cqrs-lint` and add suppressions if needed            | MEDIUM | 10min  | 🔲 TODO     |
+| 19 | Write integration test: AsyncStartup=true → /health 503→200 transition    | HIGH   | 12min  | 🔲 TODO     |
+| 20 | Test backoff behavioral change (health returns 503 during backoff)        | MEDIUM | 10min  | 🔲 TODO     |
+| 21 | Document the backoff behavioral change in guide                           | MEDIUM | 8min   | 🔲 TODO     |
+| 22 | Write ADR-0048: Liveness/Readiness Decoupling                             | MEDIUM | 12min  | 🔲 TODO     |
+| 23 | Update `docs/guides/production-readiness.md` checklist                    | LOW    | 8min   | 🔲 TODO     |
+| 24 | Cross-reference from `projection-health-monitoring.md`                    | LOW    | 5min   | 🔲 TODO     |
+| 25 | Add `AsyncStartup` to `FEATURES.md`                                       | LOW    | 5min   | 🔲 TODO     |
+| 26 | Create `examples/async-startup-demo/` with Caddy config                   | LOW    | 12min  | 🔲 TODO     |
+| 27 | Option B: `ReadModelHydrator` interface design                            | LOW    | 12min  | 🔲 RESEARCH |
+| 28 | Option D: SQLite CheckpointStore implementation                           | LOW    | 12min  | 🔲 RESEARCH |
+| 29 | Verify RebuildProjection still works with AsyncStartup=true               | MEDIUM | 10min  | 🔲 TODO     |
+| 30 | Add `WaitForDrain(ctx)` method on Service for post-async-startup blocking | LOW    | 10min  | 🔲 TODO     |
 
 ---
 
@@ -117,11 +117,11 @@ The old setup health handler only returned 503 for `"failed"`. The new `Projecti
 
 ## Verification Results
 
-| Gate | Result |
-|------|--------|
-| `go build ./...` | ✅ 0 errors |
-| `go test ./... ./usermgmt/... ./setup/... -race` | ✅ All pass |
-| `golangci-lint run` (root) | ✅ 0 issues |
-| `golangci-lint run` (usermgmt) | ✅ 0 issues |
-| `golangci-lint run` (setup) | ✅ 0 issues |
-| gofmt | ✅ All files clean |
+| Gate                                             | Result             |
+| ------------------------------------------------ | ------------------ |
+| `go build ./...`                                 | ✅ 0 errors        |
+| `go test ./... ./usermgmt/... ./setup/... -race` | ✅ All pass        |
+| `golangci-lint run` (root)                       | ✅ 0 issues        |
+| `golangci-lint run` (usermgmt)                   | ✅ 0 issues        |
+| `golangci-lint run` (setup)                      | ✅ 0 issues        |
+| gofmt                                            | ✅ All files clean |

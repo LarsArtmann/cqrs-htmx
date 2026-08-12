@@ -104,7 +104,7 @@ shipped, and CI umbrella verified end-to-end.
 | ClientIP cleanup                                   | Low    | FEATURES.md marks deprecated    |
 | Otter cache evaluation for ephemeral stores        | Low    | Long-tail optimization          |
 | PWA manifest for admin-demo                        | Low    | Post-Phase 2                    |
-| Tailwind CSS regeneration                          | Low    | Blocked on pnpm install          |
+| Tailwind CSS regeneration                          | Low    | Blocked on pnpm install         |
 | v3.3.0 release                                     | High   | Blocked on Phase 2 decisions    |
 
 ---
@@ -201,7 +201,7 @@ Sorted by impact × effort × customer-value.
 | 20 | Evaluate maypok86/otter/v2 for ephemeral stores                         | Low      | 12m    | usermgmt         | —         |
 | 21 | Remove or un-deprecate ClientIP                                         | Low      | 8m     | root             | —         |
 | 22 | Add PWA manifest to admin-demo                                          | Low      | 10m    | admin-demo       | —         |
-| 23 | Regenerate admin-tw.css from tailwind source                            | Low      | 12m    | adminui          | pnpm       |
+| 23 | Regenerate admin-tw.css from tailwind source                            | Low      | 12m    | adminui          | pnpm      |
 | 24 | OPFS/IndexedDB technical spike for Phase 2                              | Medium   | 12m    | docs             | **Q2**    |
 | 25 | Cut v3.3.0 release                                                      | High     | 12m    | repo             | **Q1+Q2** |
 

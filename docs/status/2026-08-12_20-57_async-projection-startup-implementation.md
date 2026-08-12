@@ -11,22 +11,22 @@ Implemented **Option A** from the feedback document: async projection startup wi
 
 ### Files changed (10) / created (3)
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `usermgmt/es_projection_setup.go` | **Modified** | `startProjectionHost` gained `block bool` param; skips `waitForDrain` when `block=false` |
-| `usermgmt/es_setup.go` | **Modified** | `EventSourcedConfig.AsyncStartup bool` field; passes `!config.AsyncStartup` as `block` |
-| `usermgmt/service_core.go` | **Modified** | `ServiceConfig.AsyncStartup bool` field; forwards to `EventSourcedConfig` |
-| `usermgmt/es_projection_health.go` | **Modified** | Rebuild path passes `true` (always blocking — read-your-writes on rebuild) |
-| `usermgmt/es_projection_setup_test.go` | **Modified** | 2 new tests: async skips drain + `AsyncStartup` config wiring |
-| `projection_readiness.go` | **Created** | `cqrshtmx.ProjectionReadinessCheck(provider)` — reusable readiness gate |
-| `projection_readiness_test.go` | **Created** | Unit tests for all projection statuses + HTTP integration |
-| `setup/config.go` | **Modified** | `setup.Config.AsyncStartup bool` field |
-| `setup/setup.go` | **Modified** | Forwards `cfg.AsyncStartup` to `usermgmt.ServiceConfig` |
-| `setup/mount.go` | **Modified** | `healthHandler` uses `ProjectionReadinessCheck` instead of `failed`-only inline check; removed unused `errorfamily` import |
-| `docs/guides/async-projection-startup.md` | **Created** | Full guide with reverse proxy config examples |
-| `CHANGELOG.md` | **Modified** | 3 entries under `[Unreleased] > Added` |
-| `AGENTS.md` | **Modified** | Key Patterns bullet + guide count 19→20 |
-| `docs/feedback/processed/2026-08-12_projection-drain-startup-downtime.md` | **Moved** | From `new/` to `processed/` |
+| File                                                                      | Action       | Purpose                                                                                                                    |
+| ------------------------------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `usermgmt/es_projection_setup.go`                                         | **Modified** | `startProjectionHost` gained `block bool` param; skips `waitForDrain` when `block=false`                                   |
+| `usermgmt/es_setup.go`                                                    | **Modified** | `EventSourcedConfig.AsyncStartup bool` field; passes `!config.AsyncStartup` as `block`                                     |
+| `usermgmt/service_core.go`                                                | **Modified** | `ServiceConfig.AsyncStartup bool` field; forwards to `EventSourcedConfig`                                                  |
+| `usermgmt/es_projection_health.go`                                        | **Modified** | Rebuild path passes `true` (always blocking — read-your-writes on rebuild)                                                 |
+| `usermgmt/es_projection_setup_test.go`                                    | **Modified** | 2 new tests: async skips drain + `AsyncStartup` config wiring                                                              |
+| `projection_readiness.go`                                                 | **Created**  | `cqrshtmx.ProjectionReadinessCheck(provider)` — reusable readiness gate                                                    |
+| `projection_readiness_test.go`                                            | **Created**  | Unit tests for all projection statuses + HTTP integration                                                                  |
+| `setup/config.go`                                                         | **Modified** | `setup.Config.AsyncStartup bool` field                                                                                     |
+| `setup/setup.go`                                                          | **Modified** | Forwards `cfg.AsyncStartup` to `usermgmt.ServiceConfig`                                                                    |
+| `setup/mount.go`                                                          | **Modified** | `healthHandler` uses `ProjectionReadinessCheck` instead of `failed`-only inline check; removed unused `errorfamily` import |
+| `docs/guides/async-projection-startup.md`                                 | **Created**  | Full guide with reverse proxy config examples                                                                              |
+| `CHANGELOG.md`                                                            | **Modified** | 3 entries under `[Unreleased] > Added`                                                                                     |
+| `AGENTS.md`                                                               | **Modified** | Key Patterns bullet + guide count 19→20                                                                                    |
+| `docs/feedback/processed/2026-08-12_projection-drain-startup-downtime.md` | **Moved**    | From `new/` to `processed/`                                                                                                |
 
 ---
 
@@ -87,6 +87,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 ## f) Up to 50 Things to Get Done Next
 
 ### Critical (blocks all verification)
+
 1. Fix the `event.WithActor` build break in go-cqrs-lite or cqrs-htmx `context.go`
 2. Run `nix run .#test` and verify all 14 test suites pass
 3. Run `nix run .#lint` and fix any new lint issues in changed files
@@ -94,6 +95,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 5. Run `nix run .#check-cqrs-lint` and add suppression comments if needed
 
 ### High priority (correctness + completeness)
+
 6. Verify existing `setup_test.go` health tests still pass with the stricter `ProjectionReadinessCheck`
 7. Write an integration test: start server with `AsyncStartup=true`, assert `/health` 503→200 transition
 8. Write a test for the `backoff` behavioral change (projection in backoff → `/health` returns 503)
@@ -102,6 +104,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 11. Try `cd usermgmt && GOWORK=off go test ./...` — this module doesn't import root's `context.go`
 
 ### Architecture / depth
+
 12. Write an ADR for the liveness/readiness decoupling (ADR-0048?)
 13. Implement Option B: `ReadModelHydrator` interface for SQL-backed read model hydration on restart
 14. Implement Option D: provide a SQLite `CheckpointStore` implementation in usermgmt or a sub-package
@@ -110,6 +113,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 17. Consider a `ReadyTimeout` — fail health check permanently if drain exceeds N minutes (detect stuck projections)
 
 ### Documentation / examples
+
 18. Create `examples/async-startup-demo/` with full Caddy/nginx reverse proxy config
 19. Update `docs/guides/production-readiness.md` to reference `AsyncStartup` as a production checklist item
 20. Update `docs/guides/projection-health-monitoring.md` to cross-reference the new async startup guide
@@ -118,6 +122,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 23. Document the `backoff` behavioral change in the `/health` endpoint semantics
 
 ### Robustness
+
 24. Add structured drain progress to the readiness check response (JSON body with projection names + progress)
 25. Add a `/drain-status` or `/startup-progress` endpoint for fine-grained visibility
 26. Consider a `DrainProgress()` method on `Service`/`EventSourcedSetup` for programmatic access
@@ -127,6 +132,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 30. Add a `WaitForDrain(ctx)` method on `Service` for consumers who want to block after async startup
 
 ### Cleanup / polish
+
 31. Remove the `errorfamily` import from `setup/mount.go` only if no other code in the file uses it (verify it was ONLY used in the old inline check)
 32. Check if `setup/config.go` needs `validate()` update for `AsyncStartup` (no validation needed, but worth confirming)
 33. Verify `setup/setup_test.go` `//nolint:exhaustruct` comment still covers the new `AsyncStartup` field
@@ -137,6 +143,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 38. Consider whether `AsyncStartup` should be on `SecurityHooks`-style embedded struct for composability
 
 ### Broader ecosystem
+
 39. Check if `systemadapter` module needs `AsyncStartup` support (it calls `NewProjectionLayer`)
 40. Check if `dashboardui` needs to know about drain state (it shows projection health)
 41. Verify `datastar` Broadcaster works correctly during async drain (events published during drain)
@@ -146,6 +153,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 45. Consider whether `samber-do-demo` or `fullstack-wiring` guide should mention `AsyncStartup`
 
 ### Testing
+
 46. Add fuzz test for `ProjectionReadinessCheck` (random status combinations)
 47. Add race detector test for concurrent `ProjectionStatuses()` calls during drain
 48. Add benchmark for `ProjectionReadinessCheck` (called on every `/health` request)

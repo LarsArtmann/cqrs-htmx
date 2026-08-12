@@ -84,13 +84,13 @@ mux.Handle("/health", cqrshtmx.ReadinessHandler(
 
 ## What Happens During Startup
 
-| Phase | Without AsyncStartup | With AsyncStartup |
-|-------|---------------------|-------------------|
-| `New()` returns | After drain (minutes) | Immediately (milliseconds) |
-| HTTP server binds | After drain | Immediately |
-| `/health` | 200 (drain already done) | 503 → 200 (drain-aware) |
-| Writes | Work after drain | Work immediately (events append to journal) |
-| Reads | Consistent after drain | May be stale until `/health` → 200 |
+| Phase             | Without AsyncStartup     | With AsyncStartup                           |
+| ----------------- | ------------------------ | ------------------------------------------- |
+| `New()` returns   | After drain (minutes)    | Immediately (milliseconds)                  |
+| HTTP server binds | After drain              | Immediately                                 |
+| `/health`         | 200 (drain already done) | 503 → 200 (drain-aware)                     |
+| Writes            | Work after drain         | Work immediately (events append to journal) |
+| Reads             | Consistent after drain   | May be stale until `/health` → 200          |
 
 ---
 
@@ -100,15 +100,15 @@ mux.Handle("/health", cqrshtmx.ReadinessHandler(
 It returns a `NamedCheck` for `ReadinessHandler` that fails while any
 projection is still draining or has failed:
 
-| Projection status | Check result |
-|-------------------|-------------|
-| `"live"` | ready |
-| `"stopped"` | ready |
-| `"idle"` | not ready (draining) |
-| `"running"` | not ready (draining) |
-| `"backoff"` | not ready (restarting) |
-| `"draining"` | not ready (shutting down) |
-| `"failed"` | not ready (terminal failure) |
+| Projection status | Check result                 |
+| ----------------- | ---------------------------- |
+| `"live"`          | ready                        |
+| `"stopped"`       | ready                        |
+| `"idle"`          | not ready (draining)         |
+| `"running"`       | not ready (draining)         |
+| `"backoff"`       | not ready (restarting)       |
+| `"draining"`      | not ready (shutting down)    |
+| `"failed"`        | not ready (terminal failure) |
 
 Compose it with other checks (event store ping, downstream services):
 
@@ -128,10 +128,10 @@ With synchronous startup, a projection failure during drain is returned as a
 `NewService` error — the application refuses to start. With async startup,
 failures surface differently:
 
-| Signal | How to observe |
-|--------|---------------|
-| `/health` endpoint | Returns 503 with the failed projection's error |
-| `ProjectionStatuses()` | The worker shows `"failed"` + `LastError` |
+| Signal                        | How to observe                                    |
+| ----------------------------- | ------------------------------------------------- |
+| `/health` endpoint            | Returns 503 with the failed projection's error    |
+| `ProjectionStatuses()`        | The worker shows `"failed"` + `LastError`         |
 | `OnProjectionFailed` callback | Fires when the worker exhausts its restart budget |
 
 Set `OnProjectionFailed` for alerting:
@@ -149,12 +149,12 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 
 ## When to Use Async Startup
 
-| Scenario | Recommendation |
-|----------|---------------|
-| Production behind a reverse proxy | **AsyncStartup: true** (recommended) |
-| Integration tests | AsyncStartup: false (default — deterministic read-your-writes) |
-| First-run bootstrap (empty journal) | Either — drain is instant on an empty journal |
-| Large event journal | **AsyncStartup: true** (avoids linear drain growth) |
+| Scenario                            | Recommendation                                                 |
+| ----------------------------------- | -------------------------------------------------------------- |
+| Production behind a reverse proxy   | **AsyncStartup: true** (recommended)                           |
+| Integration tests                   | AsyncStartup: false (default — deterministic read-your-writes) |
+| First-run bootstrap (empty journal) | Either — drain is instant on an empty journal                  |
+| Large event journal                 | **AsyncStartup: true** (avoids linear drain growth)            |
 
 ### Combining with `CheckpointStore`
 

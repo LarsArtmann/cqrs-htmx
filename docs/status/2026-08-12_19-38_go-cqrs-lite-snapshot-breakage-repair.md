@@ -18,6 +18,7 @@ The cqrs-htmx workspace was broken by a go-cqrs-lite upstream commit (`a6613ef0d
 ## a) FULLY DONE
 
 ### 1. Root Cause Discovery
+
 - Traced the build failure from "nothing obvious" → workspace module scan → identified `systemadapter` and `examples/system-demo` as the two broken modules.
 - Identified the exact upstream commit: `a6613ef0d` in go-cqrs-lite (Aug 12 12:42), a 643-file "snapshot" commit that deleted/modified types without updating dependents.
 - Identified all 5 categories of breakage:
@@ -33,31 +34,32 @@ The cqrs-htmx workspace was broken by a go-cqrs-lite upstream commit (`a6613ef0d
 
 ### 2. Code Fixes Applied (go-cqrs-lite repo — 11 files)
 
-| File | Change |
-|---|---|
-| `commandlifecycle/projections/projections.go` | Removed `.String()` on plain-string `CausationID` (2 call sites) |
-| `metaengine/priority.go` | **Restored** (Priority type, PriorityConfig, WithPriorityConfig, PriorityWeights) |
-| `metaengine/registry.go` | **Restored** (DriverConfig, DriverFactory, LookupDriver, RegisteredDrivers, ErrUnknownDriver) |
-| `metaengine/register.go` | **Restored** (memory driver self-registration via init()) |
-| `metaengine/auto_named_events.go` | **Restored** (NamedSample, NamedEvent, AutoCRUDByNamedEvents, overrideEventType) |
-| `metaengine/sqliteengine/register.go` | **Restored** (sqlite driver self-registration via init()) |
-| `metaengine/planner.go` | Added `priority *PriorityConfig` field to `planConfig` struct |
-| `metaengine/query.go` | Restored `WithLayoutPriority` function + `layoutPriority` field on `QueryConfig` |
+| File                                            | Change                                                                                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `commandlifecycle/projections/projections.go`   | Removed `.String()` on plain-string `CausationID` (2 call sites)                                                                     |
+| `metaengine/priority.go`                        | **Restored** (Priority type, PriorityConfig, WithPriorityConfig, PriorityWeights)                                                    |
+| `metaengine/registry.go`                        | **Restored** (DriverConfig, DriverFactory, LookupDriver, RegisteredDrivers, ErrUnknownDriver)                                        |
+| `metaengine/register.go`                        | **Restored** (memory driver self-registration via init())                                                                            |
+| `metaengine/auto_named_events.go`               | **Restored** (NamedSample, NamedEvent, AutoCRUDByNamedEvents, overrideEventType)                                                     |
+| `metaengine/sqliteengine/register.go`           | **Restored** (sqlite driver self-registration via init())                                                                            |
+| `metaengine/planner.go`                         | Added `priority *PriorityConfig` field to `planConfig` struct                                                                        |
+| `metaengine/query.go`                           | Restored `WithLayoutPriority` function + `layoutPriority` field on `QueryConfig`                                                     |
 | `metaengine/projectionadapter/typed_decoder.go` | Restored `OccurredAt time.Time` on `EventWithID`, added `time` import, wired it in both `Register` and `RegisterString` constructors |
-| `system/adapter_event_serial.go` | Switched import from `go-codec` to `go-cqrs-lite/codec/v4` |
-| `system/projection_builder.go` | Added `codec.Encoding(string(...))` conversion for `evt.Encoding()` |
-| `system/register.go` | Switched import from `go-codec` to `go-cqrs-lite/codec/v4` |
+| `system/adapter_event_serial.go`                | Switched import from `go-codec` to `go-cqrs-lite/codec/v4`                                                                           |
+| `system/projection_builder.go`                  | Added `codec.Encoding(string(...))` conversion for `evt.Encoding()`                                                                  |
+| `system/register.go`                            | Switched import from `go-codec` to `go-cqrs-lite/codec/v4`                                                                           |
 
 ### 3. Code Fixes Applied (cqrs-htmx repo — 4 files)
 
-| File | Change |
-|---|---|
-| `go.work` | Added 2 replace directives: `commandlifecycle/v4` and `commandlifecycle/projections/v4` |
+| File                                  | Change                                                                                                          |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `go.work`                             | Added 2 replace directives: `commandlifecycle/v4` and `commandlifecycle/projections/v4`                         |
 | `systemadapter/systemadapter_test.go` | Added blank import `_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"` for driver registration |
-| `systemadapter/go.mod` | `go mod tidy` promoted `sqliteengine/v4` from indirect to direct dep |
-| `AGENTS.md` | Documented the new `commandlifecycle` replaces and root cause |
+| `systemadapter/go.mod`                | `go mod tidy` promoted `sqliteengine/v4` from indirect to direct dep                                            |
+| `AGENTS.md`                           | Documented the new `commandlifecycle` replaces and root cause                                                   |
 
 ### 4. Verification
+
 - ✅ All 24 workspace modules build (`go build ./...`)
 - ✅ All 14 test suites pass with `-race -count=1`
 - ✅ `systemadapter` tests: 20+ declarative tests + equivalence test + sqlite deployment test
@@ -67,6 +69,7 @@ The cqrs-htmx workspace was broken by a go-cqrs-lite upstream commit (`a6613ef0d
 ## b) PARTIALLY DONE
 
 ### 1. go-cqrs-lite is still deeply broken internally
+
 - The "snapshot concurrent agent refactor state" commit (`a6613ef0d`) left go-cqrs-lite's OWN workspace broken: 4 modules listed in its `go.work` don't exist on disk (`metaengine/bboltengine`, `metaengine/mysqlengine`, `metaengine/tursoengine`, `storage/backuptest`). You cannot run `go build ./...` from the go-cqrs-lite root.
 - We restored only the specific files needed to unblock cqrs-htmx. We did NOT:
   - Verify go-cqrs-lite's own test suites pass
@@ -74,9 +77,11 @@ The cqrs-htmx workspace was broken by a go-cqrs-lite upstream commit (`a6613ef0d
   - Assess whether the snapshot commit should be reverted entirely
 
 ### 2. The `examples/system-demo/system-demo` binary is in the working tree
+
 - A 21MB compiled binary was accidentally produced during `go build` and is NOT gitignored. The `.gitignore` has entries for every other example binary but is missing `examples/system-demo/system-demo`. This needs to be trashed and the `.gitignore` entry added.
 
 ### 3. Neither repo has been committed
+
 - Both go-cqrs-lite (11 changed/new files) and cqrs-htmx (6 changed files) have uncommitted working trees. The auto-git daemon may commit at any time.
 
 ---
@@ -99,12 +104,15 @@ The cqrs-htmx workspace was broken by a go-cqrs-lite upstream commit (`a6613ef0d
 ## d) TOTALLY FUCKED UP
 
 ### 1. I accidentally left a 21MB binary in the working tree
+
 During `go build ./examples/system-demo/...`, Go produced `examples/system-demo/system-demo` (21,632,952 bytes). This binary is NOT gitignored (`.gitignore` misses it) and showed up in `git status`. If the auto-git daemon commits it, the repo bloats by 21MB. Must be trashed immediately.
 
 ### 2. I didn't check go-cqrs-lite's OWN test suites
+
 I verified cqrs-htmx builds and tests pass, but go-cqrs-lite's own workspace is still broken (4 phantom modules in go.work, untested modules). The restored files compile in cqrs-htmx's workspace context, but I have NOT verified they pass go-cqrs-lite's own tests.
 
 ### 3. I restored files from `a6613ef0d~1` without fully understanding WHY they were deleted
+
 The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `registry.go`, `auto_named_events.go`, `register.go`, and `sqliteengine/register.go`. I restored them because `system/v4` references their types. But I don't know if this commit was a deliberate (but incomplete) refactor or an accidental snapshot. **The restored types might conflict with a planned direction in go-cqrs-lite.** This was emergency triage, not principled design.
 
 ---
@@ -136,6 +144,7 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 ## f) NEXT 50 THINGS TO DO (Pareto-ordered)
 
 ### Immediate (blocking/cleanup)
+
 1. 🔴 **Trash `examples/system-demo/system-demo`** (21MB binary in working tree)
 2. 🔴 **Add `examples/system-demo/system-demo` to `.gitignore`**
 3. 🔴 **Run `nix run .#lint`** to check for lint issues in changed files
@@ -143,6 +152,7 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 5. 🟡 **Verify go-cqrs-lite auto-git daemon committed the restored files** (or commit manually if not)
 
 ### go-cqrs-lite repair
+
 6. 🟡 **Fix go-cqrs-lite's `go.work`** — remove 4 phantom modules (`bboltengine`, `mysqlengine`, `tursoengine`, `storage/backuptest`)
 7. 🟡 **Run `go build ./...` in go-cqrs-lite** from root to find remaining breakage
 8. 🟡 **Run go-cqrs-lite test suites** to verify restored types don't break existing tests
@@ -155,6 +165,7 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 15. 🟡 **Verify `system/v4` module builds standalone** (`GOWORK=off go build ./...` from `system/`)
 
 ### cqrs-htmx hardening
+
 16. 🟢 **Run `nix run .#check-templates`** after template file changes
 17. 🟢 **Run `nix run .#check-codegen`** to verify `_templ.go` files are current
 18. 🟢 **Run `nix flake check --no-build`**
@@ -166,6 +177,7 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 24. 🟢 **Update `docs/guides/leveraging-system-metaengine.md`** if the driver registration pattern changed
 
 ### Documentation
+
 25. 🟢 **Update cqrs-htmx CHANGELOG** with the go.work replace additions
 26. 🟢 **Update go-cqrs-lite CHANGELOG** with the restored types
 27. 🟢 **Document the `go-codec` extraction** in go-cqrs-lite ADR or README
@@ -173,6 +185,7 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 29. 🟢 **Update `docs/status/` index** if one exists
 
 ### Deeper investigation
+
 30. 🟢 **Audit all `a6613ef0d~1 → a6613ef0d` deletions** for other missing types
 31. 🟢 **Check if `commandlifecycle` has test files** that reference the removed types
 32. 🟢 **Verify `watermill/command_protocol.go`** still compiles (it had `.String()` calls on branded types)
@@ -181,6 +194,7 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 35. 🟢 **Check if `projectionhost/v4` references any removed metaengine types**
 
 ### Testing improvements
+
 36. 🟢 **Add a CI check that builds ALL workspace modules** (not just root)
 37. 🟢 **Add a CI check that detects missing `.gitignore` entries** for compiled binaries
 38. 🟢 **Add a workspace integration test** that catches go-cqrs-lite breakage early
@@ -188,6 +202,7 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 40. 🟢 **Add systemadapter to the lint-checked modules** (currently excluded with 104 lint issues)
 
 ### go-cqrs-lite cleanup
+
 41. 🟢 **Check if `record.CommonMetadata` should use branded IDs or plain strings** (design decision)
 42. 🟢 **Audit `metadata.Tracing` vs `record.CommonMetadata`** for type consistency
 43. 🟢 **Check if `go-codec` repo needs to be in cqrs-htmx's `go.work` `use` list**
@@ -195,6 +210,7 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 45. 🟢 **Check if `go-cqrs-lite/system/integration` module builds**
 
 ### Future architecture
+
 46. 🟢 **Consider vendoring go-cqrs-lite** to avoid the perpetual broken-tag replace dance
 47. 🟢 **Evaluate whether `systemadapter` should be promoted from experimental** (currently WIP-excluded from lint)
 48. 🟢 **Plan the v5 cleanup**: remove deprecated re-exports, align codec imports
@@ -216,10 +232,12 @@ The "snapshot concurrent agent refactor state" commit deleted `priority.go`, `re
 ## Files Changed Summary
 
 ### go-cqrs-lite (11 files, uncommitted)
+
 - 6 new files: `metaengine/priority.go`, `metaengine/registry.go`, `metaengine/register.go`, `metaengine/auto_named_events.go`, `metaengine/sqliteengine/register.go`, (restored from `a6613ef0d~1`)
 - 5 modified files: `metaengine/planner.go`, `metaengine/query.go`, `metaengine/projectionadapter/typed_decoder.go`, `system/adapter_event_serial.go`, `system/projection_builder.go`, `system/register.go`
 
 ### cqrs-htmx (6 files, uncommitted)
+
 - `go.work` (+4 lines: 2 replace directives)
 - `go.work.sum` (checksum updates)
 - `systemadapter/go.mod` (sqliteengine promoted indirect→direct)
