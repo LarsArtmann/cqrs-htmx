@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-08-12 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (async projection startup, ActorID consolidation/ADR-0111, ADR-0114 tombstone migration, security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, fullstack UI integration test, systemadapter module + system/metaengine integration) | **Modules:** 24 in `go.work` (13 production + 10 examples + e2e/server) | **`*Service` methods:** 73 (leading v5 indicator; see ROADMAP) | **Coverage:** Root 92.8% (gate 90%), openapi 99.0%, usermgmt 81.2% (gate 74%), identity-model 74.9% (gate 70%), dashboardui 83.3% (gate 60%), datastar 97.4% (gate 90%), setup 87.9% (gate 80%) — recompute via `nix run .#coverage-gate` | **Lint:** All 12 lint-checked modules at 0 issues (2026-08-12). systemadapter excluded (work-in-progress, 104 issues pending remediation). Recompute uncapped: `GOEXPERIMENT=jsonv2 golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 ./...` per module.
+**Updated:** 2026-08-12 | **Version:** v4.7.0 (released 2026-08-07) + `[Unreleased]` (async projection startup, ActorID consolidation/ADR-0111, ADR-0114 tombstone migration, security middleware consolidation, httputil v0.11.0, setup module CI integration, Broadcaster Raw() accessor, fullstack UI integration test, systemadapter module + system/metaengine integration) | **Modules:** 24 in `go.work` (13 production + 10 examples + e2e/server) | **`*Service` methods:** 73 (leading v5 indicator; see ROADMAP) | **⚠️ BUILD BROKEN:** go-cqrs-lite master (`af4b60841`) reverted ADR-0111 API — root/usermgmt/identity-model/setup fail to compile. Coverage/lint numbers below are from session 21-19 (pre-drift), marked `[unverified]`. Fix requires adapting to reverted API or restoring go-cqrs-lite types. | **Coverage (last verified 2026-08-12 session 21-19):** Root ~93% (gate 90%) `[unverified]`, openapi 99.0%, usermgmt ~81% (gate 74%) `[unverified]`, identity-model ~75% (gate 70%) `[unverified]`, dashboardui ~83% (gate 60%), datastar 97.4% (gate 90%), setup ~88% (gate 80%) `[unverified]` | **Lint:** 0 issues across 12 modules (2026-08-09, pre-drift). systemadapter excluded (work-in-progress).
 
 ## Status Legend
 
@@ -11,6 +11,12 @@
 - [~] **PARTIALLY DONE** — started but incomplete.
 
 > No `[x]` items here. When a task finishes, it moves to [CHANGELOG.md](CHANGELOG.md) and is removed from this list. Deferred/rejected ideas move to [ROADMAP.md](ROADMAP.md) → "Not Planned".
+
+---
+
+## P0 — Blocking (build broken)
+
+- [ ] **Fix go-cqrs-lite upstream drift (ADR-0111 API reverted).** go-cqrs-lite master (`af4b60841`, committed 2026-08-12 21:42) reverted the ADR-0111 branded ActorID types: `event.WithActor` is gone (only `event.WithUserID` exists), `id.ActorID`/`id.ActorKind`/`id.ActorUser` are gone, `record.CommonMetadata.ActorID` reverted from branded struct to plain `string`. All 4 core modules (root, usermgmt, identity-model, setup) fail to compile. Fix requires EITHER adapting cqrs-htmx to the reverted API (downgrade ADR-0111) OR restoring go-cqrs-lite to have the ADR-0111 types. Evidence: `context.go:246` (`event.WithActor`), `audit_log.go:24` (`id.ActorID`), `identity-model/id.go:97` (`id.ActorKind`). Source: `docs/status/2026-08-12_21-54_docs-health-audit-self-review.md`.
 
 ---
 

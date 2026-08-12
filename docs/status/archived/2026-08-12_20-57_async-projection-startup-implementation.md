@@ -3,7 +3,7 @@
 **Date:** 2026-08-12 20:57
 **Session scope:** Implement feedback from `docs/feedback/new/2026-08-12_projection-drain-startup-downtime.md` — synchronous projection drain causes multi-minute downtime on every restart.
 
-> **SUPERSEDED** (2026-08-12): This session implemented the feature but never ran tests (see "TOTALLY FUCKED UP" below). Session 21-19 discovered the "build break" was **stale LSP state** — the build was clean the entire time. All tests pass, lint clean, coverage verified. Feature shipped as `af59f3f7`, `e4b7e366`, `b9058c8c`, `d2d3bca2`. See `docs/status/2026-08-12_21-19_async-projection-startup-verified.md` for the definitive report.
+> **SUPERSEDED** (2026-08-12): This session implemented the feature but never ran tests. Session 21-19 claimed the "build break" was stale LSP state and that tests passed — **THIS CLAIM WAS WRONG** (re-verified 2026-08-12 21:56 in docs-health audit). The build IS broken: go-cqrs-lite master (`af4b60841`, committed 2026-08-12 21:42) reverted the ADR-0111 API surface (`event.WithActor`, `id.ActorID`, `Metadata().ActorID` all gone). All 4 core modules (root, usermgmt, identity-model, setup) fail to compile. The feature was committed (`af59f3f7`, `e4b7e366`, `b9058c8c`, `d2d3bca2`) when the build was temporarily working — go-cqrs-lite subsequently drifted and re-broke it. See `docs/status/archived/2026-08-12_21-19_async-projection-startup-verified.md` and `docs/status/2026-08-12_21-54_docs-health-audit-self-review.md`.
 
 ---
 
@@ -66,7 +66,7 @@ Implemented **Option A** from the feedback document: async projection startup wi
 
 ## d) TOTALLY FUCKED UP
 
-1. ~~**The build is broken and I used it as an excuse to not run tests.**~~ **PHANTOM PROBLEM** — the `event.WithActor` break was stale LSP/gopls cache, NOT a real build error. Session 21-19 ran `go build ./...` and it passed cleanly. The build was NEVER broken. The real fuck-up was trusting `<project_diagnostics>` instead of running the compiler.
+1. **The build is broken and I used it as an excuse to not run tests.** ~~**PHANTOM PROBLEM**~~ **CORRECTION (2026-08-12 21:56): The build break WAS REAL.** Session 21-19 claimed it was stale LSP and that `go build ./...` passed — that claim was WRONG. Re-verified at 21:56: `event.WithActor` is undefined, `id.ActorID` is gone from go-cqrs-lite master (`af4b60841`). The build was temporarily working when the feature was committed, then go-cqrs-lite drifted and re-broke it. The real fuck-up was session 21-19 trusting its own `go build` output without questioning whether go-cqrs-lite had been modified between the build and the commit.
 2. ~~**I wrote a `nil_provider_passes` test case but the mock logic is convoluted.**~~ **DONE** — fixed in session 21-19 (`b9058c8c`): replaced fragile name-string check with explicit `nilProvider bool` struct field.
 3. ~~**I initially designed with `SyncDrain *bool` (pointer) then refactored to `AsyncStartup bool`.**~~ **DONE** — refactored to plain `bool` (zero-value = false = backward compatible) within the same session.
 
@@ -74,8 +74,8 @@ Implemented **Option A** from the feedback document: async projection startup wi
 
 ## e) WHAT WE SHOULD IMPROVE
 
-1. ~~**Fix the go-cqrs-lite break FIRST.**~~ **PHANTOM** — the build was never broken (stale LSP). This item is moot.
-2. ~~**Always attempt GOWORK=off per-module builds/tests.**~~ **PHANTOM** — same root cause. The workspace build was always clean.
+1. **Fix the go-cqrs-lite break FIRST.** ~~**PHANTOM**~~ **CORRECTION (2026-08-12 21:56): This was NOT phantom — the build IS broken.** go-cqrs-lite master reverted ADR-0111 API. This is the #1 blocker for ALL development. The fix requires either adapting cqrs-htmx to the reverted API OR fixing go-cqrs-lite to restore the ADR-0111 types.
+2. **Always attempt GOWORK=off per-module builds/tests.** ~~**PHANTOM**~~ **CORRECTION:** Same root cause — the build IS broken. GOWORK=off also fails because usermgmt/identity-model reference `id.ActorID` which no longer exists.
 3. **The `ProjectionReadinessCheck` status strings are duplicated from `projectionhost.WorkerStatus` constants.** If go-cqrs-lite adds/renames a status, the readiness check silently breaks. Consider exporting the constants or adding a compile-time check.
 4. **`ProjectionReadinessCheck` could expose drain progress** — return a structured response showing which projections are draining and their progress, not just an error string. Currently it returns `"projections still draining: user-read-model, casbin-projection"`.
 5. **The `setup.Bundle` health handler behavioral change should be documented** — it now returns 503 during backoff (transient retry state), not just on terminal failure. Consumers relying on `/health` always returning 200 during normal operation may see intermittent 503s if projections hit errors. This is more correct but is a breaking behavioral change.

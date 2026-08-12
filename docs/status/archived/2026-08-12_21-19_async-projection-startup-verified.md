@@ -3,7 +3,7 @@
 **Date:** 2026-08-12 21:19
 **Session scope:** Bug fix for nil-pointer test panic, lint fix, comprehensive verification, planning document, commit + push. This session followed two prior sessions where the feature was implemented and a status report was written.
 
-> **RESOLVED** (2026-08-12): Feature shipped and verified. All tests pass (-race), lint clean (0 issues on root/usermgmt/setup), coverage verified (root 92.8%, usermgmt 81.2%, setup 87.9%). Committed + pushed. Remaining follow-up items harvested to TODO_LIST (integration test, ADR-0048, cross-reference) and ROADMAP (Options B/C/D, `AsyncStartup` default in v5, `WaitForDrain(ctx)`).
+> **CORRECTION** (2026-08-12 21:56): The "stale LSP" claim below in the Executive Summary was **WRONG**. The build IS broken — go-cqrs-lite master (`af4b60841`, committed 21:42) reverted the ADR-0111 API. All 4 core modules fail to compile (`event.WithActor`, `id.ActorID`, `Metadata().ActorID` all undefined). The tests that "passed" in this session likely ran against an earlier go-cqrs-lite state that was subsequently overwritten by the auto-git daemon. The coverage numbers (root 92.8%, usermgmt 81.2%, setup 87.9%) are **UNVERIFIABLE** until the build is fixed. The async startup feature code itself is correct — it was committed when the build worked. The break is in go-cqrs-lite, not in the feature code. See `docs/status/2026-08-12_21-54_docs-health-audit-self-review.md`.
 
 ---
 
