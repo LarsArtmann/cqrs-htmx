@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -183,6 +185,13 @@ func UserIDFromContext(ctx context.Context) UserID {
 // ensuring full interoperability with event/command metadata.
 type ActorID = id.ActorID
 
+// ActorIDFromUser constructs a user-kind ActorID from a UserID.
+// This is the standard mapping for authenticated HTTP requests:
+// the effective actor is the user making the request.
+func ActorIDFromUser(userID UserID) ActorID {
+	return id.NewUserActor(userID)
+}
+
 // ParseActorID reconstructs an ActorID from its prefixed string form
 // (e.g. "user:01JX...", "system:scheduler").
 //
@@ -280,6 +289,64 @@ func EventOptionsFromContextWithSource(ctx context.Context, serviceName string) 
 
 	if src, err := event.ParseSource(serviceName); err == nil {
 		opts = append(opts, event.WithSource(src))
+	}
+
+	return opts
+}
+
+// CommandOptionsFromContext builds command.Options from request context,
+// propagating user identity, actor identity, correlation ID, and request ID
+// into command metadata. Use this in command decoders so dispatched commands
+// carry the same audit-trail metadata as events.
+//
+// Returns nil options if none of user ID, actor ID, correlation ID, or request
+// ID is found.
+func CommandOptionsFromContext(ctx context.Context) []command.Option {
+	var opts []command.Option
+
+	if userID := UserIDFromContext(ctx); !userID.IsZero() {
+		opts = append(opts, command.WithUserID(userID))
+	}
+
+	if actorID := ActorIDFromContext(ctx); !actorID.IsZero() {
+		opts = append(opts, command.WithActor(actorID))
+	}
+
+	if cid := CorrelationIDFromContext(ctx); !cid.IsZero() {
+		opts = append(opts, command.WithCorrelationID(cid))
+	}
+
+	if rid := RequestIDFromContext(ctx); !rid.IsZero() {
+		opts = append(opts, command.WithRequestID(rid))
+	}
+
+	return opts
+}
+
+// QueryOptionsFromContext builds query.Options from request context,
+// propagating user identity, actor identity, correlation ID, and request ID
+// into query metadata. Use this in query decoders so dispatched queries
+// carry the same audit-trail metadata as commands and events.
+//
+// Returns nil options if none of user ID, actor ID, correlation ID, or request
+// ID is found.
+func QueryOptionsFromContext(ctx context.Context) []query.Option {
+	var opts []query.Option
+
+	if userID := UserIDFromContext(ctx); !userID.IsZero() {
+		opts = append(opts, query.WithUserID(userID))
+	}
+
+	if actorID := ActorIDFromContext(ctx); !actorID.IsZero() {
+		opts = append(opts, query.WithActor(actorID))
+	}
+
+	if cid := CorrelationIDFromContext(ctx); !cid.IsZero() {
+		opts = append(opts, query.WithCorrelationID(cid))
+	}
+
+	if rid := RequestIDFromContext(ctx); !rid.IsZero() {
+		opts = append(opts, query.WithRequestID(rid))
 	}
 
 	return opts

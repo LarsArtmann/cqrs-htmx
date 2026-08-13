@@ -394,7 +394,14 @@ func (a *App) enrichUserID(r *http.Request) *http.Request {
 		return r
 	}
 
-	return r.WithContext(WithUserID(r.Context(), userID))
+	ctx := WithUserID(r.Context(), userID)
+	// Auto-derive ActorID from UserID so event metadata carries the full audit
+	// trail. Skipped if a consumer already set an ActorID (e.g., impersonation).
+	if ActorIDFromContext(ctx).IsZero() {
+		ctx = WithActorID(ctx, ActorIDFromUser(userID))
+	}
+
+	return r.WithContext(ctx)
 }
 
 // noopCancel is a pre-allocated no-op cancel function returned by timeoutCtx

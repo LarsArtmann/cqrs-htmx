@@ -49,6 +49,12 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 				userID, err := extractor(r)
 				if err == nil && !userID.IsZero() {
 					ctx = WithUserID(ctx, userID)
+					// Auto-derive ActorID from UserID so event metadata carries
+					// the full audit trail. Skipped if a consumer already set an
+					// ActorID (e.g., impersonation middleware targeting a different user).
+					if ActorIDFromContext(ctx).IsZero() {
+						ctx = WithActorID(ctx, ActorIDFromUser(userID))
+					}
 				}
 			}
 
