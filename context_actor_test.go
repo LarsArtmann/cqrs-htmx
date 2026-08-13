@@ -358,3 +358,174 @@ func TestQueryOptionsFromContext_Empty(t *testing.T) {
 		t.Errorf("expected 0 options for empty context, got %d", len(opts))
 	}
 }
+
+// --- Full dispatch pipeline integration tests ---
+
+func TestDispatchPipeline_CommandCarriesActorMetadata(t *testing.T) {
+	t.Parallel()
+
+	uid := id.NewUserID()
+
+	var capturedMeta command.Metadata
+
+	disp := command.NewDispatcher()
+	_ = disp.Register("CreateUser", func(_ context.Context, cmd command.Command) error {
+		if basic, ok := cmd.(*command.BasicCommand); ok {
+			capturedMeta = basic.Metadata()
+		}
+
+		return nil
+	})
+
+	app := MustNew(Config{
+		Commands: disp,
+		UserIDExtractor: func(_ *http.Request) (UserID, error) { return uid, nil },
+	})
+
+	handler := app.Command(command.Type("CreateUser"), func(cfg *handlerConfig) {
+		cfg.commandDecoder = func(_ *http.Request) (command.Command, error) {
+			return command.New(command.Type("CreateUser"), id.NewStreamID())
+		}
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/", nil)
+	handler.ServeHTTP(w, r)
+
+	if capturedMeta.ActorID.IsZero() {
+		t.Fatal("expected command to carry ActorID after dispatch, got zero")
+	}
+
+	if capturedMeta.ActorID.Kind() != id.ActorUser {
+		t.Errorf("command ActorID kind = %v, want ActorUser", capturedMeta.ActorID.Kind())
+	}
+
+	if capturedMeta.UserID != uid {
+		t.Errorf("command UserID = %q, want %q", capturedMeta.UserID, uid)
+	}
+}
+
+func TestDispatchPipeline_QueryCarriesActorMetadata(t *testing.T) {
+	t.Parallel()
+
+	uid := id.NewUserID()
+
+	var capturedMeta query.Metadata
+
+	disp := query.NewDispatcher()
+	_ = disp.Register("ListUsers", func(_ context.Context, qry query.Query) (any, error) {
+		if basic, ok := qry.(*query.BasicQuery); ok {
+			capturedMeta = basic.Metadata()
+		}
+
+		return nil, nil
+	})
+
+	app := MustNew(Config{
+		Queries: disp,
+		UserIDExtractor: func(_ *http.Request) (UserID, error) { return uid, nil },
+	})
+
+	handler := app.Query(query.Type("ListUsers"), func(cfg *handlerConfig) {
+		cfg.queryDecoder = func(_ *http.Request) (query.Query, error) {
+			return query.New(query.Type("ListUsers"))
+		}
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	handler.ServeHTTP(w, r)
+
+	if capturedMeta.ActorID.IsZero() {
+		t.Fatal("expected query to carry ActorID after dispatch, got zero")
+	}
+
+	if capturedMeta.ActorID.Kind() != id.ActorUser {
+		t.Errorf("query ActorID kind = %v, want ActorUser", capturedMeta.ActorID.Kind())
+	}
+
+	if capturedMeta.UserID != uid {
+		t.Errorf("query UserID = %q, want %q", capturedMeta.UserID, uid)
+	}
+}
+
+func TestDispatchPipeline_CommandNoActorForAnonymousRequest(t *testing.T) {
+	t.Parallel()
+
+	var capturedMeta command.Metadata
+
+	disp := command.NewDispatcher()
+	_ = disp.Register("CreateUser", func(_ context.Context, cmd command.Command) error {
+		if basic, ok := cmd.(*command.BasicCommand); ok {
+			capturedMeta = basic.Metadata()
+		}
+
+		return nil
+	})
+
+	app := MustNew(Config{
+		Commands: disp,
+		// No UserIDExtractor — anonymous request
+	})
+
+	handler := app.Command(command.Type("CreateUser"), func(cfg *handlerConfig) {
+		cfg.commandDecoder = func(_ *http.Request) (command.Command, error) {
+			return command.New(command.Type("CreateUser"), id.NewStreamID())
+		}
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/", nil)
+	handler.ServeHTTP(w, r)
+
+	if !capturedMeta.ActorID.IsZero() {
+		t.Errorf("expected zero ActorID for anonymous request, got %q",
+			capturedMeta.ActorID.PrefixedString())
+	}
+}
+
+func TestDispatchPipeline_CommandPreservesDecoderSetMetadata(t *testing.T) {
+	t.Parallel()
+
+	uid := id.NewUserID()
+	botActor := id.NewBotActor("ci-runner")
+
+	var capturedMeta command.Metadata
+
+	disp := command.NewDispatcher()
+	_ = disp.Register("CreateUser", func(_ context.Context, cmd command.Command) error {
+		if basic, ok := cmd.(*command.BasicCommand); ok {
+			capturedMeta = basic.Metadata()
+		}
+
+		return nil
+	})
+
+	app := MustNew(Config{
+		Commands: disp,
+		UserIDExtractor: func(_ *http.Request) (UserID, error) { return uid, nil },
+	})
+
+	handler := app.Command(command.Type("CreateUser"), func(cfg *handlerConfig) {
+		cfg.commandDecoder = func(_ *http.Request) (command.Command, error) {
+			// Decoder pre-sets a bot actor — pipeline should OVERWRITE it with
+			// the authenticated user's actor, because the pipeline enrichment
+			// runs AFTER decode and applies context options.
+			return command.New(
+				command.Type("CreateUser"), id.NewStreamID(),
+				command.WithActor(botActor),
+			)
+		}
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodPost, "/", nil)
+	handler.ServeHTTP(w, r)
+
+	// Pipeline enrichment overwrites decoder-set metadata (by design: the
+	// transport-scoped identity takes precedence over decoder defaults).
+	if capturedMeta.ActorID.Kind() != id.ActorUser {
+		t.Errorf("expected pipeline to overwrite bot actor with user actor, got kind %v",
+			capturedMeta.ActorID.Kind())
+	}
+}

@@ -148,6 +148,7 @@ func (a *App) handleCommandDispatch(
 		func(r *http.Request) (any, error) { return config.commandDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
 			cmd, _ := v.(command.Command)
+			enrichCommandFromContext(ctx, cmd)
 
 			return nil, a.commands.Dispatch(ctx, cmd)
 		},
@@ -237,6 +238,7 @@ func (a *App) handleQueryDispatch(
 		func(r *http.Request) (any, error) { return config.queryDecoder(r) },
 		func(ctx context.Context, v any) (any, error) {
 			qry, _ := v.(query.Query)
+			enrichQueryFromContext(ctx, qry)
 
 			return a.queries.Dispatch(ctx, qry)
 		},
@@ -278,6 +280,8 @@ func handleCommandTypedDispatch[Q command.Command](
 			return qry, nil
 		},
 		func(ctx context.Context, q Q) (any, error) {
+			enrichCommandFromContext(ctx, q)
+
 			return nil, a.commands.Dispatch(ctx, q)
 		},
 		func(w http.ResponseWriter, r *http.Request, config *handlerConfig, _ any) {
@@ -319,12 +323,32 @@ func handleQueryTypedDispatch[Q query.Query, R any](
 			return qry, nil
 		},
 		func(ctx context.Context, q Q) (R, error) {
+			enrichQueryFromContext(ctx, q)
+
 			return query.DispatchTyped[R](ctx, a.queries, q)
 		},
 		func(w http.ResponseWriter, r *http.Request, config *handlerConfig, result R) {
 			a.applyQueryResponse(w, r, config, result)
 		},
 	)
+}
+
+// enrichCommandFromContext injects request-scoped metadata (actor ID, user ID,
+// correlation ID, request ID) from the context into a decoded command before
+// dispatch. If the command is not a *command.BasicCommand (custom Command
+// implementation), enrichment is silently skipped — the command dispatches
+// with whatever metadata the decoder set.
+func enrichCommandFromContext(ctx context.Context, cmd command.Command) {
+	if basic, ok := cmd.(*command.BasicCommand); ok {
+		basic.ApplyOptions(CommandOptionsFromContext(ctx)...)
+	}
+}
+
+// enrichQueryFromContext is the query-side mirror of enrichCommandFromContext.
+func enrichQueryFromContext(ctx context.Context, qry query.Query) {
+	if basic, ok := qry.(*query.BasicQuery); ok {
+		basic.ApplyOptions(QueryOptionsFromContext(ctx)...)
+	}
 }
 
 // captureDispatchError stores the dispatch error on the ResponseWriter chain
