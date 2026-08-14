@@ -55,8 +55,14 @@ replace github.com/larsartmann/go-cqrs-lite => /home/lars/projects/go-cqrs-lite
 
 replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => /home/lars/projects/go-cqrs-lite/catalog
 
-replace github.com/larsartmann/go-cqrs-lite/codec/v4 => /home/lars/projects/go-cqrs-lite/codec
-
+// REMOVED 2026-08-15: codec/, flightrecorder/, and retry/ replaces.
+// go-cqrs-lite deleted these in-repo modules (ADR-0128 extraction to external
+// repos go-codec/go-flightrecorder/go-retry, commit 5127039da). The replace
+// targets no longer exist, which broke every workspace-mode build. cqrs-htmx
+// still requires the published tags (codec/v4.4.0, flightrecorder/v4.0.0,
+// retry/v4.x) which resolve from the proxy. Migration to the external
+// module paths must wait for post-extraction go-cqrs-lite tags (event/v4.7+
+// etc.) because published event/v4.6.0 APIs still take codec/v4 types.
 replace github.com/larsartmann/go-cqrs-lite/command/v4 => /home/lars/projects/go-cqrs-lite/command
 
 replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => /home/lars/projects/go-cqrs-lite/commandlifecycle
@@ -77,13 +83,11 @@ replace github.com/larsartmann/go-cqrs-lite/event/v4 => /home/lars/projects/go-c
 
 replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => /home/lars/projects/go-cqrs-lite/event/v4/eventtest
 
-replace github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 => /home/lars/projects/go-cqrs-lite/flightrecorder
-
 replace github.com/larsartmann/go-cqrs-lite/graph/v4 => /home/lars/projects/go-cqrs-lite/graph
 
 replace github.com/larsartmann/go-cqrs-lite/id/v4 => /home/lars/projects/go-cqrs-lite/id
 
-replace github.com/larsartmann/go-cqrs-lite/idempotency/v4 => /home/lars/projects/go-cqrs-lite/idempotency
+replace github.com/larsartmann/go-cqrs-lite/id/v4 => /home/lars/projects/go-cqrs-lite/id
 
 replace github.com/larsartmann/go-cqrs-lite/integration/v4 => /home/lars/projects/go-cqrs-lite/integration
 
@@ -104,8 +108,6 @@ replace github.com/larsartmann/go-cqrs-lite/projectionhost/v4 => /home/lars/proj
 replace github.com/larsartmann/go-cqrs-lite/prometheus/v4 => /home/lars/projects/go-cqrs-lite/prometheus
 
 replace github.com/larsartmann/go-cqrs-lite/query/v4 => /home/lars/projects/go-cqrs-lite/query
-
-replace github.com/larsartmann/go-cqrs-lite/retry/v4 => /home/lars/projects/go-cqrs-lite/retry
 
 replace github.com/larsartmann/go-cqrs-lite/scenario/v4 => /home/lars/projects/go-cqrs-lite/scenario
 
@@ -166,10 +168,10 @@ replace github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 => /home/
 
 replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => /home/lars/projects/go-cqrs-lite/testutil/pgtestcontainer
 
-// Additional replace: go-idempotency is a transitive dep of go-cqrs-lite/idempotency.
-// Now published (v0.1.2) but the workspace-level replace is still needed because the
-// local go-cqrs-lite/idempotency (via main replace above) references it and the module-local
-// replace is not visible in workspace mode.
+// Additional replace: go-idempotency is a transitive dep of local
+// go-cqrs-lite middleware/commandlifecycle (the in-repo idempotency/v4 shim
+// was deleted by the ADR-0128 extraction). Published (v0.1.2); replace kept
+// for local-dev consistency with the sibling repo.
 replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempotency
 
 // Additional replace: httputil/server_timing is a separate Go module (subdirectory
