@@ -161,4 +161,5 @@ user:password@tcp(host:3306)/dbname?parseTime=true&multiStatements=true
 - [Event Store Storage Health](./event-store-storage-health.md) — Health checks for SQL backends
 - [Event Replay and Rebuild](./event-replay-and-rebuild.md) — Projection recovery
 - [Consistency Model](./consistency-model.md) — Read-after-write guarantees
+- [ADR-0041: Snapshot Integration](../adr/0041-snapshot-integration.md) — How `NewMySQLSnapshotStore(db)` plugs into `SnapshotConfig` (opt-in; zero-value = full replay)
 - `go-cqrs-lite/storage/sql/dialect.go` — `MySQLDialect` implementation

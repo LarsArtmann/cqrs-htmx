@@ -621,6 +621,8 @@
                 check_cov datastar 90
                 check_cov setup 80
                 check_cov systemadapter 70
+                check_cov health 90
+                check_cov auditlog 90
                 # Per-package gate: dashboardui/core is the pure data layer.
                 core_cov=$(cd dashboardui && go test ./core/... -count=1 -coverprofile=/tmp/corecov >/dev/null 2>&1 && go tool cover -func=/tmp/corecov | tail -1 | grep -oP '\d+\.\d+(?=%)')
                 echo "dashboardui/core coverage: ''${core_cov}% (threshold: 80%)"
@@ -740,7 +742,7 @@
                   set -euo pipefail
                   echo "=== cqrs-lint strict check ==="
                   fail=0
-                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter; do
+                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter health auditlog; do
                     echo "==> $mod"
                     if ! (cd "$mod" && cqrs-lint --strict . >/dev/null 2>&1); then
                       echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --verbose .' for details)"

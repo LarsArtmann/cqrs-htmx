@@ -115,6 +115,12 @@ require (
 
 replace github.com/larsartmann/cqrs-htmx/v4 => ../
 
+// TEMPORARY local replace: the published usermgmt/v4 v4.7.2 tag cannot
+// interoperate with the identity-model local replace below (its id.go calls
+// the 2-value ParseActorID from unreleased identity-model v4.7.0, but the
+// compiled identity-model here provides the 1-value signature — hermetic
+// vet fails). Keep until identity-model/v4 v4.7.0+ is tagged AND the
+// usermgmt tag matching it is used.
 replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
 
 replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../datastar
@@ -125,9 +131,10 @@ replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../dashboardui
 
 replace github.com/larsartmann/cqrs-htmx/loginpage/v4 => ../loginpage
 
-// TEMPORARY local replace: the local usermgmt (via replace above) requires
-// identity-model/v4 v4.7.0 which is not yet tagged. Required for hermetic
-// GOWORK=off builds. Remove once identity-model/v4 v4.7.0+ is tagged.
+// TEMPORARY local replace: the local usermgmt/adminui/dashboardui/loginpage
+// modules (via the replaces above) require identity-model/v4 v4.7.0 which is
+// not yet tagged. Required for hermetic GOWORK=off builds. Remove once
+// identity-model/v4 v4.7.0+ is tagged.
 replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model
 
 replace github.com/larsartmann/go-datastar => ../../go-datastar

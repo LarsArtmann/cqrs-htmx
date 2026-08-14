@@ -126,11 +126,17 @@ func (d *Dashboard) Capabilities() Capabilities { return d.caps }
 // Config returns the resolved configuration (with defaults applied).
 func (d *Dashboard) Config() Config { return d.config }
 
-// Close releases dashboard resources. Safe to call multiple times.
+// Close releases dashboard resources. Safe to call multiple times and on a
+// nil dashboard (a no-op), so shutdown hooks can run even if construction
+// failed partway.
 // Signals the event-bus handler to stop, then closes the SSE broadcaster,
 // which disconnects all connected SSE clients.
 // Call this during application shutdown.
 func (d *Dashboard) Close() {
+	if d == nil {
+		return
+	}
+
 	d.closeOnce.Do(func() {
 		if d.done != nil {
 			close(d.done)

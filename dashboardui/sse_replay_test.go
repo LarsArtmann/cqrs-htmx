@@ -199,15 +199,23 @@ func TestDashboard_Close(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 	bus := eventtest.NewFakeBus()
 
-	d, _ := New(Config{
+	d, err := New(Config{
 		EventSource: store,
 		Journal:     store,
 		EventBus:    bus,
 	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
 
 	// Close should not panic.
 	d.Close()
 
 	// Double close should be safe (idempotent).
 	d.Close()
+
+	// Close on a nil dashboard is a no-op (shutdown hooks may run even if
+	// construction failed).
+	var nilDashboard *Dashboard
+	nilDashboard.Close()
 }

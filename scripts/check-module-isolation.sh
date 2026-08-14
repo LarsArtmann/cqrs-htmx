@@ -11,20 +11,15 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-# Modules to check (production modules only — examples are main packages)
-MODULES=(
-	"."
-	"identity-model"
-	"usermgmt"
-	"usermgmt/totp"
-	"usermgmt/webauthn"
-	"usermgmt/oauth2"
-	"adminui"
-	"loginpage"
-	"dashboardui"
-	"datastar"
-	"setup"
-	"integration_test"
+# Production modules, auto-discovered from go.work (excludes e2e/ and
+# examples/ — main packages, same exclusion flake.nix apps use). New modules
+# added to go.work are picked up automatically; no manual list to drift.
+mapfile -t MODULES < <(
+	env GOWORK= go work edit -json |
+		jq -r '.Use[].DiskPath' |
+		sed 's|^\./||' |
+		grep -Ev '^(e2e/|examples/)' |
+		sort
 )
 
 failed=0
@@ -40,7 +35,7 @@ for mod in "${MODULES[@]}"; do
 		continue
 	fi
 
-	module_name=$(head -1 "$mod_path/go.mod" | awk '{print $2}')
+	module_name=$(grep -m1 '^module ' "$mod_path/go.mod" | awk '{print $2}')
 	echo -n "  $module_name ... "
 
 	# Build check

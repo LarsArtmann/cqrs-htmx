@@ -160,6 +160,20 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Build health submodule
+        run: cd health && go build ./...
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Build auditlog submodule
+        run: cd auditlog && go build ./...
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -260,6 +274,20 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: Test health submodule
+        run: cd health && go test ./... -count=1 -race -coverprofile=coverage.out
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: Test auditlog submodule
+        run: cd auditlog && go test ./... -count=1 -race -coverprofile=coverage.out
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Coverage check
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
@@ -312,6 +340,18 @@ jobs:
           COVERAGE=$(go tool cover -func=systemadapter/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "systemadapter coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 70) { print \"systemadapter coverage ${COVERAGE}% is below 70% threshold\"; exit 1 } }"
+
+      - name: health coverage check
+        run: |
+          COVERAGE=$(go tool cover -func=health/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "health coverage: ${COVERAGE}%"
+          awk "BEGIN { if ($COVERAGE < 90) { print \"health coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+
+      - name: auditlog coverage check
+        run: |
+          COVERAGE=$(go tool cover -func=auditlog/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "auditlog coverage: ${COVERAGE}%"
+          awk "BEGIN { if ($COVERAGE < 90) { print \"auditlog coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
 
   lint:
     runs-on: ubuntu-latest
@@ -420,6 +460,28 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      - name: golangci-lint (health)
+        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        with:
+          version: v2.12.2
+          working-directory: health
+          args: "--timeout=5m"
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
+      - name: golangci-lint (auditlog)
+        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        with:
+          version: v2.12.2
+          working-directory: auditlog
+          args: "--timeout=5m"
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
   mod-tidy:
     runs-on: ubuntu-latest
     steps:
@@ -431,7 +493,7 @@ jobs:
 
       - name: Verify go mod tidy (all modules)
         run: |
-          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui setup systemadapter integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
+          for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui setup systemadapter health auditlog integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
             echo "=== Checking $mod ==="
             (cd "$mod" && go mod tidy -diff)
           done

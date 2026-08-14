@@ -26,6 +26,9 @@ declare -A DEP_BUDGET=(
 	["dashboardui"]=16      # dashboardui: 13 current (cqrs-htmx, usermgmt, templ, casbin, branded-id, cqrs-lite event/id/codec/metadata, ulid, rapid, watermill)
 	["datastar"]=5          # datastar: 4 current (datastar-go SDK, cqrs-lite event/id, templ)
 	["setup"]=14            # setup: 11 current (cqrs-htmx, usermgmt, identity-model, adminui, dashboardui, loginpage, cqrs-lite event/memory/watermill, error-family, httputil)
+	["systemadapter"]=16    # systemadapter: 13 current (usermgmt, identity-model, cqrs-lite event/id/record, system, metaengine, projectionadapter, sqliteengine, projection, projectionhost, storage/memory, error-family)
+	["health"]=6            # health: 5 current (cqrs-htmx root, go-health, go-health-dashboard, go-error-family, samber/do)
+	["auditlog"]=5          # auditlog: 4 current (go-error-family, samber-do-auditlog, samber/do, testify)
 )
 
 # Modules that don't need budget checks
@@ -43,7 +46,7 @@ for mod in "${!DEP_BUDGET[@]}"; do
 	fi
 
 	budget=${DEP_BUDGET[$mod]}
-	module_name=$(head -1 "$mod_path/go.mod" | awk '{print $2}')
+	module_name=$(grep -m1 '^module ' "$mod_path/go.mod" | awk '{print $2}')
 
 	# Count direct require entries (exclude replace and retract blocks)
 	# Also exclude indirect deps (marked with // indirect)

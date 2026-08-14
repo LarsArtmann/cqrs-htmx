@@ -16,10 +16,10 @@ import (
 )
 
 // setupFullstackUI wires adminui + dashboardui + loginpage against a real
-// *usermgmt.Service and returns the composed http.Handler. Each UI module is
-// constructed individually (not via setup.Bundle) to verify direct cross-module
-// composition.
-func setupFullstackUI(t *testing.T) http.Handler {
+// *usermgmt.Service and returns the composed http.Handler plus the Service
+// (for seeding). Each UI module is constructed individually (not via
+// setup.Bundle) to verify direct cross-module composition.
+func setupFullstackUI(t *testing.T) (http.Handler, *usermgmt.Service) {
 	t.Helper()
 
 	store := memorystorage.NewMemoryStore()
@@ -56,12 +56,12 @@ func setupFullstackUI(t *testing.T) http.Handler {
 	mux.Handle("/admin/", sessionMW(http.StripPrefix("/admin", admin.Handler())))
 	mux.Handle("/dashboard/", http.StripPrefix("/dashboard", dash.Handler()))
 
-	return cqrshtmx.RecommendedSecurityMiddleware()(mux)
+	return cqrshtmx.RecommendedSecurityMiddleware()(mux), svc
 }
 
 func TestFullstackUI_LoginPageRenders(t *testing.T) {
 	t.Parallel()
-	handler := setupFullstackUI(t)
+	handler, _ := setupFullstackUI(t)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -73,7 +73,7 @@ func TestFullstackUI_LoginPageRenders(t *testing.T) {
 
 func TestFullstackUI_AdminRequiresSession(t *testing.T) {
 	t.Parallel()
-	handler := setupFullstackUI(t)
+	handler, _ := setupFullstackUI(t)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/admin/", nil)
@@ -84,7 +84,7 @@ func TestFullstackUI_AdminRequiresSession(t *testing.T) {
 
 func TestFullstackUI_DashboardRenders(t *testing.T) {
 	t.Parallel()
-	handler := setupFullstackUI(t)
+	handler, _ := setupFullstackUI(t)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/dashboard/", nil)

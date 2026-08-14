@@ -3,6 +3,7 @@ go 1.26.5
 use (
 	.
 	./adminui
+	./auditlog
 	./dashboardui
 	./datastar
 	./e2e/server
@@ -17,6 +18,7 @@ use (
 	./examples/samber-do-demo
 	./examples/setup-demo
 	./examples/system-demo
+	./health
 	./identity-model
 	./integration_test
 	./loginpage
