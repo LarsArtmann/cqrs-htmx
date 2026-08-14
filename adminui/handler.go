@@ -3,6 +3,7 @@ package adminui
 import (
 	"net/http"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/httputil"
@@ -12,7 +13,7 @@ import (
 // router with [Handler.Mount] or [Handler.Handler].
 //
 // The panel expects the consumer's session middleware to have placed the
-// authenticated [*usermgmt.User] in the request context (see
+// authenticated [*identitymodel.User] in the request context (see
 // [usermgmt.NewSessionMiddleware]). Requests without an authenticated user, or
 // users that fail [Config.Authorizer], receive 401/403.
 type Handler struct {
@@ -54,7 +55,7 @@ func buildNav(mode Mode) []navItem {
 // page builds the pageData shell for a page, marking the nav item whose Href
 // matches active. Pass active="/" for the dashboard. r is used to extract the
 // CSRF token (if a CSRF middleware is active); the token is empty otherwise.
-func (h *Handler) page(title, active string, user *usermgmt.User, r *http.Request) pageData {
+func (h *Handler) page(title, active string, user *identitymodel.User, r *http.Request) pageData {
 	nav := make([]navItem, len(h.nav))
 	for i, n := range h.nav {
 		n.Active = n.Href == active
@@ -89,7 +90,7 @@ func (h *Handler) nonce(r *http.Request) string {
 
 // guard wraps a handler with authentication + authorization. The wrapped
 // handler receives the authenticated user.
-func (h *Handler) guard(fn func(http.ResponseWriter, *http.Request, *usermgmt.User)) http.HandlerFunc {
+func (h *Handler) guard(fn func(http.ResponseWriter, *http.Request, *identitymodel.User)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, _ := usermgmt.UserFromContext(r.Context())
 		if user == nil {

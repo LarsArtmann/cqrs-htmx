@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/templ-components/icons"
 )
 
@@ -75,12 +75,12 @@ func TestIcons_ConstantsAreKnown(t *testing.T) {
 // which the member remove route depends on.
 func TestParseActorID_RoundTrips(t *testing.T) {
 	t.Parallel()
-	cases := []usermgmt.ActorID{
-		usermgmt.NewActorID(usermgmt.ActorUser, "01JXEXAMPLE0001"),
-		usermgmt.NewActorID(usermgmt.ActorBot, "deploy-bot"),
+	cases := []identitymodel.ActorID{
+		identitymodel.NewActorID(identitymodel.ActorUser, "01JXEXAMPLE0001"),
+		identitymodel.NewActorID(identitymodel.ActorBot, "deploy-bot"),
 	}
 	for _, original := range cases {
-		got, err := usermgmt.ParseActorID(original.PrefixedString())
+		got, err := identitymodel.ParseActorID(original.PrefixedString())
 		if err != nil {
 			t.Fatalf("ParseActorID(%q): %v", original.PrefixedString(), err)
 		}

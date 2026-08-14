@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 )
@@ -112,7 +113,7 @@ func TestRequireAnyRole_Deny(t *testing.T) {
 	}
 	t.Cleanup(svc.Stop)
 
-	authz := RequireAnyRole(svc, "test", usermgmt.RoleAdmin)
+	authz := RequireAnyRole(svc, "test", identitymodel.RoleAdmin)
 	user := mustUser(t, "viewer@example.com")
 
 	if err := authz(user); err == nil {
@@ -191,7 +192,7 @@ func TestPanel_UserDetailWithRoles(t *testing.T) {
 	// Register a user with a ULID-format ID (required by ParseUserID)
 	detailID := "01HXKYGEG0QH8XJYQKZ3TOTP99"
 	if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.MustParseUserID(detailID),
+		ID:    identitymodel.MustParseUserID(detailID),
 		Email: "detail@example.com",
 	}); err != nil {
 		t.Fatalf("register: %v", err)

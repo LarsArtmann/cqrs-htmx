@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
@@ -92,7 +92,7 @@ func capList[T any](in []T) ([]T, int) {
 // roleSelectOptions builds a []forms.SelectOption from assignable roles,
 // marking the member's current roles as selected. Used by the members table
 // role dropdowns.
-func roleSelectOptions(assignable []usermgmt.Role, current []usermgmt.Role) []forms.SelectOption {
+func roleSelectOptions(assignable []identitymodel.Role, current []identitymodel.Role) []forms.SelectOption {
 	opts := make([]forms.SelectOption, len(assignable))
 	for i, r := range assignable {
 		opts[i] = forms.SelectOption{

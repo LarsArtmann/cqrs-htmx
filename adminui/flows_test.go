@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
@@ -31,20 +32,20 @@ func TestFlow_TenantCreateSuspendReactivateDelete(t *testing.T) {
 	if rec.Header().Get("HX-Redirect") != "/admin/tenants/omega" {
 		t.Fatalf("create HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
 	}
-	tenant, err := svc.GetTenant(ctx, usermgmt.NewTenantID("omega"))
+	tenant, err := svc.GetTenant(ctx, identitymodel.NewTenantID("omega"))
 	if err != nil || tenant == nil {
 		t.Fatalf("tenant not created: %v", err)
 	}
 
 	// Suspend.
 	postForm(h, "/admin/tenants/omega/suspend", nil)
-	if t2, _ := svc.GetTenant(ctx, usermgmt.NewTenantID("omega")); !t2.Suspended {
+	if t2, _ := svc.GetTenant(ctx, identitymodel.NewTenantID("omega")); !t2.Suspended {
 		t.Error("tenant should be suspended")
 	}
 
 	// Reactivate.
 	postForm(h, "/admin/tenants/omega/reactivate", nil)
-	if t2, _ := svc.GetTenant(ctx, usermgmt.NewTenantID("omega")); t2.Suspended {
+	if t2, _ := svc.GetTenant(ctx, identitymodel.NewTenantID("omega")); t2.Suspended {
 		t.Error("tenant should be reactivated")
 	}
 
@@ -53,7 +54,7 @@ func TestFlow_TenantCreateSuspendReactivateDelete(t *testing.T) {
 	if rec2 := httptest.NewRecorder(); rec2.Code == 0 {
 		_ = rec2
 	}
-	if _, err := svc.GetTenant(ctx, usermgmt.NewTenantID("omega")); err == nil {
+	if _, err := svc.GetTenant(ctx, identitymodel.NewTenantID("omega")); err == nil {
 		t.Error("tenant should be deleted (GetTenant should fail)")
 	}
 }
@@ -64,7 +65,7 @@ func TestFlow_UserDelete(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: usermgmt.SyntheticUserID("u-goner"), Email: "goner@example.com",
+		ID: identitymodel.SyntheticUserID("u-goner"), Email: "goner@example.com",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -86,13 +87,13 @@ func TestFlow_MemberAddAndRemove(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	tenant, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
-		ID: usermgmt.NewTenantID("beta"), Name: "beta", DisplayName: "Beta",
+		ID: identitymodel.NewTenantID("beta"), Name: "beta", DisplayName: "Beta",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	member, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: usermgmt.SyntheticUserID("u-member1"), Email: "member1@example.com",
+		ID: identitymodel.SyntheticUserID("u-member1"), Email: "member1@example.com",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -126,7 +127,7 @@ func TestFlow_AddMemberUnknownEmail(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	if _, err := svc.CreateTenant(context.Background(), usermgmt.CreateTenantRequest{
-		ID: usermgmt.NewTenantID("gamma"), Name: "gamma",
+		ID: identitymodel.NewTenantID("gamma"), Name: "gamma",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +141,7 @@ func TestFlow_AddMemberUnknownEmail(t *testing.T) {
 	if !strings.Contains(rec.Header().Get("HX-Trigger"), "adminui:toast") {
 		t.Error("expected error toast header")
 	}
-	if got := svc.TenantMembers(context.Background(), usermgmt.NewTenantID("gamma")); len(got) != 0 {
+	if got := svc.TenantMembers(context.Background(), identitymodel.NewTenantID("gamma")); len(got) != 0 {
 		t.Errorf("expected no members, got %d", len(got))
 	}
 }
@@ -170,28 +171,28 @@ func TestFlow_UpdateMemberRole(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	tenant, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
-		ID: usermgmt.NewTenantID("delta"), Name: "delta", DisplayName: "Delta",
+		ID: identitymodel.NewTenantID("delta"), Name: "delta", DisplayName: "Delta",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	member, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: usermgmt.SyntheticUserID("u-role1"), Email: "role1@example.com",
+		ID: identitymodel.SyntheticUserID("u-role1"), Email: "role1@example.com",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err := svc.AddMember(
 		ctx,
-		usermgmt.ActorIDFromUser(member.User.ID),
+		identitymodel.ActorIDFromUser(member.User.ID),
 		tenant.ID,
-		[]usermgmt.Role{usermgmt.RoleViewer},
+		[]identitymodel.Role{identitymodel.RoleViewer},
 	); err != nil {
 		t.Fatal(err)
 	}
 
 	// Change role from viewer to admin via inline edit endpoint.
-	actor := usermgmt.ActorIDFromUser(member.User.ID).PrefixedString()
+	actor := identitymodel.ActorIDFromUser(member.User.ID).PrefixedString()
 	rec := postForm(h, "/admin/tenants/delta/members/"+actor, url.Values{"role": {"admin"}})
 	if rec.Header().Get("HX-Redirect") != "/admin/tenants/delta" {
 		t.Fatalf("update role HX-Redirect = %q", rec.Header().Get("HX-Redirect"))
@@ -201,7 +202,7 @@ func TestFlow_UpdateMemberRole(t *testing.T) {
 	if len(members) != 1 {
 		t.Fatalf("expected 1 member, got %d", len(members))
 	}
-	if len(members[0].Roles) != 1 || members[0].Roles[0] != usermgmt.RoleAdmin {
+	if len(members[0].Roles) != 1 || members[0].Roles[0] != identitymodel.RoleAdmin {
 		t.Errorf("role = %v, want [admin]", members[0].Roles)
 	}
 }

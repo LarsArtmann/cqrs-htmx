@@ -116,9 +116,6 @@ linters:
         text: is a global variable
         linters:
           - gochecknoglobals
-      - text: 'Import github\.com/larsartmann/cqrs-htmx/identity-model/v4 directly'
-        linters:
-          - staticcheck
       - path: handler\.go$|handler_\w+\.go$|util\.go$
         linters:
           - goconst

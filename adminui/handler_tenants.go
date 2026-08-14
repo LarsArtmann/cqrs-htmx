@@ -4,22 +4,23 @@ import (
 	"net/http"
 	"strings"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
-func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
+func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	tenants, total := capList(h.config.Service.AllTenants())
 	d := tenantsListData{Tenants: tenants, Total: total, BasePath: h.config.BasePath}
 	p := h.page("Tenants", "/tenants", user, r)
 	renderPage(w, r, tenantsPage(p, d))
 }
 
-func (h *Handler) tenantNew(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
+func (h *Handler) tenantNew(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	p := h.page("New tenant", "/tenants", user, r)
 	renderPage(w, r, tenantNewPage(p, h.config.BasePath))
 }
 
-func (h *Handler) tenantCreate(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+func (h *Handler) tenantCreate(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
@@ -35,7 +36,7 @@ func (h *Handler) tenantCreate(w http.ResponseWriter, r *http.Request, _ *usermg
 		return
 	}
 	tenant, err := h.config.Service.CreateTenant(r.Context(), usermgmt.CreateTenantRequest{
-		ID:          usermgmt.NewTenantID(name),
+		ID:          identitymodel.NewTenantID(name),
 		Name:        name,
 		DisplayName: display,
 	})
@@ -48,8 +49,8 @@ func (h *Handler) tenantCreate(w http.ResponseWriter, r *http.Request, _ *usermg
 	redirect(w, r, h.config.BasePath+"/tenants/"+tenant.ID.Get())
 }
 
-func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
-	tenantID := usermgmt.NewTenantID(r.PathValue("id"))
+func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
+	tenantID := identitymodel.NewTenantID(r.PathValue("id"))
 	tenant, err := h.config.Service.GetTenant(r.Context(), tenantID)
 	if err != nil {
 		http.NotFound(w, r)
@@ -62,7 +63,7 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *use
 	renderPage(w, r, tenantDetailPage(p, tenantDetailData{
 		Tenant:           tenant,
 		Members:          members,
-		AssignableRoles:  usermgmt.AssignableRoles(),
+		AssignableRoles:  identitymodel.AssignableRoles(),
 		BasePath:         h.config.BasePath,
 		AddMemberURL:     memberBase,
 		RemoveMemberBase: memberBase,
@@ -70,8 +71,8 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *use
 	}))
 }
 
-func (h *Handler) tenantSuspend(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	id := usermgmt.NewTenantID(r.PathValue("id"))
+func (h *Handler) tenantSuspend(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	id := identitymodel.NewTenantID(r.PathValue("id"))
 	if err := h.config.Service.SuspendTenant(r.Context(), id, "suspended via admin panel"); err != nil {
 		triggerToast(w, "err", "Suspend failed: "+err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -81,8 +82,8 @@ func (h *Handler) tenantSuspend(w http.ResponseWriter, r *http.Request, _ *userm
 	redirect(w, r, h.config.BasePath+"/tenants/"+id.Get())
 }
 
-func (h *Handler) tenantReactivate(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	id := usermgmt.NewTenantID(r.PathValue("id"))
+func (h *Handler) tenantReactivate(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	id := identitymodel.NewTenantID(r.PathValue("id"))
 	if err := h.config.Service.ReactivateTenant(r.Context(), id); err != nil {
 		triggerToast(w, "err", "Reactivate failed: "+err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -92,8 +93,8 @@ func (h *Handler) tenantReactivate(w http.ResponseWriter, r *http.Request, _ *us
 	redirect(w, r, h.config.BasePath+"/tenants/"+id.Get())
 }
 
-func (h *Handler) tenantDelete(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	id := usermgmt.NewTenantID(r.PathValue("id"))
+func (h *Handler) tenantDelete(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	id := identitymodel.NewTenantID(r.PathValue("id"))
 	if err := h.config.Service.DeleteTenant(r.Context(), id, "deleted via admin panel"); err != nil {
 		triggerToast(w, "err", "Delete failed: "+err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)

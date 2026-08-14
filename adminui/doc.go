@@ -10,7 +10,7 @@
 //	panel.Mount(mux, "/admin")
 //
 // The panel is intended to sit behind the consumer's session middleware
-// (e.g. [usermgmt.NewSessionMiddleware]) so that [*usermgmt.User] is present in
+// (e.g. [usermgmt.NewSessionMiddleware]) so that [*identitymodel.User] is present in
 // the request context. Access is gated by [Config.Authorizer].
 //
 // # Two scopes

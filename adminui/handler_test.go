@@ -7,13 +7,14 @@ import (
 	"strings"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // newTestPanel builds a panel backed by an in-memory service and wrapped by
 // middleware that injects the given user into the request context. This mirrors
 // how a consumer mounts the panel behind usermgmt.NewSessionMiddleware.
-func newTestPanel(t *testing.T, user *usermgmt.User, config ...Config) (http.Handler, *usermgmt.Service) {
+func newTestPanel(t *testing.T, user *identitymodel.User, config ...Config) (http.Handler, *usermgmt.Service) {
 	t.Helper()
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
 		AuditLog: usermgmt.NewAuditLog(),
@@ -45,9 +46,9 @@ func newTestPanel(t *testing.T, user *usermgmt.User, config ...Config) (http.Han
 	return mux, svc
 }
 
-func mustUser(t *testing.T, email string) *usermgmt.User {
+func mustUser(t *testing.T, email string) *identitymodel.User {
 	t.Helper()
-	return usermgmt.NewUser(usermgmt.SyntheticUserID("01HXTEST"+pad(email)), email, "")
+	return identitymodel.NewUser(identitymodel.SyntheticUserID("01HXTEST"+pad(email)), email, "")
 }
 
 func pad(s string) string {
@@ -144,7 +145,7 @@ func TestPanel_UnauthorizedAndForbidden(t *testing.T) {
 			next.ServeHTTP(w, r)
 		})
 	}
-	strict, _ := New(Config{Service: svc, Authorizer: func(*usermgmt.User) error { return errForbidden }})
+	strict, _ := New(Config{Service: svc, Authorizer: func(*identitymodel.User) error { return errForbidden }})
 	mux2 := http.NewServeMux()
 	mux2.Handle("/admin/", deny(http.StripPrefix("/admin", strict.Handler())))
 	rec2 := httptest.NewRecorder()
@@ -183,7 +184,7 @@ func TestPanel_TenantAdminMode(t *testing.T) {
 	panel, err := New(Config{
 		Service:    svc,
 		Mode:       ModeTenantAdmin,
-		TenantID:   usermgmt.NewTenantID("acme"),
+		TenantID:   identitymodel.NewTenantID("acme"),
 		Authorizer: RequireAuthenticated(),
 	})
 	if err != nil {

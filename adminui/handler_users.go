@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
-func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
+func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q)
 	users, total := capList(matched)
@@ -24,12 +24,12 @@ func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *userm
 
 // filterUsers returns users whose email or display name contains q
 // (case-insensitive). Empty q returns all users.
-func filterUsers(all []*usermgmt.User, q string) []*usermgmt.User {
+func filterUsers(all []*identitymodel.User, q string) []*identitymodel.User {
 	if q == "" {
 		return all
 	}
 	needle := strings.ToLower(q)
-	out := make([]*usermgmt.User, 0, len(all))
+	out := make([]*identitymodel.User, 0, len(all))
 	for _, u := range all {
 		if strings.Contains(strings.ToLower(u.Email), needle) ||
 			strings.Contains(strings.ToLower(u.DisplayName), needle) {
@@ -39,8 +39,8 @@ func filterUsers(all []*usermgmt.User, q string) []*usermgmt.User {
 	return out
 }
 
-func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
-	target, err := usermgmt.ParseUserID(r.PathValue("id"))
+func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
+	target, err := identitymodel.ParseUserID(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
@@ -51,7 +51,7 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *userm
 		return
 	}
 
-	roles := map[string][]usermgmt.Role{}
+	roles := map[string][]identitymodel.Role{}
 	if authz := h.config.Service.Authz(); authz != nil {
 		if domains, derr := authz.DomainsForUser(shown.ID); derr == nil {
 			for _, dom := range domains {
@@ -70,8 +70,8 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *userm
 	}))
 }
 
-func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	target, err := usermgmt.ParseUserID(r.PathValue("id"))
+func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, err := identitymodel.ParseUserID(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
@@ -98,8 +98,8 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *usermgmt
 // handshake requires the user to authenticate with the provider themselves,
 // which the admin cannot impersonate. The user-detail card documents this and
 // lists the configured providers so the admin knows what the user CAN link.
-func (h *Handler) userUnlinkExternal(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	target, err := usermgmt.ParseUserID(r.PathValue("id"))
+func (h *Handler) userUnlinkExternal(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	target, err := identitymodel.ParseUserID(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return

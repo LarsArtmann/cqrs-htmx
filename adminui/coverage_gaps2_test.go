@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
@@ -47,7 +48,7 @@ func TestPanel_AuthorizerAllowsUser(t *testing.T) {
 		t.Errorf("RequireAuthenticated should allow any non-nil user: %v", err)
 	}
 
-	authz2 := RequireAnyRole(svc, "*", usermgmt.RoleSuperAdmin)
+	authz2 := RequireAnyRole(svc, "*", identitymodel.RoleSuperAdmin)
 	if err := authz2(user); err == nil {
 		t.Error("RequireAnyRole should deny user with no matching roles")
 	}
@@ -59,7 +60,7 @@ func TestPanel_NonHTMXDeleteRedirects(t *testing.T) {
 	h, svc := newTestPanel(t, user)
 
 	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID: usermgmt.SyntheticUserID("u-goner2"), Email: "goner2@example.com",
+		ID: identitymodel.SyntheticUserID("u-goner2"), Email: "goner2@example.com",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -254,7 +255,7 @@ func TestPanel_RenderDiverseUser(t *testing.T) {
 
 	// Register a user with display name
 	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.SyntheticUserID("u-diverse"),
+		ID:    identitymodel.SyntheticUserID("u-diverse"),
 		Email: "diverse@test.com",
 	})
 	if err != nil {
@@ -293,16 +294,16 @@ func TestPanel_RenderTenantWithMembers(t *testing.T) {
 
 	// Register and add members
 	m1 := mustRegister(t, svc, "u-sig1", "sig1@sigma.com")
-	mustAddMember(t, svc, m1.User.ID, usermgmt.NewTenantID("sigma"), usermgmt.RoleAdmin)
+	mustAddMember(t, svc, m1.User.ID, identitymodel.NewTenantID("sigma"), identitymodel.RoleAdmin)
 	m2 := mustRegister(t, svc, "u-sig2", "sig2@sigma.com")
-	mustAddMember(t, svc, m2.User.ID, usermgmt.NewTenantID("sigma"), usermgmt.RoleViewer)
+	mustAddMember(t, svc, m2.User.ID, identitymodel.NewTenantID("sigma"), identitymodel.RoleViewer)
 
 	// Render tenant detail
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/tenants/sigma", nil))
 	body := rec.Body.String()
 
-	actor1 := usermgmt.ActorIDFromUser(m1.User.ID).PrefixedString()
+	actor1 := identitymodel.ActorIDFromUser(m1.User.ID).PrefixedString()
 	for _, want := range []string{"sigma", actor1, "Members"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("tenant detail page missing %q", want)
@@ -318,7 +319,7 @@ func TestPanel_RenderSuspendedTenant(t *testing.T) {
 	mustCreateTenant(t, svc, "suspended-tenant")
 	if err := svc.SuspendTenant(
 		context.Background(),
-		usermgmt.NewTenantID("suspended-tenant"),
+		identitymodel.NewTenantID("suspended-tenant"),
 		"test suspension",
 	); err != nil {
 		t.Fatalf("SuspendTenant: %v", err)

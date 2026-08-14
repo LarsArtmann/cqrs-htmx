@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"strings"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // membersIndex is the tenant-scoped members page (ModeTenantAdmin).
-func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
+func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	var tenant *usermgmt.Tenant
 	if t, err := h.config.Service.GetTenant(r.Context(), h.config.TenantID); err == nil {
 		tenant = t
@@ -20,7 +21,7 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *use
 	renderPage(w, r, membersPage(p, tenantDetailData{
 		Tenant:           tenant,
 		Members:          members,
-		AssignableRoles:  usermgmt.AssignableRoles(),
+		AssignableRoles:  identitymodel.AssignableRoles(),
 		BasePath:         h.config.BasePath,
 		AddMemberURL:     memberBase,
 		RemoveMemberBase: memberBase,
@@ -29,12 +30,12 @@ func (h *Handler) membersIndex(w http.ResponseWriter, r *http.Request, user *use
 }
 
 // membersAdd handles "add member" in tenant-admin mode (tenant from config).
-func (h *Handler) membersAdd(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+func (h *Handler) membersAdd(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	h.doAddMember(w, r, h.config.TenantID, h.config.BasePath+"/members")
 }
 
 // membersRemove handles "remove member" in tenant-admin mode.
-func (h *Handler) membersRemove(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+func (h *Handler) membersRemove(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	actor, ok := parseActorFromPath(w, r, h.config.BasePath+"/members")
 	if !ok {
 		return
@@ -43,19 +44,19 @@ func (h *Handler) membersRemove(w http.ResponseWriter, r *http.Request, _ *userm
 }
 
 // tenantAddMember handles "add member" in super-admin mode (tenant from path).
-func (h *Handler) tenantAddMember(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
-	tenantID := usermgmt.NewTenantID(r.PathValue("id"))
+func (h *Handler) tenantAddMember(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	tenantID := identitymodel.NewTenantID(r.PathValue("id"))
 	h.doAddMember(w, r, tenantID, h.config.BasePath+"/tenants/"+tenantID.Get())
 }
 
 // parseActorFromPath extracts and validates the actor ID from the URL path.
 // Returns ok=false if the actor ID is missing or invalid.
-func parseActorFromPath(w http.ResponseWriter, r *http.Request, back string) (usermgmt.ActorID, bool) {
-	actor, err := usermgmt.ParseActorID(r.PathValue("actor"))
+func parseActorFromPath(w http.ResponseWriter, r *http.Request, back string) (identitymodel.ActorID, bool) {
+	actor, err := identitymodel.ParseActorID(r.PathValue("actor"))
 	if err != nil {
 		triggerToast(w, "err", "Invalid actor ID")
 		redirect(w, r, back)
-		return usermgmt.ActorID{}, false
+		return identitymodel.ActorID{}, false
 	}
 	return actor, true
 }
@@ -65,18 +66,18 @@ func parseActorFromPath(w http.ResponseWriter, r *http.Request, back string) (us
 // Returns ok=false if the actor ID is invalid.
 func parseTenantMemberPath(
 	w http.ResponseWriter, r *http.Request, back string,
-) (usermgmt.TenantID, usermgmt.ActorID, bool) {
-	actor, err := usermgmt.ParseActorID(r.PathValue("actor"))
+) (identitymodel.TenantID, identitymodel.ActorID, bool) {
+	actor, err := identitymodel.ParseActorID(r.PathValue("actor"))
 	if err != nil {
 		triggerToast(w, "err", "Invalid actor ID")
 		redirect(w, r, back)
-		return usermgmt.TenantID{}, usermgmt.ActorID{}, false
+		return identitymodel.TenantID{}, identitymodel.ActorID{}, false
 	}
-	return usermgmt.NewTenantID(r.PathValue("id")), actor, true
+	return identitymodel.NewTenantID(r.PathValue("id")), actor, true
 }
 
 // tenantRemoveMember handles "remove member" in super-admin mode.
-func (h *Handler) tenantRemoveMember(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+func (h *Handler) tenantRemoveMember(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	back := h.config.BasePath + "/tenants/" + r.PathValue("id")
 	tenantID, actor, ok := parseTenantMemberPath(w, r, back)
 	if !ok {
@@ -85,13 +86,13 @@ func (h *Handler) tenantRemoveMember(w http.ResponseWriter, r *http.Request, _ *
 	h.doRemoveMember(w, r, tenantID, actor, back)
 }
 
-func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID usermgmt.TenantID, back string) {
+func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID identitymodel.TenantID, back string) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
 	email := strings.TrimSpace(r.FormValue("email"))
-	role := usermgmt.Role(strings.TrimSpace(r.FormValue("role")))
+	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))
 	if email == "" || role == "" {
 		triggerToast(w, "err", "Email and role are required")
 		redirect(w, r, back)
@@ -105,9 +106,9 @@ func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID u
 	}
 	if err := h.config.Service.AddMember(
 		r.Context(),
-		usermgmt.ActorIDFromUser(target.ID),
+		identitymodel.ActorIDFromUser(target.ID),
 		tenantID,
-		[]usermgmt.Role{role},
+		[]identitymodel.Role{role},
 	); err != nil {
 		triggerToast(w, "err", "Add failed: "+err.Error())
 	} else {
@@ -119,8 +120,8 @@ func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID u
 func (h *Handler) doRemoveMember(
 	w http.ResponseWriter,
 	r *http.Request,
-	tenantID usermgmt.TenantID,
-	actor usermgmt.ActorID,
+	tenantID identitymodel.TenantID,
+	actor identitymodel.ActorID,
 	back string,
 ) {
 	if err := h.config.Service.RemoveMember(r.Context(), actor, tenantID); err != nil {
@@ -132,7 +133,7 @@ func (h *Handler) doRemoveMember(
 }
 
 // membersUpdateRole handles "change role" in tenant-admin mode.
-func (h *Handler) membersUpdateRole(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+func (h *Handler) membersUpdateRole(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	actor, ok := parseActorFromPath(w, r, h.config.BasePath+"/members")
 	if !ok {
 		return
@@ -141,7 +142,7 @@ func (h *Handler) membersUpdateRole(w http.ResponseWriter, r *http.Request, _ *u
 }
 
 // tenantUpdateMemberRole handles "change role" in super-admin mode.
-func (h *Handler) tenantUpdateMemberRole(w http.ResponseWriter, r *http.Request, _ *usermgmt.User) {
+func (h *Handler) tenantUpdateMemberRole(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	back := h.config.BasePath + "/tenants/" + r.PathValue("id")
 	tenantID, actor, ok := parseTenantMemberPath(w, r, back)
 	if !ok {
@@ -152,19 +153,19 @@ func (h *Handler) tenantUpdateMemberRole(w http.ResponseWriter, r *http.Request,
 
 func (h *Handler) doUpdateRole(
 	w http.ResponseWriter, r *http.Request,
-	tenantID usermgmt.TenantID, actor usermgmt.ActorID, back string,
+	tenantID identitymodel.TenantID, actor identitymodel.ActorID, back string,
 ) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "invalid form", http.StatusBadRequest)
 		return
 	}
-	role := usermgmt.Role(strings.TrimSpace(r.FormValue("role")))
+	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))
 	if role == "" {
 		triggerToast(w, "err", "Role is required")
 		redirect(w, r, back)
 		return
 	}
-	if err := h.config.Service.UpdateMemberRoles(r.Context(), actor, tenantID, []usermgmt.Role{role}); err != nil {
+	if err := h.config.Service.UpdateMemberRoles(r.Context(), actor, tenantID, []identitymodel.Role{role}); err != nil {
 		triggerToast(w, "err", "Role update failed: "+err.Error())
 	} else {
 		triggerToast(w, "ok", "Role updated")

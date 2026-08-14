@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
@@ -32,8 +33,8 @@ func renderComponent(t *testing.T, component templ.Component) string {
 // the "Admin UI: OAuth2 link/unlink views" TODO item.
 func TestExternalAccountsCard_RendersLinkUnlinkView(t *testing.T) {
 	u := mustUser(t, "linked@example.com")
-	u.ExternalAccounts = []usermgmt.ExternalAccount{
-		usermgmt.NewExternalAccount("google", "sub-123", "g@x.com", "G User", time.Now()),
+	u.ExternalAccounts = []identitymodel.ExternalAccount{
+		identitymodel.NewExternalAccount("google", "sub-123", "g@x.com", "G User", time.Now()),
 	}
 
 	data := userDetailData{
@@ -92,7 +93,7 @@ func TestPanel_UserDetailShowsExternalCard(t *testing.T) {
 	h, svc := newTestPanel(t, admin)
 
 	created, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.SyntheticUserID("u-dave@x.dev"),
+		ID:    identitymodel.SyntheticUserID("u-dave@x.dev"),
 		Email: "dave@x.dev",
 	})
 	if err != nil {
@@ -121,7 +122,7 @@ func TestPanel_UnlinkRouteWired(t *testing.T) {
 	h, svc := newTestPanel(t, admin)
 
 	created, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.SyntheticUserID("u-eve@x.dev"),
+		ID:    identitymodel.SyntheticUserID("u-eve@x.dev"),
 		Email: "eve@x.dev",
 	})
 	if err != nil {

@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
@@ -20,7 +21,7 @@ type pageData struct {
 	BasePath  string
 	Accent    string
 	Brand     string
-	User      *usermgmt.User
+	User      *identitymodel.User
 	Nav       []navItem
 	LogoutURL string
 	// CSRFToken is the rendered hidden input for CSRF protection (empty when no
@@ -56,7 +57,7 @@ type dashboardData struct {
 
 // usersListData drives the users index.
 type usersListData struct {
-	Users    []*usermgmt.User
+	Users    []*identitymodel.User
 	Total    int // total matching the search (may exceed len(Users) when capped)
 	Search   string
 	BasePath string
@@ -64,11 +65,11 @@ type usersListData struct {
 
 // userDetailData drives a single user's page.
 type userDetailData struct {
-	User                *usermgmt.User
+	User                *identitymodel.User
 	BasePath            string
-	TenantRoles         map[string][]usermgmt.Role // domain -> roles
-	ConfiguredProviders []string                   // OAuth2 providers configured on the Service (for the link/unlink card)
-	UnlinkExternalBase  string                     // URL prefix for unlink POSTs: append "/{provider}/unlink"
+	TenantRoles         map[string][]identitymodel.Role // domain -> roles
+	ConfiguredProviders []string                        // OAuth2 providers configured on the Service (for the link/unlink card)
+	UnlinkExternalBase  string                          // URL prefix for unlink POSTs: append "/{provider}/unlink"
 }
 
 // tenantsListData drives the tenants index.
@@ -83,7 +84,7 @@ type tenantsListData struct {
 type tenantDetailData struct {
 	Tenant           *usermgmt.Tenant
 	Members          []memberRow
-	AssignableRoles  []usermgmt.Role
+	AssignableRoles  []identitymodel.Role
 	BasePath         string
 	AddMemberURL     string
 	RemoveMemberBase string
@@ -92,12 +93,12 @@ type tenantDetailData struct {
 
 // memberRow is a flattened membership for display.
 type memberRow struct {
-	Actor usermgmt.ActorID
-	Roles []usermgmt.Role
+	Actor identitymodel.ActorID
+	Roles []identitymodel.Role
 }
 
 // toMemberRows converts a membership slice to display rows.
-func toMemberRows(memberships []*usermgmt.Membership) []memberRow {
+func toMemberRows(memberships []*identitymodel.Membership) []memberRow {
 	members := make([]memberRow, 0, len(memberships))
 	for _, m := range memberships {
 		members = append(members, memberRow{Actor: m.ActorID, Roles: m.Roles})

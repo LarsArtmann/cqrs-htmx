@@ -8,12 +8,13 @@ import (
 	"strings"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // newTenantAdminPanel creates a tenant-scoped admin panel for testing
 // the ModeTenantAdmin handler paths.
-func newTenantAdminPanel(t *testing.T, user *usermgmt.User, tenantID string) (http.Handler, *usermgmt.Service) {
+func newTenantAdminPanel(t *testing.T, user *identitymodel.User, tenantID string) (http.Handler, *usermgmt.Service) {
 	t.Helper()
 	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
 		AuditLog: usermgmt.NewAuditLog(),
@@ -24,7 +25,7 @@ func newTenantAdminPanel(t *testing.T, user *usermgmt.User, tenantID string) (ht
 	panel, err := New(Config{
 		Service:    svc,
 		Mode:       ModeTenantAdmin,
-		TenantID:   usermgmt.NewTenantID(tenantID),
+		TenantID:   identitymodel.NewTenantID(tenantID),
 		Authorizer: RequireAuthenticated(),
 	})
 	if err != nil {
@@ -46,7 +47,7 @@ func newTenantAdminPanel(t *testing.T, user *usermgmt.User, tenantID string) (ht
 func mustCreateTenant(t *testing.T, svc *usermgmt.Service, id string) *usermgmt.Tenant {
 	t.Helper()
 	tenant, err := svc.CreateTenant(context.Background(), usermgmt.CreateTenantRequest{
-		ID: usermgmt.NewTenantID(id), Name: id, DisplayName: id,
+		ID: identitymodel.NewTenantID(id), Name: id, DisplayName: id,
 	})
 	if err != nil {
 		t.Fatalf("CreateTenant %s: %v", id, err)
@@ -57,7 +58,7 @@ func mustCreateTenant(t *testing.T, svc *usermgmt.Service, id string) *usermgmt.
 func mustRegister(t *testing.T, svc *usermgmt.Service, id, email string) *usermgmt.RegisterResponse {
 	t.Helper()
 	res, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.SyntheticUserID(id), Email: email,
+		ID: identitymodel.SyntheticUserID(id), Email: email,
 	})
 	if err != nil {
 		t.Fatalf("Register %s: %v", email, err)
@@ -67,10 +68,10 @@ func mustRegister(t *testing.T, svc *usermgmt.Service, id, email string) *usermg
 
 func mustAddMember(
 	t *testing.T, svc *usermgmt.Service,
-	uid usermgmt.UserID, tid usermgmt.TenantID, roles ...usermgmt.Role,
+	uid identitymodel.UserID, tid identitymodel.TenantID, roles ...identitymodel.Role,
 ) {
 	t.Helper()
-	if err := svc.AddMember(context.Background(), usermgmt.ActorIDFromUser(uid), tid, roles); err != nil {
+	if err := svc.AddMember(context.Background(), identitymodel.ActorIDFromUser(uid), tid, roles); err != nil {
 		t.Fatalf("AddMember: %v", err)
 	}
 }
@@ -81,7 +82,7 @@ func TestPanel_TenantAdminMembersIndex(t *testing.T) {
 
 	mustCreateTenant(t, svc, "acme")
 	member := mustRegister(t, svc, "u-m1", "m1@acme.com")
-	mustAddMember(t, svc, member.User.ID, usermgmt.NewTenantID("acme"), usermgmt.RoleUser)
+	mustAddMember(t, svc, member.User.ID, identitymodel.NewTenantID("acme"), identitymodel.RoleUser)
 
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/admin/members", nil))
@@ -92,7 +93,7 @@ func TestPanel_TenantAdminMembersIndex(t *testing.T) {
 	if !strings.Contains(body, "acme") {
 		t.Error("members page should show tenant name")
 	}
-	actorPrefix := usermgmt.ActorIDFromUser(member.User.ID).PrefixedString()
+	actorPrefix := identitymodel.ActorIDFromUser(member.User.ID).PrefixedString()
 	if !strings.Contains(body, actorPrefix) {
 		t.Errorf("members page should show actor %q", actorPrefix)
 	}
@@ -123,7 +124,7 @@ func TestPanel_TenantAdminAddMember(t *testing.T) {
 	if rec.Header().Get("HX-Redirect") != "/admin/members" {
 		t.Errorf("add member redirect = %q", rec.Header().Get("HX-Redirect"))
 	}
-	members := svc.TenantMembers(ctx, usermgmt.NewTenantID("acme"))
+	members := svc.TenantMembers(ctx, identitymodel.NewTenantID("acme"))
 	if len(members) != 1 {
 		t.Fatalf("expected 1 member, got %d", len(members))
 	}
@@ -153,14 +154,14 @@ func TestPanel_TenantAdminRemoveMember(t *testing.T) {
 
 	mustCreateTenant(t, svc, "acme")
 	member := mustRegister(t, svc, "u-rm1", "rm1@acme.com")
-	mustAddMember(t, svc, member.User.ID, usermgmt.NewTenantID("acme"), usermgmt.RoleUser)
+	mustAddMember(t, svc, member.User.ID, identitymodel.NewTenantID("acme"), identitymodel.RoleUser)
 
-	actor := usermgmt.ActorIDFromUser(member.User.ID).PrefixedString()
+	actor := identitymodel.ActorIDFromUser(member.User.ID).PrefixedString()
 	rec := postForm(h, "/admin/members/"+actor+"/delete", nil)
 	if rec.Header().Get("HX-Redirect") != "/admin/members" {
 		t.Errorf("remove member redirect = %q", rec.Header().Get("HX-Redirect"))
 	}
-	if got := svc.TenantMembers(ctx, usermgmt.NewTenantID("acme")); len(got) != 0 {
+	if got := svc.TenantMembers(ctx, identitymodel.NewTenantID("acme")); len(got) != 0 {
 		t.Errorf("expected 0 members, got %d", len(got))
 	}
 }
@@ -172,15 +173,15 @@ func TestPanel_TenantAdminUpdateMemberRole(t *testing.T) {
 
 	mustCreateTenant(t, svc, "acme")
 	member := mustRegister(t, svc, "u-up1", "up1@acme.com")
-	mustAddMember(t, svc, member.User.ID, usermgmt.NewTenantID("acme"), usermgmt.RoleViewer)
+	mustAddMember(t, svc, member.User.ID, identitymodel.NewTenantID("acme"), identitymodel.RoleViewer)
 
-	actor := usermgmt.ActorIDFromUser(member.User.ID).PrefixedString()
+	actor := identitymodel.ActorIDFromUser(member.User.ID).PrefixedString()
 	rec := postForm(h, "/admin/members/"+actor, url.Values{"role": {"admin"}})
 	if rec.Header().Get("HX-Redirect") != "/admin/members" {
 		t.Fatalf("update role redirect = %q", rec.Header().Get("HX-Redirect"))
 	}
-	members := svc.TenantMembers(ctx, usermgmt.NewTenantID("acme"))
-	if len(members) != 1 || members[0].Roles[0] != usermgmt.RoleAdmin {
+	members := svc.TenantMembers(ctx, identitymodel.NewTenantID("acme"))
+	if len(members) != 1 || members[0].Roles[0] != identitymodel.RoleAdmin {
 		t.Errorf("expected admin role, got %+v", members)
 	}
 }
@@ -219,7 +220,7 @@ func TestAuthorizer_DefaultTenantAdmin(t *testing.T) {
 	authz := defaultAuthorizer(Config{
 		Mode:     ModeTenantAdmin,
 		Service:  svc,
-		TenantID: usermgmt.NewTenantID("test"),
+		TenantID: identitymodel.NewTenantID("test"),
 	})
 	user := mustUser(t, "ops@test.com")
 	if err := authz(user); err == nil {
@@ -231,7 +232,7 @@ func TestAuthorizer_RequireAnyRole(t *testing.T) {
 	svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{})
 	user := mustUser(t, "anyone@example.com")
 
-	deny := RequireAnyRole(svc, "*", usermgmt.RoleSuperAdmin)
+	deny := RequireAnyRole(svc, "*", identitymodel.RoleSuperAdmin)
 	if err := deny(user); err == nil {
 		t.Error("expected denial — user has no roles")
 	}
@@ -270,9 +271,9 @@ func TestPanel_UpdateRoleMissingRole(t *testing.T) {
 
 	mustCreateTenant(t, svc, "eps")
 	member := mustRegister(t, svc, "u-up2", "up2@eps.com")
-	mustAddMember(t, svc, member.User.ID, usermgmt.NewTenantID("eps"), usermgmt.RoleViewer)
+	mustAddMember(t, svc, member.User.ID, identitymodel.NewTenantID("eps"), identitymodel.RoleViewer)
 
-	actor := usermgmt.ActorIDFromUser(member.User.ID).PrefixedString()
+	actor := identitymodel.ActorIDFromUser(member.User.ID).PrefixedString()
 	rec := postForm(h, "/admin/tenants/eps/members/"+actor, url.Values{})
 	if !strings.Contains(rec.Header().Get("HX-Trigger"), "adminui:toast") {
 		t.Error("expected error toast for missing role")
@@ -329,8 +330,8 @@ func TestPanel_TenantAdmin403(t *testing.T) {
 	denied, err := New(Config{
 		Service:    svc,
 		Mode:       ModeTenantAdmin,
-		TenantID:   usermgmt.NewTenantID("test"),
-		Authorizer: func(*usermgmt.User) error { return errForbidden },
+		TenantID:   identitymodel.NewTenantID("test"),
+		Authorizer: func(*identitymodel.User) error { return errForbidden },
 	})
 	if err != nil {
 		t.Fatal(err)

@@ -3,6 +3,7 @@ package adminui
 import (
 	"net/http"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
@@ -50,7 +51,7 @@ type Config struct {
 
 	// TenantID scopes a [ModeTenantAdmin] panel to one tenant. Ignored in
 	// [ModeSuperAdmin] mode. Required when Mode == [ModeTenantAdmin].
-	TenantID usermgmt.TenantID
+	TenantID identitymodel.TenantID
 
 	// AccentColor overrides the highlight color (any CSS color). Default
 	// [DefaultAccentColor].
@@ -60,7 +61,7 @@ type Config struct {
 	// Return a non-nil error to deny access (HTTP 403). When nil, a default
 	// role-based authorizer is used — see [defaultAuthorizer]. Override this to
 	// match your own role model.
-	Authorizer func(user *usermgmt.User) error
+	Authorizer func(user *identitymodel.User) error
 
 	// LogoutURL is the destination of the "Sign out" link. Empty hides the link.
 	LogoutURL string

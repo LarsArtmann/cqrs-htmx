@@ -3,13 +3,14 @@ package adminui
 import (
 	"net/http"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // auditIndex renders the audit log. In tenant-admin mode the log is global
 // (usermgmt's AuditLog records user events only); future per-tenant scoping can
 // filter by aggregate.
-func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
+func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	var entries []usermgmt.AuditEntry
 	if al := h.config.Service.AuditLog(); al != nil {
 		entries = al.Recent(100)

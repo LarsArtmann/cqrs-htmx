@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
@@ -21,7 +22,7 @@ func TestPanel_RendersSeededData(t *testing.T) {
 	// Seed users.
 	for _, email := range []string{"alice@acme.dev", "bob@acme.dev", "carol@x.dev"} {
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-			ID:    usermgmt.SyntheticUserID("u-" + email),
+			ID:    identitymodel.SyntheticUserID("u-" + email),
 			Email: email,
 		}); err != nil {
 			t.Fatalf("register %s: %v", email, err)
@@ -29,13 +30,13 @@ func TestPanel_RendersSeededData(t *testing.T) {
 	}
 	// Seed tenants.
 	acme, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
-		ID: usermgmt.NewTenantID("acme"), Name: "acme", DisplayName: "Acme Corp",
+		ID: identitymodel.NewTenantID("acme"), Name: "acme", DisplayName: "Acme Corp",
 	})
 	if err != nil {
 		t.Fatalf("create tenant: %v", err)
 	}
 	if _, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
-		ID: usermgmt.NewTenantID("globex"), Name: "globex", DisplayName: "Globex",
+		ID: identitymodel.NewTenantID("globex"), Name: "globex", DisplayName: "Globex",
 	}); err != nil {
 		t.Fatalf("create globex: %v", err)
 	}
@@ -65,7 +66,7 @@ func TestPanel_RendersSeededData(t *testing.T) {
 	}
 
 	// User detail page.
-	aliceID := usermgmt.SyntheticUserID("u-alice@acme.dev").Get().String()
+	aliceID := identitymodel.SyntheticUserID("u-alice@acme.dev").Get().String()
 	detail := get("/admin/users/" + aliceID)
 	if !strings.Contains(detail, "alice@acme.dev") {
 		t.Error("user detail missing email")
@@ -136,14 +137,14 @@ func TestPanel_TemplComponentsRenderStructurally(t *testing.T) {
 
 	for _, email := range []string{"alice@acme.dev", "bob@acme.dev"} {
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-			ID:    usermgmt.SyntheticUserID("u-" + email),
+			ID:    identitymodel.SyntheticUserID("u-" + email),
 			Email: email,
 		}); err != nil {
 			t.Fatalf("register %s: %v", email, err)
 		}
 	}
 	_, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
-		ID: usermgmt.NewTenantID("acme"), Name: "acme", DisplayName: "Acme Corp",
+		ID: identitymodel.NewTenantID("acme"), Name: "acme", DisplayName: "Acme Corp",
 	})
 	if err != nil {
 		t.Fatalf("create tenant: %v", err)
@@ -158,7 +159,7 @@ func TestPanel_TemplComponentsRenderStructurally(t *testing.T) {
 
 	usersHTML := get("/admin/users")
 	tenantDetail := get("/admin/tenants/acme")
-	aliceID := usermgmt.SyntheticUserID("u-alice@acme.dev").Get().String()
+	aliceID := identitymodel.SyntheticUserID("u-alice@acme.dev").Get().String()
 	userDetail := get("/admin/users/" + aliceID)
 
 	// display.Avatar: circular initials element (tailwind-merge reorders classes).

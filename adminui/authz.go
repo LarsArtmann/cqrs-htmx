@@ -1,6 +1,7 @@
 package adminui
 
 import (
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
@@ -14,28 +15,32 @@ import (
 // These defaults match the role vocabulary seeded by usermgmt. If your
 // application assigns roles differently, pass your own [Config.Authorizer]
 // (see [RequireAnyRole] and [RequireAuthenticated]).
-func defaultAuthorizer(config Config) func(*usermgmt.User) error {
+func defaultAuthorizer(config Config) func(*identitymodel.User) error {
 	if config.Mode == ModeTenantAdmin {
 		return RequireAnyRole(config.Service, config.TenantID.Get(),
-			usermgmt.RoleAdmin, usermgmt.RoleOwner)
+			identitymodel.RoleAdmin, identitymodel.RoleOwner)
 	}
 	return RequireAnyRole(config.Service, "*",
-		usermgmt.RoleSuperAdmin, usermgmt.RoleAdmin)
+		identitymodel.RoleSuperAdmin, identitymodel.RoleAdmin)
 }
 
 // RequireAnyRole returns an authorizer that grants access when the user holds
 // any of the given roles in domain (use "*" for a global check, or a tenant ID
 // for a scoped check). A nil or unauthenticated user is always denied.
-func RequireAnyRole(service *usermgmt.Service, domain string, roles ...usermgmt.Role) func(*usermgmt.User) error {
-	want := make(map[usermgmt.Role]struct{}, len(roles))
+func RequireAnyRole(
+	service *usermgmt.Service,
+	domain string,
+	roles ...identitymodel.Role,
+) func(*identitymodel.User) error {
+	want := make(map[identitymodel.Role]struct{}, len(roles))
 	for _, r := range roles {
 		want[r] = struct{}{}
 	}
-	return func(user *usermgmt.User) error {
+	return func(user *identitymodel.User) error {
 		if user == nil {
 			return errForbidden
 		}
-		held, err := service.Authz().ImplicitRolesForUser(user.ID, usermgmt.NewTenantID(domain))
+		held, err := service.Authz().ImplicitRolesForUser(user.ID, identitymodel.NewTenantID(domain))
 		if err != nil {
 			return errForbidden
 		}
@@ -51,8 +56,8 @@ func RequireAnyRole(service *usermgmt.Service, domain string, roles ...usermgmt.
 // RequireAuthenticated returns an authorizer that grants access to any
 // authenticated user, regardless of role. Use for low-trust panels or as a
 // building block combined with additional checks.
-func RequireAuthenticated() func(*usermgmt.User) error {
-	return func(user *usermgmt.User) error {
+func RequireAuthenticated() func(*identitymodel.User) error {
+	return func(user *identitymodel.User) error {
 		if user == nil {
 			return errForbidden
 		}

@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
-func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *usermgmt.User) {
+func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	p := h.page("Dashboard", "/", user, r)
 	svc := h.config.Service
 
