@@ -1,10 +1,18 @@
 # Release v4.8.0 Push Plan — Coordinated Family Release
 
 > Status: 10 local tags cut and verified 2026-08-14 (session after 18:30 report).
-> **Nothing is pushed.** This runbook is what you review and execute.
-> All tags are annotated, point at verified-green commits, and carry go.mod files
-> with ZERO local `replace` directives (filesystem replaces in published tags
-> break every consumer).
+> **master is pushed** (origin/master = `73ff1556`). The 10 tags below are NOT
+> pushed — pushing them is the remaining step. This runbook is what you review
+> and execute.
+> All tags are annotated (SSH-signed), point at verified-green commits, and carry
+> go.mod files with ZERO local `replace` directives (filesystem replaces in
+> published tags break every consumer).
+>
+> 2026-08-14 (later): the 17 then-local commits were rewritten (filter-branch) to
+> purge the accidentally committed `examples/setup-demo/setup-demo` binary
+> (27 MB). Final trees are byte-identical to before, commit messages preserved;
+> the 6 in-range tags were re-pointed and re-signed (SHAs in §1 are
+> post-rewrite). The 4 tags on `73ff1556` were not affected.
 
 ## 1. Tag inventory (all local, unpushed)
 
@@ -12,14 +20,14 @@
 | -------------------------- | ---------- | --------------------------------------------------------------------- |
 | `v4.8.0` (root)            | `73ff1556` | BREAKING: `NewActorID`, local `ActorID`, `MetadataKeyActorID` removed (ADR-0111). Adds `ProjectionReadinessCheck`, `RecommendedSecurityMiddleware`, `openapi/`, `event.WithActor` propagation, sync handlers, httputil re-export deprecations. |
 | `identity-model/v4.8.0`    | `73ff1556` | BREAKING: ActorID → `id.ActorID`; `ParseActorID` returns `(ActorID, error)`. Authz/session kind guards (security). Requires only published go-cqrs-lite (event/command v4.6.0, id v4.4.0). |
-| `usermgmt/v4.8.0`          | `b5a745bb` | BREAKING: `ParseActorID` arity. MySQL stores, `ReadModelDialect`, `AsyncStartup`, `AuditEntry.ActorID`, cascades, state cache. Requires identity-model **v4.8.0**, root v4.7.0. |
+| `usermgmt/v4.8.0`          | `5be86547` | BREAKING: `ParseActorID` arity. MySQL stores, `ReadModelDialect`, `AsyncStartup`, `AuditEntry.ActorID`, cascades, state cache. Requires identity-model **v4.8.0**, root v4.7.0. |
 | `usermgmt/webauthn/v4.8.0` | `73ff1556` | Deps alignment only.                                                  |
 | `loginpage/v4.8.0`         | `73ff1556` | Deps alignment only (requires usermgmt v4.7.2, root v4.7.0 — both published; still resolvable after the family push). |
-| `dashboardui/v4.8.0`       | `dabe6293` | SSE heartbeat data-race fix, nil-safe `Close()`, Actor ID display. Requires root **v4.8.0**. |
-| `adminui/v4.8.0`           | `744a5a7e` | Direct identity-model imports (v5 prerequisite, ADR-0047); SA1019 exclusion removed. Requires root/usermgmt/identity-model **v4.8.0**. |
-| `setup/v4.8.0`             | `542f93e9` | **First tag.** One-call composition root; requires whole family at v4.8.0. |
-| `health/v4.8.0`            | `0e8a41af` | **First tag.** go-health bridge; requires root v4.7.0 (published) — no replaces. |
-| `auditlog/v4.8.0`          | `0e8a41af` | **First tag.** samber-do-auditlog bridge; no cqrs-htmx deps.           |
+| `dashboardui/v4.8.0`       | `3383dcd6` | SSE heartbeat data-race fix, nil-safe `Close()`, Actor ID display. Requires root **v4.8.0**. |
+| `adminui/v4.8.0`           | `548df9fd` | Direct identity-model imports (v5 prerequisite, ADR-0047); SA1019 exclusion removed. Requires root/usermgmt/identity-model **v4.8.0**. |
+| `setup/v4.8.0`             | `f91ee4db` | **First tag.** One-call composition root; requires whole family at v4.8.0. |
+| `health/v4.8.0`            | `7fce808e` | **First tag.** go-health bridge; requires root v4.7.0 (published) — no replaces. |
+| `auditlog/v4.8.0`          | `7fce808e` | **First tag.** samber-do-auditlog bridge; no cqrs-htmx deps.           |
 
 Not in this train (intentionally):
 
@@ -30,7 +38,7 @@ Not in this train (intentionally):
 ## 2. Push order (strict; module graph dependencies)
 
 ```bash
-git push origin master
+git push origin master   # DONE 2026-08-14 (origin/master = 73ff1556)
 git push origin v4.8.0 identity-model/v4.8.0 usermgmt/v4.8.0 \
               usermgmt/webauthn/v4.8.0 loginpage/v4.8.0 dashboardui/v4.8.0 \
               adminui/v4.8.0 setup/v4.8.0 health/v4.8.0 auditlog/v4.8.0
