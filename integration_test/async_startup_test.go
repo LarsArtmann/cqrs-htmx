@@ -83,7 +83,7 @@ func TestAsyncStartupReadinessLifecycle(t *testing.T) {
 
 	getHealth := func() int {
 		t.Helper()
-		resp, err := http.Get(server.URL + "/health") //nolint:noctx // test helper with fixed URL
+		resp, err := http.Get(server.URL + "/health")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 		return resp.StatusCode

@@ -43,13 +43,13 @@ func main() {
 
 ## What you get (default routes)
 
-| Route         | Panel             | Access                          |
-| ------------- | ----------------- | ------------------------------- |
-| `/auth/*`     | Auth API          | public                          |
-| `/admin/*`    | Admin panel       | session + CSRF (401 without)    |
-| `/dashboard/*`| CQRS dashboard    | session-gated (401 without)     |
-| `/health`     | Readiness check   | public (503 while draining)     |
-| `/`           | Login page        | public                          |
+| Route          | Panel           | Access                       |
+| -------------- | --------------- | ---------------------------- |
+| `/auth/*`      | Auth API        | public                       |
+| `/admin/*`     | Admin panel     | session + CSRF (401 without) |
+| `/dashboard/*` | CQRS dashboard  | session-gated (401 without)  |
+| `/health`      | Readiness check | public (503 while draining)  |
+| `/`            | Login page      | public                       |
 
 ## Serving options
 
@@ -76,28 +76,28 @@ deadline.
 
 Everything is optional; zero-value `Config{}` gives a working in-memory app.
 
-| Field                    | Type                              | Default        | Description                                              |
-| ------------------------ | --------------------------------- | -------------- | -------------------------------------------------------- |
-| `TOTP` / `WebAuthn` / `OAuth2` | provider interfaces         | none           | Auth strategies; import the sub-modules and inject        |
-| `EventStore` / `EventBus` | `event.Store` / `event.Bus`     | in-memory      | Shared infrastructure; store must be a `SeekableJournal`  |
-| `ReadModelDB`            | `*sql.DB`                         | nil (in-memory)| SQL-backed read models that survive restarts              |
-| `Title` / `AccentColor`  | `string`                          | `"cqrs-htmx"` / sky | Branding across all panels                            |
-| `AdminPath`              | `string`                          | `"/admin/"`    | Trailing slash auto-normalized; links follow the mount   |
-| `DashboardPath`          | `string`                          | `"/dashboard/"`| Trailing slash auto-normalized                            |
-| `LoginRedirect`          | `string`                          | `"/admin/"`    | Post-login destination                                    |
-| `HealthPath`             | `string`                          | `"/health"`    | Readiness endpoint; must not collide with other paths    |
-| `CookieName` / `SessionTTL` | `string` / `time.Duration`     | `"session"` / 24h | Session cookie configuration                           |
-| `Logger`                 | `*slog.Logger`                    | `slog.Default()`| Structured auth event logging                             |
-| `LogoutURL` / `SSEURL`   | `string`                          | hidden / off   | Logout link; admin panel real-time sync indicator         |
-| `AdminMode` / `TenantID` | `adminui.Mode` / `TenantID`       | super-admin    | Tenant-scoped admin panel (TenantID required in that mode)|
-| `AdminAuthorizer`        | `func(*usermgmt.User) error`      | role-based     | Custom admin access control                               |
-| `DashboardAuthorizer`    | `func(*http.Request) error`       | none           | Extra dashboard gate (runs after the session gate)        |
-| `OnProjectionFailed`     | `func(name, lastErr string)`      | none           | Alerting hook when a projection exhausts restarts         |
-| `AsyncStartup`           | `bool`                            | `false`        | Bind immediately; `/health` gates readiness during drain  |
-| `DashboardReadOnly`      | `*bool`                           | `true`         | Set `false` at your own risk (enables reset/DLQ replay)   |
-| `DashboardPageSize`      | `int`                             | 50             | Rows per dashboard table page (max 200)                   |
-| `LoginNoRegistration`    | `bool`                            | `false`        | Hide the registration section                             |
-| `DisableAdmin` / `DisableDashboard` / `DisableLogin` | `bool` | `false` | Feature flags to shrink the route surface        |
+| Field                                                | Type                         | Default             | Description                                                |
+| ---------------------------------------------------- | ---------------------------- | ------------------- | ---------------------------------------------------------- |
+| `TOTP` / `WebAuthn` / `OAuth2`                       | provider interfaces          | none                | Auth strategies; import the sub-modules and inject         |
+| `EventStore` / `EventBus`                            | `event.Store` / `event.Bus`  | in-memory           | Shared infrastructure; store must be a `SeekableJournal`   |
+| `ReadModelDB`                                        | `*sql.DB`                    | nil (in-memory)     | SQL-backed read models that survive restarts               |
+| `Title` / `AccentColor`                              | `string`                     | `"cqrs-htmx"` / sky | Branding across all panels                                 |
+| `AdminPath`                                          | `string`                     | `"/admin/"`         | Trailing slash auto-normalized; links follow the mount     |
+| `DashboardPath`                                      | `string`                     | `"/dashboard/"`     | Trailing slash auto-normalized                             |
+| `LoginRedirect`                                      | `string`                     | `"/admin/"`         | Post-login destination                                     |
+| `HealthPath`                                         | `string`                     | `"/health"`         | Readiness endpoint; must not collide with other paths      |
+| `CookieName` / `SessionTTL`                          | `string` / `time.Duration`   | `"session"` / 24h   | Session cookie configuration                               |
+| `Logger`                                             | `*slog.Logger`               | `slog.Default()`    | Structured auth event logging                              |
+| `LogoutURL` / `SSEURL`                               | `string`                     | hidden / off        | Logout link; admin panel real-time sync indicator          |
+| `AdminMode` / `TenantID`                             | `adminui.Mode` / `TenantID`  | super-admin         | Tenant-scoped admin panel (TenantID required in that mode) |
+| `AdminAuthorizer`                                    | `func(*usermgmt.User) error` | role-based          | Custom admin access control                                |
+| `DashboardAuthorizer`                                | `func(*http.Request) error`  | none                | Extra dashboard gate (runs after the session gate)         |
+| `OnProjectionFailed`                                 | `func(name, lastErr string)` | none                | Alerting hook when a projection exhausts restarts          |
+| `AsyncStartup`                                       | `bool`                       | `false`             | Bind immediately; `/health` gates readiness during drain   |
+| `DashboardReadOnly`                                  | `*bool`                      | `true`              | Set `false` at your own risk (enables reset/DLQ replay)    |
+| `DashboardPageSize`                                  | `int`                        | 50                  | Rows per dashboard table page (max 200)                    |
+| `LoginNoRegistration`                                | `bool`                       | `false`             | Hide the registration section                              |
+| `DisableAdmin` / `DisableDashboard` / `DisableLogin` | `bool`                       | `false`             | Feature flags to shrink the route surface                  |
 
 Invalid configs fail fast at `New` with descriptive errors: paths must start
 with `/`, must not be `/` (reserved for the login page), and must be pairwise

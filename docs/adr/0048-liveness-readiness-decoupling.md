@@ -43,7 +43,7 @@ mux.Handle("/health", cqrshtmx.ReadinessHandler(cqrshtmx.ProjectionReadinessChec
 
 - **Blocking startup with a longer `DrainTimeout`** — keeps the outage; only makes failure louder. Rejected.
 - **Serving stale reads with a `Stale-While-Revalidate` header during drain** — hides the consistency window instead of gating it; wrong default for an identity/admin system. Rejected as a default, viable as a consumer-level choice on top of async startup.
-- **Per-projection readiness (partial 200)** — allows serving once *some* projections are live. Rejected: correctness is only as good as the projection backing the request, and consumers cannot express per-route projection affinity through a single health endpoint. A future refinement could expose per-projection checks as separate `NamedCheck`s.
+- **Per-projection readiness (partial 200)** — allows serving once _some_ projections are live. Rejected: correctness is only as good as the projection backing the request, and consumers cannot express per-route projection affinity through a single health endpoint. A future refinement could expose per-projection checks as separate `NamedCheck`s.
 
 ## Consequences
 
@@ -57,7 +57,7 @@ mux.Handle("/health", cqrshtmx.ReadinessHandler(cqrshtmx.ProjectionReadinessChec
 
 - Consumers must wire the readiness gate and configure their proxy/orchestrator to retry on 503; without it, early reads can hit incomplete read models.
 - Drain failures no longer fail construction — monitoring (`/health`, `ProjectionStatuses`, `OnProjectionFailed`) becomes mandatory in async mode.
-- The first requests after readiness may still be slightly stale for events written *during* the drain tail; the gate bounds, but does not eliminate, the window (same as sync mode at steady state).
+- The first requests after readiness may still be slightly stale for events written _during_ the drain tail; the gate bounds, but does not eliminate, the window (same as sync mode at steady state).
 
 ### Verification
 

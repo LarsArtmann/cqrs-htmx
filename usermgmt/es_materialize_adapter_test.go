@@ -127,7 +127,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 	// --- Delete (tombstone-marked) ---
 	deletePayload := TenantDeletedPayload{SchemaVersion: currentSchemaVersion, Reason: "gone"}
 	deleteEvt := makeMaterializeTenantEvent(t, eventTenantDeleted, aggID, deletePayload)
-	//nolint:staticcheck // SA1019: MarkTombstone is the only upstream trigger for OnTombstone dispatch in Materialize
+
 	markedDeleteEvt, err := event.MarkTombstone(deleteEvt)
 	if err != nil {
 		t.Fatalf("MarkTombstone: %v", err)

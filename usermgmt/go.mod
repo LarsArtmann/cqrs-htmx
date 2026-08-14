@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/go-sql-driver/mysql v1.10.0
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.2.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.3.0

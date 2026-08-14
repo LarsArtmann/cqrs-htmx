@@ -144,7 +144,7 @@ func ActorIDAsUserID(actorID ActorID) (UserID, bool) {
 		var zero UserID
 		return zero, false
 	}
-	//nolint:staticcheck // SA1019: preserves historical NewUserID semantics (parse-or-synthesize)
+
 	return NewUserID(actorID.String()), true
 }
 

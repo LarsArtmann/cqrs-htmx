@@ -135,16 +135,16 @@ cfg.SnapshotConfig = usermgmt.SnapshotConfig{
 
 ## What's Supported
 
-| Component               | MySQL support | Notes                                                                       |
-| ----------------------- | ------------- | --------------------------------------------------------------------------- |
-| Event store             | ✅ Full       | `NewSQLEventStore(ctx, db, "mysql")`                                        |
-| Error classification    | ✅ Full       | `classifyMySQLError` in go-cqrs-lite                                        |
-| Duplicate-key detection | ✅ Full       | Error 1062 detection                                                        |
-| Session store           | ✅ Full       | `NewSQLSessionStore(ctx, db, "mysql")` — dedicated MySQL DDL                |
-| Snapshot store          | ✅ Full       | `NewMySQLSnapshotStore(db)` — MySQL-dialect schema                          |
-| Checkpoint store        | ✅ Full       | `NewMySQLCheckpointStore(db)` — MySQL-dialect schema                        |
-| Convenience constructor | ✅ Template   | `NewMySQLEventSourcedSetup` — copy-in template (like SQLite/Postgres)       |
-| MySQL read models       | ✅ Full       | `NewMySQL{User,Membership,Tenant,Bot}ReadModel(db)`                         |
+| Component               | MySQL support | Notes                                                                 |
+| ----------------------- | ------------- | --------------------------------------------------------------------- |
+| Event store             | ✅ Full       | `NewSQLEventStore(ctx, db, "mysql")`                                  |
+| Error classification    | ✅ Full       | `classifyMySQLError` in go-cqrs-lite                                  |
+| Duplicate-key detection | ✅ Full       | Error 1062 detection                                                  |
+| Session store           | ✅ Full       | `NewSQLSessionStore(ctx, db, "mysql")` — dedicated MySQL DDL          |
+| Snapshot store          | ✅ Full       | `NewMySQLSnapshotStore(db)` — MySQL-dialect schema                    |
+| Checkpoint store        | ✅ Full       | `NewMySQLCheckpointStore(db)` — MySQL-dialect schema                  |
+| Convenience constructor | ✅ Template   | `NewMySQLEventSourcedSetup` — copy-in template (like SQLite/Postgres) |
+| MySQL read models       | ✅ Full       | `NewMySQL{User,Membership,Tenant,Bot}ReadModel(db)`                   |
 
 ## Connection String Tips
 
