@@ -18,7 +18,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
+	github.com/larsartmann/go-health v0.0.2
 	github.com/pquerna/otp v1.5.0
+	github.com/samber/do/v2 v2.1.0
 )
 
 require (
@@ -32,9 +34,11 @@ require (
 	github.com/larsartmann/go-datastar v0.2.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.2.0 // indirect
 	github.com/larsartmann/go-etag v0.1.1 // indirect
+	github.com/larsartmann/go-health-dashboard v0.3.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
 	github.com/larsartmann/templ-components v1.8.1 // indirect
+	github.com/samber/go-type-to-string v1.8.0 // indirect
 )
 
 require (
@@ -63,6 +67,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/health/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
@@ -142,3 +147,8 @@ replace github.com/larsartmann/go-datastar => ../../go-datastar
 replace github.com/larsartmann/go-sse => ../../go-sse
 
 replace github.com/larsartmann/go-datastar/static => ../../go-datastar/static
+
+// TEMPORARY local replace (dev only): health/v4 v4.8.0 is tagged LOCALLY
+// but not pushed yet. Remove when the v4.8.0 family is pushed (see
+// docs/runbooks/release-v4.8.0-push-plan.md).
+replace github.com/larsartmann/cqrs-htmx/health/v4 => ../health

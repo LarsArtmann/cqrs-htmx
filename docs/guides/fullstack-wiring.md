@@ -171,29 +171,65 @@ Non-negotiable rules:
 2. **CSRF on mutations only** — GET (SSE, views) skips CSRF.
 3. **Security OUTERMOST** — recovery catches panics from everything.
 
-## External Integrations (Optional, future)
+## External Integrations (Optional)
 
-### go-health-dashboard (proposed `health/v4` module)
+### go-health + go-health-dashboard (the `health/v4` module)
 
-Real-time health dashboard with Kubernetes probes (`/healthz`, `/readyz`, `/startupz`).
-Separate module so consumers who don't need it pay zero dep cost.
+Real-time health checks and dashboard with one check per projection
+(live/stopped pass, drain transient, failed infrastructure — same semantics as
+`cqrshtmx.ProjectionReadinessCheck`). Separate module so consumers who don't
+need it pay zero dep cost. Available since the v4.8.0 family release.
 
 ```go
-// FUTURE — proposed, not yet built
-probe := healthint.NewProbe(bundle.Service)
-dash := healthint.NewDashboard(probe, healthint.WithTitle("Health"))
-dash.RegisterRoutes(mux) // /health, /healthz, /readyz, /startupz
+import (
+    "github.com/larsartmann/cqrs-htmx/health/v4"
+    gohealth "github.com/larsartmann/go-health"
+    healthdashboard "github.com/larsartmann/go-health-dashboard"
+)
+
+probe, err := health.NewProbe(bundle.Service,
+    gohealth.WithCriticalServices("user-read-model", "casbin-projection"),
+    gohealth.WithRefreshInterval(5*time.Second), // drives the probe cache
+)
+if err != nil { log.Fatal(err) }
+if err := probe.Start(ctx); err != nil { log.Fatal(err) } // starts the refresh cache
+defer probe.Stop()
+
+// go-health-dashboard UI (HTML / SSE / JSON via Accept negotiation).
+// The dashboard serves the probe's CACHE — Start + a refresh interval are
+// required for it to show live data.
+dash := health.NewDashboard(probe, healthdashboard.WithTitle("Health"))
+mux.Handle("/health-dashboard/", http.StripPrefix("/health-dashboard", dash))
 ```
 
-### samber-do-auditlog (proposed `auditlog/v4` module)
+Already inside a samber/do injector? Merge projection checks with your own
+service checks: `gohealth.New(injector, gohealth.WithHealthRecorder(health.Recorder(svc)))` —
+projection names win on collision.
 
-DI lifecycle audit logging with self-contained HTML visualization.
+### samber-do-auditlog (the `auditlog/v4` module)
+
+DI lifecycle audit logging with a self-contained live HTML viewer (SSE updates,
+JSON report API). Available since the v4.8.0 family release.
 
 ```go
-// FUTURE — proposed, not yet built
-hooks := auditint.WithAuditLog(auditlog.Config{Enabled: true})
-injector := do.New(hooks...)
-auditint.MountReport(mux, report, "/debug/di/")
+import (
+    cqrsauditlog "github.com/larsartmann/cqrs-htmx/auditlog/v4"
+    auditlog "github.com/larsartmann/samber-do-auditlog"
+    "github.com/larsartmann/samber-do-auditlog/live"
+    "github.com/samber/do/v2"
+)
+
+setup, err := cqrsauditlog.WithAuditLog(
+    auditlog.Config{MaxEvents: 10_000},
+    live.Config{Prefix: "/auditlog"},
+)
+if err != nil { log.Fatal(err) }
+
+injector := do.NewWithOpts(setup.Opts)
+defer func() { _ = injector.Shutdown() }()
+
+mux.Handle("/auditlog/", setup.Viewer) // live dashboard + JSON/SSE API
+// setup.Plugin exposes reports/exports for programmatic access.
 ```
 
 ## See Also

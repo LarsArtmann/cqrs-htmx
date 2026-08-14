@@ -217,6 +217,14 @@ func (h *serviceHealthcheck) HealthCheck(ctx context.Context) error {
 
 samber/do's `injector.HealthCheck()` runs all registered healthchecks.
 
+For projection-aware health, the [`health/v4`](../../health/README.md) module's
+`Recorder(svc)` merges your injector's service checks with one check per
+usermgmt projection — wire it as `gohealth.New(injector,
+gohealth.WithHealthRecorder(health.Recorder(svc)))`. The companion
+[`auditlog/v4`](../../auditlog/README.md) module adds DI lifecycle audit logging
+with a live SSE viewer via `WithAuditLog(auditCfg, viewerCfg)` (returns the
+`do.InjectorOpts` plus a mountable `*live.Server`).
+
 ### 9. Scopes for multi-tenant isolation
 
 ```go

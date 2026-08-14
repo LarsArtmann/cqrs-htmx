@@ -206,6 +206,10 @@ github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxm
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-etag v0.1.1 h1:lD64U/0gTU43aE4W/as2i8zFBSvJuP1+ah8XQdt7ne0=
 github.com/larsartmann/go-etag v0.1.1/go.mod h1:c2PnfOTTSerzR/EKI3vMIJYvEddG7fBeGDpllyskc2w=
+github.com/larsartmann/go-health v0.0.2 h1:sUqB5SvX8BZHUfHmQmQ0uuDr5UXyVtpzPESo9TboNL8=
+github.com/larsartmann/go-health v0.0.2/go.mod h1:9wau4MHt4fGLdrRn81rWnkcI6M51IvQyfrzhyiBIZCg=
+github.com/larsartmann/go-health-dashboard v0.3.0 h1:ASrQDsagrH2JQ21l8+ZelmbMFz9iGBprAD7vE6SoGEU=
+github.com/larsartmann/go-health-dashboard v0.3.0/go.mod h1:aKwaJJrRkeU2R7y/vut5efOhEYOdpJ8Gyv4QUhykCDs=
 github.com/larsartmann/go-idempotency v0.1.2 h1:Uk0fQTD6j8IISIDnQoi8j1R92rYIwjyI0gKm1FOqDvo=
 github.com/larsartmann/go-idempotency v0.1.2/go.mod h1:ee9VieA/IrJBaZ47+lnbwR9l4Td9VpEnruNJfCjDpyU=
 github.com/larsartmann/httputil v0.11.0 h1:X0toNjNAgl1HKLLGF5xLH+gbFJbagzSrGbkd0UI4pwk=
@@ -274,6 +278,10 @@ github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rogpeppe/go-internal v1.16.0 h1:O9DK+vNMDVGLr2BeZqmpLeMjiMNkuXfcqntWbZV6S5g=
 github.com/rogpeppe/go-internal v1.16.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
+github.com/samber/do/v2 v2.1.0 h1:lqCHn05XvY3VqwxvZDQPSkH+jIGWSVHUrSVLEbPOopo=
+github.com/samber/do/v2 v2.1.0/go.mod h1:wJBoiaZcUZyGuraOhfz15b517ZMogGs+U03DvnqvT6Q=
+github.com/samber/go-type-to-string v1.8.0 h1:5z6tDTjtXxkIAoAuHAZYMYR8mkBZjVgeSH7jcSLqc8w=
+github.com/samber/go-type-to-string v1.8.0/go.mod h1:jpU77vIDoIxkahknKDoEx9C8bQ1ADnh2sotZ8I4QqBU=
 github.com/segmentio/asm v1.2.1 h1:DTNbBqs57ioxAD4PrArqftgypG4/qNpXoJx8TVXxPR0=
 github.com/segmentio/asm v1.2.1/go.mod h1:BqMnlJP91P8d+4ibuonYZw9mfnzI9HfxselHZr5aAcs=
 github.com/sergi/go-diff v1.4.0 h1:n/SP9D5ad1fORl+llWyN+D6qoUETXNZARKjyY2/KVCw=
