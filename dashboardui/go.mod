@@ -59,6 +59,11 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 )
 
+// TEMPORARY local replace (dev only; stripped from the dashboardui/v4.7.0 tag).
+// Root v4.8.0 is tagged LOCALLY but not pushed yet. Removal condition: root
+// v4.8.0 pushed, then GOWORK=off go mod tidy && go build ./... && go vet ./...
+replace github.com/larsartmann/cqrs-htmx/v4 => ../
+
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 //cqrs-lint:ignore(E009) dashboard IS the transport/view layer
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
