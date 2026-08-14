@@ -1,4 +1,5 @@
-// cqrs-lint:ignore(E014) read-your-writes is owned by consumers via ProjectionLayer.WaitForDrain (projections.go); the adapter itself never serves commands
+// cqrs-lint:ignore(E014) read-your-writes is owned by consumers via ProjectionLayer.WaitForDrain (projections.go); the
+// adapter itself never serves commands
 package systemadapter
 
 import (
@@ -9,6 +10,7 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -50,7 +52,8 @@ func DeclarativeProjections() []system.ProjectionDeclaration {
 // -------------------------------------------------------------------------
 
 func tenantLookup() metaengine.QueryDecl[system.LookupInput[string], TenantView] {
-	//cqrs-lint:ignore(F019) metaengine.Query has no volume-hint option (checked v4.10.0); planner falls back to its default volume
+	// cqrs-lint:ignore(F019) metaengine.Query has no volume-hint option (checked v4.10.0); planner falls back to its
+	// default volume
 	return metaengine.Query[system.LookupInput[string], TenantView]("tenant_by_id",
 		insertTenant(),
 		updateTenantSuspended(),
@@ -71,37 +74,51 @@ func tenantScan() metaengine.QueryDecl[system.ScanInput, TenantView] {
 }
 
 func insertTenant() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventTenantCreated),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventTenantCreated),
 		projectionadapter.EventWithID[identitymodel.TenantCreatedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.TenantCreatedPayload]) (string, TenantView) {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.TenantCreatedPayload]) (string, TenantView) {
 			return e.ID, TenantView{
 				ID:          e.ID,
 				Name:        e.Payload.Name,
 				DisplayName: e.Payload.DisplayName,
 			}
-		})
+		},
+	)
 }
 
 func updateTenantSuspended() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventTenantSuspended),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventTenantSuspended),
 		projectionadapter.EventWithID[identitymodel.TenantSuspendedPayload]{},
-		func(_ projectionadapter.EventWithID[identitymodel.TenantSuspendedPayload], prev TenantView) TenantView {
+		func(
+			_ record.Record,
+			_ projectionadapter.EventWithID[identitymodel.TenantSuspendedPayload],
+			prev TenantView,
+		) TenantView {
 			prev.Suspended = true
 			return prev
-		})
+		},
+	)
 }
 
 func updateTenantReactivated() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventTenantReactivated),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventTenantReactivated),
 		projectionadapter.EventWithID[identitymodel.TenantReactivatedPayload]{},
-		func(_ projectionadapter.EventWithID[identitymodel.TenantReactivatedPayload], prev TenantView) TenantView {
+		func(
+			_ record.Record,
+			_ projectionadapter.EventWithID[identitymodel.TenantReactivatedPayload],
+			prev TenantView,
+		) TenantView {
 			prev.Suspended = false
 			return prev
-		})
+		},
+	)
 }
 
 func removeTenant() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventTenantDeleted),
+	return metaengine.OnRecordTyped(string(identitymodel.EventTenantDeleted),
 		projectionadapter.EventWithID[identitymodel.TenantDeletedPayload]{},
 		metaengine.Remove[TenantView]())
 }
@@ -126,9 +143,9 @@ func botScan() metaengine.QueryDecl[system.ScanInput, BotView] {
 }
 
 func insertBot() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventBotRegistered),
+	return metaengine.OnRecordTyped(string(identitymodel.EventBotRegistered),
 		projectionadapter.EventWithID[identitymodel.BotRegisteredPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.BotRegisteredPayload]) (string, BotView) {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.BotRegisteredPayload]) (string, BotView) {
 			return e.ID, BotView{
 				ID:        e.ID,
 				Name:      e.Payload.Name,
@@ -140,7 +157,7 @@ func insertBot() metaengine.Fold {
 }
 
 func removeBot() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventBotDeleted),
+	return metaengine.OnRecordTyped(string(identitymodel.EventBotDeleted),
 		projectionadapter.EventWithID[identitymodel.BotDeletedPayload]{},
 		metaengine.Remove[BotView]())
 }
@@ -149,15 +166,17 @@ func removeBot() metaengine.Fold {
 // Keyed by bot stream ID (so removes work), with TokenHash as a filterable field.
 func botTokenScan() metaengine.QueryDecl[system.ScanInput, BotTokenView] {
 	return metaengine.Query[system.ScanInput, BotTokenView]("bot_tokens",
-		metaengine.OnTyped(string(identitymodel.EventBotRegistered),
+		metaengine.OnRecordTyped(
+			string(identitymodel.EventBotRegistered),
 			projectionadapter.EventWithID[identitymodel.BotRegisteredPayload]{},
-			func(e projectionadapter.EventWithID[identitymodel.BotRegisteredPayload]) (string, BotTokenView) {
+			func(_ record.Record, e projectionadapter.EventWithID[identitymodel.BotRegisteredPayload]) (string, BotTokenView) {
 				return e.ID, BotTokenView{
 					TokenHash: hex.EncodeToString(e.Payload.TokenHash),
 					BotID:     e.ID,
 				}
-			}),
-		metaengine.OnTyped(string(identitymodel.EventBotDeleted),
+			},
+		),
+		metaengine.OnRecordTyped(string(identitymodel.EventBotDeleted),
 			projectionadapter.EventWithID[identitymodel.BotDeletedPayload]{},
 			metaengine.Remove[BotTokenView]()),
 		metaengine.FilterOnField[BotTokenView]("TokenHash", metaengine.FilterEq),
@@ -187,23 +206,29 @@ func membershipScan() metaengine.QueryDecl[system.ScanInput, MembershipView] {
 }
 
 func insertMembership() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventMemberAdded),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventMemberAdded),
 		projectionadapter.EventWithID[identitymodel.MemberAddedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.MemberAddedPayload]) (string, MembershipView) {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.MemberAddedPayload]) (string, MembershipView) {
 			return e.ID, MembershipView{
 				ID:       e.ID,
 				ActorID:  e.Payload.ActorID,
 				TenantID: e.Payload.TenantID,
 				Roles:    rolesToStrings(e.Payload.Roles),
 			}
-		})
+		},
+	)
 }
 
 func updateMembershipRoles() metaengine.Fold {
-	return metaengine.OnTyped(
+	return metaengine.OnRecordTyped(
 		string(identitymodel.EventMemberRolesChanged),
 		projectionadapter.EventWithID[identitymodel.MemberRolesChangedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.MemberRolesChangedPayload], prev MembershipView) MembershipView {
+		func(
+			_ record.Record,
+			e projectionadapter.EventWithID[identitymodel.MemberRolesChangedPayload],
+			prev MembershipView,
+		) MembershipView {
 			prev.Roles = rolesToStrings(e.Payload.Roles)
 			return prev
 		},
@@ -211,7 +236,7 @@ func updateMembershipRoles() metaengine.Fold {
 }
 
 func removeMembership() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventMemberRemoved),
+	return metaengine.OnRecordTyped(string(identitymodel.EventMemberRemoved),
 		projectionadapter.EventWithID[identitymodel.MemberRemovedPayload]{},
 		metaengine.Remove[MembershipView]())
 }
@@ -256,9 +281,9 @@ func userScan() metaengine.QueryDecl[system.ScanInput, UserView] {
 }
 
 func insertUser() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventUserRegistered),
+	return metaengine.OnRecordTyped(string(identitymodel.EventUserRegistered),
 		projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]) (string, UserView) {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]) (string, UserView) {
 			return e.ID, UserView{
 				ID:          e.ID,
 				Email:       e.Payload.Email,
@@ -270,30 +295,35 @@ func insertUser() metaengine.Fold {
 }
 
 func updateEmailChanged() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventEmailChanged),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventEmailChanged),
 		projectionadapter.EventWithID[identitymodel.EmailChangedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.EmailChangedPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.EmailChangedPayload], prev UserView) UserView {
 			prev.Email = e.Payload.Email
 			prev.EmailVerified = false
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func updateDisplayNameChanged() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventDisplayNameChanged),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventDisplayNameChanged),
 		projectionadapter.EventWithID[identitymodel.DisplayNameChangedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.DisplayNameChangedPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.DisplayNameChangedPayload], prev UserView) UserView {
 			prev.DisplayName = e.Payload.DisplayName
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func updateCredentialAdded() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventCredentialAdded),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventCredentialAdded),
 		projectionadapter.EventWithID[identitymodel.CredentialAddedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.CredentialAddedPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.CredentialAddedPayload], prev UserView) UserView {
 			prev.Credentials = append(prev.Credentials, CredentialView{
 				ID:              e.Payload.ID,
 				PublicKey:       e.Payload.PublicKey,
@@ -307,13 +337,15 @@ func updateCredentialAdded() metaengine.Fold {
 			})
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func updateCredentialRemoved() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventCredentialRemoved),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventCredentialRemoved),
 		projectionadapter.EventWithID[identitymodel.CredentialRemovedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.CredentialRemovedPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.CredentialRemovedPayload], prev UserView) UserView {
 			filtered := prev.Credentials[:0]
 			for _, c := range prev.Credentials {
 				if !bytes.Equal(c.ID, e.Payload.ID) {
@@ -323,43 +355,51 @@ func updateCredentialRemoved() metaengine.Fold {
 			prev.Credentials = filtered
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func updateEmailVerified() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventEmailVerified),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventEmailVerified),
 		projectionadapter.EventWithID[identitymodel.EmailVerifiedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.EmailVerifiedPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.EmailVerifiedPayload], prev UserView) UserView {
 			prev.EmailVerified = true
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func updateTOTPEnabled() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventTOTPEnabled),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventTOTPEnabled),
 		projectionadapter.EventWithID[identitymodel.TOTPEnabledPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.TOTPEnabledPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.TOTPEnabledPayload], prev UserView) UserView {
 			prev.TOTPEnabled = true
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func updateTOTPDisabled() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventTOTPDisabled),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventTOTPDisabled),
 		projectionadapter.EventWithID[identitymodel.TOTPDisabledPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.TOTPDisabledPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.TOTPDisabledPayload], prev UserView) UserView {
 			prev.TOTPEnabled = false
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func updateExternalAccountLinked() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventExternalAccountLinked),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventExternalAccountLinked),
 		projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload], prev UserView) UserView {
 			prev.ExternalAccounts = append(prev.ExternalAccounts, ExternalAccountView{
 				Provider:    e.Payload.Provider,
 				Subject:     e.Payload.Subject,
@@ -368,13 +408,15 @@ func updateExternalAccountLinked() metaengine.Fold {
 			})
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func updateExternalAccountUnlinked() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventExternalAccountUnlinked),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventExternalAccountUnlinked),
 		projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload], prev UserView) UserView {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload], prev UserView) UserView {
 			filtered := prev.ExternalAccounts[:0]
 			for _, ea := range prev.ExternalAccounts {
 				if ea.Provider != e.Payload.Provider || ea.Subject != e.Payload.Subject {
@@ -384,11 +426,12 @@ func updateExternalAccountUnlinked() metaengine.Fold {
 			prev.ExternalAccounts = filtered
 			prev.UpdatedAt = e.OccurredAt
 			return prev
-		})
+		},
+	)
 }
 
 func removeUser() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventUserDeleted),
+	return metaengine.OnRecordTyped(string(identitymodel.EventUserDeleted),
 		projectionadapter.EventWithID[identitymodel.UserDeletedPayload]{},
 		metaengine.Remove[UserView]())
 }
@@ -399,10 +442,10 @@ func removeUser() metaengine.Fold {
 
 func externalAccountLinkScan() metaengine.QueryDecl[system.ScanInput, ExternalAccountLink] {
 	return metaengine.Query[system.ScanInput, ExternalAccountLink]("external_account_links",
-		metaengine.OnTyped(
+		metaengine.OnRecordTyped(
 			string(identitymodel.EventExternalAccountLinked),
 			projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]{},
-			func(e projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]) (string, ExternalAccountLink) {
+			func(_ record.Record, e projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]) (string, ExternalAccountLink) {
 				return e.ID + ":" + e.Payload.Provider + ":" + e.Payload.Subject,
 					ExternalAccountLink{
 						ProviderSubject: e.Payload.Provider + ":" + e.Payload.Subject,
@@ -410,10 +453,10 @@ func externalAccountLinkScan() metaengine.QueryDecl[system.ScanInput, ExternalAc
 					}
 			},
 		),
-		metaengine.OnTyped(
+		metaengine.OnRecordTyped(
 			string(identitymodel.EventExternalAccountUnlinked),
 			projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload]{},
-			func(e projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload], prev ExternalAccountLink) ExternalAccountLink {
+			func(_ record.Record, e projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload], prev ExternalAccountLink) ExternalAccountLink {
 				_ = prev
 				return ExternalAccountLink{}
 			},
@@ -456,31 +499,35 @@ func authzPolicyScan() metaengine.QueryDecl[system.ScanInput, PolicyEntry] {
 }
 
 func insertUserPolicy() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventUserRegistered),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventUserRegistered),
 		projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]) (string, PolicyEntry) {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.UserRegisteredPayload]) (string, PolicyEntry) {
 			return e.ID, PolicyEntry{
 				Key:     e.ID,
 				Subject: e.ID,
 				Domain:  e.ID,
 				Roles:   rolesToStrings(e.Payload.Roles),
 			}
-		})
+		},
+	)
 }
 
 func updateUserPolicy() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventRolesUpdated),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventRolesUpdated),
 		projectionadapter.EventWithID[identitymodel.RolesUpdatedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.RolesUpdatedPayload], prev PolicyEntry) PolicyEntry {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.RolesUpdatedPayload], prev PolicyEntry) PolicyEntry {
 			prev.Roles = rolesToStrings(e.Payload.Roles)
 			return prev
-		})
+		},
+	)
 }
 
 func insertMemberPolicy() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventMemberAdded),
+	return metaengine.OnRecordTyped(string(identitymodel.EventMemberAdded),
 		projectionadapter.EventWithID[identitymodel.MemberAddedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.MemberAddedPayload]) (string, PolicyEntry) {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.MemberAddedPayload]) (string, PolicyEntry) {
 			return e.ID, PolicyEntry{
 				Key:     e.ID,
 				Subject: e.Payload.ActorID,
@@ -491,22 +538,24 @@ func insertMemberPolicy() metaengine.Fold {
 }
 
 func updateMemberPolicy() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventMemberRolesChanged),
+	return metaengine.OnRecordTyped(
+		string(identitymodel.EventMemberRolesChanged),
 		projectionadapter.EventWithID[identitymodel.MemberRolesChangedPayload]{},
-		func(e projectionadapter.EventWithID[identitymodel.MemberRolesChangedPayload], prev PolicyEntry) PolicyEntry {
+		func(_ record.Record, e projectionadapter.EventWithID[identitymodel.MemberRolesChangedPayload], prev PolicyEntry) PolicyEntry {
 			prev.Roles = rolesToStrings(e.Payload.Roles)
 			return prev
-		})
+		},
+	)
 }
 
 func removeMemberPolicy() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventMemberRemoved),
+	return metaengine.OnRecordTyped(string(identitymodel.EventMemberRemoved),
 		projectionadapter.EventWithID[identitymodel.MemberRemovedPayload]{},
 		metaengine.Remove[PolicyEntry]())
 }
 
 func removeUserPolicy() metaengine.Fold {
-	return metaengine.OnTyped(string(identitymodel.EventUserDeleted),
+	return metaengine.OnRecordTyped(string(identitymodel.EventUserDeleted),
 		projectionadapter.EventWithID[identitymodel.UserDeletedPayload]{},
 		metaengine.Remove[PolicyEntry]())
 }
@@ -550,9 +599,9 @@ func auditLogScan() metaengine.QueryDecl[system.ScanInput, AuditEntryView] {
 // The key is a composite of stream ID + event type + timestamp to ensure uniqueness.
 // P is the event payload type; the sample is constructed as EventWithID[P].
 func auditFold[P any](eventType string, payload P, action string) metaengine.Fold {
-	return metaengine.OnTyped(eventType,
+	return metaengine.OnRecordTyped(eventType,
 		projectionadapter.EventWithID[P]{Payload: payload},
-		func(e projectionadapter.EventWithID[P]) (string, AuditEntryView) {
+		func(_ record.Record, e projectionadapter.EventWithID[P]) (string, AuditEntryView) {
 			return e.ID + ":" + eventType + ":" + e.OccurredAt.Format(time.RFC3339Nano),
 				AuditEntryView{
 					EventType:   eventType,

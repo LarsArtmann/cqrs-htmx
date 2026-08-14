@@ -1,6 +1,7 @@
 package cqrshtmx
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -18,45 +19,9 @@ const (
 func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-
-			if ridStr := r.Header.Get(headerRequestID); ridStr != "" {
-				rid, err := ParseRequestID(ridStr)
-				if err == nil {
-					ctx = WithRequestID(ctx, rid)
-				} else {
-					ctx = WithRequestID(ctx, NewRequestID())
-				}
-			} else {
-				ctx = WithRequestID(ctx, NewRequestID())
-			}
-
-			if cidStr := r.Header.Get(headerCorrelationID); cidStr != "" {
-				cid, err := ParseCorrelationID(cidStr)
-				if err == nil {
-					ctx = WithCorrelationID(ctx, cid)
-				} else {
-					slog.Debug(
-						"cqrs-htmx: invalid correlation ID header",
-						slog.String("header", headerCorrelationID),
-						slog.String("value", cidStr),
-						slog.String("error", err.Error()),
-					)
-				}
-			}
-
-			if extractor != nil {
-				userID, err := extractor(r)
-				if err == nil && !userID.IsZero() {
-					ctx = WithUserID(ctx, userID)
-					// Auto-derive ActorID from UserID so event metadata carries
-					// the full audit trail. Skipped if a consumer already set an
-					// ActorID (e.g., impersonation middleware targeting a different user).
-					if ActorIDFromContext(ctx).IsZero() {
-						ctx = WithActorID(ctx, ActorIDFromUser(userID))
-					}
-				}
-			}
+			ctx := enrichRequestID(r.Context(), r)
+			ctx = enrichCorrelationID(ctx, r)
+			ctx = enrichUserAndActor(ctx, r, extractor)
 
 			rid := RequestIDFromContext(ctx)
 			if !rid.IsZero() {
@@ -66,6 +31,65 @@ func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) h
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// enrichRequestID returns ctx with a RequestID set: the parsed X-Request-ID
+// header when present and valid, otherwise a freshly generated one.
+func enrichRequestID(ctx context.Context, r *http.Request) context.Context {
+	if ridStr := r.Header.Get(headerRequestID); ridStr != "" {
+		if rid, err := ParseRequestID(ridStr); err == nil {
+			return WithRequestID(ctx, rid)
+		}
+	}
+
+	return WithRequestID(ctx, NewRequestID())
+}
+
+// enrichCorrelationID returns ctx with the CorrelationID set from the
+// X-Correlation-ID header when present and valid. Invalid values are logged
+// at debug level and dropped.
+func enrichCorrelationID(ctx context.Context, r *http.Request) context.Context {
+	if cidStr := r.Header.Get(headerCorrelationID); cidStr != "" {
+		cid, err := ParseCorrelationID(cidStr)
+		if err != nil {
+			slog.Debug(
+				"cqrs-htmx: invalid correlation ID header",
+				slog.String("header", headerCorrelationID),
+				slog.String("value", cidStr),
+				slog.String("error", err.Error()),
+			)
+
+			return ctx
+		}
+
+		return WithCorrelationID(ctx, cid)
+	}
+
+	return ctx
+}
+
+// enrichUserAndActor returns ctx with the UserID from the extractor (when it
+// succeeds) and, unless a consumer already set one, an ActorID auto-derived
+// from that UserID so event metadata carries the full audit trail.
+func enrichUserAndActor(ctx context.Context, r *http.Request, extractor UserIDExtractor) context.Context {
+	if extractor == nil {
+		return ctx
+	}
+
+	userID, err := extractor(r)
+	if err != nil || userID.IsZero() {
+		return ctx
+	}
+
+	ctx = WithUserID(ctx, userID)
+
+	// Skipped if a consumer already set an ActorID (e.g., impersonation
+	// middleware targeting a different user).
+	if ActorIDFromContext(ctx).IsZero() {
+		ctx = WithActorID(ctx, ActorIDFromUser(userID))
+	}
+
+	return ctx
 }
 
 // HTMXMiddleware parses HTMX request headers once and stores them in context.

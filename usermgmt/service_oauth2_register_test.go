@@ -27,8 +27,8 @@ func (perProviderOAuth2Stub) FinishLogin(_ context.Context, provider, _, _ strin
 
 // runTestOAuth2Login runs the BeginLogin/FinishLogin round-trip for the given
 // provider. It is safe to call from goroutines (no *testing.T).
-func runTestOAuth2Login(svc *Service, provider string) (*FinishOAuthLoginResponse, error) {
-	resp, err := svc.BeginOAuthLogin(context.Background(), provider)
+func runTestOAuth2Login(ctx context.Context, svc *Service, provider string) (*FinishOAuthLoginResponse, error) {
+	resp, err := svc.BeginOAuthLogin(ctx, provider)
 	if err != nil {
 		return nil, fmt.Errorf("BeginOAuthLogin(%s): %w", provider, err)
 	}
@@ -36,7 +36,7 @@ func runTestOAuth2Login(svc *Service, provider string) (*FinishOAuthLoginRespons
 	if !ok {
 		return nil, fmt.Errorf("no state in redirect URL %q", resp.RedirectURL)
 	}
-	return svc.FinishOAuthLogin(context.Background(), provider, "code", state)
+	return svc.FinishOAuthLogin(ctx, provider, "code", state)
 }
 
 // stateFromRedirectURL extracts the state query parameter from a stub redirect
@@ -68,7 +68,7 @@ func TestFinishOAuthLogin_MaxUsersReached_RejectsAutoProvisioning(t *testing.T) 
 	svc := newOAuth2RegisterTestService(t, 1)
 	registerTestUser(t, svc, "u1", "first@example.com")
 
-	_, err := runTestOAuth2Login(svc, "github")
+	_, err := runTestOAuth2Login(t.Context(), svc, "github")
 	assertErrorIs(t, err, ErrRegistrationClosed, "first-login auto-provisioning must be rejected at MaxUsers")
 	if got := svc.readModel.Count(); got != 1 {
 		t.Errorf("read model count = %d, want 1 (no user may be created by the rejected login)", got)
@@ -80,7 +80,7 @@ func TestFinishOAuthLogin_MaxUsersReached_ExistingEmailStillLogsIn(t *testing.T)
 	svc := newOAuth2RegisterTestService(t, 1)
 	registerTestUser(t, svc, "u1", "github@oauth.test")
 
-	resp, err := runTestOAuth2Login(svc, "github")
+	resp, err := runTestOAuth2Login(t.Context(), svc, "github")
 	if err != nil {
 		t.Fatalf("FinishOAuthLogin for existing email must not be gated: %v", err)
 	}
@@ -96,10 +96,10 @@ func TestFinishOAuthLogin_MaxUsersReached_ExistingExternalAccountStillLogsIn(t *
 	t.Parallel()
 	svc := newOAuth2RegisterTestService(t, 1)
 
-	if _, err := runTestOAuth2Login(svc, "github"); err != nil {
+	if _, err := runTestOAuth2Login(t.Context(), svc, "github"); err != nil {
 		t.Fatalf("first login auto-provisions the sole user: %v", err)
 	}
-	if _, err := runTestOAuth2Login(svc, "github"); err != nil {
+	if _, err := runTestOAuth2Login(t.Context(), svc, "github"); err != nil {
 		t.Fatalf("second login must match by external account, not be gated: %v", err)
 	}
 	if got := svc.readModel.Count(); got != 1 {
@@ -111,10 +111,10 @@ func TestFinishOAuthLogin_MaxUsersZero_UnlimitedAutoProvisioning(t *testing.T) {
 	t.Parallel()
 	svc := newOAuth2RegisterTestService(t, 0)
 
-	if _, err := runTestOAuth2Login(svc, "github"); err != nil {
+	if _, err := runTestOAuth2Login(t.Context(), svc, "github"); err != nil {
 		t.Fatalf("first login: %v", err)
 	}
-	if _, err := runTestOAuth2Login(svc, "google"); err != nil {
+	if _, err := runTestOAuth2Login(t.Context(), svc, "google"); err != nil {
 		t.Fatalf("second login: %v", err)
 	}
 	if got := svc.readModel.Count(); got != 2 {
@@ -126,13 +126,13 @@ func TestFinishOAuthLogin_MaxUsersTwo_AllowsThird(t *testing.T) {
 	t.Parallel()
 	svc := newOAuth2RegisterTestService(t, 2)
 
-	if _, err := runTestOAuth2Login(svc, "github"); err != nil {
+	if _, err := runTestOAuth2Login(t.Context(), svc, "github"); err != nil {
 		t.Fatalf("first login: %v", err)
 	}
-	if _, err := runTestOAuth2Login(svc, "google"); err != nil {
+	if _, err := runTestOAuth2Login(t.Context(), svc, "google"); err != nil {
 		t.Fatalf("second login: %v", err)
 	}
-	_, err := runTestOAuth2Login(svc, "gitlab")
+	_, err := runTestOAuth2Login(t.Context(), svc, "gitlab")
 	assertErrorIs(t, err, ErrRegistrationClosed, "third auto-provisioning must be rejected at MaxUsers=2")
 }
 
@@ -161,7 +161,7 @@ func TestRegister_MixedConcurrentRegistrations_RespectMaxUsers(t *testing.T) {
 					Email: fmt.Sprintf("racer%d@example.com", i),
 				})
 			} else {
-				_, err = runTestOAuth2Login(svc, fmt.Sprintf("provider%d", i))
+				_, err = runTestOAuth2Login(ctx, svc, fmt.Sprintf("provider%d", i))
 			}
 			resultsMu.Lock()
 			defer resultsMu.Unlock()
