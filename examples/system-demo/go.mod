@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.7.0
-	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.0.0
+	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.4.0
 )

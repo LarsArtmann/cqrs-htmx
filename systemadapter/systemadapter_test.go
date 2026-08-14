@@ -10,6 +10,8 @@ import (
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // register sqlite driver
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -71,6 +73,57 @@ func setupTestSystem(t *testing.T, deployment system.DeploymentConfig,
 	}
 
 	return sys, pl
+}
+
+// TestProjectionLayer_CustomStores verifies that WithCheckpointStore and
+// WithDeadLetterStore are honored: the layer builds, starts, drains a real
+// command into the read model, and stops cleanly with injected stores.
+func TestProjectionLayer_CustomStores(t *testing.T) {
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, systemadapter.DomainConfig(), memoryDeployment())
+	if err != nil {
+		t.Fatalf("system.New failed: %v", err)
+	}
+
+	defer func() { _ = sys.Close() }()
+
+	cpStore := memory.NewMemoryCheckpointStore()
+	dlqStore := projectionhost.NewMemoryDeadLetterStore()
+
+	pl, err := systemadapter.NewProjectionLayer(sys,
+		systemadapter.WithCheckpointStore(cpStore),
+		systemadapter.WithDeadLetterStore(dlqStore),
+	)
+	if err != nil {
+		t.Fatalf("NewProjectionLayer with custom stores failed: %v", err)
+	}
+
+	defer func() { _ = pl.Stop() }()
+
+	if err := pl.Start(ctx); err != nil {
+		t.Fatalf("ProjectionLayer.Start failed: %v", err)
+	}
+
+	streamID := id.NewStreamID()
+	cmd := identitymodel.NewRegisterUserCmd(streamID, "custom-stores@example.com", "Custom Stores", nil)
+
+	if err := sys.CommandDispatcher().Dispatch(ctx, cmd); err != nil {
+		t.Fatalf("Dispatch RegisterUser failed: %v", err)
+	}
+
+	if err := pl.WaitForDrain(5 * time.Second); err != nil {
+		t.Fatalf("WaitForDrain failed: %v", err)
+	}
+
+	user, ok := pl.User.FindByEmail("custom-stores@example.com")
+	if !ok {
+		t.Fatal("custom-stores user not found in read model after drain")
+	}
+
+	if user.ID.String() != streamID.String() {
+		t.Errorf("user ID = %q, want %q", user.ID.String(), streamID.String())
+	}
 }
 
 func TestDomainConfig_RegisterUserEndToEnd(t *testing.T) {

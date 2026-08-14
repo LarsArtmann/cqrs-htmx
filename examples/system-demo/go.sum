@@ -185,8 +185,6 @@ github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.1 h1:1ReGC4E
 github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.1/go.mod h1:lR2oNonRczo1zfpr3ipCiAtNOZWMbrOMbt/l07pWucI=
 github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.1 h1:my7tHyPaoeIOk8Ope6LZuP/mizAR1GuA48amFzDgN+c=
 github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.1/go.mod h1:obHag3y6eg5N2ODrZ8NYPpYlzPio8tjRNc/C9V/MsRY=
-github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0 h1:2Ihda7CmJmsZOSctQ+lRGQdY1A9betjW3gKE8NKitbk=
-github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0/go.mod h1:ao9+WMapDQzOjYLXOGLXI5AxYFKkz4IWo3CXRxg6Ls0=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1 h1:5eGUYEhm4lJFy3MpXDvVOSelgHT2FSJkuxN9sgy3Wa0=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1/go.mod h1:QTnPkjd8wav+ObrKdd5pQrnvAhD+br06md+c6an1M2k=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0 h1:GV9SgoAf4MIH2w9gbEsMqajsZ8mp9a0P+2rsaqrgZq4=
