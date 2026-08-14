@@ -9,65 +9,63 @@
 # This script temporarily strips the build tags, adds the stack backend deps,
 # compiles the full usermgmt package, then restores all originals.
 #
+# Runs hermetically (GOWORK=off) so every dependency resolves from published
+# go-cqrs-lite tags — identical behavior locally and in CI. This also isolates
+# the check from local go.work replaces pointing at in-flight sibling work.
+#
+# Version notes (checked against published upstream tags):
+#   - stack/sqlite/v4 v4.3.0, stack/postgres/v4 v4.3.0: latest published.
+#   - stack/postgres v4.2.0 is broken in isolation (references unreleased
+#     storage/v4 API — NotificationListener, NewPostgresBus); v4.3.0 fixed it.
+#   - stack/mysql/v4 has no v4.2.0+ tag; v4.1.0 is the latest published and
+#     compiles against the current templates.
+#
 # Usage: nix run .#check-templates  OR  bash scripts/check-templates.sh
 set -euo pipefail
 
 export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
+export GOWORK=off
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT/usermgmt"
 
 TEMPLATE_FILES=(
-	"usermgmt/sqlite_setup.go"
-	"usermgmt/postgres_setup.go"
-	"usermgmt/mysql_setup.go"
-	"usermgmt/sql_setup_shared.go"
+	"sqlite_setup.go"
+	"postgres_setup.go"
+	"mysql_setup.go"
+	"sql_setup_shared.go"
 )
-CONFIG_FILES=(
-	"go.work"
-	"usermgmt/go.mod"
-)
-ALL_FILES=("${CONFIG_FILES[@]}" "${TEMPLATE_FILES[@]}" "usermgmt/go.sum")
+ALL_FILES=("${TEMPLATE_FILES[@]}" "go.mod" "go.sum")
 
 BACKUP_DIR=$(mktemp -d)
 trap 'restore; rm -rf "$BACKUP_DIR"' EXIT
 
 restore() {
 	for f in "${ALL_FILES[@]}"; do
-		local key
-		key="$(echo "$f" | tr '/' '_')"
-		if [ -f "$BACKUP_DIR/$key" ]; then
-			cp "$BACKUP_DIR/$key" "$f"
+		if [ -f "$BACKUP_DIR/$f" ]; then
+			cp "$BACKUP_DIR/$f" "$f"
 		fi
 	done
 }
 
 for f in "${ALL_FILES[@]}"; do
-	[ -f "$f" ] && cp "$f" "$BACKUP_DIR/$(echo "$f" | tr '/' '_')"
+	[ -f "$f" ] && cp "$f" "$BACKUP_DIR/$f"
 done
 
-# 1. Add stack/mysql replace to go.work (not currently in workspace replaces)
-if ! grep -q 'stack/mysql/v4' go.work; then
-	printf '\nreplace github.com/larsartmann/go-cqrs-lite/stack/mysql/v4 => /home/lars/projects/go-cqrs-lite/stack/mysql\n' >>go.work
-fi
+# 1. Add stack backend requires to usermgmt/go.mod
+go mod edit \
+	-require github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4@v4.3.0 \
+	-require github.com/larsartmann/go-cqrs-lite/stack/postgres/v4@v4.3.0 \
+	-require github.com/larsartmann/go-cqrs-lite/stack/mysql/v4@v4.1.0
 
-# 2. Add stack backend requires to usermgmt/go.mod
-(
-	cd usermgmt
-	go mod edit \
-		-require github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4@v4.2.0 \
-		-require github.com/larsartmann/go-cqrs-lite/stack/postgres/v4@v4.2.0 \
-		-require github.com/larsartmann/go-cqrs-lite/stack/mysql/v4@v4.2.0
-)
-
-# 3. Strip //go:build ignore + following blank line from template files
+# 2. Strip //go:build ignore + following blank line from template files
 for f in "${TEMPLATE_FILES[@]}"; do
 	sed -i '1,2{/^\/\/go:build ignore$/d; /^$/d}' "$f"
 done
 
-# 4. Build the usermgmt package with all template files included
+# 3. Build the usermgmt package with all template files included
 echo "==> Building usermgmt with template files (build tags stripped)..."
-if go build ./usermgmt/...; then
+if go mod tidy && go build ./...; then
 	echo "✓ All SQL setup template files compile successfully"
 else
 	echo "✗ SQL setup template files have compilation errors" >&2

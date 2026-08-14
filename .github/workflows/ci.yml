@@ -563,6 +563,12 @@ jobs:
           done
           echo "Codegen drift check PASSED"
 
+      - name: SQL setup template compile check
+        run: bash scripts/check-templates.sh
+        env:
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
   security:
     runs-on: ubuntu-latest
     steps:
