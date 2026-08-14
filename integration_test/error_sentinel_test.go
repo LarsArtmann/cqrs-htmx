@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
@@ -18,7 +18,7 @@ func TestCrossModuleErrUnauthorized(t *testing.T) {
 	t.Parallel()
 
 	rootErr := cqrshtmx.ErrUnauthorized
-	usermgmtErr := usermgmt.ErrUnauthorized
+	usermgmtErr := identitymodel.ErrUnauthorized
 
 	// Both should map to HTTP 401 via root's MapError (code-based check).
 	if status := cqrshtmx.MapError(rootErr); status != http.StatusUnauthorized {
@@ -35,7 +35,7 @@ func TestCrossModuleErrForbidden(t *testing.T) {
 	t.Parallel()
 
 	rootErr := cqrshtmx.ErrForbidden
-	usermgmtErr := usermgmt.ErrForbidden
+	usermgmtErr := identitymodel.ErrForbidden
 
 	if status := cqrshtmx.MapError(rootErr); status != http.StatusForbidden {
 		t.Errorf("root ErrForbidden: MapError = %d, want %d", status, http.StatusForbidden)

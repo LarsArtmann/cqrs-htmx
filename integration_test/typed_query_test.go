@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -99,7 +100,7 @@ func TestTypedQueryDispatch_CrossModule(t *testing.T) {
 		t.Helper()
 		uid := cqrshtmx.NewUserID()
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
-			ID:    usermgmt.MustParseUserID(uid.String()),
+			ID:    identitymodel.MustParseUserID(uid.String()),
 			Email: email,
 		}); err != nil {
 			t.Fatalf("Register %s: %v", email, err)

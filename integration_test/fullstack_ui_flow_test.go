@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/stretchr/testify/require"
@@ -35,9 +36,9 @@ func TestFullstackUI_AdminRendersSeededUser(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp.Session)
 
-	require.NoError(t, svc.Authz().AddGroupPolicy(usermgmt.GroupPolicy{
+	require.NoError(t, svc.Authz().AddGroupPolicy(identitymodel.GroupPolicy{
 		Subject: resp.User.ID.Get().String(),
-		Role:    usermgmt.RoleSuperAdmin,
+		Role:    identitymodel.RoleSuperAdmin,
 		Domain:  "*",
 	}))
 

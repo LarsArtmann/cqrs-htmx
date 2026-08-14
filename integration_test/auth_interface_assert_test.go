@@ -7,9 +7,9 @@ package integration_test
 // would defeat the entire purpose of the v4 extraction.
 
 import (
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
 )
 
@@ -17,7 +17,7 @@ import (
 // If any of these fail, the sub-module Provider has drifted from the
 // usermgmt interface contract.
 var (
-	_ usermgmt.TOTPProvider     = (*totp.Provider)(nil)
-	_ usermgmt.WebAuthnProvider = (*webauthn.Provider)(nil)
-	_ usermgmt.OAuth2Provider   = (*oauth2.Provider)(nil)
+	_ identitymodel.TOTPProvider     = (*totp.Provider)(nil)
+	_ identitymodel.WebAuthnProvider = (*webauthn.Provider)(nil)
+	_ identitymodel.OAuth2Provider   = (*oauth2.Provider)(nil)
 )

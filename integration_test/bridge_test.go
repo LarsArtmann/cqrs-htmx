@@ -6,13 +6,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
 func TestUsermgmtBridge_AsEnforcer(t *testing.T) {
-	authz, err := usermgmt.NewAuthz()
+	authz, err := identitymodel.NewAuthz()
 	if err != nil {
 		t.Fatalf("NewAuthz: %v", err)
 	}
@@ -59,7 +60,7 @@ func TestUsermgmtBridge_FullRegisterAuthCycle(t *testing.T) {
 		t.Fatalf("ParseUserID: %v", parseErr)
 	}
 
-	enforcer, eErr := usermgmt.NewAuthz()
+	enforcer, eErr := identitymodel.NewAuthz()
 	if eErr != nil {
 		t.Fatalf("NewAuthz: %v", eErr)
 	}

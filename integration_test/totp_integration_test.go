@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	usermgmttotp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	otptotp "github.com/pquerna/otp/totp"
@@ -22,7 +23,7 @@ import (
 // this test fails.
 // setupTOTPUser creates a service with TOTP, registers a user, and enables TOTP.
 // Returns the service, user ID, and the TOTP setup (secret + QR code).
-func setupTOTPUser(t *testing.T) (*usermgmt.Service, usermgmt.UserID, *usermgmt.TOTPSetupResponse) {
+func setupTOTPUser(t *testing.T) (*usermgmt.Service, identitymodel.UserID, *usermgmt.TOTPSetupResponse) {
 	t.Helper()
 
 	provider := usermgmttotp.New(usermgmttotp.Config{
@@ -38,7 +39,7 @@ func setupTOTPUser(t *testing.T) (*usermgmt.Service, usermgmt.UserID, *usermgmt.
 	}
 	t.Cleanup(svc.Stop)
 
-	uid, err := usermgmt.ParseUserID("01HXKYGEG0QH8XJYQKZ3TOTP01")
+	uid, err := identitymodel.ParseUserID("01HXKYGEG0QH8XJYQKZ3TOTP01")
 	if err != nil {
 		t.Fatalf("ParseUserID: %v", err)
 	}
@@ -111,7 +112,7 @@ func TestService_TOTP_NilProvider_Guards(t *testing.T) {
 	}
 	t.Cleanup(svc.Stop)
 
-	uid, err := usermgmt.ParseUserID("01HXKYGEG0QH8XJYQKZ3TOTP02")
+	uid, err := identitymodel.ParseUserID("01HXKYGEG0QH8XJYQKZ3TOTP02")
 	if err != nil {
 		t.Fatalf("ParseUserID: %v", err)
 	}

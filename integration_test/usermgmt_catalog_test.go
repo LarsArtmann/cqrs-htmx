@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
@@ -54,16 +54,16 @@ func usermgmtCatalogFromRecipe() *catalog.Catalog {
 		simple.WithOperation("DELETE", "/auth/users/{id}"))
 
 	// Events — the persisted payloads are the real contract; reflect them directly.
-	simple.Event[usermgmt.UserRegisteredPayload](b, "user.registered", catalog.Sends)
-	simple.Event[usermgmt.RolesUpdatedPayload](b, "user.roles-updated", catalog.Sends)
-	simple.Event[usermgmt.EmailChangedPayload](b, "user.email-changed", catalog.Sends)
-	simple.Event[usermgmt.DisplayNameChangedPayload](b, "user.display-name-changed", catalog.Sends)
-	simple.Event[usermgmt.UserDeletedPayload](b, "user.deleted", catalog.Sends)
-	simple.Event[usermgmt.CredentialAddedPayload](b, "user.credential-added", catalog.Sends)
-	simple.Event[usermgmt.CredentialRemovedPayload](b, "user.credential-removed", catalog.Sends)
-	simple.Event[usermgmt.EmailVerifiedPayload](b, "user.email-verified", catalog.Sends)
-	simple.Event[usermgmt.TOTPEnabledPayload](b, "user.totp-enabled", catalog.Sends)
-	simple.Event[usermgmt.TOTPDisabledPayload](b, "user.totp-disabled", catalog.Sends)
+	simple.Event[identitymodel.UserRegisteredPayload](b, "user.registered", catalog.Sends)
+	simple.Event[identitymodel.RolesUpdatedPayload](b, "user.roles-updated", catalog.Sends)
+	simple.Event[identitymodel.EmailChangedPayload](b, "user.email-changed", catalog.Sends)
+	simple.Event[identitymodel.DisplayNameChangedPayload](b, "user.display-name-changed", catalog.Sends)
+	simple.Event[identitymodel.UserDeletedPayload](b, "user.deleted", catalog.Sends)
+	simple.Event[identitymodel.CredentialAddedPayload](b, "user.credential-added", catalog.Sends)
+	simple.Event[identitymodel.CredentialRemovedPayload](b, "user.credential-removed", catalog.Sends)
+	simple.Event[identitymodel.EmailVerifiedPayload](b, "user.email-verified", catalog.Sends)
+	simple.Event[identitymodel.TOTPEnabledPayload](b, "user.totp-enabled", catalog.Sends)
+	simple.Event[identitymodel.TOTPDisabledPayload](b, "user.totp-disabled", catalog.Sends)
 
 	return b.Build()
 }

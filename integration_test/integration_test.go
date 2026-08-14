@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
@@ -19,7 +20,7 @@ func registerTestUser(
 	t.Helper()
 	ctx := context.Background()
 	reg, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.MustParseUserID(uid.String()),
+		ID:    identitymodel.MustParseUserID(uid.String()),
 		Email: email,
 	})
 	if err != nil {

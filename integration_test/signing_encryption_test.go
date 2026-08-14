@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/encryption/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -35,9 +36,9 @@ func encryptedStoreHooks(cipher encryption.EncrypterDecrypter) usermgmt.Security
 // assertions. Centralizes the test-user fixture for crypto/signing tests so
 // they can't drift in how they seed users. Distinct from registerTestUser
 // (which takes a root-module cqrshtmx.UserID for cross-module bridge tests).
-func seedTestUser(t *testing.T, svc *usermgmt.Service, name string) (usermgmt.UserID, string) {
+func seedTestUser(t *testing.T, svc *usermgmt.Service, name string) (identitymodel.UserID, string) {
 	t.Helper()
-	id := usermgmt.SyntheticUserID(name)
+	id := identitymodel.SyntheticUserID(name)
 	email := name + "@example.com"
 	if _, err := svc.Register(context.Background(), usermgmt.RegisterRequest{
 		ID: id, Email: email,
@@ -87,7 +88,7 @@ func TestSigningEncryption_StoreEncryptionAndBusSigning(t *testing.T) {
 
 	const email = "alice@example.com"
 	if _, err := svcA.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.SyntheticUserID("alice"), Email: email,
+		ID: identitymodel.SyntheticUserID("alice"), Email: email,
 	}); err != nil {
 		t.Fatalf("Register: %v", err)
 	}
@@ -209,11 +210,11 @@ func TestSigningEncryption_AuthzProjectionSurvivesCrypto(t *testing.T) {
 
 	// The Casbin projection derives roles from events. If it received ciphertext
 	// instead of plaintext, the decode would fail and no roles would be assigned.
-	roles, err := svc.Authz().RolesForUser(uid, usermgmt.NewTenantID(uid.Get().String()))
+	roles, err := svc.Authz().RolesForUser(uid, identitymodel.NewTenantID(uid.Get().String()))
 	if err != nil {
 		t.Fatalf("RolesForUser: %v", err)
 	}
-	if !slices.Contains(roles, usermgmt.RoleUser) {
+	if !slices.Contains(roles, identitymodel.RoleUser) {
 		t.Errorf(
 			"expected RoleUser among roles for carol, got %v — "+
 				"casbin projection must work through encryption",

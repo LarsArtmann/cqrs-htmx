@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4"
 )
@@ -36,7 +37,7 @@ func TestService_WebAuthn_BeginRegistration_Integration(t *testing.T) {
 	}
 	t.Cleanup(svc.Stop)
 
-	uid, err := usermgmt.ParseUserID("01HXKYGEG0QH8XJYQKZ3R8WZAA")
+	uid, err := identitymodel.ParseUserID("01HXKYGEG0QH8XJYQKZ3R8WZAA")
 	if err != nil {
 		t.Fatalf("ParseUserID: %v", err)
 	}
@@ -79,7 +80,7 @@ func TestService_WebAuthn_NilProvider_Guards(t *testing.T) {
 	}
 	t.Cleanup(svc.Stop)
 
-	uid, err := usermgmt.ParseUserID("01HXKYGEG0QH8XJYQKZ3R8WZAB")
+	uid, err := identitymodel.ParseUserID("01HXKYGEG0QH8XJYQKZ3R8WZAB")
 	if err != nil {
 		t.Fatalf("ParseUserID: %v", err)
 	}
