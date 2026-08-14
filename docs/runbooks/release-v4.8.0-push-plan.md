@@ -1,9 +1,8 @@
 # Release v4.8.0 Push Plan — Coordinated Family Release
 
-> Status: 10 local tags cut and verified 2026-08-14 (session after 18:30 report).
-> **master is pushed** (origin/master = `73ff1556`). The 10 tags below are NOT
-> pushed — pushing them is the remaining step. This runbook is what you review
-> and execute.
+> Status: EXECUTED 2026-08-14 — master (`f3d285fb`) and all 10 tags are pushed
+> and verified on origin; §4 items 1-6 + drift alignment are done (§3 upstream
+> tags and §4 items 7-8 remain open).
 > All tags are annotated (SSH-signed), point at verified-green commits, and carry
 > go.mod files with ZERO local `replace` directives (filesystem replaces in
 > published tags break every consumer).
@@ -38,10 +37,12 @@ Not in this train (intentionally):
 ## 2. Push order (strict; module graph dependencies)
 
 ```bash
-git push origin master   # DONE 2026-08-14 (origin/master = 73ff1556)
+git push origin master   # DONE 2026-08-14 (f3d285fb)
 git push origin v4.8.0 identity-model/v4.8.0 usermgmt/v4.8.0 \
               usermgmt/webauthn/v4.8.0 loginpage/v4.8.0 dashboardui/v4.8.0 \
               adminui/v4.8.0 setup/v4.8.0 health/v4.8.0 auditlog/v4.8.0
+# DONE 2026-08-14 — all 10 tags pushed and verified via ls-remote (peeled
+# SHAs match §1). §4 items 1-6 + the drift-alignment pass are also done.
 ```
 
 Order within the push does not matter (the proxy resolves per-module), but if
@@ -84,18 +85,36 @@ For each: `GOWORK=off go mod tidy && go build ./... && go vet ./...`
 (`go vet` is load-bearing — tags break in `_test.go` imports that
 `go build` never compiles; this exact trap bit the 18:30 session).
 
-1. `usermgmt` — strip identity-model replace (comment documents this).
-2. `adminui` — strip root/usermgmt/identity-model replaces.
-3. `setup` — strip all six family replaces.
-4. `integration_test` — strip root/usermgmt/identity-model/adminui/dashboardui/loginpage (keep datastar + go-datastar/go-sse until those tags exist; the previous failed attempt at the usermgmt strip was blocked ONLY by identity-model v4.8.0 being unpublished — now resolved by this train).
-5. `examples/setup-demo` — strip all seven (incl. setup) once pushed.
-6. `examples/dashboard-demo` — strip dashboardui + root.
-7. `systemadapter` + `examples/system-demo` — strip the two go-cqrs-lite metaengine replaces after §3 tags are pushed; bump requires to v4.5.0 / v4.0.2.
-8. `datastar`, `examples/datastar-demo` — strip go-datastar replaces after §3 go-datastar tags.
+1. `usermgmt` — strip identity-model replace (comment documents this). **DONE 2026-08-14.**
+2. `adminui` — strip root/usermgmt/identity-model replaces. **DONE.**
+3. `setup` — strip all six family replaces. **DONE.**
+4. `integration_test` — strip root/usermgmt/identity-model/adminui/dashboardui/loginpage (keep datastar + go-datastar/go-sse until those tags exist; the previous failed attempt at the usermgmt strip was blocked ONLY by identity-model v4.8.0 being unpublished — now resolved by this train). **DONE (health replace stripped too).**
+5. `examples/setup-demo` — strip all seven (incl. setup) once pushed. **DONE.**
+6. `examples/dashboard-demo` — strip dashboardui + root. **DONE.**
+7. `systemadapter` + `examples/system-demo` — strip the two go-cqrs-lite metaengine replaces after §3 tags are pushed; bump requires to v4.5.0 / v4.0.2. *(Not done — blocked on §3 upstream tags; their replaces are now RELATIVE paths so the absolute-path gate leg passes.)*
+8. `datastar`, `examples/datastar-demo` — strip go-datastar replaces after §3 go-datastar tags. *(Not done — blocked on go-datastar `static/v0.2.0`.)*
 
 Also after the push: re-run `nix run .#check-modules` — its
 `check-version-drift --strict` leg should now pass (the known cross-tag drift
-was exactly this unpublished family).
+was exactly this unpublished family). **DONE — plus follow-ups the drift gate
+surfaced and that are now fixed (all hermetically verified per module):**
+
+- Local go.mods bumped to the pushed family versions: root v4.8.0 in
+  usermgmt, loginpage, health, systemadapter, e2e/server, and 7 examples;
+  usermgmt v4.8.0 in loginpage, admin-demo, samber-do-demo; adminui v4.8.0 +
+  identity-model v4.8.0 in admin-demo/samber-do-demo; catalog v4.2.1,
+  snapshot v4.3.0, metaengine v4.10.0, storage v4.6.0, templ-components
+  v1.8.1, go-sse v0.5.0 stragglers aligned.
+- `health` gained one documented TEMPORARY replace
+  (`go-datastar/static => ../../go-datastar/static`): the published go-datastar
+  v0.2.0 tag requires static v0.2.0, which is not tagged upstream — hermetic
+  builds cannot resolve it otherwise. Removal condition: go-datastar
+  `static/v0.2.0` tagged.
+- `systemadapter` + `examples/system-demo` metaengine replaces converted from
+  absolute (`/home/lars/...`) to relative (`../../go-cqrs-lite/...`) paths —
+  same targets, and the check-modules absolute-path leg passes.
+- `dashboardui`'s own root dev-replace was also stripped (its removal condition
+  was met; it was missing from this checklist).
 
 ## 5. Why the versions are what they are
 
