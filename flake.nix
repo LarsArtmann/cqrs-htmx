@@ -488,6 +488,7 @@
                   # Uses a Go AST-based scanner (go/parser) instead of ripgrep, which
                   # inherently ignores ALL comment types (//, /* */, inline, multi-line).
                   set -euo pipefail
+                  export GOWORK=off
                   export GOEXPERIMENT=jsonv2
 
                   check_module() {

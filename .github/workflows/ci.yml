@@ -519,6 +519,9 @@ jobs:
       - name: Dependency budget check
         run: bash scripts/check-dep-budgets.sh
 
+      # Advisory here: the tag-existence leg needs `git ls-remote` auth for the
+      # private larsartmann repos over https, which CI may not have. The strict
+      # gate runs in `nix run .#check-modules` locally.
       - name: Version drift check (advisory)
         run: bash scripts/check-version-drift.sh || true
 
@@ -564,7 +567,16 @@ jobs:
           echo "Codegen drift check PASSED"
 
       - name: SQL setup template compile check
-        run: bash scripts/check-templates.sh
+        run: |
+          bash scripts/check-templates.sh
+          if ! git diff --exit-code -- usermgmt/; then
+            echo ""
+            echo "FAIL: check-templates.sh left usermgmt/ modified."
+            echo "Either the trap-based restore leaked, or usermgmt/go.mod (go.sum)"
+            echo "is not tidy for the stack-backend requires the script adds."
+            echo "Run the script locally and commit any resulting go.mod/go.sum changes."
+            exit 1
+          fi
         env:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
