@@ -78,13 +78,3 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/larsartmann/cqrs-htmx/v4 => ../
-
-// TEMPORARY local replaces: usermgmt master (ParseActorID two-value signature)
-// and identity-model master (ActorSystem/ActorService) are not yet in the
-// published tags. Required for hermetic GOWORK=off builds.
-// Remove when usermgmt/v4 v4.7.3+ and identity-model/v4 v4.3.0+ are tagged.
-replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
-
-replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model
