@@ -94,3 +94,9 @@ replace github.com/larsartmann/cqrs-htmx/adminui/v4 => ../adminui
 replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../dashboardui
 
 replace github.com/larsartmann/cqrs-htmx/loginpage/v4 => ../loginpage
+
+// TEMPORARY local replace: identity-model master has symbols not yet in the
+// published v4.2.0 tag. Required for hermetic GOWORK=off builds (replace
+// directives only apply in the main module, so setup needs its own).
+// Remove when identity-model/v4 v4.3.0+ is tagged.
+replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model

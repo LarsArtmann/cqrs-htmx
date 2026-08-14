@@ -241,6 +241,25 @@ handler := cqrshtmx.Chain(
 
 For handlers that need a smaller limit (e.g., a login form at 4 KB), compose with `WithMaxBodySize` — the tighter per-handler limit wins.
 
+### 9. RecommendedSecurityMiddleware — the zero-arg baseline
+
+`cqrshtmx.RecommendedSecurityMiddleware()` bundles the baseline production chain in one call: `SecurityHeaders` (with the `cqrshtmx.RecommendedPermissionsPolicy` constant) + per-request CSP `Nonce` + `RecoveryMiddleware`. Both `adminui.Handler.Middleware()` and `dashboardui.Dashboard.Middleware()` delegate to it, so mounting either UI gives the same security posture as the recipes above — use it directly for your own UIs:
+
+```go
+handler := cqrshtmx.Chain(
+    cqrshtmx.RecommendedSecurityMiddleware(), // SecurityHeaders + Nonce + Recovery
+    sessionMW,                                 // authenticate first (outside CSRF)
+    httputil.CSRFMiddleware(httputil.CSRFConfig{}),
+    cqrshtmx.HTMXMiddleware,
+    app.Middleware(),
+)(mux)
+```
+
+Notes:
+
+- The nonce is available in handlers/templates via `httputil.NonceFromRequest(r)` (or `httputil.NonceAttr(r)` for a ready-made `nonce="..."` attribute); adminui falls back to it when no `NonceFunc` is configured.
+- Prefer this over hand-rolling `SecurityHeaders + Nonce + Recovery` — the recommended policy (including Permissions-Policy defaults) is maintained in one place and shared by every cqrs-htmx UI.
+
 ## See also
 
 - `docs/research/2026-08-09_httputil-deep-dive.html` — latest adoption audit of httputil v0.11.0 in this codebase.

@@ -74,9 +74,9 @@ type Config struct {
 	// AdminAuthorizer decides whether an authenticated user may use the admin
 	// panel. Return a non-nil error to deny access (HTTP 403). When nil, the
 	// default role-based authorizer is used.
-	AdminMode         adminui.Mode
-	TenantID          usermgmt.TenantID
-	AdminAuthorizer   func(user *usermgmt.User) error
+	AdminMode       adminui.Mode
+	TenantID        usermgmt.TenantID
+	AdminAuthorizer func(user *usermgmt.User) error
 
 	// DashboardAuthorizer decides whether an authenticated request may use the
 	// CQRS dashboard (runs after the session gate). Return a non-nil error to
@@ -193,22 +193,36 @@ func trimTrailingSlash(s string) string {
 // validate checks the resolved config for common misconfigurations and returns
 // a rejection error describing the first issue found, or nil if the config is sound.
 func (c Config) validate() error {
-	if c.AdminPath != "" && !startsWithSlash(c.AdminPath) {
+	if err := c.validatePathShapes(); err != nil {
+		return err
+	}
+
+	if err := c.validatePathRoots(); err != nil {
+		return err
+	}
+
+	return requireDistinctPaths(c)
+}
+
+// validatePathShapes rejects paths that do not start with a slash (or, for
+// LoginRedirect, a URL scheme).
+func (c Config) validatePathShapes() error {
+	if !startsWithSlash(c.AdminPath) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config", "AdminPath must start with %q (got %q)", "/", c.AdminPath)
 	}
 
-	if c.DashboardPath != "" && !startsWithSlash(c.DashboardPath) {
+	if !startsWithSlash(c.DashboardPath) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config", "DashboardPath must start with %q (got %q)", "/", c.DashboardPath)
 	}
 
-	if c.HealthPath != "" && !startsWithSlash(c.HealthPath) {
+	if !startsWithSlash(c.HealthPath) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config", "HealthPath must start with %q (got %q)", "/", c.HealthPath)
 	}
 
-	if c.LoginRedirect != "" && !startsWithSlash(c.LoginRedirect) && !startsWithScheme(c.LoginRedirect) {
+	if !startsWithSlash(c.LoginRedirect) && !startsWithScheme(c.LoginRedirect) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config",
 			"LoginRedirect must start with %q or a URL scheme (got %q)", "/", c.LoginRedirect)
@@ -218,27 +232,29 @@ func (c Config) validate() error {
 		return errorfamily.NewRejection("setup.invalid_config", "CookieName must not be empty")
 	}
 
-	// The site root is where the login page mounts ("/" is its catch-all).
-	// A panel or health endpoint on "/" would collide with it at Mount time.
-	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" {
-		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config",
-			"AdminPath, DashboardPath, and HealthPath must not be %q — the site root is reserved for the login page", "/")
-	}
+	return nil
+}
 
-	// Equal paths would make http.ServeMux panic inside Mount ("conflicts with
-	// pattern"). Reject them here so misconfiguration surfaces at New, not at
-	// first request. Overlapping-but-distinct paths ("/app/" vs "/app/admin/")
-	// are fine: the mux resolves them by longest prefix.
-	if err := requireDistinctPaths(c); err != nil {
-		return err
+// validatePathRoots rejects mounts on the site root: the login page owns "/"
+// as its catch-all, so any panel or health endpoint there would collide at
+// Mount time.
+func (c Config) validatePathRoots() error {
+	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" {
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"AdminPath, DashboardPath, and HealthPath must not be \"/\" — the site root is reserved for the login page",
+		)
 	}
 
 	return nil
 }
 
 // requireDistinctPaths rejects configs where two mount paths resolve to the
-// same route after normalization.
+// same route after normalization. Equal paths would make http.ServeMux panic
+// inside Mount ("conflicts with pattern"); rejecting here surfaces the
+// misconfiguration at New, not at first request. Overlapping-but-distinct
+// paths ("/app/" vs "/app/admin/") are fine: the mux resolves them by
+// longest prefix.
 func requireDistinctPaths(c Config) error {
 	paths := []struct{ name, path string }{
 		{"AdminPath", trimTrailingSlash(c.AdminPath)},

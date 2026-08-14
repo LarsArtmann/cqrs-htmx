@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **Registration cap (`ServiceConfig.MaxUsers`)**: when greater than zero, no new users can be created once the read model reaches the cap — `Service.Register` returns `ErrRegistrationClosed` (HTTP 403). Zero (default) keeps unlimited registration.
+- **OAuth2 auto-provisioning gated by `MaxUsers`**: first-login user creation in `OAuth2Service.matchOrCreateUser` enforces the same cap (error code `usermgmt.oauth2.registration_closed`, same 403). Existing users keep working: matches by external account and by email link as before, repeat logins are never blocked.
+- Handler tests for the 403 mapping of both paths (`TestHandlers_Register_MaxUsersReached_Returns403`, `TestHandler_OAuth2Callback_RegistrationClosed_Returns403`) and a mixed concurrency regression test proving exactly `MaxUsers` users are created under parallel Register + first-login load.
+
+### Changed
+
+- **Registration check is serialized**: `Service` and `OAuth2Service` share one registration mutex held across the count-check-then-dispatch window, closing the TOCTOU race where two concurrent registrations could both pass the advisory count check (effective for in-process synchronous projections, which is the shipped setup).
+
+### Breaking
+
+- `NewOAuth2Service` signature changed: it now takes `maxUsers int` and `registrationMu *sync.Mutex` (pass `ServiceConfig.MaxUsers` and the Service's registration lock). Consumers that only build the service via `NewService` are unaffected.
+
 ## [v4.7.0] - 2026-08-07
 
 ### Added

@@ -15,6 +15,7 @@ use (
 	./examples/middleware-showcase
 	./examples/observability-demo
 	./examples/samber-do-demo
+	./examples/setup-demo
 	./examples/system-demo
 	./identity-model
 	./integration_test

@@ -26,7 +26,6 @@ func New(cfg Config) (*Bundle, error) {
 		return nil, err
 	}
 
-	// 1. Shared event infrastructure.
 	store := cfg.EventStore
 	if store == nil {
 		store = memorystorage.NewMemoryStore()
@@ -37,8 +36,7 @@ func New(cfg Config) (*Bundle, error) {
 		bus = watermill.NewEventBus()
 	}
 
-	// 2. User management service — injects the shared stores.
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct // setup applies selective defaults
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
 		EventStore:         store,
 		EventBus:           bus,
 		ReadModelDB:        cfg.ReadModelDB,
@@ -55,80 +53,117 @@ func New(cfg Config) (*Bundle, error) {
 		return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")
 	}
 
-	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login assigned conditionally below
+	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login assigned conditionally in attachPanels
 		Service: svc,
 		Auth:    usermgmt.NewAuthHandler(svc),
 		Stores:  &Stores{EventStore: store, EventBus: bus},
 		config:  cfg,
 	}
 
-	// cleanup closes all resources created so far, in reverse creation order.
-	// Called on any creation failure to prevent leaks.
-	cleanup := func() {
-		if bundle.Dashboard != nil {
-			bundle.Dashboard.Close()
-		}
+	if err := bundle.attachPanels(store, bus); err != nil {
+		bundle.cleanup()
 
-		_ = svc.Close()
-	}
-
-	// 3. Admin panel.
-	if !cfg.DisableAdmin {
-		admin, err := adminui.New(adminui.Config{ //nolint:exhaustruct // defaults applied internally
-			Service:     svc,
-			Title:       cfg.Title,
-			BasePath:    cfg.AdminPath,
-			Mode:        cfg.AdminMode,
-			TenantID:    cfg.TenantID,
-			Authorizer:  cfg.AdminAuthorizer,
-			AccentColor: cfg.AccentColor,
-			LogoutURL:   cfg.LogoutURL,
-			SSEURL:      cfg.SSEURL,
-		})
-		if err != nil {
-			cleanup()
-
-			return nil, errorfamily.WrapRejection(err, "setup.admin_creation_failed", "failed to create admin panel")
-		}
-
-		bundle.Admin = admin
-	}
-
-	// 4. CQRS/ES observability dashboard — wired from the shared stores.
-	if !cfg.DisableDashboard {
-		dash, err := dashboardui.New(buildDashboardConfig(cfg, store, bus, svc.ProjectionHost()))
-		if err != nil {
-			cleanup()
-
-			return nil, errorfamily.WrapRejection(
-				err,
-				"setup.dashboard_creation_failed",
-				"failed to create CQRS dashboard",
-			)
-		}
-
-		bundle.Dashboard = dash
-	}
-
-	// 5. Login page.
-	if !cfg.DisableLogin {
-		login, err := loginpage.New(loginpage.Config{ //nolint:exhaustruct // defaults applied internally
-			Service:        svc,
-			Title:          cfg.Title,
-			Redirect:       cfg.LoginRedirect,
-			AccentColor:    cfg.AccentColor,
-			NoRegistration: cfg.LoginNoRegistration,
-		})
-		if err != nil {
-			cleanup()
-
-			return nil, errorfamily.WrapRejection(err, "setup.login_creation_failed", "failed to create login page")
-		}
-
-		bundle.Login = login
+		return nil, err
 	}
 
 	return bundle, nil
+}
+
+// attachPanels builds and attaches the enabled UI panels (admin, dashboard,
+// login) to the bundle. On failure the caller must call [Bundle.cleanup] to
+// release everything created so far.
+func (b *Bundle) attachPanels(store event.Store, bus event.Bus) error {
+	if err := b.attachAdmin(); err != nil {
+		return err
+	}
+
+	if err := b.attachDashboard(store, bus); err != nil {
+		return err
+	}
+
+	return b.attachLogin()
+}
+
+// attachAdmin builds the admin panel unless disabled by Config.DisableAdmin.
+func (b *Bundle) attachAdmin() error {
+	if b.config.DisableAdmin {
+		return nil
+	}
+
+	admin, err := adminui.New(adminui.Config{
+		Service:     b.Service,
+		Title:       b.config.Title,
+		BasePath:    b.config.AdminPath,
+		Mode:        b.config.AdminMode,
+		TenantID:    b.config.TenantID,
+		Authorizer:  b.config.AdminAuthorizer,
+		AccentColor: b.config.AccentColor,
+		LogoutURL:   b.config.LogoutURL,
+		SSEURL:      b.config.SSEURL,
+	})
+	if err != nil {
+		return errorfamily.WrapRejection(err, "setup.admin_creation_failed", "failed to create admin panel")
+	}
+
+	b.Admin = admin
+
+	return nil
+}
+
+// attachDashboard builds the CQRS/ES observability dashboard unless disabled
+// by Config.DisableDashboard, wired from the shared stores.
+func (b *Bundle) attachDashboard(store event.Store, bus event.Bus) error {
+	if b.config.DisableDashboard {
+		return nil
+	}
+
+	dash, err := dashboardui.New(buildDashboardConfig(b.config, store, bus, b.Service.ProjectionHost()))
+	if err != nil {
+		return errorfamily.WrapRejection(
+			err,
+			"setup.dashboard_creation_failed",
+			"failed to create CQRS dashboard",
+		)
+	}
+
+	b.Dashboard = dash
+
+	return nil
+}
+
+// attachLogin builds the login page unless disabled by Config.DisableLogin.
+func (b *Bundle) attachLogin() error {
+	if b.config.DisableLogin {
+		return nil
+	}
+
+	login, err := loginpage.New(loginpage.Config{
+		Service:        b.Service,
+		Title:          b.config.Title,
+		Redirect:       b.config.LoginRedirect,
+		AccentColor:    b.config.AccentColor,
+		NoRegistration: b.config.LoginNoRegistration,
+	})
+	if err != nil {
+		return errorfamily.WrapRejection(err, "setup.login_creation_failed", "failed to create login page")
+	}
+
+	b.Login = login
+
+	return nil
+}
+
+// cleanup closes all resources created by [New], in reverse creation order.
+// Called on any creation failure to prevent leaks; [Bundle.Close] handles the
+// success path.
+func (b *Bundle) cleanup() {
+	if b.Dashboard != nil {
+		b.Dashboard.Close()
+	}
+
+	if b.Service != nil {
+		_ = b.Service.Close()
+	}
 }
 
 // MustNew is like [New] but panics on error. Use for tests and demos where failure is a bug.

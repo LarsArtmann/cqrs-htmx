@@ -338,16 +338,27 @@ func handleQueryTypedDispatch[Q query.Query, R any](
 // dispatch. If the command is not a *command.BasicCommand (custom Command
 // implementation), enrichment is silently skipped — the command dispatches
 // with whatever metadata the decoder set.
+//
+// Options are applied by direct invocation rather than the upstream
+// BasicCommand.ApplyOptions method: command.Option is an exported
+// func(*BasicCommand), and applying it inline keeps the root module
+// compilable against the latest PUBLISHED go-cqrs-lite tags in hermetic
+// (GOWORK=off) builds.
 func enrichCommandFromContext(ctx context.Context, cmd command.Command) {
 	if basic, ok := cmd.(*command.BasicCommand); ok {
-		basic.ApplyOptions(CommandOptionsFromContext(ctx)...)
+		for _, opt := range CommandOptionsFromContext(ctx) {
+			opt(basic)
+		}
 	}
 }
 
 // enrichQueryFromContext is the query-side mirror of enrichCommandFromContext.
+// Options are applied by direct invocation (see enrichCommandFromContext).
 func enrichQueryFromContext(ctx context.Context, qry query.Query) {
 	if basic, ok := qry.(*query.BasicQuery); ok {
-		basic.ApplyOptions(QueryOptionsFromContext(ctx)...)
+		for _, opt := range QueryOptionsFromContext(ctx) {
+			opt(basic)
+		}
 	}
 }
 

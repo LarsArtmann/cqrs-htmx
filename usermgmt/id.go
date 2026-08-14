@@ -64,6 +64,11 @@ func NewActorID(kind ActorKind, raw string) ActorID {
 func ActorIDFromUser(uid UserID) ActorID { return identitymodel.ActorIDFromUser(uid) }
 
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+func ActorIDAsUserID(actorID ActorID) (UserID, bool) {
+	return identitymodel.ActorIDAsUserID(actorID)
+}
+
+// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
 func ActorIDFromBot(bid BotID) ActorID { return identitymodel.ActorIDFromBot(bid) }
 
 // Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.

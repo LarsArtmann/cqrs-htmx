@@ -93,6 +93,33 @@ func TestActorID_RoundTrip(t *testing.T) {
 	}
 }
 
+func TestActorIDAsUserID(t *testing.T) {
+	uid := GenerateUserID()
+	got, ok := ActorIDAsUserID(ActorIDFromUser(uid))
+	if !ok {
+		t.Fatal("expected ok for user actor")
+	}
+	if got != uid {
+		t.Errorf("UserID mismatch: got %q, want %q", got, uid)
+	}
+
+	for _, actor := range []ActorID{
+		ActorIDFromBot(NewBotID("deploy-bot")),
+		NewActorID(ActorSystem, "scheduler"),
+		NewActorID(ActorService, "api-gateway"),
+		{},
+	} {
+		got, ok := ActorIDAsUserID(actor)
+		if ok {
+			t.Errorf("expected !ok for %q", actor.PrefixedString())
+		}
+		var zero UserID
+		if got != zero {
+			t.Errorf("expected zero UserID for %q, got %q", actor.PrefixedString(), got)
+		}
+	}
+}
+
 func TestActorID_BotRoundTrip(t *testing.T) {
 	bid := NewBotID("ci-bot")
 	actor := ActorIDFromBot(bid)

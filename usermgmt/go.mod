@@ -33,7 +33,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
@@ -130,3 +130,9 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
+
+// TEMPORARY local replace: identity-model master has symbols not yet in the
+// published v4.2.0 tag (ErrRegistrationClosed, ActorSystem/ActorService
+// aliases, ActorIDAsUserID). Required for hermetic GOWORK=off builds.
+// Remove when identity-model/v4 v4.3.0+ is tagged.
+replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model

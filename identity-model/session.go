@@ -54,8 +54,8 @@ func newSession(actorID ActorID, origin SessionOrigin, ttl time.Duration) (*Sess
 	}
 	// Only populate UserID when the actor is a human user. Bot, system,
 	// and service actors have non-UserID identifiers.
-	if actorID.Kind() == ActorUser {
-		sess.UserID = NewUserID(actorID.String())
+	if uid, ok := ActorIDAsUserID(actorID); ok {
+		sess.UserID = uid
 	}
 	return sess, nil
 }

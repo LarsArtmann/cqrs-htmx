@@ -10,23 +10,27 @@
 //	    TOTP:    totp.New(totp.Config{Issuer: "MyApp"}),
 //	})
 //	if err != nil { log.Fatal(err) }
-//	defer bundle.Close()
 //
-//	mux := http.NewServeMux()
-//	http.ListenAndServe(":8080", bundle.Handler(mux))
+//	if err := bundle.Run(ctx, ":8080"); err != nil { log.Fatal(err) }
+//
+// [Bundle.Run] mounts all routes, serves with safe timeouts (SSE-compatible),
+// drains gracefully when ctx is cancelled, and closes the bundle.
 //
 // # What you get
 //
 //   - /auth/* — registration, login (WebAuthn/TOTP/OAuth2), logout, me
-//   - /admin/* — admin dashboard (user/tenant/membership management)
-//   - /dashboard/* — CQRS/ES observability (events, projections, DLQ)
-//   - /health — readiness check (verifies projection health)
+//   - /admin/* — admin dashboard (session + CSRF gated, 401 otherwise)
+//   - /dashboard/* — CQRS/ES observability (session gated, 401 otherwise)
+//   - /health — readiness check (503 while projections are draining)
 //   - / — login page
 //
 // # Convenience methods
 //
-// [Bundle.Handler] mounts all routes and wraps the mux with [Bundle.Middleware] in one call.
-// Alternatively, call [Bundle.Mount] and [Bundle.Middleware] separately for custom middleware:
+// [Bundle.Run] is the one-liner: mount, serve, graceful shutdown, close.
+// [Bundle.RunHandler] does the same for a handler you compose yourself
+// (e.g. [Bundle.Handler] (mux) with your own routes added).
+//
+// Alternatively, call [Bundle.Mount] and [Bundle.Middleware] separately for full control:
 //
 //	mux := http.NewServeMux()
 //	bundle.Mount(mux)
@@ -45,13 +49,24 @@
 // Config fields cover the most common production needs:
 //
 //   - [Config.SessionTTL] — session cookie lifetime (default: 24h via usermgmt)
+//   - [Config.Logger] — structured auth event logging (default: slog.Default())
 //   - [Config.LogoutURL] — logout link shown in admin and dashboard panels
 //   - [Config.SSEURL] — enables admin panel real-time sync indicator
 //   - [Config.OnProjectionFailed] — callback when a projection exhausts restarts
+//   - [Config.AsyncStartup] — bind immediately; /health gates readiness during drain
 //   - [Config.DashboardReadOnly] — nil = true (safe); set false at your own risk
 //   - [Config.DashboardPageSize] — rows per page in dashboard tables (default: 50)
 //   - [Config.LoginNoRegistration] — hide registration section on login page
 //   - [Config.HealthPath] — health endpoint path (default: "/health")
+//   - [Config.AdminMode] / [Config.TenantID] — tenant-scoped admin panel
+//   - [Config.AdminAuthorizer] / [Config.DashboardAuthorizer] — custom access control
+//
+// Paths are normalized and validated at [New]: panel mount paths gain a
+// trailing slash (so the standard mux registers them as subtrees), "/" is
+// reserved for the login page, and colliding paths are rejected with a
+// descriptive error instead of panicking inside Mount. Custom AdminPath and
+// DashboardPath values are passed to the panels as their BasePath, so all
+// internal links and HTMX targets match the mount location.
 //
 // # Persistence
 //

@@ -129,6 +129,25 @@ func ActorIDFromUser(uid UserID) ActorID {
 	return id.NewUserActor(uid)
 }
 
+// ActorIDAsUserID returns the UserID of a human-user actor and true. For any
+// other actor kind (bot, system, service, unknown) it returns the zero UserID
+// and false — callers must not persist a UserID derived from those kinds,
+// which would create invalid references in audit trails, sessions, and roles.
+//
+// Use this instead of hand-rolling the kind guard:
+//
+//	if uid, ok := identitymodel.ActorIDAsUserID(actorID); ok {
+//	    entry.UserID = uid
+//	}
+func ActorIDAsUserID(actorID ActorID) (UserID, bool) {
+	if actorID.Kind() != ActorUser {
+		var zero UserID
+		return zero, false
+	}
+	//nolint:staticcheck // SA1019: preserves historical NewUserID semantics (parse-or-synthesize)
+	return NewUserID(actorID.String()), true
+}
+
 // ActorIDFromBot creates an ActorID from a BotID.
 func ActorIDFromBot(bid BotID) ActorID {
 	return id.NewBotActor(bid.Get())

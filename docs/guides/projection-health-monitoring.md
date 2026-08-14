@@ -167,6 +167,7 @@ The handler uses `Cache-Control: no-cache` with a per-request ETag (FNV-1a hash 
 
 ## See Also
 
+- [Async Projection Startup](./async-projection-startup.md) — Decouple server liveness from projection readiness (`AsyncStartup` + readiness gate)
 - [Event Replay and Rebuild](./event-replay-and-rebuild.md) — How to fix a failed projection
 - [Consistency Model](./consistency-model.md) — What lag means for consistency
 - `projection_status_handler.go` — Handler implementation

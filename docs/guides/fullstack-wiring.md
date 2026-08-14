@@ -13,34 +13,56 @@ correct middleware ordering — in one import.
 package main
 
 import (
-    "net/http"
+    "context"
+    "log"
+    "os"
+    "os/signal"
+    "syscall"
 
     "github.com/larsartmann/cqrs-htmx/setup/v4"
     totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 )
 
 func main() {
+    ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+    defer stop()
+
     bundle, err := setup.New(setup.Config{
         Title:   "My App",
         TOTP:    totp.New(totp.Config{Issuer: "MyApp"}),
     })
-    if err != nil { panic(err) }
-    defer bundle.Close()
+    if err != nil { log.Fatal(err) }
 
-    mux := http.NewServeMux()
-    http.ListenAndServe(":8080", bundle.Handler(mux))
+    // Mount, serve with safe timeouts, drain gracefully, close.
+    if err := bundle.Run(ctx, ":8080"); err != nil { log.Fatal(err) }
 }
+```
+
+`Bundle.Run` applies `ReadHeaderTimeout` + `IdleTimeout` but no `WriteTimeout` —
+the dashboard's SSE streams outlive any fixed write deadline. To add your own
+routes next to the bundle's, compose a mux and use `Bundle.RunHandler`:
+
+```go
+mux := http.NewServeMux()
+mux.HandleFunc("POST /orders", myOrdersHandler)
+err := bundle.RunHandler(ctx, ":8080", bundle.Handler(mux))
 ```
 
 ### What you get
 
-| Route          | Panel                                         | Auth                  |
-| -------------- | --------------------------------------------- | --------------------- |
-| `/auth/*`      | Registration, login (TOTP/WebAuthn/OAuth2)    | Public (registration) |
-| `/admin/*`     | Admin dashboard (users, tenants, memberships) | Session + CSRF        |
-| `/dashboard/*` | CQRS/ES observability (events, projections)   | Session               |
-| `/health`      | Readiness check (verifies projection health)  | Public                |
-| `/`            | Login page                                    | Public                |
+| Route          | Panel                                         | Auth                      |
+| -------------- | --------------------------------------------- | ------------------------- |
+| `/auth/*`      | Registration, login (TOTP/WebAuthn/OAuth2)    | Public (registration)     |
+| `/admin/*`     | Admin dashboard (users, tenants, memberships) | Session + CSRF (401 else) |
+| `/dashboard/*` | CQRS/ES observability (events, projections)   | Session gate (401 else)   |
+| `/health`      | Readiness check (verifies projection health)  | Public                    |
+| `/`            | Login page                                    | Public                    |
+
+Custom `AdminPath`/`DashboardPath` values are passed to the panels as their
+`BasePath`, so every internal link and HTMX target matches the mount location.
+Paths are validated at `New`: colliding paths (or `/`, which belongs to the
+login page) are rejected with a descriptive error instead of panicking at
+Mount time.
 
 ### Customization
 

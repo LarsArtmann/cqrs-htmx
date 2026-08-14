@@ -74,8 +74,8 @@ func (a *AuditLog) Handle(_ context.Context, evt event.Event) error {
 	// Only populate UserID when the actor is a human user. Bot, system,
 	// and service actors have non-UserID identifiers — storing them as
 	// UserID would create invalid references in the audit trail.
-	if actor := evt.Metadata().ActorID; actor.Kind() == id.ActorUser {
-		entry.UserID = NewUserID(actor.String())
+	if uid, ok := ActorIDAsUserID(evt.Metadata().ActorID); ok {
+		entry.UserID = uid
 	}
 
 	a.entries = append(a.entries, entry)

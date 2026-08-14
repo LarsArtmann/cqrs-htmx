@@ -545,7 +545,7 @@ func TestNew_Passthroughs_ReachPanels(t *testing.T) {
 		Title:               "Passthrough Test",
 		AdminAuthorizer:     func(*usermgmt.User) error { return nil },
 		DashboardAuthorizer: func(*http.Request) error { return nil },
-		Logger:              slog.New(slog.NewTextHandler(io.Discard, nil)),
+		Logger:              slog.New(slog.DiscardHandler),
 	})
 	defer func() { _ = bundle.Close() }()
 

@@ -8,6 +8,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **`setup.Bundle.Run` / `setup.Bundle.RunHandler`** (`setup/run.go`): one-call serve lifecycle — mount, serve with `ReadHeaderTimeout` + `IdleTimeout` (deliberately no `WriteTimeout`: the dashboard's SSE streams outlive any fixed deadline), graceful shutdown when the context is cancelled (`context.WithoutCancel` keeps the shutdown budget intact), and `Bundle.Close` on every exit path. `RunHandler(ctx, addr, bundle.Handler(mux))` serves a handler you compose yourself.
+- **setup module README** (`setup/README.md`): quick start, route/access table, full Config field reference, serving options, persistence notes.
+- **setup-demo example** (`examples/setup-demo/`): runnable showcase of the one-call composition root — seeds a super_admin (exercising the real role-based authorizer), adds a dev-login route next to the bundle's routes via `RunHandler`, and an end-to-end test that walks public routes, auth gates (401), and the authenticated panel flow.
+- **setup Config passthroughs** (`setup/config.go`): `Logger` (structured auth event logging), `AdminMode` + `TenantID` (tenant-scoped admin panel), `AdminAuthorizer` and `DashboardAuthorizer` (custom access control on top of the session gates).
+- **`adminui.Handler.Config()` accessor** (`adminui/handler.go`): read-only snapshot of the resolved panel config, mirroring `dashboardui.Dashboard.Config()`.
+- **setup per-module `.golangci.yml`** (`setup/.golangci.yml`): adminui-style linter configuration with the established identity-model re-export SA1019 exclusion and test-file relaxations.
+- **Async startup integration test** (`setup/setup_test.go`): end-to-end test that `AsyncStartup=true` returns immediately, `/health` answers 503 while a gated journal holds projections in drain, and flips to 200 after release — plus the complementary sync-mode test proving `New` blocks until drain completes (closes the oldest open TODO for the async startup feature).
+
+### Fixed
+
+- **Security: setup dashboard session gate** (`setup/mount.go`): `/dashboard/*` (event payloads, stream IDs, DLQ) is no longer publicly reachable. The session middleware only enriches the context — it does not block — so `Mount` now applies an explicit `requireSession` gate (401, mirroring the admin panel). Previously the dashboard's allow-all default authorizer made the observability panel public in every default-configured app.
+- **Custom panel paths broke all internal links** (`setup/setup.go`): `AdminPath`/`DashboardPath` are now passed to the panels as their `BasePath`. Previously the panels were mounted at the custom path via `StripPrefix` but kept their default `/admin`/`/dashboard` BasePaths, so every link and HTMX target pointed at the wrong location.
+- **Panel paths without a trailing slash only matched the root** (`setup/config.go`): `withDefaults` now normalizes `AdminPath`/`DashboardPath` to end with `/` so the standard mux registers them as subtree patterns (previously `/manage` matched exactly `/manage` and every sub-route 404'd). `HealthPath` gets the opposite treatment (trailing slash stripped) to avoid a redirect hop.
+- **Route collisions panicked at Mount time** (`setup/config.go`): `New` now rejects configs where `AdminPath`, `DashboardPath`, or `HealthPath` resolve to the same route (after normalization), or where any of them claims `/` (owned by the login page catch-all) — previously these survived `New` and crashed inside `http.ServeMux.Handle` on first `Mount`.
+
+### Changed
+
+- **setup dashboard route requires a session** (`setup/mount.go`): unauthenticated `GET /dashboard/` now returns 401 instead of 200. Consumers who deliberately want a public dashboard can mount `bundle.Dashboard.Handler()` themselves.
+- **`setup.New` refactored into `attachAdmin`/`attachDashboard`/`attachLogin`** (`setup/setup.go`): same construction order and cleanup semantics, but each panel's creation (and its failure wrapping) lives in one focused method.
+
+### Added (earlier in this release)
+
 - **Async projection startup (`AsyncStartup`)** (`usermgmt/service_core.go`, `usermgmt/es_setup.go`, `setup/config.go`): `ServiceConfig.AsyncStartup`, `EventSourcedConfig.AsyncStartup`, and `setup.Config.AsyncStartup` decouple HTTP server liveness from projection readiness. When `true`, `NewService` / `setup.New` returns immediately after the projection host starts — the HTTP server binds while projections replay the journal in the background, eliminating multi-minute restart outages on deployments with large event journals. Defaults to `false` (zero value), preserving the historical synchronous startup (backward compatible). Pair with the drain-aware `/health` readiness check below.
 - **`cqrshtmx.ProjectionReadinessCheck`** (`projection_readiness.go`): reusable `NamedCheck` for `ReadinessHandler` that returns 503 while any projection is still draining its initial journal backlog (`idle`/`running`/`backoff`/`draining`) or has failed, and 200 once every worker reaches `live`/`stopped` state. This is the readiness gate that makes async startup safe.
 - **Drain-aware `/health` endpoint** (`setup/mount.go`): the setup bundle's health handler now uses `ProjectionReadinessCheck` instead of a `failed`-only check. In sync mode (default) this is a no-op (drain completes before the server starts); in async mode it returns 503 during catch-up so reverse proxies retry instead of 502. See `docs/guides/async-projection-startup.md`.
