@@ -3,6 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/setup-demo
 go 1.26.5
 
 require (
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/setup/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.2
 )
@@ -26,7 +27,6 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.7.0 // indirect
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.7.0 // indirect
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.7.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
@@ -56,7 +56,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-etag v0.1.0 // indirect
+	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect
 	github.com/larsartmann/httputil v0.11.0 // indirect
@@ -95,3 +95,5 @@ replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../../dashboardui
 replace github.com/larsartmann/cqrs-htmx/loginpage/v4 => ../../loginpage
 
 replace github.com/larsartmann/cqrs-htmx/setup/v4 => ../../setup
+
+replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../../identity-model

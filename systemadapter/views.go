@@ -62,7 +62,9 @@ type UserView struct {
 	ExternalAccounts []ExternalAccountView `json:"external_accounts,omitempty"`
 	EmailVerified    bool                  `json:"email_verified"`
 	TOTPEnabled      bool                  `json:"totp_enabled"`
+	//cqrs-lint:ignore(C013) metaengine serializes views as JSON; time.Time marshals to RFC3339 with timezone — nothing is lost
 	CreatedAt        time.Time             `json:"created_at"`
+	//cqrs-lint:ignore(C013) metaengine serializes views as JSON; time.Time marshals to RFC3339 with timezone — nothing is lost
 	UpdatedAt        time.Time             `json:"updated_at"`
 }
 
@@ -92,6 +94,7 @@ type PolicyEntry struct {
 type AuditEntryView struct {
 	EventType   string    `json:"event_type"`
 	AggregateID string    `json:"aggregate_id"`
+	//cqrs-lint:ignore(C013) metaengine serializes views as JSON; time.Time marshals to RFC3339 with timezone — nothing is lost
 	OccurredAt  time.Time `json:"occurred_at"`
 	Action      string    `json:"action"`
 }

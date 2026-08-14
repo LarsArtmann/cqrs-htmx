@@ -31,7 +31,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-datastar v0.2.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.2.0 // indirect
-	github.com/larsartmann/go-etag v0.1.0 // indirect
+	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
 	github.com/larsartmann/templ-components v1.8.1 // indirect
@@ -63,7 +63,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.7.0
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.2.0 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.3.0 // indirect
@@ -124,6 +124,11 @@ replace github.com/larsartmann/cqrs-htmx/adminui/v4 => ../adminui
 replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../dashboardui
 
 replace github.com/larsartmann/cqrs-htmx/loginpage/v4 => ../loginpage
+
+// TEMPORARY local replace: the local usermgmt (via replace above) requires
+// identity-model/v4 v4.7.0 which is not yet tagged. Required for hermetic
+// GOWORK=off builds. Remove once identity-model/v4 v4.7.0+ is tagged.
+replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model
 
 replace github.com/larsartmann/go-datastar => ../../go-datastar
 

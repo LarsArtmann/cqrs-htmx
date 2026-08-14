@@ -1,3 +1,4 @@
+//cqrs-lint:ignore(E014) read-your-writes is owned by consumers via ProjectionLayer.WaitForDrain (projections.go); the adapter itself never serves commands
 package systemadapter
 
 import (
@@ -49,6 +50,7 @@ func DeclarativeProjections() []system.ProjectionDeclaration {
 // -------------------------------------------------------------------------
 
 func tenantLookup() metaengine.QueryDecl[system.LookupInput[string], TenantView] {
+	//cqrs-lint:ignore(F019) metaengine.Query has no volume-hint option (checked v4.10.0); planner falls back to its default volume
 	return metaengine.Query[system.LookupInput[string], TenantView]("tenant_by_id",
 		insertTenant(),
 		updateTenantSuspended(),

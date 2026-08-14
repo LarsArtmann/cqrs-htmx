@@ -69,6 +69,7 @@ func registerAllCommands(sys *system.System) {
 
 func must(err error) {
 	if err != nil {
+		//cqrs-lint:ignore(C009) system.DomainConfig.Commands is func(*System) — no error channel exists; registration wires static deciders, so failure is a programmer error at init
 		panic(fmt.Sprintf("systemadapter: registration failed: %v", err))
 	}
 }

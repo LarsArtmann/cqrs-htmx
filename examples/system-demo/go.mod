@@ -98,3 +98,9 @@ replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../../identity-mod
 replace github.com/larsartmann/cqrs-htmx/systemadapter/v4 => ../../systemadapter
 
 replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../../usermgmt
+
+// TEMPORARY local replace: go-cqrs-lite master's projectionadapter added the
+// OccurredAt field to EventWithID (after v4.4.0); used via systemadapter fold
+// handlers. Required for hermetic GOWORK=off builds. Remove once
+// metaengine/projectionadapter/v4 v4.5.0+ is tagged.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => /home/lars/projects/go-cqrs-lite/metaengine/projectionadapter

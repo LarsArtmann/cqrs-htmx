@@ -1,3 +1,4 @@
+//cqrs-lint:ignore(A018) adapter module: it wires usermgmt deciders/projections into system.New(); dispatch happens in the system, not here
 module github.com/larsartmann/cqrs-htmx/systemadapter/v4
 
 go 1.26.5
@@ -8,6 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0
+	//cqrs-lint:ignore(V003) v4.0.1 IS the latest published tag; detector compares against the core module version — false positive
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
@@ -24,6 +26,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -42,6 +45,7 @@ require (
 	github.com/larsartmann/go-codec v0.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0 // indirect
+	//cqrs-lint:ignore(V006) v4.0.0 IS the latest published tag for commandlifecycle/projections; per-module release cadences differ
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.3.0 // indirect
@@ -67,13 +71,16 @@ require (
 	github.com/larsartmann/httputil v0.11.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
+	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
@@ -89,6 +96,10 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	modernc.org/libc v1.75.3 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
+	modernc.org/memory v1.12.0 // indirect
+	modernc.org/sqlite v1.56.0 // indirect
 )
 
 replace github.com/larsartmann/cqrs-htmx => ../
@@ -96,3 +107,16 @@ replace github.com/larsartmann/cqrs-htmx => ../
 replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model
 
 replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
+
+// TEMPORARY local replace: go-cqrs-lite master's projectionadapter added the
+// OccurredAt field to EventWithID (after v4.4.0); declarations.go fold handlers
+// use it. Required for hermetic GOWORK=off builds. Remove once
+// metaengine/projectionadapter/v4 v4.5.0+ is tagged.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => /home/lars/projects/go-cqrs-lite/metaengine/projectionadapter
+
+// TEMPORARY local replace: go-cqrs-lite master's sqliteengine gained
+// register.go (self-registers the "sqlite" metaengine driver via init, after
+// v4.0.1); the systemadapter tests blank-import it for driver registration.
+// Required for hermetic GOWORK=off builds/tests. Remove once
+// metaengine/sqliteengine/v4 v4.0.2+ is tagged.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/sqliteengine

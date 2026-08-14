@@ -2,12 +2,12 @@ package systemadapter
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
@@ -21,6 +21,12 @@ const (
 	backoffMin        = 100 * time.Millisecond
 	backoffMax        = 5 * time.Second
 	drainPollInterval = 10 * time.Millisecond
+
+	// projectionBatchSize is the number of events read per journal batch during
+	// catch-up replay and live tailing. Identity event payloads are small JSON
+	// documents, so a larger-than-default batch keeps journal catch-up fast
+	// without excessive memory use.
+	projectionBatchSize = 256
 )
 
 // ProjectionLayer manages a dedicated projectionhost.Host for usermgmt read models,
@@ -52,29 +58,66 @@ type ProjectionLayer struct {
 	AuditLog   *usermgmt.AuditLog
 }
 
+// ProjectionLayerOption customizes NewProjectionLayer.
+type ProjectionLayerOption func(*projectionLayerOptions)
+
+type projectionLayerOptions struct {
+	checkpointStore event.CheckpointStore
+	deadLetterStore projectionhost.DeadLetterStore
+}
+
+// WithCheckpointStore persists projection positions across restarts. Without
+// it, an in-memory store is used and every projection replays the full journal
+// on start — acceptable for demos and tests, not for production.
+func WithCheckpointStore(store event.CheckpointStore) ProjectionLayerOption {
+	return func(o *projectionLayerOptions) {
+		o.checkpointStore = store
+	}
+}
+
+// WithDeadLetterStore persists events that exhaust their restart budget so
+// they survive restarts and can be inspected or replayed. Without it, dead
+// letters are held in memory and lost on restart.
+func WithDeadLetterStore(store projectionhost.DeadLetterStore) ProjectionLayerOption {
+	return func(o *projectionLayerOptions) {
+		o.deadLetterStore = store
+	}
+}
+
 // NewProjectionLayer creates a ProjectionLayer backed by the system's event store
 // and bus. It creates all standard read models, the Casbin authz projection, and
 // the audit log, then registers them with a new projectionhost.Host.
 //
 // The host is NOT started — call Start(ctx) after creation.
 // Must be called AFTER system.New() but BEFORE sys.Start() (so the bus is ready).
-func NewProjectionLayer(sys *system.System) (*ProjectionLayer, error) {
+//
+// By default the projection checkpoint and dead-letter stores are in-memory:
+// projections replay the full journal on restart. For production deployments
+// pass WithCheckpointStore (and optionally WithDeadLetterStore) with stores
+// matching the event-store backend.
+func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*ProjectionLayer, error) {
+	cfg := projectionLayerOptions{}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	store := sys.EventStore()
 
 	if store == nil {
-		return nil, errors.New("systemadapter: system has no event store")
+		return nil, errorfamily.NewRejection("systemadapter.no_event_store", "system has no event store")
 	}
 
 	journal, ok := store.(event.SeekableJournal)
 
 	if !ok {
-		return nil, fmt.Errorf("systemadapter: event store does not implement SeekableJournal (got %T)", store)
+		return nil, errorfamily.Newf(errorfamily.Rejection, "systemadapter.journal_unsupported",
+			"event store does not implement SeekableJournal (got %T)", store)
 	}
 
 	bus := sys.Bus()
 
 	if bus == nil {
-		return nil, errors.New("systemadapter: system has no event bus")
+		return nil, errorfamily.NewRejection("systemadapter.no_event_bus", "system has no event bus")
 	}
 
 	authz, err := usermgmt.NewAuthz()
@@ -98,14 +141,24 @@ func NewProjectionLayer(sys *system.System) (*ProjectionLayer, error) {
 		AuditLog:   usermgmt.NewAuditLog(),
 	}
 
-	cpStore := memory.NewMemoryCheckpointStore()
-	dlqStore := projectionhost.NewMemoryDeadLetterStore()
+	cpStore := cfg.checkpointStore
+	if cpStore == nil {
+		//cqrs-lint:ignore(C017) in-memory default enables zero-config startup; pass WithCheckpointStore for restart-safe positions
+		cpStore = memory.NewMemoryCheckpointStore()
+	}
+
+	dlqStore := cfg.deadLetterStore
+	if dlqStore == nil {
+		//cqrs-lint:ignore(C017) in-memory default; pass WithDeadLetterStore to persist failed events across restarts
+		dlqStore = projectionhost.NewMemoryDeadLetterStore()
+	}
 
 	host, err := projectionhost.New(journal, cpStore,
 		projectionhost.WithSubscriber(bus),
 		projectionhost.WithDeadLetterStore(dlqStore, dlqThreshold),
 		projectionhost.WithMaxRestarts(maxRestarts),
 		projectionhost.WithBackoff(backoffMin, backoffMax),
+		projectionhost.WithBatchSize(projectionBatchSize),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("systemadapter: create projection host: %w", err)
@@ -175,5 +228,6 @@ func (pl *ProjectionLayer) WaitForDrain(timeout time.Duration) error {
 		time.Sleep(drainPollInterval)
 	}
 
-	return fmt.Errorf("systemadapter: projection drain timed out after %s", timeout)
+	return errorfamily.Newf(errorfamily.Transient, "systemadapter.drain_timeout",
+		"projection drain timed out after %s", timeout)
 }

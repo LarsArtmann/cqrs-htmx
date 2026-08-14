@@ -24,8 +24,6 @@
 
 - [~] **Complete MySQL event-store support.** Dialect, read-model constructors, setup template, migration guide, integration test (testcontainers), and error classifier are done (`MySQLDialect`, `NewMySQL*ReadModel`, `mysql_setup.go`, `docs/guides/mysql-setup.md`, `classifyMySQLError`, `mysql_integration_test.go`). Remaining: (1) document MySQL support in the root README; (2) `NewMySQLSetup` convenience constructor + MySQL-backed session/snapshot/checkpoint stores. Evidence: `usermgmt/sql_readmodel_mysql.go`, `go-cqrs-lite/storage/sql/dialect.go`.
 
-- [ ] **Write async startup integration test.** No test starts a real HTTP server with `AsyncStartup=true` and verifies the `/health` endpoint transitions from 503 (draining) to 200 (ready) as projections catch up. The unit tests verify `ProjectionReadinessCheck` logic and `AsyncStartup` config wiring separately, but the end-to-end lifecycle is untested. This is the single most valuable missing test for the async startup feature. Evidence: `projection_readiness.go`, `usermgmt/es_projection_setup_test.go`. Source: `docs/status/archived/2026-08-12_21-19_async-projection-startup-verified.md`.
-
 - [ ] **Run full nix verification gates after recent changes.** The ActorID consolidation (ADR-0111), ADR-0114 tombstone migration, async projection startup, and go-cqrs-lite snapshot breakage repair were each verified with per-module `go test`/`golangci-lint`, but the full workspace gates (`nix run .#coverage-gate`, `nix run .#lint`, `nix run .#check-cqrs-lint`, `nix run .#test-fuzz`, `nix run .#test-flake`, `nix flake check --no-build`) have not been run as a unified suite since 2026-08-09. Source: `docs/status/archived/2026-08-12_21-19_async-projection-startup-verified.md`.
 
 ---

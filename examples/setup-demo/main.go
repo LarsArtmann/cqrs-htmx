@@ -18,6 +18,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
@@ -84,7 +85,7 @@ func run() error {
 
 // seed registers the demo admin and returns their session token.
 func seed(ctx context.Context, bundle *setup.Bundle) string {
-	adminID := usermgmt.SyntheticUserID(adminUserID)
+	adminID := identitymodel.SyntheticUserID(adminUserID)
 	resp, err := bundle.Service.Register(ctx, usermgmt.RegisterRequest{
 		ID: adminID, Email: adminEmail, DisplayName: "Setup Demo Admin",
 	})
@@ -92,8 +93,8 @@ func seed(ctx context.Context, bundle *setup.Bundle) string {
 		log.Fatalf("register admin: %v", err)
 	}
 
-	if err := bundle.Service.Authz().AddGroupPolicy(usermgmt.GroupPolicy{
-		Subject: adminID.Get().String(), Role: usermgmt.RoleSuperAdmin, Domain: "*",
+	if err := bundle.Service.Authz().AddGroupPolicy(identitymodel.GroupPolicy{
+		Subject: adminID.Get().String(), Role: identitymodel.RoleSuperAdmin, Domain: "*",
 	}); err != nil {
 		log.Fatalf("grant super_admin: %v", err)
 	}
