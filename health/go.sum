@@ -74,6 +74,8 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0 h1:Rkc2Wn3QZUkFXhFR
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0/go.mod h1:Brzk1RPFo/+2j0Xq+biSM0JWlStPcvlec84K4IZsvKo=
 github.com/larsartmann/go-datastar v0.2.0 h1:of0QA4uSiATF6Y2EzjgJBoEE3k4dRrK586JbO5+G/KU=
 github.com/larsartmann/go-datastar v0.2.0/go.mod h1:1wJGELJB2pKboyHfEiYmiJsGhILa04xJO7DcPl0HVu4=
+github.com/larsartmann/go-datastar/static v0.2.0 h1:ofPx3Xs0YG+P9A8ZLvJD+QYaQPnNIXwMy/R3Z1TSyOU=
+github.com/larsartmann/go-datastar/static v0.2.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-etag v0.1.1 h1:lD64U/0gTU43aE4W/as2i8zFBSvJuP1+ah8XQdt7ne0=

@@ -44,9 +44,3 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-// TEMPORARY local replace (dev only): the published go-datastar v0.2.0 tag
-// requires go-datastar/static v0.2.0, which is not tagged upstream (newest:
-// static/v0.1.0) — hermetic GOWORK=off builds cannot resolve it. Remove once
-// go-datastar static/v0.2.0 is tagged (docs/runbooks/release-v4.8.0-push-plan.md §3).
-replace github.com/larsartmann/go-datastar/static => ../../go-datastar/static

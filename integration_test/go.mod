@@ -119,9 +119,3 @@ require (
 )
 
 replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../datastar
-
-replace github.com/larsartmann/go-datastar => ../../go-datastar
-
-replace github.com/larsartmann/go-sse => ../../go-sse
-
-replace github.com/larsartmann/go-datastar/static => ../../go-datastar/static
