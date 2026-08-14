@@ -5,7 +5,7 @@ go 1.26.5
 
 require (
 	github.com/dustin/go-humanize v1.0.1
-	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0
@@ -58,8 +58,6 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 )
-
-replace github.com/larsartmann/cqrs-htmx/v4 => ../
 
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 //cqrs-lint:ignore(E009) dashboard IS the transport/view layer
