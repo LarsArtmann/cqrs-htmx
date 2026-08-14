@@ -55,6 +55,21 @@ func TestHandlers_Register_BadRequestBody(t *testing.T) {
 	assertStatusCode(t, w, http.StatusBadRequest)
 }
 
+func TestHandlers_Register_MaxUsersReached_Returns403(t *testing.T) {
+	svc := newTestServiceWithConfig(t, ServiceConfig{Authz: newTestAuthz(t), MaxUsers: 1})
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	w := postJSON(t, mux, "/auth/register",
+		fmt.Sprintf(`{"id":%q,"email":"first@test.com"}`, NewUserID("u1").Get().String()))
+	assertStatusCode(t, w, http.StatusCreated)
+
+	w = postJSON(t, mux, "/auth/register",
+		fmt.Sprintf(`{"id":%q,"email":"second@test.com"}`, NewUserID("u2").Get().String()))
+	assertStatusCode(t, w, http.StatusForbidden)
+}
+
 func wrapSessionMiddleware(
 	t *testing.T,
 	svc *Service,

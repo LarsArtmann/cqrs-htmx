@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -63,6 +64,10 @@ type Service struct {
 	checkpointStore          event.CheckpointStore
 	projections              []projection.Projection
 	maxUsers                 int
+	// registrationMu serializes the check-then-register critical section in
+	// Register and OAuth2Service.matchOrCreateUser so concurrent requests cannot
+	// both pass the MaxUsers check before either dispatch lands in the read model.
+	registrationMu sync.Mutex
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -142,6 +147,11 @@ type ServiceConfig struct {
 	// are used (data lost on restart).
 	ReadModelDB *sql.DB
 
+	// ReadModelDialect selects the constructor family used for ReadModelDB:
+	// "" / "sqlite" / "sqlite3" (default, historical behavior), "postgres" /
+	// "pgx", or "mysql". Ignored when ReadModelDB is nil.
+	ReadModelDialect string
+
 	// SecurityHooks configures opt-in event signing and encryption.
 	// See SecurityHooks for field documentation.
 	SecurityHooks
@@ -200,7 +210,9 @@ type ServiceConfig struct {
 
 	// MaxUsers, when greater than zero, limits the total number of users that
 	// can register. When the user count reaches MaxUsers, all further
-	// registration attempts return ErrRegistrationClosed. Zero (the default)
+	// registration attempts return ErrRegistrationClosed — including the
+	// implicit registration of new users via OAuth2 first-login
+	// auto-provisioning. Existing users can always log in. Zero (the default)
 	// means unlimited registration. Set to 1 for single-user deployments to
 	// automatically lock registration after the first user is created.
 	MaxUsers int
@@ -272,6 +284,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		EventStore:         config.EventStore,
 		EventBus:           config.EventBus,
 		ReadModelDB:        config.ReadModelDB,
+		ReadModelDialect:   config.ReadModelDialect,
 		AuditLog:           config.AuditLog,
 		CheckpointStore:    config.CheckpointStore,
 		OnProjectionFailed: config.OnProjectionFailed,
@@ -404,6 +417,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		svc.stopOAuth2Eviction = startPeriodicEviction(stateStore.EvictExpired, oauthStateEvictionInterval)
 		svc.oauth2Svc = NewOAuth2Service(
 			config.OAuth2, stateStore, svc.oauth2StateTTL,
+			config.MaxUsers, &svc.registrationMu,
 			svc.readModel, svc.dispatcher, svc.sessions, svc.sessionTTL, svc.logger,
 			svc.classifyDispatchError,
 		)

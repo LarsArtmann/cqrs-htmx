@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"log/slog"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -24,6 +25,16 @@ type OAuth2Service struct {
 	provider OAuth2Provider
 	states   OAuth2StateStore
 	stateTTL time.Duration
+
+	// maxUsers mirrors ServiceConfig.MaxUsers: when greater than zero,
+	// auto-provisioning of new users via first-login is rejected once the read
+	// model reaches this count. Logins of existing users (matched by external
+	// account or email) are never affected.
+	maxUsers int
+	// registrationMu is the Service's shared registration lock. It serializes
+	// the count-check-then-dispatch critical section across Register and
+	// matchOrCreateUser so concurrent first logins cannot both pass the gate.
+	registrationMu *sync.Mutex
 
 	// Shared dependencies from the core Service
 	readModel     *UserReadModel
@@ -46,10 +57,17 @@ type errorClassifier func(err error, userID UserID, kv ...string) error
 
 // NewOAuth2Service creates an OAuth2Service from the given configuration and
 // shared dependencies. Returns nil if no provider is configured.
+//
+// maxUsers and registrationMu carry the Service's registration gate: pass the
+// same values the core Service was built with (ServiceConfig.MaxUsers and the
+// Service's registration mutex) so both flows enforce one shared user limit.
+// registrationMu may be nil, in which case the count check is advisory only.
 func NewOAuth2Service(
 	provider OAuth2Provider,
 	states OAuth2StateStore,
 	stateTTL time.Duration,
+	maxUsers int,
+	registrationMu *sync.Mutex,
 	readModel *UserReadModel,
 	dispatcher dispatcher,
 	sessions SessionStore,
@@ -60,16 +78,21 @@ func NewOAuth2Service(
 	if provider == nil {
 		return nil
 	}
+	if registrationMu == nil {
+		registrationMu = &sync.Mutex{}
+	}
 	return &OAuth2Service{
-		provider:      provider,
-		states:        states,
-		stateTTL:      stateTTL,
-		readModel:     readModel,
-		dispatcher:    dispatcher,
-		sessions:      sessions,
-		sessionTTL:    sessionTTL,
-		logger:        logger,
-		classifyError: classifyError,
+		provider:       provider,
+		states:         states,
+		stateTTL:       stateTTL,
+		maxUsers:       maxUsers,
+		registrationMu: registrationMu,
+		readModel:      readModel,
+		dispatcher:     dispatcher,
+		sessions:       sessions,
+		sessionTTL:     sessionTTL,
+		logger:         logger,
+		classifyError:  classifyError,
 	}
 }
 
@@ -215,6 +238,20 @@ func (o *OAuth2Service) matchOrCreateUser(
 		}
 		user, _ = o.readModel.FindByUserID(user.ID)
 		return user, false, nil
+	}
+
+	if o.maxUsers > 0 {
+		// Hold the shared registration lock through dispatch so a concurrent
+		// Register or first-login sees the updated count once this returns.
+		o.registrationMu.Lock()
+		defer o.registrationMu.Unlock()
+		if o.readModel.Count() >= o.maxUsers {
+			o.logAuth("oauth_register_rejected", UserID{}, "provider", provider, "reason", "registration_closed")
+			return nil, false, errorfamily.NewRejection(
+				"usermgmt.oauth2.registration_closed",
+				"registration is closed",
+			).WithCause(ErrRegistrationClosed).WithContext("provider", provider)
+		}
 	}
 
 	aggID := id.NewStreamID()

@@ -67,6 +67,44 @@ func TestHandler_OAuth2Callback_InvalidState(t *testing.T) {
 	}
 }
 
+// TestHandler_OAuth2Callback_RegistrationClosed_Returns403 verifies that a
+// first-login auto-provisioning attempt past ServiceConfig.MaxUsers surfaces
+// as HTTP 403 (via the ErrRegistrationClosed WithHTTPStatus carrier), not 500.
+func TestHandler_OAuth2Callback_RegistrationClosed_Returns403(t *testing.T) {
+	svc := newTestServiceWithConfig(t, ServiceConfig{
+		Authz:    newTestAuthz(t),
+		OAuth2:   testOAuth2Provider{},
+		MaxUsers: 1,
+	})
+	t.Cleanup(svc.Stop)
+	registerTestUser(t, svc, "u1", "first@example.com")
+
+	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})
+	mux := http.NewServeMux()
+	h.RegisterOAuth2Routes(mux)
+
+	beginReq := httptest.NewRequest(http.MethodGet, "/auth/oauth/github/begin", nil)
+	beginW := httptest.NewRecorder()
+	mux.ServeHTTP(beginW, beginReq)
+	assertStatusCode(t, beginW, http.StatusFound)
+	parsedURL, err := url.Parse(beginW.Header().Get("Location"))
+	if err != nil {
+		t.Fatalf("parse redirect URL: %v", err)
+	}
+	state := parsedURL.Query().Get("state")
+	if state == "" {
+		t.Fatal("redirect URL missing state")
+	}
+
+	cbReq := httptest.NewRequest(http.MethodGet, "/auth/oauth/github/callback?code=test-code&state="+state, nil)
+	cbW := httptest.NewRecorder()
+	mux.ServeHTTP(cbW, cbReq)
+	assertStatusCode(t, cbW, http.StatusForbidden)
+	if got := svc.readModel.Count(); got != 1 {
+		t.Errorf("read model count = %d, want 1 (no user created by rejected login)", got)
+	}
+}
+
 func TestHandler_OAuth2Callback_Success(t *testing.T) {
 	svc := newOAuth2TestService(t)
 	h := NewAuthHandler(svc, HandlerConfig{Secure: new(bool)})

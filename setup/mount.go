@@ -3,6 +3,7 @@ package setup
 import (
 	"net/http"
 
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/httputil"
 )
@@ -50,12 +51,16 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 		mux.Handle(
 			cfg.AdminPath,
 			sessionMW(csrfMW(http.StripPrefix(
-				trimTrailing(cfg.AdminPath), b.Admin.Handler(),
+				trimTrailingSlash(cfg.AdminPath), b.Admin.Handler(),
 			))),
 		)
 	}
 
-	// CQRS dashboard — behind session.
+	// CQRS dashboard — behind an authenticated session. The dashboard renders
+	// event payloads and stream IDs, so it must never be public: the session
+	// middleware only enriches the context, it does not block, so an explicit
+	// requireSession gate is applied (401, mirroring the admin panel's behavior).
+	// A custom [Config.DashboardAuthorizer] can refine access further.
 	// No CSRF: the dashboard is read-only by default. If you enable write mode
 	// (Config.DashboardReadOnly = false), add CSRF yourself.
 	if b.Dashboard != nil {
@@ -63,9 +68,9 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 
 		mux.Handle(
 			cfg.DashboardPath,
-			sessionMW(http.StripPrefix(
-				trimTrailing(cfg.DashboardPath), b.Dashboard.Handler(),
-			)),
+			sessionMW(requireSession(http.StripPrefix(
+				trimTrailingSlash(cfg.DashboardPath), b.Dashboard.Handler(),
+			))),
 		)
 	}
 
@@ -73,6 +78,20 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	if cfg.HealthPath != "" {
 		mux.Handle(cfg.HealthPath, b.healthHandler())
 	}
+}
+
+// requireSession blocks requests that carry no authenticated user, responding
+// 401 (the admin panel's convention for unauthenticated access).
+func requireSession(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := usermgmt.UserFromContext(r.Context()); !ok {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 // healthHandler builds a readiness check handler that verifies all projection
@@ -89,13 +108,4 @@ func (b *Bundle) healthHandler() http.HandlerFunc {
 	return cqrshtmx.ReadinessHandler(
 		cqrshtmx.ProjectionReadinessCheck(b.Service),
 	)
-}
-
-// trimTrailing removes a single trailing slash for use with http.StripPrefix.
-func trimTrailing(s string) string {
-	if len(s) > 1 && s[len(s)-1] == '/' {
-		return s[:len(s)-1]
-	}
-
-	return s
 }

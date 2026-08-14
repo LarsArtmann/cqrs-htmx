@@ -1,13 +1,21 @@
 package setup_test
 
 import (
+	"context"
 	"io"
+	"log/slog"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
@@ -425,7 +433,7 @@ func TestNew_Handler_ReturnsNonNil(t *testing.T) {
 	}
 }
 
-func TestNew_DashboardRoute_Reachable(t *testing.T) {
+func TestNew_DashboardRoute_RequiresSession(t *testing.T) {
 	t.Parallel()
 
 	bundle := setup.MustNew(setup.Config{
@@ -439,17 +447,17 @@ func TestNew_DashboardRoute_Reachable(t *testing.T) {
 	server := httptest.NewServer(bundle.Middleware()(mux))
 	defer server.Close()
 
-	// The dashboard is behind session middleware, which enriches but does not block.
-	// The dashboard's authorizer defaults to allow-all, so the route should be reachable.
-	// Consumers who need auth-gating should add an Authorizer to the dashboard after construction.
+	// The dashboard renders event payloads and stream IDs — it must never be
+	// reachable without an authenticated session. The session middleware only
+	// enriches the context, so Mount applies an explicit 401 gate.
 	resp, err := http.Get(server.URL + "/dashboard/")
 	if err != nil {
 		t.Fatalf("GET /dashboard/: %v", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("GET /dashboard/: status %d, want 200 (dashboard defaults to allow-all)", resp.StatusCode)
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("GET /dashboard/: status %d, want 401 (dashboard must be session-gated)", resp.StatusCode)
 	}
 }
 
@@ -486,6 +494,305 @@ func TestNew_ConfigValidation_InvalidHealthPath(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected error for HealthPath not starting with /")
+	}
+}
+
+func TestNew_ConfigValidation_AdminAndDashboardPathsConflict(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:         "Conflicting Paths",
+		AdminPath:     "/panel/",
+		DashboardPath: "/panel",
+	})
+	if err == nil {
+		t.Fatal("expected error when AdminPath and DashboardPath resolve to the same route")
+	}
+}
+
+func TestNew_ConfigValidation_HealthPathConflictsWithAdmin(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:      "Health Conflicts With Admin",
+		AdminPath:  "/health/",
+		HealthPath: "/health",
+	})
+	if err == nil {
+		t.Fatal("expected error when HealthPath and AdminPath resolve to the same route")
+	}
+}
+
+func TestNew_ConfigValidation_HealthPathConflictsWithDashboard(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:         "Health Conflicts With Dashboard",
+		DashboardPath: "/observe/",
+		HealthPath:    "/observe",
+	})
+	if err == nil {
+		t.Fatal("expected error when HealthPath and DashboardPath resolve to the same route")
+	}
+}
+
+// TestNew_Passthroughs_ReachPanels verifies the admin/dashboard authorizer and
+// logger config fields are wired through to the sub-modules.
+func TestNew_Passthroughs_ReachPanels(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{
+		Title:               "Passthrough Test",
+		AdminAuthorizer:     func(*usermgmt.User) error { return nil },
+		DashboardAuthorizer: func(*http.Request) error { return nil },
+		Logger:              slog.New(slog.NewTextHandler(io.Discard, nil)),
+	})
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Admin.Config().Authorizer == nil {
+		t.Fatal("AdminAuthorizer was not passed through to the admin panel")
+	}
+
+	if bundle.Dashboard.Config().Authorizer == nil {
+		t.Fatal("DashboardAuthorizer was not passed through to the dashboard")
+	}
+}
+
+// TestNew_AdminTenantMode_RequiresTenantID covers the admin creation failure
+// path: adminui.New rejects tenant mode without a TenantID, and setup must
+// return a wrapped error (running cleanup on the already-created service).
+func TestNew_AdminTenantMode_RequiresTenantID(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:     "Tenant Mode Without TenantID",
+		AdminMode: adminui.ModeTenantAdmin,
+	})
+	if err == nil {
+		t.Fatal("expected error for tenant admin mode without TenantID")
+	}
+
+	if !strings.Contains(err.Error(), "admin") {
+		t.Fatalf("error should identify the admin panel as the failing component, got: %v", err)
+	}
+}
+
+// TestBundleRun_ServesAndShutsDownGracefully exercises the full Run lifecycle:
+// mount, serve with real timeouts, health check, context cancellation,
+// graceful shutdown, and bundle cleanup — with nil as the only clean-exit
+// return value.
+func TestBundleRun_ServesAndShutsDownGracefully(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{Title: "Run Test"})
+
+	// Reserve a free port, then release it for Run to bind (small inherent
+	// race, standard practice for testing real listeners).
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("reserve port: %v", err)
+	}
+
+	addr := listener.Addr().String()
+
+	if err := listener.Close(); err != nil {
+		t.Fatalf("release port: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	runErr := make(chan error, 1)
+
+	go func() { runErr <- bundle.Run(ctx, addr) }()
+
+	// Wait for the server to come up, then verify it serves.
+	baseURL := "http://" + addr
+
+	var resp *http.Response
+
+	for range 100 {
+		resp, err = http.Get(baseURL + "/health")
+		if err == nil {
+			break
+		}
+
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	if err != nil {
+		t.Fatalf("server never came up: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /health: status %d, want 200", resp.StatusCode)
+	}
+
+	resp.Body.Close()
+
+	cancel()
+
+	select {
+	case err := <-runErr:
+		if err != nil {
+			t.Fatalf("Run returned error on graceful shutdown: %v", err)
+		}
+	case <-time.After(15 * time.Second):
+		t.Fatal("Run did not return within 15s of context cancellation")
+	}
+}
+
+// gatedStore delays every journal ReadFrom until the gate channel is closed.
+// projectionhost drains via ReadFrom, so this deterministically holds
+// projection workers out of "live" state — without sleeps or huge journals.
+type gatedStore struct {
+	*memorystorage.MemoryStore
+
+	gate chan struct{}
+}
+
+func (g *gatedStore) ReadFrom(
+	ctx context.Context,
+	after id.EventID,
+	limit int,
+) ([]event.Event, error) {
+	select {
+	case <-g.gate:
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return g.MemoryStore.ReadFrom(ctx, after, limit)
+}
+
+// TestAsyncStartup_HealthTransitionsFromDrainingToReady is the end-to-end
+// lifecycle test for Config.AsyncStartup: with the journal gated, New returns
+// immediately, /health answers 503 (not ready) while projections drain, and
+// flips to 200 once every worker reaches "live". This is the contract a
+// reverse proxy relies on during the catch-up window after a restart.
+func TestAsyncStartup_HealthTransitionsFromDrainingToReady(t *testing.T) {
+	t.Parallel()
+
+	store := &gatedStore{MemoryStore: memorystorage.NewMemoryStore(), gate: make(chan struct{})}
+
+	bundle, err := setup.New(setup.Config{
+		Title:        "Async Startup Test",
+		EventStore:   store,
+		AsyncStartup: true,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
+
+	mux := http.NewServeMux()
+	bundle.Mount(mux)
+
+	server := httptest.NewServer(bundle.Middleware()(mux))
+	defer server.Close()
+
+	// While the journal read is gated, no projection can be live: /health
+	// must report 503 (not ready), never a panic or a hang.
+	resp, err := http.Get(server.URL + "/health")
+	if err != nil {
+		t.Fatalf("GET /health while draining: %v", err)
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+
+	if resp.StatusCode != http.StatusServiceUnavailable {
+		t.Fatalf("GET /health while draining: status %d, want 503. Body: %s", resp.StatusCode, body)
+	}
+
+	// Release the journal: projections drain the (empty) journal and go live.
+	close(store.gate)
+
+	deadline := time.Now().Add(30 * time.Second)
+
+	for {
+		resp, err = http.Get(server.URL + "/health")
+		if err == nil {
+			body, _ = io.ReadAll(resp.Body)
+			resp.Body.Close()
+
+			if resp.StatusCode == http.StatusOK {
+				break
+			}
+		}
+
+		if time.Now().After(deadline) {
+			t.Fatalf("/health never became ready after gate release; last: %d %s", resp.StatusCode, body)
+		}
+
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+// TestSyncStartup_BlocksUntilDrained verifies the complementary default:
+// with AsyncStartup=false, New does not return until projections finished
+// their initial drain — it stays blocked while the journal is gated and
+// completes shortly after the gate opens.
+func TestSyncStartup_BlocksUntilDrained(t *testing.T) {
+	t.Parallel()
+
+	store := &gatedStore{MemoryStore: memorystorage.NewMemoryStore(), gate: make(chan struct{})}
+
+	type result struct {
+		bundle *setup.Bundle
+		err    error
+	}
+
+	newDone := make(chan result, 1)
+
+	go func() {
+		bundle, err := setup.New(setup.Config{
+			Title:      "Sync Startup Test",
+			EventStore: store,
+		})
+		newDone <- result{bundle, err}
+	}()
+
+	// While the journal is gated, New must still be blocked (drain in flight).
+	select {
+	case res := <-newDone:
+		t.Fatalf("New returned before drain completed: bundle=%v err=%v", res.bundle, res.err)
+	case <-time.After(300 * time.Millisecond):
+	}
+
+	close(store.gate)
+
+	select {
+	case res := <-newDone:
+		if res.err != nil {
+			t.Fatalf("New: %v", res.err)
+		}
+
+		if err := res.bundle.Close(); err != nil {
+			t.Fatalf("Close: %v", err)
+		}
+	case <-time.After(30 * time.Second):
+		t.Fatal("New did not return within 30s of gate release")
+	}
+}
+
+func TestNew_ConfigValidation_RootPathRejected(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		cfg  setup.Config
+	}{
+		{"AdminPath root", setup.Config{AdminPath: "/"}},
+		{"DashboardPath root", setup.Config{DashboardPath: "/"}},
+		{"HealthPath root", setup.Config{HealthPath: "/"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := setup.New(tc.cfg)
+			if err == nil {
+				t.Fatal("expected error — the site root is reserved for the login page")
+			}
+		})
 	}
 }
 
@@ -921,8 +1228,10 @@ func TestMount_HealthEndpoint_ContentJSON(t *testing.T) {
 func TestNew_CustomPaths_NoTrailingSlash(t *testing.T) {
 	t.Parallel()
 
-	// AdminPath without trailing slash — Mount should still register the route.
-	// The session middleware wraps it, so unauthenticated access should be blocked.
+	// AdminPath without a trailing slash must be normalized to a subtree
+	// pattern — otherwise only the exact "/manage" matches and every panel
+	// sub-route 404s. Verify routing actually works: the auth gate answering
+	// on /manage/ proves the panel is mounted as a subtree.
 	bundle := setup.MustNew(setup.Config{
 		Title:     "No Trailing Slash",
 		AdminPath: "/manage", // no trailing slash
@@ -930,14 +1239,24 @@ func TestNew_CustomPaths_NoTrailingSlash(t *testing.T) {
 	defer func() { _ = bundle.Close() }()
 
 	mux := http.NewServeMux()
-
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("Mount panicked with non-trailing-slash admin path: %v", r)
-		}
-	}()
-
 	bundle.Mount(mux)
+
+	server := httptest.NewServer(bundle.Middleware()(mux))
+	defer server.Close()
+
+	resp, err := http.Get(server.URL + "/manage/")
+	if err != nil {
+		t.Fatalf("GET /manage/: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("GET /manage/: status %d, want 401 (panel mounted and auth-gated)", resp.StatusCode)
+	}
+
+	if got := bundle.Admin.Config().BasePath; got != "/manage" {
+		t.Fatalf("admin BasePath = %q, want %q", got, "/manage")
+	}
 }
 
 func TestNew_CustomEventStore_DefaultBus(t *testing.T) {
@@ -983,5 +1302,49 @@ func TestNew_DefaultStore_CustomBus(t *testing.T) {
 
 	if bundle.Stores.EventBus != bus {
 		t.Fatal("EventBus is not the custom bus")
+	}
+}
+
+// TestNew_CustomPaths_PanelsUseMatchingBasePath guards against the classic
+// StripPrefix bug: when panels are mounted at a custom path but keep their
+// default internal BasePath, every link and HTMX target points at the default
+// path (/admin/..., /dashboard/...) and navigation breaks.
+func TestNew_CustomPaths_PanelsUseMatchingBasePath(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{
+		Title:         "BasePath Test",
+		AdminPath:     "/manage/",
+		DashboardPath: "/observe/",
+	})
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Admin == nil || bundle.Dashboard == nil {
+		t.Fatal("Admin or Dashboard is nil")
+	}
+
+	if got := bundle.Admin.Config().BasePath; got != "/manage" {
+		t.Fatalf("admin BasePath = %q, want %q (panel links must match the mount path)", got, "/manage")
+	}
+
+	if got := bundle.Dashboard.Config().BasePath; got != "/observe" {
+		t.Fatalf("dashboard BasePath = %q, want %q (panel links must match the mount path)", got, "/observe")
+	}
+}
+
+// TestNew_DefaultPaths_PanelsUseDefaultBasePath verifies the default paths
+// still resolve to the panels' default BasePaths.
+func TestNew_DefaultPaths_PanelsUseDefaultBasePath(t *testing.T) {
+	t.Parallel()
+
+	bundle := setup.MustNew(setup.Config{Title: "Default BasePath"})
+	defer func() { _ = bundle.Close() }()
+
+	if got := bundle.Admin.Config().BasePath; got != "/admin" {
+		t.Fatalf("admin BasePath = %q, want %q", got, "/admin")
+	}
+
+	if got := bundle.Dashboard.Config().BasePath; got != "/dashboard" {
+		t.Fatalf("dashboard BasePath = %q, want %q", got, "/dashboard")
 	}
 }

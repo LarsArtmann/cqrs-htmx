@@ -64,6 +64,12 @@ type EventSourcedConfig struct {
 	// are used (data lost on restart).
 	ReadModelDB *sql.DB
 
+	// ReadModelDialect selects the constructor family used for ReadModelDB:
+	// "" / "sqlite" / "sqlite3" (default, historical behavior), "postgres" /
+	// "pgx", or "mysql". Ignored when ReadModelDB is nil. Pass the same
+	// dialect you use for the event store and session store.
+	ReadModelDialect string
+
 	// AuditLog, if provided, is registered as a projection to record
 	// all user-related events for compliance and security monitoring.
 	AuditLog *AuditLog
@@ -239,53 +245,19 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 	botProj := projection.Projection(botReadModel)
 
 	if config.ReadModelDB != nil {
-		sqlUserRM, err := NewSQLiteUserReadModel(config.ReadModelDB)
+		sqlRMs, err := newSQLReadModelsForDialect(config.ReadModelDB, config.ReadModelDialect)
 		if err != nil {
 			closeBus(bus)
-			return nil, errorfamily.WrapTransient(
-				err,
-				"usermgmt.read_model.create_user_sql",
-				"create SQL user read model",
-			)
+			return nil, err
 		}
-		readModel = sqlUserRM.UserReadModel
-		userProj = sqlUserRM
-
-		sqlMembershipRM, err := NewSQLiteMembershipReadModel(config.ReadModelDB)
-		if err != nil {
-			closeBus(bus)
-			return nil, errorfamily.WrapTransient(
-				err,
-				"usermgmt.read_model.create_membership_sql",
-				"create SQL membership read model",
-			)
-		}
-		membershipReadModel = sqlMembershipRM.MembershipReadModel
-		membershipProj = sqlMembershipRM
-
-		sqlTenantRM, err := NewSQLiteTenantReadModel(config.ReadModelDB)
-		if err != nil {
-			closeBus(bus)
-			return nil, errorfamily.WrapTransient(
-				err,
-				"usermgmt.read_model.create_tenant_sql",
-				"create SQL tenant read model",
-			)
-		}
-		tenantReadModel = sqlTenantRM.TenantReadModel
-		tenantProj = sqlTenantRM
-
-		sqlBotRM, err := NewSQLiteBotReadModel(config.ReadModelDB)
-		if err != nil {
-			closeBus(bus)
-			return nil, errorfamily.WrapTransient(
-				err,
-				"usermgmt.read_model.create_bot_sql",
-				"create SQL bot read model",
-			)
-		}
-		botReadModel = sqlBotRM.BotReadModel
-		botProj = sqlBotRM
+		readModel = sqlRMs.user.UserReadModel
+		userProj = sqlRMs.user
+		membershipReadModel = sqlRMs.membership.MembershipReadModel
+		membershipProj = sqlRMs.membership
+		tenantReadModel = sqlRMs.tenant.TenantReadModel
+		tenantProj = sqlRMs.tenant
+		botReadModel = sqlRMs.bot.BotReadModel
+		botProj = sqlRMs.bot
 	}
 
 	authz, err := NewAuthz()

@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -64,7 +63,6 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 			}
 			return existing, nil
 		},
-		DeleteTypes: []event.Type{eventTenantDeleted},
 	}
 
 	proj := NewMaterializeProjection(mat, "tenant-test", allTenantEventTypes)
@@ -129,7 +127,12 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 	// --- Delete (tombstone-marked) ---
 	deletePayload := TenantDeletedPayload{SchemaVersion: currentSchemaVersion, Reason: "gone"}
 	deleteEvt := makeMaterializeTenantEvent(t, eventTenantDeleted, aggID, deletePayload)
-	if err := proj.Handle(ctx, deleteEvt); err != nil {
+	//nolint:staticcheck // SA1019: MarkTombstone is the only upstream trigger for OnTombstone dispatch in Materialize
+	markedDeleteEvt, err := event.MarkTombstone(deleteEvt)
+	if err != nil {
+		t.Fatalf("MarkTombstone: %v", err)
+	}
+	if err := proj.Handle(ctx, markedDeleteEvt); err != nil {
 		t.Fatalf("Handle TenantDeleted: %v", err)
 	}
 	got, _ = mat.View(ctx, tenantID)
@@ -138,12 +141,12 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 	}
 
 	// Verify the record is still in the store (Materialize soft-deletes, never hard-deletes)
-	all, err := mat.List(ctx, listing.DeleteInclude)
+	all, err := mat.List(ctx, stack.IncludeTombstoned)
 	if err != nil {
 		t.Fatalf("List Include: %v", err)
 	}
 	if len(all) != 1 {
-		t.Errorf("List DeleteInclude: len=%d, want 1", len(all))
+		t.Errorf("List IncludeTombstoned: len=%d, want 1", len(all))
 	}
 }
 

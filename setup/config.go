@@ -2,10 +2,14 @@ package setup
 
 import (
 	"database/sql"
+	"log/slog"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -57,6 +61,27 @@ type Config struct {
 	// Session configuration.
 	CookieName string        // default: "session"
 	SessionTTL time.Duration // default: 0 (use usermgmt default of 24h)
+
+	// Logger is used for structured auth event logging by the usermgmt service
+	// (default: nil = slog.Default()).
+	Logger *slog.Logger
+
+	// Admin panel authorization and scope.
+	//
+	// AdminMode selects a global (ModeSuperAdmin, the default) or tenant-scoped
+	// (ModeTenantAdmin) admin panel. In tenant mode, TenantID is required.
+	//
+	// AdminAuthorizer decides whether an authenticated user may use the admin
+	// panel. Return a non-nil error to deny access (HTTP 403). When nil, the
+	// default role-based authorizer is used.
+	AdminMode         adminui.Mode
+	TenantID          usermgmt.TenantID
+	AdminAuthorizer   func(user *usermgmt.User) error
+
+	// DashboardAuthorizer decides whether an authenticated request may use the
+	// CQRS dashboard (runs after the session gate). Return a non-nil error to
+	// deny access. When nil, any authenticated user can view the dashboard.
+	DashboardAuthorizer func(r *http.Request) error
 
 	// LogoutURL is shown as a link in the admin and dashboard panels (default: "" = hidden).
 	LogoutURL string
@@ -135,7 +160,34 @@ func (c Config) withDefaults() Config {
 		cfg.HealthPath = "/health"
 	}
 
+	// The standard mux only treats patterns ending in "/" as subtree patterns:
+	// without the slash, "/manage" matches exactly "/manage" and every panel
+	// sub-route 404s. Normalize so consumers can pass either form.
+	cfg.AdminPath = ensureTrailingSlash(cfg.AdminPath)
+	cfg.DashboardPath = ensureTrailingSlash(cfg.DashboardPath)
+
+	// Health checks are exact-match routes; a trailing slash would force an
+	// ugly redirect from "/health" to "/health/".
+	cfg.HealthPath = trimTrailingSlash(cfg.HealthPath)
+
 	return cfg
+}
+
+// ensureTrailingSlash appends "/" unless the path already ends with one.
+func ensureTrailingSlash(s string) string {
+	if !strings.HasSuffix(s, "/") {
+		return s + "/"
+	}
+
+	return s
+}
+
+func trimTrailingSlash(s string) string {
+	if len(s) > 1 && s[len(s)-1] == '/' {
+		return s[:len(s)-1]
+	}
+
+	return s
 }
 
 // validate checks the resolved config for common misconfigurations and returns
@@ -164,6 +216,45 @@ func (c Config) validate() error {
 
 	if c.CookieName == "" {
 		return errorfamily.NewRejection("setup.invalid_config", "CookieName must not be empty")
+	}
+
+	// The site root is where the login page mounts ("/" is its catch-all).
+	// A panel or health endpoint on "/" would collide with it at Mount time.
+	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config",
+			"AdminPath, DashboardPath, and HealthPath must not be %q — the site root is reserved for the login page", "/")
+	}
+
+	// Equal paths would make http.ServeMux panic inside Mount ("conflicts with
+	// pattern"). Reject them here so misconfiguration surfaces at New, not at
+	// first request. Overlapping-but-distinct paths ("/app/" vs "/app/admin/")
+	// are fine: the mux resolves them by longest prefix.
+	if err := requireDistinctPaths(c); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// requireDistinctPaths rejects configs where two mount paths resolve to the
+// same route after normalization.
+func requireDistinctPaths(c Config) error {
+	paths := []struct{ name, path string }{
+		{"AdminPath", trimTrailingSlash(c.AdminPath)},
+		{"DashboardPath", trimTrailingSlash(c.DashboardPath)},
+		{"HealthPath", trimTrailingSlash(c.HealthPath)},
+	}
+
+	for i := range paths {
+		for j := i + 1; j < len(paths); j++ {
+			if paths[i].path == paths[j].path {
+				return errorfamily.Newf(errorfamily.Rejection,
+					"setup.invalid_config",
+					"%s and %s both resolve to %q — routes would conflict",
+					paths[i].name, paths[j].name, paths[i].path)
+			}
+		}
 	}
 
 	return nil

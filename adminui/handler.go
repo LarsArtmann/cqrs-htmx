@@ -161,6 +161,10 @@ func (h *Handler) routes() http.Handler {
 // paths. Mount it under a prefix with http.StripPrefix, or use [Handler.Mount].
 func (h *Handler) Handler() http.Handler { return h.routes() }
 
+// Config returns the resolved configuration (defaults applied) behind the
+// panel. Read-only snapshot for inspection and tests.
+func (h *Handler) Config() Config { return h.config }
+
 // Mount registers the panel on mux at pattern (e.g. "/admin/"). A trailing
 // slash is required by the standard mux for prefix matching. Use "/" to host
 // the panel at the site root.

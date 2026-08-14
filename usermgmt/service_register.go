@@ -64,11 +64,17 @@ type AuthResult struct {
 type RegisterResponse = AuthResult
 
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
-	if s.maxUsers > 0 && s.readModel.Count() >= s.maxUsers {
-		return nil, withUserIDContext(
-			errorfamily.NewRejection("usermgmt.registration_closed", "registration is closed").
-				WithCause(ErrRegistrationClosed), req.ID,
-		)
+	if s.maxUsers > 0 {
+		// Hold the shared registration lock through dispatch so a concurrent
+		// Register or OAuth2 first-login sees the updated count once this returns.
+		s.registrationMu.Lock()
+		defer s.registrationMu.Unlock()
+		if s.readModel.Count() >= s.maxUsers {
+			return nil, withUserIDContext(
+				errorfamily.NewRejection("usermgmt.registration_closed", "registration is closed").
+					WithCause(ErrRegistrationClosed), req.ID,
+			)
+		}
 	}
 
 	if req.ID.IsZero() {

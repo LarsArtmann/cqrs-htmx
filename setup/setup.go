@@ -47,6 +47,7 @@ func New(cfg Config) (*Bundle, error) {
 		WebAuthn:           cfg.WebAuthn,
 		OAuth2:             cfg.OAuth2,
 		SessionTTL:         cfg.SessionTTL,
+		Logger:             cfg.Logger,
 		OnProjectionFailed: cfg.OnProjectionFailed,
 		AsyncStartup:       cfg.AsyncStartup,
 	})
@@ -76,6 +77,10 @@ func New(cfg Config) (*Bundle, error) {
 		admin, err := adminui.New(adminui.Config{ //nolint:exhaustruct // defaults applied internally
 			Service:     svc,
 			Title:       cfg.Title,
+			BasePath:    cfg.AdminPath,
+			Mode:        cfg.AdminMode,
+			TenantID:    cfg.TenantID,
+			Authorizer:  cfg.AdminAuthorizer,
 			AccentColor: cfg.AccentColor,
 			LogoutURL:   cfg.LogoutURL,
 			SSEURL:      cfg.SSEURL,
@@ -146,12 +151,14 @@ func buildDashboardConfig(
 ) dashboardui.Config {
 	dashCfg := dashboardui.Config{
 		Title:          cfg.Title + " · CQRS Dashboard",
+		BasePath:       cfg.DashboardPath,
 		EventSource:    store,
 		EventBus:       bus,
 		ProjectionHost: projectionHost,
 		PageSize:       cfg.DashboardPageSize,
 		LogoutURL:      cfg.LogoutURL,
 		AccentColor:    cfg.AccentColor,
+		Authorizer:     cfg.DashboardAuthorizer,
 	}
 
 	if journal, ok := store.(event.Journal); ok {
