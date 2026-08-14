@@ -744,6 +744,12 @@
                 name = "check-cqrs-lint";
                 text = ''
                   set -euo pipefail
+                  # GOWORK=off: load each module from its own go.mod (published tags
+                  # + module-level relative replaces) instead of the workspace —
+                  # workspace-mode loading breaks when go.work's absolute-path
+                  # sibling replaces point at in-flight go-cqrs-lite work.
+                  export GOWORK=off
+                  export GOEXPERIMENT=jsonv2
                   echo "=== cqrs-lint strict check ==="
                   fail=0
                   for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter health auditlog; do
