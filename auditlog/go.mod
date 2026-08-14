@@ -41,7 +41,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
 	github.com/larsartmann/go-output/table v0.37.0 // indirect
 	github.com/larsartmann/go-output/tree v0.37.0 // indirect
-	github.com/larsartmann/go-sse v0.4.0 // indirect
+	github.com/larsartmann/go-sse v0.5.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect

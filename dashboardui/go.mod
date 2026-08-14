@@ -40,7 +40,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260812165929-11e7746d6a7e // indirect
 	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
@@ -58,11 +58,6 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 )
-
-// TEMPORARY local replace (dev only; stripped from the dashboardui/v4.7.0 tag).
-// Root v4.8.0 is tagged LOCALLY but not pushed yet. Removal condition: root
-// v4.8.0 pushed, then GOWORK=off go mod tidy && go build ./... && go vet ./...
-replace github.com/larsartmann/cqrs-htmx/v4 => ../
 
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 //cqrs-lint:ignore(E009) dashboard IS the transport/view layer

@@ -21,7 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-datastar v0.2.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.2.0 // indirect
 	github.com/larsartmann/go-etag v0.1.1 // indirect

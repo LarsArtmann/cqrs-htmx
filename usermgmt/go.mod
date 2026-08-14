@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
@@ -130,10 +130,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
-
-// TEMPORARY local replace (dev only; stripped from the usermgmt/v4.8.0 tag).
-// identity-model/v4 v4.8.0 is tagged LOCALLY but not pushed yet, so hermetic
-// GOWORK=off builds cannot resolve it. Removal condition: identity-model/v4.8.0
-// pushed, then run GOWORK=off go mod tidy && go build ./... && go vet ./...
-// here (vet is load-bearing: it compiles _test.go files build skips).
-replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model

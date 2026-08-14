@@ -40,7 +40,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/cqrs-htmx/v4 v4.7.0 // indirect
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
@@ -112,11 +112,11 @@ replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
 // OccurredAt field to EventWithID (after v4.4.0); declarations.go fold handlers
 // use it. Required for hermetic GOWORK=off builds. Remove once
 // metaengine/projectionadapter/v4 v4.5.0+ is tagged.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => /home/lars/projects/go-cqrs-lite/metaengine/projectionadapter
+replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => ../../go-cqrs-lite/metaengine/projectionadapter
 
 // TEMPORARY local replace: go-cqrs-lite master's sqliteengine gained
 // register.go (self-registers the "sqlite" metaengine driver via init, after
 // v4.0.1); the systemadapter tests blank-import it for driver registration.
 // Required for hermetic GOWORK=off builds/tests. Remove once
 // metaengine/sqliteengine/v4 v4.0.2+ is tagged.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/sqliteengine
+replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../go-cqrs-lite/metaengine/sqliteengine

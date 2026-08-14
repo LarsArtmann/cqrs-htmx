@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/e2e/server
 go 1.26.5
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-sse v0.5.0
 )
 

@@ -4,8 +4,8 @@ go 1.26.5
 
 require (
 	github.com/a-h/templ v0.3.1020
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.2
-	github.com/larsartmann/cqrs-htmx/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/httputil v0.11.0
 )
@@ -24,7 +24,7 @@ require (
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.2.0 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
@@ -50,7 +50,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260812165929-11e7746d6a7e // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
@@ -64,8 +63,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
-	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
