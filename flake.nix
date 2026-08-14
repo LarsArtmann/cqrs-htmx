@@ -135,6 +135,10 @@
                 pkgs.biome # JS/TS files (admin.js, login.js, sync-*.js)
                 pkgs.codespell # spell check across all files
                 pkgs.treefmt # nix fmt aggregator
+                # BuildFlow pre-commit steps that failed on missing binaries
+                pkgs.typescript # tsc (type-check + tsconfig-check)
+                pkgs.go-licenses # license-check
+                pkgs.vulnix # NixOS vulnerability scan
               ];
 
               GOWORK = "off";

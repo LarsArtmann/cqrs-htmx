@@ -93,8 +93,8 @@ github.com/go-viper/mapstructure/v2 v2.5.0 h1:vM5IJoUAy3d7zRSVtIwQgBj7BiWtMPfmPE
 github.com/go-viper/mapstructure/v2 v2.5.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
 github.com/go-webauthn/webauthn v0.17.4 h1:KFTSz3R2RYDiUn/0cDi3XTJgFenSG74eKTTHlqWhlxk=
 github.com/go-webauthn/webauthn v0.17.4/go.mod h1:pZk63EE/BdztlmyS4Yc+9H5g4a8blNlbtGmdHQHbZX8=
-github.com/go-webauthn/x v0.2.6 h1:TEyDuQAIiEgYpx60nKiBJIX/5nSUC8LxNbH+uf5U9uk=
-github.com/go-webauthn/x v0.2.6/go.mod h1:45bA7YEqyQhRcQJ/TiBb46Ww8yqHBGvgEhQ3WWF0aDo=
+github.com/go-webauthn/x v0.2.8 h1:x7whGNJdgDJzJ06uItJjiqvneS0ljcvT3HGkgL+8g3M=
+github.com/go-webauthn/x v0.2.8/go.mod h1:mdH0BXq0eKmAtBc7QTr37Yv+qGfsVf/ai8M3R+aXyUE=
 github.com/goccy/go-yaml v1.19.2 h1:PmFC1S6h8ljIz6gMRBopkjP1TVT7xuwrButHID66PoM=
 github.com/goccy/go-yaml v1.19.2/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7LkFRi1kA=
 github.com/golang-jwt/jwt/v5 v5.3.1 h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY=
@@ -142,8 +142,8 @@ github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.7.0 h1:aDv+9mul2ktGKbX3Iaiw
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.7.0/go.mod h1:SmLhL4UUiBTGQQf59EhYMy1JQBG+VAxLjamVnjxTV70=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0 h1:7G/Chla6/sL8f6+qGpjQrkhG/pExrd7MMeboolur0vc=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0/go.mod h1:ErBRJPjhR5kcxj4grA4255QPkPcnNxNILY2crI0qxcU=
-github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.7.0 h1:oDQZVHddhAqkPMlDH2aYJb0dc5b4t0eE6G/U6q9MjpU=
-github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.7.0/go.mod h1:Gt8vXT3x0atIGyQpqwmxvsvCD7rC7dErit31H/oPmQo=
+github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.8.0 h1:cyMVrB5LPMm2+pdl+1VsJZ+8Z/+TLrCdvSjxxgZKkV4=
+github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.8.0/go.mod h1:18a228r3DeEu34RCg32gnMYv2e7hKJaBOkfUMl3FeoA=
 github.com/larsartmann/cqrs-htmx/v4 v4.8.0 h1:BtiE2vabUSUHmFSiKAInFvRF8i/bNrpEPwV7e86f37c=
 github.com/larsartmann/cqrs-htmx/v4 v4.8.0/go.mod h1:VLvXHdw6If/ygAGqz303N8dhlIzQu7fSijCEwoQVDug=
 github.com/larsartmann/go-branded-id v0.5.1 h1:4Cyv41AkbtQuf66TuNfWugjqHYA48I3KfxjjM/KwBKk=
