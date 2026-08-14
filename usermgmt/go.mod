@@ -130,9 +130,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect
 )
-
-// TEMPORARY local replace: identity-model master has symbols not yet in the
-// published v4.2.0 tag (ErrRegistrationClosed, ActorSystem/ActorService
-// aliases, ActorIDAsUserID). Required for hermetic GOWORK=off builds.
-// Remove when identity-model/v4 v4.3.0+ is tagged.
-replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model
