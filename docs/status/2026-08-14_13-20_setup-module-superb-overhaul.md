@@ -187,7 +187,7 @@ my modules verified clean in isolation.
    have been written in that shape.
 
 2. **Sync-startup test designed wrong on the first attempt.** I held the journal
-   gate closed *forever* and expected `New` to succeed — it correctly failed after
+   gate closed _forever_ and expected `New` to succeed — it correctly failed after
    the 30s drain timeout, burning a 30-second red test. The right design (assert
    blocked-while-gated, complete-after-release) was obvious in hindsight and is
    what landed.
@@ -200,7 +200,7 @@ my modules verified clean in isolation.
    conflict was knowable from `loginpage.Mount(mux, "/")`.
 
 4. **Demo e2e test failed three times for two distinct reasons of mine:**
-   (a) wrong expectation — `/auth/me` unauthenticated is a *correct* 401, I asserted
+   (a) wrong expectation — `/auth/me` unauthenticated is a _correct_ 401, I asserted
    200; (b) cookie-capture bug — `http.Get` follows the redirect, so
    `resp.Cookies()` read the final response (no cookie). Fixed with an
    `ErrUseLastResponse` client. Along the way I also wrongly suspected projection
@@ -209,8 +209,8 @@ my modules verified clean in isolation.
    and the comment documents it.)
 
 5. **Lint whack-a-mole: 13 findings, then 17.** I wrote `run.go`, `config.go`
-   changes, and tests *before* creating `setup/.golangci.yml`, then fixed findings
-   in two rounds — and the second round surfaced *more* (errcheck in tests) because
+   changes, and tests _before_ creating `setup/.golangci.yml`, then fixed findings
+   in two rounds — and the second round surfaced _more_ (errcheck in tests) because
    the new config enabled stricter test checking. Correct order: config first, then
    lint-clean code.
 

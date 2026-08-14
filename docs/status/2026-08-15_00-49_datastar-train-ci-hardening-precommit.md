@@ -18,12 +18,12 @@
 
 Stripped go-datastar-family dev replaces (`go-datastar`, `go-sse`, `go-datastar/static`) from all 4 consumers, each verified hermetically (`GOWORK=off go mod tidy && go build ./... && go vet ./...`):
 
-| Module | Replaces dropped | Extra verification |
-| --- | --- | --- |
-| `datastar` | all 3 (zero replaces remain) | full test suite pass |
-| `examples/datastar-demo` | 3 upstream (kept `datastar/v4 => local` until tag pushed) | build + vet |
-| `integration_test` | 3 upstream (kept `datastar/v4 => local`) | build + vet |
-| `health` | static replace + its TEMPORARY comment block | build + vet + tests |
+| Module                   | Replaces dropped                                          | Extra verification   |
+| ------------------------ | --------------------------------------------------------- | -------------------- |
+| `datastar`               | all 3 (zero replaces remain)                              | full test suite pass |
+| `examples/datastar-demo` | 3 upstream (kept `datastar/v4 => local` until tag pushed) | build + vet          |
+| `integration_test`       | 3 upstream (kept `datastar/v4 => local`)                  | build + vet          |
+| `health`                 | static replace + its TEMPORARY comment block              | build + vet + tests  |
 
 `check-modules` gate green (isolation, budgets, strict drift, replaces, docs-freshness, links).
 
@@ -133,17 +133,17 @@ Stripped go-datastar-family dev replaces (`go-datastar`, `go-sse`, `go-datastar/
 
 ## Gate Results (this session, in run order)
 
-| Gate | Result |
-| --- | --- |
-| check-modules | ✅ green (post-strip) |
-| build (26 modules, hermetic) | ✅ green |
-| lint (15 modules) | ✅ 0 issues |
-| test (17 suites, -race) | ✅ green |
-| coverage-gate (15 thresholds) | ✅ green |
-| check-cqrs-lint | ✅ green (after GOWORK=off fix) |
-| check-codegen | ✅ green |
-| check-templates | ✅ green (hermetic rework) |
-| nix flake check --no-build | ✅ green |
-| test-fuzz | ✅ PASS |
-| test-flake | ✅ green (3/3 runs) |
-| buildflow pre-commit (hook) | ✅ exit 0 (after devShell fix) |
+| Gate                          | Result                          |
+| ----------------------------- | ------------------------------- |
+| check-modules                 | ✅ green (post-strip)           |
+| build (26 modules, hermetic)  | ✅ green                        |
+| lint (15 modules)             | ✅ 0 issues                     |
+| test (17 suites, -race)       | ✅ green                        |
+| coverage-gate (15 thresholds) | ✅ green                        |
+| check-cqrs-lint               | ✅ green (after GOWORK=off fix) |
+| check-codegen                 | ✅ green                        |
+| check-templates               | ✅ green (hermetic rework)      |
+| nix flake check --no-build    | ✅ green                        |
+| test-fuzz                     | ✅ PASS                         |
+| test-flake                    | ✅ green (3/3 runs)             |
+| buildflow pre-commit (hook)   | ✅ exit 0 (after devShell fix)  |

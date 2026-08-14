@@ -38,6 +38,7 @@ All systemadapter tests pass hermetically now.
 `nix run .#check-cqrs-lint` was failing on root + systemadapter. Triage:
 
 **Real fixes:**
+
 - `systemadapter/projections.go`: `errors.New`/`fmt.Errorf` → `errorfamily` constructors (Rejection for wiring
   failures with `systemadapter.*` codes; Transient for drain timeout) — errors now classify into HTTP statuses.
 - `systemadapter/projections.go`: added `WithBatchSize(256)` (P008) and **new `WithCheckpointStore` /
@@ -49,6 +50,7 @@ All systemadapter tests pass hermetically now.
 - Root `go.mod`: bumped `storage/memory/v4` v4.2.0 → v4.3.0 (V006 version drift — dashboardui needed a tidy after).
 
 **Reasoned suppressions (each with a comment; verified the claim first):**
+
 - `must()` panic (C009): `system.DomainConfig.Commands` is `func(*System)` — no error channel exists; registration
   is static init-time wiring.
 - `views.go` `time.Time` fields (C013): metaengine serializes views as JSON; RFC3339 keeps timezone — detector
@@ -85,17 +87,17 @@ Gate result: `nix run .#lint` exit 0, **13 modules × 0 issues**.
 
 ### 6. Full verification gate suite: ALL GREEN (verified 2026-08-14)
 
-| Gate | Result |
-|---|---|
-| `.#build` | 24/24 modules (hermetic GOWORK=off) |
-| `.#test` | 15/15 suites ok |
-| `.#coverage-gate` | 13 gates pass (root 93.4%/90, systemadapter 89.6%/70, dashboardui/core 86.1%/80, …) |
-| `.#lint` | 0 issues / 13 modules |
-| `.#check-cqrs-lint` | all module configs pass strict |
-| `.#check-codegen` / `.#check-templates` | pass |
-| `.#test-fuzz` | PASS (7.1M execs) |
-| `.#test-flake` | 45 suite-runs ok — **one `TestDashboard_Close` failure in dashboardui, see d)** |
-| `nix flake check --no-build` | pass |
+| Gate                                    | Result                                                                              |
+| --------------------------------------- | ----------------------------------------------------------------------------------- |
+| `.#build`                               | 24/24 modules (hermetic GOWORK=off)                                                 |
+| `.#test`                                | 15/15 suites ok                                                                     |
+| `.#coverage-gate`                       | 13 gates pass (root 93.4%/90, systemadapter 89.6%/70, dashboardui/core 86.1%/80, …) |
+| `.#lint`                                | 0 issues / 13 modules                                                               |
+| `.#check-cqrs-lint`                     | all module configs pass strict                                                      |
+| `.#check-codegen` / `.#check-templates` | pass                                                                                |
+| `.#test-fuzz`                           | PASS (7.1M execs)                                                                   |
+| `.#test-flake`                          | 45 suite-runs ok — **one `TestDashboard_Close` failure in dashboardui, see d)**     |
+| `nix flake check --no-build`            | pass                                                                                |
 
 ### 7. Project docs updated (TODO/CHANGELOG/AGENTS)
 

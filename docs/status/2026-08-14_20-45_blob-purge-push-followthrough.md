@@ -75,7 +75,7 @@
 2. **Runbook §4 item 8 (datastar train)** — 4 modules (datastar,
    examples/datastar-demo, integration_test, health) still carry
    go-datastar-family replaces; blocked on `static/v0.2.0`.
-3. **check-templates CI wiring** — unblocked *in principle* by the family push,
+3. **check-templates CI wiring** — unblocked _in principle_ by the family push,
    but the script needs workspace mode against local go-cqrs-lite replaces
    (absolute paths now relative — CI runners still lack the sibling checkout),
    so still not wired.
@@ -101,7 +101,7 @@
 Nothing catastrophic or unrecovered this session. Honest mistake ledger:
 
 1. **Tag message roundtrip re-embedded stale SSH signatures.** First re-tag
-   passed the saved `%(contents)` (which *includes* the old signature block) as
+   passed the saved `%(contents)` (which _includes_ the old signature block) as
    `-F` input; git then appended a fresh signature → double-signature garbage.
    Caught by md5 mismatch during verification. Fixed: strip sig block with
    awk+stripspace, re-tag cleanly (each tag: exactly 1 valid fresh signature).
@@ -110,7 +110,7 @@ Nothing catastrophic or unrecovered this session. Honest mistake ledger:
    tidy/build cycle with ~40KB of cascading "replacement directory does not
    exist" errors. Should have counted path segments before editing, or edited
    one module and verified before the second.
-3. **Legacy, not this session:** the 27 MB blob sits in *pushed* history
+3. **Legacy, not this session:** the 27 MB blob sits in _pushed_ history
    (`5604e810`..`73ff1556`) — my purge only cleaned the unpushed range.
    Removing it now means a force-push rewrite of master **plus re-cutting all
    10 just-pushed tags again** (they point into the contaminated ancestry).
@@ -225,4 +225,4 @@ P3 — code quality backlog:
 
 ---
 
-*Committed with this report. WAITING FOR INSTRUCTIONS.*
+_Committed with this report. WAITING FOR INSTRUCTIONS._

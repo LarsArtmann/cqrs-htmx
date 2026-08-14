@@ -94,6 +94,16 @@ github.com/larsartmann/httputil/server_timing v0.10.0 h1:03A0RPelrWEPUjxozXBp74s
 github.com/larsartmann/httputil/server_timing v0.10.0/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
 github.com/larsartmann/templ-components v1.8.1 h1:VzQcWEsGYZzYeJjxVHW5Qyr5vXdmhTlICcrtxj/mPlY=
 github.com/larsartmann/templ-components v1.8.1/go.mod h1:odUy+VjdriptId0EP9RfbP/JNQgH/JIpku7xL1KjF3Y=
+github.com/larsartmann/templ-components v1.8.3 h1:HWDg/b3w64ohLOX9K3oCGUsWJwOXqrQpHdQf8+qxaK0=
+github.com/larsartmann/templ-components v1.8.3/go.mod h1:l6UFGbKjqvH9tYU0wUvgkEm208QZJdPh4Kbu8Eo3qds=
+github.com/larsartmann/templ-components/datastar v1.8.2 h1:1zOQc4239vZq4Watcxo1Ppw08tCb74mPx4BpGdkIauI=
+github.com/larsartmann/templ-components/datastar v1.8.2/go.mod h1:0VY3QU6FpWu1kN/EDdU+CaPDEwlLgC6X7VlHXspM2oA=
+github.com/larsartmann/templ-components/htmx v1.8.2 h1:IGgrTJ4bBSzs8bTQIOY41CZPFIalao3g/EEMElN5v/I=
+github.com/larsartmann/templ-components/htmx v1.8.2/go.mod h1:NlhpqtS2pOZZhIRjTXVMjcFdhsjwNr1mKfT0o3lHrw8=
+github.com/larsartmann/templ-components/icons v1.8.2 h1:77BasZrA6c7dMhh/KQI7Mof87sF3MRHrPQihX/sY4lA=
+github.com/larsartmann/templ-components/icons v1.8.2/go.mod h1:LtJXgvY/5f7bXW9JsWlxRwu/t4dTHLnhwaod+cdxMWg=
+github.com/larsartmann/templ-components/utils v1.8.2 h1:I03nhji+P5rfKCyNs335slHcoXqu7O8yLLNHKyQy6FY=
+github.com/larsartmann/templ-components/utils v1.8.2/go.mod h1:vYC5Ysy6Gl3KSQGFu68e6xMXivRIMK5qExFtn3l02uk=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
 github.com/maruel/natural v1.3.0/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
 github.com/oklog/ulid/v2 v2.1.2 h1:IEclFb9JNvzYA6MW2SCxbLzcHTVsfqm3PrqGQJH5zec=
@@ -107,6 +117,7 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rogpeppe/go-internal v1.15.0 h1:D0RCU5rMAp+SpgkiNdrjfJ+LX4J1M32V2NeCY7EJ6hc=
 github.com/rogpeppe/go-internal v1.15.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
+github.com/rogpeppe/go-internal v1.16.0 h1:O9DK+vNMDVGLr2BeZqmpLeMjiMNkuXfcqntWbZV6S5g=
 github.com/samber/do/v2 v2.1.0 h1:lqCHn05XvY3VqwxvZDQPSkH+jIGWSVHUrSVLEbPOopo=
 github.com/samber/do/v2 v2.1.0/go.mod h1:wJBoiaZcUZyGuraOhfz15b517ZMogGs+U03DvnqvT6Q=
 github.com/samber/go-type-to-string v1.8.0 h1:5z6tDTjtXxkIAoAuHAZYMYR8mkBZjVgeSH7jcSLqc8w=

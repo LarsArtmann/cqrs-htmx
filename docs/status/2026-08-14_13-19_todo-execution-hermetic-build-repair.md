@@ -20,10 +20,10 @@ go-cqrs-lite master renamed the tombstone/listing API AGAIN (after the TODO was 
 compiled, but test files did not (`go vet` caught it; plain `go build` does not compile tests — the drift
 was invisible to the previous session's build checks):
 
-| File | Broken usage | Fix |
-|---|---|---|
+| File                                      | Broken usage                                                                       | Fix                                                                                                                                                                                                                                      |
+| ----------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `usermgmt/es_materialize_adapter_test.go` | `stack.Materialize.DeleteTypes` field (removed); `listing.DeleteInclude` (removed) | Removed `DeleteTypes`; delete-event now tombstone-marked via `event.MarkTombstone` (deprecated upstream, but the ONLY trigger for `OnTombstone` dispatch — `//nolint:staticcheck` with reason); `mat.List(ctx, stack.IncludeTombstoned)` |
-| `dashboardui/handlers_index_test.go` | `listing.StatusActive` (moved to event pkg) | `listing.StreamStatus{Status: event.TombstoneActive}` |
+| `dashboardui/handlers_index_test.go`      | `listing.StatusActive` (moved to event pkg)                                        | `listing.StreamStatus{Status: event.TombstoneActive}`                                                                                                                                                                                    |
 
 Both suites pass (`usermgmt` 19.4s, `dashboardui` 0.46s).
 
@@ -53,13 +53,14 @@ Both suites pass (`usermgmt` 19.4s, `dashboardui` 0.46s).
 `integration_test/async_startup_test.go` — `TestAsyncStartupReadinessLifecycle`, the exact test the TODO
 asked for: real HTTP server (`httptest.NewServer`), `/health` = `ReadinessHandler(ProjectionReadinessCheck(svc))`,
 `AsyncStartup: true`:
+
 1. Phase 1 seeds 25 users synchronously (journal backlog).
 2. Phase 2 restarts on the same journal with a `slowJournal` wrapper (15ms sleep per `ReadFrom`) so the
    drain window is deterministic — without it the in-memory journal drains in µs and 503 is unobservable.
 3. Asserts: server answers IMMEDIATELY (liveness decoupled), first `/health` = **503**, polls to **200**,
    `journal.reads > 0`, then **read-your-writes**: last seeded user queryable via `svc.GetUser` once ready,
    steady-state 200.
-Passes 5x consecutive runs (0.718s total). Stable.
+   Passes 5x consecutive runs (0.718s total). Stable.
 
 ### 5. P3 — `ActorIDAsUserID(actorID) (UserID, bool)` helper: COMPLETE
 
@@ -102,13 +103,13 @@ BROKEN** — invisible to workspace-mode builds:
 - **Hermetic scan of all 24 modules** found 4 more failures; fixed 3 of 4 by adding TEMPORARY local
   `replace` directives (the documented AGENTS.md pattern — "do NOT strip until tags published"):
 
-| Module | Missing symbols in published tags | Fix | State |
-|---|---|---|---|
-| root | `ApplyOptions` (command/query v4.6.0 tag lacks it) | direct option loop, no replace needed | ✅ FIXED |
-| usermgmt | `identitymodel.ErrRegistrationClosed`, `ActorSystem`, `ActorService` (identity-model > v4.2.0) | `replace identity-model/v4 => ../identity-model` | ✅ FIXED |
-| adminui | `usermgmt.ParseActorID` 2-value signature (usermgmt > v4.7.2), same identity-model symbols | `replace usermgmt/v4 => ../usermgmt` + `replace identity-model/v4 => ../identity-model` | ✅ FIXED |
-| setup | same identity-model symbols (replaces in go.work don't apply to hermetic builds — replace only applies in main module) | `replace identity-model/v4 => ../identity-model` | ✅ FIXED |
-| systemadapter + examples/system-demo | `projectionadapter.EventWithID` has no `OccurredAt` (metaengine/projectionadapter > v4.4.0) | **NOT FIXED — interrupted here** | ❌ OPEN |
+| Module                               | Missing symbols in published tags                                                                                      | Fix                                                                                     | State    |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------- |
+| root                                 | `ApplyOptions` (command/query v4.6.0 tag lacks it)                                                                     | direct option loop, no replace needed                                                   | ✅ FIXED |
+| usermgmt                             | `identitymodel.ErrRegistrationClosed`, `ActorSystem`, `ActorService` (identity-model > v4.2.0)                         | `replace identity-model/v4 => ../identity-model`                                        | ✅ FIXED |
+| adminui                              | `usermgmt.ParseActorID` 2-value signature (usermgmt > v4.7.2), same identity-model symbols                             | `replace usermgmt/v4 => ../usermgmt` + `replace identity-model/v4 => ../identity-model` | ✅ FIXED |
+| setup                                | same identity-model symbols (replaces in go.work don't apply to hermetic builds — replace only applies in main module) | `replace identity-model/v4 => ../identity-model`                                        | ✅ FIXED |
+| systemadapter + examples/system-demo | `projectionadapter.EventWithID` has no `OccurredAt` (metaengine/projectionadapter > v4.4.0)                            | **NOT FIXED — interrupted here**                                                        | ❌ OPEN  |
 
 - Gates NOT yet re-run as a unified suite: `#test`, `#coverage-gate`, `#lint`, `#check-cqrs-lint`,
   `#test-fuzz`, `#test-flake`, `nix flake check --no-build`. The original background gate run FAILED on
@@ -165,6 +166,7 @@ BROKEN** — invisible to workspace-mode builds:
 ## f) NEXT — up to 50 queued items (Pareto-ordered)
 
 **P0/P1 finish line:**
+
 1. Fix systemadapter hermetic build (`EventWithID.OccurredAt`) — add local replace for
    `metaengine/projectionadapter/v4` (same pattern) or pin to v4.4.0 API.
 2. Fix examples/system-demo hermetic build (same root cause).
@@ -183,8 +185,8 @@ BROKEN** — invisible to workspace-mode builds:
 
 **P2 quality (TODO items):**
 13. systemadapter lint remediation (43 SA1019 via direct identity-model imports, exhaustruct ×23,
-    contextcheck ×10, err113 ×4 → errorfamily, wsl_v5 ×7, wrapcheck ×2, goimports ×3, gci ×1, mnd ×4,
-    errcheck ×4, nlreturn ×3).
+contextcheck ×10, err113 ×4 → errorfamily, wsl_v5 ×7, wrapcheck ×2, goimports ×3, gci ×1, mnd ×4,
+errcheck ×4, nlreturn ×3).
 14. Add systemadapter coverage-gate threshold + CI + isolation/dep-budget scripts.
 15. Fullstack UI test expansion: seeded user → GET /admin/ → assert email in HTML.
 16. Fullstack UI test: dashboard shows projection names/health.
@@ -195,33 +197,33 @@ BROKEN** — invisible to workspace-mode builds:
 21. integration_test → direct identity-model imports (22 SA1019).
 22. devShell: add cspell, vitest, jest.
 23. CI: wire check-codegen (pin templ version), check-templates (workspace mode), check-cqrs-lint (blocked
-    on Nix-only binary — Go-installable distribution needed).
+on Nix-only binary — Go-installable distribution needed).
 
 **P3 debt:**
 24. Tag identity-model/v4.3.0 (ErrRegistrationClosed, ActorSystem/ActorService, ActorIDAsUserID) — then
-    strip usermgmt/setup/adminui identity-model replaces.
+strip usermgmt/setup/adminui identity-model replaces.
 25. Tag usermgmt/v4.7.3 (ParseActorID 2-value, ReadModelDialect, MySQL stores) — then strip adminui
-    usermgmt replace.
+usermgmt replace.
 26. Cross-module dep drift sweep before next release (adminui still requires usermgmt v4.6.1-era refs
-    pre-tag).
+pre-tag).
 27. cqrs-lint strict CI gate.
 28. ADR for datastar/go-sse exclusion (or migrate to go-sse KeyedLines).
 29. golines alignment in `nix fmt` (treefmt wiring).
 30. Go/goldmark-based markdown link checker.
 31. v4 branch `git filter-repo` blob strip (~27.7MB binaries) + force-push (needs approval).
 32. `mysql_integration_test.go` — verify it still passes with new dialect helpers (uses testcontainers;
-    may be skipped without Docker).
+may be skipped without Docker).
 
 **Small polish found this session:**
 33. Guide `mysql-setup.md`: mention `NewMySQLSnapshotStore` in the See Also / ADR-0041 snapshot doc.
 34. Consider exporting `sqlReadModels` factory pattern for the SQLite/Postgres setup templates
-    (they still hand-roll four constructor calls each).
+(they still hand-roll four constructor calls each).
 35. Add `AsyncStartup` mention to README feature list (guide + ADR exist; README bullet doesn't).
 36. `slowJournal` test helper could move to a shared testutil if more drain-window tests appear.
 37. Deprecation audit: `event.MarkTombstone` in our test is upstream-deprecated — when go-cqrs-lite ships
-    a domain-event path for Materialize OnTombstone, migrate the test.
+a domain-event path for Materialize OnTombstone, migrate the test.
 38. setup/Config could expose `ReadModelDialect` passthrough (currently setup users get SQLite read models
-    only — same hardcode I just fixed in usermgmt).
+only — same hardcode I just fixed in usermgmt).
 
 ## g) QUESTIONS (cannot figure out myself)
 

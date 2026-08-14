@@ -50,6 +50,7 @@
 ## f) Up to 50 things we should get done next
 
 **P0 — repo hygiene (this session's findings):**
+
 1. Untrack `examples/setup-demo/setup-demo` (`git rm --cached`), add to `.gitignore`, accept the ~80 MB history bloat or discuss history rewrite.
 2. Add a build-output `.gitignore` rule for every example dir (or one generic `examples/*/` binary pattern).
 3. Wire `scripts/check-large-files.sh --all` into CI so tracked binaries fail loudly.

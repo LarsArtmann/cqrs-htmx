@@ -85,17 +85,17 @@
 
 ### 8. Verification (final state, all green 2026-08-14)
 
-| Gate | Result |
-|---|---|
-| `.#build` | 26/26 modules hermetic |
-| `.#test` | 17/17 suites ok (re-ran sequentially after the race in d).1) |
-| `.#coverage-gate` | 15/15 gates (health 100%/90, auditlog 100%/90; usermgmt drifted up to 81.5%) |
-| `.#lint` | 15 modules × 0 issues |
-| `.#check-cqrs-lint` | all module configs pass strict |
-| `.#check-codegen` / `.#check-templates` / `check-docs-links` / dep-budgets / isolation | pass |
-| `.#test-fuzz` | PASS (~3.7M execs) |
-| `.#test-flake` | 51 suite-runs ok (3×17), zero FAIL lines |
-| `nix flake check --no-build` / `nix fmt` | pass / 0 changed |
+| Gate                                                                                   | Result                                                                       |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `.#build`                                                                              | 26/26 modules hermetic                                                       |
+| `.#test`                                                                               | 17/17 suites ok (re-ran sequentially after the race in d).1)                 |
+| `.#coverage-gate`                                                                      | 15/15 gates (health 100%/90, auditlog 100%/90; usermgmt drifted up to 81.5%) |
+| `.#lint`                                                                               | 15 modules × 0 issues                                                        |
+| `.#check-cqrs-lint`                                                                    | all module configs pass strict                                               |
+| `.#check-codegen` / `.#check-templates` / `check-docs-links` / dep-budgets / isolation | pass                                                                         |
+| `.#test-fuzz`                                                                          | PASS (~3.7M execs)                                                           |
+| `.#test-flake`                                                                         | 51 suite-runs ok (3×17), zero FAIL lines                                     |
+| `nix flake check --no-build` / `nix fmt`                                               | pass / 0 changed                                                             |
 
 ---
 
@@ -106,7 +106,7 @@
   Strip + hermetic `go build` PASSED, but `go vet` failed: the published tag's `id.go` calls the 2-value `ParseActorID`
   from UNRELEASED identity-model v4.7.0 while the local identity-model replace compiles the 1-value signature.
   **Restored immediately** (hermetic build+vet+test re-verified green); the replace comment now records the exact
-  interop failure so the next attempt knows the real condition: *tag exists AND interoperates with the replace graph*.
+  interop failure so the next attempt knows the real condition: _tag exists AND interoperates with the replace graph_.
   Net result: pile still 8 entries, but with one entry's removal condition corrected and a proven verification recipe.
 
 ## c) NOT STARTED (this session, from the backlog)

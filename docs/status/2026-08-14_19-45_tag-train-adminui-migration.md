@@ -13,18 +13,18 @@
 
 ### 1. Coordinated v4.8.0 family release train — 10 local tags, zero pushes
 
-| Tag | Commit | First? |
-|---|---|---|
-| `v4.8.0` (root) | `73ff1556` | |
-| `identity-model/v4.8.0` | `73ff1556` | |
-| `usermgmt/v4.8.0` | `b5a745bb` | |
-| `usermgmt/webauthn/v4.8.0` | `73ff1556` | |
-| `loginpage/v4.8.0` | `73ff1556` | |
-| `dashboardui/v4.8.0` | `dabe6293` | |
-| `adminui/v4.8.0` | `744a5a7e` | |
-| `setup/v4.8.0` | `542f93e9` | ✓ |
-| `health/v4.8.0` | `0e8a41af` | ✓ |
-| `auditlog/v4.8.0` | `0e8a41af` | ✓ |
+| Tag                        | Commit     | First? |
+| -------------------------- | ---------- | ------ |
+| `v4.8.0` (root)            | `73ff1556` |        |
+| `identity-model/v4.8.0`    | `73ff1556` |        |
+| `usermgmt/v4.8.0`          | `b5a745bb` |        |
+| `usermgmt/webauthn/v4.8.0` | `73ff1556` |        |
+| `loginpage/v4.8.0`         | `73ff1556` |        |
+| `dashboardui/v4.8.0`       | `dabe6293` |        |
+| `adminui/v4.8.0`           | `744a5a7e` |        |
+| `setup/v4.8.0`             | `542f93e9` | ✓      |
+| `health/v4.8.0`            | `0e8a41af` | ✓      |
+| `auditlog/v4.8.0`          | `0e8a41af` | ✓      |
 
 - Every tagged tree's go.mod has **0 local replaces** (strip-replace dance per module;
   dev replaces restored with corrected removal conditions).
@@ -82,17 +82,17 @@
 
 ### 5. Gates (sequential, final state 2026-08-14 ~19:40)
 
-| Gate | Result |
-|---|---|
-| `.#build` | 26/26 hermetic |
-| `.#test` | 17/17 suites ok |
-| `.#coverage-gate` | 15/15 (adminui 68.5/66, usermgmt 81.5/74, others unchanged) |
-| `.#lint` | 15 modules × 0 issues |
-| `.#check-cqrs-lint` / `.#check-codegen` / `.#check-templates` / `.#check-docs-links` | pass |
-| `.#check-modules` | isolation + budgets pass; version-drift strict FAILS on known pre-push drift (root v4.7.0 vs v4.8.0 refs, go-datastar/go-sse) — expected until the push, documented in the runbook |
-| `.#test-flake` | 0 FAIL lines across 3×17 suite runs |
-| `nix fmt` / `nix flake check --no-build` | 0 changed / pass |
-| `.#test-fuzz` | SKIPPED — no fuzz targets touched since the 18:30 session's PASS |
+| Gate                                                                                 | Result                                                                                                                                                                             |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.#build`                                                                            | 26/26 hermetic                                                                                                                                                                     |
+| `.#test`                                                                             | 17/17 suites ok                                                                                                                                                                    |
+| `.#coverage-gate`                                                                    | 15/15 (adminui 68.5/66, usermgmt 81.5/74, others unchanged)                                                                                                                        |
+| `.#lint`                                                                             | 15 modules × 0 issues                                                                                                                                                              |
+| `.#check-cqrs-lint` / `.#check-codegen` / `.#check-templates` / `.#check-docs-links` | pass                                                                                                                                                                               |
+| `.#check-modules`                                                                    | isolation + budgets pass; version-drift strict FAILS on known pre-push drift (root v4.7.0 vs v4.8.0 refs, go-datastar/go-sse) — expected until the push, documented in the runbook |
+| `.#test-flake`                                                                       | 0 FAIL lines across 3×17 suite runs                                                                                                                                                |
+| `nix fmt` / `nix flake check --no-build`                                             | 0 changed / pass                                                                                                                                                                   |
+| `.#test-fuzz`                                                                        | SKIPPED — no fuzz targets touched since the 18:30 session's PASS                                                                                                                   |
 
 ---
 
@@ -141,7 +141,7 @@
 ## e) NEXT (Pareto)
 
 1. **You: review + execute `docs/runbooks/release-v4.8.0-push-plan.md`** (push master
-   + 10 tags; upstream tags for the remaining trains optional-but-documented).
+   - 10 tags; upstream tags for the remaining trains optional-but-documented).
 2. Post-push replace-strip pass (checklist §4 of the runbook) — then wire
    check-templates into CI and re-run `.#check-modules` (drift leg should go green).
 3. integration_test → direct identity-model imports (22 SA1019, both models exist).

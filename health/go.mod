@@ -36,7 +36,11 @@ require (
 	github.com/larsartmann/go-sse v0.5.0 // indirect
 	github.com/larsartmann/httputil v0.11.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
-	github.com/larsartmann/templ-components v1.8.1 // indirect
+	github.com/larsartmann/templ-components v1.8.3 // indirect
+	github.com/larsartmann/templ-components/datastar v1.8.2 // indirect
+	github.com/larsartmann/templ-components/htmx v1.8.2 // indirect
+	github.com/larsartmann/templ-components/icons v1.8.2 // indirect
+	github.com/larsartmann/templ-components/utils v1.8.2 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/samber/go-type-to-string v1.8.0 // indirect

@@ -15,18 +15,18 @@
 
 ## 1. Tag inventory (all local, unpushed)
 
-| Tag                        | Commit     | Notes                                                                 |
-| -------------------------- | ---------- | --------------------------------------------------------------------- |
+| Tag                        | Commit     | Notes                                                                                                                                                                                                                                          |
+| -------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `v4.8.0` (root)            | `73ff1556` | BREAKING: `NewActorID`, local `ActorID`, `MetadataKeyActorID` removed (ADR-0111). Adds `ProjectionReadinessCheck`, `RecommendedSecurityMiddleware`, `openapi/`, `event.WithActor` propagation, sync handlers, httputil re-export deprecations. |
-| `identity-model/v4.8.0`    | `73ff1556` | BREAKING: ActorID → `id.ActorID`; `ParseActorID` returns `(ActorID, error)`. Authz/session kind guards (security). Requires only published go-cqrs-lite (event/command v4.6.0, id v4.4.0). |
-| `usermgmt/v4.8.0`          | `5be86547` | BREAKING: `ParseActorID` arity. MySQL stores, `ReadModelDialect`, `AsyncStartup`, `AuditEntry.ActorID`, cascades, state cache. Requires identity-model **v4.8.0**, root v4.7.0. |
-| `usermgmt/webauthn/v4.8.0` | `73ff1556` | Deps alignment only.                                                  |
-| `loginpage/v4.8.0`         | `73ff1556` | Deps alignment only (requires usermgmt v4.7.2, root v4.7.0 — both published; still resolvable after the family push). |
-| `dashboardui/v4.8.0`       | `3383dcd6` | SSE heartbeat data-race fix, nil-safe `Close()`, Actor ID display. Requires root **v4.8.0**. |
-| `adminui/v4.8.0`           | `548df9fd` | Direct identity-model imports (v5 prerequisite, ADR-0047); SA1019 exclusion removed. Requires root/usermgmt/identity-model **v4.8.0**. |
-| `setup/v4.8.0`             | `f91ee4db` | **First tag.** One-call composition root; requires whole family at v4.8.0. |
-| `health/v4.8.0`            | `7fce808e` | **First tag.** go-health bridge; requires root v4.7.0 (published) — no replaces. |
-| `auditlog/v4.8.0`          | `7fce808e` | **First tag.** samber-do-auditlog bridge; no cqrs-htmx deps.           |
+| `identity-model/v4.8.0`    | `73ff1556` | BREAKING: ActorID → `id.ActorID`; `ParseActorID` returns `(ActorID, error)`. Authz/session kind guards (security). Requires only published go-cqrs-lite (event/command v4.6.0, id v4.4.0).                                                     |
+| `usermgmt/v4.8.0`          | `5be86547` | BREAKING: `ParseActorID` arity. MySQL stores, `ReadModelDialect`, `AsyncStartup`, `AuditEntry.ActorID`, cascades, state cache. Requires identity-model **v4.8.0**, root v4.7.0.                                                                |
+| `usermgmt/webauthn/v4.8.0` | `73ff1556` | Deps alignment only.                                                                                                                                                                                                                           |
+| `loginpage/v4.8.0`         | `73ff1556` | Deps alignment only (requires usermgmt v4.7.2, root v4.7.0 — both published; still resolvable after the family push).                                                                                                                          |
+| `dashboardui/v4.8.0`       | `3383dcd6` | SSE heartbeat data-race fix, nil-safe `Close()`, Actor ID display. Requires root **v4.8.0**.                                                                                                                                                   |
+| `adminui/v4.8.0`           | `548df9fd` | Direct identity-model imports (v5 prerequisite, ADR-0047); SA1019 exclusion removed. Requires root/usermgmt/identity-model **v4.8.0**.                                                                                                         |
+| `setup/v4.8.0`             | `f91ee4db` | **First tag.** One-call composition root; requires whole family at v4.8.0.                                                                                                                                                                     |
+| `health/v4.8.0`            | `7fce808e` | **First tag.** go-health bridge; requires root v4.7.0 (published) — no replaces.                                                                                                                                                               |
+| `auditlog/v4.8.0`          | `7fce808e` | **First tag.** samber-do-auditlog bridge; no cqrs-htmx deps.                                                                                                                                                                                   |
 
 Not in this train (intentionally):
 
@@ -65,10 +65,10 @@ Needed to strip systemadapter's 2 remaining go-cqrs-lite replaces
 driver via `register.go` in sqliteengine) and the matching one in
 `examples/system-demo`:
 
-| Tag to cut                              | Base commit | Prep                                                                 |
-| --------------------------------------- | ----------- | -------------------------------------------------------------------- |
+| Tag to cut                               | Base commit                                                                              | Prep                                                                                                                                                                                                   |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `metaengine/projectionadapter/v4 v4.5.0` | `fe017c06a` (HEAD at mapping time; any later commit containing `typed_decoder.go` works) | **Strip the workspace `replace (...)` block** from `metaengine/projectionadapter/go.mod` before tagging — its requires (event v4.6.0, id v4.4.0, metaengine v4.10.0, record v4.2.0) are all published. |
-| `metaengine/sqliteengine/v4 v4.0.2`     | `fe017c06a` | **Strip** `replace metaengine/v4 => ../` from `metaengine/sqliteengine/go.mod`; requires metaengine v4.10.0 + record v4.2.0 (published). |
+| `metaengine/sqliteengine/v4 v4.0.2`      | `fe017c06a`                                                                              | **Strip** `replace metaengine/v4 => ../` from `metaengine/sqliteengine/go.mod`; requires metaengine v4.10.0 + record v4.2.0 (published).                                                               |
 
 Note: go-cqrs-lite working tree had uncommitted changes (`.golangci.yml`,
 `docs/api_surface.txt`, `system/system_hardening_test.go` — a concurrent
@@ -92,7 +92,7 @@ For each: `GOWORK=off go mod tidy && go build ./... && go vet ./...`
 4. `integration_test` — strip root/usermgmt/identity-model/adminui/dashboardui/loginpage (keep datastar + go-datastar/go-sse until those tags exist; the previous failed attempt at the usermgmt strip was blocked ONLY by identity-model v4.8.0 being unpublished — now resolved by this train). **DONE (health replace stripped too).**
 5. `examples/setup-demo` — strip all seven (incl. setup) once pushed. **DONE.**
 6. `examples/dashboard-demo` — strip dashboardui + root. **DONE.**
-7. `systemadapter` + `examples/system-demo` — strip the two go-cqrs-lite metaengine replaces after §3 tags are pushed; bump requires to v4.5.0 / v4.0.2. *(Not done — blocked on §3 upstream tags; their replaces are now RELATIVE paths so the absolute-path gate leg passes.)*
+7. `systemadapter` + `examples/system-demo` — strip the two go-cqrs-lite metaengine replaces after §3 tags are pushed; bump requires to v4.5.0 / v4.0.2. _(Not done — blocked on §3 upstream tags; their replaces are now RELATIVE paths so the absolute-path gate leg passes.)_
 8. `datastar`, `examples/datastar-demo` — strip go-datastar replaces after §3 go-datastar tags. **DONE 2026-08-15 (local): upstream replaces stripped in `datastar` (all 3; zero replaces remain), `examples/datastar-demo` (3 upstream; the `cqrs-htmx/datastar/v4 => ../../datastar` family replace stays until the tag is pushed), `integration_test` (3 upstream), `health` (static replace + its comment block) — commit `f128072d`; local signed tag `datastar/v4.8.0` cut at that commit. REMAINING: push master + tag; then strip the 2 datastar-local family replaces (`examples/datastar-demo`, `integration_test`) and verify the proxy serves the tag.**
 
 Also after the push: re-run `nix run .#check-modules` — its

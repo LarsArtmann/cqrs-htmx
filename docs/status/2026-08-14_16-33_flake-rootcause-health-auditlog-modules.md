@@ -46,6 +46,7 @@ now checks `New`'s error, and `Dashboard.Close()` gained a nil-receiver guard (d
 ### 4. Fullstack UI test expansion (integration_test)
 
 Three new tests + harness change (`setupFullstackUI` now returns the `*usermgmt.Service`):
+
 - `TestFullstackUI_AdminRendersSeededUser` — register → super_admin via real authz path (`AddGroupPolicy`) →
   `GET /admin/users` with session cookie (bounded poll) → seeded email + display name in HTML.
 - `TestFullstackUI_DashboardShowsProjectionHealth` — `/dashboard/projections` renders real projection names
@@ -81,18 +82,18 @@ Three new tests + harness change (`setupFullstackUI` now returns the `*usermgmt.
 
 ## b) VERIFICATION (all green 2026-08-14)
 
-| Gate | Result |
-|---|---|
-| `.#build` | 26/26 modules hermetic |
-| `.#test` | 17/17 suites ok |
-| `.#coverage-gate` | 15/15 (health 100%/90, auditlog 100%/90) |
-| `.#lint` | 15 modules × 0 issues |
-| `.#check-cqrs-lint` | all pass strict |
-| `.#check-codegen` / `.#check-templates` | pass |
-| `.#check-modules` scripts | isolation + dep-budgets pass |
-| `check-docs-links.sh` | pass |
-| `nix flake check --no-build` | pass |
-| `.#test-fuzz` / `.#test-flake` | running at report time — dashboardui verified separately: heartbeat test 50× + full package 10× green under `-race` |
+| Gate                                    | Result                                                                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `.#build`                               | 26/26 modules hermetic                                                                                              |
+| `.#test`                                | 17/17 suites ok                                                                                                     |
+| `.#coverage-gate`                       | 15/15 (health 100%/90, auditlog 100%/90)                                                                            |
+| `.#lint`                                | 15 modules × 0 issues                                                                                               |
+| `.#check-cqrs-lint`                     | all pass strict                                                                                                     |
+| `.#check-codegen` / `.#check-templates` | pass                                                                                                                |
+| `.#check-modules` scripts               | isolation + dep-budgets pass                                                                                        |
+| `check-docs-links.sh`                   | pass                                                                                                                |
+| `nix flake check --no-build`            | pass                                                                                                                |
+| `.#test-fuzz` / `.#test-flake`          | running at report time — dashboardui verified separately: heartbeat test 50× + full package 10× green under `-race` |
 
 ## c) PARTIALLY DONE / NOT STARTED
 

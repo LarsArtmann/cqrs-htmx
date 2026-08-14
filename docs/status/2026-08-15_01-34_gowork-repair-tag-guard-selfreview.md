@@ -53,6 +53,7 @@
 ## f) NEXT — up to 40 things, ordered
 
 **Unblocked now (no user action needed):**
+
 1. Add the 28 govulncheck findings (GO-2026-6090 first) to TODO_LIST with a triage decision (Go toolchain bump vs accepted-risk documentation).
 2. Run the remaining 7 gates at HEAD (`lint`, `test`, `test-fuzz`, `test-flake`, `coverage-gate`, `check-codegen`, `check-cqrs-lint`) — closes b.1.
 3. Add "every go.work replace target has a go.mod" assertion to `check-modules` (e.5).
