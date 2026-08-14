@@ -84,3 +84,19 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// TEMPORARY local replaces (dev only; stripped from the setup/v4.8.0 tag).
+// The v4.8.0 family tags are LOCAL but not pushed yet, so hermetic GOWORK=off
+// builds cannot resolve them. Removal condition: family tags pushed, then
+// GOWORK=off go mod tidy && go build ./... && go vet ./... here.
+replace github.com/larsartmann/cqrs-htmx/v4 => ../
+
+replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
+
+replace github.com/larsartmann/cqrs-htmx/adminui/v4 => ../adminui
+
+replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../dashboardui
+
+replace github.com/larsartmann/cqrs-htmx/loginpage/v4 => ../loginpage
+
+replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model
