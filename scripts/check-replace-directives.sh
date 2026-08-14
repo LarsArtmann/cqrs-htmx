@@ -12,6 +12,10 @@
 #    or extracted (e.g. the ADR-0128 go-cqrs-lite extraction deleted in-repo
 #    shim modules whose directories still existed — only the go.mod was gone,
 #    so a `-d` check would have passed; this broke every workspace build).
+#    Targets INSIDE this repo fail hard everywhere (CI included). Sibling
+#    targets (outside the repo, e.g. ../go-cqrs-lite) are machine-local and
+#    skipped on CI runners (CI=true); the local `nix run .#check-modules`
+#    gate verifies them.
 # Usage: ./scripts/check-replace-directives.sh
 # Exit: 0 = all replaces valid, 1 = invalid replace found
 
@@ -55,9 +59,21 @@ check_targets() {
 		[[ -z "$target" ]] && continue
 		local resolved="$target"
 		[[ "$target" = /* ]] || resolved="$file_dir/$target"
-		if [[ ! -f "$resolved/go.mod" ]]; then
-			echo "  DEAD REPLACE in $file: target '$target' has no go.mod (deleted/moved upstream module?)"
-			dead=1
+		local norm="$(realpath -m "$resolved")"
+		if [[ "$norm" == "$REPO_ROOT" || "$norm" == "$REPO_ROOT"/* ]]; then
+			# Target inside this repo: must have a go.mod everywhere (CI included).
+			if [[ ! -f "$norm/go.mod" ]]; then
+				echo "  DEAD REPLACE in $file: target '$target' has no go.mod (deleted/moved module?)"
+				dead=1
+			fi
+		elif [[ "${CI:-}" != "true" ]]; then
+			# Target outside the repo (sibling checkout like ../go-cqrs-lite):
+			# machine-local by design — siblings are not present on CI runners.
+			# Verified by the local `nix run .#check-modules` gate instead.
+			if [[ ! -f "$resolved/go.mod" ]]; then
+				echo "  DEAD REPLACE in $file: sibling target '$target' has no go.mod (clone the sibling, or remove/fix the replace)"
+				dead=1
+			fi
 		fi
 	done < <(awk '
         /^replace \(/ { in_rep=1; next }
