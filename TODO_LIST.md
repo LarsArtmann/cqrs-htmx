@@ -16,13 +16,13 @@
 
 ## P1 — High impact (release follow-through & doc health)
 
-- [ ] **Cut the upstream tags that unblock the remaining trains (runbook §3, other repos, user's call).** go-cqrs-lite `metaengine/projectionadapter/v4 v4.5.0` + `metaengine/sqliteengine/v4 v4.0.2` at `fe017c06a` (strip their workspace replaces in the tag commits) → then `systemadapter/v4.8.0` + strip its metaengine replaces; go-datastar `static/v0.2.0` (newest: v0.1.0; the published go-datastar v0.2.0 tag already requires it, so every hermetic consumer needs a local static replace until it exists) → then `datastar/v4.8.0` + strip the go-datastar family replaces from datastar/examples/datastar-demo/integration_test/health. After both: wire `check-templates` into CI (its script needs workspace mode against local go-cqrs-lite).
+- [ ] **Cut the upstream tags that unblock the remaining trains (runbook §3, other repos, user's call).** REMAINING: go-cqrs-lite `metaengine/projectionadapter/v4 v4.5.0` + `metaengine/sqliteengine/v4 v4.0.2` (strip their workspace replaces in the tag commits; the repo's 2026-08-15 ADR-0128 extraction commit `5127039da` or later is a valid base) → then `systemadapter/v4.8.0` + strip its metaengine replaces (and the matching one in `examples/system-demo`). DONE 2026-08-15: go-datastar `static/v0.2.0` tagged by user; datastar train executed locally (dev-replaces stripped in `f128072d`, signed `datastar/v4.8.0` tag cut — awaiting push, after which strip the 2 `cqrs-htmx/datastar/v4 => local` family replaces in examples/datastar-demo + integration_test); check-templates wired into CI (hermetic, `e7aeee97`).
 
 ---
 
 ## P2 — Medium impact (tooling & quality)
 
-- [~] **Wire remaining `check-*` apps into CI.** `check-docs-links`, `check-service-methods`, `check-domain-counts`, `check-large-files`, `check-phantom-version`, and `check-codegen` (templ pinned @v0.3.1020) now run in CI. Remaining: `check-templates` (blocked: script runs in workspace mode, and `go.work`'s absolute local replaces to `/home/lars/projects/go-cqrs-lite/*` don't exist on CI runners — wire it after those replaces are stripped, same condition as the P1 tagging item), `check-cqrs-lint` (blocked: Nix-only binary; needs Go-installable distribution — see P3.1). New modules health + auditlog are wired into CI build/test/coverage/lint/mod-tidy (2026-08-14).
+- [~] **Wire remaining `check-*` apps into CI.** `check-docs-links`, `check-service-methods`, `check-domain-counts`, `check-large-files`, `check-phantom-version`, `check-codegen` (templ pinned @v0.3.1020), and `check-templates` (hermetic GOWORK=off rework + CI step with clean-restore assertion, 2026-08-15) now run in CI. Remaining: `check-cqrs-lint` (blocked: Nix-only binary; needs Go-installable distribution — see P3.1). New modules health + auditlog are wired into CI build/test/coverage/lint/mod-tidy (2026-08-14).
 
 - [ ] **Migrate integration_test to direct identity-model imports.** Eliminates 22 SA1019 suppression warnings. Same pattern as the (completed) adminui migration — see CHANGELOG.
 

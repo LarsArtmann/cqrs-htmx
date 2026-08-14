@@ -77,7 +77,8 @@ session); neither of the two modules above is affected by them.
 ### go-datastar (sibling checkout `/home/lars/projects/go-datastar`)
 
 - Tag `static/v0.2.0` (newest existing: `static/v0.1.0`) → unblocks
-  `datastar/v4.8.0`.
+  `datastar/v4.8.0`. **DONE 2026-08-15 — user tagged and pushed `static/v0.2.0`
+  (repo at `5b70bb1`, synced).**
 
 ## 4. Post-push replace-strip checklist (per module)
 
@@ -92,7 +93,7 @@ For each: `GOWORK=off go mod tidy && go build ./... && go vet ./...`
 5. `examples/setup-demo` — strip all seven (incl. setup) once pushed. **DONE.**
 6. `examples/dashboard-demo` — strip dashboardui + root. **DONE.**
 7. `systemadapter` + `examples/system-demo` — strip the two go-cqrs-lite metaengine replaces after §3 tags are pushed; bump requires to v4.5.0 / v4.0.2. *(Not done — blocked on §3 upstream tags; their replaces are now RELATIVE paths so the absolute-path gate leg passes.)*
-8. `datastar`, `examples/datastar-demo` — strip go-datastar replaces after §3 go-datastar tags. *(Not done — blocked on go-datastar `static/v0.2.0`.)*
+8. `datastar`, `examples/datastar-demo` — strip go-datastar replaces after §3 go-datastar tags. **DONE 2026-08-15 (local): upstream replaces stripped in `datastar` (all 3; zero replaces remain), `examples/datastar-demo` (3 upstream; the `cqrs-htmx/datastar/v4 => ../../datastar` family replace stays until the tag is pushed), `integration_test` (3 upstream), `health` (static replace + its comment block) — commit `f128072d`; local signed tag `datastar/v4.8.0` cut at that commit. REMAINING: push master + tag; then strip the 2 datastar-local family replaces (`examples/datastar-demo`, `integration_test`) and verify the proxy serves the tag.**
 
 Also after the push: re-run `nix run .#check-modules` — its
 `check-version-drift --strict` leg should now pass (the known cross-tag drift
