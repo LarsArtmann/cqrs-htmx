@@ -57,23 +57,23 @@ graph TD
 
 ## Task Breakdown — Phase 1 (30-100 min tasks)
 
-| #  | Task                                                                        | Impact   | Effort | Status  |
-| -- | --------------------------------------------------------------------------- | -------- | ------ | ------- |
-| 1  | Add `block bool` param to `startProjectionHost` + update all 5 call sites   | CRITICAL | 15min  | ✅ DONE |
-| 2  | Add `AsyncStartup bool` to `ServiceConfig` + `EventSourcedConfig` + forward | HIGH     | 15min  | ✅ DONE |
-| 3  | Create `cqrshtmx.ProjectionReadinessCheck` in root module                   | HIGH     | 20min  | ✅ DONE |
-| 4  | Wire `setup.Config.AsyncStartup` + `setup.New` forwarding                   | HIGH     | 10min  | ✅ DONE |
-| 5  | Replace setup `healthHandler` inline check with `ProjectionReadinessCheck`  | HIGH     | 10min  | ✅ DONE |
-| 6  | Write root readiness tests (11 table-driven cases + HTTP integration)       | HIGH     | 20min  | ✅ DONE |
-| 7  | Write usermgmt async startup tests (skip-drain timing + config wiring)      | HIGH     | 20min  | ✅ DONE |
-| 8  | Fix nil-provider typed-nil test panic                                       | MEDIUM   | 5min   | ✅ DONE |
-| 9  | Run full test suite with race detector                                      | HIGH     | 30min  | ✅ DONE |
-| 10 | Run lint on root + usermgmt + setup                                         | HIGH     | 15min  | ✅ DONE |
-| 11 | Fix gochecknoglobals lint finding                                           | MEDIUM   | 2min   | ✅ DONE |
-| 12 | Write `docs/guides/async-projection-startup.md`                             | MEDIUM   | 30min  | ✅ DONE |
-| 13 | Update CHANGELOG.md + AGENTS.md                                             | MEDIUM   | 10min  | ✅ DONE |
-| 14 | Move feedback doc to `processed/`                                           | LOW      | 1min   | ✅ DONE |
-| 15 | Write this planning document                                                | LOW      | 15min  | ✅ DONE |
+| #  | Task                                                                        | Impact   | Effort | Status                                                               |
+| -- | --------------------------------------------------------------------------- | -------- | ------ | -------------------------------------------------------------------- |
+| 1  | Add `block bool` param to `startProjectionHost` + update all 5 call sites   | CRITICAL | 15min  | ✅ DONE                                                              |
+| 2  | Add `AsyncStartup bool` to `ServiceConfig` + `EventSourcedConfig` + forward | HIGH     | 15min  | ✅ DONE                                                              |
+| 3  | Create `cqrshtmx.ProjectionReadinessCheck` in root module                   | HIGH     | 20min  | ✅ DONE                                                              |
+| 4  | Wire `setup.Config.AsyncStartup` + `setup.New` forwarding                   | HIGH     | 10min  | ✅ DONE                                                              |
+| 5  | Replace setup `healthHandler` inline check with `ProjectionReadinessCheck`  | HIGH     | 10min  | ✅ DONE                                                              |
+| 6  | Write root readiness tests (11 table-driven cases + HTTP integration)       | HIGH     | 20min  | ✅ DONE                                                              |
+| 7  | Write usermgmt async startup tests (skip-drain timing + config wiring)      | HIGH     | 20min  | ✅ DONE                                                              |
+| 8  | Fix nil-provider typed-nil test panic                                       | MEDIUM   | 5min   | ✅ DONE                                                              |
+| 9  | Run full test suite with race detector                                      | HIGH     | 30min  | ✅ DONE                                                              |
+| 10 | Run lint on root + usermgmt + setup                                         | HIGH     | 15min  | ✅ DONE                                                              |
+| 11 | Fix gochecknoglobals lint finding                                           | MEDIUM   | 2min   | ✅ DONE                                                              |
+| 12 | Write `docs/guides/async-projection-startup.md`                             | MEDIUM   | 30min  | ✅ DONE                                                              |
+| 13 | Update CHANGELOG.md + AGENTS.md                                             | MEDIUM   | 10min  | ✅ DONE                                                              |
+| 14 | Move feedback doc to `processed/`                                           | LOW      | 1min   | ✅ DONE                                                              |
+| 15 | Write this planning document                                                | LOW      | 15min  | ✅ DONE                                                              |
 | 16 | Git commit + push                                                           | HIGH     | 10min  | ~~⏳ NEXT~~ ✅ DONE (`af59f3f7`, `e4b7e366`, `b9058c8c`, `d2d3bca2`) |
 
 ---
@@ -84,22 +84,22 @@ These are the remaining tasks for future sessions, NOT this session.
 
 > **Phase 2 resolution** (2026-08-12): Items 17-18 verified done during session 3 (`d2d3bca2`). Items 19-22 → TODO_LIST + ROADMAP. Items 25, 29-30 → TODO_LIST. Items 27-28 → ROADMAP (Operational Tooling Ideas).
 
-| #  | Task                                                                      | Impact | Effort | Status      |
-| -- | ------------------------------------------------------------------------- | ------ | ------ | ----------- |
-| 17 | ~~Run `nix run .#coverage-gate` for root/usermgmt/setup thresholds~~        | HIGH   | 10min  | ~~🔲 TODO~~ ✅ DONE — root 92.8%, usermgmt 81.2%, setup 87.9% |
-| 18 | ~~Run `nix run .#check-cqrs-lint` and add suppressions if needed~~          | MEDIUM | 10min  | ~~🔲 TODO~~ ✅ DONE — 0 issues |
-| 19 | Write integration test: AsyncStartup=true → /health 503→200 transition    | HIGH   | 12min  | 🔲 TODO — see TODO_LIST P1 |
-| 20 | Test backoff behavioral change (health returns 503 during backoff)        | MEDIUM | 10min  | 🔲 TODO |
-| 21 | Document the backoff behavioral change in guide                           | MEDIUM | 8min   | 🔲 TODO — CHANGELOG entry added, guide has note |
-| 22 | Write ADR-0048: Liveness/Readiness Decoupling                             | MEDIUM | 12min  | 🔲 TODO — see TODO_LIST P3 |
-| 23 | Update `docs/guides/production-readiness.md` checklist                    | LOW    | 8min   | 🔲 TODO |
-| 24 | Cross-reference from `projection-health-monitoring.md`                    | LOW    | 5min   | 🔲 TODO — see TODO_LIST P3 |
-| 25 | ~~Add `AsyncStartup` to `FEATURES.md`~~                                    | LOW    | 5min   | ~~🔲 TODO~~ ✅ DONE — added to FEATURES.md Root > Convenience |
-| 26 | Create `examples/async-startup-demo/` with Caddy config                   | LOW    | 12min  | 🔲 TODO |
-| 27 | Option B: `ReadModelHydrator` interface design                            | LOW    | 12min  | 🔲 RESEARCH — see ROADMAP Operational Tooling Ideas |
-| 28 | Option D: SQLite CheckpointStore implementation                           | LOW    | 12min  | 🔲 RESEARCH — see ROADMAP Operational Tooling Ideas |
-| 29 | Verify RebuildProjection still works with AsyncStartup=true               | MEDIUM | 10min  | 🔲 TODO |
-| 30 | Add `WaitForDrain(ctx)` method on Service for post-async-startup blocking | LOW    | 10min  | 🔲 TODO — see ROADMAP |
+| #  | Task                                                                      | Impact | Effort | Status                                                        |
+| -- | ------------------------------------------------------------------------- | ------ | ------ | ------------------------------------------------------------- |
+| 17 | ~~Run `nix run .#coverage-gate` for root/usermgmt/setup thresholds~~      | HIGH   | 10min  | ~~🔲 TODO~~ ✅ DONE — root 92.8%, usermgmt 81.2%, setup 87.9% |
+| 18 | ~~Run `nix run .#check-cqrs-lint` and add suppressions if needed~~        | MEDIUM | 10min  | ~~🔲 TODO~~ ✅ DONE — 0 issues                                |
+| 19 | Write integration test: AsyncStartup=true → /health 503→200 transition    | HIGH   | 12min  | 🔲 TODO — see TODO_LIST P1                                    |
+| 20 | Test backoff behavioral change (health returns 503 during backoff)        | MEDIUM | 10min  | 🔲 TODO                                                       |
+| 21 | Document the backoff behavioral change in guide                           | MEDIUM | 8min   | 🔲 TODO — CHANGELOG entry added, guide has note               |
+| 22 | Write ADR-0048: Liveness/Readiness Decoupling                             | MEDIUM | 12min  | 🔲 TODO — see TODO_LIST P3                                    |
+| 23 | Update `docs/guides/production-readiness.md` checklist                    | LOW    | 8min   | 🔲 TODO                                                       |
+| 24 | Cross-reference from `projection-health-monitoring.md`                    | LOW    | 5min   | 🔲 TODO — see TODO_LIST P3                                    |
+| 25 | ~~Add `AsyncStartup` to `FEATURES.md`~~                                   | LOW    | 5min   | ~~🔲 TODO~~ ✅ DONE — added to FEATURES.md Root > Convenience |
+| 26 | Create `examples/async-startup-demo/` with Caddy config                   | LOW    | 12min  | 🔲 TODO                                                       |
+| 27 | Option B: `ReadModelHydrator` interface design                            | LOW    | 12min  | 🔲 RESEARCH — see ROADMAP Operational Tooling Ideas           |
+| 28 | Option D: SQLite CheckpointStore implementation                           | LOW    | 12min  | 🔲 RESEARCH — see ROADMAP Operational Tooling Ideas           |
+| 29 | Verify RebuildProjection still works with AsyncStartup=true               | MEDIUM | 10min  | 🔲 TODO                                                       |
+| 30 | Add `WaitForDrain(ctx)` method on Service for post-async-startup blocking | LOW    | 10min  | 🔲 TODO — see ROADMAP                                         |
 
 ---
 

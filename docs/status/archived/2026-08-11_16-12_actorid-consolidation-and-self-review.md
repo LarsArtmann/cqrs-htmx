@@ -51,8 +51,8 @@ The three-way `ActorID` split brain is **consolidated** — root, identity-model
 4. ~~**AGENTS.md `ActorID differs by module` gotcha** — completely wrong~~ **DONE** — rewritten in `c469dd93`.
 5. ~~**No test for the ActorID kind guard** in audit_log.go~~ **DONE** — `TestAuditLog_BotActorDoesNotPopulateUserID` + `TestAuditLog_UserActorPopulatesUserID` in `c469dd93`.
 6. ~~**No test for System/Service/Unknown kinds**~~ **DONE** — `TestActorKindFromString_AllKinds` + `TestSession_BotActorDoesNotPopulateUserID` etc. in `c469dd93`.
-7-13. ~~Verification gates not run~~ **DONE** — all gates run and passed in session 17-31: `nix run .#coverage-gate` (all 12 gates pass), `nix run .#check-codegen`, `nix run .#check-templates`, `nix run .#check-cqrs-lint`.
-14. ~~**`nix fmt`**~~ **Still open** — not run. Low priority.
+   7-13. ~~Verification gates not run~~ **DONE** — all gates run and passed in session 17-31: `nix run .#coverage-gate` (all 12 gates pass), `nix run .#check-codegen`, `nix run .#check-templates`, `nix run .#check-cqrs-lint`.
+7. ~~**`nix fmt`**~~ **Still open** — not run. Low priority.
 
 ---
 

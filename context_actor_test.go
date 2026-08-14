@@ -378,7 +378,7 @@ func TestDispatchPipeline_CommandCarriesActorMetadata(t *testing.T) {
 	})
 
 	app := MustNew(Config{
-		Commands: disp,
+		Commands:        disp,
 		UserIDExtractor: func(_ *http.Request) (UserID, error) { return uid, nil },
 	})
 
@@ -422,7 +422,7 @@ func TestDispatchPipeline_QueryCarriesActorMetadata(t *testing.T) {
 	})
 
 	app := MustNew(Config{
-		Queries: disp,
+		Queries:         disp,
 		UserIDExtractor: func(_ *http.Request) (UserID, error) { return uid, nil },
 	})
 
@@ -502,7 +502,7 @@ func TestDispatchPipeline_CommandPreservesDecoderSetMetadata(t *testing.T) {
 	})
 
 	app := MustNew(Config{
-		Commands: disp,
+		Commands:        disp,
 		UserIDExtractor: func(_ *http.Request) (UserID, error) { return uid, nil },
 	})
 

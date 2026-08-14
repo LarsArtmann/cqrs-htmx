@@ -81,8 +81,6 @@ github.com/larsartmann/go-branded-id v0.3.0/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM
 github.com/larsartmann/go-branded-id v0.3.2/go.mod h1:xoQYcGTGrMqRYB8cMKHe2efq8S6stQGg3nW4DzXVWpA=
 github.com/larsartmann/go-branded-id v0.3.3/go.mod h1:O9fhyzY3DxtLsswpR7XaI+VbCM9182ZbZQLjfFFanLk=
 github.com/larsartmann/go-branded-id v0.5.0/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
-github.com/larsartmann/go-codec v0.1.0 h1:Qc24tP5Sg4GQUDO/5kDjznYDiW62p2cUcCrw7ThiYbw=
-github.com/larsartmann/go-codec v0.1.0/go.mod h1:Ay1+MFkEQaPV70rbMucLfX/3LYcq7i8EkARoXChG2Co=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0 h1:YJ49k6SM93hrBjRw6QbvbalbD7l0dDZ4tYXL2iZHe08=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.0.0/go.mod h1:50woocxkEaz+2Pm8m53KKsNOIU+7bDvTx43LydVgOeQ=
 github.com/larsartmann/go-cqrs-lite/codec/v2 v2.3.0/go.mod h1:CXE1J8vd0x+vB94tfK/BCyRc9GnZZKzOFVcvY8uHkdQ=
@@ -91,10 +89,6 @@ github.com/larsartmann/go-cqrs-lite/command/v2 v2.0.0 h1:QqYm0GHIC7XwV7ZG+nhVIRo
 github.com/larsartmann/go-cqrs-lite/command/v2 v2.0.0/go.mod h1:dFtP2bviXU8zlwCQoEDAUx/oIgUJsP9+0RlWKbh1Lxs=
 github.com/larsartmann/go-cqrs-lite/command/v2 v2.3.0/go.mod h1:svBiVQP+QsBU/wfmLldtB96Op3qZSddnCI/x8KAlFOQ=
 github.com/larsartmann/go-cqrs-lite/command/v3 v3.0.0/go.mod h1:ZyNbn7uBi1GU3GawM9RcJkbT9ZiiHlKfvBQdH+eN0WU=
-github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.0 h1:bhwZ4Oj+jMU8uuZPPrfegPpnA5POCCfncEr+Bx3RJrY=
-github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.0/go.mod h1:pcdnERLhxFWzyaCCo54FoeWpacUB9KDIYq/beD+oO8s=
-github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.0 h1:NC1eUKo/OIWy71s+W/MvNEtG2diPYNHg1oqfdB38EAw=
-github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.0/go.mod h1:6FmEAzucxvWGMO5Dw4RiNUwD6eEfsbIw6hDC4wNf8zQ=
 github.com/larsartmann/go-cqrs-lite/dedup/v3 v3.7.3/go.mod h1:TEguHPG2HwxjOwq6EomfNitRM8rGSZycoFAVgbJh9UU=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.0.0 h1:NBRM7ZdLOSMv4zHSfoQYTnnunlGgrUqE3i0UEDLGrIA=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v2 v2.0.0/go.mod h1:Y+gun/Vi0Yyrinarr4DcgZkjWDRlktqdeuM4YkXkKdQ=
@@ -254,6 +248,7 @@ golang.org/x/crypto v0.54.0/go.mod h1:KWL8ny2AZdGR2cWmzeHrp2azQPGogOv+HeQaVEXC2d
 golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 h1:4d4PbuBNwaxMXkXI8yiIYjydtMU+04RHeuSxJdgKftM=
 golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9/go.mod h1:d2fgXJLVs4dYDHUk5lwMIfzRzSrWCfGZb0ZqeLa/Vcw=
 golang.org/x/exp v0.0.0-20260811152304-ee035b5b010f/go.mod h1:EdfpwwqSu+0Li0mzskwHU6FWDV3t9Q+RZDo3QMUtL3Q=
+golang.org/x/exp v0.0.0-20260812173653-3d80eb74bc5b/go.mod h1:EdfpwwqSu+0Li0mzskwHU6FWDV3t9Q+RZDo3QMUtL3Q=
 golang.org/x/mod v0.2.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
 golang.org/x/mod v0.3.0/go.mod h1:s0Qsj1ACt9ePp/hMypM3fl4fZqREWJwdYDEqhRiZZUA=
 golang.org/x/mod v0.21.0/go.mod h1:6SkKJ3Xj0I0BrPOZoBy3bdMptDDU9oJrpohJ3eWZ1fY=

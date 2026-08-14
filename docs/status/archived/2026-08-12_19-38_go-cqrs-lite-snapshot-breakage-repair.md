@@ -94,9 +94,9 @@ The cqrs-htmx workspace was broken by a go-cqrs-lite upstream commit (`a6613ef0d
 2. ~~**Trash the 21MB binary** sitting in the working tree~~ **Still present** — harmless local build artifact, properly gitignored. Can be cleaned with `trash examples/system-demo/system-demo`.
 3. **Run lint** (`nix run .#lint`) — ← **Still open** — see TODO_LIST P1 (run full verification gates).
 4. ~~**Run coverage gates** (`nix run .#coverage-gate`)~~ **Partially done** — verified in async startup session 21-19 for root/usermgmt/setup. Full workspace gate still pending.
-5-6. **Run `nix run .#check-templates`/`check-codegen`** — ← **Still open** — see TODO_LIST P1.
-6. **Run `nix flake check --no-build`** — ← **Still open**.
-7-10. **go-cqrs-lite upstream repair** (phantom modules, go-codec reconciliation) — ← **Still open** — upstream issue. The `go-codec` vs `go-cqrs-lite/codec/v4` split-brain is tracked implicitly via go.work replaces.
+   5-6. **Run `nix run .#check-templates`/`check-codegen`** — ← **Still open** — see TODO_LIST P1.
+5. **Run `nix flake check --no-build`** — ← **Still open**.
+   7-10. **go-cqrs-lite upstream repair** (phantom modules, go-codec reconciliation) — ← **Still open** — upstream issue. The `go-codec` vs `go-cqrs-lite/codec/v4` split-brain is tracked implicitly via go.work replaces.
 
 ---
 
