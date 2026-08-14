@@ -58,7 +58,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-etag v0.1.0 // indirect
+	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect

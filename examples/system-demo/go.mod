@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/system-demo
 go 1.26.5
 
 require (
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.2.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.7.0
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.4.0
@@ -61,7 +61,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-etag v0.1.0 // indirect
+	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect
 	github.com/larsartmann/httputil v0.11.0 // indirect
