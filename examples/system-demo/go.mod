@@ -3,8 +3,8 @@ module github.com/larsartmann/cqrs-htmx/examples/system-demo
 go 1.26.5
 
 require (
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.7.0
-	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.4.0
 )
@@ -30,7 +30,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.7.2 // indirect
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.1.0 // indirect
