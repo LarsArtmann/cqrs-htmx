@@ -108,6 +108,7 @@ func (b *Bundle) Handler(mux *http.ServeMux) http.Handler {
 // dashboard SSE broadcaster). Call on server shutdown. Safe to call multiple times.
 func (b *Bundle) Close() error {
 	if b.Dashboard != nil {
+		//cqrs-lint:ignore(C015) Dashboard.Close has no error return — nothing to check
 		b.Dashboard.Close()
 	}
 

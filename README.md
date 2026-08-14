@@ -35,7 +35,7 @@ One endpoint, four concerns, in declarative order. The same shape works for quer
 - **Security headers** — automatic `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, plus optional CSP/HSTS/Permissions-Policy
 - **Request logging** — plain-text or structured JSON logging with status, duration, and context IDs
 - **SSE streaming** — built on [`go-sse`](https://github.com/larsartmann/go-sse) (`sse.Stream`, `sse.Event`); cqrs-htmx adds `Broadcaster` (thread-safe fan-out with CQRS hooks), `JournalSSEStore` (production durable replay via `event.SeekableJournal`), CQRS bridge via `BroadcastOnSuccess`/`BroadcastOnError`, `Heartbeat` for proxy keepalive, **ACK protocol** (`BroadcastOnAck` — opt-in command confirmation via `X-Command-Id` header)
-- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v4.2.0
+- **Pagination** — `DecodePagination(r)` + `RenderPaginatedJSON[T]()` with go-cqrs-lite v4.6.0
 - **Embedded HTMX JS** — `HTMXScriptHandler()` serves embedded HTMX v2.0.10 (minified) with ETag/caching. Opt-in, zero CDN dependency. Embedded HTMX extensions (SSE + idiomorph) also available via `HTMXExtensionHandler`/`HTMXExtensionsHandler` (the WS extension was removed in v5 alongside the WS transport — see ADR 0046)
 - **User management** — optional [`usermgmt`](#user-management-usermgmt) submodule with RBAC, sessions, account lockout, and HTTP auth handlers. Auth strategies (WebAuthn/Passkeys, TOTP MFA, OAuth2/OIDC) are **optional sub-modules** — import only what you need, zero auth deps in core
 - **SQL event store** — Postgres, SQLite, and MySQL backends via `go-cqrs-lite/storage/v4`. Auto-migrating schema, automatic error classification (Conflict/Transient), one-call setup templates for SQLite/Postgres/MySQL, plus MySQL session/snapshot/checkpoint stores and `ReadModelDialect` for Postgres/MySQL read models. See [MySQL Setup Guide](docs/guides/mysql-setup.md)
@@ -1195,10 +1195,10 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 | Dependency                  | Purpose                                                                           |
 | --------------------------- | --------------------------------------------------------------------------------- |
-| go-cqrs-lite v4.2.0         | CQRS command/query dispatch, pagination                                           |
+| go-cqrs-lite v4.6.0         | CQRS command/query dispatch, pagination                                           |
 | casbin/casbin/v3            | Authorization                                                                     |
 | go-error-family v0.10.0     | Error classification                                                              |
-| go-sse v0.3.0               | SSE protocol writer, broadcaster, replay                                          |
+| go-sse v0.5.0               | SSE protocol writer, broadcaster, replay                                          |
 | larsartmann/httputil v0.9.0 | CSRF, Server-Timing, rate limiting, ClientIP, security headers, compression, CORS |
 | go-branded-id v0.5.0        | Branded types (usermgmt)                                                          |
 | go-playground/form/v4       | Form decoding                                                                     |

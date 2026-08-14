@@ -71,6 +71,7 @@ func (b *Bundle) RunHandler(ctx context.Context, addr string, handler http.Handl
 		ShutdownTimeout:   runShutdownTimeout,
 	}, handler)
 	if err != nil {
+		//cqrs-lint:ignore(C023) error path: the server-config rejection below is the primary error; Close failure here is secondary and non-actionable
 		_ = b.Close()
 
 		return errorfamily.WrapRejection(err, "setup.run", "invalid server configuration")
@@ -81,6 +82,7 @@ func (b *Bundle) RunHandler(ctx context.Context, addr string, handler http.Handl
 	select {
 	case err := <-errChan:
 		// Start() only forwards real errors (http.ErrServerClosed is filtered).
+		//cqrs-lint:ignore(C023,C015) error path: the server error (or nil) below is the primary result; Close failure here is secondary
 		_ = b.Close()
 
 		if err != nil {
@@ -94,6 +96,7 @@ func (b *Bundle) RunHandler(ctx context.Context, addr string, handler http.Handl
 	// ctx is already cancelled at this point; detach the cancellation but keep
 	// the values so Shutdown runs with its configured timeout budget.
 	if err := server.Shutdown(context.WithoutCancel(ctx)); err != nil {
+		//cqrs-lint:ignore(C023) error path: the shutdown failure is the primary error; Close failure here is secondary
 		_ = b.Close()
 
 		return errorfamily.WrapInfrastructure(err, "setup.run", "graceful shutdown failed")

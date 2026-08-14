@@ -50,7 +50,9 @@ func main() {
 	reader := listing.NewInMemoryStreamReader(store)
 
 	// Projection host so the projections panel and detail view work in the demo.
-	projHost, err := projectionhost.New(store, memorystorage.NewMemoryCheckpointStore())
+	projHost, err := projectionhost.New(store, memorystorage.NewMemoryCheckpointStore(),
+		projectionhost.WithBatchSize(256),
+	)
 	if err != nil {
 		log.Fatalf("projectionhost.New: %v", err)
 	}

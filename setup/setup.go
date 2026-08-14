@@ -33,6 +33,7 @@ func New(cfg Config) (*Bundle, error) {
 
 	bus := cfg.EventBus
 	if bus == nil {
+		//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
 		bus = watermill.NewEventBus()
 	}
 
@@ -158,10 +159,12 @@ func (b *Bundle) attachLogin() error {
 // success path.
 func (b *Bundle) cleanup() {
 	if b.Dashboard != nil {
+		//cqrs-lint:ignore(C015) Dashboard.Close has no error return — nothing to check
 		b.Dashboard.Close()
 	}
 
 	if b.Service != nil {
+		//cqrs-lint:ignore(C023,C015) cleanup on a failed construction path: the creation error is the primary failure; Close errors here are secondary
 		_ = b.Service.Close()
 	}
 }

@@ -1,3 +1,4 @@
+// cqrs-lint:ignore(E014) core is a pure data/capabilities layer; drain/read-your-writes is owned by the enclosing usermgmt.Service consumers
 package core
 
 import (

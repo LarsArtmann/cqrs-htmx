@@ -1,4 +1,4 @@
-//cqrs-lint:ignore(E014) read-your-writes is owned by consumers via ProjectionLayer.WaitForDrain (projections.go); the adapter itself never serves commands
+// cqrs-lint:ignore(E014) read-your-writes is owned by consumers via ProjectionLayer.WaitForDrain (projections.go); the adapter itself never serves commands
 package systemadapter
 
 import (

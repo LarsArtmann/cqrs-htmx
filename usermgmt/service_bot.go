@@ -72,6 +72,7 @@ func (s *Service) RegisterBot(ctx context.Context, req RegisterBotRequest) (*Reg
 }
 
 // DeleteBot permanently deletes a bot.
+// cqrs-lint:ignore(F001) dispatches DeleteBotCmd; the bot decider emits EventBotDeleted ("BotDeleted", identitymodel) — the detector cannot trace through dispatch
 func (s *Service) DeleteBot(ctx context.Context, botID BotID, reason string) error {
 	aggID, err := aggIDFromBot(botID)
 	if err != nil {

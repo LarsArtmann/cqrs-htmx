@@ -114,6 +114,7 @@ func (b *Broadcaster) Shutdown(ctx context.Context) error {
 
 // Close immediately disconnects all subscribers.
 func (b *Broadcaster) Close() {
+	//cqrs-lint:ignore(C015) sse.Broadcaster.Close has no error return — nothing to check
 	b.inner.Close()
 }
 

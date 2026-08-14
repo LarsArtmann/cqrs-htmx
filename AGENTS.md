@@ -39,7 +39,7 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 **Dependency direction:** identity-model ← usermgmt (type aliases). Root → usermgmt is zero imports (clean boundary). Auth strategies → root/usermgmt via interfaces only. adminui/loginpage → root + usermgmt + templ-components. dashboardui → root + usermgmt + templ-components (icons). datastar → go-datastar + go-sse only (no root dep). systemadapter → usermgmt + identity-model + go-cqrs-lite system/metaengine. Nothing depends on adminui, loginpage, dashboardui, datastar, setup, or systemadapter.
 
-**Key dependencies:** go-cqrs-lite v4.4.0 (CQRS/event sourcing; workspace uses local master for unreleased ADR-0114/ADR-0111 API), casbin/v3 (authz), httputil (HTTP middleware: CSRF, Server-Timing, rate limiting), go-error-family (error classification), go-branded-id (typed IDs), go-sse v0.4.0+ (SSE broadcaster, stream, replay; local replace for unreleased JoinLines), go-datastar (DataStar protocol library; local replace, unpublished), a-h/templ (HTML templating), ginkgo/gomega (BDD testing). `justinas/nosurf` and `golang.org/x/time` are now transitive deps via httputil (no longer direct root deps).
+**Key dependencies:** go-cqrs-lite v4.6.0 (CQRS/event sourcing; workspace uses local master for unreleased ADR-0114/ADR-0111 API), casbin/v3 (authz), httputil (HTTP middleware: CSRF, Server-Timing, rate limiting), go-error-family (error classification), go-branded-id (typed IDs), go-sse v0.5.0 (SSE broadcaster, stream, replay), go-datastar (DataStar protocol library; local replace, unpublished), a-h/templ (HTML templating), ginkgo/gomega (BDD testing). `justinas/nosurf` and `golang.org/x/time` are now transitive deps via httputil (no longer direct root deps).
 
 ## Key Patterns
 
