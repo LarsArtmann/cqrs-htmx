@@ -121,3 +121,45 @@ func TestService_Register_DuplicateEmail_CaseInsensitive(t *testing.T) {
 	})
 	assertErrorIs(t, err, ErrEmailExists, "ErrEmailExists for case-insensitive duplicate")
 }
+
+func TestService_Register_MaxUsersReached(t *testing.T) {
+	svc, err := NewService(ServiceConfig{MaxUsers: 1})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	ctx := context.Background()
+
+	registerTestUser(t, svc, "u1", "first@example.com")
+
+	_, err = svc.Register(ctx, RegisterRequest{
+		ID: NewUserID("u2"), Email: "second@example.com",
+	})
+	assertErrorIs(t, err, ErrRegistrationClosed, "registration closed after max users reached")
+}
+
+func TestService_Register_MaxUsersZero_Unlimited(t *testing.T) {
+	svc, err := NewService(ServiceConfig{MaxUsers: 0})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+
+	for i := range 5 {
+		registerTestUser(t, svc, "u"+string(rune('1'+i)), "user"+string(rune('1'+i))+"@example.com")
+	}
+}
+
+func TestService_Register_MaxUsersTwo_AllowsThird(t *testing.T) {
+	svc, err := NewService(ServiceConfig{MaxUsers: 2})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	ctx := context.Background()
+
+	registerTestUser(t, svc, "u1", "first@example.com")
+	registerTestUser(t, svc, "u2", "second@example.com")
+
+	_, err = svc.Register(ctx, RegisterRequest{
+		ID: NewUserID("u3"), Email: "third@example.com",
+	})
+	assertErrorIs(t, err, ErrRegistrationClosed, "registration closed after 2 users with MaxUsers=2")
+}

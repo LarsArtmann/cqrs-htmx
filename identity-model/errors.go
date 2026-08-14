@@ -105,4 +105,10 @@ var (
 		"usermgmt.external_account_linked_to_other",
 		"external account is already linked to another user",
 	)
+	// ErrRegistrationClosed is returned when registration is rejected because the
+	// number of users has reached the configured maximum (ServiceConfig.MaxUsers).
+	ErrRegistrationClosed = errorfamily.NewRejection(
+		"usermgmt.registration_closed",
+		"registration is closed",
+	)
 )

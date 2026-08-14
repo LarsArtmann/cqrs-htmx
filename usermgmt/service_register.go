@@ -64,6 +64,13 @@ type AuthResult struct {
 type RegisterResponse = AuthResult
 
 func (s *Service) Register(ctx context.Context, req RegisterRequest) (*RegisterResponse, error) {
+	if s.maxUsers > 0 && s.readModel.Count() >= s.maxUsers {
+		return nil, withUserIDContext(
+			errorfamily.NewRejection("usermgmt.registration_closed", "registration is closed").
+				WithCause(ErrRegistrationClosed), req.ID,
+		)
+	}
+
 	if req.ID.IsZero() {
 		req.ID = id.NewUserID()
 	}

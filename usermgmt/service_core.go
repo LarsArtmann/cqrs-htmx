@@ -62,6 +62,7 @@ type Service struct {
 	projectionHost           *projectionhost.Host
 	checkpointStore          event.CheckpointStore
 	projections              []projection.Projection
+	maxUsers                 int
 }
 
 // ServiceConfig holds optional dependencies for NewService.
@@ -196,6 +197,13 @@ type ServiceConfig struct {
 	// failures during drain surface via ProjectionStatuses(), the /health
 	// endpoint, or OnProjectionFailed — not as a NewService error.
 	AsyncStartup bool
+
+	// MaxUsers, when greater than zero, limits the total number of users that
+	// can register. When the user count reaches MaxUsers, all further
+	// registration attempts return ErrRegistrationClosed. Zero (the default)
+	// means unlimited registration. Set to 1 for single-user deployments to
+	// automatically lock registration after the first user is created.
+	MaxUsers int
 }
 
 // wrapEventStore applies the optional StoreWrapper (e.g. transparent encryption)
@@ -404,6 +412,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 	svc.wireLockoutEviction()
 
 	svc.tokenPepper = config.TokenPepper
+	svc.maxUsers = config.MaxUsers
 
 	return svc, nil
 }

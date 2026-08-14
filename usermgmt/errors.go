@@ -133,4 +133,12 @@ var (
 		identitymodel.ErrExternalAccountAlreadyLinked,
 		http.StatusConflict,
 	)
+	// ErrRegistrationClosed is returned when registration is rejected because the
+	// user count has reached the configured maximum (ServiceConfig.MaxUsers).
+	//
+	// Deprecated: Import github.com/larsartmann/cqrs-htmx/identity-model/v4 directly.
+	ErrRegistrationClosed = cqrshtmx.WithHTTPStatus(
+		identitymodel.ErrRegistrationClosed,
+		http.StatusForbidden,
+	)
 )
