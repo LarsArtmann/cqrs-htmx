@@ -130,6 +130,8 @@ github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0 h1:9kKt05IpyCWWpXd3VP3i1+8zFM
 github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0/go.mod h1:YQTusQbOsu8NhjgxDfxHGoM1hKNTQo6AQtbCJS/q9jA=
 github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.0 h1:zZ6pstSZfP+sQyWktGxcd+lAlPP//OJhiHsrd9/QTtY=
 github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.0/go.mod h1:yuqktCFI62WOk0J1fiT57FczVlLRHw5W3RKD6Rp/ipM=
+github.com/larsartmann/cqrs-htmx/datastar/v4 v4.8.0 h1:jnWX7VT0O0t6euTnNph4LBp1nAEBLlhVTKRykWy/OIM=
+github.com/larsartmann/cqrs-htmx/datastar/v4 v4.8.0/go.mod h1:VkxadVBPt1DLIJGMl9x+JmzdlSyounvFPtrEqn4+AIc=
 github.com/larsartmann/cqrs-htmx/health/v4 v4.8.0 h1:fOiwGTys7jWFDPD5zcHz7jiEvo0C9/HGrVymijoHtuM=
 github.com/larsartmann/cqrs-htmx/health/v4 v4.8.0/go.mod h1:R5xbLOSpC7XNi+47goh0WW1gTC2+Sj8/7V0+oSyA+uI=
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0 h1:PMyX3qUup9dArQ3slIVkMME/tJzxkQw0DsligwXyMSE=

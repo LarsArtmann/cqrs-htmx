@@ -30,5 +30,3 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/time v0.15.0 // indirect
 )
-
-replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../../datastar
