@@ -191,8 +191,6 @@ github.com/larsartmann/httputil v0.11.0 h1:X0toNjNAgl1HKLLGF5xLH+gbFJbagzSrGbkd0
 github.com/larsartmann/httputil v0.11.0/go.mod h1:UeK0ol/n1UNlkwPk5V1HelslUGoTr2MNr1lAPugMfFg=
 github.com/larsartmann/httputil/server_timing v0.10.0 h1:03A0RPelrWEPUjxozXBp74sOBo4Z1myTiBccvM5gvbU=
 github.com/larsartmann/httputil/server_timing v0.10.0/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
-github.com/larsartmann/templ-components v1.8.1 h1:VzQcWEsGYZzYeJjxVHW5Qyr5vXdmhTlICcrtxj/mPlY=
-github.com/larsartmann/templ-components v1.8.1/go.mod h1:odUy+VjdriptId0EP9RfbP/JNQgH/JIpku7xL1KjF3Y=
 github.com/larsartmann/templ-components v1.8.3 h1:HWDg/b3w64ohLOX9K3oCGUsWJwOXqrQpHdQf8+qxaK0=
 github.com/larsartmann/templ-components v1.8.3/go.mod h1:l6UFGbKjqvH9tYU0wUvgkEm208QZJdPh4Kbu8Eo3qds=
 github.com/larsartmann/templ-components/htmx v1.8.2 h1:IGgrTJ4bBSzs8bTQIOY41CZPFIalao3g/EEMElN5v/I=

@@ -26,7 +26,7 @@ require (
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
-	github.com/larsartmann/go-atomic-write v0.5.0 // indirect
+	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output v0.37.0 // indirect
