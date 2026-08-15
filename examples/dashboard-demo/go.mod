@@ -46,7 +46,8 @@ require (
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
-	github.com/larsartmann/templ-components v1.8.1 // indirect
+	github.com/larsartmann/templ-components/icons v1.8.2 // indirect
+	github.com/larsartmann/templ-components/utils v1.8.2 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.11 // indirect
 	github.com/moby/go-archive v0.3.3 // indirect

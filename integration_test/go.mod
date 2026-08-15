@@ -37,7 +37,11 @@ require (
 	github.com/larsartmann/go-health-dashboard v0.3.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
-	github.com/larsartmann/templ-components v1.8.1 // indirect
+	github.com/larsartmann/templ-components v1.8.3 // indirect
+	github.com/larsartmann/templ-components/datastar v1.8.2 // indirect
+	github.com/larsartmann/templ-components/htmx v1.8.2 // indirect
+	github.com/larsartmann/templ-components/icons v1.8.2 // indirect
+	github.com/larsartmann/templ-components/utils v1.8.2 // indirect
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 )
 
