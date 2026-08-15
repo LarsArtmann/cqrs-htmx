@@ -60,6 +60,8 @@ func New(config Config) (*Dashboard, error) {
 		// Build SSE replay store from the configured journal. Enables reconnect
 		// replay (Last-Event-ID) and initial backfill of recent events.
 		if journal := config.journalForReplay(); journal != nil {
+			// Root re-export; migrate to transport.NewJournalSSEStore once a root
+			// release containing the transport sub-package is published.
 			d.sseStore = cqrshtmx.NewJournalSSEStore(journal, newSSEEvent)
 		}
 	}
