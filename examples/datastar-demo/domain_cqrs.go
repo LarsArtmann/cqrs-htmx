@@ -25,7 +25,6 @@ func NewCQRS() *CQRS {
 	read := NewProjector()
 	broadcast := ds.NewBroadcaster()
 
-	//cqrs-lint:ignore(C027) example event bus: Subscribe is the only projection mechanism here, no projectionhost in this demo
 	events.Subscribe(read.Apply)
 
 	cmdDisp := command.NewDispatcher()
@@ -44,7 +43,6 @@ func NewCQRS() *CQRS {
 
 	// Broadcast bridge: domain events → Datastar patches → all SSE clients.
 	// The Broadcaster handles fan-out and reconnection replay automatically.
-	//cqrs-lint:ignore(C027) example broadcast bridge, not a read-model projection
 	events.Subscribe(func(e DomainEvent) {
 		cqrs.Broadcast.BroadcastMany(
 			ds.ElementsPatch(renderTodoList(read.List()), ds.WithSelectorID("todo-list"), ds.WithModeInner()),

@@ -1,5 +1,3 @@
-// cqrs-lint:ignore(E014) read-your-writes is owned by consumers via ProjectionLayer.WaitForDrain (projections.go); the
-// adapter itself never serves commands
 package systemadapter
 
 import (
@@ -23,6 +21,12 @@ import (
 // fold handlers. Events are decoded by the EventTypeDecoder (set via
 // ProjectionTypeDecoder on DomainConfig) into projectionadapter.EventWithID[P]
 // structs, giving folds access to the stream ID, payload, and occurred-at time.
+//
+// Every declaration carries a Volume hint: the order-of-magnitude expected
+// collection size for a mid-size deployment. The metaengine cost-based planner
+// uses it to rank engines (memory for small collections, SQLite/DuckDB for
+// large ones) — operator DeploymentConfig priorities can still override
+// placement.
 func DeclarativeProjections() []system.ProjectionDeclaration {
 	return []system.ProjectionDeclaration{
 		// Tenant
@@ -52,13 +56,12 @@ func DeclarativeProjections() []system.ProjectionDeclaration {
 // -------------------------------------------------------------------------
 
 func tenantLookup() metaengine.QueryDecl[system.LookupInput[string], TenantView] {
-	// cqrs-lint:ignore(F019) metaengine.Query has no volume-hint option (checked v4.10.0); planner falls back to its
-	// default volume
 	return metaengine.Query[system.LookupInput[string], TenantView]("tenant_by_id",
 		insertTenant(),
 		updateTenantSuspended(),
 		updateTenantReactivated(),
 		removeTenant(),
+		metaengine.Volume(100),
 	)
 }
 
@@ -70,6 +73,7 @@ func tenantScan() metaengine.QueryDecl[system.ScanInput, TenantView] {
 		removeTenant(),
 		metaengine.FilterOnField[TenantView]("Name", metaengine.FilterEq),
 		metaengine.FilterOnField[TenantView]("Suspended", metaengine.FilterEq),
+		metaengine.Volume(100),
 	)
 }
 
@@ -131,6 +135,7 @@ func botLookup() metaengine.QueryDecl[system.LookupInput[string], BotView] {
 	return metaengine.Query[system.LookupInput[string], BotView]("bot_by_id",
 		insertBot(),
 		removeBot(),
+		metaengine.Volume(1_000),
 	)
 }
 
@@ -139,6 +144,7 @@ func botScan() metaengine.QueryDecl[system.ScanInput, BotView] {
 		insertBot(),
 		removeBot(),
 		metaengine.FilterOnField[BotView]("OwnerID", metaengine.FilterEq),
+		metaengine.Volume(1_000),
 	)
 }
 
@@ -180,6 +186,7 @@ func botTokenScan() metaengine.QueryDecl[system.ScanInput, BotTokenView] {
 			projectionadapter.EventWithID[identitymodel.BotDeletedPayload]{},
 			metaengine.Remove[BotTokenView]()),
 		metaengine.FilterOnField[BotTokenView]("TokenHash", metaengine.FilterEq),
+		metaengine.Volume(1_000),
 	)
 }
 
@@ -192,6 +199,7 @@ func membershipLookup() metaengine.QueryDecl[system.LookupInput[string], Members
 		insertMembership(),
 		updateMembershipRoles(),
 		removeMembership(),
+		metaengine.Volume(10_000),
 	)
 }
 
@@ -202,6 +210,7 @@ func membershipScan() metaengine.QueryDecl[system.ScanInput, MembershipView] {
 		removeMembership(),
 		metaengine.FilterOnField[MembershipView]("ActorID", metaengine.FilterEq),
 		metaengine.FilterOnField[MembershipView]("TenantID", metaengine.FilterEq),
+		metaengine.Volume(10_000),
 	)
 }
 
@@ -258,6 +267,7 @@ func userLookup() metaengine.QueryDecl[system.LookupInput[string], UserView] {
 		updateExternalAccountLinked(),
 		updateExternalAccountUnlinked(),
 		removeUser(),
+		metaengine.Volume(100_000),
 	)
 }
 
@@ -277,6 +287,7 @@ func userScan() metaengine.QueryDecl[system.ScanInput, UserView] {
 		metaengine.FilterOnField[UserView]("Email", metaengine.FilterEq),
 		metaengine.FilterOnField[UserView]("EmailVerified", metaengine.FilterEq),
 		metaengine.SortOnField[UserView]("CreatedAt", false),
+		metaengine.Volume(100_000),
 	)
 }
 
@@ -462,6 +473,7 @@ func externalAccountLinkScan() metaengine.QueryDecl[system.ScanInput, ExternalAc
 			},
 		),
 		metaengine.FilterOnField[ExternalAccountLink]("ProviderSubject", metaengine.FilterEq),
+		metaengine.Volume(100_000),
 	)
 }
 
@@ -482,6 +494,7 @@ func authzPolicyLookup() metaengine.QueryDecl[system.LookupInput[string], Policy
 		updateMemberPolicy(),
 		removeMemberPolicy(),
 		removeUserPolicy(),
+		metaengine.Volume(10_000),
 	)
 }
 
@@ -495,6 +508,7 @@ func authzPolicyScan() metaengine.QueryDecl[system.ScanInput, PolicyEntry] {
 		removeUserPolicy(),
 		metaengine.FilterOnField[PolicyEntry]("Subject", metaengine.FilterEq),
 		metaengine.FilterOnField[PolicyEntry]("Domain", metaengine.FilterEq),
+		metaengine.Volume(10_000),
 	)
 }
 
@@ -592,6 +606,7 @@ func auditLogScan() metaengine.QueryDecl[system.ScanInput, AuditEntryView] {
 			identitymodel.RolesUpdatedPayload{}, "update_roles"),
 		metaengine.FilterOnField[AuditEntryView]("AggregateID", metaengine.FilterEq),
 		metaengine.SortOnField[AuditEntryView]("OccurredAt", true),
+		metaengine.Volume(1_000_000),
 	)
 }
 

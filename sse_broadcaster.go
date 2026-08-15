@@ -119,7 +119,6 @@ func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	//cqrs-lint:ignore(C027) SSE fan-out channel for real-time delivery, not a read-model projection
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)
 

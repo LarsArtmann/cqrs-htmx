@@ -218,7 +218,6 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 
 	bus := config.EventBus
 	if bus == nil {
-		//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
 		bus = watermill.NewEventBus()
 	}
 
