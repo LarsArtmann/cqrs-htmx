@@ -2,57 +2,18 @@ package setup
 
 import (
 	"context"
-	"encoding/json/v2"
 	"log/slog"
 	"net/http"
-	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/cqrs-htmx/v4/transport"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-sse"
 )
 
-// sseEventPayload is the JSON envelope streamed on the [Config.SSEPath]
-// endpoint. It mirrors the dashboardui SSE shape so consumers can reuse the
-// same client-side parsing for both feeds.
-type sseEventPayload struct {
-	Type       string `json:"type"`
-	StreamType string `json:"streamType"`
-	StreamID   string `json:"streamId"`
-	Version    uint64 `json:"version"`
-	OccurredAt string `json:"occurredAt"`
-	EventID    string `json:"eventId"`
-}
-
-func newSSEEvent(evt event.Event) sse.Event {
-	payload := sseEventPayload{
-		Type:       string(evt.Type()),
-		StreamType: string(evt.StreamType()),
-		StreamID:   evt.StreamID().String(),
-		Version:    evt.Version().UInt64(),
-		OccurredAt: evt.OccurredAt().Format(time.RFC3339),
-		EventID:    evt.ID().String(),
-	}
-
-	data, err := json.Marshal(payload)
-	if err != nil {
-		slog.Error("setup: marshal SSE event", "error", err, "eventType", payload.Type)
-
-		return sse.Event{ //nolint:exhaustruct // Data intentionally empty when marshalling fails; Retry unused
-			Event: "event",
-			ID:    sse.NewEventID(payload.EventID),
-		}
-	}
-
-	return sse.Event{ //nolint:exhaustruct // Retry is an optional SSE reconnection hint, unset by design
-		Event: "event",
-		Data:  string(data),
-		ID:    sse.NewEventID(payload.EventID),
-	}
-}
-
-// attachSSE builds the shared SSE broadcaster and its event-bus bridge when
-// [Config.SSEPath] is set. Called at the end of [New] so Close/cleanup own it.
+// attachSSE builds the shared SSE broadcaster, its event-bus bridge, and a
+// journal-backed replay store when the event store supports it. Called at the
+// end of [New] so Close/cleanup own it.
 func (b *Bundle) attachSSE() {
 	if b.config.SSEPath == "" {
 		return
@@ -61,6 +22,10 @@ func (b *Bundle) attachSSE() {
 	b.Broadcaster = cqrshtmx.NewBroadcaster()
 	b.sseDone = make(chan struct{})
 
+	if journal, ok := b.Stores.EventStore.(event.Journal); ok {
+		b.sseStore = transport.NewJournalSSEStore(journal, transport.DomainEventToSSE)
+	}
+
 	handler := func(_ context.Context, evt event.Event) error {
 		select {
 		case <-b.sseDone:
@@ -68,7 +33,7 @@ func (b *Bundle) attachSSE() {
 		default:
 		}
 
-		b.Broadcaster.Broadcast(newSSEEvent(evt))
+		b.Broadcaster.Broadcast(transport.DomainEventToSSE(evt))
 
 		return nil
 	}
@@ -79,8 +44,42 @@ func (b *Bundle) attachSSE() {
 	}
 }
 
-// sseHandler serves the shared SSE endpoint: session-gated live feed of every
-// event committed to the event bus.
+// sseHandler serves the shared SSE endpoint: session-gated feed of every event
+// committed to the event bus, with journal replay for reconnects and initial
+// backfill when the event store supports it.
 func (b *Bundle) sseHandler() http.Handler {
-	return b.SessionMiddleware()(requireSession(http.HandlerFunc(b.Broadcaster.ServeSSE)))
+	return b.SessionMiddleware()(requireSession(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if b.Broadcaster == nil {
+			http.Error(w, "SSE not available", http.StatusServiceUnavailable)
+
+			return
+		}
+
+		stream := sse.NewStream(w, r)
+		defer func() { _ = stream.Close() }()
+
+		ch := b.Broadcaster.Subscribe()
+		defer b.Broadcaster.Unsubscribe(ch)
+
+		_ = stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"})
+
+		if b.sseStore != nil {
+			lastID := stream.LastEventID()
+
+			if _, err := sse.Replay(stream, b.sseStore, lastID); err != nil {
+				slog.Warn("setup: SSE replay failed", "error", err, "lastEventID", lastID.Get())
+			}
+		}
+
+		for {
+			select {
+			case <-stream.Context().Done():
+				return
+			case evt, ok := <-ch:
+				if !ok || stream.Send(evt) != nil {
+					return
+				}
+			}
+		}
+	})))
 }

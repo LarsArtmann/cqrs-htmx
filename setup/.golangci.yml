@@ -87,6 +87,7 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/dashboardui/v4\.Config$
         - github\.com/larsartmann/cqrs-htmx/loginpage/v4\.Config$
         - github\.com/larsartmann/httputil\.CSRFConfig$
+        - github\.com/larsartmann/go-sse\.Event$
         - net/http\.Cookie$
         - net/http\.ServerConfig$
     gocritic:

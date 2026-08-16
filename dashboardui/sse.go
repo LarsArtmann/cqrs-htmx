@@ -2,51 +2,13 @@ package dashboardui
 
 import (
 	"context"
-	"encoding/json/v2"
 	"log/slog"
 	"net/http"
-	"time"
 
+	"github.com/larsartmann/cqrs-htmx/v4/transport"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-sse"
 )
-
-// sseEventPayload is the JSON shape sent to the browser on each SSE push.
-type sseEventPayload struct {
-	Type       string `json:"type"`
-	StreamType string `json:"streamType"`
-	StreamID   string `json:"streamId"`
-	Version    uint64 `json:"version"`
-	OccurredAt string `json:"occurredAt"`
-	EventID    string `json:"eventId"`
-}
-
-func newSSEEvent(evt event.Event) sse.Event {
-	payload := sseEventPayload{
-		Type:       string(evt.Type()),
-		StreamType: string(evt.StreamType()),
-		StreamID:   evt.StreamID().String(),
-		Version:    evt.Version().UInt64(),
-		OccurredAt: evt.OccurredAt().Format(time.RFC3339),
-		EventID:    evt.ID().String(),
-	}
-
-	data, err := json.Marshal(payload)
-	if err != nil {
-		slog.Error("dashboardui: marshal SSE event", "error", err, "eventType", payload.Type)
-
-		return sse.Event{
-			Event: "event",
-			ID:    sse.NewEventID(payload.EventID),
-		}
-	}
-
-	return sse.Event{
-		Event: "event",
-		Data:  string(data),
-		ID:    sse.NewEventID(payload.EventID),
-	}
-}
 
 // startEventBridge subscribes to the event bus and forwards every event
 // to the internal SSE broadcaster. Called once during [New] when
@@ -63,7 +25,7 @@ func (d *Dashboard) startEventBridge() {
 		default:
 		}
 
-		d.broadcaster.Broadcast(newSSEEvent(evt))
+		d.broadcaster.Broadcast(transport.DomainEventToSSE(evt))
 
 		return nil
 	}

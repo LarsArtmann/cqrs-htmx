@@ -2,6 +2,7 @@ package setup_test
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -124,6 +125,33 @@ func TestNew_AdoptedService_ConflictingFieldsRejected(t *testing.T) {
 	}
 
 	if !strings.Contains(err.Error(), "EventStore") {
+		t.Errorf("rejection must name the conflicting field, got: %v", err)
+	}
+}
+
+// TestNew_AdoptedService_LoggerRejected verifies that Logger is treated as a
+// service-construction field when Service is adopted. It is silently ignored
+// today in buildService (the adopted service already has its logger), so
+// rejecting it prevents the footgun of a consumer expecting auth events to be
+// re-logged through a different logger.
+func TestNew_AdoptedService_LoggerRejected(t *testing.T) {
+	t.Parallel()
+
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	defer func() { _ = svc.Close() }()
+
+	_, err = setup.New(setup.Config{
+		Service: svc,
+		Logger:  slog.Default(),
+	})
+	if err == nil {
+		t.Fatal("adopting a service while setting Logger must be rejected")
+	}
+
+	if !strings.Contains(err.Error(), "Logger") {
 		t.Errorf("rejection must name the conflicting field, got: %v", err)
 	}
 }

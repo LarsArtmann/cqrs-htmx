@@ -10,6 +10,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/httputil"
 )
 
@@ -64,6 +65,11 @@ type Bundle struct {
 
 	// sseDone stops the event-bus → Broadcaster bridge goroutine on Close.
 	sseDone chan struct{}
+
+	// sseStore backs reconnect replay (Last-Event-ID) and initial backfill for
+	// the shared SSE endpoint. Nil when the event store does not implement
+	// event.Journal or when SSEPath is not configured.
+	sseStore sse.EventStore
 }
 
 // Stores holds the shared event infrastructure created by [New].

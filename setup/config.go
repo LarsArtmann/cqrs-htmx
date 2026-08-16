@@ -46,8 +46,9 @@ type Config struct {
 	// The bundle then sources its shared infrastructure from the adopted
 	// service (see Stores), and the service-construction fields below must
 	// stay unset: EventStore, EventBus, ReadModelDB, TOTP, WebAuthn, OAuth2,
-	// SessionTTL, AsyncStartup, and OnProjectionFailed are validated as
-	// conflicts — they describe a service New would build, not one it adopted.
+	// SessionTTL, Logger, AsyncStartup, and OnProjectionFailed are validated
+	// as conflicts — they describe a service New would build, not one it
+	// adopted.
 	//
 	// Lifecycle ownership stays with the caller: [Bundle.Close] does NOT close
 	// an adopted service. The caller closes it (svc.Close) after the bundle.
@@ -262,6 +263,7 @@ func (c Config) validateAdoptedService() error {
 		{"WebAuthn", c.WebAuthn != nil},
 		{"OAuth2", c.OAuth2 != nil},
 		{"SessionTTL", c.SessionTTL != 0},
+		{"Logger", c.Logger != nil},
 		{"AsyncStartup", c.AsyncStartup},
 		{"OnProjectionFailed", c.OnProjectionFailed != nil},
 	} {
