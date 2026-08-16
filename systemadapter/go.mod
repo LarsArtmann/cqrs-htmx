@@ -6,12 +6,12 @@ go 1.26.5
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0
 	//cqrs-lint:ignore(V003) v4.0.1 IS the latest published tag; detector compares against the core module version — false positive
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
@@ -44,7 +44,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1 // indirect
 	//cqrs-lint:ignore(V006) v4.0.0 IS the latest published tag for commandlifecycle/projections; per-module release cadences differ
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.0 // indirect
@@ -55,15 +55,15 @@ require (
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.6.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect

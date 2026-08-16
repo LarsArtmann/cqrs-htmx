@@ -6,19 +6,19 @@ require (
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/httputil v0.11.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.43.0
@@ -79,9 +79,9 @@ require (
 	github.com/larsartmann/go-codec v0.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.10.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.11.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260812165929-11e7746d6a7e // indirect
 	github.com/larsartmann/go-etag v0.1.1 // indirect
@@ -109,7 +109,6 @@ require (
 	github.com/shirou/gopsutil/v4 v4.26.7 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
 	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
