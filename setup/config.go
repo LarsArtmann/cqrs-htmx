@@ -37,16 +37,45 @@ type Config struct {
 	WebAuthn identitymodel.WebAuthnProvider
 	OAuth2   identitymodel.OAuth2Provider
 
+	// Service, when set, adopts an already-constructed *usermgmt.Service
+	// instead of building one. This is the composition seam for consumers that
+	// construct the service themselves (custom stores, SecurityHooks, MaxUsers,
+	// custom AuditLog, snapshotting, ...) and still want the bundle's panels,
+	// session middleware, and health endpoint.
+	//
+	// The bundle then sources its shared infrastructure from the adopted
+	// service (see Stores), and the service-construction fields below must
+	// stay unset: EventStore, EventBus, ReadModelDB, TOTP, WebAuthn, OAuth2,
+	// SessionTTL, AsyncStartup, and OnProjectionFailed are validated as
+	// conflicts — they describe a service New would build, not one it adopted.
+	//
+	// Lifecycle ownership stays with the caller: [Bundle.Close] does NOT close
+	// an adopted service. The caller closes it (svc.Close) after the bundle.
+	Service *usermgmt.Service
+
 	// Persistence overrides (all optional — defaults to in-memory).
 	//
 	// EventStore must implement event.SeekableJournal for projectionhost to work.
 	// The memory store (storage/memory/v4) satisfies this. If you provide a custom
 	// store that does NOT implement SeekableJournal, New returns an error.
+	//
+	// Ignored (rejected) when Service is set — the adopted service's own
+	// infrastructure is used instead.
 	EventStore event.Store
 	EventBus   event.Bus
 
 	// ReadModelDB enables SQL-backed read models (optional, nil = in-memory).
 	ReadModelDB *sql.DB
+
+	// SSEPath mounts a shared Server-Sent Events endpoint that streams every
+	// event committed to the event bus as SSE (default: "" = not mounted).
+	// The endpoint is session-gated (401 without an authenticated session) —
+	// event metadata (stream IDs, types) is not public data.
+	//
+	// The payload is a small JSON envelope: {type, streamType, streamId,
+	// version, occurredAt, eventId}. Use [Bundle.Broadcaster] for custom
+	// fan-out (it is the same hub the endpoint serves from).
+	SSEPath string
 
 	// UI configuration (all optional — sensible defaults).
 	Title       string // page title for all panels (default: "cqrs-htmx")
@@ -170,6 +199,9 @@ func (c Config) withDefaults() Config {
 	// ugly redirect from "/health" to "/health/".
 	cfg.HealthPath = trimTrailingSlash(cfg.HealthPath)
 
+	// SSE is an exact-match endpoint, like health.
+	cfg.SSEPath = trimTrailingSlash(cfg.SSEPath)
+
 	return cfg
 }
 
@@ -193,6 +225,10 @@ func trimTrailingSlash(s string) string {
 // validate checks the resolved config for common misconfigurations and returns
 // a rejection error describing the first issue found, or nil if the config is sound.
 func (c Config) validate() error {
+	if err := c.validateAdoptedService(); err != nil {
+		return err
+	}
+
 	if err := c.validatePathShapes(); err != nil {
 		return err
 	}
@@ -202,6 +238,46 @@ func (c Config) validate() error {
 	}
 
 	return requireDistinctPaths(c)
+}
+
+// validateAdoptedService rejects configs that both adopt a Service and set
+// fields that only apply when New builds the service itself. Silently
+// ignoring them would be a footgun: a consumer setting TOTP alongside an
+// adopted service would expect TOTP to be enabled and never learn it is not.
+func (c Config) validateAdoptedService() error {
+	if c.Service == nil {
+		return nil
+	}
+
+	var conflicts []string
+
+	for _, set := range []struct {
+		name string
+		set  bool
+	}{
+		{"EventStore", c.EventStore != nil},
+		{"EventBus", c.EventBus != nil},
+		{"ReadModelDB", c.ReadModelDB != nil},
+		{"TOTP", c.TOTP != nil},
+		{"WebAuthn", c.WebAuthn != nil},
+		{"OAuth2", c.OAuth2 != nil},
+		{"SessionTTL", c.SessionTTL != 0},
+		{"AsyncStartup", c.AsyncStartup},
+		{"OnProjectionFailed", c.OnProjectionFailed != nil},
+	} {
+		if set.set {
+			conflicts = append(conflicts, set.name)
+		}
+	}
+
+	if len(conflicts) > 0 {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config",
+			"Service adopts an existing *usermgmt.Service, so service-construction fields are ignored — unset them: %s",
+			strings.Join(conflicts, ", "))
+	}
+
+	return nil
 }
 
 // validatePathShapes rejects paths that do not start with a slash (or, for
@@ -222,6 +298,11 @@ func (c Config) validatePathShapes() error {
 			"setup.invalid_config", "HealthPath must start with %q (got %q)", "/", c.HealthPath)
 	}
 
+	if c.SSEPath != "" && !startsWithSlash(c.SSEPath) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config", "SSEPath must start with %q (got %q)", "/", c.SSEPath)
+	}
+
 	if !startsWithSlash(c.LoginRedirect) && !startsWithScheme(c.LoginRedirect) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config",
@@ -239,10 +320,10 @@ func (c Config) validatePathShapes() error {
 // as its catch-all, so any panel or health endpoint there would collide at
 // Mount time.
 func (c Config) validatePathRoots() error {
-	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" {
+	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" || c.SSEPath == "/" {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",
-			"AdminPath, DashboardPath, and HealthPath must not be \"/\" — the site root is reserved for the login page",
+			"AdminPath, DashboardPath, HealthPath, and SSEPath must not be \"/\" — the site root is reserved for the login page",
 		)
 	}
 
@@ -260,6 +341,7 @@ func requireDistinctPaths(c Config) error {
 		{"AdminPath", trimTrailingSlash(c.AdminPath)},
 		{"DashboardPath", trimTrailingSlash(c.DashboardPath)},
 		{"HealthPath", trimTrailingSlash(c.HealthPath)},
+		{"SSEPath", trimTrailingSlash(c.SSEPath)},
 	}
 
 	for i := range paths {

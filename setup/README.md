@@ -48,6 +48,7 @@ func main() {
 | `/auth/*`      | Auth API        | public                       |
 | `/admin/*`     | Admin panel     | session + CSRF (401 without) |
 | `/dashboard/*` | CQRS dashboard  | session-gated (401 without)  |
+| `/sse`         | Shared SSE feed | session-gated (opt-in)       |
 | `/health`      | Readiness check | public (503 while draining)  |
 | `/`            | Login page      | public                       |
 
@@ -86,6 +87,8 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `DashboardPath`                                      | `string`                     | `"/dashboard/"`     | Trailing slash auto-normalized                             |
 | `LoginRedirect`                                      | `string`                     | `"/admin/"`         | Post-login destination                                     |
 | `HealthPath`                                         | `string`                     | `"/health"`         | Readiness endpoint; must not collide with other paths      |
+| `SSEPath`                                            | `string`                     | off                 | Session-gated shared SSE feed of all committed events      |
+| `Service`                                            | `*usermgmt.Service`          | built by `New`      | Adopt your own service; panels wire on top of it           |
 | `CookieName` / `SessionTTL`                          | `string` / `time.Duration`   | `"session"` / 24h   | Session cookie configuration                               |
 | `Logger`                                             | `*slog.Logger`               | `slog.Default()`    | Structured auth event logging                              |
 | `LogoutURL` / `SSEURL`                               | `string`                     | hidden / off        | Logout link; admin panel real-time sync indicator          |
@@ -102,6 +105,33 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 Invalid configs fail fast at `New` with descriptive errors: paths must start
 with `/`, must not be `/` (reserved for the login page), and must be pairwise
 distinct — misconfiguration surfaces before `Mount` can panic.
+
+### Bringing your own service
+
+Construct `*usermgmt.Service` yourself (custom `SecurityHooks`, `MaxUsers`,
+snapshotting, a custom `AuditLog`, ...) and hand it to the bundle:
+
+```go
+svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{ /* your advanced config */ })
+
+bundle, _ := setup.New(setup.Config{ Service: svc })
+
+defer func() { _ = bundle.Close() }() // does NOT close the adopted service
+defer func() { _ = svc.Close() }()     // you own its lifecycle
+```
+
+The bundle sources its shared stores from the service (`svc.Journal()`,
+`svc.EventBus()`), so panels observe the exact infrastructure your service
+publishes to. Service-construction fields (`EventStore`, `TOTP`, ... `AsyncStartup`)
+are rejected as conflicts in this mode — nothing is silently ignored.
+
+### Shared SSE endpoint
+
+Set `SSEPath` to mount a session-gated endpoint streaming every event committed
+to the event bus as a small JSON envelope (`type`, `streamId`, `version`, ...).
+`bundle.Broadcaster` is the fan-out hub behind it — subscribe to it (or share
+its `Raw()` hub with a DataStar broadcaster) to push custom real-time payloads
+through the same connection topology.
 
 ## Customization after construction
 

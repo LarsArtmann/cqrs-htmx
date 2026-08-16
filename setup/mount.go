@@ -15,6 +15,7 @@ import (
 //	/auth/*         — registration, login, logout, me (public)
 //	/admin/*        — admin panel (behind session + CSRF)
 //	/dashboard/*    — CQRS observability dashboard (behind session)
+//	/sse            — shared SSE event feed (behind session; only when SSEPath is set)
 //	/health         — readiness check (public)
 //	/               — login page (public)
 //
@@ -72,6 +73,13 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 				trimTrailingSlash(cfg.DashboardPath), b.Dashboard.Handler(),
 			))),
 		)
+	}
+
+	// Shared SSE endpoint — behind an authenticated session. Streams every
+	// event committed to the event bus; see [Config.SSEPath] and
+	// [Bundle.Broadcaster].
+	if b.Broadcaster != nil {
+		mux.Handle(cfg.SSEPath, b.sseHandler())
 	}
 
 	// Health check — public, no auth.

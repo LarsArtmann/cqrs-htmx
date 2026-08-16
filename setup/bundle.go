@@ -45,10 +45,25 @@ type Bundle struct {
 
 	// Stores holds the shared event infrastructure.
 	// Use EventStore and EventBus for your own projections, read models, or SSE endpoints.
+	// With an adopted service (see [Config.Service]) these are the service's own
+	// Journal() and EventBus() — the exact infrastructure it publishes to.
 	Stores *Stores
+
+	// Broadcaster is the shared SSE fan-out hub behind [Config.SSEPath].
+	// It is nil unless SSEPath is set. Subscribe to it (or use its Raw() hub)
+	// to fan out custom real-time payloads alongside the domain-event feed,
+	// or mount additional endpoints serving from the same hub via ServeSSE.
+	Broadcaster *cqrshtmx.Broadcaster
 
 	// config holds the resolved configuration (defaults applied).
 	config Config
+
+	// ownsService reports whether New built the service (and therefore owns
+	// its lifecycle). An adopted service is never closed by the bundle.
+	ownsService bool
+
+	// sseDone stops the event-bus → Broadcaster bridge goroutine on Close.
+	sseDone chan struct{}
 }
 
 // Stores holds the shared event infrastructure created by [New].
@@ -105,14 +120,29 @@ func (b *Bundle) Handler(mux *http.ServeMux) http.Handler {
 }
 
 // Close gracefully shuts down all background resources (projections, eviction goroutines,
-// dashboard SSE broadcaster). Call on server shutdown. Safe to call multiple times.
+// dashboard SSE broadcaster, shared SSE broadcaster). Call on server shutdown.
+// Safe to call multiple times.
+//
+// An adopted service (see [Config.Service]) is NOT closed here — lifecycle
+// ownership stays with the caller who provided it.
 func (b *Bundle) Close() error {
 	if b.Dashboard != nil {
 		//cqrs-lint:ignore(C015) Dashboard.Close has no error return — nothing to check
 		b.Dashboard.Close()
 	}
 
-	if b.Service != nil {
+	if b.Broadcaster != nil {
+		if b.sseDone != nil {
+			close(b.sseDone)
+			b.sseDone = nil
+		}
+
+		//cqrs-lint:ignore(C015) Broadcaster.Close has no error return — nothing to check
+		b.Broadcaster.Close()
+		b.Broadcaster = nil
+	}
+
+	if b.ownsService && b.Service != nil {
 		if err := b.Service.Close(); err != nil {
 			return errorfamily.WrapInfrastructure(err, "setup.bundle_close", "failed to close service")
 		}

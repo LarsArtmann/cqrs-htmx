@@ -58,6 +58,9 @@
 //   - [Config.DashboardPageSize] — rows per page in dashboard tables (default: 50)
 //   - [Config.LoginNoRegistration] — hide registration section on login page
 //   - [Config.HealthPath] — health endpoint path (default: "/health")
+//   - [Config.SSEPath] — opt-in session-gated SSE feed of all committed events
+//   - [Config.Service] — adopt an already-built *usermgmt.Service instead of
+//     constructing one (caller keeps lifecycle ownership)
 //   - [Config.AdminMode] / [Config.TenantID] — tenant-scoped admin panel
 //   - [Config.AdminAuthorizer] / [Config.DashboardAuthorizer] — custom access control
 //

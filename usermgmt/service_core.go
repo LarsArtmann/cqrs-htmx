@@ -538,6 +538,22 @@ func (s *Service) AuditLog() *AuditLog { return s.auditLog }
 // to wire projection health panels without constructing a separate host.
 func (s *Service) ProjectionHost() *projectionhost.Host { return s.projectionHost }
 
+// Journal returns the event store backing the service's aggregates.
+//
+// Composition seam: consumers wiring their own projections, read models, SSE
+// endpoints, or dashboards on top of an already-built Service need the journal
+// it persists to — without this accessor they must keep the ServiceConfig
+// value around and hope it stays in sync. The Service retains ownership (see
+// [Service.Close] for lifecycle).
+func (s *Service) Journal() event.Store { return s.store }
+
+// EventBus returns the bus the service publishes committed events to.
+//
+// Composition seam: subscribing to live domain events (e.g. bridging them to
+// an SSE broadcaster) requires the exact bus instance the service publishes
+// to. The Service retains ownership (see [Service.Close] for lifecycle).
+func (s *Service) EventBus() event.Bus { return s.bus }
+
 func (s *Service) emailFromEvent(evt event.Event) string {
 	user, ok := s.readModel.FindByID(evt.StreamID())
 	if !ok {

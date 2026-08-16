@@ -19,6 +19,9 @@ import (
 // The returned Bundle is ready to [Bundle.Mount] and serve.
 //
 // All defaults are overridable via Config fields. Stores default to in-memory.
+//
+// When [Config.Service] is set, New adopts that service instead of building
+// one — see the field documentation for the ownership contract.
 func New(cfg Config) (*Bundle, error) {
 	cfg = cfg.withDefaults()
 
@@ -26,39 +29,57 @@ func New(cfg Config) (*Bundle, error) {
 		return nil, err
 	}
 
-	store := cfg.EventStore
-	if store == nil {
-		store = memorystorage.NewMemoryStore()
+	var (
+		svc         *usermgmt.Service
+		ownsService bool
+		store       event.Store
+		bus         event.Bus
+	)
+
+	if cfg.Service != nil {
+		svc = cfg.Service
+		store = svc.Journal()
+		bus = svc.EventBus()
+	} else {
+		ownsService = true
+
+		store = cfg.EventStore
+		if store == nil {
+			store = memorystorage.NewMemoryStore()
+		}
+
+		bus = cfg.EventBus
+		if bus == nil {
+			//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
+			bus = watermill.NewEventBus()
+		}
+
+		built, err := usermgmt.NewService(usermgmt.ServiceConfig{
+			EventStore:         store,
+			EventBus:           bus,
+			ReadModelDB:        cfg.ReadModelDB,
+			AuditLog:           usermgmt.NewAuditLog(),
+			TOTP:               cfg.TOTP,
+			WebAuthn:           cfg.WebAuthn,
+			OAuth2:             cfg.OAuth2,
+			SessionTTL:         cfg.SessionTTL,
+			Logger:             cfg.Logger,
+			OnProjectionFailed: cfg.OnProjectionFailed,
+			AsyncStartup:       cfg.AsyncStartup,
+		})
+		if err != nil {
+			return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")
+		}
+
+		svc = built
 	}
 
-	bus := cfg.EventBus
-	if bus == nil {
-		//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
-		bus = watermill.NewEventBus()
-	}
-
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		EventStore:         store,
-		EventBus:           bus,
-		ReadModelDB:        cfg.ReadModelDB,
-		AuditLog:           usermgmt.NewAuditLog(),
-		TOTP:               cfg.TOTP,
-		WebAuthn:           cfg.WebAuthn,
-		OAuth2:             cfg.OAuth2,
-		SessionTTL:         cfg.SessionTTL,
-		Logger:             cfg.Logger,
-		OnProjectionFailed: cfg.OnProjectionFailed,
-		AsyncStartup:       cfg.AsyncStartup,
-	})
-	if err != nil {
-		return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")
-	}
-
-	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login assigned conditionally in attachPanels
-		Service: svc,
-		Auth:    usermgmt.NewAuthHandler(svc),
-		Stores:  &Stores{EventStore: store, EventBus: bus},
-		config:  cfg,
+	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login/SSE assigned conditionally below
+		Service:     svc,
+		Auth:        usermgmt.NewAuthHandler(svc),
+		Stores:      &Stores{EventStore: store, EventBus: bus},
+		ownsService: ownsService,
+		config:      cfg,
 	}
 
 	if err := bundle.attachPanels(store, bus); err != nil {
@@ -66,6 +87,8 @@ func New(cfg Config) (*Bundle, error) {
 
 		return nil, err
 	}
+
+	bundle.attachSSE()
 
 	return bundle, nil
 }
@@ -156,14 +179,15 @@ func (b *Bundle) attachLogin() error {
 
 // cleanup closes all resources created by [New], in reverse creation order.
 // Called on any creation failure to prevent leaks; [Bundle.Close] handles the
-// success path.
+// success path. An adopted service is never closed here — its lifecycle
+// belongs to the caller who provided it.
 func (b *Bundle) cleanup() {
 	if b.Dashboard != nil {
 		//cqrs-lint:ignore(C015) Dashboard.Close has no error return — nothing to check
 		b.Dashboard.Close()
 	}
 
-	if b.Service != nil {
+	if b.ownsService && b.Service != nil {
 		//cqrs-lint:ignore(C023,C015) cleanup on a failed construction path: the creation error is the primary failure; Close errors here are secondary
 		_ = b.Service.Close()
 	}
