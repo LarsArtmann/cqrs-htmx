@@ -58,7 +58,11 @@
 //   - [Config.DashboardPageSize] — rows per page in dashboard tables (default: 50)
 //   - [Config.LoginNoRegistration] — hide registration section on login page
 //   - [Config.HealthPath] — health endpoint path (default: "/health")
-//   - [Config.SSEPath] — opt-in session-gated SSE feed of all committed events
+//   - [Config.SSEPath] — opt-in session-gated SSE feed of all committed events;
+//     reconnects resume from Last-Event-ID and journal-backed stores also
+//     backfill first-time subscribers
+//   - [Config.SSEHeartbeatInterval] — keep-alive comment frames on the shared
+//     SSE feed (default: 15s; non-positive disables)
 //   - [Config.Service] — adopt an already-built *usermgmt.Service instead of
 //     constructing one (caller keeps lifecycle ownership)
 //   - [Config.AdminMode] / [Config.TenantID] — tenant-scoped admin panel

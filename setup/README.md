@@ -88,6 +88,7 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `LoginRedirect`                                      | `string`                     | `"/admin/"`         | Post-login destination                                     |
 | `HealthPath`                                         | `string`                     | `"/health"`         | Readiness endpoint; must not collide with other paths      |
 | `SSEPath`                                            | `string`                     | off                 | Session-gated shared SSE feed of all committed events      |
+| `SSEHeartbeatInterval`                               | `time.Duration`              | `15s` (0 = off)     | Keep-alive comment frames on `/sse`                        |
 | `Service`                                            | `*usermgmt.Service`          | built by `New`      | Adopt your own service; panels wire on top of it           |
 | `CookieName` / `SessionTTL`                          | `string` / `time.Duration`   | `"session"` / 24h   | Session cookie configuration                               |
 | `Logger`                                             | `*slog.Logger`               | `slog.Default()`    | Structured auth event logging                              |
@@ -129,6 +130,11 @@ are rejected as conflicts in this mode — nothing is silently ignored.
 
 Set `SSEPath` to mount a session-gated endpoint streaming every event committed
 to the event bus as a small JSON envelope (`type`, `streamId`, `version`, ...).
+Reconnecting clients resume from their `Last-Event-ID`, and first-time
+subscribers receive a journal backfill when the event store implements
+`event.Journal` (plain in-memory stores stream live-only). A heartbeat comment
+frame is sent every `SSEHeartbeatInterval` (default 15s; `0` or negative
+disables) so proxies and load balancers keep the connection open.
 `bundle.Broadcaster` is the fan-out hub behind it — subscribe to it (or share
 its `Raw()` hub with a DataStar broadcaster) to push custom real-time payloads
 through the same connection topology.
