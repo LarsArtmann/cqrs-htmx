@@ -150,6 +150,46 @@ func TestDomainEventToSSE_WireFormatGolden(t *testing.T) {
 	}
 }
 
+// TestDomainEventToSSE_MarshalFailureFallback pins the degraded shape when the
+// envelope cannot be serialized: the SSE event still carries its name and ID
+// (so replay ordering survives) but ships no Data. event.Type is an unvalidated
+// branded string, and json/v2 (unlike v1) refuses to encode invalid UTF-8
+// instead of silently substituting U+FFFD — a malformed type reaches the
+// fallback branch.
+func TestDomainEventToSSE_MarshalFailureFallback(t *testing.T) {
+	t.Parallel()
+
+	aggID, err := id.ParseStreamID(ulid.Make().String())
+	if err != nil {
+		t.Fatalf("parse stream ID: %v", err)
+	}
+
+	evt, err := event.New(
+		event.Type("user.reg\xffistered"),
+		aggID,
+		"user",
+		event.Version(1),
+		`{}`,
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	sseEvt := DomainEventToSSE(evt)
+
+	if sseEvt.Event != sseEventType {
+		t.Errorf("sse event name: got %q, want %q", sseEvt.Event, sseEventType)
+	}
+
+	if sseEvt.ID.Get() != evt.ID().String() {
+		t.Errorf("sse event ID: got %q, want %q", sseEvt.ID.Get(), evt.ID().String())
+	}
+
+	if sseEvt.Data != "" {
+		t.Errorf("fallback must ship no data, got %q", sseEvt.Data)
+	}
+}
+
 func TestDomainEventToSSE_UsedByJournalSSEStore(t *testing.T) {
 	t.Parallel()
 
