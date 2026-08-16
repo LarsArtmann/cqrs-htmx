@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-sse"
 )
 
@@ -38,13 +38,13 @@ func newSSEEvent(evt event.Event) sse.Event {
 	if err != nil {
 		slog.Error("setup: marshal SSE event", "error", err, "eventType", payload.Type)
 
-		return sse.Event{
+		return sse.Event{ //nolint:exhaustruct // Data intentionally empty when marshalling fails; Retry unused
 			Event: "event",
 			ID:    sse.NewEventID(payload.EventID),
 		}
 	}
 
-	return sse.Event{
+	return sse.Event{ //nolint:exhaustruct // Retry is an optional SSE reconnection hint, unset by design
 		Event: "event",
 		Data:  string(data),
 		ID:    sse.NewEventID(payload.EventID),

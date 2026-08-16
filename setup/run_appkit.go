@@ -44,6 +44,7 @@ func (b *Bundle) RunWithAppkit(ctx context.Context, addr string, handler http.Ha
 		handler = b.Middleware()(mux)
 	}
 
+	//nolint:exhaustruct // optional appkit fields default sensibly inside appkit
 	svc, err := appkit.NewService(appkit.ServiceConfig{
 		Addr:              addr,
 		ReadTimeout:       appkit.NoTimeout,

@@ -42,36 +42,13 @@ func New(cfg Config) (*Bundle, error) {
 		bus = svc.EventBus()
 	} else {
 		ownsService = true
+		store, bus = defaultInfrastructure(cfg)
 
-		store = cfg.EventStore
-		if store == nil {
-			store = memorystorage.NewMemoryStore()
-		}
-
-		bus = cfg.EventBus
-		if bus == nil {
-			//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
-			bus = watermill.NewEventBus()
-		}
-
-		built, err := usermgmt.NewService(usermgmt.ServiceConfig{
-			EventStore:         store,
-			EventBus:           bus,
-			ReadModelDB:        cfg.ReadModelDB,
-			AuditLog:           usermgmt.NewAuditLog(),
-			TOTP:               cfg.TOTP,
-			WebAuthn:           cfg.WebAuthn,
-			OAuth2:             cfg.OAuth2,
-			SessionTTL:         cfg.SessionTTL,
-			Logger:             cfg.Logger,
-			OnProjectionFailed: cfg.OnProjectionFailed,
-			AsyncStartup:       cfg.AsyncStartup,
-		})
+		var err error
+		svc, err = buildService(cfg, store, bus)
 		if err != nil {
-			return nil, errorfamily.WrapRejection(err, "setup.service_creation_failed", "failed to create usermgmt service")
+			return nil, err
 		}
-
-		svc = built
 	}
 
 	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login/SSE assigned conditionally below
@@ -91,6 +68,50 @@ func New(cfg Config) (*Bundle, error) {
 	bundle.attachSSE()
 
 	return bundle, nil
+}
+
+// defaultInfrastructure resolves the shared store and bus from Config,
+// filling in the in-memory defaults.
+func defaultInfrastructure(cfg Config) (event.Store, event.Bus) {
+	store := cfg.EventStore
+	if store == nil {
+		store = memorystorage.NewMemoryStore()
+	}
+
+	bus := cfg.EventBus
+	if bus == nil {
+		//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
+		bus = watermill.NewEventBus()
+	}
+
+	return store, bus
+}
+
+// buildService constructs the usermgmt.Service from the service-construction
+// subset of Config. Only called when no service is adopted (see Config.Service).
+func buildService(cfg Config, store event.Store, bus event.Bus) (*usermgmt.Service, error) {
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		EventStore:         store,
+		EventBus:           bus,
+		ReadModelDB:        cfg.ReadModelDB,
+		AuditLog:           usermgmt.NewAuditLog(),
+		TOTP:               cfg.TOTP,
+		WebAuthn:           cfg.WebAuthn,
+		OAuth2:             cfg.OAuth2,
+		SessionTTL:         cfg.SessionTTL,
+		Logger:             cfg.Logger,
+		OnProjectionFailed: cfg.OnProjectionFailed,
+		AsyncStartup:       cfg.AsyncStartup,
+	})
+	if err != nil {
+		return nil, errorfamily.WrapRejection(
+			err,
+			"setup.service_creation_failed",
+			"failed to create usermgmt service",
+		)
+	}
+
+	return svc, nil
 }
 
 // attachPanels builds and attaches the enabled UI panels (admin, dashboard,
