@@ -51,6 +51,7 @@
 ## f) NEXT — up to 50 items
 
 **Gates (finish the sweep):**
+
 1. `nix run .#check-modules` — must bless: setup's 2 dev replaces, dashboardui's 1, systemadapter's NEW metaengine/v4 replace, storage/v4 v4.7.1 everywhere
 2. `nix run .#check-cqrs-lint`
 3. `nix run .#coverage-gate` — root ≥90 with new transport lines; setup ≥80 with heartbeat paths
@@ -112,9 +113,9 @@
 ## g) QUESTIONS (cannot resolve myself)
 
 1. **(Carried from round-3) Family tag timing:** cut v4.8.1/v4.9.0 now to publish `transport.DomainEventToSSE` + setup replay/heartbeat + dashboardui migration and strip the 3 dev replaces — or hold for more changes? The replaces are documented and gates can bless them either way.
-2. **(Carried from round-3) `/sse` authorization:** is session-gating sufficient for replaying historical event *metadata* (stream IDs, types, timestamps — no payloads), or should a stream-type filter land before we publish the endpoint shape?
+2. **(Carried from round-3) `/sse` authorization:** is session-gating sufficient for replaying historical event _metadata_ (stream IDs, types, timestamps — no payloads), or should a stream-type filter land before we publish the endpoint shape?
 3. **Toolchain drift:** upstream `go-cqrs-lite/go.work` now requires **go ≥ 1.26.6**; this repo pins **1.26.5** with `GOTOOLCHAIN=local` (nix). Standalone builds inside the upstream repo already fail. Bump this repo to 1.26.6, or is 1.26.5 a deliberate freeze I should respect?
 
 ---
 
-*Session inventory: 10 files changed, all committed (by daemon) in `66195d5f`. Lint 0/15 modules. Build 26/26. Remaining gates unrun this session. Waiting for instructions.*
+_Session inventory: 10 files changed, all committed (by daemon) in `66195d5f`. Lint 0/15 modules. Build 26/26. Remaining gates unrun this session. Waiting for instructions._
