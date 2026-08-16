@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"bytes"
 	"context"
+	"slices"
 	"sort"
 	"time"
 
@@ -136,6 +137,13 @@ func (m *UserReadModel) handleCredentialAdded(_ id.StreamID, evt event.Event) er
 		return err
 	}
 	if u, ok := m.users[aggID]; ok {
+		// Skip when the credential ID is already present: after a hydrate the
+		// drain may re-apply events whose SQL view write survived a crash but
+		// whose checkpoint save did not, and appending blindly would duplicate
+		// the credential.
+		if u.HasCredential(p.ID) {
+			return nil
+		}
 		u.Credentials = append(u.Credentials, NewCredentialFromPayload(p, evt.OccurredAt()))
 		u.UpdatedAt = evt.OccurredAt()
 	}
@@ -210,15 +218,22 @@ func (m *UserReadModel) handleExternalAccountLinked(_ id.StreamID, evt event.Eve
 		return err
 	}
 	if u, ok := m.users[aggID]; ok {
-		u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
-			ExternalAccountCore: ExternalAccountCore{
-				Provider:    p.Provider,
-				Subject:     p.Subject,
-				Email:       p.Email,
-				DisplayName: p.DisplayName,
-			},
-			LinkedAt: evt.OccurredAt(),
-		})
+		// Skip an already-linked provider+subject pair: after a hydrate the
+		// drain may re-apply events whose SQL view write survived a crash but
+		// whose checkpoint save did not (at-least-once re-delivery).
+		if !slices.ContainsFunc(u.ExternalAccounts, func(ea ExternalAccount) bool {
+			return ea.Provider == p.Provider && ea.Subject == p.Subject
+		}) {
+			u.ExternalAccounts = append(u.ExternalAccounts, ExternalAccount{
+				ExternalAccountCore: ExternalAccountCore{
+					Provider:    p.Provider,
+					Subject:     p.Subject,
+					Email:       p.Email,
+					DisplayName: p.DisplayName,
+				},
+				LinkedAt: evt.OccurredAt(),
+			})
+		}
 		u.UpdatedAt = evt.OccurredAt()
 		m.externalAccounts[externalAccountKey{provider: p.Provider, subject: p.Subject}] = aggID
 	}

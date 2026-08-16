@@ -276,6 +276,17 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 		userProj, membershipProj, tenantProj, botProj, casbinProjection, config.AuditLog,
 	)
 
+	// With a CheckpointStore the drain resumes from saved checkpoints, so
+	// SQL-backed read models must load their in-memory state from SQL instead
+	// of relying on replay to rebuild it. Hydrate before the host starts so
+	// no event is ever applied to an empty map.
+	if config.CheckpointStore != nil {
+		if err := hydrateProjections(context.Background(), slog.Default(), allProjections); err != nil {
+			closeBus(bus)
+			return nil, err
+		}
+	}
+
 	var hostOpts []projectionhost.HostOption
 	if config.OnProjectionFailed != nil {
 		hostOpts = append(hostOpts, projectionhost.WithOnFailed(config.OnProjectionFailed))

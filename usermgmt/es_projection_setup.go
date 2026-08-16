@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -43,12 +44,25 @@ func StartProjections(
 	casbinProjection *CasbinProjection,
 	auditLog *AuditLog,
 ) (*projectionhost.Host, error) {
+	projections := collectProjections(
+		readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog,
+	)
+
+	// With a CheckpointStore the drain resumes from saved checkpoints, so
+	// SQL-backed read models must hydrate their in-memory maps from SQL before
+	// the host starts. Mirrors NewEventSourcedSetup.
+	if cpStore != nil {
+		if err := hydrateProjections(context.Background(), slog.Default(), projections); err != nil {
+			return nil, err
+		}
+	}
+
 	return startProjectionHost(
 		context.Background(),
 		journal,
 		bus,
 		cpStore,
-		collectProjections(readModel, membershipReadModel, tenantReadModel, botReadModel, casbinProjection, auditLog),
+		projections,
 		0,    // default drain timeout (30s)
 		true, // block: read-your-writes on startup (documented contract)
 	)
@@ -89,6 +103,13 @@ func startProjectionHost(
 	if store == nil {
 		//cqrs-lint:ignore(C017) library default: consumers pass a persistent checkpoint store via config for production
 		store = memory.NewMemoryCheckpointStore()
+	} else {
+		// Only projections that can rehydrate from persistent state may keep
+		// checkpoints across restarts; in-memory projections (casbin, default
+		// audit log) must always replay the full journal or they would stay
+		// empty forever. Applies to every host created through this factory,
+		// including rebuilds.
+		store = newHydrationAwareCheckpointStore(store, projections)
 	}
 
 	allOpts := append([]projectionhost.HostOption{

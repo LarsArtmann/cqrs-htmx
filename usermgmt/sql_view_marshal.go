@@ -22,6 +22,19 @@ func marshalViewJSON[T any](entity T, errCode, msg string) (string, error) {
 	return string(data), nil
 }
 
+// unmarshalViewJSON unmarshals a SQL view's Data blob back into an entity,
+// wrapping decode failures as Corruption errors (the blob is derived state —
+// an undecodable row means the view store drifted from the code). errCode is
+// the stable metric/log code; msg is the human-readable label. The inverse of
+// marshalViewJSON, used by the read-model Hydrate methods.
+func unmarshalViewJSON[T any](data, errCode, msg string) (T, error) {
+	var entity T
+	if err := json.Unmarshal([]byte(data), &entity); err != nil {
+		return entity, errorfamily.WrapCorruption(err, errCode, msg)
+	}
+	return entity, nil
+}
+
 // wrapTransientOrOK returns nil when err is nil, otherwise wraps err as a
 // Transient failure with the caller's error code and message. Eliminates the
 // repeated `if err != nil { return WrapTransient(err, code, msg) }; return nil`

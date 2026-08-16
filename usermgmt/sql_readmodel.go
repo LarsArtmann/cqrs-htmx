@@ -115,7 +115,7 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 	if !ok {
 		return nil
 	}
-	data, err := marshalViewJSON(user, "usermgmt.sql_readmodel.marshal", "marshal user data")
+	data, err := marshalUserViewData(user)
 	if err != nil {
 		return err
 	}

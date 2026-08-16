@@ -2,7 +2,7 @@ package usermgmt
 
 import (
 	"context"
-	"time"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -92,9 +92,15 @@ func (m *MembershipReadModel) applyMemberAdded(aggID id.StreamID, evt event.Even
 		ActorID:  NewActorID(kind, p.ActorID),
 		TenantID: NewTenantID(p.TenantID),
 		Roles:    roles,
-		AddedAt:  time.Now().UTC(),
+		AddedAt:  evt.OccurredAt(),
 	}
-	m.byActor[p.ActorID] = append(m.byActor[p.ActorID], aggID)
+	// Guard the byActor slice against at-least-once re-delivery (after a
+	// hydrate the drain may re-apply events whose SQL view write survived a
+	// crash but whose checkpoint save did not): the memberships map set is
+	// idempotent, a blind append is not.
+	if !slices.Contains(m.byActor[p.ActorID], aggID) {
+		m.byActor[p.ActorID] = append(m.byActor[p.ActorID], aggID)
+	}
 	return nil
 }
 
