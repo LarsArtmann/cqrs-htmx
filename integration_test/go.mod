@@ -89,7 +89,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect

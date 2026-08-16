@@ -17,8 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
-	//cqrs-lint:ignore(V006) pinned back from v4.7.0: that tag does not compile (sql/keyset.go assigns an undeclared err); v4.6.0 is the last-good tag
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/httputil v0.11.0

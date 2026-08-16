@@ -40,7 +40,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260812165929-11e7746d6a7e // indirect
 	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
@@ -63,3 +63,8 @@ require (
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 //cqrs-lint:ignore(E009) dashboard IS the transport/view layer
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
+
+// DEV-ONLY (remove before the next family tag): dashboardui uses the new
+// transport.DomainEventToSSE helper in the unpublished root master. Strip
+// this replace when cutting the coordinated family version.
+replace github.com/larsartmann/cqrs-htmx/v4 => ../
