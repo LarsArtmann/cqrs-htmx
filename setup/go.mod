@@ -79,7 +79,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
 	//cqrs-lint:ignore(V006) pinned back from v4.7.0: that tag does not compile (sql/keyset.go assigns an undeclared err); v4.6.0 is the last-good tag
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-etag v0.1.1 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0
