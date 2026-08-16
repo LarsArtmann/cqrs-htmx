@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/httputil v0.11.0
+	github.com/larsartmann/httputil v0.12.0
 )
 
 require (
@@ -57,7 +57,7 @@ require (
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-appkit v0.2.0
+	github.com/larsartmann/go-appkit v0.3.0
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
@@ -79,10 +79,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-etag v0.1.1 // indirect
+	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0
-	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
+	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/larsartmann/templ-components v1.8.3 // indirect
 	github.com/larsartmann/templ-components/htmx v1.8.2 // indirect
 	github.com/larsartmann/templ-components/icons v1.8.2 // indirect

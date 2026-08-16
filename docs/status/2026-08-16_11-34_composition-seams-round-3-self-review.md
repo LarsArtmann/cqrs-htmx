@@ -13,11 +13,11 @@ All three decisions were made autonomously and executed: SSE envelope deduplicat
 
 ## Decisions Made (from the 3 questions)
 
-| Question | Decision | Rationale |
-|---|---|---|
-| 1. SSE envelope dedup vs duplication+test | **Dedup into root `transport/`** | Library/SDK must not tolerate copy-paste drift; wire shape becomes published language |
-| 2. go-cqrs-lite upstream repairs | **Superseded** — v4.7.1 was published mid-session (fixes the keyset.go compile error); bumped everything to it | No workspace-side patch needed |
-| 3. `/sse` replay now vs live-only v1 | **Implemented now** | Reuses existing seams (`transport.NewJournalSSEStore` + `sse.Replay`); mirrors dashboardui |
+| Question                                  | Decision                                                                                                       | Rationale                                                                                  |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1. SSE envelope dedup vs duplication+test | **Dedup into root `transport/`**                                                                               | Library/SDK must not tolerate copy-paste drift; wire shape becomes published language      |
+| 2. go-cqrs-lite upstream repairs          | **Superseded** — v4.7.1 was published mid-session (fixes the keyset.go compile error); bumped everything to it | No workspace-side patch needed                                                             |
+| 3. `/sse` replay now vs live-only v1      | **Implemented now**                                                                                            | Reuses existing seams (`transport.NewJournalSSEStore` + `sse.Replay`); mirrors dashboardui |
 
 ---
 
@@ -72,6 +72,7 @@ All three decisions were made autonomously and executed: SSE envelope deduplicat
 ## f) NEXT UP TO 50 THINGS
 
 **P0 — verify this session's work (blocking):**
+
 1. `nix run .#lint` — confirm setup (gci/exhaustruct) + dashboardui + root clean
 2. `nix run .#build` — 26 modules hermetic
 3. `nix run .#check-modules` — bless the 2 new dev replaces + storage v4.7.1

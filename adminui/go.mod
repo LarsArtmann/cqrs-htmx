@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/httputil v0.11.0
+	github.com/larsartmann/httputil v0.12.0
 	github.com/larsartmann/templ-components v1.8.3
 	github.com/larsartmann/templ-components/htmx v1.8.2
 	github.com/larsartmann/templ-components/icons v1.8.2
@@ -56,10 +56,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-etag v0.1.1 // indirect
+	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect
-	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
+	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect

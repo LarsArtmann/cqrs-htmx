@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-etag v0.2.0
-	github.com/larsartmann/httputil v0.11.0
+	github.com/larsartmann/httputil v0.12.0
 )
 
 require (
@@ -25,7 +25,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect
-	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
+	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/time v0.15.0 // indirect

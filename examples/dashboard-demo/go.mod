@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
-	github.com/larsartmann/httputil v0.11.0
+	github.com/larsartmann/httputil v0.12.0
 )
 
 require (
@@ -42,10 +42,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-etag v0.1.1 // indirect
+	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-sse v0.5.0 // indirect
-	github.com/larsartmann/httputil/server_timing v0.10.0 // indirect
+	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/larsartmann/templ-components/icons v1.8.2 // indirect
 	github.com/larsartmann/templ-components/utils v1.8.2 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
