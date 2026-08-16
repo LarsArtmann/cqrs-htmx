@@ -10,6 +10,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
@@ -18,7 +19,7 @@ func TestBundle_SSEHandlerReplay(t *testing.T) {
 	t.Parallel()
 
 	store := memorystorage.NewMemoryStore()
-	bus := newFakeBus()
+	bus := eventtest.NewFakeBus()
 
 	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("User", aggID)
@@ -89,7 +90,7 @@ func TestBundle_SSEHandlerInitialBackfill(t *testing.T) {
 	t.Parallel()
 
 	store := memorystorage.NewMemoryStore()
-	bus := newFakeBus()
+	bus := eventtest.NewFakeBus()
 
 	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("User", aggID)
@@ -140,19 +141,55 @@ func TestBundle_SSEHandlerInitialBackfill(t *testing.T) {
 	}
 }
 
-// newFakeBus is a minimal event.Bus that satisfies SubscribeAll for the bridge.
-// It intentionally does nothing on Publish because these tests only exercise
-// replay, not the live bridge.
-type fakeBus struct{}
+// TestBundle_SSEHeartbeatEmission asserts keep-alive comment frames are sent
+// while the SSE handler runs, so reverse proxies do not kill idle connections.
+func TestBundle_SSEHeartbeatEmission(t *testing.T) {
+	t.Parallel()
 
-func newFakeBus() *fakeBus { return &fakeBus{} }
+	store := memorystorage.NewMemoryStore()
+	bus := eventtest.NewFakeBus()
 
-func (f *fakeBus) Publish(_ context.Context, _ ...event.Event) error { return nil }
+	bundle, err := New(Config{
+		Title:                "Heartbeat",
+		SSEPath:              "/sse",
+		SSEHeartbeatInterval: 10 * time.Millisecond,
+		EventStore:           store,
+		EventBus:             bus,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
 
-func (f *fakeBus) Subscribe(_ event.Type, _ event.Handler) error { return nil }
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-func (f *fakeBus) SubscribeAll(_ event.Handler) error { return nil }
+	req := httptest.NewRequest(http.MethodGet, "/sse", nil)
+	req = req.WithContext(ctx)
+	req = req.WithContext(usermgmt.WithUser(req.Context(), &usermgmt.User{ID: usermgmt.GenerateUserID()}))
 
-func (f *fakeBus) Use(_ ...event.Middleware) error { return nil }
+	rec := httptest.NewRecorder()
 
-func (f *fakeBus) UsePublish(_ ...event.PublishMiddleware) error { return nil }
+	done := make(chan struct{})
+	go func() {
+		bundle.sseHandler().ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	heartbeatCount := 0
+	for line := range strings.SplitSeq(body, "\n") {
+		if strings.HasPrefix(line, ":") {
+			heartbeatCount++
+		}
+	}
+
+	if heartbeatCount == 0 {
+		t.Errorf("expected at least 1 heartbeat comment frame, got 0\nbody:\n%s", body)
+	}
+}

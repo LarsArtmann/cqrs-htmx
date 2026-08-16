@@ -37,8 +37,8 @@ func TestDomainEventToSSE(t *testing.T) {
 
 	sseEvt := DomainEventToSSE(evt)
 
-	if sseEvt.Event != "event" {
-		t.Errorf("sse event name: got %q, want %q", sseEvt.Event, "event")
+	if sseEvt.Event != sseEventType {
+		t.Errorf("sse event name: got %q, want %q", sseEvt.Event, sseEventType)
 	}
 
 	if sseEvt.ID.Get() != evt.ID().String() {
@@ -54,28 +54,36 @@ func TestDomainEventToSSE(t *testing.T) {
 		t.Fatalf("unmarshal SSE payload: %v", err)
 	}
 
-	if payload.Type != "user.registered" {
-		t.Errorf("payload.Type: got %q, want %q", payload.Type, "user.registered")
+	assertPayloadFields(t, payload, aggID.String(), evt.ID().String(), wantTime)
+}
+
+// assertPayloadFields checks every field of the EventPayload envelope so the
+// main test body stays under the cyclop limit.
+func assertPayloadFields(t *testing.T, p EventPayload, streamID, eventID string, wantTime time.Time) {
+	t.Helper()
+
+	if p.Type != "user.registered" {
+		t.Errorf("payload.Type: got %q, want %q", p.Type, "user.registered")
 	}
 
-	if payload.StreamType != "user" {
-		t.Errorf("payload.StreamType: got %q, want %q", payload.StreamType, "user")
+	if p.StreamType != "user" {
+		t.Errorf("payload.StreamType: got %q, want %q", p.StreamType, "user")
 	}
 
-	if payload.StreamID != aggID.String() {
-		t.Errorf("payload.StreamID: got %q, want %q", payload.StreamID, aggID.String())
+	if p.StreamID != streamID {
+		t.Errorf("payload.StreamID: got %q, want %q", p.StreamID, streamID)
 	}
 
-	if payload.Version != 3 {
-		t.Errorf("payload.Version: got %d, want %d", payload.Version, 3)
+	if p.Version != 3 {
+		t.Errorf("payload.Version: got %d, want %d", p.Version, 3)
 	}
 
-	if payload.OccurredAt != wantTime.Format(time.RFC3339) {
-		t.Errorf("payload.OccurredAt: got %q, want %q", payload.OccurredAt, wantTime.Format(time.RFC3339))
+	if p.OccurredAt != wantTime.Format(time.RFC3339) {
+		t.Errorf("payload.OccurredAt: got %q, want %q", p.OccurredAt, wantTime.Format(time.RFC3339))
 	}
 
-	if payload.EventID != evt.ID().String() {
-		t.Errorf("payload.EventID: got %q, want %q", payload.EventID, evt.ID().String())
+	if p.EventID != eventID {
+		t.Errorf("payload.EventID: got %q, want %q", p.EventID, eventID)
 	}
 }
 
@@ -107,6 +115,41 @@ func TestDomainEventToSSE_JSONKeys(t *testing.T) {
 	}
 }
 
+// TestDomainEventToSSE_WireFormatGolden pins the exact serialized bytes of the
+// envelope. EventPayload is published language shared by every SSE endpoint in
+// the family, so field order and key spelling must never drift silently.
+func TestDomainEventToSSE_WireFormatGolden(t *testing.T) {
+	t.Parallel()
+
+	aggID, err := id.ParseStreamID(ulid.Make().String())
+	if err != nil {
+		t.Fatalf("parse stream ID: %v", err)
+	}
+
+	wantTime := time.Date(2026, 8, 16, 10, 0, 0, 0, time.UTC)
+
+	evt, err := event.New(
+		event.Type("user.registered"),
+		aggID,
+		"user",
+		event.Version(3),
+		`{"email":"a@example.com"}`,
+		event.WithOccurredAt(wantTime),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	sseEvt := DomainEventToSSE(evt)
+
+	want := `{"type":"user.registered","streamType":"user","streamId":"` + aggID.String() +
+		`","version":3,"occurredAt":"2026-08-16T10:00:00Z","eventId":"` + evt.ID().String() + `"}`
+
+	if sseEvt.Data != want {
+		t.Errorf("envelope wire format drift:\n got: %s\nwant: %s", sseEvt.Data, want)
+	}
+}
+
 func TestDomainEventToSSE_UsedByJournalSSEStore(t *testing.T) {
 	t.Parallel()
 
@@ -126,8 +169,8 @@ func TestDomainEventToSSE_UsedByJournalSSEStore(t *testing.T) {
 	}
 
 	for _, sseEvt := range result {
-		if sseEvt.Event != "event" {
-			t.Errorf("expected event name %q, got %q", "event", sseEvt.Event)
+		if sseEvt.Event != sseEventType {
+			t.Errorf("expected event name %q, got %q", sseEventType, sseEvt.Event)
 		}
 
 		if !strings.Contains(sseEvt.Data, `"type"`) {

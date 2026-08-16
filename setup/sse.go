@@ -71,6 +71,28 @@ func (b *Bundle) sseHandler() http.Handler {
 			}
 		}
 
+		// Heartbeat runs alongside the event loop. Derive a cancellable
+		// context and join the goroutine before this handler returns: a
+		// heartbeat write racing handler teardown is a data race, and
+		// net/http forbids touching the ResponseWriter after return.
+		hbCtx, hbCancel := context.WithCancel(r.Context())
+		hbDone := make(chan struct{})
+
+		if b.config.SSEHeartbeatInterval > 0 {
+			go func() {
+				defer close(hbDone)
+
+				stream.Heartbeat(hbCtx, b.config.SSEHeartbeatInterval)
+			}()
+		} else {
+			close(hbDone)
+		}
+
+		defer func() {
+			hbCancel()
+			<-hbDone
+		}()
+
 		for {
 			select {
 			case <-stream.Context().Done():

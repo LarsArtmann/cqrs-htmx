@@ -78,6 +78,11 @@ type Config struct {
 	// fan-out (it is the same hub the endpoint serves from).
 	SSEPath string
 
+	// SSEHeartbeatInterval controls how often connected SSE clients receive
+	// keep-alive comment frames on the SSEPath endpoint. A non-positive value
+	// disables heartbeats. Default: 15 seconds.
+	SSEHeartbeatInterval time.Duration
+
 	// UI configuration (all optional — sensible defaults).
 	Title       string // page title for all panels (default: "cqrs-htmx")
 	AccentColor string // CSS accent color (default: "#0ea5e9")
@@ -202,6 +207,10 @@ func (c Config) withDefaults() Config {
 
 	// SSE is an exact-match endpoint, like health.
 	cfg.SSEPath = trimTrailingSlash(cfg.SSEPath)
+
+	if cfg.SSEHeartbeatInterval == 0 {
+		cfg.SSEHeartbeatInterval = 15 * time.Second
+	}
 
 	return cfg
 }

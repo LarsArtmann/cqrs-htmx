@@ -12,6 +12,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0

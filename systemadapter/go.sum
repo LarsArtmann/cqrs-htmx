@@ -195,8 +195,6 @@ github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.1 h1:1ReGC4E
 github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.0.1/go.mod h1:lR2oNonRczo1zfpr3ipCiAtNOZWMbrOMbt/l07pWucI=
 github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.1 h1:my7tHyPaoeIOk8Ope6LZuP/mizAR1GuA48amFzDgN+c=
 github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.1/go.mod h1:obHag3y6eg5N2ODrZ8NYPpYlzPio8tjRNc/C9V/MsRY=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.11.0 h1:ALOdyKgCFPatilLVKZviP/FpKWcMlTWjjaSXc1+ZFEw=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.11.0/go.mod h1:VdGOjyLbiwDTLKfW7jAlaqMIjIWBlC+4wWYY0MG29uQ=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.3.0 h1:1iybvmhuQBCuEy8cqTLPL2H/xGlTj+oxIyTHv8GuzFY=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.3.0/go.mod h1:0r/d+dn/oVO4qQLNaJfYdKlAf6Y4EybIhnWs2qBOR5Y=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 h1:s9XLaYa8jLAK3uBl6giJKStiQA+1ag9VmjQEU4AKZbg=

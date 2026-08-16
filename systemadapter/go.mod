@@ -120,3 +120,9 @@ replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => .
 // Required for hermetic GOWORK=off builds/tests. Remove once
 // metaengine/sqliteengine/v4 v4.0.2+ is tagged.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../go-cqrs-lite/metaengine/sqliteengine
+
+// TEMPORARY local replace: go-cqrs-lite master's metaengine added
+// StreamLogEntry / SeqSeekableStreamLog (after v4.11.0); the local
+// sqliteengine references them. Required for hermetic GOWORK=off
+// lint/test builds. Remove once metaengine/v4 v4.12.0+ is tagged.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../go-cqrs-lite/metaengine

@@ -145,20 +145,26 @@
 //
 // # SSE Reconnection with Durable Replay
 //
-// JournalSSEStore provides the production sse.EventStore implementation,
-// backed by the go-cqrs-lite event journal. On SSE reconnection, missed
-// events are replayed via cursor-based ReadFrom:
+// transport.JournalSSEStore provides the production sse.EventStore
+// implementation, backed by the go-cqrs-lite event journal. On SSE
+// reconnection, missed events are replayed via cursor-based ReadFrom:
 //
-//	store := cqrshtmx.NewJournalSSEStore(eventJournal, func(evt event.Event) sse.Event {
+//	store := transport.NewJournalSSEStore(eventJournal, transport.DomainEventToSSE)
+//
+//	lastID := stream.LastEventID()
+//	sse.Replay(stream, store, lastID)
+//
+// transport.DomainEventToSSE is the canonical JSON envelope (event type,
+// stream type/id, version, occurredAt, eventId). Pass a custom mapper for
+// domain-specific payloads instead:
+//
+//	store := transport.NewJournalSSEStore(eventJournal, func(evt event.Event) sse.Event {
 //	    return sse.Event{
 //	        Event: string(evt.Type()),
 //	        Data:  renderHTML(evt),
 //	        ID:    sse.NewEventID(evt.ID().String()),
 //	    }
 //	})
-//
-//	lastID := stream.LastEventID()
-//	sse.Replay(stream, store, lastID)
 //
 // # ACK Protocol (Honest UI)
 //

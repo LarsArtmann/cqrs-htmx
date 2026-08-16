@@ -9,6 +9,9 @@ import (
 	"github.com/larsartmann/go-sse"
 )
 
+// sseEventType is the SSE event name for all domain events in the envelope.
+const sseEventType = "event"
+
 // EventPayload is the small JSON envelope streamed to browsers for each domain
 // event. It intentionally contains only metadata (IDs, type, version,
 // occurredAt) — not the full payload — so it is safe to expose over
@@ -45,13 +48,13 @@ func DomainEventToSSE(evt event.Event) sse.Event {
 		slog.Error("transport: marshal SSE event payload", "error", err, "eventType", payload.Type)
 
 		return sse.Event{
-			Event: "event",
+			Event: sseEventType,
 			ID:    sse.NewEventID(payload.EventID),
 		}
 	}
 
 	return sse.Event{
-		Event: "event",
+		Event: sseEventType,
 		Data:  string(data),
 		ID:    sse.NewEventID(payload.EventID),
 	}
