@@ -174,6 +174,35 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 With both set, restart replays only events since the last checkpoint (seconds,
 not minutes), **and** the server binds immediately.
 
+### How checkpointed restarts stay correct (hydrate + hydration-aware checkpoints)
+
+Since 2026-08-16 this combination is fully supported — before that, setting a
+`CheckpointStore` without hydration left the in-memory read-model maps empty
+after a restart (reads are served from memory, not SQL). Three guarantees make
+it safe now:
+
+1. **Hydration:** every SQL-backed read model implements `Hydrator`. On
+   startup (before the projection host starts), each one rebuilds its
+   in-memory maps and secondary indexes from its SQL view store. A hydrate
+   failure aborts construction — never serve half-hydrated state.
+2. **Hydration-aware checkpoints:** the library wraps your checkpoint store so
+   projections _without_ persistent state (`casbin-projection`, the default
+   in-memory `AuditLog`) are never checkpointed — they always replay the full
+   journal, so authorization policies and the audit trail are complete after
+   every restart. A checkpoint on an in-memory projection would starve it
+   permanently (the drain would skip every pre-checkpoint event with nothing
+   to rehydrate from).
+3. **At-least-once convergence:** a crash between a SQL view write and the
+   checkpoint save re-applies some events onto hydrated state; the read-model
+   handlers are idempotent, so re-application converges instead of
+   duplicating credentials, external accounts, or membership index entries.
+
+**TOTP migration note:** view rows written by older usermgmt versions lack the
+`totp_secret` column content. If you upgrade an existing SQL read model,
+run `RebuildProjection(ctx, "user-read-model")` once after deploying (or have
+affected TOTP users re-enroll) — otherwise hydrated users report
+`TOTPEnabled` but carry no secret and TOTP login fails.
+
 ---
 
 ## Backward Compatibility
