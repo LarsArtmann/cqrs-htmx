@@ -5,10 +5,13 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"testing"
 	"time"
+
+	appkit "github.com/larsartmann/go-appkit"
 )
 
 // freeLocalAddr reserves an OS-assigned port, releases it, and returns the
@@ -78,6 +81,21 @@ func serveInBackground(
 	}
 }
 
+// spikeTestDrainDelay replaces the 2-second appkit production drain with a
+// value small enough that the spike test suite finishes in ~3 seconds instead
+// of ~6 — production behavior (drain → readiness flip → stop) is still
+// exercised end-to-end, just on a faster clock.
+const spikeTestDrainDelay = 50 * time.Millisecond
+
+// spikeBenchDrainDelay keeps the per-iteration shutdown cost near-zero in the
+// adoption benchmark. The 2-second production drain would force the benchmark
+// framework to spawn one goroutine, run Shutdown, wait DrainDelay, and then
+// proceed to the next b.N iteration's server bring-up — b.N scales by elapsed
+// time, so an in-timer 2s drain poisons every measurement. By making the
+// drain near-instant, both the baseline and the appkit cases differ only by
+// the request-path work each stack actually performs.
+const spikeBenchDrainDelay = 10 * time.Millisecond
+
 // TestRunWithAppkit_SSEHeaderFlushThroughFullStack (M18.3): an SSE-style
 // handler — headers written and flushed immediately, first event 400ms later —
 // must have its flush survive BOTH middleware layers (appkit's generic stack
@@ -107,7 +125,9 @@ func TestRunWithAppkit_SSEHeaderFlushThroughFullStack(t *testing.T) {
 	})
 
 	addr := freeLocalAddr(t)
-	stop := serveInBackground(t, bundle.RunWithAppkit, addr, sse)
+	stop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
+		return bundle.runWithAppkit(ctx, addr, h, spikeTestDrainDelay, "")
+	}, addr, sse)
 	defer stop()
 
 	client := &http.Client{Timeout: 10 * time.Second}
@@ -160,7 +180,9 @@ func TestRunWithAppkit_ReadinessAndCleanShutdown(t *testing.T) {
 	defer func() { _ = bundle.Close() }()
 
 	addr := freeLocalAddr(t)
-	stop := serveInBackground(t, bundle.RunWithAppkit, addr, nil)
+	stop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
+		return bundle.runWithAppkit(ctx, addr, h, spikeTestDrainDelay, "")
+	}, addr, nil)
 	defer stop()
 
 	client := &http.Client{Timeout: 2 * time.Second}
@@ -207,7 +229,9 @@ func TestRunWithAppkit_ResponseParity(t *testing.T) {
 	})
 
 	addr := freeLocalAddr(t)
-	stop := serveInBackground(t, bundle.RunWithAppkit, addr, hello)
+	stop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
+		return bundle.runWithAppkit(ctx, addr, h, spikeTestDrainDelay, "")
+	}, addr, hello)
 	defer stop()
 
 	resp, err := http.Get("http://" + addr + "/hello")
@@ -229,10 +253,33 @@ func TestRunWithAppkit_ResponseParity(t *testing.T) {
 
 // BenchmarkSpikeBaselineVsAppkit (M18.4): smoke comparison of request-path
 // overhead — the same handler behind RunHandler (httputil.Server) vs
-// RunWithAppkit (appkit.Service: extra middleware + readiness probe).
-// The 2s drain delay only affects appkit shutdown (outside the timer).
+// RunWithAppkit (appkit.Service: extra middleware + readiness probe). Used
+// to decide whether the ADR-001 appkit adoption costs any per-request work
+// worth caring about (comparison-report finding 7).
 //
-//	go test -bench BenchmarkSpikeBaselineVsAppkit -benchtime 2s -run xxx
+// The 10ms DrainDelay (vs the 2s production default) keeps per-iteration
+// shutdown cost near zero in both cases; the delta we measure is the actual
+// request-path work each stack does, not drain phase.
+//
+// Per-request INFO logs from appkit's Logging middleware dominate the
+// measurement when logging stays at INFO — finding 7 showed 16178 vs 45049
+// ns/op with logging on, ~28µs/request of which ~22µs is the formatted line.
+// The appkit sub-benchmark passes LogLevelError to suppress those lines so
+// the comparison isolates stack overhead from observability overhead;
+// logging posture is a deliberate decision, not a benchmark artifact. As
+// belt-and-suspenders for any third-party dependency that talks to
+// slog.Default(), we also pin a discard handler for the duration of the
+// sub-benchmark and restore it on cleanup so the surrounding suite keeps
+// its normal logs.
+//
+// Invocation:
+//
+//	# 5× runs, benchstat-friendly (alloc + throughput metrics):
+//	go test -run xxx -bench '^BenchmarkSpikeBaselineVsAppkit$' \
+//	    -benchtime=2s -benchmem -count=5 -timeout=120s \
+//	    ./setup | tee /tmp/before.txt
+//	# edit source, repeat into /tmp/after.txt
+//	benchstat /tmp/before.txt /tmp/after.txt
 func BenchmarkSpikeBaselineVsAppkit(b *testing.B) {
 	ping := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -240,29 +287,47 @@ func BenchmarkSpikeBaselineVsAppkit(b *testing.B) {
 
 	cases := []struct {
 		name string
-		run  func(*Bundle, context.Context, string, http.Handler) error
+		run  func(*Bundle, context.Context, string, http.Handler, time.Duration, appkit.LogLevel) error
 	}{
-		{"baseline-httputil", (*Bundle).RunHandler},
-		{"appkit-service", (*Bundle).RunWithAppkit},
+		{
+			name: "baseline-httputil",
+			run: func(b *Bundle, ctx context.Context, addr string, h http.Handler, _ time.Duration, _ appkit.LogLevel) error {
+				return b.RunHandler(ctx, addr, h)
+			},
+		},
+		{
+			name: "appkit-service",
+			run: func(b *Bundle, ctx context.Context, addr string, h http.Handler, drainDelay time.Duration, logLevel appkit.LogLevel) error {
+				return b.runWithAppkit(ctx, addr, h, drainDelay, logLevel)
+			},
+		},
 	}
 
 	for _, bc := range cases {
 		b.Run(bc.name, func(b *testing.B) {
+			// Pin slog to discard before serving so anything that talks to
+			// slog.Default() (appkit's logger uses its own, but third-party
+			// dependencies in the chain might not) stays silent.
+			prevLogger := slog.Default()
+			slog.SetDefault(slog.New(slog.DiscardHandler))
+
+			b.Cleanup(func() { slog.SetDefault(prevLogger) })
+
 			bundle := MustNew(Config{Title: "bench-" + bc.name})
 
 			addr := freeLocalAddr(b)
 			stop := serveInBackground(b, func(ctx context.Context, addr string, h http.Handler) error {
-				return bc.run(bundle, ctx, addr, h)
+				return bc.run(bundle, ctx, addr, h, spikeBenchDrainDelay, appkit.LogLevelError)
 			}, addr, ping)
 
 			// The run funcs close the bundle on every exit path; stop() waits
-			// for that drain after the measured loop finishes. The deferred
-			// form stops the timer first so the 2s drain never counts toward
-			// ns/op (it would poison b.N scaling at one iteration).
-			defer func() {
+			// for the (short) drain after the measured loop finishes. b.Cleanup
+			// runs after b's timer has been stopped, so the 10ms drain never
+			// counts toward ns/op.
+			b.Cleanup(func() {
 				b.StopTimer()
 				stop()
-			}()
+			})
 
 			client := &http.Client{Timeout: 5 * time.Second}
 
@@ -272,17 +337,22 @@ func BenchmarkSpikeBaselineVsAppkit(b *testing.B) {
 				b.Fatalf("build request: %v", err)
 			}
 
+			b.ReportAllocs()
 			b.ResetTimer()
 
-			for i := range b.N {
+			for b.Loop() {
 				resp, err := client.Do(req)
 				if err != nil {
-					b.Fatalf("request %d: %v", i, err)
+					b.Fatalf("request: %v", err)
 				}
 
 				_, _ = io.Copy(io.Discard, resp.Body)
 				_ = resp.Body.Close()
 			}
+
+			// benchstat-friendly throughput column (req/s) alongside the
+			// default ns/op and (with -benchmem) B/op + allocs/op.
+			b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "req/s")
 		})
 	}
 }

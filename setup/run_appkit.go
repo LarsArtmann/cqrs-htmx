@@ -38,6 +38,22 @@ import (
 //     SecurityHeaders) wraps the bundle's domain chain.
 //   - Addr() net.Addr is available while serving (listener captured).
 func (b *Bundle) RunWithAppkit(ctx context.Context, addr string, handler http.Handler) error {
+	return b.runWithAppkit(ctx, addr, handler, appkitDefaultDrainDelay, "")
+}
+
+// runWithAppkit is the shared worker for [Bundle.RunWithAppkit] and the spike
+// tests + adoption benchmark. DrainDelay and LogLevel are parameters so
+// internal callers can pick near-zero values:
+//
+//   - DrainDelay: production = appkitDefaultDrainDelay (2s); spike tests use
+//     50ms so a 2s drain never bloats the suite runtime per case; the
+//     adoption benchmark uses 10ms so b.N scales by request work alone, not
+//     drain phase.
+//   - LogLevel: production = "" (appkit default INFO + per-request access
+//     logs); the adoption benchmark uses LogLevelError to isolate the
+//     request-path work each stack performs from appkit's per-request log
+//     line (comparison-report finding 7).
+func (b *Bundle) runWithAppkit(ctx context.Context, addr string, handler http.Handler, drainDelay time.Duration, logLevel appkit.LogLevel) error {
 	if handler == nil {
 		mux := http.NewServeMux()
 		b.Mount(mux)
@@ -47,12 +63,13 @@ func (b *Bundle) RunWithAppkit(ctx context.Context, addr string, handler http.Ha
 	//nolint:exhaustruct // optional appkit fields default sensibly inside appkit
 	svc, err := appkit.NewService(appkit.ServiceConfig{
 		Addr:              addr,
+		LogLevel:          logLevel,
 		ReadTimeout:       appkit.NoTimeout,
 		ReadHeaderTimeout: runReadHeaderTimeout,
 		WriteTimeout:      appkit.NoTimeout,
 		IdleTimeout:       runIdleTimeout,
 		ShutdownTimeout:   runShutdownTimeout,
-		DrainDelay:        appkitDefaultDrainDelay,
+		DrainDelay:        drainDelay,
 		ReadyCheck:        b.projectionReadyCheck(),
 		RegisterHealth:    nil, // default: appkit serves /health, /health/live, /health/ready
 	})
