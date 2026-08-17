@@ -237,15 +237,17 @@ func buildDashboardConfig(
 	projectionHost *projectionhost.Host,
 ) dashboardui.Config {
 	dashCfg := dashboardui.Config{
-		Title:          cfg.Title + " · CQRS Dashboard",
-		BasePath:       cfg.DashboardPath,
-		EventSource:    store,
-		EventBus:       bus,
-		ProjectionHost: projectionHost,
-		PageSize:       cfg.DashboardPageSize,
-		LogoutURL:      cfg.LogoutURL,
-		AccentColor:    cfg.AccentColor,
-		Authorizer:     cfg.DashboardAuthorizer,
+		Title:                cfg.Title + " · CQRS Dashboard",
+		BasePath:             cfg.DashboardPath,
+		EventSource:          store,
+		EventBus:             bus,
+		ProjectionHost:       projectionHost,
+		PageSize:             cfg.DashboardPageSize,
+		LogoutURL:            cfg.LogoutURL,
+		AccentColor:          cfg.AccentColor,
+		Authorizer:           cfg.DashboardAuthorizer,
+		SSEHeartbeatInterval: cfg.SSEHeartbeatInterval,
+		SSEMaxReplay:         cfg.SSEMaxReplay,
 	}
 
 	if journal, ok := store.(event.Journal); ok {
