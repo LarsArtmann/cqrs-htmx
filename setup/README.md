@@ -184,9 +184,9 @@ benchstat /tmp/before.txt /tmp/after.txt
 
 Baseline numbers (5× runs, pinned at `docs/benchmarks/setup-baseline-2026-08-17.txt`):
 
-| Case | ns/op | req/s | B/op | allocs/op |
-|------|-------|-------|------|-----------|
-| `baseline-httputil` | ~17k | ~60k | 5.4k | 61 |
-| `appkit-service`    | ~20k | ~50k | 7.3k | 90 |
+| Case                | ns/op | req/s | B/op | allocs/op |
+| ------------------- | ----- | ----- | ---- | --------- |
+| `baseline-httputil` | ~17k  | ~60k  | 5.4k | 61        |
+| `appkit-service`    | ~20k  | ~50k  | 7.3k | 90        |
 
 The ~30 allocs/op gap is the per-request cost the appkit middleware stack adds; ns/op overhead disappears in any real handler doing I/O. `LogLevelError` is load-bearing — without it, appkit's per-request formatted INFO line dominates the measurement (see the comparison report, finding 7).

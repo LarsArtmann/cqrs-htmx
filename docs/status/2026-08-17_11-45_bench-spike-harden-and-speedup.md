@@ -45,6 +45,7 @@
 ## f) NEXT — up to 50 items
 
 **Fix-now (this repo, cheap):**
+
 1. Delete the now-stale `SSEMaxReplay` line at `setup/setup.go:250` (or add the field to dashboardui and publish) so the build is healthy again.
 2. Restore the other agent's reverted WIP diffs on `setup/config.go`, `setup/sse.go`, and the four `dashboardui/*.go` files (lost in §d.1).
 3. Add a "Benchmarks" section to `setup/README.md` documenting `BenchmarkSpikeBaselineVsAppkit` and the benchstat invocation.
