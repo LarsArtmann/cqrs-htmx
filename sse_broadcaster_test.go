@@ -296,22 +296,23 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 		})
 	})
 
-	Describe("Raw accessor and cross-transport sharing", func() {
-		It("exposes the underlying sse.Broadcaster via Raw", func() {
+	Describe("Hub accessor and cross-transport sharing", func() {
+		It("exposes the underlying sse.Broadcaster via Hub", func() {
 			b := cqrshtmx.NewBroadcaster()
-			Expect(b.Raw()).NotTo(BeNil())
+			Expect(b.Hub()).NotTo(BeNil())
+			Expect(b.Hub()).To(Equal(b.Broadcaster))
 		})
 
-		It("wraps an existing sse.Broadcaster via NewBroadcasterFromRaw", func() {
-			raw := sse.NewBroadcaster[sse.Event]()
-			b := cqrshtmx.NewBroadcasterFromRaw(raw)
-			Expect(b.Raw()).To(Equal(raw))
+		It("wraps an existing sse.Broadcaster via NewBroadcasterFromHub", func() {
+			hub := sse.NewBroadcaster[sse.Event]()
+			b := cqrshtmx.NewBroadcasterFromHub(hub)
+			Expect(b.Hub()).To(Equal(hub))
 		})
 
-		It("shares fan-out across wrappers created from the same raw broadcaster", func() {
-			raw := sse.NewBroadcaster[sse.Event]()
-			b1 := cqrshtmx.NewBroadcasterFromRaw(raw)
-			b2 := cqrshtmx.NewBroadcasterFromRaw(raw)
+		It("shares fan-out across wrappers created from the same hub", func() {
+			hub := sse.NewBroadcaster[sse.Event]()
+			b1 := cqrshtmx.NewBroadcasterFromHub(hub)
+			b2 := cqrshtmx.NewBroadcasterFromHub(hub)
 
 			ch := b1.Subscribe()
 			defer b1.Unsubscribe(ch)
@@ -322,9 +323,15 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			Eventually(ch).Should(Receive(Equal(evt)))
 		})
 
-		It("satisfies the RawBroadcaster interface", func() {
+		It("satisfies the deprecated RawBroadcaster interface until v5 removal", func() {
 			var iface cqrshtmx.RawBroadcaster = cqrshtmx.NewBroadcaster()
 			Expect(iface.Raw()).NotTo(BeNil())
+		})
+
+		It("keeps deprecated Raw accessors functional", func() {
+			hub := sse.NewBroadcaster[sse.Event]()
+			b := cqrshtmx.NewBroadcasterFromRaw(hub)
+			Expect(b.Raw()).To(Equal(hub))
 		})
 	})
 })

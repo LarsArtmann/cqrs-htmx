@@ -1,15 +1,19 @@
 package datastar
 
 import (
-	"context"
 	"net/http"
 
 	godatastar "github.com/larsartmann/go-datastar"
 	"github.com/larsartmann/go-sse"
 )
 
-// Broadcaster fans out DataStar patches to all connected SSE clients. It wraps
+// Broadcaster fans out DataStar patches to all connected SSE clients. It embeds
 // [sse.Broadcaster[sse.Event]] and implements [http.Handler].
+//
+// The embedded hub is the canonical shareable object: use [Broadcaster.Hub] to
+// access it directly (Subscribe, SubscribeFilter, Health, Shutdown, Close,
+// OnSubscribe, OnUnsubscribe are promoted) or to share one fan-out hub with
+// another transport adapter via [NewBroadcasterFromHub].
 //
 // Mount it at your SSE endpoint:
 //
@@ -23,65 +27,89 @@ import (
 // For reconnection replay, use NewBroadcasterWithReplay. When a client
 // reconnects with a Last-Event-ID header, missed events are replayed from an
 // in-memory ring buffer before the live event stream resumes.
-//
-// The underlying sse.Broadcaster provides SubscribeFilter, Shutdown, Health,
-// and configurable buffer size — all available for free via go-sse.
 type Broadcaster struct {
-	inner *sse.Broadcaster[sse.Event]
+	*sse.Broadcaster[sse.Event]
 	store *godatastar.MemoryStore
 }
 
 // NewBroadcaster creates a DataStar patch broadcaster with default settings
 // and no replay support.
 func NewBroadcaster() *Broadcaster {
-	return &Broadcaster{inner: sse.NewBroadcaster[sse.Event]()}
+	return &Broadcaster{Broadcaster: sse.NewBroadcaster[sse.Event]()}
 }
 
 // NewBroadcasterWithBufferSize creates a broadcaster with a custom subscriber
 // buffer size and no replay support.
 func NewBroadcasterWithBufferSize(size int) *Broadcaster {
-	return &Broadcaster{inner: sse.NewBroadcaster[sse.Event](sse.WithBufferSize[sse.Event](size))}
+	return &Broadcaster{
+		Broadcaster: sse.NewBroadcaster[sse.Event](sse.WithBufferSize[sse.Event](size)),
+	}
 }
 
 // NewBroadcasterWithReplay creates a broadcaster that retains the last capacity
 // events in an in-memory ring buffer for reconnection replay. When a client
-// reconnects with a Last-Event-ID header, missed events are replayed before
-// the live stream resumes.
+// reconnects with a Last-Event-ID header, missed events are replayed before the
+// live stream resumes.
 func NewBroadcasterWithReplay(capacity int) *Broadcaster {
 	return &Broadcaster{
-		inner: sse.NewBroadcaster[sse.Event](),
-		store: godatastar.NewMemoryStore(capacity),
+		Broadcaster: sse.NewBroadcaster[sse.Event](),
+		store:       godatastar.NewMemoryStore(capacity),
 	}
 }
 
-// NewBroadcasterFromRaw wraps an existing [*sse.Broadcaster] in a [*Broadcaster],
-// enabling cross-transport fan-out hub sharing without replay support. Use this
-// when you want HTMX SSE and DataStar SSE to share the same underlying event
-// distribution.
-func NewBroadcasterFromRaw(raw *sse.Broadcaster[sse.Event]) *Broadcaster {
-	return &Broadcaster{inner: raw}
+// NewBroadcasterFromHub wraps an existing [*sse.Broadcaster] in a
+// [*Broadcaster], enabling cross-transport fan-out hub sharing. Use this when
+// you want HTMX SSE and DataStar SSE to distribute from the same hub.
+//
+// The returned broadcaster has no replay store; [BroadcastEvent] on it reaches
+// all hub subscribers, but nothing is retained for reconnection replay.
+func NewBroadcasterFromHub(hub *sse.Broadcaster[sse.Event]) *Broadcaster {
+	return &Broadcaster{Broadcaster: hub}
 }
 
-// Raw returns the underlying [*sse.Broadcaster] so consumers can access
-// advanced features (SubscribeFilter, direct Subscribe) or share the fan-out
-// hub with another Broadcaster via NewBroadcasterFromRaw.
+// NewBroadcasterFromRaw wraps an existing [*sse.Broadcaster] in a
+// [*Broadcaster].
+//
+// Deprecated: use [NewBroadcasterFromHub] — the hub is the canonical shareable
+// object, not a "raw" escape hatch. Removal is bundled with v5.
+func NewBroadcasterFromRaw(raw *sse.Broadcaster[sse.Event]) *Broadcaster {
+	return NewBroadcasterFromHub(raw)
+}
+
+// Hub returns the embedded [*sse.Broadcaster] — the canonical fan-out hub.
+// Use it to share one hub across transport adapters (via
+// [NewBroadcasterFromHub]) or to access go-sse features directly
+// (SubscribeFilter, Health, Shutdown, configurable buffer size).
+func (b *Broadcaster) Hub() *sse.Broadcaster[sse.Event] {
+	return b.Broadcaster
+}
+
+// Raw returns the underlying [*sse.Broadcaster].
+//
+// Deprecated: use [Broadcaster.Hub] — the hub is the canonical shareable
+// object, not a "raw" escape hatch. Removal is bundled with v5.
 func (b *Broadcaster) Raw() *sse.Broadcaster[sse.Event] {
-	return b.inner
+	return b.Hub()
 }
 
 // Broadcast sends a patch to all connected clients. The patch's Event() is
 // computed once and the resulting [sse.Event] is fan-out to all subscribers.
 // If replay is enabled, the event is also appended to the store. Slow clients
 // whose channel buffer is full silently miss the event.
+//
+// Broadcast shadows the embedded hub's Broadcast(sse.Event) — to send a raw
+// event, use [Broadcaster.BroadcastEvent].
 func (b *Broadcaster) Broadcast(patch Patch) {
 	evt := patch.Event()
-	b.inner.Broadcast(evt)
+	b.Broadcaster.Broadcast(evt)
 	if b.store != nil {
 		b.store.Append(evt)
 	}
 }
 
-// BroadcastMany sends multiple patches to all connected clients.
+// BroadcastMany sends multiple patches to all connected clients. It shadows the
+// embedded hub's BroadcastMany([]sse.Event); to send raw events, broadcast via
+// [Broadcaster.Hub].
 func (b *Broadcaster) BroadcastMany(patches ...Patch) {
 	for _, p := range patches {
 		b.Broadcast(p)
@@ -91,7 +119,7 @@ func (b *Broadcaster) BroadcastMany(patches ...Patch) {
 // BroadcastEvent sends a raw [sse.Event] to all connected clients. If replay
 // is enabled, the event is also appended to the store.
 func (b *Broadcaster) BroadcastEvent(evt sse.Event) {
-	b.inner.Broadcast(evt)
+	b.Broadcaster.Broadcast(evt)
 	if b.store != nil {
 		b.store.Append(evt)
 	}
@@ -99,23 +127,7 @@ func (b *Broadcaster) BroadcastEvent(evt sse.Event) {
 
 // SubscriberCount returns the number of currently connected SSE clients.
 func (b *Broadcaster) SubscriberCount() int {
-	return b.inner.Health().SubscriberCount
-}
-
-// Health returns a health snapshot of the underlying broadcaster.
-func (b *Broadcaster) Health() sse.BroadcasterHealth {
-	return b.inner.Health()
-}
-
-// Shutdown gracefully drains all subscribers within the context deadline.
-func (b *Broadcaster) Shutdown(ctx context.Context) error {
-	return b.inner.Shutdown(ctx)
-}
-
-// Close immediately disconnects all subscribers.
-func (b *Broadcaster) Close() {
-	//cqrs-lint:ignore(C015) sse.Broadcaster.Close has no error return — nothing to check
-	b.inner.Close()
+	return b.Health().SubscriberCount
 }
 
 // ServeHTTP handles a DataStar SSE connection. It creates an [sse.Stream],
@@ -134,8 +146,8 @@ func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ch := b.inner.Subscribe()
-	defer b.inner.Unsubscribe(ch)
+	ch := b.Subscribe()
+	defer b.Unsubscribe(ch)
 
 	for {
 		select {
@@ -150,16 +162,6 @@ func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-}
-
-// OnSubscribe registers a callback invoked when a client connects.
-func (b *Broadcaster) OnSubscribe(fn func()) {
-	b.inner.OnSubscribe(fn)
-}
-
-// OnUnsubscribe registers a callback invoked when a client disconnects.
-func (b *Broadcaster) OnUnsubscribe(fn func()) {
-	b.inner.OnUnsubscribe(fn)
 }
 
 // LastEventID extracts the last event ID from an HTTP request, checking

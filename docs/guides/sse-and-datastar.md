@@ -2,69 +2,69 @@
 
 > How cqrs-htmx's `Broadcaster` and datastar's `Broadcaster` relate, and how to share one fan-out hub across both transports.
 
-## The Two Broadcasters
+## The Hub Comes First
 
-cqrs-htmx has two SSE broadcaster types, one per frontend transport:
+The canonical shareable object is go-sse's [`*sse.Broadcaster[sse.Event]`](https://github.com/larsartmann/go-sse) — the fan-out hub. It provides subscribe, broadcast, health, graceful shutdown, buffer sizing, predicate filtering, and replay. Everything else in this guide is a thin transport adapter **over** that hub:
 
 | Type                   | Module                | Transport    | Purpose                                                                                                              |
 | ---------------------- | --------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `cqrshtmx.Broadcaster` | Root (`cqrs-htmx/v4`) | HTMX SSE     | Fan-out `sse.Event` to HTMX clients, with CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) |
-| `datastar.Broadcaster` | `datastar/v4`         | Datastar SSE | Fan-out Datastar patches (elements, signals, redirects) to Datastar clients, with optional replay ring buffer        |
+| `*sse.Broadcaster[sse.Event]` | go-sse          | (none — hub) | Core fan-out: Subscribe, Broadcast, SubscribeFilter, Health, Shutdown, replay plumbing                                |
+| `cqrshtmx.Broadcaster` | Root (`cqrs-htmx/v4`) | HTMX SSE     | CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) + `ServeSSE` lifecycle helper               |
+| `datastar.Broadcaster` | `datastar/v4`         | Datastar SSE | Patch ergonomics (`Broadcast(patch)`, typed patch constructors) + `http.Handler` mount + optional replay ring buffer  |
 
-Both wrap the same underlying type: `*sse.Broadcaster[sse.Event]` from [go-sse](https://github.com/larsartmann/go-sse). This is intentional — go-sse provides the core fan-out mechanics (subscribe, broadcast, health, graceful shutdown, buffer sizing, replay), and each Broadcaster adds transport-specific ergonomics on top.
+Both adapters **embed** `*sse.Broadcaster[sse.Event]`, so the full go-sse method set (including `SubscribeFilter`, `Health`, `Shutdown`, `OnSubscribe`, `OnUnsubscribe`) is promoted and callable directly on either adapter.
 
 ## Architecture
 
 ```
                 ┌─────────────────────────────────┐
-                │     sse.Broadcaster[sse.Event]   │  ← go-sse (core fan-out)
+                │     sse.Broadcaster[sse.Event]   │  ← the hub (go-sse)
                 │  Subscribe / Broadcast / Health   │
                 │  Shutdown / OnSubscribe / etc.   │
                 └──────────────┬──────────────────┘
-                               │
+                               │ (one shared pointer)
            ┌───────────────────┴───────────────────┐
            │                                       │
 ┌──────────┴──────────┐              ┌─────────────┴──────────────┐
 │ cqrshtmx.Broadcaster │              │  datastar.Broadcaster      │
-│  (embeds *sse.BC)    │              │  (wraps unexported inner)  │
+│  (embeds the hub)    │              │  (embeds the hub)          │
 │                       │              │                            │
 │  + BroadcastOnSuccess │              │  + Broadcast(patch)        │
 │  + BroadcastOnError   │              │  + BroadcastMany           │
 │  + ServeSSE           │              │  + ServeHTTP               │
-│  + Raw()              │              │  + Raw()                   │
+│  + Hub()              │              │  + Hub()                   │
 └───────────────────────┘              └────────────────────────────┘
 ```
 
-### Key difference
+### Key properties
 
-- **Root** `Broadcaster` **embeds** `*sse.Broadcaster[sse.Event]`, so all go-sse methods (`Subscribe`, `Unsubscribe`, `SubscribeFilter`, `Health`, `Shutdown`, etc.) are automatically promoted and accessible directly.
-- **datastar** `Broadcaster` uses a **named unexported field** (`inner`), so only the explicitly delegated methods are public. This prevents accidental coupling to go-sse internals, but also hides `Subscribe` and `SubscribeFilter`.
+- Both adapters **embed** `*sse.Broadcaster[sse.Event]`, so all go-sse methods are promoted and accessible directly (`b.Subscribe()`, `b.SubscribeFilter(pred)`, `b.Health()`, ...).
+- `Broadcast(patch Patch)` on the datastar adapter shadows the hub's `Broadcast(sse.Event)` — that is intentional (patch ergonomics). To send a raw event through the datastar adapter, use `BroadcastEvent` or the hub directly.
+- `Hub()` on either adapter returns the embedded hub — the canonical handle for sharing.
 
-The `Raw()` accessor bridges this gap for both types.
+## The Hub() Accessor
 
-## The Raw() Accessor
-
-Both Broadcasters expose their underlying `*sse.Broadcaster[sse.Event]` via `Raw()`:
+Both adapters expose their embedded hub via `Hub()`:
 
 ```go
 // Root
 b := cqrshtmx.NewBroadcaster()
-raw := b.Raw() // *sse.Broadcaster[sse.Event]
+hub := b.Hub() // *sse.Broadcaster[sse.Event]
 
 // Datastar
 dsb := ds.NewBroadcaster()
-raw := dsb.Raw() // *sse.Broadcaster[sse.Event]
+hub := dsb.Hub() // *sse.Broadcaster[sse.Event]
 ```
 
-Use `Raw()` when you need:
+Use `Hub()` when you need:
 
-- **`SubscribeFilter`** — subscribe with a custom filter predicate (only available on the raw go-sse broadcaster).
-- **Direct `Subscribe`** from the datastar Broadcaster (not exposed by the wrapper).
+- **`SubscribeFilter`** — predicate-based subscription (promoted on both adapters now, but `Hub()` documents that you are using go-sse directly).
 - **Cross-transport hub sharing** (see below).
+- **Passing the hub to lean helpers** that take `*sse.Broadcaster[sse.Event]` (e.g., `transport.ServeDomainEvents`).
 
 ## Cross-Transport Hub Sharing
 
-When your application serves both HTMX and Datastar clients, you can share a single `sse.Broadcaster` as the fan-out hub so events published from one transport reach subscribers of the other:
+When your application serves both HTMX and Datastar clients, share a single hub so events published from one transport reach subscribers of the other:
 
 ```go
 package main
@@ -82,8 +82,8 @@ func main() {
     hub := sse.NewBroadcaster[sse.Event]()
 
     // 2. Wrap it for each transport
-    htmxBroadcaster := cqrshtmx.NewBroadcasterFromRaw(hub)
-    dsBroadcaster := ds.NewBroadcasterFromRaw(hub)
+    htmxBroadcaster := cqrshtmx.NewBroadcasterFromHub(hub)
+    dsBroadcaster := ds.NewBroadcasterFromHub(hub)
 
     mux := http.NewServeMux()
 
@@ -113,30 +113,23 @@ Sharing is the right choice when HTMX and Datastar pages display the same real-t
 
 If HTMX and Datastar clients consume **different event shapes** (HTML fragments vs. JSON patches), keep separate broadcasters. Mixing event types on one hub means each client must filter irrelevant events, adding complexity.
 
-## The RawBroadcaster Interface
+## Deprecated Raw API (removal bundled with v5)
 
-The root module exports a structural interface for code that needs to accept either Broadcaster type:
+The pre-hub vocabulary framed the hub as a "raw" escape hatch. It is deprecated in favor of the hub-first API:
 
-```go
-type RawBroadcaster interface {
-    Raw() *sse.Broadcaster[sse.Event]
-}
-```
+| Deprecated (until v5)                 | Use instead                          |
+| ------------------------------------ | ------------------------------------ |
+| `b.Raw()`                            | `b.Hub()`                            |
+| `cqrshtmx.NewBroadcasterFromRaw(hub)` | `cqrshtmx.NewBroadcasterFromHub(hub)` |
+| `ds.NewBroadcasterFromRaw(hub)`      | `ds.NewBroadcasterFromHub(hub)`      |
+| `cqrshtmx.RawBroadcaster` interface  | Pass `*sse.Broadcaster[sse.Event]` (the hub itself) |
 
-Both `*cqrshtmx.Broadcaster` and `*datastar.Broadcaster` satisfy this interface structurally (duck typing — no import from datastar to root required). Use it in shared libraries or middleware:
-
-```go
-func RegisterRealtime(mux *http.ServeMux, bc cqrshtmx.RawBroadcaster) {
-    raw := bc.Raw()
-    raw.OnSubscribe(func() { log.Printf("client connected, total: %d", raw.Health().SubscriberCount) })
-    raw.OnUnsubscribe(func() { log.Printf("client disconnected") })
-}
-```
+The deprecated symbols remain functional through v4; staticcheck flags call sites. The datastar adapter's hub was previously a hidden unexported field (`inner`) with hand-written pass-throughs — it is now embedded, so `Subscribe`/`SubscribeFilter` and friends promote for free.
 
 ## Choosing a Transport
 
 | Criterion          | HTMX                                                                 | Datastar                                                    |
-| ------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| ------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
 | **Philosophy**     | Server renders HTML fragments                                        | Server sends signals, client morphs DOM                     |
 | **Bundle size**    | 0 JS (uses HTMX, loaded separately)                                  | 11.76 KiB (`datastar.js`)                                   |
 | **Reactive state** | None (server is source of truth)                                     | Signals (client-side reactive state)                        |
@@ -150,4 +143,4 @@ For full-stack wiring with both transports, see the [Full-Stack Wiring Guide](fu
 - [Datastar Integration Guide](datastar-integration.md) — Datastar setup, patches, replay, SDK re-exports
 - [Full-Stack Wiring Guide](fullstack-wiring.md) — composing all cqrs-htmx sub-modules
 - [Production Readiness](production-readiness.md) — SSE in production (heartbeats, graceful shutdown)
-- [go-sse](https://github.com/larsartmann/go-sse) — the underlying SSE library
+- [go-sse](https://github.com/larsartmann/go-sse) — the underlying SSE library and the hub itself

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Hub-first SSE broadcaster vocabulary (root + datastar):** the canonical shareable object for cross-transport fan-out is go-sse's `*sse.Broadcaster[sse.Event]` — "the hub" — not a "raw" escape hatch. `datastar.Broadcaster` now **embeds** the hub (previously a hidden unexported `inner` field with six hand-written pass-through methods): `Health`, `Shutdown`, `Close`, `OnSubscribe`, `OnUnsubscribe` promote from go-sse with identical signatures, and `Subscribe`/`Unsubscribe`/`SubscribeFilter` become callable directly on the datastar adapter (previously required unwrapping). `Broadcast(patch)` still shadows the hub's `Broadcast(sse.Event)` intentionally — raw events go through `BroadcastEvent`. Both adapters gained `Hub()` and `NewBroadcasterFromHub(hub)`; setup's SSE endpoint wiring uses `Hub()`.
+
+### Deprecated
+
+- **Raw-named broadcaster API (removal bundled with v5):** `cqrshtmx.Broadcaster.Raw()`, `cqrshtmx.NewBroadcasterFromRaw`, `datastar.Broadcaster.Raw()`, `ds.NewBroadcasterFromRaw`, and the `cqrshtmx.RawBroadcaster` interface — all superseded by `Hub()` / `NewBroadcasterFromHub` / passing `*sse.Broadcaster[sse.Event]` directly. The interface and both `FromRaw` constructors had zero production consumers at deprecation time; deprecated symbols stay functional (and test-pinned) through v4. Guide rewritten hub-first (`docs/guides/sse-and-datastar.md`).
+
 ### Added
 
 - **Round-3 composability verification + gate sweep (2026-08-16, all gates green):** every verification gate re-run after the round-3 changes — lint (15 modules, 0 issues), build (26 modules hermetic), check-modules (isolation+vet, dep budgets, replace directives, strict version drift, markdown links), check-cqrs-lint (13 modules), coverage (15 gates; setup 86.6%, root 93.3%), full test suite (18 packages), race, fuzz, flake (3/3), `nix flake check --no-build`, check-codegen, check-templates, plus integration_test/examples/setup-demo/examples/dashboard-demo tests and e2e/server build. Note for history: the round-3 code changes (heartbeat, golden test, deprecated-call migration, fakeBus swap, doc.go, systemadapter replace) were absorbed by the auto-git daemon into `66195d5f`, whose message names only the heartbeat — this entry is the discoverable inventory.

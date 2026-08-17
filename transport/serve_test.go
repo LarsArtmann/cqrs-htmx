@@ -81,6 +81,7 @@ func TestServeDomainEvents_ConnectedAndLivePump(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		h.ServeHTTP(rec, req)
 		close(done)
@@ -125,6 +126,7 @@ func TestServeDomainEvents_ReplayFromStore(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		h.ServeHTTP(rec, req)
 		close(done)
@@ -156,6 +158,7 @@ func TestServeDomainEvents_HeartbeatEmission(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		h.ServeHTTP(rec, req)
 		close(done)
@@ -168,6 +171,7 @@ func TestServeDomainEvents_HeartbeatEmission(t *testing.T) {
 	body := rec.Body.String()
 
 	heartbeatCount := 0
+
 	for line := range strings.SplitSeq(body, "\n") {
 		if strings.HasPrefix(line, ":") {
 			heartbeatCount++
@@ -198,9 +202,11 @@ func TestServeDomainEvents_ReplayCursored(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
 	req.Header.Set("Last-Event-ID", "1")
+
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
+
 	go func() {
 		h.ServeHTTP(rec, req)
 		close(done)

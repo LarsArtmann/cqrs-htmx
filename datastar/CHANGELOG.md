@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **`Broadcaster` embeds the `*sse.Broadcaster[sse.Event]` hub** (previously a hidden unexported `inner` field): `Health`, `Shutdown`, `Close`, `OnSubscribe`, `OnUnsubscribe` are now promoted from go-sse with identical signatures (six hand-written pass-through methods deleted), and `Subscribe`/`Unsubscribe`/`SubscribeFilter` are callable directly on the adapter — no unwrapping needed. `Broadcast(patch Patch)` still shadows the hub's `Broadcast(sse.Event)` on purpose (patch ergonomics); raw events use `BroadcastEvent` or the hub. New `Hub()` accessor and `NewBroadcasterFromHub(hub)` constructor are the canonical cross-transport sharing API (see `docs/guides/sse-and-datastar.md`).
+
+### Deprecated
+
+- **`Raw()` and `NewBroadcasterFromRaw`** — superseded by `Hub()` / `NewBroadcasterFromHub`. Functional (and test-pinned) until removal in v5.
+
 ## [v4.1.0] - 2026-08-07
 
 ### Changed — go-datastar Migration

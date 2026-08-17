@@ -302,26 +302,27 @@ func TestBroadcasterReplayOnReconnect(t *testing.T) {
 	require.NotContains(t, body, "item-1")
 }
 
-func TestBroadcasterRaw(t *testing.T) {
+func TestBroadcasterHub(t *testing.T) {
 	t.Parallel()
 	b := ds.NewBroadcaster()
-	require.NotNil(t, b.Raw())
+	require.NotNil(t, b.Hub())
+	require.Equal(t, b.Broadcaster, b.Hub())
 }
 
-func TestNewBroadcasterFromRaw(t *testing.T) {
+func TestNewBroadcasterFromHub(t *testing.T) {
 	t.Parallel()
-	raw := sse.NewBroadcaster[sse.Event]()
-	b := ds.NewBroadcasterFromRaw(raw)
-	require.Equal(t, raw, b.Raw())
+	hub := sse.NewBroadcaster[sse.Event]()
+	b := ds.NewBroadcasterFromHub(hub)
+	require.Equal(t, hub, b.Hub())
 }
 
-func TestBroadcasterRawSharesFanOut(t *testing.T) {
+func TestBroadcasterHubSharesFanOut(t *testing.T) {
 	t.Parallel()
-	raw := sse.NewBroadcaster[sse.Event]()
-	b := ds.NewBroadcasterFromRaw(raw)
+	hub := sse.NewBroadcaster[sse.Event]()
+	b := ds.NewBroadcasterFromHub(hub)
 
-	ch := raw.Subscribe()
-	defer raw.Unsubscribe(ch)
+	ch := hub.Subscribe()
+	defer hub.Unsubscribe(ch)
 
 	b.BroadcastEvent(sse.Event{Event: "cross", Data: "transport"})
 
@@ -334,4 +335,35 @@ func TestBroadcasterRawSharesFanOut(t *testing.T) {
 			return false
 		}
 	}, 2*time.Second, 5*time.Millisecond)
+}
+
+// The embedded hub's SubscribeFilter promotes to the datastar Broadcaster —
+// consumers can filter without unwrapping the hub.
+func TestBroadcasterPromotedSubscribeFilter(t *testing.T) {
+	t.Parallel()
+	b := ds.NewBroadcaster()
+
+	ch := b.SubscribeFilter(func(evt sse.Event) bool { return evt.Event == "wanted" })
+	defer b.Unsubscribe(ch)
+
+	b.BroadcastEvent(sse.Event{Event: "skipped", Data: "no"})
+	b.BroadcastEvent(sse.Event{Event: "wanted", Data: "yes"})
+
+	evt := <-ch
+	require.Equal(t, "wanted", evt.Event)
+	require.Equal(t, "yes", evt.Data)
+
+	select {
+	case evt := <-ch:
+		t.Fatalf("unexpected extra event: %+v", evt)
+	default:
+	}
+}
+
+// Deprecated API pins — Raw()/NewBroadcasterFromRaw stay functional until v5 removal.
+func TestBroadcasterDeprecatedRaw(t *testing.T) {
+	t.Parallel()
+	hub := sse.NewBroadcaster[sse.Event]()
+	b := ds.NewBroadcasterFromRaw(hub)
+	require.Equal(t, hub, b.Raw())
 }

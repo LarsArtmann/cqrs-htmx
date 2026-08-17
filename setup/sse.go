@@ -64,7 +64,7 @@ func (b *Bundle) attachSSE() error {
 // backfill when the event store supports it.
 func (b *Bundle) sseHandler() http.Handler {
 	return b.SessionMiddleware()(requireSession(transport.ServeDomainEvents(
-		b.Broadcaster.Raw(),
+		b.Broadcaster.Hub(),
 		b.sseStore,
 		b.config.SSEHeartbeatInterval,
 		transport.WithSSELogPrefix("setup"),

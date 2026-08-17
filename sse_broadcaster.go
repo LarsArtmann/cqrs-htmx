@@ -11,6 +11,7 @@ import (
 // Broadcaster distributes SSE events to all subscribed clients.
 // It embeds [sse.Broadcaster] for the core fan-out mechanics and adds
 // CQRS dispatch-hook constructors ([BroadcastOnSuccess], [BroadcastOnError]).
+// The embedded hub is the canonical shareable object — see [Broadcaster.Hub].
 //
 // Create one at application startup and share it across handlers:
 //
@@ -27,10 +28,12 @@ type Broadcaster struct {
 }
 
 // RawBroadcaster is implemented by Broadcaster types that expose their
-// underlying [*sse.Broadcaster]. This enables sharing a single fan-out hub
-// across transports (e.g., HTMX SSE and DataStar SSE from the same event
-// source). Both the root [*Broadcaster] and datastar's *Broadcaster satisfy
-// this interface structurally (duck typing — no import required).
+// underlying [*sse.Broadcaster].
+//
+// Deprecated: use [Broadcaster.Hub] and pass [*sse.Broadcaster] (the hub
+// itself) instead — the hub is the canonical shareable object, and both
+// broadcasters now embed it, so unwrapping via an interface is unnecessary.
+// Removal is bundled with v5.
 type RawBroadcaster interface {
 	Raw() *sse.Broadcaster[sse.Event]
 }
@@ -40,18 +43,39 @@ func NewBroadcaster() *Broadcaster {
 	return &Broadcaster{Broadcaster: sse.NewBroadcaster[sse.Event]()}
 }
 
-// NewBroadcasterFromRaw wraps an existing [*sse.Broadcaster] in a [*Broadcaster],
-// enabling cross-transport fan-out hub sharing. Use this when you want HTMX
-// SSE and DataStar SSE to share the same underlying event distribution.
-func NewBroadcasterFromRaw(raw *sse.Broadcaster[sse.Event]) *Broadcaster {
-	return &Broadcaster{Broadcaster: raw}
+// NewBroadcasterFromHub wraps an existing [*sse.Broadcaster] in a
+// [*Broadcaster], enabling cross-transport fan-out hub sharing. Use this when
+// you want HTMX SSE and DataStar SSE to distribute from the same hub:
+//
+//	hub := sse.NewBroadcaster[sse.Event]()
+//	htmx := cqrshtmx.NewBroadcasterFromHub(hub)
+//	dsBC := ds.NewBroadcasterFromHub(hub)
+func NewBroadcasterFromHub(hub *sse.Broadcaster[sse.Event]) *Broadcaster {
+	return &Broadcaster{Broadcaster: hub}
 }
 
-// Raw returns the underlying [*sse.Broadcaster] so consumers can access
-// advanced features (SubscribeFilter, custom health checks) or share the
-// fan-out hub with another Broadcaster via NewBroadcasterFromRaw.
-func (b *Broadcaster) Raw() *sse.Broadcaster[sse.Event] {
+// NewBroadcasterFromRaw wraps an existing [*sse.Broadcaster] in a [*Broadcaster].
+//
+// Deprecated: use [NewBroadcasterFromHub] — the hub is the canonical shareable
+// object, not a "raw" escape hatch. Removal is bundled with v5.
+func NewBroadcasterFromRaw(raw *sse.Broadcaster[sse.Event]) *Broadcaster {
+	return NewBroadcasterFromHub(raw)
+}
+
+// Hub returns the embedded [*sse.Broadcaster] — the canonical fan-out hub.
+// Use it to share one hub across transport adapters (via
+// [NewBroadcasterFromHub] or datastar's equivalent) or to access go-sse
+// features directly (SubscribeFilter, Health, Shutdown, custom buffer size).
+func (b *Broadcaster) Hub() *sse.Broadcaster[sse.Event] {
 	return b.Broadcaster
+}
+
+// Raw returns the underlying [*sse.Broadcaster].
+//
+// Deprecated: use [Broadcaster.Hub] — the hub is the canonical shareable
+// object, not a "raw" escape hatch. Removal is bundled with v5.
+func (b *Broadcaster) Raw() *sse.Broadcaster[sse.Event] {
+	return b.Hub()
 }
 
 // BroadcastOnSuccess creates an AfterDispatchHook that broadcasts an SSE event
