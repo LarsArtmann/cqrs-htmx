@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.7.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-error-family v0.10.0

@@ -65,7 +65,11 @@ func New(cfg Config) (*Bundle, error) {
 		return nil, err
 	}
 
-	bundle.attachSSE()
+	if err := bundle.attachSSE(); err != nil {
+		bundle.cleanup()
+
+		return nil, err
+	}
 
 	return bundle, nil
 }
