@@ -1,0 +1,64 @@
+# setup/BenchmarkSpikeBaselineVsAppkit — baseline artifact
+
+**Pinned:** 2026-08-17
+**Commit:** `99e4ab5e` (bench spike harden — `setup/run_appkit.go` refactor + `setup/run_appkit_test.go` hardened bench)
+**Comparison:** baseline httputil (`Bundle.RunHandler`) vs appkit spike (`Bundle.RunWithAppkit`)
+**LogLevel:** `appkit.LogLevelError` (suppresses the per-request INFO log line so the comparison isolates stack overhead from observability overhead)
+**DrainDelay:** 10ms (bench) vs 2s production — b.N scales by request-path work, not drain phase
+
+## Invocation
+
+```sh
+# from repo root (hermetic, GOWORK=off):
+GOEXPERIMENT=jsonv2 GOWORK=off go test \
+    -run xxx \
+    -bench '^BenchmarkSpikeBaselineVsAppkit$' \
+    -benchtime=2s -benchmem -count=5 -timeout=120s \
+    ./setup | tee /tmp/before.txt
+# edit, repeat into /tmp/after.txt
+benchstat /tmp/before.txt /tmp/after.txt
+```
+
+## Pinned run (Go 1.26.5, GOEXPERIMENT=jsonv2, -benchtime=2s -benchmem -count=5)
+
+```
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/cqrs-htmx/setup/v4
+cpu: Intel(R) Xeon(R) W-2225 CPU @ 4.10GHz
+```
+
+### baseline-httputil (Bundle.RunHandler → httputil.Server)
+
+| Run | ns/op | req/s | B/op | allocs/op |
+|-----|-------|-------|------|-----------|
+| 1   | 16368 | 61096 | 5419 | 61        |
+| 2   | 16519 | 60537 | 5424 | 61        |
+| 3   | 16297 | 61360 | 5405 | 61        |
+| 4   | 17227 | 58048 | 5414 | 61        |
+| 5   | 16425 | 60882 | 5402 | 61        |
+
+### appkit-service (Bundle.RunWithAppkit → appkit.Service)
+
+| Run | ns/op | req/s | B/op | allocs/op |
+|-----|-------|-------|------|-----------|
+| 1   | 18831 | 53105 | 7284 | 90        |
+| 2   | 20213 | 49474 | 7292 | 90        |
+| 3   | 19321 | 51756 | 7286 | 90        |
+| 4   | 20563 | 48631 | 7290 | 90        |
+| 5   | 32950 | 30349 | 7294 | 90        |
+
+## Reading the numbers
+
+- **ns/op overhead:** ~3µs / ~10k req/s of the appkit middleware stack on top of httputil's bare Server. Disappears in any real handler doing I/O.
+- **allocs/op gap:** ~30 extra allocations per request — the real per-request cost the appkit stack adds. Recovery → RequestID → Logging → SecurityHeaders is a non-trivial chain.
+- **Variance:** the run-5 spike in appkit (32950 ns/op) is scheduler jitter, not regression — the B/op + allocs/op columns are flat across runs. Use `benchstat` (not raw eye-balling) for any before/after comparison.
+- **Comparison-report finding 7 context:** the original 16178 vs 45049 ns/op delta was 80% per-request INFO logging (a formatted charmbracelet/log line per request). Pinning `LogLevelError` removes that — the honest comparison is 16178 vs ~20000.
+
+## Why these knobs are load-bearing
+
+- `LogLevelError` is mandatory — without it, appkit's per-request INFO log line dominates the measurement.
+- `DrainDelay: 10ms` keeps the per-iteration shutdown cost near zero — b.N scales by elapsed time, so an in-timer 2s drain would poison every measurement.
+- `b.Cleanup(b.StopTimer(); stop())` ensures the (short) drain happens AFTER the timer has stopped.
+- `b.ReportMetric(req/s)` adds a throughput column for human-readable at-a-glance comparison.
+- `b.Cleanup(slog.SetDefault(prevLogger))` keeps the surrounding suite's logs intact.

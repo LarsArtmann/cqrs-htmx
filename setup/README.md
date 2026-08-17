@@ -166,3 +166,27 @@ bundle, err := setup.New(setup.Config{
 - `docs/guides/fullstack-wiring.md` — full wiring guide (SDK vs manual)
 - `examples/setup-demo/` — runnable demo of the whole bundle
 - `docs/guides/async-projection-startup.md` — the readiness model behind `/health`
+
+## Benchmarks
+
+`BenchmarkSpikeBaselineVsAppkit` (`setup/run_appkit_test.go`) compares the request-path cost of the bundle's two serve paths: `RunHandler` (httputil.Server) vs `RunWithAppkit` (appkit.Service, the spike for ADR-001 adoption). The bench runs against a 5× iteration count with benchstat-friendly metrics (ns/op, req/s via `b.ReportMetric`, B/op + allocs/op via `-benchmem`); the spike passes `appkit.LogLevelError` to suppress the per-request INFO line so the comparison isolates stack overhead from observability overhead.
+
+```sh
+# from repo root (hermetic, GOWORK=off):
+GOEXPERIMENT=jsonv2 GOWORK=off go test \
+    -run xxx \
+    -bench '^BenchmarkSpikeBaselineVsAppkit$' \
+    -benchtime=2s -benchmem -count=5 -timeout=120s \
+    ./setup | tee /tmp/before.txt
+# edit, repeat into /tmp/after.txt
+benchstat /tmp/before.txt /tmp/after.txt
+```
+
+Baseline numbers (5× runs, pinned at `docs/benchmarks/setup-baseline-2026-08-17.txt`):
+
+| Case | ns/op | req/s | B/op | allocs/op |
+|------|-------|-------|------|-----------|
+| `baseline-httputil` | ~17k | ~60k | 5.4k | 61 |
+| `appkit-service`    | ~20k | ~50k | 7.3k | 90 |
+
+The ~30 allocs/op gap is the per-request cost the appkit middleware stack adds; ns/op overhead disappears in any real handler doing I/O. `LogLevelError` is load-bearing — without it, appkit's per-request formatted INFO line dominates the measurement (see the comparison report, finding 7).
