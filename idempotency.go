@@ -3,10 +3,10 @@ package cqrshtmx
 import (
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-idempotency"
 )
 
-// Delegated to go-cqrs-lite/idempotency/v4.
+// Delegated to go-idempotency.
 // These aliases preserve backward compatibility with existing cqrs-htmx consumers.
 // New code should import the upstream module directly.
 

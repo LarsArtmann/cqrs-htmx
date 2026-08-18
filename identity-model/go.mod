@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/casbin/casbin/v3 v3.11.0
 	github.com/larsartmann/go-branded-id v0.5.1
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0
+	github.com/larsartmann/go-codec v0.1.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
@@ -18,7 +18,6 @@ require (
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/larsartmann/go-codec v0.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.6.1 // indirect
