@@ -130,5 +130,5 @@ Before adding `ExternalAccounts []ExternalAccount` to `UserState`, the `foldUser
 
 ### Open upstream considerations (from that adoption)
 
-1. `ProviderConfig.Validate` requires `ClientSecret` — public/PKCE-only clients are structurally unsupported. dnsblockd did not need them (Pocket ID issues client secrets), but any future consumer targeting providers without client secrets will hit this wall.
-2. Only `sub`/`email`/`email_verified`/`name` are extracted from the ID token; consumers wanting `preferred_username` or the raw token must fork `FinishLogin`.
+1. `ProviderConfig.Validate` requires `ClientSecret` — public/PKCE-only clients are structurally unsupported. dnsblockd did not need them (Pocket ID issues client secrets), but any future consumer targeting providers without client secrets will hit this wall. Filed 2026-08-22: [#8](https://github.com/LarsArtmann/cqrs-htmx/issues/8).
+2. Only `sub`/`email`/`email_verified`/`name` are extracted from the ID token; consumers wanting `preferred_username` or the raw token must fork `FinishLogin`. Filed 2026-08-22: [#9](https://github.com/LarsArtmann/cqrs-htmx/issues/9).
