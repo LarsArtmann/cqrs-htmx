@@ -131,12 +131,21 @@ func (b *Broadcaster) SubscriberCount() int {
 }
 
 // ServeHTTP handles a DataStar SSE connection. It creates an [sse.Stream],
-// replays missed events from the store (if replay is enabled and the client
-// sends a Last-Event-ID), subscribes to the broadcaster, and forwards events
-// to the client until the request is cancelled or the connection breaks.
+// subscribes to the broadcaster FIRST, then replays missed events from the
+// store (if replay is enabled and the client sends a Last-Event-ID), and
+// forwards events to the client until the request is cancelled or the
+// connection breaks.
+//
+// Subscribe-before-replay is deliberate: events broadcast between the replay
+// snapshot and the subscribe would otherwise be silently missed. With the
+// subscription established first, those events race into the channel and are
+// delivered as (harmless, idempotent) duplicates alongside the replayed ones.
 func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	stream := sse.NewStream(w, r)
 	defer func() { _ = stream.Close() }()
+
+	ch := b.Subscribe()
+	defer b.Unsubscribe(ch)
 
 	if b.store != nil {
 		if lastID := stream.LastEventID(); !lastID.IsZero() {
@@ -145,9 +154,6 @@ func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
-	ch := b.Subscribe()
-	defer b.Unsubscribe(ch)
 
 	for {
 		select {
