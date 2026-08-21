@@ -6,11 +6,11 @@
 
 The canonical shareable object is go-sse's [`*sse.Broadcaster[sse.Event]`](https://github.com/larsartmann/go-sse) — the fan-out hub. It provides subscribe, broadcast, health, graceful shutdown, buffer sizing, predicate filtering, and replay. Everything else in this guide is a thin transport adapter **over** that hub:
 
-| Type                   | Module                | Transport    | Purpose                                                                                                              |
-| ---------------------- | --------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `*sse.Broadcaster[sse.Event]` | go-sse          | (none — hub) | Core fan-out: Subscribe, Broadcast, SubscribeFilter, Health, Shutdown, replay plumbing                                |
-| `cqrshtmx.Broadcaster` | Root (`cqrs-htmx/v4`) | HTMX SSE     | CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) + `ServeSSE` lifecycle helper               |
-| `datastar.Broadcaster` | `datastar/v4`         | Datastar SSE | Patch ergonomics (`Broadcast(patch)`, typed patch constructors) + `http.Handler` mount + optional replay ring buffer  |
+| Type                          | Module                | Transport    | Purpose                                                                                                              |
+| ----------------------------- | --------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `*sse.Broadcaster[sse.Event]` | go-sse                | (none — hub) | Core fan-out: Subscribe, Broadcast, SubscribeFilter, Health, Shutdown, replay plumbing                               |
+| `cqrshtmx.Broadcaster`        | Root (`cqrs-htmx/v4`) | HTMX SSE     | CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) + `ServeSSE` lifecycle helper             |
+| `datastar.Broadcaster`        | `datastar/v4`         | Datastar SSE | Patch ergonomics (`Broadcast(patch)`, typed patch constructors) + `http.Handler` mount + optional replay ring buffer |
 
 Both adapters **embed** `*sse.Broadcaster[sse.Event]`, so the full go-sse method set (including `SubscribeFilter`, `Health`, `Shutdown`, `OnSubscribe`, `OnUnsubscribe`) is promoted and callable directly on either adapter.
 
@@ -117,19 +117,19 @@ If HTMX and Datastar clients consume **different event shapes** (HTML fragments 
 
 The pre-hub vocabulary framed the hub as a "raw" escape hatch. It is deprecated in favor of the hub-first API:
 
-| Deprecated (until v5)                 | Use instead                          |
-| ------------------------------------ | ------------------------------------ |
-| `b.Raw()`                            | `b.Hub()`                            |
-| `cqrshtmx.NewBroadcasterFromRaw(hub)` | `cqrshtmx.NewBroadcasterFromHub(hub)` |
-| `ds.NewBroadcasterFromRaw(hub)`      | `ds.NewBroadcasterFromHub(hub)`      |
-| `cqrshtmx.RawBroadcaster` interface  | Pass `*sse.Broadcaster[sse.Event]` (the hub itself) |
+| Deprecated (until v5)                 | Use instead                                         |
+| ------------------------------------- | --------------------------------------------------- |
+| `b.Raw()`                             | `b.Hub()`                                           |
+| `cqrshtmx.NewBroadcasterFromRaw(hub)` | `cqrshtmx.NewBroadcasterFromHub(hub)`               |
+| `ds.NewBroadcasterFromRaw(hub)`       | `ds.NewBroadcasterFromHub(hub)`                     |
+| `cqrshtmx.RawBroadcaster` interface   | Pass `*sse.Broadcaster[sse.Event]` (the hub itself) |
 
 The deprecated symbols remain functional through v4; staticcheck flags call sites. The datastar adapter's hub was previously a hidden unexported field (`inner`) with hand-written pass-throughs — it is now embedded, so `Subscribe`/`SubscribeFilter` and friends promote for free.
 
 ## Choosing a Transport
 
 | Criterion          | HTMX                                                                 | Datastar                                                    |
-| ------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| ------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------- |
 | **Philosophy**     | Server renders HTML fragments                                        | Server sends signals, client morphs DOM                     |
 | **Bundle size**    | 0 JS (uses HTMX, loaded separately)                                  | 11.76 KiB (`datastar.js`)                                   |
 | **Reactive state** | None (server is source of truth)                                     | Signals (client-side reactive state)                        |

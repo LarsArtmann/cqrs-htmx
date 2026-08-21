@@ -18,23 +18,23 @@ Three items from the round-3 SSE `/sse` hardening list (TODO_LIST):
 
 ## a) FULLY DONE
 
-| # | Item | Files | Verified |
-|---|------|-------|----------|
-| 1 | `transport/serve.go` — `ServeDomainEvents` helper | `transport/serve.go` (new, 120 LOC) | builds (GOWORK=off), 0 root imports |
-| 2 | `transport/serve_test.go` — 6 tests (nil-broadcaster 503, custom message, connected+live pump, replay from store, heartbeat emission, cursored replay) | `transport/serve_test.go` (new) | ALL 6 PASSING |
-| 3 | `setup/sse.go` refactored to call `transport.ServeDomainEvents` | `setup/sse.go` (rewritten) | code written |
-| 4 | `dashboardui/sse.go` refactored to call `transport.ServeDomainEvents` | `dashboardui/sse.go` (rewritten) | code written, builds (GOWORK=off) |
-| 5 | `setup/sse.go` `attachSSE()` returns `error` (fail-fast SubscribeAll) | `setup/sse.go` | code written |
-| 6 | `setup/setup.go` propagates `attachSSE` error via `cleanup()` | `setup/setup.go` | code written |
-| 7 | `dashboardui/sse.go` `startEventBridge()` returns `error` (fail-fast SubscribeAll) | `dashboardui/sse.go` | code written |
-| 8 | `dashboardui/dashboard.go` propagates `startEventBridge` error | `dashboardui/dashboard.go` | code written, builds (GOWORK=off) |
-| 9 | `setup/config.go` — `SSEMaxReplay int` field added | `setup/config.go` | code written |
-| 10 | `dashboardui/config.go` — `SSEMaxReplay int` field added | `dashboardui/config.go` | code written, builds (GOWORK=off) |
-| 11 | `setup/sse.go` passes `WithMaxReplay(b.config.SSEMaxReplay)` to `NewJournalSSEStore` | `setup/sse.go` | code written |
-| 12 | `dashboardui/dashboard.go` passes `WithMaxReplay(config.SSEMaxReplay)` to `NewJournalSSEStore` | `dashboardui/dashboard.go` | code written, builds (GOWORK=off) |
-| 13 | `setup/setup.go` `buildDashboardConfig` forwards `SSEHeartbeatInterval` + `SSEMaxReplay` to dashboard | `setup/setup.go` | code written |
-| 14 | `dashboardui/handler.go` mount site updated (`d.guard(d.sseHandler())`) | `dashboardui/handler.go` | code written |
-| 15 | `dashboardui/sse_replay_test.go` — 3 call sites updated (`d.sseHandler().ServeHTTP(rec, req)`) | `dashboardui/sse_replay_test.go` | code written |
+| #  | Item                                                                                                                                                   | Files                               | Verified                            |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ----------------------------------- |
+| 1  | `transport/serve.go` — `ServeDomainEvents` helper                                                                                                      | `transport/serve.go` (new, 120 LOC) | builds (GOWORK=off), 0 root imports |
+| 2  | `transport/serve_test.go` — 6 tests (nil-broadcaster 503, custom message, connected+live pump, replay from store, heartbeat emission, cursored replay) | `transport/serve_test.go` (new)     | ALL 6 PASSING                       |
+| 3  | `setup/sse.go` refactored to call `transport.ServeDomainEvents`                                                                                        | `setup/sse.go` (rewritten)          | code written                        |
+| 4  | `dashboardui/sse.go` refactored to call `transport.ServeDomainEvents`                                                                                  | `dashboardui/sse.go` (rewritten)    | code written, builds (GOWORK=off)   |
+| 5  | `setup/sse.go` `attachSSE()` returns `error` (fail-fast SubscribeAll)                                                                                  | `setup/sse.go`                      | code written                        |
+| 6  | `setup/setup.go` propagates `attachSSE` error via `cleanup()`                                                                                          | `setup/setup.go`                    | code written                        |
+| 7  | `dashboardui/sse.go` `startEventBridge()` returns `error` (fail-fast SubscribeAll)                                                                     | `dashboardui/sse.go`                | code written                        |
+| 8  | `dashboardui/dashboard.go` propagates `startEventBridge` error                                                                                         | `dashboardui/dashboard.go`          | code written, builds (GOWORK=off)   |
+| 9  | `setup/config.go` — `SSEMaxReplay int` field added                                                                                                     | `setup/config.go`                   | code written                        |
+| 10 | `dashboardui/config.go` — `SSEMaxReplay int` field added                                                                                               | `dashboardui/config.go`             | code written, builds (GOWORK=off)   |
+| 11 | `setup/sse.go` passes `WithMaxReplay(b.config.SSEMaxReplay)` to `NewJournalSSEStore`                                                                   | `setup/sse.go`                      | code written                        |
+| 12 | `dashboardui/dashboard.go` passes `WithMaxReplay(config.SSEMaxReplay)` to `NewJournalSSEStore`                                                         | `dashboardui/dashboard.go`          | code written, builds (GOWORK=off)   |
+| 13 | `setup/setup.go` `buildDashboardConfig` forwards `SSEHeartbeatInterval` + `SSEMaxReplay` to dashboard                                                  | `setup/setup.go`                    | code written                        |
+| 14 | `dashboardui/handler.go` mount site updated (`d.guard(d.sseHandler())`)                                                                                | `dashboardui/handler.go`            | code written                        |
+| 15 | `dashboardui/sse_replay_test.go` — 3 call sites updated (`d.sseHandler().ServeHTTP(rec, req)`)                                                         | `dashboardui/sse_replay_test.go`    | code written                        |
 
 ---
 
@@ -66,22 +66,22 @@ No test was written to verify that `New` returns an error when `SubscribeAll` fa
 
 ## c) NOT STARTED
 
-| # | Item | Why |
-|---|------|-----|
-| 1 | CORS posture decision + documentation | Deferred — needs a design decision |
-| 2 | SubscribeAll-fails-New tests (setup + dashboardui) | Not written yet |
-| 3 | Running setup test suite | Blocked on the dev-replace fix |
-| 4 | Running dashboardui test suite | Not attempted yet (build passes, tests may have other issues from the sseHandler signature change) |
-| 5 | Running full test suite (`nix run .#test`) | Not attempted |
-| 6 | Running lint (`nix run .#lint`) | Not attempted |
-| 7 | Running coverage (`nix run .#coverage-gate`) | Not attempted |
-| 8 | Running `go vet` per-module | Not attempted |
-| 9 | Updating `TODO_LIST.md` — mark items done/partially done | Not done |
-| 10 | Updating `CHANGELOG.md` — add entries for the new transport helper + fail-fast + backfill cap | Not done |
-| 11 | Updating `AGENTS.md` — document `transport.ServeDomainEvents`, `SSEMaxReplay`, fail-fast SubscribeAll | Not done |
-| 12 | Documenting CORS posture in `docs/guides/sse-and-datastar.md` | Not done |
-| 13 | Verifying `buildDashboardConfig` now forwarding `SSEHeartbeatInterval` doesn't double-apply defaults | Not verified (setup defaults to 15s, dashboardui defaults to 15s — passing it through should be idempotent but needs a test) |
-| 14 | Checking if `setup/` has existing dev-replace for `dashboardui` (it might already) | Not checked |
+| #  | Item                                                                                                  | Why                                                                                                                          |
+| -- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1  | CORS posture decision + documentation                                                                 | Deferred — needs a design decision                                                                                           |
+| 2  | SubscribeAll-fails-New tests (setup + dashboardui)                                                    | Not written yet                                                                                                              |
+| 3  | Running setup test suite                                                                              | Blocked on the dev-replace fix                                                                                               |
+| 4  | Running dashboardui test suite                                                                        | Not attempted yet (build passes, tests may have other issues from the sseHandler signature change)                           |
+| 5  | Running full test suite (`nix run .#test`)                                                            | Not attempted                                                                                                                |
+| 6  | Running lint (`nix run .#lint`)                                                                       | Not attempted                                                                                                                |
+| 7  | Running coverage (`nix run .#coverage-gate`)                                                          | Not attempted                                                                                                                |
+| 8  | Running `go vet` per-module                                                                           | Not attempted                                                                                                                |
+| 9  | Updating `TODO_LIST.md` — mark items done/partially done                                              | Not done                                                                                                                     |
+| 10 | Updating `CHANGELOG.md` — add entries for the new transport helper + fail-fast + backfill cap         | Not done                                                                                                                     |
+| 11 | Updating `AGENTS.md` — document `transport.ServeDomainEvents`, `SSEMaxReplay`, fail-fast SubscribeAll | Not done                                                                                                                     |
+| 12 | Documenting CORS posture in `docs/guides/sse-and-datastar.md`                                         | Not done                                                                                                                     |
+| 13 | Verifying `buildDashboardConfig` now forwarding `SSEHeartbeatInterval` doesn't double-apply defaults  | Not verified (setup defaults to 15s, dashboardui defaults to 15s — passing it through should be idempotent but needs a test) |
+| 14 | Checking if `setup/` has existing dev-replace for `dashboardui` (it might already)                    | Not checked                                                                                                                  |
 
 ---
 
@@ -196,6 +196,7 @@ The setup module depends on published `dashboardui/v4.8.0`, which does NOT have 
 ### Q2: What is the CORS posture for `/sse`?
 
 Should the SSE endpoint be same-origin only (consumer wraps with `httputil.CORS` if needed), or should the library provide an opt-in CORS config field? `EventSource` does not send preflight `OPTIONS`, so CORS is just `Access-Control-Allow-Origin` on the response. The library principle says "never enforce defaults consumers might disagree with." Options:
+
 - (a) Document only — same-origin by default, consumer adds `httputil.CORS` if cross-origin
 - (b) Add `SSECORSOrigin string` config field (opt-in, empty = same-origin)
 - (c) Do nothing — same-origin is the default and no one has complained

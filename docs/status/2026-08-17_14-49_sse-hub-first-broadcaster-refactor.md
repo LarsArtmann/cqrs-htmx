@@ -21,22 +21,22 @@ The user asked how the 11 `sse_*.go` files in cqrs-htmx root compare to go-sse, 
 
 ## a) FULLY DONE
 
-| # | Item | Verification |
-|---|------|--------------|
-| 1 | `datastar.Broadcaster` now **embeds** `*sse.Broadcaster[sse.Event]` (was `inner` field); 6 pass-through methods deleted; `Subscribe`/`Unsubscribe`/`SubscribeFilter`/`Health`/`Shutdown`/`Close`/`OnSubscribe`/`OnUnsubscribe` promote from go-sse | datastar: build 0, vet 0, tests 0, race+coverage 0 → **97.4%** (gate ≥90), lint 0 |
-| 2 | `datastar.Broadcast(patch)` shadowing documented as intentional; raw events → `BroadcastEvent`/hub | doc comments; tests |
-| 3 | Root `Broadcaster.Hub()` + `NewBroadcasterFromHub(hub)` added (`sse_broadcaster.go`) | root: build 0, vet 0, full suite 0, race+coverage 0 → **93.5%** (gate ≥90), lint 0 |
-| 4 | `datastar.Hub()` + `ds.NewBroadcasterFromHub(hub)` added | datastar suite green |
-| 5 | Deprecated with `// Deprecated:` markers (removal bundled with v5, same bundle as the SSE re-export layer): `cqrshtmx.Broadcaster.Raw()`, `cqrshtmx.NewBroadcasterFromRaw`, `ds.Broadcaster.Raw()`, `ds.NewBroadcasterFromRaw`, `cqrshtmx.RawBroadcaster` | deprecated symbols kept functional; test-pinned in both modules |
-| 6 | Mid-flight self-correction: drafted a replacement interface `HubBroadcasterSource`, caught it repeating the same YAGNI sin (zero consumers), deleted it before commit | not in final diff |
-| 7 | Production call site migrated: `setup/sse.go` `Raw()` → `Hub()` | setup package type-checks (see b) for the caveat) |
-| 8 | Tests rewritten hub-first + promoted-API coverage added (`TestBroadcasterPromotedSubscribeFilter`, `Hub()` identity, hub-sharing, deprecated pins) in both modules | green |
-| 9 | `docs/guides/sse-and-datastar.md` rewritten hub-first ("The Hub Comes First": hub table, embedded-both architecture diagram, Hub()/FromHub examples, deprecated-API migration table) | written |
-| 10 | CHANGELOG entries: root (`Changed` + `Deprecated`) and `datastar/CHANGELOG.md` | written |
-| 11 | AGENTS.md updated: SSE re-export gotcha now says `Hub()`; new gotcha entry "Hub-first broadcaster vocabulary (2026-08-17)" with the go-sse ROADMAP rationale and an explicit "do NOT add a replacement interface" instruction; guides-list line updated | written |
-| 12 | Fixed 7 pre-existing `wsl_v5` lint findings in `transport/serve_test.go` (blank-line-only; file from concurrent session's commit `a05b272a`; findings exist on clean master — proven via `git stash` + re-lint) | root lint back to **0 issues**; transport tests green |
-| 13 | Downstream hermetic builds (GOWORK=off): adminui, loginpage, dashboardui, health, auditlog, usermgmt, integration_test, examples/datastar-demo — all 0 | builds only (see e) for the gap) |
-| 14 | Pre-existing setup break proven NOT mine: `git stash` → setup build fails on clean master too (`SSEMaxReplay` undefined, from `2db8123c` + documented in `c014a6d2`) | evidence captured |
+| #  | Item                                                                                                                                                                                                                                                      | Verification                                                                       |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 1  | `datastar.Broadcaster` now **embeds** `*sse.Broadcaster[sse.Event]` (was `inner` field); 6 pass-through methods deleted; `Subscribe`/`Unsubscribe`/`SubscribeFilter`/`Health`/`Shutdown`/`Close`/`OnSubscribe`/`OnUnsubscribe` promote from go-sse        | datastar: build 0, vet 0, tests 0, race+coverage 0 → **97.4%** (gate ≥90), lint 0  |
+| 2  | `datastar.Broadcast(patch)` shadowing documented as intentional; raw events → `BroadcastEvent`/hub                                                                                                                                                        | doc comments; tests                                                                |
+| 3  | Root `Broadcaster.Hub()` + `NewBroadcasterFromHub(hub)` added (`sse_broadcaster.go`)                                                                                                                                                                      | root: build 0, vet 0, full suite 0, race+coverage 0 → **93.5%** (gate ≥90), lint 0 |
+| 4  | `datastar.Hub()` + `ds.NewBroadcasterFromHub(hub)` added                                                                                                                                                                                                  | datastar suite green                                                               |
+| 5  | Deprecated with `// Deprecated:` markers (removal bundled with v5, same bundle as the SSE re-export layer): `cqrshtmx.Broadcaster.Raw()`, `cqrshtmx.NewBroadcasterFromRaw`, `ds.Broadcaster.Raw()`, `ds.NewBroadcasterFromRaw`, `cqrshtmx.RawBroadcaster` | deprecated symbols kept functional; test-pinned in both modules                    |
+| 6  | Mid-flight self-correction: drafted a replacement interface `HubBroadcasterSource`, caught it repeating the same YAGNI sin (zero consumers), deleted it before commit                                                                                     | not in final diff                                                                  |
+| 7  | Production call site migrated: `setup/sse.go` `Raw()` → `Hub()`                                                                                                                                                                                           | setup package type-checks (see b) for the caveat)                                  |
+| 8  | Tests rewritten hub-first + promoted-API coverage added (`TestBroadcasterPromotedSubscribeFilter`, `Hub()` identity, hub-sharing, deprecated pins) in both modules                                                                                        | green                                                                              |
+| 9  | `docs/guides/sse-and-datastar.md` rewritten hub-first ("The Hub Comes First": hub table, embedded-both architecture diagram, Hub()/FromHub examples, deprecated-API migration table)                                                                      | written                                                                            |
+| 10 | CHANGELOG entries: root (`Changed` + `Deprecated`) and `datastar/CHANGELOG.md`                                                                                                                                                                            | written                                                                            |
+| 11 | AGENTS.md updated: SSE re-export gotcha now says `Hub()`; new gotcha entry "Hub-first broadcaster vocabulary (2026-08-17)" with the go-sse ROADMAP rationale and an explicit "do NOT add a replacement interface" instruction; guides-list line updated   | written                                                                            |
+| 12 | Fixed 7 pre-existing `wsl_v5` lint findings in `transport/serve_test.go` (blank-line-only; file from concurrent session's commit `a05b272a`; findings exist on clean master — proven via `git stash` + re-lint)                                           | root lint back to **0 issues**; transport tests green                              |
+| 13 | Downstream hermetic builds (GOWORK=off): adminui, loginpage, dashboardui, health, auditlog, usermgmt, integration_test, examples/datastar-demo — all 0                                                                                                    | builds only (see e) for the gap)                                                   |
+| 14 | Pre-existing setup break proven NOT mine: `git stash` → setup build fails on clean master too (`SSEMaxReplay` undefined, from `2db8123c` + documented in `c014a6d2`)                                                                                      | evidence captured                                                                  |
 
 ## b) PARTIALLY DONE
 
@@ -73,6 +73,7 @@ Nothing irreversible. Two honest stumbles, both caught in-session:
 ## f) NEXT UP TO 50 (Pareto-ordered; session-scoped)
 
 **Blocking verification of this session's work:**
+
 1. Run `nix run .#lint` (all 15 modules) — confirm 0 issues incl. my files.
 2. Run `nix run .#coverage-gate` — confirm all 15 thresholds.
 3. Run `nix run .#test` — full suite incl. modules I only built.
