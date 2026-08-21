@@ -138,6 +138,32 @@ The deprecated symbols remain functional through v4; staticcheck flags call site
 
 For full-stack wiring with both transports, see the [Full-Stack Wiring Guide](fullstack-wiring.md).
 
+## CORS and Cross-Origin SSE
+
+SSE endpoints (`/sse` from setup, `/-/events/stream` from dashboardui) are
+**same-origin by default**. No CORS headers are sent — the library principle
+of "never enforce defaults consumers might disagree with" applies.
+
+If your SSE consumers are on a different origin (e.g., a dashboard served from
+`dashboard.example.com` connecting to `api.example.com/sse`), wrap the SSE
+handler with [`httputil.CORS`](https://github.com/larsartmann/httputil) before
+mounting:
+
+```go
+import "github.com/larsartmann/httputil"
+
+mux.Handle("/sse", httputil.CORS(httputil.DefaultCORSConfig())(bundle.sseHandler()))
+```
+
+For the dashboard's built-in SSE endpoint, wrap the entire dashboard handler
+or mount a CORS middleware in front of the dashboard mux.
+
+**Note:** SSE requires the `text/event-stream` content type and `Connection:
+keep-alive`. Ensure your CORS config allows these headers. The default
+`httputil.DefaultCORSConfig()` permits all methods and headers; tighten it
+with `CORSConfig{AllowedOrigins: []string{"https://dashboard.example.com"}}`
+in production.
+
 ## See Also
 
 - [Datastar Integration Guide](datastar-integration.md) — Datastar setup, patches, replay, SDK re-exports
