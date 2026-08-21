@@ -70,7 +70,7 @@ func TestDashboard_SSEReconnectReplay(t *testing.T) {
 	done := make(chan struct{})
 
 	go func() {
-		d.sseHandler().ServeHTTP(rec, req)
+		http.HandlerFunc(d.sseHandler).ServeHTTP(rec, req)
 		close(done)
 	}()
 
@@ -124,7 +124,7 @@ func TestDashboard_SSEInitialBackfill(t *testing.T) {
 	done := make(chan struct{})
 
 	go func() {
-		d.sseHandler().ServeHTTP(rec, req)
+		http.HandlerFunc(d.sseHandler).ServeHTTP(rec, req)
 		close(done)
 	}()
 
@@ -170,7 +170,7 @@ func TestDashboard_SSEHeartbeatEmission(t *testing.T) {
 	done := make(chan struct{})
 
 	go func() {
-		d.sseHandler().ServeHTTP(rec, req)
+		http.HandlerFunc(d.sseHandler).ServeHTTP(rec, req)
 		close(done)
 	}()
 
