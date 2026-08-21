@@ -3,8 +3,8 @@ module github.com/larsartmann/cqrs-htmx/examples/dashboard-demo
 go 1.26.5
 
 require (
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.1
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
@@ -36,7 +36,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect

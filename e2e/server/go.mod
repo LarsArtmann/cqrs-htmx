@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/e2e/server
 go 1.26.5
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
 	github.com/larsartmann/go-sse v0.5.0
 )
 
@@ -17,7 +17,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.3.0 // indirect

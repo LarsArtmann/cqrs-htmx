@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0
@@ -78,7 +78,6 @@ require (
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.11.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.3.0 // indirect

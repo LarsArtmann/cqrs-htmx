@@ -50,6 +50,7 @@
 ## f) Next tasks (impact-ordered)
 
 **P0 — unblock everything:**
+
 1. Bump Go toolchain to 1.26.6+ (nix devShell pin or GOTOOLCHAIN policy) — restores all workspace builds + LSP.
 2. `go mod tidy` in `setup/` (hermetic drift from the codec/idempotency migration).
 3. Verify `setup` builds both modes; close the SSEMaxReplay trail permanently (write the missing test if any).
@@ -92,4 +93,4 @@
 
 ---
 
-*Point-in-time snapshot. Written 2026-08-21 21:14; git tree clean at HEAD `ca7b7ba0`. Waiting for instructions.*
+_Point-in-time snapshot. Written 2026-08-21 21:14; git tree clean at HEAD `ca7b7ba0`. Waiting for instructions._
