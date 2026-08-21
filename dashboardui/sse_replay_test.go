@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -218,4 +219,32 @@ func TestDashboard_Close(t *testing.T) {
 	// construction failed).
 	var nilDashboard *Dashboard
 	nilDashboard.Close()
+}
+
+// TestDashboard_SSESubscribeAllFails asserts that New returns an error when
+// the event bus cannot accept the SSE bridge subscription — a dead feed
+// answering 200 is worse than failing fast at construction.
+func TestDashboard_SSESubscribeAllFails(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	bus := eventtest.NewFakeBus().
+		SubscribeAllFn(func(_ event.Handler) error {
+			return errors.New("bus subscription refused")
+		})
+
+	d, err := New(Config{
+		EventSource: store,
+		Journal:     store,
+		EventBus:    bus,
+	})
+	if err == nil {
+		t.Fatal("expected New to return an error when SubscribeAll fails")
+	}
+
+	if d != nil {
+		t.Fatal("expected nil dashboard when SubscribeAll fails")
+	}
+
+	if !strings.Contains(err.Error(), "subscribe") {
+		t.Errorf("error should mention subscribe, got: %v", err)
+	}
 }

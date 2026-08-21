@@ -2,6 +2,7 @@ package setup
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -191,5 +192,36 @@ func TestBundle_SSEHeartbeatEmission(t *testing.T) {
 
 	if heartbeatCount == 0 {
 		t.Errorf("expected at least 1 heartbeat comment frame, got 0\nbody:\n%s", body)
+	}
+}
+
+// TestBundle_SSESubscribeAllFails asserts that New returns an error when the
+// event bus cannot accept the SSE bridge subscription — a dead feed answering
+// 200 is worse than failing fast at construction.
+func TestBundle_SSESubscribeAllFails(t *testing.T) {
+	t.Parallel()
+
+	store := memorystorage.NewMemoryStore()
+	bus := eventtest.NewFakeBus().
+		SubscribeAllFn(func(_ event.Handler) error {
+			return errors.New("bus subscription refused")
+		})
+
+	bundle, err := New(Config{
+		Title:      "FailFast",
+		SSEPath:    "/sse",
+		EventStore: store,
+		EventBus:   bus,
+	})
+	if err == nil {
+		t.Fatal("expected New to return an error when SubscribeAll fails")
+	}
+
+	if bundle != nil {
+		t.Fatal("expected nil bundle when SubscribeAll fails")
+	}
+
+	if !strings.Contains(err.Error(), "subscribe") {
+		t.Errorf("error should mention subscribe, got: %v", err)
 	}
 }
