@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
@@ -34,7 +34,7 @@ require (
 	github.com/go-logfmt/logfmt v0.6.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/mattn/go-runewidth v0.0.27 // indirect
+	github.com/mattn/go-runewidth v0.0.28 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/xo/terminfo v1.0.0 // indirect
@@ -67,7 +67,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/idempotency/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
@@ -122,3 +121,8 @@ replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
 // transport.DomainEventToSSE helper in the unpublished root master. Strip
 // this replace when cutting the coordinated family version.
 replace github.com/larsartmann/cqrs-htmx/v4 => ../
+
+// DEV-ONLY (remove before the next family tag): setup uses the new
+// SSEMaxReplay field on the unpublished dashboardui master. Strip this
+// replace when cutting the coordinated family version.
+replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../dashboardui

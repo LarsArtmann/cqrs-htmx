@@ -83,6 +83,12 @@ type Config struct {
 	// disables heartbeats. Default: 15 seconds.
 	SSEHeartbeatInterval time.Duration
 
+	// SSEMaxReplay caps the number of events replayed to a first-time SSE
+	// subscriber (no Last-Event-ID). A value of 0 means "use the transport
+	// default" (1000). Set to a positive int to bound the initial backfill
+	// window and prevent sending the entire journal history on first connect.
+	SSEMaxReplay int
+
 	// UI configuration (all optional — sensible defaults).
 	Title       string // page title for all panels (default: "cqrs-htmx")
 	AccentColor string // CSS accent color (default: "#0ea5e9")

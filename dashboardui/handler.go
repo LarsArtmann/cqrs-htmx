@@ -50,7 +50,7 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 
 	// SSE live updates
 	if d.caps.EventBus {
-		mux.Handle("GET /-/events/stream", d.guard(d.sseHandler))
+		mux.Handle("GET /-/events/stream", d.guard(d.sseHandler()))
 	}
 
 	// Overview (always available)

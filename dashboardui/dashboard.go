@@ -56,12 +56,20 @@ func New(config Config) (*Dashboard, error) {
 
 	if caps.EventBus {
 		d.broadcaster = cqrshtmx.NewBroadcaster()
-		d.startEventBridge()
+
+		if err := d.startEventBridge(); err != nil {
+			d.broadcaster.Close()
+
+			return nil, err
+		}
 
 		// Build SSE replay store from the configured journal. Enables reconnect
 		// replay (Last-Event-ID) and initial backfill of recent events.
 		if journal := config.journalForReplay(); journal != nil {
-			d.sseStore = transport.NewJournalSSEStore(journal, transport.DomainEventToSSE)
+			d.sseStore = transport.NewJournalSSEStore(
+				journal, transport.DomainEventToSSE,
+				transport.WithMaxReplay(config.SSEMaxReplay),
+			)
 		}
 	}
 
