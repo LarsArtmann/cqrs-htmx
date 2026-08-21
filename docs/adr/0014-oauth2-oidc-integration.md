@@ -123,3 +123,12 @@ Before adding `ExternalAccounts []ExternalAccount` to `UserState`, the `foldUser
 2. **Use an OAuth2 proxy (e.g., Vouch, OAuth2 Proxy)** — Rejected: adds deployment complexity and doesn't integrate with our session/authz model.
 3. **Soft dependency (build tags)** — Rejected: would require consumers to opt-in at compile time, adding complexity for a stdlib-adjacent dependency.
 4. **OIDC only, no pure OAuth2** — Rejected: GitHub doesn't support OIDC for OAuth apps, only for GitHub Apps. Pure OAuth2 userinfo endpoint is required.
+
+## Downstream consumers
+
+- **dnsblockd** (2026-08-21, `v4.7.0`) — first recorded consumer of the standalone `usermgmt/oauth2/v4` sub-module outside the cqrs-htmx tree. Uses the provider for dashboard single sign-on against Pocket ID (authorization-code + PKCE S256, confidential client). The consumer owns sessions/states/cookies/audit itself and treats the library purely as the protocol engine (discovery, PKCE, exchange, ID-token verification, claim extraction) — confirming the sub-module fits the "embedded appliance" shape with no usermgmt-core coupling. Integration notes live in dnsblockd `AGENTS.md` ("Dashboard Auth") and `docs/status/2026-08-21_22-32_OIDC-SSO-CQRS-HTMX-LIBRARY-ADOPTION.md`.
+
+### Open upstream considerations (from that adoption)
+
+1. `ProviderConfig.Validate` requires `ClientSecret` — public/PKCE-only clients are structurally unsupported. dnsblockd did not need them (Pocket ID issues client secrets), but any future consumer targeting providers without client secrets will hit this wall.
+2. Only `sub`/`email`/`email_verified`/`name` are extracted from the ID token; consumers wanting `preferred_username` or the raw token must fork `FinishLogin`.

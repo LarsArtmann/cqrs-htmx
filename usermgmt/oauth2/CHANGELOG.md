@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Notes
+
+- **First recorded external consumer:** dnsblockd (github.com/LarsArtmann/dnsblockd) embeds `usermgmt/oauth2/v4.7.0` as the protocol engine for its dashboard SSO (Pocket ID; authorization-code + PKCE S256; confidential client) — see ADR 0014 "Downstream consumers" for the adoption shape and the two open upstream considerations it surfaced (mandatory client secret; fixed ID-token claim set).
+
 ## [v4.7.0] - 2026-08-07
 
 ### Added
