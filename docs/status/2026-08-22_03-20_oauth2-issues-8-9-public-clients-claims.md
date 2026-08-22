@@ -113,44 +113,39 @@ oauth2: gofumpt clean · build · vet · `-race` · golangci-lint **0 issues** (
 
 ### Ready-to-run after `git push`
 
-```bash
-gh issue comment 8 --repo LarsArtmann/cqrs-htmx --body "Implemented in 953393e4 + 0a4edcbf (wire-level verification included).
+````bash
+gh issue comment 8 --repo LarsArtmann/cqrs-htmx --body "$(cat <<'EOF'
+Implemented in 953393e4 + 0a4edcbf (wire-level verification included).
 
-\
-\
 ProviderConfig.ClientType (ClientTypeConfidential default / ClientTypePublic) makes ClientSecret optional for public clients; PKCE S256 stays mandatory on every flow — that is what makes public clients safe per RFC 7636 / OAuth 2.1.
 
-\
-\
 ```go
-\"pocket-id\": {
-    ClientID:    \"spa-client\",
+"pocket-id": {
+    ClientID:    "spa-client",
     ClientType:  oauth2.ClientTypePublic, // no ClientSecret
-    IssuerURL:   \"https://id.example.com\",
-    RedirectURL: \"https://app.example.com/callback\",
+    IssuerURL:   "https://id.example.com",
+    RedirectURL: "https://app.example.com/callback",
 },
 ```
 
-\
-\
-Zero-value configs keep the exact old validation (fully backward compatible). Verified on the wire by a token endpoint that rejects any client_secret form value or Basic-auth password. Available from the next tagged release." && gh issue close 8 --repo LarsArtmann/cqrs-htmx
-gh issue comment 9 --repo LarsArtmann/cqrs-htmx --body "Implemented in 953393e4 + ce050eec — both proposed options shipped.
+Zero-value configs keep the exact old validation (fully backward compatible). Verified on the wire by a token endpoint that rejects any client_secret form value or Basic-auth password. Available from the next tagged release.
+EOF
+)" && gh issue close 8 --repo LarsArtmann/cqrs-htmx
 
-\
-\
+gh issue comment 9 --repo LarsArtmann/cqrs-htmx --body "$(cat <<'EOF'
+Implemented in 953393e4 + ce050eec — both proposed options shipped.
+
 1. preferred_username is now extracted from the OIDC ID token and the UserInfo endpoint (GitHub-style login fallback) and appears as preferred_username (omitempty) in the FinishLogin user info JSON — additive, existing consumers unaffected.
 2. New FinishLoginWithToken(ctx, provider, code, verifier) additionally returns the verified raw ID token (empty for non-OIDC providers):
 
-\
-\
 ```go
-userInfoJSON, rawIDToken, err := provider.FinishLoginWithToken(ctx, \"pocket-id\", code, verifier)
+userInfoJSON, rawIDToken, err := provider.FinishLoginWithToken(ctx, "pocket-id", code, verifier)
 ```
 
-\
-\
-Available from the next tagged release." && gh issue close 9 --repo LarsArtmann/cqrs-htmx
-```
+Available from the next tagged release.
+EOF
+)" && gh issue close 9 --repo LarsArtmann/cqrs-htmx
+````
 
 ---
 

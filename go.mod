@@ -20,6 +20,8 @@ require (
 	github.com/onsi/gomega v1.42.1
 )
 
+require github.com/larsartmann/go-sse/ssetest v0.2.0 // indirect
+
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
