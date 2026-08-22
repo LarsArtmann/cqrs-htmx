@@ -78,6 +78,8 @@ github.com/larsartmann/go-output/tree v0.37.0 h1:MTH3noReMY3AE9J+VBVLN15rJod+deE
 github.com/larsartmann/go-output/tree v0.37.0/go.mod h1:uSH510k+u3XVZRSW3wsumLwDhSP4doWJZSb+DmALEjc=
 github.com/larsartmann/go-sse v0.5.0 h1:6KC4fh/cDxNvaZE10ByT39y6ib65KH+nQIgw8sfVYRY=
 github.com/larsartmann/go-sse v0.5.0/go.mod h1:kj1Gv+cnHIWKeqL0hRvbzkyM96/ZHAfub4FpgFtehHg=
+github.com/larsartmann/go-sse v0.5.1 h1:WxTNZp+DfShA2yXPne4+Jp5sFKTDlng+VMOniCiFVu8=
+github.com/larsartmann/go-sse v0.5.1/go.mod h1:TJl45pMXjwZTdhGgyu6RZWmmXyr28XwpnNJ7rVyyUxU=
 github.com/larsartmann/samber-do-auditlog v0.10.0 h1:3V5yGMy7wbw9ikDd/dI107CHi8KAxX0nojoiAJW4eRg=
 github.com/larsartmann/samber-do-auditlog v0.10.0/go.mod h1:yfSF5NPXzPqySyFaHU4tItdOXMBqMLaZlbkeBbCcYk8=
 github.com/lucasb-eyer/go-colorful v1.4.1 h1:1EO+WB73+EH8EVbzlrG3KLAfEypQWVHIBqlTf+2hNss=

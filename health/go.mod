@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/health/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
@@ -31,7 +31,7 @@ require (
 	github.com/larsartmann/go-datastar/static v0.2.0 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.12.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/larsartmann/templ-components v1.8.3 // indirect

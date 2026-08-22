@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/integration_test
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0
@@ -91,7 +91,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.0
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.12.0
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

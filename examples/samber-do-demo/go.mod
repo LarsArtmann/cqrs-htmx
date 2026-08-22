@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/samber-do-demo
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.7.0
@@ -54,7 +54,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

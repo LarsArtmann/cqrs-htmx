@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/datastar-demo
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.8.1
@@ -24,7 +24,7 @@ require (
 	github.com/larsartmann/go-datastar v0.2.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.2.0 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/time v0.15.0 // indirect

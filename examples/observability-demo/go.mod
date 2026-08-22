@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/observability-demo
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
@@ -36,7 +36,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
 	github.com/larsartmann/go-retry v0.3.1 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

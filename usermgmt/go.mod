@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/usermgmt/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/go-sql-driver/mysql v1.10.0
@@ -85,7 +85,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260812165929-11e7746d6a7e // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.11 // indirect

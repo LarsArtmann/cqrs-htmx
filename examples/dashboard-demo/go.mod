@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/dashboard-demo
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.1
@@ -43,7 +43,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/larsartmann/templ-components/icons v1.8.2 // indirect
 	github.com/larsartmann/templ-components/utils v1.8.2 // indirect

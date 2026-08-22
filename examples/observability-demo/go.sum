@@ -103,6 +103,8 @@ github.com/larsartmann/go-retry v0.3.1 h1:PFCNacuGUQ8Io6hK6RFOiNQRwRCQ9vzfOguWnq
 github.com/larsartmann/go-retry v0.3.1/go.mod h1:Lbi4UAbiRgM4BqfRtMFPW8umNF4qnIApNLw0RRoTqVg=
 github.com/larsartmann/go-sse v0.5.0 h1:6KC4fh/cDxNvaZE10ByT39y6ib65KH+nQIgw8sfVYRY=
 github.com/larsartmann/go-sse v0.5.0/go.mod h1:kj1Gv+cnHIWKeqL0hRvbzkyM96/ZHAfub4FpgFtehHg=
+github.com/larsartmann/go-sse v0.5.1 h1:WxTNZp+DfShA2yXPne4+Jp5sFKTDlng+VMOniCiFVu8=
+github.com/larsartmann/go-sse v0.5.1/go.mod h1:TJl45pMXjwZTdhGgyu6RZWmmXyr28XwpnNJ7rVyyUxU=
 github.com/larsartmann/httputil v0.12.0 h1:ghPiGCu5UeCWaVnJ5S1fpzxOOBjWewEOHh61gtsfhW4=
 github.com/larsartmann/httputil v0.12.0/go.mod h1:tBPIqaXXZ/AtGXR/kq0wFR0Wlt2WRVXTOpYl/oSajnI=
 github.com/larsartmann/httputil/server_timing v0.12.0 h1:1Vqxl4L/3lDw38LlImG/5glFaCd4ZTU1KHtIXFvNWn0=

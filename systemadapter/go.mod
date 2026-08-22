@@ -1,7 +1,7 @@
 //cqrs-lint:ignore(A018) adapter module: it wires usermgmt deciders/projections into system.New(); dispatch happens in the system, not here
 module github.com/larsartmann/cqrs-htmx/systemadapter/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.0
 	//cqrs-lint:ignore(V003) v4.0.1 IS the latest published tag; detector compares against the core module version — false positive
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.0.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
@@ -40,9 +40,9 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.0 // indirect
+	github.com/larsartmann/cqrs-htmx/v4 v4.8.1 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-codec v0.1.0 // indirect
+	github.com/larsartmann/go-codec v0.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1 // indirect
 	//cqrs-lint:ignore(V006) v4.0.0 IS the latest published tag for commandlifecycle/projections; per-module release cadences differ
@@ -67,7 +67,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
-	github.com/larsartmann/go-sse v0.5.0 // indirect
+	github.com/larsartmann/go-sse v0.5.1 // indirect
 	github.com/larsartmann/httputil v0.12.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
