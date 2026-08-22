@@ -1,13 +1,13 @@
 module github.com/larsartmann/cqrs-htmx/examples/basic
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.6.1
-	github.com/larsartmann/go-sse v0.5.0
+	github.com/larsartmann/go-sse v0.5.1
 	github.com/larsartmann/httputil v0.12.0
 )
 

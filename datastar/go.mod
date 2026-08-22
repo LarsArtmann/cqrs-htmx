@@ -1,12 +1,12 @@
 module github.com/larsartmann/cqrs-htmx/datastar/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-datastar v0.2.0
-	github.com/larsartmann/go-sse v0.5.0
+	github.com/larsartmann/go-sse v0.5.1
 	github.com/stretchr/testify v1.11.1
 )
 

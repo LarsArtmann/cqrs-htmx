@@ -1,7 +1,7 @@
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
 module github.com/larsartmann/cqrs-htmx/dashboardui/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/dustin/go-humanize v1.0.1
@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-sse v0.5.0
+	github.com/larsartmann/go-sse v0.5.1
 	github.com/larsartmann/templ-components/icons v1.8.2
 )
 

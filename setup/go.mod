@@ -2,7 +2,7 @@
 //cqrs-lint:ignore(E014) setup consumes projections from usermgmt; it does not own them
 module github.com/larsartmann/cqrs-htmx/setup/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0
@@ -81,7 +81,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.1.2 // indirect
-	github.com/larsartmann/go-sse v0.5.0
+	github.com/larsartmann/go-sse v0.5.1
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/larsartmann/templ-components v1.8.3 // indirect
 	github.com/larsartmann/templ-components/htmx v1.8.2 // indirect
