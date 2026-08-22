@@ -21,6 +21,22 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// ClientType distinguishes how a client authenticates with the provider.
+// Public clients (RFC 7636 PKCE, OAuth 2.1) have no client secret; the
+// authorization-code exchange is secured by the PKCE verifier instead.
+type ClientType string
+
+const (
+	// ClientTypeConfidential is the default: the client holds a secret that
+	// authenticates the token exchange. Backward compatible with the previous
+	// behavior, where ClientSecret was always required.
+	ClientTypeConfidential ClientType = "confidential"
+	// ClientTypePublic is for clients without a secure secret storage location
+	// (browser SPAs, native apps, CLI tools). PKCE S256 is always enforced,
+	// so the code exchange remains protected.
+	ClientTypePublic ClientType = "public"
+)
+
 // ProviderConfig configures a single OAuth2/OIDC identity provider.
 //
 // For OIDC providers (Google, Microsoft, etc.), set IssuerURL — the provider's
@@ -28,9 +44,13 @@ import (
 //
 // For pure OAuth2 providers (GitHub without OIDC), set AuthURL, TokenURL, and
 // UserInfoURL explicitly.
+//
+// ClientType defaults to ClientTypeConfidential. Set ClientTypePublic to use
+// a secret-less (PKCE-only) client — ClientSecret is then optional.
 type ProviderConfig struct {
 	ClientID     string
 	ClientSecret string
+	ClientType   ClientType
 	RedirectURL  string
 	Scopes       []string
 	IssuerURL    string
@@ -44,7 +64,18 @@ func (c ProviderConfig) Validate() error {
 	if c.ClientID == "" {
 		return errorfamily.NewRejection("oauth2.client_id_required", "oauth2 provider: ClientID is required")
 	}
-	if c.ClientSecret == "" {
+	if c.ClientType == "" {
+		c.ClientType = ClientTypeConfidential
+	}
+	switch c.ClientType {
+	case ClientTypeConfidential, ClientTypePublic:
+	default:
+		return errorfamily.NewRejection(
+			"oauth2.invalid_client_type",
+			"oauth2 provider: ClientType must be ClientTypeConfidential or ClientTypePublic",
+		)
+	}
+	if c.ClientType == ClientTypeConfidential && c.ClientSecret == "" {
 		return errorfamily.NewRejection("oauth2.client_secret_required", "oauth2 provider: ClientSecret is required")
 	}
 	if c.RedirectURL == "" {
@@ -75,10 +106,11 @@ type Config struct {
 // tags are the real contract — they are kept identical to OAuth2UserInfo on
 // purpose so the two modules stay decoupled.
 type userInfo struct {
-	Subject       string `json:"subject"`
-	Email         string `json:"email"`
-	EmailVerified bool   `json:"email_verified"`
-	DisplayName   string `json:"display_name"`
+	Subject          string `json:"subject"`
+	Email            string `json:"email"`
+	EmailVerified    bool   `json:"email_verified"`
+	DisplayName      string `json:"display_name"`
+	PreferredUsername string `json:"preferred_username,omitempty"`
 }
 
 // initializedProvider is a provider with discovered endpoints.
@@ -260,19 +292,21 @@ func (p *initializedProvider) extractFromIDToken(
 		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.verify_id_token", "verify id_token")
 	}
 	var claims struct {
-		Sub           string `json:"sub"`
-		Email         string `json:"email"`
-		EmailVerified bool   `json:"email_verified"`
-		Name          string `json:"name"`
+		Sub              string `json:"sub"`
+		Email            string `json:"email"`
+		EmailVerified    bool   `json:"email_verified"`
+		Name             string `json:"name"`
+		PreferredUsername string `json:"preferred_username"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
 		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.extract_claims", "extract id_token claims")
 	}
 	return userInfo{
-		Subject:       claims.Sub,
-		Email:         claims.Email,
-		EmailVerified: claims.EmailVerified,
-		DisplayName:   claims.Name,
+		Subject:          claims.Sub,
+		Email:            claims.Email,
+		EmailVerified:    claims.EmailVerified,
+		DisplayName:      claims.Name,
+		PreferredUsername: claims.PreferredUsername,
 	}, nil
 }
 
@@ -303,12 +337,13 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 	}
 	// GitHub uses "id" as subject and "login" as display name
 	var raw struct {
-		ID            jsontext.Value `json:"id"`
-		Sub           string         `json:"sub"`
-		Email         string         `json:"email"`
-		Name          string         `json:"name"`
-		Login         string         `json:"login"`
-		EmailVerified bool           `json:"email_verified"`
+		ID             jsontext.Value `json:"id"`
+		Sub            string         `json:"sub"`
+		Email          string         `json:"email"`
+		Name           string         `json:"name"`
+		Login          string         `json:"login"`
+		PreferredUsername string       `json:"preferred_username"`
+		EmailVerified  bool           `json:"email_verified"`
 	}
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
@@ -335,10 +370,15 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 	if name == "" {
 		name = raw.Login
 	}
+	preferredUsername := raw.PreferredUsername
+	if preferredUsername == "" {
+		preferredUsername = raw.Login
+	}
 	return userInfo{
-		Subject:       subject,
-		Email:         raw.Email,
-		EmailVerified: raw.EmailVerified,
-		DisplayName:   name,
+		Subject:          subject,
+		Email:            raw.Email,
+		EmailVerified:    raw.EmailVerified,
+		DisplayName:      name,
+		PreferredUsername: preferredUsername,
 	}, nil
 }
