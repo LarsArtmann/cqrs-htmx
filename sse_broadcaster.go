@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/larsartmann/go-sse"
 )
@@ -149,6 +150,8 @@ func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
 	if err := stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"}); err != nil {
 		return
 	}
+
+	go stream.Heartbeat(r.Context(), 15*time.Second)
 
 	for {
 		select {

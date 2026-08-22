@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -220,6 +221,7 @@ func main() {
 		stream := sse.NewStream(w, r)
 		ch := broadcaster.Subscribe()
 		defer broadcaster.Unsubscribe(ch)
+		go stream.Heartbeat(r.Context(), 15*time.Second)
 		for {
 			select {
 			case <-stream.Context().Done():

@@ -2,6 +2,7 @@ package datastar
 
 import (
 	"net/http"
+	"time"
 
 	godatastar "github.com/larsartmann/go-datastar"
 	"github.com/larsartmann/go-sse"
@@ -154,6 +155,8 @@ func (b *Broadcaster) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	go stream.Heartbeat(r.Context(), 15*time.Second)
 
 	for {
 		select {

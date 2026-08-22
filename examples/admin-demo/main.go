@@ -281,6 +281,8 @@ func sseHandler(bc *cqrshtmx.Broadcaster) http.Handler {
 		ch := bc.Subscribe()
 		defer bc.Unsubscribe(ch)
 
+		go stream.Heartbeat(r.Context(), 15*time.Second)
+
 		for {
 			select {
 			case <-stream.Context().Done():
