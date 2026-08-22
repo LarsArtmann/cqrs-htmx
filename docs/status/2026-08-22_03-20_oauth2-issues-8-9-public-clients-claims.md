@@ -113,6 +113,8 @@ oauth2: gofumpt clean · build · vet · `-race` · golangci-lint **0 issues** (
 
 ### Ready-to-run after `git push`
 
+**UPDATE 2026-08-22 (later): issues #8 and #9 are now COMMENTED + CLOSED (reason: completed)** — comment links: [#8](https://github.com/LarsArtmann/cqrs-htmx/issues/8#issuecomment-5377165572), [#9](https://github.com/LarsArtmann/cqrs-htmx/issues/9#issuecomment-5377165981). User delegated issue closure without a push, so the comments phrase the commit SHAs as text ("implemented on master 2026-08-22, ships in the next tagged release") — GitHub auto-links short SHAs at render time, so they become live links once master is pushed. The commands below are kept for the record only — do NOT re-run them (they would duplicate the comments).
+
 ````bash
 gh issue comment 8 --repo LarsArtmann/cqrs-htmx --body "$(cat <<'EOF'
 Implemented in 953393e4 + 0a4edcbf (wire-level verification included).

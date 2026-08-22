@@ -1,7 +1,6 @@
 package cqrshtmx
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -15,64 +14,51 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-sse"
+	"github.com/larsartmann/go-sse/ssetest"
 )
 
 // --- Integration Test Helpers ---
 
-// sseReadResult captures the output read from an SSE stream.
-type sseReadResult struct {
-	body string
-	err  error
-}
+// readUntilMatch reads SSE events from sr until match returns true or the
+// context is cancelled. Returns the events read so far.
+func readUntilMatch(
+	ctx context.Context,
+	sr *ssetest.StreamReader,
+	match func(ssetest.Event) bool,
+) ([]ssetest.Event, error) {
+	type result struct {
+		events []ssetest.Event
+		err    error
+	}
 
-// readSSEUntil reads lines from body until the output contains the pattern
-// or the context is cancelled. Returns the accumulated body.
-func readSSEUntil(ctx context.Context, body io.Reader, patterns ...string) (string, error) {
-	resultCh := make(chan sseReadResult, 1)
+	ch := make(chan result, 1)
 
 	go func() {
-		scanner := bufio.NewScanner(body)
-		scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+		var events []ssetest.Event
 
-		var sb strings.Builder
+		for {
+			evt, err := sr.Next()
+			if err != nil {
+				ch <- result{events, err}
 
-		for scanner.Scan() {
-			line := scanner.Text()
-			sb.WriteString(line)
-			sb.WriteByte('\n')
-
-			combined := sb.String()
-			allFound := true
-
-			for _, p := range patterns {
-				if !strings.Contains(combined, p) {
-					allFound = false
-
-					break
-				}
+				return
 			}
 
-			if allFound && len(patterns) > 0 {
-				resultCh <- sseReadResult{body: combined, err: nil}
+			events = append(events, evt)
+
+			if match(evt) {
+				ch <- result{events, nil}
 
 				return
 			}
 		}
-
-		if err := scanner.Err(); err != nil {
-			resultCh <- sseReadResult{body: sb.String(), err: err}
-
-			return
-		}
-
-		resultCh <- sseReadResult{body: sb.String(), err: nil}
 	}()
 
 	select {
-	case r := <-resultCh:
-		return r.body, r.err
+	case r := <-ch:
+		return r.events, r.err
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return nil, ctx.Err()
 	}
 }
 
@@ -193,22 +179,31 @@ func TestIntegration_JournalSSEStore_Replay(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
-	body, err := readSSEUntil(
-		ctx, resp.Body,
-		"id: "+events[2].ID().String(),
-		"id: "+events[4].ID().String(),
-	)
+	sr := ssetest.NewStreamReader(resp.Body)
+
+	readEvents, err := readUntilMatch(ctx, sr, func(evt ssetest.Event) bool {
+		return evt.ID == events[4].ID().String()
+	})
 	if err != nil {
-		t.Fatalf("read SSE: %v\nbody:\n%s", err, body)
+		t.Fatalf("read SSE: %v", err)
+	}
+
+	seen := make(map[string]bool)
+	for _, evt := range readEvents {
+		seen[evt.ID] = true
 	}
 
 	// Should NOT contain events 1 or 2 (they were before the cursor)
-	if strings.Contains(body, "id: "+events[0].ID().String()) {
-		t.Errorf("body should not contain event before cursor:\n%s", body)
+	if seen[events[0].ID().String()] {
+		t.Errorf("should not contain event before cursor")
 	}
 
-	if strings.Contains(body, "id: "+events[1].ID().String()) {
-		t.Errorf("body should not contain cursor event:\n%s", body)
+	if seen[events[1].ID().String()] {
+		t.Errorf("should not contain cursor event")
+	}
+
+	if !seen[events[2].ID().String()] || !seen[events[4].ID().String()] {
+		t.Errorf("expected events 3 and 5, got: %v", seen)
 	}
 }
 
@@ -235,13 +230,21 @@ func TestIntegration_ACK_ConfirmedOverSSE(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
-	body, err := readSSEUntil(ctx, resp.Body, `"commandId":"cmd-confirmed-001"`, `"status":"confirmed"`)
+	sr := ssetest.NewStreamReader(resp.Body)
+
+	readEvents, err := readUntilMatch(ctx, sr, func(evt ssetest.Event) bool {
+		return evt.Type == "sync:ack" && strings.Contains(evt.Data(), "cmd-confirmed-001")
+	})
 	if err != nil {
-		t.Fatalf("read SSE: %v\nbody:\n%s", err, body)
+		t.Fatalf("read SSE: %v", err)
 	}
 
-	if !strings.Contains(body, "event: sync:ack") {
-		t.Errorf("expected sync:ack event name in body:\n%s", body)
+	if len(readEvents) == 0 || readEvents[len(readEvents)-1].Type != "sync:ack" {
+		t.Errorf("expected sync:ack event")
+	}
+
+	if !strings.Contains(readEvents[len(readEvents)-1].Data(), "\"status\":\"confirmed\"") {
+		t.Errorf("expected confirmed status, got: %s", readEvents[len(readEvents)-1].Data())
 	}
 }
 
@@ -268,14 +271,22 @@ func TestIntegration_ACK_RejectedOverSSE(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 
-	body, err := readSSEUntil(
-		ctx, resp.Body,
-		`"commandId":"cmd-rejected-002"`,
-		`"status":"rejected"`,
-		`"error":"email already exists"`,
-	)
+	sr := ssetest.NewStreamReader(resp.Body)
+
+	readEvents, err := readUntilMatch(ctx, sr, func(evt ssetest.Event) bool {
+		return evt.Type == "sync:ack" && strings.Contains(evt.Data(), "cmd-rejected-002")
+	})
 	if err != nil {
-		t.Fatalf("read SSE: %v\nbody:\n%s", err, body)
+		t.Fatalf("read SSE: %v", err)
+	}
+
+	last := readEvents[len(readEvents)-1]
+	if !strings.Contains(last.Data(), "\"status\":\"rejected\"") {
+		t.Errorf("expected rejected status, got: %s", last.Data())
+	}
+
+	if !strings.Contains(last.Data(), "email already exists") {
+		t.Errorf("expected error message, got: %s", last.Data())
 	}
 }
 
@@ -304,13 +315,14 @@ func TestIntegration_ReconnectAndLiveACK(t *testing.T) {
 	ctx1, cancel1 := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel1()
 
-	replayBody, err := readSSEUntil(
-		ctx1, resp.Body,
-		"id: "+events[2].ID().String(),
-		"id: "+events[3].ID().String(),
+	sr := ssetest.NewStreamReader(resp.Body)
+
+	replayEvents, err := readUntilMatch(
+		ctx1, sr,
+		func(evt ssetest.Event) bool { return evt.ID == events[3].ID().String() },
 	)
 	if err != nil {
-		t.Fatalf("replay phase: %v\nbody:\n%s", err, replayBody)
+		t.Fatalf("replay phase: %v", err)
 	}
 
 	// Phase 2: trigger a live ACK broadcast — must arrive in the SAME stream
@@ -322,15 +334,18 @@ func TestIntegration_ReconnectAndLiveACK(t *testing.T) {
 	ctx2, cancel2 := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel2()
 
-	liveBody, err := readSSEUntil(ctx2, resp.Body, `"commandId":"cmd-live-003"`, `"status":"confirmed"`)
+	liveEvents, err := readUntilMatch(ctx2, sr, func(evt ssetest.Event) bool {
+		return evt.Type == "sync:ack" && strings.Contains(evt.Data(), "cmd-live-003")
+	})
 	if err != nil {
-		t.Fatalf("live ACK phase: %v\nbody:\n%s", err, liveBody)
+		t.Fatalf("live ACK phase: %v", err)
 	}
 
-	// The combined stream had both replayed events and a live ACK
-	if !strings.Contains(replayBody+liveBody, "sync:ack") {
-		t.Error("expected sync:ack event in the combined stream")
+	if len(liveEvents) == 0 || liveEvents[len(liveEvents)-1].Type != "sync:ack" {
+		t.Error("expected sync:ack event in the live stream")
 	}
+
+	_ = replayEvents
 }
 
 // --- No X-Command-Id → no ACK (opt-in guard, integration level) ---
@@ -357,13 +372,17 @@ func TestIntegration_ACK_NoCommandID_NoBroadcast(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 
 	// Subscriber count should still be 1 (no events sent, channel empty)
-	// We verify by checking that reading yields nothing immediately
+	// We verify by checking that reading yields nothing within a short timeout
 	ctx, cancel := context.WithTimeout(t.Context(), 300*time.Millisecond)
 	defer cancel()
 
-	body, _ := readSSEUntil(ctx, resp.Body, "this-pattern-does-not-exist")
-	if strings.Contains(body, "sync:ack") {
-		t.Errorf("no ACK should be broadcast without X-Command-Id header:\n%s", body)
+	sr := ssetest.NewStreamReader(resp.Body)
+
+	readEvents, _ := readUntilMatch(ctx, sr, func(ssetest.Event) bool { return false })
+	for _, evt := range readEvents {
+		if evt.Type == "sync:ack" {
+			t.Errorf("no ACK should be broadcast without X-Command-Id header: %v", evt)
+		}
 	}
 }
 

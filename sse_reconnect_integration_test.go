@@ -1,7 +1,6 @@
 package cqrshtmx_test
 
 import (
-	"bufio"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-sse"
+	"github.com/larsartmann/go-sse/ssetest"
 )
 
 // TestSSE_RealServer_ReconnectionWithLastEventID verifies the SSE
@@ -101,45 +101,49 @@ func doReconnectRequest(t *testing.T, url, lastID string) *http.Response {
 	return resp
 }
 
-func readReconnectBody(t *testing.T, resp *http.Response) string {
+func readReconnectBody(t *testing.T, resp *http.Response) []ssetest.Event {
 	t.Helper()
 
-	scanner := bufio.NewScanner(resp.Body)
-
-	var body strings.Builder
-	for scanner.Scan() {
-		body.WriteString(scanner.Text())
-		body.WriteString("\n")
+	events, err := ssetest.ReadEvents(resp.Body)
+	if err != nil {
+		t.Fatalf("read SSE events: %v", err)
 	}
 
-	if err := scanner.Err(); err != nil {
-		t.Fatalf("scan body: %v", err)
-	}
-
-	return body.String()
+	return events
 }
 
-func assertReplayedAfterID2(t *testing.T, out string) {
+func assertReplayedAfterID2(t *testing.T, events []ssetest.Event) {
 	t.Helper()
 
-	if !strings.Contains(out, "id: 3") {
-		t.Errorf("expected replayed id: 3, body:\n%s", out)
+	ids := make(map[string]bool)
+
+	for _, evt := range events {
+		ids[evt.ID] = true
 	}
 
-	if !strings.Contains(out, "id: 4") {
-		t.Errorf("expected replayed id: 4, body:\n%s", out)
+	if !ids["3"] {
+		t.Errorf("expected replayed id 3, got IDs: %v", ids)
 	}
 
-	if strings.Contains(out, "id: 1") || strings.Contains(out, "id: 2") {
-		t.Errorf("did not expect ids 1 or 2 to be replayed, body:\n%s", out)
+	if !ids["4"] {
+		t.Errorf("expected replayed id 4, got IDs: %v", ids)
 	}
 
-	if !strings.Contains(out, "data: <li>third</li>") {
-		t.Errorf("expected third event data, body:\n%s", out)
+	if ids["1"] || ids["2"] {
+		t.Errorf("did not expect ids 1 or 2 to be replayed, got IDs: %v", ids)
 	}
 
-	if !strings.Contains(out, "data: <li>fourth</li>") {
-		t.Errorf("expected fourth event data, body:\n%s", out)
+	var dataLines []string
+	for _, evt := range events {
+		dataLines = append(dataLines, evt.Data())
+	}
+
+	if !strings.Contains(strings.Join(dataLines, "\n"), "<li>third</li>") {
+		t.Errorf("expected third event data, got: %v", dataLines)
+	}
+
+	if !strings.Contains(strings.Join(dataLines, "\n"), "<li>fourth</li>") {
+		t.Errorf("expected fourth event data, got: %v", dataLines)
 	}
 }
 
