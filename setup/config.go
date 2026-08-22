@@ -33,6 +33,7 @@ type Config struct {
 	//
 	//	import oauth2 "github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4"
 	//	OAuth2: oauth2.New(oauth2.Config{Providers: ...}),
+	//	// secret-less PKCE clients: ProviderConfig.ClientType = oauth2.ClientTypePublic
 	TOTP     identitymodel.TOTPProvider
 	WebAuthn identitymodel.WebAuthnProvider
 	OAuth2   identitymodel.OAuth2Provider

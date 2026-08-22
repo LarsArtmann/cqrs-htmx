@@ -1,7 +1,7 @@
 # Status: OAuth2 issues #8 + #9 — public PKCE clients, preferred_username, raw ID token
 
-**Date:** 2026-08-22 03:20 · **Session scope:** `gh issue view 8/9` → implement both in `usermgmt/oauth2` → verify → document
-**State at session end:** working tree clean (auto-git daemon absorbed everything), all module-level gates green, work NOT pushed, issues NOT closed, features NOT tagged/released.
+**Date:** 2026-08-22 03:20 (follow-up session same day ~04:00 — see h) · **Session scope:** `gh issue view 8/9` → implement both in `usermgmt/oauth2` → verify → document
+**State:** all module-level gates green · work NOT pushed (user gate) · issues NOT closed (post-push) · features NOT tagged (family-train decision pending, see h-2).
 
 ---
 
@@ -88,4 +88,70 @@ Nothing destructive, nothing left broken — but three classes of sloppiness thi
 
 ---
 
-*Verification at close: oauth2 build/vet/race/lint(0 issues)/coverage 88.4% green · usermgmt suite green · integration_test OAuth2 green · tree clean at `0a4edcbf`.*
+## h) FOLLOW-UP SESSION (2026-08-22, after "keep going" instruction)
+
+Closed every locally-actionable item; the three questions above stay user-gated (push/tag/promote/close are release actions, not code).
+
+### Done this session
+
+1. **b-2 CLOSED — wire-level public-client proof:** `TestProvider_FinishLogin_PublicClient_ExchangeWithoutSecret` (fake token endpoint rejects any `client_secret` form key AND any non-empty Basic-auth password, requires `code_verifier`; x/oauth2 v0.36.0 confirmed to omit the key for empty secrets, and to probe `AuthStyleInHeader` first — assertions cover both styles). Companion `TestProvider_FinishLogin_ConfidentialClient_SendsSecret` pins the confidential wire shape (secret as form key OR Basic password). 31 test funcs now.
+2. **b-3 CLOSED — godoc:** `FinishLogin` now documents the `login`→`preferred_username` fallback for pure OAuth2 providers.
+3. **f-6 CLOSED (N/A):** cqrs-lint 4.6.0 on the module → "none import go-cqrs-lite" — correct, oauth2 is a pure auth-strategy module. Not in the check-cqrs-lint list for the same reason.
+4. **f-11 CLOSED:** `setup/config.go` oauth2 injection comment now mentions `ClientTypePublic`.
+5. **f-12 CLOSED:** ADR-0014 "Provider configuration" struct refreshed to current `ProviderConfig` (was stale pre-`ClientType`) + new "Public clients and extended claims" usage subsection; AGENTS.md "Language" row bumped to 1.26.6.
+6. **Toolchain note:** the daemon's `b0caabc0` bumped 6 go.mod files to go 1.26.6 — local toolchain is 1.26.5, so affected modules (root, setup, dashboardui, datastar, e2e/server, examples/basic) need `GOTOOLCHAIN=auto` until the local install is upgraded. oauth2/usermgmt/integration_test were not bumped and build with 1.26.5.
+
+### Re-verification (all green)
+
+oauth2: gofumpt clean · build · vet · `-race` · golangci-lint **0 issues** (one QF1001 De Morgan finding fixed) · coverage 88.4% · usermgmt suite · integration_test OAuth2 · setup builds (GOTOOLCHAIN=auto).
+
+### Decisions taken autonomously (reversible, stated for veto)
+
+- **g-1 promotion: HOLD (recommend module-only).** YAGNI: zero current consumers need `preferred_username` persisted in the event-sourced read model; dnsblockd reads the `FinishLogin`/`FinishLoginWithToken` JSON directly. Promotion = event-payload + fold + projections + event-catalog schema churn across 4 modules. Trigger to revisit: a consumer asking for the handle on `ExternalAccount` in adminui/systemadapter views. The `userInfo` Sollbruchstelle comment now documents the additive divergence explicitly.
+- **g-2 tagging: recommend HOLD for next family train** (master already carries the setup DEV-replace stripping payload; buildflow enforces one coordinated family version; `totp` sits at v4.7.0 too). Both features are additive — nothing blocks on an immediate tag.
+- **g-3 issue comments: drafted, ready to fire after push** (comments referencing unpushed commits would be dead links). Commands below.
+
+### Ready-to-run after `git push`
+
+```bash
+gh issue comment 8 --repo LarsArtmann/cqrs-htmx --body "Implemented in 953393e4 + 0a4edcbf (wire-level verification included).
+
+\
+\
+ProviderConfig.ClientType (ClientTypeConfidential default / ClientTypePublic) makes ClientSecret optional for public clients; PKCE S256 stays mandatory on every flow — that is what makes public clients safe per RFC 7636 / OAuth 2.1.
+
+\
+\
+```go
+\"pocket-id\": {
+    ClientID:    \"spa-client\",
+    ClientType:  oauth2.ClientTypePublic, // no ClientSecret
+    IssuerURL:   \"https://id.example.com\",
+    RedirectURL: \"https://app.example.com/callback\",
+},
+```
+
+\
+\
+Zero-value configs keep the exact old validation (fully backward compatible). Verified on the wire by a token endpoint that rejects any client_secret form value or Basic-auth password. Available from the next tagged release." && gh issue close 8 --repo LarsArtmann/cqrs-htmx
+gh issue comment 9 --repo LarsArtmann/cqrs-htmx --body "Implemented in 953393e4 + ce050eec — both proposed options shipped.
+
+\
+\
+1. preferred_username is now extracted from the OIDC ID token and the UserInfo endpoint (GitHub-style login fallback) and appears as preferred_username (omitempty) in the FinishLogin user info JSON — additive, existing consumers unaffected.
+2. New FinishLoginWithToken(ctx, provider, code, verifier) additionally returns the verified raw ID token (empty for non-OIDC providers):
+
+\
+\
+```go
+userInfoJSON, rawIDToken, err := provider.FinishLoginWithToken(ctx, \"pocket-id\", code, verifier)
+```
+
+\
+\
+Available from the next tagged release." && gh issue close 9 --repo LarsArtmann/cqrs-htmx
+```
+
+---
+
+*Verification at close: oauth2 build/vet/race/lint(0 issues)/coverage 88.4% green · usermgmt suite green · integration_test OAuth2 green · setup builds · tree clean at `0a4edcbf`. Follow-up session h) re-verified everything after the exchange tests + godoc + docs.*

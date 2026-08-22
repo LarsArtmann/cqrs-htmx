@@ -47,9 +47,10 @@ Both are hard dependencies in the `usermgmt` module, following the precedent set
 ### Provider configuration
 
 ```go
-type OAuth2ProviderConfig struct {
+type ProviderConfig struct {
     ClientID     string
-    ClientSecret string
+    ClientSecret string     // required unless ClientType is ClientTypePublic
+    ClientType   ClientType // ClientTypeConfidential (default) | ClientTypePublic (secret-less, PKCE-only)
     RedirectURL  string
     Scopes       []string
     IssuerURL    string // Enables OIDC discovery + ID token verification
@@ -61,6 +62,24 @@ type OAuth2ProviderConfig struct {
 ```
 
 When `IssuerURL` is set, the library discovers endpoints via OIDC `.well-known/openid-configuration` and verifies ID tokens. When empty, explicit endpoints are used and the UserInfo endpoint fetches user details.
+
+#### Public clients and extended claims (2026-08-22, issues [#8](https://github.com/LarsArtmann/cqrs-htmx/issues/8)/[#9](https://github.com/LarsArtmann/cqrs-htmx/issues/9))
+
+```go
+// Secret-less (public) client — RFC 7636 / OAuth 2.1 style, PKCE S256 only:
+"pocket-id": {
+    ClientID:    "spa-client",
+    ClientType:  oauth2.ClientTypePublic,
+    IssuerURL:   "https://id.example.com",
+    RedirectURL: "https://app.example.com/callback",
+},
+
+// Standalone consumers: user info JSON (now incl. preferred_username)
+// plus the verified raw ID token in one call (empty for non-OIDC):
+userInfoJSON, rawIDToken, err := provider.FinishLoginWithToken(ctx, "pocket-id", code, verifier)
+```
+
+`FinishLogin`'s JSON contract is unchanged (`preferred_username` is additive, `omitempty`); the usermgmt-side `OAuth2UserInfo` ignores the extra key, so the module/core seam stays frozen.
 
 ### Security decisions
 
