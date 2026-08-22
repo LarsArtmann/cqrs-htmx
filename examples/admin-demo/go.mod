@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-sse v0.5.0
+	github.com/larsartmann/go-sse v0.5.1
 	github.com/larsartmann/httputil v0.12.0
 	github.com/larsartmann/httputil/server_timing v0.12.0
 )
