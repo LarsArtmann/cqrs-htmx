@@ -88,6 +88,57 @@ func TestProviderConfig_Validate_OAuth2EndpointsOK(t *testing.T) {
 	}
 }
 
+func TestProviderConfig_Validate_PublicClientNoSecret(t *testing.T) {
+	config := ProviderConfig{
+		ClientID:    "id",
+		ClientType:  ClientTypePublic,
+		RedirectURL: "http://localhost/callback",
+		IssuerURL:   "https://accounts.google.com",
+	}
+	if err := config.Validate(); err != nil {
+		t.Fatalf("public client without secret should not error: %v", err)
+	}
+}
+
+func TestProviderConfig_Validate_PublicClientWithSecret(t *testing.T) {
+	config := ProviderConfig{
+		ClientID:     "id",
+		ClientSecret: "secret",
+		ClientType:   ClientTypePublic,
+		RedirectURL:  "http://localhost/callback",
+		IssuerURL:    "https://accounts.google.com",
+	}
+	if err := config.Validate(); err != nil {
+		t.Fatalf("public client with secret should not error: %v", err)
+	}
+}
+
+func TestProviderConfig_Validate_ConfidentialDefaultRequiresSecret(t *testing.T) {
+	// ClientType zero value must stay backward compatible: confidential,
+	// so a missing secret is still rejected.
+	config := ProviderConfig{
+		ClientID:    "id",
+		RedirectURL: "http://localhost/callback",
+		IssuerURL:   "https://accounts.google.com",
+	}
+	if err := config.Validate(); err == nil {
+		t.Fatal("expected error for missing ClientSecret with default (confidential) ClientType")
+	}
+}
+
+func TestProviderConfig_Validate_InvalidClientType(t *testing.T) {
+	config := ProviderConfig{
+		ClientID:     "id",
+		ClientSecret: "secret",
+		ClientType:   ClientType("hybrid"),
+		RedirectURL:  "http://localhost/callback",
+		IssuerURL:    "https://accounts.google.com",
+	}
+	if err := config.Validate(); err == nil {
+		t.Fatal("expected error for invalid ClientType")
+	}
+}
+
 // --- New / provider lookup tests ---
 
 func TestNew_UnknownProviderDiscovery(t *testing.T) {
@@ -155,6 +206,32 @@ func TestProvider_FinishLogin_UnknownProvider(t *testing.T) {
 	}
 }
 
+func TestProvider_FinishLoginWithToken_UnknownProvider(t *testing.T) {
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{
+			"google": {
+				ClientID:     "id",
+				ClientSecret: "secret",
+				RedirectURL:  "http://localhost/callback",
+				AuthURL:      "https://example.com/auth",
+				TokenURL:     "https://example.com/token",
+				UserInfoURL:  "https://example.com/userinfo",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, rawIDToken, err := p.FinishLoginWithToken(context.Background(), "unknown", "code", "verifier")
+	if err == nil {
+		t.Fatal("expected error for unknown provider")
+	}
+	if rawIDToken != "" {
+		t.Errorf("expected empty raw ID token on error, got %q", rawIDToken)
+	}
+}
+
 // --- BeginLogin PKCE tests ---
 
 func TestProvider_BeginLogin_PKCE(t *testing.T) {
@@ -214,6 +291,45 @@ func TestProvider_BeginLogin_PKCE(t *testing.T) {
 	// (The verifier is base64url random, challenge = base64url(sha256(verifier)))
 	if len(codeChallenge) < 32 {
 		t.Error("code_challenge looks too short for S256")
+	}
+}
+
+func TestProvider_BeginLogin_PublicClient(t *testing.T) {
+	// A public (secret-less) client must still be accepted and produce a
+	// PKCE-protected authorization URL.
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{
+			"pocket": {
+				ClientID:    "public-client-id",
+				ClientType:  ClientTypePublic,
+				RedirectURL: "http://localhost/callback",
+				AuthURL:     "https://example.com/auth",
+				TokenURL:    "https://example.com/token",
+				UserInfoURL: "https://example.com/userinfo",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	redirectURL, pkceVerifier, err := p.BeginLogin(context.Background(), "pocket", "my-state")
+	if err != nil {
+		t.Fatalf("BeginLogin: %v", err)
+	}
+
+	u, err := url.Parse(redirectURL)
+	if err != nil {
+		t.Fatalf("parse redirect URL: %v", err)
+	}
+	if u.Query().Get("client_id") != "public-client-id" {
+		t.Errorf("client_id = %q", u.Query().Get("client_id"))
+	}
+	if u.Query().Get("code_challenge") == "" {
+		t.Error("expected non-empty code_challenge for public client")
+	}
+	if pkceVerifier == "" {
+		t.Error("expected non-empty PKCE verifier")
 	}
 }
 
@@ -336,6 +452,9 @@ func TestProvider_FinishLogin_PureOAuth2_GitHubLoginFallback(t *testing.T) {
 	if info.DisplayName != "ghuser" {
 		t.Errorf("DisplayName = %q, want %q (login fallback)", info.DisplayName, "ghuser")
 	}
+	if info.PreferredUsername != "ghuser" {
+		t.Errorf("PreferredUsername = %q, want %q (login fallback)", info.PreferredUsername, "ghuser")
+	}
 }
 
 func TestProvider_FinishLogin_PureOAuth2_InvalidCode(t *testing.T) {
@@ -408,10 +527,11 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 	prov := &fakeOIDCServer{
 		signer: cachedSigner,
 		claims: map[string]any{
-			"sub":            "oidc-sub-123",
-			"email":          "oidcuser@example.com",
-			"email_verified": true,
-			"name":           "OIDC User",
+			"sub":                "oidc-sub-123",
+			"email":              "oidcuser@example.com",
+			"email_verified":     true,
+			"name":               "OIDC User",
+			"preferred_username": "oidcuser",
 		},
 	}
 
@@ -527,6 +647,92 @@ func TestProvider_FinishLogin_OIDC(t *testing.T) {
 	}
 	if info.DisplayName != "OIDC User" {
 		t.Errorf("DisplayName = %q", info.DisplayName)
+	}
+	if info.PreferredUsername != "oidcuser" {
+		t.Errorf("PreferredUsername = %q, want %q", info.PreferredUsername, "oidcuser")
+	}
+}
+
+func TestProvider_FinishLoginWithToken_OIDC(t *testing.T) {
+	oidc := newFakeOIDCServer(t)
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{"google": oidc.providerConfig()},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, pkceVerifier, err := p.BeginLogin(context.Background(), "google", "state")
+	if err != nil {
+		t.Fatalf("BeginLogin: %v", err)
+	}
+
+	userInfoJSON, rawIDToken, err := p.FinishLoginWithToken(context.Background(), "google", "test-auth-code", pkceVerifier)
+	if err != nil {
+		t.Fatalf("FinishLoginWithToken: %v", err)
+	}
+
+	var info userInfo
+	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
+		t.Fatalf("unmarshal userInfo: %v", err)
+	}
+	if info.Subject != "oidc-sub-123" {
+		t.Errorf("Subject = %q, want %q", info.Subject, "oidc-sub-123")
+	}
+	if info.PreferredUsername != "oidcuser" {
+		t.Errorf("PreferredUsername = %q, want %q", info.PreferredUsername, "oidcuser")
+	}
+
+	// The raw ID token must be non-empty and be a verifiable JWT (3 dot-separated parts).
+	if rawIDToken == "" {
+		t.Fatal("expected non-empty raw ID token")
+	}
+	parts := strings.Split(rawIDToken, ".")
+	if len(parts) != 3 {
+		t.Errorf("raw ID token should be a compact JWT, got %d parts", len(parts))
+	}
+}
+
+func TestProvider_FinishLoginWithToken_PureOAuth2(t *testing.T) {
+	// Non-OIDC providers have no ID token; the raw token must be empty.
+	provCfg := newFakeOAuth2Server(t, map[string]any{
+		"id":                 "12345",
+		"email":              "user@example.com",
+		"name":               "Test User",
+		"preferred_username": "testuser",
+		"email_verified":     true,
+	})
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{"github": provCfg},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, pkceVerifier, err := p.BeginLogin(context.Background(), "github", "state")
+	if err != nil {
+		t.Fatalf("BeginLogin: %v", err)
+	}
+
+	userInfoJSON, rawIDToken, err := p.FinishLoginWithToken(context.Background(), "github", "test-auth-code", pkceVerifier)
+	if err != nil {
+		t.Fatalf("FinishLoginWithToken: %v", err)
+	}
+	if rawIDToken != "" {
+		t.Errorf("expected empty raw ID token for non-OIDC provider, got %q", rawIDToken)
+	}
+
+	var info userInfo
+	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
+		t.Fatalf("unmarshal userInfo: %v", err)
+	}
+	if info.Subject != "12345" {
+		t.Errorf("Subject = %q, want %q", info.Subject, "12345")
+	}
+	if info.PreferredUsername != "testuser" {
+		t.Errorf("PreferredUsername = %q, want %q", info.PreferredUsername, "testuser")
 	}
 }
 

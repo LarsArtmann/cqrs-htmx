@@ -6,9 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Public (secret-less) PKCE clients** (issue #8): `ProviderConfig.ClientType` (`ClientTypeConfidential` default / `ClientTypePublic`) makes `ClientSecret` optional for public clients while keeping PKCE S256 mandatory. Backward compatible — the zero value stays confidential.
+- **`preferred_username` claim** (issue #9): extracted from the OIDC ID token and the UserInfo endpoint (with `login` fallback for GitHub-style providers) and surfaced as `preferred_username` in the user info JSON (additive, `omitempty`).
+- **`FinishLoginWithToken`** (issue #9): like `FinishLogin`, but additionally returns the verified raw ID token so consumers can read provider-specific claims without a library round-trip. Non-OIDC providers return an empty token.
+
 ### Notes
 
-- **First recorded external consumer:** dnsblockd (github.com/LarsArtmann/dnsblockd) embeds `usermgmt/oauth2/v4.7.0` as the protocol engine for its dashboard SSO (Pocket ID; authorization-code + PKCE S256; confidential client) — see ADR 0014 "Downstream consumers" for the adoption shape and the two open upstream considerations it surfaced (mandatory client secret; fixed ID-token claim set).
+- **First recorded external consumer:** dnsblockd (github.com/LarsArtmann/dnsblockd) embeds `usermgmt/oauth2/v4.7.0` as the protocol engine for its dashboard SSO (Pocket ID; authorization-code + PKCE S256; confidential client) — see ADR 0014 "Downstream consumers" for the adoption shape and the two upstream considerations it surfaced (mandatory client secret; fixed ID-token claim set), both resolved in this release (issues #8, #9).
 
 ## [v4.7.0] - 2026-08-07
 

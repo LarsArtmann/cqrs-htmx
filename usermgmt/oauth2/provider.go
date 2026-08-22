@@ -104,12 +104,14 @@ type Config struct {
 // INTENTIONAL DUPLICATION (Sollbruchstelle seam): this auth-strategy module
 // must NOT import core usermgmt (see AGENTS.md dependency direction). The JSON
 // tags are the real contract — they are kept identical to OAuth2UserInfo on
-// purpose so the two modules stay decoupled.
+// purpose so the two modules stay decoupled. PreferredUsername is an additive
+// optional field (omitempty): usermgmt's OAuth2UserInfo ignores it, while
+// standalone consumers (e.g. dnsblockd) can read it from the FinishLogin JSON.
 type userInfo struct {
-	Subject          string `json:"subject"`
-	Email            string `json:"email"`
-	EmailVerified    bool   `json:"email_verified"`
-	DisplayName      string `json:"display_name"`
+	Subject           string `json:"subject"`
+	Email             string `json:"email"`
+	EmailVerified     bool   `json:"email_verified"`
+	DisplayName       string `json:"display_name"`
 	PreferredUsername string `json:"preferred_username,omitempty"`
 }
 
@@ -235,7 +237,8 @@ func (p *Provider) BeginLogin(_ context.Context, providerName, state string) (st
 }
 
 // FinishLogin exchanges the authorization code for tokens and extracts user info.
-// Returns the user info as JSON (subject, email, email_verified, display_name).
+// Returns the user info as JSON (subject, email, email_verified, display_name,
+// preferred_username).
 func (p *Provider) FinishLogin(ctx context.Context, providerName, code, pkceVerifier string) ([]byte, error) {
 	prov, err := p.get(providerName)
 	if err != nil {
@@ -339,10 +342,10 @@ func (p *initializedProvider) extractFromIDToken(
 		return userInfo{}, "", errorfamily.WrapTransient(err, "oauth2.extract_claims", "extract id_token claims")
 	}
 	return userInfo{
-		Subject:          claims.Sub,
-		Email:            claims.Email,
-		EmailVerified:    claims.EmailVerified,
-		DisplayName:      claims.Name,
+		Subject:           claims.Sub,
+		Email:             claims.Email,
+		EmailVerified:     claims.EmailVerified,
+		DisplayName:       claims.Name,
 		PreferredUsername: claims.PreferredUsername,
 	}, rawIDToken, nil
 }
@@ -374,13 +377,13 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 	}
 	// GitHub uses "id" as subject and "login" as display name
 	var raw struct {
-		ID             jsontext.Value `json:"id"`
-		Sub            string         `json:"sub"`
-		Email          string         `json:"email"`
-		Name           string         `json:"name"`
-		Login          string         `json:"login"`
-		PreferredUsername string       `json:"preferred_username"`
-		EmailVerified  bool           `json:"email_verified"`
+		ID                jsontext.Value `json:"id"`
+		Sub               string         `json:"sub"`
+		Email             string         `json:"email"`
+		Name              string         `json:"name"`
+		Login             string         `json:"login"`
+		PreferredUsername string         `json:"preferred_username"`
+		EmailVerified     bool           `json:"email_verified"`
 	}
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
@@ -412,10 +415,10 @@ func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.T
 		preferredUsername = raw.Login
 	}
 	return userInfo{
-		Subject:          subject,
-		Email:            raw.Email,
-		EmailVerified:    raw.EmailVerified,
-		DisplayName:      name,
+		Subject:           subject,
+		Email:             raw.Email,
+		EmailVerified:     raw.EmailVerified,
+		DisplayName:       name,
 		PreferredUsername: preferredUsername,
 	}, nil
 }
