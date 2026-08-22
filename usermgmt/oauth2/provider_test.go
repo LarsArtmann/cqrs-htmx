@@ -457,6 +457,155 @@ func TestProvider_FinishLogin_PureOAuth2_GitHubLoginFallback(t *testing.T) {
 	}
 }
 
+func TestProvider_FinishLogin_PublicClient_ExchangeWithoutSecret(t *testing.T) {
+	// Wire-level proof for RFC 7636 public clients: the token exchange must be
+	// secured by PKCE alone — no client secret may appear as a POST body
+	// parameter (AuthStyleInParams) or as a Basic-auth password
+	// (AuthStyleInHeader, x/oauth2's first probe attempt).
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("POST /token", func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		if r.PostFormValue("code") != "test-auth-code" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.MarshalWrite(w, map[string]string{"error": "invalid_grant"})
+			return
+		}
+		if r.PostForm.Has("client_secret") {
+			w.WriteHeader(http.StatusBadRequest)
+			json.MarshalWrite(w, map[string]string{"error": "invalid_client", "error_description": "public client must not send client_secret"})
+			return
+		}
+		if _, password, ok := r.BasicAuth(); ok && password != "" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.MarshalWrite(w, map[string]string{"error": "invalid_client", "error_description": "public client must not send a Basic-auth secret"})
+			return
+		}
+		if r.PostFormValue("code_verifier") == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.MarshalWrite(w, map[string]string{"error": "invalid_grant", "error_description": "code_verifier required"})
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.MarshalWrite(w, map[string]string{
+			"access_token": "public-access-token",
+			"token_type":   "Bearer",
+		})
+	})
+
+	mux.HandleFunc("GET /userinfo", func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.MarshalWrite(w, map[string]any{
+			"sub":                "public-sub-1",
+			"email":              "public@example.com",
+			"preferred_username": "public-user",
+			"email_verified":     true,
+		})
+	})
+
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{
+			"public-idp": {
+				ClientID:    "public-client-id",
+				ClientType:  ClientTypePublic,
+				RedirectURL: "http://localhost:8080/callback",
+				AuthURL:     server.URL + "/auth",
+				TokenURL:    server.URL + "/token",
+				UserInfoURL: server.URL + "/userinfo",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, pkceVerifier, err := p.BeginLogin(context.Background(), "public-idp", "state")
+	if err != nil {
+		t.Fatalf("BeginLogin: %v", err)
+	}
+
+	userInfoJSON, err := p.FinishLogin(context.Background(), "public-idp", "test-auth-code", pkceVerifier)
+	if err != nil {
+		t.Fatalf("FinishLogin: %v", err)
+	}
+
+	var info userInfo
+	if err := json.Unmarshal(userInfoJSON, &info); err != nil {
+		t.Fatalf("unmarshal userInfo: %v", err)
+	}
+	if info.Subject != "public-sub-1" {
+		t.Errorf("Subject = %q, want %q", info.Subject, "public-sub-1")
+	}
+	if info.PreferredUsername != "public-user" {
+		t.Errorf("PreferredUsername = %q, want %q", info.PreferredUsername, "public-user")
+	}
+}
+
+func TestProvider_FinishLogin_ConfidentialClient_SendsSecret(t *testing.T) {
+	// Complement of the public-client test: the confidential (default) client
+	// must authenticate the token exchange — the secret appears either as a
+	// client_secret POST body parameter (AuthStyleInParams) or as the Basic-auth
+	// password (AuthStyleInHeader).
+	mux := http.NewServeMux()
+
+	const wantSecret = "confidential-secret"
+	mux.HandleFunc("POST /token", func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		if r.PostFormValue("code") != "test-auth-code" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.MarshalWrite(w, map[string]string{"error": "invalid_grant"})
+			return
+		}
+		_, basicPassword, basicOK := r.BasicAuth()
+		if r.PostForm.Get("client_secret") != wantSecret && (!basicOK || basicPassword != wantSecret) {
+			w.WriteHeader(http.StatusUnauthorized)
+			json.MarshalWrite(w, map[string]string{"error": "invalid_client", "error_description": "client secret missing or wrong"})
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.MarshalWrite(w, map[string]string{
+			"access_token": "confidential-access-token",
+			"token_type":   "Bearer",
+		})
+	})
+
+	mux.HandleFunc("GET /userinfo", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.MarshalWrite(w, map[string]any{"sub": "confidential-sub-1", "login": "conf-user"})
+	})
+
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+
+	p, err := New(context.Background(), Config{
+		Providers: map[string]ProviderConfig{
+			"github": {
+				ClientID:     "confidential-client-id",
+				ClientSecret: wantSecret,
+				RedirectURL:  "http://localhost:8080/callback",
+				AuthURL:      server.URL + "/auth",
+				TokenURL:     server.URL + "/token",
+				UserInfoURL:  server.URL + "/userinfo",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	_, pkceVerifier, _ := p.BeginLogin(context.Background(), "github", "state")
+	if _, err := p.FinishLogin(context.Background(), "github", "test-auth-code", pkceVerifier); err != nil {
+		t.Fatalf("FinishLogin: %v", err)
+	}
+}
+
 func TestProvider_FinishLogin_PureOAuth2_InvalidCode(t *testing.T) {
 	provCfg := newFakeOAuth2Server(t, map[string]any{"id": "1"})
 

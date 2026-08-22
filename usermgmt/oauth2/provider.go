@@ -238,7 +238,8 @@ func (p *Provider) BeginLogin(_ context.Context, providerName, state string) (st
 
 // FinishLogin exchanges the authorization code for tokens and extracts user info.
 // Returns the user info as JSON (subject, email, email_verified, display_name,
-// preferred_username).
+// preferred_username). For pure OAuth2 providers whose userinfo response has no
+// preferred_username (e.g. GitHub), the login field is used as a fallback.
 func (p *Provider) FinishLogin(ctx context.Context, providerName, code, pkceVerifier string) ([]byte, error) {
 	prov, err := p.get(providerName)
 	if err != nil {
