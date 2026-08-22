@@ -245,7 +245,7 @@ func (p *Provider) FinishLogin(ctx context.Context, providerName, code, pkceVeri
 			WithContext("pkce_verifier", pkceVerifier)
 	}
 
-	info, err := prov.exchangeAndExtractUser(ctx, code, pkceVerifier)
+	info, _, err := prov.exchangeAndExtractUser(ctx, code, pkceVerifier)
 	if err != nil {
 		return nil, errorfamily.Wrapf(err, errorfamily.Classify(err), "oauth2.finish_login", "finish login").
 			WithContext("provider", providerName).
@@ -262,14 +262,50 @@ func (p *Provider) FinishLogin(ctx context.Context, providerName, code, pkceVeri
 	return data, nil
 }
 
+// FinishLoginWithToken exchanges the authorization code for tokens and extracts
+// user info, additionally returning the verified raw ID token (OIDC providers
+// only) so consumers can read provider-specific claims without a library
+// round-trip. For non-OIDC providers the raw ID token is empty.
+//
+// The user info JSON is identical to [Provider.FinishLogin]'s return value; the
+// raw ID token is an additive escape hatch and is never part of the JSON
+// contract consumed by usermgmt.
+func (p *Provider) FinishLoginWithToken(
+	ctx context.Context, providerName, code, pkceVerifier string,
+) ([]byte, string, error) {
+	prov, err := p.get(providerName)
+	if err != nil {
+		return nil, "", errorfamily.WrapRejection(err, "oauth2.finish_login_with_token", "finish login with token").
+			WithContext("provider", providerName).
+			WithContext("code", code).
+			WithContext("pkce_verifier", pkceVerifier)
+	}
+
+	info, rawIDToken, err := prov.exchangeAndExtractUser(ctx, code, pkceVerifier)
+	if err != nil {
+		return nil, "", errorfamily.Wrapf(err, errorfamily.Classify(err), "oauth2.finish_login_with_token", "finish login with token").
+			WithContext("provider", providerName).
+			WithContext("pkce_verifier", pkceVerifier)
+	}
+
+	data, err := json.Marshal(info)
+	if err != nil {
+		return nil, "", errorfamily.WrapInfrastructure(err, "oauth2.marshal_userinfo", "marshal user info").
+			WithContext("provider", providerName).
+			WithContext("code", code).
+			WithContext("pkce_verifier", pkceVerifier)
+	}
+	return data, rawIDToken, nil
+}
+
 func (p *initializedProvider) exchangeAndExtractUser(
 	ctx context.Context, code, pkceVerifier string,
-) (userInfo, error) {
+) (userInfo, string, error) {
 	token, err := p.config.Exchange(
 		ctx, code, oauth2.VerifierOption(pkceVerifier),
 	)
 	if err != nil {
-		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.token_exchange", "exchange code").
+		return userInfo{}, "", errorfamily.WrapTransient(err, "oauth2.token_exchange", "exchange code").
 			WithContext("code", code).
 			WithContext("pkce_verifier", pkceVerifier)
 	}
@@ -277,29 +313,30 @@ func (p *initializedProvider) exchangeAndExtractUser(
 	if p.oidcProvider != nil {
 		return p.extractFromIDToken(ctx, token)
 	}
-	return p.fetchUserInfo(ctx, token)
+	info, err := p.fetchUserInfo(ctx, token)
+	return info, "", err
 }
 
 func (p *initializedProvider) extractFromIDToken(
 	ctx context.Context, token *oauth2.Token,
-) (userInfo, error) {
+) (userInfo, string, error) {
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return userInfo{}, errorfamily.NewTransient("oauth2.id_token_missing", "id_token missing from token response")
+		return userInfo{}, "", errorfamily.NewTransient("oauth2.id_token_missing", "id_token missing from token response")
 	}
 	idToken, err := p.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.verify_id_token", "verify id_token")
+		return userInfo{}, "", errorfamily.WrapTransient(err, "oauth2.verify_id_token", "verify id_token")
 	}
 	var claims struct {
-		Sub              string `json:"sub"`
-		Email            string `json:"email"`
-		EmailVerified    bool   `json:"email_verified"`
-		Name             string `json:"name"`
+		Sub               string `json:"sub"`
+		Email             string `json:"email"`
+		EmailVerified     bool   `json:"email_verified"`
+		Name              string `json:"name"`
 		PreferredUsername string `json:"preferred_username"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
-		return userInfo{}, errorfamily.WrapTransient(err, "oauth2.extract_claims", "extract id_token claims")
+		return userInfo{}, "", errorfamily.WrapTransient(err, "oauth2.extract_claims", "extract id_token claims")
 	}
 	return userInfo{
 		Subject:          claims.Sub,
@@ -307,7 +344,7 @@ func (p *initializedProvider) extractFromIDToken(
 		EmailVerified:    claims.EmailVerified,
 		DisplayName:      claims.Name,
 		PreferredUsername: claims.PreferredUsername,
-	}, nil
+	}, rawIDToken, nil
 }
 
 func (p *initializedProvider) fetchUserInfo(ctx context.Context, token *oauth2.Token) (userInfo, error) {
