@@ -3,6 +3,7 @@ package setup
 
 import (
 	"context"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"log/slog"
@@ -13,6 +14,20 @@ import (
 
 	appkit "github.com/larsartmann/go-appkit"
 )
+
+// benchEnvelope mirrors the domain-event SSE envelope shape the transport
+// puts on the wire (type/streamType/streamId/version/occurredAt/eventId) so
+// the json-roundtrip sub-benchmark attributes codec cost against realistic
+// payloads. Milliseconds instead of time.Time keeps the measurement about the
+// codec, not time layout.
+type benchEnvelope struct {
+	Type       string `json:"type"`
+	StreamType string `json:"streamType"`
+	StreamID   string `json:"streamId"`
+	Version    int64  `json:"version"`
+	OccurredAt int64  `json:"occurredAt"`
+	EventID    string `json:"eventId"`
+}
 
 // freeLocalAddr reserves an OS-assigned port, releases it, and returns the
 // address. Small TOCTOU window, standard for spike tests.
@@ -191,7 +206,12 @@ func TestRunWithAppkit_ReadinessAndCleanShutdown(t *testing.T) {
 	deadline := time.Now().Add(10 * time.Second)
 
 	for {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addr+"/health/ready", nil)
+		req, err := http.NewRequestWithContext(
+			ctx,
+			http.MethodGet,
+			"http://"+addr+"/health/ready",
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("build request: %v", err)
 		}
@@ -280,6 +300,11 @@ func TestRunWithAppkit_ResponseParity(t *testing.T) {
 //	    ./setup | tee /tmp/before.txt
 //	# edit source, repeat into /tmp/after.txt
 //	benchstat /tmp/before.txt /tmp/after.txt
+//
+// The third sub-benchmark, json-roundtrip, serves no HTTP: it measures the
+// JSON encode/decode roundtrip of an envelope-shaped payload in isolation so
+// a baseline-httputil vs appkit-service delta can be attributed to stack
+// middleware rather than codec work.
 func BenchmarkSpikeBaselineVsAppkit(b *testing.B) {
 	ping := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -316,9 +341,14 @@ func BenchmarkSpikeBaselineVsAppkit(b *testing.B) {
 			bundle := MustNew(Config{Title: "bench-" + bc.name})
 
 			addr := freeLocalAddr(b)
-			stop := serveInBackground(b, func(ctx context.Context, addr string, h http.Handler) error {
-				return bc.run(bundle, ctx, addr, h, spikeBenchDrainDelay, appkit.LogLevelError)
-			}, addr, ping)
+			stop := serveInBackground(
+				b,
+				func(ctx context.Context, addr string, h http.Handler) error {
+					return bc.run(bundle, ctx, addr, h, spikeBenchDrainDelay, appkit.LogLevelError)
+				},
+				addr,
+				ping,
+			)
 
 			// The run funcs close the bundle on every exit path; stop() waits
 			// for the (short) drain after the measured loop finishes. b.Cleanup
@@ -355,4 +385,33 @@ func BenchmarkSpikeBaselineVsAppkit(b *testing.B) {
 			b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "req/s")
 		})
 	}
+
+	b.Run("json-roundtrip", func(b *testing.B) {
+		envelope := benchEnvelope{
+			Type:       "usermgmt.UserRegistered",
+			StreamType: "user",
+			StreamID:   "01JXSETUPDEMO01JXSETUPDEMO01",
+			Version:    7,
+			OccurredAt: time.Now().UnixMilli(),
+			EventID:    "01JXSETUPDEMO01JXSETUPDEMO02",
+		}
+
+		b.ReportAllocs()
+
+		for b.Loop() {
+			data, err := json.Marshal(envelope)
+			if err != nil {
+				b.Fatalf("marshal: %v", err)
+			}
+
+			var out benchEnvelope
+			if err := json.Unmarshal(data, &out); err != nil {
+				b.Fatalf("unmarshal: %v", err)
+			}
+
+			if out.EventID != envelope.EventID {
+				b.Fatalf("roundtrip mismatch: got %q, want %q", out.EventID, envelope.EventID)
+			}
+		}
+	})
 }
