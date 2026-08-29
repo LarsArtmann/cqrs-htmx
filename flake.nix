@@ -729,6 +729,19 @@
               };
             };
 
+            check-go-toolchain = {
+              type = "app";
+              meta.description = "Fail when go.work's go directive is newer than the flake's nixpkgs Go toolchain";
+              program = pkgs.writeShellApplication {
+                name = "check-go-toolchain";
+                runtimeInputs = [ goPkg ];
+                text = ''
+                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                  bash scripts/check-go-toolchain.sh
+                '';
+              };
+            };
+
             check-codegen = {
               type = "app";
               meta.description = "Verify adminui + loginpage _templ.go files match .templ sources (no codegen drift)";
