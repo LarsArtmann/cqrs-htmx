@@ -315,6 +315,7 @@
                 # Fall back to /tmp when the ambient build cache is unwritable
                 # (e.g. a dead secondary disk), so the gate never fails on cache
                 # init. Shared guard, same lib the isolation script sources.
+                # shellcheck disable=SC1091
                 source scripts/lib/go-cache-env.sh
                 bench_args=(
                   -run xxx

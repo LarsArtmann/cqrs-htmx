@@ -53,7 +53,13 @@ func (b *Bundle) RunWithAppkit(ctx context.Context, addr string, handler http.Ha
 //     logs); the adoption benchmark uses LogLevelError to isolate the
 //     request-path work each stack performs from appkit's per-request log
 //     line (comparison-report finding 7).
-func (b *Bundle) runWithAppkit(ctx context.Context, addr string, handler http.Handler, drainDelay time.Duration, logLevel appkit.LogLevel) error {
+func (b *Bundle) runWithAppkit(
+	ctx context.Context,
+	addr string,
+	handler http.Handler,
+	drainDelay time.Duration,
+	logLevel appkit.LogLevel,
+) error {
 	if handler == nil {
 		mux := http.NewServeMux()
 		b.Mount(mux)
