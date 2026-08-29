@@ -19,6 +19,8 @@ import (
 	"net/http"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/httputil"
 )
 
@@ -49,12 +51,22 @@ func main() {
 	seed(context.Background(), svc)
 
 	// 4. Wire routes. The app produces HTTP handlers via app.Command() /
-	// app.Query(). This demo mounts a simple page + health check.
+	// app.Query(): POST /command/hello dispatches the "Hello" command through
+	// the DI-managed dispatcher registered in the container.
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", indexHandler)
 	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
 	mux.HandleFunc("GET /health", healthHandler)
-	_ = app // app.Command(...) / app.Query(...) would go here in a real app
+	mux.Handle("POST /command/hello", app.Command(
+		"Hello",
+		cqrshtmx.DecodeJSON(func(req helloRequest) (command.Command, error) {
+			core, err := command.New("Hello", id.NewStreamID())
+			if err != nil {
+				return nil, err
+			}
+			return &helloCmd{BasicCommand: core, Name: req.Name}, nil
+		}),
+	))
 
 	logger, _ := container.Logger()
 	logger.Info("samber-do-demo starting", "addr", ":8098", "hint", "open http://localhost:8098/")

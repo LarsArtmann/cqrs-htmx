@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
@@ -95,10 +96,12 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 		if err != nil {
 			return nil, err
 		}
-		return usermgmt.NewService(usermgmt.ServiceConfig{ //nolint:exhaustruct // demo uses in-memory defaults
-			AuditLog: usermgmt.NewAuditLog(),
-			TOTP:     totpProvider,
-		})
+		return usermgmt.NewService(
+			usermgmt.ServiceConfig{ //nolint:exhaustruct // demo uses in-memory defaults
+				AuditLog: usermgmt.NewAuditLog(),
+				TOTP:     totpProvider,
+			},
+		)
 	})
 
 	// serviceLifecycle — adapts *usermgmt.Service to samber/do's
@@ -133,11 +136,36 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 		})
 	})
 
-	// Command dispatcher — lazy singleton. In a real app you'd register
-	// handlers here too, before returning the dispatcher.
+	// Command dispatcher — lazy singleton. Registering handlers HERE (before
+	// returning the dispatcher) is the canonical DI pattern: by the time the
+	// App resolves this dispatcher, every command handler is registered.
 	do.Provide(injector, func(_ do.Injector) (*command.Dispatcher, error) {
-		return command.NewDispatcher(), nil
+		disp := command.NewDispatcher()
+		if err := command.RegisterTyped(disp, "Hello",
+			func(_ context.Context, cmd *helloCmd) error {
+				if cmd.Name == "" {
+					return fmt.Errorf("name must not be empty")
+				}
+				return nil
+			}); err != nil {
+			return nil, err
+		}
+		return disp, nil
 	})
+}
+
+// --- Demo command ---
+
+// helloRequest is the HTTP body for POST /command/hello.
+type helloRequest struct {
+	Name string `json:"name"`
+}
+
+// helloCmd is a custom command.Command dispatched through the DI-managed
+// dispatcher and handled by the provider above.
+type helloCmd struct {
+	*command.BasicCommand
+	Name string
 }
 
 // --- Lifecycle adapter ---

@@ -21,6 +21,7 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 const (
@@ -43,11 +44,20 @@ func run() error {
 	defer stop()
 
 	// 1. One call, whole app: event-sourced user management + auth API +
-	//    login page + admin panel + CQRS dashboard + /health, with the
-	//    documented middleware ordering applied per panel.
+	//    login page + admin panel + CQRS dashboard + /health + shared SSE,
+	//    with the documented middleware ordering applied per panel.
+	//
+	//    ServiceConfig is the escape hatch: service knobs the flattened
+	//    fields cannot express (here MaxUsers) flow straight into
+	//    usermgmt.NewService. Precedence: Service > ServiceConfig > flattened.
 	bundle, err := setup.New(setup.Config{ //nolint:exhaustruct // demo uses in-memory defaults
 		Title:     "cqrs-htmx Setup Demo",
 		LogoutURL: "/dev-logout",
+		ServiceConfig: &usermgmt.ServiceConfig{
+			MaxUsers: 50,
+		},
+		SSEPath: "/sse",
+		SSEURL:  "/sse",
 	})
 	if err != nil {
 		return fmt.Errorf("setup.New: %w", err)
@@ -77,8 +87,25 @@ func run() error {
 	// Note: "/" is NOT registered here — the bundle's login page owns the
 	// site root (registering a second "/" would panic the mux).
 
-	fmt.Printf("setup-demo\nOpen http://localhost%s/dev-login  (signs in as %s)\n", addr, adminEmail)
-	fmt.Println("Routes: /admin/ · /dashboard/ · /health · /auth/* · / (login page)")
+	// POST /broadcast pushes a custom event through the bundle's shared
+	// fan-out hub — the same hub the /sse endpoint serves and the admin
+	// panel's sync indicator listens on.
+	mux.HandleFunc("POST /broadcast", func(w http.ResponseWriter, _ *http.Request) {
+		bundle.Broadcaster.Broadcast(sse.Event{
+			Event: "demoBroadcast",
+			Data:  `{"message":"hello from setup-demo"}`,
+		})
+		w.WriteHeader(http.StatusAccepted)
+	})
+
+	fmt.Printf(
+		"setup-demo\nOpen http://localhost%s/dev-login  (signs in as %s)\n",
+		addr,
+		adminEmail,
+	)
+	fmt.Println(
+		"Routes: /admin/ · /dashboard/ · /health · /auth/* · /sse · POST /broadcast · / (login page)",
+	)
 
 	return bundle.RunHandler(ctx, addr, bundle.Handler(mux))
 }

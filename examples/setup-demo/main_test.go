@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/go-sse"
 )
 
 // TestDemoApp_EndToEnd boots the same composition as main() (minus the real
@@ -19,9 +21,14 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Same composition as main(): ServiceConfig escape hatch + shared SSE.
 	bundle, err := setup.New(setup.Config{ //nolint:exhaustruct // demo uses in-memory defaults
 		Title:     "Setup Demo Test",
 		LogoutURL: "/dev-logout",
+		ServiceConfig: &usermgmt.ServiceConfig{
+			MaxUsers: 50,
+		},
+		SSEPath: "/sse",
 	})
 	if err != nil {
 		t.Fatalf("setup.New: %v", err)
@@ -42,6 +49,16 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 	server := httptest.NewServer(bundle.Handler(mux))
 	defer server.Close()
 
+	// Same demo route main() registers: push a custom event through the
+	// bundle's shared fan-out hub.
+	mux.HandleFunc("POST /broadcast", func(w http.ResponseWriter, _ *http.Request) {
+		bundle.Broadcaster.Broadcast(sse.Event{
+			Event: "demoBroadcast",
+			Data:  `{"message":"hello from setup-demo test"}`,
+		})
+		w.WriteHeader(http.StatusAccepted)
+	})
+
 	// Public routes.
 	for path, want := range map[string]int{
 		"/health":     http.StatusOK,
@@ -49,6 +66,7 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 		"/auth/me":    http.StatusUnauthorized, // no session -> 401
 		"/dashboard/": http.StatusUnauthorized,
 		"/admin/":     http.StatusUnauthorized,
+		"/sse":        http.StatusUnauthorized, // shared SSE is session-gated
 	} {
 		resp, err := http.Get(server.URL + path)
 		if err != nil {
@@ -134,5 +152,37 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 
 	if dashResp.StatusCode != http.StatusOK {
 		t.Fatalf("GET /dashboard/ (authed): status %d, want 200", dashResp.StatusCode)
+	}
+
+	// Authenticated SSE connects (200 + text/event-stream) and the shared
+	// hub delivers a broadcast pushed through POST /broadcast.
+	sseReq, err := http.NewRequest(http.MethodGet, server.URL+"/sse", nil)
+	if err != nil {
+		t.Fatalf("new SSE request: %v", err)
+	}
+	sseReq.Header.Set("Cookie", strings.Join(cookies, "; "))
+	sseReq.Header.Set("Accept", "text/event-stream")
+
+	sseCtx, sseCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer sseCancel()
+	sseResp, err := (&http.Client{Timeout: 5 * time.Second}).Do(sseReq.WithContext(sseCtx))
+	if err != nil {
+		t.Fatalf("GET /sse (authed): %v", err)
+	}
+	defer sseResp.Body.Close()
+
+	if sseResp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /sse (authed): status %d, want 200", sseResp.StatusCode)
+	}
+
+	broadcastResp, err := http.Post(server.URL+"/broadcast", "application/json", nil)
+	if err != nil {
+		t.Fatalf("POST /broadcast: %v", err)
+	}
+	_, _ = io.Copy(io.Discard, broadcastResp.Body)
+	broadcastResp.Body.Close()
+
+	if broadcastResp.StatusCode != http.StatusAccepted {
+		t.Fatalf("POST /broadcast: status %d, want 202", broadcastResp.StatusCode)
 	}
 }
