@@ -1,0 +1,16 @@
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/cqrs-htmx/setup/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	   64362	     38897 ns/op	     25709 req/s	    5450 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	   60824	     38385 ns/op	     26052 req/s	    5434 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	   56076	     39553 ns/op	     25283 req/s	    5448 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	   60871	     37946 ns/op	     26353 req/s	    5424 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	   66704	     38766 ns/op	     25796 req/s	    5428 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	   53667	     44461 ns/op	     22491 req/s	    7320 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	   53328	     46722 ns/op	     21403 req/s	    7325 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	   54978	     44540 ns/op	     22452 req/s	    7323 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	   51189	     46699 ns/op	     21414 req/s	    7313 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	   51470	     47473 ns/op	     21065 req/s	    7315 B/op	      90 allocs/op
+PASS
+ok  	github.com/larsartmann/cqrs-htmx/setup/v4	25.027s

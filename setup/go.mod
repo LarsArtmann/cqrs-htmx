@@ -2,7 +2,7 @@
 //cqrs-lint:ignore(E014) setup consumes projections from usermgmt; it does not own them
 module github.com/larsartmann/cqrs-htmx/setup/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0

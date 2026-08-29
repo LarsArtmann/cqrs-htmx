@@ -1,7 +1,7 @@
 //cqrs-lint:ignore(E003) identity-model is intentionally a cohesive pure-domain package (IDs, events, commands, fold); splitting would break usermgmt's alias/re-export architecture
 module github.com/larsartmann/cqrs-htmx/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	github.com/casbin/casbin/v3 v3.10.0

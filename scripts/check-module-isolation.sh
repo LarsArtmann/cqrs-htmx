@@ -11,6 +11,16 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Fall back to /tmp when the ambient build cache is unwritable (e.g. a dead
+# secondary disk), so the gate reports real isolation failures, not cache-init
+# noise. Mirrors the guard in flake.nix's bench-spike app.
+if ! mkdir -p "${GOCACHE:-$HOME/.cache/go-build}" 2>/dev/null; then
+	GOCACHE="/tmp/go-build-cache"
+	GOMODCACHE="/tmp/go-mod-cache"
+	export GOCACHE GOMODCACHE
+	mkdir -p "$GOCACHE" "$GOMODCACHE"
+fi
+
 # Production modules, auto-discovered from go.work (excludes e2e/ and
 # examples/ — main packages, same exclusion flake.nix apps use). New modules
 # added to go.work are picked up automatically; no manual list to drift.

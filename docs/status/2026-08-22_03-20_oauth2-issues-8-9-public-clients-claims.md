@@ -8,6 +8,7 @@
 ## a) FULLY DONE
 
 ### Issue #8 — public (secret-less) PKCE clients
+
 - `ClientType` typed string enum (`provider.go:24-38`): `ClientTypeConfidential` (default, zero value = old behavior) and `ClientTypePublic`.
 - `ProviderConfig.ClientType` field + `Validate()` rework (`provider.go:63-93`): empty defaults to confidential, unknown values rejected (`oauth2.invalid_client_type`), `ClientSecret` required **only** for confidential clients. Fully backward compatible — every existing config keeps its exact old validation outcome (pinned by `TestProviderConfig_Validate_ConfidentialDefaultRequiresSecret`).
 - PKCE S256 remains unconditional (it always was — `BeginLogin` always sends `S256ChallengeOption`), which is exactly what makes public clients safe per RFC 7636 / OAuth 2.1.
@@ -15,16 +16,19 @@
 - New tests: `Validate_PublicClientNoSecret`, `Validate_PublicClientWithSecret`, `Validate_ConfidentialDefaultRequiresSecret`, `Validate_InvalidClientType`, `BeginLogin_PublicClient` (auth URL carries `client_id` + `code_challenge`, no secret needed).
 
 ### Issue #9 — claims exposure (BOTH proposed options shipped)
+
 - **Narrow:** `PreferredUsername` added to the internal `userInfo` JSON seam (`preferred_username,omitempty`, additive) — extracted from the OIDC ID-token claims (`extractFromIDToken`) AND the non-OIDC userinfo endpoint (`fetchUserInfo`), with GitHub-style `login` fallback (verified by `FinishLogin_PureOAuth2_GitHubLoginFallback` assertion).
 - **General:** new exported `Provider.FinishLoginWithToken(ctx, provider, code, verifier) ([]byte, string, error)` — identical userInfo JSON plus the **verified** raw ID token (post-`verifier.Verify`), so consumers (dnsblockd's audit log / header rendering) can read provider-specific claims without a library round-trip or re-verification. Non-OIDC providers return `""` (pinned by test).
 - `FinishLogin`'s signature, the `OAuth2Provider` interface, and the usermgmt-side JSON contract are **unchanged** — usermgmt's `OAuth2UserInfo` simply ignores the extra key (documented on `userInfo` as an intentional additive divergence).
 - New tests: `FinishLoginWithToken_OIDC` (JWT 3-part shape + claims), `FinishLoginWithToken_PureOAuth2` (empty token + claim), `FinishLoginWithToken_UnknownProvider` (error path).
 
 ### Verification (module-scoped, hermetic `GOWORK=off`, `/tmp` caches)
+
 - `go build` OK · `go vet` OK (compiles tests) · `go test -count=1 -race` OK (29 test funcs, was 21) · `golangci-lint run` **0 issues** · coverage **88.4%** (gate 80%, was 88.3%) — all new public paths covered.
 - Downstream sanity: full `usermgmt` test suite green (20.7s); `integration_test` module builds hermetically and OAuth2 tests pass (against published oauth2 v4.7.0 — interface unchanged, as designed).
 
 ### Docs
+
 - `usermgmt/oauth2/CHANGELOG.md`: Unreleased → Added (3 entries) + consumer note updated ("both resolved").
 - Root `CHANGELOG.md`: one Added entry summarizing both issues.
 - `docs/adr/0014-oauth2-oidc-integration.md`: both "Open upstream considerations" marked **RESOLVED 2026-08-22** with the mechanism.
@@ -51,6 +55,7 @@
 ## d) TOTALLY FUCKED UP
 
 Nothing destructive, nothing left broken — but three classes of sloppiness this session, all self-caught:
+
 1. **Careless command/edit attempts** (5 instances): typo'd paths (`cqrs--htmx`), mangled env vars (`GOLINT_CACHE`, `GANGWAY=off`), a corrupt `old_string` with a stray `​` character, "AD 0014" typo, "userm"/"usermymgmt" typos. Every one failed loudly and was fixed — but each burned a round trip that exact-match discipline would have saved.
 2. **Formatted after testing, not before** — gofumpt flagged `provider.go` only after the first green test run; correct order is fmt → build → test.
 3. **Mid-session git confusion** — `git diff` "lost" my changes because the daemon had committed them (`953393e4`/`ce050eec`); I briefly doubted HEAD's content before checking `git show HEAD:`. The AGENTS.md warning about concurrent committers exists precisely for this; consult `git log` before concluding anything from `git diff` next time.
@@ -151,4 +156,4 @@ EOF
 
 ---
 
-*Verification at close: oauth2 build/vet/race/lint(0 issues)/coverage 88.4% green · usermgmt suite green · integration_test OAuth2 green · setup builds · tree clean at `0a4edcbf`. Follow-up session h) re-verified everything after the exchange tests + godoc + docs.*
+_Verification at close: oauth2 build/vet/race/lint(0 issues)/coverage 88.4% green · usermgmt suite green · integration_test OAuth2 green · setup builds · tree clean at `0a4edcbf`. Follow-up session h) re-verified everything after the exchange tests + godoc + docs._

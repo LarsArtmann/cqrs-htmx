@@ -80,6 +80,27 @@
                 text = goEnv + text;
               };
             };
+          # benchstat (golang.org/x/perf/cmd/benchstat) is not packaged in
+          # nixpkgs; build it from the canonical googlesource repo.
+          # To bump: update `rev` + `version`, then fix src.hash and
+          # vendorHash from the `nix build .#benchstat` error messages.
+          benchstat = pkgs.buildGoModule {
+            pname = "benchstat";
+            version = "0.0.0-20260825160852";
+
+            src = pkgs.fetchgit {
+              url = "https://go.googlesource.com/perf";
+              rev = "19be9d8e6c701dc8ccabaad34bf705f773fd398b";
+              hash = "sha256-CimaQbwjQ5SMl/VTzuMeSciOp7aSomGbT/iyEsguOCg=";
+            };
+
+            subPackages = [ "cmd/benchstat" ];
+            vendorHash = "sha256-AZx9tPzsPvjc5kpmiBa6eYKtrw0hczYi0sbcd/lkiiA=";
+            ldflags = [
+              "-s"
+              "-w"
+            ];
+          };
         in
         {
           treefmt = {
@@ -117,6 +138,8 @@
             };
           };
 
+          packages.benchstat = benchstat;
+
           devShells = {
             default = pkgs.mkShellNoCC {
               packages = [
@@ -124,6 +147,7 @@
                 pkgs.gopls
                 pkgs.golangci-lint
                 pkgs.govulncheck
+                benchstat # benchmark comparison (golang.org/x/perf; used by nix run .#bench-spike)
                 pkgs.ginkgo
                 pkgs.tailwindcss_4
                 pkgs.templ
@@ -259,6 +283,122 @@
               text = ''
                 forEachGoModule "go build ./..."
                 echo "All modules built successfully."
+              '';
+            };
+
+            bench-spike = goApp {
+              name = "run-bench-spike";
+              description = "Run the setup spike benchmark (default 5x2s) and fail on a >5% median ns/op regression vs docs/benchmarks/setup-baseline.raw.txt. Env: BENCH_COUNT, BENCHTIME, BENCH_SPIKE_THRESHOLD. --save-baseline [path] re-pins the baseline.";
+              runtimeInputs = [
+                benchstat
+                pkgs.git
+                pkgs.coreutils
+                pkgs.gawk
+                pkgs.gnugrep
+              ];
+              text = ''
+                baseline="docs/benchmarks/setup-baseline.raw.txt"
+                threshold="''${BENCH_SPIKE_THRESHOLD:-5}"
+                count="''${BENCH_COUNT:-5}"
+                benchtime="''${BENCHTIME:-2s}"
+
+                # Fall back to /tmp when the ambient build cache is unwritable
+                # (e.g. a dead secondary disk), so the gate never fails on cache init.
+                if ! mkdir -p "''${GOCACHE:-$HOME/.cache/go-build}" 2>/dev/null; then
+                  GOCACHE="/tmp/go-build-cache"
+                  GOMODCACHE="/tmp/go-mod-cache"
+                  export GOCACHE GOMODCACHE
+                  mkdir -p "$GOCACHE" "$GOMODCACHE"
+                fi
+                bench_args=(
+                  -run xxx
+                  -bench "^BenchmarkSpikeBaselineVsAppkit$"
+                  -benchtime="$benchtime"
+                  -benchmem
+                  -count="$count"
+                  -timeout=120s
+                )
+
+                if [ "''${1:-}" = "--save-baseline" ]; then
+                  out="''${2:-$baseline}"
+                  echo "== bench-spike: pinning baseline to $out ($count x $benchtime) =="
+                  (cd setup && go test "''${bench_args[@]}" .) | tee "$out"
+                  echo "Saved $out — commit it so everyone gates against the same numbers."
+                  exit 0
+                fi
+
+                if [ ! -f "$baseline" ]; then
+                  echo "bench-spike: no baseline at $baseline." >&2
+                  echo "  Pin one on this machine first: nix run .#bench-spike -- --save-baseline" >&2
+                  exit 2
+                fi
+
+                current="$(mktemp /tmp/bench-spike-current.XXXXXX)"
+                trap 'rm -f "$current"' EXIT
+
+                echo "== bench-spike: $count x $benchtime vs $baseline =="
+                (cd setup && go test "''${bench_args[@]}" .) | tee "$current"
+
+                echo
+                echo "== benchstat: baseline -> current =="
+                benchstat "$baseline" "$current" || true
+
+                # ns/op is only comparable within the same environment; refuse
+                # to gate across machines instead of producing a false verdict.
+                for key in goos goarch pkg cpu; do
+                  b="$(grep -m1 "^$key:" "$baseline" | cut -d' ' -f2-)"
+                  c="$(grep -m1 "^$key:" "$current" | cut -d' ' -f2-)"
+                  if [ "$b" != "$c" ]; then
+                    echo "bench-spike: environment mismatch for '$key': baseline='$b' current='$c'" >&2
+                    echo "  ns/op is not comparable across machines. Re-pin the baseline here:" >&2
+                    echo "    nix run .#bench-spike -- --save-baseline" >&2
+                    exit 2
+                  fi
+                done
+
+                medians() {
+                  awk '/^Benchmark/ && /ns\/op/ {
+                    name = $1
+                    sub(/-[0-9]+$/, "", name)
+                    for (i = 2; i <= NF; i++) if ($i == "ns/op") { v = $(i - 1); break }
+                    vals[name] = vals[name] " " v
+                  }
+                  END {
+                    for (n in vals) {
+                      m = split(vals[n], a, " ")
+                      for (i = 1; i <= m; i++)
+                        for (j = i + 1; j <= m; j++)
+                          if ((a[j] + 0) < (a[i] + 0)) { t = a[i]; a[i] = a[j]; a[j] = t }
+                      mid = int((m + 1) / 2)
+                      med = (m % 2 == 1) ? a[mid] : (a[mid] + a[mid + 1]) / 2
+                      printf "%s %.6f\n", n, med
+                    }
+                  }' "$1"
+                }
+
+                joined="$(join -j 1 <(medians "$baseline" | sort) <(medians "$current" | sort))"
+                if [ -z "$joined" ]; then
+                  echo "bench-spike: no overlapping benchmark names between baseline and current run." >&2
+                  echo "  The benchmark set changed; re-pin: nix run .#bench-spike -- --save-baseline" >&2
+                  exit 2
+                fi
+
+                regressed=0
+                while read -r name old new; do
+                  delta="$(awk -v o="$old" -v n="$new" 'BEGIN { printf "%+.1f", (n - o) / o * 100 }')"
+                  printf '  %-50s median %10.1f -> %10.1f ns/op (%s%%)\n' "$name" "$old" "$new" "$delta"
+                  over="$(awk -v o="$old" -v n="$new" -v t="$threshold" 'BEGIN { print (((n - o) / o * 100) > t) ? 1 : 0 }')"
+                  if [ "$over" = "1" ]; then
+                    echo "  REGRESSION: '$name' regressed more than $threshold% vs baseline" >&2
+                    regressed=1
+                  fi
+                done <<< "$joined"
+
+                if [ "$regressed" -eq 1 ]; then
+                  echo "bench-spike: FAIL (median ns/op regression > $threshold%)" >&2
+                  exit 1
+                fi
+                echo "bench-spike: OK (no median ns/op regression > $threshold%)"
               '';
             };
 
