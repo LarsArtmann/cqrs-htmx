@@ -9,6 +9,12 @@ import (
 	"github.com/larsartmann/go-sse"
 )
 
+// defaultSSEHeartbeatInterval is the keep-alive comment-frame cadence
+// [Broadcaster.ServeSSE] uses. Proxy- and load-balancer-friendly default;
+// consumers wanting a different cadence use transport.ServeDomainEvents with
+// their own interval.
+const defaultSSEHeartbeatInterval = 15 * time.Second
+
 // Broadcaster distributes SSE events to all subscribed clients.
 // It embeds [sse.Broadcaster] for the core fan-out mechanics and adds
 // CQRS dispatch-hook constructors ([BroadcastOnSuccess], [BroadcastOnError]).
@@ -89,7 +95,9 @@ func (b *Broadcaster) BroadcastOnSuccess(eventName, data string) AfterDispatchHo
 
 // BroadcastOnSuccessFunc creates an AfterDispatchHook that generates an SSE event
 // dynamically from the request when dispatch succeeds.
-func (b *Broadcaster) BroadcastOnSuccessFunc(eventFunc func(r *http.Request) sse.Event) AfterDispatchHook {
+func (b *Broadcaster) BroadcastOnSuccessFunc(
+	eventFunc func(r *http.Request) sse.Event,
+) AfterDispatchHook {
 	return b.broadcastOnSuccessHook(eventFunc)
 }
 
@@ -105,13 +113,17 @@ func (b *Broadcaster) BroadcastOnError(eventName string) AfterDispatchHook {
 
 // BroadcastOnErrorFunc creates an AfterDispatchHook that generates an SSE error
 // event dynamically from the request and error when dispatch fails.
-func (b *Broadcaster) BroadcastOnErrorFunc(errFunc func(r *http.Request, err error) sse.Event) AfterDispatchHook {
+func (b *Broadcaster) BroadcastOnErrorFunc(
+	errFunc func(r *http.Request, err error) sse.Event,
+) AfterDispatchHook {
 	return b.broadcastOnErrorHook(errFunc)
 }
 
 // broadcastOnSuccessHook builds an AfterDispatchHook that broadcasts the result
 // of mapper(r) when dispatch succeeds (err == nil).
-func (b *Broadcaster) broadcastOnSuccessHook(mapper func(r *http.Request) sse.Event) AfterDispatchHook {
+func (b *Broadcaster) broadcastOnSuccessHook(
+	mapper func(r *http.Request) sse.Event,
+) AfterDispatchHook {
 	return func(_ context.Context, r *http.Request, err error) {
 		if err != nil {
 			return
@@ -123,7 +135,9 @@ func (b *Broadcaster) broadcastOnSuccessHook(mapper func(r *http.Request) sse.Ev
 
 // broadcastOnErrorHook builds an AfterDispatchHook that broadcasts the result
 // of mapper(r, err) when dispatch fails (err != nil).
-func (b *Broadcaster) broadcastOnErrorHook(mapper func(r *http.Request, err error) sse.Event) AfterDispatchHook {
+func (b *Broadcaster) broadcastOnErrorHook(
+	mapper func(r *http.Request, err error) sse.Event,
+) AfterDispatchHook {
 	return func(_ context.Context, r *http.Request, err error) {
 		if err == nil {
 			return
@@ -151,7 +165,7 @@ func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go stream.Heartbeat(r.Context(), 15*time.Second)
+	go stream.Heartbeat(r.Context(), defaultSSEHeartbeatInterval)
 
 	for {
 		select {

@@ -13,7 +13,7 @@ const DefaultAccentColor = "#4f46e5"
 // knownProviderLabels maps common provider names to user-friendly display
 // labels for sign-in buttons. Providers not in this map get a capitalized name.
 //
-//nolint:gochecknoglobals,goconst // static lookup table, provider names are intrinsic strings
+//nolint:gochecknoglobals // static lookup table, provider names are intrinsic strings
 var knownProviderLabels = map[string]string{
 	"google":    "Google",
 	"github":    "GitHub",

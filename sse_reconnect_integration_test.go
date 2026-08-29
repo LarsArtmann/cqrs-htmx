@@ -133,7 +133,7 @@ func assertReplayedAfterID2(t *testing.T, events []ssetest.Event) {
 		t.Errorf("did not expect ids 1 or 2 to be replayed, got IDs: %v", ids)
 	}
 
-	var dataLines []string
+	dataLines := make([]string, 0, len(events))
 	for _, evt := range events {
 		dataLines = append(dataLines, evt.Data())
 	}
