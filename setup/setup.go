@@ -7,8 +7,6 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -20,8 +18,10 @@ import (
 //
 // All defaults are overridable via Config fields. Stores default to in-memory.
 //
-// When [Config.Service] is set, New adopts that service instead of building
-// one — see the field documentation for the ownership contract.
+// The service comes from one of three sources, in precedence order:
+// [Config.Service] (adopt an existing instance), [Config.ServiceConfig]
+// (pass a full usermgmt.ServiceConfig override), or the flattened
+// convenience fields. See the field docs for the conflict rules.
 func New(cfg Config) (*Bundle, error) {
 	cfg = cfg.withDefaults()
 
@@ -32,24 +32,24 @@ func New(cfg Config) (*Bundle, error) {
 	var (
 		svc         *usermgmt.Service
 		ownsService bool
-		store       event.Store
-		bus         event.Bus
 	)
 
 	if cfg.Service != nil {
 		svc = cfg.Service
-		store = svc.Journal()
-		bus = svc.EventBus()
 	} else {
 		ownsService = true
-		store, bus = defaultInfrastructure(cfg)
 
 		var err error
-		svc, err = buildService(cfg, store, bus)
+		svc, err = buildService(cfg)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	// Every bundle sources its shared infrastructure from the service —
+	// adopted or built — so panels, SSE, and health observe the same journal
+	// and bus the service commits to.
+	store, bus := svc.Journal(), svc.EventBus()
 
 	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login/SSE assigned conditionally below
 		Service:     svc,
@@ -74,39 +74,11 @@ func New(cfg Config) (*Bundle, error) {
 	return bundle, nil
 }
 
-// defaultInfrastructure resolves the shared store and bus from Config,
-// filling in the in-memory defaults.
-func defaultInfrastructure(cfg Config) (event.Store, event.Bus) {
-	store := cfg.EventStore
-	if store == nil {
-		store = memorystorage.NewMemoryStore()
-	}
-
-	bus := cfg.EventBus
-	if bus == nil {
-		//cqrs-lint:ignore(B024) go-cqrs-lite bus wraps handlers with recovery internally
-		bus = watermill.NewEventBus()
-	}
-
-	return store, bus
-}
-
-// buildService constructs the usermgmt.Service from the service-construction
-// subset of Config. Only called when no service is adopted (see Config.Service).
-func buildService(cfg Config, store event.Store, bus event.Bus) (*usermgmt.Service, error) {
-	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
-		EventStore:         store,
-		EventBus:           bus,
-		ReadModelDB:        cfg.ReadModelDB,
-		AuditLog:           usermgmt.NewAuditLog(),
-		TOTP:               cfg.TOTP,
-		WebAuthn:           cfg.WebAuthn,
-		OAuth2:             cfg.OAuth2,
-		SessionTTL:         cfg.SessionTTL,
-		Logger:             cfg.Logger,
-		OnProjectionFailed: cfg.OnProjectionFailed,
-		AsyncStartup:       cfg.AsyncStartup,
-	})
+// buildService constructs the usermgmt.Service from Config. Only called when
+// no service is adopted (see Config.Service); resolveServiceConfig maps the
+// config onto usermgmt.ServiceConfig.
+func buildService(cfg Config) (*usermgmt.Service, error) {
+	svc, err := usermgmt.NewService(resolveServiceConfig(cfg))
 	if err != nil {
 		return nil, errorfamily.WrapRejection(
 			err,
@@ -116,6 +88,36 @@ func buildService(cfg Config, store event.Store, bus event.Bus) (*usermgmt.Servi
 	}
 
 	return svc, nil
+}
+
+// resolveServiceConfig maps Config onto a usermgmt.ServiceConfig using the
+// documented precedence: the ServiceConfig escape hatch when set, otherwise
+// the flattened convenience fields. In override mode the only default the
+// bundle applies on top is the in-memory audit log, matching the flattened
+// path.
+func resolveServiceConfig(cfg Config) usermgmt.ServiceConfig {
+	if cfg.ServiceConfig != nil {
+		out := *cfg.ServiceConfig
+		if out.AuditLog == nil {
+			out.AuditLog = usermgmt.NewAuditLog()
+		}
+
+		return out
+	}
+
+	return usermgmt.ServiceConfig{
+		EventStore:         cfg.EventStore,
+		EventBus:           cfg.EventBus,
+		ReadModelDB:        cfg.ReadModelDB,
+		AuditLog:           usermgmt.NewAuditLog(),
+		TOTP:               cfg.TOTP,
+		WebAuthn:           cfg.WebAuthn,
+		OAuth2:             cfg.OAuth2,
+		SessionTTL:         cfg.SessionTTL,
+		Logger:             cfg.Logger,
+		OnProjectionFailed: cfg.OnProjectionFailed,
+		AsyncStartup:       cfg.AsyncStartup,
+	}
 }
 
 // attachPanels builds and attaches the enabled UI panels (admin, dashboard,
@@ -151,7 +153,11 @@ func (b *Bundle) attachAdmin() error {
 		SSEURL:      b.config.SSEURL,
 	})
 	if err != nil {
-		return errorfamily.WrapRejection(err, "setup.admin_creation_failed", "failed to create admin panel")
+		return errorfamily.WrapRejection(
+			err,
+			"setup.admin_creation_failed",
+			"failed to create admin panel",
+		)
 	}
 
 	b.Admin = admin
@@ -166,7 +172,9 @@ func (b *Bundle) attachDashboard(store event.Store, bus event.Bus) error {
 		return nil
 	}
 
-	dash, err := dashboardui.New(buildDashboardConfig(b.config, store, bus, b.Service.ProjectionHost()))
+	dash, err := dashboardui.New(
+		buildDashboardConfig(b.config, store, bus, b.Service.ProjectionHost()),
+	)
 	if err != nil {
 		return errorfamily.WrapRejection(
 			err,
@@ -194,7 +202,11 @@ func (b *Bundle) attachLogin() error {
 		NoRegistration: b.config.LoginNoRegistration,
 	})
 	if err != nil {
-		return errorfamily.WrapRejection(err, "setup.login_creation_failed", "failed to create login page")
+		return errorfamily.WrapRejection(
+			err,
+			"setup.login_creation_failed",
+			"failed to create login page",
+		)
 	}
 
 	b.Login = login

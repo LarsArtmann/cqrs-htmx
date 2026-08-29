@@ -65,6 +65,9 @@
 //     SSE feed (default: 15s; non-positive disables)
 //   - [Config.Service] — adopt an already-built *usermgmt.Service instead of
 //     constructing one (caller keeps lifecycle ownership)
+//   - [Config.ServiceConfig] — escape hatch for usermgmt.ServiceConfig knobs
+//     the flattened fields cannot express (MaxUsers, TokenPepper,
+//     SecurityHooks, ...); mutually exclusive with [Config.Service]
 //   - [Config.AdminMode] / [Config.TenantID] — tenant-scoped admin panel
 //   - [Config.AdminAuthorizer] / [Config.DashboardAuthorizer] — custom access control
 //

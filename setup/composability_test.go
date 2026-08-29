@@ -2,6 +2,7 @@ package setup_test
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -95,7 +96,10 @@ func TestNew_AdoptedService_NotClosedByBundle(t *testing.T) {
 		Email: "alive-after-close@example.com",
 	})
 	if err != nil {
-		t.Fatalf("adopted service must remain functional after bundle.Close, register failed: %v", err)
+		t.Fatalf(
+			"adopted service must remain functional after bundle.Close, register failed: %v",
+			err,
+		)
 	}
 
 	// Close must also be idempotent with an adopted service.
@@ -153,6 +157,106 @@ func TestNew_AdoptedService_LoggerRejected(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "Logger") {
 		t.Errorf("rejection must name the conflicting field, got: %v", err)
+	}
+}
+
+// TestNew_ServiceConfigEscapeHatch verifies the ServiceConfig override seam:
+// knobs the flattened fields cannot express (here MaxUsers) reach the built
+// service, and the bundle owns and closes the service it built.
+func TestNew_ServiceConfigEscapeHatch(t *testing.T) {
+	t.Parallel()
+
+	bundle, err := setup.New(setup.Config{
+		Title: "Escape Hatch",
+		ServiceConfig: &usermgmt.ServiceConfig{
+			MaxUsers: 1,
+		},
+	})
+	if err != nil {
+		t.Fatalf("setup.New with ServiceConfig override: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Service == nil {
+		t.Fatal("bundle.Service must be set")
+	}
+
+	if bundle.Admin == nil || bundle.Dashboard == nil || bundle.Login == nil {
+		t.Error("all default panels must attach to a ServiceConfig bundle")
+	}
+
+	first := usermgmt.RegisterRequest{
+		ID:    usermgmt.GenerateUserID(),
+		Email: "first@example.com",
+	}
+	if _, err := bundle.Service.Register(context.Background(), first); err != nil {
+		t.Fatalf("first registration must succeed: %v", err)
+	}
+
+	second := usermgmt.RegisterRequest{
+		ID:    usermgmt.GenerateUserID(),
+		Email: "second@example.com",
+	}
+	if _, err := bundle.Service.Register(
+		context.Background(),
+		second,
+	); !errors.Is(
+		err,
+		usermgmt.ErrRegistrationClosed,
+	) {
+		t.Fatalf(
+			"MaxUsers=1 override must close registration after the first user, got err: %v",
+			err,
+		)
+	}
+}
+
+// TestNew_ServiceConfig_ConflictingFlattenedFieldsRejected verifies the guard:
+// flattened service-construction fields are rejected (not silently ignored)
+// when ServiceConfig is set, mirroring the adopted-Service conflicts.
+func TestNew_ServiceConfig_ConflictingFlattenedFieldsRejected(t *testing.T) {
+	t.Parallel()
+
+	for name, mutate := range map[string]func(*setup.Config){
+		"EventStore":   func(c *setup.Config) { c.EventStore = memorystorage.NewMemoryStore() },
+		"Logger":       func(c *setup.Config) { c.Logger = slog.Default() },
+		"AsyncStartup": func(c *setup.Config) { c.AsyncStartup = true },
+	} {
+		cfg := setup.Config{ServiceConfig: &usermgmt.ServiceConfig{}}
+		mutate(&cfg)
+
+		_, err := setup.New(cfg)
+		if err == nil {
+			t.Errorf("%s: setting a flattened field alongside ServiceConfig must be rejected", name)
+		}
+
+		if err != nil && !strings.Contains(err.Error(), "ServiceConfig") {
+			t.Errorf("%s: rejection must mention ServiceConfig, got: %v", name, err)
+		}
+	}
+}
+
+// TestNew_ServiceAndServiceConfig_MutuallyExclusive verifies the two explicit
+// service sources cannot be combined.
+func TestNew_ServiceAndServiceConfig_MutuallyExclusive(t *testing.T) {
+	t.Parallel()
+
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	defer func() { _ = svc.Close() }()
+
+	_, err = setup.New(setup.Config{
+		Service:       svc,
+		ServiceConfig: &usermgmt.ServiceConfig{MaxUsers: 1},
+	})
+	if err == nil {
+		t.Fatal("Service and ServiceConfig must not be set together")
+	}
+
+	if !strings.Contains(err.Error(), "mutually exclusive") {
+		t.Errorf("rejection must explain the mutual exclusion, got: %v", err)
 	}
 }
 

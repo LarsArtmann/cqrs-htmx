@@ -90,6 +90,7 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `SSEPath`                                            | `string`                     | off                 | Session-gated shared SSE feed of all committed events      |
 | `SSEHeartbeatInterval`                               | `time.Duration`              | `15s` (0 = off)     | Keep-alive comment frames on `/sse`                        |
 | `Service`                                            | `*usermgmt.Service`          | built by `New`      | Adopt your own service; panels wire on top of it           |
+| `ServiceConfig`                                      | `*usermgmt.ServiceConfig`    | nil                 | Escape hatch: full `usermgmt.ServiceConfig` override       |
 | `CookieName` / `SessionTTL`                          | `string` / `time.Duration`   | `"session"` / 24h   | Session cookie configuration                               |
 | `Logger`                                             | `*slog.Logger`               | `slog.Default()`    | Structured auth event logging                              |
 | `LogoutURL` / `SSEURL`                               | `string`                     | hidden / off        | Logout link; admin panel real-time sync indicator          |
@@ -125,6 +126,30 @@ The bundle sources its shared stores from the service (`svc.Journal()`,
 `svc.EventBus()`), so panels observe the exact infrastructure your service
 publishes to. Service-construction fields (`EventStore`, `TOTP`, ... `AsyncStartup`)
 are rejected as conflicts in this mode — nothing is silently ignored.
+
+### ServiceConfig override (escape hatch)
+
+If you want the bundle to keep building and owning the service — but need
+`usermgmt.ServiceConfig` knobs the flattened fields cannot express (`MaxUsers`,
+`TokenPepper`, `SecurityHooks`, `CheckpointStore`, `SnapshotConfig`,
+`SessionStore`, `Lockout`, ...) — pass a `ServiceConfig` instead:
+
+```go
+bundle, err := setup.New(setup.Config{
+    ServiceConfig: &usermgmt.ServiceConfig{
+        MaxUsers:    1, // single-user deployment: registration closes after user #1
+        TokenPepper: pepper,
+    },
+})
+defer func() { _ = bundle.Close() }() // closes the service it built
+```
+
+Precedence is `Service` > `ServiceConfig` > flattened fields. `Service` and
+`ServiceConfig` are mutually exclusive, and either conflicts with the flattened
+service-construction fields (`EventStore`, `TOTP`, ... `AsyncStartup`) — set
+those inside `ServiceConfig` instead. The bundle applies exactly one default on
+top of your override: a nil `AuditLog` gets the in-memory audit log, matching
+the flattened path.
 
 ### Shared SSE endpoint
 
@@ -169,10 +194,16 @@ bundle, err := setup.New(setup.Config{
 
 ## Benchmarks
 
-`BenchmarkSpikeBaselineVsAppkit` (`setup/run_appkit_test.go`) compares the request-path cost of the bundle's two serve paths: `RunHandler` (httputil.Server) vs `RunWithAppkit` (appkit.Service, the spike for ADR-001 adoption). The bench runs against a 5× iteration count with benchstat-friendly metrics (ns/op, req/s via `b.ReportMetric`, B/op + allocs/op via `-benchmem`); the spike passes `appkit.LogLevelError` to suppress the per-request INFO line so the comparison isolates stack overhead from observability overhead.
+`BenchmarkSpikeBaselineVsAppkit` (`setup/run_appkit_test.go`) compares the request-path cost of the bundle's two serve paths: `RunHandler` (httputil.Server) vs `RunWithAppkit` (appkit.Service, the spike for ADR-001 adoption). Three sub-benchmarks: `baseline-httputil`, `appkit-service`, and `json-roundtrip` (no HTTP — an envelope-shaped JSON encode/decode in isolation, so stack deltas attribute to middleware rather than codec work). The bench runs 5× with benchstat-friendly metrics (ns/op, req/s via `b.ReportMetric`, B/op + allocs/op via `-benchmem`); the spike passes `appkit.LogLevelError` to suppress the per-request INFO line so the comparison isolates stack overhead from observability overhead.
+
+Prefer the gate wrapper, which prints the benchstat table and fails on a median regression vs the machine-pinned baseline:
 
 ```sh
-# from repo root (hermetic, GOWORK=off):
+# from repo root:
+nix run .#bench-spike                       # gate (10% median threshold)
+nix run .#bench-spike -- --save-baseline    # re-pin after bench changes
+
+# manual exploration (hermetic, GOWORK=off):
 GOEXPERIMENT=jsonv2 GOWORK=off go test \
     -run xxx \
     -bench '^BenchmarkSpikeBaselineVsAppkit$' \
@@ -182,11 +213,12 @@ GOEXPERIMENT=jsonv2 GOWORK=off go test \
 benchstat /tmp/before.txt /tmp/after.txt
 ```
 
-Baseline numbers (5× runs, pinned at `docs/benchmarks/setup-baseline-2026-08-17.txt`):
+Baseline numbers (5× runs, machine-pinned — the gate-comparable artifact is `docs/benchmarks/setup-baseline.raw.txt`; see `docs/benchmarks/README.md` for the raw-vs-markdown split and re-pin flow):
 
 | Case                | ns/op | req/s | B/op | allocs/op |
 | ------------------- | ----- | ----- | ---- | --------- |
-| `baseline-httputil` | ~17k  | ~60k  | 5.4k | 61        |
-| `appkit-service`    | ~20k  | ~50k  | 7.3k | 90        |
+| `baseline-httputil` | ~21k  | ~47k  | —    | 180       |
+| `appkit-service`    | ~24k  | ~40k  | —    | 207        |
+| `json-roundtrip`    | ~1.0k | —     | 483  | 6         |
 
-The ~30 allocs/op gap is the per-request cost the appkit middleware stack adds; ns/op overhead disappears in any real handler doing I/O. `LogLevelError` is load-bearing — without it, appkit's per-request formatted INFO line dominates the measurement (see the comparison report, finding 7).
+(2026-08-29 pinning, AMD Ryzen AI MAX+ 395; the 2026-08-17 Xeon numbers are not comparable.) The alloc gap is the per-request cost the appkit middleware stack adds; ns/op overhead disappears in any real handler doing I/O, and the ~1µs codec floor shows how little of it is JSON. `LogLevelError` is load-bearing — without it, appkit's per-request formatted INFO line dominates the measurement (see the comparison report, finding 7).

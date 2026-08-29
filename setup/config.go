@@ -53,7 +53,31 @@ type Config struct {
 	//
 	// Lifecycle ownership stays with the caller: [Bundle.Close] does NOT close
 	// an adopted service. The caller closes it (svc.Close) after the bundle.
+	//
+	// Precedence: Service (adopt) > ServiceConfig (full override) > flattened
+	// fields (convenience). See [Config.ServiceConfig].
 	Service *usermgmt.Service
+
+	// ServiceConfig, when set (and Service is nil), is passed to
+	// usermgmt.NewService verbatim. This is the escape hatch for service knobs
+	// the flattened fields cannot express — MaxUsers, TokenPepper,
+	// SecurityHooks, CheckpointStore, SnapshotConfig, SessionStore, Lockout,
+	// EmailVerification, custom SessionStore/AuditLog, ... — while still
+	// getting the bundle's panels, session middleware, and health endpoint.
+	//
+	// ServiceConfig and Service are mutually exclusive, and ServiceConfig
+	// conflicts with the same flattened service-construction fields as Service
+	// does (EventStore, EventBus, ReadModelDB, TOTP, WebAuthn, OAuth2,
+	// SessionTTL, Logger, AsyncStartup, OnProjectionFailed) — set those inside
+	// ServiceConfig instead, where EventStore defaults to in-memory and
+	// EventBus to the watermill bus when nil.
+	//
+	// Unlike an adopted Service, a service built from ServiceConfig IS closed
+	// by [Bundle.Close]. The bundle applies exactly one default on top of the
+	// override: when ServiceConfig.AuditLog is nil, an in-memory audit log
+	// (usermgmt.NewAuditLog) is registered, matching the flattened-path
+	// behavior.
+	ServiceConfig *usermgmt.ServiceConfig
 
 	// Persistence overrides (all optional — defaults to in-memory).
 	//
@@ -242,7 +266,7 @@ func trimTrailingSlash(s string) string {
 // validate checks the resolved config for common misconfigurations and returns
 // a rejection error describing the first issue found, or nil if the config is sound.
 func (c Config) validate() error {
-	if err := c.validateAdoptedService(); err != nil {
+	if err := c.validateServiceSources(); err != nil {
 		return err
 	}
 
@@ -257,15 +281,44 @@ func (c Config) validate() error {
 	return requireDistinctPaths(c)
 }
 
-// validateAdoptedService rejects configs that both adopt a Service and set
-// fields that only apply when New builds the service itself. Silently
-// ignoring them would be a footgun: a consumer setting TOTP alongside an
-// adopted service would expect TOTP to be enabled and never learn it is not.
-func (c Config) validateAdoptedService() error {
-	if c.Service == nil {
-		return nil
+// validateServiceSources rejects configs that set more than one of the three
+// service sources, or combine an explicit source (Service or ServiceConfig)
+// with flattened service-construction fields. Silently ignoring them would be
+// a footgun: a consumer setting TOTP alongside an adopted service would
+// expect TOTP to be enabled and never learn it is not.
+func (c Config) validateServiceSources() error {
+	switch {
+	case c.Service != nil && c.ServiceConfig != nil:
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"Service and ServiceConfig are mutually exclusive — Service adopts an existing *usermgmt.Service, ServiceConfig builds one; pick one",
+		)
+	case c.Service != nil:
+		if conflicts := c.serviceConstructionConflicts(); len(conflicts) > 0 {
+			return errorfamily.Newf(
+				errorfamily.Rejection,
+				"setup.invalid_config",
+				"Service adopts an existing *usermgmt.Service, so service-construction fields are ignored — unset them: %s",
+				strings.Join(conflicts, ", "),
+			)
+		}
+	case c.ServiceConfig != nil:
+		if conflicts := c.serviceConstructionConflicts(); len(conflicts) > 0 {
+			return errorfamily.Newf(
+				errorfamily.Rejection,
+				"setup.invalid_config",
+				"ServiceConfig fully specifies the service, so flattened service-construction fields are ignored — set them inside ServiceConfig instead: %s",
+				strings.Join(conflicts, ", "),
+			)
+		}
 	}
 
+	return nil
+}
+
+// serviceConstructionConflicts lists the flattened service-construction fields
+// that are set. Only meaningful when Service or ServiceConfig is also set.
+func (c Config) serviceConstructionConflicts() []string {
 	var conflicts []string
 
 	for _, set := range []struct {
@@ -288,14 +341,7 @@ func (c Config) validateAdoptedService() error {
 		}
 	}
 
-	if len(conflicts) > 0 {
-		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config",
-			"Service adopts an existing *usermgmt.Service, so service-construction fields are ignored — unset them: %s",
-			strings.Join(conflicts, ", "))
-	}
-
-	return nil
+	return conflicts
 }
 
 // validatePathShapes rejects paths that do not start with a slash (or, for
@@ -307,8 +353,13 @@ func (c Config) validatePathShapes() error {
 	}
 
 	if !startsWithSlash(c.DashboardPath) {
-		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config", "DashboardPath must start with %q (got %q)", "/", c.DashboardPath)
+		return errorfamily.Newf(
+			errorfamily.Rejection,
+			"setup.invalid_config",
+			"DashboardPath must start with %q (got %q)",
+			"/",
+			c.DashboardPath,
+		)
 	}
 
 	if !startsWithSlash(c.HealthPath) {
