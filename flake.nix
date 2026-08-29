@@ -109,6 +109,11 @@
               nixfmt.enable = true;
               templ.enable = true;
               gofmt.enable = true;
+              # golines/shfmt/shellcheck evaluated 2026-08-29: first run
+              # reformats 275 files (treefmt golines defaults disagree with
+              # the golangci-lint golines config; shfmt+shellcheck flag
+              # legacy gate scripts). Enabling needs a DEDICATED format-sweep
+              # commit with reviewed fallout — tracked in TODO_LIST P3.
             };
           };
 
@@ -288,7 +293,7 @@
 
             bench-spike = goApp {
               name = "run-bench-spike";
-              description = "Run the setup spike benchmark (default 5x2s) and fail on a >5% median ns/op regression vs docs/benchmarks/setup-baseline.raw.txt. Env: BENCH_COUNT, BENCHTIME, BENCH_SPIKE_THRESHOLD. --save-baseline [path] re-pins the baseline.";
+              description = "Run the setup spike benchmark (default 5x2s) and fail on a >10% median ns/op regression vs docs/benchmarks/setup-baseline.raw.txt (10% default: run-to-run noise on the pinned machine measures up to ~9% on the ~1us json-roundtrip sub-bench; tighten via BENCH_SPIKE_THRESHOLD). Env: BENCH_COUNT, BENCHTIME, BENCH_SPIKE_THRESHOLD. --save-baseline [path] re-pins the baseline.";
               runtimeInputs = [
                 benchstat
                 pkgs.git
@@ -298,18 +303,19 @@
               ];
               text = ''
                 baseline="docs/benchmarks/setup-baseline.raw.txt"
-                threshold="''${BENCH_SPIKE_THRESHOLD:-5}"
+                # 10% default: measured run-to-run median noise on the pinned
+                # machine reaches ~9% on the ~1us json-roundtrip sub-bench and
+                # ~5% on the ~20us HTTP sub-benches. A noisier gate is a worse
+                # gate; real regressions (the 2.8x logging bug class) clear 10%
+                # by an order of magnitude. Tighten with BENCH_SPIKE_THRESHOLD.
+                threshold="''${BENCH_SPIKE_THRESHOLD:-10}"
                 count="''${BENCH_COUNT:-5}"
                 benchtime="''${BENCHTIME:-2s}"
 
                 # Fall back to /tmp when the ambient build cache is unwritable
-                # (e.g. a dead secondary disk), so the gate never fails on cache init.
-                if ! mkdir -p "''${GOCACHE:-$HOME/.cache/go-build}" 2>/dev/null; then
-                  GOCACHE="/tmp/go-build-cache"
-                  GOMODCACHE="/tmp/go-mod-cache"
-                  export GOCACHE GOMODCACHE
-                  mkdir -p "$GOCACHE" "$GOMODCACHE"
-                fi
+                # (e.g. a dead secondary disk), so the gate never fails on cache
+                # init. Shared guard, same lib the isolation script sources.
+                source scripts/lib/go-cache-env.sh
                 bench_args=(
                   -run xxx
                   -bench "^BenchmarkSpikeBaselineVsAppkit$"
@@ -662,7 +668,9 @@
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-module-isolation.sh
                   bash scripts/check-dep-budgets.sh
+                  bash scripts/check-go-toolchain.sh
                   bash scripts/check-version-drift.sh --strict
+                  bash scripts/check-release-train.sh
                   bash scripts/check-replace-directives.sh
                   bash scripts/check-docs-freshness.sh
                   bash scripts/check-docs-links.sh
@@ -697,6 +705,25 @@
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-docs-links.sh
+                '';
+              };
+            };
+
+            check-release-train = {
+              type = "app";
+              meta.description = "Verify every internal require resolves to a PUBLISHED tag; list train-lag for the next family train";
+              program = pkgs.writeShellApplication {
+                name = "check-release-train";
+                runtimeInputs = [
+                  pkgs.git
+                  pkgs.coreutils
+                  pkgs.gnugrep
+                  pkgs.gawk
+                  pkgs.findutils
+                ];
+                text = ''
+                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                  bash scripts/check-release-train.sh
                 '';
               };
             };
@@ -854,12 +881,16 @@
 
             check-phantom-version = {
               type = "app";
-              meta.description = "Detect zero pseudo-versions in go-cqrs-lite dependencies (broken upstream tags)";
+              meta.description = "Detect zero pseudo-versions + verify every internal require resolves to a PUBLISHED tag";
               program = pkgs.writeShellApplication {
                 name = "check-phantom-version";
-                runtimeInputs = [ pkgs.ripgrep ];
+                runtimeInputs = [
+                  pkgs.ripgrep
+                  pkgs.git
+                ];
                 text = ''
                   set -euo pipefail
+                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   echo "=== Phantom Version Check ==="
                   echo "Scanning go.mod files for zero pseudo-versions..."
                   found=0
@@ -873,6 +904,18 @@
                     echo "OK: No phantom versions detected."
                   else
                     exit 1
+                  fi
+                  # The 2026-08-17..29 blind spot: totp/v4 v4.8.0 in
+                  # examples/admin-demo was never published, poisoned the
+                  # workspace graph, and only this app's zero-pseudo scan
+                  # ran per-commit — it cannot see missing tags. Chain the
+                  # real tag-existence gate here so the phantom gate covers
+                  # both failure classes. CI stays advisory (ls-remote auth
+                  # for private repos unverified there).
+                  if [ "''${CI:-false}" != "true" ]; then
+                    bash scripts/check-version-drift.sh --strict
+                  else
+                    bash scripts/check-version-drift.sh || true
                   fi
                 '';
               };
