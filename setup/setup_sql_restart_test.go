@@ -85,7 +85,7 @@ func TestBundle_SQLPersistence_SurvivesRestart(t *testing.T) {
 		return bundle, server
 	}
 
-	registerStatus := func(t *testing.T, server *httptest.Server, email string) (int, []byte, *http.Response) {
+	registerStatus := func(t *testing.T, server *httptest.Server, email string) (int, []byte, []*http.Cookie) {
 		t.Helper()
 		body := fmt.Sprintf(`{"email":%q,"display_name":"Restart Contract"}`, email)
 		resp, err := http.Post(server.URL+"/auth/register", "application/json", strings.NewReader(body))
@@ -95,27 +95,27 @@ func TestBundle_SQLPersistence_SurvivesRestart(t *testing.T) {
 		defer resp.Body.Close()
 		var buf bytes.Buffer
 		_, _ = buf.ReadFrom(resp.Body)
-		return resp.StatusCode, buf.Bytes(), resp
+		return resp.StatusCode, buf.Bytes(), resp.Cookies()
 	}
 	register := func(t *testing.T, server *httptest.Server, email string) int {
 		t.Helper()
 		code, _, _ := registerStatus(t, server, email)
 		return code
 	}
-	registerCapture := func(t *testing.T, server *httptest.Server, email string) ([]byte, *http.Response) {
+	registerCapture := func(t *testing.T, server *httptest.Server, email string) ([]byte, []*http.Cookie) {
 		t.Helper()
-		code, body, resp := registerStatus(t, server, email)
+		code, body, cookies := registerStatus(t, server, email)
 		if code != http.StatusCreated {
 			t.Fatalf("register on instance #1: status %d, want 201", code)
 		}
-		return body, resp
+		return body, cookies
 	}
 
 	// --- instance #1: register a user through the full HTTP surface --------
 	_, server1 := newBundle(t)
-	regBody, regResp := registerCapture(t, server1, "restart@example.com")
+	regBody, regCookies := registerCapture(t, server1, "restart@example.com")
 	var sessionCookie *http.Cookie
-	for _, c := range regResp.Cookies() {
+	for _, c := range regCookies {
 		if c.Value != "" {
 			sessionCookie = c
 			break

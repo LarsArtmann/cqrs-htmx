@@ -19,13 +19,13 @@ import (
 // Sentinel miss errors: the counting stubs must surface failures WITHOUT
 // depending on internal error constructors (stdlib error constructors are
 // banned in non-test code; in tests they are fine).
-type errWebAuthnSessionMiss struct{}
+type webAuthnSessionMissError struct{}
 
-func (errWebAuthnSessionMiss) Error() string { return "webauthn session miss (test stub)" }
+func (webAuthnSessionMissError) Error() string { return "webauthn session miss (test stub)" }
 
-type errVerificationTokenMiss struct{}
+type verificationTokenMissError struct{}
 
-func (errVerificationTokenMiss) Error() string { return "verification token miss (test stub)" }
+func (verificationTokenMissError) Error() string { return "verification token miss (test stub)" }
 
 type countingWebAuthnSessions struct {
 	mu      sync.Mutex
@@ -53,7 +53,7 @@ func (s *countingWebAuthnSessions) Get(key string) ([]byte, error) {
 	if d, ok := s.data[key]; ok {
 		return bytes.Clone(d), nil
 	}
-	return nil, errWebAuthnSessionMiss{}
+	return nil, webAuthnSessionMissError{}
 }
 
 func (s *countingWebAuthnSessions) Delete(key string) {
@@ -87,7 +87,7 @@ func (s *countingVerificationTokens) Consume(token string) (UserID, error) {
 	defer s.mu.Unlock()
 	uid, ok := s.tokens[token]
 	if !ok {
-		return UserID{}, errVerificationTokenMiss{}
+		return UserID{}, verificationTokenMissError{}
 	}
 	delete(s.tokens, token)
 	return uid, nil
