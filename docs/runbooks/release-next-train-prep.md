@@ -1,5 +1,7 @@
 # Runbook: Next Family Train — EXECUTED 2026-08-30
 
+> Operator summary: see [docs/guides/release-playbook.md](../guides/release-playbook.md) — the distilled rules (verify-tag protocol, train order, poison ladder) with links back here for the concrete commands.
+
 > **STATUS: EXECUTED (2026-08-30, user-approved).** Deltas vs the prepared plan:
 >
 > - §1b/§1d were already done before execution (dashboardui/v4.8.1 and datastar/v4.8.1 found pushed).
@@ -12,7 +14,7 @@ This document contains the exact, ordered commands for the next coordinated
 family train, so the release itself is mechanical. Nothing here has been
 executed.
 
-## 0. Preconditions (verified 2026-08-29)
+## 0. Preconditions (HISTORICAL — verified 2026-08-29, EXECUTED 2026-08-30; superseded by §7 and by `git ls-remote`/`git show` at any future execution time — re-derive, do not trust)
 
 | Fact                                                 | Value                                                                                                         |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -166,7 +168,7 @@ scripts/verify-tag.sh setup v4.8.4 --push   # push + ls-remote confirmation
 4. Post-publication verification (wait ~1-2 min for the module proxy):
 
 ```sh
-GONOSUMDB= GONOSUMCHECK= GOPROXY=https://proxy.golang.org go list -m -retracted github.com/larsartmann/cqrs-htmx/setup/v4@v4.8.4
+GONOSUMDB= GOPROXY=https://proxy.golang.org go list -m -retracted github.com/larsartmann/cqrs-htmx/setup/v4@v4.8.4
 # then fetch pkg.go.dev/github.com/larsartmann/cqrs-htmx/setup/v4 and confirm
 # the "Retracted" banner lists v4.8.1 and v4.8.2
 GOBIN=$(mktemp -d) go install github.com/larsartmann/cqrs-htmx/setup/v4@v4.8.4 2>&1 | grep -i retract || true

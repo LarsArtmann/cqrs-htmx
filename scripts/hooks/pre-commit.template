@@ -26,6 +26,14 @@
 
 set -e
 
+# Resolve Go caches to a writable location BEFORE any gate runs: on the
+# machine with the dead /mnt/buildcache mount, an ambient
+# GOLANGCI_LINT_CACHE pointing there makes buildflow's golangci-lint steps
+# fail with "failed to initialize build cache" even when GOCACHE is fine.
+# go-cache-env validates GOCACHE + GOLANGCI_LINT_CACHE (and falls back to
+# the /tmp layout) without touching valid ambient values.
+source "$(git rev-parse --show-toplevel)/scripts/lib/go-cache-env.sh" || true
+
 # Binary + large-file guard: reject tracked binaries and oversized assets.
 bash "$(git rev-parse --show-toplevel)/scripts/check-large-files.sh"
 

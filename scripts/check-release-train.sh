@@ -91,6 +91,7 @@ fi
 
 declare -A REPO_TAGS_OK
 declare -A REPO_TAGS_LIST
+CACHE_MAX_AGE=-1 # seconds; oldest cache entry actually served this run (-1 = cache unused)
 
 fetch_repo_tags() {
   local repo="$1"
@@ -104,6 +105,8 @@ fetch_repo_tags() {
     [ -z "$(find "$cache_file" -mmin "+$((CACHE_TTL / 60))" 2>/dev/null)" ]; then
     REPO_TAGS_OK[$repo]=true
     REPO_TAGS_LIST[$repo]="$(cat "$cache_file")"
+    local age=$(($(date +%s) - $(stat -c %Y "$cache_file" 2>/dev/null || date +%s)))
+    [ "$age" -gt "$CACHE_MAX_AGE" ] && CACHE_MAX_AGE=$age
     return 0
   fi
 
@@ -239,12 +242,19 @@ if [ "$JSON" = 1 ]; then
     IFS=$'\n'
     if [ ${#LAG_ENTRIES[@]} -gt 0 ]; then printf '%s\n' "${LAG_ENTRIES[*]}" | paste -sd, -; fi
   )"
-  printf '{"checked":%d,"unpublished":%d,"exempted":%d,"lag":%d,"lag_entries":[%s],"strict_lag":%d,"ok":%s}\n' \
-    "$checked" "$unpublished" "$exempted" "$lags" "$lag_json" "$STRICT_LAG" \
+  printf '{"checked":%d,"unpublished":%d,"exempted":%d,"lag":%d,"lag_entries":[%s],"strict_lag":%d,"cache_age_seconds":%d,"ok":%s}\n' \
+    "$checked" "$unpublished" "$exempted" "$lags" "$lag_json" "$STRICT_LAG" "$CACHE_MAX_AGE" \
     "$([ "$unpublished" -eq 0 ] && echo true || echo false)"
 else
   echo ""
   echo "Checked $checked internal requires: $unpublished unpublished, $exempted replace-exempted, $lags train lag."
+  if [ "$CACHE_MAX_AGE" -gt 0 ] && [ "$CACHE_MAX_AGE" -gt $(((CACHE_TTL * 3) / 4)) ]; then
+    echo "  NOTE: tag cache is ${CACHE_MAX_AGE}s old (TTL ${CACHE_TTL}s) — consider --refresh-cache before a release call."
+  fi
+fi
+
+if [ "$REFRESH" = 1 ] && [ "$NO_CACHE" = 0 ]; then
+  echo "Tag cache refreshed at $CACHE_DIR (TTL ${CACHE_TTL}s)." >&2
 fi
 
 if [[ $unpublished -gt 0 ]]; then

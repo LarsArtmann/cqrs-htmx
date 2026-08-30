@@ -19,7 +19,8 @@
 #
 # shellcheck shell=bash
 
-if ! mkdir -p "${GOCACHE:-$HOME/.cache/go-build}" 2>/dev/null; then
+if ! mkdir -p "${GOCACHE:-$HOME/.cache/go-build}" 2>/dev/null ||
+  ! mkdir -p "${GOLANGCI_LINT_CACHE:-$HOME/.cache/golangci-lint}" 2>/dev/null; then
   GOCACHE="/tmp/go-build-cache"
   GOMODCACHE="/tmp/go-mod-cache"
   GOLANGCI_LINT_CACHE="/tmp/golangci-cache"

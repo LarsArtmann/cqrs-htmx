@@ -5,10 +5,10 @@ Artifacts for the setup spike benchmark (`BenchmarkSpikeBaselineVsAppkit`,
 
 ## Files
 
-| File | Role | Comparable across machines? |
-| --- | --- | --- |
-| `setup-baseline.raw.txt` | **The gate baseline.** Pinned by `nix run .#bench-spike -- --save-baseline`. Env-guarded (goos/goarch/pkg/cpu): the gate refuses to compare across machines. | NO — per-machine |
-| `setup-baseline-2026-08-17.txt` | Human markdown record of the original pinning session. | NO — Xeon numbers, historical only |
+| File                            | Role                                                                                                                                                         | Comparable across machines?        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- |
+| `setup-baseline.raw.txt`        | **The gate baseline.** Pinned by `nix run .#bench-spike -- --save-baseline`. Env-guarded (goos/goarch/pkg/cpu): the gate refuses to compare across machines. | NO — per-machine                   |
+| `setup-baseline-2026-08-17.txt` | Human markdown record of the original pinning session.                                                                                                       | NO — Xeon numbers, historical only |
 
 ## Sub-benchmarks
 
@@ -34,6 +34,14 @@ BENCH_THRESHOLD_JSON_ROUNDTRIP=15 nix run .#bench-spike
 nix run .#bench-spike -- --save-baseline
 git add docs/benchmarks/setup-baseline.raw.txt
 ```
+
+## Current pin (2026-08-30, load1 2.20)
+
+Machine-pinned medians from `setup-baseline.raw.txt` (5 runs each):
+`baseline-httputil` ~16.0 µs/op @ ~62k req/s, `appkit-service` ~18.3 µs/op,
+`json-roundtrip` ~839 ns/op (6 allocs). The env-guarded gate compares
+against exactly these; the historical 16178-vs-45049 ns/op anecdote predates
+the logging-isolation fix and is NOT the current delta.
 
 ## Load guard + re-pin policy
 

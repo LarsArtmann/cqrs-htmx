@@ -164,6 +164,30 @@ keep-alive`. Ensure your CORS config allows these headers. The default
 with `CORSConfig{AllowedOrigins: []string{"https://dashboard.example.com"}}`
 in production.
 
+## Scoped Feeds: WithSSEFilter
+
+`transport.ServeDomainEvents` accepts `transport.WithSSEFilter(pred)` to
+restrict BOTH stream paths — live delivery and journal replay — to events
+matching a predicate. This is the mechanism behind stream-type-scoped SSE
+endpoints (the open `/sse` authz-posture decision, see
+`docs/planning/2026-08-30_sse-endpoint-shape-decision.md`): the domain
+envelope's stream type lives in the payload, so a predicate on it is all a
+scoped endpoint needs.
+
+```go
+userOnly := func(evt sse.Event) bool {
+    return strings.Contains(evt.Data, `"streamType":"user"`)
+}
+h := transport.ServeDomainEvents(broadcaster, store, heartbeat,
+    transport.WithSSEFilter(userOnly))
+```
+
+Fail-closed by construction: the live path subscribes via go-sse's
+`SubscribeFilter`, and replay goes through a store wrapper so a reconnecting
+client's backfill only ever receives matching events — even when the store
+only implements plain `sse.EventStore`. A filter that leaked excluded events
+during backfill would be a security hole, never a degradation.
+
 ## See Also
 
 - [Datastar Integration Guide](datastar-integration.md) — Datastar setup, patches, replay, SDK re-exports

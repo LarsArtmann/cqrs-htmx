@@ -83,3 +83,7 @@ removed:
 - The root module becomes leaner (fewer transitive deps exposed).
 - usermgmt becomes a thinner layer (truly just infrastructure over
   identity-model, not a facade).
+
+## See Also
+
+- [v5 Removal Inventory](../guides/v5-removal-inventory.md) — the full v5 removal list with per-item criteria (all classes, not just re-exports)

@@ -230,3 +230,94 @@ func TestServeDomainEvents_ReplayCursored(t *testing.T) {
 		t.Errorf("body should NOT contain the cursor event\nbody:\n%s", body)
 	}
 }
+
+func TestServeDomainEvents_FilteredLive(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	match := func(evt sse.Event) bool { return strings.Contains(evt.Data, `"streamType":"user"`) }
+	h := ServeDomainEvents(b, nil, 0, WithSSEFilter(match))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"streamType":"tenant","version":1}`})
+	b.Broadcast(sse.Event{Event: "domain", Data: `{"streamType":"user","version":2}`})
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, `"streamType":"user"`) {
+		t.Errorf("filtered subscriber must receive the matching event\nbody:\n%s", body)
+	}
+
+	if strings.Contains(body, `"streamType":"tenant"`) {
+		t.Errorf("filtered subscriber must NOT receive the non-matching event\nbody:\n%s", body)
+	}
+}
+
+func TestServeDomainEvents_FilteredReplay(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	store := &fakeSSEStore{events: []sse.Event{
+		{ID: sse.NewEventID("1"), Event: "domain", Data: `{"streamType":"user","version":1}`},
+		{ID: sse.NewEventID("2"), Event: "domain", Data: `{"streamType":"tenant","version":1}`},
+		{ID: sse.NewEventID("3"), Event: "domain", Data: `{"streamType":"user","version":2}`},
+	}}
+
+	match := func(evt sse.Event) bool { return strings.Contains(evt.Data, `"streamType":"user"`) }
+	h := ServeDomainEvents(b, store, 0, WithSSEFilter(match))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	// Give the handler time to finish the (filtered) replay, then disconnect.
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+
+	select {
+	case <-done:
+	case <-time.After(3 * time.Second):
+		t.Fatal("handler did not return")
+	}
+
+	body := rec.Body.String()
+
+	if got := strings.Count(body, `"streamType":"user"`); got != 2 {
+		t.Errorf("filtered replay must deliver exactly the 2 matching events, got %d\nbody:\n%s", got, body)
+	}
+
+	if strings.Contains(body, `"streamType":"tenant"`) {
+		t.Errorf("filtered replay must NOT deliver the non-matching event\nbody:\n%s", body)
+	}
+}
