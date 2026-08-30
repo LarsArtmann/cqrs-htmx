@@ -100,7 +100,7 @@ func Options(operationID string) *opBuilder { return newOp("options", operationI
 func newOp(method, operationID string) *opBuilder {
 	return &opBuilder{
 		method: method,
-		op:     &Operation{OperationID: operationID, Responses: map[int]*Response{}},
+		op:     &Operation{OperationID: operationID, Responses: map[int]*Response{}, HTTPMethod: method},
 	}
 }
 

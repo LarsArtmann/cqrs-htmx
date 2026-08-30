@@ -60,6 +60,12 @@ type Operation struct {
 	RequestBody *RequestBody      `json:"requestBody,omitempty"`
 	Responses   map[int]*Response `json:"responses"`
 	Deprecated  omitBool          `json:"deprecated,omitempty"`
+
+	// HTTPMethod is the lowercase HTTP method the builder was created with
+	// ("get", "post", ...). It is set by Get/Post/Put/Patch/Delete/Head/Options
+	// and excluded from serialization; a literally constructed Operation has
+	// an empty HTTPMethod.
+	HTTPMethod string `json:"-"`
 }
 
 // Parameter is a path, query, header, or cookie parameter.

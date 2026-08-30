@@ -34,6 +34,10 @@ type App struct {
 	beforeDispatch BeforeDispatchHook
 	afterDispatch  AfterDispatchHook
 	serverTiming   func(*http.Request) bool
+
+	// openapi routes collected from WithOpenAPI options at registration.
+	openapiMu     sync.Mutex
+	openapiRoutes []OpenAPIRoute
 }
 
 // Config configures an App. Commands or Queries must be non-nil.
@@ -335,6 +339,7 @@ func (a *App) buildHandlerConfigChecked(typeIsZero bool, kind string, opts []Han
 	if config.maxBodySize == 0 {
 		config.maxBodySize = a.maxBodySize
 	}
+	a.collectOpenAPI(kind, config)
 
 	return config
 }
