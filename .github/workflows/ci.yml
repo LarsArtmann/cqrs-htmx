@@ -519,6 +519,16 @@ jobs:
       - name: Dependency budget check
         run: bash scripts/check-dep-budgets.sh
 
+      - name: Go toolchain vs go.work directive check
+        run: bash scripts/check-go-toolchain.sh
+
+      # Advisory: the script needs `git ls-remote` auth for the larsartmann
+      # repos, unverified on Actions runners so far (open question since
+      # 2026-08-29); it also self-downgrades to WARN under CI when
+      # ls-remote fails. Flip to blocking after a green week.
+      - name: Release train check (advisory)
+        run: bash scripts/check-release-train.sh || true
+
       # Advisory here: the tag-existence leg needs `git ls-remote` auth for the
       # private larsartmann repos over https, which CI may not have. The strict
       # gate runs in `nix run .#check-modules` locally.
@@ -530,6 +540,9 @@ jobs:
 
   checks:
     runs-on: ubuntu-latest
+    # bench-spike is deliberately LOCAL-only (`nix run .#bench-spike`): the
+    # raw baseline is machine-pinned and CI runners are a different machine
+    # population. Rationale + re-pin flow: docs/benchmarks/README.md.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 

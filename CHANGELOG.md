@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **`check-require-tags` gate rename (was `check-phantom-version`):** the gate outgrew its name — since 2026-08-29 it also enforces tag existence for internal requires via the chained strict drift check, not just zero pseudo-versions. The inline flake logic moved to `scripts/check-require-tags.sh` under a canonical `nix run .#check-require-tags` app; `nix run .#check-phantom-version` remains as a deprecated alias that warns and runs the same script. Behavior unchanged.
+
 - **Hub-first SSE broadcaster vocabulary (root + datastar):** the canonical shareable object for cross-transport fan-out is go-sse's `*sse.Broadcaster[sse.Event]` — "the hub" — not a "raw" escape hatch. `datastar.Broadcaster` now **embeds** the hub (previously a hidden unexported `inner` field with six hand-written pass-through methods): `Health`, `Shutdown`, `Close`, `OnSubscribe`, `OnUnsubscribe` promote from go-sse with identical signatures, and `Subscribe`/`Unsubscribe`/`SubscribeFilter` become callable directly on the datastar adapter (previously required unwrapping). `Broadcast(patch)` still shadows the hub's `Broadcast(sse.Event)` intentionally — raw events go through `BroadcastEvent`. Both adapters gained `Hub()` and `NewBroadcasterFromHub(hub)`; setup's SSE endpoint wiring uses `Hub()`.
 
 ### Deprecated
@@ -15,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Raw-named broadcaster API (removal bundled with v5):** `cqrshtmx.Broadcaster.Raw()`, `cqrshtmx.NewBroadcasterFromRaw`, `datastar.Broadcaster.Raw()`, `ds.NewBroadcasterFromRaw`, and the `cqrshtmx.RawBroadcaster` interface — all superseded by `Hub()` / `NewBroadcasterFromHub` / passing `*sse.Broadcaster[sse.Event]` directly. The interface and both `FromRaw` constructors had zero production consumers at deprecation time; deprecated symbols stay functional (and test-pinned) through v4. Guide rewritten hub-first (`docs/guides/sse-and-datastar.md`).
 
 ### Added
+
+- **CI wiring for the new gates:** the `module-architecture` job now runs the Go-toolchain gate (blocking — hermetic comparison of the `go.work` directive against the installed toolchain) and the release-train check (advisory `|| true` — `git ls-remote` auth for the larsartmann repos is unverified on Actions runners, and the script self-downgrades to WARN under CI; flip to blocking after a green week). A comment on the `checks` job records the bench-spike local-only decision in-place so it stops being re-litigated.
 
 - **Per-benchmark thresholds for the bench-spike gate:** `BENCH_THRESHOLD_<NAME>` overrides the global gate for one benchmark — NAME is the bench name uppercased with non-alphanumerics mapped to `_`, and a distinctive suffix matches (e.g. `BENCH_THRESHOLD_JSON_ROUNDTRIP=15` covers `BenchmarkSpikeBaselineVsAppkit/json-roundtrip`). Rationale: sub-2µs benches flap near any fixed percentage (measured ~9% noise on the ~1µs `json-roundtrip` sub-bench vs ~5% on the HTTP benches), so a single noisy bench no longer forces a loosened global threshold. Non-numeric override values fail the gate with a message naming the variable. Documented in `docs/benchmarks/README.md` and the AGENTS.md Bench row.
 
