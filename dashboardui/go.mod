@@ -6,19 +6,19 @@ go 1.26.7
 require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
-	github.com/larsartmann/go-codec v0.1.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0
+	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.4.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-sse v0.5.1
-	github.com/larsartmann/templ-components/icons v1.8.2
+	github.com/larsartmann/go-sse v0.6.0
+	github.com/larsartmann/templ-components/icons v1.11.0
 )
 
 require (
@@ -31,21 +31,19 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.0.0-20260812165929-11e7746d6a7e // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.1 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
-	github.com/larsartmann/go-idempotency v0.1.2 // indirect
+	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	github.com/larsartmann/go-idempotency v0.2.0 // indirect
 	github.com/larsartmann/httputil v0.12.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.8.2 // indirect
+	github.com/larsartmann/templ-components/utils v1.11.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

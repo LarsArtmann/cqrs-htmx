@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/auditlog/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	github.com/larsartmann/go-error-family v0.10.0
@@ -41,7 +41,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
 	github.com/larsartmann/go-output/table v0.37.0 // indirect
 	github.com/larsartmann/go-output/tree v0.37.0 // indirect
-	github.com/larsartmann/go-sse v0.5.1 // indirect
+	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
