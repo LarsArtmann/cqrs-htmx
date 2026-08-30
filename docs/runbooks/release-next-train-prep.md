@@ -81,3 +81,58 @@ nix run .#build && nix run .#test && nix run .#lint
 
 Not part of this train. Precondition: push the go-appkit wave cut at
 `f938d65` (go-appkit TODO_LIST P1, user gate).
+
+## 6. Tag protocol (MANDATORY — institutionalized after two poisoned tags)
+
+The setup/v4.8.1 + v4.8.2 incident (2026-08-30): v4.8.1 required
+dashboardui/v4.8.1, whose tag predated SSEMaxReplay (stale content);
+v4.8.2 was tagged while the go.mod fix was still UNCOMMITTED (tags point
+at commits, never the working tree). Both are published and poisoned;
+they are superseded by v4.8.3 and carry retract directives on master
+(take effect at the next setup tag). Ladder for a poisoned tag:
+
+```sh
+# 1. Commit the fix FIRST, then cut a superseding version (never force-move
+#    a pushed tag — the module proxy caches version names forever).
+scripts/verify-tag.sh <module-dir> <next-version> --push
+# 2. Add retract directives to the module's go.mod on master (see
+#    setup/go.mod for the worked example) so the NEXT release retires the
+#    poisoned versions on pkg.go.dev / go get. Upstream precedent:
+#    go-cqrs-lite retracted storage/v4.7.0.
+```
+
+ALWAYS tag through `scripts/verify-tag.sh <module-dir> <version> [--push]`
+instead of raw `git tag`/`git push`. The script enforces: committed module
+tree (tracked changes), no existing local/remote tag of that name, no
+cqrs-htmx dev-replaces in the tagged go.mod, no larsartmann pseudo-version
+requires, every internal require published on origin, and (on --push) a
+post-push ls-remote verification. What it CANNOT check: whether a
+dependency's existing tag carries the API you ship against — verify that
+by hand with `git show <tag>:<path>` BEFORE tagging (the stale
+dashboardui/v4.8.1 class).
+
+Precondition discipline: re-derive every "current state" fact from
+`git ls-remote` / `git show` at execution time. Two preconditions in the
+2026-08-30 runbook were wrong within 24 hours of being written. Tables
+above describe intent, not reality — verify, do not trust.
+
+## 7. Post-execution stage floor (recorded 2026-08-30, post-sweep)
+
+State after the 2026-08-30 lag sweep (366→0) and systemadapter
+replace-strips — the first GREEN strict-drift since 2026-08-15:
+
+| Stage | Status | Notes |
+| --- | --- | --- |
+| module-isolation | ✅ | 27 modules GOWORK=off |
+| dep-budgets | ✅ | |
+| go-toolchain | ✅ | 1.26.7 everywhere |
+| version-drift --strict | ✅ | was RED on 5 go-cqrs-lite axes; upstream tagged (metaengine v4.12.0, sqliteengine v4.2.0, event v4.9.0, metadata v4.6.0, record v4.4.0) and requires aligned |
+| release-train | ✅ | 0 unpublished / 1 replace-exempted (systemadapter projectionadapter, upstream v4.5.0 still untagged) / 0 lag (was 366) |
+| replace-directives | ✅ | systemadapter keeps ONLY the projectionadapter replace |
+
+Remaining replace inventory (all with removal conditions):
+- systemadapter + examples/system-demo: `metaengine/projectionadapter/v4 =>
+  local` — strip once projectionadapter v4.5.0+ is tagged (v4.4.1 is the
+  current max; OccurredAt on EventWithID needs v4.5.0).
+- setup: `go-appkit => ../../go-appkit` — spike-only (ADR-001), harmless to
+  consumers, strip at the appkit fold-in decision.
