@@ -105,6 +105,10 @@ workflow-audit-log.*
 
 ## Go
 go.work
+# Machine-derived workspace checksum overlay; regenerated on demand by any
+# workspace go command. Untracked 2026-08-30 so the auto-git daemon stops
+# absorbing its drift into unrelated commits (it was still indexed despite
+# this ignore entry — see CHANGELOG).
 go.work.sum
 /v4
 
