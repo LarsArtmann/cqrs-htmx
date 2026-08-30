@@ -2,6 +2,13 @@
 # check-version-drift.sh — Detect sibling modules referencing different versions
 # Adapted from go-cqrs-lite's CI version drift detection.
 #
+# DIVISION OF LABOR vs scripts/check-release-train.sh: THIS script answers
+# "is every internal dependency referenced at ONE version repo-wide, and do
+# those tags exist?" (--strict = both legs blocking). check-release-train
+# answers "is each require on the LATEST published version (train lag), and
+# which requires are excused by local replaces?" Run both (nix run
+# .#check-modules runs drift; --report runs both).
+#
 # Catches: module A requires sibling at v3.3.0 while module B requires v3.4.0.
 # In go.work mode this is masked; under GOWORK=off it causes build failures.
 #
