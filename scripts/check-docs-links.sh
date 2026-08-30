@@ -23,15 +23,15 @@ echo "Scanning all .md files for broken file-path links..."
 echo ""
 
 while IFS= read -r md_file; do
-	md_dir="$(dirname "$md_file")"
+  md_dir="$(dirname "$md_file")"
 
-	# Use awk to extract links, skipping fenced code blocks.
-	# Only accept targets that look like real file paths:
-	#   - Ends with a file extension (.md, .go, .sh, .yml, etc.)
-	#   - OR starts with ./ or ../ and contains a path separator
-	# This excludes Go generics like [T](mapper), function signatures,
-	# and other false positives in embedded code samples.
-	links=$(awk '
+  # Use awk to extract links, skipping fenced code blocks.
+  # Only accept targets that look like real file paths:
+  #   - Ends with a file extension (.md, .go, .sh, .yml, etc.)
+  #   - OR starts with ./ or ../ and contains a path separator
+  # This excludes Go generics like [T](mapper), function signatures,
+  # and other false positives in embedded code samples.
+  links=$(awk '
         /^[[:space:]]*```/ { in_code = !in_code; next }
         in_code { next }
         {
@@ -54,39 +54,39 @@ while IFS= read -r md_file; do
         }
     ' "$md_file")
 
-	while IFS= read -r target; do
-		[ -z "$target" ] && continue
+  while IFS= read -r target; do
+    [ -z "$target" ] && continue
 
-		# Skip URLs and email links
-		case "$target" in
-		http://* | https://* | mailto:*) continue ;;
-		esac
+    # Skip URLs and email links
+    case "$target" in
+    http://* | https://* | mailto:*) continue ;;
+    esac
 
-		# Strip anchor fragments and query strings
-		path_part="${target%%#*}"
-		path_part="${path_part%%\?*}"
+    # Strip anchor fragments and query strings
+    path_part="${target%%#*}"
+    path_part="${path_part%%\?*}"
 
-		# Skip empty targets after stripping (anchor-only links)
-		[ -z "$path_part" ] && continue
+    # Skip empty targets after stripping (anchor-only links)
+    [ -z "$path_part" ] && continue
 
-		checked=$((checked + 1))
+    checked=$((checked + 1))
 
-		# Resolve relative to the markdown file's directory
-		resolved="$md_dir/$path_part"
+    # Resolve relative to the markdown file's directory
+    resolved="$md_dir/$path_part"
 
-		if [ ! -e "$resolved" ]; then
-			echo "  BROKEN: $md_file -> $target"
-			broken=$((broken + 1))
-		fi
-	done <<<"$links"
+    if [ ! -e "$resolved" ]; then
+      echo "  BROKEN: $md_file -> $target"
+      broken=$((broken + 1))
+    fi
+  done <<<"$links"
 done < <(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' -not -path './vendor/*' | sort)
 
 echo ""
 echo "Checked $checked links across all markdown files."
 
 if [ "$broken" -eq 0 ]; then
-	echo "OK: All markdown links resolve correctly."
+  echo "OK: All markdown links resolve correctly."
 else
-	echo "FAIL: $broken broken link(s) found."
-	exit 1
+  echo "FAIL: $broken broken link(s) found."
+  exit 1
 fi

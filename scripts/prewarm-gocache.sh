@@ -33,12 +33,12 @@ export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
 mapfile -t modules < <(go work edit -json 2>/dev/null | grep DiskPath | sed 's/.*: *"*//;s/".*//')
 
 if [ ${#modules[@]} -eq 0 ]; then
-	echo "prewarm-gocache: WARNING: no workspace modules found in go.work" >&2
-	exit 0
+  echo "prewarm-gocache: WARNING: no workspace modules found in go.work" >&2
+  exit 0
 fi
 
 for mod in "${modules[@]}"; do
-	(cd "$mod" && go build ./... 2>/dev/null) || {
-		echo "prewarm-gocache: build failed in $mod (buildflow will report the real error)" >&2
-	}
+  (cd "$mod" && go build ./... 2>/dev/null) || {
+    echo "prewarm-gocache: build failed in $mod (buildflow will report the real error)" >&2
+  }
 done

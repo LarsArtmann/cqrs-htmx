@@ -27,21 +27,21 @@ echo ""
 
 # Helper: run the real checker and capture exit code safely under set -e
 run_checker() {
-	set +e
-	OUTPUT=$(bash "$CHECKER" 2>&1)
-	EXIT_CODE=$?
-	set -e
+  set +e
+  OUTPUT=$(bash "$CHECKER" 2>&1)
+  EXIT_CODE=$?
+  set -e
 }
 
 # --- Test 1: Default run passes (docs in sync) ---
 run_checker
 if [ "$EXIT_CODE" -eq 0 ]; then
-	echo "  PASS: Default run passes (docs in sync)"
-	pass=$((pass + 1))
+  echo "  PASS: Default run passes (docs in sync)"
+  pass=$((pass + 1))
 else
-	echo "  FAIL: Default run should pass (docs in sync)"
-	echo "        Output: $OUTPUT"
-	fail=$((fail + 1))
+  echo "  FAIL: Default run should pass (docs in sync)"
+  echo "        Output: $OUTPUT"
+  fail=$((fail + 1))
 fi
 
 # --- Test 2: Output contains event and command counts ---
@@ -54,36 +54,36 @@ COMMAND_COUNT=$(echo "$OUTPUT" | grep -oP '^Commands:\s+\K\d+')
 set -eo pipefail
 
 if [ -n "${EVENT_COUNT:-}" ] && [ "${EVENT_COUNT:-0}" -gt 0 ] 2>/dev/null; then
-	echo "  PASS: Event count is a positive number ($EVENT_COUNT)"
-	pass=$((pass + 1))
+  echo "  PASS: Event count is a positive number ($EVENT_COUNT)"
+  pass=$((pass + 1))
 else
-	echo "  FAIL: Could not extract positive event count"
-	fail=$((fail + 1))
+  echo "  FAIL: Could not extract positive event count"
+  fail=$((fail + 1))
 fi
 
 if [ -n "${COMMAND_COUNT:-}" ] && [ "${COMMAND_COUNT:-0}" -gt 0 ] 2>/dev/null; then
-	echo "  PASS: Command count is a positive number ($COMMAND_COUNT)"
-	pass=$((pass + 1))
+  echo "  PASS: Command count is a positive number ($COMMAND_COUNT)"
+  pass=$((pass + 1))
 else
-	echo "  FAIL: Could not extract positive command count"
-	fail=$((fail + 1))
+  echo "  FAIL: Could not extract positive command count"
+  fail=$((fail + 1))
 fi
 
 # --- Test 3: Verify the counts match known totals (21 events, 20 commands) ---
 if [ "${EVENT_COUNT:-0}" -eq 21 ] 2>/dev/null; then
-	echo "  PASS: Event count is 21 (matches known total)"
-	pass=$((pass + 1))
+  echo "  PASS: Event count is 21 (matches known total)"
+  pass=$((pass + 1))
 else
-	echo "  FAIL: Event count should be 21, got ${EVENT_COUNT:-?}"
-	fail=$((fail + 1))
+  echo "  FAIL: Event count should be 21, got ${EVENT_COUNT:-?}"
+  fail=$((fail + 1))
 fi
 
 if [ "${COMMAND_COUNT:-0}" -eq 20 ] 2>/dev/null; then
-	echo "  PASS: Command count is 20 (matches known total)"
-	pass=$((pass + 1))
+  echo "  PASS: Command count is 20 (matches known total)"
+  pass=$((pass + 1))
 else
-	echo "  FAIL: Command count should be 20, got ${COMMAND_COUNT:-?}"
-	fail=$((fail + 1))
+  echo "  FAIL: Command count should be 20, got ${COMMAND_COUNT:-?}"
+  fail=$((fail + 1))
 fi
 
 # --- Test 4: Drift detection using an isolated fake repo ---
@@ -116,12 +116,12 @@ OUTPUT=$(bash "$TMPDIR/fake-checker.sh" 2>&1)
 EXIT_CODE=$?
 set -e
 if [ "$EXIT_CODE" -eq 0 ]; then
-	echo "  PASS: Fake repo with in-sync counts passes"
-	pass=$((pass + 1))
+  echo "  PASS: Fake repo with in-sync counts passes"
+  pass=$((pass + 1))
 else
-	echo "  FAIL: Fake repo with correct counts should pass (exit $EXIT_CODE)"
-	echo "        Output: $OUTPUT"
-	fail=$((fail + 1))
+  echo "  FAIL: Fake repo with correct counts should pass (exit $EXIT_CODE)"
+  echo "        Output: $OUTPUT"
+  fail=$((fail + 1))
 fi
 
 # 4b: Drifted event count should fail
@@ -131,11 +131,11 @@ OUTPUT=$(bash "$TMPDIR/fake-checker.sh" 2>&1)
 EXIT_CODE=$?
 set -e
 if [ "$EXIT_CODE" -ne 0 ]; then
-	echo "  PASS: Drifted event count (99 vs 2) correctly detected"
-	pass=$((pass + 1))
+  echo "  PASS: Drifted event count (99 vs 2) correctly detected"
+  pass=$((pass + 1))
 else
-	echo "  FAIL: Drifted event count should be detected"
-	fail=$((fail + 1))
+  echo "  FAIL: Drifted event count should be detected"
+  fail=$((fail + 1))
 fi
 
 # 4c: Drifted command count should fail
@@ -145,11 +145,11 @@ OUTPUT=$(bash "$TMPDIR/fake-checker.sh" 2>&1)
 EXIT_CODE=$?
 set -e
 if [ "$EXIT_CODE" -ne 0 ]; then
-	echo "  PASS: Drifted command count (99 vs 2) correctly detected"
-	pass=$((pass + 1))
+  echo "  PASS: Drifted command count (99 vs 2) correctly detected"
+  pass=$((pass + 1))
 else
-	echo "  FAIL: Drifted command count should be detected"
-	fail=$((fail + 1))
+  echo "  FAIL: Drifted command count should be detected"
+  fail=$((fail + 1))
 fi
 
 echo ""
@@ -157,8 +157,8 @@ echo "Results: $pass passed, $fail failed"
 echo ""
 
 if [ "$fail" -gt 0 ]; then
-	echo "FAIL: $fail test(s) failed."
-	exit 1
+  echo "FAIL: $fail test(s) failed."
+  exit 1
 fi
 
 echo "All tests passed."

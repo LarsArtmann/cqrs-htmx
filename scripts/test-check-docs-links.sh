@@ -25,27 +25,27 @@ pass=0
 fail=0
 
 assert_contains() {
-	local label="$1" output="$2" pattern="$3"
-	if echo "$output" | grep -qF "$pattern"; then
-		echo "  PASS: $label"
-		pass=$((pass + 1))
-	else
-		echo "  FAIL: $label"
-		echo "        Expected output to contain: $pattern"
-		fail=$((fail + 1))
-	fi
+  local label="$1" output="$2" pattern="$3"
+  if echo "$output" | grep -qF "$pattern"; then
+    echo "  PASS: $label"
+    pass=$((pass + 1))
+  else
+    echo "  FAIL: $label"
+    echo "        Expected output to contain: $pattern"
+    fail=$((fail + 1))
+  fi
 }
 
 assert_not_contains() {
-	local label="$1" output="$2" pattern="$3"
-	if echo "$output" | grep -qF "$pattern"; then
-		echo "  FAIL: $label"
-		echo "        Output should NOT contain: $pattern"
-		fail=$((fail + 1))
-	else
-		echo "  PASS: $label"
-		pass=$((pass + 1))
-	fi
+  local label="$1" output="$2" pattern="$3"
+  if echo "$output" | grep -qF "$pattern"; then
+    echo "  FAIL: $label"
+    echo "        Output should NOT contain: $pattern"
+    fail=$((fail + 1))
+  else
+    echo "  PASS: $label"
+    pass=$((pass + 1))
+  fi
 }
 
 # Create test fixture files that the links will reference
@@ -61,11 +61,11 @@ cp "$CHECKER" "$TMPDIR/scripts/check-docs-links.sh"
 
 # Remove test-only .md files between tests to prevent accumulation
 clean_test_files() {
-	rm -f "$TMPDIR"/test-*.md
+  rm -f "$TMPDIR"/test-*.md
 }
 
 run_checker() {
-	(cd "$TMPDIR" && bash scripts/check-docs-links.sh 2>&1 || true)
+  (cd "$TMPDIR" && bash scripts/check-docs-links.sh 2>&1 || true)
 }
 
 echo ""
@@ -179,8 +179,8 @@ echo "Results: $pass passed, $fail failed"
 echo ""
 
 if [ "$fail" -gt 0 ]; then
-	echo "FAIL: $fail test(s) failed."
-	exit 1
+  echo "FAIL: $fail test(s) failed."
+  exit 1
 fi
 
 echo "All tests passed."

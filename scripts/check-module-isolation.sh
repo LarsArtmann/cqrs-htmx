@@ -14,6 +14,7 @@ cd "$REPO_ROOT"
 # Fall back to /tmp when the ambient build cache is unwritable (e.g. a dead
 # secondary disk), so the gate reports real isolation failures, not cache-init
 # noise. Shared guard (flake.nix's bench-spike app uses the same lib).
+# shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/lib/go-cache-env.sh"
 
 # Production modules, auto-discovered from go.work (excludes e2e/ and

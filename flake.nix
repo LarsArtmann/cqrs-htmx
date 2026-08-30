@@ -114,13 +114,15 @@
               # came from treefmt's default max-len of 100 reflowing every
               # 101-120-char line the lint gate had deliberately kept.
               golines.enable = true;
+              shfmt.enable = true;
+              shellcheck.enable = true;
             };
             settings.formatter.golines.options = [
               "--max-len"
               "120"
             ];
-            # shfmt/shellcheck still need per-script fallout fixes before
-            # enablement — tracked in TODO_LIST P3.
+            # shfmt/shellcheck enabled 2026-08-30 after fixing all findings
+            # in scripts/*.sh (dead vars, SC2155, SC1091, shfmt layout).
           };
 
           packages.default = pkgs.stdenvNoCC.mkDerivation {
