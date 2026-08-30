@@ -104,12 +104,21 @@ scripts/verify-tag.sh <module-dir> <next-version> --push
 ALWAYS tag through `scripts/verify-tag.sh <module-dir> <version> [--push]`
 instead of raw `git tag`/`git push`. The script enforces: committed module
 tree (tracked changes), no existing local/remote tag of that name, no
-cqrs-htmx dev-replaces in the tagged go.mod, no larsartmann pseudo-version
-requires, every internal require published on origin, and (on --push) a
-post-push ls-remote verification. What it CANNOT check: whether a
-dependency's existing tag carries the API you ship against — verify that
-by hand with `git show <tag>:<path>` BEFORE tagging (the stale
-dashboardui/v4.8.1 class).
+LOCAL-PATH replaces of ANY module in the tagged go.mod (family `../x`,
+sibling `../../x`, absolute — consumers ignore replaces and would resolve
+the plain require, so the tag would not contain the verified content; this
+refuses the systemadapter/`go-cqrs-lite` sibling class too), no larsartmann
+pseudo-version requires (parsed in BOTH `require x v` single-line and
+block syntax), every internal require published on origin, and (on --push)
+a post-push ls-remote verification. `--dry-run` runs ALL guards and stops
+before tag creation — use it to rehearse; `scripts/test-verify-tag.sh` is
+the fixture self-test (includes the REAL setup/v4.8.1 poisoned go.mod as
+regression anchor; CI runs it). `--allow-replace-exempt` is the documented
+spike-only escape hatch for deliberately replace-based modules — it prints
+a warning and belongs in the release notes when used. What the script
+CANNOT check: whether a dependency's existing tag carries the API you ship
+against — verify that by hand with `git show <tag>:<path>` BEFORE tagging
+(the stale dashboardui/v4.8.1 class).
 
 Precondition discipline: re-derive every "current state" fact from
 `git ls-remote` / `git show` at execution time. Two preconditions in the

@@ -2,20 +2,28 @@
 # verify-tag.sh — tag a module the SAFE way (the protocol from the
 # setup/v4.8.1+v4.8.2 poisoned-tag incident).
 #
-# Usage: scripts/verify-tag.sh <module-dir> <version> [--push] [--dry-run]
+# Usage: scripts/verify-tag.sh <module-dir> <version> [--push] [--dry-run] [--allow-replace-exempt]
 #   e.g. scripts/verify-tag.sh setup v4.8.4 --push
 #
 # Steps:
 #   1. Guard: <module-dir>/go.mod must exist and have NO uncommitted changes
 #      (tags point at commits, never the working tree — the v4.8.2 incident).
 #   2. Guard: tag must not already exist locally or on origin.
-#   3. Create a signed annotated tag at HEAD.
-#   4. Content assertions on `git show <tag>:<module-dir>/go.mod`:
-#      - no local-path `replace` directives (.. paths) — dev-replaces must be
-#        stripped BEFORE tagging, not after;
-#      - no pseudo-version requires;
-#      - the `go` directive is present.
-#   5. With --push: push the tag, then verify it exists on origin via
+#   3. Content assertions on `git show HEAD:<module-dir>/go.mod` (HEAD is
+#      exactly what the tag will point at, per guard 1):
+#      - any local-path `replace` (family `../`, sibling `../../x`, absolute)
+#        is refused — consumers IGNORE replaces and silently resolve the
+#        plain require, so the published tag would NOT contain the content
+#        verified here (setup/v4.8.1 family class; systemadapter go-cqrs-lite
+#        sibling class). `--allow-replace-exempt` overrides for documented
+#        spike-only modules;
+#      - no pseudo-version requires of larsartmann modules;
+#      - the `go` directive is present;
+#      - every cqrs-htmx require resolves to a tag on origin.
+#   4. With --dry-run: run ALL guards, then stop WITHOUT creating the tag
+#      (this is what the fixture self-test exercises — no signing key needed).
+#   5. Create a signed annotated tag at HEAD.
+#   6. With --push: push the tag, then verify it exists on origin via
 #      ls-remote (proxy-cache rule: never re-push the same version name).
 #
 # Exits non-zero on any failed guard — a tag that fails here would poison a
@@ -25,7 +33,7 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: $0 <module-dir> <version> [--push] [--dry-run]" >&2
+  echo "usage: $0 <module-dir> <version> [--push] [--dry-run] [--allow-replace-exempt]" >&2
   exit 2
 }
 
@@ -35,10 +43,12 @@ VER="$2"
 shift 2
 PUSH=0
 DRY=0
+ALLOW_LOCAL_REPLACE=0
 for arg in "$@"; do
   case "$arg" in
   --push) PUSH=1 ;;
   --dry-run) DRY=1 ;;
+  --allow-replace-exempt) ALLOW_LOCAL_REPLACE=1 ;;
   *) usage ;;
   esac
 done
@@ -70,12 +80,6 @@ if git ls-remote --exit-code origin "refs/tags/$TAGNAME" >/dev/null 2>&1; then
   fail "tag $TAGNAME already exists on origin — NEVER re-push a version name (the module proxy caches it); cut a new version"
 fi
 
-echo "verify-tag: would create signed annotated tag $TAGNAME at $(git rev-parse --short HEAD)"
-if [ "$DRY" = 1 ]; then
-  echo "verify-tag: dry-run — stopping before tag creation"
-  exit 0
-fi
-
 # Content assertions run against HEAD's tree — the module files are
 # committed-and-clean (guard above), so HEAD is exactly what the tag will
 # point at. Asserting BEFORE tagging keeps a failed verification from
@@ -83,20 +87,40 @@ fi
 SHOW="$(git show "HEAD:$MOD/go.mod" 2>/dev/null || git show "HEAD:go.mod" 2>/dev/null || true)"
 [ -n "$SHOW" ] || fail "could not read go.mod from HEAD — wrong module dir for this tag?"
 
-# Family dev-replaces in a tagged go.mod mean unfinished state was tagged:
-# consumers ignore replaces, so they would silently resolve the plain
-# require — the v4.8.1 incident shipped exactly this shape. External
-# sibling replaces (e.g. go-appkit) are allowed: they are equally ignored
-# by consumers and documented as spike-only.
-if echo "$SHOW" | grep -Eq '^\s*replace\s+github\.com/larsartmann/cqrs-htmx(/|\s).*=>\s*\.\.'; then
-  echo "$SHOW" | grep -E '^\s*replace\s+github\.com/larsartmann/cqrs-htmx' | sed 's/^/    /' >&2
-  fail "go.mod still replaces cqrs-htmx family modules with local paths — strip dev-replaces BEFORE tagging"
+# Normalized larsartmann require list — BOTH syntaxes:
+#   require github.com/... vX.Y.Z        (single-line require)
+#   github.com/... vX.Y.Z                (line inside a require block)
+REQ_LINES="$(echo "$SHOW" | awk '
+  /^[[:space:]]*require[[:space:]]+github\.com\/larsartmann\// {print $2, $3}
+  /^[[:space:]]*github\.com\/larsartmann\// {print $1, $2}
+')"
+
+# Any local-path replace makes the tagged module consume untagged content:
+# consumers IGNORE replace directives and silently resolve the plain
+# require, so a published tag would NOT contain the content verified here.
+# Classes seen in the wild: family dev-replaces (setup/v4.8.1:
+# cqrs-htmx/... => ../usermgmt), sibling spike replaces (same file:
+# go-appkit => ../../go-appkit), and upstream WIP replaces (systemadapter:
+# go-cqrs-lite/metaengine/projectionadapter => ../../go-cqrs-lite/...).
+# Version-override replaces (<mod> => <mod> vX.Y.Z) are legitimate and
+# still pass. The second pattern also catches replace-BLOCK bodies (inner
+# lines carry no 'replace' keyword).
+if [ "$ALLOW_LOCAL_REPLACE" = 0 ]; then
+  LOCAL_REPLACES="$(echo "$SHOW" |
+    grep -E '^[[:space:]]*replace[[:space:]][^=]+=>[[:space:]]*(\.\.?/|/)|^[[:space:]]*[a-zA-Z0-9./_-]+[[:space:]]+=>[[:space:]]*(\.\.?/|/)' || true)"
+  if [ -n "$LOCAL_REPLACES" ]; then
+# shellcheck disable=SC2001
+    echo "$LOCAL_REPLACES" | sed 's/^/    /' >&2
+    fail "go.mod replaces modules with LOCAL PATHS — consumers ignore replaces and resolve the plain require, so the tag would not contain the content verified here. Strip the replaces (publish or require real dependency versions), or pass --allow-replace-exempt for a documented spike-only module"
+  fi
+else
+  echo "verify-tag: --allow-replace-exempt set — local-path replaces accepted (spike-only escape hatch; document it in the release notes)"
 fi
 
 # Pseudo-versions of Lars' own modules never happen legitimately (every
 # family module publishes real tags); third-party pseudo-versions are fine.
-if echo "$SHOW" | grep -E '^\s*github\.com/larsartmann/' | grep -Eq -- '-0\.[0-9]{14}-[0-9a-f]+'; then
-  echo "$SHOW" | grep '^\s*github.com/larsartmann/' | grep -E -- '-0\.[0-9]{14}-' | sed 's/^/    /' >&2
+if echo "$REQ_LINES" | grep -Eq -- '-0\.[0-9]{14}-[0-9a-f]+'; then
+  echo "$REQ_LINES" | grep -E -- '-0\.[0-9]{14}-' | sed 's/^/    /' >&2
   fail "go.mod contains pseudo-version requires of larsartmann modules"
 fi
 
@@ -127,11 +151,16 @@ while IFS=' ' read -r dep ver; do
     UNPUBLISHED=1
   fi
 done <<EOF
-$(echo "$SHOW" | awk '/^\s*github\.com\/larsartmann\/cqrs-htmx/ {print $1 " " $2}')
+$(echo "$REQ_LINES" | awk '/^github\.com\/larsartmann\/cqrs-htmx/ {print $1 " " $2}')
 EOF
 [ "$UNPUBLISHED" = 0 ] || fail "go.mod requires unpublished cqrs-htmx versions — push the dependency tags first"
 
 echo "verify-tag: content assertions passed for $TAGNAME"
+
+if [ "$DRY" = 1 ]; then
+  echo "verify-tag: dry-run — ALL guards passed; stopping before tag creation"
+  exit 0
+fi
 
 git tag -s "$TAGNAME" -m "$MOD $VER" || fail "git tag -s failed (signing key unavailable?); NOT tagging unsigned"
 
