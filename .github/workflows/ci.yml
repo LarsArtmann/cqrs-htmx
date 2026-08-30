@@ -502,6 +502,16 @@ jobs:
           GOEXPERIMENT: jsonv2
           GONOSUMCHECK: "github.com/larsartmann/*"
 
+      # go.work.sum regenerates on demand in the workspace and must stay
+      # untracked (it was absorbed into unrelated commits while indexed).
+      - name: go.work.sum stays untracked
+        run: |
+          if git ls-files --error-unmatch go.work.sum >/dev/null 2>&1; then
+            echo "FAIL: go.work.sum is tracked — untrack it: git rm --cached go.work.sum"
+            exit 1
+          fi
+          echo "OK: go.work.sum untracked."
+
   module-architecture:
     runs-on: ubuntu-latest
     steps:
@@ -522,10 +532,9 @@ jobs:
       - name: Go toolchain vs go.work directive check
         run: bash scripts/check-go-toolchain.sh
 
-      # Advisory: the script needs `git ls-remote` auth for the larsartmann
-      # repos, unverified on Actions runners so far (open question since
-      # 2026-08-29); it also self-downgrades to WARN under CI when
-      # ls-remote fails. Flip to blocking after a green week.
+      # Blocking in spirit (exits non-zero on failure); the script's strict
+      # chain still self-downgrades tag checks under CI where noted. Public
+      # repos confirmed 2026-08-31 (anonymous ls-remote works on Actions).
       - name: Release train check (advisory)
         run: bash scripts/check-release-train.sh || true
 
@@ -603,14 +612,10 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Phantom version check
-        run: |
-          echo "=== Phantom Version Check ==="
-          if grep -rF 'v0.0.0-00010101000000-000000000000' --include='go.mod' .; then
-            echo "FAIL: zero pseudo-version detected in go.mod"
-            exit 1
-          fi
-          echo "OK: No phantom versions detected."
+      # Canonical zero-pseudo scan (scripts/check-require-tags.sh) replaces
+      # the former inline grep copy in this job.
+      - name: Require tags check (zero-pseudo)
+        run: bash scripts/check-require-tags.sh
 
       - name: Error family check
         run: |

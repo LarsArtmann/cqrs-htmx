@@ -726,12 +726,43 @@
 
             check-modules = {
               type = "app";
-              meta.description = "Run all module architecture checks (isolation, dep budgets, version drift, replace directives)";
+              meta.description = "Run all module architecture checks (isolation, dep budgets, version drift, release train, replaces, docs). Default: abort at first red. --report: run every stage and print a red/green summary (exit 1 if any failed)";
               program = pkgs.writeShellApplication {
                 name = "check-modules";
                 runtimeInputs = [ goPkg ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                  if [ "''${1:-}" = "--report" ]; then
+                    stages=(
+                      "module-isolation:bash scripts/check-module-isolation.sh"
+                      "dep-budgets:bash scripts/check-dep-budgets.sh"
+                      "go-toolchain:bash scripts/check-go-toolchain.sh"
+                      "version-drift:bash scripts/check-version-drift.sh --strict"
+                      "release-train:bash scripts/check-release-train.sh"
+                      "replace-directives:bash scripts/check-replace-directives.sh"
+                      "docs-freshness:bash scripts/check-docs-freshness.sh"
+                      "docs-links:bash scripts/check-docs-links.sh"
+                    )
+                    red=0
+                    for stage in "''${stages[@]}"; do
+                      name="''${stage%%:*}"
+                      cmd="''${stage#*:}"
+                      if output=$($cmd 2>&1); then
+                        echo "  ✅ $name"
+                      else
+                        echo "  ❌ $name"
+                        printf '%s\n' "$output" | sed 's/^/      /' | tail -15
+                        red=$((red + 1))
+                      fi
+                    done
+                    echo ""
+                    if [ "$red" -gt 0 ]; then
+                      echo "✗ $red of ''${#stages[@]} module architecture checks failed"
+                      exit 1
+                    fi
+                    echo "✓ All ''${#stages[@]} module architecture checks passed"
+                    exit 0
+                  fi
                   bash scripts/check-module-isolation.sh
                   bash scripts/check-dep-budgets.sh
                   bash scripts/check-go-toolchain.sh

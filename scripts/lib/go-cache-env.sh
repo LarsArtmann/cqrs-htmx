@@ -33,17 +33,22 @@ case "$_cache_min_free_mb" in
 esac
 
 if [ "$_cache_min_free_mb" != "0" ] && command -v df >/dev/null 2>&1; then
-  _cache_avail_kb="$(df -Pk "$GOCACHE" 2>/dev/null | awk 'NR == 2 { print $4 }' || true)"
-  if [ -n "$_cache_avail_kb" ]; then
-    _cache_avail_mb=$((_cache_avail_kb / 1024))
-    if [ "$_cache_avail_mb" -lt "$_cache_min_free_mb" ]; then
-      echo "go-cache-env: LOW DISK SPACE: ${_cache_avail_mb}MB free on the filesystem holding $GOCACHE (minimum: ${_cache_min_free_mb}MB)." >&2
-      echo "  Why: a full cache disk fails late and confusingly — 'no space left on device', corrupted module cache, phantom 'missing go.sum entry' (2026-08-29 /tmp incident; see AGENTS.md)." >&2
-      echo "  Fix: free space — the cache directories are safe to delete, Go rebuilds them on demand — or set GO_CACHE_MIN_FREE_MB=<mb> (0 disables this check)." >&2
-      # return covers the source context; exit covers direct execution
-      # (unreachable when sourced, hence the directive).
-      # shellcheck disable=SC2317
-      return 1 2>/dev/null || exit 1
+  # GOMODCACHE is checked alongside GOCACHE: module sources typically dwarf
+  # the build cache and the same "full disk fails late and confusingly"
+  # class applies (cold /tmp re-downloads everything at once).
+  for _cache_dir in "$GOCACHE" "${GOMODCACHE:-$HOME/go/pkg/mod}"; do
+    _cache_avail_kb="$(df -Pk "$_cache_dir" 2>/dev/null | awk 'NR == 2 { print $4 }' || true)"
+    if [ -n "$_cache_avail_kb" ]; then
+      _cache_avail_mb=$((_cache_avail_kb / 1024))
+      if [ "$_cache_avail_mb" -lt "$_cache_min_free_mb" ]; then
+        echo "go-cache-env: LOW DISK SPACE: ${_cache_avail_mb}MB free on the filesystem holding $_cache_dir (minimum: ${_cache_min_free_mb}MB)." >&2
+        echo "  Why: a full cache disk fails late and confusingly — 'no space left on device', corrupted module cache, phantom 'missing go.sum entry' (2026-08-29 /tmp incident; see AGENTS.md)." >&2
+        echo "  Fix: free space — the cache directories are safe to delete, Go rebuilds them on demand — or set GO_CACHE_MIN_FREE_MB=<mb> (0 disables this check)." >&2
+        # return covers the source context; exit covers direct execution
+        # (unreachable when sourced, hence the directive).
+        # shellcheck disable=SC2317
+        return 1 2>/dev/null || exit 1
+      fi
     fi
-  fi
+  done
 fi
