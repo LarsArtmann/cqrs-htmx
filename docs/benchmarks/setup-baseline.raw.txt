@@ -1,21 +1,22 @@
+load1: 2.20
 goos: linux
 goarch: amd64
 pkg: github.com/larsartmann/cqrs-htmx/setup/v4
 cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
-BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  109635	     21072 ns/op	     47457 req/s	    5434 B/op	      61 allocs/op
-BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  134425	     21457 ns/op	     46605 req/s	    5420 B/op	      61 allocs/op
-BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  103050	     20274 ns/op	     49324 req/s	    5416 B/op	      61 allocs/op
-BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  111612	     25016 ns/op	     39974 req/s	    5420 B/op	      61 allocs/op
-BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  120416	     19577 ns/op	     51080 req/s	    5415 B/op	      61 allocs/op
-BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	   94338	     24409 ns/op	     40968 req/s	    7294 B/op	      90 allocs/op
-BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	  116721	     24703 ns/op	     40481 req/s	    7309 B/op	      90 allocs/op
-BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	   94876	     28886 ns/op	     34619 req/s	    7317 B/op	      90 allocs/op
-BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	  109339	     23287 ns/op	     42943 req/s	    7305 B/op	      90 allocs/op
-BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	   97760	     23389 ns/op	     42754 req/s	    7299 B/op	      90 allocs/op
-BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2464219	      1129 ns/op	     483 B/op	       6 allocs/op
-BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2184700	      1041 ns/op	     483 B/op	       6 allocs/op
-BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2314080	      1031 ns/op	     483 B/op	       6 allocs/op
-BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2050915	      1150 ns/op	     483 B/op	       6 allocs/op
-BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2419536	      1001 ns/op	     483 B/op	       6 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  146108	     15920 ns/op	     62816 req/s	    5424 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  141465	     16135 ns/op	     61975 req/s	    5414 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  151360	     16591 ns/op	     60272 req/s	    5402 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  140523	     16171 ns/op	     61841 req/s	    5404 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/baseline-httputil-32         	  154888	     16436 ns/op	     60843 req/s	    5401 B/op	      61 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	  130519	     19298 ns/op	     51818 req/s	    7289 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	  119517	     19027 ns/op	     52557 req/s	    7289 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	  125368	     18740 ns/op	     53362 req/s	    7288 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	  113842	     18269 ns/op	     54737 req/s	    7285 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/appkit-service-32            	  123225	     18538 ns/op	     53943 req/s	    7284 B/op	      90 allocs/op
+BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2804499	       857.7 ns/op	     483 B/op	       6 allocs/op
+BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2873109	       830.6 ns/op	     483 B/op	       6 allocs/op
+BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2746384	       857.9 ns/op	     483 B/op	       6 allocs/op
+BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2861384	       839.4 ns/op	     483 B/op	       6 allocs/op
+BenchmarkSpikeBaselineVsAppkit/json-roundtrip-32            	 2850652	       873.5 ns/op	     483 B/op	       6 allocs/op
 PASS
-ok  	github.com/larsartmann/cqrs-htmx/setup/v4	38.280s
+ok  	github.com/larsartmann/cqrs-htmx/setup/v4	36.355s
