@@ -52,8 +52,14 @@ func New(cfg Config) (*Bundle, error) {
 	store, bus := svc.Journal(), svc.EventBus()
 
 	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login/SSE assigned conditionally below
-		Service:     svc,
-		Auth:        usermgmt.NewAuthHandler(svc),
+		Service: svc,
+		// The auth handler MUST write the same cookie the session middleware
+		// reads (cfg.CookieName). With both defaulting independently
+		// (handler: "session_token", middleware: "session"), the default
+		// composition silently broke every authenticated request — the
+		// dashboard 401 gate still worked and masked it. Caught by the
+		// bundle-level SQL restart contract test (2026-08-30).
+		Auth:        usermgmt.NewAuthHandler(svc, usermgmt.HandlerConfig{CookieName: cfg.CookieName}),
 		Stores:      &Stores{EventStore: store, EventBus: bus},
 		ownsService: ownsService,
 		config:      cfg,
