@@ -473,17 +473,32 @@ func TestProvider_FinishLogin_PublicClient_ExchangeWithoutSecret(t *testing.T) {
 		}
 		if r.PostForm.Has("client_secret") {
 			w.WriteHeader(http.StatusBadRequest)
-			json.MarshalWrite(w, map[string]string{"error": "invalid_client", "error_description": "public client must not send client_secret"})
+			json.MarshalWrite(
+				w,
+				map[string]string{
+					"error":             "invalid_client",
+					"error_description": "public client must not send client_secret",
+				},
+			)
 			return
 		}
 		if _, password, ok := r.BasicAuth(); ok && password != "" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.MarshalWrite(w, map[string]string{"error": "invalid_client", "error_description": "public client must not send a Basic-auth secret"})
+			json.MarshalWrite(
+				w,
+				map[string]string{
+					"error":             "invalid_client",
+					"error_description": "public client must not send a Basic-auth secret",
+				},
+			)
 			return
 		}
 		if r.PostFormValue("code_verifier") == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.MarshalWrite(w, map[string]string{"error": "invalid_grant", "error_description": "code_verifier required"})
+			json.MarshalWrite(
+				w,
+				map[string]string{"error": "invalid_grant", "error_description": "code_verifier required"},
+			)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -566,7 +581,10 @@ func TestProvider_FinishLogin_ConfidentialClient_SendsSecret(t *testing.T) {
 		_, basicPassword, basicOK := r.BasicAuth()
 		if r.PostForm.Get("client_secret") != wantSecret && (!basicOK || basicPassword != wantSecret) {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.MarshalWrite(w, map[string]string{"error": "invalid_client", "error_description": "client secret missing or wrong"})
+			json.MarshalWrite(
+				w,
+				map[string]string{"error": "invalid_client", "error_description": "client secret missing or wrong"},
+			)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -817,7 +835,12 @@ func TestProvider_FinishLoginWithToken_OIDC(t *testing.T) {
 		t.Fatalf("BeginLogin: %v", err)
 	}
 
-	userInfoJSON, rawIDToken, err := p.FinishLoginWithToken(context.Background(), "google", "test-auth-code", pkceVerifier)
+	userInfoJSON, rawIDToken, err := p.FinishLoginWithToken(
+		context.Background(),
+		"google",
+		"test-auth-code",
+		pkceVerifier,
+	)
 	if err != nil {
 		t.Fatalf("FinishLoginWithToken: %v", err)
 	}
@@ -865,7 +888,12 @@ func TestProvider_FinishLoginWithToken_PureOAuth2(t *testing.T) {
 		t.Fatalf("BeginLogin: %v", err)
 	}
 
-	userInfoJSON, rawIDToken, err := p.FinishLoginWithToken(context.Background(), "github", "test-auth-code", pkceVerifier)
+	userInfoJSON, rawIDToken, err := p.FinishLoginWithToken(
+		context.Background(),
+		"github",
+		"test-auth-code",
+		pkceVerifier,
+	)
 	if err != nil {
 		t.Fatalf("FinishLoginWithToken: %v", err)
 	}

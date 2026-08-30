@@ -109,12 +109,18 @@
               nixfmt.enable = true;
               templ.enable = true;
               gofmt.enable = true;
-              # golines/shfmt/shellcheck evaluated 2026-08-29: first run
-              # reformats 275 files (treefmt golines defaults disagree with
-              # the golangci-lint golines config; shfmt+shellcheck flag
-              # legacy gate scripts). Enabling needs a DEDICATED format-sweep
-              # commit with reviewed fallout — tracked in TODO_LIST P3.
+              # Aligned with the golangci-lint golines config (.golangci.yml
+              # settings.golines.max-len: 120). The 2026-08-29 275-file churn
+              # came from treefmt's default max-len of 100 reflowing every
+              # 101-120-char line the lint gate had deliberately kept.
+              golines.enable = true;
             };
+            settings.formatter.golines.options = [
+              "--max-len"
+              "120"
+            ];
+            # shfmt/shellcheck still need per-script fallout fixes before
+            # enablement — tracked in TODO_LIST P3.
           };
 
           packages.default = pkgs.stdenvNoCC.mkDerivation {

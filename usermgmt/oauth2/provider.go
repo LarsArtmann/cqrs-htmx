@@ -326,7 +326,10 @@ func (p *initializedProvider) extractFromIDToken(
 ) (userInfo, string, error) {
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return userInfo{}, "", errorfamily.NewTransient("oauth2.id_token_missing", "id_token missing from token response")
+		return userInfo{}, "", errorfamily.NewTransient(
+			"oauth2.id_token_missing",
+			"id_token missing from token response",
+		)
 	}
 	idToken, err := p.verifier.Verify(ctx, rawIDToken)
 	if err != nil {

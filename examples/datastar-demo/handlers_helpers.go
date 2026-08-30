@@ -176,7 +176,11 @@ func handleListTodos(cqrs *CQRS) http.HandlerFunc {
 		}
 
 		resp := ds.NewResponse(w, r)
-		if err := resp.PatchElements(renderTodoList(todos), ds.WithSelectorID("todo-list"), ds.WithModeInner()); err != nil {
+		if err := resp.PatchElements(
+			renderTodoList(todos),
+			ds.WithSelectorID("todo-list"),
+			ds.WithModeInner(),
+		); err != nil {
 			log.Printf("datastar: patch elements failed: %v", err)
 		}
 		if err := resp.PatchElements(renderStatsFromQuery(cqrs), ds.WithSelectorID("stats")); err != nil {
