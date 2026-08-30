@@ -10,10 +10,12 @@
 ## a) FULLY DONE
 
 ### Epic A — Gate sweep (M01–M06)
+
 - `nix run .#test`, `.#test-race`, `.#coverage`, `.#coverage-gate` all exit 0 (run 2026-08-29 evening).
 - `nix run .#lint` initially failed with 3 PRE-EXISTING master issues (landed after the 2026-08-16 green sweep, not by me): root `mnd` magic number in `ServeSSE` (`15*time.Second` → named `defaultSSEHeartbeatInterval`), root `prealloc` in `sse_reconnect_integration_test.go`, loginpage unused `goconst` nolint directive. All three fixed; lint back to **0 issues / 15 modules**.
 
 ### Epic B — P1: `setup.Config.ServiceConfig` escape hatch (M07–M15) — THE headline
+
 - New `*usermgmt.ServiceConfig` pointer field (non-breaking; embedding was correctly rejected — it would break every consumer struct literal).
 - Precedence implemented: `Service` (adopt, caller owns lifecycle) > `ServiceConfig` (override, bundle closes it) > flattened fields. `Service`+`ServiceConfig` mutually exclusive; either conflicts with the 10 flattened service-construction fields — rejected at `New` with field-named errors.
 - Exactly one default applied on top of an override: nil `AuditLog` → in-memory `usermgmt.NewAuditLog()` (parity with flattened path).
@@ -22,21 +24,25 @@
 - Hermetic verify: setup tidy/build/vet/test/lint all green. setup-demo hermetic build green.
 
 ### Epic C — Escape hatch docs (M16–M19)
+
 - `setup/README.md`: new config-table row + "ServiceConfig override (escape hatch)" section with code example and the conflict/precedence rules.
 - `setup/doc.go`: `[Config.ServiceConfig]` bullet. Root README full-stack callout updated.
 - CHANGELOG `[Unreleased] → Added` entry (detailed).
 
 ### Epic D — Examples showcase + smoke (M20–M26)
+
 - `examples/setup-demo`: `ServiceConfig{MaxUsers: 50}` + `SSEPath: /sse` + admin `SSEURL` + `POST /broadcast` through `bundle.Broadcaster`. e2e test extended: `/sse` 401-gate unauthenticated, authenticated connect 200, broadcast 202 with hub delivery.
 - `examples/samber-do-demo`: `_ = app` placeholder GONE — DI-managed dispatcher registers a real `Hello` command (empty-name rejection), `POST /command/hello` dispatches via `app.Command` + `cqrshtmx.DecodeJSON`.
 - Both verified hermetically (tidy/build/vet/test green). setup-demo gained 3 DEV-ONLY replaces (setup/usermgmt/dashboardui) with removal-condition comments (needed because setup master carries unpublished APIs).
 
 ### Epic E — Sub-benchmark + baseline re-pin (M27–M31)
+
 - `BenchmarkSpikeBaselineVsAppkit/json-roundtrip` added: envelope-shaped JSON encode/decode, no HTTP → ~1.0µs, 483 B/op, **6 allocs/op** (codec floor; stacks are ~21–24µs/180–207 allocs — deltas attribute to middleware, not JSON).
 - 1x smoke green; baseline re-pinned via `--save-baseline` (5×2s) in the same change.
 - **Threshold finding:** default 5% gate threshold FAILED spuriously — two back-to-back gate runs flagged opposite benches (+5.4% baseline-httputil, then +9.3% json-roundtrip). Measured machine noise: ~9% on the ~1µs sub-bench, ~5% on ~20µs HTTP benches. Default raised to 10% (env-tunable), documented; gate green afterwards.
 
 ### Epic F — TODO truth + sibling verify (M32–M37)
+
 - Stale Go-1.26.6 toolchain item DELETED (v4.8.1 shipped 1.26.7); dangling "(3)" reference in the decisions item resolved as RESOLVED.
 - **Sibling `metaengine/planner.go:137` verified FIXED upstream:** the call now passes `cfg.idempotencyCapacity`; `go build ./metaengine/...` green on sibling master; workspace-mode builds green. TODO item (b) updated with the verified finding.
 - Completed items (ServiceConfig mirror, examples showcase, sub-benchmark) resolved with CHANGELOG pointers per the no-`[x]` convention.
@@ -44,22 +50,26 @@
 - Header refreshed: coverage/lint "verified 2026-08-29"; gate-sweep line updated.
 
 ### Epic G — Train-safety gates (M38–M42)
+
 - **Blind spot identified:** `check-phantom-version` only scanned zero pseudo-versions — it never checked tag existence. The real tag-existence check lived only in `check-version-drift.sh --strict` (manual `check-modules` chain, advisory in CI). The phantom entered 2026-08-17 (commit `e72c8e7a` bundled a "bump totp v4.7.0→v4.8.0" into a refactor commit) and survived 12 days because workspace mode masks unpublished requires.
 - **`scripts/check-release-train.sh` (new):** maps every `github.com/larsartmann/*` require to its repo's published tags; `UNPUBLISHED` (require > max tag, or no tags) = hard fail unless a local replace exempts it; `TRAIN LAG` = advisory alignment list for the next train. Result on HEAD: **0 unpublished, 3 replace-exempted (the documented TEMPORARY ones), 369 train-lag advisories.** Caught and fixed a `pipefail` bug in the first version (grep no-match on a tag-less subpath killed the script).
 - Flake apps `check-release-train` + `check-phantom-version` (now chains `check-version-drift.sh --strict`; CI stays advisory) + wired `check-release-train` into the `check-modules` chain. Both apps run green.
 
 ### Epic H — Replace-strip + gated tag prep (M43–M46)
+
 - **Root dev-replace in setup STRIPPED and verified:** root v4.8.1 is published with `transport/` — setup now resolves it from the proxy (hermetic tidy/build/vet/test green). 1 of 3 replaces eliminated.
 - The remaining 2 (usermgmt, dashboardui) **verified non-strippable with evidence:** `git show usermgmt/v4.8.0:...` has NO `Journal()/EventBus()`; `git show dashboardui/v4.8.0:...` has NO `SSEMaxReplay`. Replace comments now state exactly what blocks each strip.
 - **M46 GATED artifact (prepared, NOT executed):** `docs/runbooks/release-next-train-prep.md` — ordered tag commands (usermgmt/dashboardui v4.8.1, totp/oauth2 first-ever v4.8.x, push of locally-cut dashboardui/datastar tags), the replace strips, the admin-demo totp pin-back bump, verification gates, appkit fold-in reminder.
 
 ### Epic I — Tooling (M47–M52)
+
 - `scripts/lib/go-cache-env.sh` (new shared guard) sourced by `check-module-isolation.sh` and the bench-spike app (deduplicated the /tmp fallback).
 - `scripts/check-go-toolchain.sh` (new): fails when go.work `go` directive > flake nixpkgs Go (the 1.26.5 trap). Wired into `check-modules` + exposed as flake app. Green (1.26.7 ≤ 1.26.7).
 - golines/shfmt/shellcheck in treefmt: **evaluated and consciously REVERTED** (see d/e below — first `nix fmt` run reformatted 275 files; a 275-file silent reformat has no business inside a feature session). Finding recorded in TODO_LIST P3 with the path forward.
 - `nix fmt` fallout triage: 267 machine-format changes reverted surgically (my 21 feature files preserved via explicit keep-list; two go.sum casualties re-tidied and re-verified).
 
 ### Epic J — Memory docs (M53–M58)
+
 - AGENTS.md: bench-spike quick-ref row (gate-first, replaces raw invocation), new-gates row, phantom-require poisoning gotcha + commit rule ("bump an internal require → pushed tag or annotated replace + run check-release-train"), machine-pinned baseline policy, module count 27.
 - `docs/benchmarks/README.md` (new): raw-vs-markdown artifact split, machine pinning, re-pin flow, why 10%, CI local-only decision.
 - setup/README benchmarks section rewritten (3 sub-benches, gate-first invocation, machine-pinned numbers, Xeon non-comparability note).
@@ -67,6 +77,7 @@
 - CHANGELOG: 4 new Added entries + 1 Fixed entry (lint fixes + replace strip) + repair of a self-inflicted bullet merge during editing.
 
 ### Epic K/L — Commits, push, final sweep (M59–M70)
+
 - 7 commits, detailed bodies, required attribution footer, pushed to origin/master.
 - Final HEAD gate sweep: **build ✅ test ✅ lint ✅ check-release-train ✅ check-go-toolchain ✅ bench-spike ✅**.
 - Two post-commit regressions caught and fixed within the session: lost golines reflow on `runWithAppkit` (my mass-revert restored an old single-line signature) → `370f6a2c`; missing `check-go-toolchain` flake app + broken system-demo hermetic build (pre-existing, never tidied after earlier floor-raises — same class as the v4.8.1 systemadapter repair) → `31ea6468`.
@@ -124,6 +135,7 @@
 ## f) UP TO 50 THINGS TO GET DONE NEXT (Pareto-ordered)
 
 **P1 — the 1% that unblocks trains (this week, user-gated where marked)**
+
 1. Execute `docs/runbooks/release-next-train-prep.md`: tag+push `usermgmt/v4.8.1` (GATED: user).
 2. Push the locally-cut `dashboardui/v4.8.1` (GATED: user).
 3. Cut+push `usermgmt/totp/v4.8.1` (first tag since v4.7.0) (GATED: user).

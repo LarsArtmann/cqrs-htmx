@@ -218,7 +218,7 @@ Baseline numbers (5× runs, machine-pinned — the gate-comparable artifact is `
 | Case                | ns/op | req/s | B/op | allocs/op |
 | ------------------- | ----- | ----- | ---- | --------- |
 | `baseline-httputil` | ~21k  | ~47k  | —    | 180       |
-| `appkit-service`    | ~24k  | ~40k  | —    | 207        |
+| `appkit-service`    | ~24k  | ~40k  | —    | 207       |
 | `json-roundtrip`    | ~1.0k | —     | 483  | 6         |
 
 (2026-08-29 pinning, AMD Ryzen AI MAX+ 395; the 2026-08-17 Xeon numbers are not comparable.) The alloc gap is the per-request cost the appkit middleware stack adds; ns/op overhead disappears in any real handler doing I/O, and the ~1µs codec floor shows how little of it is JSON. `LogLevelError` is load-bearing — without it, appkit's per-request formatted INFO line dominates the measurement (see the comparison report, finding 7).
