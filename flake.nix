@@ -931,44 +931,32 @@
               };
             };
 
-            check-phantom-version = {
+            check-require-tags = {
               type = "app";
-              meta.description = "Detect zero pseudo-versions + verify every internal require resolves to a PUBLISHED tag";
+              meta.description = "Detect zero pseudo-versions + verify every internal require resolves to a PUBLISHED tag (strict locally, advisory under CI)";
               program = pkgs.writeShellApplication {
-                name = "check-phantom-version";
+                name = "check-require-tags";
                 runtimeInputs = [
                   pkgs.ripgrep
                   pkgs.git
                 ];
                 text = ''
-                  set -euo pipefail
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  echo "=== Phantom Version Check ==="
-                  echo "Scanning go.mod files for zero pseudo-versions..."
-                  found=0
-                  result=$(rg 'v0\.0\.0-00010101000000-000000000000' --glob 'go.mod' . 2>/dev/null || true)
-                  if [ -n "$result" ]; then
-                    echo "FAIL: zero pseudo-version detected:"
-                    echo "$result"
-                    found=1
-                  fi
-                  if [ "$found" -eq 0 ]; then
-                    echo "OK: No phantom versions detected."
-                  else
-                    exit 1
-                  fi
-                  # The 2026-08-17..29 blind spot: totp/v4 v4.8.0 in
-                  # examples/admin-demo was never published, poisoned the
-                  # workspace graph, and only this app's zero-pseudo scan
-                  # ran per-commit — it cannot see missing tags. Chain the
-                  # real tag-existence gate here so the phantom gate covers
-                  # both failure classes. CI stays advisory (ls-remote auth
-                  # for private repos unverified there).
-                  if [ "''${CI:-false}" != "true" ]; then
-                    bash scripts/check-version-drift.sh --strict
-                  else
-                    bash scripts/check-version-drift.sh || true
-                  fi
+                  bash scripts/check-require-tags.sh
+                '';
+              };
+            };
+
+            check-phantom-version = {
+              type = "app";
+              meta.description = "DEPRECATED name for check-require-tags (the gate enforces tag existence now, not just pseudo-versions)";
+              program = pkgs.writeShellApplication {
+                name = "check-phantom-version";
+                runtimeInputs = [ pkgs.git ];
+                text = ''
+                  echo "check-phantom-version is deprecated; run .#check-require-tags (the gate enforces tag existence now, not just pseudo-versions)" >&2
+                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                  bash scripts/check-require-tags.sh
                 '';
               };
             };
