@@ -167,7 +167,7 @@ checked=0
 exempted=0
 LAG_ENTRIES=()
 
-for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | sort); do
+for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -not -path '*/testdata/*' | sort); do
   moddir=$(dirname "$modfile")
 
   while IFS= read -r line; do

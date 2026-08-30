@@ -109,7 +109,7 @@ if [ "$ALLOW_LOCAL_REPLACE" = 0 ]; then
   LOCAL_REPLACES="$(echo "$SHOW" |
     grep -E '^[[:space:]]*replace[[:space:]][^=]+=>[[:space:]]*(\.\.?/|/)|^[[:space:]]*[a-zA-Z0-9./_-]+[[:space:]]+=>[[:space:]]*(\.\.?/|/)' || true)"
   if [ -n "$LOCAL_REPLACES" ]; then
-# shellcheck disable=SC2001
+    # shellcheck disable=SC2001
     echo "$LOCAL_REPLACES" | sed 's/^/    /' >&2
     fail "go.mod replaces modules with LOCAL PATHS — consumers ignore replaces and resolve the plain require, so the tag would not contain the content verified here. Strip the replaces (publish or require real dependency versions), or pass --allow-replace-exempt for a documented spike-only module"
   fi

@@ -30,7 +30,7 @@ echo ""
 
 failed=0
 
-for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | sort); do
+for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -not -path '*/testdata/*' | sort); do
   # Check for absolute paths (starting with / on Unix)
   if grep -E 'replace.*=> */' "$modfile" 2>/dev/null; then
     echo "  ABSOLUTE PATH in $modfile"
@@ -84,7 +84,7 @@ check_targets() {
     ' "$file" | grep -E '^(\./|\.\./|/)' || true)
 }
 
-for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | sort); do
+for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -not -path '*/testdata/*' | sort); do
   check_targets "$modfile"
 done
 [[ -f go.work ]] && check_targets "go.work"

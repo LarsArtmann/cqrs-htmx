@@ -73,7 +73,7 @@ expect_accept() { # <name> <moddir> [extra args...]
     pass=$((pass + 1))
   else
     echo "  FAIL: $name should be ACCEPTED, got exit $rc:"
-# shellcheck disable=SC2001
+    # shellcheck disable=SC2001
     echo "$out" | sed 's/^/        /'
     fail=$((fail + 1))
   fi
@@ -90,9 +90,9 @@ expect_reject() { # <name> <moddir> <phrase-in-output> [extra args...]
   if [ "$rc" -eq 0 ]; then
     echo "  FAIL: $name should be REJECTED but verify-tag exited 0"
     fail=$((fail + 1))
-  elif [[ "$out" != *"$phrase"* ]]; then
+  elif [[ $out != *"$phrase"* ]]; then
     echo "  FAIL: $name rejected (exit $rc) but for the WRONG reason — output lacks '$phrase':"
-# shellcheck disable=SC2001
+    # shellcheck disable=SC2001
     echo "$out" | sed 's/^/        /'
     fail=$((fail + 1))
   else

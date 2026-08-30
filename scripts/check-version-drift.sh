@@ -42,7 +42,7 @@ echo "=== Version Drift Check ==="
 echo ""
 
 # Find all go.mod files
-for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | sort); do
+for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' -not -path '*/testdata/*' | sort); do
   moddir=$(dirname "$modfile")
   # Extract all require entries that reference larsartmann modules
   while IFS= read -r line; do

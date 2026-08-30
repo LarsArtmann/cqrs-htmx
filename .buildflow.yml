@@ -57,6 +57,12 @@ exclude:
   - "*.html" # all HTML in this repo is generated reports/docs, not source
   - "*.min.js" # vendored minified JS (htmx.min.js, extensions/*.min.js)
   - "htmx.min.js" # root-level vendored htmx
+  # Shell scripts are owned by treefmt (`nix fmt`: shfmt 2-space indent +
+  # shellcheck — the documented repo standard). buildflow's shfmt uses its
+  # own default indent and would fight that on every staged script (first
+  # surfaced 2026-08-30 when the pre-commit hook came back alive after the
+  # core.hooksPath fix; script linting is enforced by treefmt + CI).
+  - "*.sh"
 
 # Auto-fix settings
 auto_fix: false
