@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/setup/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/setup/v4 v4.8.3
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.1
 	github.com/larsartmann/go-sse v0.5.1
 )
@@ -37,7 +37,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0 // indirect
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.1 // indirect
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.2 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.8.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.1 // indirect
 	github.com/larsartmann/go-appkit v0.3.0 // indirect
@@ -103,13 +103,3 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-// DEV-ONLY: lets the demo compile against unreleased setup master
-// (Config.ServiceConfig escape hatch) and the not-yet-tagged usermgmt/v4.8.1
-// and dashboardui master (SSEMaxReplay) it requires. Strip when the next
-// coordinated family version is tagged.
-replace github.com/larsartmann/cqrs-htmx/setup/v4 => ../../setup
-
-replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../../usermgmt
-
-replace github.com/larsartmann/cqrs-htmx/dashboardui/v4 => ../../dashboardui

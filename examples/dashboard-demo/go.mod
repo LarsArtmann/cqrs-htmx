@@ -1,9 +1,9 @@
 module github.com/larsartmann/cqrs-htmx/examples/dashboard-demo
 
-go 1.26.6
+go 1.26.7
 
 require (
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.1
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.2
 	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.7.0

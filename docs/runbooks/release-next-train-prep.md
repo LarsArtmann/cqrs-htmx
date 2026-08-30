@@ -1,8 +1,11 @@
-# Runbook: Next Family Train — Prepared Commands (GATED, 2026-08-29)
+# Runbook: Next Family Train — EXECUTED 2026-08-30
 
-> **STATUS: PREPARED ONLY — DO NOT EXECUTE WITHOUT USER APPROVAL.**
-> Prepared 2026-08-29 by the pareto-master-plan session (Epic H, M46).
-> Everything below was verified against the remote tag state on 2026-08-29.
+> **STATUS: EXECUTED (2026-08-30, user-approved).** Deltas vs the prepared plan:
+> - §1b/§1d were already done before execution (dashboardui/v4.8.1 and datastar/v4.8.1 found pushed).
+> - §1a/§1c executed: `usermgmt/v4.8.1`, `usermgmt/totp/v4.8.1`, `usermgmt/oauth2/v4.8.1` cut+pushed (signed).
+> - The planned setup/dashboardui v4.8.1 pair was UNUSABLE: the pushed `dashboardui/v4.8.1` was cut at a pre-SSEMaxReplay commit, and `setup/v4.8.1`/`v4.8.2` shipped with a require on that stale tag (v4.8.2 additionally tagged before the go.mod fix was committed — the tag points at commits, never the working tree). Superseded by `dashboardui/v4.8.2` + `setup/v4.8.3`; consider retracting setup/v4.8.1+v4.8.2 in the next release.
+> - §2 executed (5 replaces stripped), §3 executed (admin-demo totp v4.7.0→v4.8.1), plus family-wide usermgmt→v4.8.1 and dashboardui→v4.8.2 require alignment.
+> - §4 result: isolation/test/lint green, release-train exit 0 (exemptions 3→1); strict drift reduced to the 5 go-cqrs-lite sibling axes confined to systemadapter + examples/system-demo (upstream-blocked).
 
 This document contains the exact, ordered commands for the next coordinated
 family train, so the release itself is mechanical. Nothing here has been
