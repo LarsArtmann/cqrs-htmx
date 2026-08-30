@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # cqrs-htmx batch release — strips internal replaces, resolves pseudo-versions, tags.
 #
-# SCOPE NOTE (2026-08-31): versioned to the v4.6.1 train — the module list
+# SCOPE NOTE (2026-08-30): versioned to the v4.6.1 train — the module list
 # predates setup/dashboardui/datastar/health/auditlog/systemadapter, and the
 # drop-ALL-larsartmann-replaces step would remove systemadapter's protected
 # projectionadapter replace (upstream v4.5.0 still untagged). For current
