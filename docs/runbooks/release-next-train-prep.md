@@ -1,6 +1,7 @@
 # Runbook: Next Family Train — EXECUTED 2026-08-30
 
 > **STATUS: EXECUTED (2026-08-30, user-approved).** Deltas vs the prepared plan:
+>
 > - §1b/§1d were already done before execution (dashboardui/v4.8.1 and datastar/v4.8.1 found pushed).
 > - §1a/§1c executed: `usermgmt/v4.8.1`, `usermgmt/totp/v4.8.1`, `usermgmt/oauth2/v4.8.1` cut+pushed (signed).
 > - The planned setup/dashboardui v4.8.1 pair was UNUSABLE: the pushed `dashboardui/v4.8.1` was cut at a pre-SSEMaxReplay commit, and `setup/v4.8.1`/`v4.8.2` shipped with a require on that stale tag (v4.8.2 additionally tagged before the go.mod fix was committed — the tag points at commits, never the working tree). Superseded by `dashboardui/v4.8.2` + `setup/v4.8.3`; consider retracting setup/v4.8.1+v4.8.2 in the next release.
@@ -13,15 +14,15 @@ executed.
 
 ## 0. Preconditions (verified 2026-08-29)
 
-| Fact | Value |
-| --- | --- |
-| Remote max `usermgmt/v4` | v4.8.0 (v4.8.1 NOT pushed) |
-| Remote max `dashboardui/v4` | v4.8.0 (v4.8.1 cut locally, NOT pushed) |
-| `usermgmt/v4.8.0` has `Service.Journal()/EventBus()` | NO (verified via `git show`) |
-| `dashboardui/v4.8.0` has `SSEMaxReplay` | NO (verified via `git show`) |
-| Root `v4.8.1` (transport pkg) | published ✓ |
-| `setup/go.mod` dev-replaces remaining | 2: `../usermgmt`, `../dashboardui` (root replace stripped 2026-08-29, hermetic build+vet+test green) |
-| `examples/setup-demo/go.mod` dev-replaces | 3: `../../setup`, `../../usermgmt`, `../../dashboardui` (added 2026-08-29 for the ServiceConfig escape hatch) |
+| Fact                                                 | Value                                                                                                         |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Remote max `usermgmt/v4`                             | v4.8.0 (v4.8.1 NOT pushed)                                                                                    |
+| Remote max `dashboardui/v4`                          | v4.8.0 (v4.8.1 cut locally, NOT pushed)                                                                       |
+| `usermgmt/v4.8.0` has `Service.Journal()/EventBus()` | NO (verified via `git show`)                                                                                  |
+| `dashboardui/v4.8.0` has `SSEMaxReplay`              | NO (verified via `git show`)                                                                                  |
+| Root `v4.8.1` (transport pkg)                        | published ✓                                                                                                   |
+| `setup/go.mod` dev-replaces remaining                | 2: `../usermgmt`, `../dashboardui` (root replace stripped 2026-08-29, hermetic build+vet+test green)          |
+| `examples/setup-demo/go.mod` dev-replaces            | 3: `../../setup`, `../../usermgmt`, `../../dashboardui` (added 2026-08-29 for the ServiceConfig escape hatch) |
 
 ## 1. Tags that MUST be part of the train (release blockers)
 
@@ -125,21 +126,68 @@ Precondition discipline: re-derive every "current state" fact from
 2026-08-30 runbook were wrong within 24 hours of being written. Tables
 above describe intent, not reality — verify, do not trust.
 
+## 6b. Retraction publication recipe — setup v4.8.4 (PREPARED 2026-08-30, EXECUTION GATED ON g1)
+
+The retract directives for the poisoned setup/v4.8.1 + v4.8.2 already sit
+on master (`setup/go.mod`, verified parseable via `go mod edit -json`,
+rationale embedded). A retract only reaches consumers when a NEW version
+carrying it is published — this recipe is the full publication, ready to
+run when the user answers g1 (patch-only now vs folded into the next
+family cut; if folded, run it as part of F21.5 with the family version
+number instead of v4.8.4).
+
+Dry-run status (2026-08-30): retract syntax parses; setup builds
+hermetically (GOWORK=off, GOEXPERIMENT=jsonv2); `@latest` resolves to
+v4.8.3 (retraction NOT yet visible to consumers, as expected — it becomes
+visible only after v4.8.4 is tagged and proxied).
+
+### Steps
+
+1. Pre-tag gates (release-checklist rows for this release):
+
+```sh
+cd setup
+GOWORK=off GOEXPERIMENT=jsonv2 go build ./... && GOWORK=off GOEXPERIMENT=jsonv2 go vet ./...
+bash scripts/release-checklist.sh   # from repo root; EXPECTED pre-tag lockstep notes are fine
+```
+
+2. Tag through the protocol (never raw git tag):
+
+```sh
+scripts/verify-tag.sh setup v4.8.4          # all guards, local tag
+scripts/verify-tag.sh setup v4.8.4 --push   # push + ls-remote confirmation
+```
+
+3. Paste-ready CHANGELOG entry (root CHANGELOG.md, under the next release
+   heading; adjust the version if folded into the family cut):
+
+> - **setup/v4.8.4 publishes the retraction of the poisoned v4.8.1/v4.8.2:** the retract directives added on master 2026-08-30 (rationale embedded in go.mod: v4.8.1 required the stale pre-SSEMaxReplay dashboardui/v4.8.1; v4.8.2 was tagged before its go.mod fix was committed) are now live for consumers — `go get`/pkg.go.dev steer pins to v4.8.3+. No code changes; purely the retraction carrier (upstream precedent: go-cqrs-lite storage/v4 v4.7.1).
+
+4. Post-publication verification (wait ~1-2 min for the module proxy):
+
+```sh
+GONOSUMDB= GONOSUMCHECK= GOPROXY=https://proxy.golang.org go list -m -retracted github.com/larsartmann/cqrs-htmx/setup/v4@v4.8.4
+# then fetch pkg.go.dev/github.com/larsartmann/cqrs-htmx/setup/v4 and confirm
+# the "Retracted" banner lists v4.8.1 and v4.8.2
+GOBIN=$(mktemp -d) go install github.com/larsartmann/cqrs-htmx/setup/v4@v4.8.4 2>&1 | grep -i retract || true
+```
+
 ## 7. Post-execution stage floor (recorded 2026-08-30, post-sweep)
 
 State after the 2026-08-30 lag sweep (366→0) and systemadapter
 replace-strips — the first GREEN strict-drift since 2026-08-15:
 
-| Stage | Status | Notes |
-| --- | --- | --- |
-| module-isolation | ✅ | 27 modules GOWORK=off |
-| dep-budgets | ✅ | |
-| go-toolchain | ✅ | 1.26.7 everywhere |
-| version-drift --strict | ✅ | was RED on 5 go-cqrs-lite axes; upstream tagged (metaengine v4.12.0, sqliteengine v4.2.0, event v4.9.0, metadata v4.6.0, record v4.4.0) and requires aligned |
-| release-train | ✅ | 0 unpublished / 1 replace-exempted (systemadapter projectionadapter, upstream v4.5.0 still untagged) / 0 lag (was 366) |
-| replace-directives | ✅ | systemadapter keeps ONLY the projectionadapter replace |
+| Stage                  | Status | Notes                                                                                                                                                        |
+| ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| module-isolation       | ✅     | 27 modules GOWORK=off                                                                                                                                        |
+| dep-budgets            | ✅     |                                                                                                                                                              |
+| go-toolchain           | ✅     | 1.26.7 everywhere                                                                                                                                            |
+| version-drift --strict | ✅     | was RED on 5 go-cqrs-lite axes; upstream tagged (metaengine v4.12.0, sqliteengine v4.2.0, event v4.9.0, metadata v4.6.0, record v4.4.0) and requires aligned |
+| release-train          | ✅     | 0 unpublished / 1 replace-exempted (systemadapter projectionadapter, upstream v4.5.0 still untagged) / 0 lag (was 366)                                       |
+| replace-directives     | ✅     | systemadapter keeps ONLY the projectionadapter replace                                                                                                       |
 
 Remaining replace inventory (all with removal conditions):
+
 - systemadapter + examples/system-demo: `metaengine/projectionadapter/v4 =>
   local` — strip once projectionadapter v4.5.0+ is tagged (v4.4.1 is the
   current max; OccurredAt on EventWithID needs v4.5.0).
