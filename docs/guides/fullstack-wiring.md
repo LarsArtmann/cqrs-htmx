@@ -112,6 +112,39 @@ setup.Config{
 }
 ```
 
+### Service source precedence (who builds the `usermgmt.Service`)
+
+`setup.New` builds the service from exactly ONE of three sources. The
+precedence is strict and conflicts fail fast at `New` — nothing is silently
+ignored:
+
+1. **`Config.Service`** — adopt a service YOU built (custom stores,
+   SecurityHooks, MaxUsers, snapshotting, custom `AuditLog`). The bundle
+   sources its shared infrastructure from the adopted service
+   (`svc.Journal()` / `svc.EventBus()`), and lifecycle ownership stays with
+   you: `Bundle.Close` does NOT close an adopted service.
+2. **`Config.ServiceConfig`** — the escape hatch: the bundle still builds
+   and owns the service, but from a full `*usermgmt.ServiceConfig` you pass
+   verbatim (MaxUsers, TokenPepper, SecurityHooks, CheckpointStore,
+   SnapshotConfig, SessionStore, Lockout, ...). One default is applied on
+   top: a nil `ServiceConfig.AuditLog` gets the in-memory audit log.
+   `Bundle.Close` closes a service built this way.
+3. **Flattened fields** — the convenience path (`EventStore`, the auth
+   provider fields, `SessionTTL`, `Logger`, ...). Use this until you hit a
+   knob it cannot express, then switch to `ServiceConfig`.
+
+Mutual exclusion: `Service` and `ServiceConfig` are mutually exclusive, and
+either conflicts with the flattened service-construction fields
+(`EventStore`, `EventBus`, `ReadModelDB`, `TOTP`, `WebAuthn`, `OAuth2`,
+`SessionTTL`, `Logger`, `AsyncStartup`, `OnProjectionFailed`) — set those
+inside `ServiceConfig` instead. UI-level fields (paths, colors,
+`DashboardReadOnly`, `SSEPath`, ...) stay on `setup.Config` in all modes.
+
+Because `ServiceConfig` is passed verbatim, any FUTURE
+`usermgmt.ServiceConfig` capability reaches setup with zero setup-side
+changes — do not file "expose X in setup.Config" requests; pass a
+`ServiceConfig`.
+
 ## Manual Wiring (when you need full control)
 
 If `setup/v4` doesn't fit your needs, wire modules individually. This is the full manual path:

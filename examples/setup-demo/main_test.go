@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"io"
 	"net/http"
@@ -184,5 +185,25 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 
 	if broadcastResp.StatusCode != http.StatusAccepted {
 		t.Fatalf("POST /broadcast: status %d, want 202", broadcastResp.StatusCode)
+	}
+
+	// Read actual SSE frames from the still-open connection until the
+	// broadcast event arrives — status codes alone prove nothing about
+	// delivery. The journal backfill may deliver registration events first,
+	// so scan until the demoBroadcast payload shows up; the request context
+	// bounds the wait (test fails on timeout instead of hanging).
+	scanner := bufio.NewScanner(sseResp.Body)
+	found := false
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "hello from setup-demo") {
+			found = true
+			break
+		}
+	}
+	if err := scanner.Err(); err != nil && !found {
+		t.Fatalf("reading SSE frames: %v (broadcast frame never arrived)", err)
+	}
+	if !found {
+		t.Fatal("broadcast frame not delivered on the open SSE connection")
 	}
 }

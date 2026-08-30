@@ -1,9 +1,15 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/samber/do/v2"
 )
 
@@ -118,4 +124,51 @@ func TestContainerCleanupCallsShutdown(t *testing.T) {
 	// serviceLifecycle.Shutdown() which calls svc.Close().
 	// If Close() panics or errors, the test fails.
 	cleanup()
+}
+
+// TestHelloCommandEndToEnd dispatches the Hello command over a real mux
+// route wired exactly like main.go, proving the DI-resolved dispatcher
+// serves HTTP end-to-end (not just container resolution).
+func TestHelloCommandEndToEnd(t *testing.T) {
+	container, cleanup := newTestContainer(t)
+	defer cleanup()
+
+	app, err := container.App()
+	if err != nil {
+		t.Fatalf("resolve App: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("POST /command/hello", app.Command(
+		"Hello",
+		cqrshtmx.DecodeJSON(func(req helloRequest) (command.Command, error) {
+			core, err := command.New("Hello", id.NewStreamID())
+			if err != nil {
+				return nil, err
+			}
+			return &helloCmd{BasicCommand: core, Name: req.Name}, nil
+		}),
+	))
+
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	resp, err := http.Post(srv.URL+"/command/hello", "application/json", strings.NewReader(`{"name":"world"}`))
+	if err != nil {
+		t.Fatalf("POST /command/hello: %v", err)
+	}
+	defer resp.Body.Close()
+	// Hello is a void command: the dispatch pipeline answers 204 No Content.
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("valid Hello dispatch: status = %d, want 204", resp.StatusCode)
+	}
+
+	rejected, err := http.Post(srv.URL+"/command/hello", "application/json", strings.NewReader(`{"name":""}`))
+	if err != nil {
+		t.Fatalf("POST empty name: %v", err)
+	}
+	defer rejected.Body.Close()
+	if rejected.StatusCode == http.StatusOK {
+		t.Fatal("empty-name Hello dispatch: status = 200, want an error status (handler rejects empty names)")
+	}
 }
