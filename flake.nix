@@ -293,7 +293,7 @@
 
             bench-spike = goApp {
               name = "run-bench-spike";
-              description = "Run the setup spike benchmark (default 5x2s) and fail on a >10% median ns/op regression vs docs/benchmarks/setup-baseline.raw.txt (10% default: run-to-run noise on the pinned machine measures up to ~9% on the ~1us json-roundtrip sub-bench; tighten via BENCH_SPIKE_THRESHOLD). Env: BENCH_COUNT, BENCHTIME, BENCH_SPIKE_THRESHOLD. --save-baseline [path] re-pins the baseline.";
+              description = "Run the setup spike benchmark (default 5x2s) and fail on a >10% median ns/op regression vs docs/benchmarks/setup-baseline.raw.txt (10% default: run-to-run noise on the pinned machine measures up to ~9% on the ~1us json-roundtrip sub-bench; tighten via BENCH_SPIKE_THRESHOLD). Per-bench overrides: BENCH_THRESHOLD_<NAME> with NAME = bench name uppercased, non-alnum -> _ (suffix match works, e.g. BENCH_THRESHOLD_JSON_ROUNDTRIP=15). Env: BENCH_COUNT, BENCHTIME, BENCH_SPIKE_THRESHOLD, BENCH_THRESHOLD_*. --save-baseline [path] re-pins the baseline.";
               runtimeInputs = [
                 benchstat
                 pkgs.git
@@ -390,22 +390,60 @@
                   exit 2
                 fi
 
+                # Per-bench threshold override: BENCH_THRESHOLD_<NAME> where
+                # NAME is the benchmark name uppercased with non-alphanumerics
+                # mapped to "_" (exact form), or any distinctive suffix of it
+                # — BENCH_THRESHOLD_JSON_ROUNDTRIP=15 covers
+                # BenchmarkSpikeBaselineVsAppkit/json-roundtrip. Without a
+                # match, the global threshold applies. The ~1us sub-bench
+                # flaps near any fixed percentage; this lets it have its own
+                # budget without loosening the HTTP benches.
+                bench_threshold() {
+                  local name key var suffix val
+                  name="$1"
+                  key="$(printf '%s' "$name" | tr -c '[:alnum:]' '_' | tr '[:lower:]' '[:upper:]')"
+                  var="BENCH_THRESHOLD_''${key}"
+                  if [ -n "''${!var:-}" ]; then
+                    val="''${!var}"
+                  else
+                    val=""
+                    while IFS='=' read -r var _; do
+                      [ -n "$var" ] || continue
+                      suffix="''${var#BENCH_THRESHOLD_}"
+                      [ -n "$suffix" ] || continue
+                      case "$key" in
+                        *"''${suffix}") val="''${!var}"; break ;;
+                      esac
+                    done < <(env | grep -E '^BENCH_THRESHOLD_[A-Za-z0-9_]+=' | sort)
+                  fi
+                  if [ -z "$val" ]; then
+                    printf '%s' "$threshold"
+                    return 0
+                  fi
+                  if ! printf '%s' "$val" | grep -Eq '^-?[0-9]+([.][0-9]+)?$'; then
+                    echo "bench-spike: invalid threshold override $var='$val' (must be a number)" >&2
+                    exit 2
+                  fi
+                  printf '%s' "$val"
+                }
+
                 regressed=0
                 while read -r name old new; do
                   delta="$(awk -v o="$old" -v n="$new" 'BEGIN { printf "%+.1f", (n - o) / o * 100 }')"
-                  printf '  %-50s median %10.1f -> %10.1f ns/op (%s%%)\n' "$name" "$old" "$new" "$delta"
-                  over="$(awk -v o="$old" -v n="$new" -v t="$threshold" 'BEGIN { print (((n - o) / o * 100) > t) ? 1 : 0 }')"
+                  t="$(bench_threshold "$name")"
+                  printf '  %-50s median %10.1f -> %10.1f ns/op (%s%%, gate %s%%)\n' "$name" "$old" "$new" "$delta" "$t"
+                  over="$(awk -v o="$old" -v n="$new" -v t="$t" 'BEGIN { print (((n - o) / o * 100) > t) ? 1 : 0 }')"
                   if [ "$over" = "1" ]; then
-                    echo "  REGRESSION: '$name' regressed more than $threshold% vs baseline" >&2
+                    echo "  REGRESSION: '$name' regressed more than $t% vs baseline" >&2
                     regressed=1
                   fi
                 done <<< "$joined"
 
                 if [ "$regressed" -eq 1 ]; then
-                  echo "bench-spike: FAIL (median ns/op regression > $threshold%)" >&2
+                  echo "bench-spike: FAIL (median ns/op regression over a per-bench or global threshold)" >&2
                   exit 1
                 fi
-                echo "bench-spike: OK (no median ns/op regression > $threshold%)"
+                echo "bench-spike: OK (no median ns/op regression over each bench's gate)"
               '';
             };
 

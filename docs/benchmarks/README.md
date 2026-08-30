@@ -27,6 +27,9 @@ nix run .#bench-spike
 # Tighten for a specific investigation:
 BENCH_SPIKE_THRESHOLD=5 nix run .#bench-spike
 
+# Per-bench override (name uppercased, non-alnum -> _; suffix match works):
+BENCH_THRESHOLD_JSON_ROUNDTRIP=15 nix run .#bench-spike
+
 # Re-pin (REQUIRED in the same change as any bench rename/handler change):
 nix run .#bench-spike -- --save-baseline
 git add docs/benchmarks/setup-baseline.raw.txt
@@ -38,7 +41,10 @@ Measured run-to-run median noise on the pinned machine (AMD Ryzen AI MAX+ 395):
 ~9% on the ~1µs `json-roundtrip` sub-bench and ~5% on the ~20µs HTTP
 sub-benches. A threshold below machine noise fails spuriously, which trains
 people to ignore the gate; real regressions (the 2.8× per-request-logging bug
-class) clear 10% by an order of magnitude.
+class) clear 10% by an order of magnitude. Sub-2µs benches flap near any
+fixed percentage; give one its own budget via `BENCH_THRESHOLD_<NAME>`
+(NAME = bench name uppercased, non-alnum → `_`; a distinctive suffix such
+as `JSON_ROUNDTRIP` matches) instead of loosening the global threshold.
 
 ## CI status (decision note)
 
