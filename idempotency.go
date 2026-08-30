@@ -16,6 +16,8 @@ type IdempotencyStore = idempotency.Store
 
 // MemoryIdempotencyStore is an in-memory IdempotencyStore with TTL-based
 // expiration and a background sweep goroutine.
+//
+//nolint:staticcheck // SA1019: deprecated upstream but kept as the documented in-memory default (library principle: never force persistence); removal rides the v5 re-export cleanup
 type MemoryIdempotencyStore = idempotency.MemoryStore
 
 // ErrDuplicateCommand is returned when a command ID has already been processed.
@@ -27,5 +29,6 @@ var ErrDuplicateCommand = idempotency.ErrDuplicate
 // Call Close() to stop the sweeper.
 func NewMemoryIdempotencyStore(sweepInterval time.Duration) *MemoryIdempotencyStore {
 	//cqrs-lint:ignore(C026) sweepInterval is a sweeper cadence, not an entry TTL; the idempotency store manages its own TTL internally
+	//nolint:staticcheck // SA1019: the in-memory store is the documented library default (library principle: never force persistence); production consumers inject their own store
 	return idempotency.NewMemoryStore(sweepInterval)
 }

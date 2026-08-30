@@ -174,6 +174,8 @@ func New(config Config) (*App, error) {
 		beforeDispatch:  config.BeforeDispatch,
 		afterDispatch:   config.AfterDispatch,
 		serverTiming:    config.ServerTiming,
+		openapiMu:       sync.Mutex{},
+		openapiRoutes:   nil,
 	}, nil
 }
 
@@ -339,6 +341,7 @@ func (a *App) buildHandlerConfigChecked(typeIsZero bool, kind string, opts []Han
 	if config.maxBodySize == 0 {
 		config.maxBodySize = a.maxBodySize
 	}
+
 	a.collectOpenAPI(kind, config)
 
 	return config

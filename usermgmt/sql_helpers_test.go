@@ -21,10 +21,12 @@ func (s stringKey) String() string { return string(s) }
 
 func TestNewViewStoreOrFail_Success(t *testing.T) {
 	var called bool
-	mapper := storage.AutoMapper[viewRecord]("test")
-	create := func(_ *sql.DB, _ storage.ViewMapper[viewRecord], _ ...storage.ViewStoreOption) (*storage.SQLViewStore[viewRecord, stringKey], error) {
+	mapper := storage.AutoMapper[viewRecord]( //nolint:staticcheck // ADR-0123 v5
+		"test",
+	)
+	create := func(_ *sql.DB, _ storage.ViewMapper[viewRecord], _ ...storage.ViewStoreOption) (*storage.SQLViewStore[viewRecord, stringKey], error) { //nolint:staticcheck // ADR-0123 v5
 		called = true
-		return &storage.SQLViewStore[viewRecord, stringKey]{}, nil
+		return &storage.SQLViewStore[viewRecord, stringKey]{}, nil //nolint:staticcheck // ADR-0123 v5
 	}
 	store, err := newViewStoreOrFail[viewRecord, stringKey](create, nil, mapper, "code", "msg")
 	if err != nil {
@@ -40,8 +42,10 @@ func TestNewViewStoreOrFail_Success(t *testing.T) {
 
 func TestNewViewStoreOrFail_Error(t *testing.T) {
 	wantErr := errors.New("create failed")
-	mapper := storage.AutoMapper[viewRecord]("test")
-	create := func(_ *sql.DB, _ storage.ViewMapper[viewRecord], _ ...storage.ViewStoreOption) (*storage.SQLViewStore[viewRecord, stringKey], error) {
+	mapper := storage.AutoMapper[viewRecord]( //nolint:staticcheck // ADR-0123 v5
+		"test",
+	)
+	create := func(_ *sql.DB, _ storage.ViewMapper[viewRecord], _ ...storage.ViewStoreOption) (*storage.SQLViewStore[viewRecord, stringKey], error) { //nolint:staticcheck // ADR-0123 v5
 		return nil, wantErr
 	}
 	_, err := newViewStoreOrFail[viewRecord, stringKey](create, nil, mapper, "code", "msg")

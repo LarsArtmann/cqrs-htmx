@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -19,8 +20,8 @@ func RegisterTenantCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdCreateTenant,
 		func(ctx context.Context, c *CreateTenantCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeTenant,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeTenant, c.StreamID()),
 				decideCreateTenant(c.StreamID(), c.Name(), c.DisplayName()),
 			)
 		},
@@ -35,8 +36,8 @@ func RegisterTenantCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdSuspendTenant,
 		func(ctx context.Context, c *SuspendTenantCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeTenant,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeTenant, c.StreamID()),
 				decideSuspendTenant(c.StreamID(), c.Reason()),
 			)
 		},
@@ -51,8 +52,8 @@ func RegisterTenantCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdReactivateTenant,
 		func(ctx context.Context, c *ReactivateTenantCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeTenant,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeTenant, c.StreamID()),
 				decideReactivateTenant(c.StreamID()),
 			)
 		},
@@ -67,8 +68,8 @@ func RegisterTenantCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdDeleteTenant,
 		func(ctx context.Context, c *DeleteTenantCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeTenant,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeTenant, c.StreamID()),
 				decideDeleteTenant(c.StreamID(), c.Reason()),
 			)
 		},

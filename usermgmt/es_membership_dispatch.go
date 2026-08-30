@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -18,8 +19,8 @@ func RegisterMembershipCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdAddMember,
 		func(ctx context.Context, c *AddMemberCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeMembership,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeMembership, c.StreamID()),
 				decideAddMember(c.StreamID(), c.ActorID(), c.TenantID(), c.Roles()),
 			)
 		},
@@ -34,8 +35,8 @@ func RegisterMembershipCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdUpdateMemberRoles,
 		func(ctx context.Context, c *UpdateMemberRolesCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeMembership,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeMembership, c.StreamID()),
 				decideUpdateMemberRoles(c.StreamID(), c.Roles()),
 			)
 		},
@@ -50,8 +51,8 @@ func RegisterMembershipCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdRemoveMember,
 		func(ctx context.Context, c *RemoveMemberCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeMembership,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeMembership, c.StreamID()),
 				decideRemoveMember(c.StreamID()),
 			)
 		},

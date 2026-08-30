@@ -1,6 +1,8 @@
 package cqrshtmx_test
 
 import (
+	"net/http"
+	"strings"
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -35,10 +37,14 @@ func TestOpenAPIRoutesCollected(t *testing.T) {
 	if len(routes) != 2 {
 		t.Fatalf("collected %d routes, want 2 (metadata-less handlers excluded)", len(routes))
 	}
-	if routes[0].Kind != "command" || routes[0].Method != "post" || routes[0].Operation.Summary != "create it" {
+
+	if routes[0].Kind != "command" || !strings.EqualFold(routes[0].Method, http.MethodPost) ||
+		routes[0].Operation.Summary != "create it" {
 		t.Errorf("route[0] = %+v", routes[0])
 	}
-	if routes[1].Kind != "query" || routes[1].Method != "get" || routes[1].Operation.Summary != "read it" {
+
+	if routes[1].Kind != "query" || !strings.EqualFold(routes[1].Method, http.MethodGet) ||
+		routes[1].Operation.Summary != "read it" {
 		t.Errorf("route[1] = %+v", routes[1])
 	}
 

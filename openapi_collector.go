@@ -30,6 +30,7 @@ func (a *App) OpenAPIRoutes() []OpenAPIRoute {
 
 	out := make([]OpenAPIRoute, len(a.openapiRoutes))
 	copy(out, a.openapiRoutes)
+
 	return out
 }
 
@@ -43,6 +44,7 @@ func (a *App) collectOpenAPI(kind string, config *handlerConfig) {
 
 	a.openapiMu.Lock()
 	defer a.openapiMu.Unlock()
+
 	a.openapiRoutes = append(a.openapiRoutes, OpenAPIRoute{
 		Kind:      kind,
 		Method:    config.openapiMeta.HTTPMethod,

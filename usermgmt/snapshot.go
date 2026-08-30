@@ -180,6 +180,7 @@ func cloneSnapshot(s snapshot.Snapshot) *snapshot.Snapshot {
 		StreamType: s.StreamType,
 		Version:    s.Version,
 		State:      stateCopy,
+		Encoding:   s.Encoding,
 		CreatedAt:  s.CreatedAt,
 	}
 }

@@ -12,9 +12,13 @@ import (
 // mysqlViewStoreCreator adapts storage.NewViewStoreWithDialect to the
 // viewStoreCreator signature by capturing MySQLDialect.
 func mysqlViewStoreCreator[V any, K fmt.Stringer](
-	db *sql.DB, mapper storage.ViewMapper[V], opts ...storage.ViewStoreOption,
-) (*storage.SQLViewStore[V, K], error) {
-	return storage.NewViewStoreWithDialect[V, K](db, sqlpkg.MySQLDialect{}, mapper, opts...)
+	db *sql.DB, mapper storage.ViewMapper[V], opts ...storage.ViewStoreOption, //nolint:staticcheck // ADR-0123 v5
+) (*storage.SQLViewStore[V, K], error) { //nolint:staticcheck // ADR-0123 v5
+	return storage.NewViewStoreWithDialect[V, K]( //nolint:staticcheck // ADR-0123 v5
+		db,
+		sqlpkg.MySQLDialect{},
+		mapper,
+		opts...)
 }
 
 // NewMySQLUserReadModel creates a SQL-backed user read model using MySQL syntax.

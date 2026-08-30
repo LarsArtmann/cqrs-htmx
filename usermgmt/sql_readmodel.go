@@ -16,8 +16,8 @@ import (
 // viewStoreCreator is the constructor signature shared by
 // storage.NewSQLiteViewStore and storage.NewSQLViewStore.
 type viewStoreCreator[V any, K fmt.Stringer] func(
-	*sql.DB, storage.ViewMapper[V], ...storage.ViewStoreOption,
-) (*storage.SQLViewStore[V, K], error)
+	*sql.DB, storage.ViewMapper[V], ...storage.ViewStoreOption, //nolint:staticcheck // ADR-0123 v5
+) (*storage.SQLViewStore[V, K], error) //nolint:staticcheck // ADR-0123 v5
 
 // newViewStoreOrFail calls create to build a SQL view store and wraps any
 // error as a Transient failure with the caller's error code and message.
@@ -26,9 +26,9 @@ type viewStoreCreator[V any, K fmt.Stringer] func(
 func newViewStoreOrFail[V any, K fmt.Stringer](
 	create viewStoreCreator[V, K],
 	db *sql.DB,
-	mapper storage.ViewMapper[V],
+	mapper storage.ViewMapper[V], //nolint:staticcheck // ADR-0123 v5
 	errCode, errMsg string,
-) (*storage.SQLViewStore[V, K], error) {
+) (*storage.SQLViewStore[V, K], error) { //nolint:staticcheck // ADR-0123 v5
 	store, err := create(db, mapper)
 	if err != nil {
 		return nil, errorfamily.WrapTransient(err, errCode, errMsg)
@@ -49,14 +49,14 @@ type UserView struct {
 
 type SQLUserReadModel struct {
 	*UserReadModel
-	store   *storage.SQLViewStore[UserView, UserID]
+	store   *storage.SQLViewStore[UserView, UserID] //nolint:staticcheck // ADR-0123 v5
 	querier kv.ViewQuerier[UserView]
 	counter kv.ViewCounter[UserView]
 }
 
-func userViewMapper() storage.ViewMapper[UserView] {
-	m := storage.AutoMapperWithTombstone[UserView]("users_view", "tombstoned")
-	m.Indexes = []storage.IndexSpec{
+func userViewMapper() storage.ViewMapper[UserView] { //nolint:staticcheck // ADR-0123 v5
+	m := storage.AutoMapperWithTombstone[UserView]("users_view", "tombstoned") //nolint:staticcheck // ADR-0123 v5
+	m.Indexes = []storage.IndexSpec{                                           //nolint:staticcheck // ADR-0123 v5
 		{
 			Name:    "idx_users_view_email",
 			Columns: []string{csvColumnEmail},
@@ -66,11 +66,19 @@ func userViewMapper() storage.ViewMapper[UserView] {
 }
 
 func NewSQLiteUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
-	return buildSQLUserReadModel(db, storage.NewSQLiteViewStore[UserView, UserID], "create sqlite user view store")
+	return buildSQLUserReadModel(
+		db,
+		storage.NewSQLiteViewStore[UserView, UserID], //nolint:staticcheck // ADR-0123 v5
+		"create sqlite user view store",
+	)
 }
 
 func NewSQLUserReadModel(db *sql.DB) (*SQLUserReadModel, error) {
-	return buildSQLUserReadModel(db, storage.NewSQLViewStore[UserView, UserID], "create sql user view store")
+	return buildSQLUserReadModel(
+		db,
+		storage.NewSQLViewStore[UserView, UserID], //nolint:staticcheck // ADR-0123 v5
+		"create sql user view store",
+	)
 }
 
 // buildSQLUserReadModel constructs a SQLUserReadModel from a SQLite or generic
@@ -91,7 +99,9 @@ func buildSQLUserReadModel(
 	return newSQLUserReadModel(store), nil
 }
 
-func newSQLUserReadModel(store *storage.SQLViewStore[UserView, UserID]) *SQLUserReadModel {
+func newSQLUserReadModel(
+	store *storage.SQLViewStore[UserView, UserID], //nolint:staticcheck // ADR-0123 v5
+) *SQLUserReadModel {
 	return &SQLUserReadModel{UserReadModel: NewUserReadModel(), store: store, querier: store, counter: store}
 }
 

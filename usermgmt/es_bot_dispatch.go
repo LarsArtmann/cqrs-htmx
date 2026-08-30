@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -17,8 +18,8 @@ func RegisterBotCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdRegisterBot,
 		func(ctx context.Context, c *RegisterBotCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeBot,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeBot, c.StreamID()),
 				decideRegisterBot(
 					c.StreamID(), c.Name(), c.OwnerID(), c.TokenHash(), c.Scopes(),
 				),
@@ -35,8 +36,8 @@ func RegisterBotCommands(
 	if err := command.RegisterTyped(
 		dispatcher, cmdDeleteBot,
 		func(ctx context.Context, c *DeleteBotCmd) error {
-			return repo.Execute(
-				ctx, c.StreamID(), aggregateTypeBot,
+			return repo.ExecuteRef(
+				ctx, id.NewStreamRef(aggregateTypeBot, c.StreamID()),
 				decideDeleteBot(c.StreamID(), c.Reason()),
 			)
 		},

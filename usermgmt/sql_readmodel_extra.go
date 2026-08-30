@@ -26,21 +26,23 @@ type MembershipView struct {
 
 type SQLMembershipReadModel struct {
 	*MembershipReadModel
-	store   *storage.SQLViewStore[MembershipView, id.StreamID]
+	store   *storage.SQLViewStore[MembershipView, id.StreamID] //nolint:staticcheck // ADR-0123 v5
 	querier kv.ViewQuerier[MembershipView]
 }
 
-func membershipViewMapper() storage.ViewMapper[MembershipView] {
-	m := storage.AutoMapper[MembershipView]("memberships_view")
+func membershipViewMapper() storage.ViewMapper[MembershipView] { //nolint:staticcheck // ADR-0123 v5
+	m := storage.AutoMapper[MembershipView]("memberships_view") //nolint:staticcheck // ADR-0123 v5
 
-	m.Indexes = []storage.IndexSpec{{Name: "idx_memberships_view_actor", Columns: []string{"actor_id"}}}
+	m.Indexes = []storage.IndexSpec{ //nolint:staticcheck // ADR-0123 v5
+		{Name: "idx_memberships_view_actor", Columns: []string{"actor_id"}},
+	}
 	return m
 }
 
 func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 	return buildSQLMembershipReadModel(
 		db,
-		storage.NewSQLiteViewStore[MembershipView, id.StreamID],
+		storage.NewSQLiteViewStore[MembershipView, id.StreamID], //nolint:staticcheck // ADR-0123 v5
 		"create sqlite membership view store",
 	)
 }
@@ -48,7 +50,7 @@ func NewSQLiteMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 func NewSQLMembershipReadModel(db *sql.DB) (*SQLMembershipReadModel, error) {
 	return buildSQLMembershipReadModel(
 		db,
-		storage.NewSQLViewStore[MembershipView, id.StreamID],
+		storage.NewSQLViewStore[MembershipView, id.StreamID], //nolint:staticcheck // ADR-0123 v5
 		"create sql membership view store",
 	)
 }
@@ -122,27 +124,33 @@ type TenantView struct {
 
 type SQLTenantReadModel struct {
 	*TenantReadModel
-	store   *storage.SQLViewStore[TenantView, TenantID]
+	store   *storage.SQLViewStore[TenantView, TenantID] //nolint:staticcheck // ADR-0123 v5
 	querier kv.ViewQuerier[TenantView]
 }
 
-func tenantViewMapper() storage.ViewMapper[TenantView] {
-	m := storage.AutoMapper[TenantView]("tenants_view")
+func tenantViewMapper() storage.ViewMapper[TenantView] { //nolint:staticcheck // ADR-0123 v5
+	m := storage.AutoMapper[TenantView]("tenants_view") //nolint:staticcheck // ADR-0123 v5
 
-	m.Indexes = []storage.IndexSpec{{Name: "idx_tenants_view_name", Columns: []string{sqlColName}}}
+	m.Indexes = []storage.IndexSpec{ //nolint:staticcheck // ADR-0123 v5
+		{Name: "idx_tenants_view_name", Columns: []string{sqlColName}},
+	}
 	return m
 }
 
 func NewSQLiteTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
 	return buildSQLTenantReadModel(
 		db,
-		storage.NewSQLiteViewStore[TenantView, TenantID],
+		storage.NewSQLiteViewStore[TenantView, TenantID], //nolint:staticcheck // ADR-0123 v5
 		"create sqlite tenant view store",
 	)
 }
 
 func NewSQLTenantReadModel(db *sql.DB) (*SQLTenantReadModel, error) {
-	return buildSQLTenantReadModel(db, storage.NewSQLViewStore[TenantView, TenantID], "create sql tenant view store")
+	return buildSQLTenantReadModel(
+		db,
+		storage.NewSQLViewStore[TenantView, TenantID], //nolint:staticcheck // ADR-0123 v5
+		"create sql tenant view store",
+	)
 }
 
 func buildSQLTenantReadModel(
@@ -209,23 +217,33 @@ type BotView struct {
 
 type SQLBotReadModel struct {
 	*BotReadModel
-	store   *storage.SQLViewStore[BotView, BotID]
+	store   *storage.SQLViewStore[BotView, BotID] //nolint:staticcheck // ADR-0123 v5
 	querier kv.ViewQuerier[BotView]
 }
 
-func botViewMapper() storage.ViewMapper[BotView] {
-	m := storage.AutoMapper[BotView]("bots_view")
+func botViewMapper() storage.ViewMapper[BotView] { //nolint:staticcheck // ADR-0123 v5
+	m := storage.AutoMapper[BotView]("bots_view") //nolint:staticcheck // ADR-0123 v5
 
-	m.Indexes = []storage.IndexSpec{{Name: "idx_bots_view_name", Columns: []string{sqlColName}}}
+	m.Indexes = []storage.IndexSpec{ //nolint:staticcheck // ADR-0123 v5
+		{Name: "idx_bots_view_name", Columns: []string{sqlColName}},
+	}
 	return m
 }
 
 func NewSQLiteBotReadModel(db *sql.DB) (*SQLBotReadModel, error) {
-	return buildSQLBotReadModel(db, storage.NewSQLiteViewStore[BotView, BotID], "create sqlite bot view store")
+	return buildSQLBotReadModel(
+		db,
+		storage.NewSQLiteViewStore[BotView, BotID], //nolint:staticcheck // ADR-0123 v5
+		"create sqlite bot view store",
+	)
 }
 
 func NewSQLBotReadModel(db *sql.DB) (*SQLBotReadModel, error) {
-	return buildSQLBotReadModel(db, storage.NewSQLViewStore[BotView, BotID], "create sql bot view store")
+	return buildSQLBotReadModel(
+		db,
+		storage.NewSQLViewStore[BotView, BotID], //nolint:staticcheck // ADR-0123 v5
+		"create sql bot view store",
+	)
 }
 
 func buildSQLBotReadModel(
