@@ -51,24 +51,24 @@ STRICT_LAG=-1
 NO_CACHE=0
 REFRESH=0
 while [ $# -gt 0 ]; do
-	case "$1" in
-	--json) JSON=1 ;;
-	--strict-lag)
-		shift
-		STRICT_LAG="${1:?--strict-lag requires a number}"
-		[[ $STRICT_LAG =~ ^[0-9]+$ ]] || {
-			echo "check-release-train: --strict-lag must be a non-negative integer, got '$STRICT_LAG'" >&2
-			exit 2
-		}
-		;;
-	--no-cache) NO_CACHE=1 ;;
-	--refresh-cache) REFRESH=1 ;;
-	*)
-		echo "check-release-train: unknown option '$1'" >&2
-		exit 2
-		;;
-	esac
-	shift
+  case "$1" in
+  --json) JSON=1 ;;
+  --strict-lag)
+    shift
+    STRICT_LAG="${1:?--strict-lag requires a number}"
+    [[ $STRICT_LAG =~ ^[0-9]+$ ]] || {
+      echo "check-release-train: --strict-lag must be a non-negative integer, got '$STRICT_LAG'" >&2
+      exit 2
+    }
+    ;;
+  --no-cache) NO_CACHE=1 ;;
+  --refresh-cache) REFRESH=1 ;;
+  *)
+    echo "check-release-train: unknown option '$1'" >&2
+    exit 2
+    ;;
+  esac
+  shift
 done
 
 CACHE_DIR="${TRAIN_TAG_CACHE_DIR:-/tmp/cqrs-htmx-tag-cache}"
@@ -77,50 +77,50 @@ CACHE_TTL="${TRAIN_TAG_CACHE_TTL:-900}"
 # Classification lines are the human report; in --json mode stdout must be
 # pure JSON, so they move to stderr.
 emit() {
-	if [ "$JSON" = 1 ]; then
-		echo "$*" >&2
-	else
-		echo "$*"
-	fi
+  if [ "$JSON" = 1 ]; then
+    echo "$*" >&2
+  else
+    echo "$*"
+  fi
 }
 
 if [ "$JSON" = 0 ]; then
-	echo "=== Release Train Check ==="
-	echo ""
+  echo "=== Release Train Check ==="
+  echo ""
 fi
 
 declare -A REPO_TAGS_OK
 declare -A REPO_TAGS_LIST
 
 fetch_repo_tags() {
-	local repo="$1"
-	if [[ -v "REPO_TAGS_OK[$repo]" ]]; then
-		return 0
-	fi
+  local repo="$1"
+  if [[ -v "REPO_TAGS_OK[$repo]" ]]; then
+    return 0
+  fi
 
-	local cache_file="$CACHE_DIR/$repo.tags"
-	if [ "$NO_CACHE" = 0 ] && [ "$REFRESH" = 0 ] &&
-		[ -f "$cache_file" ] &&
-		[ -z "$(find "$cache_file" -mmin "+$((CACHE_TTL / 60))" 2>/dev/null)" ]; then
-		REPO_TAGS_OK[$repo]=true
-		REPO_TAGS_LIST[$repo]="$(cat "$cache_file")"
-		return 0
-	fi
+  local cache_file="$CACHE_DIR/$repo.tags"
+  if [ "$NO_CACHE" = 0 ] && [ "$REFRESH" = 0 ] &&
+    [ -f "$cache_file" ] &&
+    [ -z "$(find "$cache_file" -mmin "+$((CACHE_TTL / 60))" 2>/dev/null)" ]; then
+    REPO_TAGS_OK[$repo]=true
+    REPO_TAGS_LIST[$repo]="$(cat "$cache_file")"
+    return 0
+  fi
 
-	local tags
-	if ! tags=$(git ls-remote --tags "https://github.com/larsartmann/${repo}.git" 2>/dev/null |
-		sed -e 's|.*refs/tags/||' -e 's/\^{}$//' | sort -u); then
-		REPO_TAGS_OK[$repo]=false
-		REPO_TAGS_LIST[$repo]=""
-		return 0
-	fi
+  local tags
+  if ! tags=$(git ls-remote --tags "https://github.com/larsartmann/${repo}.git" 2>/dev/null |
+    sed -e 's|.*refs/tags/||' -e 's/\^{}$//' | sort -u); then
+    REPO_TAGS_OK[$repo]=false
+    REPO_TAGS_LIST[$repo]=""
+    return 0
+  fi
 
-	REPO_TAGS_OK[$repo]=true
-	REPO_TAGS_LIST[$repo]="$tags"
-	if [ "$NO_CACHE" = 0 ]; then
-		mkdir -p "$CACHE_DIR"
-		printf '%s\n' "$tags" >"$cache_file" 2>/dev/null || true
-	fi
+  REPO_TAGS_OK[$repo]=true
+  REPO_TAGS_LIST[$repo]="$tags"
+  if [ "$NO_CACHE" = 0 ]; then
+    mkdir -p "$CACHE_DIR"
+    printf '%s\n' "$tags" >"$cache_file" 2>/dev/null || true
+  fi
 }
 
 # Map a module path to the tag-prefix its versions live under.
@@ -128,37 +128,37 @@ fetch_repo_tags() {
 #   github.com/larsartmann/cqrs-htmx/usermgmt/v4        -> "usermgmt/"
 #   github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4   -> "usermgmt/totp/"
 tag_prefix_for() {
-	local mod_path="$1"
-	local rest="${mod_path#github.com/larsartmann/}"
-	local repo="${rest%%/*}"
-	local sub=""
-	if [[ $rest == *"/"* && $rest != "$repo" ]]; then
-		sub="${rest#"${repo}"/}"
-	fi
-	if [[ $sub =~ /v[0-9]+$ ]]; then
-		sub="${sub%/v[0-9]*}"
-	fi
-	if [[ $sub =~ ^v[0-9]+$ ]]; then
-		sub=""
-	fi
-	if [[ -z $sub ]]; then
-		echo ""
-	else
-		echo "$sub/"
-	fi
+  local mod_path="$1"
+  local rest="${mod_path#github.com/larsartmann/}"
+  local repo="${rest%%/*}"
+  local sub=""
+  if [[ $rest == *"/"* && $rest != "$repo" ]]; then
+    sub="${rest#"${repo}"/}"
+  fi
+  if [[ $sub =~ /v[0-9]+$ ]]; then
+    sub="${sub%/v[0-9]*}"
+  fi
+  if [[ $sub =~ ^v[0-9]+$ ]]; then
+    sub=""
+  fi
+  if [[ -z $sub ]]; then
+    echo ""
+  else
+    echo "$sub/"
+  fi
 }
 
 # Max published vX.Y.Z for a tag prefix ("usermgmt/" -> "usermgmt/v4.8.1").
 # sort -V gives correct semver order. Empty output when the prefix has no
 # published tags (guarded against pipefail: grep exits 1 on no match).
 max_published_for() {
-	local prefix="$1" tags="$2"
-	{ grep -E "^${prefix}v[0-9]+\.[0-9]+\.[0-9]+$" <<<"$tags" || true; } | sort -V | tail -1
+  local prefix="$1" tags="$2"
+  { grep -E "^${prefix}v[0-9]+\.[0-9]+\.[0-9]+$" <<<"$tags" || true; } | sort -V | tail -1
 }
 
 # semver ordering via sort -V: returns 0 when $1 > $2.
 version_gt() {
-	[[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" == "$1" && $1 != "$2" ]]
+  [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -1)" == "$1" && $1 != "$2" ]]
 }
 
 unpublished=0
@@ -168,65 +168,65 @@ exempted=0
 LAG_ENTRIES=()
 
 for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | sort); do
-	moddir=$(dirname "$modfile")
+  moddir=$(dirname "$modfile")
 
-	while IFS= read -r line; do
-		mod_path=$(echo "$line" | awk '{print $1}')
-		version=$(echo "$line" | awk '{print $2}')
+  while IFS= read -r line; do
+    mod_path=$(echo "$line" | awk '{print $1}')
+    version=$(echo "$line" | awk '{print $2}')
 
-		[[ $mod_path =~ ^github\.com/larsartmann/ ]] || continue
-		[[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue # skip pseudo-versions etc.
+    [[ $mod_path =~ ^github\.com/larsartmann/ ]] || continue
+    [[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue # skip pseudo-versions etc.
 
-		rest="${mod_path#github.com/larsartmann/}"
-		repo="${rest%%/*}"
-		fetch_repo_tags "$repo"
+    rest="${mod_path#github.com/larsartmann/}"
+    repo="${rest%%/*}"
+    fetch_repo_tags "$repo"
 
-		if [[ ${REPO_TAGS_OK[$repo]} != "true" ]]; then
-			if [[ ${CI:-false} == "true" ]]; then
-				emit "  WARN: cannot list tags of $repo (ls-remote failed; CI advisory)"
-				continue
-			fi
-			emit "  ERROR: cannot list tags of github.com/larsartmann/$repo (ls-remote failed)"
-			exit 4
-		fi
+    if [[ ${REPO_TAGS_OK[$repo]} != "true" ]]; then
+      if [[ ${CI:-false} == "true" ]]; then
+        emit "  WARN: cannot list tags of $repo (ls-remote failed; CI advisory)"
+        continue
+      fi
+      emit "  ERROR: cannot list tags of github.com/larsartmann/$repo (ls-remote failed)"
+      exit 4
+    fi
 
-		prefix=$(tag_prefix_for "$mod_path")
-		max=$(max_published_for "$prefix" "${REPO_TAGS_LIST[$repo]}")
-		checked=$((checked + 1))
+    prefix=$(tag_prefix_for "$mod_path")
+    max=$(max_published_for "$prefix" "${REPO_TAGS_LIST[$repo]}")
+    checked=$((checked + 1))
 
-		# Local replace in the requiring go.mod satisfies the build hermetically.
-		replace_exempt=false
-		if grep -qE "^[[:space:]]*replace[[:space:]]+${mod_path}([[:space:]]|v[0-9])" "$modfile" 2>/dev/null; then
-			replace_exempt=true
-		fi
+    # Local replace in the requiring go.mod satisfies the build hermetically.
+    replace_exempt=false
+    if grep -qE "^[[:space:]]*replace[[:space:]]+${mod_path}([[:space:]]|v[0-9])" "$modfile" 2>/dev/null; then
+      replace_exempt=true
+    fi
 
-		local_label="${moddir#./}"
-		if [[ -z $max ]]; then
-			if [[ $replace_exempt == "true" ]]; then
-				emit "  EXEMPT (local replace): $mod_path@$version (no published tags for this path) — required by $local_label"
-				exempted=$((exempted + 1))
-			else
-				emit "  UNPUBLISHED: $mod_path@$version (no published tags at all) — required by $local_label"
-				unpublished=$((unpublished + 1))
-			fi
-			continue
-		fi
+    local_label="${moddir#./}"
+    if [[ -z $max ]]; then
+      if [[ $replace_exempt == "true" ]]; then
+        emit "  EXEMPT (local replace): $mod_path@$version (no published tags for this path) — required by $local_label"
+        exempted=$((exempted + 1))
+      else
+        emit "  UNPUBLISHED: $mod_path@$version (no published tags at all) — required by $local_label"
+        unpublished=$((unpublished + 1))
+      fi
+      continue
+    fi
 
-		maxv="${max#"${prefix}"}"
-		if version_gt "$version" "$maxv"; then
-			if [[ $replace_exempt == "true" ]]; then
-				emit "  EXEMPT (local replace): $mod_path@$version > published $maxv — required by $local_label"
-				exempted=$((exempted + 1))
-			else
-				emit "  UNPUBLISHED: $mod_path@$version > published $maxv — required by $local_label"
-				unpublished=$((unpublished + 1))
-			fi
-		elif [[ $version != "$maxv" ]]; then
-			emit "  TRAIN LAG: $mod_path@$version but $maxv is published — required by $local_label"
-			lags=$((lags + 1))
-			LAG_ENTRIES+=("{\"module\":\"$mod_path\",\"required\":\"$version\",\"latest\":\"$maxv\",\"required_by\":\"$local_label\"}")
-		fi
-	done < <(cd "$moddir" && awk '
+    maxv="${max#"${prefix}"}"
+    if version_gt "$version" "$maxv"; then
+      if [[ $replace_exempt == "true" ]]; then
+        emit "  EXEMPT (local replace): $mod_path@$version > published $maxv — required by $local_label"
+        exempted=$((exempted + 1))
+      else
+        emit "  UNPUBLISHED: $mod_path@$version > published $maxv — required by $local_label"
+        unpublished=$((unpublished + 1))
+      fi
+    elif [[ $version != "$maxv" ]]; then
+      emit "  TRAIN LAG: $mod_path@$version but $maxv is published — required by $local_label"
+      lags=$((lags + 1))
+      LAG_ENTRIES+=("{\"module\":\"$mod_path\",\"required\":\"$version\",\"latest\":\"$maxv\",\"required_by\":\"$local_label\"}")
+    fi
+  done < <(cd "$moddir" && awk '
         /^require \(/ { in_req=1; next }
         /^\)/ { in_req=0 }
         in_req && /^\t/ && /github\.com\/larsartmann\// { print $0 }
@@ -235,26 +235,29 @@ for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/
 done
 
 if [ "$JSON" = 1 ]; then
-	lag_json="$(IFS=$'\n'; if [ ${#LAG_ENTRIES[@]} -gt 0 ]; then printf '%s\n' "${LAG_ENTRIES[*]}" | paste -sd, -; fi)"
-	printf '{"checked":%d,"unpublished":%d,"exempted":%d,"lag":%d,"lag_entries":[%s],"strict_lag":%d,"ok":%s}\n' \
-		"$checked" "$unpublished" "$exempted" "$lags" "$lag_json" "$STRICT_LAG" \
-		"$([ "$unpublished" -eq 0 ] && echo true || echo false)"
+  lag_json="$(
+    IFS=$'\n'
+    if [ ${#LAG_ENTRIES[@]} -gt 0 ]; then printf '%s\n' "${LAG_ENTRIES[*]}" | paste -sd, -; fi
+  )"
+  printf '{"checked":%d,"unpublished":%d,"exempted":%d,"lag":%d,"lag_entries":[%s],"strict_lag":%d,"ok":%s}\n' \
+    "$checked" "$unpublished" "$exempted" "$lags" "$lag_json" "$STRICT_LAG" \
+    "$([ "$unpublished" -eq 0 ] && echo true || echo false)"
 else
-	echo ""
-	echo "Checked $checked internal requires: $unpublished unpublished, $exempted replace-exempted, $lags train lag."
+  echo ""
+  echo "Checked $checked internal requires: $unpublished unpublished, $exempted replace-exempted, $lags train lag."
 fi
 
 if [[ $unpublished -gt 0 ]]; then
-	[ "$JSON" = 0 ] && {
-		echo "✗ UNPUBLISHED requires present — cut/push the missing tags or pin back to published versions."
-		echo "  (Workspace mode masks these; hermetic GOWORK=off builds fail.)"
-	}
-	exit 1
+  [ "$JSON" = 0 ] && {
+    echo "✗ UNPUBLISHED requires present — cut/push the missing tags or pin back to published versions."
+    echo "  (Workspace mode masks these; hermetic GOWORK=off builds fail.)"
+  }
+  exit 1
 fi
 
 if [ "$STRICT_LAG" -ge 0 ] && [ "$lags" -gt "$STRICT_LAG" ]; then
-	[ "$JSON" = 0 ] && echo "✗ Train lag $lags exceeds --strict-lag $STRICT_LAG — run the family alignment pass."
-	exit 3
+  [ "$JSON" = 0 ] && echo "✗ Train lag $lags exceeds --strict-lag $STRICT_LAG — run the family alignment pass."
+  exit 3
 fi
 
 [ "$JSON" = 0 ] && echo "✓ No unpublished requires. Train-lag entries above are the next family train's alignment list."

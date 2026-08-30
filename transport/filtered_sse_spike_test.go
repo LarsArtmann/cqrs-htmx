@@ -30,12 +30,14 @@ func (f *filteredSSEStore) EventsAfterFiltered(
 	if err != nil {
 		return nil, err
 	}
+
 	out := make([]sse.Event, 0, len(events))
 	for _, evt := range events {
 		if pred(evt) {
 			out = append(out, evt)
 		}
 	}
+
 	return out, nil
 }
 
@@ -73,6 +75,7 @@ func TestSpikeFilteredSSE_SessionGatingBasis(t *testing.T) {
 	// The recorder client never reads; bound the replay write window.
 	go func() {
 		time.Sleep(2 * time.Second)
+
 		_ = stream.Close()
 	}()
 
@@ -80,6 +83,7 @@ func TestSpikeFilteredSSE_SessionGatingBasis(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReplayFiltered: %v", err)
 	}
+
 	if n != 2 {
 		t.Fatalf("ReplayFiltered delivered %d events, want 2 (the tenant event must be excluded)", n)
 	}
@@ -114,11 +118,13 @@ type sliceStore struct{ events []sse.Event }
 
 func (s *sliceStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
 	out := []sse.Event{}
+
 	for _, evt := range s.events {
 		if lastID.IsZero() || evt.ID.String() > lastID.String() {
 			out = append(out, evt)
 		}
 	}
+
 	return out, nil
 }
 
@@ -127,11 +133,12 @@ func mustEventID(s string) sse.EventID {
 	if err != nil {
 		panic(err)
 	}
+
 	return id
 }
 
-// compile-time proof the spike store satisfies the go-sse filtered interface
+// compile-time proof the spike store satisfies the go-sse filtered interface.
 var _ sse.FilteredEventStore = (*filteredSSEStore)(nil)
 
-// keep the transport import honest if the spike evolves away from it
+// keep the transport import honest if the spike evolves away from it.
 var _ = transport.ServeDomainEvents

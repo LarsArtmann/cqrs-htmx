@@ -25,8 +25,8 @@
 set -euo pipefail
 
 usage() {
-	echo "usage: $0 <module-dir> <version> [--push] [--dry-run]" >&2
-	exit 2
+  echo "usage: $0 <module-dir> <version> [--push] [--dry-run]" >&2
+  exit 2
 }
 
 [ $# -ge 2 ] || usage
@@ -36,17 +36,17 @@ shift 2
 PUSH=0
 DRY=0
 for arg in "$@"; do
-	case "$arg" in
-	--push) PUSH=1 ;;
-	--dry-run) DRY=1 ;;
-	*) usage ;;
-	esac
+  case "$arg" in
+  --push) PUSH=1 ;;
+  --dry-run) DRY=1 ;;
+  *) usage ;;
+  esac
 done
 
 fail() {
-	echo "verify-tag: FAIL: $*" >&2
-	echo "verify-tag: nothing was pushed. Fix the tree, then re-run." >&2
-	exit 1
+  echo "verify-tag: FAIL: $*" >&2
+  echo "verify-tag: nothing was pushed. Fix the tree, then re-run." >&2
+  exit 1
 }
 
 [ -f "$MOD/go.mod" ] || fail "$MOD/go.mod does not exist (is the module dir correct?)"
@@ -58,22 +58,22 @@ case "$MOD" in
 esac
 
 if [ -n "$(git status --porcelain --untracked-files=no -- "$MOD")" ]; then
-	echo "verify-tag: uncommitted changes inside $MOD:" >&2
-	git status --porcelain --untracked-files=no -- "$MOD" | sed 's/^/    /' >&2
-	fail "tags point at commits, not the working tree — commit (and push) the module first"
+  echo "verify-tag: uncommitted changes inside $MOD:" >&2
+  git status --porcelain --untracked-files=no -- "$MOD" | sed 's/^/    /' >&2
+  fail "tags point at commits, not the working tree — commit (and push) the module first"
 fi
 
 if git rev-parse -q --verify "refs/tags/$TAGNAME" >/dev/null; then
-	fail "tag $TAGNAME already exists locally"
+  fail "tag $TAGNAME already exists locally"
 fi
 if git ls-remote --exit-code origin "refs/tags/$TAGNAME" >/dev/null 2>&1; then
-	fail "tag $TAGNAME already exists on origin — NEVER re-push a version name (the module proxy caches it); cut a new version"
+  fail "tag $TAGNAME already exists on origin — NEVER re-push a version name (the module proxy caches it); cut a new version"
 fi
 
 echo "verify-tag: would create signed annotated tag $TAGNAME at $(git rev-parse --short HEAD)"
 if [ "$DRY" = 1 ]; then
-	echo "verify-tag: dry-run — stopping before tag creation"
-	exit 0
+  echo "verify-tag: dry-run — stopping before tag creation"
+  exit 0
 fi
 
 # Content assertions run against HEAD's tree — the module files are
@@ -89,15 +89,15 @@ SHOW="$(git show "HEAD:$MOD/go.mod" 2>/dev/null || git show "HEAD:go.mod" 2>/dev
 # sibling replaces (e.g. go-appkit) are allowed: they are equally ignored
 # by consumers and documented as spike-only.
 if echo "$SHOW" | grep -Eq '^\s*replace\s+github\.com/larsartmann/cqrs-htmx(/|\s).*=>\s*\.\.'; then
-	echo "$SHOW" | grep -E '^\s*replace\s+github\.com/larsartmann/cqrs-htmx' | sed 's/^/    /' >&2
-	fail "go.mod still replaces cqrs-htmx family modules with local paths — strip dev-replaces BEFORE tagging"
+  echo "$SHOW" | grep -E '^\s*replace\s+github\.com/larsartmann/cqrs-htmx' | sed 's/^/    /' >&2
+  fail "go.mod still replaces cqrs-htmx family modules with local paths — strip dev-replaces BEFORE tagging"
 fi
 
 # Pseudo-versions of Lars' own modules never happen legitimately (every
 # family module publishes real tags); third-party pseudo-versions are fine.
 if echo "$SHOW" | grep -E '^\s*github\.com/larsartmann/' | grep -Eq -- '-0\.[0-9]{14}-[0-9a-f]+'; then
-	echo "$SHOW" | grep '^\s*github.com/larsartmann/' | grep -E -- '-0\.[0-9]{14}-' | sed 's/^/    /' >&2
-	fail "go.mod contains pseudo-version requires of larsartmann modules"
+  echo "$SHOW" | grep '^\s*github.com/larsartmann/' | grep -E -- '-0\.[0-9]{14}-' | sed 's/^/    /' >&2
+  fail "go.mod contains pseudo-version requires of larsartmann modules"
 fi
 
 echo "$SHOW" | grep -Eq '^go [0-9]' || fail "go.mod has no 'go' directive"
@@ -110,22 +110,22 @@ echo "$SHOW" | grep -Eq '^go [0-9]' || fail "go.mod has no 'go' directive"
 # running this script.
 UNPUBLISHED=0
 while IFS=' ' read -r dep ver; do
-	[ -n "$dep" ] || continue
-	sub="${dep#github.com/larsartmann/cqrs-htmx}"
-	[ "$sub" != "$dep" ] || continue
-	sub="${sub#/}"
-	remoteref="refs/tags/${sub%/v*}/${ver}"
-	case "$sub" in
-	v*) remoteref="refs/tags/$ver" ;; # root module: cqrs-htmx/v4 -> plain vX.Y.Z
-	*)
-		# usermgmt/totp/v4 -> usermgmt/totp/v4.8.1 (strip the /v4 major suffix)
-		remoteref="refs/tags/${sub%/v*}/$ver"
-		;;
-	esac
-	if ! git ls-remote --exit-code origin "$remoteref" >/dev/null 2>&1; then
-		echo "verify-tag: require $dep $ver has NO tag at $remoteref on origin" >&2
-		UNPUBLISHED=1
-	fi
+  [ -n "$dep" ] || continue
+  sub="${dep#github.com/larsartmann/cqrs-htmx}"
+  [ "$sub" != "$dep" ] || continue
+  sub="${sub#/}"
+  remoteref="refs/tags/${sub%/v*}/${ver}"
+  case "$sub" in
+  v*) remoteref="refs/tags/$ver" ;; # root module: cqrs-htmx/v4 -> plain vX.Y.Z
+  *)
+    # usermgmt/totp/v4 -> usermgmt/totp/v4.8.1 (strip the /v4 major suffix)
+    remoteref="refs/tags/${sub%/v*}/$ver"
+    ;;
+  esac
+  if ! git ls-remote --exit-code origin "$remoteref" >/dev/null 2>&1; then
+    echo "verify-tag: require $dep $ver has NO tag at $remoteref on origin" >&2
+    UNPUBLISHED=1
+  fi
 done <<EOF
 $(echo "$SHOW" | awk '/^\s*github\.com\/larsartmann\/cqrs-htmx/ {print $1 " " $2}')
 EOF
@@ -136,11 +136,11 @@ echo "verify-tag: content assertions passed for $TAGNAME"
 git tag -s "$TAGNAME" -m "$MOD $VER" || fail "git tag -s failed (signing key unavailable?); NOT tagging unsigned"
 
 if [ "$PUSH" = 1 ]; then
-	git push origin "$TAGNAME" || fail "push failed"
-	if ! git ls-remote --exit-code origin "refs/tags/$TAGNAME" >/dev/null 2>&1; then
-		fail "push reported success but ls-remote cannot see $TAGNAME — investigate before continuing"
-	fi
-	echo "verify-tag: $TAGNAME pushed and visible on origin"
+  git push origin "$TAGNAME" || fail "push failed"
+  if ! git ls-remote --exit-code origin "refs/tags/$TAGNAME" >/dev/null 2>&1; then
+    fail "push reported success but ls-remote cannot see $TAGNAME — investigate before continuing"
+  fi
+  echo "verify-tag: $TAGNAME pushed and visible on origin"
 else
-	echo "verify-tag: $TAGNAME created locally. Inspect, then push: git push origin $TAGNAME"
+  echo "verify-tag: $TAGNAME created locally. Inspect, then push: git push origin $TAGNAME"
 fi
