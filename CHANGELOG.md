@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **golines enabled in `nix fmt`, aligned to the lint gate (max-len 120):** the 2026-08-29 275-file reformat churn is root-caused and dissolved — treefmt's golines defaulted to max-len 100 while the golangci golines gate enforces 120, so treefmt wanted to reflow every 101–120-char line the lint gate had deliberately kept. With `settings.formatter.golines.options = ["--max-len" "120"]` the first `nix fmt` changed only 4 Go files (examples/ + oauth2 — outside the golangci fixer's reach) and a second run is a no-op; oauth2 build/vet/test and both touched examples verified green. The shfmt/shellcheck half of treefmt enablement stays open in TODO_LIST.
+
 - **`go.work.sum` is actually untracked now:** the file was in `.gitignore` all along but still in the index, so the auto-git daemon kept absorbing its drift into unrelated commits. `git rm --cached` closes that path; any workspace `go` command regenerates the overlay on demand and the workspace build is verified green without a committed copy. Follows `go.work` itself, which was already ignored as machine-derived.
 
 - **`check-require-tags` gate rename (was `check-phantom-version`):** the gate outgrew its name — since 2026-08-29 it also enforces tag existence for internal requires via the chained strict drift check, not just zero pseudo-versions. The inline flake logic moved to `scripts/check-require-tags.sh` under a canonical `nix run .#check-require-tags` app; `nix run .#check-phantom-version` remains as a deprecated alias that warns and runs the same script. Behavior unchanged.
