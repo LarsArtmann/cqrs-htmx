@@ -808,7 +808,7 @@
 
             check-release-train = {
               type = "app";
-              meta.description = "Verify every internal require resolves to a PUBLISHED tag; list train-lag for the next family train";
+              meta.description = "Verify every internal require resolves to a PUBLISHED tag; list train-lag for the next family train (forwards flags: --json, --strict-lag N, --no-cache, --refresh-cache)";
               program = pkgs.writeShellApplication {
                 name = "check-release-train";
                 runtimeInputs = [
@@ -820,7 +820,7 @@
                 ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  bash scripts/check-release-train.sh
+                  bash scripts/check-release-train.sh "$@"
                 '';
               };
             };
