@@ -35,6 +35,23 @@ nix run .#bench-spike -- --save-baseline
 git add docs/benchmarks/setup-baseline.raw.txt
 ```
 
+## Load guard + re-pin policy
+
+The app refuses to measure when the 1-minute load average is at or above
+`BENCH_MAX_LOAD` (default: cores/4; `0` disables). Two sessions in a row
+lost bench runs to concurrent builds (~8.7 load produced ±25% garbage)
+before anyone checked `uptime` — the guard moves that check into the app.
+
+Re-pin policy (write it down instead of re-deciding it ad hoc):
+
+- Re-pin when this machine's **quiet-state medians drift >10%** from the
+  pinned baseline, or after any machine/hardware/OS change.
+- `--save-baseline` records a `load1:` context header — never pin under
+  contention (the guard enforces this).
+- A stale-but-conservative baseline (pinned slower than current speed)
+  halves regression sensitivity; prefer re-pinning once per machine-speed
+  change over hoarding headroom.
+
 ## Why 10%?
 
 Measured run-to-run median noise on the pinned machine (AMD Ryzen AI MAX+ 395):

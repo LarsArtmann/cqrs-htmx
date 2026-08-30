@@ -301,7 +301,7 @@
 
             bench-spike = goApp {
               name = "run-bench-spike";
-              description = "Run the setup spike benchmark (default 5x2s) and fail on a >10% median ns/op regression vs docs/benchmarks/setup-baseline.raw.txt (10% default: run-to-run noise on the pinned machine measures up to ~9% on the ~1us json-roundtrip sub-bench; tighten via BENCH_SPIKE_THRESHOLD). Per-bench overrides: BENCH_THRESHOLD_<NAME> with NAME = bench name uppercased, non-alnum -> _ (suffix match works, e.g. BENCH_THRESHOLD_JSON_ROUNDTRIP=15). Env: BENCH_COUNT, BENCHTIME, BENCH_SPIKE_THRESHOLD, BENCH_THRESHOLD_*. --save-baseline [path] re-pins the baseline.";
+              description = "Run the setup spike benchmark (default 5x2s) and fail on a >10% median ns/op regression vs docs/benchmarks/setup-baseline.raw.txt (10% default: run-to-run noise on the pinned machine measures up to ~9% on the ~1us json-roundtrip sub-bench; tighten via BENCH_SPIKE_THRESHOLD). Per-bench overrides: BENCH_THRESHOLD_<NAME> with NAME = bench name uppercased, non-alnum -> _ (suffix match works, e.g. BENCH_THRESHOLD_JSON_ROUNDTRIP=15). Load guard: refuses to measure when 1-min load >= BENCH_MAX_LOAD (default cores/4; 0 disables) because concurrent builds make ns/op garbage. Env: BENCH_COUNT, BENCHTIME, BENCH_SPIKE_THRESHOLD, BENCH_MAX_LOAD, BENCH_THRESHOLD_*. --save-baseline [path] re-pins the baseline (records a load1 context header; re-pin when quiet-state medians drift >10% or after any machine change).";
               runtimeInputs = [
                 benchstat
                 pkgs.git
@@ -325,6 +325,24 @@
                 # init. Shared guard, same lib the isolation script sources.
                 # shellcheck disable=SC1091
                 source scripts/lib/go-cache-env.sh
+
+                # Load guard: concurrent builds poison ns/op (two sessions in
+                # a row burned bench runs on ~8.7 load before checking uptime).
+                # Fail above BENCH_MAX_LOAD (default: cores/4); 0 disables.
+                cores="$(nproc)"
+                max_load="''${BENCH_MAX_LOAD:-$((cores / 4))}"
+                load1="$(cut -d' ' -f1 /proc/loadavg)"
+                if [ "$max_load" != "0" ]; then
+                  ok="$(awk -v l="$load1" -v m="$max_load" 'BEGIN{print (l < m) ? 1 : 0}')"
+                  if [ "$ok" != "1" ]; then
+                    echo "bench-spike: 1-min load $load1 >= BENCH_MAX_LOAD $max_load (cores=$cores) — refusing to measure." >&2
+                    echo "  Concurrent load makes ns/op comparisons garbage." >&2
+                    echo "  Wait for a quiet machine, or override: BENCH_MAX_LOAD=<n> (0 disables the guard)." >&2
+                    exit 2
+                  fi
+                  echo "bench-spike: load $load1 (max $max_load, cores $cores) — OK"
+                fi
+
                 bench_args=(
                   -run xxx
                   -bench "^BenchmarkSpikeBaselineVsAppkit$"
@@ -337,8 +355,9 @@
                 if [ "''${1:-}" = "--save-baseline" ]; then
                   out="''${2:-$baseline}"
                   echo "== bench-spike: pinning baseline to $out ($count x $benchtime) =="
-                  (cd setup && go test "''${bench_args[@]}" .) | tee "$out"
+                  { echo "load1: $load1"; (cd setup && go test "''${bench_args[@]}" .); } | tee "$out"
                   echo "Saved $out — commit it so everyone gates against the same numbers."
+                  echo "Re-pin policy: re-pin when quiet-state medians drift >10% from this baseline or after any machine change; the load1 header records the pinning context."
                   exit 0
                 fi
 
