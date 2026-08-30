@@ -945,6 +945,14 @@
                 ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
                 text = ''
                   export GOEXPERIMENT=jsonv2
+                  # Playwright must download browsers to a WRITABLE path. The
+                  # ambient value may point at a dead mount (e.g. the /mnt/buildcache
+                  # sda1 on the 2026-08 machine) — fall back to /tmp when the
+                  # configured path cannot be created.
+                  if ! mkdir -p "''${PLAYWRIGHT_BROWSERS_PATH:-/tmp/pw-browsers}" 2>/dev/null; then
+                    export PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers
+                    mkdir -p "$PLAYWRIGHT_BROWSERS_PATH"
+                  fi
                   # On NixOS, Playwright's downloaded Chromium cannot run (no FHS linker).
                   # Use the Nix-packaged Chromium via E2E_BROWSER_PATH.
                   if [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
@@ -977,6 +985,11 @@
 
                   if command -v bun >/dev/null 2>&1; then
                     bun install --frozen-lockfile 2>/dev/null || bun install
+                    # Auto-provision the browser when no Nix/system Chromium
+                    # was found (no-op fast path when already installed).
+                    if [ -z "''${E2E_BROWSER_PATH:-}" ]; then
+                      bun x playwright install chromium ffmpeg
+                    fi
                     bun run test
                   elif command -v pnpm dlx >/dev/null 2>&1; then
                     pnpm dlx playwright install chromium

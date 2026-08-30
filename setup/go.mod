@@ -19,6 +19,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/httputil v0.12.0
+	modernc.org/sqlite v1.56.0
 )
 
 require (
@@ -37,9 +38,14 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.28 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
+	github.com/ncruces/go-strftime v1.0.0 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/xo/terminfo v1.0.0 // indirect
 	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297 // indirect
+	modernc.org/libc v1.75.3 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
+	modernc.org/memory v1.12.0 // indirect
 )
 
 require (
@@ -79,7 +85,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.1
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0

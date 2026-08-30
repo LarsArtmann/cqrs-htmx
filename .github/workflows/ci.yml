@@ -568,6 +568,24 @@ jobs:
       - name: Domain model count drift check
         run: bash scripts/check-domain-counts.sh
 
+      # Shell scripts are load-bearing gates now (verify-tag, train check,
+      # isolation...). Lint them in CI; treefmt owns local formatting.
+      - name: Shellcheck gate scripts
+        run: |
+          mapfile -t files < <(find /mnt/scripts -name '*.sh' | sort)
+          docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable "${files[@]}"
+
+      - name: Actionlint workflow
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:latest -color
+
+      # Offline fixture self-tests for the release tag protocol + the
+      # pre-commit hook installer (git only, no network, no signing keys).
+      - name: verify-tag fixture self-test
+        run: bash scripts/test-verify-tag.sh
+
+      - name: install-git-hooks self-test
+        run: bash scripts/test-install-git-hooks.sh
+
       - name: Markdown link check
         run: bash scripts/check-docs-links.sh
 
