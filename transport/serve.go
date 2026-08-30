@@ -54,7 +54,7 @@ type filteredEventStore struct {
 }
 
 func (f *filteredEventStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
-	return f.inner.EventsAfter(lastID)
+	return f.inner.EventsAfter(lastID) //nolint:wrapcheck // adapter propagates the store error verbatim
 }
 
 func (f *filteredEventStore) EventsAfterFiltered(
@@ -63,7 +63,7 @@ func (f *filteredEventStore) EventsAfterFiltered(
 ) ([]sse.Event, error) {
 	events, err := f.inner.EventsAfter(lastID)
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck // adapter propagates the store error verbatim
 	}
 
 	out := make([]sse.Event, 0, len(events))
@@ -75,6 +75,40 @@ func (f *filteredEventStore) EventsAfterFiltered(
 	}
 
 	return out, nil
+}
+
+// subscribe applies the configured filter to the live subscription (nil
+// filter = unfiltered Subscribe).
+func (c serveDomainEventsConfig) subscribe(b *sse.Broadcaster[sse.Event]) <-chan sse.Event {
+	if c.filter != nil {
+		return b.SubscribeFilter(c.filter)
+	}
+
+	return b.Subscribe()
+}
+
+// replayEvents writes the journal backfill to the stream, honoring the
+// configured filter. A nil store means live-only (no backfill).
+func (c serveDomainEventsConfig) replayEvents(stream *sse.Stream, store sse.EventStore) {
+	if store == nil {
+		return
+	}
+
+	lastID := stream.LastEventID()
+
+	if c.filter != nil {
+		filtered := &filteredEventStore{inner: store, match: c.filter}
+
+		if _, err := sse.ReplayFiltered(stream, filtered, lastID, c.filter); err != nil {
+			slog.Warn(c.logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
+		}
+
+		return
+	}
+
+	if _, err := sse.Replay(stream, store, lastID); err != nil {
+		slog.Warn(c.logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
+	}
 }
 
 // ServeDomainEvents returns an [http.HandlerFunc] that streams domain events
@@ -107,6 +141,7 @@ func ServeDomainEvents(
 	cfg := serveDomainEventsConfig{
 		logPrefix:          "transport",
 		unavailableMessage: "SSE not available",
+		filter:             nil,
 	}
 	for _, opt := range opts {
 		opt(&cfg)
@@ -124,32 +159,12 @@ func ServeDomainEvents(
 
 		// Subscribe BEFORE replay to avoid missing events during the replay
 		// window — live events buffer in the channel while replay writes.
-		var ch <-chan sse.Event
-		if cfg.filter != nil {
-			ch = broadcaster.SubscribeFilter(cfg.filter)
-		} else {
-			ch = broadcaster.Subscribe()
-		}
+		ch := cfg.subscribe(broadcaster)
 		defer broadcaster.Unsubscribe(ch)
 
 		_ = stream.Send(sse.Event{Event: sse.EventConnected, Data: "connected"})
 
-		if store != nil {
-			lastID := stream.LastEventID()
-
-			if cfg.filter != nil {
-				if _, err := sse.ReplayFiltered(
-					stream,
-					&filteredEventStore{inner: store, match: cfg.filter},
-					lastID,
-					cfg.filter,
-				); err != nil {
-					slog.Warn(cfg.logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
-				}
-			} else if _, err := sse.Replay(stream, store, lastID); err != nil {
-				slog.Warn(cfg.logPrefix+": SSE replay failed", "error", err, "lastEventID", lastID.Get())
-			}
-		}
+		cfg.replayEvents(stream, store)
 
 		// Heartbeat runs alongside the event loop. Derive a cancellable
 		// context and join the goroutine before this handler returns: a
