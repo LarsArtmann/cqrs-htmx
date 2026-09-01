@@ -146,8 +146,8 @@ github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0 h1:trJNEAwj8Cc+mdrj9Xi
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0/go.mod h1:1snbKSGj4FYoqTddSPcg9yRCo28u7zpIl7jRtq6KLFQ=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0 h1:zqmMGLRjtYZH5mzDPVk7tdmYyAXrtcp2/uBeOu7MhgU=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0/go.mod h1:JprJQuKpBmL55Sk+Rrh3TGGxHTOZL1TRtCeCQMM89HQ=
-github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.8.1 h1:jYT7x2CF/c1jYrIcJJEkmPS6XtxxFHbv8EI+x+StsDY=
-github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.8.1/go.mod h1:8RDawRXyuFYE8XuB0hk83E7AiWH/QRiktFBM70in3xg=
+github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.9.0 h1:fIC3oiJ/wuK0XrLZgYquHJU6usbHXxJ57x2fBg6PGlQ=
+github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.9.0/go.mod h1:8RDawRXyuFYE8XuB0hk83E7AiWH/QRiktFBM70in3xg=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.9.0 h1:5noqQCu9stFsHccS6zSe+NuAwYlPiRUVZBWHw48k9cY=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.9.0/go.mod h1:SmLhL4UUiBTGQQf59EhYMy1JQBG+VAxLjamVnjxTV70=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.9.0 h1:E1g8W65VmkHVNiEV32BcQxlvTVrsYKgIz8cbyWP/+eU=
