@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [v4.9.0] - 2026-09-01
+
 ### Changed
 
 - **Pareto-plan execution session (2026-08-30 evening): unbreakable releases + gates that gate.** verify-tag hardened: refuses ANY local-path replace (closes the sibling-replace hole where a tagged module would ship content consumers cannot resolve), parses single-line AND block requires, runs all guards under `--dry-run`; regression-tested by `scripts/test-verify-tag.sh` (12 cases, fixture corpus includes the REAL poisoned setup/v4.8.1 go.mod). `scripts/install-git-hooks.sh` + tracked `scripts/hooks/pre-commit.template`: the ACTIVE hook path turned out to be `.githooks/` (global `core.hooksPath`) and it did not exist — the manual gates had been silently dead; installer resolves the active path, `--verify` byte-checks, `--force` restores after buildflow regeneration, 10-case self-test. Retraction publication recipe (setup v4.8.4) prepared in runbook §6b (execution still gated on g1). LICENSE: usermgmt + dashboardui PROPRIETARY scaffolding licenses ("Copyright Unknown Author") replaced with the root MIT text, plus MIT added to 9 published modules missing one entirely — pkg.go.dev showed "License: UNKNOWN" AND suppressed documentation; visibility lands per-module at the next tag. `nix run .#check-release-train -- <flags>` now forwards flags (--json/--strict-lag/--refresh-cache), and the JSON gained `cache_age_seconds` + the human mode a stale-cache hint. transport: `WithSSEFilter(pred)` productionizes the filtered-SSE spike — live via SubscribeFilter, replay fail-closed through a store wrapper — and the /sse endpoint-shape decision one-pager (options A-D + recommendation) awaits the user. Contract suites: setup bundle-level SQL restart (user survives via hydration, session issued on instance #1 authenticates on #2 through a supplied store, health green) and usermgmt counting-store contracts for the WebAuthnSession/VerificationToken/PendingTOTP hatches. The bundle restart test flushed out a REAL setup bug: the auth handler wrote `session_token` while the session middleware read `session` — authenticated requests silently stayed anonymous in the default composition; the handler now gets `cfg.CookieName` explicitly. e2e app gained a browsers-path writability fallback + ffmpeg auto-provision (the dead /mnt/buildcache also poisoned the ambient PLAYWRIGHT_BROWSERS_PATH). styles.css: the minified tailwind artifact verified class-parity (166/166) and adopted as canonical, closing the hand-revert-every-commit gotcha. batch-release.sh retired to `attic/` (superseded by verify-tag + release playbook). Docs truth sweep: AGENTS templ-components family v1.11.0 (five modules), go-cqrs-lite v4.9-era version list, Go 1.26.7 row, stale record/v4 V006 comment; runbook §0 annotated historical; new guides `release-playbook.md` + `v5-removal-inventory.md` (linked from ADR-0047); gated-decision prep docs (v4 purge, blob purge with the proxy-cached-tag recommendation NOT to rewrite, hardware decision recommending repointing caches to persistent NVMe, cqrs-lint Go-distribution draft, upstream asks, appkit fold-in re-validated as UNBLOCKED).
@@ -185,6 +195,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **adminui compiled Tailwind CSS minified** (`adminui/assets/tailwind.css`): production CSS bundle minified for smaller embedded payload.
 - **`setup/v4` module integrated into all workspace gates**: setup is now included in `nix run .#coverage-gate` (threshold 80%, actual 85.3%), the CI workflow (`build`, `test`, coverage check, `lint`, `mod-tidy`, `errorfamily` scanner), `check-module-isolation.sh`, and `check-dep-budgets.sh` (budget 14, actual 11 direct deps). The `forEachGoModule` apps (`build`, `test`, `lint`, `coverage`) already auto-discovered setup from `go.work`; this adds the remaining hardcoded-list gates. Lint-checked module count: 11 → 12.
 - **`systemadapter/v4` excluded from lint gate** (`flake.nix`): The work-in-progress systemadapter module has 104 lint issues (contextcheck, SA1019, exhaustruct, err113, etc.) from another agent's session. Added `systemadapter$` to the lint exclusion regex (`'^(e2e/|examples/|systemadapter$)'`) to keep the workspace lint green for the 12 lint-checked modules. Lint remediation is tracked in TODO_LIST.
+
+## [v4.8.1] - 2026-08-18
+
+Root-module patch cut (Go 1.26.7 toolchain, go-sse v0.5.1, SSE heartbeat support; commit `282fcd49`). No separate section was cut at tag time; the full v4.8.x-era record — including the 2026-08-30 family alignment train (`usermgmt/v4.8.1`, first-ever `usermgmt/totp/v4.8.1` + `usermgmt/oauth2/v4.8.1`, `dashboardui/v4.8.2`, `setup/v4.8.3`) and the poisoned-tag post-mortem — is documented in the [v4.9.0] section above.
+
+## [v4.8.0] - 2026-08-14
+
+First coordinated 10-tag family train (root, identity-model, usermgmt, usermgmt/webauthn, loginpage, dashboardui, adminui, setup, health, auditlog — first tags for the latter three). No separate section was cut at tag time; the v4.8.0-era work is recorded in the [v4.9.0] section above.
 
 ## [v4.7.0] - 2026-08-07
 
