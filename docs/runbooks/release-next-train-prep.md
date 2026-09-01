@@ -128,7 +128,13 @@ Precondition discipline: re-derive every "current state" fact from
 2026-08-30 runbook were wrong within 24 hours of being written. Tables
 above describe intent, not reality — verify, do not trust.
 
-## 6b. Retraction publication recipe — setup v4.8.4 (PREPARED 2026-08-30, EXECUTION GATED ON g1)
+## 6b. Retraction publication recipe — setup v4.8.4 (EXECUTED 2026-09-01 — folded into the v4.9.0 family cut per the "if folded" branch)
+
+**STATUS: EXECUTED.** g1 resolved by folding: `setup/v4.9.0` (not a v4.8.4
+patch) carries the retract directives. Verified live post-push:
+`go list -m -versions` hides v4.8.1 + v4.8.2, `@latest` resolves v4.9.0,
+clean-dir `go get` green against proxy.golang.org. The recipe below is
+retained verbatim as the template for the NEXT retraction.
 
 The retract directives for the poisoned setup/v4.8.1 + v4.8.2 already sit
 on master (`setup/go.mod`, verified parseable via `go mod edit -json`,
@@ -174,24 +180,24 @@ GONOSUMDB= GOPROXY=https://proxy.golang.org go list -m -retracted github.com/lar
 GOBIN=$(mktemp -d) go install github.com/larsartmann/cqrs-htmx/setup/v4@v4.8.4 2>&1 | grep -i retract || true
 ```
 
-## 7. Post-execution stage floor (recorded 2026-08-30, post-sweep)
+## 7. Post-execution stage floor (recorded 2026-09-01, post-v4.9.0 train)
 
-State after the 2026-08-30 lag sweep (366→0) and systemadapter
-replace-strips — the first GREEN strict-drift since 2026-08-15:
+State after the v4.9.0 family train (13 tags, all verify-tag --push):
+strict drift stays confined to the go-cqrs-lite sibling axes inside
+systemadapter + examples/system-demo.
 
 | Stage                  | Status | Notes                                                                                                                                                        |
 | ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | module-isolation       | ✅     | 27 modules GOWORK=off                                                                                                                                        |
 | dep-budgets            | ✅     |                                                                                                                                                              |
 | go-toolchain           | ✅     | 1.26.7 everywhere                                                                                                                                            |
-| version-drift --strict | ✅     | was RED on 5 go-cqrs-lite axes; upstream tagged (metaengine v4.12.0, sqliteengine v4.2.0, event v4.9.0, metadata v4.6.0, record v4.4.0) and requires aligned |
-| release-train          | ✅     | 0 unpublished / 1 replace-exempted (systemadapter projectionadapter, upstream v4.5.0 still untagged) / 0 lag (was 366)                                       |
-| replace-directives     | ✅     | systemadapter keeps ONLY the projectionadapter replace                                                                                                       |
+| version-drift --strict | ✅     | only the documented go-cqrs-lite sibling axes (systemadapter + system-demo)                                                                                   |
+| release-train          | ✅     | 0 unpublished / 1 replace-exempted (systemadapter projectionadapter, upstream v4.5.0 still untagged) / 0 lag                                                  |
+| replace-directives     | ✅     | systemadapter keeps ONLY the projectionadapter replace; setup's go-appkit replace STRIPPED at v4.9.0 (published require, CI green again)                       |
 
 Remaining replace inventory (all with removal conditions):
 
 - systemadapter + examples/system-demo: `metaengine/projectionadapter/v4 =>
   local` — strip once projectionadapter v4.5.0+ is tagged (v4.4.1 is the
-  current max; OccurredAt on EventWithID needs v4.5.0).
-- setup: `go-appkit => ../../go-appkit` — spike-only (ADR-001), harmless to
-  consumers, strip at the appkit fold-in decision.
+  current max; OccurredAt on EventWithID needs v4.5.0). When that unlocks,
+  systemadapter's FIRST tag joins the then-current family version.
