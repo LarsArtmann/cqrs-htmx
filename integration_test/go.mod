@@ -3,14 +3,14 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.26.7
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.2
-	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.8.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.8.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.2.2
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.3.0
@@ -66,14 +66,14 @@ require (
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/webauthn v0.17.4 // indirect
-	github.com/go-webauthn/x v0.2.8 // indirect
+	github.com/go-webauthn/x v0.3.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.8.1
-	github.com/larsartmann/cqrs-htmx/health/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
+	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/health/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.5.0 // indirect
