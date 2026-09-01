@@ -125,5 +125,3 @@ retract (
 	v4.8.2
 	v4.8.1
 )
-
-replace github.com/larsartmann/go-appkit => ../../go-appkit
