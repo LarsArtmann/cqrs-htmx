@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/health/v4
 go 1.26.7
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
+	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-health v0.0.2
 	github.com/larsartmann/go-health-dashboard v0.3.0
