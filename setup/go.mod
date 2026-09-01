@@ -5,12 +5,12 @@ module github.com/larsartmann/cqrs-htmx/setup/v4
 go 1.26.7
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.8.2
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.8.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.8.1
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
