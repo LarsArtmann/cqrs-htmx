@@ -117,6 +117,12 @@ linters:
       - path: _test\.go
         linters:
           - goconst
+      # Provider names are intrinsic protocol strings (URL path segments
+      # matching oauth2.Provider config), not domain constants — the lookup
+      # map keys are their natural representation. Excluded for goconst only.
+      - path: config\.go
+        linters:
+          - goconst
       - path: _test\.go
         linters:
           - paralleltest

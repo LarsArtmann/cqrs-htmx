@@ -23,6 +23,15 @@ jobs:
         with:
           go-version-file: go.mod
 
+      # systemadapter + examples/system-demo replace
+      # go-cqrs-lite/metaengine/projectionadapter/v4 with the sibling master
+      # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
+      # targets ../../go-cqrs-lite, which exists on dev machines only — clone
+      # it so this job builds the same content the local gates verify.
+      # REMOVE this step when the projectionadapter replace strips.
+      - name: Clone go-cqrs-lite sibling (replace target)
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+
       - name: Build root module
         run: go build ./...
         env:
@@ -182,6 +191,15 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
+
+      # systemadapter + examples/system-demo replace
+      # go-cqrs-lite/metaengine/projectionadapter/v4 with the sibling master
+      # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
+      # targets ../../go-cqrs-lite, which exists on dev machines only — clone
+      # it so this job builds the same content the local gates verify.
+      # REMOVE this step when the projectionadapter replace strips.
+      - name: Clone go-cqrs-lite sibling (replace target)
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: Test root module
         run: go test ./... -count=1 -race -coverprofile=coverage.out
@@ -362,6 +380,15 @@ jobs:
         with:
           go-version-file: go.mod
 
+      # systemadapter + examples/system-demo replace
+      # go-cqrs-lite/metaengine/projectionadapter/v4 with the sibling master
+      # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
+      # targets ../../go-cqrs-lite, which exists on dev machines only — clone
+      # it so this job builds the same content the local gates verify.
+      # REMOVE this step when the projectionadapter replace strips.
+      - name: Clone go-cqrs-lite sibling (replace target)
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+
       - name: golangci-lint (root)
         uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
         with:
@@ -491,6 +518,15 @@ jobs:
         with:
           go-version-file: go.mod
 
+      # systemadapter + examples/system-demo replace
+      # go-cqrs-lite/metaengine/projectionadapter/v4 with the sibling master
+      # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
+      # targets ../../go-cqrs-lite, which exists on dev machines only — clone
+      # it so this job builds the same content the local gates verify.
+      # REMOVE this step when the projectionadapter replace strips.
+      - name: Clone go-cqrs-lite sibling (replace target)
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
+
       - name: Verify go mod tidy (all modules)
         run: |
           for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui setup systemadapter health auditlog integration_test examples/basic examples/admin-demo examples/catalog-demo examples/datastar-demo examples/middleware-demo examples/observability-demo examples/dashboard-demo; do
@@ -520,6 +556,15 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
+
+      # systemadapter + examples/system-demo replace
+      # go-cqrs-lite/metaengine/projectionadapter/v4 with the sibling master
+      # (unpublished v4.5.0 API; removal condition in AGENTS.md). The replace
+      # targets ../../go-cqrs-lite, which exists on dev machines only — clone
+      # it so this job builds the same content the local gates verify.
+      # REMOVE this step when the projectionadapter replace strips.
+      - name: Clone go-cqrs-lite sibling (replace target)
+        run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: Module isolation check (GOWORK=off build+vet)
         run: bash scripts/check-module-isolation.sh
@@ -572,7 +617,11 @@ jobs:
       # isolation...). Lint them in CI; treefmt owns local formatting.
       - name: Shellcheck gate scripts
         run: |
-          mapfile -t files < <(find /mnt/scripts -name '*.sh' | sort)
+          # Paths must be container-relative (/mnt is the docker volume below);
+          # the previous `find /mnt/scripts` silently found nothing on CI
+          # runners (no /mnt mount there) and shellcheck exited 3 on an empty
+          # file list.
+          mapfile -t files < <(cd scripts && find . -name '*.sh' | sort | sed 's|^\./|/mnt/scripts/|')
           docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable "${files[@]}"
 
       - name: Actionlint workflow
@@ -623,6 +672,9 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
