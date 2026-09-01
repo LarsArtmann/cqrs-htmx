@@ -5,7 +5,7 @@ go 1.26.7
 
 require (
 	github.com/dustin/go-humanize v1.0.1
-	github.com/larsartmann/cqrs-htmx/v4 v4.8.1
+	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-codec v0.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
@@ -60,8 +60,3 @@ require (
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning
 //cqrs-lint:ignore(E009) dashboard IS the transport/view layer
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
-
-// DEV-ONLY (remove before the next family tag): dashboardui uses the new
-// transport.DomainEventToSSE helper in the unpublished root master. Strip
-// this replace when cutting the coordinated family version.
-replace github.com/larsartmann/cqrs-htmx/v4 => ../
