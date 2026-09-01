@@ -66,13 +66,16 @@ BASELINE
   chmod +x "$1/pre-commit"
 }
 
-new_scratch() { # echoes scratch dir; hook dir from core.hooksPath or .git/hooks
+new_scratch() { # echoes scratch dir; repo-local hooksPath keeps the suite
+  # hermetic — identical behavior with or without a global core.hooksPath
+  # (CI runners have none; dev machines set .githooks globally)
   local scratch
   scratch="$(mktemp -d)"
   git -C "$scratch" init -q
   git -C "$scratch" config user.email fixture@example.com
   git -C "$scratch" config user.name fixture
   git -C "$scratch" config commit.gpgsign false
+  git -C "$scratch" config core.hooksPath .githooks
   mkdir -p "$scratch/scripts/hooks" "$scratch/scripts/lib"
   cp "$TEMPLATE" "$scratch/scripts/hooks/"
   cp "$INSTALLER" "$scratch/scripts/"
@@ -97,7 +100,7 @@ rm -rf "$S"
 
 # --- T2: default mode refuses a buildflow-regenerated hook -----------------
 S="$(new_scratch)"
-HD="$S/$(git -C "$S" rev-parse --git-path hooks)"
+HD="$S/.githooks"
 mkdir -p "$HD"
 write_baseline "$HD"
 set +e
@@ -110,7 +113,7 @@ rm -rf "$S"
 
 # --- T3: --force restores byte-match; T4: default idempotent; T5: verify ---
 S="$(new_scratch)"
-HD="$S/$(git -C "$S" rev-parse --git-path hooks)"
+HD="$S/.githooks"
 mkdir -p "$HD"
 write_baseline "$HD"
 set +e

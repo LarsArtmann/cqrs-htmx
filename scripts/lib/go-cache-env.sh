@@ -28,6 +28,12 @@ if ! mkdir -p "${GOCACHE:-$HOME/.cache/go-build}" 2>/dev/null ||
   mkdir -p "$GOCACHE" "$GOMODCACHE" "$GOLANGCI_LINT_CACHE"
 fi
 
+# Pin GOCACHE to the default when the ambient env carries none (CI
+# runners) — the disk-space guard below reads it and `set -u` sourcing
+# contexts would otherwise abort with "GOCACHE: unbound variable" (seen
+# on the module-architecture CI job, 2026-09-01).
+export GOCACHE="${GOCACHE:-$HOME/.cache/go-build}"
+
 _cache_min_free_mb="${GO_CACHE_MIN_FREE_MB:-2048}"
 case "$_cache_min_free_mb" in
 '' | *[!0-9]*) _cache_min_free_mb="2048" ;;
