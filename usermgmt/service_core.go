@@ -215,6 +215,13 @@ type ServiceConfig struct {
 	// auto-provisioning. Existing users can always log in. Zero (the default)
 	// means unlimited registration. Set to 1 for single-user deployments to
 	// automatically lock registration after the first user is created.
+	//
+	// Limitation: the gate serializes check-then-register per PROCESS (via
+	// registrationMu). Horizontally scaled replicas each hold their own
+	// mutex, so N replicas can transiently admit up to N extra users before
+	// their read models converge. Deployments that must never exceed
+	// MaxUsers exactly should run a single writer replica (the common
+	// single-user homelab case this gate targets).
 	MaxUsers int
 }
 

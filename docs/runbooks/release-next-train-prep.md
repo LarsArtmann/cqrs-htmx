@@ -186,14 +186,14 @@ State after the v4.9.0 family train (13 tags, all verify-tag --push):
 strict drift stays confined to the go-cqrs-lite sibling axes inside
 systemadapter + examples/system-demo.
 
-| Stage                  | Status | Notes                                                                                                                                                        |
-| ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| module-isolation       | ✅     | 27 modules GOWORK=off                                                                                                                                        |
-| dep-budgets            | ✅     |                                                                                                                                                              |
-| go-toolchain           | ✅     | 1.26.7 everywhere                                                                                                                                            |
-| version-drift --strict | ✅     | only the documented go-cqrs-lite sibling axes (systemadapter + system-demo)                                                                                   |
-| release-train          | ✅     | 0 unpublished / 1 replace-exempted (systemadapter projectionadapter, upstream v4.5.0 still untagged) / 0 lag                                                  |
-| replace-directives     | ✅     | systemadapter keeps ONLY the projectionadapter replace; setup's go-appkit replace STRIPPED at v4.9.0 (published require, CI green again)                       |
+| Stage                  | Status | Notes                                                                                                                                    |
+| ---------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| module-isolation       | ✅     | 27 modules GOWORK=off                                                                                                                    |
+| dep-budgets            | ✅     |                                                                                                                                          |
+| go-toolchain           | ✅     | 1.26.7 everywhere                                                                                                                        |
+| version-drift --strict | ✅     | only the documented go-cqrs-lite sibling axes (systemadapter + system-demo)                                                              |
+| release-train          | ✅     | 0 unpublished / 1 replace-exempted (systemadapter projectionadapter, upstream v4.5.0 still untagged) / 0 lag                             |
+| replace-directives     | ✅     | systemadapter keeps ONLY the projectionadapter replace; setup's go-appkit replace STRIPPED at v4.9.0 (published require, CI green again) |
 
 Remaining replace inventory (all with removal conditions):
 

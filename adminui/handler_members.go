@@ -78,6 +78,7 @@ func parseTenantMemberPath(
 
 // tenantRemoveMember handles "remove member" in super-admin mode.
 func (h *Handler) tenantRemoveMember(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	// art-dupl:accept thin member handlers intentionally parallel: parse path, delegate to the action-specific do* method
 	back := h.config.BasePath + "/tenants/" + r.PathValue("id")
 	tenantID, actor, ok := parseTenantMemberPath(w, r, back)
 	if !ok {
@@ -143,6 +144,7 @@ func (h *Handler) membersUpdateRole(w http.ResponseWriter, r *http.Request, _ *i
 
 // tenantUpdateMemberRole handles "change role" in super-admin mode.
 func (h *Handler) tenantUpdateMemberRole(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+	// art-dupl:accept thin member handlers intentionally parallel: parse path, delegate to the action-specific do* method
 	back := h.config.BasePath + "/tenants/" + r.PathValue("id")
 	tenantID, actor, ok := parseTenantMemberPath(w, r, back)
 	if !ok {

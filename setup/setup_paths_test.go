@@ -23,19 +23,30 @@ import (
 
 // --- Default paths ---
 
-func TestMount_LoginPageReachable(t *testing.T) {
-	t.Parallel()
+// newMountedServer builds a setup bundle with the given title, mounts it on
+// a fresh mux wrapped in the bundle middleware, and returns the live test
+// server. Bundle and server are closed automatically when the test ends.
+func newMountedServer(t *testing.T, title string) *httptest.Server {
+	t.Helper()
 
 	bundle := setup.MustNew(setup.Config{
-		Title: "Mount Test",
+		Title: title,
 	})
-	defer func() { _ = bundle.Close() }()
+	t.Cleanup(func() { _ = bundle.Close() })
 
 	mux := http.NewServeMux()
 	bundle.Mount(mux)
 
 	server := httptest.NewServer(bundle.Middleware()(mux))
-	defer server.Close()
+	t.Cleanup(server.Close)
+
+	return server
+}
+
+func TestMount_LoginPageReachable(t *testing.T) {
+	t.Parallel()
+
+	server := newMountedServer(t, "Mount Test")
 
 	resp, err := http.Get(server.URL + "/")
 	if err != nil {
@@ -53,16 +64,7 @@ func TestMount_LoginPageReachable(t *testing.T) {
 func TestMount_AdminRedirectsWithoutSession(t *testing.T) {
 	t.Parallel()
 
-	bundle := setup.MustNew(setup.Config{
-		Title: "Admin Test",
-	})
-	defer func() { _ = bundle.Close() }()
-
-	mux := http.NewServeMux()
-	bundle.Mount(mux)
-
-	server := httptest.NewServer(bundle.Middleware()(mux))
-	defer server.Close()
+	server := newMountedServer(t, "Admin Test")
 
 	resp, err := http.Get(server.URL + "/admin/")
 	if err != nil {
@@ -78,16 +80,7 @@ func TestMount_AdminRedirectsWithoutSession(t *testing.T) {
 func TestNew_DashboardRoute_RequiresSession(t *testing.T) {
 	t.Parallel()
 
-	bundle := setup.MustNew(setup.Config{
-		Title: "Dashboard Route Test",
-	})
-	defer func() { _ = bundle.Close() }()
-
-	mux := http.NewServeMux()
-	bundle.Mount(mux)
-
-	server := httptest.NewServer(bundle.Middleware()(mux))
-	defer server.Close()
+	server := newMountedServer(t, "Dashboard Route Test")
 
 	// The dashboard renders event payloads and stream IDs — it must never be
 	// reachable without an authenticated session. The session middleware only
@@ -162,14 +155,7 @@ func TestNew_HealthEndpoint_Reachable(t *testing.T) {
 func TestMount_HealthEndpoint_ContentJSON(t *testing.T) {
 	t.Parallel()
 
-	bundle := setup.MustNew(setup.Config{Title: "Content-Type Test"})
-	defer func() { _ = bundle.Close() }()
-
-	mux := http.NewServeMux()
-	bundle.Mount(mux)
-
-	server := httptest.NewServer(bundle.Middleware()(mux))
-	defer server.Close()
+	server := newMountedServer(t, "Content-Type Test")
 
 	resp, err := http.Get(server.URL + "/health")
 	if err != nil {

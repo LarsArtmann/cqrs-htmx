@@ -3,7 +3,7 @@ package setup_test
 import (
 	"bytes"
 	"database/sql"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"net/http"
@@ -181,7 +181,7 @@ func TestBundle_SQLPersistence_SurvivesRestart(t *testing.T) {
 	var meBody struct {
 		Email string `json:"email"`
 	}
-	_ = json.NewDecoder(meResp.Body).Decode(&meBody)
+	_ = json.UnmarshalRead(meResp.Body, &meBody)
 	if meBody.Email != "restart@example.com" {
 		t.Fatalf("instance #2 resolved the wrong user: %q", meBody.Email)
 	}
