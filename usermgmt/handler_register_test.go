@@ -1,6 +1,7 @@
 package usermgmt
 
 import (
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -68,6 +69,19 @@ func TestHandlers_Register_MaxUsersReached_Returns403(t *testing.T) {
 	w = postJSON(t, mux, "/auth/register",
 		fmt.Sprintf(`{"id":%q,"email":"second@test.com"}`, NewUserID("u2").Get().String()))
 	assertStatusCode(t, w, http.StatusForbidden)
+
+	var body struct {
+		Error string `json:"error"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+		t.Fatalf("unmarshal error body: %v", err)
+	}
+	if body.Error != friendlyRegistrationClosedMessage {
+		t.Fatalf("error body = %q, want the friendly registration-closed message", body.Error)
+	}
+	if strings.Contains(body.Error, "usermgmt") {
+		t.Fatalf("error body leaks the machine code: %q", body.Error)
+	}
 }
 
 func wrapSessionMiddleware(

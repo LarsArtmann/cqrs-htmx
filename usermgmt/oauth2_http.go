@@ -56,7 +56,7 @@ func (h *AuthHandler) handleOAuth2Callback(w http.ResponseWriter, r *http.Reques
 	h.withTimeoutCtx(r, func(ctx context.Context) {
 		resp, err := h.service.FinishOAuthLogin(ctx, provider, code, state)
 		if err != nil {
-			h.oauth2Error(w, r, errorStatus(err), err.Error())
+			h.oauth2Error(w, r, errorStatus(err), friendlyAuthMessage(err))
 			return
 		}
 

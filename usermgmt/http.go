@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -337,6 +338,22 @@ func requirePathValue(w http.ResponseWriter, r *http.Request, key, errMsg string
 	return val, true
 }
 
+// friendlyRegistrationClosedMessage is the user-facing text for
+// ErrRegistrationClosed. The raw sentinel text ("registration is closed")
+// reads like a bug to the person hitting it; this says what happened and
+// what to do instead.
+const friendlyRegistrationClosedMessage = "New sign-ups are closed on this server. If you should have access, ask the administrator to add you, then sign in with your existing account."
+
+// friendlyAuthMessage maps selected sentinel errors to user-facing text and
+// falls back to err.Error() for everything else. Only 4xx auth-surface
+// errors belong here — machine-facing errors keep their raw messages.
+func friendlyAuthMessage(err error) string {
+	if errors.Is(err, ErrRegistrationClosed) {
+		return friendlyRegistrationClosedMessage
+	}
+	return err.Error()
+}
+
 // errorStatus derives the HTTP status for an error. Each usermgmt sentinel
 // carries its own status (via cqrshtmx.WithHTTPStatus) where it differs from
 // the error-family default, so this delegates entirely to cqrshtmx.MapError —
@@ -351,7 +368,7 @@ func errorStatus(err error) int {
 // writeDispatchError(w, r, err) pattern across all usermgmt HTTP handlers.
 func writeDispatchError(w http.ResponseWriter, r *http.Request, err error) {
 	status := errorStatus(err)
-	body := map[string]string{errorKey: err.Error()}
+	body := map[string]string{errorKey: friendlyAuthMessage(err)}
 	if code := cqrshtmx.ErrorCode(err); code != "" {
 		body[codeKey] = code
 	}
