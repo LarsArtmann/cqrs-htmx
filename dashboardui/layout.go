@@ -35,9 +35,9 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 	fmt.Fprintf(&b, "<title>%s · %s</title>\n", esc(p.Title), esc(p.Brand))
 	fmt.Fprintf(&b, "<style>:root{--accent:%s;}</style>\n", esc(p.Accent))
 	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", p.BasePath)
-	fmt.Fprintf(&b, "<script src=\"%s/-/htmx.js\"></script>\n", p.BasePath)
+	fmt.Fprintf(&b, "<script src=\"%s/-/htmx.js\" defer></script>\n", p.BasePath)
 
-	fmt.Fprintf(&b, "<script src=\"%s/-/dashboard.js\"></script>\n", p.BasePath)
+	fmt.Fprintf(&b, "<script src=\"%s/-/dashboard.js\" defer></script>\n", p.BasePath)
 
 	b.WriteString("</head>\n<body>\n")
 

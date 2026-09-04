@@ -452,3 +452,42 @@ func TestDashboard_SSEBridgeWorks(t *testing.T) {
 		t.Fatal("timed out waiting for SSE event from broadcaster")
 	}
 }
+
+// TestLayout_ScriptsAreDeferred pins the CSP-safe script loading contract:
+// htmx.js and dashboard.js are emitted in <head>, so they MUST carry defer.
+// Without it, dashboard.js executes before <body> exists, throws
+// "Cannot read properties of null (reading 'addEventListener')" on the
+// showToast listener, and every handler registered after it — including the
+// SSE connect — silently never runs (page stuck on "Connecting").
+func TestLayout_ScriptsAreDeferred(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	d, err := New(Config{
+		EventSource: store,
+		Journal:     store,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+
+	body := rec.Body.String()
+	for _, want := range []string{
+		`<script src="/dashboard/-/htmx.js" defer></script>`,
+		`<script src="/dashboard/-/dashboard.js" defer></script>`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("layout missing deferred script tag %q", want)
+		}
+	}
+}
