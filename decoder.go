@@ -29,24 +29,13 @@ func readBodyForDecode(r *http.Request, maxBodySize int64, errCode string) ([]by
 	return body, nil
 }
 
-// readForDecode reads the request body for a decoder, returning a zero out
-// on failure. code names the failure site ("cqrshtmx.decode.json.read_failed").
-func readForDecode[T any](r *http.Request, maxBodySize int64, code string) (T, []byte, error) {
-	var out T
-
-	body, err := readBodyForDecode(r, maxBodySize, code)
-	if err != nil {
-		return out, nil, err
-	}
-
-	return out, body, nil
-}
-
 // decodeJSONBody decodes JSON from request body into type T.
 // If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
 // An empty body (e.g. GET request with no body) is treated as a zero-value T, not an error.
 func decodeJSONBody[T any](r *http.Request, maxBodySize int64) (T, error) {
-	out, body, err := readForDecode[T](r, maxBodySize, "cqrshtmx.decode.json.read_failed")
+	var out T
+
+	body, err := readBodyForDecode(r, maxBodySize, "cqrshtmx.decode.json.read_failed")
 	if err != nil {
 		return out, err
 	}
@@ -115,7 +104,9 @@ func decodeRequest[T, R any](
 // decodeFormBody parses form data and decodes into type T.
 // If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
 func decodeFormBody[T any](r *http.Request, maxBodySize int64) (T, error) {
-	out, body, err := readForDecode[T](r, maxBodySize, "cqrshtmx.decode.form.read_failed")
+	var out T
+
+	body, err := readBodyForDecode(r, maxBodySize, "cqrshtmx.decode.form.read_failed")
 	if err != nil {
 		return out, err
 	}
