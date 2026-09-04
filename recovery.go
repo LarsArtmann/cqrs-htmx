@@ -63,12 +63,28 @@ func writePanicResponse(
 		}
 	}
 
-	slog.ErrorContext(
-		r.Context(), "panic recovered",
+	// Emit the recovered IDs as record attributes (not just context values):
+	// with a plain slog handler that has no ctx extractor, the surrounding
+	// request logs carry request_id/correlation_id but this record would not
+	// (cqrs-htmx#13).
+	attrs := []slog.Attr{
 		slog.Any("panic", rec),
 		slog.String("method", r.Method),
 		slog.String("path", r.URL.Path),
 		slog.String("stack", string(debug.Stack())),
+	}
+
+	if rid := RequestIDFromContext(r.Context()); !rid.IsZero() {
+		attrs = append(attrs, slog.String(logFieldRequestID, rid.String()))
+	}
+
+	if cid := CorrelationIDFromContext(r.Context()); !cid.IsZero() {
+		attrs = append(attrs, slog.String(logFieldCorrelationID, cid.String()))
+	}
+
+	slog.LogAttrs(
+		r.Context(), slog.LevelError, "panic recovered",
+		attrs...,
 	)
 
 	handler(w, r, errorfamily.Newf(event.Infrastructure, panicCode, "panic: %v", rec))
