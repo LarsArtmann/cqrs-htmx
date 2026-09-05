@@ -65,7 +65,7 @@ require (
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-appkit v0.3.0
+	github.com/larsartmann/go-appkit v0.4.0
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
@@ -90,10 +90,10 @@ require (
 	github.com/larsartmann/go-idempotency v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
-	github.com/larsartmann/templ-components v1.11.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.11.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.11.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.11.0 // indirect
+	github.com/larsartmann/templ-components v1.13.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.13.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.13.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.13.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect

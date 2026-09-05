@@ -18,7 +18,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.4.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-sse v0.6.0
-	github.com/larsartmann/templ-components/icons v1.11.0
+	github.com/larsartmann/templ-components/icons v1.13.0
 )
 
 require (
@@ -43,7 +43,7 @@ require (
 	github.com/larsartmann/go-idempotency v0.2.0 // indirect
 	github.com/larsartmann/httputil v0.12.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.11.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.13.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

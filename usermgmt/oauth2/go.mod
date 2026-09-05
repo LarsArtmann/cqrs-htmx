@@ -7,6 +7,6 @@ require (
 	golang.org/x/oauth2 v0.36.0
 )
 
-require github.com/go-jose/go-jose/v4 v4.1.4
+require github.com/go-jose/go-jose/v4 v4.1.5
 
 require github.com/larsartmann/go-error-family v0.10.0

@@ -221,11 +221,10 @@ var _ = Describe("Recovery Middleware", func() {
 	})
 })
 
-
 // slogCaptureHandler collects panic-recovery records so tests can assert the
 // emitted attributes.
 type slogCaptureHandler struct {
-	mu     sync.Mutex
+	mu      sync.Mutex
 	records []map[string]string
 }
 

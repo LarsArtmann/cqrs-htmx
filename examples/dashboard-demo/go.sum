@@ -153,10 +153,10 @@ github.com/larsartmann/httputil v0.12.0 h1:ghPiGCu5UeCWaVnJ5S1fpzxOOBjWewEOHh61g
 github.com/larsartmann/httputil v0.12.0/go.mod h1:tBPIqaXXZ/AtGXR/kq0wFR0Wlt2WRVXTOpYl/oSajnI=
 github.com/larsartmann/httputil/server_timing v0.12.0 h1:1Vqxl4L/3lDw38LlImG/5glFaCd4ZTU1KHtIXFvNWn0=
 github.com/larsartmann/httputil/server_timing v0.12.0/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
-github.com/larsartmann/templ-components/icons v1.11.0 h1:Slp1M5Zc1NosCDNb17v8PysBPWNcKyamIVLHXxmAUqk=
-github.com/larsartmann/templ-components/icons v1.11.0/go.mod h1:ELOHHmUyp671d5KaGWyqOyz7SrrVW358nhzVB7Ajq4s=
-github.com/larsartmann/templ-components/utils v1.11.0 h1:eC4lWuBca3b8uruwY61Q7+Uyjl5UiJWLWJhY571464M=
-github.com/larsartmann/templ-components/utils v1.11.0/go.mod h1:vYC5Ysy6Gl3KSQGFu68e6xMXivRIMK5qExFtn3l02uk=
+github.com/larsartmann/templ-components/icons v1.13.0 h1:smOd62k5JDg7Eysfxkl4iuwyM83CZ92HXS+p3/gjFDA=
+github.com/larsartmann/templ-components/icons v1.13.0/go.mod h1:qVA5YenJPe/Jm8VBtyqevDa5TqXLpsZb7s1p2en1NbY=
+github.com/larsartmann/templ-components/utils v1.13.0 h1:YJ8Jhkl/OBqf8sNOaKDiZ8BiBVgS2nmIO9poMMpENUw=
+github.com/larsartmann/templ-components/utils v1.13.0/go.mod h1:TMNksqxKc069NOZFa2ggm7taiDulJWT4kf+HYJCeNpY=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 h1:eveIIGn4BGM3qknO74omf6HYr30/exH+eVUTuAgwjZ0=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5/go.mod h1:autxFIvghDt3jPTLoqZ9OZ7s9qTGNAWmYCjVFWPX/zg=
 github.com/magiconair/properties v1.18.11 h1:j5ozYZl0zCjG7ahMDH0GWIobOvvUzT0BdAguG0ViKy0=

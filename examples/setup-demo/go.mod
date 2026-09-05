@@ -39,7 +39,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.9.0 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0 // indirect
-	github.com/larsartmann/go-appkit v0.3.0 // indirect
+	github.com/larsartmann/go-appkit v0.4.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
@@ -71,10 +71,10 @@ require (
 	github.com/larsartmann/go-idempotency v0.2.0 // indirect
 	github.com/larsartmann/httputil v0.12.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
-	github.com/larsartmann/templ-components v1.11.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.11.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.11.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.11.0 // indirect
+	github.com/larsartmann/templ-components v1.13.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.13.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.13.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.13.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
