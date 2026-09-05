@@ -1,9 +1,12 @@
 package cqrshtmx_test
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -218,3 +221,81 @@ var _ = Describe("Recovery Middleware", func() {
 	})
 })
 
+
+// slogCaptureHandler collects panic-recovery records so tests can assert the
+// emitted attributes.
+type slogCaptureHandler struct {
+	mu     sync.Mutex
+	records []map[string]string
+}
+
+func (h *slogCaptureHandler) Enabled(_ context.Context, _ slog.Level) bool { return true }
+
+func (h *slogCaptureHandler) Handle(_ context.Context, r slog.Record) error {
+	if r.Message != "panic recovered" {
+		return nil
+	}
+
+	m := map[string]string{}
+
+	r.Attrs(func(a slog.Attr) bool {
+		m[a.Key] = a.Value.String()
+
+		return true
+	})
+
+	h.mu.Lock()
+	h.records = append(h.records, m)
+	h.mu.Unlock()
+
+	return nil
+}
+
+func (h *slogCaptureHandler) WithAttrs(_ []slog.Attr) slog.Handler { return h }
+
+func (h *slogCaptureHandler) WithGroup(_ string) slog.Handler { return h }
+
+var _ = Describe("RecoverHandler panic logging", func() {
+	// cqrs-htmx#13: the recovered request/correlation ids must appear as log
+	// record attributes, not only in the request context — with a plain slog
+	// handler (no ctx extractor) the surrounding request lines carry them
+	// but the panic line otherwise would not.
+	It("logs request_id and correlation_id attributes on panic recovery", func() {
+		disp := command.NewDispatcher()
+		_ = disp.Register("CreateUser", noOpCommandHandler)
+		app, err := cqrshtmx.New(cqrshtmx.Config{
+			Commands:      disp,
+			LoginRedirect: "/auth/signin",
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		capture := &slogCaptureHandler{}
+
+		prev := slog.Default()
+		slog.SetDefault(slog.New(capture))
+		DeferCleanup(func() { slog.SetDefault(prev) })
+
+		requestID := cqrshtmx.NewRequestID().String()
+		correlationID := cqrshtmx.NewCorrelationID().String()
+
+		panicHandler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+			panic("logged panic")
+		})
+
+		handler := cqrshtmx.ContextEnrichmentMiddleware(nil)(
+			app.RecoverHandler()(panicHandler),
+		)
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		r.Header.Set("X-Request-ID", requestID)
+		r.Header.Set("X-Correlation-ID", correlationID)
+		handler.ServeHTTP(w, r)
+
+		Expect(w.Code).To(Equal(http.StatusInternalServerError))
+
+		Expect(capture.records).To(HaveLen(1))
+		Expect(capture.records[0]["request_id"]).To(Equal(requestID))
+		Expect(capture.records[0]["correlation_id"]).To(Equal(correlationID))
+	})
+})
