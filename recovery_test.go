@@ -271,6 +271,7 @@ var _ = Describe("RecoverHandler panic logging", func() {
 		capture := &slogCaptureHandler{}
 
 		prev := slog.Default()
+
 		slog.SetDefault(slog.New(capture))
 		DeferCleanup(func() { slog.SetDefault(prev) })
 

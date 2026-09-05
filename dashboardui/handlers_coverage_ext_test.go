@@ -432,7 +432,7 @@ func TestIsHTMXRequest_NormalRequest(t *testing.T) {
 
 func TestIsHTMXRequest_BoostedRequest(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
-	r.Header.Set("HX-Request", "true")
+	r.Header.Set("Hx-Request", "true")
 
 	if !isHTMXRequest(r) {
 		t.Fatal("expected true for HTMX request")
@@ -442,7 +442,7 @@ func TestIsHTMXRequest_BoostedRequest(t *testing.T) {
 func TestRenderLayout_HTMXPartial(t *testing.T) {
 	d := mustTestDashboard(t)
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
-	r.Header.Set("HX-Request", "true")
+	r.Header.Set("Hx-Request", "true")
 
 	p := d.page("Events", "/events", r)
 	html := d.renderLayout(p, func() string { return "<p>test content</p>" })
@@ -847,7 +847,7 @@ func TestOverviewHandler_HTMXReturnsPartial(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	r.Header.Set("HX-Request", "true")
+	r.Header.Set("Hx-Request", "true")
 	d.overviewHandler(w, r)
 
 	body := w.Body.String()
