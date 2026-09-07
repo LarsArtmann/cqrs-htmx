@@ -15,7 +15,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-	"github.com/larsartmann/go-sse"
 )
 
 // TestDatastarDisabledByDefault verifies the ADR-0050 opt-in contract: with
@@ -105,7 +104,7 @@ func TestDatastarScriptPath_OptOut(t *testing.T) {
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/datastar.js", nil))
 	if rec.Code != http.StatusNotFound {
-		t.Errorf("script with DataStarScriptPath \"-\": got %d, want 404", rec.Code)
+		t.Errorf(`script with DataStarScriptPath "-": got %d, want 404`, rec.Code)
 	}
 
 	rec = httptest.NewRecorder()
@@ -116,7 +115,7 @@ func TestDatastarScriptPath_OptOut(t *testing.T) {
 }
 
 // TestDatastarFeed_SessionGated verifies the ADR-0050 gating posture: 401
-// without a session, SSE stream for an authenticated one.
+// without a session, an SSE stream for an authenticated one.
 func TestDatastarFeed_SessionGated(t *testing.T) {
 	t.Parallel()
 
@@ -135,8 +134,8 @@ func TestDatastarFeed_SessionGated(t *testing.T) {
 		t.Fatalf("unauthenticated feed: got %d, want 401", rec.Code)
 	}
 
-	authed := authenticatedDatastarRequest(t, "/ds/events")
-	if ct := authed.Header().Get("Content-Type"); !strings.Contains(ct, "text/event-stream") {
+	streamed := streamDatastarFeed(t, b, "/ds/events", nil)
+	if ct := streamed.Header().Get("Content-Type"); !strings.Contains(ct, "text/event-stream") {
 		t.Errorf("authenticated feed content type: got %q, want text/event-stream", ct)
 	}
 }
@@ -147,15 +146,7 @@ func TestDatastarFeed_SessionGated(t *testing.T) {
 func TestDatastarFeed_SharedHubBroadcast(t *testing.T) {
 	t.Parallel()
 
-	store := memorystorage.NewMemoryStore()
-	bus := eventtest.NewFakeBus()
-
-	b, err := setup.New(setup.Config{
-		Title:       "SharedHub",
-		DataStarPath: "/ds/events",
-		EventStore:  store,
-		EventBus:    bus,
-	})
+	b, err := setup.New(setup.Config{Title: "SharedHub", DataStarPath: "/ds/events"})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -170,7 +161,9 @@ func TestDatastarFeed_SharedHubBroadcast(t *testing.T) {
 		t.Fatalf("SignalsPatch: %v", err)
 	}
 
-	rec := authenticatedDatastarRequest(t, "/ds/events")
+	rec := streamDatastarFeed(t, b, "/ds/events", func(b *setup.Bundle) {
+		b.Broadcaster.Broadcast(patch.Event())
+	})
 	body := rec.Body.String()
 
 	if !strings.Contains(body, "datastar-patch-signals") {
@@ -207,8 +200,8 @@ func TestDatastarOnly_NoSSERoute(t *testing.T) {
 	}
 }
 
-// TestDatastarEventsFromBus verifies domain events committed to the event bus
-// reach a connected DataStar client as patch-encoded SSE frames.
+// TestDatastarEventsFromBus verifies domain events published to the event bus
+// reach a connected DataStar client as SSE frames on the shared hub.
 func TestDatastarEventsFromBus(t *testing.T) {
 	t.Parallel()
 
@@ -238,23 +231,23 @@ func TestDatastarEventsFromBus(t *testing.T) {
 		t.Fatalf("Save: %v", err)
 	}
 
-	rec := authenticatedDatastarRequest(t, "/ds/events")
+	rec := streamDatastarFeed(t, b, "/ds/events", func(b *setup.Bundle) {
+		if err := bus.Publish(context.Background(), evt); err != nil {
+			t.Errorf("bus publish: %v", err)
+		}
+	})
 
 	if !strings.Contains(rec.Body.String(), evt.ID().String()) {
 		t.Errorf("stream body should contain the bus-published event ID %q\nbody:\n%s", evt.ID().String(), rec.Body.String())
 	}
 }
 
-// authenticatedDatastarRequest streams /ds/events with an injected session,
-// publishes a patch on the shared hub, lets the stream drain briefly, then
-// cancels and returns the recorder.
-func authenticatedDatastarRequest(t *testing.T, path string) *httptest.ResponseRecorder {
+// streamDatastarFeed opens an authenticated /ds/events stream on a fresh mux,
+// runs the optional broadcast hook while the stream is live, then cancels and
+// returns the recorder. The hook runs after the subscriber is connected, so
+// hub fan-out reaches the stream deterministically.
+func streamDatastarFeed(t *testing.T, b *setup.Bundle, path string, during func(*setup.Bundle)) *httptest.ResponseRecorder {
 	t.Helper()
-
-	b, ok := datastarBundleFromContext(t)
-	if !ok {
-		t.Fatal("no bundle registered for this test")
-	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -273,7 +266,11 @@ func authenticatedDatastarRequest(t *testing.T, path string) *httptest.ResponseR
 	}()
 
 	time.Sleep(150 * time.Millisecond)
-	b.Broadcaster.Broadcast(sse.Event{Event: "datastar-patch-signals", Data: `signals: {"count":42}`})
+
+	if during != nil {
+		during(b)
+	}
+
 	time.Sleep(150 * time.Millisecond)
 
 	cancel()
