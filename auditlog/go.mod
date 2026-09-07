@@ -14,7 +14,7 @@ require (
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260903151058-ae99b731b8c5 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260906173415-0277a179edd9 // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
@@ -28,18 +28,18 @@ require (
 	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output v0.37.0 // indirect
-	github.com/larsartmann/go-output/d2 v0.37.0 // indirect
-	github.com/larsartmann/go-output/daghtml v0.37.0 // indirect
-	github.com/larsartmann/go-output/delimited v0.37.0 // indirect
-	github.com/larsartmann/go-output/escape v0.37.0 // indirect
-	github.com/larsartmann/go-output/graph v0.37.0 // indirect
-	github.com/larsartmann/go-output/markdown v0.37.0 // indirect
-	github.com/larsartmann/go-output/markup v0.37.0 // indirect
-	github.com/larsartmann/go-output/plantuml v0.37.0 // indirect
-	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
-	github.com/larsartmann/go-output/table v0.37.0 // indirect
-	github.com/larsartmann/go-output/tree v0.37.0 // indirect
+	github.com/larsartmann/go-output v0.38.0 // indirect
+	github.com/larsartmann/go-output/d2 v0.38.0 // indirect
+	github.com/larsartmann/go-output/daghtml v0.38.0 // indirect
+	github.com/larsartmann/go-output/delimited v0.38.0 // indirect
+	github.com/larsartmann/go-output/escape v0.38.0 // indirect
+	github.com/larsartmann/go-output/graph v0.38.0 // indirect
+	github.com/larsartmann/go-output/markdown v0.38.0 // indirect
+	github.com/larsartmann/go-output/markup v0.38.0 // indirect
+	github.com/larsartmann/go-output/plantuml v0.38.0 // indirect
+	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
+	github.com/larsartmann/go-output/table v0.38.0 // indirect
+	github.com/larsartmann/go-output/tree v0.38.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.29 // indirect

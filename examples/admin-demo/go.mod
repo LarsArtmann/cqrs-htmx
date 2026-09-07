@@ -57,11 +57,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-idempotency v0.2.0 // indirect
-	github.com/larsartmann/templ-components v1.13.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.13.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.13.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.13.0 // indirect
+	github.com/larsartmann/go-idempotency v0.3.0 // indirect
+	github.com/larsartmann/templ-components v1.13.2 // indirect
+	github.com/larsartmann/templ-components/htmx v1.13.2 // indirect
+	github.com/larsartmann/templ-components/icons v1.13.2 // indirect
+	github.com/larsartmann/templ-components/utils v1.13.2 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect

@@ -68,13 +68,13 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-idempotency v0.2.0 // indirect
+	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/httputil v0.12.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
-	github.com/larsartmann/templ-components v1.13.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.13.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.13.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.13.0 // indirect
+	github.com/larsartmann/templ-components v1.13.2 // indirect
+	github.com/larsartmann/templ-components/htmx v1.13.2 // indirect
+	github.com/larsartmann/templ-components/icons v1.13.2 // indirect
+	github.com/larsartmann/templ-components/utils v1.13.2 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

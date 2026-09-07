@@ -41,7 +41,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-etag v0.2.0 // indirect
-	github.com/larsartmann/go-idempotency v0.2.0
+	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.39.0 // indirect

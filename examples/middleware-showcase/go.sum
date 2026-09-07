@@ -68,8 +68,8 @@ github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxm
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-etag v0.2.0 h1:K9+EOWRMKzA50cZxSF6yhKCCm9O011h3aVnt2E0dZRU=
 github.com/larsartmann/go-etag v0.2.0/go.mod h1:c2PnfOTTSerzR/EKI3vMIJYvEddG7fBeGDpllyskc2w=
-github.com/larsartmann/go-idempotency v0.2.0 h1:SpkK2C9bW/lLxTJb4Au1jTNAM0w/vQhjwTsvpr/wNc4=
-github.com/larsartmann/go-idempotency v0.2.0/go.mod h1:VjTQypq0FQLA9AmageDkuFoUFfN2hd3eErSFZo9ip+I=
+github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
+github.com/larsartmann/go-idempotency v0.3.0/go.mod h1:VjTQypq0FQLA9AmageDkuFoUFfN2hd3eErSFZo9ip+I=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
 github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
 github.com/larsartmann/go-sse/ssetest v0.3.0 h1:HEP3nFUsaWAz6fz8WmbeR2nUj6jv/cAHf+7HVeMeRRY=
