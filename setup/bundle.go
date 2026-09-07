@@ -5,6 +5,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
+	"github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -50,11 +51,21 @@ type Bundle struct {
 	// Journal() and EventBus() — the exact infrastructure it publishes to.
 	Stores *Stores
 
-	// Broadcaster is the shared SSE fan-out hub behind [Config.SSEPath].
-	// It is nil unless SSEPath is set. Subscribe to it (or use its Raw() hub)
-	// to fan out custom real-time payloads alongside the domain-event feed,
-	// or mount additional endpoints serving from the same hub via ServeSSE.
+	// Broadcaster is the shared SSE fan-out hub behind [Config.SSEPath] and
+	// [Config.DataStarPath] (both feeds serve from this one hub — a single
+	// broadcast reaches HTMX and DataStar clients, ADR-0050).
+	// It is nil unless SSEPath or DataStarPath is set. Subscribe to it (or use
+	// its Hub() accessor) to fan out custom real-time payloads alongside the
+	// domain-event feed, or mount additional endpoints serving from the same
+	// hub via ServeSSE.
 	Broadcaster *cqrshtmx.Broadcaster
+
+	// DataStarBroadcaster serves the DataStar wire format from the SAME hub as
+	// [Bundle.Broadcaster]. Nil unless Config.DataStarPath is set. Use it to
+	// broadcast your own DataStar patches to the feed's subscribers
+	// (Broadcast/SignalPatch/ElementsPatch). Do not close it — lifecycle is
+	// owned by [Bundle.Close] via the shared hub.
+	DataStarBroadcaster *datastar.Broadcaster
 
 	// config holds the resolved configuration (defaults applied).
 	config Config
@@ -68,7 +79,7 @@ type Bundle struct {
 
 	// sseStore backs reconnect replay (Last-Event-ID) and initial backfill for
 	// the shared SSE endpoint. Nil when the event store does not implement
-	// event.Journal or when SSEPath is not configured.
+	// event.Journal or when neither SSEPath nor DataStarPath is configured.
 	sseStore sse.EventStore
 }
 

@@ -114,6 +114,29 @@ type Config struct {
 	// window and prevent sending the entire journal history on first connect.
 	SSEMaxReplay int
 
+	// DataStarPath mounts a DataStar SSE feed that streams the same events as
+	// the SSEPath feed, encoded as DataStar patches for the Datastar SDK
+	// (default: "" = not mounted). Both feeds fan out from ONE shared hub
+	// ([Bundle.Broadcaster]) — a single broadcast reaches HTMX and DataStar
+	// clients simultaneously (ADR-0050).
+	//
+	// The endpoint is session-gated (401 without an authenticated session),
+	// mirroring the SSEPath contract: event metadata (stream IDs, types) is
+	// not public data. The feed is live fan-out only — /sse remains the
+	// replay-capable endpoint (Last-Event-ID backfill from the journal).
+	//
+	// Requires the event-bus bridge (created automatically): with only
+	// DataStarPath set, [Bundle.Broadcaster] still exists and bridges the
+	// event bus, but no /sse route is mounted.
+	DataStarPath string
+
+	// DataStarScriptPath controls where the DataStar SDK script
+	// ([datastar.ScriptHandler]) is served when DataStarPath is set.
+	// Default ("") = "/datastar.js". Set to "-" to NOT serve the script from
+	// the bundle (e.g. you load the SDK from a CDN); the SDK script tag must
+	// then point at your own location. Ignored when DataStarPath is empty.
+	DataStarScriptPath string
+
 	// UI configuration (all optional — sensible defaults).
 	Title       string // page title for all panels (default: "cqrs-htmx")
 	AccentColor string // CSS accent color (default: "#0ea5e9")
@@ -238,6 +261,14 @@ func (c Config) withDefaults() Config {
 
 	// SSE is an exact-match endpoint, like health.
 	cfg.SSEPath = trimTrailingSlash(cfg.SSEPath)
+
+	// DataStar endpoints are exact-match endpoints, like SSE.
+	cfg.DataStarPath = trimTrailingSlash(cfg.DataStarPath)
+	cfg.DataStarScriptPath = trimTrailingSlash(cfg.DataStarScriptPath)
+
+	if cfg.DataStarPath != "" && cfg.DataStarScriptPath == "" {
+		cfg.DataStarScriptPath = "/datastar.js"
+	}
 
 	if cfg.SSEHeartbeatInterval == 0 {
 		cfg.SSEHeartbeatInterval = 15 * time.Second
@@ -372,6 +403,16 @@ func (c Config) validatePathShapes() error {
 			"setup.invalid_config", "SSEPath must start with %q (got %q)", "/", c.SSEPath)
 	}
 
+	if c.DataStarPath != "" && !startsWithSlash(c.DataStarPath) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config", "DataStarPath must start with %q (got %q)", "/", c.DataStarPath)
+	}
+
+	if c.DataStarScriptPath != "" && c.DataStarScriptPath != "-" && !startsWithSlash(c.DataStarScriptPath) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config", "DataStarScriptPath must start with %q, be empty, or be \"-\" to disable (got %q)", "/", c.DataStarScriptPath)
+	}
+
 	if !startsWithSlash(c.LoginRedirect) && !startsWithScheme(c.LoginRedirect) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config",
@@ -389,10 +430,11 @@ func (c Config) validatePathShapes() error {
 // as its catch-all, so any panel or health endpoint there would collide at
 // Mount time.
 func (c Config) validatePathRoots() error {
-	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" || c.SSEPath == "/" {
+	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" || c.SSEPath == "/" ||
+		c.DataStarPath == "/" || (c.DataStarScriptPath == "/") {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",
-			"AdminPath, DashboardPath, HealthPath, and SSEPath must not be \"/\" — the site root is reserved for the login page",
+			"AdminPath, DashboardPath, HealthPath, SSEPath, DataStarPath, and DataStarScriptPath must not be \"/\" — the site root is reserved for the login page",
 		)
 	}
 
@@ -411,6 +453,8 @@ func requireDistinctPaths(c Config) error {
 		{"DashboardPath", trimTrailingSlash(c.DashboardPath)},
 		{"HealthPath", trimTrailingSlash(c.HealthPath)},
 		{"SSEPath", trimTrailingSlash(c.SSEPath)},
+		{"DataStarPath", trimTrailingSlash(c.DataStarPath)},
+		{"DataStarScriptPath", trimTrailingSlash(c.DataStarScriptPath)},
 	}
 
 	for i := range paths {

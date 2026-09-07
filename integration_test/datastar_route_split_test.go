@@ -2,9 +2,9 @@ package integration_test
 
 import (
 	"net/http"
-	"time"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/cqrs-htmx/datastar/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
