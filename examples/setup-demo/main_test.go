@@ -225,26 +225,31 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 	}
 
 	// Dual-transport assertion (ADR-0050): the SAME broadcast action also
-	// reaches the DataStar feed — connect, broadcast again, scan for the
-	// signal patch frame.
-	dsReq, err := http.NewRequest(http.MethodGet, server.URL+"/ds/events", nil)
-	if err != nil {
-		t.Fatalf("new DataStar request: %v", err)
-	}
-	dsReq.Header.Set("Cookie", strings.Join(cookies, "; "))
-	dsReq.Header.Set("Accept", "text/event-stream")
+	// reaches the DataStar feed. The DataStar stream flushes on first frame
+	// (no connected-event), so broadcast WHILE connecting: fire the request
+	// in a goroutine, push the patch, then read frames off the response.
+	var dsResp *http.Response
+	dsErr := make(chan error, 1)
 
-	dsCtx, dsCancel := context.WithTimeout(ctx, 5*time.Second)
-	defer dsCancel()
-	dsResp, err := (&http.Client{Timeout: 5 * time.Second}).Do(dsReq.WithContext(dsCtx))
-	if err != nil {
-		t.Fatalf("GET /ds/events (authed): %v", err)
-	}
-	defer dsResp.Body.Close()
+	go func() {
+		dsReq, err := http.NewRequest(http.MethodGet, server.URL+"/ds/events", nil)
+		if err != nil {
+			dsErr <- err
 
-	if dsResp.StatusCode != http.StatusOK {
-		t.Fatalf("GET /ds/events (authed): status %d, want 200", dsResp.StatusCode)
-	}
+			return
+		}
+
+		dsReq.Header.Set("Cookie", strings.Join(cookies, "; "))
+		dsReq.Header.Set("Accept", "text/event-stream")
+
+		dsCtx, dsCancel := context.WithTimeout(ctx, 5*time.Second)
+		defer dsCancel()
+
+		dsResp, err = (&http.Client{Timeout: 5 * time.Second}).Do(dsReq.WithContext(dsCtx))
+		dsErr <- err
+	}()
+
+	time.Sleep(150 * time.Millisecond)
 
 	second, err := http.Post(server.URL+"/broadcast", "application/json", nil)
 	if err != nil {
@@ -252,6 +257,14 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 	}
 	_, _ = io.Copy(io.Discard, second.Body)
 	second.Body.Close()
+
+	if err := <-dsErr; err != nil {
+		t.Fatalf("GET /ds/events (authed): %v", err)
+	}
+
+	if dsResp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /ds/events (authed): status %d, want 200", dsResp.StatusCode)
+	}
 
 	dsScanner := bufio.NewScanner(dsResp.Body)
 	patchFound := false
