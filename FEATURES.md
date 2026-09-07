@@ -367,7 +367,7 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## datastar Module (`github.com/larsartmann/cqrs-htmx/datastar/v4`)
 
-> NEW [Unreleased]. Optional Datastar frontend adapter — use Datastar instead of (or alongside) HTMX. Fully isolated module (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045.
+> Optional Datastar frontend adapter — use Datastar instead of (or alongside) HTMX. Fully isolated module (no root dependency). See `docs/guides/datastar-integration.md` and ADR-0045. Dual-frontend strategy decided by ADR-0050 (route-split coexistence); `setup/v4` composes the feed via `Config.DataStarPath` (see the setup module section).
 
 | Feature              | Status                | Notes                                                                                                                                                                                                                                                                                          |
 | -------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
