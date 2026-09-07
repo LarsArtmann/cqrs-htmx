@@ -204,6 +204,44 @@ Non-negotiable rules:
 2. **CSRF on mutations only** — GET (SSE, views) skips CSRF.
 3. **Security OUTERMOST** — recovery catches panics from everything.
 
+### Route-split coexistence: HTMX and DataStar on one hub (ADR-0050)
+
+HTMX and DataStar clients can consume the SAME domain events from separate
+endpoints — one fan-out hub, two wire formats. This is the accepted strategy
+(ADR-0050): route-split, not dual-mode handlers. The one-call SDK composes it
+for you via `setup.Config.DataStarPath` (see below); the manual recipe is the
+same wiring the flag performs:
+
+```go
+// Requires: setup bundle with SSEPath set (owns the hub + journal bridge).
+//   go get github.com/larsartmann/cqrs-htmx/datastar/v4
+
+dsb := ds.NewBroadcasterFromHub(bundle.Broadcaster.Hub())
+
+// Optional: map domain events to DataStar patches (fragment/signal patches).
+bridge := ds.NewEventBridge(dsb)
+bridge.Map("usermgmt.user.registered", func(e event.Event) (ds.Patch, error) {
+    return ds.ElementsPatch("<tr><td>new user</td></tr>",
+        ds.WithSelectorID("user-rows"), ds.WithModeAppend()), nil
+})
+
+mux.Handle("GET /datastar.js", ds.ScriptHandler()) // SDK script
+// The events feed is 401 session-gated exactly like /sse — event metadata is
+// not public data (ADR-0050). Wrap it in YOUR session gate, e.g. the same
+// requireSession-style wrapper that guards your /sse mount:
+mux.Handle("GET /ds/events", sessionGate(dsb))
+```
+
+Why route-split: HTMX partial HTML and DataStar patches are different
+renderings of the same state — one route cannot serve both without doubling
+its render/test surface. Separate endpoints on a shared hub keep the test
+matrix linear, and one `Broadcast` reaches every client of either transport.
+
+Details and tradeoffs (when NOT to share the hub, CORS posture, scoped
+feeds): see `sse-and-datastar.md` and `datastar-integration.md`. The
+contract test `integration_test/datastar_route_split_test.go` proves this
+exact wiring compiles and delivers cross-transport.
+
 ## External Integrations (Optional)
 
 ### go-health + go-health-dashboard (the `health/v4` module)
