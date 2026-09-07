@@ -1,0 +1,1556 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DataStar Dual-Frontend Rollout — Pareto Plan</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>PARETO EXECUTION PLAN</span>
+      <span>2026-09-07 17:18</span>
+      <span>CQRS-HTMX &middot; DATASTAR ROLLOUT</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#pareto">Pareto Tiers</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#plan-medium">Plan (30-100m)</a>
+          <a href="#plan-fine">Plan (&le;12m)</a>
+          <a href="#risks">Risks &amp; Guards</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Execution Plan</div>
+          <h1>DataStar Dual-Frontend Rollout</h1>
+          <p class="hero-subtitle">
+            Pareto-ranked execution plan for making HTMX + DataStar dual
+            support a first-class, documented, tested feature — and for the
+            demand-gated panel variants beyond it. Derived from the research
+            report
+            <code
+              >docs/architecture-understanding/2026-09-07_datastar-dual-frontend-support.html</code
+            >.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-bad">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Tasks in the 1% tier (&rarr;51% value)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">16</div>
+            <div class="stat-label">Medium tasks (30-100m)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">87</div>
+            <div class="stat-label">Fine tasks (&le;12m)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">16.4h</div>
+            <div class="stat-label">Total estimated effort</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>The 1% that delivers 51%</h4>
+          <p>
+            <strong>M1 + M2 + M3</strong>: a
+            <code>setup.Config.DataStar</code> opt-in that mounts
+            <code>/datastar.js</code> and a DataStar SSE feed on
+            <em>the same hub</em> as the existing HTMX feed (via
+            <code>NewBroadcasterFromHub</code>), plus the route-split
+            coexistence recipe in the fullstack-wiring guide. Dual support
+            stops being tribal knowledge and becomes a shipped, tested,
+            documented feature. Total: ~2.25h.
+          </p>
+        </div>
+        <div class="card card-problem">
+          <h4>Deliberately excluded from the 1%</h4>
+          <p>
+            Converting adminui/dashboardui/loginpage to dual-mode rendering
+            (Model B in the research report) is the highest-effort,
+            lowest-certainty work and stays demand-gated in P4. The library
+            principle ("never enforce defaults") also prohibits bundling
+            DataStar into the existing panels' dependency trees.
+          </p>
+        </div>
+
+        <h2 id="pareto"><span class="num">01</span>Pareto Tiers</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Tier</th>
+              <th>Tasks</th>
+              <th>Delivers</th>
+              <th>Why these</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-critical">1% &rarr; 51%</span></td>
+              <td>M1, M2, M3 (~2.25h)</td>
+              <td>
+                Dual support is a real, tested, documented setup feature
+              </td>
+              <td>
+                The capability exists today but is undiscoverable tribal
+                knowledge; shipping it in <code>setup</code> makes it one
+                config flag
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-high">4% &rarr; 64%</span></td>
+              <td>+ M4, M5 (~1.75h)</td>
+              <td>Decision recorded (ADR-0049) + runnable proof in a demo</td>
+              <td>
+                Prevents re-litigating the strategy; gives consumers a
+                copy-paste reference
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-low">20% &rarr; 80%</span></td>
+              <td>+ M6-M10 (~3.25h)</td>
+              <td>Guides, living docs, gate sweep, changelog</td>
+              <td>
+                Everything a release-quality feature needs beyond the code
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-fixed">to 100%</span></td>
+              <td>+ M11-M16 (~9.2h, demand-gated)</td>
+              <td>
+                dashboardui/loginpage/adminui DataStar variants, offline-sync
+                evaluation, release train
+              </td>
+              <td>
+                ROADMAP-listed future scope; executed only when consumer
+                demand exists
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="graph"><span class="num">02</span>Execution Graph</h2>
+        <p>
+          Dependency flow between phases. M1 is the keystone: the demo, the
+          integration guide, and the test suite all consume its API.
+        </p>
+        <div style="overflow-x: auto">
+          <!--D2SVG-->
+<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.8.1-HEAD" preserveAspectRatio="xMinYMin meet" viewBox="0 0 2261 1656"><svg class="d2-3804944640 d2-svg" width="2261" height="1656" viewBox="-51 -134 2261 1656"><rect x="-51.000000" y="-134.000000" width="2261.000000" height="1656.000000" rx="0.000000" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-3804944640 .text {
+	font-family: "d2-3804944640-font-regular";
+}
+@font-face {
+	font-family: d2-3804944640-font-regular;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-3804944640 .text-bold {
+	font-family: "d2-3804944640-font-bold";
+}
+@font-face {
+	font-family: d2-3804944640-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-3804944640 .text-italic {
+	font-family: "d2-3804944640-font-italic";
+}
+@font-face {
+	font-family: d2-3804944640-font-italic;
+	src: url("data:application/font-woff;base64,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");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-3804944640 .fill-N1{fill:#0A0F25;}
+		.d2-3804944640 .fill-N2{fill:#676C7E;}
+		.d2-3804944640 .fill-N3{fill:#9499AB;}
+		.d2-3804944640 .fill-N4{fill:#CFD2DD;}
+		.d2-3804944640 .fill-N5{fill:#DEE1EB;}
+		.d2-3804944640 .fill-N6{fill:#EEF1F8;}
+		.d2-3804944640 .fill-N7{fill:#FFFFFF;}
+		.d2-3804944640 .fill-B1{fill:#0D32B2;}
+		.d2-3804944640 .fill-B2{fill:#0D32B2;}
+		.d2-3804944640 .fill-B3{fill:#E3E9FD;}
+		.d2-3804944640 .fill-B4{fill:#E3E9FD;}
+		.d2-3804944640 .fill-B5{fill:#EDF0FD;}
+		.d2-3804944640 .fill-B6{fill:#F7F8FE;}
+		.d2-3804944640 .fill-AA2{fill:#4A6FF3;}
+		.d2-3804944640 .fill-AA4{fill:#EDF0FD;}
+		.d2-3804944640 .fill-AA5{fill:#F7F8FE;}
+		.d2-3804944640 .fill-AB4{fill:#EDF0FD;}
+		.d2-3804944640 .fill-AB5{fill:#F7F8FE;}
+		.d2-3804944640 .stroke-N1{stroke:#0A0F25;}
+		.d2-3804944640 .stroke-N2{stroke:#676C7E;}
+		.d2-3804944640 .stroke-N3{stroke:#9499AB;}
+		.d2-3804944640 .stroke-N4{stroke:#CFD2DD;}
+		.d2-3804944640 .stroke-N5{stroke:#DEE1EB;}
+		.d2-3804944640 .stroke-N6{stroke:#EEF1F8;}
+		.d2-3804944640 .stroke-N7{stroke:#FFFFFF;}
+		.d2-3804944640 .stroke-B1{stroke:#0D32B2;}
+		.d2-3804944640 .stroke-B2{stroke:#0D32B2;}
+		.d2-3804944640 .stroke-B3{stroke:#E3E9FD;}
+		.d2-3804944640 .stroke-B4{stroke:#E3E9FD;}
+		.d2-3804944640 .stroke-B5{stroke:#EDF0FD;}
+		.d2-3804944640 .stroke-B6{stroke:#F7F8FE;}
+		.d2-3804944640 .stroke-AA2{stroke:#4A6FF3;}
+		.d2-3804944640 .stroke-AA4{stroke:#EDF0FD;}
+		.d2-3804944640 .stroke-AA5{stroke:#F7F8FE;}
+		.d2-3804944640 .stroke-AB4{stroke:#EDF0FD;}
+		.d2-3804944640 .stroke-AB5{stroke:#F7F8FE;}
+		.d2-3804944640 .background-color-N1{background-color:#0A0F25;}
+		.d2-3804944640 .background-color-N2{background-color:#676C7E;}
+		.d2-3804944640 .background-color-N3{background-color:#9499AB;}
+		.d2-3804944640 .background-color-N4{background-color:#CFD2DD;}
+		.d2-3804944640 .background-color-N5{background-color:#DEE1EB;}
+		.d2-3804944640 .background-color-N6{background-color:#EEF1F8;}
+		.d2-3804944640 .background-color-N7{background-color:#FFFFFF;}
+		.d2-3804944640 .background-color-B1{background-color:#0D32B2;}
+		.d2-3804944640 .background-color-B2{background-color:#0D32B2;}
+		.d2-3804944640 .background-color-B3{background-color:#E3E9FD;}
+		.d2-3804944640 .background-color-B4{background-color:#E3E9FD;}
+		.d2-3804944640 .background-color-B5{background-color:#EDF0FD;}
+		.d2-3804944640 .background-color-B6{background-color:#F7F8FE;}
+		.d2-3804944640 .background-color-AA2{background-color:#4A6FF3;}
+		.d2-3804944640 .background-color-AA4{background-color:#EDF0FD;}
+		.d2-3804944640 .background-color-AA5{background-color:#F7F8FE;}
+		.d2-3804944640 .background-color-AB4{background-color:#EDF0FD;}
+		.d2-3804944640 .background-color-AB5{background-color:#F7F8FE;}
+		.d2-3804944640 .color-N1{color:#0A0F25;}
+		.d2-3804944640 .color-N2{color:#676C7E;}
+		.d2-3804944640 .color-N3{color:#9499AB;}
+		.d2-3804944640 .color-N4{color:#CFD2DD;}
+		.d2-3804944640 .color-N5{color:#DEE1EB;}
+		.d2-3804944640 .color-N6{color:#EEF1F8;}
+		.d2-3804944640 .color-N7{color:#FFFFFF;}
+		.d2-3804944640 .color-B1{color:#0D32B2;}
+		.d2-3804944640 .color-B2{color:#0D32B2;}
+		.d2-3804944640 .color-B3{color:#E3E9FD;}
+		.d2-3804944640 .color-B4{color:#E3E9FD;}
+		.d2-3804944640 .color-B5{color:#EDF0FD;}
+		.d2-3804944640 .color-B6{color:#F7F8FE;}
+		.d2-3804944640 .color-AA2{color:#4A6FF3;}
+		.d2-3804944640 .color-AA4{color:#EDF0FD;}
+		.d2-3804944640 .color-AA5{color:#F7F8FE;}
+		.d2-3804944640 .color-AB4{color:#EDF0FD;}
+		.d2-3804944640 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}@media screen and (prefers-color-scheme:dark){
+		.d2-3804944640 .fill-N1{fill:#CDD6F4;}
+		.d2-3804944640 .fill-N2{fill:#BAC2DE;}
+		.d2-3804944640 .fill-N3{fill:#A6ADC8;}
+		.d2-3804944640 .fill-N4{fill:#585B70;}
+		.d2-3804944640 .fill-N5{fill:#45475A;}
+		.d2-3804944640 .fill-N6{fill:#313244;}
+		.d2-3804944640 .fill-N7{fill:#1E1E2E;}
+		.d2-3804944640 .fill-B1{fill:#CBA6f7;}
+		.d2-3804944640 .fill-B2{fill:#CBA6f7;}
+		.d2-3804944640 .fill-B3{fill:#6C7086;}
+		.d2-3804944640 .fill-B4{fill:#585B70;}
+		.d2-3804944640 .fill-B5{fill:#45475A;}
+		.d2-3804944640 .fill-B6{fill:#313244;}
+		.d2-3804944640 .fill-AA2{fill:#f38BA8;}
+		.d2-3804944640 .fill-AA4{fill:#45475A;}
+		.d2-3804944640 .fill-AA5{fill:#313244;}
+		.d2-3804944640 .fill-AB4{fill:#45475A;}
+		.d2-3804944640 .fill-AB5{fill:#313244;}
+		.d2-3804944640 .stroke-N1{stroke:#CDD6F4;}
+		.d2-3804944640 .stroke-N2{stroke:#BAC2DE;}
+		.d2-3804944640 .stroke-N3{stroke:#A6ADC8;}
+		.d2-3804944640 .stroke-N4{stroke:#585B70;}
+		.d2-3804944640 .stroke-N5{stroke:#45475A;}
+		.d2-3804944640 .stroke-N6{stroke:#313244;}
+		.d2-3804944640 .stroke-N7{stroke:#1E1E2E;}
+		.d2-3804944640 .stroke-B1{stroke:#CBA6f7;}
+		.d2-3804944640 .stroke-B2{stroke:#CBA6f7;}
+		.d2-3804944640 .stroke-B3{stroke:#6C7086;}
+		.d2-3804944640 .stroke-B4{stroke:#585B70;}
+		.d2-3804944640 .stroke-B5{stroke:#45475A;}
+		.d2-3804944640 .stroke-B6{stroke:#313244;}
+		.d2-3804944640 .stroke-AA2{stroke:#f38BA8;}
+		.d2-3804944640 .stroke-AA4{stroke:#45475A;}
+		.d2-3804944640 .stroke-AA5{stroke:#313244;}
+		.d2-3804944640 .stroke-AB4{stroke:#45475A;}
+		.d2-3804944640 .stroke-AB5{stroke:#313244;}
+		.d2-3804944640 .background-color-N1{background-color:#CDD6F4;}
+		.d2-3804944640 .background-color-N2{background-color:#BAC2DE;}
+		.d2-3804944640 .background-color-N3{background-color:#A6ADC8;}
+		.d2-3804944640 .background-color-N4{background-color:#585B70;}
+		.d2-3804944640 .background-color-N5{background-color:#45475A;}
+		.d2-3804944640 .background-color-N6{background-color:#313244;}
+		.d2-3804944640 .background-color-N7{background-color:#1E1E2E;}
+		.d2-3804944640 .background-color-B1{background-color:#CBA6f7;}
+		.d2-3804944640 .background-color-B2{background-color:#CBA6f7;}
+		.d2-3804944640 .background-color-B3{background-color:#6C7086;}
+		.d2-3804944640 .background-color-B4{background-color:#585B70;}
+		.d2-3804944640 .background-color-B5{background-color:#45475A;}
+		.d2-3804944640 .background-color-B6{background-color:#313244;}
+		.d2-3804944640 .background-color-AA2{background-color:#f38BA8;}
+		.d2-3804944640 .background-color-AA4{background-color:#45475A;}
+		.d2-3804944640 .background-color-AA5{background-color:#313244;}
+		.d2-3804944640 .background-color-AB4{background-color:#45475A;}
+		.d2-3804944640 .background-color-AB5{background-color:#313244;}
+		.d2-3804944640 .color-N1{color:#CDD6F4;}
+		.d2-3804944640 .color-N2{color:#BAC2DE;}
+		.d2-3804944640 .color-N3{color:#A6ADC8;}
+		.d2-3804944640 .color-N4{color:#585B70;}
+		.d2-3804944640 .color-N5{color:#45475A;}
+		.d2-3804944640 .color-N6{color:#313244;}
+		.d2-3804944640 .color-N7{color:#1E1E2E;}
+		.d2-3804944640 .color-B1{color:#CBA6f7;}
+		.d2-3804944640 .color-B2{color:#CBA6f7;}
+		.d2-3804944640 .color-B3{color:#6C7086;}
+		.d2-3804944640 .color-B4{color:#585B70;}
+		.d2-3804944640 .color-B5{color:#45475A;}
+		.d2-3804944640 .color-B6{color:#313244;}
+		.d2-3804944640 .color-AA2{color:#f38BA8;}
+		.d2-3804944640 .color-AA4{color:#45475A;}
+		.d2-3804944640 .color-AA5{color:#313244;}
+		.d2-3804944640 .color-AB4{color:#45475A;}
+		.d2-3804944640 .color-AB5{color:#313244;}.appendix text.text{fill:#CDD6F4}.md{--color-fg-default:#CDD6F4;--color-fg-muted:#BAC2DE;--color-fg-subtle:#A6ADC8;--color-canvas-default:#1E1E2E;--color-canvas-subtle:#313244;--color-border-default:#CBA6f7;--color-border-muted:#CBA6f7;--color-neutral-muted:#313244;--color-accent-fg:#CBA6f7;--color-accent-emphasis:#CBA6f7;--color-attention-subtle:#BAC2DE;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-B2{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-B3{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-B4{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-B5{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-B6{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-AA2{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-AA4{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-AA5{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-AB4{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-AB5{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-N1{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N2{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-N5{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-N6{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-N7{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.light-code{display: none}.dark-code{display: block}}]]></style><g class="dGl0bGU="><g class="shape" ></g><text x="1079.500000" y="-11.000000" class="text fill-N1" style="text-anchor:middle;font-size:22px">DataStar Dual-Frontend Rollout — Pareto Execution Graph</text></g><g class="cDE="><g class="shape" ><rect x="49.000000" y="198.000000" width="866.000000" height="303.000000" rx="4.000000" fill="#e63946" class=" stroke-B1" style="stroke-width:0;" /></g><text x="482.000000" y="185.000000" fill="#ffffff" class="text" style="text-anchor:middle;font-size:28px">P1 · 1% → 51% · first-class dual support</text></g><g class="cDI="><g class="shape" ><rect x="621.000000" y="602.000000" width="297.000000" height="284.000000" rx="4.000000" fill="#f4a261" class=" stroke-B1" style="stroke-width:0;" /></g><text x="769.500000" y="589.000000" fill="#111111" class="text" style="text-anchor:middle;font-size:28px">P2 · 4% → 64% · decision record + proof</text></g><g class="cDM="><g class="shape" ><rect x="1273.000000" y="56.000000" width="837.000000" height="666.000000" rx="4.000000" fill="#f4d35e" class=" stroke-B1" style="stroke-width:0;" /></g><text x="1691.500000" y="43.000000" fill="#111111" class="text" style="text-anchor:middle;font-size:28px">P3 · 20% → 80% · docs, living files, gates</text></g><g class="cDQ="><g class="shape" ><rect x="626.000000" y="991.000000" width="1474.000000" height="431.000000" rx="4.000000" fill="#1d3557" class=" stroke-B1" style="stroke-width:0;" /></g><text x="1363.000000" y="978.000000" fill="#ffffff" class="text" style="text-anchor:middle;font-size:28px">P4 · demand-gated → 100% · variants + evals</text></g><g class="cDEubTE="><g class="shape" ><rect x="79.000000" y="389.000000" width="228.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="193.000000" y="427.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="193.000000" dy="0.000000">M1 setup.Config.DataStar</tspan><tspan x="193.000000" dy="18.500000">opt-in mount (60m)</tspan></text></g><g class="cDEubTI="><g class="shape" ><rect x="682.000000" y="370.000000" width="176.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="770.000000" y="408.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="770.000000" dy="0.000000">M2 setup DataStar</tspan><tspan x="770.000000" dy="18.500000">tests (45m)</tspan></text></g><g class="cDEubTM="><g class="shape" ><rect x="655.000000" y="228.000000" width="230.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="770.000000" y="266.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="770.000000" dy="0.000000">M3 route-split recipe in</tspan><tspan x="770.000000" dy="18.500000">fullstack-wiring.md (30m)</tspan></text></g><g class="cDIubTQ="><g class="shape" ><rect x="651.000000" y="774.000000" width="237.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="769.500000" y="812.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="769.500000" dy="0.000000">M4 ADR-0049 dual frontend</tspan><tspan x="769.500000" dy="18.500000">protocol strategy (45m)</tspan></text></g><g class="cDIubTU="><g class="shape" ><rect x="655.000000" y="632.000000" width="230.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="770.000000" y="670.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="770.000000" dy="0.000000">M5 setup-demo dual</tspan><tspan x="770.000000" dy="18.500000">transport showcase (60m)</tspan></text></g><g class="cDMubTY="><g class="shape" ><rect x="1315.000000" y="86.000000" width="242.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="124.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M6 datastar-integration.md</tspan><tspan x="1436.000000" dy="18.500000">setup section (30m)</tspan></text></g><g class="cDMubTc="><g class="shape" ><rect x="1328.000000" y="228.000000" width="217.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.500000" y="266.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.500000" dy="0.000000">M7 sse-and-datastar.md</tspan><tspan x="1436.500000" dy="18.500000">cross-links (30m)</tspan></text></g><g class="cDMubTg="><g class="shape" ><rect x="1303.000000" y="610.000000" width="266.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="648.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M8 TODO/ROADMAP/FEATURES</tspan><tspan x="1436.000000" dy="18.500000">updates (30m)</tspan></text></g><g class="cDMubTk="><g class="shape" ><rect x="1329.000000" y="468.000000" width="215.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.500000" y="506.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.500000" dy="0.000000">M9 hermetic gate sweep</tspan><tspan x="1436.500000" dy="18.500000">(45m)</tspan></text></g><g class="cDMubTEw"><g class="shape" ><rect x="1845.000000" y="537.000000" width="235.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1962.500000" y="575.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1962.500000" dy="0.000000">M10 CHANGELOG + commit</tspan><tspan x="1962.500000" dy="18.500000">choreography (30m)</tspan></text></g><g class="cDQubTEx"><g class="shape" ><rect x="656.000000" y="1310.000000" width="227.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="769.500000" y="1348.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="769.500000" dy="0.000000">M11 dashboardui</tspan><tspan x="769.500000" dy="18.500000">signal-patch spike (100m)</tspan></text></g><g class="cDQubTEy"><g class="shape" ><rect x="1319.000000" y="1305.000000" width="234.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="1343.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M12 dashboardui DataStar</tspan><tspan x="1436.000000" dy="18.500000">variant module (100m)</tspan></text></g><g class="cDQubTEz"><g class="shape" ><rect x="1339.000000" y="1163.000000" width="194.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="1201.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M13 loginpage signal</tspan><tspan x="1436.000000" dy="18.500000">forms (90m)</tspan></text></g><g class="cDQubTE0"><g class="shape" ><rect x="1349.000000" y="1021.000000" width="174.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="1059.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M14 offline-sync</tspan><tspan x="1436.000000" dy="18.500000">evaluation (100m)</tspan></text></g><g class="cDQubTE1"><g class="shape" ><rect x="1867.000000" y="1021.000000" width="191.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1962.500000" y="1059.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1962.500000" dy="0.000000">M15 adminui variant</tspan><tspan x="1962.500000" dy="18.500000">design doc (100m)</tspan></text></g><g class="cDQubTE2"><g class="shape" ><rect x="1856.000000" y="1234.000000" width="214.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1963.000000" y="1272.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1963.000000" dy="0.000000">M16 release train</tspan><tspan x="1963.000000" dy="18.500000">changed modules (60m)</tspan></text></g><g class="cDEuKG0xIC0mZ3Q7IG0yKVswXQ=="><marker id="mk-d2-3804944640-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 308.494371 420.850047 C 412.899994 413.000000 593.900024 411.000000 677.500000 411.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="494.000000" y="410.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="494.000000" dy="0.000000">mount exists</tspan><tspan x="494.000000" dy="18.500000">to test</tspan></text></g><g class="cDMuKG04IC0mZ3Q7IG0xMClbMF0="><path d="M 1571.000000 651.250000 C 1679.400024 651.250000 1734.599976 643.450012 1841.150762 613.337828" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /></g><g class="cDMuKG05IC0mZ3Q7IG0xMClbMF0="><path d="M 1546.500000 509.250000 C 1674.500000 509.250000 1734.599976 516.650024 1841.136458 545.214124" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1697.000000" y="509.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1697.000000" dy="0.000000">green gates</tspan><tspan x="1697.000000" dy="18.500000">before commit</tspan></text></g><g class="cDQuKG0xMSAtJmd0OyBtMTIpWzBd"><path d="M 885.000000 1351.250000 C 950.200012 1351.250000 992.700012 1351.250000 1031.250000 1351.250000 C 1069.800049 1351.250000 1243.000000 1350.849976 1315.000886 1349.334191" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1101.500000" y="1357.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">spike go/no-go</text></g><g class="cDQuKG0xNCAtJmd0OyBtMTUpWzBd"><path d="M 1525.000000 1062.000000 C 1670.199951 1062.000000 1739.000000 1062.000000 1863.000000 1062.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1695.000000" y="1060.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1695.000000" dy="0.000000">sync findings feed</tspan><tspan x="1695.000000" dy="18.500000">adminui design</tspan></text></g><g class="cDQuKG0xMiAtJmd0OyBtMTYpWzBd"><path d="M 1555.000000 1346.000000 C 1676.199951 1346.000000 1736.699951 1337.745972 1851.646037 1305.803997" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /></g><g class="cDQuKG0xMyAtJmd0OyBtMTYpWzBd"><path d="M 1535.000000 1204.000000 C 1672.199951 1204.000000 1736.699951 1212.253052 1851.646037 1244.195026" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /></g><g class="KHAxLm0xIC0mZ3Q7IHAyLm01KVswXQ=="><path d="M 308.477763 448.297408 C 412.899994 464.000000 601.297974 500.750000 715.825033 628.768848" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="540.500000" y="486.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="540.500000" dy="0.000000">demo consumes</tspan><tspan x="540.500000" dy="18.500000">the option</tspan></text></g><g class="KHAxLm0xIC0mZ3Q7IHAzLm02KVswXQ=="><path d="M 227.761628 387.448131 C 396.899994 179.399002 466.000000 127.000000 505.750000 127.000000 C 545.500000 127.000000 611.500000 127.000000 670.750000 127.000000 C 730.000000 127.000000 809.000000 127.000000 868.250000 127.000000 C 927.500000 127.000000 992.700012 127.000000 1031.250000 127.000000 C 1069.800049 127.000000 1242.199951 127.000000 1311.000000 127.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="712.500000" y="125.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="712.500000" dy="0.000000">guide references</tspan><tspan x="712.500000" dy="18.500000">real API</tspan></text></g><g class="KHAxLm0yIC0mZ3Q7IHAzLm05KVswXQ=="><path d="M 860.500000 411.000000 C 945.299988 411.000000 992.700012 438.350006 1031.250000 479.375000 C 1069.800049 520.400024 1244.900024 543.953979 1324.564371 529.486695" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1073.500000" y="518.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1073.500000" dy="0.000000">tests enter</tspan><tspan x="1073.500000" dy="18.500000">gate sweep</tspan></text></g><g class="KHAxLm0zIC0mZ3Q7IHAzLm03KVswXQ=="><path d="M 887.500000 269.000000 C 950.700012 269.000000 992.700012 269.000000 1031.250000 269.000000 C 1069.800049 269.000000 1244.699951 269.000000 1323.500000 269.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1106.500000" y="267.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1106.500000" dy="0.000000">cross-link</tspan><tspan x="1106.500000" dy="18.500000">target</tspan></text></g><g class="KHAyLm00IC0mZ3Q7IHA0Lm0xMilbMF0="><path d="M 890.000000 814.750000 C 951.200012 814.750000 992.700012 884.500000 1031.250000 989.125000 C 1069.800049 1093.750000 1256.599976 1191.900024 1383.983969 1302.872538" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1077.500000" y="1095.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1077.500000" dy="0.000000">ADR gates</tspan><tspan x="1077.500000" dy="18.500000">variant work</tspan></text></g><g class="KHAyLm01IC0mZ3Q7IHAzLm05KVswXQ=="><path d="M 887.500000 672.750000 C 950.700012 672.750000 992.700012 640.049988 1031.250000 591.000000 C 1069.800049 541.950012 1244.900024 509.250000 1324.500000 509.250000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /></g><mask id="d2-3804944640" maskUnits="userSpaceOnUse" x="-51" y="-134" width="2261" height="1656">
+<rect x="-51" y="-134" width="2261" height="1656" fill="white"></rect>
+<rect x="450.000000" y="394.000000" width="88" height="37" fill="black"></rect>
+<rect x="1647.000000" y="493.000000" width="100" height="37" fill="black"></rect>
+<rect x="1050.000000" y="1341.000000" width="103" height="21" fill="black"></rect>
+<rect x="1634.000000" y="1044.000000" width="122" height="37" fill="black"></rect>
+<rect x="485.000000" y="470.000000" width="111" height="37" fill="black"></rect>
+<rect x="656.000000" y="109.000000" width="113" height="37" fill="black"></rect>
+<rect x="1034.000000" y="502.000000" width="79" height="37" fill="black"></rect>
+<rect x="1073.000000" y="251.000000" width="67" height="37" fill="black"></rect>
+<rect x="1033.000000" y="1079.000000" width="89" height="37" fill="black"></rect>
+</mask></svg></svg>
+        </div>
+
+        <h2 id="plan-medium"><span class="num">03</span>Plan &middot; Medium (30-100m)</h2>
+        <p>
+          All 16 tasks, sorted by tier, then impact per hour. P1-P3 are
+          committable now; P4 is gated on consumer demand and ADR-0049.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Tier</th>
+              <th>Task</th>
+              <th>Effort</th>
+              <th>Impact / customer value</th>
+              <th>Depends on</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>M1</td>
+              <td><span class="badge badge-critical">1%</span></td>
+              <td>
+                <code>setup.Config.DataStar</code> opt-in: validation +
+                mount <code>/datastar.js</code> (ds.ScriptHandler) +
+                <code>/ds/events</code> (ds.Broadcaster via
+                NewBroadcasterFromHub on Bundle.Broadcaster.Hub())
+              </td>
+              <td>60m</td>
+              <td>Dual support becomes one config flag</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>M2</td>
+              <td><span class="badge badge-critical">1%</span></td>
+              <td>
+                setup tests: script 200/ETag/304, SSE subscribe, shared-hub
+                broadcast reaches both transports, default-off 404s
+              </td>
+              <td>45m</td>
+              <td>Feature is proven, coverage gate holds</td>
+              <td>M1</td>
+            </tr>
+            <tr>
+              <td>M3</td>
+              <td><span class="badge badge-critical">1%</span></td>
+              <td>
+                Route-split coexistence recipe in
+                <code>docs/guides/fullstack-wiring.md</code>
+              </td>
+              <td>30m</td>
+              <td>Pattern becomes discoverable without the setup module</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>M4</td>
+              <td><span class="badge badge-high">4%</span></td>
+              <td>
+                ADR-0049 "Dual frontend protocol strategy": HTMX canonical
+                for panels, DataStar opt-in; Model A/C accepted, Model B
+                (dual-mode handlers) rejected
+              </td>
+              <td>45m</td>
+              <td>Strategy never re-litigated; P4 work has a gate</td>
+              <td>research report</td>
+            </tr>
+            <tr>
+              <td>M5</td>
+              <td><span class="badge badge-high">4%</span></td>
+              <td>
+                <code>examples/setup-demo</code>: dual-transport showcase —
+                one action broadcasts to HTMX and DataStar clients
+              </td>
+              <td>60m</td>
+              <td>Runnable proof consumers can copy</td>
+              <td>M1</td>
+            </tr>
+            <tr>
+              <td>M6</td>
+              <td><span class="badge badge-low">20%</span></td>
+              <td>
+                <code>datastar-integration.md</code>: "Using with setup"
+                section (config snippet, hub note)
+              </td>
+              <td>30m</td>
+              <td>Integration guide reflects the shipped API</td>
+              <td>M1</td>
+            </tr>
+            <tr>
+              <td>M7</td>
+              <td><span class="badge badge-low">20%</span></td>
+              <td>
+                <code>sse-and-datastar.md</code>: setup row in coexistence
+                table + cross-link to the recipe
+              </td>
+              <td>30m</td>
+              <td>Hub guide and wiring guide agree</td>
+              <td>M3</td>
+            </tr>
+            <tr>
+              <td>M8</td>
+              <td><span class="badge badge-low">20%</span></td>
+              <td>
+                Living docs: TODO_LIST (P4 items), ROADMAP (DataStar Future
+                Scope routed to plan), FEATURES (adapter status)
+              </td>
+              <td>30m</td>
+              <td>No split-brain between plan and living docs</td>
+              <td>M1-M5</td>
+            </tr>
+            <tr>
+              <td>M9</td>
+              <td><span class="badge badge-low">20%</span></td>
+              <td>
+                Hermetic gate sweep: build, test, lint, cqrs-lint,
+                coverage-gate
+              </td>
+              <td>45m</td>
+              <td>Nothing merges red; GOWORK=off truth</td>
+              <td>M2, M5</td>
+            </tr>
+            <tr>
+              <td>M10</td>
+              <td><span class="badge badge-low">20%</span></td>
+              <td>CHANGELOG [Unreleased] entry + detailed commit + push</td>
+              <td>30m</td>
+              <td>Work is attributable and released cleanly later</td>
+              <td>M8, M9</td>
+            </tr>
+            <tr>
+              <td>M11</td>
+              <td><span class="badge badge-fixed">gated</span></td>
+              <td>
+                dashboardui signal-patch spike: projection health as
+                SignalsPatch, payload-size comparison vs polling
+              </td>
+              <td>100m</td>
+              <td>Go/no-go evidence for the variant module</td>
+              <td>M4, demand</td>
+            </tr>
+            <tr>
+              <td>M12</td>
+              <td><span class="badge badge-fixed">gated</span></td>
+              <td>
+                dashboardui DataStar variant module scaffold (go.work, lint
+                configs, coverage gate, templ-components/datastar adoption)
+              </td>
+              <td>100m</td>
+              <td>Real-time observability panel without polling</td>
+              <td>M11 go</td>
+            </tr>
+            <tr>
+              <td>M13</td>
+              <td><span class="badge badge-fixed">gated</span></td>
+              <td>
+                loginpage signal-based form validation (client-side state,
+                patch responses)
+              </td>
+              <td>90m</td>
+              <td>Eliminates validation roundtrips on the highest-traffic
+                page</td>
+              <td>M4, demand</td>
+            </tr>
+            <tr>
+              <td>M14</td>
+              <td><span class="badge badge-fixed">gated</span></td>
+              <td>
+                Offline-sync evaluation: DataStar retry/replay primitives vs
+                sync-worker.js/sync-client.js
+              </td>
+              <td>100m</td>
+              <td>Decides whether the sync layer can shrink</td>
+              <td>M4</td>
+            </tr>
+            <tr>
+              <td>M15</td>
+              <td><span class="badge badge-fixed">gated</span></td>
+              <td>
+                adminui DataStar variant design doc (21 hx-* attrs mapped to
+                patches, re-estimate vs ROADMAP 6h)
+              </td>
+              <td>100m</td>
+              <td>De-risks the largest variant before building it</td>
+              <td>M14</td>
+            </tr>
+            <tr>
+              <td>M16</td>
+              <td><span class="badge badge-fixed">gated</span></td>
+              <td>
+                Release train for changed modules (check-release-train,
+                verify-tag.sh, train order, push)
+              </td>
+              <td>60m</td>
+              <td>Consumers can <code>go get</code> the feature</td>
+              <td>M12, M13</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="plan-fine"><span class="num">04</span>Plan &middot; Fine (&le;12m each)</h2>
+        <p>
+          All 87 fine tasks, grouped by medium task, in execution order.
+          Every medium task above is fully covered.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Parent</th>
+              <th>Task</th>
+              <th>Est.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>F01</td><td>M1</td><td>Read setup/config.go validation patterns + Bundle.Mount mount order</td><td>12m</td></tr>
+            <tr><td>F02</td><td>M1</td><td>Add Config.DataStar bool field with doc comment + validation</td><td>10m</td></tr>
+            <tr><td>F03</td><td>M1</td><td>Mount ds.ScriptHandler() at /datastar.js when enabled</td><td>8m</td></tr>
+            <tr><td>F04</td><td>M1</td><td>Mount ds.NewBroadcasterFromHub(Bundle.Broadcaster.Hub()) at /ds/events</td><td>12m</td></tr>
+            <tr><td>F05</td><td>M1</td><td>Hermetic build of setup module (GOWORK=off)</td><td>10m</td></tr>
+            <tr><td>F06</td><td>M1</td><td>Verify setup cqrs-lint + golangci configs still clean</td><td>8m</td></tr>
+            <tr><td>F07</td><td>M2</td><td>Test: /datastar.js serves 200 + ETag + 304 on If-None-Match</td><td>12m</td></tr>
+            <tr><td>F08</td><td>M2</td><td>Test: /ds/events SSE handshake + event delivery</td><td>12m</td></tr>
+            <tr><td>F09</td><td>M2</td><td>Test: broadcast on root Broadcaster reaches DataStar subscriber (shared hub proof)</td><td>12m</td></tr>
+            <tr><td>F10</td><td>M2</td><td>Test: DataStar disabled by default, both routes 404</td><td>6m</td></tr>
+            <tr><td>F11</td><td>M2</td><td>go vet + full setup test run hermetically</td><td>5m</td></tr>
+            <tr><td>F12</td><td>M3</td><td>Draft route-split recipe section in fullstack-wiring.md</td><td>12m</td></tr>
+            <tr><td>F13</td><td>M3</td><td>Add hub-sharing code sample + link sse-and-datastar.md</td><td>10m</td></tr>
+            <tr><td>F14</td><td>M3</td><td>Verify the sample compiles (integration_test embed)</td><td>8m</td></tr>
+            <tr><td>F15</td><td>M4</td><td>Read ADR-0046 format + confirm next ADR number</td><td>8m</td></tr>
+            <tr><td>F16</td><td>M4</td><td>Draft ADR-0049 context + options (Models A/B/C)</td><td>12m</td></tr>
+            <tr><td>F17</td><td>M4</td><td>Decision + consequences sections</td><td>12m</td></tr>
+            <tr><td>F18</td><td>M4</td><td>Link ADR from index + research report</td><td>10m</td></tr>
+            <tr><td>F19</td><td>M5</td><td>Read setup-demo structure (main.go, e2e test)</td><td>8m</td></tr>
+            <tr><td>F20</td><td>M5</td><td>Enable Config.DataStar in setup-demo</td><td>10m</td></tr>
+            <tr><td>F21</td><td>M5</td><td>Add demo page section consuming the DataStar feed</td><td>12m</td></tr>
+            <tr><td>F22</td><td>M5</td><td>Dual-broadcast demo action (HTMX + DataStar clients update)</td><td>12m</td></tr>
+            <tr><td>F23</td><td>M5</td><td>e2e assertion covering both endpoints</td><td>10m</td></tr>
+            <tr><td>F24</td><td>M5</td><td>setup-demo README update</td><td>8m</td></tr>
+            <tr><td>F25</td><td>M6</td><td>Draft "Using with setup" section in datastar-integration.md</td><td>12m</td></tr>
+            <tr><td>F26</td><td>M6</td><td>Config snippet + shared-hub note</td><td>10m</td></tr>
+            <tr><td>F27</td><td>M6</td><td>Cross-link from datastar/README.md</td><td>8m</td></tr>
+            <tr><td>F28</td><td>M7</td><td>Add setup option row to coexistence table in sse-and-datastar.md</td><td>10m</td></tr>
+            <tr><td>F29</td><td>M7</td><td>Cross-link the fullstack-wiring recipe</td><td>8m</td></tr>
+            <tr><td>F30</td><td>M7</td><td>Re-verify guide code samples still compile</td><td>12m</td></tr>
+            <tr><td>F31</td><td>M8</td><td>TODO_LIST: add P4 demand-gated items with gate references</td><td>10m</td></tr>
+            <tr><td>F32</td><td>M8</td><td>ROADMAP DataStar Future Scope: mark items routed to this plan + ADR-0049</td><td>10m</td></tr>
+            <tr><td>F33</td><td>M8</td><td>FEATURES.md: DataStar adapter status update</td><td>10m</td></tr>
+            <tr><td>F34</td><td>M9</td><td>nix run .#build (all modules, hermetic)</td><td>12m</td></tr>
+            <tr><td>F35</td><td>M9</td><td>nix run .#test</td><td>12m</td></tr>
+            <tr><td>F36</td><td>M9</td><td>nix run .#lint + check-cqrs-lint</td><td>12m</td></tr>
+            <tr><td>F37</td><td>M9</td><td>nix run .#coverage-gate</td><td>9m</td></tr>
+            <tr><td>F38</td><td>M10</td><td>CHANGELOG [Unreleased] entry</td><td>10m</td></tr>
+            <tr><td>F39</td><td>M10</td><td>Final git status review + detailed commit</td><td>10m</td></tr>
+            <tr><td>F40</td><td>M10</td><td>Push + verify remote state</td><td>10m</td></tr>
+            <tr><td>F41</td><td>M11</td><td>Read dashboardui SSE handler + core/ overview payload</td><td>12m</td></tr>
+            <tr><td>F42</td><td>M11</td><td>Design signal-patch mapping for projection health</td><td>12m</td></tr>
+            <tr><td>F43</td><td>M11</td><td>Spike: render health panel as SignalsPatch</td><td>12m</td></tr>
+            <tr><td>F44</td><td>M11</td><td>Spike: serve patches via ds.Broadcaster from dashboard events</td><td>12m</td></tr>
+            <tr><td>F45</td><td>M11</td><td>Spike test: patch wire format golden</td><td>12m</td></tr>
+            <tr><td>F46</td><td>M11</td><td>Compare polling vs signal-patch payload sizes</td><td>12m</td></tr>
+            <tr><td>F47</td><td>M11</td><td>Write spike findings</td><td>12m</td></tr>
+            <tr><td>F48</td><td>M11</td><td>Go/no-go decision for M12</td><td>8m</td></tr>
+            <tr><td>F49</td><td>M11</td><td>Clean up spike or promote to branch</td><td>8m</td></tr>
+            <tr><td>F50</td><td>M12</td><td>Create dashboardui-datastar go.mod + .golangci.yml + .cqrs-lint.json</td><td>12m</td></tr>
+            <tr><td>F51</td><td>M12</td><td>Add module to go.work</td><td>6m</td></tr>
+            <tr><td>F52</td><td>M12</td><td>Port overview rendering to patches</td><td>12m</td></tr>
+            <tr><td>F53</td><td>M12</td><td>Port events panel</td><td>12m</td></tr>
+            <tr><td>F54</td><td>M12</td><td>Port DLQ panel</td><td>12m</td></tr>
+            <tr><td>F55</td><td>M12</td><td>Adopt templ-components/datastar components (indicator, live region)</td><td>12m</td></tr>
+            <tr><td>F56</td><td>M12</td><td>Tests + coverage-gate config entry</td><td>12m</td></tr>
+            <tr><td>F57</td><td>M12</td><td>README + integration guide for the variant</td><td>12m</td></tr>
+            <tr><td>F58</td><td>M12</td><td>Module gate sweep (build/test/vet hermetic)</td><td>10m</td></tr>
+            <tr><td>F59</td><td>M13</td><td>Read loginpage handler + templ page</td><td>10m</td></tr>
+            <tr><td>F60</td><td>M13</td><td>Design signal model for form state</td><td>12m</td></tr>
+            <tr><td>F61</td><td>M13</td><td>Implement client-side validation signals</td><td>12m</td></tr>
+            <tr><td>F62</td><td>M13</td><td>Convert submit to patch response</td><td>12m</td></tr>
+            <tr><td>F63</td><td>M13</td><td>Error display via SignalsPatch</td><td>12m</td></tr>
+            <tr><td>F64</td><td>M13</td><td>Tests for new handler paths</td><td>12m</td></tr>
+            <tr><td>F65</td><td>M13</td><td>Golden/render verification</td><td>10m</td></tr>
+            <tr><td>F66</td><td>M13</td><td>loginpage gate sweep</td><td>10m</td></tr>
+            <tr><td>F67</td><td>M14</td><td>Read sync-worker.js + sync-client.js</td><td>12m</td></tr>
+            <tr><td>F68</td><td>M14</td><td>Enumerate DataStar retry/replay primitives</td><td>12m</td></tr>
+            <tr><td>F69</td><td>M14</td><td>Feature matrix comparison</td><td>12m</td></tr>
+            <tr><td>F70</td><td>M14</td><td>Identify gaps (mutation queue, conflict policy)</td><td>12m</td></tr>
+            <tr><td>F71</td><td>M14</td><td>Define replacement decision criteria</td><td>12m</td></tr>
+            <tr><td>F72</td><td>M14</td><td>Write evaluation report</td><td>12m</td></tr>
+            <tr><td>F73</td><td>M14</td><td>Route findings to ROADMAP</td><td>12m</td></tr>
+            <tr><td>F74</td><td>M14</td><td>Draft ADR if sync replacement is chosen</td><td>12m</td></tr>
+            <tr><td>F75</td><td>M15</td><td>Inventory adminui hx-* usage (21 attrs, 4 templ files)</td><td>10m</td></tr>
+            <tr><td>F76</td><td>M15</td><td>Map each interaction to its patch equivalent</td><td>12m</td></tr>
+            <tr><td>F77</td><td>M15</td><td>Identify templ-components/datastar coverage gaps</td><td>12m</td></tr>
+            <tr><td>F78</td><td>M15</td><td>Design variant module boundary (deps, opt-in)</td><td>12m</td></tr>
+            <tr><td>F79</td><td>M15</td><td>Re-estimate effort vs ROADMAP 6h</td><td>10m</td></tr>
+            <tr><td>F80</td><td>M15</td><td>Write design doc</td><td>12m</td></tr>
+            <tr><td>F81</td><td>M15</td><td>Demand-evidence decision gate</td><td>12m</td></tr>
+            <tr><td>F82</td><td>M15</td><td>Route outcome to TODO_LIST/ROADMAP</td><td>10m</td></tr>
+            <tr><td>F83</td><td>M16</td><td>nix run .#check-release-train + version-drift strict</td><td>12m</td></tr>
+            <tr><td>F84</td><td>M16</td><td>scripts/verify-tag.sh per changed module</td><td>12m</td></tr>
+            <tr><td>F85</td><td>M16</td><td>Cut tags in family train order</td><td>12m</td></tr>
+            <tr><td>F86</td><td>M16</td><td>Push tags + ls-remote verification</td><td>12m</td></tr>
+            <tr><td>F87</td><td>M16</td><td>Post-train hygiene (require alignment, drift re-check)</td><td>12m</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="risks"><span class="num">05</span>Risks &amp; Guards</h2>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Guard</span>
+          <h3>Do not regress the library principle</h3>
+          <div class="where">setup/go.mod &middot; ROADMAP.md library principle</div>
+          <p>
+            The setup module must not gain a hard dependency that changes
+            default installs' behavior; DataStar stays opt-in
+            (<code>Config.DataStar</code> defaults false). No existing
+            consumer sees any change.
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Guard</span>
+          <h3>Hermetic verification only</h3>
+          <div class="where">AGENTS.md gotchas &middot; go caches on /tmp</div>
+          <p>
+            Workspace mode masks broken requires. Gate sweep runs GOWORK=off
+            per module, with the /tmp cache layout
+            (<code>scripts/lib/go-cache-env.sh</code>); check
+            <code>df /tmp</code> before the batch.
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Guard</span>
+          <h3>Never hand-revert adminui/styles.css</h3>
+          <div class="where">AGENTS.md 2026-08-30 gotcha</div>
+          <p>
+            The pre-commit hook regenerates the minified artifact; whatever
+            it produces is canonical. P4's adminui work must respect this.
+          </p>
+        </div>
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Note</span>
+          <h3>Commit promptly (shared tree)</h3>
+          <div class="where">AGENTS.md concurrent-sessions gotcha</div>
+          <p>
+            An auto-git daemon commits dirty files wholesale; verify gates
+            then commit immediately so attribution stays correct.
+          </p>
+        </div>
+
+        <h2 id="appendix"><span class="num">06</span>Appendix</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Research report (benefits, models A/B/C, recommendation)</td>
+              <td><code>docs/architecture-understanding/2026-09-07_datastar-dual-frontend-support.html</code></td>
+            </tr>
+            <tr>
+              <td>Shared-hub architecture + cross-transport sharing</td>
+              <td><code>docs/guides/sse-and-datastar.md</code></td>
+            </tr>
+            <tr>
+              <td>DataStar integration guide</td>
+              <td><code>docs/guides/datastar-integration.md</code></td>
+            </tr>
+            <tr>
+              <td>ROADMAP "Datastar Future Scope" (effort estimates)</td>
+              <td><code>ROADMAP.md</code></td>
+            </tr>
+            <tr>
+              <td>templ-components/datastar (indicator, live_region, retry, sdk_script)</td>
+              <td>sibling repo <code>templ-components/datastar/</code></td>
+            </tr>
+            <tr>
+              <td>Gate commands</td>
+              <td><code>nix run .#build / .#test / .#lint / .#coverage-gate / .#check-cqrs-lint</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-09-07 17:18 &middot; Plan against cqrs-htmx
+            v4.9.0 &middot; P1-P3 executable now; P4 demand-gated per
+            ADR-0049
+          </p>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
