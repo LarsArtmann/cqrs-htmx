@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DataStar Dual-Frontend Rollout — Pareto Plan</title>
+    <title>DataStar Dual-Frontend Rollout — Pareto Plan v2 (ADR-first)</title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -827,8 +827,8 @@
   </head>
   <body>
     <div class="top-bar">
-      <span>PARETO EXECUTION PLAN</span>
-      <span>2026-09-07 17:18</span>
+      <span>PARETO EXECUTION PLAN &middot; V2</span>
+      <span>2026-09-07</span>
       <span>CQRS-HTMX &middot; DATASTAR ROLLOUT</span>
     </div>
 
@@ -837,7 +837,8 @@
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
-          <a href="#pareto">Pareto Tiers</a>
+          <a href="#changes">What v2 Fixes</a>
+          <a href="#tiers">Tiers</a>
           <a href="#graph">Execution Graph</a>
           <a href="#plan-medium">Plan (30-100m)</a>
           <a href="#plan-fine">Plan (&le;12m)</a>
@@ -853,13 +854,14 @@
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Execution Plan</div>
+          <div class="hero-badge">Execution Plan &middot; v2 (ADR-first)</div>
           <h1>DataStar Dual-Frontend Rollout</h1>
           <p class="hero-subtitle">
-            Pareto-ranked execution plan for making HTMX + DataStar dual
-            support a first-class, documented, tested feature — and for the
-            demand-gated panel variants beyond it. Derived from the research
-            report
+            Revised execution plan for HTMX + DataStar coexistence. v2 moves
+            ADR-0049 ahead of all code: the ADR decides the dependency
+            direction, the <code>/ds/events</code> gating posture, and the
+            sequencing against the open <code>/sse</code> authz decision —
+            before anything is built. Derived from
             <code
               >docs/architecture-understanding/2026-09-07_datastar-dual-frontend-support.html</code
             >.
@@ -870,129 +872,194 @@
         <div class="stat-grid">
           <div class="stat-card stat-bad">
             <div class="stat-value">3</div>
-            <div class="stat-label">Tasks in the 1% tier (&rarr;51% value)</div>
+            <div class="stat-label">Tier-1 tasks (strategy + docs, zero code risk)</div>
           </div>
           <div class="stat-card stat-warn">
-            <div class="stat-value">16</div>
+            <div class="stat-value">17</div>
             <div class="stat-label">Medium tasks (30-100m)</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">87</div>
+            <div class="stat-value">93</div>
             <div class="stat-label">Fine tasks (&le;12m)</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">16.4h</div>
+            <div class="stat-value">16.9h</div>
             <div class="stat-label">Total estimated effort</div>
           </div>
         </div>
 
         <div class="card card-solution">
-          <h4>The 1% that delivers 51%</h4>
+          <h4>Ship first (Tier 1, ~2.25h, zero code risk)</h4>
           <p>
-            <strong>M1 + M2 + M3</strong>: a
-            <code>setup.Config.DataStar</code> opt-in that mounts
-            <code>/datastar.js</code> and a DataStar SSE feed on
-            <em>the same hub</em> as the existing HTMX feed (via
-            <code>NewBroadcasterFromHub</code>), plus the route-split
-            coexistence recipe in the fullstack-wiring guide. Dual support
-            stops being tribal knowledge and becomes a shipped, tested,
-            documented feature. Total: ~2.25h.
+            <strong>M0 + M3 + M4</strong>: validate demand, document the
+            route-split pattern that already works today, and record the
+            strategy in ADR-0049. The ADR — not this plan — decides the three
+            open questions (dependency direction, <code>/ds/events</code>
+            gating, <code>/sse</code>-authz sequencing). Only after the ADR
+            is accepted does any code get written (Tier 2).
           </p>
         </div>
         <div class="card card-problem">
-          <h4>Deliberately excluded from the 1%</h4>
+          <h4>Still deliberately excluded</h4>
           <p>
-            Converting adminui/dashboardui/loginpage to dual-mode rendering
-            (Model B in the research report) is the highest-effort,
-            lowest-certainty work and stays demand-gated in P4. The library
-            principle ("never enforce defaults") also prohibits bundling
-            DataStar into the existing panels' dependency trees.
+            Dual-mode rendering inside the existing panels (Model B) remains
+            rejected. Tier 4 panel variants remain demand-gated. Nothing in
+            Tiers 1-3 changes behavior for any existing consumer —
+            <code>Config.DataStar</code> defaults off.
           </p>
         </div>
 
-        <h2 id="pareto"><span class="num">01</span>Pareto Tiers</h2>
+        <h2 id="changes"><span class="num">01</span>What v2 Fixes</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>v1 weakness</th>
+              <th>v2 correction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>
+                M1 asserted <code>setup</code> gains a <code>datastar/v4</code>
+                dependency without arguing it (library-principle tension:
+                the ROADMAP's go-health-dashboard precedent)
+              </td>
+              <td>
+                ADR-0049 (M4, F06) decides: setup dep vs separate
+                <code>setup-datastar</code> bridge module. M1 implements
+                whichever the ADR picks
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>
+                Unsequenced against the open <code>/sse</code> authz decision
+                (TODO_LIST P2; one-pager at
+                <code>docs/planning/2026-08-30_sse-endpoint-shape-decision.md</code>)
+              </td>
+              <td>
+                ADR-0049 (F08) explicitly sequences: either adopt the
+                <code>/sse</code> posture for <code>/ds/events</code>, or
+                hold the mount until that decision lands
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>/ds/events</code> session-gating unspecified</td>
+              <td>
+                ADR-0049 (F07) decides; default proposal: mirror the
+                dashboard's 401 session gate
+              </td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>No per-task acceptance criteria</td>
+              <td>
+                Every medium task now carries an Acceptance column (gate
+                commands, test names, doc checks)
+              </td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>
+                Pareto labels rhetorical (3/16 tasks is 19%, not 1%)
+              </td>
+              <td>
+                Tiers relabeled honestly: ranked by value-per-hour, no fake
+                percentages
+              </td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>No demand validation before building</td>
+              <td>
+                New M0: evidence check (issues, consumer projects) feeds
+                ADR-0049; Tier 2 builds only on ADR acceptance
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="tiers"><span class="num">02</span>Tiers (by value per hour)</h2>
         <table>
           <thead>
             <tr>
               <th>Tier</th>
               <th>Tasks</th>
               <th>Delivers</th>
-              <th>Why these</th>
+              <th>Gate</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><span class="badge badge-critical">1% &rarr; 51%</span></td>
-              <td>M1, M2, M3 (~2.25h)</td>
+              <td><span class="badge badge-critical">1 · strategy</span></td>
+              <td>M0, M3, M4 (~2.25h)</td>
               <td>
-                Dual support is a real, tested, documented setup feature
+                Demand evidence, the route-split pattern documented, and
+                ADR-0049 deciding dep direction + gating + sequencing
               </td>
-              <td>
-                The capability exists today but is undiscoverable tribal
-                knowledge; shipping it in <code>setup</code> makes it one
-                config flag
-              </td>
+              <td class="yes">None — ship immediately</td>
             </tr>
             <tr>
-              <td><span class="badge badge-high">4% &rarr; 64%</span></td>
-              <td>+ M4, M5 (~1.75h)</td>
-              <td>Decision recorded (ADR-0049) + runnable proof in a demo</td>
+              <td><span class="badge badge-high">2 · feature</span></td>
+              <td>M1, M2 (~1.75h)</td>
               <td>
-                Prevents re-litigating the strategy; gives consumers a
-                copy-paste reference
+                Dual support as one config flag, tested
               </td>
+              <td>ADR-0049 accepted</td>
             </tr>
             <tr>
-              <td><span class="badge badge-low">20% &rarr; 80%</span></td>
-              <td>+ M6-M10 (~3.25h)</td>
-              <td>Guides, living docs, gate sweep, changelog</td>
+              <td><span class="badge badge-low">3 · finish</span></td>
+              <td>M5-M10 (~3.75h)</td>
               <td>
-                Everything a release-quality feature needs beyond the code
+                Demo proof, guide cross-links, living docs, gate sweep,
+                changelog
               </td>
+              <td>Tier 2 merged</td>
             </tr>
             <tr>
-              <td><span class="badge badge-fixed">to 100%</span></td>
-              <td>+ M11-M16 (~9.2h, demand-gated)</td>
+              <td><span class="badge badge-fixed">4 · variants</span></td>
+              <td>M11-M16 (~9.2h)</td>
               <td>
                 dashboardui/loginpage/adminui DataStar variants, offline-sync
                 evaluation, release train
               </td>
-              <td>
-                ROADMAP-listed future scope; executed only when consumer
-                demand exists
-              </td>
+              <td>ADR-0049 + consumer demand</td>
             </tr>
           </tbody>
         </table>
 
-        <h2 id="graph"><span class="num">02</span>Execution Graph</h2>
+        <h2 id="graph"><span class="num">03</span>Execution Graph</h2>
         <p>
-          Dependency flow between phases. M1 is the keystone: the demo, the
-          integration guide, and the test suite all consume its API.
+          v2 keystone is M4 (ADR-0049): it gates both the feature build (M1)
+          and all variant work (M11). M0 feeds it evidence; M3 is independent
+          and can ship in parallel.
         </p>
         <div style="overflow-x: auto">
           <!--D2SVG-->
-<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.8.1-HEAD" preserveAspectRatio="xMinYMin meet" viewBox="0 0 2261 1656"><svg class="d2-3804944640 d2-svg" width="2261" height="1656" viewBox="-51 -134 2261 1656"><rect x="-51.000000" y="-134.000000" width="2261.000000" height="1656.000000" rx="0.000000" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
-.d2-3804944640 .text {
-	font-family: "d2-3804944640-font-regular";
+<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.8.1-HEAD" preserveAspectRatio="xMinYMin meet" viewBox="0 0 3442 1670"><svg class="d2-3400291815 d2-svg" width="3442" height="1670" viewBox="-51 -134 3442 1670"><rect x="-51.000000" y="-134.000000" width="3442.000000" height="1670.000000" rx="0.000000" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-3400291815 .text {
+	font-family: "d2-3400291815-font-regular";
 }
 @font-face {
-	font-family: d2-3804944640-font-regular;
-	src: url("data:application/font-woff;base64,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");
+	font-family: d2-3400291815-font-regular;
+	src: url("data:application/font-woff;base64,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");
 }
-.d2-3804944640 .text-bold {
-	font-family: "d2-3804944640-font-bold";
-}
-@font-face {
-	font-family: d2-3804944640-font-bold;
-	src: url("data:application/font-woff;base64,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");
-}
-.d2-3804944640 .text-italic {
-	font-family: "d2-3804944640-font-italic";
+.d2-3400291815 .text-bold {
+	font-family: "d2-3400291815-font-bold";
 }
 @font-face {
-	font-family: d2-3804944640-font-italic;
-	src: url("data:application/font-woff;base64,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");
+	font-family: d2-3400291815-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-3400291815 .text-italic {
+	font-family: "d2-3400291815-font-italic";
+}
+@font-face {
+	font-family: d2-3400291815-font-italic;
+	src: url("data:application/font-woff;base64,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");
 }]]></style><style type="text/css"><![CDATA[.shape {
   shape-rendering: geometricPrecision;
   stroke-linejoin: round;
@@ -1006,167 +1073,168 @@
   opacity: 0.5;
 }
 
-		.d2-3804944640 .fill-N1{fill:#0A0F25;}
-		.d2-3804944640 .fill-N2{fill:#676C7E;}
-		.d2-3804944640 .fill-N3{fill:#9499AB;}
-		.d2-3804944640 .fill-N4{fill:#CFD2DD;}
-		.d2-3804944640 .fill-N5{fill:#DEE1EB;}
-		.d2-3804944640 .fill-N6{fill:#EEF1F8;}
-		.d2-3804944640 .fill-N7{fill:#FFFFFF;}
-		.d2-3804944640 .fill-B1{fill:#0D32B2;}
-		.d2-3804944640 .fill-B2{fill:#0D32B2;}
-		.d2-3804944640 .fill-B3{fill:#E3E9FD;}
-		.d2-3804944640 .fill-B4{fill:#E3E9FD;}
-		.d2-3804944640 .fill-B5{fill:#EDF0FD;}
-		.d2-3804944640 .fill-B6{fill:#F7F8FE;}
-		.d2-3804944640 .fill-AA2{fill:#4A6FF3;}
-		.d2-3804944640 .fill-AA4{fill:#EDF0FD;}
-		.d2-3804944640 .fill-AA5{fill:#F7F8FE;}
-		.d2-3804944640 .fill-AB4{fill:#EDF0FD;}
-		.d2-3804944640 .fill-AB5{fill:#F7F8FE;}
-		.d2-3804944640 .stroke-N1{stroke:#0A0F25;}
-		.d2-3804944640 .stroke-N2{stroke:#676C7E;}
-		.d2-3804944640 .stroke-N3{stroke:#9499AB;}
-		.d2-3804944640 .stroke-N4{stroke:#CFD2DD;}
-		.d2-3804944640 .stroke-N5{stroke:#DEE1EB;}
-		.d2-3804944640 .stroke-N6{stroke:#EEF1F8;}
-		.d2-3804944640 .stroke-N7{stroke:#FFFFFF;}
-		.d2-3804944640 .stroke-B1{stroke:#0D32B2;}
-		.d2-3804944640 .stroke-B2{stroke:#0D32B2;}
-		.d2-3804944640 .stroke-B3{stroke:#E3E9FD;}
-		.d2-3804944640 .stroke-B4{stroke:#E3E9FD;}
-		.d2-3804944640 .stroke-B5{stroke:#EDF0FD;}
-		.d2-3804944640 .stroke-B6{stroke:#F7F8FE;}
-		.d2-3804944640 .stroke-AA2{stroke:#4A6FF3;}
-		.d2-3804944640 .stroke-AA4{stroke:#EDF0FD;}
-		.d2-3804944640 .stroke-AA5{stroke:#F7F8FE;}
-		.d2-3804944640 .stroke-AB4{stroke:#EDF0FD;}
-		.d2-3804944640 .stroke-AB5{stroke:#F7F8FE;}
-		.d2-3804944640 .background-color-N1{background-color:#0A0F25;}
-		.d2-3804944640 .background-color-N2{background-color:#676C7E;}
-		.d2-3804944640 .background-color-N3{background-color:#9499AB;}
-		.d2-3804944640 .background-color-N4{background-color:#CFD2DD;}
-		.d2-3804944640 .background-color-N5{background-color:#DEE1EB;}
-		.d2-3804944640 .background-color-N6{background-color:#EEF1F8;}
-		.d2-3804944640 .background-color-N7{background-color:#FFFFFF;}
-		.d2-3804944640 .background-color-B1{background-color:#0D32B2;}
-		.d2-3804944640 .background-color-B2{background-color:#0D32B2;}
-		.d2-3804944640 .background-color-B3{background-color:#E3E9FD;}
-		.d2-3804944640 .background-color-B4{background-color:#E3E9FD;}
-		.d2-3804944640 .background-color-B5{background-color:#EDF0FD;}
-		.d2-3804944640 .background-color-B6{background-color:#F7F8FE;}
-		.d2-3804944640 .background-color-AA2{background-color:#4A6FF3;}
-		.d2-3804944640 .background-color-AA4{background-color:#EDF0FD;}
-		.d2-3804944640 .background-color-AA5{background-color:#F7F8FE;}
-		.d2-3804944640 .background-color-AB4{background-color:#EDF0FD;}
-		.d2-3804944640 .background-color-AB5{background-color:#F7F8FE;}
-		.d2-3804944640 .color-N1{color:#0A0F25;}
-		.d2-3804944640 .color-N2{color:#676C7E;}
-		.d2-3804944640 .color-N3{color:#9499AB;}
-		.d2-3804944640 .color-N4{color:#CFD2DD;}
-		.d2-3804944640 .color-N5{color:#DEE1EB;}
-		.d2-3804944640 .color-N6{color:#EEF1F8;}
-		.d2-3804944640 .color-N7{color:#FFFFFF;}
-		.d2-3804944640 .color-B1{color:#0D32B2;}
-		.d2-3804944640 .color-B2{color:#0D32B2;}
-		.d2-3804944640 .color-B3{color:#E3E9FD;}
-		.d2-3804944640 .color-B4{color:#E3E9FD;}
-		.d2-3804944640 .color-B5{color:#EDF0FD;}
-		.d2-3804944640 .color-B6{color:#F7F8FE;}
-		.d2-3804944640 .color-AA2{color:#4A6FF3;}
-		.d2-3804944640 .color-AA4{color:#EDF0FD;}
-		.d2-3804944640 .color-AA5{color:#F7F8FE;}
-		.d2-3804944640 .color-AB4{color:#EDF0FD;}
-		.d2-3804944640 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3804944640);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}@media screen and (prefers-color-scheme:dark){
-		.d2-3804944640 .fill-N1{fill:#CDD6F4;}
-		.d2-3804944640 .fill-N2{fill:#BAC2DE;}
-		.d2-3804944640 .fill-N3{fill:#A6ADC8;}
-		.d2-3804944640 .fill-N4{fill:#585B70;}
-		.d2-3804944640 .fill-N5{fill:#45475A;}
-		.d2-3804944640 .fill-N6{fill:#313244;}
-		.d2-3804944640 .fill-N7{fill:#1E1E2E;}
-		.d2-3804944640 .fill-B1{fill:#CBA6f7;}
-		.d2-3804944640 .fill-B2{fill:#CBA6f7;}
-		.d2-3804944640 .fill-B3{fill:#6C7086;}
-		.d2-3804944640 .fill-B4{fill:#585B70;}
-		.d2-3804944640 .fill-B5{fill:#45475A;}
-		.d2-3804944640 .fill-B6{fill:#313244;}
-		.d2-3804944640 .fill-AA2{fill:#f38BA8;}
-		.d2-3804944640 .fill-AA4{fill:#45475A;}
-		.d2-3804944640 .fill-AA5{fill:#313244;}
-		.d2-3804944640 .fill-AB4{fill:#45475A;}
-		.d2-3804944640 .fill-AB5{fill:#313244;}
-		.d2-3804944640 .stroke-N1{stroke:#CDD6F4;}
-		.d2-3804944640 .stroke-N2{stroke:#BAC2DE;}
-		.d2-3804944640 .stroke-N3{stroke:#A6ADC8;}
-		.d2-3804944640 .stroke-N4{stroke:#585B70;}
-		.d2-3804944640 .stroke-N5{stroke:#45475A;}
-		.d2-3804944640 .stroke-N6{stroke:#313244;}
-		.d2-3804944640 .stroke-N7{stroke:#1E1E2E;}
-		.d2-3804944640 .stroke-B1{stroke:#CBA6f7;}
-		.d2-3804944640 .stroke-B2{stroke:#CBA6f7;}
-		.d2-3804944640 .stroke-B3{stroke:#6C7086;}
-		.d2-3804944640 .stroke-B4{stroke:#585B70;}
-		.d2-3804944640 .stroke-B5{stroke:#45475A;}
-		.d2-3804944640 .stroke-B6{stroke:#313244;}
-		.d2-3804944640 .stroke-AA2{stroke:#f38BA8;}
-		.d2-3804944640 .stroke-AA4{stroke:#45475A;}
-		.d2-3804944640 .stroke-AA5{stroke:#313244;}
-		.d2-3804944640 .stroke-AB4{stroke:#45475A;}
-		.d2-3804944640 .stroke-AB5{stroke:#313244;}
-		.d2-3804944640 .background-color-N1{background-color:#CDD6F4;}
-		.d2-3804944640 .background-color-N2{background-color:#BAC2DE;}
-		.d2-3804944640 .background-color-N3{background-color:#A6ADC8;}
-		.d2-3804944640 .background-color-N4{background-color:#585B70;}
-		.d2-3804944640 .background-color-N5{background-color:#45475A;}
-		.d2-3804944640 .background-color-N6{background-color:#313244;}
-		.d2-3804944640 .background-color-N7{background-color:#1E1E2E;}
-		.d2-3804944640 .background-color-B1{background-color:#CBA6f7;}
-		.d2-3804944640 .background-color-B2{background-color:#CBA6f7;}
-		.d2-3804944640 .background-color-B3{background-color:#6C7086;}
-		.d2-3804944640 .background-color-B4{background-color:#585B70;}
-		.d2-3804944640 .background-color-B5{background-color:#45475A;}
-		.d2-3804944640 .background-color-B6{background-color:#313244;}
-		.d2-3804944640 .background-color-AA2{background-color:#f38BA8;}
-		.d2-3804944640 .background-color-AA4{background-color:#45475A;}
-		.d2-3804944640 .background-color-AA5{background-color:#313244;}
-		.d2-3804944640 .background-color-AB4{background-color:#45475A;}
-		.d2-3804944640 .background-color-AB5{background-color:#313244;}
-		.d2-3804944640 .color-N1{color:#CDD6F4;}
-		.d2-3804944640 .color-N2{color:#BAC2DE;}
-		.d2-3804944640 .color-N3{color:#A6ADC8;}
-		.d2-3804944640 .color-N4{color:#585B70;}
-		.d2-3804944640 .color-N5{color:#45475A;}
-		.d2-3804944640 .color-N6{color:#313244;}
-		.d2-3804944640 .color-N7{color:#1E1E2E;}
-		.d2-3804944640 .color-B1{color:#CBA6f7;}
-		.d2-3804944640 .color-B2{color:#CBA6f7;}
-		.d2-3804944640 .color-B3{color:#6C7086;}
-		.d2-3804944640 .color-B4{color:#585B70;}
-		.d2-3804944640 .color-B5{color:#45475A;}
-		.d2-3804944640 .color-B6{color:#313244;}
-		.d2-3804944640 .color-AA2{color:#f38BA8;}
-		.d2-3804944640 .color-AA4{color:#45475A;}
-		.d2-3804944640 .color-AA5{color:#313244;}
-		.d2-3804944640 .color-AB4{color:#45475A;}
-		.d2-3804944640 .color-AB5{color:#313244;}.appendix text.text{fill:#CDD6F4}.md{--color-fg-default:#CDD6F4;--color-fg-muted:#BAC2DE;--color-fg-subtle:#A6ADC8;--color-canvas-default:#1E1E2E;--color-canvas-subtle:#313244;--color-border-default:#CBA6f7;--color-border-muted:#CBA6f7;--color-neutral-muted:#313244;--color-accent-fg:#CBA6f7;--color-accent-emphasis:#CBA6f7;--color-attention-subtle:#BAC2DE;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-B2{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-B3{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-B4{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-B5{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-B6{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-AA2{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-AA4{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-AA5{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-AB4{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-AB5{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-N1{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N2{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3804944640);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-dark-d2-3804944640);mix-blend-mode:overlay}.sketch-overlay-N5{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-N6{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.sketch-overlay-N7{fill:url(#streaks-darker-d2-3804944640);mix-blend-mode:lighten}.light-code{display: none}.dark-code{display: block}}]]></style><g class="dGl0bGU="><g class="shape" ></g><text x="1079.500000" y="-11.000000" class="text fill-N1" style="text-anchor:middle;font-size:22px">DataStar Dual-Frontend Rollout — Pareto Execution Graph</text></g><g class="cDE="><g class="shape" ><rect x="49.000000" y="198.000000" width="866.000000" height="303.000000" rx="4.000000" fill="#e63946" class=" stroke-B1" style="stroke-width:0;" /></g><text x="482.000000" y="185.000000" fill="#ffffff" class="text" style="text-anchor:middle;font-size:28px">P1 · 1% → 51% · first-class dual support</text></g><g class="cDI="><g class="shape" ><rect x="621.000000" y="602.000000" width="297.000000" height="284.000000" rx="4.000000" fill="#f4a261" class=" stroke-B1" style="stroke-width:0;" /></g><text x="769.500000" y="589.000000" fill="#111111" class="text" style="text-anchor:middle;font-size:28px">P2 · 4% → 64% · decision record + proof</text></g><g class="cDM="><g class="shape" ><rect x="1273.000000" y="56.000000" width="837.000000" height="666.000000" rx="4.000000" fill="#f4d35e" class=" stroke-B1" style="stroke-width:0;" /></g><text x="1691.500000" y="43.000000" fill="#111111" class="text" style="text-anchor:middle;font-size:28px">P3 · 20% → 80% · docs, living files, gates</text></g><g class="cDQ="><g class="shape" ><rect x="626.000000" y="991.000000" width="1474.000000" height="431.000000" rx="4.000000" fill="#1d3557" class=" stroke-B1" style="stroke-width:0;" /></g><text x="1363.000000" y="978.000000" fill="#ffffff" class="text" style="text-anchor:middle;font-size:28px">P4 · demand-gated → 100% · variants + evals</text></g><g class="cDEubTE="><g class="shape" ><rect x="79.000000" y="389.000000" width="228.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="193.000000" y="427.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="193.000000" dy="0.000000">M1 setup.Config.DataStar</tspan><tspan x="193.000000" dy="18.500000">opt-in mount (60m)</tspan></text></g><g class="cDEubTI="><g class="shape" ><rect x="682.000000" y="370.000000" width="176.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="770.000000" y="408.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="770.000000" dy="0.000000">M2 setup DataStar</tspan><tspan x="770.000000" dy="18.500000">tests (45m)</tspan></text></g><g class="cDEubTM="><g class="shape" ><rect x="655.000000" y="228.000000" width="230.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="770.000000" y="266.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="770.000000" dy="0.000000">M3 route-split recipe in</tspan><tspan x="770.000000" dy="18.500000">fullstack-wiring.md (30m)</tspan></text></g><g class="cDIubTQ="><g class="shape" ><rect x="651.000000" y="774.000000" width="237.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="769.500000" y="812.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="769.500000" dy="0.000000">M4 ADR-0049 dual frontend</tspan><tspan x="769.500000" dy="18.500000">protocol strategy (45m)</tspan></text></g><g class="cDIubTU="><g class="shape" ><rect x="655.000000" y="632.000000" width="230.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="770.000000" y="670.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="770.000000" dy="0.000000">M5 setup-demo dual</tspan><tspan x="770.000000" dy="18.500000">transport showcase (60m)</tspan></text></g><g class="cDMubTY="><g class="shape" ><rect x="1315.000000" y="86.000000" width="242.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="124.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M6 datastar-integration.md</tspan><tspan x="1436.000000" dy="18.500000">setup section (30m)</tspan></text></g><g class="cDMubTc="><g class="shape" ><rect x="1328.000000" y="228.000000" width="217.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.500000" y="266.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.500000" dy="0.000000">M7 sse-and-datastar.md</tspan><tspan x="1436.500000" dy="18.500000">cross-links (30m)</tspan></text></g><g class="cDMubTg="><g class="shape" ><rect x="1303.000000" y="610.000000" width="266.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="648.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M8 TODO/ROADMAP/FEATURES</tspan><tspan x="1436.000000" dy="18.500000">updates (30m)</tspan></text></g><g class="cDMubTk="><g class="shape" ><rect x="1329.000000" y="468.000000" width="215.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.500000" y="506.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.500000" dy="0.000000">M9 hermetic gate sweep</tspan><tspan x="1436.500000" dy="18.500000">(45m)</tspan></text></g><g class="cDMubTEw"><g class="shape" ><rect x="1845.000000" y="537.000000" width="235.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1962.500000" y="575.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1962.500000" dy="0.000000">M10 CHANGELOG + commit</tspan><tspan x="1962.500000" dy="18.500000">choreography (30m)</tspan></text></g><g class="cDQubTEx"><g class="shape" ><rect x="656.000000" y="1310.000000" width="227.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="769.500000" y="1348.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="769.500000" dy="0.000000">M11 dashboardui</tspan><tspan x="769.500000" dy="18.500000">signal-patch spike (100m)</tspan></text></g><g class="cDQubTEy"><g class="shape" ><rect x="1319.000000" y="1305.000000" width="234.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="1343.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M12 dashboardui DataStar</tspan><tspan x="1436.000000" dy="18.500000">variant module (100m)</tspan></text></g><g class="cDQubTEz"><g class="shape" ><rect x="1339.000000" y="1163.000000" width="194.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="1201.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M13 loginpage signal</tspan><tspan x="1436.000000" dy="18.500000">forms (90m)</tspan></text></g><g class="cDQubTE0"><g class="shape" ><rect x="1349.000000" y="1021.000000" width="174.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1436.000000" y="1059.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1436.000000" dy="0.000000">M14 offline-sync</tspan><tspan x="1436.000000" dy="18.500000">evaluation (100m)</tspan></text></g><g class="cDQubTE1"><g class="shape" ><rect x="1867.000000" y="1021.000000" width="191.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1962.500000" y="1059.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1962.500000" dy="0.000000">M15 adminui variant</tspan><tspan x="1962.500000" dy="18.500000">design doc (100m)</tspan></text></g><g class="cDQubTE2"><g class="shape" ><rect x="1856.000000" y="1234.000000" width="214.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1963.000000" y="1272.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1963.000000" dy="0.000000">M16 release train</tspan><tspan x="1963.000000" dy="18.500000">changed modules (60m)</tspan></text></g><g class="cDEuKG0xIC0mZ3Q7IG0yKVswXQ=="><marker id="mk-d2-3804944640-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 308.494371 420.850047 C 412.899994 413.000000 593.900024 411.000000 677.500000 411.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="494.000000" y="410.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="494.000000" dy="0.000000">mount exists</tspan><tspan x="494.000000" dy="18.500000">to test</tspan></text></g><g class="cDMuKG04IC0mZ3Q7IG0xMClbMF0="><path d="M 1571.000000 651.250000 C 1679.400024 651.250000 1734.599976 643.450012 1841.150762 613.337828" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /></g><g class="cDMuKG05IC0mZ3Q7IG0xMClbMF0="><path d="M 1546.500000 509.250000 C 1674.500000 509.250000 1734.599976 516.650024 1841.136458 545.214124" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1697.000000" y="509.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1697.000000" dy="0.000000">green gates</tspan><tspan x="1697.000000" dy="18.500000">before commit</tspan></text></g><g class="cDQuKG0xMSAtJmd0OyBtMTIpWzBd"><path d="M 885.000000 1351.250000 C 950.200012 1351.250000 992.700012 1351.250000 1031.250000 1351.250000 C 1069.800049 1351.250000 1243.000000 1350.849976 1315.000886 1349.334191" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1101.500000" y="1357.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">spike go/no-go</text></g><g class="cDQuKG0xNCAtJmd0OyBtMTUpWzBd"><path d="M 1525.000000 1062.000000 C 1670.199951 1062.000000 1739.000000 1062.000000 1863.000000 1062.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1695.000000" y="1060.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1695.000000" dy="0.000000">sync findings feed</tspan><tspan x="1695.000000" dy="18.500000">adminui design</tspan></text></g><g class="cDQuKG0xMiAtJmd0OyBtMTYpWzBd"><path d="M 1555.000000 1346.000000 C 1676.199951 1346.000000 1736.699951 1337.745972 1851.646037 1305.803997" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /></g><g class="cDQuKG0xMyAtJmd0OyBtMTYpWzBd"><path d="M 1535.000000 1204.000000 C 1672.199951 1204.000000 1736.699951 1212.253052 1851.646037 1244.195026" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /></g><g class="KHAxLm0xIC0mZ3Q7IHAyLm01KVswXQ=="><path d="M 308.477763 448.297408 C 412.899994 464.000000 601.297974 500.750000 715.825033 628.768848" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="540.500000" y="486.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="540.500000" dy="0.000000">demo consumes</tspan><tspan x="540.500000" dy="18.500000">the option</tspan></text></g><g class="KHAxLm0xIC0mZ3Q7IHAzLm02KVswXQ=="><path d="M 227.761628 387.448131 C 396.899994 179.399002 466.000000 127.000000 505.750000 127.000000 C 545.500000 127.000000 611.500000 127.000000 670.750000 127.000000 C 730.000000 127.000000 809.000000 127.000000 868.250000 127.000000 C 927.500000 127.000000 992.700012 127.000000 1031.250000 127.000000 C 1069.800049 127.000000 1242.199951 127.000000 1311.000000 127.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="712.500000" y="125.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="712.500000" dy="0.000000">guide references</tspan><tspan x="712.500000" dy="18.500000">real API</tspan></text></g><g class="KHAxLm0yIC0mZ3Q7IHAzLm05KVswXQ=="><path d="M 860.500000 411.000000 C 945.299988 411.000000 992.700012 438.350006 1031.250000 479.375000 C 1069.800049 520.400024 1244.900024 543.953979 1324.564371 529.486695" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1073.500000" y="518.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1073.500000" dy="0.000000">tests enter</tspan><tspan x="1073.500000" dy="18.500000">gate sweep</tspan></text></g><g class="KHAxLm0zIC0mZ3Q7IHAzLm03KVswXQ=="><path d="M 887.500000 269.000000 C 950.700012 269.000000 992.700012 269.000000 1031.250000 269.000000 C 1069.800049 269.000000 1244.699951 269.000000 1323.500000 269.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1106.500000" y="267.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1106.500000" dy="0.000000">cross-link</tspan><tspan x="1106.500000" dy="18.500000">target</tspan></text></g><g class="KHAyLm00IC0mZ3Q7IHA0Lm0xMilbMF0="><path d="M 890.000000 814.750000 C 951.200012 814.750000 992.700012 884.500000 1031.250000 989.125000 C 1069.800049 1093.750000 1256.599976 1191.900024 1383.983969 1302.872538" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /><text x="1077.500000" y="1095.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1077.500000" dy="0.000000">ADR gates</tspan><tspan x="1077.500000" dy="18.500000">variant work</tspan></text></g><g class="KHAyLm01IC0mZ3Q7IHAzLm05KVswXQ=="><path d="M 887.500000 672.750000 C 950.700012 672.750000 992.700012 640.049988 1031.250000 591.000000 C 1069.800049 541.950012 1244.900024 509.250000 1324.500000 509.250000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3804944640-3488378134)" mask="url(#d2-3804944640)" /></g><mask id="d2-3804944640" maskUnits="userSpaceOnUse" x="-51" y="-134" width="2261" height="1656">
-<rect x="-51" y="-134" width="2261" height="1656" fill="white"></rect>
-<rect x="450.000000" y="394.000000" width="88" height="37" fill="black"></rect>
-<rect x="1647.000000" y="493.000000" width="100" height="37" fill="black"></rect>
-<rect x="1050.000000" y="1341.000000" width="103" height="21" fill="black"></rect>
-<rect x="1634.000000" y="1044.000000" width="122" height="37" fill="black"></rect>
-<rect x="485.000000" y="470.000000" width="111" height="37" fill="black"></rect>
-<rect x="656.000000" y="109.000000" width="113" height="37" fill="black"></rect>
-<rect x="1034.000000" y="502.000000" width="79" height="37" fill="black"></rect>
-<rect x="1073.000000" y="251.000000" width="67" height="37" fill="black"></rect>
-<rect x="1033.000000" y="1079.000000" width="89" height="37" fill="black"></rect>
+		.d2-3400291815 .fill-N1{fill:#0A0F25;}
+		.d2-3400291815 .fill-N2{fill:#676C7E;}
+		.d2-3400291815 .fill-N3{fill:#9499AB;}
+		.d2-3400291815 .fill-N4{fill:#CFD2DD;}
+		.d2-3400291815 .fill-N5{fill:#DEE1EB;}
+		.d2-3400291815 .fill-N6{fill:#EEF1F8;}
+		.d2-3400291815 .fill-N7{fill:#FFFFFF;}
+		.d2-3400291815 .fill-B1{fill:#0D32B2;}
+		.d2-3400291815 .fill-B2{fill:#0D32B2;}
+		.d2-3400291815 .fill-B3{fill:#E3E9FD;}
+		.d2-3400291815 .fill-B4{fill:#E3E9FD;}
+		.d2-3400291815 .fill-B5{fill:#EDF0FD;}
+		.d2-3400291815 .fill-B6{fill:#F7F8FE;}
+		.d2-3400291815 .fill-AA2{fill:#4A6FF3;}
+		.d2-3400291815 .fill-AA4{fill:#EDF0FD;}
+		.d2-3400291815 .fill-AA5{fill:#F7F8FE;}
+		.d2-3400291815 .fill-AB4{fill:#EDF0FD;}
+		.d2-3400291815 .fill-AB5{fill:#F7F8FE;}
+		.d2-3400291815 .stroke-N1{stroke:#0A0F25;}
+		.d2-3400291815 .stroke-N2{stroke:#676C7E;}
+		.d2-3400291815 .stroke-N3{stroke:#9499AB;}
+		.d2-3400291815 .stroke-N4{stroke:#CFD2DD;}
+		.d2-3400291815 .stroke-N5{stroke:#DEE1EB;}
+		.d2-3400291815 .stroke-N6{stroke:#EEF1F8;}
+		.d2-3400291815 .stroke-N7{stroke:#FFFFFF;}
+		.d2-3400291815 .stroke-B1{stroke:#0D32B2;}
+		.d2-3400291815 .stroke-B2{stroke:#0D32B2;}
+		.d2-3400291815 .stroke-B3{stroke:#E3E9FD;}
+		.d2-3400291815 .stroke-B4{stroke:#E3E9FD;}
+		.d2-3400291815 .stroke-B5{stroke:#EDF0FD;}
+		.d2-3400291815 .stroke-B6{stroke:#F7F8FE;}
+		.d2-3400291815 .stroke-AA2{stroke:#4A6FF3;}
+		.d2-3400291815 .stroke-AA4{stroke:#EDF0FD;}
+		.d2-3400291815 .stroke-AA5{stroke:#F7F8FE;}
+		.d2-3400291815 .stroke-AB4{stroke:#EDF0FD;}
+		.d2-3400291815 .stroke-AB5{stroke:#F7F8FE;}
+		.d2-3400291815 .background-color-N1{background-color:#0A0F25;}
+		.d2-3400291815 .background-color-N2{background-color:#676C7E;}
+		.d2-3400291815 .background-color-N3{background-color:#9499AB;}
+		.d2-3400291815 .background-color-N4{background-color:#CFD2DD;}
+		.d2-3400291815 .background-color-N5{background-color:#DEE1EB;}
+		.d2-3400291815 .background-color-N6{background-color:#EEF1F8;}
+		.d2-3400291815 .background-color-N7{background-color:#FFFFFF;}
+		.d2-3400291815 .background-color-B1{background-color:#0D32B2;}
+		.d2-3400291815 .background-color-B2{background-color:#0D32B2;}
+		.d2-3400291815 .background-color-B3{background-color:#E3E9FD;}
+		.d2-3400291815 .background-color-B4{background-color:#E3E9FD;}
+		.d2-3400291815 .background-color-B5{background-color:#EDF0FD;}
+		.d2-3400291815 .background-color-B6{background-color:#F7F8FE;}
+		.d2-3400291815 .background-color-AA2{background-color:#4A6FF3;}
+		.d2-3400291815 .background-color-AA4{background-color:#EDF0FD;}
+		.d2-3400291815 .background-color-AA5{background-color:#F7F8FE;}
+		.d2-3400291815 .background-color-AB4{background-color:#EDF0FD;}
+		.d2-3400291815 .background-color-AB5{background-color:#F7F8FE;}
+		.d2-3400291815 .color-N1{color:#0A0F25;}
+		.d2-3400291815 .color-N2{color:#676C7E;}
+		.d2-3400291815 .color-N3{color:#9499AB;}
+		.d2-3400291815 .color-N4{color:#CFD2DD;}
+		.d2-3400291815 .color-N5{color:#DEE1EB;}
+		.d2-3400291815 .color-N6{color:#EEF1F8;}
+		.d2-3400291815 .color-N7{color:#FFFFFF;}
+		.d2-3400291815 .color-B1{color:#0D32B2;}
+		.d2-3400291815 .color-B2{color:#0D32B2;}
+		.d2-3400291815 .color-B3{color:#E3E9FD;}
+		.d2-3400291815 .color-B4{color:#E3E9FD;}
+		.d2-3400291815 .color-B5{color:#EDF0FD;}
+		.d2-3400291815 .color-B6{color:#F7F8FE;}
+		.d2-3400291815 .color-AA2{color:#4A6FF3;}
+		.d2-3400291815 .color-AA4{color:#EDF0FD;}
+		.d2-3400291815 .color-AA5{color:#F7F8FE;}
+		.d2-3400291815 .color-AB4{color:#EDF0FD;}
+		.d2-3400291815 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3400291815);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3400291815);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3400291815);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3400291815);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3400291815);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}@media screen and (prefers-color-scheme:dark){
+		.d2-3400291815 .fill-N1{fill:#CDD6F4;}
+		.d2-3400291815 .fill-N2{fill:#BAC2DE;}
+		.d2-3400291815 .fill-N3{fill:#A6ADC8;}
+		.d2-3400291815 .fill-N4{fill:#585B70;}
+		.d2-3400291815 .fill-N5{fill:#45475A;}
+		.d2-3400291815 .fill-N6{fill:#313244;}
+		.d2-3400291815 .fill-N7{fill:#1E1E2E;}
+		.d2-3400291815 .fill-B1{fill:#CBA6f7;}
+		.d2-3400291815 .fill-B2{fill:#CBA6f7;}
+		.d2-3400291815 .fill-B3{fill:#6C7086;}
+		.d2-3400291815 .fill-B4{fill:#585B70;}
+		.d2-3400291815 .fill-B5{fill:#45475A;}
+		.d2-3400291815 .fill-B6{fill:#313244;}
+		.d2-3400291815 .fill-AA2{fill:#f38BA8;}
+		.d2-3400291815 .fill-AA4{fill:#45475A;}
+		.d2-3400291815 .fill-AA5{fill:#313244;}
+		.d2-3400291815 .fill-AB4{fill:#45475A;}
+		.d2-3400291815 .fill-AB5{fill:#313244;}
+		.d2-3400291815 .stroke-N1{stroke:#CDD6F4;}
+		.d2-3400291815 .stroke-N2{stroke:#BAC2DE;}
+		.d2-3400291815 .stroke-N3{stroke:#A6ADC8;}
+		.d2-3400291815 .stroke-N4{stroke:#585B70;}
+		.d2-3400291815 .stroke-N5{stroke:#45475A;}
+		.d2-3400291815 .stroke-N6{stroke:#313244;}
+		.d2-3400291815 .stroke-N7{stroke:#1E1E2E;}
+		.d2-3400291815 .stroke-B1{stroke:#CBA6f7;}
+		.d2-3400291815 .stroke-B2{stroke:#CBA6f7;}
+		.d2-3400291815 .stroke-B3{stroke:#6C7086;}
+		.d2-3400291815 .stroke-B4{stroke:#585B70;}
+		.d2-3400291815 .stroke-B5{stroke:#45475A;}
+		.d2-3400291815 .stroke-B6{stroke:#313244;}
+		.d2-3400291815 .stroke-AA2{stroke:#f38BA8;}
+		.d2-3400291815 .stroke-AA4{stroke:#45475A;}
+		.d2-3400291815 .stroke-AA5{stroke:#313244;}
+		.d2-3400291815 .stroke-AB4{stroke:#45475A;}
+		.d2-3400291815 .stroke-AB5{stroke:#313244;}
+		.d2-3400291815 .background-color-N1{background-color:#CDD6F4;}
+		.d2-3400291815 .background-color-N2{background-color:#BAC2DE;}
+		.d2-3400291815 .background-color-N3{background-color:#A6ADC8;}
+		.d2-3400291815 .background-color-N4{background-color:#585B70;}
+		.d2-3400291815 .background-color-N5{background-color:#45475A;}
+		.d2-3400291815 .background-color-N6{background-color:#313244;}
+		.d2-3400291815 .background-color-N7{background-color:#1E1E2E;}
+		.d2-3400291815 .background-color-B1{background-color:#CBA6f7;}
+		.d2-3400291815 .background-color-B2{background-color:#CBA6f7;}
+		.d2-3400291815 .background-color-B3{background-color:#6C7086;}
+		.d2-3400291815 .background-color-B4{background-color:#585B70;}
+		.d2-3400291815 .background-color-B5{background-color:#45475A;}
+		.d2-3400291815 .background-color-B6{background-color:#313244;}
+		.d2-3400291815 .background-color-AA2{background-color:#f38BA8;}
+		.d2-3400291815 .background-color-AA4{background-color:#45475A;}
+		.d2-3400291815 .background-color-AA5{background-color:#313244;}
+		.d2-3400291815 .background-color-AB4{background-color:#45475A;}
+		.d2-3400291815 .background-color-AB5{background-color:#313244;}
+		.d2-3400291815 .color-N1{color:#CDD6F4;}
+		.d2-3400291815 .color-N2{color:#BAC2DE;}
+		.d2-3400291815 .color-N3{color:#A6ADC8;}
+		.d2-3400291815 .color-N4{color:#585B70;}
+		.d2-3400291815 .color-N5{color:#45475A;}
+		.d2-3400291815 .color-N6{color:#313244;}
+		.d2-3400291815 .color-N7{color:#1E1E2E;}
+		.d2-3400291815 .color-B1{color:#CBA6f7;}
+		.d2-3400291815 .color-B2{color:#CBA6f7;}
+		.d2-3400291815 .color-B3{color:#6C7086;}
+		.d2-3400291815 .color-B4{color:#585B70;}
+		.d2-3400291815 .color-B5{color:#45475A;}
+		.d2-3400291815 .color-B6{color:#313244;}
+		.d2-3400291815 .color-AA2{color:#f38BA8;}
+		.d2-3400291815 .color-AA4{color:#45475A;}
+		.d2-3400291815 .color-AA5{color:#313244;}
+		.d2-3400291815 .color-AB4{color:#45475A;}
+		.d2-3400291815 .color-AB5{color:#313244;}.appendix text.text{fill:#CDD6F4}.md{--color-fg-default:#CDD6F4;--color-fg-muted:#BAC2DE;--color-fg-subtle:#A6ADC8;--color-canvas-default:#1E1E2E;--color-canvas-subtle:#313244;--color-border-default:#CBA6f7;--color-border-muted:#CBA6f7;--color-neutral-muted:#313244;--color-accent-fg:#CBA6f7;--color-accent-emphasis:#CBA6f7;--color-attention-subtle:#BAC2DE;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-normal-d2-3400291815);mix-blend-mode:color-burn}.sketch-overlay-B2{fill:url(#streaks-normal-d2-3400291815);mix-blend-mode:color-burn}.sketch-overlay-B3{fill:url(#streaks-dark-d2-3400291815);mix-blend-mode:overlay}.sketch-overlay-B4{fill:url(#streaks-dark-d2-3400291815);mix-blend-mode:overlay}.sketch-overlay-B5{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-B6{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-AA2{fill:url(#streaks-normal-d2-3400291815);mix-blend-mode:color-burn}.sketch-overlay-AA4{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-AA5{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-AB4{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-AB5{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-N1{fill:url(#streaks-normal-d2-3400291815);mix-blend-mode:color-burn}.sketch-overlay-N2{fill:url(#streaks-normal-d2-3400291815);mix-blend-mode:color-burn}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3400291815);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-dark-d2-3400291815);mix-blend-mode:overlay}.sketch-overlay-N5{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-N6{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.sketch-overlay-N7{fill:url(#streaks-darker-d2-3400291815);mix-blend-mode:lighten}.light-code{display: none}.dark-code{display: block}}]]></style><g class="dGl0bGU="><g class="shape" ></g><text x="1670.000000" y="-11.000000" class="text fill-N1" style="text-anchor:middle;font-size:22px">DataStar Dual-Frontend Rollout — Execution Graph (v2, ADR-first)</text></g><g class="dDE="><g class="shape" ><rect x="49.000000" y="79.000000" width="814.000000" height="873.000000" rx="4.000000" fill="#e63946" class=" stroke-B1" style="stroke-width:0;" /></g><text x="456.000000" y="66.000000" fill="#ffffff" class="text" style="text-anchor:middle;font-size:28px">TIER 1 · ship first · strategy + docs (~2.25h)</text></g><g class="dDI="><g class="shape" ><rect x="1226.000000" y="56.000000" width="843.000000" height="180.000000" rx="4.000000" fill="#f4a261" class=" stroke-B1" style="stroke-width:0;" /></g><text x="1647.500000" y="43.000000" fill="#111111" class="text" style="text-anchor:middle;font-size:28px">TIER 2 · the feature itself (~1.75h)</text></g><g class="dDM="><g class="shape" ><rect x="1800.000000" y="337.000000" width="1491.000000" height="587.000000" rx="4.000000" fill="#f4d35e" class=" stroke-B1" style="stroke-width:0;" /></g><text x="2545.500000" y="324.000000" fill="#111111" class="text" style="text-anchor:middle;font-size:28px">TIER 3 · release-quality finish (~3.75h)</text></g><g class="dDQ="><g class="shape" ><rect x="1227.000000" y="1010.000000" width="1470.000000" height="426.000000" rx="4.000000" fill="#1d3557" class=" stroke-B1" style="stroke-width:0;" /></g><text x="1962.000000" y="997.000000" fill="#ffffff" class="text" style="text-anchor:middle;font-size:28px">TIER 4 · demand-gated → 100% (~9.2h)</text></g><g class="dDEubTA="><g class="shape" ><rect x="79.000000" y="125.000000" width="201.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="179.500000" y="163.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="179.500000" dy="0.000000">M0 demand validation</tspan><tspan x="179.500000" dy="18.500000">(30m)</tspan></text></g><g class="dDEubTQ="><g class="shape" ><rect x="555.000000" y="109.000000" width="278.000000" height="114.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="694.000000" y="147.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="694.000000" dy="0.000000">M4 ADR-0049 dual frontend</tspan><tspan x="694.000000" dy="17.250000">strategy — decides dep direction,</tspan><tspan x="694.000000" dy="17.250000">/ds/events gating, /sse-authz</tspan><tspan x="694.000000" dy="17.250000">sequencing (75m)</tspan></text></g><g class="dDEubTM="><g class="shape" ><rect x="579.000000" y="840.000000" width="230.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="694.000000" y="878.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="694.000000" dy="0.000000">M3 route-split recipe in</tspan><tspan x="694.000000" dy="18.500000">fullstack-wiring.md (30m)</tspan></text></g><g class="dDIubTE="><g class="shape" ><rect x="1256.000000" y="124.000000" width="228.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1370.000000" y="162.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1370.000000" dy="0.000000">M1 setup.Config.DataStar</tspan><tspan x="1370.000000" dy="18.500000">opt-in mount (60m)</tspan></text></g><g class="dDIubTI="><g class="shape" ><rect x="1863.000000" y="86.000000" width="176.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1951.000000" y="124.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1951.000000" dy="0.000000">M2 setup DataStar</tspan><tspan x="1951.000000" dy="18.500000">tests (45m)</tspan></text></g><g class="dDMubTU="><g class="shape" ><rect x="1836.000000" y="528.000000" width="230.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1951.000000" y="566.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1951.000000" dy="0.000000">M5 setup-demo dual</tspan><tspan x="1951.000000" dy="18.500000">transport showcase (60m)</tspan></text></g><g class="dDMubTY="><g class="shape" ><rect x="1830.000000" y="670.000000" width="242.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1951.000000" y="708.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1951.000000" dy="0.000000">M6 datastar-integration.md</tspan><tspan x="1951.000000" dy="18.500000">setup section (30m)</tspan></text></g><g class="dDMubTc="><g class="shape" ><rect x="1843.000000" y="812.000000" width="217.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1951.500000" y="850.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1951.500000" dy="0.000000">M7 sse-and-datastar.md</tspan><tspan x="1951.500000" dy="18.500000">cross-links (30m)</tspan></text></g><g class="dDMubTg="><g class="shape" ><rect x="2427.000000" y="367.000000" width="266.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2560.000000" y="405.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2560.000000" dy="0.000000">M8 TODO/ROADMAP/FEATURES</tspan><tspan x="2560.000000" dy="18.500000">updates (30m)</tspan></text></g><g class="dDMubTk="><g class="shape" ><rect x="2453.000000" y="509.000000" width="215.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2560.500000" y="547.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2560.500000" dy="0.000000">M9 hermetic gate sweep</tspan><tspan x="2560.500000" dy="18.500000">(45m)</tspan></text></g><g class="dDMubTEw"><g class="shape" ><rect x="3026.000000" y="438.000000" width="235.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3143.500000" y="476.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3143.500000" dy="0.000000">M10 CHANGELOG + commit</tspan><tspan x="3143.500000" dy="18.500000">choreography (30m)</tspan></text></g><g class="dDQubTEx"><g class="shape" ><rect x="1257.000000" y="1182.000000" width="227.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1370.500000" y="1220.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1370.500000" dy="0.000000">M11 dashboardui</tspan><tspan x="1370.500000" dy="18.500000">signal-patch spike (100m)</tspan></text></g><g class="dDQubTEy"><g class="shape" ><rect x="1834.000000" y="1182.000000" width="234.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1951.000000" y="1220.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1951.000000" dy="0.000000">M12 dashboardui DataStar</tspan><tspan x="1951.000000" dy="18.500000">variant module (100m)</tspan></text></g><g class="dDQubTEz"><g class="shape" ><rect x="1854.000000" y="1324.000000" width="194.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1951.000000" y="1362.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1951.000000" dy="0.000000">M13 loginpage signal</tspan><tspan x="1951.000000" dy="18.500000">forms (90m)</tspan></text></g><g class="dDQubTE0"><g class="shape" ><rect x="1864.000000" y="1040.000000" width="174.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1951.000000" y="1078.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1951.000000" dy="0.000000">M14 offline-sync</tspan><tspan x="1951.000000" dy="18.500000">evaluation (100m)</tspan></text></g><g class="dDQubTE1"><g class="shape" ><rect x="2465.000000" y="1040.000000" width="191.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2560.500000" y="1078.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2560.500000" dy="0.000000">M15 adminui variant</tspan><tspan x="2560.500000" dy="18.500000">design doc (100m)</tspan></text></g><g class="dDQubTE2"><g class="shape" ><rect x="2453.000000" y="1253.000000" width="214.000000" height="82.000000" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2560.000000" y="1291.500000" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2560.000000" dy="0.000000">M16 release train</tspan><tspan x="2560.000000" dy="18.500000">changed modules (60m)</tspan></text></g><g class="dDEuKG0wIC0mZ3Q7IG00KVswXQ=="><marker id="mk-d2-3400291815-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 281.500000 165.500000 C 389.899994 165.500000 445.100006 165.500000 551.500000 165.500000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="417.500000" y="163.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="417.500000" dy="0.000000">demand evidence</tspan><tspan x="417.500000" dy="18.500000">feeds ADR</tspan></text></g><g class="dDIuKG0xIC0mZ3Q7IG0yKVswXQ=="><path d="M 1485.478089 146.704763 C 1590.699951 131.000000 1773.400024 127.000000 1859.000000 127.000000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /></g><g class="dDMuKG04IC0mZ3Q7IG0xMClbMF0="><path d="M 2695.000000 408.000000 C 2756.199951 408.000000 2924.399902 415.399994 3022.159661 443.881162" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /></g><g class="dDMuKG05IC0mZ3Q7IG0xMClbMF0="><path d="M 2670.500000 550.000000 C 2751.300049 550.000000 2924.399902 542.599976 3022.159661 514.118837" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="2849.000000" y="543.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="2849.000000" dy="0.000000">green gates</tspan><tspan x="2849.000000" dy="18.500000">before commit</tspan></text></g><g class="dDQuKG0xMSAtJmd0OyBtMTIpWzBd"><path d="M 1486.500000 1223.250000 C 1590.900024 1223.250000 1767.599976 1223.250000 1830.000000 1223.250000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="1659.500000" y="1229.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">spike go/no-go</text></g><g class="dDQuKG0xNCAtJmd0OyBtMTUpWzBd"><path d="M 2040.000000 1081.250000 C 2128.399902 1081.250000 2324.100098 1081.250000 2460.500000 1081.250000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="2251.000000" y="1079.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="2251.000000" dy="0.000000">sync findings feed</tspan><tspan x="2251.000000" dy="18.500000">adminui design</tspan></text></g><g class="dDQuKG0xMiAtJmd0OyBtMTYpWzBd"><path d="M 2070.000000 1223.250000 C 2134.399902 1223.250000 2321.800049 1231.849976 2449.130787 1265.235510" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /></g><g class="dDQuKG0xMyAtJmd0OyBtMTYpWzBd"><path d="M 2050.000000 1365.250000 C 2130.399902 1365.250000 2321.800049 1356.650024 2449.130787 1323.264490" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /></g><g class="KHQxLm00IC0mZ3Q7IHQyLm0xKVswXQ=="><path d="M 835.000000 164.750000 C 896.200012 164.750000 938.500000 164.750000 978.250000 164.750000 C 1018.000000 164.750000 1192.800049 164.750000 1252.000000 164.750000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="1044.500000" y="162.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1044.500000" dy="0.000000">ADR acceptance</tspan><tspan x="1044.500000" dy="18.500000">gates the build</tspan></text></g><g class="KHQxLm00IC0mZ3Q7IHQ0Lm0xMSlbMF0="><path d="M 707.268023 225.459183 C 870.973022 1023.299988 938.500000 1223.250000 978.250000 1223.250000 C 1018.000000 1223.250000 1192.900024 1223.250000 1252.500000 1223.250000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="842.500000" y="880.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="842.500000" dy="0.000000">ADR gates</tspan><tspan x="842.500000" dy="18.500000">variant work</tspan></text></g><g class="KHQxLm0zIC0mZ3Q7IHQzLm03KVswXQ=="><path d="M 810.984258 865.999559 C 891.400024 855.849976 938.500000 853.250000 978.250000 853.250000 C 1018.000000 853.250000 1071.000000 853.250000 1110.750000 853.250000 C 1150.500000 853.250000 1215.599976 853.250000 1273.500000 853.250000 C 1331.400024 853.250000 1419.500000 853.250000 1493.750000 853.250000 C 1568.000000 853.250000 1769.300049 853.250000 1838.500000 853.250000" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="1325.500000" y="851.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1325.500000" dy="0.000000">cross-link</tspan><tspan x="1325.500000" dy="18.500000">target</tspan></text></g><g class="KHQyLm0xIC0mZ3Q7IHQzLm01KVswXQ=="><path d="M 1485.500000 165.500000 C 1590.699951 165.500000 1786.400024 238.100006 1926.246891 524.904641" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="1787.500000" y="239.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1787.500000" dy="0.000000">demo consumes</tspan><tspan x="1787.500000" dy="18.500000">the option</tspan></text></g><g class="KHQyLm0xIC0mZ3Q7IHQzLm02KVswXQ=="><path d="M 1485.448537 191.950781 C 1590.699951 216.300003 1787.199951 312.100006 1930.501600 666.791254" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="1798.500000" y="336.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1798.500000" dy="0.000000">guide references</tspan><tspan x="1798.500000" dy="18.500000">real API</tspan></text></g><g class="KHQyLm0yIC0mZ3Q7IHQzLm05KVswXQ=="><path d="M 2041.000000 127.000000 C 2128.600098 127.000000 2321.699951 468.881012 2448.713377 512.117020" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /><text x="2237.500000" y="317.000000" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="2237.500000" dy="0.000000">tests enter</tspan><tspan x="2237.500000" dy="18.500000">gate sweep</tspan></text></g><g class="dDMuKG01IC0mZ3Q7IG05KVswXQ=="><path d="M 2068.000000 569.250000 C 2134.000000 569.250000 2321.699951 566.927002 2448.510053 557.919401" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3400291815-3488378134)" mask="url(#d2-3400291815)" /></g><mask id="d2-3400291815" maskUnits="userSpaceOnUse" x="-51" y="-134" width="3442" height="1670">
+<rect x="-51" y="-134" width="3442" height="1670" fill="white"></rect>
+<rect x="357.000000" y="147.000000" width="121" height="37" fill="black"></rect>
+<rect x="2799.000000" y="527.000000" width="100" height="37" fill="black"></rect>
+<rect x="1608.000000" y="1213.000000" width="103" height="21" fill="black"></rect>
+<rect x="2190.000000" y="1063.000000" width="122" height="37" fill="black"></rect>
+<rect x="989.000000" y="146.000000" width="111" height="37" fill="black"></rect>
+<rect x="798.000000" y="864.000000" width="89" height="37" fill="black"></rect>
+<rect x="1292.000000" y="835.000000" width="67" height="37" fill="black"></rect>
+<rect x="1732.000000" y="223.000000" width="111" height="37" fill="black"></rect>
+<rect x="1742.000000" y="320.000000" width="113" height="37" fill="black"></rect>
+<rect x="2198.000000" y="301.000000" width="79" height="37" fill="black"></rect>
 </mask></svg></svg>
         </div>
 
-        <h2 id="plan-medium"><span class="num">03</span>Plan &middot; Medium (30-100m)</h2>
+        <h2 id="plan-medium"><span class="num">04</span>Plan &middot; Medium (30-100m)</h2>
         <p>
-          All 16 tasks, sorted by tier, then impact per hour. P1-P3 are
-          committable now; P4 is gated on consumer demand and ADR-0049.
+          All 17 tasks in execution order, each with an explicit acceptance
+          criterion.
         </p>
         <table>
           <thead>
@@ -1175,194 +1243,225 @@
               <th>Tier</th>
               <th>Task</th>
               <th>Effort</th>
-              <th>Impact / customer value</th>
+              <th>Acceptance</th>
               <th>Depends on</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>M1</td>
-              <td><span class="badge badge-critical">1%</span></td>
+              <td>M0</td>
+              <td><span class="badge badge-critical">1</span></td>
               <td>
-                <code>setup.Config.DataStar</code> opt-in: validation +
-                mount <code>/datastar.js</code> (ds.ScriptHandler) +
-                <code>/ds/events</code> (ds.Broadcaster via
-                NewBroadcasterFromHub on Bundle.Broadcaster.Hub())
+                Demand validation: search cqrs-htmx issues/discussions and
+                own consumer projects for DataStar signals; record evidence
+                (or its absence) as ADR input
               </td>
-              <td>60m</td>
-              <td>Dual support becomes one config flag</td>
+              <td>30m</td>
+              <td>Demand-evidence section drafted for ADR-0049</td>
               <td>—</td>
             </tr>
             <tr>
-              <td>M2</td>
-              <td><span class="badge badge-critical">1%</span></td>
-              <td>
-                setup tests: script 200/ETag/304, SSE subscribe, shared-hub
-                broadcast reaches both transports, default-off 404s
-              </td>
-              <td>45m</td>
-              <td>Feature is proven, coverage gate holds</td>
-              <td>M1</td>
-            </tr>
-            <tr>
               <td>M3</td>
-              <td><span class="badge badge-critical">1%</span></td>
+              <td><span class="badge badge-critical">1</span></td>
               <td>
                 Route-split coexistence recipe in
-                <code>docs/guides/fullstack-wiring.md</code>
+                <code>docs/guides/fullstack-wiring.md</code> (works today,
+                zero code)
               </td>
               <td>30m</td>
-              <td>Pattern becomes discoverable without the setup module</td>
+              <td>
+                Recipe renders; sample compiles; linked from
+                sse-and-datastar.md
+              </td>
               <td>—</td>
             </tr>
             <tr>
               <td>M4</td>
-              <td><span class="badge badge-high">4%</span></td>
+              <td><span class="badge badge-critical">1</span></td>
               <td>
-                ADR-0049 "Dual frontend protocol strategy": HTMX canonical
-                for panels, DataStar opt-in; Model A/C accepted, Model B
-                (dual-mode handlers) rejected
+                ADR-0049 "Dual frontend protocol strategy": Model A/C
+                accepted, Model B rejected; decides setup-dep vs bridge
+                module, <code>/ds/events</code> gating (default: mirror
+                dashboard 401), sequencing vs <code>/sse</code> authz
+                decision
+              </td>
+              <td>75m</td>
+              <td>
+                ADR merged, linked from ADR index + research report; all
+                three decisions explicit
+              </td>
+              <td>M0</td>
+            </tr>
+            <tr>
+              <td>M1</td>
+              <td><span class="badge badge-high">2</span></td>
+              <td>
+                <code>setup.Config.DataStar</code> opt-in per ADR-0049:
+                validation, <code>/datastar.js</code> mount,
+                <code>/ds/events</code> via NewBroadcasterFromHub on
+                Bundle.Broadcaster.Hub() with ADR-decided gating
+              </td>
+              <td>60m</td>
+              <td>
+                Hermetic <code>GOWORK=off go build ./... && go vet ./...</code>
+                green in setup
+              </td>
+              <td>M4</td>
+            </tr>
+            <tr>
+              <td>M2</td>
+              <td><span class="badge badge-high">2</span></td>
+              <td>
+                setup tests: script 200/ETag/304, SSE subscribe, shared-hub
+                broadcast reaches both transports, default-off 404s, gating
+                posture
               </td>
               <td>45m</td>
-              <td>Strategy never re-litigated; P4 work has a gate</td>
-              <td>research report</td>
+              <td>
+                <code>go test ./... -count=1</code> green in setup; coverage
+                gate (80%) holds
+              </td>
+              <td>M1</td>
             </tr>
             <tr>
               <td>M5</td>
-              <td><span class="badge badge-high">4%</span></td>
+              <td><span class="badge badge-low">3</span></td>
               <td>
-                <code>examples/setup-demo</code>: dual-transport showcase —
-                one action broadcasts to HTMX and DataStar clients
+                <code>examples/setup-demo</code> dual-transport showcase:
+                one action updates HTMX and DataStar clients
               </td>
               <td>60m</td>
-              <td>Runnable proof consumers can copy</td>
+              <td>Demo builds; e2e asserts both endpoints</td>
               <td>M1</td>
             </tr>
             <tr>
               <td>M6</td>
-              <td><span class="badge badge-low">20%</span></td>
+              <td><span class="badge badge-low">3</span></td>
               <td>
                 <code>datastar-integration.md</code>: "Using with setup"
-                section (config snippet, hub note)
+                section
               </td>
               <td>30m</td>
-              <td>Integration guide reflects the shipped API</td>
+              <td>Section live; snippet matches shipped API</td>
               <td>M1</td>
             </tr>
             <tr>
               <td>M7</td>
-              <td><span class="badge badge-low">20%</span></td>
+              <td><span class="badge badge-low">3</span></td>
               <td>
                 <code>sse-and-datastar.md</code>: setup row in coexistence
-                table + cross-link to the recipe
+                table + cross-link to recipe
               </td>
               <td>30m</td>
-              <td>Hub guide and wiring guide agree</td>
+              <td>Guides agree; link checker green</td>
               <td>M3</td>
             </tr>
             <tr>
               <td>M8</td>
-              <td><span class="badge badge-low">20%</span></td>
+              <td><span class="badge badge-low">3</span></td>
               <td>
-                Living docs: TODO_LIST (P4 items), ROADMAP (DataStar Future
-                Scope routed to plan), FEATURES (adapter status)
+                Living docs: TODO_LIST (tier-4 items), ROADMAP (Future Scope
+                routed), FEATURES (adapter status)
               </td>
               <td>30m</td>
-              <td>No split-brain between plan and living docs</td>
+              <td>No contradiction between plan, TODO, ROADMAP</td>
               <td>M1-M5</td>
             </tr>
             <tr>
               <td>M9</td>
-              <td><span class="badge badge-low">20%</span></td>
+              <td><span class="badge badge-low">3</span></td>
               <td>
                 Hermetic gate sweep: build, test, lint, cqrs-lint,
                 coverage-gate
               </td>
               <td>45m</td>
-              <td>Nothing merges red; GOWORK=off truth</td>
+              <td>
+                <code>nix run .#build/.#test/.#lint/.#coverage-gate/.#check-cqrs-lint</code>
+                all green
+              </td>
               <td>M2, M5</td>
             </tr>
             <tr>
               <td>M10</td>
-              <td><span class="badge badge-low">20%</span></td>
+              <td><span class="badge badge-low">3</span></td>
               <td>CHANGELOG [Unreleased] entry + detailed commit + push</td>
               <td>30m</td>
-              <td>Work is attributable and released cleanly later</td>
+              <td>CHANGELOG entry exists; tree clean post-commit</td>
               <td>M8, M9</td>
             </tr>
             <tr>
               <td>M11</td>
-              <td><span class="badge badge-fixed">gated</span></td>
+              <td><span class="badge badge-fixed">4</span></td>
               <td>
                 dashboardui signal-patch spike: projection health as
-                SignalsPatch, payload-size comparison vs polling
+                SignalsPatch, payload comparison vs polling
               </td>
               <td>100m</td>
-              <td>Go/no-go evidence for the variant module</td>
+              <td>Spike findings written; go/no-go recorded</td>
               <td>M4, demand</td>
             </tr>
             <tr>
               <td>M12</td>
-              <td><span class="badge badge-fixed">gated</span></td>
+              <td><span class="badge badge-fixed">4</span></td>
               <td>
-                dashboardui DataStar variant module scaffold (go.work, lint
-                configs, coverage gate, templ-components/datastar adoption)
+                dashboardui DataStar variant module (go.work, lint configs,
+                coverage gate, templ-components/datastar adoption)
               </td>
               <td>100m</td>
-              <td>Real-time observability panel without polling</td>
+              <td>
+                Module in go.work; gates green; coverage gate configured
+              </td>
               <td>M11 go</td>
             </tr>
             <tr>
               <td>M13</td>
-              <td><span class="badge badge-fixed">gated</span></td>
-              <td>
-                loginpage signal-based form validation (client-side state,
-                patch responses)
-              </td>
+              <td><span class="badge badge-fixed">4</span></td>
+              <td>loginpage signal-based form validation</td>
               <td>90m</td>
-              <td>Eliminates validation roundtrips on the highest-traffic
-                page</td>
+              <td>
+                Validation without server roundtrip; loginpage gates green
+              </td>
               <td>M4, demand</td>
             </tr>
             <tr>
               <td>M14</td>
-              <td><span class="badge badge-fixed">gated</span></td>
+              <td><span class="badge badge-fixed">4</span></td>
               <td>
-                Offline-sync evaluation: DataStar retry/replay primitives vs
+                Offline-sync evaluation: DataStar retry/replay vs
                 sync-worker.js/sync-client.js
               </td>
               <td>100m</td>
-              <td>Decides whether the sync layer can shrink</td>
+              <td>Evaluation report written; findings routed to ROADMAP</td>
               <td>M4</td>
             </tr>
             <tr>
               <td>M15</td>
-              <td><span class="badge badge-fixed">gated</span></td>
+              <td><span class="badge badge-fixed">4</span></td>
               <td>
-                adminui DataStar variant design doc (21 hx-* attrs mapped to
-                patches, re-estimate vs ROADMAP 6h)
+                adminui DataStar variant design doc (21 hx-* attrs mapped,
+                re-estimate vs ROADMAP 6h)
               </td>
               <td>100m</td>
-              <td>De-risks the largest variant before building it</td>
+              <td>Design doc + demand gate decision recorded</td>
               <td>M14</td>
             </tr>
             <tr>
               <td>M16</td>
-              <td><span class="badge badge-fixed">gated</span></td>
-              <td>
-                Release train for changed modules (check-release-train,
-                verify-tag.sh, train order, push)
-              </td>
+              <td><span class="badge badge-fixed">4</span></td>
+              <td>Release train for changed modules</td>
               <td>60m</td>
-              <td>Consumers can <code>go get</code> the feature</td>
+              <td>
+                check-release-train green; tags cut via verify-tag.sh;
+                ls-remote verified
+              </td>
               <td>M12, M13</td>
             </tr>
           </tbody>
         </table>
 
-        <h2 id="plan-fine"><span class="num">04</span>Plan &middot; Fine (&le;12m each)</h2>
+        <h2 id="plan-fine"><span class="num">05</span>Plan &middot; Fine (&le;12m each)</h2>
         <p>
-          All 87 fine tasks, grouped by medium task, in execution order.
+          All 93 fine tasks, grouped by medium task, in execution order.
           Every medium task above is fully covered.
         </p>
         <table>
@@ -1375,106 +1474,126 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>F01</td><td>M1</td><td>Read setup/config.go validation patterns + Bundle.Mount mount order</td><td>12m</td></tr>
-            <tr><td>F02</td><td>M1</td><td>Add Config.DataStar bool field with doc comment + validation</td><td>10m</td></tr>
-            <tr><td>F03</td><td>M1</td><td>Mount ds.ScriptHandler() at /datastar.js when enabled</td><td>8m</td></tr>
-            <tr><td>F04</td><td>M1</td><td>Mount ds.NewBroadcasterFromHub(Bundle.Broadcaster.Hub()) at /ds/events</td><td>12m</td></tr>
-            <tr><td>F05</td><td>M1</td><td>Hermetic build of setup module (GOWORK=off)</td><td>10m</td></tr>
-            <tr><td>F06</td><td>M1</td><td>Verify setup cqrs-lint + golangci configs still clean</td><td>8m</td></tr>
-            <tr><td>F07</td><td>M2</td><td>Test: /datastar.js serves 200 + ETag + 304 on If-None-Match</td><td>12m</td></tr>
-            <tr><td>F08</td><td>M2</td><td>Test: /ds/events SSE handshake + event delivery</td><td>12m</td></tr>
-            <tr><td>F09</td><td>M2</td><td>Test: broadcast on root Broadcaster reaches DataStar subscriber (shared hub proof)</td><td>12m</td></tr>
-            <tr><td>F10</td><td>M2</td><td>Test: DataStar disabled by default, both routes 404</td><td>6m</td></tr>
-            <tr><td>F11</td><td>M2</td><td>go vet + full setup test run hermetically</td><td>5m</td></tr>
-            <tr><td>F12</td><td>M3</td><td>Draft route-split recipe section in fullstack-wiring.md</td><td>12m</td></tr>
-            <tr><td>F13</td><td>M3</td><td>Add hub-sharing code sample + link sse-and-datastar.md</td><td>10m</td></tr>
-            <tr><td>F14</td><td>M3</td><td>Verify the sample compiles (integration_test embed)</td><td>8m</td></tr>
-            <tr><td>F15</td><td>M4</td><td>Read ADR-0046 format + confirm next ADR number</td><td>8m</td></tr>
-            <tr><td>F16</td><td>M4</td><td>Draft ADR-0049 context + options (Models A/B/C)</td><td>12m</td></tr>
-            <tr><td>F17</td><td>M4</td><td>Decision + consequences sections</td><td>12m</td></tr>
-            <tr><td>F18</td><td>M4</td><td>Link ADR from index + research report</td><td>10m</td></tr>
-            <tr><td>F19</td><td>M5</td><td>Read setup-demo structure (main.go, e2e test)</td><td>8m</td></tr>
-            <tr><td>F20</td><td>M5</td><td>Enable Config.DataStar in setup-demo</td><td>10m</td></tr>
-            <tr><td>F21</td><td>M5</td><td>Add demo page section consuming the DataStar feed</td><td>12m</td></tr>
-            <tr><td>F22</td><td>M5</td><td>Dual-broadcast demo action (HTMX + DataStar clients update)</td><td>12m</td></tr>
-            <tr><td>F23</td><td>M5</td><td>e2e assertion covering both endpoints</td><td>10m</td></tr>
-            <tr><td>F24</td><td>M5</td><td>setup-demo README update</td><td>8m</td></tr>
-            <tr><td>F25</td><td>M6</td><td>Draft "Using with setup" section in datastar-integration.md</td><td>12m</td></tr>
-            <tr><td>F26</td><td>M6</td><td>Config snippet + shared-hub note</td><td>10m</td></tr>
-            <tr><td>F27</td><td>M6</td><td>Cross-link from datastar/README.md</td><td>8m</td></tr>
-            <tr><td>F28</td><td>M7</td><td>Add setup option row to coexistence table in sse-and-datastar.md</td><td>10m</td></tr>
-            <tr><td>F29</td><td>M7</td><td>Cross-link the fullstack-wiring recipe</td><td>8m</td></tr>
-            <tr><td>F30</td><td>M7</td><td>Re-verify guide code samples still compile</td><td>12m</td></tr>
-            <tr><td>F31</td><td>M8</td><td>TODO_LIST: add P4 demand-gated items with gate references</td><td>10m</td></tr>
-            <tr><td>F32</td><td>M8</td><td>ROADMAP DataStar Future Scope: mark items routed to this plan + ADR-0049</td><td>10m</td></tr>
-            <tr><td>F33</td><td>M8</td><td>FEATURES.md: DataStar adapter status update</td><td>10m</td></tr>
-            <tr><td>F34</td><td>M9</td><td>nix run .#build (all modules, hermetic)</td><td>12m</td></tr>
-            <tr><td>F35</td><td>M9</td><td>nix run .#test</td><td>12m</td></tr>
-            <tr><td>F36</td><td>M9</td><td>nix run .#lint + check-cqrs-lint</td><td>12m</td></tr>
-            <tr><td>F37</td><td>M9</td><td>nix run .#coverage-gate</td><td>9m</td></tr>
-            <tr><td>F38</td><td>M10</td><td>CHANGELOG [Unreleased] entry</td><td>10m</td></tr>
-            <tr><td>F39</td><td>M10</td><td>Final git status review + detailed commit</td><td>10m</td></tr>
-            <tr><td>F40</td><td>M10</td><td>Push + verify remote state</td><td>10m</td></tr>
-            <tr><td>F41</td><td>M11</td><td>Read dashboardui SSE handler + core/ overview payload</td><td>12m</td></tr>
-            <tr><td>F42</td><td>M11</td><td>Design signal-patch mapping for projection health</td><td>12m</td></tr>
-            <tr><td>F43</td><td>M11</td><td>Spike: render health panel as SignalsPatch</td><td>12m</td></tr>
-            <tr><td>F44</td><td>M11</td><td>Spike: serve patches via ds.Broadcaster from dashboard events</td><td>12m</td></tr>
-            <tr><td>F45</td><td>M11</td><td>Spike test: patch wire format golden</td><td>12m</td></tr>
-            <tr><td>F46</td><td>M11</td><td>Compare polling vs signal-patch payload sizes</td><td>12m</td></tr>
-            <tr><td>F47</td><td>M11</td><td>Write spike findings</td><td>12m</td></tr>
-            <tr><td>F48</td><td>M11</td><td>Go/no-go decision for M12</td><td>8m</td></tr>
-            <tr><td>F49</td><td>M11</td><td>Clean up spike or promote to branch</td><td>8m</td></tr>
-            <tr><td>F50</td><td>M12</td><td>Create dashboardui-datastar go.mod + .golangci.yml + .cqrs-lint.json</td><td>12m</td></tr>
-            <tr><td>F51</td><td>M12</td><td>Add module to go.work</td><td>6m</td></tr>
-            <tr><td>F52</td><td>M12</td><td>Port overview rendering to patches</td><td>12m</td></tr>
-            <tr><td>F53</td><td>M12</td><td>Port events panel</td><td>12m</td></tr>
-            <tr><td>F54</td><td>M12</td><td>Port DLQ panel</td><td>12m</td></tr>
-            <tr><td>F55</td><td>M12</td><td>Adopt templ-components/datastar components (indicator, live region)</td><td>12m</td></tr>
-            <tr><td>F56</td><td>M12</td><td>Tests + coverage-gate config entry</td><td>12m</td></tr>
-            <tr><td>F57</td><td>M12</td><td>README + integration guide for the variant</td><td>12m</td></tr>
-            <tr><td>F58</td><td>M12</td><td>Module gate sweep (build/test/vet hermetic)</td><td>10m</td></tr>
-            <tr><td>F59</td><td>M13</td><td>Read loginpage handler + templ page</td><td>10m</td></tr>
-            <tr><td>F60</td><td>M13</td><td>Design signal model for form state</td><td>12m</td></tr>
-            <tr><td>F61</td><td>M13</td><td>Implement client-side validation signals</td><td>12m</td></tr>
-            <tr><td>F62</td><td>M13</td><td>Convert submit to patch response</td><td>12m</td></tr>
-            <tr><td>F63</td><td>M13</td><td>Error display via SignalsPatch</td><td>12m</td></tr>
-            <tr><td>F64</td><td>M13</td><td>Tests for new handler paths</td><td>12m</td></tr>
-            <tr><td>F65</td><td>M13</td><td>Golden/render verification</td><td>10m</td></tr>
-            <tr><td>F66</td><td>M13</td><td>loginpage gate sweep</td><td>10m</td></tr>
-            <tr><td>F67</td><td>M14</td><td>Read sync-worker.js + sync-client.js</td><td>12m</td></tr>
-            <tr><td>F68</td><td>M14</td><td>Enumerate DataStar retry/replay primitives</td><td>12m</td></tr>
-            <tr><td>F69</td><td>M14</td><td>Feature matrix comparison</td><td>12m</td></tr>
-            <tr><td>F70</td><td>M14</td><td>Identify gaps (mutation queue, conflict policy)</td><td>12m</td></tr>
-            <tr><td>F71</td><td>M14</td><td>Define replacement decision criteria</td><td>12m</td></tr>
-            <tr><td>F72</td><td>M14</td><td>Write evaluation report</td><td>12m</td></tr>
-            <tr><td>F73</td><td>M14</td><td>Route findings to ROADMAP</td><td>12m</td></tr>
-            <tr><td>F74</td><td>M14</td><td>Draft ADR if sync replacement is chosen</td><td>12m</td></tr>
-            <tr><td>F75</td><td>M15</td><td>Inventory adminui hx-* usage (21 attrs, 4 templ files)</td><td>10m</td></tr>
-            <tr><td>F76</td><td>M15</td><td>Map each interaction to its patch equivalent</td><td>12m</td></tr>
-            <tr><td>F77</td><td>M15</td><td>Identify templ-components/datastar coverage gaps</td><td>12m</td></tr>
-            <tr><td>F78</td><td>M15</td><td>Design variant module boundary (deps, opt-in)</td><td>12m</td></tr>
-            <tr><td>F79</td><td>M15</td><td>Re-estimate effort vs ROADMAP 6h</td><td>10m</td></tr>
-            <tr><td>F80</td><td>M15</td><td>Write design doc</td><td>12m</td></tr>
-            <tr><td>F81</td><td>M15</td><td>Demand-evidence decision gate</td><td>12m</td></tr>
-            <tr><td>F82</td><td>M15</td><td>Route outcome to TODO_LIST/ROADMAP</td><td>10m</td></tr>
-            <tr><td>F83</td><td>M16</td><td>nix run .#check-release-train + version-drift strict</td><td>12m</td></tr>
-            <tr><td>F84</td><td>M16</td><td>scripts/verify-tag.sh per changed module</td><td>12m</td></tr>
-            <tr><td>F85</td><td>M16</td><td>Cut tags in family train order</td><td>12m</td></tr>
-            <tr><td>F86</td><td>M16</td><td>Push tags + ls-remote verification</td><td>12m</td></tr>
-            <tr><td>F87</td><td>M16</td><td>Post-train hygiene (require alignment, drift re-check)</td><td>12m</td></tr>
+            <tr><td>F01</td><td>M0</td><td>Search cqrs-htmx GitHub issues/discussions for DataStar requests</td><td>10m</td></tr>
+            <tr><td>F02</td><td>M0</td><td>Survey own consumer projects for DataStar usage signals</td><td>10m</td></tr>
+            <tr><td>F03</td><td>M0</td><td>Record demand evidence (or its absence) as ADR-0049 input</td><td>10m</td></tr>
+            <tr><td>F04</td><td>M4</td><td>Read ADR-0046 format + confirm next ADR number</td><td>8m</td></tr>
+            <tr><td>F05</td><td>M4</td><td>Draft context + options (Models A/B/C)</td><td>12m</td></tr>
+            <tr><td>F06</td><td>M4</td><td>Decide dependency direction: setup dep vs setup-datastar bridge module</td><td>12m</td></tr>
+            <tr><td>F07</td><td>M4</td><td>Decide /ds/events gating posture (default proposal: mirror dashboard 401)</td><td>10m</td></tr>
+            <tr><td>F08</td><td>M4</td><td>Sequence vs open /sse authz decision (adopt posture or hold mount)</td><td>10m</td></tr>
+            <tr><td>F09</td><td>M4</td><td>Decision + consequences sections</td><td>12m</td></tr>
+            <tr><td>F10</td><td>M4</td><td>Link ADR from index + research report</td><td>11m</td></tr>
+            <tr><td>F11</td><td>M3</td><td>Draft route-split recipe section in fullstack-wiring.md</td><td>12m</td></tr>
+            <tr><td>F12</td><td>M3</td><td>Add hub-sharing code sample + link sse-and-datastar.md</td><td>10m</td></tr>
+            <tr><td>F13</td><td>M3</td><td>Verify the sample compiles (integration_test embed)</td><td>8m</td></tr>
+            <tr><td>F14</td><td>M1</td><td>Read setup/config.go validation patterns + Bundle.Mount mount order</td><td>12m</td></tr>
+            <tr><td>F15</td><td>M1</td><td>Add Config.DataStar field per ADR-0049 dependency decision</td><td>10m</td></tr>
+            <tr><td>F16</td><td>M1</td><td>Mount ds.ScriptHandler() at /datastar.js when enabled</td><td>8m</td></tr>
+            <tr><td>F17</td><td>M1</td><td>Mount ds feed at /ds/events with ADR-decided gating via NewBroadcasterFromHub</td><td>12m</td></tr>
+            <tr><td>F18</td><td>M1</td><td>Hermetic build of setup module (GOWORK=off)</td><td>10m</td></tr>
+            <tr><td>F19</td><td>M1</td><td>Verify setup cqrs-lint + golangci configs still clean</td><td>8m</td></tr>
+            <tr><td>F20</td><td>M2</td><td>Test: /datastar.js serves 200 + ETag + 304 on If-None-Match</td><td>12m</td></tr>
+            <tr><td>F21</td><td>M2</td><td>Test: /ds/events SSE handshake + event delivery</td><td>12m</td></tr>
+            <tr><td>F22</td><td>M2</td><td>Test: broadcast on root Broadcaster reaches DataStar subscriber (shared hub proof)</td><td>12m</td></tr>
+            <tr><td>F23</td><td>M2</td><td>Test: DataStar disabled by default, both routes 404; gating posture honored</td><td>6m</td></tr>
+            <tr><td>F24</td><td>M2</td><td>go vet + full setup test run hermetically</td><td>5m</td></tr>
+            <tr><td>F25</td><td>M5</td><td>Read setup-demo structure (main.go, e2e test)</td><td>8m</td></tr>
+            <tr><td>F26</td><td>M5</td><td>Enable Config.DataStar in setup-demo</td><td>10m</td></tr>
+            <tr><td>F27</td><td>M5</td><td>Add demo page section consuming the DataStar feed</td><td>12m</td></tr>
+            <tr><td>F28</td><td>M5</td><td>Dual-broadcast demo action (HTMX + DataStar clients update)</td><td>12m</td></tr>
+            <tr><td>F29</td><td>M5</td><td>e2e assertion covering both endpoints</td><td>10m</td></tr>
+            <tr><td>F30</td><td>M5</td><td>setup-demo README update</td><td>8m</td></tr>
+            <tr><td>F31</td><td>M6</td><td>Draft "Using with setup" section in datastar-integration.md</td><td>12m</td></tr>
+            <tr><td>F32</td><td>M6</td><td>Config snippet + shared-hub note</td><td>10m</td></tr>
+            <tr><td>F33</td><td>M6</td><td>Cross-link from datastar/README.md</td><td>8m</td></tr>
+            <tr><td>F34</td><td>M7</td><td>Add setup option row to coexistence table in sse-and-datastar.md</td><td>10m</td></tr>
+            <tr><td>F35</td><td>M7</td><td>Cross-link the fullstack-wiring recipe</td><td>8m</td></tr>
+            <tr><td>F36</td><td>M7</td><td>Re-verify guide code samples still compile</td><td>12m</td></tr>
+            <tr><td>F37</td><td>M8</td><td>TODO_LIST: add tier-4 demand-gated items with gate references</td><td>10m</td></tr>
+            <tr><td>F38</td><td>M8</td><td>ROADMAP DataStar Future Scope: mark items routed to this plan + ADR-0049</td><td>10m</td></tr>
+            <tr><td>F39</td><td>M8</td><td>FEATURES.md: DataStar adapter status update</td><td>10m</td></tr>
+            <tr><td>F40</td><td>M9</td><td>nix run .#build (all modules, hermetic)</td><td>12m</td></tr>
+            <tr><td>F41</td><td>M9</td><td>nix run .#test</td><td>12m</td></tr>
+            <tr><td>F42</td><td>M9</td><td>nix run .#lint + check-cqrs-lint</td><td>12m</td></tr>
+            <tr><td>F43</td><td>M9</td><td>nix run .#coverage-gate</td><td>9m</td></tr>
+            <tr><td>F44</td><td>M10</td><td>CHANGELOG [Unreleased] entry</td><td>10m</td></tr>
+            <tr><td>F45</td><td>M10</td><td>Final git status review + detailed commit</td><td>10m</td></tr>
+            <tr><td>F46</td><td>M10</td><td>Push + verify remote state</td><td>10m</td></tr>
+            <tr><td>F47</td><td>M11</td><td>Read dashboardui SSE handler + core/ overview payload</td><td>12m</td></tr>
+            <tr><td>F48</td><td>M11</td><td>Design signal-patch mapping for projection health</td><td>12m</td></tr>
+            <tr><td>F49</td><td>M11</td><td>Spike: render health panel as SignalsPatch</td><td>12m</td></tr>
+            <tr><td>F50</td><td>M11</td><td>Spike: serve patches via ds.Broadcaster from dashboard events</td><td>12m</td></tr>
+            <tr><td>F51</td><td>M11</td><td>Spike test: patch wire format golden</td><td>12m</td></tr>
+            <tr><td>F52</td><td>M11</td><td>Compare polling vs signal-patch payload sizes</td><td>12m</td></tr>
+            <tr><td>F53</td><td>M11</td><td>Write spike findings</td><td>12m</td></tr>
+            <tr><td>F54</td><td>M11</td><td>Go/no-go decision for M12</td><td>8m</td></tr>
+            <tr><td>F55</td><td>M11</td><td>Clean up spike or promote to branch</td><td>8m</td></tr>
+            <tr><td>F56</td><td>M12</td><td>Create dashboardui-datastar go.mod + .golangci.yml + .cqrs-lint.json</td><td>12m</td></tr>
+            <tr><td>F57</td><td>M12</td><td>Add module to go.work</td><td>6m</td></tr>
+            <tr><td>F58</td><td>M12</td><td>Port overview rendering to patches</td><td>12m</td></tr>
+            <tr><td>F59</td><td>M12</td><td>Port events panel</td><td>12m</td></tr>
+            <tr><td>F60</td><td>M12</td><td>Port DLQ panel</td><td>12m</td></tr>
+            <tr><td>F61</td><td>M12</td><td>Adopt templ-components/datastar components (indicator, live region)</td><td>12m</td></tr>
+            <tr><td>F62</td><td>M12</td><td>Tests + coverage-gate config entry</td><td>12m</td></tr>
+            <tr><td>F63</td><td>M12</td><td>README + integration guide for the variant</td><td>12m</td></tr>
+            <tr><td>F64</td><td>M12</td><td>Module gate sweep (build/test/vet hermetic)</td><td>10m</td></tr>
+            <tr><td>F65</td><td>M13</td><td>Read loginpage handler + templ page</td><td>10m</td></tr>
+            <tr><td>F66</td><td>M13</td><td>Design signal model for form state</td><td>12m</td></tr>
+            <tr><td>F67</td><td>M13</td><td>Implement client-side validation signals</td><td>12m</td></tr>
+            <tr><td>F68</td><td>M13</td><td>Convert submit to patch response</td><td>12m</td></tr>
+            <tr><td>F69</td><td>M13</td><td>Error display via SignalsPatch</td><td>12m</td></tr>
+            <tr><td>F70</td><td>M13</td><td>Tests for new handler paths</td><td>12m</td></tr>
+            <tr><td>F71</td><td>M13</td><td>Golden/render verification</td><td>10m</td></tr>
+            <tr><td>F72</td><td>M13</td><td>loginpage gate sweep</td><td>10m</td></tr>
+            <tr><td>F73</td><td>M14</td><td>Read sync-worker.js + sync-client.js</td><td>12m</td></tr>
+            <tr><td>F74</td><td>M14</td><td>Enumerate DataStar retry/replay primitives</td><td>12m</td></tr>
+            <tr><td>F75</td><td>M14</td><td>Feature matrix comparison</td><td>12m</td></tr>
+            <tr><td>F76</td><td>M14</td><td>Identify gaps (mutation queue, conflict policy)</td><td>12m</td></tr>
+            <tr><td>F77</td><td>M14</td><td>Define replacement decision criteria</td><td>12m</td></tr>
+            <tr><td>F78</td><td>M14</td><td>Write evaluation report</td><td>12m</td></tr>
+            <tr><td>F79</td><td>M14</td><td>Route findings to ROADMAP</td><td>12m</td></tr>
+            <tr><td>F80</td><td>M14</td><td>Draft ADR if sync replacement is chosen</td><td>12m</td></tr>
+            <tr><td>F81</td><td>M15</td><td>Inventory adminui hx-* usage (21 attrs, 4 templ files)</td><td>10m</td></tr>
+            <tr><td>F82</td><td>M15</td><td>Map each interaction to its patch equivalent</td><td>12m</td></tr>
+            <tr><td>F83</td><td>M15</td><td>Identify templ-components/datastar coverage gaps</td><td>12m</td></tr>
+            <tr><td>F84</td><td>M15</td><td>Design variant module boundary (deps, opt-in)</td><td>12m</td></tr>
+            <tr><td>F85</td><td>M15</td><td>Re-estimate effort vs ROADMAP 6h</td><td>10m</td></tr>
+            <tr><td>F86</td><td>M15</td><td>Write design doc</td><td>12m</td></tr>
+            <tr><td>F87</td><td>M15</td><td>Demand-evidence decision gate</td><td>12m</td></tr>
+            <tr><td>F88</td><td>M15</td><td>Route outcome to TODO_LIST/ROADMAP</td><td>10m</td></tr>
+            <tr><td>F89</td><td>M16</td><td>nix run .#check-release-train + version-drift strict</td><td>12m</td></tr>
+            <tr><td>F90</td><td>M16</td><td>scripts/verify-tag.sh per changed module</td><td>12m</td></tr>
+            <tr><td>F91</td><td>M16</td><td>Cut tags in family train order</td><td>12m</td></tr>
+            <tr><td>F92</td><td>M16</td><td>Push tags + ls-remote verification</td><td>12m</td></tr>
+            <tr><td>F93</td><td>M16</td><td>Post-train hygiene (require alignment, drift re-check)</td><td>12m</td></tr>
           </tbody>
         </table>
 
-        <h2 id="risks"><span class="num">05</span>Risks &amp; Guards</h2>
+        <h2 id="risks"><span class="num">06</span>Risks &amp; Guards</h2>
         <div class="issue issue-critical">
           <span class="severity severity-critical">Guard</span>
-          <h3>Do not regress the library principle</h3>
+          <h3>Dependency direction is an ADR decision, not a plan assumption</h3>
           <div class="where">setup/go.mod &middot; ROADMAP.md library principle</div>
           <p>
-            The setup module must not gain a hard dependency that changes
-            default installs' behavior; DataStar stays opt-in
-            (<code>Config.DataStar</code> defaults false). No existing
-            consumer sees any change.
+            v1 assumed <code>setup</code> depends on <code>datastar/v4</code>.
+            v2 defers this to ADR-0049 (F06): if the ADR picks a bridge
+            module, M1 creates <code>setup-datastar</code> instead of
+            touching setup's dependency tree. Either way,
+            <code>Config.DataStar</code> (or the bridge's equivalent)
+            defaults off — no existing consumer sees any change.
+          </p>
+        </div>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Guard</span>
+          <h3>Do not publish a second SSE endpoint shape prematurely</h3>
+          <div class="where">TODO_LIST P2 &middot; docs/planning/2026-08-30_sse-endpoint-shape-decision.md</div>
+          <p>
+            The <code>/sse</code> authz posture is an open user decision.
+            ADR-0049 (F08) must either adopt the same posture for
+            <code>/ds/events</code> or hold the mount until that decision
+            lands — never publish a shape that a later authz decision would
+            break.
           </p>
         </div>
         <div class="issue issue-important">
@@ -1494,7 +1613,7 @@
           <div class="where">AGENTS.md 2026-08-30 gotcha</div>
           <p>
             The pre-commit hook regenerates the minified artifact; whatever
-            it produces is canonical. P4's adminui work must respect this.
+            it produces is canonical. Tier-4 adminui work must respect this.
           </p>
         </div>
         <div class="issue issue-nice">
@@ -1507,7 +1626,7 @@
           </p>
         </div>
 
-        <h2 id="appendix"><span class="num">06</span>Appendix</h2>
+        <h2 id="appendix"><span class="num">07</span>Appendix</h2>
         <table>
           <thead>
             <tr>
@@ -1519,6 +1638,10 @@
             <tr>
               <td>Research report (benefits, models A/B/C, recommendation)</td>
               <td><code>docs/architecture-understanding/2026-09-07_datastar-dual-frontend-support.html</code></td>
+            </tr>
+            <tr>
+              <td>Open /sse authz decision (sequencing input to ADR-0049)</td>
+              <td><code>docs/planning/2026-08-30_sse-endpoint-shape-decision.md</code></td>
             </tr>
             <tr>
               <td>Shared-hub architecture + cross-transport sharing</td>
@@ -1545,9 +1668,9 @@
 
         <footer class="footer">
           <p>
-            Generated 2026-09-07 17:18 &middot; Plan against cqrs-htmx
-            v4.9.0 &middot; P1-P3 executable now; P4 demand-gated per
-            ADR-0049
+            v1 generated 2026-09-07 17:18 &middot; v2 (ADR-first revision)
+            2026-09-07 &middot; Plan against cqrs-htmx v4.9.0 &middot; Tier
+            1 ships first; Tier 2 gated on ADR-0049; Tier 4 demand-gated
           </p>
         </footer>
       </main>
