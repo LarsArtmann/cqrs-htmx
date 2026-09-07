@@ -126,6 +126,11 @@ func newHandler(logger *slog.Logger) (http.Handler, *cqrsprom.Provider, *cqrsote
 		cqrshtmx.WithSuccessStatus(http.StatusNoContent),
 	))
 
-	handler := cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware)(mux)
+	handler := cqrshtmx.Chain(
+		cqrshtmx.RecoveryMiddleware,
+		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+	)(
+		mux,
+	)
 	return handler, promProvider, otelProvider, nil
 }

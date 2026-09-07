@@ -160,7 +160,7 @@ func main() {
 	//    304 Not Modified on If-None-Match match.
 	//    MUST be inside (after) Compression so the hash is on uncompressed data.
 	if err := stack.Add(httputil.MiddlewareETag,
-		httputil.ETag(etag.DefaultETagConfig()),
+		etag.New(etag.DefaultETagConfig()),
 	); err != nil {
 		panic(fmt.Sprintf("add etag: %v", err))
 	}
