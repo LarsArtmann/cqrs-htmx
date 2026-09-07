@@ -9,10 +9,10 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/httputil v0.12.0
-	github.com/larsartmann/templ-components v1.13.2
-	github.com/larsartmann/templ-components/htmx v1.13.2
-	github.com/larsartmann/templ-components/icons v1.13.2
-	github.com/larsartmann/templ-components/utils v1.13.2
+	github.com/larsartmann/templ-components v1.14.0
+	github.com/larsartmann/templ-components/htmx v1.14.0
+	github.com/larsartmann/templ-components/icons v1.14.0
+	github.com/larsartmann/templ-components/utils v1.14.0
 )
 
 require (
@@ -43,7 +43,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1 // indirect

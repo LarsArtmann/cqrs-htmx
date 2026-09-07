@@ -12,20 +12,20 @@ go run .
 
 ## Routes
 
-| Route            | Auth    | What it is                                                        |
-| ---------------- | ------- | ----------------------------------------------------------------- |
-| `/`              | public  | Login page (the bundle's catch-all)                                |
-| `/dev-login`     | public  | Demo shortcut: sets the session cookie (dev only, never in prod)   |
-| `/dev-logout`    | public  | Clears the session                                                 |
-| `/auth/*`        | public  | Register / login / logout / me API                                 |
-| `/admin/`        | session | Admin panel (users, tenants, memberships)                          |
-| `/dashboard/`    | session | CQRS/ES observability dashboard                                    |
-| `/health`        | public  | Projection readiness (503 until projections are live)              |
-| `/sse`           | session | Shared SSE feed: every committed domain event, journal replay      |
-| `/ds/events`     | session | DataStar SSE feed: same events, DataStar patch encoding (ADR-0050) |
-| `/datastar.js`   | public  | DataStar SDK script (auto-mounted with `DataStarPath`)             |
-| `/ds-demo`       | public  | Minimal DataStar client page showing the live broadcast counter    |
-| `POST /broadcast`| public  | ONE action fanned out twice: raw SSE event + DataStar signal patch |
+| Route             | Auth    | What it is                                                         |
+| ----------------- | ------- | ------------------------------------------------------------------ |
+| `/`               | public  | Login page (the bundle's catch-all)                                |
+| `/dev-login`      | public  | Demo shortcut: sets the session cookie (dev only, never in prod)   |
+| `/dev-logout`     | public  | Clears the session                                                 |
+| `/auth/*`         | public  | Register / login / logout / me API                                 |
+| `/admin/`         | session | Admin panel (users, tenants, memberships)                          |
+| `/dashboard/`     | session | CQRS/ES observability dashboard                                    |
+| `/health`         | public  | Projection readiness (503 until projections are live)              |
+| `/sse`            | session | Shared SSE feed: every committed domain event, journal replay      |
+| `/ds/events`      | session | DataStar SSE feed: same events, DataStar patch encoding (ADR-0050) |
+| `/datastar.js`    | public  | DataStar SDK script (auto-mounted with `DataStarPath`)             |
+| `/ds-demo`        | public  | Minimal DataStar client page showing the live broadcast counter    |
+| `POST /broadcast` | public  | ONE action fanned out twice: raw SSE event + DataStar signal patch |
 
 ## The dual-transport point
 

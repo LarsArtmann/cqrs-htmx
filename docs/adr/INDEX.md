@@ -53,4 +53,4 @@
 | [0047](0047-re-export-layer-retirement-plan.md)   | Re-export Layer Retirement Plan (httputil/SSE/identity-model aliases to v5)     | Accepted                                                             |
 | [0048](0048-liveness-readiness-decoupling.md)     | Liveness/Readiness Decoupling for Projection Startup (AsyncStartup)             | Accepted                                                             |
 | [0049](0049-datastar-go-sse-layer-split.md)       | datastar/go-sse Layer Split — SDK Owns the Wire, go-sse Owns the Fan-out        | Accepted                                                             |
-| [0050](0050-dual-frontend-protocol-strategy.md)  | Dual Frontend Protocol Strategy (HTMX + DataStar) — Route-Split, Opt-in Setup   | Accepted                                                             |
+| [0050](0050-dual-frontend-protocol-strategy.md)   | Dual Frontend Protocol Strategy (HTMX + DataStar) — Route-Split, Opt-in Setup   | Accepted                                                             |

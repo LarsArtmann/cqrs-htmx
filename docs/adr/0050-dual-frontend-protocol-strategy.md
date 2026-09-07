@@ -130,7 +130,7 @@ decision.
 ### Negative
 
 - setup's dependency surface grows by `datastar/v4` (which pulls go-datastar
-  + go-sse — both already in the workspace graph via integration_test).
+  - go-sse — both already in the workspace graph via integration_test).
 - Two docs surfaces (HTMX + DataStar) must stay consistent on the shared
   feed's contract; drift risk between `sse-and-datastar.md`,
   `datastar-integration.md`, and the setup README.
