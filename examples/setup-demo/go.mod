@@ -5,16 +5,10 @@ go 1.26.7
 require (
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/setup/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/setup/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.9.0
 	github.com/larsartmann/go-sse v0.6.0
 )
-
-// TEMPORARY dev-replace: the demo exercises Config.DataStarPath, which is not
-// in any published setup tag yet. Strip this replace once setup/v4 publishes
-// the DataStar option (next family train) — the require above already points
-// at the version that will carry it.
-replace github.com/larsartmann/cqrs-htmx/setup/v4 => ../../setup
 
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
