@@ -1,0 +1,65 @@
+direction: right
+
+title: "DataStar Dual-Frontend Rollout — Execution Graph (v2, ADR-first)" {
+  near: top-center
+  shape: text
+  style.font-size: 22
+}
+
+t1: "TIER 1 · ship first · strategy + docs (~2.25h)" {
+  style.fill: "#e63946"
+  style.font-color: "#ffffff"
+  style.stroke-width: 0
+  style.border-radius: 4
+  m0: "M0 demand validation\n(30m)"
+  m4: "M4 ADR-0049 dual frontend\nstrategy — decides dep direction,\n/ds/events gating, /sse-authz\nsequencing (75m)"
+  m3: "M3 route-split recipe in\nfullstack-wiring.md (30m)"
+  m0 -> m4: "demand evidence\nfeeds ADR"
+}
+t2: "TIER 2 · the feature itself (~1.75h)" {
+  style.fill: "#f4a261"
+  style.font-color: "#111111"
+  style.stroke-width: 0
+  style.border-radius: 4
+  m1: "M1 setup.Config.DataStar\nopt-in mount (60m)"
+  m2: "M2 setup DataStar\ntests (45m)"
+  m1 -> m2
+}
+t3: "TIER 3 · release-quality finish (~3.75h)" {
+  style.fill: "#f4d35e"
+  style.font-color: "#111111"
+  style.stroke-width: 0
+  style.border-radius: 4
+  m5: "M5 setup-demo dual\ntransport showcase (60m)"
+  m6: "M6 datastar-integration.md\nsetup section (30m)"
+  m7: "M7 sse-and-datastar.md\ncross-links (30m)"
+  m8: "M8 TODO/ROADMAP/FEATURES\nupdates (30m)"
+  m9: "M9 hermetic gate sweep\n(45m)"
+  m10: "M10 CHANGELOG + commit\nchoreography (30m)"
+  m8 -> m10
+  m9 -> m10: "green gates\nbefore commit"
+}
+t4: "TIER 4 · demand-gated → 100% (~9.2h)" {
+  style.fill: "#1d3557"
+  style.font-color: "#ffffff"
+  style.stroke-width: 0
+  style.border-radius: 4
+  m11: "M11 dashboardui\nsignal-patch spike (100m)"
+  m12: "M12 dashboardui DataStar\nvariant module (100m)"
+  m13: "M13 loginpage signal\nforms (90m)"
+  m14: "M14 offline-sync\nevaluation (100m)"
+  m15: "M15 adminui variant\ndesign doc (100m)"
+  m16: "M16 release train\nchanged modules (60m)"
+  m11 -> m12: "spike go/no-go"
+  m14 -> m15: "sync findings feed\nadminui design"
+  m12 -> m16
+  m13 -> m16
+}
+
+t1.m4 -> t2.m1: "ADR acceptance\ngates the build"
+t1.m4 -> t4.m11: "ADR gates\nvariant work"
+t1.m3 -> t3.m7: "cross-link\ntarget"
+t2.m1 -> t3.m5: "demo consumes\nthe option"
+t2.m1 -> t3.m6: "guide references\nreal API"
+t2.m2 -> t3.m9: "tests enter\ngate sweep"
+t3.m5 -> t3.m9
