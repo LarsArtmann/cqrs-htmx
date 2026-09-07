@@ -241,7 +241,8 @@ func TestDatastarEventsFromBus(t *testing.T) {
 	})
 
 	if !strings.Contains(rec.Body.String(), evt.ID().String()) {
-		t.Errorf("stream body should contain the bus-published event ID %q\nbody:\n%s", evt.ID().String(), rec.Body.String())
+		t.Errorf("stream body should contain the bus-published event ID %q\nbody:\n%s",
+			evt.ID().String(), rec.Body.String())
 	}
 }
 
@@ -249,7 +250,12 @@ func TestDatastarEventsFromBus(t *testing.T) {
 // runs the optional broadcast hook while the stream is live, then cancels and
 // returns the recorder. The hook runs after the subscriber is connected, so
 // hub fan-out reaches the stream deterministically.
-func streamDatastarFeed(t *testing.T, b *setup.Bundle, path string, during func(*setup.Bundle)) *httptest.ResponseRecorder {
+func streamDatastarFeed(
+	t *testing.T,
+	b *setup.Bundle,
+	path string,
+	during func(*setup.Bundle),
+) *httptest.ResponseRecorder {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
