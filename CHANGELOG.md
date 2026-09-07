@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- **Deprecated-alias SA1019 breakage in examples (2026-09-07):** `examples/observability-demo` `cqrshtmx.SecurityHeadersMiddleware` → `httputil.SecurityHeaders(...)`, `examples/middleware-showcase` `httputil.ETag` → `etag.New(...)` — both examples were referencing removed/deprecated symbols and failing the pre-commit hook's lint.
+- **Deprecated-alias SA1019 breakage in examples (2026-09-07):** `examples/observability-demo` + `examples/middleware-demo` `cqrshtmx.SecurityHeadersMiddleware` → `httputil.SecurityHeaders(...)`, `examples/middleware-showcase` `httputil.ETag` → `etag.New(...)` — three examples were referencing removed/deprecated symbols and failing the pre-commit hook's lint (which lints example modules that `nix run .#lint` excludes).
 - **`sse-and-datastar.md` CORS sample referenced unexported `bundle.sseHandler()` (2026-09-07)** — replaced with a compiling recipe: wrap the whole bundle mux in `httputil.CORS` (the bundle owns its routes), plus the scoped-route alternative built from `transport.ServeDomainEvents(bundle.Broadcaster.Hub(), store, heartbeat)` / `bundle.DataStarBroadcaster`.
 
 ## [v4.9.0] - 2026-09-01
