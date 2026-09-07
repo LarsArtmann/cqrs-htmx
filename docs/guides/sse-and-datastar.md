@@ -136,7 +136,7 @@ The deprecated symbols remain functional through v4; staticcheck flags call site
 | **Use when**       | CRUD forms, tables, navigation                                       | Live dashboards, interactive widgets, optimistic-feeling UI |
 | **Coexistence**    | Both can run in the same app — different routes, different endpoints | Same                                                        |
 
-For full-stack wiring with both transports, see the [Full-Stack Wiring Guide](fullstack-wiring.md).
+For full-stack wiring with both transports, see the [Full-Stack Wiring Guide](fullstack-wiring.md) — and when you use the one-call SDK, `setup.Config.DataStarPath` mounts the DataStar feed on the same hub as `/sse` in one flag (session-gated 401, ADR-0050); see [Using with setup](datastar-integration.md#using-with-setup).
 
 ## CORS and Cross-Origin SSE
 
@@ -190,7 +190,7 @@ during backfill would be a security hole, never a degradation.
 
 ## See Also
 
-- [Datastar Integration Guide](datastar-integration.md) — Datastar setup, patches, replay, SDK re-exports
-- [Full-Stack Wiring Guide](fullstack-wiring.md) — composing all cqrs-htmx sub-modules
+- [Datastar Integration Guide](datastar-integration.md) — Datastar setup, patches, replay, SDK re-exports, the setup option
+- [Full-Stack Wiring Guide](fullstack-wiring.md) — composing all cqrs-htmx sub-modules, incl. the route-split recipe (ADR-0050)
 - [Production Readiness](production-readiness.md) — SSE in production (heartbeats, graceful shutdown)
 - [go-sse](https://github.com/larsartmann/go-sse) — the underlying SSE library and the hub itself
