@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **`setup.RunWithAppkit` promoted from spike to stable API (2026-09-07)** — the
+  appkit-composed server layer (ADR-001 uplift) is now a supported `Bundle` method:
+  spike markers removed, go-appkit consumed from its published tag (no replace
+  directives), SSE header-flush / projection-aware readiness / RunHandler-parity
+  tests race-green. Flipping `RunHandler`'s default onto appkit remains the
+  ADR-001 decision (health dedup, chain dedup, logging posture, `Addr()`).
+
 ### Added
 
 - **Friendly registration-closed and auth 403 responses (2026-09-02)** — when registration is closed (`MaxUsers` reached) or auth fails, API consumers now get a human-actionable message instead of a bare error token: `friendlyRegistrationClosedMessage` / `friendlyAuthMessage` in `usermgmt/http.go`, wired through `writeDispatchError` and the OAuth2 callback path. `ServiceConfig.MaxUsers` mutex-limitation documented in `service_core.go` (the check-then-dispatch window is serialized by a shared registration mutex for in-process sync projections; multi-replica deployments still need an external gate). Test coverage extended in `usermgmt/handler_register_test.go` (requires `GOEXPERIMENT=jsonv2`). Commit `4216636f`.
