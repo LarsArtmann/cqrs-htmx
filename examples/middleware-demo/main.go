@@ -100,7 +100,12 @@ func newHandler() http.Handler {
 		cqrshtmx.WithSuccessStatus(http.StatusNoContent),
 	))
 
-	return cqrshtmx.Chain(cqrshtmx.RecoveryMiddleware, cqrshtmx.SecurityHeadersMiddleware)(mux)
+	return cqrshtmx.Chain(
+		cqrshtmx.RecoveryMiddleware,
+		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+	)(
+		mux,
+	)
 }
 
 func main() {
