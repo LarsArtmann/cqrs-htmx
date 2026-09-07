@@ -157,6 +157,7 @@ func (b *Bundle) Close() error {
 		//cqrs-lint:ignore(C015) Broadcaster.Close has no error return — nothing to check
 		b.Broadcaster.Close()
 		b.Broadcaster = nil
+		b.DataStarBroadcaster = nil
 	}
 
 	if b.ownsService && b.Service != nil {

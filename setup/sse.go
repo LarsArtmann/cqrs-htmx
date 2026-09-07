@@ -18,7 +18,7 @@ import (
 // — an SSE endpoint that cannot subscribe is a construction failure, not a
 // silently dead feed answering 200.
 func (b *Bundle) attachSSE() error {
-	if b.config.SSEPath == "" {
+	if b.config.SSEPath == "" && b.config.DataStarPath == "" {
 		return nil
 	}
 
@@ -56,6 +56,10 @@ func (b *Bundle) attachSSE() error {
 			"setup.sse_subscribe_failed", "subscribe to event bus for SSE bridge")
 	}
 
+	if b.config.DataStarPath != "" {
+		b.DataStarBroadcaster = datastar.NewBroadcasterFromHub(b.Broadcaster.Hub())
+	}
+
 	return nil
 }
 
@@ -69,4 +73,11 @@ func (b *Bundle) sseHandler() http.Handler {
 		b.config.SSEHeartbeatInterval,
 		transport.WithSSELogPrefix("setup"),
 	)))
+}
+
+// datastarHandler serves the DataStar SSE endpoint: the same session gate as
+// the SSE feed (401 without a session — event metadata is not public data),
+// streaming DataStar-encoded patches from the shared hub (ADR-0050).
+func (b *Bundle) datastarHandler() http.Handler {
+	return b.SessionMiddleware()(requireSession(b.DataStarBroadcaster))
 }
