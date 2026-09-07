@@ -22,7 +22,7 @@ import (
 func TestDatastarDisabledByDefault(t *testing.T) {
 	t.Parallel()
 
-	b, err := setup.New(setup.Config{Title: "Default"})
+	b, err := setup.New(setup.Config{Title: "Default", DisableLogin: true})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
@@ -88,10 +88,13 @@ func TestDatastarScript_ServesETagAnd304(t *testing.T) {
 func TestDatastarScriptPath_OptOut(t *testing.T) {
 	t.Parallel()
 
+	// Login disabled so the "/" catch-all cannot mask route absence: the
+	// assertions below need 404 to mean "pattern not registered".
 	b, err := setup.New(setup.Config{
 		Title:              "OptOut",
 		DataStarPath:       "/ds/events",
 		DataStarScriptPath: "-",
+		DisableLogin:       true,
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -180,7 +183,7 @@ func TestDatastarFeed_SharedHubBroadcast(t *testing.T) {
 func TestDatastarOnly_NoSSERoute(t *testing.T) {
 	t.Parallel()
 
-	b, err := setup.New(setup.Config{Title: "DsOnly", DataStarPath: "/ds/events"})
+	b, err := setup.New(setup.Config{Title: "DsOnly", DataStarPath: "/ds/events", DisableLogin: true})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
