@@ -26,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Deprecated-alias SA1019 breakage in examples (2026-09-07):** `examples/observability-demo` + `examples/middleware-demo` `cqrshtmx.SecurityHeadersMiddleware` → `httputil.SecurityHeaders(...)`, `examples/middleware-showcase` `httputil.ETag` → `etag.New(...)` — three examples were referencing removed/deprecated symbols and failing the pre-commit hook's lint (which lints example modules that `nix run .#lint` excludes).
 - **`sse-and-datastar.md` CORS sample referenced unexported `bundle.sseHandler()` (2026-09-07)** — replaced with a compiling recipe: wrap the whole bundle mux in `httputil.CORS` (the bundle owns its routes), plus the scoped-route alternative built from `transport.ServeDomainEvents(bundle.Broadcaster.Hub(), store, heartbeat)` / `bundle.DataStarBroadcaster`.
 
+## [setup/v4.10.0] - 2026-09-07
+
+Single-module train (setup only): publishes the `[Unreleased]` setup additions — the dual-frontend DataStar support (`Config.DataStarPath` / `Config.DataStarScriptPath` / `Bundle.DataStarBroadcaster`, ADR-0050) and `RunWithAppkit` promoted to a stable API (ADR-001 uplift, go-appkit v0.3.0). Tagged via `scripts/verify-tag.sh --push` at a fully committed tree with zero local replaces; `examples/setup-demo`'s TEMPORARY `setup/v4 => ../../setup` dev-replace stripped in the same train (its removal condition — a published setup tag carrying `Config.DataStarPath` — is met by this release).
+
 ## [v4.9.0] - 2026-09-01
 
 ### Changed
