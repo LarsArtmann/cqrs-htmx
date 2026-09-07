@@ -382,6 +382,23 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ---
 
+## setup Module (`github.com/larsartmann/cqrs-htmx/setup/v4`)
+
+> Optional one-call composition root — `setup.New(Config) (*Bundle, error)` wires usermgmt, admin/login/dashboard panels, session middleware, and feeds with correct ordering. See `setup/README.md` and `docs/guides/fullstack-wiring.md`.
+
+| Feature             | Status                | Notes                                                                                                                                                                                                                                                                                          |
+| ------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| One-Call Bundle     | 🟢 `FULLY_FUNCTIONAL` | `setup.New(Config)` → `Bundle.Mount(mux)` (once-only), `Bundle.Handler(mux)` (mount + security middleware), `Bundle.Run/RunHandler` (serve + graceful shutdown + `Close()`; SSE-safe timeouts — no Read/Write timeout by design). `Config.Service` adopts a caller-built `*usermgmt.Service`. |
+| Path Configuration  | 🟢 `FULLY_FUNCTIONAL` | `AdminPath`/`DashboardPath`/`LoginPath`/`HealthPath`/`SSEPath` validated at `New` (collisions rejected, trailing slashes normalized, `/` reserved for the login page). `LoginNoRegistration`, `DisableLogin` hatches.                                                                        |
+| SSE Feed            | 🟢 `FULLY_FUNCTIONAL` | `Config.SSEPath` mounts a session-gated shared feed (dashboardui JSON envelope, journal replay) fanned out from `Bundle.Broadcaster`. `SSEMaxReplay` caps first-connect backfill (0 = transport default 1000). `SubscribeAll` failure fails `New` (fail-fast).                             |
+| DataStar Feed       | 🟢 `FULLY_FUNCTIONAL` | `Config.DataStarPath` mounts `/ds`-style DataStar SSE feed on the SAME hub (`Bundle.DataStarBroadcaster` = `datastar.NewBroadcasterFromHub(Broadcaster.Hub())`), session-gated 401, live-only (journal replay stays on `/sse`). `DataStarScriptPath` serves datastar.js (default `/datastar.js`, `"-"` opts out). `[Unreleased]`, ADR-0050. |
+| Health Endpoint     | 🟢 `FULLY_FUNCTIONAL` | `/health` readiness gate: 503 while projections drain (`AsyncStartup`), 200 when live; `OnProjectionFailed` callback hatch.                                                                                                                                                                    |
+| Middleware Access   | 🟢 `FULLY_FUNCTIONAL` | `Bundle.SessionMiddleware()`/`CSRFMiddleware()`/`Middleware()` exported for custom routes; dashboard is session-gated (401) like adminui.                                                                                                                                                      |
+| Appkit Server Path  | 🟢 `FULLY_FUNCTIONAL` | `RunWithAppkit` (go-appkit composition, stable since 2026-09-07) alongside stdlib `RunHandler`. ADR-001. `[Unreleased]`.                                                                                                                                                                       |
+| Coverage            | 🟢 `FULLY_FUNCTIONAL` | 86.3% (gate 80%). 57+ tests incl. 7 DataStar-feed tests.                                                                                                                                                                                                                                       |
+
+---
+
 ## systemadapter Module (`github.com/larsartmann/cqrs-htmx/systemadapter/v4`)
 
 > NEW [Unreleased] — WORK IN PROGRESS. Bridges cqrs-htmx with go-cqrs-lite's `system/` composition root and `metaengine/` storage planner. See `docs/guides/leveraging-system-metaengine.md`.

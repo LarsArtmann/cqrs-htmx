@@ -145,15 +145,22 @@ SSE endpoints (`/sse` from setup, `/-/events/stream` from dashboardui) are
 of "never enforce defaults consumers might disagree with" applies.
 
 If your SSE consumers are on a different origin (e.g., a dashboard served from
-`dashboard.example.com` connecting to `api.example.com/sse`), wrap the SSE
-handler with [`httputil.CORS`](https://github.com/larsartmann/httputil) before
-mounting:
+`dashboard.example.com` connecting to `api.example.com/sse`), wrap the bundle
+mux with [`httputil.CORS`](https://github.com/larsartmann/httputil) before
+serving (the bundle owns its routes — CORS applies bundle-wide):
 
 ```go
 import "github.com/larsartmann/httputil"
 
-mux.Handle("/sse", httputil.CORS(httputil.DefaultCORSConfig())(bundle.sseHandler()))
+bundleMux := http.NewServeMux()
+bundle.Mount(bundleMux) // mounts /sse (and /ds/events when DataStarPath is set)
+handler := httputil.CORS(httputil.DefaultCORSConfig())(bundleMux)
 ```
+
+For a CORS-scoped SSE route only, build your own handler from the exported
+pieces: `transport.ServeDomainEvents(bundle.Broadcaster.Hub(), store,
+heartbeat)` for a `/sse`-shaped replay feed, or mount
+`bundle.DataStarBroadcaster` (live-only) directly — each on a dedicated mux.
 
 For the dashboard's built-in SSE endpoint, wrap the entire dashboard handler
 or mount a CORS middleware in front of the dashboard mux.
