@@ -191,6 +191,36 @@ ds.WithExecuteScriptAutoRemove(false)
 ds.WithExecuteScriptAttributes("type", "module")
 ```
 
+## Using with setup
+
+The one-call SDK (`setup/v4`) can mount the DataStar feed for you — two
+config fields, no manual wiring (ADR-0050):
+
+```go
+bundle, err := setup.New(setup.Config{
+    Title:        "My App",
+    SSEPath:      "/sse",          // HTMX feed (session-gated)
+    SSEURL:       "/sse",          // admin sync indicator
+    DataStarPath: "/ds/events",    // DataStar feed — same hub as /sse
+    // DataStarScriptPath defaults to "/datastar.js"; set "-" to skip the
+    // script mount and load the SDK yourself.
+})
+```
+
+What you get:
+
+- `/ds/events` — DataStar SSE feed of every committed domain event,
+  session-gated 401 exactly like `/sse` (event metadata is not public data).
+- `/datastar.js` — the SDK script, ETag-cached.
+- `bundle.DataStarBroadcaster` — broadcast your own patches to the feed
+  (`ds.SignalsPatch`, `ds.ElementsPatch`, ...). It shares the fan-out hub
+  with `bundle.Broadcaster`, so one broadcast reaches BOTH transports.
+
+The feed is live fan-out; `/sse` remains the replay-capable endpoint
+(Last-Event-ID backfill from the journal). See `fullstack-wiring.md` for the
+manual-wiring version of this recipe and `sse-and-datastar.md` for the hub
+architecture underneath.
+
 ## Demo Application
 
 See `examples/datastar-demo/` for a complete working example:

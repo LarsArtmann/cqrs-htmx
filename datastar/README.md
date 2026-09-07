@@ -68,6 +68,14 @@ The `Response` builder also exposes `ConsoleLog`, `ConsoleError`,
 `DispatchCustomEvent`, `ReplaceURL`, `RemoveElementByID`, `Prefetch`, and
 `ExecuteScript` — see the godoc for the full surface.
 
+## With setup/v4
+
+The one-call SDK can mount the feed for you: set `setup.Config.DataStarPath`
+(e.g. `/ds/events`) and the bundle serves the session-gated DataStar feed
+from the SAME hub as `/sse` plus the SDK script at `/datastar.js`, exposing
+`bundle.DataStarBroadcaster` for your own patches. See
+`docs/guides/datastar-integration.md` ("Using with setup") and ADR-0050.
+
 ## License
 
 MIT

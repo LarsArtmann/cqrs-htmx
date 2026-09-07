@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-sse"
 )
@@ -76,15 +76,15 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 
 	// Public routes.
 	for path, want := range map[string]int{
-		"/health":        http.StatusOK,
-		"/":              http.StatusOK,           // login page
-		"/auth/me":       http.StatusUnauthorized, // no session -> 401
-		"/dashboard/":    http.StatusUnauthorized,
-		"/admin/":        http.StatusUnauthorized,
-		"/sse":           http.StatusUnauthorized, // shared SSE is session-gated
-		"/ds/events":     http.StatusUnauthorized, // DataStar feed, same gate
-		"/datastar.js":   http.StatusOK,           // SDK script is public
-		"/ds-demo":       http.StatusOK,           // demo client page is public
+		"/health":      http.StatusOK,
+		"/":            http.StatusOK,           // login page
+		"/auth/me":     http.StatusUnauthorized, // no session -> 401
+		"/dashboard/":  http.StatusUnauthorized,
+		"/admin/":      http.StatusUnauthorized,
+		"/sse":         http.StatusUnauthorized, // shared SSE is session-gated
+		"/ds/events":   http.StatusUnauthorized, // DataStar feed, same gate
+		"/datastar.js": http.StatusOK,           // SDK script is public
+		"/ds-demo":     http.StatusOK,           // demo client page is public
 	} {
 		resp, err := http.Get(server.URL + path)
 		if err != nil {
@@ -226,15 +226,23 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 
 	// Dual-transport assertion (ADR-0050): the SAME broadcast action also
 	// reaches the DataStar feed. The DataStar stream flushes on first frame
-	// (no connected-event), so broadcast WHILE connecting: fire the request
-	// in a goroutine, push the patch, then read frames off the response.
-	var dsResp *http.Response
-	dsErr := make(chan error, 1)
+	// (no connected-event), so the response headers arrive exactly when a
+	// patch is delivered — broadcast periodically while connecting, and the
+	// first delivered patch unblocks the request.
+	dsCtx, dsCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer dsCancel()
+
+	type dsConnect struct {
+		resp *http.Response
+		err  error
+	}
+
+	dsCh := make(chan dsConnect, 1)
 
 	go func() {
 		dsReq, err := http.NewRequest(http.MethodGet, server.URL+"/ds/events", nil)
 		if err != nil {
-			dsErr <- err
+			dsCh <- dsConnect{err: err}
 
 			return
 		}
@@ -242,24 +250,34 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 		dsReq.Header.Set("Cookie", strings.Join(cookies, "; "))
 		dsReq.Header.Set("Accept", "text/event-stream")
 
-		dsCtx, dsCancel := context.WithTimeout(ctx, 5*time.Second)
-		defer dsCancel()
-
-		dsResp, err = (&http.Client{Timeout: 5 * time.Second}).Do(dsReq.WithContext(dsCtx))
-		dsErr <- err
+		resp, err := (&http.Client{Timeout: 5 * time.Second}).Do(dsReq.WithContext(dsCtx))
+		dsCh <- dsConnect{resp: resp, err: err}
 	}()
 
-	time.Sleep(150 * time.Millisecond)
+	var dsResp *http.Response
 
-	second, err := http.Post(server.URL+"/broadcast", "application/json", nil)
-	if err != nil {
-		t.Fatalf("POST /broadcast (second): %v", err)
-	}
-	_, _ = io.Copy(io.Discard, second.Body)
-	second.Body.Close()
+	broadcastDeadline := time.Now().Add(4 * time.Second)
+	for dsResp == nil {
+		second, err := http.Post(server.URL+"/broadcast", "application/json", nil)
+		if err != nil {
+			t.Fatalf("POST /broadcast: %v", err)
+		}
+		_, _ = io.Copy(io.Discard, second.Body)
+		second.Body.Close()
 
-	if err := <-dsErr; err != nil {
-		t.Fatalf("GET /ds/events (authed): %v", err)
+		select {
+		case res := <-dsCh:
+			if res.err != nil {
+				t.Fatalf("GET /ds/events (authed): %v", res.err)
+			}
+
+			dsResp = res.resp
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		if dsResp == nil && time.Now().After(broadcastDeadline) {
+			t.Fatal("DataStar feed never flushed a frame (no patch delivered within deadline)")
+		}
 	}
 
 	if dsResp.StatusCode != http.StatusOK {
