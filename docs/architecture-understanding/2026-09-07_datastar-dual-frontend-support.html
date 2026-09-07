@@ -1,0 +1,1370 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DataStar Beyond the Adapter — cqrs-htmx frontend strategy</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>ARCHITECTURE RESEARCH</span>
+      <span>2026-09-07</span>
+      <span>CQRS-HTMX &middot; FRONTEND STRATEGY</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#current-state">Current State</a>
+          <a href="#benefits">Benefits</a>
+          <a href="#dual-support">Dual Support</a>
+          <a href="#proposal">Proposal</a>
+          <a href="#risks">Risks</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">RESEARCH REPORT &middot; 2026-09-07</div>
+          <h1>DataStar Beyond the Adapter</h1>
+          <p class="subtitle">
+            What the library would gain from wider DataStar support, and
+            whether HTMX and DataStar can be served side by side. Reviewed
+            against the v4.9.0 tree: root, datastar, adminui, dashboardui,
+            loginpage, setup, and the SSE hub architecture.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Scope: frontend strategy</span>
+            <span class="tag">Version: v4.9.0</span>
+            <span class="tag teal">Status: research, no code changed</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">3</div>
+            <div class="label">Viable dual-support models</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">6</div>
+            <div class="label">Concrete benefits identified</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">4</div>
+            <div class="label">Cost / risk factors</div>
+          </div>
+          <div class="score-card">
+            <div class="score">1</div>
+            <div class="label">Recommendation</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            DataStar support in cqrs-htmx is currently a single, deliberately
+            thin adapter module (<code>datastar/v4</code>, ~700 LOC of
+            production code): script serving, signal decoding, a response
+            builder, a replay-capable broadcaster, and an EventBridge. The
+            ready-made UI panels (adminui, dashboardui, loginpage) are
+            HTMX-only. The interesting finding is that
+            <strong>dual HTMX + DataStar support already works today</strong>
+            at the transport layer: both broadcasters embed the same go-sse
+            fan-out hub, and the coexistence pattern is documented in
+            <code>docs/guides/sse-and-datastar.md</code>.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            Extending DataStar is not a transport problem (solved) but a
+            per-panel rendering problem. The highest-value moves are cheap:
+            a first-class setup option that mounts DataStar alongside HTMX on
+            one shared hub, and documentation of the route-split pattern.
+            Converting the existing panels to dual-mode rendering is the
+            expensive, lowest-value path and should not be done speculatively.
+          </div>
+        </section>
+
+        <section id="current-state">
+          <h2><span class="num">01</span>Current State</h2>
+          <p>
+            Where each frontend technology actually lives in the tree,
+            verified against source:
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Frontend</th>
+                <th>Coupling</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>datastar/v4</code></td>
+                <td>DataStar</td>
+                <td>
+                  The only DataStar code: patch constructors
+                  (<code>patch.go</code>), broadcaster embedding the go-sse hub
+                  (<code>broadcaster.go</code>), EventBridge
+                  (<code>event_bridge.go</code>). 57 tests, 97.5% coverage.
+                </td>
+              </tr>
+              <tr>
+                <td>root (<code>cqrshtmx</code>)</td>
+                <td>HTMX</td>
+                <td>
+                  <code>htmx.go</code> (~190 LOC): Hx-* header parsing,
+                  <code>RenderPartial</code>, <code>IsHTMXRequest</code>;
+                  embedded htmx 2.0.10 + SSE/idiomorph extensions
+                  (<code>htmx_embed.go</code>, <code>htmx_extensions.go</code>).
+                </td>
+              </tr>
+              <tr>
+                <td><code>adminui/v4</code></td>
+                <td>HTMX</td>
+                <td>
+                  21 <code>hx-*</code> attributes across 4 templ files
+                  (users, tenants, members, layout).
+                </td>
+              </tr>
+              <tr>
+                <td><code>dashboardui/v4</code></td>
+                <td>HTMX + SSE</td>
+                <td>
+                  <code>data-hx-boost</code>/<code>data-hx-select</code> in
+                  string-built HTML; live updates via SSE through
+                  <code>transport.ServeDomainEvents</code>.
+                </td>
+              </tr>
+              <tr>
+                <td><code>loginpage/v4</code></td>
+                <td>HTMX</td>
+                <td>Hand-rolled templ page, server-side form roundtrips.</td>
+              </tr>
+              <tr>
+                <td><code>setup/v4</code></td>
+                <td>Composes HTMX panels</td>
+                <td>
+                  Mounts admin/dashboard/login + shared
+                  <code>/sse</code>. No DataStar option today.
+                </td>
+              </tr>
+              <tr>
+                <td>usermgmt, identity-model, auth strategies</td>
+                <td class="yes">none</td>
+                <td>
+                  Frontend-agnostic: pure domain + HTTP; pair with either
+                  transport.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Two assets already exist that make wider DataStar support cheaper
+            than it looks:
+          </p>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The shared hub is shipped and documented</strong>
+                <span>
+                  Both <code>cqrshtmx.Broadcaster</code> and
+                  <code>datastar.Broadcaster</code> embed
+                  <code>*sse.Broadcaster[sse.Event]</code>;
+                  <code>NewBroadcasterFromHub</code> lets one hub feed HTMX
+                  and DataStar clients simultaneously
+                  (docs/guides/sse-and-datastar.md).
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>templ-components already ships a
+                  <code>/datastar</code> module</strong>
+                <span>
+                  Indicator, live region, retry, SDK script, and SSE
+                  error-handling components exist upstream in the sibling
+                  component library, so panel-level work starts from
+                  components, not from zero.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>ROADMAP pre-approved the scope</strong>
+                <span>
+                  ROADMAP.md "Datastar Future Scope" already lists dashboardui
+                  (~8h), adminui (~6h), loginpage (~3h) variants and an
+                  offline-sync evaluation (~4h) as decided-value future work.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="benefits">
+          <h2><span class="num">02</span>Benefits of Wider DataStar Support</h2>
+
+          <div class="issue issue-important" id="benefit-1">
+            <span class="severity severity-important">Benefit &middot; UX</span>
+            <h3>1. Client-side reactive state without a SPA</h3>
+            <p>
+              DataStar signals give login and admin forms client-side
+              validation and instant feedback, eliminating server roundtrips
+              that HTMX requires for every interaction. ROADMAP estimates the
+              loginpage conversion at ~3h precisely because the surface is
+              small.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="benefit-2">
+            <span class="severity severity-important"
+              >Benefit &middot; Footprint</span
+            >
+            <h3>2. One 11.76 KiB file replaces four pieces</h3>
+            <p>
+              DataStar subsumes what the root module currently ships
+              separately: htmx core (2.0.10), the SSE extension, idiomorph,
+              and hand-rolled JS. A DataStar-native consumer needs only
+              <code>datastar.js</code> from <code>ds.ScriptHandler()</code>.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="benefit-3">
+            <span class="severity severity-important"
+              >Benefit &middot; Architecture fit</span
+            >
+            <h3>3. SSE-first matches CQRS/event-sourcing</h3>
+            <p>
+              DataStar's philosophy — backend as source of truth, SSE as
+              default transport, no optimistic updates — is identical to this
+              library's event-sourced model. dashboardui's projection-health
+              panel is the natural showcase: signal patches instead of
+              polling.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="benefit-4">
+            <span class="severity severity-important"
+              >Benefit &middot; Resilience</span
+            >
+            <h3>4. Built-in reconnect replay</h3>
+            <p>
+              <code>NewBroadcasterWithReplay</code> gives a bounded ring
+              buffer with <code>Last-Event-ID</code> backfill out of the box.
+              The ROADMAP's "offline sync evaluation" item asks whether this
+              can simplify or replace parts of
+              <code>sync-worker.js</code>/<code>sync-client.js</code>.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="benefit-5">
+            <span class="severity severity-nice"
+              >Benefit &middot; Ecosystem</span
+            >
+            <h3>5. Differentiation and consumer choice</h3>
+            <p>
+              The library principle is "never enforce defaults consumers
+              might disagree with." Offering a first-class DataStar path
+              widens the addressable audience (the DataStar community is
+              active and Go-friendly) without taking anything away from HTMX
+              consumers.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="benefit-6">
+            <span class="severity severity-nice"
+              >Benefit &middot; Maintenance</span
+            >
+            <h3>6. The whole stack is in-family</h3>
+            <p>
+              go-datastar and go-sse are LarsArtmann libraries. There is no
+              third-party SDK risk; the starfederation SDK was already fully
+              replaced (datastar CHANGELOG, v4.1.0).
+            </p>
+          </div>
+        </section>
+
+        <section id="dual-support">
+          <h2><span class="num">03</span>Can Both Be Supported?</h2>
+          <p>
+            Yes. Three models, in increasing order of coupling and cost:
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>How</th>
+                <th>Cost</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>A. Route-split coexistence</strong></td>
+                <td>
+                  HTMX endpoints and DataStar endpoints on different routes,
+                  one shared hub via <code>NewBroadcasterFromHub</code>.
+                </td>
+                <td class="yes">Zero — works and documented today</td>
+                <td class="yes">Ship it (docs)</td>
+              </tr>
+              <tr>
+                <td><strong>B. Dual-mode handlers</strong></td>
+                <td>
+                  Each handler detects <code>HX-Request</code> vs DataStar and
+                  renders either an HTMX fragment/headers or a patch stream.
+                </td>
+                <td class="no">
+                  High — two response shapes per handler, doubled test
+                  matrix, contradicts "impossible states unrepresentable"
+                </td>
+                <td class="no">Avoid</td>
+              </tr>
+              <tr>
+                <td><strong>C. Parallel panel variants</strong></td>
+                <td>
+                  adminui stays HTMX; separate DataStar-native panels (the
+                  ROADMAP's dashboardui/adminui/loginpage variant items).
+                </td>
+                <td>Medium — ~17h total per ROADMAP estimates</td>
+                <td>Only on demand</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-teal">
+            <strong>Key insight</strong>
+            The transport duality is already solved by the hub. What remains
+            is a rendering decision per UI surface — and rendering is where
+            the cost lives, not in SSE.
+          </div>
+        </section>
+
+        <section id="proposal">
+          <h2><span class="num">04</span>Proposal (Pareto-Ordered)</h2>
+          <p>
+            What extending DataStar support could concretely look like,
+            ordered by value per hour:
+          </p>
+          <pre><code>// 1. Document the route-split pattern in fullstack-wiring.md
+//    (pure docs, ~1h — the capability exists but is undiscoverable)
+
+// 2. setup.Config gains an opt-in DataStar mount:
+bundle, _ := setup.New(setup.Config{
+    // ... existing fields ...
+    DataStar: true, // mounts /datastar.js + /ds/events on Bundle.Broadcaster's hub
+})
+// One hub feeds both the HTMX /sse feed and the DataStar feed.
+
+// 3. dashboardui DataStar variant (ROADMAP, ~8h):
+//    signal patches replace polling for projection health.
+
+// 4. loginpage signal-based forms (ROADMAP, ~3h).
+
+// 5. Offline-sync evaluation vs sync-worker.js (ROADMAP, ~4h).</code></pre>
+          <div class="callout callout-teal">
+            <strong>This is the target</strong>
+            Items 1-2 make dual support a first-class, discoverable feature
+            for under a day of work. Items 3-5 stay gated on actual consumer
+            demand, consistent with YAGNI and the library's opt-in principle.
+          </div>
+        </section>
+
+        <section id="risks">
+          <h2><span class="num">05</span>Risks and Costs</h2>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important"
+              >Risk &middot; Maintenance</span
+            >
+            <h3>Two frontend vocabularies in one library</h3>
+            <p>
+              Every guide, example, and support answer doubles. The docs
+              already carry a "Choosing a Transport" table; more surface
+              means more of that. Mitigation: keep HTMX canonical for the
+              ready-made panels; DataStar is the opt-in path for consumers
+              building their own UI.
+            </p>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Risk &middot; Tests</span>
+            <h3>Coverage gates and test matrix growth</h3>
+            <p>
+              Every new module in this repo gets a coverage gate, lint
+              config, and cqrs-lint config. New panel variants mean new
+              modules (the repo's own library principle prohibits bundling
+              DataStar into existing panels — see ROADMAP.md on
+              go-health-dashboard dependency pulling).
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">Risk &middot; Ecosystem</span>
+            <h3>DataStar's smaller ecosystem</h3>
+            <p>
+              HTMX has the larger community and more third-party answers.
+              Low weight here because go-datastar/go-sse are in-family and
+              the SDK is already fully owned.
+            </p>
+          </div>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">Risk &middot; Scope</span>
+            <h3>Speculative panel conversion</h3>
+            <p>
+              Converting adminui/dashboardui to dual-mode (Model B) before
+              any consumer asks for it would be the classic premature
+              generalization the repo's own data-model guidance warns
+              against.
+            </p>
+          </div>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">06</span>Appendix: Evidence</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Claim</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DataStar module surface (~700 LOC prod, 57 tests, 97.5% cov)</td>
+                <td><code>datastar/*.go</code>, AGENTS.md coverage table</td>
+              </tr>
+              <tr>
+                <td>Shared-hub dual transport documented</td>
+                <td><code>docs/guides/sse-and-datastar.md</code> "Cross-Transport Hub Sharing"</td>
+              </tr>
+              <tr>
+                <td>Panel variant effort estimates (~8h/~6h/~3h)</td>
+                <td><code>ROADMAP.md</code> "Datastar Future Scope"</td>
+              </tr>
+              <tr>
+                <td>adminui HTMX coupling (21 hx-* attrs, 4 templ files)</td>
+                <td><code>adminui/{users,tenants,members,layout}.templ</code></td>
+              </tr>
+              <tr>
+                <td>dashboardui hx-boost/hx-select + SSE via transport</td>
+                <td><code>dashboardui/layout.go</code>, <code>render.go</code></td>
+              </tr>
+              <tr>
+                <td>templ-components ships a /datastar module</td>
+                <td>sibling repo <code>templ-components/datastar/</code></td>
+              </tr>
+              <tr>
+                <td>Library principle blocks bundling DataStar into panels</td>
+                <td><code>ROADMAP.md</code> (go-health-dashboard precedent)</td>
+              </tr>
+              <tr>
+                <td>starfederation SDK fully replaced by go-datastar</td>
+                <td><code>datastar/CHANGELOG.md</code> v4.1.0</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-09-07 &middot; Reviewed against cqrs-htmx v4.9.0
+            &middot; All claims verified against source code where noted
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
