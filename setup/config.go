@@ -459,6 +459,12 @@ func requireDistinctPaths(c Config) error {
 
 	for i := range paths {
 		for j := i + 1; j < len(paths); j++ {
+			// Unset optional paths ("") never conflict with each other — two
+			// disabled features are not a route collision.
+			if paths[i].path == "" || paths[j].path == "" {
+				continue
+			}
+
 			if paths[i].path == paths[j].path {
 				return errorfamily.Newf(errorfamily.Rejection,
 					"setup.invalid_config",
