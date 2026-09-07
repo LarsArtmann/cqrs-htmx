@@ -1,4 +1,4 @@
-// cqrs-lint:ignore(E009) spike: RunWithAppkit is an alternative composition root for the M18 spike (ADR-001 P3)
+// RunWithAppkit: the appkit-composed alternative server layer for Bundle (ADR-001 uplift).
 package setup
 
 import (
@@ -11,13 +11,10 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// SPIKE (ADR-001 P3 / plan task M18) — do not merge as-is.
-//
-// RunWithAppkit is RunHandler with the server layer swapped: instead of
-// httputil.Server it drives an appkit.Service. Everything else — the bundle's
-// own middleware chain, mounting, Close-on-every-exit — is identical. The
-// require/replace for go-appkit in go.mod is spike-only and must be dropped
-// (or pointed at a published tag) before this can merge.
+// RunWithAppkit composes the bundle's full stack (domain middleware, mounting,
+// health) onto a go-appkit Service instead of httputil.Server. Adopted from
+// the ADR-001 uplift: the go-appkit require is a published tag, no replace
+// directives.
 //
 // Verified equivalences with RunHandler (see run_appkit_test.go):
 //
@@ -41,11 +38,11 @@ func (b *Bundle) RunWithAppkit(ctx context.Context, addr string, handler http.Ha
 	return b.runWithAppkit(ctx, addr, handler, appkitDefaultDrainDelay, "")
 }
 
-// runWithAppkit is the shared worker for [Bundle.RunWithAppkit] and the spike
-// tests + adoption benchmark. DrainDelay and LogLevel are parameters so
+// runWithAppkit is the shared worker for [Bundle.RunWithAppkit] and the
+// integration tests + adoption benchmark. DrainDelay and LogLevel are parameters so
 // internal callers can pick near-zero values:
 //
-//   - DrainDelay: production = appkitDefaultDrainDelay (2s); spike tests use
+//   - DrainDelay: production = appkitDefaultDrainDelay (2s); tests use
 //     50ms so a 2s drain never bloats the suite runtime per case; the
 //     adoption benchmark uses 10ms so b.N scales by request work alone, not
 //     drain phase.
@@ -128,7 +125,7 @@ func (b *Bundle) runWithAppkit(
 
 // appkitDefaultDrainDelay gives load balancers a beat to observe the readiness
 // flip before connections close. RunHandler has no drain phase at all; this is
-// the first behavioral uplift of the spike.
+// the first behavioral uplift of RunHandler.
 const appkitDefaultDrainDelay = 2 * time.Second
 
 // projectionReadyCheck adapts the bundle's projection-aware readiness onto

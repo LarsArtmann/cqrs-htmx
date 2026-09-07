@@ -1,4 +1,4 @@
-// cqrs-lint:ignore(E009) spike test file (ADR-001 P3 / M18): verifies the appkit server swap
+// RunWithAppkit integration tests (ADR-001 uplift): verify the appkit server swap.
 package setup
 
 import (
@@ -30,7 +30,7 @@ type benchEnvelope struct {
 }
 
 // freeLocalAddr reserves an OS-assigned port, releases it, and returns the
-// address. Small TOCTOU window, standard for spike tests.
+// address. Small TOCTOU window, standard for server-port tests.
 func freeLocalAddr(tb testing.TB) string {
 	tb.Helper()
 
@@ -96,20 +96,20 @@ func serveInBackground(
 	}
 }
 
-// spikeTestDrainDelay replaces the 2-second appkit production drain with a
-// value small enough that the spike test suite finishes in ~3 seconds instead
+// testDrainDelay replaces the 2-second appkit production drain with a
+// value small enough that the integration suite finishes in ~3 seconds instead
 // of ~6 — production behavior (drain → readiness flip → stop) is still
 // exercised end-to-end, just on a faster clock.
-const spikeTestDrainDelay = 50 * time.Millisecond
+const testDrainDelay = 50 * time.Millisecond
 
-// spikeBenchDrainDelay keeps the per-iteration shutdown cost near-zero in the
+// benchDrainDelay keeps the per-iteration shutdown cost near-zero in the
 // adoption benchmark. The 2-second production drain would force the benchmark
 // framework to spawn one goroutine, run Shutdown, wait DrainDelay, and then
 // proceed to the next b.N iteration's server bring-up — b.N scales by elapsed
 // time, so an in-timer 2s drain poisons every measurement. By making the
 // drain near-instant, both the baseline and the appkit cases differ only by
 // the request-path work each stack actually performs.
-const spikeBenchDrainDelay = 10 * time.Millisecond
+const benchDrainDelay = 10 * time.Millisecond
 
 // TestRunWithAppkit_SSEHeaderFlushThroughFullStack (M18.3): an SSE-style
 // handler — headers written and flushed immediately, first event 400ms later —
@@ -117,7 +117,7 @@ const spikeBenchDrainDelay = 10 * time.Millisecond
 // outside, the bundle's chain inside). The client must observe headers well
 // before the first event is due, and then the event itself, intact.
 func TestRunWithAppkit_SSEHeaderFlushThroughFullStack(t *testing.T) {
-	bundle := MustNew(Config{Title: "sse-flush-spike"})
+	bundle := MustNew(Config{Title: "sse-flush-adoption"})
 	defer func() { _ = bundle.Close() }()
 
 	const eventDelay = 400 * time.Millisecond
@@ -141,7 +141,7 @@ func TestRunWithAppkit_SSEHeaderFlushThroughFullStack(t *testing.T) {
 
 	addr := freeLocalAddr(t)
 	stop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
-		return bundle.runWithAppkit(ctx, addr, h, spikeTestDrainDelay, "")
+		return bundle.runWithAppkit(ctx, addr, h, testDrainDelay, "")
 	}, addr, sse)
 	defer stop()
 
@@ -191,12 +191,12 @@ func TestRunWithAppkit_SSEHeaderFlushThroughFullStack(t *testing.T) {
 // by appkit with the projection-aware check wired in, and a cancelled context
 // drains and closes the bundle cleanly.
 func TestRunWithAppkit_ReadinessAndCleanShutdown(t *testing.T) {
-	bundle := MustNew(Config{Title: "readiness-spike"})
+	bundle := MustNew(Config{Title: "readiness-check"})
 	defer func() { _ = bundle.Close() }()
 
 	addr := freeLocalAddr(t)
 	stop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
-		return bundle.runWithAppkit(ctx, addr, h, spikeTestDrainDelay, "")
+		return bundle.runWithAppkit(ctx, addr, h, testDrainDelay, "")
 	}, addr, nil)
 	defer stop()
 
@@ -238,7 +238,7 @@ func TestRunWithAppkit_ReadinessAndCleanShutdown(t *testing.T) {
 // TestRunWithAppkit_ResponseParity: an ordinary handler's response passes
 // through the appkit stack unchanged.
 func TestRunWithAppkit_ResponseParity(t *testing.T) {
-	bundle := MustNew(Config{Title: "parity-spike"})
+	bundle := MustNew(Config{Title: "run-parity"})
 	defer func() { _ = bundle.Close() }()
 
 	hello := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -250,7 +250,7 @@ func TestRunWithAppkit_ResponseParity(t *testing.T) {
 
 	addr := freeLocalAddr(t)
 	stop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
-		return bundle.runWithAppkit(ctx, addr, h, spikeTestDrainDelay, "")
+		return bundle.runWithAppkit(ctx, addr, h, testDrainDelay, "")
 	}, addr, hello)
 	defer stop()
 
@@ -344,7 +344,7 @@ func BenchmarkSpikeBaselineVsAppkit(b *testing.B) {
 			stop := serveInBackground(
 				b,
 				func(ctx context.Context, addr string, h http.Handler) error {
-					return bc.run(bundle, ctx, addr, h, spikeBenchDrainDelay, appkit.LogLevelError)
+					return bc.run(bundle, ctx, addr, h, benchDrainDelay, appkit.LogLevelError)
 				},
 				addr,
 				ping,
