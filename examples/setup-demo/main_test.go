@@ -22,14 +22,16 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Same composition as main(): ServiceConfig escape hatch + shared SSE.
+	// Same composition as main(): ServiceConfig escape hatch + shared SSE +
+	// DataStar feed on the same hub.
 	bundle, err := setup.New(setup.Config{ //nolint:exhaustruct // demo uses in-memory defaults
 		Title:     "Setup Demo Test",
 		LogoutURL: "/dev-logout",
 		ServiceConfig: &usermgmt.ServiceConfig{
 			MaxUsers: 50,
 		},
-		SSEPath: "/sse",
+		SSEPath:      "/sse",
+		DataStarPath: "/ds/events",
 	})
 	if err != nil {
 		t.Fatalf("setup.New: %v", err)
@@ -50,24 +52,38 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 	server := httptest.NewServer(bundle.Handler(mux))
 	defer server.Close()
 
-	// Same demo route main() registers: push a custom event through the
-	// bundle's shared fan-out hub.
+	// Same demo route main() registers: push ONE action through the bundle's
+	// shared fan-out hub twice — raw SSE event + DataStar signal patch.
+	broadcastCount := 0
 	mux.HandleFunc("POST /broadcast", func(w http.ResponseWriter, _ *http.Request) {
+		broadcastCount++
+
 		bundle.Broadcaster.Broadcast(sse.Event{
 			Event: "demoBroadcast",
 			Data:  `{"message":"hello from setup-demo test"}`,
 		})
+
+		if bundle.DataStarBroadcaster != nil {
+			patch, perr := ds.SignalsPatch(map[string]any{"broadcasts": broadcastCount})
+			if perr == nil {
+				bundle.DataStarBroadcaster.Broadcast(patch)
+			}
+		}
+
 		w.WriteHeader(http.StatusAccepted)
 	})
 
 	// Public routes.
 	for path, want := range map[string]int{
-		"/health":     http.StatusOK,
-		"/":           http.StatusOK,           // login page
-		"/auth/me":    http.StatusUnauthorized, // no session -> 401
-		"/dashboard/": http.StatusUnauthorized,
-		"/admin/":     http.StatusUnauthorized,
-		"/sse":        http.StatusUnauthorized, // shared SSE is session-gated
+		"/health":        http.StatusOK,
+		"/":              http.StatusOK,           // login page
+		"/auth/me":       http.StatusUnauthorized, // no session -> 401
+		"/dashboard/":    http.StatusUnauthorized,
+		"/admin/":        http.StatusUnauthorized,
+		"/sse":           http.StatusUnauthorized, // shared SSE is session-gated
+		"/ds/events":     http.StatusUnauthorized, // DataStar feed, same gate
+		"/datastar.js":   http.StatusOK,           // SDK script is public
+		"/ds-demo":       http.StatusOK,           // demo client page is public
 	} {
 		resp, err := http.Get(server.URL + path)
 		if err != nil {

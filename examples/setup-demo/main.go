@@ -18,6 +18,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
@@ -58,6 +59,9 @@ func run() error {
 		},
 		SSEPath: "/sse",
 		SSEURL:  "/sse",
+		// DataStar feed on the SAME hub as /sse: one broadcast reaches both
+		// transports (ADR-0050). The SDK script auto-mounts at /datastar.js.
+		DataStarPath: "/ds/events",
 	})
 	if err != nil {
 		return fmt.Errorf("setup.New: %w", err)
@@ -87,15 +91,36 @@ func run() error {
 	// Note: "/" is NOT registered here — the bundle's login page owns the
 	// site root (registering a second "/" would panic the mux).
 
-	// POST /broadcast pushes a custom event through the bundle's shared
-	// fan-out hub — the same hub the /sse endpoint serves and the admin
-	// panel's sync indicator listens on.
+	// POST /broadcast pushes ONE action through the bundle's shared fan-out
+	// hub twice — once as a raw SSE event (HTMX clients: the admin panel's
+	// sync indicator, /sse listeners) and once as a DataStar signal patch
+	// (/ds/events clients). Both land on the same hub, which is the whole
+	// point of the dual-transport setup.
+	broadcastCount := 0
 	mux.HandleFunc("POST /broadcast", func(w http.ResponseWriter, _ *http.Request) {
+		broadcastCount++
+
 		bundle.Broadcaster.Broadcast(sse.Event{
 			Event: "demoBroadcast",
 			Data:  `{"message":"hello from setup-demo"}`,
 		})
+
+		if bundle.DataStarBroadcaster != nil {
+			patch, err := ds.SignalsPatch(map[string]any{"broadcasts": broadcastCount})
+			if err == nil {
+				bundle.DataStarBroadcaster.Broadcast(patch)
+			}
+		}
+
 		w.WriteHeader(http.StatusAccepted)
+	})
+
+	// GET /ds-demo is a minimal DataStar client page: it loads the SDK from
+	// the bundle's script mount and renders the live "broadcasts" signal
+	// that POST /broadcast patches.
+	mux.HandleFunc("GET /ds-demo", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write([]byte(dsDemoPage))
 	})
 
 	fmt.Printf(
@@ -104,11 +129,29 @@ func run() error {
 		adminEmail,
 	)
 	fmt.Println(
-		"Routes: /admin/ · /dashboard/ · /health · /auth/* · /sse · POST /broadcast · / (login page)",
+		"Routes: /admin/ · /dashboard/ · /health · /auth/* · /sse · /ds/events · /ds-demo · POST /broadcast · / (login page)",
 	)
 
 	return bundle.RunHandler(ctx, addr, bundle.Handler(mux))
 }
+
+// dsDemoPage is the minimal DataStar client for /ds-demo: the SDK connects
+// to /ds/events and the span re-renders whenever the "broadcasts" signal is
+// patched by POST /broadcast.
+const dsDemoPage = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>setup-demo — DataStar feed</title>
+  <script type="module" src="/datastar.js"></script>
+</head>
+<body data-signals-broadcasts="0">
+  <h1>Live broadcasts (DataStar)</h1>
+  <p>POST /broadcast to bump the counter — the patch arrives on /ds/events.</p>
+  <p>Broadcasts so far: <span data-text="$broadcasts"></span></p>
+</body>
+</html>
+`
 
 // seed registers the demo admin and returns their session token.
 func seed(ctx context.Context, bundle *setup.Bundle) string {
