@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
+	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-sse"
 )
@@ -221,5 +222,49 @@ func TestDemoApp_EndToEnd(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("broadcast frame not delivered on the open SSE connection")
+	}
+
+	// Dual-transport assertion (ADR-0050): the SAME broadcast action also
+	// reaches the DataStar feed — connect, broadcast again, scan for the
+	// signal patch frame.
+	dsReq, err := http.NewRequest(http.MethodGet, server.URL+"/ds/events", nil)
+	if err != nil {
+		t.Fatalf("new DataStar request: %v", err)
+	}
+	dsReq.Header.Set("Cookie", strings.Join(cookies, "; "))
+	dsReq.Header.Set("Accept", "text/event-stream")
+
+	dsCtx, dsCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer dsCancel()
+	dsResp, err := (&http.Client{Timeout: 5 * time.Second}).Do(dsReq.WithContext(dsCtx))
+	if err != nil {
+		t.Fatalf("GET /ds/events (authed): %v", err)
+	}
+	defer dsResp.Body.Close()
+
+	if dsResp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /ds/events (authed): status %d, want 200", dsResp.StatusCode)
+	}
+
+	second, err := http.Post(server.URL+"/broadcast", "application/json", nil)
+	if err != nil {
+		t.Fatalf("POST /broadcast (second): %v", err)
+	}
+	_, _ = io.Copy(io.Discard, second.Body)
+	second.Body.Close()
+
+	dsScanner := bufio.NewScanner(dsResp.Body)
+	patchFound := false
+	for dsScanner.Scan() {
+		if strings.Contains(dsScanner.Text(), "datastar-patch-signals") {
+			patchFound = true
+			break
+		}
+	}
+	if err := dsScanner.Err(); err != nil && !patchFound {
+		t.Fatalf("reading DataStar frames: %v (patch frame never arrived)", err)
+	}
+	if !patchFound {
+		t.Fatal("DataStar signal patch not delivered on the open /ds/events connection")
 	}
 }
