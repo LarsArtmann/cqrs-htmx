@@ -398,6 +398,26 @@ func (c Config) validatePathShapes() error {
 			"setup.invalid_config", "HealthPath must start with %q (got %q)", "/", c.HealthPath)
 	}
 
+	if err := c.validateOptionalFeedPaths(); err != nil {
+		return err
+	}
+
+	if !startsWithSlash(c.LoginRedirect) && !startsWithScheme(c.LoginRedirect) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config",
+			"LoginRedirect must start with %q or a URL scheme (got %q)", "/", c.LoginRedirect)
+	}
+
+	if c.CookieName == "" {
+		return errorfamily.NewRejection("setup.invalid_config", "CookieName must not be empty")
+	}
+
+	return nil
+}
+
+// validateOptionalFeedPaths checks the optional SSE/DataStar mount paths —
+// empty means "feature disabled", which is always valid.
+func (c Config) validateOptionalFeedPaths() error {
 	if c.SSEPath != "" && !startsWithSlash(c.SSEPath) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config", "SSEPath must start with %q (got %q)", "/", c.SSEPath)
@@ -410,17 +430,11 @@ func (c Config) validatePathShapes() error {
 
 	if c.DataStarScriptPath != "" && c.DataStarScriptPath != "-" && !startsWithSlash(c.DataStarScriptPath) {
 		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config", "DataStarScriptPath must start with %q, be empty, or be \"-\" to disable (got %q)", "/", c.DataStarScriptPath)
-	}
-
-	if !startsWithSlash(c.LoginRedirect) && !startsWithScheme(c.LoginRedirect) {
-		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config",
-			"LoginRedirect must start with %q or a URL scheme (got %q)", "/", c.LoginRedirect)
-	}
-
-	if c.CookieName == "" {
-		return errorfamily.NewRejection("setup.invalid_config", "CookieName must not be empty")
+			"DataStarScriptPath must start with %q, be empty, or be \"-\" to disable (got %q)",
+			"/",
+			c.DataStarScriptPath,
+		)
 	}
 
 	return nil
