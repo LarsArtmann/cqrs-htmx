@@ -46,6 +46,9 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Shared replace-exemption rule (single-sourced with check-version-drift.sh).
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/replace-exemption.sh"
+
 JSON=0
 STRICT_LAG=-1
 NO_CACHE=0
@@ -197,9 +200,10 @@ for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/
     max=$(max_published_for "$prefix" "${REPO_TAGS_LIST[$repo]}")
     checked=$((checked + 1))
 
-    # Local replace in the requiring go.mod satisfies the build hermetically.
+    # Local replace in the requiring go.mod satisfies the build hermetically
+    # (single-sourced in scripts/lib/replace-exemption.sh).
     replace_exempt=false
-    if grep -qE "^[[:space:]]*replace[[:space:]]+${mod_path}([[:space:]]|v[0-9])" "$modfile" 2>/dev/null; then
+    if replace_exemption_applies "$moddir" "$mod_path"; then
       replace_exempt=true
     fi
 
