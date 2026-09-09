@@ -577,17 +577,23 @@ jobs:
       - name: Go toolchain vs go.work directive check
         run: bash scripts/check-go-toolchain.sh
 
-      # Blocking in spirit (exits non-zero on failure); the script's strict
-      # chain still self-downgrades tag checks under CI where noted. Public
-      # repos confirmed 2026-08-31 (anonymous ls-remote works on Actions).
-      - name: Release train check (advisory)
-        run: bash scripts/check-release-train.sh || true
+      # BLOCKING since 2026-09-09 (was `|| true` advisory): an UNPUBLISHED
+      # internal require (phantom-tag class) fails the build. ls-remote
+      # failures self-downgrade to warnings when CI=true (exit 4), so a
+      # runner network blip cannot spuriously red-master. Public repos
+      # confirmed 2026-08-31 (anonymous ls-remote works on Actions).
+      # Train-lag stays advisory here until the current alignment sweep
+      # lands; tightening to `--strict-lag 0` is a one-token follow-up.
+      - name: Release train check (blocking)
+        run: bash scripts/check-release-train.sh
 
-      # Advisory here: the tag-existence leg needs `git ls-remote` auth for the
-      # private larsartmann repos over https, which CI may not have. The strict
-      # gate runs in `nix run .#check-modules` locally.
-      - name: Version drift check (advisory)
-        run: bash scripts/check-version-drift.sh || true
+      # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
+      # a missing internal tag fails the build via --strict. Tag existence
+      # uses anonymous `git ls-remote`; the larsartmann repos are public
+      # (confirmed 2026-08-30), so the old "CI may lack auth" caveat no
+      # longer applies.
+      - name: Version drift check (blocking)
+        run: bash scripts/check-version-drift.sh --strict
 
       - name: Replace directive check
         run: bash scripts/check-replace-directives.sh
