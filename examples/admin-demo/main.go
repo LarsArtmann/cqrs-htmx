@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -146,7 +147,7 @@ func main() {
 // tenants so the panel has something to show. Storage is in-memory, so every
 // boot starts fresh and the registrations always succeed.
 func seed(ctx context.Context, svc *usermgmt.Service) string {
-	adminID := usermgmt.SyntheticUserID(adminUserID)
+	adminID := identitymodel.SyntheticUserID(adminUserID)
 	resp, err := svc.Register(ctx, usermgmt.RegisterRequest{
 		ID: adminID, Email: adminEmail, DisplayName: "Demo Admin",
 	})
@@ -155,8 +156,8 @@ func seed(ctx context.Context, svc *usermgmt.Service) string {
 	}
 	// Grant super_admin so the panel's default role-based authorizer admits the
 	// demo admin. This exercises the real authorization path (not a bypass).
-	if err := svc.Authz().AddGroupPolicy(usermgmt.GroupPolicy{
-		Subject: adminID.Get().String(), Role: usermgmt.RoleSuperAdmin, Domain: "*",
+	if err := svc.Authz().AddGroupPolicy(identitymodel.GroupPolicy{
+		Subject: adminID.Get().String(), Role: identitymodel.RoleSuperAdmin, Domain: "*",
 	}); err != nil {
 		log.Fatalf("grant super_admin: %v", err)
 	}
@@ -164,7 +165,7 @@ func seed(ctx context.Context, svc *usermgmt.Service) string {
 	for _, email := range []string{
 		"alice@acme.dev", "bob@acme.dev", "carol@other.dev", "dave@acme.dev",
 	} {
-		uid := usermgmt.SyntheticUserID("seed-" + email)
+		uid := identitymodel.SyntheticUserID("seed-" + email)
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
 			ID: uid, Email: email, DisplayName: nameOf(email),
 		}); err != nil {
@@ -178,7 +179,7 @@ func seed(ctx context.Context, svc *usermgmt.Service) string {
 		{"initech", "initech", "Initech"},
 	} {
 		if _, err := svc.CreateTenant(ctx, usermgmt.CreateTenantRequest{
-			ID: usermgmt.NewTenantID(t.id), Name: t.name, DisplayName: t.display,
+			ID: identitymodel.NewTenantID(t.id), Name: t.name, DisplayName: t.display,
 		}); err != nil {
 			log.Printf("seed tenant %s: %v", t.id, err)
 		}

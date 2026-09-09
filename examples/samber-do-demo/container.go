@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -75,7 +76,7 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 	// TOTP auth provider — lazy because it only needs to exist when the
 	// usermgmt.Service is first invoked. Named so we can show the named-
 	// service pattern (multiple auth strategies could coexist).
-	do.ProvideNamed(injector, "auth.totp", func(i do.Injector) (usermgmt.TOTPProvider, error) {
+	do.ProvideNamed(injector, "auth.totp", func(i do.Injector) (identitymodel.TOTPProvider, error) {
 		appCfg, err := do.Invoke[AppConfig](i)
 		if err != nil {
 			return nil, err
@@ -92,7 +93,7 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 	// provider from the container via InvokeNamed, demonstrating the
 	// named-service resolution pattern.
 	do.Provide(injector, func(i do.Injector) (*usermgmt.Service, error) {
-		totpProvider, err := do.InvokeNamed[usermgmt.TOTPProvider](i, "auth.totp")
+		totpProvider, err := do.InvokeNamed[identitymodel.TOTPProvider](i, "auth.totp")
 		if err != nil {
 			return nil, err
 		}

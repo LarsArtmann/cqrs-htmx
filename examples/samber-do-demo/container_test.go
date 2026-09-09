@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -28,15 +28,15 @@ func newTestContainer(t *testing.T) (*Container, func()) {
 	// Override the TOTP provider with a no-op stub for tests.
 	// This avoids real TOTP secret generation during unit tests.
 	// OverrideNamed (not OverrideNamedValue) preserves the interface type
-	// so that InvokeNamed[usermgmt.TOTPProvider] resolves correctly.
-	do.OverrideNamed(container.injector, "auth.totp", func(_ do.Injector) (usermgmt.TOTPProvider, error) {
+	// so that InvokeNamed[identitymodel.TOTPProvider] resolves correctly.
+	do.OverrideNamed(container.injector, "auth.totp", func(_ do.Injector) (identitymodel.TOTPProvider, error) {
 		return stubTOTP{}, nil
 	})
 
 	return container, cleanup
 }
 
-// stubTOTP satisfies usermgmt.TOTPProvider without doing any real TOTP work.
+// stubTOTP satisfies identitymodel.TOTPProvider without doing any real TOTP work.
 type stubTOTP struct{}
 
 func (stubTOTP) GenerateSecret(_ string) ([]byte, string, string, error) {
@@ -98,7 +98,7 @@ func TestContainerOverrideTOTP(t *testing.T) {
 	container, cleanup := newTestContainer(t)
 	defer cleanup()
 
-	totp, err := do.InvokeNamed[usermgmt.TOTPProvider](container.injector, "auth.totp")
+	totp, err := do.InvokeNamed[identitymodel.TOTPProvider](container.injector, "auth.totp")
 	if err != nil {
 		t.Fatalf("resolve TOTP provider: %v", err)
 	}
