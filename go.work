@@ -8,6 +8,7 @@ use (
 	./datastar
 	./e2e/server
 	./examples/admin-demo
+	./examples/async-startup-demo
 	./examples/basic
 	./examples/catalog-demo
 	./examples/dashboard-demo

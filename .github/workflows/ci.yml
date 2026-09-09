@@ -107,6 +107,13 @@ jobs:
           GOWORK: off
           GOEXPERIMENT: jsonv2
 
+      - name: Build async-startup-demo example
+        run: cd examples/async-startup-demo && go build ./...
+        env:
+          GOWORK: off
+          GOEXPERIMENT: jsonv2
+          GONOSUMCHECK: "github.com/larsartmann/*"
+
       - name: Build identity-model submodule
         run: cd identity-model && go build ./...
         env:

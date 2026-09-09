@@ -30,7 +30,7 @@ require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260903151058-ae99b731b8c5 // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
@@ -50,18 +50,18 @@ require (
 	github.com/larsartmann/go-health-dashboard v0.6.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output v0.37.0 // indirect
-	github.com/larsartmann/go-output/d2 v0.37.0 // indirect
-	github.com/larsartmann/go-output/daghtml v0.37.0 // indirect
-	github.com/larsartmann/go-output/delimited v0.37.0 // indirect
-	github.com/larsartmann/go-output/escape v0.37.0 // indirect
-	github.com/larsartmann/go-output/graph v0.37.0 // indirect
-	github.com/larsartmann/go-output/markdown v0.37.0 // indirect
-	github.com/larsartmann/go-output/markup v0.37.0 // indirect
-	github.com/larsartmann/go-output/plantuml v0.37.0 // indirect
-	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
-	github.com/larsartmann/go-output/table v0.37.0 // indirect
-	github.com/larsartmann/go-output/tree v0.37.0 // indirect
+	github.com/larsartmann/go-output v0.38.0 // indirect
+	github.com/larsartmann/go-output/d2 v0.38.0 // indirect
+	github.com/larsartmann/go-output/daghtml v0.38.0 // indirect
+	github.com/larsartmann/go-output/delimited v0.38.0 // indirect
+	github.com/larsartmann/go-output/escape v0.38.0 // indirect
+	github.com/larsartmann/go-output/graph v0.38.0 // indirect
+	github.com/larsartmann/go-output/markdown v0.38.0 // indirect
+	github.com/larsartmann/go-output/markup v0.38.0 // indirect
+	github.com/larsartmann/go-output/plantuml v0.38.0 // indirect
+	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
+	github.com/larsartmann/go-output/table v0.38.0 // indirect
+	github.com/larsartmann/go-output/tree v0.38.0 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/larsartmann/templ-components v1.16.0 // indirect
 	github.com/larsartmann/templ-components/datastar v1.16.0 // indirect
@@ -69,7 +69,7 @@ require (
 	github.com/larsartmann/templ-components/icons v1.16.0 // indirect
 	github.com/larsartmann/templ-components/utils v1.16.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
-	github.com/mattn/go-runewidth v0.0.27 // indirect
+	github.com/mattn/go-runewidth v0.0.29 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
