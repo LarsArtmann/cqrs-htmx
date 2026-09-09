@@ -74,13 +74,6 @@ type BotTokenView struct {
 	BotID     string `json:"bot_id"`
 }
 
-// ExternalAccountLink is a secondary index projection for looking up users by
-// external account (provider, subject) pair.
-type ExternalAccountLink struct {
-	ProviderSubject string `json:"provider_subject"`
-	UserID          string `json:"user_id"`
-}
-
 // PolicyEntry represents a single authorization policy: which roles a subject
 // holds in a domain. Keyed by the stream ID of the aggregate that produced it.
 type PolicyEntry struct {

@@ -42,7 +42,6 @@ func DeclarativeProjections() []system.ProjectionDeclaration {
 		// User
 		system.RawQuery(userLookup()),
 		system.RawQuery(userScan()),
-		system.RawQuery(externalAccountLinkScan()),
 		// Authz
 		system.RawQuery(authzPolicyLookup()),
 		system.RawQuery(authzPolicyScan()),
@@ -445,36 +444,6 @@ func removeUser() metaengine.Fold {
 	return metaengine.OnRecordTyped(string(identitymodel.EventUserDeleted),
 		projectionadapter.EventWithID[identitymodel.UserDeletedPayload]{},
 		metaengine.Remove[UserView]())
-}
-
-// -------------------------------------------------------------------------
-// External Account Link (secondary index for User)
-// -------------------------------------------------------------------------
-
-func externalAccountLinkScan() metaengine.QueryDecl[system.ScanInput, ExternalAccountLink] {
-	return metaengine.Query[system.ScanInput, ExternalAccountLink]("external_account_links",
-		metaengine.OnRecordTyped(
-			string(identitymodel.EventExternalAccountLinked),
-			projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]{},
-			func(_ record.Record, e projectionadapter.EventWithID[identitymodel.ExternalAccountLinkedPayload]) (string, ExternalAccountLink) {
-				return e.ID + ":" + e.Payload.Provider + ":" + e.Payload.Subject,
-					ExternalAccountLink{
-						ProviderSubject: e.Payload.Provider + ":" + e.Payload.Subject,
-						UserID:          e.ID,
-					}
-			},
-		),
-		metaengine.OnRecordTyped(
-			string(identitymodel.EventExternalAccountUnlinked),
-			projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload]{},
-			func(_ record.Record, e projectionadapter.EventWithID[identitymodel.ExternalAccountUnlinkedPayload], prev ExternalAccountLink) ExternalAccountLink {
-				_ = prev
-				return ExternalAccountLink{}
-			},
-		),
-		metaengine.FilterOnField[ExternalAccountLink]("ProviderSubject", metaengine.FilterEq),
-		metaengine.Volume(100_000),
-	)
 }
 
 // -------------------------------------------------------------------------

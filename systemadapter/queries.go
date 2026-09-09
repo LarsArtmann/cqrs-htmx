@@ -114,17 +114,29 @@ func AllUsers(ctx context.Context, sys *system.System) ([]UserView, error) {
 	return system.Find[UserView](ctx, sys, "users")
 }
 
-// FindUserByExternalAccount returns the user linked to the given external account.
+// FindUserByExternalAccount returns the user currently linked to the given
+// external account, or system.ErrNotFound when no user holds it.
+//
+// This deliberately derives from the users collection instead of a dedicated
+// link-index collection: metaengine derives update/remove keys from a single
+// event field, so a composite (user:provider:subject) index row can never be
+// removed on unlink or user deletion — the index leaked stale rows and
+// lookups returned unlinked users (fixed 2026-09-09). UserView's
+// ExternalAccounts slice IS correctly maintained (its folds key on the user
+// stream ID), making it the single source of truth.
 func FindUserByExternalAccount(ctx context.Context, sys *system.System, provider, subject string) (UserView, error) {
-	links, err := system.Find[ExternalAccountLink](ctx, sys, "external_account_links",
-		system.Where("ProviderSubject", provider+":"+subject))
+	users, err := system.Find[UserView](ctx, sys, "users")
 	if err != nil {
 		return UserView{}, err
 	}
-	if len(links) == 0 {
-		return UserView{}, system.ErrNotFound
+	for _, u := range users {
+		for _, ea := range u.ExternalAccounts {
+			if ea.Provider == provider && ea.Subject == subject {
+				return u, nil
+			}
+		}
 	}
-	return system.Get[UserView](ctx, sys, "user_by_id", links[0].UserID)
+	return UserView{}, system.ErrNotFound
 }
 
 // -------------------------------------------------------------------------

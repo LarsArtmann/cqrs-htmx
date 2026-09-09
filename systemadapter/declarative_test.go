@@ -3,6 +3,7 @@ package systemadapter_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -694,6 +695,39 @@ func TestDeclarative_UserExternalAccounts(t *testing.T) {
 		}
 		if len(user.ExternalAccounts) != 0 {
 			return errors.New("expected 0 external accounts after unlink")
+		}
+		return nil
+	})
+
+	// Regression (2026-09-09): the external-account link index never removed
+	// the (provider, subject) row on unlink, so this lookup kept returning
+	// the unlinked user. It must report ErrNotFound once the link is gone.
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "gh-123")
+		if errors.Is(err, system.ErrNotFound) {
+			return nil
+		}
+		return fmt.Errorf("expected ErrNotFound after unlink, got %v", err)
+	})
+
+	// A freed (provider, subject) identity can be linked to a different
+	// user; the lookup must follow the new owner only.
+	secondStreamID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		secondStreamID, "second@example.com", "Second User",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewLinkExternalAccountCmd(
+		secondStreamID, "github", "gh-123", "ext@github.com", "Ext User",
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		byExt, err := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "gh-123")
+		if err != nil {
+			return err
+		}
+		if byExt.ID != secondStreamID.String() {
+			return errors.New("lookup must follow the new owner after re-link")
 		}
 		return nil
 	})
