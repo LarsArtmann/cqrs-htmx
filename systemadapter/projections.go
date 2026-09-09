@@ -95,6 +95,13 @@ func WithDeadLetterStore(store projectionhost.DeadLetterStore) ProjectionLayerOp
 // projections replay the full journal on restart. For production deployments
 // pass WithCheckpointStore (and optionally WithDeadLetterStore) with stores
 // matching the event-store backend.
+//
+// Deprecated: superseded by the declarative projections path — wire
+// [DomainConfig].Projections + ProjectionTypeDecoder into system.New() and the
+// same read models, authz policies, and audit log register with no manual host
+// wiring (equivalence-tested by TestDeclarative_EquivalenceWithProjectionLayer).
+// Retirement is scheduled for the v5 removal bundle
+// (docs/guides/v5-removal-inventory.md); keep using this only while migrating.
 func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*ProjectionLayer, error) {
 	cfg := projectionLayerOptions{}
 	for _, opt := range opts {

@@ -118,6 +118,13 @@ linters:
   exclusions:
     generated: lax
     rules:
+      # NewProjectionLayer is now // Deprecated: (v5 retirement prep, see
+      # docs/guides/v5-removal-inventory.md) but its OWN equivalence tests
+      # must keep exercising it until the removal lands.
+      - path: _test\.go
+        text: "is deprecated:"
+        linters:
+          - staticcheck
       - path: _test\.go
         linters:
           - wrapcheck
