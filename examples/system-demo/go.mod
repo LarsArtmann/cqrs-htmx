@@ -34,7 +34,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.5.0 // indirect
@@ -55,7 +55,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
