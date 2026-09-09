@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/httputil v0.12.0
-	modernc.org/sqlite v1.56.0
+	modernc.org/sqlite v1.58.0
 )
 
 require (
@@ -59,9 +59,9 @@ require (
 	github.com/xo/terminfo v1.0.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa // indirect
-	modernc.org/libc v1.75.3 // indirect
+	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.12.0 // indirect
+	modernc.org/memory v1.12.1 // indirect
 )
 
 require (
@@ -92,7 +92,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect

@@ -51,6 +51,12 @@ for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/
     version=$(echo "$line" | awk '{print $2}')
 
     if [[ $mod_path =~ ^github\.com/larsartmann/ ]]; then
+      # A local replace satisfies this require locally — the replaced source
+      # wins at build time, so the recorded version string is cosmetic and
+      # cannot drift against siblings (same exemption the tag check applies).
+      if (cd "$moddir" && grep -qE "^[[:space:]]*replace[[:space:]]+${mod_path}([[:space:]]|v[0-9])" go.mod 2>/dev/null); then
+        continue
+      fi
       key="${mod_path} ${version}"
       MODULE_VERSIONS["$key"]+="${moddir},"
       ALL_PAIRS+="${moddir}|${mod_path}|${version}
