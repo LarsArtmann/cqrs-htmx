@@ -62,6 +62,14 @@ Files: every `es_*.go` event/command/state file plus `authz_types.go`,
   nolint-justified as the supported runtime path until the v5 migration;
   migrate to the record/listing view APIs at the same cut (see the
   ADR-0123 nolint comments).
+- `systemadapter.NewProjectionLayer` (marked `// Deprecated:` 2026-09-10) —
+  superseded by the declarative projections path (`DomainConfig.Projections` +
+  `ProjectionTypeDecoder`, equivalence-tested by
+  `TestDeclarative_EquivalenceWithProjectionLayer`). **Removal criterion:** no
+  consumer examples left on the legacy path (`examples/system-demo` migrates
+  with the same cut); the module's own equivalence tests keep exercising it
+  until then via a scoped staticcheck exclusion in
+  `systemadapter/.golangci.yml`.
 - Root in-memory idempotency default — nolint-justified (library principle,
   consumer opts into a durable store); revisit at v5.
 
