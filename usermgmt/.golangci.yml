@@ -128,6 +128,14 @@ linters:
   exclusions:
     generated: lax
     rules:
+      # V007 v5-migration debt (TODO_LIST P3): the event-sourced setup still
+      # builds on go-cqrs-lite stack.Materialize/Bundle/IncludeTombstoned —
+      # verified functional on v4. Scope is path+pinned to the stack.* files;
+      # remove this rule when the system.System migration lands.
+      - path: (es_materialize_adapter|es_materialize_adapter_test|es_setup_core|stack_repositories)\.go$
+        text: "is deprecated: removed in v5"
+        linters:
+          - staticcheck
       - text: Tombstones violate event-stream immutability
         linters:
           - staticcheck
