@@ -316,6 +316,15 @@ func (c Config) validate() error {
 		return err
 	}
 
+	if c.SSEMaxReplay < 0 {
+		return errorfamily.Newf(
+			errorfamily.Rejection,
+			"setup.invalid_config",
+			"SSEMaxReplay must not be negative — 0 uses the transport default (1000), a positive value caps the backfill; got %d",
+			c.SSEMaxReplay,
+		)
+	}
+
 	if err := c.validatePathShapes(); err != nil {
 		return err
 	}

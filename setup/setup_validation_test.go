@@ -81,6 +81,17 @@ func TestNew_ConfigValidation_RootPathRejected(t *testing.T) {
 	}
 }
 
+// --- Value range validation ---
+
+func TestNew_ConfigValidation_NegativeSSEMaxReplayRejected(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{Title: "Negative Replay", SSEMaxReplay: -1})
+	if err == nil {
+		t.Fatal("expected error for negative SSEMaxReplay (0 = transport default, positive = cap)")
+	}
+}
+
 // --- Path conflict validation ---
 
 func TestNew_ConfigValidation_AdminAndDashboardPathsConflict(t *testing.T) {

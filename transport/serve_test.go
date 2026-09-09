@@ -321,3 +321,78 @@ func TestServeDomainEvents_FilteredReplay(t *testing.T) {
 		t.Errorf("filtered replay must NOT deliver the non-matching event\nbody:\n%s", body)
 	}
 }
+
+// blockingSSEStore holds the first-connect replay window open so a live event
+// can be broadcast mid-replay — the exact race the subscribe-before-replay
+// order in ServeDomainEvents exists to win.
+type blockingSSEStore struct {
+	events  []sse.Event
+	started chan struct{}
+	release chan struct{}
+}
+
+func (s *blockingSSEStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
+	if lastID.Get() == "" {
+		close(s.started)
+		<-s.release
+
+		return s.events, nil
+	}
+
+	return nil, nil
+}
+
+func TestServeDomainEvents_ReplayBeforeSubscribe_Ordering(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	store := &blockingSSEStore{
+		events: []sse.Event{
+			{Event: "replay", Data: "replay-1"},
+			{Event: "replay", Data: "replay-2"},
+		},
+		started: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+
+	h := ServeDomainEvents(b, store, 0)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	<-store.started
+
+	// A live event committed while the replay window is still open must not
+	// be lost (the subscription already buffers it) and must be delivered
+	// after the older replayed events.
+	b.Broadcast(sse.Event{Event: "live", Data: "live-during-replay"})
+	close(store.release)
+
+	time.Sleep(100 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	for _, want := range []string{"replay-1", "replay-2", "live-during-replay"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body missing %q — live event must survive the replay window\nbody:\n%s", want, body)
+		}
+	}
+
+	if strings.Index(body, "replay-2") > strings.Index(body, "live-during-replay") {
+		t.Fatalf("ordering violated: replayed events must precede the live event\nbody:\n%s", body)
+	}
+}
