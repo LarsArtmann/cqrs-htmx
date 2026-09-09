@@ -89,6 +89,8 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `HealthPath`                                         | `string`                     | `"/health"`         | Readiness endpoint; must not collide with other paths      |
 | `SSEPath`                                            | `string`                     | off                 | Session-gated shared SSE feed of all committed events      |
 | `SSEHeartbeatInterval`                               | `time.Duration`              | `15s` (0 = off)     | Keep-alive comment frames on `/sse`                        |
+| `SSEMaxReplay`                                       | `int`                        | `0` (transport default 1000) | Cap on first-connect journal backfill for `/sse`  |
+| `DataStarPath` / `DataStarScriptPath`                | `string`                     | off / `"/datastar.js"` | Session-gated DataStar SSE feed on the shared hub + embedded SDK script (ADR-0050; setup ≥ v4.10.0) |
 | `Service`                                            | `*usermgmt.Service`          | built by `New`      | Adopt your own service; panels wire on top of it           |
 | `ServiceConfig`                                      | `*usermgmt.ServiceConfig`    | nil                 | Escape hatch: full `usermgmt.ServiceConfig` override       |
 | `CookieName` / `SessionTTL`                          | `string` / `time.Duration`   | `"session"` / 24h   | Session cookie configuration                               |
@@ -161,8 +163,8 @@ subscribers receive a journal backfill when the event store implements
 frame is sent every `SSEHeartbeatInterval` (default 15s; `0` or negative
 disables) so proxies and load balancers keep the connection open.
 `bundle.Broadcaster` is the fan-out hub behind it — subscribe to it (or share
-its `Raw()` hub with a DataStar broadcaster) to push custom real-time payloads
-through the same connection topology.
+its `Hub()` with a DataStar broadcaster, as `Bundle.DataStarBroadcaster` does)
+to push custom real-time payloads through the same connection topology.
 
 ## Customization after construction
 
