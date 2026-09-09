@@ -22,13 +22,13 @@ func TestAuditLogViewer_AlongsideFullstackUI(t *testing.T) {
 	handler, _ := setupFullstackUI(t)
 
 	auditSetup, err := auditlog.WithAuditLog(
-		doauditlog.Config{},           //nolint:exhaustruct // test defaults; WithAuditLog enables recording
-		live.Config{Prefix: "/audit"}, //nolint:exhaustruct // test defaults
+		doauditlog.Config{},
+		live.Config{Prefix: "/audit"},
 	)
 	require.NoError(t, err)
 
 	mux := http.NewServeMux()
-	mux.Handle("/audit/", http.StripPrefix("/audit", auditSetup.Viewer))
+	mux.Handle("/audit/", auditSetup.Viewer)
 	mux.Handle("/", handler)
 
 	// The dashboard UI renders.
