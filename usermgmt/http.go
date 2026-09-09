@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"slices"
 	"time"
@@ -312,7 +313,9 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	}
 	w.Header().Set("Content-Type", contentTypeJSON)
 	w.WriteHeader(status)
-	_, _ = w.Write(buf.Bytes())
+	if _, err := w.Write(buf.Bytes()); err != nil {
+		slog.Debug("usermgmt: response write failed", "error", err)
+	}
 }
 
 // writeError writes a simple error response with a caller-specified status and

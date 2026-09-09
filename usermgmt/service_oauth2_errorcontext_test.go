@@ -51,8 +51,8 @@ func assertProviderContext(t *testing.T, err error, wantProvider string) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	var ef *errorfamily.Error
-	if !errors.As(err, &ef) {
+	ef, ok := errors.AsType[*errorfamily.Error](err)
+	if !ok {
 		t.Fatalf("error is not *errorfamily.Error: %T — %v", err, err)
 	}
 	got := ef.ContextValue("provider")
