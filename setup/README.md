@@ -77,34 +77,35 @@ deadline.
 
 Everything is optional; zero-value `Config{}` gives a working in-memory app.
 
-| Field                                                | Type                         | Default             | Description                                                |
-| ---------------------------------------------------- | ---------------------------- | ------------------- | ---------------------------------------------------------- |
-| `TOTP` / `WebAuthn` / `OAuth2`                       | provider interfaces          | none                | Auth strategies; import the sub-modules and inject         |
-| `EventStore` / `EventBus`                            | `event.Store` / `event.Bus`  | in-memory           | Shared infrastructure; store must be a `SeekableJournal`   |
-| `ReadModelDB`                                        | `*sql.DB`                    | nil (in-memory)     | SQL-backed read models that survive restarts               |
-| `Title` / `AccentColor`                              | `string`                     | `"cqrs-htmx"` / sky | Branding across all panels                                 |
-| `AdminPath`                                          | `string`                     | `"/admin/"`         | Trailing slash auto-normalized; links follow the mount     |
-| `DashboardPath`                                      | `string`                     | `"/dashboard/"`     | Trailing slash auto-normalized                             |
-| `LoginRedirect`                                      | `string`                     | `"/admin/"`         | Post-login destination                                     |
-| `HealthPath`                                         | `string`                     | `"/health"`         | Readiness endpoint; must not collide with other paths      |
-| `SSEPath`                                            | `string`                     | off                 | Session-gated shared SSE feed of all committed events      |
-| `SSEHeartbeatInterval`                               | `time.Duration`              | `15s` (0 = off)     | Keep-alive comment frames on `/sse`                        |
-| `SSEMaxReplay`                                       | `int`                        | `0` (transport default 1000) | Cap on first-connect journal backfill for `/sse`  |
-| `DataStarPath` / `DataStarScriptPath`                | `string`                     | off / `"/datastar.js"` | Session-gated DataStar SSE feed on the shared hub + embedded SDK script (ADR-0050; setup ≥ v4.10.0) |
-| `Service`                                            | `*usermgmt.Service`          | built by `New`      | Adopt your own service; panels wire on top of it           |
-| `ServiceConfig`                                      | `*usermgmt.ServiceConfig`    | nil                 | Escape hatch: full `usermgmt.ServiceConfig` override       |
-| `CookieName` / `SessionTTL`                          | `string` / `time.Duration`   | `"session"` / 24h   | Session cookie configuration                               |
-| `Logger`                                             | `*slog.Logger`               | `slog.Default()`    | Structured auth event logging                              |
-| `LogoutURL` / `SSEURL`                               | `string`                     | hidden / off        | Logout link; admin panel real-time sync indicator          |
-| `AdminMode` / `TenantID`                             | `adminui.Mode` / `TenantID`  | super-admin         | Tenant-scoped admin panel (TenantID required in that mode) |
-| `AdminAuthorizer`                                    | `func(*usermgmt.User) error` | role-based          | Custom admin access control                                |
-| `DashboardAuthorizer`                                | `func(*http.Request) error`  | none                | Extra dashboard gate (runs after the session gate)         |
-| `OnProjectionFailed`                                 | `func(name, lastErr string)` | none                | Alerting hook when a projection exhausts restarts          |
-| `AsyncStartup`                                       | `bool`                       | `false`             | Bind immediately; `/health` gates readiness during drain   |
-| `DashboardReadOnly`                                  | `*bool`                      | `true`              | Set `false` at your own risk (enables reset/DLQ replay)    |
-| `DashboardPageSize`                                  | `int`                        | 50                  | Rows per dashboard table page (max 200)                    |
-| `LoginNoRegistration`                                | `bool`                       | `false`             | Hide the registration section                              |
-| `DisableAdmin` / `DisableDashboard` / `DisableLogin` | `bool`                       | `false`             | Feature flags to shrink the route surface                  |
+| Field                                                | Type                         | Default                      | Description                                                                                         |
+| ---------------------------------------------------- | ---------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| `TOTP` / `WebAuthn` / `OAuth2`                       | provider interfaces          | none                         | Auth strategies; import the sub-modules and inject                                                  |
+| `EventStore` / `EventBus`                            | `event.Store` / `event.Bus`  | in-memory                    | Shared infrastructure; store must be a `SeekableJournal`                                            |
+| `ReadModelDB`                                        | `*sql.DB`                    | nil (in-memory)              | SQL-backed read models that survive restarts                                                        |
+| `Title` / `AccentColor`                              | `string`                     | `"cqrs-htmx"` / sky          | Branding across all panels                                                                          |
+| `AdminPath`                                          | `string`                     | `"/admin/"`                  | Trailing slash auto-normalized; links follow the mount                                              |
+| `DashboardPath`                                      | `string`                     | `"/dashboard/"`              | Trailing slash auto-normalized                                                                      |
+| `LoginRedirect`                                      | `string`                     | `"/admin/"`                  | Post-login destination                                                                              |
+| `HealthPath`                                         | `string`                     | `"/health"`                  | Readiness endpoint; must not collide with other paths                                               |
+| `SSEPath`                                            | `string`                     | off                          | Session-gated shared SSE feed of all committed events                                               |
+| `SSEHeartbeatInterval`                               | `time.Duration`              | `15s` (0 = off)              | Keep-alive comment frames on `/sse`                                                                 |
+| `SSEMaxReplay`                                       | `int`                        | `0` (transport default 1000) | Cap on first-connect journal backfill for `/sse`                                                    |
+| `DataStarPath` / `DataStarScriptPath`                | `string`                     | off / `"/datastar.js"`       | Session-gated DataStar SSE feed on the shared hub + embedded SDK script (ADR-0050; setup ≥ v4.10.0) |
+| `Service`                                            | `*usermgmt.Service`          | built by `New`               | Adopt your own service; panels wire on top of it                                                    |
+| `ServiceConfig`                                      | `*usermgmt.ServiceConfig`    | nil                          | Escape hatch: full `usermgmt.ServiceConfig` override                                                |
+| `CookieName` / `SessionTTL`                          | `string` / `time.Duration`   | `"session"` / 24h            | Session cookie configuration                                                                        |
+| `CSRF`                                               | `*httputil.CSRFConfig`       | nil (= zero config)          | Admin CSRF; set `{Secure: true}` for HTTPS (silences the plain-HTTP cookie warning)                 |
+| `Logger`                                             | `*slog.Logger`               | `slog.Default()`             | Structured auth event logging                                                                       |
+| `LogoutURL` / `SSEURL`                               | `string`                     | hidden / off                 | Logout link; admin panel real-time sync indicator                                                   |
+| `AdminMode` / `TenantID`                             | `adminui.Mode` / `TenantID`  | super-admin                  | Tenant-scoped admin panel (TenantID required in that mode)                                          |
+| `AdminAuthorizer`                                    | `func(*usermgmt.User) error` | role-based                   | Custom admin access control                                                                         |
+| `DashboardAuthorizer`                                | `func(*http.Request) error`  | none                         | Extra dashboard gate (runs after the session gate)                                                  |
+| `OnProjectionFailed`                                 | `func(name, lastErr string)` | none                         | Alerting hook when a projection exhausts restarts                                                   |
+| `AsyncStartup`                                       | `bool`                       | `false`                      | Bind immediately; `/health` gates readiness during drain                                            |
+| `DashboardReadOnly`                                  | `*bool`                      | `true`                       | Set `false` at your own risk (enables reset/DLQ replay)                                             |
+| `DashboardPageSize`                                  | `int`                        | 50                           | Rows per dashboard table page (max 200)                                                             |
+| `LoginNoRegistration`                                | `bool`                       | `false`                      | Hide the registration section                                                                       |
+| `DisableAdmin` / `DisableDashboard` / `DisableLogin` | `bool`                       | `false`                      | Feature flags to shrink the route surface                                                           |
 
 Invalid configs fail fast at `New` with descriptive errors: paths must start
 with `/`, must not be `/` (reserved for the login page), and must be pairwise
@@ -190,14 +191,14 @@ bundle, err := setup.New(setup.Config{
 
 ## Troubleshooting
 
-| Symptom                                          | Cause and fix                                                                                                                                                                                                              |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Admin/dashboard routes return **401**            | Deliberate: both panels are session-gated like the API. Log in through the login page first. To serve a public dashboard, mount `bundle.Dashboard.Handler()` yourself instead of relying on `Mount`.                        |
-| `/health` returns **503**                        | The projection readiness gate is doing its job: at least one projection is still replaying/draining (always the case briefly at startup, and while `AsyncStartup: true` replays in the background). Poll until 200 before routing traffic. |
-| `setup.New` rejects the config                   | `New` validates paths: `/` is rejected (the login page owns root), duplicate mounts are rejected, trailing slashes are normalized. Fix the `Config` paths — the error names the offending pair.                              |
-| A second `bundle.Mount(mux)` **panics**          | `Mount` is once-only by design (stdlib mux rejects duplicate patterns). Call it once per mux.                                                                                                                               |
-| SSE clients connect but receive nothing          | A buffering proxy in front of the server (nginx `proxy_buffering`, CDNs). Disable response buffering for the SSE route (`X-Accel-Buffering: no`) and make sure the proxy does not impose short read timeouts.              |
-| TOTP logins fail after upgrading an old SQL read model | Rows written before checkpointed hydration lack the TOTP secret. Run `RebuildProjection(ctx, "user-read-model")` once after upgrading; affected users would otherwise have to re-enroll. See `docs/guides/event-replay-and-rebuild.md`. |
+| Symptom                                                | Cause and fix                                                                                                                                                                                                                              |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Admin/dashboard routes return **401**                  | Deliberate: both panels are session-gated like the API. Log in through the login page first. To serve a public dashboard, mount `bundle.Dashboard.Handler()` yourself instead of relying on `Mount`.                                       |
+| `/health` returns **503**                              | The projection readiness gate is doing its job: at least one projection is still replaying/draining (always the case briefly at startup, and while `AsyncStartup: true` replays in the background). Poll until 200 before routing traffic. |
+| `setup.New` rejects the config                         | `New` validates paths: `/` is rejected (the login page owns root), duplicate mounts are rejected, trailing slashes are normalized. Fix the `Config` paths — the error names the offending pair.                                            |
+| A second `bundle.Mount(mux)` **panics**                | `Mount` is once-only by design (stdlib mux rejects duplicate patterns). Call it once per mux.                                                                                                                                              |
+| SSE clients connect but receive nothing                | A buffering proxy in front of the server (nginx `proxy_buffering`, CDNs). Disable response buffering for the SSE route (`X-Accel-Buffering: no`) and make sure the proxy does not impose short read timeouts.                              |
+| TOTP logins fail after upgrading an old SQL read model | Rows written before checkpointed hydration lack the TOTP secret. Run `RebuildProjection(ctx, "user-read-model")` once after upgrading; affected users would otherwise have to re-enroll. See `docs/guides/event-replay-and-rebuild.md`.    |
 
 ## Security and TLS posture
 
