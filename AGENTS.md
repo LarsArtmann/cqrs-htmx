@@ -78,9 +78,9 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 **Don't hand-rolled timing:** every serious comparison in this repo uses `b.Loop()` + `b.ReportAllocs()` + benchstat. One-off `time.Since` blocks in tests are forbidden — they belong in `*_bench_test.go` files.
 
-## templ-components adoption (`github.com/larsartmann/templ-components` family, all five modules at v1.14.0 — verified 2026-09-09)
+## templ-components adoption (`github.com/larsartmann/templ-components` family, all five modules at v1.16.0 — verified 2026-09-10)
 
-templ-components is a FAMILY of five Go modules (root, `/htmx`, `/icons`, `/utils`, `/datastar`) — consumers need up to five requires for one logical dependency. Family uniform at v1.11.0 across adminui, dashboardui, setup, health, admin-demo, setup-demo, catalog-demo (the last v1.8.x holdout was aligned in the 2026-08-30 sweep).
+templ-components is a FAMILY of five Go modules (root, `/htmx`, `/icons`, `/utils`, `/datastar`) — consumers need up to five requires for one logical dependency. Family uniform at v1.16.0 across all consumers (swept from v1.14.0 in the 2026-09-09 alignment sweep; the CI drift gate + `check-docs-freshness` uniform-at check now pin this claim).
 
 Both **adminui** and **dashboardui** depend on templ-components. **loginpage** does not use it (loginpage hand-rolls a single `.templ` page with custom `lp-*` CSS). Before hand-rolling any UI element, check the library first — it has 110+ components across 10 packages.
 
