@@ -1,5 +1,7 @@
 # Status Report: Docs-Health + Update-Old-Docs Session
 
+> **ANNOTATED 2026-09-10 (spot-audit):** process self-critique of the 2026-07-28 docs round; archived 2026-09-09 without its annotation block (missed — added now). Its methodological gaps were closed wholesale by the 2026-09-09 full docs-health sweep (verification-before-annotation, evidence-cited verdicts, archive layout). Nothing here is open work.
+
 **Date:** 2026-07-28 15:25
 **Session goal:** Read all `**/2026-07-2*` files, execute `update-old-docs` + `docs-health` skills superbly, make TODO_LIST/ROADMAP/FEATURES/CHANGELOG superb.
 **Method:** Read all 60 files via 4 parallel sub-agents. Classified per-file. Annotated historical docs non-destructively. Rebuilt living docs. Verified against code.

@@ -1,5 +1,7 @@
 # P2 Lint Triage — Brutal Self-Review & Status
 
+> **ANNOTATED 2026-09-10 (spot-audit):** this report predates the per-module `.golangci.yml` era and was archived in the 2026-09-09 sweep without its annotation block (missed — added now). The triaged style nits were fixed by this session's own commits; the lint posture has since evolved: 15 modules lint-clean per `nix run .#lint`, with the deliberate stack.* SA1019 exclusion in `usermgmt/.golangci.yml` (V007 v5-migration, removal-conditioned).
+
 **Date:** 2026-07-28 19:51
 **Session scope:** Triage lint style nits in root + dashboardui modules
 **Commits:** 5 auto-git commits (89c25d5 → 73a00a2), 74 files changed, 617 insertions, 278 deletions
