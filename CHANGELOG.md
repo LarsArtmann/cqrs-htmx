@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **Deprecated-alias SA1019 findings in `examples/samber-do-demo` + `examples/admin-demo` (2026-09-09):** 8 sites migrated from deprecated `usermgmt.TOTPProvider`/`SyntheticUserID`/`GroupPolicy`/`RoleSuperAdmin`/`NewTenantID` re-export aliases to direct `identitymodel` imports — the same migration adminui (2026-08-14) and integration_test (2026-08-15) received, which these two examples never got because `nix run .#lint` excludes `examples/`. Surfaced by the pre-commit hook's golangci steps (which DO lint examples); both modules now 0 issues via `GOWORK=off golangci-lint run`, build/vet green, samber-do-demo tests pass.
 - **Deprecated-alias SA1019 breakage in examples (2026-09-07):** `examples/observability-demo` + `examples/middleware-demo` `cqrshtmx.SecurityHeadersMiddleware` → `httputil.SecurityHeaders(...)`, `examples/middleware-showcase` `httputil.ETag` → `etag.New(...)` — three examples were referencing removed/deprecated symbols and failing the pre-commit hook's lint (which lints example modules that `nix run .#lint` excludes).
 - **`sse-and-datastar.md` CORS sample referenced unexported `bundle.sseHandler()` (2026-09-07)** — replaced with a compiling recipe: wrap the whole bundle mux in `httputil.CORS` (the bundle owns its routes), plus the scoped-route alternative built from `transport.ServeDomainEvents(bundle.Broadcaster.Hub(), store, heartbeat)` / `bundle.DataStarBroadcaster`.
 
