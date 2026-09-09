@@ -30,7 +30,7 @@ templ Page(p PageData) {
 					if !p.WebAuthn && len(p.OAuth2Buttons) == 0 {
 						<div class="lp-no-auth">
 							<p>No authentication method is configured.</p>
-							<p class="lp-muted">Set up WebAuthn or OAuth2 in your ServiceConfig to enable login.</p>
+							<p class="lp-muted">Login is not available yet. Please contact your administrator.</p>
 						</div>
 					} else {
 						if p.WebAuthn {

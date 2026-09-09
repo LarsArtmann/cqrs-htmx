@@ -84,6 +84,15 @@ func New(config Config) (*Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	if !config.Service.HasWebAuthn() &&
+		len(config.OAuth2Buttons) == 0 &&
+		len(config.Service.ConfiguredOAuth2Providers()) == 0 {
+		slog.Warn(
+			"loginpage: no authentication method is configured; visitors will see a setup notice instead of a login form",
+			"fix",
+			"configure WebAuthn or OAuth2 providers in the usermgmt ServiceConfig",
+		)
+	}
 	return &Handler{
 		config: config,
 		data:   buildPageData(config, nil),

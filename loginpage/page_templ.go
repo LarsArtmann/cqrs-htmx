@@ -136,7 +136,7 @@ func Page(p PageData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if !p.WebAuthn && len(p.OAuth2Buttons) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"lp-no-auth\"><p>No authentication method is configured.</p><p class=\"lp-muted\">Set up WebAuthn or OAuth2 in your ServiceConfig to enable login.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"lp-no-auth\"><p>No authentication method is configured.</p><p class=\"lp-muted\">Login is not available yet. Please contact your administrator.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
