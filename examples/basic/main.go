@@ -26,6 +26,68 @@ import (
 	"github.com/larsartmann/httputil"
 )
 
+// listAuditQuery reads back the audit trail.
+type listAuditQuery struct{}
+
+func (q *listAuditQuery) Type() query.Type { return query.Type("ListAudit") }
+
+// --- Actor metadata demo types ---
+
+type auditRequest struct {
+	Action string `json:"action"`
+}
+
+// auditCmd embeds *command.BasicCommand so the pipeline can attach the
+// actor/user/correlation metadata copied from the request context.
+type auditCmd struct {
+	*command.BasicCommand
+	Action string
+}
+
+// cqrs-lint:ignore(A032) example DTO: simple string actor for demo
+type auditEntry struct {
+	Action string `json:"action"`
+	Actor  string `json:"actor"`
+	User   string `json:"user"`
+}
+
+// --- Actor metadata demo ---
+
+// auditStore records who did what, read back from command metadata.
+type auditStore struct {
+	mu      sync.RWMutex
+	entries []auditEntry
+}
+
+var auditLog = &auditStore{}
+
+func (s *auditStore) record(e auditEntry) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.entries = append(s.entries, e)
+}
+
+func (s *auditStore) list() []auditEntry {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	cp := make([]auditEntry, len(s.entries))
+	copy(cp, s.entries)
+	return cp
+}
+
+// demoActorMiddleware simulates what usermgmt's session middleware does in
+// production: put the acting user (and its actor form) into the request
+// context so decoders can propagate them into command/query metadata.
+func demoActorMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		uid := cqrshtmx.GenerateUserID()
+		ctx := cqrshtmx.WithUserID(r.Context(), uid)
+		ctx = cqrshtmx.WithActorID(ctx, cqrshtmx.ActorIDFromUser(uid))
+		ctx = cqrshtmx.WithCorrelationID(ctx, cqrshtmx.NewCorrelationID())
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // --- Domain types ---
 
 type createItemRequest struct {
@@ -122,7 +184,9 @@ func (s *itemStore) listPaginated(p query.Pagination) query.PaginatedResult[item
 	return query.NewPaginatedResult(s.items[start:end], total, p)
 }
 
-func main() {
+// newHandler builds the fully-wired HTTP handler. main serves it; the smoke
+// test exercises it in-process.
+func newHandler() http.Handler {
 	// --- Command dispatcher ---
 	cmdDisp := command.NewDispatcher()
 	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
@@ -138,6 +202,20 @@ func main() {
 	_ = command.RegisterTyped(cmdDisp, "Greet",
 		func(_ context.Context, cmd *greetCmd) error {
 			db.add("Hello, " + cmd.Name + "!")
+			return nil
+		})
+
+	// The audit handler reads WHO issued the command straight from the
+	// metadata the endpoint's decoder attached (actor propagation proof).
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
+	_ = command.RegisterTyped(cmdDisp, "AuditAction",
+		func(_ context.Context, c *auditCmd) error {
+			md := c.Metadata()
+			auditLog.record(auditEntry{
+				Action: c.Action,
+				Actor:  md.ActorID.PrefixedString(),
+				User:   md.UserID.Get().String(),
+			})
 			return nil
 		})
 
@@ -159,6 +237,12 @@ func main() {
 	_ = query.RegisterTyped(qryDisp, "Sum",
 		func(_ context.Context, q *sumQuery) (int, error) {
 			return q.A + q.B, nil
+		})
+
+	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
+	_ = query.RegisterTyped(qryDisp, "ListAudit",
+		func(_ context.Context, _ *listAuditQuery) ([]auditEntry, error) {
+			return auditLog.list(), nil
 		})
 
 	// --- Build the App ---
@@ -216,6 +300,32 @@ func main() {
 		cqrshtmx.RenderJSON[int](),
 	))
 
+	// POST /api/audit — actor-metadata demo: the command decoder copies the
+	// acting user/actor/correlation ID out of the request context onto the
+	// command, and the handler reads it back from the command metadata.
+	mux.Handle("POST /api/audit", demoActorMiddleware(app.Command(
+		"AuditAction",
+		cqrshtmx.DecodeJSONWithRequest(func(r *http.Request, req auditRequest) (command.Command, error) {
+			core, err := command.New("AuditAction", id.NewStreamID())
+			if err != nil {
+				return nil, err
+			}
+			// Propagate WHO is acting from the request context into command
+			// metadata (audit trail). In production the context carries the
+			// session user injected by usermgmt's session middleware.
+			core.ApplyOptions(cqrshtmx.CommandOptionsFromContext(r.Context())...)
+			return &auditCmd{BasicCommand: core, Action: req.Action}, nil
+		}),
+		cqrshtmx.WithSuccessStatus(202),
+	)))
+
+	// GET /api/audit — the recorded audit trail (actor + action pairs).
+	mux.Handle("GET /api/audit", app.Query(
+		"ListAudit",
+		cqrshtmx.DecodeJSONQueryTyped[*listAuditQuery](),
+		cqrshtmx.RenderJSON[[]auditEntry](),
+	))
+
 	// GET /api/events — SSE live updates
 	mux.HandleFunc("GET /api/events", func(w http.ResponseWriter, r *http.Request) {
 		stream := sse.NewStream(w, r)
@@ -237,19 +347,29 @@ func main() {
 	mux.HandleFunc("GET /", indexPage)
 
 	// Standard health endpoints: /health, /health/live, /health/ready.
-	// The readiness probe checks that both dispatchers are wired.
-	httputil.RegisterHealth(mux)
+	// Registered manually (not via httputil.RegisterHealth) so the readiness
+	// probe checks that both dispatchers are wired — RegisterHealth would
+	// claim /health/ready with the default probe and a duplicate registration
+	// panics the mux.
+	mux.HandleFunc("GET /health", httputil.HealthHandler())
+	mux.HandleFunc("GET /health/live", httputil.LiveHandler())
 	mux.HandleFunc("GET /health/ready", httputil.ReadyHandlerWithProbe(func() bool {
 		return app.HasCommands() && app.HasQueries()
 	}))
 
+	// Compression wraps the mux for smaller JSON/HTML payloads (5-10x for text).
+	return httputil.Compression(httputil.DefaultCompressionConfig())(mux)
+}
+
+func main() {
+	handler := newHandler()
+
 	addr := ":8096"
 	// Serve with real timeouts via httputil.NewServer (never bare http.ListenAndServe,
 	// which sets no Read/Write/Idle timeouts). See docs/guides/leveraging-httputil.md.
-	// Compression wraps the mux for smaller JSON/HTML payloads (5-10x for text).
 	cfg := httputil.DefaultServerConfig()
 	cfg.Addr = addr
-	srv, err := httputil.NewServer(cfg, httputil.Compression(httputil.DefaultCompressionConfig())(mux))
+	srv, err := httputil.NewServer(cfg, handler)
 	if err != nil {
 		log.Fatalf("invalid server config: %v", err)
 	}
