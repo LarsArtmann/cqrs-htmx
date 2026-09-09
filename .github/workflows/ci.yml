@@ -578,14 +578,14 @@ jobs:
         run: bash scripts/check-go-toolchain.sh
 
       # BLOCKING since 2026-09-09 (was `|| true` advisory): an UNPUBLISHED
-      # internal require (phantom-tag class) fails the build. ls-remote
-      # failures self-downgrade to warnings when CI=true (exit 4), so a
-      # runner network blip cannot spuriously red-master. Public repos
-      # confirmed 2026-08-31 (anonymous ls-remote works on Actions).
-      # Train-lag stays advisory here until the current alignment sweep
-      # lands; tightening to `--strict-lag 0` is a one-token follow-up.
+      # internal require (phantom-tag class) or train lag beyond the budget
+      # fails the build. --strict-lag 0 went live after the 2026-09-09
+      # alignment sweep zeroed the lag; raise the budget only deliberately
+      # (mid-sweep), never leave it loose. ls-remote failures self-downgrade
+      # to warnings when CI=true (exit 4), so a runner network blip cannot
+      # spuriously red-master. Public repos confirmed 2026-08-31.
       - name: Release train check (blocking)
-        run: bash scripts/check-release-train.sh
+        run: bash scripts/check-release-train.sh --strict-lag 0
 
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence

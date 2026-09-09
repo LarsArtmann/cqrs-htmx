@@ -135,8 +135,8 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1 h1:332H8TuZy+XZ1ob4
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1/go.mod h1:BXfT13JgxuQL1qwlVBdmQUxCiwnxwB5EkktLe5A7hYw=
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 h1:9EMWA6VbvCGSizEtW/JmUsarMqAYL0abOtNBzeLGbl8=
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0/go.mod h1:aDDotCssLR0Hrz2viHeq3McyJGk852jGsoWqARhTU7w=
-github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0 h1:UDjeWuUmScwWpAsu7XFz68TaCKtawbL5DZ7w3nQ7lhY=
-github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0/go.mod h1:U2GpwCi1+/yAx7fPbp+bTRDZ4RKT4LaV0QWS62Iksuk=
+github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 h1:1ZKpkmnjO2DvIzXmY2p16UpTw0n41lKQXFX11f7g0v8=
+github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0/go.mod h1:wGnG9Vofzj4kv8lvMbICwvitSA6pL2v1WR0XGf8LZ0M=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.2.0 h1:LmQR1mIoPWWIk0ujiBIY3aB1iV4zn5FEzXgUERyTR7U=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.2.0/go.mod h1:vKgRV8tUz5fnKT5nUk7zKUYwkaRazrDEwtCUoNKNqGU=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
