@@ -115,6 +115,7 @@ done
 # ---------------------------------------------------------------------------
 echo ""
 echo "Checking 'uniform at vX' family claims..."
+# shellcheck disable=SC1091
 source scripts/lib/replace-exemption.sh
 while IFS=: read -r f lineno line; do
   claimed=$(grep -oP '(?:uniform at|all \w+ modules at) \Kv[0-9]+\.[0-9]+\.[0-9]+' <<<"$line" | head -1 || true)
@@ -132,13 +133,13 @@ while IFS=: read -r f lineno line; do
     done < <(grep -E "github\.com/larsartmann/templ-components" "$modfile" | grep -oP 'github\.com/larsartmann/templ-components[a-z/-]*\s+v[0-9]+\.[0-9]+\.[0-9]+')
   done
   if [ -n "$bad" ]; then bad=$(printf '%s
-' $bad | sort -u | tr '
+' "$bad" | sort -u | tr '
 ' ' ' | sed 's/^ //;s/ $//'); fi
   if [ -n "$bad" ]; then
     echo "  STALE: $f:$lineno claims templ-components uniform at $claimed but tree has:$bad"
     FAILED=1
   fi
-done < <(grep -nE "(uniform at|all [a-z]+ modules at) v" $LIVING_DOCS 2>/dev/null)
+done < <(eval grep -nE '"(uniform at|all [a-z]+ modules at) v" $LIVING_DOCS' 2>/dev/null)
 
 echo ""
 if [ "$FAILED" -eq 0 ]; then
