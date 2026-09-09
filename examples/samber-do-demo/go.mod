@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-health v0.1.3

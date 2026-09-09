@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.3.0
@@ -95,7 +95,7 @@ require (
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-playground/form/v4 v4.3.0 // indirect
+	github.com/go-playground/form/v4 v4.3.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/webauthn v0.17.4 // indirect
 	github.com/go-webauthn/x v0.3.0 // indirect
@@ -147,7 +147,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/time v0.15.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/time v0.16.0 // indirect
 )

@@ -27,7 +27,7 @@ require (
 	github.com/go-logfmt/logfmt v0.6.1 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-playground/form/v4 v4.3.0 // indirect
+	github.com/go-playground/form/v4 v4.3.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.9.0 // indirect
@@ -35,7 +35,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.9.0 // indirect
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0 // indirect
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.9.0 // indirect
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-appkit v0.4.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
@@ -98,7 +98,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/time v0.15.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/time v0.16.0 // indirect
 )
