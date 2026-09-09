@@ -32,7 +32,11 @@ if [[ ${1:-} == "--strict" ]]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# TEST HOOK: self-tests override the scanned root with a fixture tree.
+REPO_ROOT="${DRIFT_ROOT:-$REPO_ROOT}"
 cd "$REPO_ROOT"
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/replace-exemption.sh"
 
 # Collect all internal module paths (from go.mod module declarations)
 declare -A MODULE_VERSIONS
@@ -53,8 +57,9 @@ for modfile in $(find . -name go.mod -not -path './vendor/*' -not -path './.git/
     if [[ $mod_path =~ ^github\.com/larsartmann/ ]]; then
       # A local replace satisfies this require locally — the replaced source
       # wins at build time, so the recorded version string is cosmetic and
-      # cannot drift against siblings (same exemption the tag check applies).
-      if (cd "$moddir" && grep -qE "^[[:space:]]*replace[[:space:]]+${mod_path}([[:space:]]|v[0-9])" go.mod 2>/dev/null); then
+      # cannot drift against siblings (same exemption the tag check applies;
+      # single-sourced in scripts/lib/replace-exemption.sh).
+      if replace_exemption_applies "$moddir" "$mod_path"; then
         continue
       fi
       key="${mod_path} ${version}"
