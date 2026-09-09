@@ -2,6 +2,7 @@ package loginpage
 
 import (
 	"strings"
+	"unicode"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -23,12 +24,16 @@ func safeRedirectPath(path string) string {
 	return cqrshtmx.SafeRedirectPath(path)
 }
 
-// firstRune returns the first Unicode code point of s as a string, or "?" if
-// s is empty. Used for the favicon initial.
+// firstRune returns the first letter or number in s as a string, or "?" if s
+// contains none. Used for the favicon initial: SVG favicon text cannot render
+// emoji/symbol glyphs reliably (they show as tofu boxes in many browsers), so
+// a leading emoji like "🚀X" falls through to the first printable letter "X"
+// instead of the raw first code point.
 func firstRune(s string) string {
-	if s == "" {
-		return "?"
+	for _, r := range s {
+		if unicode.IsLetter(r) || unicode.IsNumber(r) {
+			return string(r)
+		}
 	}
-	r := []rune(s)
-	return string(r[0])
+	return "?"
 }
