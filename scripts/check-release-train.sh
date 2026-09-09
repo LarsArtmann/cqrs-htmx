@@ -47,6 +47,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 # Shared replace-exemption rule (single-sourced with check-version-drift.sh).
+# shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/replace-exemption.sh"
 
 JSON=0

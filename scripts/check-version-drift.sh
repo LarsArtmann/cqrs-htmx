@@ -36,6 +36,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="${DRIFT_ROOT:-$REPO_ROOT}"
 cd "$REPO_ROOT"
 
+# shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/replace-exemption.sh"
 
 # Collect all internal module paths (from go.mod module declarations)

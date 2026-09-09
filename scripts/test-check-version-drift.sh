@@ -60,7 +60,7 @@ make_module() { # <root> <dir> <module-path> <version> [replace=>]
 # --- 1. helper unit tests --------------------------------------------------
 
 echo "== replace-exemption helper"
-# shellcheck source=lib/replace-exemption.sh
+# shellcheck source=lib/replace-exemption.sh disable=SC1091
 source "$LIB"
 
 H="$SCRATCH/helper"
