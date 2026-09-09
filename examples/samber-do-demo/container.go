@@ -9,12 +9,19 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 
+	auditlog "github.com/larsartmann/cqrs-htmx/auditlog/v4"
+	health "github.com/larsartmann/cqrs-htmx/health/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	totp "github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	gohealth "github.com/larsartmann/go-health"
+	healthdashboard "github.com/larsartmann/go-health-dashboard"
+	doauditlog "github.com/larsartmann/samber-do-auditlog"
+	"github.com/larsartmann/samber-do-auditlog/live"
 	"github.com/samber/do/v2"
 )
 
@@ -29,13 +36,32 @@ type AppConfig struct {
 // ONLY type that is allowed to hold a reference to do.Injector (DO-8 rule).
 type Container struct {
 	injector do.Injector
+
+	// AuditViewer is the live audit-log dashboard (an http.Handler). It is
+	// built BEFORE the injector because its plugin must be passed as an
+	// injector option (do.NewWithOpts) — see NewContainer.
+	AuditViewer http.Handler
 }
 
 // NewContainer creates the injector, registers all providers, and returns a
 // cleanup function that MUST be deferred by the caller (DO-2 rule: every
 // do.New must have a matching Shutdown).
 func NewContainer(cfg AppConfig) (*Container, func()) {
-	injector := do.New()
+	// The auditlog bridge (auditlog.WithAuditLog) returns injector OPTIONS:
+	// the plugin must be present at construction time to record service
+	// invocations, so it is built first and passed to do.NewWithOpts. This
+	// is the one call that replaces a bare do.New() when an application
+	// wants the audit trail.
+	auditSetup, err := auditlog.WithAuditLog(
+		doauditlog.Config{},                       //nolint:exhaustruct // demo defaults; WithAuditLog enables recording
+		live.Config{Prefix: "/audit"}, //nolint:exhaustruct // demo defaults
+	)
+	if err != nil {
+		slog.Error("failed to build auditlog setup", "error", err)
+		panic(err)
+	}
+
+	injector := do.NewWithOpts(auditSetup.Opts)
 
 	registerProviders(injector, cfg)
 
@@ -47,7 +73,7 @@ func NewContainer(cfg AppConfig) (*Container, func()) {
 		slog.Error("failed to initialize service lifecycle", "error", err)
 	}
 
-	return &Container{injector: injector}, func() {
+	return &Container{injector: injector, AuditViewer: auditSetup.Viewer}, func() {
 		// injector.Shutdown() calls Shutdown() on every service that
 		// implements do.Shutdowner* — in reverse invocation order.
 		report := injector.Shutdown()
@@ -117,6 +143,29 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 			return nil, err
 		}
 		return &serviceLifecycle{svc: svc}, nil
+	})
+
+	// Projection health probe — the health/v4 bridge builds a go-health
+	// Probe with one check per projection worker from the usermgmt.Service
+	// (a ProjectionStatusProvider). health.Recorder(svc) additionally merges
+	// the injector's own service checks when a go-health ecosystem wants a
+	// single recorder for app + infrastructure health.
+	do.Provide(injector, func(i do.Injector) (*gohealth.Probe, error) {
+		svc, err := do.Invoke[*usermgmt.Service](i)
+		if err != nil {
+			return nil, err
+		}
+		return health.NewProbe(svc) //nolint:wrapcheck // demo: bridge errors surface as-is
+	})
+
+	// Health dashboard UI — renders the probe as an HTML page + SSE stream.
+	// Mounted by main.go at /health-ui.
+	do.Provide(injector, func(i do.Injector) (*healthdashboard.Dashboard, error) {
+		probe, err := do.Invoke[*gohealth.Probe](i)
+		if err != nil {
+			return nil, err
+		}
+		return health.NewDashboard(probe), nil
 	})
 
 	// Broadcaster — lazy singleton for SSE live updates.
@@ -210,4 +259,10 @@ func (c *Container) App() (*cqrshtmx.App, error) {
 // Logger resolves the configured logger.
 func (c *Container) Logger() (*slog.Logger, error) {
 	return do.Invoke[*slog.Logger](c.injector)
+}
+
+// HealthDashboard resolves the projection health dashboard UI (health/v4
+// bridge over the usermgmt.Service's projection workers).
+func (c *Container) HealthDashboard() (*healthdashboard.Dashboard, error) {
+	return do.Invoke[*healthdashboard.Dashboard](c.injector)
 }

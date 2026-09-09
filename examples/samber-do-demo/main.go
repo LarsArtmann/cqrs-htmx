@@ -57,6 +57,16 @@ func main() {
 	mux.HandleFunc("GET /", indexHandler)
 	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
 	mux.HandleFunc("GET /health", healthHandler)
+	// Live audit-log viewer from the auditlog/v4 bridge (plugin recorded every
+	// service invocation in the container; HTML UI + JSON API + SSE stream).
+	mux.Handle("/audit/", http.StripPrefix("/audit", container.AuditViewer))
+	// Projection health dashboard from the health/v4 bridge (one check per
+	// projection worker of the usermgmt.Service).
+	healthDashboard, err := container.HealthDashboard()
+	if err != nil {
+		log.Fatalf("resolve HealthDashboard: %v", err)
+	}
+	mux.Handle("GET /health-ui", healthDashboard.Handler())
 	mux.Handle("POST /command/hello", app.Command(
 		"Hello",
 		cqrshtmx.DecodeJSON(func(req helloRequest) (command.Command, error) {
@@ -101,8 +111,10 @@ func indexHandler(w http.ResponseWriter, _ *http.Request) {
 		<li><code>*cqrshtmx.Broadcaster</code> — lazy singleton (SSE live updates)</li>
 		<li><code>usermgmt.TOTPProvider</code> — named service <code>"auth.totp"</code></li>
 		<li><code>serviceLifecycle</code> — ShutdownerWithContextAndError adapter</li>
+		<li><code>auditlog.WithAuditLog</code> — live audit viewer at <code>/audit/</code></li>
+		<li><code>health.NewProbe</code> + <code>NewDashboard</code> — projection health UI at <code>/health-ui</code></li>
 	</ul>
-	<p>Visit <a href="/health"><code>/health</code></a> for a health check.</p>
+	<p>Visit <a href="/health"><code>/health</code></a> for a health check, <a href="/audit/"><code>/audit/</code></a> for the live audit log, or <a href="/health-ui"><code>/health-ui</code></a> for projection health.</p>
 </body>
 </html>`)
 }
