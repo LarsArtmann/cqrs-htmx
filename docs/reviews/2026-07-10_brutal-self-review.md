@@ -6,6 +6,7 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** the P0/P1 items flagged here (hardcoded `@source` tailwind path, GONOSUMCHECK leftovers, dead `spinner()` component, AGENTS adoption table) were all fixed in later sessions — the tailwind/GONOSUMCHECK/spinner claims no longer match the tree. Remainder routed 2026-09-09 to TODO_LIST "Docs debt bundle"/"Micro-debt bundle" (SidebarNav adoption, BadgeType-typed view models, adminui structural rendering tests). ARCHIVED.
 ## 1. What did you forget?
 
 ### CRITICAL: Hardcoded `@source` path in tailwind.css
@@ -26,7 +27,7 @@ The `flake.nix` diff (GONOSUMCHECK → GOPRIVATE, maintainers field, build check
 
 The templ-components skill explicitly recommends tracking adoption in AGENTS.md. I adopted 15 components and deleted 6 hand-rolled helpers but never updated the project documentation.
 
-### Stale GONOSUMCHECK references left behind
+### Stale GONOSUMCHECK references left behind **FIXED 2026-09-09 note:** cleaned in the 2026-08-30 F20.3 sweep — zero active references remain in flake/AGENTS/CONTRIBUTING/scripts (only archived docs/history).
 
 The flake.nix migrated to `GOPRIVATE` but AGENTS.md, CONTRIBUTING.md, and scripts/ still reference the deprecated `GONOSUMCHECK`. Found during review, not fixed.
 

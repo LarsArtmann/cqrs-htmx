@@ -6,6 +6,7 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** the one open gap (ProblemDetails code field) shipped in v4.3.0; the WebSocket question is obsolete (transport removed, ADR-0046). The dead `WithCommandCausality` reference is an upstream (go-cqrs-lite skill) doc bug, noted for cross-repo follow-up. ARCHIVED.
 ## What Works Superbly
 
 ### 1. Middleware Composition (`Chain`)
@@ -152,7 +153,7 @@ _This feedback is given with gratitude for an excellent library. The critique is
 | 1 | Form decoding (`DecodeForm`)    | **ALREADY EXISTED** | `DecodeForm[T]` existed before this feedback. Now properly documented in SKILL.md SSR section + core-api.md                                                             |
 | 2 | Templ rendering (`RenderTempl`) | **ALREADY EXISTED** | `RenderTempl(component)` + `RenderTemplResult[T](mapper)` existed. Now documented. Also added `RenderHTML(html)` for static HTML                                        |
 | 3 | Pagination helpers              | **ALREADY EXISTED** | `DecodePagination(r)` + `RenderPaginatedJSON[T]()` existed. Fixed doc bug in core-api.md (DecodeFormQuery showed wrong signature)                                       |
-| 4 | Error Response Code Field       | **DONE**            | `JSONErrorHandler` now includes `"code"` field (walks cause chain for deepest domain code). Tested. **Gap:** `ProblemDetailsErrorHandler` does NOT include the code yet |
+| 4 | Error Response Code Field       | **DONE**            | `JSONErrorHandler` now includes `"code"` field (walks cause chain for deepest domain code). Tested. **Gap:** `ProblemDetailsErrorHandler` does NOT include the code yet | **FIXED:** `ProblemDetailsErrorHandler` includes the `code` field since v4.3.0 (tested: `TestProblemDetailsErrorHandler_IncludesCodeField`).
 
 ### Scorecard Update (Post-Resolution)
 

@@ -1,7 +1,7 @@
 # Docs-Health Verification & Commit Plan
 
 **Date:** 2026-08-12 21:56
-**Status:** Execution HALTED — build is broken (go-cqrs-lite upstream drift).
+**Status:** Execution HALTED — build is broken (go-cqrs-lite upstream drift). ~~**Status:** Execution HALTED — build is broken (go-cqrs-lite upstream drift).~~ **OBSOLETE 2026-09-09:** build repaired 2026-08-14; all gates green 2026-08-29, 2026-09-07, and 2026-09-09 post-bump.
 
 **Context:** A docs-health audit updated 5 living docs + annotated/archived 7 historical reports. During plan execution, running `go build ./...` revealed the build is GENUINELY BROKEN — go-cqrs-lite master (`af4b60841`, committed 2026-08-12 21:42) reverted the entire ADR-0111 API surface. All 4 core modules (root, usermgmt, identity-model, setup) fail to compile. The "phantom build break" that session 21-19 dismissed was REAL — likely the tests passed against an earlier go-cqrs-lite state that was subsequently overwritten by the auto-git daemon. Coverage numbers are marked `[unverified]` across all living docs. The async startup feature code itself is correct (committed when the build worked). The break is upstream, not in the feature code.
 
@@ -15,6 +15,7 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** every forward-looking item is done (inline ✅), routed to a living doc (inline →), or obsolete. The "HALTED / build broken" premise is long fixed — repo gate-green since 2026-08-14. ARCHIVED.
 ## Pareto Breakdown
 
 ### 1% that delivers 51% of the result
@@ -85,11 +86,11 @@ graph TD
 | # | Task                                                         | Impact   | Effort | Customer Value | Deps |
 | - | ------------------------------------------------------------ | -------- | ------ | -------------- | ---- |
 | 1 | Run all verification gates, fix discrepancies, commit + push | CRITICAL | 60min  | High           | —    |
-| 2 | (FUTURE) Write async startup integration test                | HIGH     | 30min  | Medium         | 1    |
-| 3 | (FUTURE) Write ADR-0048: Liveness/Readiness Decoupling       | MEDIUM   | 30min  | Low            | 1    |
-| 4 | (FUTURE) Extract `ActorID.AsUserID()` helper                 | MEDIUM   | 45min  | Low            | 1    |
-| 5 | (FUTURE) Design ReadModelHydrator interface (Option B)       | LOW      | 60min  | Low            | 1    |
-| 6 | (FUTURE) Create `examples/async-startup-demo/`               | LOW      | 45min  | Low            | 1    |
+| 2 | (FUTURE) Write async startup integration test                | HIGH     | 30min  | Medium         | 1    | ✅ done — async startup shipped with tests (CHANGELOG v4.9.0 highlights).
+| 3 | (FUTURE) Write ADR-0048: Liveness/Readiness Decoupling       | MEDIUM   | 30min  | Low            | 1    | ✅ done — `docs/adr/0048-liveness-readiness-decoupling.md`.
+| 4 | (FUTURE) Extract `ActorID.AsUserID()` helper                 | MEDIUM   | 45min  | Low            | 1    | ✅ done — `ActorIDAsUserID` (identity-model).
+| 5 | (FUTURE) Design ReadModelHydrator interface (Option B)       | LOW      | 60min  | Low            | 1    | → routed: ROADMAP "Operational Tooling Ideas" (Option B).
+| 6 | (FUTURE) Create `examples/async-startup-demo/`               | LOW      | 45min  | Low            | 1    | → routed: TODO_LIST "Docs debt bundle" (2026-09-09 docs-health).
 
 > Tasks 2-6 are future work harvested to TODO_LIST/ROADMAP. **This session executes ONLY Task 1.**
 

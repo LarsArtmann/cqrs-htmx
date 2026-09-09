@@ -8,6 +8,7 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** all three implemented asks shipped (`DefaultRateLimiterConfig`, `Broadcaster.Close`, `SubscriberCount` docs); the deferred hooks ask resolved via the 2026-08-17 hub-first refactor. The v3→v4 question is obsolete (v4.9.0+ current). ARCHIVED.
 ## The v3 → v4 Question (Answered)
 
 **DiscordSync is on v3.5.0. v4.1.1 is available. The migration is TRIVIAL for our usage.**
@@ -189,7 +190,7 @@ The skill file is **well-structured** (Path A/B/C decision tree, composition mod
 
 | # | Suggestion                                                                          | Status             | Notes                                                                                                                                                   |
 | - | ----------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | `Broadcaster.SubscriberCount()` documentation + `OnSubscribe`/`OnUnsubscribe` hooks | **PARTIALLY DONE** | `SubscriberCount()` documented in SKILL.md + realtime.md. Hooks NOT implemented (deferred)                                                              |
+| 1 | `Broadcaster.SubscriberCount()` documentation + `OnSubscribe`/`OnUnsubscribe` hooks | **PARTIALLY DONE** | `SubscriberCount()` documented in SKILL.md + realtime.md. Hooks NOT implemented (deferred)                                                              | **RESOLVED since:** `OnSubscribe`/`OnUnsubscribe` promote from the embedded go-sse hub (2026-08-17 hub-first refactor — identical signatures on `cqrshtmx.Broadcaster` + `datastar.Broadcaster`).
 | 2 | `Broadcaster.Close()` for graceful SSE drain                                        | **DONE**           | `Broadcaster.Close()` + `fanOut.Close()` implemented. Closes all subscriber channels. Tested (3 tests). Documented in SKILL.md, realtime.md, gotchas.md |
 | 3 | `DefaultRateLimiterConfig()` constructor                                            | **DONE**           | Implemented. Returns 100/min per-IP, burst=limit, 10min TTL. Tested (2 tests). Documented in SKILL.md + core-api.md                                     |
 

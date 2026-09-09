@@ -7,6 +7,7 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** all six rows resolved — including item 2, which shipped AFTER this file called it NOT DONE (`Broadcaster.ServeSSE`, `sse_broadcaster.go:153`). The ROADMAP contradiction flagged in the file's own note was fixed 2026-09-09. ARCHIVED.
 ## What worked superbly
 
 ### 1. `HTMXScriptHandler()` + `HTMXExtensionHandler()` — embedded assets

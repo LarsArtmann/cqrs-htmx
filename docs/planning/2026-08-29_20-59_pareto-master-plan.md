@@ -6,6 +6,7 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** EXECUTED across the 2026-08-29/30/31 sessions (T01-T28 shipped: verify-tag hardening, hooks installer, LICENSE fixes, go.work.sum untrack, ADR-0049, v4.8.x alignment train — evidence in the CHANGELOG 2026-08-30/31 entries). T29-T32 routed to TODO_LIST (inline arrows). The "drift stays red" premise is obsolete — `check-version-drift --strict` GREEN since 2026-08-31. ARCHIVED.
 ## 0. Guardrails (the no-Verschlimmbessern contract)
 
 1. **No breaking public-API changes without an explicit user decision.** P1 is implemented as the non-breaking escape hatch (`ServiceConfig *usermgmt.ServiceConfig`); the literal-breaking embed is v5 material.
@@ -61,10 +62,10 @@ Sorted by importance × impact × customer-value ÷ effort. Tier: **P0** = the 1
 | T26 | Coverage margins: adminui (68.5 vs 66) + identity-model (75.5 vs 70) targeted tests                                                                       | P3    | 100min | med      | low         | T02     |
 | T27 | Deprecated-shims v5-removal bundle review (sse re-exports, security.go, ratelimit/server_timing) — checklist only                                         | P3    | 60min  | low-med  | low         | —       |
 | T28 | Go markdown link checker (goldmark) spike, keep awk as default                                                                                            | P3    | 100min | low      | low         | —       |
-| T29 | cqrs-lint Go-installable distribution investigation (unblocks CI gate)                                                                                    | P3    | 60min  | med      | med         | —       |
-| T30 | `/sse` authz posture decision memo (session-gate vs stream-type filter) for user sign-off                                                                 | GATED | 45min  | med      | high        | —       |
-| T31 | appkit adoption fold-in checklist refresh (a–f) against current master — prep only (blocked on go-appkit push)                                            | GATED | 45min  | med      | high        | —       |
-| T32 | Force-push rewrites: v4 branch blobs + setup-demo history purge — runbook only (user executes)                                                            | GATED | 100min | low      | low         | —       |
+| T29 | cqrs-lint Go-installable distribution investigation (unblocks CI gate)                                                                                    | P3    | 60min  | med      | med         | —       | → routed: TODO_LIST P2/P3 (cqrs-lint Go-installable distribution; draft doc exists).
+| T30 | `/sse` authz posture decision memo (session-gate vs stream-type filter) for user sign-off                                                                 | GATED | 45min  | med      | high        | —       | → shipped: one-pager `docs/planning/2026-08-30_sse-endpoint-shape-decision.md`; the call itself awaits the user (TODO_LIST P2).
+| T31 | appkit adoption fold-in checklist refresh (a–f) against current master — prep only (blocked on go-appkit push)                                            | GATED | 45min  | med      | high        | —       | → routed: TODO_LIST P3 appkit item (RunWithAppkit STABLE 2026-09-07; default-flip remains).
+| T32 | Force-push rewrites: v4 branch blobs + setup-demo history purge — runbook only (user executes)                                                            | GATED | 100min | low      | low         | —       | → routed: TODO_LIST P3 (purge plans prepared, awaiting user force-push approval).
 | T33 | Misc sweep: middleware-showcase API drift verify; `Bundle.Addr()` decision note; prewarm-script relevance; artifact fate for 2026-08-17 markdown baseline | P3    | 60min  | low      | low         | —       |
 
 Coverage check — every open TODO_LIST item maps to: P1 collapse→T03–T05/T12; upstream tags→T24; planner break→T08; seams example→T09/T10; CI check-*→T29; toolchain item→T13 (stale purge); decisions→T30/T21; go.work.sum→T23; sub-benchmark→T11; stack decouple→T24; appkit→T31; cqrs-lint CI→T29; drift splits→T21/T24 (dissolve with train); datastar ADR→T25; golines→T16; link checker→T28; v4/history→T32; hardware→out of repo scope (noted).

@@ -7,6 +7,7 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** the v3-vs-v4 pain is obsolete (v3 retired; v4.9.0/v4.10.0 trains current) and the CSRFTestToken ask shipped. The two deferred Huma items (recipe + adapter) were routed 2026-09-09 to ROADMAP Open Questions #13. ARCHIVED.
 ## What Works Great
 
 ### Middleware Chain helper (`cqrshtmx.Chain`)
@@ -124,7 +125,7 @@ cqrs-htmx v3.3.0 is a **solid middleware + auth library** that works well with b
 | #  | Suggestion                                                               | Status       | Notes                                                                                                                                                                                                        |
 | -- | ------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1  | SKILL.md documents v4 but we use v3 — add "v3 vs v4" section             | **DONE**     | "v3 vs v4" section added to SKILL.md. All features documented in the skill are confirmed available since v3.3.0+. Root module API is unchanged between v3 and v4                                             |
-| 2a | Provide test helper `CSRFTestToken(ts.URL) string`                       | **DONE**     | `cqrshtmx.CSRFTestToken(mw)` implemented in `csrf_testing.go`. Handles nosurf token masking automatically                                                                                                    |
+| 2a | Provide test helper `CSRFTestToken(ts.URL) string`                       | **DONE**     | `cqrshtmx.CSRFTestToken(mw)` implemented in `csrf_testing.go`. Handles nosurf token masking automatically                                                                                                    | ✅ done — `CSRFTestToken` shipped (csrf_reexport.go → httputil.CSRFTestToken; feedback_features_test.go).
 | 2b | Document the nosurf masking behavior in CSRFConfig docs                  | **DONE**     | nosurf masking documented in gotchas.md with full explanation + CSRFTestToken usage pattern                                                                                                                  |
 | 2c | Add `CSRFConfig.Testing bool` flag                                       | **NOT DONE** | Chose the test helper approach instead — cleaner than a config flag that bypasses security                                                                                                                   |
 | 3a | Document that App.Command/Query is for greenfield or stdlib-mux projects | **DONE**     | SKILL.md now has "SSR / HTMX apps" section documenting when to use the pipeline vs manual handlers                                                                                                           |

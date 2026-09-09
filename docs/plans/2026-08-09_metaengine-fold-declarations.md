@@ -5,6 +5,7 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** Phases 1-4 implemented (declarative views/declarations/queries in systemadapter, equivalence-tested; `EventWithID.OccurredAt` in use — upstream v4.5.0 tag pending, TODO_LIST P1). Phase 5 (ProjectionLayer retirement) routed to TODO_LIST 2026-09-09. This plan's "no timestamp/metadata" gap note is stale re: OccurredAt. ARCHIVED.
 ## Current State
 
 ### Architecture (two-host)
@@ -516,7 +517,7 @@ The current `ProjectionLayer.WaitForDrain()` polls `Host.Status()` until all wor
 | 4.7  | Write authz enforcement helper (Enforce)                                         | Medium |
 | 4.8  | Write audit log queries (Entries, EntriesFor, Recent, Count)                     | Small  |
 
-### Phase 5: Retire ProjectionLayer
+### Phase 5: Retire ProjectionLayer → open: routed to TODO_LIST "ProjectionLayer retirement prep" (2026-09-09 docs-health) — `// Deprecated:` marker, migration guide, system-demo migration, SQLite + negative tests.
 
 **Goal:** Remove the separate host and the old read model implementations.
 

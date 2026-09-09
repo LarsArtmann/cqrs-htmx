@@ -7,11 +7,12 @@
 
 ---
 
+> **ANNOTATED 2026-09-09 (docs-health):** the entire proposal SHIPPED as the loginpage module (Option C "both" included). Exercised by integration_test/fullstack_ui_test.go. ARCHIVED.
 ## The problem
 
 cqrs-htmx's `usermgmt` package provides a complete passwordless auth backend: WebAuthn, OAuth2/OIDC, TOTP, session management, CSRF — all wired through clean JSON API endpoints (`POST /auth/webauthn/login/begin`, etc.). The `adminui` package provides a polished templ-based admin dashboard with users, tenants, audit logs.
 
-**But there is no login page.** The library sends unauthenticated users to `/login` (via `defaultLoginRedirect`) and leaves them staring at a 404. Every consumer has to build their own.
+**But there is no login page.** The library sends unauthenticated users to `/login` (via `defaultLoginRedirect`) and leaves them staring at a 404. Every consumer has to build their own. **SHIPPED:** the loginpage/v4 module exists exactly per this proposal (handler + templ Props, embedded WebAuthn JS, adaptive strategy rendering; v4.9.0 family train; 79.9% coverage, gate 79).
 
 SwettySwipperWeb's `login_page.go` is 251 lines of inline HTML + JavaScript that:
 

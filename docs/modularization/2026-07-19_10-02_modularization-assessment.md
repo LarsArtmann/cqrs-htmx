@@ -1,8 +1,10 @@
 # Module Modularization Assessment — cqrs-htmx
 
+> **ANNOTATED 2026-09-09 (docs-health):** core question answered — the module layout was accepted and the usermgmt split explicitly rejected in ROADMAP "Not Planned" (re-open condition recorded). Replace-directive blocker RESOLVED 2026-08-30. Counts are stale (12 → 27 modules). datastar-demo decision routed to TODO_LIST. ARCHIVED.
+
 **Date:** 2026-07-19 | **Verdict:** Module boundaries are correct; internal package decomposition is the next lever.
 
-## Current state (12 modules)
+## Current state (12 modules) **STALE 2026-09-09:** the workspace is now 27 modules (15 production + 11 examples + e2e/server).
 
 | Module                                                   | Purpose                                         | Files                               | Verdict                                                                                                                                                             |
 | -------------------------------------------------------- | ----------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,11 +56,11 @@ service_*         (21 files)  → stays at top level (public Service API)
 
 ## Recommendations (Pareto order)
 
-1. **[Low effort, High value]** Split usermgmt into `internal/user`, `internal/membership`, `internal/tenant`, `internal/bot`. Public API unchanged. ~1-2 days.
+1. **[Low effort, High value]** Split usermgmt into `internal/user`, `internal/membership`, `internal/tenant`, `internal/bot`. Public API unchanged. ~1-2 days. **DECIDED — Not Planned:** ROADMAP rejects the go.mod-level split (zero consumer benefit; re-open condition recorded); OAuth2 sub-service extraction validated the composition pattern in v4.
 2. **[No effort]** Keep auth strategies as independent modules. Already correct.
 3. **[No effort]** Keep integration_test separate. Already correct.
-4. **[Blocked upstream]** Drop `go.work` replace directives once go-cqrs-lite publishes clean v4.0.3+.
-5. **[Decision needed]** Decide what to do with `examples/datastar-demo` — rebrand or remove (see architecture review).
+4. **[Blocked upstream]** Drop `go.work` replace directives once go-cqrs-lite publishes clean v4.0.3+. ✅ RESOLVED — all sibling dev-replaces stripped; `check-version-drift --strict` GREEN 2026-09-09.
+5. **[Decision needed]** Decide what to do with `examples/datastar-demo` — rebrand or remove (see architecture review). → open: routed to TODO_LIST "Micro-debt bundle" (f), 2026-09-09.
 
 ## Module isolation verification
 
