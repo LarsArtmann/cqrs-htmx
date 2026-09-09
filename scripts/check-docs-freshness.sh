@@ -80,11 +80,11 @@ fi
 # Both classes (replace-state, uniform-at) were provably wrong while this
 # gate stayed green — see the 2026-09-09 docs-health sweep.
 # ---------------------------------------------------------------------------
-LIVING_DOCS=$(ls AGENTS.md README.md FEATURES.md TODO_LIST.md ROADMAP.md docs/*.md docs/guides/*.md 2>/dev/null || true)
+LIVING_DOCS=(AGENTS.md README.md FEATURES.md TODO_LIST.md ROADMAP.md docs/*.md docs/guides/*.md)
 
 echo ""
 echo "Checking replace-state claims in living docs..."
-for f in $LIVING_DOCS; do
+for f in "${LIVING_DOCS[@]}"; do
   while IFS= read -r line; do
     modpath=$(grep -oP 'github\.com/larsartmann/[a-z0-9/.-]+' <<<"$line" | head -1 || true)
     if [ -z "$modpath" ]; then
@@ -139,7 +139,7 @@ while IFS=: read -r f lineno line; do
     echo "  STALE: $f:$lineno claims templ-components uniform at $claimed but tree has:$bad"
     FAILED=1
   fi
-done < <(eval grep -nE '"(uniform at|all [a-z]+ modules at) v" $LIVING_DOCS' 2>/dev/null)
+done < <(grep -nE "(uniform at|all [a-z]+ modules at) v" "${LIVING_DOCS[@]}" 2>/dev/null)
 
 echo ""
 if [ "$FAILED" -eq 0 ]; then
