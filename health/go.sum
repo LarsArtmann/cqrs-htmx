@@ -90,8 +90,8 @@ github.com/larsartmann/go-etag v0.2.0 h1:K9+EOWRMKzA50cZxSF6yhKCCm9O011h3aVnt2E0
 github.com/larsartmann/go-etag v0.2.0/go.mod h1:c2PnfOTTSerzR/EKI3vMIJYvEddG7fBeGDpllyskc2w=
 github.com/larsartmann/go-health v0.1.3 h1:MVNakBqoej2ko55y/KwwSzHq785Z8W8DaEIJXU0Givw=
 github.com/larsartmann/go-health v0.1.3/go.mod h1:AuHniwkxGZFEdTDAE0bml30QQfXZ8ZnZvFMl6VBzNUM=
-github.com/larsartmann/go-health-dashboard v0.6.1 h1:r9JpzKaL4+7/zy03XHEpm9CzfbDICrO1KCuO2PPA0hQ=
-github.com/larsartmann/go-health-dashboard v0.6.1/go.mod h1:T5mwhGk1QZGMJU23F8PmaPnH3Gcn603kVdBXpKydknY=
+github.com/larsartmann/go-health-dashboard v0.7.0 h1:pQ9I43XuuZPvlifpWMBHn4MWqyfroR35JGeaL5A6upc=
+github.com/larsartmann/go-health-dashboard v0.7.0/go.mod h1:13LEzRHyRwdzYq8gZu6/TQxuKkmF6tOPVfQEoXoFwdk=
 github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
 github.com/larsartmann/go-idempotency v0.3.0/go.mod h1:VjTQypq0FQLA9AmageDkuFoUFfN2hd3eErSFZo9ip+I=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=

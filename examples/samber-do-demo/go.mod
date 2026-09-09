@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-health v0.1.3
-	github.com/larsartmann/go-health-dashboard v0.6.1
+	github.com/larsartmann/go-health-dashboard v0.7.0
 	github.com/larsartmann/httputil v0.12.0
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/samber/do/v2 v2.1.0
