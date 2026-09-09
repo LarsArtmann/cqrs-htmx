@@ -188,6 +188,34 @@ bundle, err := setup.New(setup.Config{
 })
 ```
 
+## Troubleshooting
+
+| Symptom                                          | Cause and fix                                                                                                                                                                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Admin/dashboard routes return **401**            | Deliberate: both panels are session-gated like the API. Log in through the login page first. To serve a public dashboard, mount `bundle.Dashboard.Handler()` yourself instead of relying on `Mount`.                        |
+| `/health` returns **503**                        | The projection readiness gate is doing its job: at least one projection is still replaying/draining (always the case briefly at startup, and while `AsyncStartup: true` replays in the background). Poll until 200 before routing traffic. |
+| `setup.New` rejects the config                   | `New` validates paths: `/` is rejected (the login page owns root), duplicate mounts are rejected, trailing slashes are normalized. Fix the `Config` paths — the error names the offending pair.                              |
+| A second `bundle.Mount(mux)` **panics**          | `Mount` is once-only by design (stdlib mux rejects duplicate patterns). Call it once per mux.                                                                                                                               |
+| SSE clients connect but receive nothing          | A buffering proxy in front of the server (nginx `proxy_buffering`, CDNs). Disable response buffering for the SSE route (`X-Accel-Buffering: no`) and make sure the proxy does not impose short read timeouts.              |
+| TOTP logins fail after upgrading an old SQL read model | Rows written before checkpointed hydration lack the TOTP secret. Run `RebuildProjection(ctx, "user-read-model")` once after upgrading; affected users would otherwise have to re-enroll. See `docs/guides/event-replay-and-rebuild.md`. |
+
+## Security and TLS posture
+
+`setup` serves plain HTTP and performs **no TLS termination** — put a reverse
+proxy (Caddy, nginx, a cloud LB) in front for HTTPS, HSTS, and certificate
+handling. Following the library principle (never enforce defaults consumers
+might disagree with), no CSP/HSTS/CSRF middleware is on by default; wrap the
+handler when you want them:
+
+```go
+handler := bundle.Handler(mux) // security middleware chain, or compose your own
+```
+
+Session cookies are issued by usermgmt; when terminating TLS at a proxy, keep
+the proxy-to-app hop on a private network or loopback so the session cookie is
+never transported in the clear. Rate limiting, CSRF, and body limits are
+opt-in via `httputil` — see `docs/guides/leveraging-httputil.md`.
+
 ## See also
 
 - `docs/guides/fullstack-wiring.md` — full wiring guide (SDK vs manual)
