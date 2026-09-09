@@ -53,7 +53,7 @@ func NewContainer(cfg AppConfig) (*Container, func()) {
 	// is the one call that replaces a bare do.New() when an application
 	// wants the audit trail.
 	auditSetup, err := auditlog.WithAuditLog(
-		doauditlog.Config{},                       //nolint:exhaustruct // demo defaults; WithAuditLog enables recording
+		doauditlog.Config{},           //nolint:exhaustruct // demo defaults; WithAuditLog enables recording
 		live.Config{Prefix: "/audit"}, //nolint:exhaustruct // demo defaults
 	)
 	if err != nil {
