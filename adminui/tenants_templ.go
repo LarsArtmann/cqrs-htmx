@@ -175,7 +175,7 @@ func tenantsRows(d tenantsListData) templ.Component {
 			var templ_7745c5c3_Var6 templ.SafeURL
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(d.BasePath + "/tenants/" + t.ID.Get())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 45, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 45, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -188,7 +188,7 @@ func tenantsRows(d tenantsListData) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(t.DisplayName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 46, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 46, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -201,7 +201,7 @@ func tenantsRows(d tenantsListData) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(t.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 47, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 47, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -234,7 +234,7 @@ func tenantsRows(d tenantsListData) templ.Component {
 			var templ_7745c5c3_Var9 templ.SafeURL
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(d.BasePath + "/tenants/" + t.ID.Get())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 60, Col: 135}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 60, Col: 135}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -289,7 +289,7 @@ func tenantNewPage(p pageData, basePath string) templ.Component {
 			var templ_7745c5c3_Var12 templ.SafeURL
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinURLErrs(basePath + "/tenants")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 69, Col: 118}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 69, Col: 118}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -318,7 +318,7 @@ func tenantNewPage(p pageData, basePath string) templ.Component {
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(basePath + "/tenants")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 74, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 74, Col: 41}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 				if templ_7745c5c3_Err != nil {
@@ -426,7 +426,7 @@ func tenantDetailPage(p pageData, d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var17 templ.SafeURL
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinURLErrs(d.BasePath + "/tenants")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 104, Col: 120}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 104, Col: 120}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -459,7 +459,7 @@ func tenantDetailPage(p pageData, d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(d.Tenant.DisplayName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 113, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 113, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -472,7 +472,7 @@ func tenantDetailPage(p pageData, d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(d.Tenant.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/tenants.templ`, Line: 114, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `tenants.templ`, Line: 114, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
