@@ -108,8 +108,16 @@ func (b *Bundle) SessionMiddleware() func(http.Handler) http.Handler {
 
 // CSRFMiddleware returns the CSRF protection middleware (via httputil).
 // Apply this to mutation endpoints (POST/PUT/DELETE) that use form submissions.
+//
+// The configuration comes from [Config.CSRF]; the default (nil) matches the
+// zero httputil.CSRFConfig (no Secure flag — see that field for production).
 func (b *Bundle) CSRFMiddleware() func(http.Handler) http.Handler {
-	return httputil.CSRFMiddleware(httputil.CSRFConfig{})
+	csrfCfg := b.config.CSRF
+	if csrfCfg == nil {
+		csrfCfg = &httputil.CSRFConfig{}
+	}
+
+	return httputil.CSRFMiddleware(*csrfCfg)
 }
 
 // Middleware returns the outer middleware chain for the entire application:

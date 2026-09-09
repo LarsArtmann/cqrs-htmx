@@ -6,7 +6,6 @@ import (
 	"github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-	"github.com/larsartmann/httputil"
 )
 
 // Mount registers all UI routes on the mux with the correct middleware ordering.
@@ -51,7 +50,7 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	// via [Bundle.Middleware] or [Bundle.Handler], not duplicated per-panel.
 	if b.Admin != nil {
 		sessionMW := b.SessionMiddleware()
-		csrfMW := httputil.CSRFMiddleware(httputil.CSRFConfig{})
+		csrfMW := b.CSRFMiddleware()
 
 		mux.Handle(
 			cfg.AdminPath,

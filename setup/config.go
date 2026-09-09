@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil"
 )
 
 // Config is the single entry point for configuring a full-stack cqrs-htmx application.
@@ -150,6 +151,20 @@ type Config struct {
 	// Session configuration.
 	CookieName string        // default: "session"
 	SessionTTL time.Duration // default: 0 (use usermgmt default of 24h)
+
+	// CSRF overrides the CSRF protection applied to the admin panel's mutation
+	// endpoints (default: nil = httputil.CSRFConfig{}, which issues cookies
+	// without the Secure flag and logs a warning — fine for local HTTP dev).
+	//
+	// For HTTPS deployments set a production config so cookies carry the Secure
+	// flag and the warning disappears:
+	//
+	//	CSRF: &httputil.CSRFConfig{Secure: true},
+	//
+	// The value is passed to httputil.CSRFMiddleware verbatim (which validates
+	// it at mount time), so every httputil knob — TrustedOrigins, TrustedProxies,
+	// cookie/header names — is available.
+	CSRF *httputil.CSRFConfig
 
 	// Logger is used for structured auth event logging by the usermgmt service
 	// (default: nil = slog.Default()).
