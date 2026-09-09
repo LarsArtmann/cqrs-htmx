@@ -707,7 +707,7 @@ func TestDeclarative_UserExternalAccounts(t *testing.T) {
 		if errors.Is(err, system.ErrNotFound) {
 			return nil
 		}
-		return fmt.Errorf("expected ErrNotFound after unlink, got %v", err)
+		return fmt.Errorf("expected ErrNotFound after unlink, got %w", err)
 	})
 
 	// A freed (provider, subject) identity can be linked to a different
