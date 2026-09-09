@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0

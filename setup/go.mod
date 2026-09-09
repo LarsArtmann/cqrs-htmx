@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
