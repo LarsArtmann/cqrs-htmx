@@ -639,7 +639,7 @@
 
             gen = {
               type = "app";
-              meta.description = "Regenerate adminui + loginpage templ components (repo-root generation is canonical) and normalize formatting";
+              meta.description = "Regenerate adminui + loginpage templ components (module-dir generation is canonical) and normalize formatting";
               program = pkgs.writeShellApplication {
                 name = "templ-generate";
                 runtimeInputs = [
@@ -647,9 +647,9 @@
                   pkgs.templ
                 ];
                 text = ''
-                  templ generate
-                  gofmt -w adminui/*_templ.go loginpage/*_templ.go
-                  echo "Done: adminui + loginpage templ components regenerated (from repo root) and formatted"
+                  (cd adminui && templ generate && gofmt -w *_templ.go)
+                  (cd loginpage && templ generate && gofmt -w *_templ.go)
+                  echo "Done: adminui + loginpage templ components regenerated (module-dir, bare FileName) and formatted"
                 '';
               };
             };
@@ -840,7 +840,7 @@
 
             check-codegen = {
               type = "app";
-              meta.description = "Verify adminui + loginpage _templ.go files match .templ sources (no codegen drift; repo-root generation is canonical)";
+              meta.description = "Verify adminui + loginpage _templ.go files match .templ sources (no codegen drift; module-dir generation is canonical)";
               program = pkgs.writeShellApplication {
                 name = "check-codegen";
                 runtimeInputs = [
@@ -848,14 +848,16 @@
                   pkgs.templ
                 ];
                 text = ''
-                  templ generate
-                  gofmt -w adminui/*_templ.go loginpage/*_templ.go
-                  if ! git diff --exit-code -- adminui/*_templ.go loginpage/*_templ.go; then
-                    echo ""
-                    echo "FAIL: Generated _templ.go files differ from committed versions."
-                    echo "Run 'nix run .#gen' (repo-root generation is canonical — matches BuildFlow's templ-generate step) and commit the result."
-                    exit 1
-                  fi
+                  for mod in adminui loginpage; do
+                    echo "==> $mod"
+                    (cd "$mod" && templ generate && gofmt -w ./*_templ.go)
+                    if ! git diff --exit-code -- "$mod"/*_templ.go; then
+                      echo ""
+                      echo "FAIL: Generated _templ.go files in $mod differ from committed versions."
+                      echo "Run 'nix run .#gen' (module-dir generation with bare FileName: is canonical) and commit the result."
+                      exit 1
+                    fi
+                  done
                   echo "Codegen drift check PASSED"
                 '';
               };

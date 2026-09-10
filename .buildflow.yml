@@ -67,15 +67,22 @@ exclude:
 # Auto-fix settings
 auto_fix: false
 
-# templ-generate is ENABLED: repo-root `templ generate` is the canonical
-# generation mode (BuildFlow always runs generators from the repo root). The
-# committed _templ.go files carry the path-prefixed FileName: fields that
-# root-level generation produces, and `nix run .#gen` / `.#check-codegen`
-# generate from the root too — so the step is a verified no-op between
-# intentional regenerations. (History: this step was skipped when committed
-# files used module-dir generation with bare FileName: fields — root-level
-# runs rewrote them with adminui/... prefixes on every commit.)
+# templ-generate is SKIPPED (re-skipped 2026-09-10 after a verified revert-war):
+# facts — buildflow resolves templ via exec.LookPath (no bundled binary; nixpkgs
+# and ~/go/bin templ are both 0.3.1020, so the OLD comment's version-conflict
+# claim was false). The REAL conflict: `templ generate` emits FileName: fields
+# relative to the invocation dir. Repo-root runs (what an unqualified run does)
+# write path-prefixed names (adminui/layout.templ), but the pre-commit hook's
+# DAG ALSO contains an adminui-SCOPED templ generate (empirically isolated:
+# a hook run flipped exactly the 7 adminui _templ.go files back to bare
+# `layout.templ` form and the daemon committed it — loginpage was untouched).
+# Root-canonical and module-canonical therefore FIGHT inside one hook run.
+# Until that step's workdir is aligned (BuildFlow investigation), the stable
+# canonical form is MODULE-DIR generation (bare FileName), which is what
+# `nix run .#gen` / `.#check-codegen` verify. The `templ-fmt` step still runs
+# (it formats .templ source files, not _templ.go).
 skip_steps:
+  - templ-generate
   # This is a Go library — no JavaScript test framework. The e2e/ directory
   # uses Playwright (not jest/vitest) and there is no root-level package.json.
   - jest-test
