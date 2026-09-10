@@ -67,13 +67,15 @@ exclude:
 # Auto-fix settings
 auto_fix: false
 
-# Skip templ-generate: buildflow uses its own bundled templ binary which
-# regenerates _templ.go files with directory-prefixed FileName: fields,
-# conflicting with the nix-pinned templ version (used by `nix run .#gen`
-# and the committed _templ.go files). The committed files are verified by
-# the `nix run .#check-codegen` app instead.
+# templ-generate is ENABLED: repo-root `templ generate` is the canonical
+# generation mode (BuildFlow always runs generators from the repo root). The
+# committed _templ.go files carry the path-prefixed FileName: fields that
+# root-level generation produces, and `nix run .#gen` / `.#check-codegen`
+# generate from the root too — so the step is a verified no-op between
+# intentional regenerations. (History: this step was skipped when committed
+# files used module-dir generation with bare FileName: fields — root-level
+# runs rewrote them with adminui/... prefixes on every commit.)
 skip_steps:
-  - templ-generate
   # This is a Go library — no JavaScript test framework. The e2e/ directory
   # uses Playwright (not jest/vitest) and there is no root-level package.json.
   - jest-test
@@ -81,8 +83,8 @@ skip_steps:
   - pnpm-audit
   # Not installed in devShell; biome handles JS formatting/linting.
   - eslint
-  # Nix dead-code linter — not installed.
-  - deadnix
+  # deadnix is ENABLED (installed in the devShell as of 2026-09-10): Detect
+  # runs `deadnix --fail --quiet .` so .nix files must be dead-code clean.
   # Markdown formatting (dprint) — skipped until a one-time normalization pass
   # is done. 257 .md files would create massive churn; format incrementally
   # per-file instead. Re-enable after bulk-formatting docs.
