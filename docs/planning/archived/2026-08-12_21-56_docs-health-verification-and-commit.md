@@ -16,6 +16,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** every forward-looking item is done (inline ✅), routed to a living doc (inline →), or obsolete. The "HALTED / build broken" premise is long fixed — repo gate-green since 2026-08-14. ARCHIVED.
+
 ## Pareto Breakdown
 
 ### 1% that delivers 51% of the result
@@ -86,11 +87,11 @@ graph TD
 | # | Task                                                         | Impact   | Effort | Customer Value | Deps |
 | - | ------------------------------------------------------------ | -------- | ------ | -------------- | ---- |
 | 1 | Run all verification gates, fix discrepancies, commit + push | CRITICAL | 60min  | High           | —    |
-| 2 | (FUTURE) Write async startup integration test                | HIGH     | 30min  | Medium         | 1    | ✅ done — async startup shipped with tests (CHANGELOG v4.9.0 highlights).
-| 3 | (FUTURE) Write ADR-0048: Liveness/Readiness Decoupling       | MEDIUM   | 30min  | Low            | 1    | ✅ done — `docs/adr/0048-liveness-readiness-decoupling.md`.
-| 4 | (FUTURE) Extract `ActorID.AsUserID()` helper                 | MEDIUM   | 45min  | Low            | 1    | ✅ done — `ActorIDAsUserID` (identity-model).
-| 5 | (FUTURE) Design ReadModelHydrator interface (Option B)       | LOW      | 60min  | Low            | 1    | → routed: ROADMAP "Operational Tooling Ideas" (Option B).
-| 6 | (FUTURE) Create `examples/async-startup-demo/`               | LOW      | 45min  | Low            | 1    | → routed: TODO_LIST "Docs debt bundle" (2026-09-09 docs-health).
+| 2 | (FUTURE) Write async startup integration test                | HIGH     | 30min  | Medium         | 1    |
+| 3 | (FUTURE) Write ADR-0048: Liveness/Readiness Decoupling       | MEDIUM   | 30min  | Low            | 1    |
+| 4 | (FUTURE) Extract `ActorID.AsUserID()` helper                 | MEDIUM   | 45min  | Low            | 1    |
+| 5 | (FUTURE) Design ReadModelHydrator interface (Option B)       | LOW      | 60min  | Low            | 1    |
+| 6 | (FUTURE) Create `examples/async-startup-demo/`               | LOW      | 45min  | Low            | 1    |
 
 > Tasks 2-6 are future work harvested to TODO_LIST/ROADMAP. **This session executes ONLY Task 1.**
 

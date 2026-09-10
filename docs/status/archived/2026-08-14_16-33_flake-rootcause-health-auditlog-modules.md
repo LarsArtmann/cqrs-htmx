@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** both new modules shipped, lint-clean and gate-integrated; the replace pile resolved via the pushed family trains (only the projectionadapter replace remains, TODO_LIST P1). slowJournal dup routed to Micro-debt (d). ARCHIVED.
+
 ## a) FULLY DONE
 
 ### 1. The "unreproducible" dashboardui flake: ROOT-CAUSED as a real data race, fixed

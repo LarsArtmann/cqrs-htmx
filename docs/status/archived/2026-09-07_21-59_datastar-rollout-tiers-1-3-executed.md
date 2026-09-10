@@ -10,6 +10,7 @@ CHANGELOG+push) NOT started; Tier 4 (M11-M16) NOT started.
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** Tiers 1-3 shipped and M9/M10 executed by the 23:36 session (setup/v4.10.0 tagged+pushed). Tier 4 remains demand-gated (TODO_LIST P2 DataStar item; ADR-0050). ARCHIVED.
+
 ## a) FULLY DONE (verified green at time of work)
 
 | #  | Item                                                                                                    | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                  |

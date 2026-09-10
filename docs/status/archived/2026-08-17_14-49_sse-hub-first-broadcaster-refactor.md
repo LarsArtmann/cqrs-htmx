@@ -6,6 +6,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the refactor shipped (`477d62bf`) and the docs it flagged are FIXED 2026-09-09 (FEATURES hub row now Hub-first; setup/README says `Hub()`; skill docs updated to `Hub()`/`NewBroadcasterFromHub`). ARCHIVED.
+
 ## Context
 
 The user asked how the 11 `sse_*.go` files in cqrs-htmx root compare to go-sse, then why go-sse "can't handle" the glue in `sse_broadcaster.go`, then judged the glue ugly and ordered: research properly, break into steps, execute, verify, repeat.

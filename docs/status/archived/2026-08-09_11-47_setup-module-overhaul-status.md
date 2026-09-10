@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** setup shipped well beyond this wishlist (v4.9.0/v4.10.0; ServiceConfig escape hatch RESOLVED 2026-08-29 closed the passthrough questions; Broadcaster/DataStar exposure, admin mode, health all real). Remaining micro-ideas (Config.BasePath, loginpage OAuth2Buttons, dashboard advanced knobs) routed to ROADMAP "setup surface ideas". ARCHIVED.
+
 ## Executive Summary
 
 The `setup/` module was functional but had resource leaks, missing config passthrough, no

@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** fully superseded by the 21:39 report + CHANGELOG (ServeDomainEvents, fail-fast attachSSE, SSEMaxReplay, CORS decision). SSEMaxReplay validation routed to TODO_LIST SSE backlog; setup/README Config rows ADDED 2026-09-09. ARCHIVED.
+
 ## What was requested
 
 Three items from the round-3 SSE `/sse` hardening list (TODO_LIST):

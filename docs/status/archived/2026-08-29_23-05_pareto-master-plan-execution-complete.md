@@ -8,6 +8,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** P1-P3 executed (train, strips, record-split retirement, check-modules 8/8, golines/shfmt, rename check-require-tags). The one OPEN item — CI blocking flip — is OVERDUE and now TODO_LIST P1; the strict-drift RED claim is stale (GREEN 2026-08-31). ARCHIVED.
+
 ## a) FULLY DONE
 
 ### Epic A — Gate sweep (M01–M06)

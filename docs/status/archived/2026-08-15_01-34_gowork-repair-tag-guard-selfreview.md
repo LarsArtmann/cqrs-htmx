@@ -6,6 +6,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** its headline question resolved — the external go-codec/go-retry/go-flightrecorder migration LANDED via the 2026-09-08-train bump. Routed 2026-09-09: codespell ignore list, dashboardui/loginpage templ-components adoption rows, go-structure-linter triage, expiry-on-durable-scheduling re-check → ROADMAP residual micro-ideas. ARCHIVED.
+
 ## a) FULLY DONE
 
 1. **State re-verification at open:** user has NOT pushed (remote still `56068b16`); `datastar/v4.8.0` local tag intact at `f128072d` (tag object `89f8f143`, single signature); go-datastar sibling clean/synced at `5b70bb1`.

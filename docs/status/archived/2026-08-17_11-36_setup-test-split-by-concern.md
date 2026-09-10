@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the split itself shipped (`99e4ab5e`, cited by CHANGELOG); contamination accepted as-is. Routed 2026-09-09: `git diff --cached` daemon discipline, setup_helpers_test.go threshold, test-file size sweep, precommit-scope-check.sh, tailwind truncation guard → ROADMAP residual micro-ideas. ARCHIVED.
+
 ## a) FULLY DONE
 
 1. **The split itself, committed `99e4ab5e`:** `setup/setup_test.go` (1,350 lines) → 4 focused test files (1,473 lines total, growth = 123 lines of file-level header comments):

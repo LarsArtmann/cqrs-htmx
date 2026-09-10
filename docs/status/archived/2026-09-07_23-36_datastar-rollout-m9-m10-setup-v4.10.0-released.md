@@ -9,6 +9,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** M9/M10/push/setup-v4.10.0 all verified. Its §f docs-truth items are DONE 2026-09-09 (FEATURES header+systemadapter, TODO_LIST header, AGENTS coverage row, setup/README DataStar+SSEMaxReplay rows); CI flip → TODO_LIST P1 (OVERDUE); Tier-4 decision → TODO_LIST P2 DataStar item; hook/buildflow reliability items → ROADMAP residual micro-ideas; datastar-integration version pin verified already correct. ARCHIVED.
+
 ## a) FULLY DONE (verified this session)
 
 | #  | Item                                                            | Evidence                                                                                                                                                                                                                                                                                                                                                                |

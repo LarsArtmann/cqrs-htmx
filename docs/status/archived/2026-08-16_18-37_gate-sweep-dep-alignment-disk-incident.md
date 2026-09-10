@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** its disk-incident workaround claim is obsolete ($HOME/.cache no longer works; current layout is /tmp via scripts/lib/go-cache-env.sh) and the mount is FULLY DEAD since 2026-08-22 (TODO_LIST P3). Routing CORRECTED 2026-09-10 (spot-audit): the three items below were promised to ROADMAP but never landed; they now sit in ROADMAP 'Residual micro-ideas' (tailwind-build fail-on-error, AGENTS replace-inventory lint leg, adoption-showcase remainder). ARCHIVED.
+
 ## a) FULLY DONE
 
 1. **The full gate sweep — EVERY gate green (2026-08-16):** `#check-modules` (isolation+vet, dep budgets, replace directives incl. the new systemadapter metaengine one, strict version drift, markdown links), `#check-cqrs-lint` (13 module configs strict), `#coverage-gate` (15 gates — setup **86.6%**/80, root **93.3%**/90, usermgmt 81.9%, systemadapter 89.6%), `#test` (18 packages), `#test-race`, `#test-fuzz` (7.7M execs), `#test-flake` (3/3), `nix flake check --no-build`, `#check-codegen`, `#check-templates`, examples/setup-demo + examples/dashboard-demo tests, e2e/server build, final `#lint` re-run (15 modules, 0 issues). CI workflow module lists verified — no changes needed (no new modules).

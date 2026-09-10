@@ -8,6 +8,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** outcome better than the plan: go-appkit v0.4.0 published, `RunWithAppkit` STABLE since 2026-09-07 (no replace). Remaining fold-in items (b)-(f) tracked in TODO_LIST P3 appkit entry. ARCHIVED.
+
 ## What the spike is
 
 `setup/run_appkit.go` adds `(*Bundle).RunWithAppkit` — `RunHandler` with the server layer swapped from `httputil.Server` to `appkit.Service`. Everything else is identical: the bundle's own middleware chain, `Mount`, Close-on-every-exit, the 5s/60s/30s ReadHeader/Idle/Shutdown timeout trio with Read/Write deliberately absent (SSE), and `context.WithoutCancel` for the shutdown budget. New behavior (the uplift ADR-001 wants):

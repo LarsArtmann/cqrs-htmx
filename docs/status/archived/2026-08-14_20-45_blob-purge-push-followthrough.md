@@ -23,6 +23,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** datastar strip/tag/push all done (static/v0.2.0 cut; datastar/v4.9.0 published; replaces stripped); check-templates wired 2026-08-15; verify-tag hardened 2026-08-30. Routed 2026-09-09: auditlog viewer in fullstack UI → Docs debt (e); tag-message SSH-signature guard + backup-ref cleanup → ROADMAP residual; force-push purges → TODO P3 (user-gated). ARCHIVED.
+
 ## a) FULLY DONE
 
 1. **Purged the 27 MB `examples/setup-demo/setup-demo` binary from the 17

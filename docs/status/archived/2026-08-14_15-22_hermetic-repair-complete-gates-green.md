@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the TestDashboard_Close flake fix it left interrupted landed next session (nil-receiver guard + race fix); the per-module tagging plan was superseded by the family-train convention (v4.8.0 pushed 2026-08-14). Routed 2026-09-09: slowJournal → Micro-debt (d); systemadapter checkpoint docs → ROADMAP residual; cqrs-lint CI → standing TODO; v4-branch purge → TODO P3. ARCHIVED.
+
 ## a) FULLY DONE
 
 ### 1. systemadapter + examples/system-demo hermetic build: FIXED

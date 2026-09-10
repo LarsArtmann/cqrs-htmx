@@ -6,6 +6,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** meta self-review from the 2026-08-12 round; its actionables completed in that round and the following sweeps. ARCHIVED.
+
 ## Executive Summary
 
 Executed a full docs-health AUDIT across 8 source files (6 status reports, 1 planning doc, 1 processed feedback). Updated all 5 living docs with harvested items, verified claims against code, annotated every historical report with inline `~~strikethrough~~ done at <hash>` markers, and archived 7 files. Two verification gates (`check-domain-counts.sh`, `check-docs-links.sh`) pass clean. The docs are now internally consistent and reflect the state of the code as of 2026-08-12.

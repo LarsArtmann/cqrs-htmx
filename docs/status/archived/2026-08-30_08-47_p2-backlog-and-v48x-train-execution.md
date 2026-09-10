@@ -8,6 +8,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the v4.8.x train, retraction, drift GREEN, and pkg.go.dev verification all stand. Its §b.3 CI-flip reminder is OVERDUE → TODO_LIST P1. The 5-axis drift claim is stale (closed 2026-08-31). ARCHIVED.
+
 ## a) FULLY DONE
 
 ### P2 backlog (all non-gated items from the prior report's §f)

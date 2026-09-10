@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** push + strip + tag guard + CI steps all landed (evidence: CHANGELOG 2026-08-30/31). Routed 2026-09-09: e2e offline-sync smoke → ROADMAP residual; stack/postgres retraction upstream ask → fold into docs/planning/2026-08-30_upstream-issue-drafts.md; re-export removals → v5 inventory (docs/guides/v5-removal-inventory.md). ARCHIVED.
+
 ## a) FULLY DONE
 
 ### 1. State verification (opening step)

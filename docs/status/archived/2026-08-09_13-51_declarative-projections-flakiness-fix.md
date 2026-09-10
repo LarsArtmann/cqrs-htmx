@@ -6,6 +6,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the flakiness fix, equivalence test, and coverage raise all stand. Remaining routed 2026-09-09: ExternalAccountLink unlink bug (declarations.go:426-470) → TODO_LIST P1; ProjectionLayer `// Deprecated:` + migration guide + system-demo migration + SQLite/negative tests → TODO_LIST retirement-prep item. ARCHIVED.
+
 ## a) FULLY DONE
 
 ### 1. Test Flakiness Completely Eliminated

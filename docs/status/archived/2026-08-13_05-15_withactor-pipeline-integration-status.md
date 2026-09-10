@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** pipeline integration verified shipped (handler.go:336-353 documents why upstream ApplyOptions was bypassed); its verification-debt items closed by the 2026-08-14/15 gate sweeps. ARCHIVED.
+
 ## What Was Done
 
 ### Fully Done

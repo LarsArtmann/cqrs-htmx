@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** all 35 executable items landed (evidence: 2026-08-14/15 successor reports + CHANGELOG). Routed 2026-09-09: slowJournal shared testutil → TODO_LIST Micro-debt (d); MarkTombstone migration → Micro-debt (upstream-gated); check-cqrs-lint CI → TODO_LIST P2/P3 (standing). ARCHIVED.
+
 ## a) FULLY DONE
 
 ### 1. P0 — go-cqrs-lite upstream drift: VERIFIED ALREADY FIXED (no code needed)

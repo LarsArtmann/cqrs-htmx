@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -60,7 +60,7 @@ func TestSmoke_CommandAndQueryRoundTrip(t *testing.T) {
 	defer func() { _ = list.Body.Close() }()
 
 	var items []item
-	if err := json.NewDecoder(list.Body).Decode(&items); err != nil {
+	if err := json.UnmarshalRead(list.Body, &items); err != nil {
 		t.Fatalf("decode items: %v", err)
 	}
 	found := false

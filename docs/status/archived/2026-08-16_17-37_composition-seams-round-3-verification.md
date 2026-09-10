@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** ARCHIVE-ELIGIBLE per audit — every gate green same week; transport extraction, SSEMaxReplay, golden fallback test, metaengine/sqliteengine tags all landed; remaining open items (projectionadapter v4.5.0, event.Bus Unsubscribe, /sse product decision) are exactly TODO_LIST P1/P2 + ROADMAP OQ rows today. Toolchain premise (1.26.5) stale — shipped 1.26.7. ARCHIVED.
+
 ## a) FULLY DONE
 
 1. **Todo re-sync** — the inherited list was stale (3 items marked pending were already done); corrected against actual tree state first.

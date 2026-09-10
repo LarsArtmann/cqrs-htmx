@@ -9,6 +9,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** its open asks routed: examples mounting health/auditlog → TODO_LIST Docs debt (e); auditlog viewer in fullstack UI → same item; module websites → ROADMAP operational-ideas row; health.NewProbe contract test SHIPPED (TestHealthProbe_AgainstRealService). ARCHIVED.
+
 ## a) FULLY DONE (all verified this session)
 
 ### 1. The "unreproducible" dashboardui flake: ROOT-CAUSED as a real data race, fixed

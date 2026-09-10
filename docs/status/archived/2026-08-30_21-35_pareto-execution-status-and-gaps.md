@@ -23,6 +23,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** §a items verified in tree; unpushed claim stale (pushed with v4.9.0). Routed 2026-09-09: M10 flip → TODO_LIST P1; LICENSE-presence gate, SessionMiddleware loud-failure/SelfCheck, setup-side SSEFilter option (gated on /sse decision) → ROADMAP residual; v4-to-v5 migration guide EXISTS (docs/migrations/v4-to-v5.md, created with the WS removal — the file's "absent" premise wrong). ARCHIVED.
+
 ## a) FULLY DONE (executed, verified, committed)
 
 | #  | Item                                                                                                                                                                                                                                                                                                    | Proof                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |

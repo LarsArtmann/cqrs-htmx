@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** its RED-gate and tracked-binary claims were fixed same-week (13 modules 0 issues; binary untracked+gitignored). Routed 2026-09-09: setup-demo seed() error return + godoc Examples → ROADMAP setup surface ideas; async-startup cross-link → ROADMAP residual micro-ideas; CSRF → TODO_LIST P2. ARCHIVED.
+
 ## a) FULLY DONE
 
 1. **Todo list restored and fully completed** — all 9 items from the prior session's handoff are now `[completed]` (8 carried over + the verification task closed this session).

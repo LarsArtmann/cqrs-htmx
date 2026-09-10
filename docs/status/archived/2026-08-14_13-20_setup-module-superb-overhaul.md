@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the session's own "NOT LANDED" items landed next session; passthrough questions resolved by the ServiceConfig escape hatch (2026-08-29). Routed 2026-09-09: CSRF knob + rejection test → TODO_LIST P2 (recurring); setup README troubleshooting/security notes → Docs debt (f); Run timeouts/RunListener/TLS//livez/mount-booleans → ROADMAP setup surface ideas. ARCHIVED.
+
 ## Executive Summary
 
 The setup module had four real defects and one big gap when I started: custom panel

@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** superseded same-day by the finalization + declarative reports. Its "104 lint issues / not in gates" state is long fixed (0 issues + gate-integrated 2026-08-14); declarative fold declarations shipped. The `setup.NewFromSystem()` idea is routed to ROADMAP Open Questions #12. ARCHIVED.
+
 ## a) FULLY DONE (shipped, committed, tested)
 
 ### 1. go.work replaces for system/ and metaengine/

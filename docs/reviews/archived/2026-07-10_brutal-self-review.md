@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the P0/P1 items flagged here (hardcoded `@source` tailwind path, GONOSUMCHECK leftovers, dead `spinner()` component, AGENTS adoption table) were all fixed in later sessions — the tailwind/GONOSUMCHECK/spinner claims no longer match the tree. Remainder routed 2026-09-09 to TODO_LIST "Docs debt bundle"/"Micro-debt bundle" (SidebarNav adoption, BadgeType-typed view models, adminui structural rendering tests). ARCHIVED.
+
 ## 1. What did you forget?
 
 ### CRITICAL: Hardcoded `@source` path in tailwind.css

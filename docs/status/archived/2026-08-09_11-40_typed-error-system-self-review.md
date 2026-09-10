@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the "typed error system" gap it names was closed (errorfamily constructors shipped, 0 violations repo-wide). Its two concrete leftovers (ignored write at usermgmt/http.go:315; legacy `errors.As` in service_oauth2_errorcontext_test.go:55) are routed to TODO_LIST "Micro-debt bundle". ARCHIVED.
+
 ## What Was Done
 
 - Created `safe_write.go` with `writeAll`, `writeAllString`, `marshalJSONForResponse` helpers

@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** Epics B-J shipped (cache-env lib, check-go-toolchain, train tooling, B' escape hatch, golines 120, README docs). Routed 2026-09-09: middleware-showcase refresh + Bundle.Handler/Mount decision table → ROADMAP residual; baseline-2026-08-17.txt fate DECIDED — keep as the human-readable record (AGENTS bench policy). ARCHIVED.
+
 ## Context you need first
 
 Two sessions ran concurrently on this tree (documented repo hazard). Between my two working blocks, the concurrent session cut and pushed **v4.8.1** (`release(cqrs-htmx): v4.8.1 - Go 1.26.7 upgrade and dependency consolidation`), which absorbed all of my uncommitted work (flake.nix, go.work, module repairs, docs). Tree is clean at HEAD. Tags `v4.8.1`, `dashboardui/v4.8.1`, `datastar/v4.8.1` are on origin.

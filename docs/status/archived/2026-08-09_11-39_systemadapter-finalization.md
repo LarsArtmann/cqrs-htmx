@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the canonical systemadapter record. Stale: tag-blocker list shrank to ONE upstream tag (`metaengine/projectionadapter/v4 v4.5.0`, TODO_LIST P1); test count now 25 (18 declarative + 7 ProjectionLayer); direct identity-model imports shipped. `setup.NewFromSystem()` routed to ROADMAP OQ #12; negative-path tests routed to TODO_LIST ProjectionLayer retirement prep. ARCHIVED.
+
 ## Executive Summary
 
 The systemadapter bridge module is now **production-quality**: 7/7 tests pass (race-clean), 0 lint issues, 73.3% coverage (gate: 70%), fully wired into CI/flake.nix/coverage-gate/lint/cqrs-lint. The module bridges all 4 identity-model aggregates (User, Membership, Tenant, Bot), all 20 commands, and all 21 event types into go-cqrs-lite's `system.New()` composition root. SQLite deployment is verified end-to-end. The `ProjectionLayer` provides all 6 usermgmt projections (UserReadModel, MembershipReadModel, TenantReadModel, BotReadModel, CasbinProjection, AuditLog) backed by the system's event infrastructure. **STALE:** suite now 25 tests (18 declarative + 7 ProjectionLayer).

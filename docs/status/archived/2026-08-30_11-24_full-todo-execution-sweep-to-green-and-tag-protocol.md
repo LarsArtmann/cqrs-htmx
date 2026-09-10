@@ -8,6 +8,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** sweep executed (hooks, LICENSE, retraction live, v5 inventory, runbook §0 historical, ADR-0049, release playbook). Routed 2026-09-09: CI flip → TODO_LIST P1 (OVERDUE); retract-aware release-train, admin SSE e2e spec, catalog-demo smoke, WithOpenAPI guide, dashboardui templ tables → ROADMAP residual; systemadapter version decision → ROADMAP OQ #12. ARCHIVED.
+
 ## a) FULLY DONE
 
 ### P1 — unblockers (the big rocks)

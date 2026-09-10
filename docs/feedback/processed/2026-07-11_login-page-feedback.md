@@ -8,6 +8,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the entire proposal SHIPPED as the loginpage module (Option C "both" included). Exercised by integration_test/fullstack_ui_test.go. ARCHIVED.
+
 ## The problem
 
 cqrs-htmx's `usermgmt` package provides a complete passwordless auth backend: WebAuthn, OAuth2/OIDC, TOTP, session management, CSRF — all wired through clean JSON API endpoints (`POST /auth/webauthn/login/begin`, etc.). The `adminui` package provides a polished templ-based admin dashboard with users, tenants, audit logs.

@@ -6,6 +6,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** superseded same-day by the flakiness-fix report (root-cause correction, coverage 67.2%→89.2%). Open items routed 2026-09-09: ExternalAccountLink fold bug → TODO_LIST P1; SQLite-engine declarative tests → TODO_LIST ProjectionLayer retirement prep; upstream OccurredAt tag → TODO_LIST P1. ARCHIVED.
+
 ## a) FULLY DONE
 
 ### 1. EventWithID Extended with OccurredAt (go-cqrs-lite upstream)

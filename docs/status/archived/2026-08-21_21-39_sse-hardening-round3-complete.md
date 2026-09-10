@@ -8,6 +8,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the shipped work stands (transport.ServeDomainEvents + SSEMaxReplay + CORS + fail-fast). Its §f brainstorm (42 optional ideas) is routed 2026-09-09: validation/serve-test gaps/options/ADR candidates → TODO_LIST "SSE hardening backlog"; the rest → ROADMAP residual. Its broken-build claims were fixed same-week. ARCHIVED.
+
 ## What This Session Set Out To Do
 
 Three items from the round-3 SSE hardening list:

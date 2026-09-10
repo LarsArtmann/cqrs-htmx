@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** P0/P2 items shipped (toolchain 1.26.7, replaces stripped, docs-freshness AGENTS assertion, v5 inventory). Its stale-doc catches (skill SKILL.md/realtime.md teaching Raw()) are FIXED 2026-09-09. dashboardui templ-components adoption routing → ROADMAP residual. ARCHIVED.
+
 ## a) FULLY DONE
 
 1. **go-datastar relationship mapped and explained (verified, not guessed).** go-datastar is the middle layer of a 3-layer stack its own AGENTS.md documents: go-sse (transport) → go-datastar (protocol: `Patch` interface, `Event() sse.Event`, `MemoryStore`) → cqrs-htmx/datastar (domain: `EventBridge`, re-exports, the Broadcaster wrapper). Confirmed via go-datastar's AGENTS.md architecture table, `store.go`, `example/main.go`, ROADMAP, and `go.mod`.

@@ -8,6 +8,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** Tiers 1-3 EXECUTED (2026-08-30/31 + the v4.9.0 train 2026-09-01) — inline verdicts; full evidence in CHANGELOG 2026-08-30/31. M10 and the gated M22 long tail are routed to TODO_LIST. ARCHIVED.
+
 ## 1. The Pareto Breakdown
 
 The "result" for this repository = **(A) releases consumers can trust, (B) gates that actually gate, (C) docs that match reality.** Everything else is long-tail.
@@ -50,7 +51,7 @@ The long tail, mostly user-gated or other-repo: upstream projectionadapter v4.5.
 
 | #   | Task                                                                                                                                                              | Source                    | Est | Impact   | Gate           |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --- | -------- | -------------- |
-| M1  | Tag-guard hardening: replace-exempt refusal + `--allow-replace-exempt` + fixture self-test                                                                        | f-new                     | 90  | Critical | —              | ✅ done — `scripts/test-verify-tag.sh` (12 cases) + hardened verify-tag (CHANGELOG 2026-08-30).
+| M1  | Tag-guard hardening: replace-exempt refusal + `--allow-replace-exempt` + fixture self-test                                                                        | f-new                     | 90  | Critical | —              |
 | M2  | `install-git-hooks.sh` bootstrap + `--verify` mode + docs                                                                                                         | f-new                     | 45  | Critical | —              |
 | M3  | Retraction publication prep (v4.8.4 recipe, dry-run, runbook recipe)                                                                                              | f.3/5                     | 45  | High     | exec: g1       |
 | M4  | LICENSE files: usermgmt + dashboardui + repo-wide audit                                                                                                           | f-new                     | 30  | High     | —              |
@@ -59,19 +60,19 @@ The long tail, mostly user-gated or other-repo: upstream projectionadapter v4.5.
 | M7  | integration_test fullstack vs post-sweep graph                                                                                                                    | f.34                      | 60  | High     | —              |
 | M8  | CI: lint-scripts job (shellcheck + actionlint)                                                                                                                    | f-new                     | 45  | Med      | —              |
 | M9  | CI: verify-tag fixture job                                                                                                                                        | f.22-followup             | 30  | Med      | —              |
-| M10 | CI blocking flip + `--strict-lag 0` + drift leg                                                                                                                   | f.4                       | 30  | High     | green week     | → routed: TODO_LIST P1 "Flip check-release-train CI to blocking" — OVERDUE (green week ended ~2026-09-06).
+| M10 | CI blocking flip + `--strict-lag 0` + drift leg                                                                                                                   | f.4                       | 30  | High     | green week     |
 | M11 | e2e flake env preflight (PLAYWRIGHT_BROWSERS_PATH + auto-install)                                                                                                 | f.31-followup             | 45  | Med      | —              |
-| M12 | `/sse` decision one-pager for the user                                                                                                                            | f.35                      | 60  | High     | decision: user | → shipped one-pager; decision awaits user (TODO_LIST P2).
-| M13 | `transport.WithSSEFilter` productionization                                                                                                                       | f.49-followup             | 90  | Med      | M12            | ✅ done — `transport.WithSSEFilter` productionized (transport/serve.go).
+| M12 | `/sse` decision one-pager for the user                                                                                                                            | f.35                      | 60  | High     | decision: user |
+| M13 | `transport.WithSSEFilter` productionization                                                                                                                       | f.49-followup             | 90  | Med      | M12            |
 | M14 | Contract tests: WebAuthnSessionStore / VerificationTokenStore / PendingTOTPStore                                                                                  | f.27-ext                  | 90  | Med      | —              |
 | M15 | setup bundle-level SQL restart test                                                                                                                               | f.28-ext                  | 60  | Med      | —              |
-| M16 | v5 removal inventory document                                                                                                                                     | f.48                      | 60  | Med      | —              | ✅ done — `docs/guides/v5-removal-inventory.md`.
-| M17 | Release playbook guide (verify-tag flow + train checklist + poison ladder)                                                                                        | f.21-ext                  | 60  | Med      | —              | ✅ done — `docs/guides/release-playbook.md`.
+| M16 | v5 removal inventory document                                                                                                                                     | f.48                      | 60  | Med      | —              |
+| M17 | Release playbook guide (verify-tag flow + train checklist + poison ladder)                                                                                        | f.21-ext                  | 60  | Med      | —              |
 | M18 | Docs-truth sweep: AGENTS templ-components v1.11.0 + go-cqrs-lite v4.9-era lists + bench README numbers + runbook §0 annotations                                   | f.32/40                   | 60  | Med      | —              |
 | M19 | Tag cache v2: `cache_age_seconds` in --json + fetch-refresh + stale warning                                                                                       | f.11-ext                  | 45  | Low-Med  | —              |
 | M20 | Small closes: pre-commit smoke, batch-release decision, GONOSUMCHECK, coverage re-verify, docs-freshness probe, catalog smoke, samber-do SSE e2e, admin-sync spec | f.20/23/24/26/30/36 + new | 90  | Med      | —              |
-| M21 | Train execution: upstream projectionadapter v4.5.0 → strip last replaces → systemadapter tag → family cut → post-train HARVEST                                    | f.5/6/7/9/50              | 90+ | Critical | USER           | ✅ done — v4.9.0 13-tag family train 2026-09-01; systemadapter tag remains upstream-blocked (TODO_LIST P1).
-| M22 | Gated long tail: purge plans, hardware decision doc, cqrs-lint dist draft, upstream issue drafts, appkit re-validation                                            | f.41–45/47                | 60  | Low      | USER           | → routed: the five gated decision docs + TODO_LIST P3.
+| M21 | Train execution: upstream projectionadapter v4.5.0 → strip last replaces → systemadapter tag → family cut → post-train HARVEST                                    | f.5/6/7/9/50              | 90+ | Critical | USER           |
+| M22 | Gated long tail: purge plans, hardware decision doc, cqrs-lint dist draft, upstream issue drafts, appkit re-validation                                            | f.41–45/47                | 60  | Low      | USER           |
 
 ## 3. Fine-Granularity Plan (each ≤ 12 min, ALL todos included)
 

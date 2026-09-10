@@ -6,6 +6,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** its gci warning was stale-LSP (0 real issues); SSE items shipped (heartbeat, SSEMaxReplay, WithSSEFilter, golden wire test). Routed 2026-09-09: root ServeSSE replay-store support, sse.Replay edge tests, EventPayload ADR, ADR-0046 replay addendum, own-feed guide, Retry field, JournalSSEStore bench, fuzz, e2e reconnect scenario → TODO_LIST SSE backlog / ROADMAP residual. ARCHIVED.
+
 ## Executive Summary
 
 All three decisions were made autonomously and executed: SSE envelope deduplicated into root `transport/`, journal replay implemented for `setup`'s `/sse`, and the `Logger` guard gap fixed. Per-module builds and tests are green. **However:** the storage/v4 dependency saga burned half the session racing a concurrent session that was committing the same fix, and the four verification gates plus all doc updates remain unrun. The tree currently has 9 modified/new files, uncommitted.

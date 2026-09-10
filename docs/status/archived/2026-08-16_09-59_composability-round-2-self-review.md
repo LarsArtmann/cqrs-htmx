@@ -8,6 +8,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** its fixes shipped (Logger conflict rejection, transport envelope dedup, heartbeat, replay, fullstack-wiring docs). Its `/sse` live-only claim is stale (replay+backfill shipped 2026-08-21). Routed 2026-09-09: adoption-showcase example + Disable*-matrix/SSEPath-gate tests + adoption-contract ADR → ROADMAP (setup surface ideas / residual micro-ideas). ARCHIVED.
+
 ## a) FULLY DONE (verified)
 
 1. **Prior-review verification.** The 2026-08-09 composability review's entire 6-finding roadmap was confirmed executed (setup/ root, health/ + auditlog/ bridges, Raw() hub sharing, setup-demo, fullstack tests). This session built on that baseline instead of re-recommending it.

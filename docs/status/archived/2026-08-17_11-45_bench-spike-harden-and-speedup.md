@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the hardening shipped (8.2s→2.3s, benchstat gate, machine-pinned raw baseline; AGENTS carries the pattern). Its SSEMaxReplay WIP-alarm claims are obsolete (fields shipped; setup v4.8.1/v4.8.2 later retracted for the stale-tag incident — see CHANGELOG). SSEMaxReplay README row ADDED 2026-09-09. Residual ideas (LogFormat param, -race bench, shared runOptions) → ROADMAP residual. ARCHIVED.
+
 ## a) FULLY DONE
 
 1. **Spike test runtime: 8.225s → 2.295s** (target was ~3s). Three `TestRunWithAppkit_*` cases each saved ~1.9s by switching from the production 2s appkit `DrainDelay` to `spikeTestDrainDelay = 50ms` — the drain phase still runs end-to-end, just on a faster clock. The public `RunWithAppkit` API is unchanged (still 2s drain); only the private worker takes the parameter.

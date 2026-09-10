@@ -6,6 +6,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** shipped, pushed, tagged (oauth2 v4.8.1 2026-08-30 + v4.9.0 2026-09-01), issues #8/#9 closed — the file's own UPDATE block is correct and its "NOT pushed" status block is obsolete. dnsblockd follow-up is an external-repo item (noted, out of scope). ARCHIVED.
+
 ## a) FULLY DONE
 
 ### Issue #8 — public (secret-less) PKCE clients

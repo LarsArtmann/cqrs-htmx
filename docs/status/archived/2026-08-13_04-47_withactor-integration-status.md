@@ -7,6 +7,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the PARTIALLY-DONE verdict is obsolete — command/query actor propagation shipped in the 05:15 session (handler.go enrichment in all 4 dispatch paths) and ADR-0111 later consolidated ActorID. The two never-done asks are routed 2026-09-09: actor/audit-trail guide → TODO_LIST Docs debt (b); examples/basic actor demo → Docs debt (c). ARCHIVED.
+
 ## What Was Done
 
 ### Fully Done

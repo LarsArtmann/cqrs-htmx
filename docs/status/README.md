@@ -15,17 +15,17 @@ Each report in this tree captures what someone knew at the end of a work session
 
 ## Layout (reorganized 2026-09-09)
 
-| Path                        | Contents                                                                                                  |
-| --------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `docs/status/*.md`          | The 3 most recent session reports only (unarchived tail)                                                   |
-| `docs/status/archived/`     | 273 annotated + archived session reports (2026-06-16 → 2026-09-07)                                        |
-| `docs/status/*.html`        | Generated HTML report artifacts (see "HTML corpus" below)                                                 |
-| `docs/planning/`            | Active plans; superseded ones move to `docs/planning/archived/`                                            |
-| `docs/reviews/archived/`    | Archived review documents                                                                                 |
-| `docs/modularization/archived/` | Archived module-assessment documents                                                                  |
-| `docs/plans/archived/`      | Archived implementation plans                                                                             |
-| `docs/feedback/processed/`  | Processed feedback documents                                                                              |
-| `docs/architecture-understanding/` | Generated self-contained HTML architecture reports (see "HTML corpus" below)                        |
+| Path                               | Contents                                                                     |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| `docs/status/*.md`                 | The 3 most recent session reports only (unarchived tail)                     |
+| `docs/status/archived/`            | 273 annotated + archived session reports (2026-06-16 → 2026-09-07)           |
+| `docs/status/*.html`               | Generated HTML report artifacts (see "HTML corpus" below)                    |
+| `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`              |
+| `docs/reviews/archived/`           | Archived review documents                                                    |
+| `docs/modularization/archived/`    | Archived module-assessment documents                                         |
+| `docs/plans/archived/`             | Archived implementation plans                                                |
+| `docs/feedback/processed/`         | Processed feedback documents                                                 |
+| `docs/architecture-understanding/` | Generated self-contained HTML architecture reports (see "HTML corpus" below) |
 
 ## Annotation convention (since the 2026-09-09 full sweep)
 

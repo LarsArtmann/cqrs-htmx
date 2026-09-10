@@ -10,6 +10,7 @@
 ---
 
 > **ANNOTATED 2026-09-09 (docs-health):** the push EXECUTED 2026-08-14 (master + 10 tags); integration_test migration shipped; datastar train shipped (v4.9.0); systemadapter remains upstream-blocked (TODO_LIST P1). auditlog-viewer/fullstack ask → Docs debt (e). ARCHIVED.
+
 ## a) DONE (all verified)
 
 ### 1. Coordinated v4.8.0 family release train — 10 local tags, zero pushes
