@@ -647,8 +647,8 @@
                   pkgs.templ
                 ];
                 text = ''
-                  (cd adminui && templ generate && gofmt -w *_templ.go)
-                  (cd loginpage && templ generate && gofmt -w *_templ.go)
+                  (cd adminui && templ generate && gofmt -w ./*_templ.go)
+                  (cd loginpage && templ generate && gofmt -w ./*_templ.go)
                   echo "Done: adminui + loginpage templ components regenerated (module-dir, bare FileName) and formatted"
                 '';
               };

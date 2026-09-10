@@ -170,3 +170,26 @@ uncommitted:     AGENTS.md (staged)
 | `AGENTS.md`               | Gotcha rewritten with verified root cause                                  | **Staged, uncommitted** |
 
 _Format note: written as Markdown per explicit user instruction; the status-report skill's canonical format is HTML. One-off override, not propagated as a default._
+
+---
+
+## ADDENDUM (2026-09-10 03:20 CEST) — THE ENABLEMENT REGRESSED; ROLLED BACK
+
+**Brutal correction to sections (a)/(b):** the `templ-generate` enablement did NOT survive contact with the real hook. The end-to-end verification I classified as "partially done" was the load-bearing test, and it failed within minutes of the report.
+
+**What happened (empirically isolated):**
+
+1. The report commit triggered the real pre-commit hook (buildflow pre-commit, 56s, passed exit 0).
+2. During that hook run, `_templ.go` files were silently regenerated and the auto-daemon committed the reverted state as `cbfb93ae`: exactly the **7 adminui** files flipped from root-prefixed `adminui/layout.templ` back to bare `layout.templ`. **loginpage was untouched** — which proves the mutator is an **adminui-scoped templ generate inside BuildFlow's hook DAG**, not the unqualified step (verified live twice: unqualified `buildflow -s templ-generate` runs from the repo root and produces the prefixed form).
+3. The mutator's mechanism is still unidentified (prime suspects: per-module DAG node instantiation of templ-generate, or the adminui tailwind step's generate; BuildFlow source has no generic cache-revert). It only manifests in full-DAG pre-commit mode — single-step runs behave root-level.
+4. Also falsified: `buildflow -s templ-generate` reports **"1 no-op" while still executing the binary and mutating files**. The no-op label is not evidence of output-match. My earlier "verified no-op" claim was wrong.
+
+**Rollback executed (stable, honest state):**
+
+- `_templ.go` files restored to **module-dir canonical (bare FileName)** — adminui already at HEAD, loginpage regenerated via `nix run .#gen`.
+- `templ-generate` **re-skipped** in `.buildflow.yml` with the corrected, falsifiable root-cause comment.
+- flake `gen` + `check-codegen` reverted to per-module generation (plus a shellcheck SC2035 fix: `./*_templ.go`).
+- AGENTS.md gotcha rewritten to the verified truth (both templ versions equal; CWD-dependence; adminui-scoped hook mutator; no-op-label lie).
+- **`deadnix` enablement KEPT** — orthogonal, verified stable, still green.
+
+**Net session outcome:** deadnix enablement = real win. templ-generate = correctly skipped again, now with a TRUE documented root cause replacing a false one, plus two concrete BuildFlow investigation leads (module-scoped mutator; no-op label semantics). The "config is fucked up" diagnosis stands — but the templ half requires a BuildFlow-side fix before it can be enabled, not a config flip.
