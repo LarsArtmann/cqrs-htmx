@@ -1,6 +1,6 @@
 # Drafts: upstream asks (go-cqrs-lite)
 
-**Status:** PREPARED, awaiting approval to file (external comms — filing any of these is a user gate).
+**Status:** FILED 2026-09-10 — Draft 1 → [go-cqrs-lite#25](https://github.com/LarsArtmann/go-cqrs-lite/issues/25), Draft 4 → [#26](https://github.com/LarsArtmann/go-cqrs-lite/issues/26), Draft 2 → [#27](https://github.com/LarsArtmann/go-cqrs-lite/issues/27), Draft 3 → [#28](https://github.com/LarsArtmann/go-cqrs-lite/issues/28). Premises re-verified live at filing time (projectionadapter max still v4.4.1 via ls-remote; OccurredAt present on master; postgres v4.2.0 isolation build reproduced: `undefined: sqlopt.OpenDBOrErr` at preset.go:147; no duplicate issues found).
 **Prepared:** 2026-08-30. **Verified + completed to four drafts:** 2026-09-10 (projectionadapter max re-verified via live `git ls-remote`; postgres v4.2.0 breakage re-verified via `scripts/check-templates.sh`).
 
 ## Draft 1 — tag `metaengine/projectionadapter/v4 v4.5.0` (THE blocker)
