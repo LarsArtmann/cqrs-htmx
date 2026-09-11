@@ -1,102 +1,47 @@
 # BuildFlow Configuration
 # See: https://github.com/larsartmann/buildflow
 
-# Build mode: full, fast, ci, dev, pre-commit
-build_mode: full
-
-# Parallel execution
-#
 # max_concurrency: 1 is the DEFINITIVE fix for the govalid-generate GOCACHE
 # race. At concurrency >1, two govalid (or golangci-lint) processes can
 # SIMULTANEOUSLY compile the same cold-cache dependency (encoding/json/v2 under
 # GOEXPERIMENT=jsonv2 is not pre-compiled) to GOCACHE, racing on concurrent
-# WRITEs and producing cascading "markers: failed prerequisites" /
-# "invalid package name" / garbled "unknown revision" errors. Historical flake
-# rate at concurrency 2 WITHOUT prewarm: 16.6% (pre-commit) / 12% (full).
-#
-# At concurrency 1 there is only ever ONE writer to GOCACHE, so the race is
-# impossible — regardless of cache warmth, invocation mode (pre-commit, full,
-# single-step), or whether prewarm ran. The speed cost is negligible (~5% on a
-# warm cache: 6.5s vs 6.2s for the 18-module govalid-generate fan-out) because
-# the bottleneck is per-module compile time, not parallelism.
-#
-# scripts/prewarm-gocache.sh remains as a PERFORMANCE optimization (it converts
-# the first cold compile to a warm read, so each serialized module is faster)
-# and is still called from the pre-commit hook. It is no longer load-bearing
-# for correctness.
-parallel: true
+# WRITEs. At concurrency 1 there is only ever ONE writer, so the race is
+# impossible. The speed cost is negligible (~5% on a warm cache) because the
+# bottleneck is per-module compile time, not parallelism.
+# scripts/prewarm-gocache.sh remains a PERFORMANCE optimization and is still
+# called from the pre-commit hook; it is no longer load-bearing for correctness.
 max_concurrency: 1
 
-# Retry modifier: conservative retries transiently-failing steps with backoff.
-# With max_concurrency: 1, the govalid-generate GOCACHE race is eliminated at
-# the source (no concurrent writers), so failures should be ~0%. Retries remain
-# as a safety net for any other transient failures.
-# Valid values: aggressive, conservative, none. (The --retry-profile flag sets
-# this same key.)
+# Conservative retries transiently-failing steps with backoff. With
+# max_concurrency: 1 the GOCACHE race is eliminated at the source, so failures
+# should be ~0%. Retries remain a safety net for other transient failures.
 retry_modifier: conservative
 
-# File settings
-max_file_size: 350 # lines
-dupl_threshold: 30 # tokens
+# Only FIXME/XXX/BUG-class markers fail; TODO/NOTE/OPTIMIZE do not block
+# commits (documentation notes).
+todo_min_severity: warning
 
-# Comment severity for action items found in code: debug, info, warn, error
-# Set to debug so documentation notes don't block commits.
-todo_severity: debug
-
-# Patterns to exclude from checks
+# Shell scripts are owned by treefmt (`nix fmt`: shfmt 2-space indent +
+# shellcheck). BuildFlow's own shfmt would fight that on every staged script;
+# script linting is enforced by treefmt + CI. HTML/min.js are generated or
+# vendored artifacts that must not be reformatted.
 exclude:
-  - vendor
-  - .git
-  - node_modules
-  - .next
-  - dist
-  - "*.pb.go"
-  - "*.gen.go"
-  # Generated/vendored files that must not be reformatted:
-  - "*_templ.go" # committed templ output (verified by nix run .#check-codegen)
-  - "*.html" # all HTML in this repo is generated reports/docs, not source
-  - "*.min.js" # vendored minified JS (htmx.min.js, extensions/*.min.js)
-  - "htmx.min.js" # root-level vendored htmx
-  # Shell scripts are owned by treefmt (`nix fmt`: shfmt 2-space indent +
-  # shellcheck — the documented repo standard). buildflow's shfmt uses its
-  # own default indent and would fight that on every staged script (first
-  # surfaced 2026-08-30 when the pre-commit hook came back alive after the
-  # core.hooksPath fix; script linting is enforced by treefmt + CI).
+  - "*.html"
+  - "*.min.js"
   - "*.sh"
 
-# Auto-fix settings
-auto_fix: false
-
-# templ-generate is SKIPPED (re-skipped 2026-09-10 after a verified revert-war):
-# facts — buildflow resolves templ via exec.LookPath (no bundled binary; nixpkgs
-# and ~/go/bin templ are both 0.3.1020, so the OLD comment's version-conflict
-# claim was false). The REAL conflict: `templ generate` emits FileName: fields
-# relative to the invocation dir. Repo-root runs (what an unqualified run does)
-# write path-prefixed names (adminui/layout.templ), but the pre-commit hook's
-# DAG ALSO contains an adminui-SCOPED templ generate (empirically isolated:
-# a hook run flipped exactly the 7 adminui _templ.go files back to bare
-# `layout.templ` form and the daemon committed it — loginpage was untouched).
-# Root-canonical and module-canonical therefore FIGHT inside one hook run.
-# Until that step's workdir is aligned (BuildFlow investigation), the stable
-# canonical form is MODULE-DIR generation (bare FileName), which is what
-# `nix run .#gen` / `.#check-codegen` verify. The `templ-fmt` step still runs
-# (it formats .templ source files, not _templ.go).
+# Skip templ-generate: BuildFlow's bundled templ binary regenerates _templ.go
+# files with directory-prefixed FileName: fields, conflicting with the
+# nix-pinned templ version. Committed files are verified by `nix run
+# .#check-codegen` instead.
+# jest/vitest/pnpm-audit: Go library, no JS test framework or lockfile.
+# deadnix: not installed. eslint: biome handles JS formatting/linting.
+# dprint-format: dprint.json here scopes dprint to markdown only; markdown
+# formatting waits for a one-time normalization pass (257 files).
 skip_steps:
   - templ-generate
-  # This is a Go library — no JavaScript test framework. The e2e/ directory
-  # uses Playwright (not jest/vitest) and there is no root-level package.json.
   - jest-test
   - vitest-test
   - pnpm-audit
-  # Not installed in devShell; biome handles JS formatting/linting.
-  - eslint
-  # deadnix is ENABLED (installed in the devShell as of 2026-09-10): Detect
-  # runs `deadnix --fail --quiet .` so .nix files must be dead-code clean.
-  # Markdown formatting (dprint) — skipped until a one-time normalization pass
-  # is done. 257 .md files would create massive churn; format incrementally
-  # per-file instead. Re-enable after bulk-formatting docs.
-  - markdown-format
-
-# Logging
-verbose: false
-log_level: info
+  - deadnix
+  - dprint-format
