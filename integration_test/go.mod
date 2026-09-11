@@ -67,7 +67,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
 	github.com/larsartmann/go-output/table v0.38.0 // indirect
 	github.com/larsartmann/go-output/tree v0.38.0 // indirect
-	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
+	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.16.0 // indirect
 	github.com/larsartmann/templ-components/datastar v1.16.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.16.0 // indirect

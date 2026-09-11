@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-sse v0.6.0
 	github.com/larsartmann/httputil v1.0.1
-	github.com/larsartmann/httputil/server_timing v0.12.0
+	github.com/larsartmann/httputil/server_timing v1.0.1
 )
 
 require (
