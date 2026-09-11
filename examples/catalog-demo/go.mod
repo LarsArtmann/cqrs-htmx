@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.3.0
-	github.com/larsartmann/httputil v0.12.0
+	github.com/larsartmann/httputil v1.0.1
 )
 
 require (
@@ -15,7 +15,7 @@ require (
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-etag v0.2.0 // indirect
+	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/templ-components v1.16.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.16.0 // indirect
 	github.com/larsartmann/templ-components/icons v1.16.0 // indirect

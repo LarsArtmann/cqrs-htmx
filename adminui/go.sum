@@ -177,8 +177,8 @@ github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0 h1:23uWKoJAf1qsyqgaEKMLw
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0/go.mod h1:G+ahYrFP0pXVzjLs1ue0W6EgOSXxoxryDVCCmNXFRN0=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
-github.com/larsartmann/go-etag v0.2.0 h1:K9+EOWRMKzA50cZxSF6yhKCCm9O011h3aVnt2E0dZRU=
-github.com/larsartmann/go-etag v0.2.0/go.mod h1:c2PnfOTTSerzR/EKI3vMIJYvEddG7fBeGDpllyskc2w=
+github.com/larsartmann/go-etag v0.3.1 h1:jLzNpsw3WzLNblrKJPaf/JYCZOTuQPoCq2GKoROopA8=
+github.com/larsartmann/go-etag v0.3.1/go.mod h1:Ky5ngONjO+ufeS1rasedzwD5xkZo3WZ7FbOXDKi3KP0=
 github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
@@ -187,8 +187,8 @@ github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hs
 github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
 github.com/larsartmann/go-sse/ssetest v0.3.0 h1:HEP3nFUsaWAz6fz8WmbeR2nUj6jv/cAHf+7HVeMeRRY=
 github.com/larsartmann/go-sse/ssetest v0.3.0/go.mod h1:VNpjSMfzdCeIT5YKAmJPB6jGN4PBjJF0/aXc/YM/OVQ=
-github.com/larsartmann/httputil v0.12.0 h1:ghPiGCu5UeCWaVnJ5S1fpzxOOBjWewEOHh61gtsfhW4=
-github.com/larsartmann/httputil v0.12.0/go.mod h1:tBPIqaXXZ/AtGXR/kq0wFR0Wlt2WRVXTOpYl/oSajnI=
+github.com/larsartmann/httputil v1.0.1 h1:HFDAHEy17M8e7tTIn4V/GRW3b3d3OBrN22vXkAJ8fzc=
+github.com/larsartmann/httputil v1.0.1/go.mod h1:7WkDm8VR8zrive6O6duEnnCBZ3kGZXoTZ+lnR9fR8gg=
 github.com/larsartmann/httputil/server_timing v0.12.0 h1:1Vqxl4L/3lDw38LlImG/5glFaCd4ZTU1KHtIXFvNWn0=
 github.com/larsartmann/httputil/server_timing v0.12.0/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
 github.com/larsartmann/templ-components v1.16.0 h1:c6tszrA3acZX8koDzXI+Tin4BRBs1oPt1XK3M3FqTCA=

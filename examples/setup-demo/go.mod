@@ -68,10 +68,10 @@ require (
 	github.com/larsartmann/go-datastar v0.5.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
-	github.com/larsartmann/go-etag v0.2.0 // indirect
+	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
-	github.com/larsartmann/httputil v0.12.0 // indirect
+	github.com/larsartmann/httputil v1.0.1 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/larsartmann/templ-components v1.16.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.16.0 // indirect

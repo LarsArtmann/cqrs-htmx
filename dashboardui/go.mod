@@ -44,10 +44,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-etag v0.2.0 // indirect
+	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
-	github.com/larsartmann/httputil v0.12.0 // indirect
+	github.com/larsartmann/httputil v1.0.1 // indirect
 	github.com/larsartmann/httputil/server_timing v0.12.0 // indirect
 	github.com/larsartmann/templ-components/utils v1.16.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect

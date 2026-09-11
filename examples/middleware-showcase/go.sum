@@ -72,8 +72,8 @@ github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hs
 github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
 github.com/larsartmann/go-sse/ssetest v0.3.0 h1:HEP3nFUsaWAz6fz8WmbeR2nUj6jv/cAHf+7HVeMeRRY=
 github.com/larsartmann/go-sse/ssetest v0.3.0/go.mod h1:VNpjSMfzdCeIT5YKAmJPB6jGN4PBjJF0/aXc/YM/OVQ=
-github.com/larsartmann/httputil v0.12.0 h1:ghPiGCu5UeCWaVnJ5S1fpzxOOBjWewEOHh61gtsfhW4=
-github.com/larsartmann/httputil v0.12.0/go.mod h1:tBPIqaXXZ/AtGXR/kq0wFR0Wlt2WRVXTOpYl/oSajnI=
+github.com/larsartmann/httputil v1.0.1 h1:HFDAHEy17M8e7tTIn4V/GRW3b3d3OBrN22vXkAJ8fzc=
+github.com/larsartmann/httputil v1.0.1/go.mod h1:7WkDm8VR8zrive6O6duEnnCBZ3kGZXoTZ+lnR9fR8gg=
 github.com/larsartmann/httputil/server_timing v0.12.0 h1:1Vqxl4L/3lDw38LlImG/5glFaCd4ZTU1KHtIXFvNWn0=
 github.com/larsartmann/httputil/server_timing v0.12.0/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=

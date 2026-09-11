@@ -34,10 +34,10 @@ github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.3.0 h1:4C1AqztqseNk1KOfO29a/r7
 github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.3.0/go.mod h1:lsxztSsG39lcJnBFJ/P8Al3lK6mPTpSHeVXDWGraBpw=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
-github.com/larsartmann/go-etag v0.2.0 h1:K9+EOWRMKzA50cZxSF6yhKCCm9O011h3aVnt2E0dZRU=
-github.com/larsartmann/go-etag v0.2.0/go.mod h1:c2PnfOTTSerzR/EKI3vMIJYvEddG7fBeGDpllyskc2w=
-github.com/larsartmann/httputil v0.12.0 h1:ghPiGCu5UeCWaVnJ5S1fpzxOOBjWewEOHh61gtsfhW4=
-github.com/larsartmann/httputil v0.12.0/go.mod h1:tBPIqaXXZ/AtGXR/kq0wFR0Wlt2WRVXTOpYl/oSajnI=
+github.com/larsartmann/go-etag v0.3.1 h1:jLzNpsw3WzLNblrKJPaf/JYCZOTuQPoCq2GKoROopA8=
+github.com/larsartmann/go-etag v0.3.1/go.mod h1:Ky5ngONjO+ufeS1rasedzwD5xkZo3WZ7FbOXDKi3KP0=
+github.com/larsartmann/httputil v1.0.1 h1:HFDAHEy17M8e7tTIn4V/GRW3b3d3OBrN22vXkAJ8fzc=
+github.com/larsartmann/httputil v1.0.1/go.mod h1:7WkDm8VR8zrive6O6duEnnCBZ3kGZXoTZ+lnR9fR8gg=
 github.com/larsartmann/httputil/server_timing v0.12.0 h1:1Vqxl4L/3lDw38LlImG/5glFaCd4ZTU1KHtIXFvNWn0=
 github.com/larsartmann/httputil/server_timing v0.12.0/go.mod h1:MBAZ0voPobw5r30Pwa0v3C4c9lHZfgUnHn8S67nqzjQ=
 github.com/larsartmann/templ-components v1.16.0 h1:c6tszrA3acZX8koDzXI+Tin4BRBs1oPt1XK3M3FqTCA=

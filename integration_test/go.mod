@@ -45,7 +45,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-datastar v0.5.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
-	github.com/larsartmann/go-etag v0.2.0 // indirect
+	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-health-dashboard v0.7.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
@@ -125,7 +125,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0
-	github.com/larsartmann/httputil v0.12.0
+	github.com/larsartmann/httputil v1.0.1
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
