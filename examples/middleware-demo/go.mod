@@ -13,6 +13,7 @@ require (
 
 require (
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
+	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
@@ -29,6 +30,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
@@ -44,6 +46,8 @@ require (
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 )

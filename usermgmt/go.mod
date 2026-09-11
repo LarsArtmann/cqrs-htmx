@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/usermgmt/v4
 go 1.26.7
 
 require (
-	github.com/go-sql-driver/mysql v1.10.0
+	github.com/go-sql-driver/mysql v1.10.1
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
@@ -70,14 +70,19 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-playground/form/v4 v4.3.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
@@ -117,10 +122,11 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/crypto v0.56.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect

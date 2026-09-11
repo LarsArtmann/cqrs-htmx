@@ -97,7 +97,20 @@ require (
 	modernc.org/sqlite v1.58.0 // indirect
 )
 
-require github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+require (
+	github.com/go-sql-driver/mysql v1.10.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
+	golang.org/x/mod v0.41.0 // indirect
+)
 
 replace github.com/larsartmann/cqrs-htmx => ../
 

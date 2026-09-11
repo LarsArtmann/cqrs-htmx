@@ -36,9 +36,15 @@ require (
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/gkampitakis/go-snaps v0.5.23 // indirect
 	github.com/go-logfmt/logfmt v0.6.1 // indirect
+	github.com/go-sql-driver/mysql v1.10.1 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
+	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-datastar v0.5.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
@@ -58,7 +64,9 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/xo/terminfo v1.0.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
+	golang.org/x/net v0.59.0 // indirect
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
