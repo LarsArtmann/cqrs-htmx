@@ -64,8 +64,8 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.0 h1:qFh42khDRIymw34R
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.0/go.mod h1:17eQbWCvNaCEYuH9seWcQMHALZd8xZeeJYmBcfL3Fpw=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
-github.com/larsartmann/go-etag v0.3.0 h1:5xfq6JcUwlJGYqblO+W4A3jR7QsYvbPY9Jhu8EtGeR0=
-github.com/larsartmann/go-etag v0.3.0/go.mod h1:Ky5ngONjO+ufeS1rasedzwD5xkZo3WZ7FbOXDKi3KP0=
+github.com/larsartmann/go-etag v0.3.1 h1:jLzNpsw3WzLNblrKJPaf/JYCZOTuQPoCq2GKoROopA8=
+github.com/larsartmann/go-etag v0.3.1/go.mod h1:Ky5ngONjO+ufeS1rasedzwD5xkZo3WZ7FbOXDKi3KP0=
 github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
 github.com/larsartmann/go-idempotency v0.3.0/go.mod h1:VjTQypq0FQLA9AmageDkuFoUFfN2hd3eErSFZo9ip+I=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
