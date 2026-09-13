@@ -10,6 +10,9 @@
 // This example mounts a single command whose handler fails transiently twice and
 // then succeeds. The retry middleware makes the HTTP request still return 204.
 //
+// Tracing + metrics wiring (CommandTracing, CommandTypedMetrics, Prometheus
+// /metrics): see examples/observability-demo — it composes the same way.
+//
 // Run: go run . and open http://localhost:8098
 //
 //	curl -X POST http://localhost:8098/ping -d '{"msg":"hello"}' -w '\n%{http_code}\n'
