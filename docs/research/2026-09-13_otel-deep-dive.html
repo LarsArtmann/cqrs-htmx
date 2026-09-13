@@ -1249,29 +1249,35 @@ decider.<span class="tok-func">WithEnricher</span>[UserState](event.<span class=
             </div>
           </div>
 
-          <div class="issue issue-important" id="middleware-demo-claim">
-            <span class="severity severity-important"
-              >Partially Used &middot; Low-medium impact</span
+          <div class="issue issue-nice" id="middleware-demo-claim">
+            <span class="severity severity-nice"
+              >Partially Used &middot; Low impact &middot; RESOLVED in this
+              change</span
             >
-            <h3>middleware-demo advertises tracing it doesn&rsquo;t demonstrate</h3>
+            <h3>
+              middleware-demo doesn&rsquo;t point tracing-seekers at the demo
+              that has it
+            </h3>
             <div class="where">
-              examples/middleware-demo/main.go:6 (comment) &middot; zero
-              tracing/metrics wiring in the file
+              examples/middleware-demo/main.go:10-15 &middot; header comment
+              accurate but silent on where tracing lives
             </div>
             <p>
-              The header comment lists tracing among the demonstrated
-              middleware factories, and both AGENTS.md and FEATURES.md point
-              to this example as the entry point for dispatch middleware
-              &mdash; but the file wires none of it. observability-demo covers
-              tracing, yet a reader who follows the advertised path finds
-              nothing to copy. Discoverability is the theme of this report;
-              this is its smallest instance.
+              The header comment honestly lists the composable factories (the
+              demo itself runs retry + logging), and AGENTS.md and FEATURES.md
+              point here as the dispatch-middleware entry point &mdash; but
+              nothing says where the tracing/metrics wiring actually lives
+              (examples/observability-demo). A reader hunting for the OTel
+              demo lands on the retry demo. Applied in this change: a two-line
+              pointer comment directing to observability-demo.
             </p>
             <div class="callout callout-teal">
               <strong>Recommendation</strong>
-              Either add two lines (<code>cqrsotel.Setup</code> +
-              <code>cmdDisp.Use(middleware.CommandTracing(tracer))</code>) or
-              correct the comment to point at observability-demo.
+              Pointer added (2026-09-13). Optional: also wire
+              <code>cqrsotel.Setup</code> +
+              <code>cmdDisp.Use(middleware.CommandTracing(tracer))</code> in
+              middleware-demo itself for a one-file comparison of both
+              middleware families.
             </div>
           </div>
 
@@ -1422,7 +1428,7 @@ decider.<span class="tok-func">WithEnricher</span>[UserState](event.<span class=
                 <td>1</td>
                 <td>
                   Kill the stale contradictory wiring doc (banner + fact fix
-                  &mdash; applied in this change)
+                  &mdash; APPLIED 2026-09-13)
                 </td>
                 <td class="yes">5</td>
                 <td class="yes">5</td>
@@ -1451,8 +1457,8 @@ decider.<span class="tok-func">WithEnricher</span>[UserState](event.<span class=
               <tr>
                 <td>4</td>
                 <td>
-                  middleware-demo: wire tracing (or fix the claim in its
-                  header comment)
+                  middleware-demo pointer to observability-demo &mdash;
+                  APPLIED 2026-09-13 (comment fix)
                 </td>
                 <td>3</td>
                 <td class="yes">5</td>
