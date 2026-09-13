@@ -181,9 +181,17 @@ linters:
         ginkgolinter:
             forbid-focus-container: true
             forbid-spec-pollution: true
+        gocognit:
+            min-complexity: 25
+        goconst:
+            ignore-tests: true
+            min-len: 4
+            min-occurrences: 5
         gocritic:
             disabled-checks:
                 - ifElseChain
+        gocyclo:
+            min-complexity: 20
         gomoddirectives:
             replace-local: true
         gosec:
@@ -206,11 +214,24 @@ linters:
                 - "1"
                 - "2"
                 - "100"
+        nestif:
+            min-complexity: 6
         revive:
             rules:
                 - name: exported
                 - disabled: true
                   name: package-comments
+        tagalign:
+            align: false
+            order:
+                - binding
+                - json
+                - yaml
+                - xml
+                - toml
+                - validate
+                - mapstructure
+            sort: true
         testifylint:
             disable:
                 - go-require
@@ -301,6 +322,19 @@ linters:
             - path: _test\.go
               linters:
                 - exhaustruct
+                - testpackage
+                - gochecknoglobals
+                - funlen
+                - cyclop
+                - goconst
+                - forcetypeassert
+                - gosec
+                - errcheck
+                - wrapcheck
+                - ireturn
+                - recvcheck
+                - contextcheck
+                - exhaustive
             - path: benchmark_server_test\.go$
               linters:
                 - exhaustruct
@@ -342,6 +376,7 @@ linters:
             - _templ\.go$
             - adminui/
             - loginpage/
+            - mock_.*\.go$
             - usermgmt/
             - vendor/
 formatters:
@@ -359,6 +394,7 @@ formatters:
             - _mock\.go$
             - _templ\.go$
             - adminui/
+            - mock_.*\.go$
             - usermgmt/
 issues:
     max-issues-per-linter: 50

@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/httputil v1.0.1
+	github.com/larsartmann/httputil v1.1.1
 )
 
 require (

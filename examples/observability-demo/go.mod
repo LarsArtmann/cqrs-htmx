@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.0
-	github.com/larsartmann/httputil v1.0.1
+	github.com/larsartmann/httputil v1.1.1
 	go.opentelemetry.io/otel v1.46.0
 )
 

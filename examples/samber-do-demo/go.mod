@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-health v0.1.3
 	github.com/larsartmann/go-health-dashboard v0.7.0
-	github.com/larsartmann/httputil v1.0.1
+	github.com/larsartmann/httputil v1.1.1
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/samber/do/v2 v2.1.0
 )
@@ -21,7 +21,7 @@ require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260906173415-0277a179edd9 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260910203606-6c9e17dc7a16 // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
@@ -61,7 +61,7 @@ require (
 	github.com/larsartmann/templ-components/icons v1.16.0 // indirect
 	github.com/larsartmann/templ-components/utils v1.16.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
-	github.com/mattn/go-runewidth v0.0.29 // indirect
+	github.com/mattn/go-runewidth v0.0.30 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect

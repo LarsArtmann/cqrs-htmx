@@ -75,7 +75,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
-	github.com/larsartmann/httputil v1.0.1 // indirect
+	github.com/larsartmann/httputil v1.1.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.16.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.16.0 // indirect
@@ -84,7 +84,7 @@ require (
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/mattn/go-runewidth v0.0.29 // indirect
+	github.com/mattn/go-runewidth v0.0.30 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect

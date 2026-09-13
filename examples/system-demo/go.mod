@@ -62,7 +62,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
-	github.com/larsartmann/httputil v1.0.1 // indirect
+	github.com/larsartmann/httputil v1.1.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -84,7 +84,6 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 )
 
