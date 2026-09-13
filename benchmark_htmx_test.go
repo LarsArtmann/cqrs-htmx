@@ -19,7 +19,7 @@ func (benchComponent) Render(_ context.Context, w io.Writer) error {
 }
 
 // sink prevents the compiler from optimizing away pure function calls.
-var sink string //nolint:gochecknoglobals // benchmark sink
+var sink string
 
 func BenchmarkParseHTMXRequest(b *testing.B) {
 	handler := cqrshtmx.HTMXMiddleware(
