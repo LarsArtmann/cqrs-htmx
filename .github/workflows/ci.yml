@@ -397,7 +397,7 @@ jobs:
         run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: golangci-lint (root)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           args: "--timeout=5m"
@@ -407,7 +407,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (usermgmt)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: usermgmt
@@ -418,7 +418,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (adminui)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: adminui
@@ -429,7 +429,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (identity-model)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: identity-model
@@ -440,7 +440,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (dashboardui)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: dashboardui
@@ -451,7 +451,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (loginpage)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: loginpage
@@ -462,7 +462,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (datastar)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: datastar
@@ -473,7 +473,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (setup)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: setup
@@ -484,7 +484,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (systemadapter)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: systemadapter
@@ -495,7 +495,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (health)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: health
@@ -506,7 +506,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: golangci-lint (auditlog)
-        uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.12.2
           working-directory: auditlog
@@ -709,7 +709,7 @@ jobs:
           GOEXPERIMENT: jsonv2
 
       - name: gosec
-        uses: securego/gosec@2eb4727ebc7504944ddbcdd2f7157db492026c3f # master
+        uses: securego/gosec@8075fd2e520d33330afe168f26fc7a91f57f2cbc # master
         with:
           args: "-no-fail -fmt sarif -out results.sarif ./..."
         env:
@@ -727,7 +727,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
         if: always()
         with:
           sarif_file: results.sarif
