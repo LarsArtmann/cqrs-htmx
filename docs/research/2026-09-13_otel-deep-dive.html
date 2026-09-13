@@ -847,3 +847,722 @@
       }
     </style>
   </head>
+  <body>
+    <div class="top-bar">
+      <span>LIBRARY DEEP DIVE</span>
+      <span>2026-09-13</span>
+      <span>cqrs-htmx &middot; 27-module workspace</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#strengths">Current Usage</a>
+          <a href="#findings">Findings</a>
+          <a href="#versions">Version Currency</a>
+          <a href="#plan">Action Plan</a>
+          <a href="#conclusion">Conclusion</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-09-13</div>
+          <h1>OpenTelemetry &mdash; Adoption &amp; Utilization Audit</h1>
+          <p class="subtitle">
+            How cqrs-htmx and its consumers stand on OTel tracing and metrics.
+            The seams are right and every version is current &mdash; but the
+            single biggest capability (free domain spans) is undocumented, and
+            one stale guide actively contradicts the canonical one.
+          </p>
+          <div class="meta">
+            <span class="tag teal">otel SDK v1.46.0 (latest)</span>
+            <span class="tag teal">go-cqrs-lite/otel v4.4.0 (latest)</span>
+            <span class="tag">prometheus/v4 v4.3.0 (latest)</span>
+            <span class="tag amber">Adoption Score: 64/100</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-warn">
+            <div class="score">64</div>
+            <div class="label">Adoption score /100</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">4/11</div>
+            <div class="label">Capabilities fully leveraged</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">4</div>
+            <div class="label">Missed opportunities</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Anti-patterns / misuse</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Versions behind latest</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            cqrs-htmx is a library, so the correct measure of OTel adoption is
+            not &ldquo;does the library import OpenTelemetry&rdquo; (it
+            deliberately does not &mdash; zero imports in library code,
+            <code>ROADMAP.md:221</code>) but &ldquo;how trivially can a
+            consumer adopt full tracing and metrics.&rdquo; On that measure the
+            foundation is strong: every version is current, the canonical guide
+            documents three integration paths, and one complete, tested demo
+            exists. What holds the score down is discoverability, not
+            architecture: the upstream decider and storage layers
+            <strong>already emit OTel spans for the entire identity domain the
+            moment a global provider is registered</strong> &mdash; and no
+            cqrs-htmx document says so. Meanwhile
+            <code>docs/observability-wiring.md</code> (last touched
+            2026-06-29) references dead v3 module paths and makes a false claim
+            about hooks that the newer guide explicitly contradicts.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            You are one <code>cqrsotel.Setup()</code> call away from
+            end-to-end traces of every command, event, and SQL store operation
+            &mdash; the instrumentation is already wired upstream and no-ops
+            until a provider exists. The work is not wiring more code; it is
+            (1) killing the stale contradictory doc, (2) documenting the free
+            spans, and (3) adding the missing HTTP root-span and correlation
+            recipes so traces start at the request instead of the decider.
+          </div>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What&rsquo;s already in place</h2>
+          <p>
+            The audit found deliberate, well-reasoned decisions &mdash; not
+            neglect. These five form the baseline every recommendation below
+            builds on.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Dependency-free seam design (the library principle,
+                done right)</strong>
+                <span>
+                  Zero <code>go.opentelemetry.io</code> imports in library
+                  code. Consumers wire everything through pass-through
+                  dispatchers (<code>Config.Commands</code> IS a
+                  <code>*command.Dispatcher</code> with
+                  <code>.Use(...)</code>), event-bus middleware fields
+                  (<code>EventSourcedConfig.HandlerMiddleware</code>/
+                  <code>PublishMiddleware</code>, usermgmt/es_setup.go:44-52),
+                  and HTTP hooks. The re-export temptation was evaluated and
+                  rejected with a dependency-budget rationale
+                  (ROADMAP.md:221). <code>example_otel_test.go</code> proves
+                  hook-based spans with zero OTel deps.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Perfect version currency</strong>
+                <span>
+                  otel SDK v1.46.0 in every go.sum = latest stable (released
+                  2026-08-25). <code>go-cqrs-lite/otel/v4 v4.4.0</code> and
+                  <code>prometheus/v4 v4.3.0</code> are the newest published
+                  tags (verified via <code>git tag --sort=-v:refname</code> on
+                  the sibling). Nothing to upgrade.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Canonical adoption guide with an honest
+                recommendation</strong>
+                <span>
+                  docs/guides/leveraging-go-cqrs-lite.md &sect;2 maps three
+                  paths &mdash; (a) dep-free hooks, (b)
+                  <code>middleware.CommandTracing/QueryTracing</code> with
+                  <code>cqrsotel.NewTracer</code>, (c)
+                  <code>prometheus.Setup()</code> for <code>/metrics</code>
+                  &mdash; and correctly warns that hooks cannot name a span by
+                  command type. The decision summary rates OTel adoption
+                  &ldquo;Low effort, High impact (prod readiness).&rdquo;
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Runnable, tested proof</strong>
+                <span>
+                  examples/observability-demo/main.go:85-121 wires the full
+                  stack: <code>cqrsotel.Setup(WithStdoutExporter)</code>,
+                  recovery &rarr; retry &rarr; tracing &rarr; typed metrics
+                  &rarr; logging middleware ordering,
+                  <code>cqrsprom.Setup(cqrsotel.NewCQRSViews()...)</code>, the
+                  subtle global-meter-provider bridge (Prometheus owns the
+                  reader), and a <code>/metrics</code> endpoint.
+                  main_test.go asserts <code>cqrs_operation</code> metrics
+                  actually appear.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Domain metadata propagation already flows</strong>
+                <span>
+                  <code>EventOptionsFromContext</code> /
+                  <code>CommandOptionsFromContext</code> /
+                  <code>QueryOptionsFromContext</code> (context.go:236-355)
+                  carry CorrelationID, RequestID, and ActorID into command,
+                  event, and query metadata &mdash; the raw material spans and
+                  audit queries need.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="findings">
+          <h2><span class="num">01</span>Capability Assessment</h2>
+          <p>
+            Feature-by-feature, ordered by impact. Status classes: red =
+            missed opportunity, yellow = partially used, green = fully
+            leveraged.
+          </p>
+
+          <div class="issue issue-critical" id="free-domain-spans">
+            <span class="severity severity-critical"
+              >Missed Opportunity &middot; High impact</span
+            >
+            <h3>
+              The identity domain already emits OTel spans for free &mdash; and
+              no document says so
+            </h3>
+            <div class="where">
+              go-cqrs-lite decider/otel.go + decider/decider.go:122 +
+              decider/load.go:118,165 + storage/command_store_save.go:26,61
+              &middot; 0 mentions in cqrs-htmx docs
+            </div>
+            <p>
+              go-cqrs-lite&rsquo;s decider and storage layers create spans
+              through <code>cqrsotel.NewTracer(&quot;decider&quot;)</code>,
+              which resolves the <strong>global</strong> tracer provider
+              (sync.Once-cached) and no-ops until one is registered.
+              <code>cqrsotel.Setup()</code> registers globally by default. That
+              means a consumer who makes one Setup call gets
+              <code>decider.execute</code>, <code>decider.load</code>,
+              <code>event.store.save</code>, and <code>event.store.load</code>
+              spans &mdash; with aggregate type/id/version attributes &mdash;
+              around <em>every</em> RegisterUser, CreateTenant, and SQL journal
+              write across all 4 cqrs-htmx aggregates, with zero middleware.
+              This is the highest-value capability in the entire integration
+              and it is invisible: no guide, no demo callout, no README
+              mention.
+            </p>
+            <pre><code><span class="tok-comment">// The entire unlock, verbatim from examples/observability-demo:</span>
+<span class="tok-func">provider</span>, err := cqrsotel.<span class="tok-func">Setup</span>(
+    cqrsotel.<span class="tok-func">WithService</span>(<span class="tok-string">"my-app"</span>, <span class="tok-string">"1.0.0"</span>, <span class="tok-string">"i-1"</span>),
+    cqrsotel.<span class="tok-func">WithSpanExporter</span>(otlpExporter), <span class="tok-comment">// prod: OTLP</span>)
+<span class="tok-comment">// ^ from this line on, every usermgmt command/event/store</span>
+<span class="tok-comment">//   operation is traced (decider.* + event.store.* spans).</span></code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add a &ldquo;free domain spans&rdquo; subsection to
+              leveraging-go-cqrs-lite.md &sect;2 and a comment in
+              observability-demo where Setup is called. Consumers on
+              <code>usermgmt.NewService</code> / <code>setup.New</code> get
+              domain tracing without touching a single dispatcher.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="stale-wiring-doc">
+            <span class="severity severity-critical"
+              >Docs Split-Brain &middot; High impact</span
+            >
+            <h3>
+              docs/observability-wiring.md is stale: dead v3 imports and a
+              false claim the canonical guide contradicts
+            </h3>
+            <div class="where">
+              docs/observability-wiring.md (last touched 2026-06-29,
+              commit c91bc387) vs docs/guides/leveraging-go-cqrs-lite.md &sect;1
+            </div>
+            <p>
+              Three defects: (1) it claims hooks &ldquo;run inside the
+              dispatch path, so they see the actual command/query type&rdquo;
+              &mdash; <strong>false</strong>: dispatchContext
+              (handler.go:11-32) invokes <code>beforeDispatch(ctx, r)</code>
+              before decode, so hooks only ever see the HTTP request; the
+              newer guide &sect;1 states exactly this. (2) It teaches the
+              coarse path only (spans named <code>cqrs.dispatch</code>) and
+              never mentions <code>middleware.CommandTracing</code>,
+              <code>NewOTelBundle</code>, <code>prometheus.Setup</code>, or
+              the correlation enricher. (3) It predates the v4 module split
+              and points consumers at <code>otel/v3</code>,
+              <code>middleware/v3</code>, <code>prometheus/v3</code> &mdash;
+              paths that no longer match the published module set. Anyone
+              (human or LLM) landing on the older doc first builds worse
+              instrumentation than the library already enables.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Banner the old doc as superseded with a pointer to
+              leveraging-go-cqrs-lite.md &sect;2, or fold its hook-level
+              recipe into &sect;2 path (a) and delete the rest. Applied in
+              this change: a superseded-banner + fact fix at the top of the
+              file.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="http-root-span">
+            <span class="severity severity-critical"
+              >Missed Opportunity &middot; High impact</span
+            >
+            <h3>
+              No HTTP root-span story &mdash; every consumer trace starts at
+              the decider, not the request
+            </h3>
+            <div class="where">
+              not used anywhere &middot; otelhttp appears only as
+              <code>// indirect</code> in go.sum files &middot; guide &sect;2
+              has no HTTP recipe
+            </div>
+            <p>
+              Without a request-level span, a trace contains
+              <code>decider.execute</code> with no URL, method, HTTP status,
+              or total latency &mdash; and no W3C <code>traceparent</code>
+              extraction, so incoming distributed context is silently dropped.
+              The plumbing is already correct for the fix: the dispatch
+              pipeline uses <code>r.Context()</code> (handler.go:14), so a
+              span opened around the mux nests every decider/storage span
+              under it automatically, and
+              <code>cqrsotel.TextMapPropagator()</code> is registered by
+              <code>Setup</code>. otelhttp (v0.71.0, already in the module
+              graph transitively) is one wrapper away.
+            </p>
+            <pre><code><span class="tok-comment">// One line in front of the mux — root spans + traceparent extraction:</span>
+handler := otelhttp.<span class="tok-func">NewHandler</span>(mux, <span class="tok-string">"my-app"</span>)
+<span class="tok-comment">// decider.* spans now nest under POST /commands/RegisterUser</span>
+<span class="tok-comment">// with http.method / http.route / total duration on the root.</span></code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add the HTTP root-span recipe (otelhttp + propagator note) to
+              guide &sect;2 and wire it in observability-demo so the demo
+              produces complete traces, not decider-only fragments.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="correlation-bridge">
+            <span class="severity severity-critical"
+              >Missed Opportunity &middot; Medium-high impact</span
+            >
+            <h3>
+              Trace correlation never bridges into event metadata &mdash; the
+              upstream enricher exists, unwired and unmentioned
+            </h3>
+            <div class="where">
+              context.go:236-269 (domain CorrelationID only) &middot;
+              go-cqrs-lite middleware/enricher.go (OTelCorrelationEnricher) + 
+              otel/propagation.go (baggage) &middot; 0 references in cqrs-htmx
+            </div>
+            <p>
+              cqrs-htmx propagates a <strong>domain</strong> CorrelationID
+              (branded ULID, <code>event.WithCorrelationID</code>) into
+              metadata, but nothing reads OTel baggage, so a W3C-baggage
+              correlation ID from an upstream service never reaches the event
+              store. Upstream ships the exact bridge:
+              <code>middleware.OTelCorrelationEnricher</code> stamps baggage
+              into <code>otel.correlation_id</code> custom metadata on every
+              event, complementing the domain ULID. The cqrs-htmx side is
+              ready for it (decider enrichers compose via
+              <code>event.CompositeEnricher</code>; the event bus accepts
+              handler middleware via config) &mdash; only the recipe is
+              missing. Until it exists, cross-service traces cannot be joined
+              to the audit trail.
+            </p>
+            <pre><code><span class="tok-comment">// In repository construction (alongside the state cache):</span>
+decider.<span class="tok-func">WithEnricher</span>[UserState](event.<span class="tok-func">CompositeEnricher</span>(
+    event.CommandCausalityEnricher,
+    middleware.OTelCorrelationEnricher, <span class="tok-comment">// baggage → metadata</span>
+))</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Document the two-mechanism correlation model (domain ULID + OTel
+              baggage) in guide &sect;2 with this snippet, so consumers can
+              join traces to the event journal.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="setup-gap">
+            <span class="severity severity-important"
+              >Partially Used &middot; Medium impact</span
+            >
+            <h3>
+              The one-call composition root can&rsquo;t wire observability;
+              ServiceConfig lacks fields EventSourcedConfig has
+            </h3>
+            <div class="where">
+              setup/config.go (no OTel/metrics option) &middot;
+              usermgmt/es_setup.go:44,52 vs service_core.go:75 &middot;
+              applyBusMiddleware called only from NewEventSourcedSetup
+              (es_setup.go:224)
+            </div>
+            <p>
+              <code>EventSourcedConfig</code> exposes
+              <code>PublishMiddleware</code> and <code>HandlerMiddleware</code>
+              &mdash; the exact hooks where
+              <code>bundle.Event()</code> / <code>bundle.Publish()</code> OTel
+              middleware belong. <code>ServiceConfig</code> exposes neither,
+              and <code>setup.New</code> (the recommended onboarding path)
+              offers no observability config at all. Consumers face an
+              all-or-nothing choice: adopt <code>setup.New</code> and forgo
+              event-bus tracing/metrics, or hand-assemble the full stack to
+              get them. The asymmetry also means two config paths with the
+              same name-shaped fields behave differently &mdash; a silent API
+              inconsistency.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add <code>PublishMiddleware</code>/<code>HandlerMiddleware</code>
+              to <code>ServiceConfig</code> (routing both constructors through
+              the existing <code>applyBusMiddleware</code>), then consider a
+              <code>setup.Config</code> option that accepts an
+              <code>*middleware.OTelBundle</code> so one call wires tracing
+              into the identity domain.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="middleware-demo-claim">
+            <span class="severity severity-important"
+              >Partially Used &middot; Low-medium impact</span
+            >
+            <h3>middleware-demo advertises tracing it doesn&rsquo;t demonstrate</h3>
+            <div class="where">
+              examples/middleware-demo/main.go:6 (comment) &middot; zero
+              tracing/metrics wiring in the file
+            </div>
+            <p>
+              The header comment lists tracing among the demonstrated
+              middleware factories, and both AGENTS.md and FEATURES.md point
+              to this example as the entry point for dispatch middleware
+              &mdash; but the file wires none of it. observability-demo covers
+              tracing, yet a reader who follows the advertised path finds
+              nothing to copy. Discoverability is the theme of this report;
+              this is its smallest instance.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Either add two lines (<code>cqrsotel.Setup</code> +
+              <code>cmdDisp.Use(middleware.CommandTracing(tracer))</code>) or
+              correct the comment to point at observability-demo.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="sse-blindspot">
+            <span class="severity severity-important"
+              >Partially Used &middot; Low impact</span
+            >
+            <h3>SSE fan-out &mdash; the live-UI push path &mdash; is a blind spot</h3>
+            <div class="where">
+              root Broadcaster (go-sse hub embedding: Health/OnSubscribe/
+              OnUnsubscribe) &middot; no spans/metrics emitted on Broadcast
+            </div>
+            <p>
+              Server-Timing covers request/response latency, but the SSE push
+              path that drives adminui and dashboardui live updates emits
+              nothing: no client-count, no fan-out duration, no replay size.
+              The upstream otel module defines the pattern for go-cqrs-lite&rsquo;s
+              own transport (<code>sse.fanout</code> span with
+              <code>cqrs.sse.client_count</code>), which does not apply
+              directly since cqrs-htmx embeds go-sse directly &mdash; but the
+              existing <code>OnSubscribe</code>/<code>OnUnsubscribe</code>
+              hooks make a periodic gauge trivial to expose, and
+              <code>Health()</code> already exists as a data source.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Nice-to-have: document a consumer recipe that records connected
+              clients + broadcast duration from the existing hooks; no library
+              change strictly required.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="fully-leveraged">
+            <span class="severity severity-nice"
+              >Fully Leveraged &middot; Keep as is</span
+            >
+            <h3>
+              Dispatch-level tracing + metrics, provider setup, and the
+              Prometheus bridge are done right
+            </h3>
+            <div class="where">
+              examples/observability-demo/main.go:85-121 &middot; guide &sect;2
+              paths (b)+(c)
+            </div>
+            <p>
+              The canonical integration is complete and correct against the
+              upstream README: single <code>Setup</code> with resource
+              attributes and shutdown-flush semantics; middleware in the
+              recommended order (tracing wraps metrics); typed metrics keyed
+              by real command type; <code>NewCQRSViews</code> for histogram
+              bucket hygiene; and the documented subtlety that Prometheus must
+              own the global meter provider because <code>cqrsotel.Setup</code>
+              registers a reader-less one. Nothing to improve at this layer
+              &mdash; these four capabilities are the score&rsquo;s
+              foundation.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="not-applicable">
+            <span class="severity severity-nice"
+              >Not Applicable &middot; Excluded from scoring</span
+            >
+            <h3>Logs SDK (RC) and Profiles (alpha) &mdash; deliberately not adopted</h3>
+            <div class="where">
+              otel v1.47.0-rc.1 (Logs RC), Profiles signal (public alpha)
+            </div>
+            <p>
+              The Logs API/SDK reaches RC in v1.47.0-rc.1 and Profiles is in
+              public alpha &mdash; both too early for a library that pins
+              stable releases. Revisit when Logs hits stable; the existing
+              <code>cqrsotel</code> setup wrapper is the natural place to add
+              a logger provider option.
+            </p>
+          </div>
+        </section>
+
+        <section id="versions">
+          <h2><span class="num">02</span>Version Currency</h2>
+          <p>
+            Verified 2026-09-13 against upstream release notes and sibling
+            tags. The project is fully current &mdash; the gap is usage
+            breadth, not versions.
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Installed</th>
+                <th>Latest</th>
+                <th>Assessment</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>go.opentelemetry.io/otel</td>
+                <td>v1.46.0</td>
+                <td>v1.46.0 (2026-08-25)</td>
+                <td class="yes">Current &mdash; nothing to do</td>
+              </tr>
+              <tr>
+                <td>go-cqrs-lite/otel/v4</td>
+                <td>v4.4.0</td>
+                <td>v4.4.0</td>
+                <td class="yes">Current &mdash; newest tag</td>
+              </tr>
+              <tr>
+                <td>go-cqrs-lite/prometheus/v4</td>
+                <td>v4.3.0</td>
+                <td>v4.3.0</td>
+                <td class="yes">Current &mdash; newest tag</td>
+              </tr>
+              <tr>
+                <td>otelhttp (contrib)</td>
+                <td>v0.71.0 (indirect)</td>
+                <td>v0.71.0</td>
+                <td class="no">Current but unused &mdash; finding #3</td>
+              </tr>
+              <tr>
+                <td>otel Logs SDK</td>
+                <td>&mdash;</td>
+                <td>v1.47.0-rc.1</td>
+                <td class="yes">RC &mdash; correctly not adopted yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="plan">
+          <h2><span class="num">03</span>Action Plan (Pareto-ordered)</h2>
+          <p>
+            Priority = impact &times; ease. Items 1&ndash;2 are documentation
+            fixes that unlock the majority of the value; the code gaps are
+            small and additive (library principle preserved &mdash; all
+            opt-in).
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Opportunity</th>
+                <th>Impact</th>
+                <th>Ease</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>
+                  Kill the stale contradictory wiring doc (banner + fact fix
+                  &mdash; applied in this change)
+                </td>
+                <td class="yes">5</td>
+                <td class="yes">5</td>
+                <td>25</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>
+                  Document the free decider/storage domain spans in guide
+                  &sect;2 + demo comment
+                </td>
+                <td class="yes">5</td>
+                <td class="yes">4</td>
+                <td>20</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>
+                  HTTP root-span recipe (otelhttp + propagator) in guide +
+                  observability-demo
+                </td>
+                <td class="yes">4</td>
+                <td class="yes">4</td>
+                <td>16</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>
+                  middleware-demo: wire tracing (or fix the claim in its
+                  header comment)
+                </td>
+                <td>3</td>
+                <td class="yes">5</td>
+                <td>15</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>
+                  Correlation-enrichment recipe (OTelCorrelationEnricher via
+                  CompositeEnricher)
+                </td>
+                <td class="yes">4</td>
+                <td>3</td>
+                <td>12</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>
+                  ServiceConfig: add Publish/HandlerMiddleware parity with
+                  EventSourcedConfig
+                </td>
+                <td class="yes">4</td>
+                <td>2</td>
+                <td>8</td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>
+                  setup.Config: opt-in OTel bundle / metrics option (depends
+                  on #6)
+                </td>
+                <td class="yes">4</td>
+                <td>2</td>
+                <td>8</td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>
+                  SSE fan-out metrics recipe from existing Broadcaster hooks
+                </td>
+                <td>3</td>
+                <td>2</td>
+                <td>6</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="conclusion">
+          <h2><span class="num">04</span>Conclusion</h2>
+          <p>
+            For a library, this is a healthy OTel posture held back almost
+            entirely by discoverability. The architecture (zero enforced
+            deps), the versions (all latest), the canonical guide, and one
+            tested demo are exactly right; nothing is misused and nothing
+            needs upgrading. The score moves from 64 toward 90 by finishing
+            the story the code already tells: document the free domain spans,
+            add the HTTP root span and correlation recipes, and give
+            <code>setup.New</code> the option that makes one-call onboarding
+            include observability. The stale wiring doc should not survive
+            another release train &mdash; it is the only artifact in the repo
+            that teaches something false.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-09-13 &middot; Reviewed against otel SDK v1.46.0,
+            go-cqrs-lite/otel v4.4.0, prometheus/v4 v4.3.0 &middot; All claims
+            verified against source code with file:line citations; upstream
+            versions cross-checked against release notes
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              links.forEach(function (link) {
+                link.classList.toggle(
+                  "active",
+                  entry.isIntersecting &&
+                    link.getAttribute("href") === "#" + entry.target.id,
+                );
+              });
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

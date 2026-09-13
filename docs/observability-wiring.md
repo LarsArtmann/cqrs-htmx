@@ -1,5 +1,15 @@
 # Observability: OpenTelemetry & Prometheus Wiring
 
+> **SUPERSEDED (2026-09-13):** this guide predates the go-cqrs-lite v4 module
+> split and teaches only the coarse hook-based path. The canonical, richer
+> recipes live in [`docs/guides/leveraging-go-cqrs-lite.md` §2](guides/leveraging-go-cqrs-lite.md):
+> `middleware.CommandTracing`/`QueryTracing` (per-type spans),
+> `middleware.NewOTelBundle`, `prometheus.Setup()` for `/metrics`, and the
+> correlation enricher. Runnable proof: `examples/observability-demo/`. Note
+> the hooks shown below see ONLY `(ctx, *http.Request)` — not the command or
+> query type (the claim in the next paragraph is wrong; see `handler.go`
+> `dispatchContext`, which runs the hook before decode).
+
 cqrs-htmx is intentionally **dependency-free** for observability — it never imports `go.opentelemetry.io/otel` or `prometheus/client_golang`. Instead, it provides **lifecycle hooks** (`BeforeDispatchHook` / `AfterDispatchHook`) and **middleware** that let consumers bolt on any observability stack.
 
 ## How the Hooks Work
