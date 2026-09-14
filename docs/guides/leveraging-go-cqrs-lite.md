@@ -94,11 +94,20 @@ call 2: status=204 body="" took=0s       ← flaky service already recovered
 
 ## 2. OpenTelemetry & Prometheus
 
-cqrs-htmx intentionally does **not** import `go.opentelemetry.io` (library principle: never enforce an observability dependency — see `example_otel_test.go`). There are two complementary paths:
+cqrs-htmx intentionally does **not** import `go.opentelemetry.io` (library principle: never enforce an observability dependency — see `example_otel_test.go`). Everything in this section is consumer-side wiring over two upstream modules (`go-cqrs-lite/otel`, `go-cqrs-lite/prometheus`), ordered from zero-dep to full end-to-end tracing:
 
-**(a) HTTP-level tracing via hooks** (no extra deps) — wire `BeforeDispatch`/`AfterDispatch` to start/end a span. Coarse: the span cannot easily be named by command type. Documented in `example_otel_test.go`.
+1. [2.1 Hook-level tracing (dep-free)](#21-hook-level-tracing-dep-free)
+2. [2.2 Dispatch tracing via middleware (per-type spans)](#22-dispatch-tracing-via-middleware-per-type-spans)
+3. [2.3 Prometheus /metrics](#23-prometheus-metrics)
+4. [2.4 Free domain spans — one `Setup` call traces the whole identity domain](#24-free-domain-spans--one-setup-call-traces-the-whole-identity-domain)
 
-**(b) CQRS-level tracing via middleware** (richer) — pass an `cqrsotel.Tracer` from go-cqrs-lite's `otel` module into `middleware.CommandTracing(tracer)`. The span is created per-dispatch with the command type baked in. The `otel` module is the canonical re-export layer (never import `go.opentelemetry.io` directly):
+### 2.1 Hook-level tracing (dep-free)
+
+Wire `BeforeDispatch`/`AfterDispatch` to start/end a span. Coarse: the span cannot easily be named by command type. Documented in `example_otel_test.go`.
+
+### 2.2 Dispatch tracing via middleware (per-type spans)
+
+Pass an `cqrsotel.Tracer` from go-cqrs-lite's `otel` module into `middleware.CommandTracing(tracer)`. The span is created per-dispatch with the command type baked in. The `otel` module is the canonical re-export layer (never import `go.opentelemetry.io` directly):
 
 ```go
 import cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
@@ -108,7 +117,9 @@ cmdDisp.Use(middleware.CommandTracing(tracer))
 qryDisp.Use(middleware.QueryTracing(tracer))
 ```
 
-**(c) Prometheus metrics** — go-cqrs-lite's `prometheus` module bridges all CQRS OTel instruments to a `/metrics` endpoint:
+### 2.3 Prometheus /metrics
+
+go-cqrs-lite's `prometheus` module bridges all CQRS OTel instruments to a `/metrics` endpoint:
 
 ```go
 import cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
@@ -121,7 +132,43 @@ defer provider.Shutdown(context.Background())
 mux.Handle("/metrics", provider.Handler())
 ```
 
-> **Recommendation:** document path (b)+(c) in your app; cqrs-htmx stays dep-free, but consumers get first-class tracing + metrics by pulling two upstream modules.
+### 2.4 Free domain spans — one `Setup` call traces the whole identity domain
+
+This is the capability most consumers miss: **go-cqrs-lite's decider and storage layers already emit OTel spans** around every aggregate load, command execution, and store round-trip — and they resolve those spans against the **global** tracer provider (`go-cqrs-lite/decider/otel.go` caches one `cqrsotel.NewTracer("decider")` via `sync.OnceValue`; the storage layer uses `sqlpkg.Tracer()`). `cqrsotel.Setup` registers that global provider. So a single call gives you full command/event/store visibility into the entire identity domain (usermgmt's four aggregates) with **zero middleware and zero cqrs-htmx API**:
+
+```go
+otelProvider, err := cqrsotel.Setup(
+    cqrsotel.WithService("my-app", "1.0.0", "local"),
+    // Dev: pretty-print spans to stdout. Production: WithSpanExporter(otlpExporter).
+    cqrsotel.WithStdoutExporter(os.Stdout),
+)
+if err != nil {
+    return fmt.Errorf("otel setup: %w", err)
+}
+defer otelProvider.Shutdown(context.Background())
+```
+
+Dispatch every usermgmt command (`RegisterUser`, `AddMembership`, …) and these spans appear:
+
+| Span name                            | Emitted around                                  | Evidence (go-cqrs-lite)                            |
+| ------------------------------------ | ----------------------------------------------- | -------------------------------------------------- |
+| `decider.execute`                    | every aggregate command execution               | `decider/decider.go:123`                           |
+| `decider.load`                       | every aggregate load (state cache miss)         | `decider/decider.go:324`                           |
+| `decider.load_at_version`            | snapshot-aware loads                            | `decider/load.go:119`                              |
+| `event.store.save` / `append_batch`  | SQL event-store appends                         | `storage/eventstore/event_store.go:81`             |
+| `event.store.load*`                  | SQL event-store reads (stream, from-version, …) | `storage/eventstore/event_store_load.go:57`        |
+| `command.store.save` / `load`        | SQL command-backed store round-trips            | `storage/command_store_save.go:29`, `command_store_load.go:38` |
+
+Two scope notes, verified against source:
+
+- The **decider** spans fire for every store backend (including the in-memory default) — they wrap repository load/execute, not storage I/O.
+- The **storage** spans are emitted by the SQL store implementations (`storage/sql`, `storage/eventstore`); the in-memory dev store does not instrument I/O. Use a SQL backend to see the store layer of the trace.
+
+`Setup` also registers the W3C `traceparent` propagator globally (see 2.5 HTTP root spans and 2.6 Correlation below), so spans join upstream traces and correlation IDs flow into event metadata.
+
+Runnable proof: `examples/observability-demo/` — one `cqrsotel.Setup` + one `cqrsprom.Setup`, then POST `/ping` and watch `decider.execute` spans hit stdout (§2.2 middleware adds the per-type dispatch span on top).
+
+> **Recommendation:** run §2.4 (free domain spans) everywhere, add §2.2 (per-type dispatch spans) + §2.3 (Prometheus) as needed, and wrap the mux with §2.5 (HTTP root spans) so traces start at the request. cqrs-htmx stays dep-free; consumers pull two upstream modules.
 
 ---
 

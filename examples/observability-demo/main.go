@@ -74,6 +74,10 @@ func main() {
 // wired through dispatch middleware. Returns the handler and both providers for
 // graceful shutdown.
 func newHandler(logger *slog.Logger) (http.Handler, *cqrsprom.Provider, *cqrsotel.Provider, error) {
+	// This single Setup call also registers the GLOBAL tracer provider, which
+	// makes go-cqrs-lite's built-in decider/store spans (`decider.execute`,
+	// `decider.load`, `command.store.*`) real traces — see guide §2.4
+	// ("Free domain spans") in docs/guides/leveraging-go-cqrs-lite.md.
 	otelProvider, err := cqrsotel.Setup(
 		cqrsotel.WithService("observability-demo", "1.0.0", "local"),
 		cqrsotel.WithStdoutExporter(os.Stdout),
