@@ -136,7 +136,11 @@ func TestOtelHTTPRootSpanAndTraceparentExtraction(t *testing.T) {
 	wantTrace, _ := trace.TraceIDFromHex(parentTraceID)
 	wantSpan, _ := trace.SpanIDFromHex(parentSpanID)
 	if root.SpanContext().TraceID() != wantTrace {
-		t.Errorf("root span trace ID = %s, want %s (traceparent not extracted)", root.SpanContext().TraceID(), wantTrace)
+		t.Errorf(
+			"root span trace ID = %s, want %s (traceparent not extracted)",
+			root.SpanContext().TraceID(),
+			wantTrace,
+		)
 	}
 	if got := root.Parent().SpanID(); got != wantSpan {
 		t.Errorf("root span parent = %s, want %s (traceparent not extracted)", got, wantSpan)

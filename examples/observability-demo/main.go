@@ -80,7 +80,10 @@ func main() {
 // tests) are appended; without them otelhttp uses the global provider and
 // propagator that cqrsotel.Setup registered. Returns the handler and both
 // providers for graceful shutdown.
-func newHandler(logger *slog.Logger, opts ...otelhttp.Option) (http.Handler, *cqrsprom.Provider, *cqrsotel.Provider, error) {
+func newHandler(
+	logger *slog.Logger,
+	opts ...otelhttp.Option,
+) (http.Handler, *cqrsprom.Provider, *cqrsotel.Provider, error) {
 	// This single Setup call also registers the GLOBAL tracer provider, which
 	// makes go-cqrs-lite's built-in decider/store spans (`decider.execute`,
 	// `decider.load`, `command.store.*`) real traces — see guide §2.4

@@ -79,10 +79,10 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/httputil v1.1.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.16.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.16.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.16.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.16.0 // indirect
+	github.com/larsartmann/templ-components v1.17.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.17.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.17.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.17.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -96,7 +96,7 @@ require (
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	github.com/xo/terminfo v1.0.0 // indirect
+	github.com/xo/terminfo v1.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.46.0 // indirect

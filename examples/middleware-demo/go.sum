@@ -99,6 +99,8 @@ github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x
 github.com/larsartmann/go-idempotency v0.3.0/go.mod h1:VjTQypq0FQLA9AmageDkuFoUFfN2hd3eErSFZo9ip+I=
 github.com/larsartmann/go-retry v0.5.0 h1:2DsZQKdHqUCwbt8eSdjPaFXDQJpDD62FjOf46hY+VP0=
 github.com/larsartmann/go-retry v0.5.0/go.mod h1:dW9PFhxuiWacfvNgWBws+9xSrcP3ksZ+AP4wNLg6TuA=
+github.com/larsartmann/go-retry v0.6.0 h1:+UTp+2eHCOyYVQ8lBtNwbDjLo+k7RCtLkpGWsRgsdnk=
+github.com/larsartmann/go-retry v0.6.0/go.mod h1:dW9PFhxuiWacfvNgWBws+9xSrcP3ksZ+AP4wNLg6TuA=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
 github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
 github.com/larsartmann/go-sse/ssetest v0.3.0 h1:HEP3nFUsaWAz6fz8WmbeR2nUj6jv/cAHf+7HVeMeRRY=
