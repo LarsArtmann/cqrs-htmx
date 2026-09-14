@@ -6,6 +6,9 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // Tests in this file cover config validation: every Config field that the
@@ -196,4 +199,69 @@ func TestMustNew_PanicsOnInvalidConfig(t *testing.T) {
 	_ = setup.MustNew(setup.Config{
 		AdminPath: "invalid",
 	})
+}
+
+// --- Observability is a flattened-path-only convenience ---
+
+// testObservabilityBundleExternal builds a tracing-only OTel bundle for
+// validation tests (structure only; no spans are recorded).
+func testObservabilityBundleExternal(t *testing.T) *middleware.OTelBundle {
+	t.Helper()
+
+	bundle, err := middleware.NewOTelBundle(
+		cqrsotel.NewTracer("setup-validation-test"), nil,
+		middleware.WithMetricsDisabled(),
+	)
+	if err != nil {
+		t.Fatalf("NewOTelBundle: %v", err)
+	}
+
+	return bundle
+}
+
+// newAdoptedServiceExternal constructs a service for adopt-mode conflict tests.
+func newAdoptedServiceExternal(t *testing.T) *usermgmt.Service {
+	t.Helper()
+
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	t.Cleanup(func() { _ = svc.Close() })
+
+	return svc
+}
+
+func TestNew_ConfigValidation_ObservabilityWithAdoptedService(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:         "Observability + Adopted Service",
+		Service:       newAdoptedServiceExternal(t),
+		Observability: testObservabilityBundleExternal(t),
+	})
+	if err == nil {
+		t.Fatal("expected error for Observability alongside an adopted Service")
+	}
+
+	if !strings.Contains(err.Error(), "Observability") {
+		t.Fatalf("error should name Observability as the conflict, got: %v", err)
+	}
+}
+
+func TestNew_ConfigValidation_ObservabilityWithServiceConfigOverride(t *testing.T) {
+	t.Parallel()
+
+	_, err := setup.New(setup.Config{
+		Title:         "Observability + ServiceConfig",
+		ServiceConfig: &usermgmt.ServiceConfig{},
+		Observability: testObservabilityBundleExternal(t),
+	})
+	if err == nil {
+		t.Fatal("expected error for Observability alongside ServiceConfig")
+	}
+
+	if !strings.Contains(err.Error(), "Observability") {
+		t.Fatalf("error should name Observability as the conflict, got: %v", err)
+	}
 }

@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // testObservabilityBundle builds a tracing-only OTel bundle for wiring tests.
@@ -48,10 +49,12 @@ func TestResolveServiceConfig_ObservabilityNilParity(t *testing.T) {
 		t.Errorf("nil bundle must not add HandlerMiddleware, got %d", len(out.SecurityHooks.HandlerMiddleware))
 	}
 
-	override := &usermgmt.ServiceConfig{}
-	out = resolveServiceConfig(Config{Title: "Test", ServiceConfig: override})
+	out = resolveServiceConfig(Config{Title: "Test", ServiceConfig: &usermgmt.ServiceConfig{}})
 	if len(out.SecurityHooks.PublishMiddleware) != 0 {
 		t.Errorf("nil bundle must not add PublishMiddleware on the override path, got %d", len(out.SecurityHooks.PublishMiddleware))
+	}
+	if len(out.SecurityHooks.HandlerMiddleware) != 0 {
+		t.Errorf("nil bundle must not add HandlerMiddleware on the override path, got %d", len(out.SecurityHooks.HandlerMiddleware))
 	}
 }
 
@@ -85,22 +88,53 @@ func TestResolveServiceConfig_ObservabilityFlattened(t *testing.T) {
 }
 
 // TestResolveServiceConfig_ObservabilityPrependsOverConsumerHooks pins the
-// composition order: the bundle's middleware runs OUTERMOST (OTel spans wrap
-// any signing/encryption middleware the consumer configured), consumer hooks
-// run inside.
+// composition order when the consumer also configured SecurityHooks manually:
+// the bundle's middleware runs OUTERMOST (the OTel span wraps any
+// signing/encryption work), consumer hooks run inside. New validation rejects
+// this combination; the direct call documents the order applyObservability
+// produces.
 func TestResolveServiceConfig_ObservabilityPrependsOverConsumerHooks(t *testing.T) {
 	t.Parallel()
 
 	bundle := testObservabilityBundle(t)
-
-	consumerPublish := func(next interface{ Publish() }) {}
-	_ = consumerPublish // typed below; keep the marker funcs simple instead
-	markerPublish := func(next usermgmtMarkerPublish) {}
-	_ = markerPublish
+	consumerPublish := []event.PublishMiddleware{
+		func(next event.Publisher) event.Publisher { return next },
+	}
+	consumerHandler := []event.Middleware{
+		func(next event.Handler) event.Handler { return next },
+	}
 
 	out := resolveServiceConfig(Config{
-		Title:        "Test",
+		Title:         "Test",
 		Observability: bundle,
+		ServiceConfig: &usermgmt.ServiceConfig{
+			SecurityHooks: usermgmt.SecurityHooks{
+				PublishMiddleware: consumerPublish,
+				HandlerMiddleware: consumerHandler,
+			},
+		},
 	})
-	_ = out
+
+	bundlePublish := bundle.Publish()
+	bundleHandler := bundle.Event()
+
+	if got, want := len(out.SecurityHooks.PublishMiddleware), len(bundlePublish)+len(consumerPublish); got != want {
+		t.Fatalf("PublishMiddleware count = %d, want %d", got, want)
+	}
+	if got, want := len(out.SecurityHooks.HandlerMiddleware), len(bundleHandler)+len(consumerHandler); got != want {
+		t.Fatalf("HandlerMiddleware count = %d, want %d", got, want)
+	}
+
+	if funcPointer(out.SecurityHooks.PublishMiddleware[0]) != funcPointer(bundlePublish[0]) {
+		t.Error("expected the bundle's publish middleware outermost (index 0)")
+	}
+	if funcPointer(out.SecurityHooks.PublishMiddleware[1]) != funcPointer(consumerPublish[0]) {
+		t.Error("expected the consumer publish middleware inside the bundle's (index 1)")
+	}
+	if funcPointer(out.SecurityHooks.HandlerMiddleware[0]) != funcPointer(bundleHandler[0]) {
+		t.Error("expected the bundle's handler middleware outermost (index 0)")
+	}
+	if funcPointer(out.SecurityHooks.HandlerMiddleware[1]) != funcPointer(consumerHandler[0]) {
+		t.Error("expected the consumer handler middleware inside the bundle's (index 1)")
+	}
 }
