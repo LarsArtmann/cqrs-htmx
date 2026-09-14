@@ -5,6 +5,9 @@
 //   - OTel tracing with a stdout exporter (pretty-printed spans to console)
 //   - Prometheus metrics endpoint at /metrics
 //   - Dispatch middleware: recovery, retry, tracing, metrics, logging
+//   - HTTP root spans via otelhttp: the request span (method, route, latency,
+//     W3C traceparent extraction) nests every dispatch/domain/store span under
+//     it — one wrapper, see guide §2.5 in docs/guides/leveraging-go-cqrs-lite.md
 //
 // Run: go run . and open http://localhost:8099
 //
@@ -26,6 +29,7 @@ import (
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 	"github.com/larsartmann/httputil"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 )
 
@@ -71,9 +75,12 @@ func main() {
 }
 
 // newHandler builds the full HTTP handler with OTel tracing + Prometheus metrics
-// wired through dispatch middleware. Returns the handler and both providers for
-// graceful shutdown.
-func newHandler(logger *slog.Logger) (http.Handler, *cqrsprom.Provider, *cqrsotel.Provider, error) {
+// wired through dispatch middleware, wrapped in an otelhttp root-span handler
+// (guide §2.5). Extra otelhttp options (e.g. an isolated TracerProvider for
+// tests) are appended; without them otelhttp uses the global provider and
+// propagator that cqrsotel.Setup registered. Returns the handler and both
+// providers for graceful shutdown.
+func newHandler(logger *slog.Logger, opts ...otelhttp.Option) (http.Handler, *cqrsprom.Provider, *cqrsotel.Provider, error) {
 	// This single Setup call also registers the GLOBAL tracer provider, which
 	// makes go-cqrs-lite's built-in decider/store spans (`decider.execute`,
 	// `decider.load`, `command.store.*`) real traces — see guide §2.4
@@ -136,5 +143,11 @@ func newHandler(logger *slog.Logger) (http.Handler, *cqrsprom.Provider, *cqrsote
 	)(
 		mux,
 	)
+
+	// Root span: the request span starts before everything else, so every
+	// dispatch/domain/store span (which all flow from r.Context(), see root
+	// handler.go dispatchContext) nests underneath it automatically.
+	handler = otelhttp.NewHandler(handler, "observability-demo", opts...)
+
 	return handler, promProvider, otelProvider, nil
 }

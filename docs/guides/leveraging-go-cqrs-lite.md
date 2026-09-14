@@ -100,6 +100,7 @@ cqrs-htmx intentionally does **not** import `go.opentelemetry.io` (library princ
 2. [2.2 Dispatch tracing via middleware (per-type spans)](#22-dispatch-tracing-via-middleware-per-type-spans)
 3. [2.3 Prometheus /metrics](#23-prometheus-metrics)
 4. [2.4 Free domain spans — one `Setup` call traces the whole identity domain](#24-free-domain-spans--one-setup-call-traces-the-whole-identity-domain)
+5. [2.5 HTTP root spans (otelhttp)](#25-http-root-spans-otelhttp)
 
 ### 2.1 Hook-level tracing (dep-free)
 
@@ -164,9 +165,32 @@ Two scope notes, verified against source:
 - The **decider** spans fire for every store backend (including the in-memory default) — they wrap repository load/execute, not storage I/O.
 - The **storage** spans are emitted by the SQL store implementations (`storage/sql`, `storage/eventstore`); the in-memory dev store does not instrument I/O. Use a SQL backend to see the store layer of the trace.
 
-`Setup` also registers the W3C `traceparent` propagator globally (see 2.5 HTTP root spans and 2.6 Correlation below), so spans join upstream traces and correlation IDs flow into event metadata.
+`Setup` also registers the W3C `traceparent` propagator globally (see [2.5](#25-http-root-spans-otelhttp) and 2.6 Correlation below), so spans join upstream traces and correlation IDs flow into event metadata.
 
 Runnable proof: `examples/observability-demo/` — one `cqrsotel.Setup` + one `cqrsprom.Setup`, then POST `/ping` and watch `decider.execute` spans hit stdout (§2.2 middleware adds the per-type dispatch span on top).
+
+### 2.5 HTTP root spans (otelhttp)
+
+§2.2/§2.4 spans start at the dispatch — consumer traces have no HTTP root span (no URL, method, status, latency) and extract no incoming `traceparent`. The fix is one wrapper in **your** code, no library change: wrap your mux with `otelhttp.NewHandler` and every dispatch/domain/store span nests under the request span automatically.
+
+Why it works with zero cqrs-htmx changes: `App` dispatch reads `ctx := r.Context()` in `dispatchContext` (`handler.go:22`), and all dispatch middleware + decider/store spans are created from that context. `otelhttp` puts its request span into `r.Context()` — so an otelhttp-wrapped mux makes it the parent of everything downstream.
+
+```go
+import otelhttp "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
+// cqrsotel.Setup (§2.4) registered the global TracerProvider AND the W3C
+// propagator, so the plain constructor is enough — traceparent headers from
+// upstream services are extracted and the request span joins their trace.
+handler := otelhttp.NewHandler(chainedHandler, "my-app")
+
+srv, err := httputil.NewServer(httputil.ServerConfig{Addr: addr}, handler)
+```
+
+What the root span adds to each trace: method + route + HTTP status as span attributes, end-to-end request latency, and `traceparent` extraction (multi-service traces stay connected). Run `cqrsotel.Setup` before wrapping — it must have registered the global provider/propagator first. For isolated needs (tests, multi-tenant providers) pass explicit options instead: `otelhttp.WithTracerProvider(tp)`, `otelhttp.WithPropagators(cqrsotel.NewTextMapPropagator())`.
+
+Runnable proof: `examples/observability-demo/main.go` wraps its handler exactly like this, and `TestOtelHTTPRootSpanAndTraceparentExtraction` in the same directory asserts a server-kind root span exists and an incoming `traceparent` header is extracted (via an isolated `tracetest.SpanRecorder`).
+
+> Use `httputil.Chain` INSIDE the otelhttp wrapper (recovery, security headers, session, CSRF, HTMX, enrichment) so the root span covers the full pipeline; keep `otelhttp` outermost.
 
 > **Recommendation:** run §2.4 (free domain spans) everywhere, add §2.2 (per-type dispatch spans) + §2.3 (Prometheus) as needed, and wrap the mux with §2.5 (HTTP root spans) so traces start at the request. cqrs-htmx stays dep-free; consumers pull two upstream modules.
 
