@@ -50,6 +50,7 @@ func TestNew_ObservabilityBundleWiredToEndToEnd(t *testing.T) {
 		t.Fatalf("GetUser after OTel-wired registration: %v", err)
 	}
 	if user.Email != "obs-e2e@example.com" {
-		t.Errorf("user email = %q, want %q (read model must converge through wired middleware)", user.Email, "obs-e2e@example.com")
+		t.Errorf("user email = %q, want %q (read model must converge through wired middleware)",
+			user.Email, "obs-e2e@example.com")
 	}
 }

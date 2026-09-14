@@ -39,19 +39,19 @@ func TestResolveServiceConfig_ObservabilityNilParity(t *testing.T) {
 	t.Parallel()
 
 	out := resolveServiceConfig(Config{Title: "Test"})
-	if len(out.SecurityHooks.PublishMiddleware) != 0 {
-		t.Errorf("nil bundle must not add PublishMiddleware, got %d", len(out.SecurityHooks.PublishMiddleware))
+	if len(out.PublishMiddleware) != 0 {
+		t.Errorf("nil bundle must not add PublishMiddleware, got %d", len(out.PublishMiddleware))
 	}
-	if len(out.SecurityHooks.HandlerMiddleware) != 0 {
-		t.Errorf("nil bundle must not add HandlerMiddleware, got %d", len(out.SecurityHooks.HandlerMiddleware))
+	if len(out.HandlerMiddleware) != 0 {
+		t.Errorf("nil bundle must not add HandlerMiddleware, got %d", len(out.HandlerMiddleware))
 	}
 
 	out = resolveServiceConfig(Config{Title: "Test", ServiceConfig: &usermgmt.ServiceConfig{}})
-	if len(out.SecurityHooks.PublishMiddleware) != 0 {
-		t.Errorf("nil bundle must not add PublishMiddleware on the override path, got %d", len(out.SecurityHooks.PublishMiddleware))
+	if len(out.PublishMiddleware) != 0 {
+		t.Errorf("nil bundle must not add PublishMiddleware on the override path, got %d", len(out.PublishMiddleware))
 	}
-	if len(out.SecurityHooks.HandlerMiddleware) != 0 {
-		t.Errorf("nil bundle must not add HandlerMiddleware on the override path, got %d", len(out.SecurityHooks.HandlerMiddleware))
+	if len(out.HandlerMiddleware) != 0 {
+		t.Errorf("nil bundle must not add HandlerMiddleware on the override path, got %d", len(out.HandlerMiddleware))
 	}
 }
 
@@ -65,10 +65,10 @@ func TestResolveServiceConfig_ObservabilityFlattened(t *testing.T) {
 
 	out := resolveServiceConfig(Config{Title: "Test", Observability: bundle})
 
-	if got, want := len(out.SecurityHooks.PublishMiddleware), len(bundle.Publish()); got != want {
+	if got, want := len(out.PublishMiddleware), len(bundle.Publish()); got != want {
 		t.Errorf("PublishMiddleware count = %d, want %d", got, want)
 	}
-	if got, want := len(out.SecurityHooks.HandlerMiddleware), len(bundle.Event()); got != want {
+	if got, want := len(out.HandlerMiddleware), len(bundle.Event()); got != want {
 		t.Errorf("HandlerMiddleware count = %d, want %d", got, want)
 	}
 }
@@ -100,10 +100,10 @@ func TestResolveServiceConfig_ObservabilityComposesWithConsumerHooks(t *testing.
 		Observability: bundle,
 	})
 
-	if got, want := len(out.SecurityHooks.PublishMiddleware), len(bundle.Publish())+len(consumerPublish); got != want {
+	if got, want := len(out.PublishMiddleware), len(bundle.Publish())+len(consumerPublish); got != want {
 		t.Errorf("PublishMiddleware count = %d, want %d (bundle + consumer, composed not overwritten)", got, want)
 	}
-	if got, want := len(out.SecurityHooks.HandlerMiddleware), len(bundle.Event())+len(consumerHandler); got != want {
+	if got, want := len(out.HandlerMiddleware), len(bundle.Event())+len(consumerHandler); got != want {
 		t.Errorf("HandlerMiddleware count = %d, want %d (bundle + consumer, composed not overwritten)", got, want)
 	}
 }
