@@ -201,10 +201,10 @@ There are two independent correlation mechanisms, and they solve different probl
 
 | Mechanism | What it carries | Where it lives | Set by | Read back via |
 | --------- | --------------- | -------------- | ------ | ------------- |
-| **Domain causality** | branded ULID correlation ID + causation chain (which command produced which event, which user/actor triggered it) | event metadata (`correlation_id`, `causation_id`, `user_id`) | `cqrshtmx.EventOptionsFromContext` / `ContextEnrichmentMiddleware` propagate `cqrshtmx.CorrelationIDFromContext` into every event (`context.go:236`); decider's `CommandCausalityEnricher` chains command → event | `event.Metadata()` / audit-log queries |
+| **Domain causality** | branded ULID correlation ID + request ID + user/actor chain (which command context produced which event) | event metadata (`correlation_id`, `request_id`, `user_id`, `actor_id`) | `ContextEnrichmentMiddleware` extracts `X-Correlation-ID` into the request context (`middleware.go:15`); handlers stamp every event via `App.EventOptions(ctx)` / `EventOptionsFromContext(ctx)` (`app.go:210`, `context.go:236`) | `event.Metadata()` / audit-log queries |
 | **OTel baggage** | free-form string (typically the W3C trace ID) | W3C `baggage` header + OTel context | `cqrsotel.WithCorrelationID(ctx, traceID.String())` at the trace origin; crosses service boundaries via the W3C propagator ([2.5](#25-http-root-spans-otelhttp)) | `cqrsotel.CorrelationIDFromContext(ctx)`; auto-bridged into event metadata as `otel.correlation_id` by `middleware.OTelCorrelationEnricher` |
 
-Domain causality needs no setup — it is the default audit trail (join `events.correlation_id` across the journal to reconstruct a request's full event chain). OTel baggage is the cross-service bridge: a downstream service that only sees your HTTP headers can recover the upstream trace ID and stamp it onto its own events, so a trace↔audit-trail join works across service boundaries.
+Domain causality needs no OTel at all — `ContextEnrichmentMiddleware` + `App.EventOptions(ctx)` in your command handlers is the default audit trail (join `events.correlation_id` across the journal to reconstruct a request's full event chain). Upstream's `event.CommandCausalityEnricher` (a decider `ContextEnricher`) is the store-level alternative when you want the decider to chain command → event automatically instead of per-handler stamping. OTel baggage is the cross-service bridge: a downstream service that only sees your HTTP headers can recover the upstream trace ID and stamp it onto its own events, so a trace↔audit-trail join works across service boundaries.
 
 Bridge baggage into event metadata with one repository option (upstream signature verified — `middleware.OTelCorrelationEnricher(ctx) []event.Option` is an `event.ContextEnricher`, and `CompositeEnricher` flattens the option slices):
 
@@ -213,7 +213,7 @@ import "github.com/larsartmann/go-cqrs-lite/middleware/v4"
 
 repo, err := decider.NewRepository(store, bus,
     decider.WithEnricher(event.CompositeEnricher(
-        event.CommandCausalityEnricher,       // domain: command → event chain (default in usermgmt)
+        event.CommandCausalityEnricher,       // store-level command → event causation chain
         middleware.OTelCorrelationEnricher,   // distributed: baggage → "otel.correlation_id" metadata
     )))
 ```
