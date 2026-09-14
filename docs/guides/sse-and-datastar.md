@@ -195,6 +195,81 @@ client's backfill only ever receives matching events — even when the store
 only implements plain `sse.EventStore`. A filter that leaked excluded events
 during backfill would be a security hole, never a degradation.
 
+## Observability: Fan-Out Metrics (Consumer Recipe)
+
+The SSE push path emits no spans or metrics of its own — the library stays
+dep-free by design. Everything needed to instrument it is already on the hub
+surface (verified against go-sse; all hooks are promoted on both the
+`cqrshtmx` and `datastar` adapters):
+
+| Surface                                   | Fires / returns                                              | Instrument it as                    |
+| ----------------------------------------- | ------------------------------------------------------------ | ------------------------------------ |
+| `hub.OnSubscribe(fn)`                     | after each successful subscriber registration                 | connected-clients gauge (`+1`)       |
+| `hub.OnUnsubscribe(fn)`                   | after each successful unsubscribe                             | connected-clients gauge (`-1`)       |
+| `hub.OnDrop(fn)` / `sse.WithOnDrop(fn)`   | once per full subscriber per broadcast (per-subscriber drops) | dropped-events counter               |
+| `hub.Health()`                            | `BroadcasterHealth{Closed, Draining, SubscriberCount, BufferSize}` | readiness payload / gauge set   |
+| wrapper around `hub.Broadcast*`           | your own timing (fan-out is synchronous)                      | fan-out duration histogram           |
+
+Because the hub is the shared object (`Bundle.Broadcaster.Hub()`), construct
+it yourself, register the hooks, and wrap it in the adapter — no library
+change:
+
+```go
+import (
+    "context"
+    "sync/atomic"
+    "time"
+
+    "github.com/larsartmann/go-sse"
+    cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+    "go.opentelemetry.io/otel/metric" // consumer-side import is fine (like otelhttp in §2.5)
+)
+
+meter := cqrsotel.NewMeter("my-app") // global provider from cqrsotel.Setup (§2.4 of the go-cqrs-lite guide)
+
+connected, _ := meter.Int64ObservableGauge("sse.clients.connected")
+dropped, _ := meter.Int64Counter("sse.events.dropped")
+fanout, _ := meter.Int64Histogram("sse.fanout.duration",
+    metric.WithDescription("Time to fan one broadcast out to every subscriber"),
+    metric.WithUnit("ms"))
+
+var live atomic.Int64
+
+hub := sse.NewBroadcaster[sse.Event]()
+hub.OnSubscribe(func() { live.Add(1) })
+hub.OnUnsubscribe(func() { live.Add(-1) })
+hub.OnDrop(func(sse.Event) { dropped.Add(context.Background(), 1) })
+
+_, _ = meter.RegisterCallback(func(_ context.Context, o metric.Observer) error {
+    o.ObserveInt64(connected, live.Load())
+    return nil
+}, connected)
+
+broadcaster := cqrshtmx.NewBroadcasterFromHub(hub) // drop-in for cqrshtmx.NewBroadcaster()
+```
+
+Fan-out duration is a plain wrapper, since `Broadcast` fans out synchronously:
+
+```go
+func timedBroadcast(hub *sse.Broadcaster[sse.Event],
+    dur metric.Int64Histogram, evt sse.Event,
+) {
+    start := time.Now()
+    hub.Broadcast(evt)
+    dur.Record(context.Background(), time.Since(start).Milliseconds())
+}
+```
+
+`Health()` needs no OTel at all: surface `SubscriberCount`, `Draining`, and
+`Closed` in your readiness endpoint as-is. Export the instruments with the
+Prometheus bridge from
+[§2.3 of the go-cqrs-lite guide](leveraging-go-cqrs-lite.md#23-prometheus-metrics)
+(`otel.SetMeterProvider(promProvider.AsMeterProvider())`) so `sse.*` appear
+next to the CQRS metrics.
+
+> The hook callbacks run inside the fan-out path (`OnDrop` under the read
+> lock) — keep them allocation-free and never re-enter the hub from them.
+
 ## See Also
 
 - [Datastar Integration Guide](datastar-integration.md) — Datastar setup, patches, replay, SDK re-exports, the setup option
