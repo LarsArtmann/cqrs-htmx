@@ -168,7 +168,8 @@ func TestFullstackUI_LoginButtonsMatchAuthConfig(t *testing.T) {
 
 		require.NotContains(t, body, "Sign in with passkey")
 		require.NotContains(t, body, "Sign in with "+loginpage.ProviderDisplayName(testProvider))
-		require.Contains(t, body, "Set up WebAuthn or OAuth2", "setup hint should render")
+		require.Contains(t, body, "No authentication method is configured.", "no-auth setup hint should render")
+		require.Contains(t, body, "Login is not available yet.", "no-auth guidance should render")
 	})
 
 	t.Run("WebAuthnOnly", func(t *testing.T) {
