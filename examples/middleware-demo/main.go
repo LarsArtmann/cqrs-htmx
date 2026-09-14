@@ -10,15 +10,23 @@
 // This example mounts a single command whose handler fails transiently twice and
 // then succeeds. The retry middleware makes the HTTP request still return 204.
 //
-// Tracing + metrics wiring (CommandTracing, CommandTypedMetrics, Prometheus
-// /metrics): see examples/observability-demo — it composes the same way.
+// Tracing + metrics run for real here: cqrsotel.Setup registers the global
+// tracer/meter providers (pretty-printing every span to stdout), and the
+// CommandTracing + CommandTypedMetrics factories emit per-dispatch spans and
+// typed metrics; cqrsprom.Setup serves them at /metrics. This single
+// Setup call also activates go-cqrs-lite's built-in decider/store spans
+// ("free domain spans") — see guide §2.4 in
+// docs/guides/leveraging-go-cqrs-lite.md. The full end-to-end story (HTTP
+// root spans via otelhttp) lives in examples/observability-demo.
 //
 // Run: go run . and open http://localhost:8098
 //
 //	curl -X POST http://localhost:8098/ping -d '{"msg":"hello"}' -w '\n%{http_code}\n'
+//	curl http://localhost:8098/metrics | grep cqrs
 //
 // You will see the logging middleware emit "dispatching"/"failed" lines for the two
-// retried attempts, then the request completes with 204.
+// retried attempts, the tracing middleware print the dispatch spans, then the
+// request completes with 204.
 package main
 
 import (
@@ -26,14 +34,18 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"sync/atomic"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
+	"go.opentelemetry.io/otel"
 )
 
 // pingCmd embeds *command.BasicCommand for Type()/StreamID()/ID().
@@ -68,7 +80,38 @@ func (s *flakyService) ping(msg string) error {
 	return nil
 }
 
-func newHandler() http.Handler {
+// newHandler builds the full HTTP handler with live OTel tracing (stdout
+// spans) and Prometheus metrics wired through dispatch middleware. Returns
+// the handler and both providers for graceful shutdown.
+func newHandler(logger *slog.Logger) (http.Handler, *cqrsprom.Provider, *cqrsotel.Provider, error) {
+	// Registers the global tracer + meter providers AND the W3C propagator.
+	// Side effect that matters beyond this demo: go-cqrs-lite's decider and
+	// storage layers resolve their spans against the global tracer, so this
+	// one call turns on the "free domain spans" for any wired CQRS stack
+	// (guide §2.4).
+	otelProvider, err := cqrsotel.Setup(
+		cqrsotel.WithService("middleware-demo", "1.0.0", "local"),
+		cqrsotel.WithStdoutExporter(os.Stdout),
+	)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("otel setup: %w", err)
+	}
+
+	promProvider, err := cqrsprom.Setup(cqrsprom.WithViews(cqrsotel.NewCQRSViews()...))
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("prometheus setup: %w", err)
+	}
+
+	// Route the CQRS instruments to Prometheus: cqrsotel.Setup registered a
+	// meter provider without a reader; the Prometheus provider has one.
+	otel.SetMeterProvider(promProvider.AsMeterProvider())
+
+	tracer := cqrsotel.NewTracer("middleware-demo")
+	recorder, err := middleware.NewOTelMetricsRecorder(cqrsotel.NewMeter("middleware-demo"))
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("metrics recorder: %w", err)
+	}
+
 	service := &flakyService{}
 
 	cmdDisp := command.NewDispatcher()
@@ -76,11 +119,14 @@ func newHandler() http.Handler {
 	// --- THE KEY IDEA: wire go-cqrs-lite middleware onto the dispatcher. ---
 	// Order is outer-to-inner (first registered wraps the rest). Recovery must be
 	// outermost so panics never escape; retry sits inside recovery so it can
-	// re-dispatch retryable errors; logging is innermost to log each attempt.
+	// re-dispatch retryable errors; tracing and metrics wrap the handler so each
+	// attempt is observed; logging is innermost to log each attempt.
 	cmdDisp.Use(middleware.CommandRecovery())
-	cmdDisp.Use(middleware.CommandRetry(middleware.DefaultRetryConfig(), middleware.WithLogger(slog.Default())))
+	cmdDisp.Use(middleware.CommandRetry(middleware.DefaultRetryConfig(), middleware.WithLogger(logger)))
 	cmdDisp.Use(middleware.CommandCircuitBreaker(middleware.DefaultCircuitBreakerConfig()))
-	cmdDisp.Use(middleware.CommandLogging(slog.Default()))
+	cmdDisp.Use(middleware.CommandTracing(tracer))
+	cmdDisp.Use(middleware.CommandTypedMetrics(recorder))
+	cmdDisp.Use(middleware.CommandLogging(logger))
 
 	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(cmdDisp, "Ping",
@@ -92,6 +138,7 @@ func newHandler() http.Handler {
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /htmx.js", cqrshtmx.HTMXScriptHandler())
+	mux.Handle("GET /metrics", promProvider.Handler())
 	mux.Handle("POST /ping", app.Command("Ping",
 		cqrshtmx.DecodeJSON(func(r pingRequest) (command.Command, error) {
 			core, err := command.New("Ping", id.NewStreamID())
@@ -103,20 +150,29 @@ func newHandler() http.Handler {
 		cqrshtmx.WithSuccessStatus(http.StatusNoContent),
 	))
 
-	return cqrshtmx.Chain(
+	handler := cqrshtmx.Chain(
 		cqrshtmx.RecoveryMiddleware,
 		httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
 	)(
 		mux,
 	)
+
+	return handler, promProvider, otelProvider, nil
 }
 
 func main() {
-	handler := newHandler()
+	handler, promProvider, otelProvider, err := newHandler(slog.Default())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "setup: %v\n", err)
+		os.Exit(1)
+	}
+	defer func() { _ = otelProvider.Shutdown(context.Background()) }()
+	defer func() { _ = promProvider.Shutdown(context.Background()) }()
 
 	addr := ":8098"
 	fmt.Printf("middleware-demo on http://localhost%s/ping (POST {\"msg\":...})\n", addr)
 	fmt.Println("First request retries twice (transient failures) then succeeds with 204.")
+	fmt.Println("  GET /metrics — Prometheus metrics (cqrs.operation.duration, cqrs.operation.count)")
 
 	srv, err := httputil.NewServer(httputil.ServerConfig{Addr: addr}, handler)
 	if err != nil {

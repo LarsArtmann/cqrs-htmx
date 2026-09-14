@@ -2,15 +2,34 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 )
 
+// newTestHandler builds the demo handler and registers provider shutdown on
+// test cleanup.
+func newTestHandler(t *testing.T) http.Handler {
+	t.Helper()
+
+	handler, promProvider, otelProvider, err := newHandler(slog.Default())
+	if err != nil {
+		t.Fatalf("newHandler: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = promProvider.Shutdown(context.Background())
+		_ = otelProvider.Shutdown(context.Background())
+	})
+
+	return handler
+}
+
 func TestPingRetriesThenSucceeds(t *testing.T) {
-	handler := newHandler()
+	handler := newTestHandler(t)
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -36,7 +55,7 @@ func TestPingRetriesThenSucceeds(t *testing.T) {
 }
 
 func TestPingImmediateSuccessOnSecondCall(t *testing.T) {
-	handler := newHandler()
+	handler := newTestHandler(t)
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -73,7 +92,7 @@ func TestPingImmediateSuccessOnSecondCall(t *testing.T) {
 }
 
 func TestPingResponseBodyEmpty(t *testing.T) {
-	handler := newHandler()
+	handler := newTestHandler(t)
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
