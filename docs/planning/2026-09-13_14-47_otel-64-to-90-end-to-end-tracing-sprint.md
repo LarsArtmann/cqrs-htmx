@@ -1,5 +1,16 @@
 # OTEL: From 64 → 90 — The End-to-End Tracing Sprint
 
+> **EXECUTED 2026-09-14 (annotate mode):** all 13 M-tasks complete. M1-M4 + M6/M7
+> landed 2026-09-13/14 (prior session + verification); M5 (§2.6), M8/M9
+> (`setup.Config.Observability` + tests + README), M10 (middleware-demo live
+> tracing), M11 (SSE fan-out recipe), M12 (this upkeep), M13 (full gates)
+> completed 2026-09-14. Audit-finding corrections found during execution:
+> ServiceConfig parity (M6/M7) was ALREADY present via the embedded
+> `SecurityHooks` + `NewService`→`NewEventSourcedSetup` delegation with tests
+> in `service_security_test.go` — the audit's "lacks both fields" claim was
+> stale. Final state in CHANGELOG (2026-09-14 entry) + AGENTS.md OTel bullet.
+> Outcome records live there; this file is a point-in-time snapshot.
+
 > **Plan type:** Pareto-prioritized execution plan (point-in-time snapshot)
 > **Created:** 2026-09-13 14:47 CEST (`date` CLI)
 > **Source audit:** [`docs/research/2026-09-13_otel-deep-dive.html`](../research/2026-09-13_otel-deep-dive.html) (adoption score 64/100, 0 anti-patterns, all versions current)
