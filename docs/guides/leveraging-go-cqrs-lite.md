@@ -101,6 +101,7 @@ cqrs-htmx intentionally does **not** import `go.opentelemetry.io` (library princ
 3. [2.3 Prometheus /metrics](#23-prometheus-metrics)
 4. [2.4 Free domain spans — one `Setup` call traces the whole identity domain](#24-free-domain-spans--one-setup-call-traces-the-whole-identity-domain)
 5. [2.5 HTTP root spans (otelhttp)](#25-http-root-spans-otelhttp)
+6. [2.6 Correlation — two mechanisms, one table](#26-correlation--two-mechanisms-one-table)
 
 ### 2.1 Hook-level tracing (dep-free)
 
@@ -165,7 +166,7 @@ Two scope notes, verified against source:
 - The **decider** spans fire for every store backend (including the in-memory default) — they wrap repository load/execute, not storage I/O.
 - The **storage** spans are emitted by the SQL store implementations (`storage/sql`, `storage/eventstore`); the in-memory dev store does not instrument I/O. Use a SQL backend to see the store layer of the trace.
 
-`Setup` also registers the W3C `traceparent` propagator globally (see [2.5](#25-http-root-spans-otelhttp) and 2.6 Correlation below), so spans join upstream traces and correlation IDs flow into event metadata.
+`Setup` also registers the W3C `traceparent` propagator globally (see [2.5](#25-http-root-spans-otelhttp) and [2.6](#26-correlation--two-mechanisms-one-table) Correlation below), so spans join upstream traces and correlation IDs flow into event metadata.
 
 Runnable proof: `examples/observability-demo/` — one `cqrsotel.Setup` + one `cqrsprom.Setup`, then POST `/ping` and watch `decider.execute` spans hit stdout (§2.2 middleware adds the per-type dispatch span on top).
 
@@ -192,7 +193,42 @@ Runnable proof: `examples/observability-demo/main.go` wraps its handler exactly 
 
 > Use `httputil.Chain` INSIDE the otelhttp wrapper (recovery, security headers, session, CSRF, HTMX, enrichment) so the root span covers the full pipeline; keep `otelhttp` outermost.
 
-> **Recommendation:** run §2.4 (free domain spans) everywhere, add §2.2 (per-type dispatch spans) + §2.3 (Prometheus) as needed, and wrap the mux with §2.5 (HTTP root spans) so traces start at the request. cqrs-htmx stays dep-free; consumers pull two upstream modules.
+> **Recommendation:** run §2.4 (free domain spans) everywhere, add §2.2 (per-type dispatch spans) + §2.3 (Prometheus) as needed, wrap the mux with §2.5 (HTTP root spans) so traces start at the request, and wire §2.6 (correlation) when traces must join audit trails across services. cqrs-htmx stays dep-free; consumers pull two upstream modules.
+
+### 2.6 Correlation — two mechanisms, one table
+
+There are two independent correlation mechanisms, and they solve different problems. Know which one you need:
+
+| Mechanism | What it carries | Where it lives | Set by | Read back via |
+| --------- | --------------- | -------------- | ------ | ------------- |
+| **Domain causality** | branded ULID correlation ID + causation chain (which command produced which event, which user/actor triggered it) | event metadata (`correlation_id`, `causation_id`, `user_id`) | `cqrshtmx.EventOptionsFromContext` / `ContextEnrichmentMiddleware` propagate `cqrshtmx.CorrelationIDFromContext` into every event (`context.go:236`); decider's `CommandCausalityEnricher` chains command → event | `event.Metadata()` / audit-log queries |
+| **OTel baggage** | free-form string (typically the W3C trace ID) | W3C `baggage` header + OTel context | `cqrsotel.WithCorrelationID(ctx, traceID.String())` at the trace origin; crosses service boundaries via the W3C propagator ([2.5](#25-http-root-spans-otelhttp)) | `cqrsotel.CorrelationIDFromContext(ctx)`; auto-bridged into event metadata as `otel.correlation_id` by `middleware.OTelCorrelationEnricher` |
+
+Domain causality needs no setup — it is the default audit trail (join `events.correlation_id` across the journal to reconstruct a request's full event chain). OTel baggage is the cross-service bridge: a downstream service that only sees your HTTP headers can recover the upstream trace ID and stamp it onto its own events, so a trace↔audit-trail join works across service boundaries.
+
+Bridge baggage into event metadata with one repository option (upstream signature verified — `middleware.OTelCorrelationEnricher(ctx) []event.Option` is an `event.ContextEnricher`, and `CompositeEnricher` flattens the option slices):
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/middleware/v4"
+
+repo, err := decider.NewRepository(store, bus,
+    decider.WithEnricher(event.CompositeEnricher(
+        event.CommandCausalityEnricher,       // domain: command → event chain (default in usermgmt)
+        middleware.OTelCorrelationEnricher,   // distributed: baggage → "otel.correlation_id" metadata
+    )))
+```
+
+Every event the repository publishes then carries `otel.correlation_id` in its custom metadata whenever baggage holds a correlation ID (read it back with `middleware.OTelCorrelationIDFromEvent(evt)`).
+
+If you build the service through `setup.New` (or `usermgmt.NewService`), the repositories are constructed for you — wire the enricher there via the `ServiceConfig`/`setup` seams instead, or use `middleware.NewOTelBundle`'s `bundle.CorrelationEnricher()` (same function) when you already hold a bundle (see [setup's `Observability` option](../../setup/README.md#configuration)).
+
+When to set the baggage value: at your trace origin, before dispatching anything —
+
+```go
+ctx = cqrsotel.WithCorrelationID(ctx, traceID.String()) // baggage member "cqrs.correlation_id"
+```
+
+> Both mechanisms are independent — an event can carry the domain ULID (`correlation_id`) and the distributed ID (`otel.correlation_id`) at the same time, and they need not be equal. Use the ULID for intra-domain audit queries and the baggage ID to join traces across service boundaries.
 
 ---
 
