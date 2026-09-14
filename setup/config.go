@@ -11,6 +11,7 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
 )
@@ -79,6 +80,36 @@ type Config struct {
 	// (usermgmt.NewAuditLog) is registered, matching the flattened-path
 	// behavior.
 	ServiceConfig *usermgmt.ServiceConfig
+
+	// Observability, when set, wires a pre-built OTel middleware bundle
+	// (github.com/larsartmann/go-cqrs-lite/middleware) into the event bus of
+	// the service New constructs: bundle.Publish() runs on every event
+	// publish (producer spans) and bundle.Event() on every event handle
+	// (consumer spans + metrics). Zero value (nil) = no OTel middleware, so
+	// default behavior is byte-identical to before this field existed.
+	//
+	// This is a flattened-path convenience, like TOTP or EventStore: it is
+	// REJECTED as a conflict when Service or ServiceConfig is also set.
+	// ServiceConfig users wire the same middleware themselves:
+	//
+	//	svcCfg.SecurityHooks.PublishMiddleware = bundle.Publish()
+	//	svcCfg.SecurityHooks.HandlerMiddleware = bundle.Event()
+	//
+	// When both the bundle and ServiceConfig-style SecurityHooks would apply
+	// (flattened path has no SecurityHooks, so this is composition with the
+	// manual path above), the bundle's middleware runs OUTERMOST: the OTel
+	// span wraps any signing/encryption work. Create the bundle after
+	// cqrsotel.Setup so its tracer resolves the registered global provider:
+	//
+	//	cqrsotel.Setup(cqrsotel.WithService("my-app", "1.0.0", "local"))
+	//	bundle, err := middleware.NewOTelBundle(
+	//		cqrsotel.NewTracer("my-app"), cqrsotel.NewMeter("my-app"))
+	//	// ...
+	//	setup.New(setup.Config{Observability: bundle, /* ... */})
+	//
+	// See docs/guides/leveraging-go-cqrs-lite.md §2 for the full OTel wiring
+	// story (free domain spans, HTTP root spans, correlation).
+	Observability *middleware.OTelBundle
 
 	// Persistence overrides (all optional — defaults to in-memory).
 	//
@@ -390,6 +421,7 @@ func (c Config) serviceConstructionConflicts() []string {
 		{"Logger", c.Logger != nil},
 		{"AsyncStartup", c.AsyncStartup},
 		{"OnProjectionFailed", c.OnProjectionFailed != nil},
+		{"Observability", c.Observability != nil},
 	} {
 		if set.set {
 			conflicts = append(conflicts, set.name)

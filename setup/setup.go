@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -104,7 +105,10 @@ func buildService(cfg Config) (*usermgmt.Service, error) {
 // documented precedence: the ServiceConfig escape hatch when set, otherwise
 // the flattened convenience fields. In override mode the only default the
 // bundle applies on top is the in-memory audit log, matching the flattened
-// path.
+// path. (Validation rejects Observability alongside ServiceConfig, so
+// applyObservability only ever sees a non-nil bundle on the flattened path
+// through New; the override-path call keeps this function correct in
+// isolation for direct internal/test use.)
 func resolveServiceConfig(cfg Config) usermgmt.ServiceConfig {
 	if cfg.ServiceConfig != nil {
 		out := *cfg.ServiceConfig
@@ -112,10 +116,12 @@ func resolveServiceConfig(cfg Config) usermgmt.ServiceConfig {
 			out.AuditLog = usermgmt.NewAuditLog()
 		}
 
+		applyObservability(&out.SecurityHooks, cfg.Observability)
+
 		return out
 	}
 
-	return usermgmt.ServiceConfig{
+	out := usermgmt.ServiceConfig{
 		EventStore:         cfg.EventStore,
 		EventBus:           cfg.EventBus,
 		ReadModelDB:        cfg.ReadModelDB,
@@ -128,6 +134,23 @@ func resolveServiceConfig(cfg Config) usermgmt.ServiceConfig {
 		OnProjectionFailed: cfg.OnProjectionFailed,
 		AsyncStartup:       cfg.AsyncStartup,
 	}
+	applyObservability(&out.SecurityHooks, cfg.Observability)
+
+	return out
+}
+
+// applyObservability prepends the OTel bundle's bus middleware into the
+// service's SecurityHooks, so usermgmt applies it via applyBusMiddleware
+// BEFORE projections subscribe. The bundle's middleware runs outermost: the
+// OTel span wraps any signing/encryption middleware the consumer configured.
+// A nil bundle leaves the hooks untouched (zero-value = legacy behavior).
+func applyObservability(hooks *usermgmt.SecurityHooks, bundle *middleware.OTelBundle) {
+	if bundle == nil {
+		return
+	}
+
+	hooks.PublishMiddleware = append(bundle.Publish(), hooks.PublishMiddleware...)
+	hooks.HandlerMiddleware = append(bundle.Event(), hooks.HandlerMiddleware...)
 }
 
 // attachPanels builds and attaches the enabled UI panels (admin, dashboard,
