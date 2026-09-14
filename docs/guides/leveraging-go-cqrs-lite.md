@@ -220,7 +220,7 @@ repo, err := decider.NewRepository(store, bus,
 
 Every event the repository publishes then carries `otel.correlation_id` in its custom metadata whenever baggage holds a correlation ID (read it back with `middleware.OTelCorrelationIDFromEvent(evt)`).
 
-If you build the service through `setup.New` (or `usermgmt.NewService`), the repositories are constructed for you — wire the enricher there via the `ServiceConfig`/`setup` seams instead, or use `middleware.NewOTelBundle`'s `bundle.CorrelationEnricher()` (same function) when you already hold a bundle (see [setup's `Observability` option](../../setup/README.md#configuration)).
+Scope note, verified against the wiring: usermgmt constructs its repositories internally WITHOUT a baggage enricher, and `setup.Config.Observability` wires only the bundle's bus middleware (`Publish()`/`Event()` spans) — not the enricher. So when you build the service through `usermgmt.NewService`/`setup.New`, baggage-to-metadata bridging via the decider is not automatic; the default domain path (`ContextEnrichmentMiddleware` + `App.EventOptions`) still stamps correlation IDs, and you can add `middleware.OTelCorrelationEnricher` yourself by holding a bundle (`bundle.CorrelationEnricher()` is the same function) and forking the repository construction to add `decider.WithEnricher`. See [setup's `Observability` option](../../setup/README.md#configuration) for what it does wire.
 
 When to set the baggage value: at your trace origin, before dispatching anything —
 
