@@ -79,7 +79,7 @@ while IFS= read -r md_file; do
       broken=$((broken + 1))
     fi
   done <<<"$links"
-done < <(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' -not -path './vendor/*' | sort)
+done < <(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' -not -path '*/vendor/*' | sort)
 
 echo ""
 echo "Checked $checked links across all markdown files."
