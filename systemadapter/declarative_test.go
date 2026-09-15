@@ -17,16 +17,30 @@ import (
 func setupDeclarativeSystem(t *testing.T) *system.System {
 	t.Helper()
 
-	ctx := context.Background()
-
-	deployment := system.DeploymentConfig{
+	return setupDeclarativeSystemDeployment(t, system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
 			"primary": {Driver: "memory"},
 		},
 		Instances: []system.InstanceConfig{
 			{Role: system.RoleSourceOfTruth, Engines: []string{"primary"}},
 		},
-	}
+	})
+}
+
+// setupDeclarativeSystemSQLite runs the same declarative wiring against a
+// SQLite-backed engine (in-memory shared-cache DSN, WAL). The memory driver
+// never exercises the metaengine's SQL layout planning, type mapping, or scan
+// behavior — this is the persistent-engine proof for the fold declarations.
+func setupDeclarativeSystemSQLite(t *testing.T) *system.System {
+	t.Helper()
+
+	return setupDeclarativeSystemDeployment(t, sqliteDeployment(t))
+}
+
+func setupDeclarativeSystemDeployment(t *testing.T, deployment system.DeploymentConfig) *system.System {
+	t.Helper()
+
+	ctx := context.Background()
 
 	sys, err := system.New(ctx, systemadapter.DomainConfig(), deployment)
 	if err != nil {
