@@ -115,7 +115,7 @@ func runDemo(ctx context.Context, sys *system.System) {
 		log.Printf("AuditEntries failed: %v", err)
 	}
 	for _, entry := range entries {
-		fmt.Printf("  [%s] %s <%s>\n", entry.EventType, entry.Action, entry.Email)
+		fmt.Printf("  [%s] %s (aggregate=%s)\n", entry.EventType, entry.Action, entry.AggregateID)
 	}
 }
 
