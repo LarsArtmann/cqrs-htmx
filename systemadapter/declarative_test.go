@@ -1236,8 +1236,9 @@ func TestDeclarative_MissingLookups(t *testing.T) {
 	if _, err := systemadapter.FindUserByEmail(ctx, sys, "missing@example.com"); !errors.Is(err, system.ErrNotFound) {
 		t.Errorf("FindUserByEmail(missing) = %v, want ErrNotFound", err)
 	}
-	if _, err := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "missing"); !errors.Is(err, system.ErrNotFound) {
-		t.Errorf("FindUserByExternalAccount(missing) = %v, want ErrNotFound", err)
+	_, extErr := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "missing")
+	if !errors.Is(extErr, system.ErrNotFound) {
+		t.Errorf("FindUserByExternalAccount(missing) = %v, want ErrNotFound", extErr)
 	}
 	if _, err := systemadapter.FindTenantByID(ctx, sys, missing); !errors.Is(err, system.ErrNotFound) {
 		t.Errorf("FindTenantByID(missing) = %v, want ErrNotFound", err)
