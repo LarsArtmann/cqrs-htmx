@@ -1088,3 +1088,181 @@ func TestDeclarative_EquivalenceWithProjectionLayer(t *testing.T) {
 		t.Errorf("user TOTPEnabled: pl=%v decl=%v", plUser.TOTPEnabled, declUser.TOTPEnabled)
 	}
 }
+
+// ---------------------------------------------------------------------------
+// SQLite engine + negative paths (persistent-engine proof for the declarative
+// folds; the memory driver never exercises SQL layout planning or scan
+// behavior)
+// ---------------------------------------------------------------------------
+
+func TestDeclarative_SQLite_UserLifecycle(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystemSQLite(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userStreamID, "sqlite-lc@example.com", "SQLite Lifecycle",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddCredentialCmd(
+		userStreamID, identitymodel.WebAuthnCredential{
+			CredentialCore: identitymodel.CredentialCore{
+				ID:              []byte{0x01},
+				PublicKey:       []byte{0x02},
+				AttestationType: "none",
+			},
+		},
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewLinkExternalAccountCmd(
+		userStreamID, "github", "sqlite-gh-1", "lc@github.com", "SQLite Lifecycle",
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		byID, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if byID.Email != "sqlite-lc@example.com" {
+			return errors.New("email mismatch")
+		}
+		if len(byID.ExternalAccounts) != 1 {
+			return errors.New("expected 1 external account")
+		}
+		return nil
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		byEmail, err := systemadapter.FindUserByEmail(ctx, sys, "sqlite-lc@example.com")
+		if err != nil {
+			return err
+		}
+		if byEmail.ID != userStreamID.String() {
+			return errors.New("FindUserByEmail ID mismatch")
+		}
+		byExt, err := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "sqlite-gh-1")
+		if err != nil {
+			return err
+		}
+		if byExt.ID != userStreamID.String() {
+			return errors.New("FindUserByExternalAccount ID mismatch")
+		}
+		return nil
+	})
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewUnlinkExternalAccountCmd(
+		userStreamID, "github", "sqlite-gh-1",
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "sqlite-gh-1")
+		if errors.Is(err, system.ErrNotFound) {
+			return nil
+		}
+		return fmt.Errorf("expected ErrNotFound after unlink, got %w", err)
+	})
+
+	eventually(t, 5*time.Second, func() error {
+		entries, err := systemadapter.AuditEntriesFor(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if len(entries) < 3 {
+			return fmt.Errorf("expected >= 3 audit entries, got %d", len(entries))
+		}
+		return nil
+	})
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewDeleteUserCmd(userStreamID, "test")))
+
+	eventually(t, 5*time.Second, func() error {
+		_, err := systemadapter.FindUserByID(ctx, sys, userStreamID.String())
+		if errors.Is(err, system.ErrNotFound) {
+			return nil
+		}
+		return fmt.Errorf("expected ErrNotFound after delete, got %w", err)
+	})
+}
+
+func TestDeclarative_SQLite_AuthzPolicies(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystemSQLite(t)
+	defer func() { _ = sys.Close() }()
+
+	userStreamID := id.NewStreamID()
+	tenantID := identitymodel.NewTenantID("tenant-sqlite-authz")
+	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
+
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
+		userStreamID, "sqlite-admin@example.com", "SQLite Admin",
+		[]identitymodel.Role{identitymodel.RoleUser},
+	)))
+	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewAddMemberCmd(
+		actorID, tenantID,
+		[]identitymodel.Role{identitymodel.RoleAdmin},
+	)))
+
+	eventually(t, 5*time.Second, func() error {
+		allowed, err := systemadapter.Enforce(ctx, sys, userStreamID.String(), tenantID.Get(), "manage")
+		if err != nil {
+			return err
+		}
+		if !allowed {
+			return errors.New("admin should be allowed to manage (SQLite)")
+		}
+		pol, err := systemadapter.FindPolicyByStreamID(ctx, sys, userStreamID.String())
+		if err != nil {
+			return err
+		}
+		if pol.Subject != userStreamID.String() {
+			return errors.New("policy subject mismatch (SQLite)")
+		}
+		return nil
+	})
+}
+
+// Missing-key lookups must report system.ErrNotFound, and scan-style lookups
+// must return an empty result with a nil error — never a zero-value row.
+func TestDeclarative_MissingLookups(t *testing.T) {
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	defer func() { _ = sys.Close() }()
+
+	missing := id.NewStreamID().String()
+
+	if _, err := systemadapter.FindUserByID(ctx, sys, missing); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindUserByID(missing) = %v, want ErrNotFound", err)
+	}
+	if _, err := systemadapter.FindUserByEmail(ctx, sys, "missing@example.com"); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindUserByEmail(missing) = %v, want ErrNotFound", err)
+	}
+	if _, err := systemadapter.FindUserByExternalAccount(ctx, sys, "github", "missing"); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindUserByExternalAccount(missing) = %v, want ErrNotFound", err)
+	}
+	if _, err := systemadapter.FindTenantByID(ctx, sys, missing); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindTenantByID(missing) = %v, want ErrNotFound", err)
+	}
+	if _, err := systemadapter.FindTenantByName(ctx, sys, "missing-tenant"); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindTenantByName(missing) = %v, want ErrNotFound", err)
+	}
+	if _, err := systemadapter.FindBotByID(ctx, sys, missing); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindBotByID(missing) = %v, want ErrNotFound", err)
+	}
+	if _, err := systemadapter.FindBotByTokenHash(ctx, sys, "deadbeef"); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindBotByTokenHash(missing) = %v, want ErrNotFound", err)
+	}
+	if _, err := systemadapter.FindMembershipByID(ctx, sys, missing); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindMembershipByID(missing) = %v, want ErrNotFound", err)
+	}
+	if _, err := systemadapter.FindPolicyByStreamID(ctx, sys, missing); !errors.Is(err, system.ErrNotFound) {
+		t.Errorf("FindPolicyByStreamID(missing) = %v, want ErrNotFound", err)
+	}
+
+	memberships, err := systemadapter.FindMembershipsByActor(ctx, sys, missing)
+	if err != nil {
+		t.Errorf("FindMembershipsByActor(missing) returned error: %v", err)
+	}
+	if len(memberships) != 0 {
+		t.Errorf("FindMembershipsByActor(missing) = %d entries, want 0", len(memberships))
+	}
+}

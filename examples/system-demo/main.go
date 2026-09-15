@@ -40,37 +40,32 @@ func main() {
 	domain := systemadapter.DomainConfig()
 
 	// 3. Create the system: auto-wires event store, command/query dispatchers,
-	//    event bus, snapshot store, and runs safety checks.
+	//    event bus, snapshot store, the declarative projection host (user/
+	//    tenant/membership/bot read models, authz policies, audit log — all
+	//    registered via DomainConfig.Projections), and runs safety checks.
 	sys, err := system.New(ctx, domain, deployment)
 	if err != nil {
 		log.Fatalf("Failed to create system: %v", err)
 	}
 	defer sys.Close()
 
-	// 4. Create projections: user/tenant/membership/bot read models, Casbin authz,
-	//    and audit log. Backed by the system's event store + bus.
-	projLayer, err := systemadapter.NewProjectionLayer(sys)
-	if err != nil {
-		log.Fatalf("Failed to create projection layer: %v", err)
-	}
-	defer projLayer.Stop()
-
-	// 5. Start projections first (so they're ready for events), then start the system.
-	if err := projLayer.Start(ctx); err != nil {
-		log.Fatalf("Failed to start projections: %v", err)
+	// 4. Start the system — this starts the internal declarative projection
+	//    host. There is no separate projection host to wire or stop.
+	if err := sys.Start(ctx); err != nil {
+		log.Fatalf("Failed to start system: %v", err)
 	}
 
-	// 6. Run some commands.
-	runDemo(ctx, sys, projLayer)
+	// 5. Run some commands.
+	runDemo(ctx, sys)
 
-	// 7. Show system introspection.
+	// 6. Show system introspection.
 	fmt.Println("\n=== System Topology ===")
 	fmt.Println(sys.Explain(ctx))
 
 	fmt.Println("\n=== System Health ===")
 	fmt.Printf("Health: %s\n", sys.Health(ctx))
 
-	// 8. Wait for shutdown signal.
+	// 7. Wait for shutdown signal.
 	fmt.Println("\nPress Ctrl+C to stop...")
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
@@ -79,7 +74,7 @@ func main() {
 	fmt.Println("\nShutting down...")
 }
 
-func runDemo(ctx context.Context, sys *system.System, pl *systemadapter.ProjectionLayer) {
+func runDemo(ctx context.Context, sys *system.System) {
 	disp := sys.CommandDispatcher()
 
 	// Register a user
@@ -92,10 +87,9 @@ func runDemo(ctx context.Context, sys *system.System, pl *systemadapter.Projecti
 		log.Printf("RegisterUser failed: %v", err)
 	}
 
-	pl.WaitForDrain(5 * time.Second)
-
-	user, ok := pl.User.FindByID(userID)
-	if ok {
+	if user, ok := waitForView(func() (systemadapter.UserView, error) {
+		return systemadapter.FindUserByID(ctx, sys, userID.String())
+	}); ok {
 		fmt.Printf("  User: %s <%s> (verified=%v)\n", user.DisplayName, user.Email, user.EmailVerified)
 	}
 
@@ -108,16 +102,35 @@ func runDemo(ctx context.Context, sys *system.System, pl *systemadapter.Projecti
 		log.Printf("CreateTenant failed: %v", err)
 	}
 
-	pl.WaitForDrain(5 * time.Second)
-
-	tenant, ok := pl.Tenant.FindByID(tenantID)
-	if ok {
+	if tenant, ok := waitForView(func() (systemadapter.TenantView, error) {
+		return systemadapter.FindTenantByID(ctx, sys, tenantID.String())
+	}); ok {
 		fmt.Printf("  Tenant: %s (%s) suspended=%v\n", tenant.DisplayName, tenant.Name, tenant.Suspended)
 	}
 
-	// Show audit log
+	// Show audit log (declarative projection, queried like any other view)
 	fmt.Println("\n=== Audit Log ===")
-	for _, entry := range pl.AuditLog.Entries() {
+	entries, err := systemadapter.AuditEntries(ctx, sys)
+	if err != nil {
+		log.Printf("AuditEntries failed: %v", err)
+	}
+	for _, entry := range entries {
 		fmt.Printf("  [%s] %s <%s>\n", entry.EventType, entry.Action, entry.Email)
 	}
+}
+
+// waitForView polls a declarative read-model query until it succeeds or the
+// deadline passes — the queryable equivalent of the deprecated
+// ProjectionLayer.WaitForDrain.
+func waitForView[V any](read func() (V, error)) (V, bool) {
+	var zero V
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		view, err := read()
+		if err == nil {
+			return view, true
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	return zero, false
 }
