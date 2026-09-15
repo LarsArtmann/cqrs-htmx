@@ -80,9 +80,9 @@ Go library that makes it easy to use go-cqrs-lite with HTMX, templ, and Casbin a
 
 **Don't hand-rolled timing:** every serious comparison in this repo uses `b.Loop()` + `b.ReportAllocs()` + benchstat. One-off `time.Since` blocks in tests are forbidden — they belong in `*_bench_test.go` files.
 
-## templ-components adoption (`github.com/larsartmann/templ-components` family, all five modules at v1.16.0 — verified 2026-09-10)
+## templ-components adoption (`github.com/larsartmann/templ-components` family — direct consumers at v1.17.0, verified 2026-09-15)
 
-templ-components is a FAMILY of five Go modules (root, `/htmx`, `/icons`, `/utils`, `/datastar`) — consumers need up to five requires for one logical dependency. Family uniform at v1.16.0 across all consumers (swept from v1.14.0 in the 2026-09-09 alignment sweep; the CI drift gate + `check-docs-freshness` uniform-at check now pin this claim).
+templ-components is a FAMILY of five Go modules (root, `/htmx`, `/icons`, `/utils`, `/datastar`) — consumers need up to five requires for one logical dependency. Direct consumers (adminui, dashboardui, examples, health, setup) were swept to v1.17.0 in the post-2026-09-09 wave; integration_test's INDIRECT requires intentionally stay at v1.16.0 until the next family train (they resolve from the PUBLISHED adminui/dashboardui tags — hermetic tidy confirms, do not hand-bump). The CI drift gate + `check-docs-freshness` pin these claims (the uniform-at check only passes at full-tree uniformity, i.e. after integration_test's indirects catch up).
 
 Both **adminui** and **dashboardui** depend on templ-components. **loginpage** does not use it (loginpage hand-rolls a single `.templ` page with custom `lp-*` CSS). Before hand-rolling any UI element, check the library first — it has 110+ components across 10 packages.
 
