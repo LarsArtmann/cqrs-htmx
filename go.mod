@@ -16,8 +16,8 @@ require (
 	github.com/larsartmann/httputil v1.1.1
 	github.com/larsartmann/httputil/server_timing v1.0.1
 	github.com/oklog/ulid/v2 v2.1.2
-	github.com/onsi/ginkgo/v2 v2.32.0
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/ginkgo/v2 v2.32.2
+	github.com/onsi/gomega v1.43.0
 )
 
 require github.com/larsartmann/go-sse/ssetest v0.3.0
