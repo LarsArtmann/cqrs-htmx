@@ -228,6 +228,27 @@ the proxy-to-app hop on a private network or loopback so the session cookie is
 never transported in the clear. Rate limiting and body limits are opt-in via
 `httputil` — see `docs/guides/leveraging-httputil.md`.
 
+### Why the `/auth/*` mutations carry no CSRF token (deliberate)
+
+The admin panel's form-based mutations are CSRF-protected by a token; the auth
+endpoints (`POST /auth/register`, the WebAuthn/TOTP/OAuth2 ceremonies,
+`POST /auth/logout`) intentionally are not. Two reasons:
+
+1. The login/registration ceremonies are **unauthenticated** — they establish
+   a session rather than ride one. CSRF is an attack on *ambient* cookie
+   authorization; a cross-site POST to `/auth/webauthn/login/begin` creates
+   nothing and leaks nothing.
+2. The auth mutations that DO ride the session cookie (`logout`, credential
+   deletion) are guarded by the cookie itself: usermgmt issues it with
+   `SameSite=Strict`, so a cross-site request never carries it. Defense in
+   depth for these endpoints is available via `Config.AuthHandlerConfig`
+   (rate limits, timeouts) rather than a second token dance.
+
+If your threat model requires token CSRF on auth mutations anyway (e.g. you
+must support browsers that predate strict SameSite), wrap
+`bundle.Auth.RegisterRoutes` behind `bundle.CSRFMiddleware()` on your own mux
+instead of using `Bundle.Mount` for those routes.
+
 ## See also
 
 - `docs/guides/fullstack-wiring.md` — full wiring guide (SDK vs manual)

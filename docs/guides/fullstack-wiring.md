@@ -145,6 +145,56 @@ Because `ServiceConfig` is passed verbatim, any FUTURE
 changes — do not file "expose X in setup.Config" requests; pass a
 `ServiceConfig`.
 
+### The HTTP-layer seams (what `ServiceConfig` does NOT cover)
+
+The ServiceConfig-verbatim policy above covers the SERVICE layer. Three seams live
+outside it, and the bundle exposes each of them directly (audit 2026-09):
+
+**`Config.AuthHandlerConfig`** — `usermgmt.HandlerConfig` is an HTTP-layer
+struct only the bundle constructs (the `/auth/*` handler has no setters), so
+there is no verbatim form you could pass instead. This seam unlocks the six
+per-group rate limiters, the cookie `Secure`/`SessionMaxAge` flags, the
+handler `Timeout`, the OAuth2 redirect URLs, and the import/export
+authorizer:
+
+```go
+bundle, err := setup.New(setup.Config{
+    Title: "Hardened",
+    AuthHandlerConfig: &usermgmt.HandlerConfig{
+        WebAuthnRateLimit: usermgmt.RateLimitConfig{
+            Enabled: true, MaxRequests: 10, Window: time.Minute,
+        },
+        OAuth2SuccessURL: "/welcome",
+    },
+})
+```
+
+An empty `CookieName` inside inherits `Config.CookieName` (the auth handler
+must write the cookie the session middleware reads); a mismatch is rejected
+at `New`. The value composes with all three service sources.
+
+**`Config.Metrics` / `Config.Version`** — the go-appkit Prometheus surface
+and `/version` build stamp, on the `RunWithAppkit` serve path only. `Run` /
+`RunHandler` users mount their own metrics (see
+`docs/guides/leveraging-go-cqrs-lite.md` §2.3).
+
+**Machine endpoints** — `EventCatalogPath` / `ProjectionStatusPath` /
+`DebugPath` mount the root module's JSON handlers, session-gated:
+
+```go
+bundle, err := setup.New(setup.Config{
+    Title:                "Observable",
+    EventCatalogPath:     "/events/catalog",
+    ProjectionStatusPath: "/health/projections",
+    DebugPath:            "/debug",
+    LivePath:             "/health/live", // public liveness; HealthPath "-" opts readiness out
+})
+```
+
+Plus `Config.RequestLogging` (structured access lines, composed outermost in
+`Bundle.Middleware`) and `Config.SSEScriptPath` (the HTMX SSE extension at
+`/sse.js` beside `SSEPath` — DataStarScriptPath symmetry).
+
 ## Manual Wiring (when you need full control)
 
 If `setup/v4` doesn't fit your needs, wire modules individually. This is the full manual path:

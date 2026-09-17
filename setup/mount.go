@@ -36,6 +36,12 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	cfg := b.config
 
 	// Auth routes (register, webauthn, logout, me) — public (no session needed for registration).
+	// No CSRF middleware here, deliberately: the login/registration ceremonies are
+	// unauthenticated (CSRF attacks ambient cookie authority, which they do not
+	// ride), and the cookie-authed mutations (logout, credential deletion) are
+	// guarded by the session cookie's SameSite=Strict flag. The admin panel's
+	// form mutations, by contrast, take the token dance — see README "Why the
+	// /auth/* mutations carry no CSRF token".
 	if b.Auth != nil {
 		b.Auth.RegisterRoutes(mux)
 	}
