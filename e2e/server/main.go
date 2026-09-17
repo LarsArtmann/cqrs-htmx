@@ -1,3 +1,12 @@
+// Server timeout posture for the e2e server (mirrors setup.Bundle's HTTP
+// server defaults; SSE endpoints need generous write windows).
+const (
+	e2eReadHeaderTimeout = 5 * time.Second
+	e2eReadTimeout       = 10 * time.Second
+	e2eWriteTimeout      = 30 * time.Second
+	e2eIdleTimeout       = 60 * time.Second
+)
+
 // Package main is a minimal HTTP server for Playwright E2E testing of the
 // cqrs-htmx offline sync stack (sync-worker.js + sync-client.js).
 //
@@ -20,6 +29,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-sse"
@@ -61,7 +71,20 @@ func main() {
 
 	log.Printf("sync-e2e server listening on %s", *addr)
 
-	if err := http.ListenAndServe(*addr, mux); err != nil {
+	// Explicit timeouts (G114): the e2e server is local-only, but the race
+	// detector and security scanners flag a bare ListenAndServe, and timeouts
+	// keep a hung Playwright run from pinning connections forever. Values
+	// mirror setup.Bundle's server posture (ReadHeaderTimeout 5s, idle 60s).
+	server := &http.Server{ //nolint:exhaustruct // optional server knobs intentionally default
+		Addr:              *addr,
+		Handler:           mux,
+		ReadHeaderTimeout: e2eReadHeaderTimeout,
+		ReadTimeout:       e2eReadTimeout,
+		WriteTimeout:      e2eWriteTimeout,
+		IdleTimeout:       e2eIdleTimeout,
+	}
+
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }
@@ -105,7 +128,7 @@ const indexHTML = `<!DOCTYPE html>
 
 // --- SSE handler ---
 
-func sseHandler(bc *cqrshtmx.Broadcaster) http.HandlerFunc {
+func sseHandler(broadcaster *cqrshtmx.Broadcaster) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
@@ -114,8 +137,8 @@ func sseHandler(bc *cqrshtmx.Broadcaster) http.HandlerFunc {
 			f.Flush()
 		}
 
-		ch := bc.Subscribe()
-		defer bc.Unsubscribe(ch)
+		ch := broadcaster.Subscribe()
+		defer broadcaster.Unsubscribe(ch)
 
 		for {
 			select {
