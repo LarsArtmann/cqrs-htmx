@@ -92,17 +92,13 @@ func copyButtonHTML(ctx context.Context, text, label string) string {
 }
 
 // rawComponent wraps pre-rendered HTML as a templ component.
-func rawComponent(
-	html string,
-) templ.Component { //nolint:ireturn // templ.Component is the library component contract
+func rawComponent(html string) templ.Component { //nolint:ireturn // templ component contract
 	return templ.Raw(html)
 }
 
 // copyButtonComponent builds an unrendered library CopyButton component for
 // embedding inside other components (definition list details).
-func copyButtonComponent(
-	text string,
-) templ.Component { //nolint:ireturn // templ.Component is the library component contract
+func copyButtonComponent(text string) templ.Component { //nolint:ireturn // templ component contract
 	return display.CopyButton(display.CopyButtonProps{
 		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Text:        text,
