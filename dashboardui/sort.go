@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/larsartmann/templ-components/display"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // sortState tracks the active sort column and direction for table headers.
@@ -91,30 +90,6 @@ func sortEvents(events []event.Event, s sortState) {
 			return a > b
 		})
 	}
-}
-
-// sortHeader renders a clickable sortable column header with an indicator.
-func sortHeader(basePath, label, column string, s sortState, extraParams string) string {
-	direction := sortAsc
-	indicator := ""
-
-	if s.Column == column {
-		if s.Direction == sortAsc {
-			indicator = " \u25B2" // ▲
-			direction = sortDesc
-		} else {
-			indicator = " \u25BC" // ▼
-			direction = sortAsc
-		}
-	}
-
-	query := "sort=" + column + "&dir=" + direction
-	if extraParams != "" {
-		query += "&" + extraParams
-	}
-
-	return `<th scope="col"><a href="` + basePath + "/events?" + query + `" class="sort-header">` +
-		label + indicator + `</a></th>`
 }
 
 // eventSortHeader builds a typed sortable header for the events table,
