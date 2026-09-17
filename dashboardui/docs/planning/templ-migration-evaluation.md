@@ -7,7 +7,8 @@
 > handler to `.templ`. The actual adoption gate is a Tailwind v4 pipeline (library
 > components emit Tailwind utilities; no compiled CSS ships); adminui already runs
 > the exact BuildFlow `tailwind-build` pattern. Full component-by-component audit:
-> `docs/research/2026-09-17_templ-components-dashboardui-deep-dive.html` (repo root).
+> `../../../docs/research/2026-09-17_templ-components-dashboardui-deep-dive.html` (repo root;
+> companion audit: `../../../docs/research/2026-09-17_templ-components-deep-dive.html` covers adminui).
 
 ## Context
 
