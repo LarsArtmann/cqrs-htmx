@@ -28,30 +28,16 @@ func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	renderPage(w, r, html)
 }
 
-// healthKindToVariant maps an internal health kind (statusGood/statusWarn/...)
-// to the CSS stat-card variant class (ok/warn/err).
-func healthKindToVariant(kind string) string {
-	switch kind {
-	case statusGood:
-		return "ok"
-	case statusWarn:
-		return "warn"
-	case statusBad:
-		return "err"
-	default:
-		return ""
-	}
-}
-
 func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overviewStats) string {
 	var b strings.Builder
 
 	b.WriteString(d.renderLayout(p, func() string {
 		var inner strings.Builder
 
+		ctx := context.Background()
 		inner.WriteString(`<div class="stat-grid">`)
-		statCard(&inner, stats.TotalEvents, "Events", "")
-		statCard(&inner, stats.TotalAggregates, "Aggregates", "")
+		inner.WriteString(statCardHTML(ctx, "stat-total-events", stats.TotalEvents, "Events", display.StatToneBlue))
+		inner.WriteString(statCardHTML(ctx, "stat-total-aggregates", stats.TotalAggregates, "Aggregates", display.StatToneBlue))
 
 		if len(stats.Projections) > 0 {
 			active := 0
@@ -62,15 +48,16 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 				}
 			}
 
-			statCard(&inner, fmt.Sprintf("%d/%d", active, len(stats.Projections)), "Projections", "ok")
+			inner.WriteString(statCardHTML(ctx, "stat-projections-active",
+				fmt.Sprintf("%d/%d", active, len(stats.Projections)), "Projections", display.StatToneGreen))
 		}
 
 		if stats.HealthStatus != "" {
-			statCard(&inner, stats.HealthStatus, "System Health", healthKindToVariant(stats.HealthKind))
+			inner.WriteString(statCardHTML(ctx, "stat-system-health", stats.HealthStatus, "System Health", healthKindToTone(stats.HealthKind)))
 		}
 
 		if stats.DLQCount != "" {
-			statCard(&inner, stats.DLQCount, "Dead Letters", "err")
+			inner.WriteString(statCardHTML(ctx, "stat-dlq-count", stats.DLQCount, "Dead Letters", display.StatToneRed))
 		}
 
 		inner.WriteString(`</div>`)
@@ -176,18 +163,6 @@ func statusBadge(ctx context.Context, b *strings.Builder, kind, statusText strin
 		Href:      "",
 	}
 	_ = display.Badge(props).Render(ctx, b)
-}
-
-func statCard(b *strings.Builder, value, label, variant string) {
-	classes := "stat-card"
-	if variant != "" {
-		classes += " " + variant
-	}
-
-	fmt.Fprintf(b, `<div class="%s">`, classes)
-	fmt.Fprintf(b, `<div class="stat-card-value">%s</div>`, esc(value))
-	fmt.Fprintf(b, `<div class="stat-card-label">%s</div>`, esc(label))
-	b.WriteString(`</div>`)
 }
 
 func truncate(s string, n int) string {

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // ===== Projection Dashboard =====
@@ -175,11 +176,11 @@ func (d *Dashboard) renderProjectionDetail(ctx context.Context, p pageData, proj
 		)
 		b.WriteString(`</div>`)
 
-		b.WriteString(`<div class="stat-grid">`)
-		statCard(&b, strconv.FormatInt(proj.Processed, 10), "Processed", "")
-		statCard(&b, strconv.FormatInt(proj.Errors, 10), "Errors", "err")
-		statCard(&b, strconv.Itoa(proj.Restarts), "Restarts", "warn")
-		statCard(&b, proj.Lag, "Lag", "")
+		slug := strings.ReplaceAll(strings.ToLower(proj.Name), " ", "-")
+		b.WriteString(statCardHTML(ctx, "stat-processed-"+slug, strconv.FormatInt(proj.Processed, 10), "Processed", display.StatToneBlue))
+		b.WriteString(statCardHTML(ctx, "stat-errors-"+slug, strconv.FormatInt(proj.Errors, 10), "Errors", display.StatToneRed))
+		b.WriteString(statCardHTML(ctx, "stat-restarts-"+slug, strconv.Itoa(proj.Restarts), "Restarts", display.StatToneYellow))
+		b.WriteString(statCardHTML(ctx, "stat-lag-"+slug, proj.Lag, "Lag", display.StatToneBlue))
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<h3>Details</h3><table class="meta-table">`)

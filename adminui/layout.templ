@@ -23,7 +23,8 @@ templ Layout(p pageData, content templ.Component) {
 		Footer:        pageFoot(p),
 	}) {
 		@layout.AppShell(layout.AppShellProps{
-			Sidebar:        sidebar(p),
+			BaseProps:       utils.BaseProps{Class: "admin-shell"},
+			Sidebar:         sidebar(p),
 			MobileNav:      mobileNav(p),
 			Header:         topBar(p),
 			Content:          content,

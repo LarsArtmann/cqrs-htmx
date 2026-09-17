@@ -38,6 +38,14 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 	var recent []usermgmt.AuditEntry
 	if al := svc.AuditLog(); al != nil {
 		recent = al.Recent(8)
+		for i := range recent {
+			if recent[i].Email != "" {
+				continue
+			}
+			if u, ok := svc.ReadModel().FindByID(recent[i].AggregateID); ok {
+				recent[i].Email = u.Email
+			}
+		}
 	}
 
 	renderPage(w, r, dashboardPage(p, dashboardData{Stats: stats, Recent: recent}))

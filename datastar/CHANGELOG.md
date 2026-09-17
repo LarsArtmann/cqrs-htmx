@@ -8,11 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **`Broadcaster` embeds the `*sse.Broadcaster[sse.Event]` hub** (previously a hidden unexported `inner` field): `Health`, `Shutdown`, `Close`, `OnSubscribe`, `OnUnsubscribe` are now promoted from go-sse with identical signatures (six hand-written pass-through methods deleted), and `Subscribe`/`Unsubscribe`/`SubscribeFilter` are callable directly on the adapter — no unwrapping needed. `Broadcast(patch Patch)` still shadows the hub's `Broadcast(sse.Event)` on purpose (patch ergonomics); raw events use `BroadcastEvent` or the hub. New `Hub()` accessor and `NewBroadcasterFromHub(hub)` constructor are the canonical cross-transport sharing API (see `docs/guides/sse-and-datastar.md`).
+- **`Broadcaster` moved upstream to `github.com/larsartmann/go-datastar/broadcast`** (new optional submodule of go-datastar, 2026-09-17): serve loop, patch fan-out, reconnection replay, hub sharing, and the promoted go-sse methods now live there — domain-agnostic, usable without cqrs-htmx. This module keeps `type Broadcaster = broadcast.Broadcaster` plus all constructors as a deprecated facade (removal bundled with v5); `NewEventBridge` accepts upstream-built broadcasters unchanged via the alias. The behavior test suite moved upstream with the implementation. setup/v4 and integration_test now import `broadcast` directly.
+- **`Broadcaster` embeds the `*sse.Broadcaster[sse.Event]` hub** (previously a hidden unexported `inner` field): `Health`, `Shutdown`, `Close`, `OnSubscribe`, `OnUnsubscribe` are now promoted from go-sse with identical signatures (six hand-written pass-through methods deleted), and `Subscribe`/`Unsubscribe`/`SubscribeFilter` are callable directly on the adapter — no unwrapping needed. `Broadcast(patch Patch)` still shadows the hub's `Broadcast(sse.Event)` on purpose (patch ergonomics); raw events use `BroadcastEvent` or the hub. New `Hub()` accessor and `NewBroadcasterFromHub(hub)` constructor are the canonical cross-transport sharing API (see `docs/guides/sse-and-datastar.md`). (Now inherited from the upstream broadcast module.)
 
 ### Deprecated
 
-- **`Raw()` and `NewBroadcasterFromRaw`** — superseded by `Hub()` / `NewBroadcasterFromHub`. Functional (and test-pinned) until removal in v5.
+- **`Broadcaster`, `NewBroadcaster`, `NewBroadcasterWithBufferSize`, `NewBroadcasterWithReplay`, `NewBroadcasterFromHub`** — import `github.com/larsartmann/go-datastar/broadcast` and use the same names there. Removal bundled with v5.
+- **`Raw()` method removed early with the upstream move** (deprecated since the hub-first vocabulary landed, zero in-repo consumers, and a type alias cannot carry methods). Use `Hub()`. `NewBroadcasterFromRaw` remains functional as a deprecated function until v5.
 
 ## [v4.1.0] - 2026-08-07
 

@@ -1,14 +1,16 @@
 // Package datastar provides a DataStar adapter for cqrs-htmx applications.
 //
 // This module wraps [go-datastar] and [go-sse] to provide a DataStar protocol
-// layer for CQRS event-sourced applications. It adds two things beyond what
-// go-datastar provides:
+// layer for CQRS event-sourced applications. Its own contribution is the
+// domain coupling:
 //
-//   - Broadcaster: fan-out SSE patches via [sse.Broadcaster[sse.Event]]
 //   - EventBridge: declarative domain-event → Patch mapping
+//   - Re-exports of common go-datastar types for single-import convenience
 //
-// All DataStar types (patches, options, modes, namespaces) are re-exported
-// from go-datastar for single-import convenience.
+// The Broadcaster (fan-out SSE serving, reconnection replay, hub sharing)
+// moved upstream to [go-datastar/broadcast] on 2026-09-17; this package keeps
+// a deprecated type alias plus constructor shims (removal bundled with v5).
+// Pass a broadcast.NewBroadcaster result straight into NewEventBridge.
 //
 // # Quick Start
 //
@@ -16,7 +18,7 @@
 //
 //	mux.Handle("GET /datastar.js", ds.ScriptHandler())
 //
-//	broadcaster := ds.NewBroadcaster()
+//	broadcaster := broadcast.NewBroadcaster()
 //	mux.Handle("GET /events", broadcaster)
 //
 //	bridge := ds.NewEventBridge(broadcaster)
@@ -42,16 +44,14 @@
 //
 // # Architecture
 //
-// This module is a thin adapter. The real implementation lives in:
+// This module is a thin adapter. The layers are:
 //
-//   - [go-datastar] — DataStar protocol vocabulary (patches as values)
 //   - [go-sse] — SSE transport (Stream, Broadcaster, Replay, Heartbeat)
-//
-// The SDK dependency (starfederation/datastar-go) has been fully replaced.
-// Patches are now first-class values implementing [Patch] (Event() sse.Event),
-// enabling composition with go-sse's Broadcaster, SubscribeFilter, and
-// Shutdown infrastructure.
+//   - [go-datastar] — DataStar protocol vocabulary (patches as values)
+//   - [go-datastar/broadcast] — connection lifecycle (fan-out, replay, hubs)
+//   - this package — CQRS domain coupling (EventBridge) + re-exports
 //
 // [go-datastar]: https://github.com/LarsArtmann/go-datastar
+// [go-datastar/broadcast]: https://github.com/LarsArtmann/go-datastar/tree/main/broadcast
 // [go-sse]: https://github.com/LarsArtmann/go-sse
 package datastar

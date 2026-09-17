@@ -121,6 +121,14 @@ body {
   background-color: var(--accent);
 }
 
+/* AppShell emits its sidebar-width custom property (--tc-sidebar-w) as an
+   inline style attribute, which the CSP above silently drops (style-src
+   'self' + nonce never authorizes style="" attributes). Redefine it in CSS
+   for the shell class instead — adminui pins SidebarWidthMD (16rem). */
+.admin-shell {
+  --tc-sidebar-w: 16rem;
+}
+
 /* SidebarNav hardcodes Tailwind's literal dark palette (bg-gray-900,
    hover:bg-gray-800, text-gray-300), but the @theme block above remaps
    gray-* to surface tokens (gray-900 = --text, which flips light in dark
