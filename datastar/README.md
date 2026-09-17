@@ -17,13 +17,16 @@ go get github.com/larsartmann/cqrs-htmx/datastar/v4
 ## Quick Start
 
 ```go
-import ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+import (
+    ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+    "github.com/larsartmann/go-datastar/broadcast"
+)
 
 // 1. Serve datastar.js (self-hosted, no CDN)
 mux.Handle("GET /datastar.js", ds.ScriptHandler())
 
-// 2. Real-time SSE endpoint
-broadcaster := ds.NewBroadcaster()
+// 2. Real-time SSE endpoint (go-datastar/broadcast)
+broadcaster := broadcast.NewBroadcaster()
 mux.Handle("GET /events", broadcaster)
 
 // 3. Map domain events to Datastar patches
@@ -36,7 +39,7 @@ bridge.Map("TodoCreated", func(e event.Event) (ds.Patch, error) {
 mux.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
     var s struct{ Title string `json:"title"` }
     if err := ds.ReadSignals(r, &s); err != nil {
-        ds.ErrorResponse(w, r, err)
+        ds.ErrorResponse(sse.NewStream(w, r), err.Error(), "ERR_400")
         return
     }
     // ... dispatch command ...
@@ -55,11 +58,15 @@ mux.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
 | `ElementsPatch(html, opts...)`   | Create a patch-elements instruction             |
 | `SignalsPatch(signals, opts...)` | Create a patch-signals instruction              |
 | `RemovePatch(selector)`          | Create a remove-element instruction             |
-| `NewBroadcaster()`               | Fan-out SSE patches to all clients              |
-| `NewBroadcasterWithReplay(n)`    | Broadcaster with a custom replay buffer         |
 | `NewEventBridge(broadcaster)`    | Declarative event-to-patch mapping              |
 | `EventBridge.OnError(fn)`        | Callback for handler errors (logging/metrics)   |
-| `ErrorResponse(w, r, err)`       | Send an error as a Datastar notification signal |
+| `ErrorResponse(stream, msg, code)` | Send an error as a Datastar notification signal |
+
+Fan-out, reconnection replay, and hub sharing live in
+[`go-datastar/broadcast`](https://github.com/LarsArtmann/go-datastar/tree/main/broadcast)
+(`NewBroadcaster`, `NewBroadcasterWithReplay`, `NewBroadcasterFromHub`, `Hub`).
+The same-named constructors here are deprecated aliases (v5 removal);
+`NewEventBridge` accepts a `*broadcast.Broadcaster` directly.
 
 For SSE keep-alive (proxy idle timeouts), run `sse.Stream.Heartbeat(ctx, d)`
 per connection — the broadcaster itself owns no heartbeat timer.
