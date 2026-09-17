@@ -6,6 +6,12 @@
 
 **Status:** Future — not started
 
+> **Update 2026-09-17 (verified):** adoption does NOT require converting the ~5,500
+> lines to templ first. Components render into the existing `strings.Builder` via
+> `Component.Render(ctx, &b)`. The real gate is a Tailwind v4 build (components emit
+> Tailwind utilities) — the adminui BuildFlow `tailwind-build` pattern. 12-step
+> adoption ladder: `docs/research/2026-09-17_templ-components-dashboardui-deep-dive.html`.
+
 The current rendering layer uses raw Go `strings.Builder` HTML with embedded CSS.
 While functional, it is painful to maintain: format-string bugs (counting `%s`
 placeholders), no compile-time HTML validation, no component reuse, and inline

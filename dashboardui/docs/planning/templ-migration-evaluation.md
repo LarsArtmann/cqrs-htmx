@@ -1,5 +1,14 @@
 # Templ Migration Evaluation — dashboardui
 
+> **UPDATE 2026-09-17 (verified):** the all-or-nothing framing below is wrong on one
+> load-bearing point. A templ component is just `Render(ctx, io.Writer)` —
+> `strings.Builder` satisfies it — so every templ-components leaf component can be
+> adopted inside the existing strings.Builder renderers without converting any
+> handler to `.templ`. The actual adoption gate is a Tailwind v4 pipeline (library
+> components emit Tailwind utilities; no compiled CSS ships); adminui already runs
+> the exact BuildFlow `tailwind-build` pattern. Full component-by-component audit:
+> `docs/research/2026-09-17_templ-components-dashboardui-deep-dive.html` (repo root).
+
 ## Context
 
 dashboardui renders all HTML via `strings.Builder` with `html.EscapeString` (aliased as `esc()`). Every page is a Go function that builds HTML string fragments. This document evaluates whether migrating to [templ](https://templ.guide) (a-h/templ) would improve the codebase.
