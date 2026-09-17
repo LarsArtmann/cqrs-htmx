@@ -11,6 +11,7 @@ import (
 	"time"
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
 	"github.com/larsartmann/go-sse"
 	"github.com/stretchr/testify/require"
 )
@@ -32,7 +33,7 @@ func (f fakeTemplComponent) Render(_ context.Context, w io.Writer) error {
 func TestNewBroadcasterWithBufferSize(t *testing.T) {
 	t.Parallel()
 
-	b := ds.NewBroadcasterWithBufferSize(128)
+	b := broadcast.NewBroadcasterWithBufferSize(128)
 	require.NotNil(t, b)
 	require.Equal(t, 0, b.SubscriberCount())
 }
@@ -40,7 +41,7 @@ func TestNewBroadcasterWithBufferSize(t *testing.T) {
 func TestBroadcasterOnUnsubscribeCallback(t *testing.T) {
 	t.Parallel()
 
-	b := ds.NewBroadcaster()
+	b := broadcast.NewBroadcaster()
 
 	var count int
 	var mu sync.Mutex
@@ -152,7 +153,7 @@ func TestErrorResponse(t *testing.T) {
 func TestBroadcastWithReplayStore(t *testing.T) {
 	t.Parallel()
 
-	b := ds.NewBroadcasterWithReplay(10)
+	b := broadcast.NewBroadcasterWithReplay(10)
 	disconnect := connectSubscriber(t, b)
 
 	patch := ds.ElementsPatch("<div>stored</div>")
