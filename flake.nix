@@ -648,8 +648,15 @@
                 ];
                 text = ''
                   cd dashboardui
-                  # Resolve templ-components module dir at build time.
+                  # Resolve templ-components root module dir at build time.
+                  # dashboardui currently depends only on the icons/utils
+                  # submodules, so fall back to the icons dir's parent (the
+                  # module cache extracts the FULL module at that path).
                   TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components 2>/dev/null || true)
+                  if [ -z "$TC_DIR" ]; then
+                    ICONS_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/icons 2>/dev/null || true)
+                    [ -n "$ICONS_DIR" ] && TC_DIR=$(dirname "$ICONS_DIR")
+                  fi
 
                   TMP_CSS=$(mktemp --suffix=.css)
                   cp tailwind.css "$TMP_CSS"
