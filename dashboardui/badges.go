@@ -14,7 +14,7 @@ func badgeHTML(ctx context.Context, text string, badgeType display.BadgeType) st
 	var b strings.Builder
 
 	props := display.BadgeProps{
-		BaseProps: utils.BaseProps{},
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Text:      text,
 		Type:      badgeType,
 		Size:      display.BadgeSizeMD,

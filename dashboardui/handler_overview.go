@@ -167,7 +167,7 @@ func statusBadge(ctx context.Context, b *strings.Builder, kind, statusText strin
 	}
 
 	props := display.BadgeProps{
-		BaseProps: utils.BaseProps{},
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Text:      statusText,
 		Type:      display.BadgeNeutral,
 		Size:      display.BadgeSizeMD,

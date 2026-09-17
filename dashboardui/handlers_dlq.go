@@ -19,43 +19,46 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	links := d.buildDLQProjectionLinks(r.Context())
 
-	html := d.renderLayout(p, func() string {
-		if len(links) == 0 {
-			return emptyState(
-				"Dead-Letter Queue",
-				"No projections registered. Dead letters will appear here when projection errors occur.",
-			)
-		}
+	html := d.renderLayout(
+		p,
+		func() string { //nolint:contextcheck // closure captures r and passes r.Context() to badgeHTML explicitly
+			if len(links) == 0 {
+				return emptyState(
+					"Dead-Letter Queue",
+					"No projections registered. Dead letters will appear here when projection errors occur.",
+				)
+			}
 
-		var b strings.Builder
+			var b strings.Builder
 
-		b.WriteString(`<div class="page-header"><h2>Dead-Letter Queue</h2>`)
-		b.WriteString(`<p class="page-subtitle">Select a projection to view its dead letters.</p></div>`)
+			b.WriteString(`<div class="page-header"><h2>Dead-Letter Queue</h2>`)
+			b.WriteString(`<p class="page-subtitle">Select a projection to view its dead letters.</p></div>`)
 
-		// Summary table with counts.
-		var rows strings.Builder
+			// Summary table with counts.
+			var rows strings.Builder
 
-		for _, link := range links {
+			for _, link := range links {
+				fmt.Fprintf(
+					&rows,
+					`<tr><td class="cell-emph"><a href="%s/dead-letters/%s">%s</a></td><td>%s</td><td><a href="%s/dead-letters/%s" class="btn">View</a></td></tr>`,
+					p.BasePath,
+					esc(link.Name),
+					esc(link.Name),
+					badgeHTML(r.Context(), strconv.Itoa(link.Count), countBadgeType(link.Count)),
+					p.BasePath,
+					esc(link.Name),
+				)
+			}
+
 			fmt.Fprintf(
-				&rows,
-				`<tr><td class="cell-emph"><a href="%s/dead-letters/%s">%s</a></td><td>%s</td><td><a href="%s/dead-letters/%s" class="btn">View</a></td></tr>`,
-				p.BasePath,
-				esc(link.Name),
-				esc(link.Name),
-				badgeHTML(r.Context(), strconv.Itoa(link.Count), countBadgeType(link.Count)),
-				p.BasePath,
-				esc(link.Name),
+				&b,
+				`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Projection</th><th scope="col">Dead Letters</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
+				rows.String(),
 			)
-		}
 
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Projection</th><th scope="col">Dead Letters</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
-
-		return b.String()
-	})
+			return b.String()
+		},
+	)
 	renderPage(w, r, html)
 }
 
@@ -114,7 +117,12 @@ func (d *Dashboard) dlqEntryDetailHandler(w http.ResponseWriter, r *http.Request
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderDLQEntryDetail(ctx context.Context, p pageData, proj string, entry projectionhost.DeadLetterEntry) string {
+func (d *Dashboard) renderDLQEntryDetail(
+	ctx context.Context,
+	p pageData,
+	proj string,
+	entry projectionhost.DeadLetterEntry,
+) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -285,7 +293,12 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (d *Dashboard) renderDLQ(ctx context.Context, p pageData, proj string, entries []projectionhost.DeadLetterEntry) string {
+func (d *Dashboard) renderDLQ(
+	ctx context.Context,
+	p pageData,
+	proj string,
+	entries []projectionhost.DeadLetterEntry,
+) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
