@@ -174,6 +174,13 @@ func ReadSignals(r *http.Request, signals any) error {
 	return godatastar.ReadSignals(r, signals)
 }
 
+// LastEventID extracts the last event ID from an HTTP request, checking
+// the Last-Event-ID header and the lastEventId query parameter.
+// This is a re-export of [godatastar.LastEventID].
+func LastEventID(r *http.Request) sse.EventID {
+	return godatastar.LastEventID(r)
+}
+
 // --- HTTP helpers ---
 
 // NewResponse creates a fluent SSE response builder from an HTTP handler.

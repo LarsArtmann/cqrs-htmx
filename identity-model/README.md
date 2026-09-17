@@ -2,7 +2,9 @@
 
 > Pure Go domain model for event-sourced identity management.
 
-Zero infrastructure dependencies. No HTTP frameworks, no SQL drivers, no Casbin.
+Zero infrastructure dependencies. No HTTP frameworks, no SQL drivers, no web
+servers. Casbin is the sole non-primitive dependency (first-class, ADR-0044 —
+the Authz engine is domain logic).
 
 ## What This Is
 
@@ -61,7 +63,10 @@ Only Go ecosystem libraries for CQRS/event-sourcing primitives:
 | go-error-family         | Error classification            |
 | oklog/ulid/v2           | ULID parsing                    |
 
-**Not imported**: casbin, modernc.org/sqlite, database/sql, net/http, cqrs-htmx root.
+**Not imported**: modernc.org/sqlite, database/sql, net/http, cqrs-htmx root.
+
+**Imported by design**: casbin/v3 — the Authz engine is part of the domain
+model (ADR-0044), not an infrastructure afterthought.
 
 ## Design Decisions
 
