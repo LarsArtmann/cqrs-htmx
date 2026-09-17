@@ -34,10 +34,25 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 	b.WriteString(d.renderLayout(p, func() string {
 		var inner strings.Builder
 
-		ctx := context.Background()
 		inner.WriteString(`<div class="stat-grid">`)
-		inner.WriteString(statCardHTML(ctx, "stat-total-events", stats.TotalEvents, "Events", display.StatToneBlue))
-		inner.WriteString(statCardHTML(ctx, "stat-total-aggregates", stats.TotalAggregates, "Aggregates", display.StatToneBlue))
+		inner.WriteString(
+			statCardHTML(
+				ctx,
+				"stat-total-events",
+				stats.TotalEvents,
+				"Events",
+				display.StatToneBlue,
+			),
+		)
+		inner.WriteString(
+			statCardHTML(
+				ctx,
+				"stat-total-aggregates",
+				stats.TotalAggregates,
+				"Aggregates",
+				display.StatToneBlue,
+			),
+		)
 
 		if len(stats.Projections) > 0 {
 			active := 0
@@ -48,16 +63,41 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 				}
 			}
 
-			inner.WriteString(statCardHTML(ctx, "stat-projections-active",
-				fmt.Sprintf("%d/%d", active, len(stats.Projections)), "Projections", display.StatToneGreen))
+			inner.WriteString(statCardHTML(
+				ctx,
+				"stat-projections-active",
+				fmt.Sprintf(
+					"%d/%d",
+					active,
+					len(stats.Projections),
+				),
+				"Projections",
+				display.StatToneGreen,
+			))
 		}
 
 		if stats.HealthStatus != "" {
-			inner.WriteString(statCardHTML(ctx, "stat-system-health", stats.HealthStatus, "System Health", healthKindToTone(stats.HealthKind)))
+			inner.WriteString(
+				statCardHTML(
+					ctx,
+					"stat-system-health",
+					stats.HealthStatus,
+					"System Health",
+					healthKindToTone(stats.HealthKind),
+				),
+			)
 		}
 
 		if stats.DLQCount != "" {
-			inner.WriteString(statCardHTML(ctx, "stat-dlq-count", stats.DLQCount, "Dead Letters", display.StatToneRed))
+			inner.WriteString(
+				statCardHTML(
+					ctx,
+					"stat-dlq-count",
+					stats.DLQCount,
+					"Dead Letters",
+					display.StatToneRed,
+				),
+			)
 		}
 
 		inner.WriteString(`</div>`)
@@ -118,7 +158,13 @@ func renderProjectionRow(ctx context.Context, p projectionStat) string {
 
 	fmt.Fprintf(&b, `<tr><td>%s</td><td>`, esc(p.Name))
 	statusBadge(ctx, &b, p.StatusKind, p.Status)
-	fmt.Fprintf(&b, `</td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`, esc(p.Lag), p.Processed, p.Errors)
+	fmt.Fprintf(
+		&b,
+		`</td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
+		esc(p.Lag),
+		p.Processed,
+		p.Errors,
+	)
 
 	return b.String()
 }
@@ -204,16 +250,24 @@ func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *htt
 // renderProjectionHealthPanel renders the projection health panel div with
 // HTMX polling attributes and the table inside. Used by both the overview page
 // and the projection-health partial endpoint.
-func renderProjectionHealthPanel(ctx context.Context, basePath string, projs []projectionStat) string {
+func renderProjectionHealthPanel(
+	ctx context.Context,
+	basePath string,
+	projs []projectionStat,
+) string {
 	var b strings.Builder
 
 	b.WriteString(`<div class="panel" id="projection-health" hx-get="`)
 	b.WriteString(basePath)
-	b.WriteString(`/-/partials/projection-health" hx-trigger="every 10s, refresh" hx-swap="outerHTML">`)
+	b.WriteString(
+		`/-/partials/projection-health" hx-trigger="every 10s, refresh" hx-swap="outerHTML">`,
+	)
 	b.WriteString(`<div class="panel-title">Projection Health</div>`)
 	b.WriteString(`<div class="table-scroll"><table class="data-table"><thead><tr>`)
 	b.WriteString(`<th scope="col">Name</th><th scope="col">Status</th>`)
-	b.WriteString(`<th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th>`)
+	b.WriteString(
+		`<th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th>`,
+	)
 	b.WriteString(`</tr></thead><tbody>`)
 
 	for _, pr := range projs {

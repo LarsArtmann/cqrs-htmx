@@ -57,7 +57,10 @@ func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *proj
 	fn(d.config.ProjectionHost)
 }
 
-func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store projectionhost.DeadLetterStore)) {
+func (d *Dashboard) withDeadLetterStore(
+	w http.ResponseWriter,
+	fn func(store projectionhost.DeadLetterStore),
+) {
 	if d.config.DeadLetterStore == nil {
 		d.renderError(w, nil, http.StatusBadRequest, "dead letter store not configured")
 
@@ -68,9 +71,27 @@ func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store pro
 }
 
 func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Request) {
-	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
-		name := r.PathValue("name")
-		if err := host.Reset(r.Context(), name); err != nil {
+	d.withProjectionHost(
+		w,
+		func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
+			name := r.PathValue("name")
+			if err := host.Reset(r.Context(), name); err != nil {
+				slog.InfoContext(
+					r.Context(),
+					"dashboardui.audit",
+					"op",
+					"projection.reset",
+					"projection",
+					name,
+					"result",
+					"error",
+				)
+				triggerToast(w, "err", "Reset failed")
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
 			slog.InfoContext(
 				r.Context(),
 				"dashboardui.audit",
@@ -79,21 +100,19 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 				"projection",
 				name,
 				"result",
-				"error",
+				"ok",
 			)
-			triggerToast(w, "err", "Reset failed")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		slog.InfoContext(r.Context(), "dashboardui.audit", "op", "projection.reset", "projection", name, "result", "ok")
-		triggerToast(w, "ok", "Projection reset")
-		redirect(w, r, d.config.BasePath+"/projections")
-	})
+			triggerToast(w, "ok", "Projection reset")
+			redirect(w, r, d.config.BasePath+"/projections")
+		},
+	)
 }
 
-func (d *Dashboard) renderProjections(ctx context.Context, p pageData, projs []projectionStat) string {
+func (d *Dashboard) renderProjections(
+	ctx context.Context,
+	p pageData,
+	projs []projectionStat,
+) string {
 	return d.renderLayout(p, func() string {
 		if len(projs) == 0 {
 			return emptyState("No projections registered", "")
@@ -163,7 +182,11 @@ func (d *Dashboard) renderProjections(ctx context.Context, p pageData, projs []p
 	})
 }
 
-func (d *Dashboard) renderProjectionDetail(ctx context.Context, p pageData, proj projectionStat) string {
+func (d *Dashboard) renderProjectionDetail(
+	ctx context.Context,
+	p pageData,
+	proj projectionStat,
+) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -177,14 +200,43 @@ func (d *Dashboard) renderProjectionDetail(ctx context.Context, p pageData, proj
 		b.WriteString(`</div>`)
 
 		slug := strings.ReplaceAll(strings.ToLower(proj.Name), " ", "-")
-		b.WriteString(statCardHTML(ctx, "stat-processed-"+slug, strconv.FormatInt(proj.Processed, 10), "Processed", display.StatToneBlue))
-		b.WriteString(statCardHTML(ctx, "stat-errors-"+slug, strconv.FormatInt(proj.Errors, 10), "Errors", display.StatToneRed))
-		b.WriteString(statCardHTML(ctx, "stat-restarts-"+slug, strconv.Itoa(proj.Restarts), "Restarts", display.StatToneYellow))
+		b.WriteString(
+			statCardHTML(
+				ctx,
+				"stat-processed-"+slug,
+				strconv.FormatInt(proj.Processed, 10),
+				"Processed",
+				display.StatToneBlue,
+			),
+		)
+		b.WriteString(
+			statCardHTML(
+				ctx,
+				"stat-errors-"+slug,
+				strconv.FormatInt(proj.Errors, 10),
+				"Errors",
+				display.StatToneRed,
+			),
+		)
+		b.WriteString(
+			statCardHTML(
+				ctx,
+				"stat-restarts-"+slug,
+				strconv.Itoa(proj.Restarts),
+				"Restarts",
+				display.StatToneYellow,
+			),
+		)
 		b.WriteString(statCardHTML(ctx, "stat-lag-"+slug, proj.Lag, "Lag", display.StatToneBlue))
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<h3>Details</h3><table class="meta-table">`)
-		metaRowCopyable(&b, "Checkpoint", esc(truncate(proj.Checkpoint, listIDWidth)), proj.Checkpoint)
+		metaRowCopyable(
+			&b,
+			"Checkpoint",
+			esc(truncate(proj.Checkpoint, listIDWidth)),
+			proj.Checkpoint,
+		)
 		metaRow(&b, "Status", esc(proj.Status))
 
 		if proj.LastError != "" {

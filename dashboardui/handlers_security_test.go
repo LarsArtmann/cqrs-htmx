@@ -18,7 +18,12 @@ func TestXSS_EventTypeEscaped(t *testing.T) {
 	aggID := id.NewStreamID()
 	maliciousType := "<script>alert(1)</script>"
 	evt, _ := event.New(event.Type(maliciousType), aggID, "User", event.Version(1), struct{}{})
-	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
+	_ = store.Save(
+		context.Background(),
+		id.NewStreamRef("User", aggID),
+		[]event.Event{evt},
+		event.Version(0),
+	)
 
 	d, _ := New(Config{EventSource: store, Journal: store})
 	mux := http.NewServeMux()
@@ -43,7 +48,12 @@ func TestXSS_EventDetailEscaped(t *testing.T) {
 	aggID := id.NewStreamID()
 	maliciousType := "<script>xss</script>"
 	evt, _ := event.New(event.Type(maliciousType), aggID, "User", event.Version(1), struct{}{})
-	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
+	_ = store.Save(
+		context.Background(),
+		id.NewStreamRef("User", aggID),
+		[]event.Event{evt},
+		event.Version(0),
+	)
 
 	d, _ := New(Config{EventSource: store, Journal: store})
 	mux := http.NewServeMux()
@@ -64,7 +74,12 @@ func TestXSS_AggregateDetailEscaped(t *testing.T) {
 	aggID := id.NewStreamID()
 	maliciousType := "<script>agg</script>"
 	evt, _ := event.New(event.Type(maliciousType), aggID, "User", event.Version(1), struct{}{})
-	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
+	_ = store.Save(
+		context.Background(),
+		id.NewStreamRef("User", aggID),
+		[]event.Event{evt},
+		event.Version(0),
+	)
 
 	reader := listing.NewInMemoryStreamReader(store)
 	d, _ := New(Config{EventSource: store, Journal: store, StreamReader: reader})
@@ -109,6 +124,7 @@ func TestOverviewStats_AccurateCount(t *testing.T) {
 	}
 
 	body := rec.Body.String()
+
 	value, ok := statValueByHTMLID(body, "stat-total-events")
 	if !ok {
 		t.Fatalf("stat-total-events element missing from overview; body=%s", body)
@@ -162,11 +178,21 @@ func TestEventFilter_ByType(t *testing.T) {
 
 	aggID := id.NewStreamID()
 	evt1, _ := event.New("user.created", aggID, "User", event.Version(1), struct{}{})
-	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt1}, event.Version(0))
+	_ = store.Save(
+		context.Background(),
+		id.NewStreamRef("User", aggID),
+		[]event.Event{evt1},
+		event.Version(0),
+	)
 
 	aggID2 := id.NewStreamID()
 	evt2, _ := event.New("user.deleted", aggID2, "User", event.Version(1), struct{}{})
-	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID2), []event.Event{evt2}, event.Version(0))
+	_ = store.Save(
+		context.Background(),
+		id.NewStreamRef("User", aggID2),
+		[]event.Event{evt2},
+		event.Version(0),
+	)
 
 	d, _ := New(Config{EventSource: store, Journal: store})
 	mux := http.NewServeMux()
@@ -252,7 +278,12 @@ func TestPagination_PreservesFilterInLinks(t *testing.T) {
 		}
 
 		evt, _ := event.New(event.Type("entity.event"), aggID, st, event.Version(1), struct{}{})
-		_ = store.Save(context.Background(), id.NewStreamRef(st, aggID), []event.Event{evt}, event.Version(0))
+		_ = store.Save(
+			context.Background(),
+			id.NewStreamRef(st, aggID),
+			[]event.Event{evt},
+			event.Version(0),
+		)
 	}
 
 	reader := listing.NewInMemoryStreamReader(store)
@@ -324,7 +355,10 @@ func TestMiddleware_CSPWithNonceAndSecurityHeaders(t *testing.T) {
 	}
 
 	if !strings.Contains(csp, "nonce-") {
-		t.Errorf("expected CSP to contain a nonce (Nonce middleware should be in chain), got %q", csp)
+		t.Errorf(
+			"expected CSP to contain a nonce (Nonce middleware should be in chain), got %q",
+			csp,
+		)
 	}
 
 	if !strings.Contains(csp, "'self'") {

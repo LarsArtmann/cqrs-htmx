@@ -16,7 +16,10 @@ func (fakeDeadLetterStore) Store(ctx context.Context, entry projectionhost.DeadL
 	return nil
 }
 
-func (fakeDeadLetterStore) List(ctx context.Context, projectionName string) ([]projectionhost.DeadLetterEntry, error) {
+func (fakeDeadLetterStore) List(
+	ctx context.Context,
+	projectionName string,
+) ([]projectionhost.DeadLetterEntry, error) {
 	return nil, nil
 }
 
@@ -121,21 +124,19 @@ func TestWithDeadLetterStore_Present(t *testing.T) {
 // page can match a different card's markup (the vacuous-assertion class of bug
 // the old "stat-card ok" check suffered from).
 func statValueByHTMLID(body, id string) (string, bool) {
-	marker := `id="` + id + `"`
-	idx := strings.Index(body, marker)
-	if idx < 0 {
+	_, rest, found := strings.Cut(body, `id="`+id+`"`)
+	if !found {
 		return "", false
 	}
 
-	seg := body[idx:]
-	closeIdx := strings.Index(seg, "</dd>")
-	if closeIdx < 0 {
+	element, _, found := strings.Cut(rest, "</dd>")
+	if !found {
 		return "", false
 	}
 
-	value := seg[:closeIdx]
-	if gt := strings.LastIndex(value, ">"); gt >= 0 {
-		value = value[gt+1:]
+	_, value, found := strings.Cut(element, ">")
+	if !found {
+		return "", false
 	}
 
 	return strings.TrimSpace(value), true
