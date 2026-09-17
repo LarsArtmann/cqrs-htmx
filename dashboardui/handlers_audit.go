@@ -101,7 +101,7 @@ func (d *Dashboard) renderCommands(
 	cmds []*command.PersistedCommand,
 	page paginationState,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		if len(cmds) == 0 {
 			return emptyStateIcon(
 				ctx,
@@ -233,7 +233,7 @@ func (d *Dashboard) renderQueries(
 	queries []*query.PersistedQuery,
 	page paginationState,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		if len(queries) == 0 {
 			return emptyStateIcon(
 				ctx,
@@ -297,7 +297,7 @@ func (d *Dashboard) commandDetailHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	p := d.page("Command: "+truncate(string(cmd.Type()), eventTypeWidth), "/commands", r)
-	html := d.renderCommandDetail(p, cmd)
+	html := d.renderCommandDetail(r.Context(), p, cmd)
 	renderPage(w, r, html)
 }
 
@@ -331,8 +331,8 @@ func (d *Dashboard) loadCommandByID(
 	)
 }
 
-func (d *Dashboard) renderCommandDetail(p pageData, cmd *command.PersistedCommand) string {
-	return d.renderLayout(p, func() string {
+func (d *Dashboard) renderCommandDetail(ctx context.Context, p pageData, cmd *command.PersistedCommand) string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
@@ -405,7 +405,7 @@ func (d *Dashboard) queryDetailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p := d.page("Query: "+truncate(string(q.Type()), eventTypeWidth), "/queries", r)
-	html := d.renderQueryDetail(p, q)
+	html := d.renderQueryDetail(r.Context(), p, q)
 	renderPage(w, r, html)
 }
 
@@ -439,8 +439,8 @@ func (d *Dashboard) loadQueryByID(
 	)
 }
 
-func (d *Dashboard) renderQueryDetail(p pageData, q *query.PersistedQuery) string {
-	return d.renderLayout(p, func() string {
+func (d *Dashboard) renderQueryDetail(ctx context.Context, p pageData, q *query.PersistedQuery) string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)

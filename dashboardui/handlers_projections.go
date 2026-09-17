@@ -114,7 +114,7 @@ func (d *Dashboard) renderProjections(
 	p pageData,
 	projs []projectionStat,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		if len(projs) == 0 {
 			return emptyStateIcon(ctx, icons.ArrowPath, "No projections registered", "")
 		}
@@ -195,7 +195,7 @@ func (d *Dashboard) renderProjectionDetail(
 	p pageData,
 	proj projectionStat,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)

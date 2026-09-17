@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"log/slog"
@@ -35,14 +36,22 @@ func renderPage(w http.ResponseWriter, r *http.Request, html string) {
 }
 
 // toastDetail is aliased to the shared cqrshtmx.ToastDetail (same wire shape as
-// adminui's). dashboardui's triggerToast writes it directly as the HX-Trigger
-// body, while adminui nests it under a named event — hence the function stays
-// per-module even though the struct is shared.
+// adminui's).
 type toastDetail = cqrshtmx.ToastDetail
 
+// triggerToast emits a "dashboardui:toast" HX-Trigger event; the dashboardJS
+// listener bridges it to the library's tcShowToast (feedback.ToastContainer).
+// Mirrors adminui's named-event contract, including the best-effort merge with
+// any HX-Trigger events already set on the response.
 func triggerToast(w http.ResponseWriter, kind, message string) {
 	detail, _ := json.Marshal(toastDetail{Message: message, Kind: kind})
-	w.Header().Set("Hx-Trigger", string(detail))
+	triggers := map[string]jsontext.Value{}
+	if h := w.Header().Get("Hx-Trigger"); h != "" {
+		_ = json.Unmarshal([]byte(h), &triggers) // best-effort merge
+	}
+	triggers["dashboardui:toast"] = detail
+	merged, _ := json.Marshal(triggers)
+	w.Header().Set("Hx-Trigger", string(merged))
 }
 
 // renderError logs the full error and renders a styled, family-aware error

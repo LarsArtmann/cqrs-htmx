@@ -103,7 +103,7 @@ func (d *Dashboard) renderAggregateDetail(
 	events []event.Event,
 	page paginationState,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
@@ -240,7 +240,7 @@ func (d *Dashboard) renderAggregates(
 	listings []listing.StreamListing,
 	page paginationState,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		if len(listings) == 0 {
 			return emptyStateIcon(ctx, icons.Cube, "No aggregates found", "")
 		}

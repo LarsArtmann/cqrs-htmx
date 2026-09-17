@@ -461,7 +461,7 @@ func TestRenderLayout_HTMXPartial(t *testing.T) {
 	r.Header.Set("Hx-Request", "true")
 
 	p := d.page("Events", "/events", r)
-	html := d.renderLayout(p, func() string { return "<p>test content</p>" })
+	html := d.renderLayout(context.Background(), p, func() string { return "<p>test content</p>" })
 
 	if !strings.Contains(html, "<main id=\"main-content\"") {
 		t.Errorf("expected <main> in HTMX partial, got: %s", html)
@@ -485,7 +485,7 @@ func TestRenderLayout_FullPage(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 	p := d.page("Events", "/events", r)
-	html := d.renderLayout(p, func() string { return "<p>test content</p>" })
+	html := d.renderLayout(context.Background(), p, func() string { return "<p>test content</p>" })
 
 	if !strings.Contains(html, "<!DOCTYPE html>") {
 		t.Errorf("expected DOCTYPE in full page")

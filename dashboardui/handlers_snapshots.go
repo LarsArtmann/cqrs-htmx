@@ -53,7 +53,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		ctx := r.Context()
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
-		renderPage(w, r, d.renderLayout(p, func() string {
+		renderPage(w, r, d.renderLayout(ctx, p, func() string {
 			return emptyStateIcon(
 				ctx,
 				icons.ArchiveBox,
@@ -68,7 +68,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	if snap == nil {
 		ctx := r.Context()
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
-		renderPage(w, r, d.renderLayout(p, func() string {
+		renderPage(w, r, d.renderLayout(ctx, p, func() string {
 			return emptyStateIcon(ctx, icons.ArchiveBox, "No snapshot", "")
 		}))
 
@@ -86,7 +86,7 @@ func (d *Dashboard) renderSnapshotDetail(
 	ref id.StreamRef,
 	snap *snapshot.Snapshot,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)

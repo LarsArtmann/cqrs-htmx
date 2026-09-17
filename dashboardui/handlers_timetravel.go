@@ -43,7 +43,7 @@ func (d *Dashboard) renderStreamListingPage(
 	page paginationState,
 	config streamListPageConfig,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		if config.subtitle != "" {
@@ -111,7 +111,7 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	if len(allEvents) == 0 {
 		ctx := r.Context()
 		p := d.page("Time Travel: "+string(ref.Type), "/time-travel", r)
-		renderPage(w, r, d.renderLayout(p, func() string {
+		renderPage(w, r, d.renderLayout(ctx, p, func() string {
 			return emptyState(ctx, "No events", "")
 		}))
 
@@ -159,7 +159,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 	currentVersion event.Version,
 	maxVersion event.Version,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)

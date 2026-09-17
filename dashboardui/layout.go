@@ -1,10 +1,12 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/icons"
 )
 
@@ -15,7 +17,7 @@ const brandInitialsLen = 2
 // header, content area. The layout uses semantic HTML5 landmarks for
 // accessibility (aside, nav, main, header) and CSS classes instead of
 // inline styles.
-func (d *Dashboard) renderLayout(p pageData, content func() string) string {
+func (d *Dashboard) renderLayout(ctx context.Context, p pageData, content func() string) string {
 	// HTMX partial mode: return only the <main> element and a <title> tag.
 	// HTMX boost extracts the title for the browser tab and swaps #main-content.
 	if p.HTMX {
@@ -55,7 +57,7 @@ func (d *Dashboard) renderLayout(p pageData, content func() string) string {
 	fmt.Fprintf(&b, `<main id="main-content" class="content-area">%s</main>`, content())
 	b.WriteString("</div></div>\n")
 
-	b.WriteString(d.renderToastContainer())
+	b.WriteString(d.renderToastContainer(ctx, p.Nonce))
 
 	b.WriteString("</body>\n</html>")
 
@@ -125,12 +127,16 @@ func (d *Dashboard) renderHeader(p pageData) string {
 	)
 }
 
-// renderToastContainer renders the hidden toast notification container.
-// HTMX write operations dispatch Hx-Trigger events that this container
-// listens for and renders as transient toast messages. The listener logic
-// lives in dashboardJS (CSP-safe — no inline scripts).
-func (d *Dashboard) renderToastContainer() string {
-	return `<div id="toast-container" class="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>`
+// renderToastContainer mounts the library's ToastContainer (the
+// #tc-toast-container host plus its nonce-gated tcShowToast script). The
+// dashboardJS "dashboardui:toast" listener bridges HTMX Hx-Trigger events to
+// tcShowToast (CSP-safe — no inline scripts of our own).
+func (d *Dashboard) renderToastContainer(ctx context.Context, nonce string) string {
+	var b strings.Builder
+
+	_ = feedback.ToastContainer(nonce).Render(ctx, &b)
+
+	return b.String()
 }
 
 // navIconSVG returns an inline SVG icon for the given icon name using the
@@ -356,12 +362,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .filter-bar label { font-size: 0.85em; font-weight: 500; color: var(--muted); }
 
 /* ===== Toast container ===== */
-.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-.toast { padding: 12px 20px; border-radius: var(--radius); font-size: 0.9rem; font-weight: 500; opacity: 0; transform: translateX(100%); transition: opacity 0.3s, transform 0.3s; pointer-events: auto; min-width: 200px; max-width: 400px; }
-.toast-visible { opacity: 1; transform: translateX(0); }
-.toast-ok { background: var(--ok); color: white; }
-.toast-err { background: var(--err); color: white; }
-.toast-warn { background: var(--warn); color: white; }
 
 /* ===== HTMX loading indicator ===== */
 .htmx-indicator { display: none; }
@@ -405,7 +405,7 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 
 /* ===== Print styles ===== */
 @media print {
-	.sidebar, .app-header, .toast-container { display: none; }
+	.sidebar, .app-header, #tc-toast-container { display: none; }
 	.app-layout { display: block; }
 	.content-area { max-width: 100%; padding: 0; }
 }
@@ -616,20 +616,13 @@ document.addEventListener("keydown", function(e) {
   slider.dispatchEvent(new Event("change"));
 });
 
-// Toast notification listener: renders transient toast messages from
-// Hx-Trigger events. Moved here from an inline <script> for CSP safety.
-document.body.addEventListener("showToast", function(e) {
+// Toast bridge: HTMX write responses carry a "dashboardui:toast" HX-Trigger
+// event; tcShowToast is provided by the library ToastContainer mounted in the
+// layout (CSP-safe — no inline scripts of our own).
+document.addEventListener("dashboardui:toast", function(e) {
   var d = e.detail || {};
-  var c = document.getElementById("toast-container");
-  if (!c) return;
-  var t = document.createElement("div");
-  t.className = "toast toast-" + (d.kind || "ok");
-  t.setAttribute("role", "alert");
-  t.textContent = d.message || "";
-  c.appendChild(t);
-  requestAnimationFrame(function() { t.classList.add("toast-visible"); });
-  setTimeout(function() {
-    t.classList.remove("toast-visible");
-    setTimeout(function() { t.remove(); }, 300);
-  }, 4000);
+  var kindMap = { ok: "success", err: "error", warn: "warning", info: "info" };
+  if (typeof tcShowToast === "function") {
+    tcShowToast(d.message || "", kindMap[d.kind] || "info");
+  }
 });`

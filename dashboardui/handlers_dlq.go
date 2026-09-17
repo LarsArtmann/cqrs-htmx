@@ -21,8 +21,9 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 	links := d.buildDLQProjectionLinks(r.Context())
 
 	html := d.renderLayout(
+		r.Context(),
 		p,
-		func() string { //nolint:contextcheck // closure captures r and passes r.Context() to badgeHTML explicitly
+		func() string {
 			if len(links) == 0 {
 				return emptyStateIcon(
 					r.Context(),
@@ -134,7 +135,7 @@ func (d *Dashboard) renderDLQEntryDetail(
 	proj string,
 	entry projectionhost.DeadLetterEntry,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
@@ -351,7 +352,7 @@ func (d *Dashboard) renderDLQ(
 	proj string,
 	entries []projectionhost.DeadLetterEntry,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)

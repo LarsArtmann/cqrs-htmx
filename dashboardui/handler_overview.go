@@ -31,7 +31,7 @@ func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overviewStats) string {
 	var b strings.Builder
 
-	b.WriteString(d.renderLayout(p, func() string {
+	b.WriteString(d.renderLayout(ctx, p, func() string {
 		var inner strings.Builder
 
 		inner.WriteString(`<div class="stat-grid">`)

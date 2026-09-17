@@ -118,7 +118,7 @@ func (d *Dashboard) renderEventDetail(
 	evt event.Event,
 	prevID, nextID string,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 
 		payload := renderPayload(d.config.PayloadRenderer, evt)
@@ -264,7 +264,7 @@ func (d *Dashboard) renderEvents(
 	filter eventFilter,
 	sortBy sortState,
 ) string {
-	return d.renderLayout(p, func() string {
+	return d.renderLayout(ctx, p, func() string {
 		var b strings.Builder
 		b.WriteString(`<div class="page-header"><h2>Event Stream</h2></div>`)
 
