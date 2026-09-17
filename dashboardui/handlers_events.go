@@ -8,6 +8,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/templ-components/display"
 )
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -118,13 +119,12 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 		b.WriteString(`<div class="page-header">`)
 		fmt.Fprintf(
 			&b,
-			`<h2><code>%s</code> <span class="badge badge-neutral">schema v%d</span> <span class="badge %s">%s</span></h2>`,
+			`<h2><code>%s</code> %s %s</h2>`,
 			esc(
 				string(evt.Type()),
 			),
-			evt.SchemaVersion(),
-			encodingBadgeClass(string(evt.Encoding())),
-			esc(string(evt.Encoding())),
+			badgeHTML(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral),
+			badgeHTML(string(evt.Encoding()), encodingBadgeType(string(evt.Encoding()))),
 		)
 		fmt.Fprintf(&b, `<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
 			esc(evt.ID().String()), esc(evt.ID().String()))

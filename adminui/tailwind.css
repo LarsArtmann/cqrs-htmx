@@ -21,6 +21,13 @@
    to a temp dir and injects an @source for that dir. Do NOT add a
    hardcoded @source path here — it breaks portability. */
 
+/* display.Grid(GridColsAutoFit) assembles its column class at runtime
+   (gridAutoFitClass), so Tailwind's static scan can never see the full
+   literal. Safelist the exact class adminui emits (MinColWidth "190px"
+   in dashboard.templ and users.templ) — without this the grid renders
+   single-column and every stat card stretches full-width. */
+@source inline("[grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]");
+
 /* ---------- Theme tokens (light defaults) ---------- */
 :root {
   --accent: #4f46e5;
@@ -105,6 +112,28 @@ body {
    style="background:var(--surface)" instead. text-white is unaffected. */
 .bg-white {
   background-color: var(--surface);
+}
+
+/* CSP-safe accent theming: the recommended CSP (style-src 'self' + nonce)
+   drops inline style="" attributes — nonces never authorize attributes —
+   so var(--accent) theming must go through classes instead. */
+.admin-accent-bg {
+  background-color: var(--accent);
+}
+
+/* SidebarNav hardcodes Tailwind's literal dark palette (bg-gray-900,
+   hover:bg-gray-800, text-gray-300), but the @theme block above remaps
+   gray-* to surface tokens (gray-900 = --text, which flips light in dark
+   mode). Pin the sidebar's palette back to literals inside its scope so
+   the sidebar stays dark in both modes. */
+.admin-sidebar-scope .bg-gray-900 {
+  background-color: #111827;
+}
+.admin-sidebar-scope .hover\:bg-gray-800:hover {
+  background-color: #1f2937;
+}
+.admin-sidebar-scope .text-gray-300 {
+  color: #d1d5db;
 }
 
 /* Fix double border when display.Table is nested inside display.Card(CardPaddingNone).

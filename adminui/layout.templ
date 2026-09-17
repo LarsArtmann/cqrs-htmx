@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/templ-components/icons"
 	"github.com/larsartmann/templ-components/layout"
 	"github.com/larsartmann/templ-components/navigation"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 templ Layout(p pageData) {
@@ -26,9 +27,10 @@ templ Layout(p pageData) {
 			Sidebar:        sidebar(p),
 			MobileNav:      mobileNav(p),
 			Header:         topBar(p),
-			Content:        children,
-			SidebarWidth:   layout.SidebarWidthMD,
-			ContainerWidth: layout.ContainerWidthXL,
+			Content:          children,
+			Container:        true,
+			SidebarWidth:     layout.SidebarWidthMD,
+			ContainerWidth:   layout.ContainerWidthXL,
 		})
 	}
 }
@@ -43,7 +45,7 @@ templ headExtras(p pageData) {
 templ sidebar(p pageData) {
 	@navigation.SidebarNav(navigation.SidebarNavProps{
 		AriaLabel: "Admin sections",
-		BaseProps: utils_propsWithClass("admin-sidebar-scope"),
+		BaseProps: utils.BaseProps{Class: "admin-sidebar-scope"},
 		Brand:     brandMark(p),
 		Items:     sidebarItems(p),
 		Footer:    sidebarFooter(),
