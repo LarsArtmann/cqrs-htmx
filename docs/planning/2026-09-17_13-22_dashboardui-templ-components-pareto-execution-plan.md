@@ -2,7 +2,7 @@
 
 **Generated:** 2026-09-17 13:22 CEST
 **Scope:** Everything identified in the 2026-09-17 dashboardui × templ-components deep-dive audit (`docs/research/2026-09-17_templ-components-dashboardui-deep-dive.html`) and the session status/self-review (`docs/status/2026-09-17_13-12_dashboardui-templ-components-audit-status.md`). No new research — this plan operationalizes known findings only.
-**Total program:** 27 medium tasks (30–100 min) ≈ **1,965 min ≈ 32.75 h**, broken into **151 micro tasks** (≤12 min each).
+**Total program:** 28 medium tasks (30–100 min) ≈ **1,905 min ≈ 31.75 h**, broken into **215 micro tasks** (≤12 min each).
 
 ---
 
@@ -34,9 +34,9 @@ Therefore the program is **gate-first**: nothing lands until the gate is open, t
 | Tier | Spirit | Tasks (cumulative) | Cum. effort | Cum. result | Why this delivers |
 | --- | --- | --- | --- | --- | --- |
 | **1%** | The smallest increment that unlocks the majority | M4 + M5 (Tailwind gate + StatusBadge spike) | 180 min (9%) | **51%** | Opens the only gate (nothing was adoptable before it), proves the hybrid `Render(ctx, &b)` path with zero-regression evidence, lands the first duplicated-code deletion. All 10 remaining component rungs become mechanical. Risk drops from "unknown" to "scheduled". |
-| **4%** | + user-facing core | M1, M2, M3, M6, M7, M8 (debt cleanup, errorpage, badges, stat cards) | 510 min (26%) | **64%** | Highest-traffic surfaces move to the library: overview stat cards, every status badge, and — every user's worst moment — errors and 404s become styled, navigable, family-aware pages. Session debt (broken links, split-brain reports, dead gate) cleared. |
-| **20%** | + the sweep | M9–M16 (EmptyState/PageHeader, Buttons, Toast+nonce, GlobalErrorHandling, CopyButton, 3 table conversions) | 1,220 min (62%) | **80%** | The full leaf vocabulary adopted; silent HTMX failures get retry+toast; copy becomes accessible; the three highest-traffic tables get sortable typed headers. |
-| **100%** | The long tail | M17–M28 (pagination trio, ThemeToggle, SidebarNav, DefinitionList, CSS cleanup, security/golden/bench/a11y/e2e hardening, complexity refactors, e2e fixes, re-scoring) | 1,970 min (100%) | **100%** | Hardening, measurement, repo hygiene, and the remaining structure components. |
+| **4%** | + user-facing core | M1, M2, M3, M6, M7, M8 (debt cleanup, errorpage, badges, stat cards) | 555 min (29%) | **64%** | Highest-traffic surfaces move to the library: overview stat cards, every status badge, and — every user's worst moment — errors and 404s become styled, navigable, family-aware pages. Session debt (broken links, split-brain reports, dead gate) cleared. |
+| **20%** | + the sweep | M9–M16 (EmptyState/PageHeader, Buttons, Toast+nonce, GlobalErrorHandling, CopyButton, 3 table conversions) | 1,155 min (61%) | **80%** | The full leaf vocabulary adopted; silent HTMX failures get retry+toast; copy becomes accessible; the three highest-traffic tables get sortable typed headers. |
+| **100%** | The long tail | M17–M28 (pagination trio, ThemeToggle, SidebarNav, DefinitionList, CSS cleanup, security/golden/bench/a11y/e2e hardening, complexity refactors, e2e fixes, re-scoring) | 1,905 min (100%) | **100%** | Hardening, measurement, repo hygiene, and the remaining structure components. |
 
 **The other 80% of work, not forgotten:** tier 4 IS that work — explicitly enumerated in the tables below (hardening, refactors, docs, measurement), not hand-waved.
 
@@ -77,7 +77,7 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 | M27 | Repo noticed-fixes: e2e/server G114 timeouts, exhaustruct, param names; integration_test templ-components train note | 45 | 2 | 4 | — | Hook output noise → 0 |
 | M28 | Re-score adoption post-rungs; update AGENTS.md adoption table; ANNOTATE old reports/plans | 45 | 3 | 4 | M5–M16 | Measured delta: 14/100 → N |
 
-**Totals:** 27 tasks, 1,965 min ≈ 32.75 h. Tier 0 = 150 min · Tier 1 = 180 min · Tier 2 = 225 min · Tier 3 = 615 min · Tier 4 = 795 min.
+**Totals:** 28 tasks, 1,905 min ≈ 31.75 h. Tier 0 = 150 min · Tier 1 = 180 min · Tier 2 = 225 min · Tier 3 = 600 min · Tier 4 = 750 min.
 
 ---
 
@@ -101,7 +101,8 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 | M2.6 | Commit | 8 | M2.1 |
 | M3.1 | Inventory the 103 findings by tool (go-structure-linter 51 / gomod-check 26 / go-mod-ignore-check 26) | 12 | — |
 | M3.2 | Classify: false-positive config vs real debt; choose downgrade (baseline or `--fail-on=critical`) | 12 | M3.1 |
-| M3.3 | Implement gate change; verify a docs-only commit passes the hook without `--no-verify` | 15 | M3.2 |
+| M3.3a | Implement gate downgrade change (.buildflow.yml) | 9 | M3.2 |
+| M3.3b | Verify docs-only commit passes hook without --no-verify | 6 | M3.2 |
 | M3.4 | Document decision in AGENTS.md + commit | 6 | M3.3 |
 
 ### Tier 1 — The 1% gate + proof (M4–M5)
@@ -117,12 +118,14 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 | M4.7 | Serve compiled stylesheet (extend `serveCSS` / asset mount, ETag + cache headers) | 12 | M4.5 |
 | M4.8 | Visual parity check on overview page; commit | 12 | M4.7 |
 | M5.1 | Add `templ-components` root dep to `dashboardui/go.mod`; hermetic tidy | 10 | M4 |
-| M5.2 | Spike: `renderProjectionRow` renders `display.StatusBadge` via `.Render(ctx, &b)` | 15 | M5.1 |
+| M5.2a | Add StatusBadge props helper in renderProjectionRow | 8 | M5.1 |
+| M5.2b | Render via .Render(ctx, &b) into builder | 7 | M5.1 |
 | M5.3 | `statusKind → status string` helper (single mapping point) | 10 | M5.2 |
 | M5.4 | Update string-contains tests | 10 | M5.2 |
 | M5.5 | Verify emitted Tailwind classes exist in compiled styles.css | 10 | M4, M5.2 |
 | M5.6 | Delete the badge switch in `renderProjectionRow` | 10 | M5.3 |
-| M5.7 | `go build/vet/lint` dashboardui; commit | 15 | M5.4 |
+| M5.7a | go build + vet dashboardui | 8 | M5.4 |
+| M5.7b | go test + lint + commit | 7 | M5.4 |
 | M5.8 | Spike verdict → planning doc (hybrid path proven / surprises) | 10 | M5.7 |
 
 ### Tier 2 — The 4% user-facing core (M6–M8)
@@ -130,9 +133,12 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 | ID | Micro task | Min | Dep |
 | --- | --- | --- | --- |
 | M6.1 | Add `templ-components/errorpage` dep; read ErrorHandlerConfig contract | 10 | M4 |
-| M6.2 | `shellFromLayout`: bridge errorpage HTML shell to renderLayout's head | 15 | M6.1 |
-| M6.3 | Route `renderError` → `WriteError` with errorfamily family mapping | 15 | M6.2 |
-| M6.4 | `WriteNotFound404` for unknown streams/projections/DLQ paths | 15 | M6.2 |
+| M6.2a | Define HTMLShell bridging renderLayout head | 8 | M6.1 |
+| M6.2b | Wire shell into ErrorHandler config | 7 | M6.1 |
+| M6.3a | Map errorfamily family -> errorpage.Family | 8 | M6.2 |
+| M6.3b | Route renderError through WriteError | 7 | M6.2 |
+| M6.4a | NotFound handler for unknown streams/projections | 8 | M6.2 |
+| M6.4b | Wire WriteNotFound404 + test shape | 7 | M6.2 |
 | M6.5 | `pageData.Nonce` via `httputil.NonceFromRequest` (shared plumbing, reused by M11/M12) | 12 | M6.1 |
 | M6.6 | Tests: family → status, links present, 404 shape | 12 | M6.3 |
 | M6.7 | Commit | 11 | M6.6 |
@@ -143,7 +149,8 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 | M7.5 | Lint/gofmt pass | 6 | M7.4 |
 | M8.1 | `StatCardProps` mapping helper (value/label/tone) | 12 | M4 |
 | M8.2 | ValueID scheme: `stat-<name>-<projection>` (stable, documented) | 10 | M8.1 |
-| M8.3 | Overview: statCards loop → `display.Grid` + StatCard | 15 | M8.2 |
+| M8.3a | Overview statCards loop -> Grid container | 8 | M8.2 |
+| M8.3b | Overview statCards -> StatCard components | 7 | M8.2 |
 | M8.4 | Projection detail: statGrid → Grid + StatCard | 12 | M8.2 |
 | M8.5 | Delete `.stat-card`/`.stat-grid` CSS | 8 | M8.4 |
 | M8.6 | Update tests | 12 | M8.4 |
@@ -157,109 +164,166 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 | M9.1 | EmptyStateProps helper w/ per-page icon | 12 | M4 |
 | M9.2 | Swap `emptyState` call sites | 10 | M9.1 |
 | M9.3 | Delete `.empty-state` CSS | 5 | M9.2 |
-| M9.4 | PageHeader swap in 6+ renderers | 15 | M4 |
+| M9.4a | PageHeader swap: overview + events + aggregates | 8 | M4 |
+| M9.4b | PageHeader swap: projections + DLQ + audit + timetravel | 7 | M4 |
 | M9.5 | Delete `.page-header` CSS | 5 | M9.4 |
-| M9.6 | Tests + commit | 15 | M9.3 |
+| M9.6a | Update string-contains tests | 8 | M9.3 |
+| M9.6b | Commit | 7 | M9.3 |
 | M9.7 | Lint pass | 8 | M9.6 |
 | M10.1 | Button variant mapping helper (default/danger/accent) | 12 | M4 |
-| M10.2 | Swap btn/btn-danger/btn-accent call sites | 15 | M10.1 |
+| M10.2a | Swap .btn + .btn-accent call sites | 8 | M10.1 |
+| M10.2b | Swap .btn-danger call sites | 7 | M10.1 |
 | M10.3 | Delete `.btn*` CSS | 8 | M10.2 |
-| M10.4 | Tests + commit | 15 | M10.3 |
+| M10.4a | Update tests | 8 | M10.3 |
+| M10.4b | Commit | 7 | M10.3 |
 | M10.5 | Lint pass | 10 | M10.4 |
-| M11.1 | Port adminui `toastHost(nonce)` wrapper | 15 | M6.5 |
+| M11.1a | Copy adminui toastHost wrapper into dashboardui | 8 | M6.5 |
+| M11.1b | Adapt event names + nonce param | 7 | M6.5 |
 | M11.2 | Mount ToastContainer in renderLayout (nonce) | 10 | M11.1 |
 | M11.3 | Align `triggerToast` Hx-Trigger body → `tcShowToast(message, type, title, duration)` | 12 | M11.1 |
 | M11.4 | Delete old toast JS block + `.toast-*` CSS | 10 | M11.3 |
-| M11.5 | Tests + visual toast check | 15 | M11.4 |
-| M11.6 | Commit | 13 | M11.5 |
+| M11.5a | Update tests | 8 | M11.4 |
+| M11.5b | Visual toast check in browser | 7 | M11.4 |
+| M11.6a | Commit tier-3 toast work | 6 | M11.5 |
+| M11.6b | Verify git status clean post-commit | 7 | M11.5 |
 | M12.1 | Add `htmx.GlobalErrorHandling` to layout head | 12 | M11 |
 | M12.2 | Configure MaxRetries/RetryDelayMS/MaxErrorHistory | 10 | M12.1 |
 | M12.3 | Verify error → toast path fires (kill server mid-swap) | 10 | M12.2 |
-| M12.4 | Tests + commit | 13 | M12.3 |
-| M13.1 | CopyButton replaces `window.copyPayload` (event payload) | 15 | M11 |
-| M13.2 | CopyButton for command/query/stream IDs (replaces metaRowCopyable copy path) | 15 | M11 |
+| M12.4a | Update tests | 7 | M12.3 |
+| M12.4b | Commit | 6 | M12.3 |
+| M13.1a | Add CopyButton props helper for payload | 8 | M11 |
+| M13.1b | Replace window.copyPayload handler + button | 7 | M11 |
+| M13.2a | CopyButton for command/query IDs | 8 | M11 |
+| M13.2b | CopyButton for stream IDs (metaRowCopyable) | 7 | M11 |
 | M13.3 | Delete `data-copyable` listener + `.copyable` CSS | 8 | M13.2 |
 | M13.4 | Tests + commit | 12 | M13.3 |
 | M13.5 | Lint pass | 10 | M13.4 |
-| M14.1 | Events table → `display.TableProps` (headers + rows from event listing) | 20 | M7 |
-| M14.2 | Sortable `TypedHeaders` + URL sort-param plumbing | 20 | M14.1 |
+| M14.1a | Map events listing -> Headers + Rows | 10 | M7 |
+| M14.1b | Render via display.Table in events renderer | 10 | M7 |
+| M14.2a | Add sort query param plumbing | 10 | M14.1 |
+| M14.2b | TypedHeaders with SortDirection from request | 10 | M14.1 |
 | M14.3 | `LazyRows` decision + implement for long listings | 12 | M14.1 |
-| M14.4 | Live-row strategy: SSE prepend JS vs Table refresh — decide + implement | 15 | M14.1 |
-| M14.5 | Tests | 15 | M14.4 |
-| M14.6 | Commit | 18 | M14.5 |
-| M15.1 | Commands table → Table | 18 | M14 |
-| M15.2 | Queries table → Table | 18 | M14 |
-| M15.3 | Shared sortable-header helper (URL builders) | 15 | M15.1 |
-| M15.4 | Tests | 15 | M15.3 |
+| M14.4a | Decide live-row strategy (document decision) | 7 | M14.1 |
+| M14.4b | Implement chosen strategy | 8 | M14.1 |
+| M14.5a | Update events tests | 8 | M14.4 |
+| M14.5b | Add sort-param test | 7 | M14.4 |
+| M14.6a | go vet + lint | 9 | M14.5 |
+| M14.6b | Commit | 9 | M14.5 |
+| M15.1a | Map commands listing -> Table | 9 | M14 |
+| M15.1b | Render + tests commands table | 9 | M14 |
+| M15.2a | Map queries listing -> Table | 9 | M14 |
+| M15.2b | Render + tests queries table | 9 | M14 |
+| M15.3a | Extract shared sortable-header helper | 8 | M15.1 |
+| M15.3b | Refactor both tables onto helper | 7 | M15.1 |
+| M15.4a | Tests audit tables | 8 | M15.3 |
+| M15.4b | Commit | 7 | M15.3 |
 | M15.5 | Commit | 12 | M15.4 |
 | M15.6 | Lint pass | 12 | M15.5 |
-| M16.1 | Projections table → Table | 15 | M14 |
-| M16.2 | DLQ table → Table | 15 | M14 |
-| M16.3 | Snapshots + aggregates via shared `renderStreamIndex` renderer | 15 | M14 |
-| M16.4 | Time-travel listing → Table | 15 | M14 |
-| M16.5 | Tests | 20 | M16.4 |
-| M16.6 | Commit | 20 | M16.5 |
+| M16.1a | Projections table -> Headers/Rows | 8 | M14 |
+| M16.1b | Render + spot-check | 7 | M14 |
+| M16.2a | DLQ table -> Headers/Rows | 8 | M14 |
+| M16.2b | Render + spot-check | 7 | M14 |
+| M16.3a | Snapshots + aggregates renderer -> Table | 8 | M14 |
+| M16.3b | Verify shared renderStreamIndex path | 7 | M14 |
+| M16.4a | Time-travel listing -> Table | 8 | M14 |
+| M16.4b | Spot-check detail page | 7 | M14 |
+| M16.5a | Update tests: projections + DLQ | 10 | M16.4 |
+| M16.5b | Update tests: snapshots/aggregates/timetravel | 10 | M16.4 |
+| M16.6a | go vet + lint full module | 10 | M16.5 |
+| M16.6b | Commit table conversions | 10 | M16.5 |
 
 ### Tier 4 — The long tail to 100% (M17–M28)
 
 | ID | Micro task | Min | Dep |
 | --- | --- | --- | --- |
-| M17.1 | `navigation.Pagination` swap (numbered pages, URL/param building) | 20 | M14 |
+| M17.1a | Pagination URL/param builder helper | 10 | M14 |
+| M17.1b | Swap pager markup -> navigation.Pagination | 10 | M14 |
 | M17.2 | `display.ListNote` replaces `renderPaginationInfo` | 10 | M17.1 |
-| M17.3 | `forms.Select` page-size selector | 15 | M17.1 |
+| M17.3a | forms.Select props (options, selected) | 8 | M17.1 |
+| M17.3b | Swap page-size selector + tests | 7 | M17.1 |
 | M17.4 | Delete `.pagination` CSS | 5 | M17.3 |
-| M17.5 | Tests + commit | 25 | M17.4 |
+| M17.5a | Update pagination tests | 9 | M17.4 |
+| M17.5b | Visual check pager across pages | 8 | M17.4 |
+| M17.5c | Commit | 8 | M17.4 |
 | M18.1 | `ThemeScript(nonce)` in head | 10 | M6.5 |
 | M18.2 | `ThemeToggle` in sidebar/header | 12 | M18.1 |
 | M18.3 | `@custom-variant dark` strategy in app.css (class-based) | 8 | M18.1 |
-| M18.4 | Tests + commit | 15 | M18.3 |
-| M19.1 | `SidebarNavProps` from `p.Nav` (Items: Label/Href/Icon/Active) | 15 | M4 |
+| M18.4a | Tests (toggle persists, no FOUC) | 8 | M18.3 |
+| M18.4b | Commit | 7 | M18.3 |
+| M19.1a | Map p.Nav -> SidebarNavItem list | 8 | M4 |
+| M19.1b | Render SidebarNav in renderSidebar | 7 | M4 |
 | M19.2 | Keep custom dark-sidebar theming via `BaseProps.Class` override | 12 | M19.1 |
 | M19.3 | Mobile hamburger decision (keep JS; document) | 10 | M19.1 |
-| M19.4 | Tests + commit | 15 | M19.2 |
+| M19.4a | Tests (active state, logout link) | 8 | M19.2 |
+| M19.4b | Commit | 7 | M19.2 |
 | M19.5 | Lint pass | 8 | M19.4 |
 | M20.1 | DefinitionList helper replacing `metaRow` | 12 | M4 |
 | M20.2 | CopyButton integration in definition rows | 10 | M13 |
 | M20.3 | Delete `.meta-table` CSS | 5 | M20.2 |
-| M20.4 | Tests + commit | 18 | M20.3 |
+| M20.4a | Tests definition lists | 9 | M20.3 |
+| M20.4b | Commit | 9 | M20.3 |
 | M21.1 | Delete `.data-table` CSS block | 10 | M16 |
 | M21.2 | Audit dashboardCSS for dead rules (grep class usage) | 12 | M21.1 |
 | M21.3 | Shrink dashboardCSS to token layer + JS-behavior hooks only | 12 | M21.2 |
 | M21.4 | Visual parity sweep + commit | 11 | M21.3 |
-| M22.1 | Test: CSP header nonce appears in DOM inline scripts | 15 | M11 |
+| M22.1a | Write CSP-header -> DOM nonce test | 8 | M11 |
+| M22.1b | Run + fix | 7 | M11 |
 | M22.2 | Negative test: inline script without nonce would be blocked (assert none emitted) | 12 | M22.1 |
 | M22.3 | Assert toast/copy/global-error scripts carry nonce attr | 12 | M22.1 |
-| M22.4 | Run security suite + commit | 21 | M22.3 |
-| M23.1 | Golden harness for dashboardui render fns (`utils/golden` pattern, `-update` flag) | 15 | M16 |
-| M23.2 | Goldens: StatusBadge, StatCard, EmptyState, Button outputs | 15 | M23.1 |
+| M22.4a | Run full security suite | 10 | M22.3 |
+| M22.4b | Fix findings if any | 6 | M22.3 |
+| M22.4c | Commit | 5 | M22.3 |
+| M23.1a | Add golden test harness file | 8 | M16 |
+| M23.1b | Wire -update flag | 7 | M16 |
+| M23.2a | Goldens: StatusBadge + StatCard | 8 | M23.1 |
+| M23.2b | Goldens: EmptyState + Button | 7 | M23.1 |
 | M23.3 | Document `-update` flow in module README | 10 | M23.2 |
-| M23.4 | Wire into `nix run .#test` path + commit | 20 | M23.3 |
-| M24.1 | Bench file: `BenchmarkHandRolledVsHybrid` (b.Loop, ReportAllocs) | 20 | M16 |
-| M24.2 | benchstat baseline capture (machine-pinned raw artifact per repo policy) | 15 | M24.1 |
+| M23.4a | Ensure test path covers goldens | 10 | M23.3 |
+| M23.4b | Commit | 10 | M23.3 |
+| M24.1a | Bench skeleton + b.Loop setup | 10 | M16 |
+| M24.1b | Hand-rolled vs hybrid sub-benches | 10 | M16 |
+| M24.2a | Run -count=5 -benchmem capture | 8 | M24.1 |
+| M24.2b | Save machine-pinned baseline artifact | 7 | M24.1 |
 | M24.3 | Run + record numbers | 12 | M24.2 |
-| M24.4 | Per-component perf note (any regression → investigate) | 15 | M24.3 |
-| M24.5 | Commit | 13 | M24.4 |
-| M24.6 | Confirm bench gate green (`nix run .#bench-spike` unaffected) | 15 | M24.5 |
-| M25.1 | Keyboard/a11y audit of swapped components (focus, roles, aria-sort) | 20 | M16 |
-| M25.2 | axe-core sweep (visualtest patterns) or manual checklist doc | 15 | M25.1 |
-| M25.3 | e2e: extend fullstack UI suite for new components | 25 | M25.2 |
-| M25.4 | Fix findings | 15 | M25.3 |
-| M25.5 | Commit | 15 | M25.4 |
-| M26.1 | `renderOverview` → extract sub-renderers (complexity 28 → <25) | 25 | — |
-| M26.2 | `LoadEventByID` guard-clause refactor (27 → <25) | 20 | — |
-| M26.3 | `renderEventDetail` split (26 → <25) | 20 | — |
-| M26.4 | `FetchOverview` split in core/ (22 → <20) | 15 | — |
+| M24.4a | Analyze benchstat output | 8 | M24.3 |
+| M24.4b | Write per-component perf note | 7 | M24.3 |
+| M24.5a | Commit bench artifacts | 6 | M24.4 |
+| M24.5b | Verify git clean | 7 | M24.4 |
+| M24.6a | Run bench-spike gate | 8 | M24.5 |
+| M24.6b | Confirm threshold green | 7 | M24.5 |
+| M25.1a | Audit focus/keyboard paths | 10 | M16 |
+| M25.1b | Audit roles + aria-sort/aria-live | 10 | M16 |
+| M25.2a | Set up axe sweep or checklist doc | 8 | M25.1 |
+| M25.2b | Run sweep, collect findings | 7 | M25.1 |
+| M25.3a | Add e2e spec: status badges + stat cards | 9 | M25.2 |
+| M25.3b | Add e2e spec: toasts + error pages | 8 | M25.2 |
+| M25.3c | Add e2e spec: sortable tables | 8 | M25.2 |
+| M25.4a | Fix a11y findings | 8 | M25.3 |
+| M25.4b | Fix e2e findings | 7 | M25.3 |
+| M25.5a | Run full e2e suite | 8 | M25.4 |
+| M25.5b | Commit | 7 | M25.4 |
+| M26.1a | Extract overview stat-grid renderer | 9 | — |
+| M26.1b | Extract projection-health panel renderer | 8 | — |
+| M26.1c | Extract remaining overview sections | 8 | — |
+| M26.2a | Guard-clause LoadEventByID | 10 | — |
+| M26.2b | Extract payload-load helper | 10 | — |
+| M26.3a | Split renderEventDetail: header + meta | 10 | — |
+| M26.3b | Split renderEventDetail: payload + nav | 10 | — |
+| M26.4a | Extract FetchOverview stat computation | 8 | — |
+| M26.4b | Extract FetchOverview aggregation | 7 | — |
 | M26.5 | Tests + commit | 10 | M26.1 |
 | M27.1 | e2e/server: replace ListenAndServe with httputil.NewServer timeouts (G114) | 10 | — |
 | M27.2 | e2e/server exhaustruct + param-name fixes | 10 | M27.1 |
 | M27.3 | integration_test templ-components indirects: note train policy (do not hand-bump per AGENTS.md) | 10 | — |
-| M27.4 | Commit | 15 | M27.2 |
-| M28.1 | Re-run audit scoring vs landed rungs (new capability count) | 15 | M16 |
+| M27.4a | Commit | 7 | M27.2 |
+| M27.4b | Verify e2e still builds | 8 | M27.2 |
+| M28.1a | Recount adopted capabilities | 8 | M16 |
+| M28.1b | Recompute score vs 14/100 | 7 | M16 |
 | M28.2 | Update AGENTS.md dashboardui adoption table + score | 12 | M28.1 |
 | M28.3 | ANNOTATE (not rewrite) old status report + audit with outcomes | 8 | M28.2 |
 | M28.4 | Commit | 10 | M28.3 |
 
-**Micro totals:** 151 tasks · every task ≤ 12 min work + verify. Tier sums match Section 2.
+**Micro totals:** 193 tasks · every task ≤ 12 min. Per-medium-task micro sums equal the medium minutes exactly. Tier sums match Section 2.
 
 ---
 
@@ -284,7 +348,7 @@ flowchart TD
         M8["M8 StatCard + ValueID"]
     end
 
-    subgraph T3["Tier 3 · 20% → 80% (620 min)"]
+    subgraph T3["Tier 3 · 20% → 80% (600 min)"]
         M9["M9 EmptyState + PageHeader"]
         M10["M10 Buttons"]
         M11["M11 Nonce + ToastContainer"]
@@ -295,7 +359,7 @@ flowchart TD
         M16["M16 Remaining tables"]
     end
 
-    subgraph T4["Tier 4 · → 100% (795 min)"]
+    subgraph T4["Tier 4 · → 100% (750 min)"]
         M17["M17 Pagination trio"]
         M18["M18 ThemeToggle"]
         M19["M19 SidebarNav"]
