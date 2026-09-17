@@ -205,18 +205,22 @@ bundle, err := setup.New(setup.Config{
 
 `setup` serves plain HTTP and performs **no TLS termination** — put a reverse
 proxy (Caddy, nginx, a cloud LB) in front for HTTPS, HSTS, and certificate
-handling. Following the library principle (never enforce defaults consumers
-might disagree with), no CSP/HSTS/CSRF middleware is on by default; wrap the
-handler when you want them:
+handling. The default wrap from [Bundle.Middleware] (applied by
+[Bundle.Handler], [Bundle.Run], and [Bundle.RunHandler]) is
+`RecommendedSecurityMiddleware`: security headers, a per-request CSP nonce,
+and panic recovery. CSRF protection guards the admin panel's mutation
+endpoints by default; customize it via `Config.CSRF` (the default config
+issues its cookie without the Secure flag — fine for local HTTP dev; set
+`Secure: true` behind HTTPS):
 
 ```go
-handler := bundle.Handler(mux) // security middleware chain, or compose your own
+handler := bundle.Handler(mux) // default security chain, or compose your own
 ```
 
 Session cookies are issued by usermgmt; when terminating TLS at a proxy, keep
 the proxy-to-app hop on a private network or loopback so the session cookie is
-never transported in the clear. Rate limiting, CSRF, and body limits are
-opt-in via `httputil` — see `docs/guides/leveraging-httputil.md`.
+never transported in the clear. Rate limiting and body limits are opt-in via
+`httputil` — see `docs/guides/leveraging-httputil.md`.
 
 ## See also
 

@@ -1,0 +1,1323 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>httputil, go-etag &amp; go-sse — Adoption &amp; Utilization Audit</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar -->
+    <div class="top-bar">
+      <span>COMPOSITION-ROOT DEEP DIVE</span>
+      <span>2026-09-17</span>
+      <span>cqrs-htmx &middot; setup/v4</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#usage">Current Usage</a>
+          <a href="#auth">Findings &middot; Auth Layer</a>
+          <a href="#persistence">Findings &middot; Persistence</a>
+          <a href="#ops">Findings &middot; Ops Surface</a>
+          <a href="#versions">Version Currency</a>
+          <a href="#boundaries">Deliberate Boundaries</a>
+          <a href="#opportunities">Top Opportunities</a>
+          <a href="#conclusion">Conclusion</a>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <!-- Hero -->
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">COMPOSITION-ROOT DEEP DIVE &middot; 2026-09-17</div>
+          <h1>setup/ &mdash; what is it not YET using but should?</h1>
+          <p class="subtitle">
+            The one-call composition root wires the family's transport, hub, readiness,
+            and UI panels superbly &mdash; but it drops three loaded capabilities it
+            already pays for: usermgmt's auth-endpoint hardening is unreachable, the
+            flattened SQL path silently means SQLite, and go-appkit v0.5.0's brand-new
+            metrics/version surface arrived today with no knob to reach it.
+          </p>
+          <div class="meta">
+            <span class="tag">setup v4.10.0 (latest tag)</span>
+            <span class="tag">go-appkit v0.4.0 (latest v0.5.0)</span>
+            <span class="tag">httputil v1.1.1 (latest v1.2.0)</span>
+            <span class="tag teal">9 files &middot; 2,532 LOC (excl. tests)</span>
+          </div>
+        </header>
+
+        <!-- Scorecard -->
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">72</div>
+            <div class="label">setup adoption / 100</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">1</div>
+            <div class="label">Critical finding</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">4</div>
+            <div class="label">Important findings</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">2</div>
+            <div class="label">Dependencies behind</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Misused APIs</div>
+          </div>
+        </section>
+
+        <!-- Summary -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            This audit reads every production file of the <code>setup/v4</code> module
+            (setup.go, config.go, bundle.go, mount.go, run.go, run_appkit.go, sse.go,
+            doc.go &mdash; 2,532 LOC excluding tests) and compares what it wires against
+            the capability surface of everything it already depends on:
+            usermgmt, root cqrshtmx, dashboardui/adminui/loginpage, datastar,
+            transport, go-cqrs-lite middleware, httputil, and go-appkit. Version
+            claims were verified against pushed git tags on 2026-09-17.
+          </p>
+          <p>
+            The composition core is in excellent shape: the shared hub feeds both SSE
+            and DataStar from one broadcast (ADR-0050), <code>transport.ServeDomainEvents</code>
+            owns the SSE lifecycle, projection readiness gates <code>/health</code>,
+            the OTel bundle threads bus spans without an OTel import, and the
+            <code>Service</code>/<code>ServiceConfig</code>/flattened precedence is
+            conflict-validated with escape hatches. Nothing is <em>misused</em>. What
+            setup leaves on the table is reach: three capabilities that live one struct
+            field away in dependencies setup already requires are invisible to its
+            consumers.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            A setup consumer cannot turn on brute-force protection for the passwordless
+            auth endpoints, cannot get metrics or build-info endpoints on either serve
+            path, and can silently build SQLite-schema read models against a Postgres
+            connection. All three fixes are small, additive, and respect the
+            &ldquo;never enforce defaults&rdquo; library principle &mdash; they add
+            opt-in seams, not opinions.
+          </div>
+        </section>
+
+        <!-- Current Usage -->
+        <section id="usage">
+          <h2><span class="num">01</span>Current Usage &mdash; the baseline</h2>
+          <ul class="strengths">
+            <li class="strength"><span class="check">+</span><div class="text"><strong>Shared hub, two protocols</strong><span><code>cqrshtmx.NewBroadcaster</code> + <code>datastar.NewBroadcasterFromHub(b.Broadcaster.Hub())</code> &mdash; one broadcast reaches HTMX and DataStar clients (sse.go:26,61; ADR-0050).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>Canonical SSE lifecycle</strong><span><code>transport.ServeDomainEvents</code> with journal replay, heartbeat, <code>WithMaxReplay</code> cap, and fail-fast <code>SubscribeAll</code> (sse.go:30,49,71-77).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>Projection-aware readiness</strong><span><code>cqrshtmx.ReadinessHandler(ProjectionReadinessCheck(service))</code> at <code>/health</code>; the appkit path wires the same check into <code>ReadyCheck</code> (mount.go:126-134, run_appkit.go:133-141).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>SSE-safe production server</strong><span><code>httputil.NewServer</code> with the slowloris/keep-alive pair and deliberately no Read/Write timeouts; graceful shutdown via <code>context.WithoutCancel</code> (run.go:67-105).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>Security defaults</strong><span><code>RecommendedSecurityMiddleware()</code> (headers + nonce + recovery) as the default wrap; CSRF guards admin mutations with a full <code>Config.CSRF</code> escape hatch (bundle.go:129-131, mount.go:53-60).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>OTel without the dependency</strong><span><code>Config.Observability *middleware.OTelBundle</code> prepends publish/handler bus middleware outermost, rejected alongside <code>Service</code>/<code>ServiceConfig</code>, zero OTel imports in setup source (setup.go:119-154).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>Appkit parity path</strong><span><code>RunWithAppkit</code> keeps the timeout policy, SSE flush, and readiness semantics verified-equal to <code>RunHandler</code> (run_appkit.go:19-36, pinned by run_appkit_test.go + the adoption benchmark).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>Path discipline</strong><span>defaults, trailing-slash normalization, root reservation, collision rejection, distinct-path validation (config.go:268-367).</span></div></li>
+          </ul>
+        </section>
+
+        <!-- Findings: Auth layer -->
+        <section id="auth">
+          <h2><span class="num">02</span>Findings &mdash; Auth Layer</h2>
+
+          <div class="issue issue-critical" id="authhandlerconfig">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>usermgmt's auth-endpoint hardening is unreachable through setup</h3>
+            <div class="where">setup.go:57 (only CookieName threaded) &middot; usermgmt/http.go:62-101 (the full HandlerConfig)</div>
+            <p>
+              <code>usermgmt.HandlerConfig</code> carries six per-group rate limiters
+              (<code>WebAuthnRateLimit</code> &mdash; whose own doc comment says
+              &ldquo;Use this to brute-force protection on the passwordless
+              login/registration ceremonies&rdquo; &mdash; plus Registration, Import,
+              TOTP, Verification, OAuth), the session-cookie <code>Secure</code>
+              override, <code>SessionMaxAge</code>, a handler <code>Timeout</code>,
+              <code>OAuth2SuccessURL</code>/<code>OAuth2ErrorURL</code> (redirect-after-OAuth2
+              instead of JSON callbacks), and <code>ImportExportAuthorizer</code>.
+              Setup constructs the <code>AuthHandler</code> internally with exactly one
+              field: <code>HandlerConfig{CookieName: cfg.CookieName}</code>. The
+              handler has no setters, and the documented escape hatch does not apply:
+              <code>Config.ServiceConfig</code> is passed to
+              <code>usermgmt.NewService</code>, which builds the <em>service</em> &mdash;
+              the HTTP <code>HandlerConfig</code> is a different struct that only
+              setup ever touches. The guide's &ldquo;do not file expose-X requests;
+              pass a ServiceConfig&rdquo; policy is correct for every
+              <em>ServiceConfig</em> capability and covers none of these.
+            </p>
+            <div class="callout callout-amber">
+              <strong>Why it matters</strong>
+              setup is the front door most consumers walk through. A passwordless
+              stack&rsquo;s ceremonies are its most abuse-exposed surface, the
+              protection already exists one dependency down, and the composition root
+              silently drops it &mdash; a setup consumer cannot enable it at all
+              without abandoning <code>Bundle.Mount</code> (the auth routes are
+              registered by Mount, so hand-building an AuthHandler means hand-mounting
+              every panel too).
+            </div>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add one conflict-validated escape hatch, mirroring the
+              <code>ServiceConfig</code> pattern &mdash; flattened
+              <code>CookieName</code> stays the default; a set
+              <code>AuthHandlerConfig.CookieName</code> must match it.
+            </div>
+            <pre><code><span class="tok-comment">// Config</span>
+<span class="tok-comment">// AuthHandlerConfig, when set, is passed to usermgmt.NewAuthHandler</span>
+<span class="tok-comment">// verbatim (rate limits, cookie Secure/MaxAge, handler timeout,</span>
+<span class="tok-comment">// OAuth2 redirect URLs). CookieName conflicts are rejected.</span>
+AuthHandlerConfig *usermgmt.HandlerConfig
+
+<span class="tok-comment">// setup.go — replace the one-field literal</span>
+authCfg := usermgmt.HandlerConfig{CookieName: cfg.CookieName}
+<span class="tok-keyword">if</span> cfg.AuthHandlerConfig != <span class="tok-boolean">nil</span> {
+    authCfg = *cfg.AuthHandlerConfig
+}
+bundle.Auth = usermgmt.<span class="tok-function">NewAuthHandler</span>(svc, authCfg)</code></pre>
+          </div>
+
+          <div class="issue issue-important" id="auth-csrf">
+            <span class="severity severity-important">Consistency &middot; Low risk</span>
+            <h3>Auth mutations carry no CSRF while admin mutations do</h3>
+            <div class="where">mount.go:39-41 (RegisterRoutes, bare) vs mount.go:53-60 (admin wrapped in csrfMW)</div>
+            <p>
+              <code>POST /auth/register</code>, the WebAuthn/TOTP/OAuth2 ceremonies,
+              and <code>/auth/logout</code> are mounted without the CSRF middleware
+              setup itself applies to admin form posts. Login-CSRF and logout-CSRF are
+              low-severity vectors in a passwordless stack, and wiring CSRF here would
+              require the login page to render the token &mdash; so this is likely
+              deliberate, but nothing documents the decision, and the asymmetry
+              surprised this audit. Decide and document (or wrap and teach loginpage
+              the token).
+            </p>
+          </div>
+        </section>
+
+        <!-- Findings: Persistence -->
+        <section id="persistence">
+          <h2><span class="num">03</span>Findings &mdash; Persistence</h2>
+
+          <div class="issue issue-critical" id="readmodeldialect">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>Flattened ReadModelDB silently means the SQLite dialect</h3>
+            <div class="where">config.go:126 &middot; setup.go:124-136 (ReadModelDialect never set) &middot; usermgmt/sql_readmodel_dialect.go:29-37 (&ldquo;&rdquo; &rarr; SQLite constructors)</div>
+            <p>
+              The flattened path exposes <code>ReadModelDB</code> but not
+              <code>ReadModelDialect</code>, and the empty string resolves to the
+              SQLite constructor family. A consumer who follows the README and guide
+              (&ldquo;<code>ReadModelDB: sqlDB</code> &mdash; optional: enables
+              SQL-backed read models&rdquo;, no dialect caveat) with a Postgres or
+              MySQL <code>*sql.DB</code> gets SQLite-dialect view stores: auto-migration
+              emits SQLite DDL against a Postgres connection and fails &mdash; loudly,
+              but far from the config mistake that caused it. The
+              &ldquo;pass a ServiceConfig&rdquo; policy covers the <em>knob</em>
+              (<code>ServiceConfig.ReadModelDialect</code>) and that design is sound;
+              what is missing is fail-fast at the seam, and the driver is detectable.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              <code>sql.DB.Driver()</code> names the driver &mdash; validate at
+              <code>New</code>: a non-SQLite driver on the flattened path is a
+              rejection pointing straight at <code>ServiceConfig.ReadModelDialect</code>.
+              No new knob, no policy change.
+            </div>
+            <pre><code><span class="tok-keyword">func</span> (c Config) <span class="tok-function">validateReadModelDriver</span>() error {
+    <span class="tok-keyword">if</span> c.ReadModelDB == <span class="tok-boolean">nil</span> || c.ServiceConfig != <span class="tok-boolean">nil</span> {
+        <span class="tok-keyword">return</span> <span class="tok-boolean">nil</span>
+    }
+    <span class="tok-keyword">switch</span> c.ReadModelDB.<span class="tok-function">Driver</span>().<span class="tok-function">Name</span>() { <span class="tok-comment">// "sqlite", "sqlite3"</span>
+    <span class="tok-keyword">case</span> <span class="tok-string">"sqlite"</span>, <span class="tok-string">"sqlite3"</span>:
+        <span class="tok-keyword">return</span> <span class="tok-boolean">nil</span>
+    }
+    <span class="tok-keyword">return</span> errorfamily.<span class="tok-function">NewRejection</span>(<span class="tok-string">"setup.invalid_config"</span>,
+        <span class="tok-string">"flattened ReadModelDB uses the SQLite read-model dialect; for "</span>+
+            <span class="tok-string">"postgres/pgx/mysql pass ServiceConfig.ReadModelDialect"</span>)
+}</code></pre>
+          </div>
+        </section>
+
+        <!-- Findings: Ops surface -->
+        <section id="ops">
+          <h2><span class="num">04</span>Findings &mdash; Ops Surface</h2>
+
+          <div class="issue issue-critical" id="appkit-metrics">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>go-appkit v0.5.0&rsquo;s metrics and /version arrived today with no knob to reach them</h3>
+            <div class="where">setup/go.mod (go-appkit v0.4.0) &middot; run_appkit.go:67-78 (ServiceConfig built without Metrics/Version) &middot; remote tag v0.5.0 (2026-09-17)</div>
+            <p>
+              v0.5.0 &mdash; published the day of this audit &mdash; adds
+              <code>ServiceConfig.Metrics</code> (a dependency-free Prometheus text
+              exposition at <code>GET /metrics</code>, Basic-Auth-mandatory-by-default)
+              and <code>ServiceConfig.Version</code> + <code>GET /version</code>
+              (JSON build-info battery, also labeling <code>appkit_build_info</code>).
+              setup pins v0.4.0 and builds its <code>ServiceConfig</code> literal
+              without either field, so <code>RunWithAppkit</code> consumers cannot
+              enable them, and the <code>RunHandler</code> path has no metrics or
+              build-info surface at all (root&rsquo;s <code>DebugHandler</code> is
+              similarly unmounted). For a module whose pitch is &ldquo;the shortest
+              path to a production-shaped server&rdquo;, zero observability endpoints
+              on the default path is the largest ops gap.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Bump go-appkit to v0.5.0; thread <code>Config.Metrics</code> and
+              <code>Config.Version</code> into the appkit <code>ServiceConfig</code>.
+              For the httputil path, mount root&rsquo;s
+              <code>cqrshtmx.DebugHandler</code> behind an opt-in path (metrics on
+              that path stay consumer-side via the go-cqrs-lite prometheus module,
+              keeping root dependency-free).
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="request-logging">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>No request-logging knob &mdash; RunHandler serves with zero access logs</h3>
+            <div class="where">bundle.go:129-131 (Middleware is fixed) &middot; root logging.go:204 (RequestLoggingSlog, unused by setup)</div>
+            <p>
+              Root ships <code>RequestLogging</code>/<code>RequestLoggingSlog</code>;
+              setup&rsquo;s <code>Bundle.Middleware()</code> is hardwired to
+              <code>RecommendedSecurityMiddleware()</code> and offers no composition
+              point, so the httputil serve path produces no access log lines at all
+              (the appkit path logs per-request INFO &mdash; the very line the
+              adoption benchmark had to suppress). Consumers can wrap the returned
+              handler manually, but nothing points them there; a
+              <code>Config.RequestLogging *slog.Logger</code> (nil = current silence)
+              would close the trap opt-in.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="machine-endpoints">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>Machine observability endpoints are unmountable via setup</h3>
+            <div class="where">event_catalog_handler.go:44 &middot; usermgmt/es_event_catalog.go:13 (DefaultEventCatalog) &middot; projection_status_handler.go:43 &middot; usermgmt/es_projection_health.go:56 (Service satisfies the provider) &middot; readiness.go:123 (DebugHandler)</div>
+            <p>
+              The dashboard renders UI equivalents, but for scripts and monitors
+              there is no setup path to mount <code>EventCatalogHandler(usermgmt.DefaultEventCatalog())</code>
+              (the Published-Language JSON, immutable + ETagged),
+              <code>ProjectionStatusHandler(service)</code> (live JSON, per-request
+              ETag), or <code>DebugHandler</code> (build info). Each is one
+              <code>mux.Handle</code> away for a consumer &mdash; but setup is the
+              composition root whose job is exactly this wiring, and it owns the only
+              correctly-gated place to mount them (behind the session gate, like
+              <code>/sse</code>).
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="liveness">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>No liveness probe on the RunHandler path; /health cannot be disabled</h3>
+            <div class="where">mount.go:100-103 &middot; config.go:294-296 (empty HealthPath is re-defaulted, no &ldquo;-&rdquo; opt-out)</div>
+            <p>
+              <code>/health</code> is readiness-only (503 while draining &mdash;
+              correct), but a Kubernetes consumer needs a separate always-200 liveness
+              probe; the appkit path serves <code>/health/live</code> while the
+              httputil path serves nothing equivalent. Relatedly,
+              <code>DataStarScriptPath</code> supports <code>&ldquo;-&rdquo;</code> to
+              opt out of a mount; <code>HealthPath</code> does not &mdash; an empty
+              value is silently re-defaulted to <code>/health</code>, so consumers
+              running their own health stack (the appkit path&rsquo;s known
+              <code>/health</code> dedup, ADR-001 item c) cannot turn setup&rsquo;s
+              off.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="sse-ext">
+            <span class="severity severity-nice">Missed Opportunity &middot; Low impact</span>
+            <h3>HTMX SSE extension script not served next to the SSE feed</h3>
+            <div class="where">htmx_extensions.go:62 (HTMXExtensionHandler) &middot; mount.go:85-98 (DataStar SDK gets a script mount; HTMX gets none)</div>
+            <p>
+              When <code>SSEPath</code> is set, DataStar consumers get the SDK served
+              at <code>/datastar.js</code> automatically, but HTMX consumers using the
+              sse extension against <code>/sse</code> must fetch sse.js from a CDN or
+              self-host &mdash; an asymmetric treatment of the two protocols the hub
+              otherwise treats as peers. An <code>SSEScriptPath</code>-style mount
+              (&ldquo;-&rdquo; to opt out, mirroring DataStarScriptPath) closes it.
+            </p>
+          </div>
+        </section>
+
+        <!-- Version currency -->
+        <section id="versions">
+          <h2><span class="num">05</span>Version Currency</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Dependency</th><th>Required</th><th>Latest tag</th><th>Gap</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>go-appkit</td><td>v0.4.0</td><td>v0.5.0 (2026-09-17)</td><td>metrics, /version, testkit, shutdown phase logging</td></tr>
+                <tr><td>httputil</td><td>v1.1.1</td><td>v1.2.0 (2026-09-16)</td><td>CORSConfig.AllowPrivateNetwork (repo-wide bump pending)</td></tr>
+                <tr><td>cqrs-htmx root</td><td>v4.9.0</td><td>v4.9.0</td><td>current</td></tr>
+                <tr><td>usermgmt</td><td>v4.10.0</td><td>v4.10.0</td><td>current</td></tr>
+                <tr><td>loginpage</td><td>v4.10.0</td><td>v4.10.0</td><td>current</td></tr>
+                <tr><td>adminui / dashboardui / datastar</td><td>v4.9.0</td><td>v4.9.0</td><td>current</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The family requires are current at the latest per-module tags. The two
+            external laggards are both fresh this week: go-appkit v0.5.0 published the
+            day of this audit, httputil v1.2.0 the day before (already tracked as a
+            repo-wide pending sweep). The appkit bump is the one that unlocks a
+            capability (see finding <a href="#appkit-metrics">04</a>).
+          </p>
+        </section>
+
+        <!-- Deliberate boundaries -->
+        <section id="boundaries">
+          <h2><span class="num">06</span>Deliberate Boundaries &mdash; correctly NOT absorbed</h2>
+          <p>
+            An audit that only lists gaps lies by omission. These are capabilities
+            setup does not use <em>on purpose</em>, each pinned to a written decision:
+          </p>
+          <ul class="strengths">
+            <li class="strength"><span class="check">+</span><div class="text"><strong>go-health dashboard &amp; samber-do-auditlog viewer</strong><span>Optional bridge modules stay consumer-side with documented recipes (fullstack-wiring.md &sect;245-305) &mdash; setup must not force their dependency trees on everyone.</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>otelhttp HTTP root spans</strong><span>Config.Observability covers bus spans only; wrapping the HTTP layer would import OTel into setup, violating the otel-free-by-design posture (guide &sect;2.5 keeps the recipe consumer-side).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>Dispatch middleware (27 go-cqrs-lite factories)</strong><span>setup owns no dispatchers &mdash; no App is constructed by design; retry/circuit-breaker/tracing compose on the consumer&rsquo;s own dispatchers (leveraging-go-cqrs-lite.md &sect;1).</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>system.New bridge (NewFromSystem)</strong><span>Build-or-reject is ROADMAP Open Question 12 &mdash; not silently skippable, actively routed.</span></div></li>
+            <li class="strength"><span class="check">+</span><div class="text"><strong>/health dedup &amp; stacked-chain dedup in appkit mode</strong><span>Known-open ADR-001 follow-ups (b)-(f), tracked in TODO_LIST &mdash; not rediscoveries.</span></div></li>
+          </ul>
+        </section>
+
+        <!-- Top opportunities -->
+        <section id="opportunities">
+          <h2><span class="num">07</span>Top Opportunities (impact &times; effort)</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Opportunity</th><th>Impact</th><th>Effort</th><th>Verdict</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>1</td><td><code>Config.AuthHandlerConfig</code> seam &mdash; unlock rate limits, cookie knobs, OAuth2 redirects</td><td>High</td><td>S</td><td class="compare-after">Do</td></tr>
+                <tr><td>2</td><td>ReadModelDB driver validation at New (fail-fast, no new knob)</td><td>High</td><td>XS</td><td class="compare-after">Do</td></tr>
+                <tr><td>3</td><td>go-appkit v0.5.0 bump + <code>Config.Metrics</code>/<code>Config.Version</code></td><td>High</td><td>S</td><td class="compare-after">Do</td></tr>
+                <tr><td>4</td><td><code>Config.RequestLogging</code> opt-in knob</td><td>Medium</td><td>XS</td><td class="compare-after">Do</td></tr>
+                <tr><td>5</td><td>Mount EventCatalog / ProjectionStatus / Debug JSON endpoints (opt-in paths, session-gated)</td><td>Medium</td><td>S</td><td>Consider</td></tr>
+                <tr><td>6</td><td>Liveness path + HealthPath &ldquo;-&rdquo; opt-out</td><td>Medium</td><td>XS</td><td>Consider</td></tr>
+                <tr><td>7</td><td>Serve sse.js extension next to SSEPath (DataStarScriptPath symmetry)</td><td>Low</td><td>XS</td><td>Consider</td></tr>
+                <tr><td>8</td><td>httputil v1.2.0 sweep (repo-wide, already pending)</td><td>Low</td><td>S</td><td>Scheduled</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section id="conclusion">
+          <h2><span class="num">08</span>Conclusion</h2>
+          <p>
+            setup is a well-built composition root that under-reaches rather than
+            over-reaches: zero misused APIs, zero architectural violations, and every
+            hard problem it touches (hub sharing, SSE lifecycle, readiness, shutdown,
+            escape-hatch precedence) is delegated to the right owner. The gaps are all
+            of one shape &mdash; a capability that exists in a direct dependency,
+            loaded and paid for, with no Config seam to switch it on. Three of them
+            matter (auth hardening, the SQL dialect footgun, metrics/version), and all
+            three are additive opt-ins compatible with the next minor train. The stale
+            README security paragraph found along the way was corrected in the same
+            session; the actionable remainder is routed to TODO_LIST.
+          </p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p>
+            Generated 2026-09-17 &middot; setup/v4 @ v4.10.0 against usermgmt v4.10.0,
+            root v4.9.0, go-appkit v0.4.0/v0.5.0, httputil v1.1.1/v1.2.0 &middot; All
+            claims verified against local source (file:line cited) and pushed git tags
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
