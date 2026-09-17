@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
@@ -41,11 +42,19 @@ import (
 )
 
 const (
-	addr        = ":8097"
 	cookieName  = "session"
 	adminEmail  = "admin@demo.dev"
 	adminUserID = "01JXSUPERADMIN001"
 )
+
+var addr = envOr("ADMIN_DEMO_ADDR", ":8097")
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
 
 func main() {
 	ctx := context.Background()
