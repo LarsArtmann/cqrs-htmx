@@ -3,8 +3,11 @@ package adminui
 import "github.com/larsartmann/templ-components/display"
 
 templ auditPage(p pageData, d auditData) {
-	@Layout(p) {
-		<div class="mb-5 flex flex-wrap items-center gap-3">
+	@Layout(p, auditContent(d))
+}
+
+templ auditContent(d auditData) {
+	<div class="mb-5 flex flex-wrap items-center gap-3">
 			<h1 class="text-xl font-semibold">Audit log</h1>
 		</div>
 		if len(d.Entries) == 0 {

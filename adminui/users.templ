@@ -10,9 +10,7 @@ import (
 )
 
 templ usersPage(p pageData, d usersListData) {
-	@Layout(p) {
-		@usersContent(d)
-	}
+	@Layout(p, usersContent(d))
 }
 
 templ usersContent(d usersListData) {
@@ -100,8 +98,11 @@ templ usersRows(d usersListData) {
 }
 
 templ userDetailPage(p pageData, d userDetailData) {
-	@Layout(p) {
-		<div class="mb-5 flex flex-wrap items-center gap-3">
+	@Layout(p, userDetailContent(d))
+}
+
+templ userDetailContent(d userDetailData) {
+	<div class="mb-5 flex flex-wrap items-center gap-3">
 			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users" }>← Users</a>
 		</div>
 		<div class="mb-5 flex items-center gap-4">

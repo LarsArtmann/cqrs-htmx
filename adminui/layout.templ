@@ -3,7 +3,6 @@ package adminui
 import (
 	"strings"
 
-	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
@@ -12,8 +11,7 @@ import (
 	"github.com/larsartmann/templ-components/utils"
 )
 
-templ Layout(p pageData) {
-	{{ content := children }}
+templ Layout(p pageData, content templ.Component) {
 	@layout.Base(layout.PageProps{
 		Title:         p.Title + " · " + p.Brand,
 		CSSPath:       p.BasePath + "/-/admin-tw.css",

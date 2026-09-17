@@ -7,9 +7,7 @@ import (
 )
 
 templ tenantsPage(p pageData, d tenantsListData) {
-	@Layout(p) {
-		@tenantsContent(d)
-	}
+	@Layout(p, tenantsContent(d))
 }
 
 templ tenantsContent(d tenantsListData) {
@@ -64,8 +62,11 @@ templ tenantsRows(d tenantsListData) {
 }
 
 templ tenantNewPage(p pageData, basePath string) {
-	@Layout(p) {
-		<div class="mb-5 flex flex-wrap items-center gap-3">
+	@Layout(p, tenantNewContent(basePath))
+}
+
+templ tenantNewContent(basePath string) {
+	<div class="mb-5 flex flex-wrap items-center gap-3">
 			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ basePath + "/tenants" }>← Tenants</a>
 		</div>
 		<h1 class="mb-4 text-xl font-semibold">New tenant</h1>
@@ -99,8 +100,11 @@ templ tenantNewPage(p pageData, basePath string) {
 }
 
 templ tenantDetailPage(p pageData, d tenantDetailData) {
-	@Layout(p) {
-		<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+	@Layout(p, tenantDetailContent(d))
+}
+
+templ tenantDetailContent(d tenantDetailData) {
+	<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
 			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants" }>← Tenants</a>
 			if d.Tenant.Suspended {
 				@badge("suspended", "amber")

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // ===== Aggregates Index Handler =====
@@ -468,24 +469,24 @@ func TestHumanByteSize(t *testing.T) {
 	}
 }
 
-// ===== encodingBadgeClass =====
+// ===== encodingBadgeType =====
 
-func TestEncodingBadgeClass(t *testing.T) {
+func TestEncodingBadgeType(t *testing.T) {
 	cases := []struct {
 		encoding string
-		want     string
+		want     display.BadgeType
 	}{
-		{"json", "badge badge-neutral"},
-		{"", "badge badge-neutral"},
-		{"cbor", "badge badge-warn"},
-		{"raw", "badge badge-neutral"},
-		{"unknown-format", "badge badge-neutral"},
+		{"json", display.BadgeNeutral},
+		{"", display.BadgeNeutral},
+		{"cbor", display.BadgeWarning},
+		{"raw", display.BadgeNeutral},
+		{"unknown-format", display.BadgeNeutral},
 	}
 
 	for _, tc := range cases {
-		got := encodingBadgeClass(tc.encoding)
+		got := encodingBadgeType(tc.encoding)
 		if got != tc.want {
-			t.Errorf("encodingBadgeClass(%q) = %q, want %q", tc.encoding, got, tc.want)
+			t.Errorf("encodingBadgeType(%q) = %q, want %q", tc.encoding, got, tc.want)
 		}
 	}
 }

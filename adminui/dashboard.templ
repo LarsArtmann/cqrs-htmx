@@ -3,9 +3,7 @@ package adminui
 import "github.com/larsartmann/templ-components/display"
 
 templ dashboardPage(p pageData, d dashboardData) {
-	@Layout(p) {
-		@dashboardContent(d)
-	}
+	@Layout(p, dashboardContent(d))
 }
 
 templ dashboardContent(d dashboardData) {

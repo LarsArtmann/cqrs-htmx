@@ -203,8 +203,8 @@ func TestDLQIndexHandler_ShowsDeadLetterCounts(t *testing.T) {
 		t.Fatalf("expected count column header, got:\n%s", body)
 	}
 
-	// The count (2) should appear as a badge value.
-	if !strings.Contains(body, ">2<") {
+	// The count (2) should appear as the library badge's text content.
+	if !strings.Contains(body, "2</span>") {
 		t.Errorf("expected dead-letter count '2' in body, got:\n%s", body)
 	}
 }
