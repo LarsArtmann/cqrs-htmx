@@ -420,43 +420,49 @@ func (c Config) withDefaults() Config {
 		cfg.HealthPath = "/health"
 	}
 
+	cfg = normalizeRoutePaths(cfg)
+
+	if cfg.SSEHeartbeatInterval == 0 {
+		cfg.SSEHeartbeatInterval = 15 * time.Second
+	}
+
+	return cfg
+}
+
+// normalizeRoutePaths applies the route-shape rules every mount path shares:
+// panel subtrees gain a trailing slash (the standard mux needs it for subtree
+// matching), exact-match endpoints lose theirs (no ugly /health → /health/
+// redirect), and the two SDK-script mounts default beside their feed when the
+// feed is configured. "-" opt-outs pass through untouched (single chars are
+// never trimmed).
+func normalizeRoutePaths(cfg Config) Config {
 	// The standard mux only treats patterns ending in "/" as subtree patterns:
 	// without the slash, "/manage" matches exactly "/manage" and every panel
 	// sub-route 404s. Normalize so consumers can pass either form.
 	cfg.AdminPath = ensureTrailingSlash(cfg.AdminPath)
 	cfg.DashboardPath = ensureTrailingSlash(cfg.DashboardPath)
 
-	// Health checks are exact-match routes; a trailing slash would force an
-	// ugly redirect from "/health" to "/health/". "-" is the opt-out and
-	// passes through untouched (trimTrailingSlash leaves single chars alone).
-	cfg.HealthPath = trimTrailingSlash(cfg.HealthPath)
-
-	// Liveness is an exact-match route, like health.
-	cfg.LivePath = trimTrailingSlash(cfg.LivePath)
-
-	// Machine endpoints are exact-match routes, like health.
-	cfg.EventCatalogPath = trimTrailingSlash(cfg.EventCatalogPath)
-	cfg.ProjectionStatusPath = trimTrailingSlash(cfg.ProjectionStatusPath)
-	cfg.DebugPath = trimTrailingSlash(cfg.DebugPath)
-
-	// SSE is an exact-match endpoint, like health.
-	cfg.SSEPath = trimTrailingSlash(cfg.SSEPath)
-	cfg.SSEScriptPath = trimTrailingSlash(cfg.SSEScriptPath)
+	// Exact-match endpoints, unlike the panel subtrees.
+	for _, path := range []*string{
+		&cfg.HealthPath,
+		&cfg.LivePath,
+		&cfg.EventCatalogPath,
+		&cfg.ProjectionStatusPath,
+		&cfg.DebugPath,
+		&cfg.SSEPath,
+		&cfg.SSEScriptPath,
+		&cfg.DataStarPath,
+		&cfg.DataStarScriptPath,
+	} {
+		*path = trimTrailingSlash(*path)
+	}
 
 	if cfg.SSEPath != "" && cfg.SSEScriptPath == "" {
 		cfg.SSEScriptPath = "/sse.js"
 	}
 
-	// DataStar endpoints are exact-match endpoints, like SSE.
-	cfg.DataStarPath = trimTrailingSlash(cfg.DataStarPath)
-	cfg.DataStarScriptPath = trimTrailingSlash(cfg.DataStarScriptPath)
-
 	if cfg.DataStarPath != "" && cfg.DataStarScriptPath == "" {
 		cfg.DataStarScriptPath = "/datastar.js"
-	}
-
-	if cfg.SSEHeartbeatInterval == 0 {
-		cfg.SSEHeartbeatInterval = 15 * time.Second
 	}
 
 	return cfg

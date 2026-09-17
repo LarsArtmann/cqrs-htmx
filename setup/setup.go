@@ -100,7 +100,8 @@ func New(cfg Config) (*Bundle, error) {
 // handler must write the same cookie the session middleware reads. A
 // non-empty mismatch is rejected earlier by validateAuthHandlerConfig.
 func resolveAuthHandlerConfig(cfg Config) usermgmt.HandlerConfig {
-	if cfg.AuthHandlerConfig == nil { //nolint:exhaustruct // the documented one-field literal — see test pin
+	if cfg.AuthHandlerConfig == nil {
+		//nolint:exhaustruct // the documented one-field literal — see test pin
 		return usermgmt.HandlerConfig{CookieName: cfg.CookieName}
 	}
 

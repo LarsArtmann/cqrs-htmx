@@ -6,7 +6,7 @@
 
 **Task 2 (executed, ~90% done):** "Move Broadcaster upstream into go-datastar as a submodule and deprecate it over here." Cross-repo refactor spanning go-datastar + cqrs-htmx (datastar, setup, integration_test modules).
 
-*(Format note: user explicitly requested `.md`; the status-report skill's HTML default was overridden per its own spec.)*
+_(Format note: user explicitly requested `.md`; the status-report skill's HTML default was overridden per its own spec.)_
 
 ---
 
@@ -62,7 +62,7 @@
 
 Nothing unrecoverable. Honest damage list:
 
-24. **integration_test hermetic type mismatch** — I migrated tests to `broadcast.NewBroadcaster()` without anticipating that hermetic (GOWORK=off) mode resolves **published** `datastar/v4 v4.9.0` (concrete struct), breaking `ds.NewEventBridge(broadcast.NewBroadcaster())` outside the workspace. Cost one build round-trip; fixed with the documented family dev-replace pattern. I *knew* this class of workspace-vs-hermetic resolution difference (it's in AGENTS) and should have predicted it before editing.
+24. **integration_test hermetic type mismatch** — I migrated tests to `broadcast.NewBroadcaster()` without anticipating that hermetic (GOWORK=off) mode resolves **published** `datastar/v4 v4.9.0` (concrete struct), breaking `ds.NewEventBridge(broadcast.NewBroadcaster())` outside the workspace. Cost one build round-trip; fixed with the documented family dev-replace pattern. I _knew_ this class of workspace-vs-hermetic resolution difference (it's in AGENTS) and should have predicted it before editing.
 25. **Sloppy edit sequence**: hand-rolled `contains`/`stringsIndex` in the ported test (replaced with `strings.Contains`); a failed multiedit on setup/go.mod (bogus old_string); an import-order slip + temporarily-unused import in setup/sse.go (caught by build). All caught by verification, none shipped.
 26. **Wrong nix attribute path first** (`.#buildBroadcast` — derivations live under `checks.`), one wasted background job.
 
@@ -124,4 +124,4 @@ Nothing unrecoverable. Honest damage list:
 
 ---
 
-*Report written from session memory per instruction (no fresh repo-wide research). Auto-commit daemon will pick this file up.*
+_Report written from session memory per instruction (no fresh repo-wide research). Auto-commit daemon will pick this file up._

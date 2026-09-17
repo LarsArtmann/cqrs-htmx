@@ -6,10 +6,10 @@
 
 The canonical shareable object is go-sse's [`*sse.Broadcaster[sse.Event]`](https://github.com/larsartmann/go-sse) — the fan-out hub. It provides subscribe, broadcast, health, graceful shutdown, buffer sizing, predicate filtering, and replay. Everything else in this guide is a thin transport adapter **over** that hub:
 
-| Type                          | Module                | Transport    | Purpose                                                                                                              |
-| ----------------------------- | --------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `*sse.Broadcaster[sse.Event]` | go-sse                | (none — hub) | Core fan-out: Subscribe, Broadcast, SubscribeFilter, Health, Shutdown, replay plumbing                               |
-| `cqrshtmx.Broadcaster`        | Root (`cqrs-htmx/v4`) | HTMX SSE     | CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) + `ServeSSE` lifecycle helper             |
+| Type                          | Module                  | Transport    | Purpose                                                                                                              |
+| ----------------------------- | ----------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `*sse.Broadcaster[sse.Event]` | go-sse                  | (none — hub) | Core fan-out: Subscribe, Broadcast, SubscribeFilter, Health, Shutdown, replay plumbing                               |
+| `cqrshtmx.Broadcaster`        | Root (`cqrs-htmx/v4`)   | HTMX SSE     | CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) + `ServeSSE` lifecycle helper             |
 | `broadcast.Broadcaster`       | `go-datastar/broadcast` | Datastar SSE | Patch ergonomics (`Broadcast(patch)`, typed patch constructors) + `http.Handler` mount + optional replay ring buffer |
 
 The Datastar adapter lives in the [`go-datastar/broadcast`](https://github.com/LarsArtmann/go-datastar) submodule (moved upstream 2026-09-17); `datastar/v4` keeps a deprecated transparent type alias (`ds.Broadcaster`) plus deprecated constructor shims until v5. The domain-coupled `EventBridge` (go-cqrs-lite events → patches) stays in `cqrs-htmx/datastar/v4` by go-datastar's documented non-goals.
@@ -206,13 +206,13 @@ dep-free by design. Everything needed to instrument it is already on the hub
 surface (verified against go-sse; all hooks are promoted on both the
 `cqrshtmx` and `broadcast` adapters):
 
-| Surface                                   | Fires / returns                                              | Instrument it as                    |
-| ----------------------------------------- | ------------------------------------------------------------ | ------------------------------------ |
-| `hub.OnSubscribe(fn)`                     | after each successful subscriber registration                 | connected-clients gauge (`+1`)       |
-| `hub.OnUnsubscribe(fn)`                   | after each successful unsubscribe                             | connected-clients gauge (`-1`)       |
-| `hub.OnDrop(fn)` / `sse.WithOnDrop(fn)`   | once per full subscriber per broadcast (per-subscriber drops) | dropped-events counter               |
-| `hub.Health()`                            | `BroadcasterHealth{Closed, Draining, SubscriberCount, BufferSize}` | readiness payload / gauge set   |
-| wrapper around `hub.Broadcast*`           | your own timing (fan-out is synchronous)                      | fan-out duration histogram           |
+| Surface                                 | Fires / returns                                                    | Instrument it as               |
+| --------------------------------------- | ------------------------------------------------------------------ | ------------------------------ |
+| `hub.OnSubscribe(fn)`                   | after each successful subscriber registration                      | connected-clients gauge (`+1`) |
+| `hub.OnUnsubscribe(fn)`                 | after each successful unsubscribe                                  | connected-clients gauge (`-1`) |
+| `hub.OnDrop(fn)` / `sse.WithOnDrop(fn)` | once per full subscriber per broadcast (per-subscriber drops)      | dropped-events counter         |
+| `hub.Health()`                          | `BroadcasterHealth{Closed, Draining, SubscriberCount, BufferSize}` | readiness payload / gauge set  |
+| wrapper around `hub.Broadcast*`         | your own timing (fan-out is synchronous)                           | fan-out duration histogram     |
 
 Because the hub is the shared object (`Bundle.Broadcaster.Hub()`), construct
 it yourself, register the hooks, and wrap it in the adapter — no library

@@ -21,7 +21,7 @@ import (
 // sseDrainTimeout bounds how long [Bundle.Close] waits for the SSE hub to
 // deliver queued events to connected subscribers before falling back to an
 // abrupt close. A package variable so tests can shrink it.
-var sseDrainTimeout = 5 * time.Second
+const sseDrainTimeout = 5 * time.Second
 
 // Bundle is the result of [New] — a fully wired application with all sub-modules connected.
 //
