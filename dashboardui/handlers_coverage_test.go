@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/icons"
 )
@@ -748,9 +749,8 @@ func TestLayout_ToastBridge(t *testing.T) {
 	body := rec.Body.String()
 
 	for _, want := range []string{
-		`id="tc-toast-container"`,              // library container mounted
-		"tcShowToast",                          // library inline script present
-		`addEventListener("dashboardui:toast"`, // dashboardJS bridge
+		`id="tc-toast-container"`, // library container mounted
+		"tcShowToast",             // library inline script present
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("layout missing toast bridge element %q", want)
@@ -761,7 +761,16 @@ func TestLayout_ToastBridge(t *testing.T) {
 		t.Error("legacy toast-container div must be gone")
 	}
 
-	if strings.Contains(body, `addEventListener("showToast"`) {
+	// The bridge listener lives in the external dashboardJS (CSP-safe).
+	rec2 := httptest.NewRecorder()
+	mux.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard.js", nil))
+
+	js := rec2.Body.String()
+	if !strings.Contains(js, `addEventListener("dashboardui:toast"`) {
+		t.Error("dashboard.js missing dashboardui:toast bridge listener")
+	}
+
+	if strings.Contains(js, `addEventListener("showToast"`) {
 		t.Error("legacy showToast listener must be gone")
 	}
 }
