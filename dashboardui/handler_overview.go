@@ -129,17 +129,17 @@ func renderProjectionRow(p projectionStat) string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, `<tr><td>%s</td><td>`, esc(p.Name))
-	statusBadge(&b, statusKindToStatus(p.StatusKind, p.Status))
+	statusBadge(&b, p.StatusKind, p.Status)
 	fmt.Fprintf(&b, `</td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`, esc(p.Lag), p.Processed, p.Errors)
 
 	return b.String()
 }
 
 // statusKindToStatus maps an internal health kind to the status word the
-// library's display.StatusBadge understands (active/degraded/error color
-// families). Unknown kinds fall back to the raw status text, which the
-// library renders as a neutral badge — the old default behavior.
-func statusKindToStatus(kind, fallback string) string {
+// library's display.StatusBadge understands ("healthy"/"degraded"/"error").
+// The empty result means "unknown kind" — the caller keeps the raw status
+// text as an explicitly neutral badge.
+func statusKindToStatus(kind string) string {
 	switch kind {
 	case statusGood:
 		return "healthy"
@@ -148,16 +148,24 @@ func statusKindToStatus(kind, fallback string) string {
 	case statusBad:
 		return "error"
 	default:
-		return fallback
+		return ""
 	}
 }
 
-// statusBadge renders a templ-components StatusBadge into b (the hybrid
-// adoption path: templ.Component.Render into the existing strings.Builder —
-// no .templ conversion). Render only errors on writer failure, which
-// strings.Builder cannot produce.
-func statusBadge(b *strings.Builder, status string) {
-	_ = display.StatusBadge(status).Render(context.Background(), b)
+// statusBadge renders a projection status as a templ-components badge (the
+// hybrid adoption path: templ.Component.Render into the existing
+// strings.Builder — no .templ conversion). Unknown kinds keep their raw
+// status text styled as an explicitly neutral badge (old default behavior).
+// Render only errors on writer failure, which strings.Builder cannot
+// produce.
+func statusBadge(b *strings.Builder, kind, statusText string) {
+	if mapped := statusKindToStatus(kind); mapped != "" {
+		_ = display.StatusBadge(mapped).Render(context.Background(), b)
+
+		return
+	}
+	_ = display.Badge(display.BadgeProps{Text: statusText, Type: display.BadgeNeutral, Dot: true}).
+		Render(context.Background(), b)
 }
 
 func statCard(b *strings.Builder, value, label, variant string) {

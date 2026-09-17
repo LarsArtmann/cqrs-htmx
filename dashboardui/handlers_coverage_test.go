@@ -172,10 +172,10 @@ func TestRenderProjectionRow_AllStatusKinds(t *testing.T) {
 		statusKind string
 		wantClass  string
 	}{
-		{"good-proj", statusGood, "badge badge-ok"},
-		{"warn-proj", statusWarn, "badge badge-warn"},
-		{"bad-proj", statusBad, "badge badge-err"},
-		{"neutral-proj", statusNeutral, "badge badge-neutral"},
+		{"good-proj", statusGood, "bg-green-100"},
+		{"warn-proj", statusWarn, "bg-yellow-100"},
+		{"bad-proj", statusBad, "bg-red-100"},
+		{"neutral-proj", statusNeutral, "bg-gray-100"},
 	}
 
 	for _, tc := range cases {
@@ -225,7 +225,7 @@ func TestRenderProjectionHealthPanel_WithProjections(t *testing.T) {
 
 	html := renderProjectionHealthPanel("/dashboard", projs)
 
-	for _, want := range []string{"user-read-model", "casbin-projection", "badge-ok", "badge-err", "500", "3"} {
+	for _, want := range []string{"user-read-model", "casbin-projection", "bg-green-100", "bg-red-100", "500", "3"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("expected %q in panel HTML", want)
 		}
