@@ -180,11 +180,12 @@ func (d *Dashboard) renderProjections(
 			)
 		}
 
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th><th scope="col">Restarts</th><th scope="col">Checkpoint</th><th scope="col">Last Error</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table></div>`,
+		b.WriteString(tableHTMLRaw(
+			ctx,
+			plainHeaders("Name", "Status", "Lag", "Processed", "Errors", "Restarts", "Checkpoint", "Last Error", "Actions"),
 			rows.String(),
-		)
+			"",
+		))
 
 		return b.String()
 	})

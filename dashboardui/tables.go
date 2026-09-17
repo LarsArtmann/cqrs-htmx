@@ -67,3 +67,30 @@ func plainHeaders(labels ...string) []display.TableHeader {
 
 	return headers
 }
+
+// tableHTMLRaw renders the library Table shell (wrapper, thead, tbody) around
+// pre-rendered <tr> markup. Use for tables whose rows are built as strings by
+// existing renderers; the headers still go through the typed path for
+// consistent styling.
+func tableHTMLRaw(ctx context.Context, headers []display.TableHeader, rowsHTML, bodyID string) string {
+	var b strings.Builder
+
+	props := display.TableProps{
+		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Caption:      "",
+		Headers:      nil,
+		TypedHeaders: headers,
+		Rows:         nil,
+		Striped:      false,
+		Hover:        true,
+		Bordered:     false,
+		Flush:        false,
+		CellPadding:  display.TableCellPaddingCompact,
+		LazyRows:     true,
+		Body:         templ.Raw(rowsHTML),
+		BodyID:       bodyID,
+	}
+	_ = display.Table(props).Render(ctx, &b)
+
+	return b.String()
+}

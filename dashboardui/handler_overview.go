@@ -108,10 +108,8 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 
 		if len(stats.RecentEvents) > 0 {
 			inner.WriteString(`<h2>Recent Events</h2>`)
-			inner.WriteString(`<div class="table-scroll"><table class="data-table"><thead><tr>`)
-			inner.WriteString(`<th scope="col">Time</th><th scope="col">Type</th>`)
-			inner.WriteString(`<th scope="col">Stream</th><th scope="col">Version</th>`)
-			inner.WriteString(`</tr></thead><tbody>`)
+
+			var rows strings.Builder
 
 			for _, e := range stats.RecentEvents {
 				timeDisplay := esc(e.Time)
@@ -131,7 +129,7 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 				}
 
 				fmt.Fprintf(
-					&inner,
+					&rows,
 					`<tr><td class="mono" title="%s">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td>%s</td><td>%s</td></tr>`,
 					esc(e.Time),
 					timeDisplay,
@@ -143,7 +141,12 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 				)
 			}
 
-			inner.WriteString(`</tbody></table></div>`)
+			inner.WriteString(tableHTMLRaw(
+				ctx,
+				plainHeaders("Time", "Type", "Stream", "Version"),
+				rows.String(),
+				"",
+			))
 		}
 
 		return inner.String()
@@ -262,18 +265,15 @@ func renderProjectionHealthPanel(
 		`/-/partials/projection-health" hx-trigger="every 10s, refresh" hx-swap="outerHTML">`,
 	)
 	b.WriteString(`<div class="panel-title">Projection Health</div>`)
-	b.WriteString(`<div class="table-scroll"><table class="data-table"><thead><tr>`)
-	b.WriteString(`<th scope="col">Name</th><th scope="col">Status</th>`)
-	b.WriteString(
-		`<th scope="col">Lag</th><th scope="col">Processed</th><th scope="col">Errors</th>`,
-	)
-	b.WriteString(`</tr></thead><tbody>`)
+
+	var rows strings.Builder
 
 	for _, pr := range projs {
-		b.WriteString(renderProjectionRow(ctx, pr))
+		rows.WriteString(renderProjectionRow(ctx, pr))
 	}
 
-	b.WriteString(`</tbody></table></div></div>`)
+	b.WriteString(tableHTMLRaw(ctx, plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), rows.String(), ""))
+	b.WriteString(`</div>`)
 
 	return b.String()
 }
