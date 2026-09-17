@@ -648,14 +648,30 @@
                 ];
                 text = ''
                   cd dashboardui
-                  # Resolve templ-components root module dir at build time.
-                  # dashboardui currently depends only on the icons/utils
-                  # submodules, so fall back to the icons dir's parent (the
-                  # module cache extracts the FULL module at that path).
-                  TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components 2>/dev/null || true)
-                  if [ -z "$TC_DIR" ]; then
-                    ICONS_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/icons 2>/dev/null || true)
-                    [ -n "$ICONS_DIR" ] && TC_DIR=$(dirname "$ICONS_DIR")
+                  # Resolve the templ-components ROOT module dir at build
+                  # time. dashboardui requires only the icons/utils
+                  # submodules (the root module is not in the build list),
+                  # so derive the root extraction path from the icons
+                  # version: the module cache lays out
+                  #   $GOMODCACHE/github.com/larsartmann/templ-components@<ver>/
+                  #   $GOMODCACHE/github.com/larsartmann/templ-components/icons@<ver>/
+                  # The icons dir's PARENT is NOT the root module (it holds
+                  # versioned submodule dirs) — the 2026-09-17 false green
+                  # came exactly from that fallback copying zero .templ
+                  # files and Tailwind emitting zero library utilities.
+                  ICONS_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/icons 2>/dev/null || true)
+                  TC_VERSION=$(basename "''${ICONS_DIR:-}" | sed -n 's/^icons@//p')
+                  if [ -z "$TC_VERSION" ]; then
+                    echo "ERROR: cannot resolve templ-components/icons via 'go list -m' in dashboardui/ (run 'go mod download' there first)" >&2
+                    exit 1
+                  fi
+                  TC_DIR="$(go env GOMODCACHE)/github.com/larsartmann/templ-components@$TC_VERSION"
+                  if [ ! -d "$TC_DIR" ]; then
+                    GOWORK=off go mod download "github.com/larsartmann/templ-components@$TC_VERSION" >&2 || true
+                  fi
+                  if [ ! -d "$TC_DIR" ]; then
+                    echo "ERROR: templ-components root module not extracted at $TC_DIR (download failed)" >&2
+                    exit 1
                   fi
 
                   TMP_CSS=$(mktemp --suffix=.css)
@@ -666,22 +682,43 @@
                   # RUNTIME — class names that appear in no repo source. The
                   # library's .templ files are therefore the ONLY scan source:
                   # copy them (NOT the 3x-larger _templ.go mirrors) to a temp
-                  # dir and inject @source for it.
-                  if [ -n "$TC_DIR" ]; then
-                    SCAN_DIR=$(mktemp -d)
-                    for pkg in display errorpage feedback forms htmx icons layout navigation; do
-                      if [ -d "$TC_DIR/$pkg" ]; then
-                        cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
-                      fi
-                    done
-                    echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
+                  # dir and inject @source for it. errorpage is a separate
+                  # family module — include it once dashboardui requires it.
+                  SCAN_DIR=$(mktemp -d)
+                  for pkg in display feedback forms htmx icons layout navigation utils recipes; do
+                    if [ -d "$TC_DIR/$pkg" ]; then
+                      cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                    fi
+                  done
+                  ERRORPAGE_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/errorpage 2>/dev/null || true)
+                  if [ -n "$ERRORPAGE_DIR" ] && [ -d "$ERRORPAGE_DIR" ]; then
+                    cp "$ERRORPAGE_DIR/"*.templ "$SCAN_DIR/" 2>/dev/null || true
                   fi
+                  if [ -z "$(find "$SCAN_DIR" -name '*.templ' -print -quit)" ]; then
+                    echo "ERROR: zero .templ files copied from $TC_DIR — the @source scan would be empty (false-green guard)" >&2
+                    rm -f "$TMP_CSS"; rm -rf "$SCAN_DIR"
+                    exit 1
+                  fi
+                  echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
 
                   tailwindcss -i "$TMP_CSS" -o assets/dashboard-tw.css --minify
 
                   rm -f "$TMP_CSS"
-                  [ -n "''${SCAN_DIR:-}" ] && rm -rf "$SCAN_DIR"
-                  echo "Done: dashboardui/assets/dashboard-tw.css"
+                  rm -rf "$SCAN_DIR"
+
+                  # Canary: the output MUST contain utilities that adopted
+                  # components emit at runtime (display.StatusBadge's badge
+                  # classes live only in library .templ files) plus dark:
+                  # variants. Absence means the @source scan failed — a
+                  # utility-free stylesheet passed to users (exit 0 false
+                  # green). Fail loudly instead.
+                  for needle in 'bg-green-100' 'bg-blue-100' 'bg-green-900' 'dark:'; do
+                    if ! grep -q "$needle" assets/dashboard-tw.css; then
+                      echo "ERROR: canary '$needle' missing from assets/dashboard-tw.css — Tailwind scanned no templ-components source" >&2
+                      exit 1
+                    fi
+                  done
+                  echo "Done: dashboardui/assets/dashboard-tw.css ($(wc -c < assets/dashboard-tw.css) bytes, canaries OK)"
                 '';
               };
             };

@@ -202,3 +202,35 @@ func TestProjectionStatusHandler_IfNoneMatchSpec(t *testing.T) {
 	}
 	runConditionalGetSpec(t, cqrshtmx.ProjectionStatusHandler(provider), "/health/projections")
 }
+
+func TestProjectionStatusHandler_StaleETagGetsFreshBody(t *testing.T) {
+	provider := &mockStatusProvider{
+		statuses: []cqrshtmx.ProjectionStatusEntry{
+			{Name: "test", Status: "live", Processed: 100},
+		},
+	}
+	handler := cqrshtmx.ProjectionStatusHandler(provider)
+
+	first := httptest.NewRecorder()
+	handler.ServeHTTP(first, httptest.NewRequest(http.MethodGet, "/health/projections", nil))
+	staleETag := first.Header().Get("ETag")
+
+	provider.statuses[0].Processed = 200
+
+	second := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/health/projections", nil)
+	req.Header.Set("If-None-Match", staleETag)
+	handler.ServeHTTP(second, req)
+
+	if second.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d (stale ETag must get the fresh body)", second.Code, http.StatusOK)
+	}
+
+	if second.Header().Get("ETag") == staleETag {
+		t.Error("response should carry a new ETag after the data changed")
+	}
+
+	if !strings.Contains(second.Body.String(), `"processed":200`) {
+		t.Errorf("body should contain the fresh data\nbody: %s", second.Body.String())
+	}
+}

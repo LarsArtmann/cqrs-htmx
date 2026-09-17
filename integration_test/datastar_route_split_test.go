@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/datastar/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
 	"github.com/larsartmann/go-sse"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +25,7 @@ func TestDatastarRouteSplitCoexistence(t *testing.T) {
 
 	// 2. Wrap it for each transport — the recipe's exact constructors.
 	htmxProvider := cqrshtmx.NewBroadcasterFromHub(hub)
-	dsProvider := datastar.NewBroadcasterFromHub(hub)
+	dsProvider := broadcast.NewBroadcasterFromHub(hub)
 
 	// 3. Mount both endpoints the recipe mounts (compile-proof of the
 	// documented wiring; ServeSSE/ServeHTTP are the handler values).

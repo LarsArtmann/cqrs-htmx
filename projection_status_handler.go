@@ -42,7 +42,19 @@ type ProjectionStatusProvider interface {
 // The provider (e.g. *usermgmt.Service) must implement
 // [ProjectionStatusProvider]. If the provider is nil, the handler returns
 // 503 with an error body.
+//
+// Conditional evaluation (If-None-Match) is owned by the go-etag middleware
+// wrapping the inner handler: SkipIfPresent adopts the per-request FNV-1a
+// ETag the handler sets, buffers the JSON body, and serves 304 on a weak
+// match (RFC 7232 §2.3.2).
 func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc {
+	cfg := etag.DefaultETagConfig()
+	cfg.SkipIfPresent = true
+
+	return etag.New(cfg)(http.HandlerFunc(serveProjectionStatus(provider))).ServeHTTP
+}
+
+func serveProjectionStatus(provider ProjectionStatusProvider) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if provider == nil {
 			w.Header().Set("Content-Type", ContentTypeJSON)
@@ -68,12 +80,6 @@ func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc
 		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("ETag", tag)
-
-		if current, ok := etag.ParseETag(tag); ok && etag.MatchesIfNoneMatch(current, r.Header.Get("If-None-Match")) {
-			w.WriteHeader(http.StatusNotModified)
-
-			return
-		}
 
 		writeAll(w, data)
 	}

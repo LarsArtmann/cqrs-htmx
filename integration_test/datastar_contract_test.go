@@ -8,6 +8,7 @@ import (
 
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,7 +44,7 @@ func TestDatastarReadSignalsContract(t *testing.T) {
 // TestDatastarBroadcasterContract verifies Broadcaster fan-out and replay
 // from an external module perspective.
 func TestDatastarBroadcasterContract(t *testing.T) {
-	b := ds.NewBroadcaster()
+	b := broadcast.NewBroadcaster()
 	require.NotNil(t, b)
 	require.Equal(t, 0, b.SubscriberCount())
 
@@ -62,7 +63,7 @@ func TestDatastarBroadcasterContract(t *testing.T) {
 // TestDatastarEventBridgeContract verifies EventBridge event mapping from
 // an external module perspective.
 func TestDatastarEventBridgeContract(t *testing.T) {
-	b := ds.NewBroadcaster()
+	b := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(b)
 
 	require.NotNil(t, bridge)

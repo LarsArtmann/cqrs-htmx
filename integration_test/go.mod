@@ -19,11 +19,18 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
+	github.com/larsartmann/go-datastar/broadcast v0.6.0
 	github.com/larsartmann/go-health v0.1.3
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/pquerna/otp v1.5.0
 	github.com/samber/do/v2 v2.1.0
 )
+
+// TEMPORARY sibling replace until go-datastar/broadcast is tagged+pushed on
+// the go-datastar lockstep train (ADR 002 there; module moved up 2026-09-17).
+// Removal condition: broadcast/v0.6.0 exists on the remote — then delete this
+// replace and let the require above resolve from the proxy.
+replace github.com/larsartmann/go-datastar/broadcast => ../../go-datastar/broadcast
 
 require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
