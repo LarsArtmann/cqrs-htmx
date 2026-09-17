@@ -172,57 +172,76 @@ func LoadEventByID(
 	eventID id.EventID,
 ) (event.Event, error) {
 	if cfg.EventByIDLoader != nil {
-		evt, err := cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
-		if err != nil {
-			var zero event.Event
-
-			return zero, errorfamily.WrapInfrastructure(err,
-				"dashboardui.event_detail.load_failed", "load event by ID")
-		}
-
-		return evt, nil
+		return loadEventByLoader(ctx, cfg.EventByIDLoader, eventID)
 	}
 
 	if cfg.SeekableJournal != nil {
-		const scanLimit = 5000
-
-		var after id.EventID
-
-		for {
-			batch, err := cfg.SeekableJournal.ReadFrom(ctx, after, scanLimit)
-			if err != nil {
-				return nil, errorfamily.WrapInfrastructure(err,
-					"dashboardui.event_detail.scan_failed", "scan journal for event")
-			}
-
-			for _, evt := range batch {
-				if evt.ID() == eventID {
-					return evt, nil
-				}
-			}
-
-			if len(batch) < scanLimit {
-				break
-			}
-
-			after = batch[len(batch)-1].ID()
-		}
-
-		return nil, errorfamily.Newf(event.Rejection,
-			"dashboardui.event_detail.not_found", "event %s not found in journal scan", eventID)
+		return loadEventByJournalScan(ctx, cfg.SeekableJournal, eventID)
 	}
 
 	if cfg.Journal != nil {
-		all, err := cfg.Journal.ReadAll(ctx)
+		return loadEventFromAll(ctx, cfg.Journal, eventID)
+	}
+
+	return nil, errorfamily.Newf(event.Infrastructure,
+		"dashboardui.event_detail.no_source", "no event source available to load event %s", eventID)
+}
+
+// loadEventByLoader loads via the O(1) EventByIDLoader path.
+func loadEventByLoader(ctx context.Context, loader EventByIDLoader, eventID id.EventID) (event.Event, error) {
+	evt, err := loader.LoadByEventID(ctx, eventID)
+	if err != nil {
+		var zero event.Event
+
+		return zero, errorfamily.WrapInfrastructure(err,
+			"dashboardui.event_detail.load_failed", "load event by ID")
+	}
+
+	return evt, nil
+}
+
+// loadEventByJournalScan pages the SeekableJournal until the event is found
+// or the journal is exhausted.
+func loadEventByJournalScan(ctx context.Context, journal event.SeekableJournal, eventID id.EventID) (event.Event, error) {
+	const scanLimit = 5000
+
+	var after id.EventID
+
+	for {
+		batch, err := journal.ReadFrom(ctx, after, scanLimit)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.event_detail.read_failed", "read journal")
+				"dashboardui.event_detail.scan_failed", "scan journal for event")
 		}
 
-		for _, evt := range all {
+		for _, evt := range batch {
 			if evt.ID() == eventID {
 				return evt, nil
 			}
+		}
+
+		if len(batch) < scanLimit {
+			break
+		}
+
+		after = batch[len(batch)-1].ID()
+	}
+
+	return nil, errorfamily.Newf(event.Rejection,
+		"dashboardui.event_detail.not_found", "event %s not found in journal scan", eventID)
+}
+
+// loadEventFromAll reads the whole Journal and finds the event.
+func loadEventFromAll(ctx context.Context, journal event.Journal, eventID id.EventID) (event.Event, error) {
+	all, err := journal.ReadAll(ctx)
+	if err != nil {
+		return nil, errorfamily.WrapInfrastructure(err,
+			"dashboardui.event_detail.read_failed", "read journal")
+	}
+
+	for _, evt := range all {
+		if evt.ID() == eventID {
+			return evt, nil
 		}
 	}
 

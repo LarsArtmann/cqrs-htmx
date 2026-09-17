@@ -34,73 +34,7 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 	b.WriteString(d.renderLayout(ctx, p, func() string {
 		var inner strings.Builder
 
-		inner.WriteString(`<div class="stat-grid">`)
-		inner.WriteString(
-			statCardHTML(
-				ctx,
-				"stat-total-events",
-				stats.TotalEvents,
-				"Events",
-				display.StatToneBlue,
-			),
-		)
-		inner.WriteString(
-			statCardHTML(
-				ctx,
-				"stat-total-aggregates",
-				stats.TotalAggregates,
-				"Aggregates",
-				display.StatToneBlue,
-			),
-		)
-
-		if len(stats.Projections) > 0 {
-			active := 0
-
-			for _, pr := range stats.Projections {
-				if pr.StatusKind == statusGood {
-					active++
-				}
-			}
-
-			inner.WriteString(statCardHTML(
-				ctx,
-				"stat-projections-active",
-				fmt.Sprintf(
-					"%d/%d",
-					active,
-					len(stats.Projections),
-				),
-				"Projections",
-				display.StatToneGreen,
-			))
-		}
-
-		if stats.HealthStatus != "" {
-			inner.WriteString(
-				statCardHTML(
-					ctx,
-					"stat-system-health",
-					stats.HealthStatus,
-					"System Health",
-					healthKindToTone(stats.HealthKind),
-				),
-			)
-		}
-
-		if stats.DLQCount != "" {
-			inner.WriteString(
-				statCardHTML(
-					ctx,
-					"stat-dlq-count",
-					stats.DLQCount,
-					"Dead Letters",
-					display.StatToneRed,
-				),
-			)
-		}
-
-		inner.WriteString(`</div>`)
+		inner.WriteString(renderStatGrid(ctx, stats))
 
 		if len(stats.Projections) > 0 {
 			inner.WriteString(renderProjectionHealthPanel(ctx, p.BasePath, stats.Projections))
@@ -255,6 +189,82 @@ func renderProjectionHealthPanel(
 	}
 
 	b.WriteString(tableHTMLRaw(ctx, plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), rows.String()))
+	b.WriteString(`</div>`)
+
+	return b.String()
+}
+
+// renderStatGrid builds the overview stat cards (events, aggregates,
+// projections-active, system health, DLQ) into the stat-grid container.
+func renderStatGrid(ctx context.Context, stats overviewStats) string {
+	var b strings.Builder
+
+	b.WriteString(`<div class="stat-grid">`)
+	b.WriteString(
+		statCardHTML(
+			ctx,
+			"stat-total-events",
+			stats.TotalEvents,
+			"Events",
+			display.StatToneBlue,
+		),
+	)
+	b.WriteString(
+		statCardHTML(
+			ctx,
+			"stat-total-aggregates",
+			stats.TotalAggregates,
+			"Aggregates",
+			display.StatToneBlue,
+		),
+	)
+
+	if len(stats.Projections) > 0 {
+		active := 0
+
+		for _, pr := range stats.Projections {
+			if pr.StatusKind == statusGood {
+				active++
+			}
+		}
+
+		b.WriteString(statCardHTML(
+			ctx,
+			"stat-projections-active",
+			fmt.Sprintf(
+				"%d/%d",
+				active,
+				len(stats.Projections),
+			),
+			"Projections",
+			display.StatToneGreen,
+		))
+	}
+
+	if stats.HealthStatus != "" {
+		b.WriteString(
+			statCardHTML(
+				ctx,
+				"stat-system-health",
+				stats.HealthStatus,
+				"System Health",
+				healthKindToTone(stats.HealthKind),
+			),
+		)
+	}
+
+	if stats.DLQCount != "" {
+		b.WriteString(
+			statCardHTML(
+				ctx,
+				"stat-dlq-count",
+				stats.DLQCount,
+				"Dead Letters",
+				display.StatToneRed,
+			),
+		)
+	}
+
 	b.WriteString(`</div>`)
 
 	return b.String()

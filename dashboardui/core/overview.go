@@ -184,37 +184,42 @@ func FetchOverview( //nolint:gocognit // multi-source aggregation
 
 	if cfg.ProjectionHost != nil {
 		stats.Projections = ProjectionStats(cfg.ProjectionHost)
-
-		totalErrors := int64(0)
-		anyBad := false
-		anyWarn := false
-
-		for _, pr := range stats.Projections {
-			totalErrors += pr.Errors
-			switch pr.StatusKind {
-			case StatusBad:
-				anyBad = true
-			case StatusWarn:
-				anyWarn = true
-			}
-		}
-
-		if totalErrors > 0 {
-			stats.DLQCount = strconv.FormatInt(totalErrors, 10)
-		}
-
-		switch {
-		case anyBad:
-			stats.HealthStatus = "Unhealthy"
-			stats.HealthKind = StatusBad
-		case anyWarn:
-			stats.HealthStatus = "Degraded"
-			stats.HealthKind = StatusWarn
-		case len(stats.Projections) > 0:
-			stats.HealthStatus = "Healthy"
-			stats.HealthKind = StatusGood
-		}
+		stats.DLQCount, stats.HealthStatus, stats.HealthKind = classifyProjectionHealth(stats.Projections)
 	}
 
 	return stats
+}
+
+// classifyProjectionHealth sums DLQ counts and derives the overall health
+// word and kind from per-projection status kinds.
+func classifyProjectionHealth(projs []ProjectionStat) (dlqCount, status, kind string) {
+	totalErrors := int64(0)
+	anyBad := false
+	anyWarn := false
+
+	for _, pr := range projs {
+		totalErrors += pr.Errors
+
+		switch pr.StatusKind {
+		case StatusBad:
+			anyBad = true
+		case StatusWarn:
+			anyWarn = true
+		}
+	}
+
+	if totalErrors > 0 {
+		dlqCount = strconv.FormatInt(totalErrors, 10)
+	}
+
+	switch {
+	case anyBad:
+		return dlqCount, "Unhealthy", StatusBad
+	case anyWarn:
+		return dlqCount, "Degraded", StatusWarn
+	case len(projs) > 0:
+		return dlqCount, "Healthy", StatusGood
+	default:
+		return "", "", ""
+	}
 }
