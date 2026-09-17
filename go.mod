@@ -12,15 +12,16 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-etag v0.3.1
+	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/larsartmann/go-sse v0.6.0
+	github.com/larsartmann/go-sse/ssetest v0.3.0
 	github.com/larsartmann/httputil v1.2.0
 	github.com/larsartmann/httputil/server_timing v1.0.1
 	github.com/oklog/ulid/v2 v2.1.2
-	github.com/onsi/ginkgo/v2 v2.32.0
+	github.com/onsi/ginkgo/v2 v2.32.2
 	github.com/onsi/gomega v1.43.0
 )
-
-require github.com/larsartmann/go-sse/ssetest v0.3.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
@@ -40,8 +41,6 @@ require (
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (record/v4 trails event/command; detector compares one module's max)
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-etag v0.3.1
-	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.41.0 // indirect
