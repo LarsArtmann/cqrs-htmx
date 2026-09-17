@@ -136,16 +136,15 @@ func statusToFamily(statusCode int) errorpage.Family {
 
 // emptyState renders the standard empty-state panel (library component,
 // default inbox icon).
-func emptyState(title, message string) string {
-	return emptyStateIcon(icons.Inbox, title, message)
+func emptyState(ctx context.Context, title, message string) string {
+	return emptyStateIcon(ctx, icons.Inbox, title, message)
 }
 
 // emptyStateIcon renders the library's EmptyState with a page-specific icon
-// (callers pass their nav icon for visual continuity). The ctx is a plain
-// context.Background because empty states render inside layout closures that
-// carry no request scope: the render is a synchronous, pure string build (a
-// strings.Writer cannot fail), so cancellation is not a concern here.
-func emptyStateIcon(icon icons.Name, title, message string) string {
+// (callers pass their nav icon for visual continuity). The ctx threads the
+// request scope through to the templ render, matching the other library
+// component helpers (badgeHTML, statCardHTML).
+func emptyStateIcon(ctx context.Context, icon icons.Name, title, message string) string {
 	var b strings.Builder
 
 	props := display.EmptyStateProps{
@@ -158,7 +157,7 @@ func emptyStateIcon(icon icons.Name, title, message string) string {
 		ActionHref:  "",
 		ActionAttrs: nil,
 	}
-	_ = display.EmptyState(props).Render(context.Background(), &b)
+	_ = display.EmptyState(props).Render(ctx, &b)
 
 	return b.String()
 }
@@ -183,10 +182,10 @@ func (d *Dashboard) renderStreamIndex(
 	w http.ResponseWriter,
 	r *http.Request,
 	title, basePath string,
-	render func(pageData, []listing.StreamListing, paginationState) string,
+	render func(context.Context, pageData, []listing.StreamListing, paginationState) string,
 ) {
 	p := d.page(title, basePath, r)
 	listings, page := d.listStreamsPaged(r)
 	page = page.WithCountInfo(len(listings))
-	renderPage(w, r, render(p, listings, page))
+	renderPage(w, r, render(r.Context(), p, listings, page))
 }

@@ -35,6 +35,7 @@ type streamListPageConfig struct {
 // renderStreamListingPage renders a table of stream listings with pagination
 // controls. Shared by time-travel and snapshots index pages.
 func (d *Dashboard) renderStreamListingPage(
+	ctx context.Context,
 	p pageData,
 	listings []listing.StreamListing,
 	page paginationState,
@@ -48,7 +49,7 @@ func (d *Dashboard) renderStreamListingPage(
 		}
 
 		if len(listings) == 0 {
-			return emptyStateIcon(icons.Clock, config.emptyTitle, config.emptyMsg)
+			return emptyStateIcon(ctx, icons.Clock, config.emptyTitle, config.emptyMsg)
 		}
 
 		var rows strings.Builder
@@ -80,8 +81,13 @@ func (d *Dashboard) renderStreamListingPage(
 	})
 }
 
-func (d *Dashboard) renderTimeTravelIndex(p pageData, listings []listing.StreamListing, page paginationState) string {
-	return d.renderStreamListingPage(p, listings, page, streamListPageConfig{
+func (d *Dashboard) renderTimeTravelIndex(
+	ctx context.Context,
+	p pageData,
+	listings []listing.StreamListing,
+	page paginationState,
+) string {
+	return d.renderStreamListingPage(ctx, p, listings, page, streamListPageConfig{
 		subtitle:   "Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.",
 		emptyTitle: "No aggregates found",
 		emptyMsg:   "Configure a StreamReader to list aggregates for time-travel inspection.",

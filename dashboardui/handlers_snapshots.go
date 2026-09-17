@@ -20,8 +20,13 @@ func (d *Dashboard) snapshotsIndexHandler(w http.ResponseWriter, r *http.Request
 	d.renderStreamIndex(w, r, "Snapshots", "/snapshots", d.renderSnapshotsIndex)
 }
 
-func (d *Dashboard) renderSnapshotsIndex(p pageData, listings []listing.StreamListing, page paginationState) string {
-	return d.renderStreamListingPage(p, listings, page, streamListPageConfig{
+func (d *Dashboard) renderSnapshotsIndex(
+	ctx context.Context,
+	p pageData,
+	listings []listing.StreamListing,
+	page paginationState,
+) string {
+	return d.renderStreamListingPage(ctx, p, listings, page, streamListPageConfig{
 		subtitle:   "Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.",
 		emptyTitle: "No aggregates found",
 		emptyMsg:   "Configure a StreamReader to browse snapshots by aggregate.",
@@ -47,6 +52,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
 			return emptyStateIcon(
+				r.Context(),
 				icons.ArchiveBox,
 				"No snapshot found",
 				"No snapshot exists for "+streamType+"/"+truncate(streamID, snapshotIDWidth)+".",
@@ -59,7 +65,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	if snap == nil {
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
-			return emptyStateIcon(icons.ArchiveBox, "No snapshot", "")
+			return emptyStateIcon(r.Context(), icons.ArchiveBox, "No snapshot", "")
 		}))
 
 		return
