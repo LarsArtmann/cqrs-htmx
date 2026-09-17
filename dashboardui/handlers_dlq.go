@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
@@ -33,19 +34,13 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 		var rows strings.Builder
 
 		for _, link := range links {
-			badgeClass := badgeNeutral
-			if link.Count > 0 {
-				badgeClass = badgeErr
-			}
-
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="cell-emph"><a href="%s/dead-letters/%s">%s</a></td><td><span class="%s">%d</span></td><td><a href="%s/dead-letters/%s" class="btn">View</a></td></tr>`,
+				`<tr><td class="cell-emph"><a href="%s/dead-letters/%s">%s</a></td><td>%s</td><td><a href="%s/dead-letters/%s" class="btn">View</a></td></tr>`,
 				p.BasePath,
 				esc(link.Name),
 				esc(link.Name),
-				badgeClass,
-				link.Count,
+				badgeHTML(strconv.Itoa(link.Count), countBadgeType(link.Count)),
 				p.BasePath,
 				esc(link.Name),
 			)

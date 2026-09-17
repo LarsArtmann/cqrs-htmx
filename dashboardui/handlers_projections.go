@@ -103,17 +103,6 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 		var rows strings.Builder
 
 		for _, proj := range projs {
-			badgeClass := badgeNeutral
-
-			switch proj.StatusKind {
-			case statusGood:
-				badgeClass = badgeOK
-			case statusWarn:
-				badgeClass = badgeWarn
-			case statusBad:
-				badgeClass = badgeErr
-			}
-
 			var actions string
 			if !p.ReadOnly {
 				actions = fmt.Sprintf(
@@ -145,12 +134,11 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="cell-emph"><a href="%s/projections/%s">%s</a></td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%d</td><td class="mono" title="%s">%s</td><td>%s</td><td>%s %s</td></tr>`,
+				`<tr><td class="cell-emph"><a href="%s/projections/%s">%s</a></td><td>%s</td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%d</td><td class="mono" title="%s">%s</td><td>%s</td><td>%s %s</td></tr>`,
 				p.BasePath,
 				esc(proj.Name),
 				esc(proj.Name),
-				badgeClass,
-				esc(proj.Status),
+				badgeHTML(proj.Status, statusKindToBadgeType(proj.StatusKind)),
 				esc(proj.Lag),
 				proj.Processed,
 				proj.Errors,
@@ -178,20 +166,7 @@ func (d *Dashboard) renderProjectionDetail(p pageData, proj projectionStat) stri
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2>%s</h2>`, esc(proj.Name))
-
-		badgeClass := badgeNeutral
-
-		switch proj.StatusKind {
-		case statusGood:
-			badgeClass = badgeOK
-		case statusWarn:
-			badgeClass = badgeWarn
-		case statusBad:
-			badgeClass = badgeErr
-		}
-
-		fmt.Fprintf(&b, `<span class="%s">%s</span>`, badgeClass, esc(proj.Status))
+		fmt.Fprintf(&b, `<h2>%s %s</h2>`, esc(proj.Name), badgeHTML(proj.Status, statusKindToBadgeType(proj.StatusKind)))
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="stat-grid">`)
