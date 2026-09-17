@@ -59,6 +59,7 @@ func benchHybridStatCard(b *testing.B) {
 
 	for b.Loop() {
 		var out strings.Builder
+
 		_ = display.StatCard(props).Render(ctx, &out)
 		_ = out.String()
 	}
