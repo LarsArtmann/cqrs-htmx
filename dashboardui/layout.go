@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/templ-components/feedback"
+	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
 )
 
@@ -58,6 +59,7 @@ func (d *Dashboard) renderLayout(ctx context.Context, p pageData, content func()
 	b.WriteString("</div></div>\n")
 
 	b.WriteString(d.renderToastContainer(ctx, p.Nonce))
+	b.WriteString(d.renderErrorHandling(ctx, p.Nonce))
 
 	b.WriteString("</body>\n</html>")
 
@@ -135,6 +137,30 @@ func (d *Dashboard) renderToastContainer(ctx context.Context, nonce string) stri
 	var b strings.Builder
 
 	_ = feedback.ToastContainer(nonce).Render(ctx, &b)
+
+	return b.String()
+}
+
+// Retry/announcer settings for the library's htmx.GlobalErrorHandling (the
+// library's own defaults, pinned here to keep the dashboard contract explicit).
+const (
+	errorHandlingMaxHistory = 10
+	errorHandlingMaxRetries = 2
+	errorHandlingRetryMS    = 1000
+)
+
+// renderErrorHandling mounts the library's htmx.GlobalErrorHandling: 5xx
+// responses retried with backoff, network errors announced, session-expiry
+// redirects. Nonce may be empty when no CSP middleware is active.
+func (d *Dashboard) renderErrorHandling(ctx context.Context, nonce string) string {
+	var b strings.Builder
+
+	_ = htmx.GlobalErrorHandling(htmx.ErrorHandlingConfig{
+		Nonce:           nonce,
+		MaxErrorHistory: errorHandlingMaxHistory,
+		MaxRetries:      errorHandlingMaxRetries,
+		RetryDelayMS:    errorHandlingRetryMS,
+	}).Render(ctx, &b)
 
 	return b.String()
 }

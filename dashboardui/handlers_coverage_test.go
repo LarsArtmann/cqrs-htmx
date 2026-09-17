@@ -774,3 +774,30 @@ func TestLayout_ToastBridge(t *testing.T) {
 		t.Error("legacy showToast listener must be gone")
 	}
 }
+
+// TestLayout_GlobalErrorHandling pins the M12 adoption: the layout mounts the
+// library htmx.GlobalErrorHandling (retry + announcer + session-expiry
+// redirect) alongside the toast bridge.
+func TestLayout_GlobalErrorHandling(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	d, err := New(Config{EventSource: store, Journal: store})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/", nil))
+
+	for _, want := range []string{
+		`id="tc-error-announcer"`, // a11y announcer element
+		"htmx:responseError",      // library retry handler wired
+	} {
+		if !strings.Contains(rec.Body.String(), want) {
+			t.Errorf("layout missing GlobalErrorHandling element %q", want)
+		}
+	}
+}
