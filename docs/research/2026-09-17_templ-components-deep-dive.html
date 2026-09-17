@@ -957,9 +957,10 @@
           </p>
           <p>
             <strong>Impact:</strong> delete the global hack, set
-            <code>Flush: true</code> on the five nested tables (dashboard.templ:26,
-            users.templ:49&hellip; via the Card-PaddingNone sites), and the styling intent lives
-            at the call site instead of a page-wide override.
+            <code>Flush: true</code> on the five Card+Table nestings (dashboard recent
+            activity dashboard.templ:26, audit audit.templ:15, tenant roles users.templ:141,
+            external accounts users.templ:196, members members.templ:14), and the styling
+            intent lives at the call site instead of a page-wide override.
           </p>
         </div>
 
@@ -1171,7 +1172,7 @@ templ icon(name string) {
             </thead>
             <tbody>
               <tr><td>1</td><td><code>Table.Flush: true</code> on 5 nested tables; delete global <code>!important</code> hack</td><td>F1</td><td class="yes">correctness</td><td>trivial</td></tr>
-              <tr><td>2</td><td><code>icon()</code delegates to <code>icons.IconWithStrokeWidth</code>; delete iconSVG + templ.Raw</td><td>F5</td><td class="yes">type safety</td><td>trivial</td></tr>
+              <tr><td>2</td><td><code>icon()</code> delegates to <code>icons.IconWithStrokeWidth</code>; delete iconSVG + templ.Raw</td><td>F5</td><td class="yes">type safety</td><td>trivial</td></tr>
               <tr><td>3</td><td><code>display.PageHeader</code> on all 6 pages (action slots absorb New-tenant/badges)</td><td>F2</td><td class="yes">consistency</td><td>easy</td></tr>
               <tr><td>4</td><td><code>forms.FilterInput</code> replaces the search form</td><td>F4</td><td class="yes">a11y + DSL loss</td><td>easy</td></tr>
               <tr><td>5</td><td>Upstream: add suspended/deleted/verified to statusToBadgeMap; then adopt StatusBadge</td><td>F6</td><td class="medium">medium</td><td>easy (upstream)</td></tr>
