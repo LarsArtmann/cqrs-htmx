@@ -688,6 +688,12 @@
                   for pkg in display feedback forms htmx icons layout navigation utils recipes; do
                     if [ -d "$TC_DIR/$pkg" ]; then
                       cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                      # Class maps for enums/variants live in the *_go.go
+                      # sources (button_go.go holds every Button variant), NOT
+                      # in .templ — without them whole variant families are
+                      # silently missing from the bundle (found with
+                      # ring-blue-300 after the M10 button swap).
+                      cp "$TC_DIR/$pkg/"*_go.go "$SCAN_DIR/" 2>/dev/null || true
                     fi
                   done
                   ERRORPAGE_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/errorpage 2>/dev/null || true)
