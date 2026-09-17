@@ -1,0 +1,60 @@
+/*
+ * dashboardui Tailwind v4 entry point.
+ *
+ * dashboardui renders HTML via strings.Builder (no templ), and adopted
+ * templ-components components emit Tailwind utilities at runtime — classes
+ * that appear in NO repo source file. The real build is therefore the nix
+ * app `nix run .#build-dashboardui-css`, which copies the library's .templ
+ * files to a temp scan dir and injects @source for it (adminui pattern;
+ * a hardcoded @source into the module cache breaks portability, and
+ * scanning the full module cache costs ~55 GB RAM).
+ *
+ * This in-repo file exists so BuildFlow's tailwind-build provider can also
+ * produce dashboardui/styles.css as a hook artifact, and as the human-
+ * readable source of the token mapping. Build:
+ *
+ *	tailwindcss -i tailwind.css -o styles.css --minify
+ *
+ * Dark mode: tokens in dashboardCSS respond to prefers-color-scheme, and
+ * Tailwind v4's dark: variant defaults to prefers-color-scheme too — the
+ * two layers agree with zero configuration. The class-based toggle
+ * strategy (@custom-variant) lands with the ThemeToggle adoption.
+ */
+
+@import "tailwindcss";
+
+/* ---------- Tailwind @theme color mappings ---------- */
+/* Maps dashboardui CSS variables (set per-instance by layout.go's
+   --accent override) to Tailwind utility classes so both `bg-blue-600`
+   and `var(--accent)` produce the same color in light and dark mode. */
+@theme {
+	--color-blue-600: var(--accent);
+	--color-blue-500: color-mix(in srgb, var(--accent) 85%, white);
+
+	--color-gray-50: var(--surface-hover);
+	--color-gray-100: var(--bg);
+	--color-gray-200: var(--border);
+	--color-gray-300: var(--border);
+	--color-gray-400: var(--muted);
+	--color-gray-500: var(--muted);
+	--color-gray-600: var(--muted);
+	--color-gray-700: var(--muted);
+	--color-gray-800: var(--text);
+	--color-gray-900: var(--text);
+
+	--color-green-600: var(--ok);
+	--color-green-500: var(--ok);
+	--color-red-600: var(--err);
+	--color-red-500: var(--err);
+	--color-yellow-600: var(--warn);
+	--color-amber-600: var(--warn);
+}
+
+/* ---------- templ-components CSS bridge ---------- */
+/* Library components emit bg-white with dark: variants in some places and
+   bare bg-white in others; resolve it to the dashboard's surface token so
+   adopted cards/tables match the theme in both modes (adminui pattern).
+   dashboardui's own renderers never use the class bg-white directly. */
+.bg-white {
+	background-color: var(--surface);
+}

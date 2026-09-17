@@ -637,6 +637,48 @@
               };
             };
 
+            build-dashboardui-css = {
+              type = "app";
+              meta.description = "Compile dashboardui Tailwind v4 CSS (tailwind.css → assets/dashboard-tw.css)";
+              program = pkgs.writeShellApplication {
+                name = "build-dashboardui-css";
+                runtimeInputs = [
+                  pkgs.tailwindcss_4
+                  goPkg
+                ];
+                text = ''
+                  cd dashboardui
+                  # Resolve templ-components module dir at build time.
+                  TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components 2>/dev/null || true)
+
+                  TMP_CSS=$(mktemp --suffix=.css)
+                  cp tailwind.css "$TMP_CSS"
+
+                  # dashboardui has NO .templ files (strings.Builder renderers)
+                  # and its adopted components emit Tailwind utilities at
+                  # RUNTIME — class names that appear in no repo source. The
+                  # library's .templ files are therefore the ONLY scan source:
+                  # copy them (NOT the 3x-larger _templ.go mirrors) to a temp
+                  # dir and inject @source for it.
+                  if [ -n "$TC_DIR" ]; then
+                    SCAN_DIR=$(mktemp -d)
+                    for pkg in display errorpage feedback forms htmx icons layout navigation; do
+                      if [ -d "$TC_DIR/$pkg" ]; then
+                        cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                      fi
+                    done
+                    echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
+                  fi
+
+                  tailwindcss -i "$TMP_CSS" -o assets/dashboard-tw.css --minify
+
+                  rm -f "$TMP_CSS"
+                  [ -n "''${SCAN_DIR:-}" ] && rm -rf "$SCAN_DIR"
+                  echo "Done: dashboardui/assets/dashboard-tw.css"
+                '';
+              };
+            };
+
             gen = {
               type = "app";
               meta.description = "Regenerate adminui + loginpage templ components (module-dir generation is canonical) and normalize formatting";
