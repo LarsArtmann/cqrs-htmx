@@ -32,6 +32,8 @@
 
 - [ ] **Decision awaiting the user: `/sse` authz posture** — session-gating vs adding a stream-type filter before the endpoint shape is published. SPIKED + MECHANISM SHIPPED 2026-08-30 (`transport.WithSSEFilter` + fail-closed `filteredEventStore`; documented in `docs/guides/sse-and-datastar.md` §Scoped Feeds). Decision one-pager with options table + recommendation (A ship as-is, B scoped option, C per-user streams, D drop shared /sse): `docs/planning/2026-08-30_sse-endpoint-shape-decision.md`. Purely a product/security call now, not a feasibility question. (Former items (1) tag timing and (3) Go toolchain: RESOLVED — see CHANGELOG.)
 
+- [ ] **Adminui prettier + gap-remediation program (awaiting execution approval).** Pareto plan: `docs/planning/2026-09-17_13-43_adminui-prettier-gap-remediation-plan.md` (27 medium tasks / 101 micro tasks; 1%→51% = Flush+icons+badge-dots+StatCard sweep; 4%→64% = PageHeader/Breadcrumbs/FilterInput; 20%→80% = Pagination+loading states+errorpage; rest = Modal/Dropdown/PolledRegion/dark-QA). Source audit: `docs/research/2026-09-17_templ-components-deep-dive.html` (score 68/100; F1–F11). Preconditions inside the plan: rebuild stale buildflow binary + triage the hook's examples/* lint failures (P0.2), confirm render-test semantics (P0.1).
+
 ---
 
 ## P3 — Technical debt & future
