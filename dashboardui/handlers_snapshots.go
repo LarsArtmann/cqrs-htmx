@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Snapshots =====
@@ -45,10 +46,10 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
-			return fmt.Sprintf(
-				`<div class="empty-state"><h2>No snapshot found</h2><p>No snapshot exists for %s/<code>%s</code>.</p></div>`,
-				esc(streamType),
-				esc(truncate(streamID, snapshotIDWidth)),
+			return emptyStateIcon(
+				icons.ArchiveBox,
+				"No snapshot found",
+				"No snapshot exists for "+streamType+"/"+truncate(streamID, snapshotIDWidth)+".",
 			)
 		}))
 
@@ -58,7 +59,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	if snap == nil {
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
-			return emptyState("No snapshot", "")
+			return emptyStateIcon(icons.ArchiveBox, "No snapshot", "")
 		}))
 
 		return

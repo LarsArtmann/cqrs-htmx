@@ -11,7 +11,10 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/httputil"
+	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/errorpage"
+	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -131,13 +134,33 @@ func statusToFamily(statusCode int) errorpage.Family {
 	}
 }
 
-// emptyState renders the standard empty-state panel.
+// emptyState renders the standard empty-state panel (library component,
+// default inbox icon).
 func emptyState(title, message string) string {
-	if message == "" {
-		return fmt.Sprintf(`<div class="empty-state"><h2>%s</h2></div>`, esc(title))
-	}
+	return emptyStateIcon(icons.Inbox, title, message)
+}
 
-	return fmt.Sprintf(`<div class="empty-state"><h2>%s</h2><p>%s</p></div>`, esc(title), esc(message))
+// emptyStateIcon renders the library's EmptyState with a page-specific icon
+// (callers pass their nav icon for visual continuity). The ctx is a plain
+// context.Background because empty states render inside layout closures that
+// carry no request scope: the render is a synchronous, pure string build (a
+// strings.Writer cannot fail), so cancellation is not a concern here.
+func emptyStateIcon(icon icons.Name, title, message string) string {
+	var b strings.Builder
+
+	props := display.EmptyStateProps{
+		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Title:       title,
+		TitleTag:    "h2",
+		Description: message,
+		Icon:        icon,
+		ActionText:  "",
+		ActionHref:  "",
+		ActionAttrs: nil,
+	}
+	_ = display.EmptyState(props).Render(context.Background(), &b)
+
+	return b.String()
 }
 
 // isHTMXRequest returns true when the request came from an HTMX-boosted

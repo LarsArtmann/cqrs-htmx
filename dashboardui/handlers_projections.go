@@ -10,6 +10,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Projection Dashboard =====
@@ -115,7 +116,7 @@ func (d *Dashboard) renderProjections(
 ) string {
 	return d.renderLayout(p, func() string {
 		if len(projs) == 0 {
-			return emptyState("No projections registered", "")
+			return emptyStateIcon(icons.ArrowPath, "No projections registered", "")
 		}
 
 		var b strings.Builder

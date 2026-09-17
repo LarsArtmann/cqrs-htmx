@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -225,13 +226,13 @@ func (d *Dashboard) renderEvents(
 
 		if len(events) == 0 {
 			if filter.Active() {
-				return emptyState(
+				return emptyStateIcon(icons.Search,
 					"No matching events",
 					"No events match the current filters. Try adjusting or clearing them.",
 				)
 			}
 
-			return emptyState("No events yet", "Events will appear here as they are committed to the store.")
+			return emptyStateIcon(icons.QueueList, "No events yet", "Events will appear here as they are committed to the store.")
 		}
 
 		var rows strings.Builder

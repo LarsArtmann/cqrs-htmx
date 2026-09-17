@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Aggregate Browser =====
@@ -129,7 +130,7 @@ func (d *Dashboard) renderAggregateDetail(
 		}
 
 		if len(events) == 0 {
-			return emptyState("No events", "This aggregate has no recorded events.")
+			return emptyStateIcon(icons.Cube, "No events", "This aggregate has no recorded events.")
 		}
 
 		// In-memory pagination using version numbers as cursors.
@@ -224,7 +225,7 @@ func paginateEventsByVersion(events []event.Event, page paginationState) ([]even
 func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing, page paginationState) string {
 	return d.renderLayout(p, func() string {
 		if len(listings) == 0 {
-			return emptyState("No aggregates found", "")
+			return emptyStateIcon(icons.Cube, "No aggregates found", "")
 		}
 
 		var rows strings.Builder

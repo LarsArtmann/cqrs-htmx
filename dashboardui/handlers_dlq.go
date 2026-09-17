@@ -10,6 +10,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Dead-Letter Queue =====
@@ -23,7 +24,7 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 		p,
 		func() string { //nolint:contextcheck // closure captures r and passes r.Context() to badgeHTML explicitly
 			if len(links) == 0 {
-				return emptyState(
+				return emptyStateIcon(icons.BugAnt,
 					"Dead-Letter Queue",
 					"No projections registered. Dead letters will appear here when projection errors occur.",
 				)
@@ -345,7 +346,7 @@ func (d *Dashboard) renderDLQ(
 		}
 
 		if len(entries) == 0 {
-			return emptyState("No dead letters for "+esc(proj), "")
+			return emptyStateIcon(icons.BugAnt, "No dead letters for "+esc(proj), "")
 		}
 
 		var rows strings.Builder
