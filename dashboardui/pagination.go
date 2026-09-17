@@ -6,7 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // renderPagination renders Prev/Next links with cursor-history tracking.
@@ -44,7 +47,7 @@ func renderPagination(
 	}
 
 	b.WriteString(renderPaginationInfo(state))
-	b.WriteString(renderPageSizeSelector(basePath, path, state, extraParams))
+	b.WriteString(renderPageSizeSelector(ctx, basePath, path, state, extraParams))
 
 	if state.HasNext {
 		nextHistory := pushCursor(state.PrevHistory, state.After)
@@ -96,6 +99,7 @@ var pageSizeOptions = []int{25, 50, 100, 200}
 // Changing the selection navigates to the same path with the new limit,
 // preserving active filters but resetting cursor position.
 func renderPageSizeSelector(
+	ctx context.Context,
 	basePath, path string,
 	state paginationState,
 	extraParams string,
@@ -105,34 +109,43 @@ func renderPageSizeSelector(
 		current = defaultPageSize
 	}
 
-	var b strings.Builder
-	b.WriteString(
-		`<span class="page-size-selector"><label>Per page: <select onchange="window.location.href=this.value">`,
-	)
+	options := make([]forms.SelectOption, 0, len(pageSizeOptions))
 
 	for _, opt := range pageSizeOptions {
-		selected := ""
-		if opt == current {
-			selected = " selected"
-		}
-
 		query := "limit=" + strconv.Itoa(opt)
 		if extraParams != "" {
 			query += "&" + extraParams
 		}
 
-		fmt.Fprintf(
-			&b,
-			`<option value="%s%s?%s"%s>%d</option>`,
-			basePath,
-			path,
-			query,
-			selected,
-			opt,
-		)
+		options = append(options, forms.SelectOption{
+			Value:    basePath + path + "?" + query,
+			Label:    strconv.Itoa(opt),
+			Disabled: false,
+			Selected: opt == current,
+		})
 	}
 
-	b.WriteString(`</select></label></span>`)
+	var b strings.Builder
+
+	props := forms.SelectProps{
+		BaseProps: utils.BaseProps{
+			ID:        "",
+			Class:     "",
+			Attrs:     templ.Attributes{"onchange": "window.location.href=this.value"},
+			AriaLabel: "",
+			Nonce:     "",
+		},
+		Name:     "limit",
+		Label:    "Per page:",
+		Options:  options,
+		Groups:   nil,
+		Required: false,
+		Disabled: false,
+		Stylable: false,
+		Error:    "",
+		HelpText: "",
+	}
+	_ = forms.Select(props).Render(ctx, &b)
 
 	return b.String()
 }
