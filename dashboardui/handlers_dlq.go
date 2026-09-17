@@ -64,7 +64,7 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 				)
 			}
 
-			b.WriteString(tableHTMLRaw(ctx, plainHeaders("Projection", "Dead Letters", ""), rows.String(), ""))
+			b.WriteString(tableHTMLRaw(ctx, plainHeaders("Projection", "Dead Letters", ""), rows.String()))
 
 			return b.String()
 		},
@@ -459,7 +459,7 @@ func (d *Dashboard) renderDLQ(
 		b.WriteString(tableHTMLRaw(
 			ctx,
 			plainHeaders("Failed At", "Event Type", "Error", "Family", "Actions"),
-			rows.String(),		))
+			rows.String()))
 
 		return b.String()
 	})

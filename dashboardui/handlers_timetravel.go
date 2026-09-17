@@ -74,7 +74,7 @@ func (d *Dashboard) renderStreamListingPage(
 			)
 		}
 
-		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Type", "ID", "Current Version", ""), rows.String(), ""))
+		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Type", "ID", "Current Version", ""), rows.String()))
 
 		b.WriteString(renderPagination(ctx, p.BasePath, config.pagePath, page, ""))
 
@@ -262,7 +262,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 			)
 		}
 
-		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Version", "Type", "Occurred At"), rows.String(), ""))
+		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Version", "Type", "Occurred At"), rows.String()))
 
 		return b.String()
 	})

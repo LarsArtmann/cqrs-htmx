@@ -144,7 +144,7 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 			inner.WriteString(tableHTMLRaw(
 				ctx,
 				plainHeaders("Time", "Type", "Stream", "Version"),
-				rows.String(),			))
+				rows.String()))
 		}
 
 		return inner.String()
@@ -270,7 +270,7 @@ func renderProjectionHealthPanel(
 		rows.WriteString(renderProjectionRow(ctx, pr))
 	}
 
-	b.WriteString(tableHTMLRaw(ctx, plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), rows.String(), ""))
+	b.WriteString(tableHTMLRaw(ctx, plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), rows.String()))
 	b.WriteString(`</div>`)
 
 	return b.String()

@@ -193,7 +193,7 @@ func (d *Dashboard) renderProjections(
 				"Last Error",
 				"Actions",
 			),
-			rows.String(),		))
+			rows.String()))
 
 		return b.String()
 	})

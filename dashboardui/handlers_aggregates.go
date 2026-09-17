@@ -164,7 +164,7 @@ func (d *Dashboard) renderAggregateDetail(
 		}
 
 		b.WriteString(`<h3>Event Timeline</h3>`)
-		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Version", "Type", "Occurred At", "Event ID"), rows.String(), ""))
+		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Version", "Type", "Occurred At", "Event ID"), rows.String()))
 
 		timelinePage := page
 
@@ -184,7 +184,9 @@ func (d *Dashboard) renderAggregateDetail(
 			ctx,
 			p.BasePath,
 			"/aggregates/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
-			timelinePage,		))
+			timelinePage,
+			"",
+		))
 
 		return b.String()
 	})
@@ -256,7 +258,7 @@ func (d *Dashboard) renderAggregates(
 		var b strings.Builder
 		b.WriteString(`<h2>Aggregates</h2>`)
 		b.WriteString(
-			tableHTMLRaw(ctx, plainHeaders("ID", "Type", "Version", "Events", "Last Event"), rows.String(), ""),
+			tableHTMLRaw(ctx, plainHeaders("ID", "Type", "Version", "Events", "Last Event"), rows.String()),
 		)
 		b.WriteString(renderPagination(ctx, p.BasePath, "/aggregates", page, ""))
 
