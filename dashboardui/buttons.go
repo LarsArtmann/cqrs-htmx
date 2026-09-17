@@ -71,3 +71,22 @@ func buttonSubmit(
 
 	return b.String()
 }
+
+// copyButtonHTML renders a library CopyButton (data-tc-copy + the library's
+// singleton delegated clipboard script). The empty label falls back to the
+// library's "Copy"/"Copied!" pair.
+func copyButtonHTML(ctx context.Context, text, label string) string {
+	var b strings.Builder
+
+	props := display.CopyButtonProps{
+		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Text:        text,
+		Label:       label,
+		CopiedLabel: "",
+		Icon:        true,
+		Href:        "",
+	}
+	_ = display.CopyButton(props).Render(ctx, &b)
+
+	return b.String()
+}

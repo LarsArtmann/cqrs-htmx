@@ -161,7 +161,7 @@ func (d *Dashboard) renderDLQEntryDetail(
 		metaRow(&b, "Event ID", esc(entry.EventID))
 
 		if entry.StreamID != "" {
-			metaRowCopyable(&b, "Stream ID", esc(entry.StreamID), entry.StreamID)
+			metaRowCopyable(&b, ctx, "Stream ID", esc(entry.StreamID), entry.StreamID)
 		}
 
 		metaRow(&b, "Failed At", esc(entry.FailedAt.Format("2006-01-02 15:04:05")))

@@ -127,7 +127,7 @@ func (d *Dashboard) renderSnapshotDetail(
 		b.WriteString(`<h3>Metadata</h3>`)
 		b.WriteString(`<table class="meta-table section-gap-lg">`)
 		metaRow(&b, "Stream Type", esc(string(snap.StreamType)))
-		metaRowCopyable(&b, "Stream ID", esc(snap.StreamID.String()), snap.StreamID.String())
+		metaRowCopyable(&b, ctx, "Stream ID", esc(snap.StreamID.String()), snap.StreamID.String())
 		metaRow(&b, "Version", esc(snap.Version.String()))
 		metaRow(&b, "Created At", esc(snap.CreatedAt.Format(time.RFC3339)))
 		metaRow(&b, "State Size", esc(humanByteSize(len(snap.State))))

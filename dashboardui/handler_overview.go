@@ -227,15 +227,15 @@ func metaRow(b *strings.Builder, key, value string) {
 	fmt.Fprintf(b, `<tr><td class="meta-key">%s</td><td class="meta-val">%s</td></tr>`, key, value)
 }
 
-// metaRowCopyable renders a metadata row where the value is click-to-copy.
-// The rawValue is placed in data-copyable for clipboard; displayValue is shown.
-func metaRowCopyable(b *strings.Builder, key, displayValue, rawValue string) {
+// metaRowCopyable renders a metadata row whose value carries a library
+// CopyButton for the raw value; displayValue is shown beside it.
+func metaRowCopyable(b *strings.Builder, ctx context.Context, key, displayValue, rawValue string) {
 	fmt.Fprintf(
 		b,
-		`<tr><td class="meta-key">%s</td><td class="meta-val copyable" data-copyable="%s" title="Click to copy">%s</td></tr>`,
+		`<tr><td class="meta-key">%s</td><td class="meta-val">%s %s</td></tr>`,
 		key,
-		esc(rawValue),
 		displayValue,
+		copyButtonHTML(ctx, rawValue, ""),
 	)
 }
 

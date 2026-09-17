@@ -241,6 +241,7 @@ func (d *Dashboard) renderProjectionDetail(
 		b.WriteString(`<h3>Details</h3><table class="meta-table">`)
 		metaRowCopyable(
 			&b,
+			ctx,
 			"Checkpoint",
 			esc(truncate(proj.Checkpoint, listIDWidth)),
 			proj.Checkpoint,

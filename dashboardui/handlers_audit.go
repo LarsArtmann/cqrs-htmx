@@ -349,22 +349,22 @@ func (d *Dashboard) renderCommandDetail(ctx context.Context, p pageData, cmd *co
 		b.WriteString(`<div><h3>Metadata</h3><table class="meta-table">`)
 		metaRow(&b, "Command Type", esc(string(cmd.Type())))
 		metaRow(&b, "Stream Type", esc(string(cmd.StreamType())))
-		metaRowCopyable(&b, "Stream ID", esc(cmd.StreamID().String()), cmd.StreamID().String())
+		metaRowCopyable(&b, ctx, "Stream ID", esc(cmd.StreamID().String()), cmd.StreamID().String())
 		metaRow(&b, "Received At", esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")))
-		metaRowCopyable(&b, "Command ID", esc(cmd.ID().String()), cmd.ID().String())
+		metaRowCopyable(&b, ctx, "Command ID", esc(cmd.ID().String()), cmd.ID().String())
 
 		meta := cmd.Metadata()
 		if corrID := meta.CorrelationID.String(); corrID != "" {
-			metaRowCopyable(&b, "Correlation ID", esc(corrID), corrID)
+			metaRowCopyable(&b, ctx, "Correlation ID", esc(corrID), corrID)
 		}
 
 		if causID := meta.CausationID.String(); causID != "" {
-			metaRowCopyable(&b, "Causation ID", esc(causID), causID)
+			metaRowCopyable(&b, ctx, "Causation ID", esc(causID), causID)
 		}
 
 		if actorID := meta.ActorID; !actorID.IsZero() {
 			actorPrefixed := actorID.PrefixedString()
-			metaRowCopyable(&b, "Actor ID", esc(actorPrefixed), actorPrefixed)
+			metaRowCopyable(&b, ctx, "Actor ID", esc(actorPrefixed), actorPrefixed)
 		}
 
 		b.WriteString(`</table></div>`)
@@ -457,20 +457,20 @@ func (d *Dashboard) renderQueryDetail(ctx context.Context, p pageData, q *query.
 		b.WriteString(`<div><h3>Metadata</h3><table class="meta-table">`)
 		metaRow(&b, "Query Type", esc(string(q.Type())))
 		metaRow(&b, "Received At", esc(q.ReceivedAt().Format("2006-01-02 15:04:05")))
-		metaRowCopyable(&b, "Request ID", esc(q.ID().String()), q.ID().String())
+		metaRowCopyable(&b, ctx, "Request ID", esc(q.ID().String()), q.ID().String())
 
 		meta := q.Metadata()
 		if corrID := meta.CorrelationID.String(); corrID != "" {
-			metaRowCopyable(&b, "Correlation ID", esc(corrID), corrID)
+			metaRowCopyable(&b, ctx, "Correlation ID", esc(corrID), corrID)
 		}
 
 		if causID := meta.CausationID.String(); causID != "" {
-			metaRowCopyable(&b, "Causation ID", esc(causID), causID)
+			metaRowCopyable(&b, ctx, "Causation ID", esc(causID), causID)
 		}
 
 		if actorID := meta.ActorID; !actorID.IsZero() {
 			actorPrefixed := actorID.PrefixedString()
-			metaRowCopyable(&b, "Actor ID", esc(actorPrefixed), actorPrefixed)
+			metaRowCopyable(&b, ctx, "Actor ID", esc(actorPrefixed), actorPrefixed)
 		}
 
 		b.WriteString(`</table></div>`)

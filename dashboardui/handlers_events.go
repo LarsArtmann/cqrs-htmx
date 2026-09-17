@@ -181,27 +181,27 @@ func (d *Dashboard) renderEventDetail(
 
 		b.WriteString(`<div><h3>Metadata</h3><table class="meta-table">`)
 		metaRow(&b, "Stream Type", esc(string(evt.StreamType())))
-		metaRowCopyable(&b, "Stream ID", esc(evt.StreamID().String()), evt.StreamID().String())
+		metaRowCopyable(&b, ctx, "Stream ID", esc(evt.StreamID().String()), evt.StreamID().String())
 		metaRow(&b, "Version", esc(evt.Version().String()))
 		metaRow(&b, "Schema Version", esc(fmt.Sprintf("%d", evt.SchemaVersion())))
 		metaRow(&b, "Encoding", esc(string(evt.Encoding())))
 		metaRow(&b, "Occurred At", esc(evt.OccurredAt().Format(time.RFC3339)))
 
 		if corrID := meta.CorrelationID.String(); corrID != "" {
-			metaRowCopyable(&b, "Correlation ID", esc(corrID), corrID)
+			metaRowCopyable(&b, ctx, "Correlation ID", esc(corrID), corrID)
 		}
 
 		if causID := meta.CausationID.String(); causID != "" {
-			metaRowCopyable(&b, "Causation ID", esc(causID), causID)
+			metaRowCopyable(&b, ctx, "Causation ID", esc(causID), causID)
 		}
 
 		if actorID := meta.ActorID; !actorID.IsZero() {
 			actorPrefixed := actorID.PrefixedString()
-			metaRowCopyable(&b, "Actor ID", esc(actorPrefixed), actorPrefixed)
+			metaRowCopyable(&b, ctx, "Actor ID", esc(actorPrefixed), actorPrefixed)
 		}
 
 		if reqID := meta.RequestID.String(); reqID != "" {
-			metaRowCopyable(&b, "Request ID", esc(reqID), reqID)
+			metaRowCopyable(&b, ctx, "Request ID", esc(reqID), reqID)
 		}
 
 		if deadline, ok := evt.Deadline(); ok {
