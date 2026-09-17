@@ -136,7 +136,11 @@ func main() {
 		http.Redirect(w, r, "/dev-login", http.StatusSeeOther)
 	})
 
-	fmt.Printf("admin-demo\nOpen http://localhost%s/  (auto-signs in as %s)\n", addr, adminEmail)
+	openURL := "http://localhost" + addr
+	if addr[0] != ':' {
+		openURL = "http://" + addr
+	}
+	fmt.Printf("admin-demo\nOpen %s/  (auto-signs in as %s)\n", openURL, adminEmail)
 
 	handler := servertiming.ServerTimingMiddlewareWhen(func(r *http.Request) bool {
 		return r.URL.Query().Has("debug")
