@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // Display truncation widths for IDs shown in the dashboard UI.
@@ -165,8 +166,16 @@ func statusBadge(ctx context.Context, b *strings.Builder, kind, statusText strin
 		return
 	}
 
-	_ = display.Badge(display.BadgeProps{Text: statusText, Type: display.BadgeNeutral, Dot: true}).
-		Render(ctx, b)
+	props := display.BadgeProps{
+		BaseProps: utils.BaseProps{},
+		Text:      statusText,
+		Type:      display.BadgeNeutral,
+		Size:      display.BadgeSizeMD,
+		Pill:      false,
+		Dot:       true,
+		Href:      "",
+	}
+	_ = display.Badge(props).Render(ctx, b)
 }
 
 func statCard(b *strings.Builder, value, label, variant string) {

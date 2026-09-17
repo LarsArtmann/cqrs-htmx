@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -105,11 +106,11 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 	prevID, nextID := d.findEventNeighbors(r.Context(), eventID)
 
 	p := d.page("Event: "+truncate(string(evt.Type()), eventTypeWidth), "/events", r)
-	html := d.renderEventDetail(p, evt, prevID, nextID)
+	html := d.renderEventDetail(r.Context(), p, evt, prevID, nextID)
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextID string) string {
+func (d *Dashboard) renderEventDetail(ctx context.Context, p pageData, evt event.Event, prevID, nextID string) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -123,8 +124,8 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 			esc(
 				string(evt.Type()),
 			),
-			badgeHTML(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral),
-			encodingBadge(string(evt.Encoding())),
+			badgeHTML(ctx, fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral),
+			encodingBadge(ctx, string(evt.Encoding())),
 		)
 		fmt.Fprintf(&b, `<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
 			esc(evt.ID().String()), esc(evt.ID().String()))

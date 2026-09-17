@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -41,7 +42,7 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 				p.BasePath,
 				esc(link.Name),
 				esc(link.Name),
-				badgeHTML(strconv.Itoa(link.Count), countBadgeType(link.Count)),
+				badgeHTML(r.Context(), strconv.Itoa(link.Count), countBadgeType(link.Count)),
 				p.BasePath,
 				esc(link.Name),
 			)
@@ -75,7 +76,7 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p := d.page("Dead Letters: "+esc(proj), "/dead-letters", r)
-	html := d.renderDLQ(p, proj, entries)
+	html := d.renderDLQ(r.Context(), p, proj, entries)
 	renderPage(w, r, html)
 }
 
@@ -109,11 +110,11 @@ func (d *Dashboard) dlqEntryDetailHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	p := d.page("Dead Letter: "+truncate(eventID, eventIDWidth), "/dead-letters", r)
-	html := d.renderDLQEntryDetail(p, proj, entry)
+	html := d.renderDLQEntryDetail(r.Context(), p, proj, entry)
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderDLQEntryDetail(p pageData, proj string, entry projectionhost.DeadLetterEntry) string {
+func (d *Dashboard) renderDLQEntryDetail(ctx context.Context, p pageData, proj string, entry projectionhost.DeadLetterEntry) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -138,7 +139,7 @@ func (d *Dashboard) renderDLQEntryDetail(p pageData, proj string, entry projecti
 			fmt.Fprintf(
 				&b,
 				`<tr><td class="meta-key">Error Family</td><td class="meta-val">%s</td></tr>`,
-				badgeHTML(entry.ErrorFamily, display.BadgeError),
+				badgeHTML(ctx, entry.ErrorFamily, display.BadgeError),
 			)
 		}
 
@@ -284,7 +285,7 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.DeadLetterEntry) string {
+func (d *Dashboard) renderDLQ(ctx context.Context, p pageData, proj string, entries []projectionhost.DeadLetterEntry) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -360,7 +361,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 				esc(e.EventID),
 				esc(e.EventType),
 				esc(truncate(e.Error, errorDisplayWidth)),
-				badgeHTML(e.ErrorFamily, display.BadgeError),
+				badgeHTML(ctx, e.ErrorFamily, display.BadgeError),
 				p.BasePath,
 				esc(proj),
 				esc(e.EventID),

@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -16,7 +17,7 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 	p := d.page("Projections", "/projections", r)
 	projs := buildProjectionStats(d.config.ProjectionHost)
 
-	html := d.renderProjections(p, projs)
+	html := d.renderProjections(r.Context(), p, projs)
 	renderPage(w, r, html)
 }
 
@@ -41,7 +42,7 @@ func (d *Dashboard) projectionDetailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	p := d.page("Projection: "+truncate(name, eventTypeWidth), "/projections", r)
-	html := d.renderProjectionDetail(p, *found)
+	html := d.renderProjectionDetail(r.Context(), p, *found)
 	renderPage(w, r, html)
 }
 
@@ -91,7 +92,7 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 	})
 }
 
-func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string {
+func (d *Dashboard) renderProjections(ctx context.Context, p pageData, projs []projectionStat) string {
 	return d.renderLayout(p, func() string {
 		if len(projs) == 0 {
 			return emptyState("No projections registered", "")
@@ -138,7 +139,7 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 				p.BasePath,
 				esc(proj.Name),
 				esc(proj.Name),
-				badgeHTML(proj.Status, statusKindToBadgeType(proj.StatusKind)),
+				badgeHTML(ctx, proj.Status, statusKindToBadgeType(proj.StatusKind)),
 				esc(proj.Lag),
 				proj.Processed,
 				proj.Errors,
@@ -161,7 +162,7 @@ func (d *Dashboard) renderProjections(p pageData, projs []projectionStat) string
 	})
 }
 
-func (d *Dashboard) renderProjectionDetail(p pageData, proj projectionStat) string {
+func (d *Dashboard) renderProjectionDetail(ctx context.Context, p pageData, proj projectionStat) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -170,7 +171,7 @@ func (d *Dashboard) renderProjectionDetail(p pageData, proj projectionStat) stri
 			&b,
 			`<h2>%s %s</h2>`,
 			esc(proj.Name),
-			badgeHTML(proj.Status, statusKindToBadgeType(proj.StatusKind)),
+			badgeHTML(ctx, proj.Status, statusKindToBadgeType(proj.StatusKind)),
 		)
 		b.WriteString(`</div>`)
 
