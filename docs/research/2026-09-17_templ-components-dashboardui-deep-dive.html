@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>templ-components in dashboardui — Adoption &amp; Utilization Audit</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>LIBRARY DEEP DIVE</span>
+      <span>2026-09-17</span>
+      <span>cqrs-htmx / dashboardui</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#findings">Findings</a>
+          <a href="#currency">Version Currency</a>
+          <a href="#proposal">Adoption Ladder</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-09-17</div>
+          <h1>templ-components in dashboardui &mdash; Adoption &amp; Utilization Audit</h1>
+          <p class="subtitle">
+            dashboardui imports exactly one of templ-components' five modules and
+            calls exactly one of its 110+ components: <code>icons.IconPathData</code>.
+            Everything else the library offers for a dashboard &mdash; StatCard, Badge,
+            EmptyState, Table, Toast, error pages &mdash; is hand-rolled in ~800 lines of
+            strings.Builder HTML, CSS, and JS. This audit maps the gap, verifies what
+            actually blocks adoption, and ranks the fixes.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Scope: dashboardui/ (cqrs-htmx)</span>
+            <span class="tag">Library: v1.17.0 (latest)</span>
+            <span class="tag">Audited: icons + utils only</span>
+            <span class="tag teal">Adoption Score: 14/100</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-bad">
+            <div class="score">14</div>
+            <div class="label">Adoption score /100</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">1/22</div>
+            <div class="label">Applicable capabilities used</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">17</div>
+            <div class="label">Missed opportunities</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">2</div>
+            <div class="label">Anti-patterns</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Versions behind latest</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            The verdict on "is dashboardui using templ-components to the max?" is a
+            clear <strong>no &mdash; but not for the reasons the codebase believes</strong>.
+            Both the module's own migration evaluation
+            (<code>docs/planning/templ-migration-evaluation.md</code>) and its ROADMAP
+            frame adoption as an all-or-nothing templ migration of ~2,800&ndash;5,500 lines.
+            That framing is wrong in a load-bearing way: a templ component is just an
+            interface with <code>Render(ctx, io.Writer)</code>, and <code>strings.Builder</code>
+            is an <code>io.Writer</code>. Every leaf component can be dropped into the
+            existing render functions one at a time, with tests untouched.
+          </p>
+          <p>
+            The <em>real</em> gate is different: templ-components emits Tailwind v4 utility
+            classes, ships no compiled CSS, and dashboardui has no Tailwind pipeline.
+            That gate is also already solved in this repo &mdash; adminui runs the exact
+            BuildFlow <code>tailwind-build</code> step this audit recommends.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            dashboardui duplicates ~15 library components (~800 lines of hand-rolled
+            HTML/CSS/JS) behind a false "needs a full templ migration" assumption. The
+            actual blocker is a 5-minute Tailwind v4 setup that adminui already runs.
+            Version currency is perfect (v1.17.0 = latest); icons usage is exemplary;
+            component adoption is near zero.
+          </div>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Perfect version currency</strong>
+                <span>
+                  <code>dashboardui/go.mod</code> pins <code>templ-components/icons
+                  v1.17.0</code> &mdash; the family's latest release (2026-09-13), same as
+                  adminui. Zero version gap; nothing to upgrade first.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The one adoption is the right one, done right</strong>
+                <span>
+                  <code>layout.go:138&ndash;182</code> uses <code>icons.IconPathData()</code>
+                  with typed <code>icons.Name</code> constants and leans on the library's
+                  built-in unknown-name fallback (Question icon). For a non-templ
+                  architecture, <code>IconPathData</code> is exactly the intended
+                  primitive &mdash; pulling raw path data instead of forcing a
+                  Tailwind-dependent wrapper.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>CSP discipline that adoption can build on</strong>
+                <span>
+                  All JS lives in the external, ETag-cached <code>dashboardJS</code> const;
+                  zero inline scripts. The library's interactive components
+                  (ToastContainer, CopyButton) emit nonce-guarded inline scripts, and
+                  dashboardui's middleware already produces per-request nonces via
+                  <code>cqrshtmx.RecommendedSecurityMiddleware()</code> &mdash; the same
+                  setup adminui uses for its toast host.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="findings">
+          <h2><span class="num">01</span>Findings</h2>
+          <p>Ordered by impact. Every claim was verified against library source
+          (templ-components v1.17.0) and dashboardui code on 2026-09-17.</p>
+
+          <div class="issue issue-critical" id="f1-paradigm">
+            <span class="severity severity-critical">Root cause &middot; False planning assumption</span>
+            <h3>The "requires a full templ migration" belief is false &mdash; components render into your existing strings.Builder</h3>
+            <div class="where">
+              docs/planning/templ-migration-evaluation.md &middot; ROADMAP.md &middot;
+              verified: a-h/templ v0.3.1020 <code>Component</code> interface
+            </div>
+            <p>
+              Both planning documents gate all adoption behind "convert ~2,800&ndash;5,500
+              lines / every handler to .templ files". But the entire component catalog is
+              consumable through one method: <code>templ.Component.Render(ctx
+              context.Context, w io.Writer) error</code>. dashboardui's render functions
+              already write into <code>strings.Builder</code>, which satisfies
+              <code>io.Writer</code>. Adoption can proceed leaf-first, one component per
+              change, with the existing string-contains tests passing at every step. The
+              full templ conversion remains optional and independent.
+            </p>
+            <pre><code>// Before (handler_overview.go:148): hand-rolled duplicate
+func statCard(b *strings.Builder, value, label, variant string) { ... }
+
+// After: same call site, same builder — library component, no .templ file
+func statCard(ctx context.Context, b *strings.Builder, value, label string) {
+    props := display.DefaultStatCardProps()
+    props.Value, props.Label = value, label
+    props.ValueID = "stat-processed" // stable hook for live HTMX updates
+    _ = display.StatCard(props).Render(ctx, &amp;b) // Builder is an io.Writer
+}</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Rewrite the migration evaluation around the hybrid path: "leaf components
+              via <code>Render(ctx, &amp;b)</code>, full templ conversion optional."
+              Every finding below becomes an independent, low-risk change.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="f2-tailwind">
+            <span class="severity severity-critical">Blocking gate &middot; Solved in-repo</span>
+            <h3>Tailwind v4 pipeline is the real adoption gate &mdash; and adminui already runs it</h3>
+            <div class="where">
+              dashboardui/layout.go:215&ndash;453 (dashboardCSS) &middot; verified:
+              templates/styles.css has 0 hits for <code>bg-blue-600</code> (docs demo
+              artifact, not a shippable build)
+            </div>
+            <p>
+              Every templ-components component emits Tailwind utilities (e.g.
+              EmptyState's action class: <code>bg-blue-600 rounded-md dark:bg-blue-500
+              motion-reduce:transition-none</code>). The library ships no compiled CSS;
+              consumers run the Tailwind v4 CLI with <code>@source</code> scanning, per
+              <code>docs/tailwind-v4-adoption-guide.md</code> ("Manual setup
+              (5 minutes)", BuildFlow provider option A). dashboardui's hand-rolled token
+              system maps 1:1: <code>--accent</code>, <code>--ok</code>, <code>--warn</code>,
+              <code>--err</code> become <code>@theme</code> overrides of
+              <code>--color-tc-primary/success/warning/danger</code>. adminui already
+              generates its stylesheet via the BuildFlow <code>tailwind-build</code> DAG
+              step &mdash; the pattern, config, and CI guard exist in this repo.
+            </p>
+            <pre><code>/* dashboardui/app.css — entry point (templates/app.css pattern) */
+@import "tailwindcss";
+@source "../vendor/github.com/larsartmann/templ-components"; /* or module cache */
+@custom-variant dark (&amp;:where(.dark, .dark *));
+@theme {
+  --color-tc-primary: #4f46e5;   /* was --accent */
+  --color-tc-success: #16a34a;   /* was --ok */
+  --color-tc-warning: #d97706;   /* was --warn */
+  --color-tc-danger:  #dc2626;   /* was --err */
+}
+/* build: tailwindcss -i app.css -o styles.css --minify */</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add the Tailwind v4 entry point + BuildFlow <code>tailwind-build</code> step
+              for dashboardui, mirroring adminui (whose generated, minified
+              <code>adminui/styles.css</code> is already the canonical committed artifact).
+              This single change unblocks findings F3&ndash;F12.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="f3-statcard">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>StatCard hand-rolled &mdash; missing the exact features a live dashboard needs</h3>
+            <div class="where">
+              handler_overview.go:148&ndash;158 (statCard) &middot; handlers_projections.go:197&ndash;202
+              &middot; dashboardCSS <code>.stat-card</code> block (~8 rules)
+            </div>
+            <p>
+              The hand-rolled version renders value + label + a border-color variant
+              string. The library's <code>StatCardProps</code> adds
+              <code>Trend</code> (Up/Down/Warn), <code>Tone</code> (colored icon tiles),
+              <code>Icon</code>, <code>Href</code> (clickable card),
+              <code>HxGet/HxTarget/HxSwap</code> (self-refreshing), and
+              <code>ValueID</code> &mdash; a stable element ID designed for live dashboards.
+              dashboardui's overview is precisely that: SSE events trigger JS that
+              re-renders projection tables, yet stat values have no stable hooks, so
+              updates require full panel swaps.
+            </p>
+            <pre><code>props := display.DefaultStatCardProps()
+props.Value, props.Label = strconv.FormatInt(proj.Processed, 10), "Processed"
+props.ValueID = "stat-processed-" + proj.Name
+props.Tone, props.Icon = display.StatToneBlue, icons.ArrowPath
+// Overview page: &lt;div class="stat-grid"&gt; loop becomes Grid + StatCards</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Replace <code>statCard()</code> with <code>display.StatCard</code> via the
+              hybrid path; give each value a <code>ValueID</code> so SSE handlers can
+              target values declaratively instead of string-building rows in JS.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="f4-badge">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>StatusBadge: the same 4-way switch is duplicated in two renderers; the library maps statuses automatically</h3>
+            <div class="where">
+              handler_overview.go:125&ndash;135 &middot; handlers_projections.go:183&ndash;192
+              &middot; dashboardCSS <code>.badge-ok/-warn/-err/-neutral</code>
+            </div>
+            <p>
+              Both <code>renderProjectionRow</code> and <code>renderProjectionDetail</code>
+              hand-code an identical <code>statusKind &rarr; badgeClass</code> switch plus
+              raw <code>&lt;span class="..."&gt;</code> markup. The library's
+              <code>display.StatusBadge(status string)</code> maps ~20 status strings
+              (active/pending/error/failed/&hellip;) to badge type + status dot automatically,
+              with 6 <code>BadgeType</code>s, 3 sizes, and pill styling in
+              <code>BadgeProps</code> if custom mapping is wanted.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Map dashboardui's <code>statusGood/Warn/Bad</code> once to
+              <code>BadgeType</code> values (a 3-line helper) and render
+              <code>display.Badge</code> everywhere; delete the four
+              <code>.badge-*</code> CSS rules.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="f5-errorpage">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>Errors are plain-text http.Error &mdash; the library has a family-aware error page system that matches cqrs-htmx's error model exactly</h3>
+            <div class="where">
+              render.go:44&ndash;56 (renderError) &middot; also: DLQ detail pages rendering
+              raw errors in <code>&lt;pre&gt;</code> blocks
+            </div>
+            <p>
+              <code>renderError</code> emits <code>http.Error</code> plain text: no HTML
+              shell, no navigation, no way back, nothing family-specific. The
+              <code>errorpage</code> module's <code>Family</code> enum &mdash;
+              Rejection/Conflict/Transient/Corruption/Infrastructure &mdash; is the
+              identical set cqrs-htmx maps to HTTP statuses (400/409/503/500/503), so
+              <code>errorpage.FromError(err)</code> and
+              <code>errorpage.ErrorHandler(err, cfg)</code> slot into the existing
+              error-family pipeline with zero translation. It ships WayOut links,
+              cause-chain extraction, timestamps, JSON mode, and a 404 page
+              (<code>WriteNotFound404</code> with search + link actions).
+            </p>
+            <pre><code>cfg := errorpage.ErrorHandlerConfig{
+    Nonce: httputil.NonceFromRequest(r),
+    HTMLShell: shellFromLayout, // reuse renderLayout's head
+}
+// handler error path:
+errorpage.WriteError(w, err, cfg) // styled, family-aware, navigable
+// Dead-letter detail: errorpage.ErrorDetailProps renders the failed
+// event's error with family tone + fix guidance instead of bare &lt;pre&gt;.</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Route <code>renderError</code> through <code>errorpage</code>, add a 404
+              page for unknown streams/projections, and render DLQ errors with
+              <code>ErrorAlert</code>/<code>ErrorDetail</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="f6-table">
+            <span class="severity severity-important">Missed Opportunity &middot; High impact</span>
+            <h3>Ten+ hand-built tables with no sorting; the library ships typed, sortable, lazy tables</h3>
+            <div class="where">
+              handlers_events.go, handlers_audit.go, handlers_projections.go,
+              handler_overview.go:199&ndash;218, handlers_dlq.go, handlers_aggregates.go,
+              handlers_timetravel.go &middot; dashboardCSS <code>.data-table</code> block
+            </div>
+            <p>
+              Every list view repeats the same <code>&lt;table class="data-table"&gt;</code>
+              string with hand-managed <code>esc()</code> calls and a hand-rolled
+              sticky-header rule. <code>display.TableProps</code> covers all of it
+              declaratively: <code>TypedHeaders</code> with <code>Sortable</code> +
+              <code>SortDirection</code> (emits <code>aria-sort</code>),
+              <code>Striped/Hover</code>, <code>LazyRows</code> (content-visibility for
+              long event lists), clickable <code>TableRow.Href</code>,
+              <code>Flush</code> for tables inside cards, and a custom
+              <code>Body templ.Component</code> escape hatch.
+              <code>display.DataTable</code> adds URL-driven column sorting &mdash; a real
+              UX upgrade for events/commands/queries listings.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Convert the highest-traffic tables first (events, audit commands/queries)
+              to <code>display.Table</code> with sortable headers; delete the
+              <code>.data-table</code> CSS block once all ten are migrated.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="f7-interactions">
+            <span class="severity severity-important">Partially Used &middot; Medium-high impact</span>
+            <h3>Three hand-rolled JS behaviors (toast, copy, confirm) that the library ships CSP-safe &mdash; plus two a11y anti-patterns</h3>
+            <div class="where">
+              layout.go:131&ndash;133 + dashboardJS:644&ndash;660 (toast) &middot;
+              dashboardJS:558&ndash;568 + handler_overview.go:176&ndash;186 (copyable)
+              &middot; dashboardJS:620&ndash;625 (data-confirm)
+            </div>
+            <p>
+              Toasts: dashboardui's 15-line JS renderer + <code>.toast-*</code> CSS
+              duplicate <code>feedback.ToastContainer(nonce)</code>; adminui already
+              bridges <code>Hx-Trigger</code> to the library's <code>tcShowToast</code>
+              with a thin wrapper that can be ported as-is.
+              Copy: <code>data-copyable</code> turns divs into click targets &mdash; no
+              keyboard access, no button semantics, an emoji pseudo-element as the only
+              affordance (<code>.copyable:hover::after</code> 📋).
+              <code>display.CopyButtonProps</code> gives a real
+              <code>&lt;button&gt;</code> with <code>role="status"</code> feedback and a
+              CSP-safe singleton script.
+              Confirm: the generic <code>data-confirm</code> delegation is fine for
+              forms, but <code>htmx.ConfirmDelete</code> covers destructive buttons with
+              typed props. All of these need one plumbing change: thread
+              <code>httputil.NonceFromRequest(r)</code> through <code>pageData</code>
+              into <code>BaseProps.Nonce</code>.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Port adminui's <code>toastHost(nonce)</code> wrapper; swap
+              <code>metaRowCopyable</code>/payload copy for <code>display.CopyButton</code>;
+              add a nonce field to <code>pageData</code>.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="f8-errorhandling">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>HTMX failures are silent &mdash; GlobalErrorHandling exists for exactly this</h3>
+            <div class="where">
+              dashboardJS (SSE reconnect handled; HTMX swap errors unhandled anywhere)
+            </div>
+            <p>
+              The SSE loop shows "Reconnecting", but if a boosted HTMX request fails
+              (network blip, 5xx, expired session), the swap just doesn't happen and the
+              user watches a stale dashboard &mdash; the worst failure mode for an
+              observability tool.
+              <code>htmx.GlobalErrorHandling(ErrorHandlingConfig{Nonce, MaxErrorHistory,
+              MaxRetries, RetryDelayMS})</code> adds exponential retry, error history,
+              401 auto-reload, family-aware JSON error parsing into
+              <code>tcShowToast</code>, and an aria-live announcer.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Mount <code>htmx.GlobalErrorHandling</code> in the layout once
+              ToastContainer is in place (they're designed as a pair).
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="f9-pagination">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>The pagination trio (pager, count line, page-size select) is hand-rolled; three library components cover it</h3>
+            <div class="where">
+              pagination.go:12&ndash;104 &middot; dashboardCSS <code>.pagination</code> block
+            </div>
+            <p>
+              <code>renderPagination</code> (Prev/Next only),
+              <code>renderPaginationInfo</code> ("Showing X&ndash;Y of Z"), and
+              <code>renderPageSizeSelector</code> (raw <code>&lt;select&gt;</code> +
+              <code>&lt;option selected&gt;</code> strings) duplicate
+              <code>navigation.Pagination</code> (numbered pages with
+              <code>MaxVisible</code> windowing, <code>QueryParam</code>,
+              <code>ContainerAware</code>), <code>display.ListNote</code> ("Showing N of
+              M&hellip;", <code>role="status"</code>, renders only when
+              <code>Total &gt; Shown</code>), and <code>forms.Select</code> (labeled,
+              accessible, normalized selected/disabled states).
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Replace all three; the numbered pager is a UX upgrade over Prev/Next-only
+              for the events and audit listings.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="f10-leaves">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>Easy leaf wins: EmptyState, PageHeader, definition rows, Buttons</h3>
+            <div class="where">
+              render.go:59&ndash;65 (emptyState) &middot; <code>.page-header</code> markup in
+              6+ renderers &middot; handler_overview.go:172&ndash;186 (metaRow/metaRowCopyable)
+              &middot; <code>.btn/.btn-danger/.btn-accent</code> strings everywhere
+            </div>
+            <p>
+              <code>emptyState()</code> has no icon, no call-to-action, and no
+              <code>role="status"</code> &mdash; <code>display.EmptyStateProps</code> ships
+              all three (<code>Icon</code>, <code>ActionText/ActionHref/ActionAttrs</code>,
+              <code>role="status"</code> baked in). Page titles repeat
+              <code>&lt;div class="page-header"&gt;&lt;h2&gt;...</code> where
+              <code>display.PageHeader</code> adds subtitle/breadcrumb/action slots.
+              <code>metaRow</code> key/value tables are
+              <code>display.DefinitionList</code>. The three-button class system is
+              <code>display.Button</code>'s 9 variants (including danger) with optional
+              <code>Wire *wire.Action</code> for HTMX attributes.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              These four are mechanical swaps &mdash; ideal first targets to validate the
+              hybrid pipeline end-to-end before touching tables or the shell.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="f11-theme">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>Dark mode follows the OS only &mdash; ThemeToggle adds a no-FOUC manual toggle</h3>
+            <div class="where">
+              dashboardCSS <code>@media (prefers-color-scheme: dark)</code> block
+            </div>
+            <p>
+              Dark mode works but can't be overridden.
+              <code>layout.ThemeScript(nonce)</code> +
+              <code>layout.ThemeToggle(ariaLabel, nonce)</code> provide class-based dark
+              mode with localStorage persistence, system-preference default, and
+              no-flash-on-load &mdash; matching the existing
+              <code>color-scheme: light dark</code> meta tag's intent.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="f12-shell">
+            <span class="severity severity-nice">Structural &middot; Honest partial fit</span>
+            <h3>Sidebar/AppShell/Base: partial fit &mdash; and there's in-repo precedent for hand-rolling exactly this</h3>
+            <div class="where">
+              layout.go:18&ndash;133 (renderLayout/renderSidebar) &middot; adminui/layout.templ
+              (documented hand-rolled AppShell for the same reason)
+            </div>
+            <p>
+              dashboardui's dark sidebar, custom breakpoints, and hamburger/backdrop JS
+              mirror adminui's documented rationale for skipping
+              <code>layout.AppShell</code> (deep theming + custom breakpoints). Two
+              pieces still fit: <code>navigation.SidebarNav</code>
+              (<code>Items{Label, Href, Icon, Active, Section}</code>,
+              <code>CurrentPath</code>-driven active state &mdash; replaces the
+              <code>item.Active</code> class logic) and <code>layout.Base</code>'s
+              self-hosted-HTMX handling (<code>HTMXSrc=HTMXSelfHost</code> inlines the
+              pinned htmx build with SRI, vs. the current separate
+              <code>/-/htmx.js</code> request). Treat full AppShell adoption as an
+              optional post-migration evaluation, not a finding.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="f13-antipatterns">
+            <span class="severity severity-nice">Anti-patterns &middot; Fixed by adoption</span>
+            <h3>Two anti-patterns the library replaces by design</h3>
+            <div class="where">
+              dashboardJS:546&ndash;554 (JS-built innerHTML rows) &middot;
+              dashboardCSS:291&ndash;292 (div-click copy)
+            </div>
+            <p>
+              (1) The live-feed handler builds rows with string-concatenated
+              <code>innerHTML</code> from SSE payload fields &mdash; data is self-produced
+              today, but the pattern is one refactor away from an injection surface.
+              The library's <code>ValueID</code>/HTMX-refresh model eliminates
+              JS-built HTML entirely.
+              (2) Div-click-to-copy (no keyboard, no semantics) &mdash; covered in F7 via
+              <code>CopyButton</code>.
+            </p>
+          </div>
+        </section>
+
+        <section id="currency">
+          <h2><span class="num">02</span>Version Currency</h2>
+          <div class="callout callout-teal">
+            <strong>On the latest release &mdash; nothing to upgrade</strong>
+            dashboardui pins <code>templ-components/icons v1.17.0</code> (utils v1.17.0
+            indirect). v1.17.0 is the newest tag (2026-09-13) and the whole cqrs-htmx
+            family is aligned at it. The library's <code>[Unreleased]</code> changelog
+            (tc doctor CLI, render-determinism guards) contains nothing that changes
+            this audit.
+          </div>
+          <table class="compare">
+            <thead>
+              <tr><th>Version</th><th>Type</th><th>Notable change</th><th>Relevance to dashboardui</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>v1.17.0</td><td>Installed = latest</td>
+                <td>wire.DecodeForm, layout.Minimal SEO, a11y sweep, contract linter</td>
+                <td class="yes">Current &mdash; all findings actionable today</td>
+              </tr>
+              <tr>
+                <td>v1.15.0</td><td>Feature</td>
+                <td>icons.Render/CustomIcon, PolledRegion aria-busy, SEO props</td>
+                <td class="yes">Already included at v1.17.0</td>
+              </tr>
+              <tr>
+                <td>v1.14.0</td><td>Feature</td>
+                <td>FilterInput (debounced), DirtyGuard, FormEnctype</td>
+                <td>FilterInput relevant to the events filter bar (F9-adjacent)</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="proposal">
+          <h2><span class="num">03</span>The Adoption Ladder (Pareto-ranked)</h2>
+          <p>
+            Each rung is independent and shippable. Rung 1 unlocks everything above it;
+            rungs 2&ndash;5 are the 20% of effort that retires ~80% of the hand-rolled
+            surface.
+          </p>
+          <table class="compare">
+            <thead>
+              <tr><th>#</th><th>Opportunity</th><th>Impact</th><th>Ease</th><th>Priority</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Tailwind v4 pipeline + BuildFlow step (adminui pattern)</td><td class="yes">5</td><td class="yes">4</td><td><strong>20</strong></td></tr>
+              <tr><td>2</td><td>errorpage: renderError + 404 + DLQ error display</td><td class="yes">4</td><td class="yes">4</td><td><strong>16</strong></td></tr>
+              <tr><td>3</td><td>Badge/StatusBadge swap (delete duplicated switches + CSS)</td><td class="yes">4</td><td class="yes">4</td><td><strong>16</strong></td></tr>
+              <tr><td>4</td><td>StatCard hybrid adoption + ValueID live hooks</td><td class="yes">5</td><td>3</td><td><strong>15</strong></td></tr>
+              <tr><td>5</td><td>EmptyState + PageHeader + DefinitionList + Button (leaf sweep)</td><td>3</td><td class="yes">4</td><td><strong>12</strong></td></tr>
+              <tr><td>6</td><td>ToastContainer + nonce plumbing (port adminui toastHost)</td><td class="yes">4</td><td>3</td><td><strong>12</strong></td></tr>
+              <tr><td>7</td><td>Table/DataTable with sortable headers (top 3 tables first)</td><td class="yes">4</td><td>3</td><td><strong>12</strong></td></tr>
+              <tr><td>8</td><td>CopyButton for payload/ID copying</td><td>3</td><td>3</td><td>9</td></tr>
+              <tr><td>9</td><td>GlobalErrorHandling (pairs with #6)</td><td>3</td><td>3</td><td>9</td></tr>
+              <tr><td>10</td><td>Pagination + ListNote + Select trio</td><td>3</td><td>3</td><td>9</td></tr>
+              <tr><td>11</td><td>ThemeToggle dark-mode override</td><td>2</td><td>3</td><td>6</td></tr>
+              <tr><td>12</td><td>SidebarNav (structure only; AppShell stays per adminui precedent)</td><td>2</td><td>2</td><td>4</td></tr>
+            </tbody>
+          </table>
+          <pre><code>// End state for a typical render function — one ctx parameter added,
+// zero .templ files, zero migration of surrounding code:
+func (d *Dashboard) renderProjectionDetail(p pageData, proj projectionStat) string {
+    ctx := context.Background()
+    return d.renderLayout(p, func() string {
+        var b strings.Builder
+        display.PageHeader(display.PageHeaderProps{Title: proj.Name}).Render(ctx, &amp;b)
+        display.StatusBadge(proj.Status).Render(ctx, &amp;b)
+        // ... stat cards, definition list, buttons — all library components
+        return b.String()
+    })
+}</code></pre>
+          <div class="callout callout-teal">
+            <strong>What NOT to adopt</strong>
+            The datastar module (dashboardui is HTMX+SSE by design), charts/echarts
+            (zero-dependency dashboard philosophy &mdash; though
+            <code>display.Sparkline</code> is a dependency-free option for projection
+            lag trends), recipes (login/settings screens), and the SSE reconnect JS
+            (app-level concern the library deliberately doesn't own).
+          </div>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">04</span>Appendix &mdash; Verification Ledger</h2>
+          <p>Every load-bearing claim in this report was verified against source on
+          2026-09-17:</p>
+          <table class="compare">
+            <thead>
+              <tr><th>Claim</th><th>Verified via</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>templ.Component = Render(ctx, io.Writer)</code></td><td><code>go doc github.com/a-h/templ.Component</code> (v0.3.1020, dashboardui's own resolved version)</td></tr>
+              <tr><td>Components emit Tailwind utilities; no shippable compiled CSS</td><td><code>empty_state.templ:31</code> class const; <code>templates/styles.css</code> contains 0 hits for <code>bg-blue-600</code> (docs artifact)</td></tr>
+              <tr><td>Tailwind setup is documented + BuildFlow-provided</td><td><code>docs/tailwind-v4-adoption-guide.md</code> (Option A: BuildFlow, Option B: starter CSS); adminui/styles.css generated by the hook</td></tr>
+              <tr><td>Inline scripts are nonce-guarded</td><td><code>feedback/toast.templ:54</code> (<code>&lt;script nonce="%s"&gt;</code>); <code>httputil.NonceFromRequest</code> exists in the resolved httputil v1.1.1</td></tr>
+              <tr><td>StatusBadge auto-maps statuses; StatCardProps fields</td><td>templ-components source: <code>badge.templ</code>, <code>card.templ</code>, <code>table.templ</code>, <code>navigation</code>, <code>htmx</code>, <code>errorpage</code> package docs</td></tr>
+              <tr><td>Version currency</td><td><code>utils.Version = "1.17.0"</code>; CHANGELOG latest tag v1.17.0 (2026-09-13); <code>dashboardui/go.mod</code></td></tr>
+              <tr><td>adminui toast precedent</td><td>cqrs-htmx AGENTS.md adoption table + adminui/components.templ <code>toastHost(nonce)</code></td></tr>
+            </tbody>
+          </table>
+          <p>
+            Methodology: full import inventory of dashboardui (12 HTML-generating files,
+            ~30 render functions), exhaustive API enumeration of all 5 templ-components
+            modules from source (display: 43 components; feedback: 14; forms: 23;
+            navigation: 12; layout: 10; htmx: 9; errorpage; icons: 102 names; utils;
+            datastar; charts/echarts), then capability-by-capability gap grading with
+            impact &times; ease prioritization. Out of 110+ components, 22 capabilities
+            are applicable to an observability dashboard; 1 is fully leveraged.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-09-17 &middot; Reviewed against templ-components v1.17.0 and
+            dashboardui @ master (e51d7c93) &middot; All load-bearing claims verified
+            against source code (see appendix)
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

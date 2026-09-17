@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>httputil, go-etag &amp; go-sse — Adoption &amp; Utilization Audit</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+    <!-- Full-bleed top bar -->
+    <div class="top-bar">
+      <span>LIBRARY DEEP DIVE</span>
+      <span>2026-09-17</span>
+      <span>cqrs-htmx &middot; v4 family</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#usage">Current Usage</a>
+          <a href="#go-etag">Findings &middot; go-etag</a>
+          <a href="#go-sse">Findings &middot; go-sse</a>
+          <a href="#httputil">Findings &middot; httputil</a>
+          <a href="#versions">Version Currency</a>
+          <a href="#opportunities">Top Opportunities</a>
+          <a href="#conclusion">Conclusion</a>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <!-- Hero -->
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-09-17</div>
+          <h1>httputil, go-etag &amp; go-sse &mdash; Adoption &amp; Utilization Audit</h1>
+          <p class="subtitle">
+            Are the three sibling HTTP libraries used SUPERBLY by cqrs-htmx? Verdict:
+            two of three yes. go-etag is the outlier &mdash; five hand-rolled
+            conditional-GET implementations duplicate the exact problem the library
+            was built to solve, and one of them is spec-incomplete.
+          </p>
+          <div class="meta">
+            <span class="tag">httputil v1.1.1 (latest v1.2.0)</span>
+            <span class="tag">go-etag v0.3.1 (latest)</span>
+            <span class="tag">go-sse v0.6.0 (latest)</span>
+            <span class="tag teal">47 + 37 + 1 importing files</span>
+          </div>
+        </header>
+
+        <!-- Scorecard -->
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">85</div>
+            <div class="label">httputil adoption / 100</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">80</div>
+            <div class="label">go-sse adoption / 100</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">25</div>
+            <div class="label">go-etag adoption / 100</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">2</div>
+            <div class="label">Critical findings</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">7</div>
+            <div class="label">Important findings</div>
+          </div>
+        </section>
+
+        <!-- Summary -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            This audit covers every module in the 27-module cqrs-htmx workspace that
+            imports <code>github.com/larsartmann/httputil</code> (47 files),
+            <code>github.com/larsartmann/go-sse</code> (37 files), or
+            <code>github.com/larsartmann/go-etag</code> (1 file). Capabilities were
+            verified against each library's own FEATURES.md, CHANGELOG.md, and source
+            at the local trees; version currency was verified against the pushed git
+            tags on 2026-09-17.
+          </p>
+          <p>
+            <strong>httputil</strong> is deeply and correctly adopted &mdash; the CSRF,
+            keyed-rate-limit, security-header, nonce, server, and health suites are all
+            in production use, and cqrs-htmx even runs httputil's 18 HTTP-spec compliance
+            checks as its own test (<code>httpspec_compliance_test.go</code>). It is one
+            minor version behind. <strong>go-sse</strong> is adopted down to its advanced
+            surface (predicate push-down replay via <code>ReplayFiltered</code> +
+            <code>FilteredEventStore</code>, hub embedding, heartbeats with cancellable
+            contexts) but leaves its graceful-shutdown drain and reconnect-backoff hint
+            unused. <strong>go-etag</strong> is effectively unused while the project
+            hand-rolls its core feature five times.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            cqrs-htmx hand-rolls ETag generation and <code>If-None-Match</code> handling
+            in 5 production sites (&asymp;60 lines) while its sibling library go-etag
+            exists precisely to do this &mdash; and the hand-rolled exact-string
+            comparison silently mishandles the RFC 7232 cases (<code>*</code>,
+            validator lists, weak <code>W/</code> tags), turning valid conditional
+            requests into full-body 200s. One library call per site fixes both the
+            duplication and the correctness gap.
+          </div>
+        </section>
+
+        <!-- Current Usage -->
+        <section id="usage">
+          <h2><span class="num">01</span>Current Usage &mdash; the baseline</h2>
+
+          <h3>httputil (47 importing files)</h3>
+          <ul class="strengths">
+            <li class="strength"><strong>Full CSRF suite</strong> &mdash; <code>CSRFMiddleware</code> (24 refs), token helpers (<code>CSRFTokenFromContext</code>, <code>CSRFTokenHTMLMeta</code>, <code>CSRFTokenFormField</code>, <code>CSRFTokenHXHeaders</code>), <code>ValidateCSRF</code>, <code>InvalidateCSRFCookie</code> &mdash; root, adminui, loginpage, usermgmt, setup.</li>
+            <li class="strength"><strong>Keyed rate limiting</strong> &mdash; <code>KeyedRateLimiter</code> + <code>KeyExtractorFromRemoteAddr</code>/<code>KeyExtractorFromClientIP</code>, correctly on the post-v1.1.0 API (the deprecated <code>TokenBucketLimiter</code> is fully gone).</li>
+            <li class="strength"><strong>Security + nonce</strong> &mdash; <code>RecommendedSecurityMiddleware()</code> delegation in both adminui and dashboardui; <code>RecommendedHSTS</code>/<code>RecommendedCSP</code>; <code>NonceFromRequest</code> fallback in adminui.</li>
+            <li class="strength"><strong>Production server</strong> &mdash; <code>httputil.NewServer</code> with SSE-safe timeouts in setup (<code>setup/run.go:67</code>) and all 8 canonical examples.</li>
+            <li class="strength"><strong>Health endpoints</strong> &mdash; <code>RegisterHealth</code>, <code>LiveHandler</code>, <code>ReadyHandlerWithProbe</code> behind setup's readiness gate.</li>
+            <li class="strength"><strong>Testing integration</strong> &mdash; <code>httpspec_compliance_test.go</code> runs httputil's 18 HTTP-spec compliance checks against cqrs-htmx handlers; <code>CSRFTestToken</code> in tests; <code>MiddlewareStack</code> in examples.</li>
+            <li class="strength"><strong>Error classification</strong> &mdash; <code>RegisterErrorClassifications</code> auto-wired via <code>sync.Once</code> in <code>New()</code>.</li>
+          </ul>
+
+          <h3>go-sse (37 importing files)</h3>
+          <ul class="strengths">
+            <li class="strength"><strong>Hub-first architecture</strong> &mdash; both <code>cqrshtmx.Broadcaster</code> (<code>sse_broadcaster.go</code>) and <code>datastar.Broadcaster</code> embed <code>*sse.Broadcaster[sse.Event]</code>; 191 <code>sse.Event</code> uses, 30 <code>Broadcaster</code> uses.</li>
+            <li class="strength"><strong>Reconnection replay</strong> &mdash; <code>Replay</code> + <code>LastEventIDFromRequest</code> (8 uses), and the advanced predicate push-down path: <code>ReplayFiltered</code> + a custom <code>FilteredEventStore</code> adapter (<code>transport/serve.go:49,102</code>).</li>
+            <li class="strength"><strong>Stream lifecycle</strong> &mdash; <code>NewStream</code> (40 uses), cancellable heartbeat goroutines (<code>transport/serve.go:169-180</code>, <code>sse_broadcaster.go:168</code>), <code>EventConnected</code>/<code>EventHeartbeat</code>, <code>SetHeaders</code>, <code>ContentType</code>.</li>
+            <li class="strength"><strong>Shared transport</strong> &mdash; <code>transport.ServeDomainEvents</code> canonicalizes the SSE lifecycle for setup and dashboardui (<code>transport/serve.go</code>, golden-test-pinned envelopes).</li>
+            <li class="strength"><strong>Test helpers</strong> &mdash; <code>go-sse/ssetest</code> v0.3.0 as a dedicated test module: <code>NewStreamReader</code>, <code>ReadEvents</code>, <code>ssetest.Event</code> in SSE suites.</li>
+            <li class="strength"><strong>Typed configuration</strong> &mdash; <code>WithBufferSize</code> exposed as <code>datastar.NewBroadcasterWithBufferSize</code>; <code>SubscriberCount</code> read via the hub's <code>Health()</code> in datastar (<code>datastar/broadcaster.go:131</code>).</li>
+          </ul>
+
+          <h3>go-etag (1 importing file)</h3>
+          <ul class="strengths">
+            <li class="strength"><strong>Demonstration only</strong> &mdash; <code>etag.New(etag.DefaultETagConfig())</code> wraps one demo route in <code>examples/middleware-showcase/main.go:163</code> (listed under the <code>MiddlewareETag</code> stack name). Every other go.mod lists go-etag as an <em>indirect</em> dependency (pulled in by httputil's error-template superset).</li>
+          </ul>
+          <p>
+            Meanwhile the same conditional-GET logic is implemented by hand in
+            production code &mdash; see the findings below. <code>adminui/assets.go:29-36</code>
+            is the one hand-rolled site that is RFC-correct, because it delegates
+            conditionals to <code>http.ServeContent</code> with a fixed strong ETag.
+          </p>
+        </section>
+
+        <!-- Findings: go-etag -->
+        <section id="go-etag">
+          <h2><span class="num">02</span>Findings &mdash; go-etag (adoption 25/100)</h2>
+
+          <div class="issue issue-critical" id="handrolled-etag">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact</span>
+            <h3>Five hand-rolled ETag/conditional-GET sites duplicate go-etag's core feature</h3>
+            <div class="where">event_catalog_handler.go:72-84 &middot; options_openapi.go:66 &middot; htmx_serve.go:44-46 &middot; sync_serve.go:25,51 &middot; projection_status_handler.go:64-70</div>
+            <p>
+              go-etag's server package exists to "generate entity-tags and answer
+              <code>If-None-Match</code> with 304 Not Modified" (go-etag README). cqrs-htmx
+              implements this by hand in five places: the shared
+              <code>serveImmutableJSON</code> (behind <code>EventCatalogHandler</code> and
+              <code>OpenAPISpecHandler</code>), the HTMX script handler, both sync-worker
+              handlers, and the projection-status handler &mdash; plus a hand-written
+              inline FNV-1a-64 in <code>hashTag</code> ("implemented inline rather than
+              hash/fnv to avoid the hash.Hash.Write" overhead). go-etag gives all of this
+              away: body-buffering ETag generation (FNV-64a default), RFC 7232 weak
+              comparison, HEAD/Content-Length compliance, 304 Content-Length stripping,
+              <code>SkipIfPresent</code> for handler-set strong tags, and a
+              <code>Skip</code> route predicate. Adopting it deletes &asymp;60 lines of
+              duplicated logic across 5 files and makes the sibling family the single
+              owner of conditional-request semantics.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              For the immutable-bytes handlers, keep the eager precomputed tag (it is
+              better than per-response hashing) and delegate only the conditional check.
+              For the dynamic projection-status handler, use the middleware outright.
+            </div>
+            <pre><code><span class="tok-keyword">import</span> etag <span class="tok-string">"github.com/larsartmann/go-etag/server"</span>
+
+<span class="tok-comment">// immutable handlers: keep eager tag, swap the check (event_catalog_handler.go:77)</span>
+tag, ok := etag.<span class="tok-function">ParseETag</span>(etagStr) <span class="tok-comment">// parses "…" incl. W/ form</span>
+<span class="tok-keyword">if</span> ok &amp;&amp; etag.<span class="tok-function">MatchesIfNoneMatch</span>(tag, r.Header.<span class="tok-function">Get</span>(<span class="tok-string">"If-None-Match"</span>)) {
+    w.<span class="tok-function">WriteHeader</span>(http.StatusNotModified)
+    <span class="tok-keyword">return</span>
+}
+
+<span class="tok-comment">// dynamic handler (projection_status_handler.go): middleware does everything</span>
+cfg := etag.<span class="tok-function">DefaultETagConfig</span>()
+cfg.SkipIfPresent = <span class="tok-boolean">true</span> <span class="tok-comment">// handler may still pin its own strong tag</span>
+statusHandler = etag.<span class="tok-function">New</span>(cfg)(statusHandler)</code></pre>
+          </div>
+
+          <div class="issue issue-critical" id="spec-gap">
+            <span class="severity severity-critical">Misused / Anti-Pattern &middot; Correctness</span>
+            <h3>Hand-rolled If-None-Match check is spec-incomplete (exact-string comparison)</h3>
+            <div class="where">event_catalog_handler.go:77 &middot; htmx_serve.go:46 &middot; sync_serve.go &middot; projection_status_handler.go:70</div>
+            <p>
+              All four copies evaluate <code>match == etag</code> on the raw header
+              string. RFC 7232 &sect;3.2 allows <code>If-None-Match: *</code>,
+              comma-separated validator lists
+              (<code>If-None-Match: "a", "b"</code> &mdash; what layered proxies and some
+              CDNs send), and weak validators (<code>W/"abc"</code>, which must match a
+              strong tag under weak comparison). Each of these silently fails the
+              exact-string check, so the client receives a full 200 body instead of a
+              304. No data is corrupted &mdash; but the cache layer quietly stops working
+              for exactly the clients that need it most, and go-etag ships fuzz-tested
+              parsing for precisely these cases
+              (<code>server/entity_tag.go</code>: <code>ParseETagList</code> honors
+              quoted commas and escapes; <code>MatchesIfNoneMatch</code> handles the
+              wildcard; BDD-pinned in <code>etag_bdd_test.go</code>).
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Same one-call fix as above &mdash; <code>etag.MatchesIfNoneMatch</code> is
+              a drop-in replacement for the four string comparisons, with the RFC
+              corner cases already fuzz- and spec-pinned upstream.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="etagclient">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>go-etag/client (conditional GET transport) unused anywhere</h3>
+            <div class="where">not used anywhere &middot; capability: go-etag/client (v0.2.0+, RFC 9111-conformant)</div>
+            <p>
+              The client package turns any <code>http.Client</code> into a caching
+              client: it replays stored validators as <code>If-None-Match</code>,
+              rebuilds 304s as 200s, freshens per RFC 9111 &sect;4.3.4, invalidates after
+              unsafe methods, and bounds memory (<code>MaxEntries</code>,
+              <code>MaxBodyBytes</code>). cqrs-htmx consumers poll dashboard JSON
+              endpoints (projection status, event catalog) that are purpose-built for
+              conditional GETs &mdash; a documented recipe showing
+              <code>etagclient.NewTransport</code> against <code>/health</code> and the
+              catalog would hand every Go consumer free bandwidth savings. The e2e and
+              integration suites, which repeatedly fetch these endpoints, could adopt it
+              too.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add a recipe to <code>docs/guides/leveraging-httputil.md</code> (or the
+              catalog guide) and use the transport in one integration test as the
+              executable proof.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="etag-hooks">
+            <span class="severity severity-important">Partially Used &middot; Low impact</span>
+            <h3>ETag observability hooks ignored &mdash; no cache-hit visibility</h3>
+            <div class="where">not used anywhere &middot; capability: ETagConfig.OnETagGenerated / On304 / OnBufferOverflow (go-etag v0.2.0)</div>
+            <p>
+              go-etag's hooks exist to derive cache-hit ratios ("pairs with On304 to
+              derive cache hit ratios" &mdash; go-etag CHANGELOG v0.2.0). Once the
+              middleware guards the catalog/status endpoints, wiring <code>On304</code>
+              into the existing log/metrics path would answer "how much traffic do the
+              immutable endpoints actually save" with one function literal. Low priority
+              because it only becomes relevant after the adoption above.
+            </p>
+          </div>
+        </section>
+
+        <!-- Findings: go-sse -->
+        <section id="go-sse">
+          <h2><span class="num">03</span>Findings &mdash; go-sse (adoption 80/100)</h2>
+
+          <div class="issue issue-nice" id="sse-advanced">
+            <span class="severity severity-nice">Fully Leveraged</span>
+            <h3>Advanced replay surface in production: predicate push-down + hub embedding</h3>
+            <div class="where">transport/serve.go:49,102 &middot; sse_broadcaster.go:75 &middot; datastar/broadcaster.go:16,46,131</div>
+            <p>
+              Most projects stop at <code>Replay</code>. cqrs-htmx implements the
+              <code>FilteredEventStore</code> interface with a custom adapter and serves
+              filtered streams via <code>ReplayFiltered</code> (predicate push-down to
+              the store), embeds the hub in both adapters per the go-sse canonical
+              vocabulary, and exposes buffer tuning through
+              <code>WithBufferSize</code>. This is the capability most consumers never
+              find &mdash; here it is load-bearing.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="sse-shutdown">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact</span>
+            <h3>Graceful Shutdown(ctx) drain never used &mdash; Bundle.Close abrupt-closes the hub</h3>
+            <div class="where">setup/bundle.go:166 &middot; capability: Broadcaster.Shutdown(ctx) drain with deadline (go-sse FEATURES, "Graceful Shutdown")</div>
+            <p>
+              go-sse's <code>Shutdown(ctx)</code> drains all subscribers with a deadline,
+              rejects new subscribers while draining, and is idempotent &mdash; it is the
+              library's answer to "server is shutting down while 500 dashboard tabs hold
+              open SSE connections". cqrs-htmx calls <code>b.Broadcaster.Close()</code>
+              instead, which closes subscriber channels immediately: in-flight events are
+              dropped and clients see an abrupt stream end rather than a final event +
+              clean close. The method is already promoted on both adapters (documented in
+              <code>docs/guides/sse-and-datastar.md:15</code>) &mdash; it is one call
+              away in the exact place shutdown ordering is already handled.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+            </div>
+            <pre><code><span class="tok-comment">// setup/bundle.go Close(): drain before close</span>
+ctx, cancel := context.<span class="tok-function">WithTimeout</span>(context.<span class="tok-function">Background</span>(), <span class="tok-number">5</span>*time.Second)
+<span class="tok-keyword">defer</span> <span class="tok-function">cancel</span>()
+<span class="tok-keyword">if</span> err := b.Broadcaster.<span class="tok-function">Shutdown</span>(ctx); err != <span class="tok-boolean">nil</span> {
+    b.Logger.<span class="tok-function">Warn</span>(<span class="tok-string">"sse drain incomplete"</span>, <span class="tok-string">"err"</span>, err)
+}</code></pre>
+          </div>
+
+          <div class="issue issue-important" id="sse-retry">
+            <span class="severity severity-important">Missed Opportunity &middot; Medium impact &middot; trivial effort</span>
+            <h3>retry: reconnect hint never sent to browsers</h3>
+            <div class="where">transport/serve.go, sse_broadcaster.go &mdash; no WriteRetry anywhere &middot; capability: WriteRetry (go-sse event.go:213) + reconnection guide layer 2</div>
+            <p>
+              go-sse ships <code>WriteRetry(w io.Writer, ms uint)</code> and its own
+              reconnection guide ranks the <code>retry:</code> hint as layer 2 of the
+              5-layer reconnection model
+              (<code>go-sse/docs/guides/reconnection-and-retry.md</code>, shipped in
+              v0.6.0). cqrs-htmx's SSE endpoints send <code>event: connected</code> and
+              heartbeats but no retry hint, so browsers fall back to their default
+              &asymp;3s reconnect cadence &mdash; a restart of the server produces a
+              synchronized stampede of reconnects from every connected dashboard. One
+              line after <code>NewStream</code> sets a deliberate, jitter-friendly
+              backoff.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+            </div>
+            <pre><code><span class="tok-comment">// transport/serve.go, right after NewStream:</span>
+_ = sse.<span class="tok-function">WriteRetry</span>(w, <span class="tok-number">5000</span>) <span class="tok-comment">// milliseconds; browsers honor it per-connection</span></code></pre>
+          </div>
+
+          <div class="issue issue-important" id="sse-observability">
+            <span class="severity severity-important">Partially Used &middot; Medium impact</span>
+            <h3>Hub observability documented as a recipe but wired nowhere</h3>
+            <div class="where">docs/guides/sse-and-datastar.md:200-207 (recipe) &middot; zero production OnSubscribe/OnUnsubscribe/Health wiring &middot; capability: fanOut hooks + BroadcasterHealth</div>
+            <p>
+              cqrs-htmx's own guide contains the recipe ("hub.OnSubscribe(fn) &rarr;
+              connected-clients gauge") and immediately concedes "the SSE push path emits
+              no spans or metrics of its own". Meanwhile go-sse provides
+              <code>Health()</code> (subscriber counts, buffer sizes, drop counts) and
+              the subscribe/unsubscribe hooks; only datastar reads
+              <code>SubscriberCount</code> today (<code>datastar/broadcaster.go:131</code>).
+              dashboardui &mdash; the observability dashboard &mdash; shows projection
+              health but nothing about the SSE hub its live updates depend on. The data
+              is one promoted method call away.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add an "SSE hub" card to dashboardui backed by
+              <code>broadcaster.Health()</code>, and register
+              <code>OnSubscribe</code>/<code>OnUnsubscribe</code> gauges in setup's
+              optional observability path.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="ssetest">
+            <span class="severity severity-important">Partially Used &middot; Low impact</span>
+            <h3>ssetest.RequireDataJSON unused &mdash; tests hand-unmarshal event payloads</h3>
+            <div class="where">12 &times; ssetest.Event assertions in SSE tests &middot; capability: RequireDataJSON(tb, evt, want) (ssetest v0.3.0)</div>
+            <p>
+              ssetest v0.3.0 added <code>RequireDataJSON</code>: structural JSON compare
+              (key-order and whitespace insensitive), type inferred from
+              <code>want</code>, fatal-with-payload on invalid JSON. The SSE suites
+              still unmarshal payloads by hand before comparing, which produces
+              worse failure messages and more test code. Small DX win, zero risk.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="sse-na">
+            <span class="severity severity-nice">Not Applicable (justified non-use)</span>
+            <h3>SendJSON / SendLines / SendKeyed conveniences &mdash; correctly skipped</h3>
+            <div class="where">transport/serve.go:165,196 &middot; sse_broadcaster.go:164,175</div>
+            <p>
+              cqrs-htmx events carry a named event plus a JSON envelope
+              (<code>Event: name, Data: json</code>). <code>SendJSON</code> sends with an
+              empty event name and <code>SendLines</code>/<code>SendKeyed</code> target
+              key-value protocols, so raw <code>stream.Send</code> with a marshaled
+              envelope is the correct call here. Honest non-use &mdash; not a gap.
+            </p>
+          </div>
+        </section>
+
+        <!-- Findings: httputil -->
+        <section id="httputil">
+          <h2><span class="num">04</span>Findings &mdash; httputil (adoption 85/100)</h2>
+
+          <div class="issue issue-nice" id="httputil-deep">
+            <span class="severity severity-nice">Fully Leveraged</span>
+            <h3>Deep, current-API adoption across all six middleware families</h3>
+            <div class="where">47 files &middot; app.go, setup/, adminui/, loginpage/, usermgmt/, examples/</div>
+            <p>
+              ~70 of httputil's 103 exported top-level symbols are in use, spanning CSRF
+              (including the v1.1.0 trusted-proxy attestation support), keyed rate
+              limiting (the post-deprecation API only), security headers + nonce,
+              CORS, compression, client IP, the server type, health endpoints, and the
+              error-code surface. The exemplary part is the testing integration:
+              cqrs-htmx runs httputil's 18 HTTP-spec compliance checks as its own test
+              suite (<code>httpspec_compliance_test.go</code>) &mdash; using the library
+              to police cqrs-htmx's own handlers.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="httputil-version">
+            <span class="severity severity-important">Version Gap &middot; Low-Medium impact</span>
+            <h3>One minor behind: v1.1.1 installed, v1.2.0 published (2026-09-16)</h3>
+            <div class="where">go.mod:16 in 20+ modules (v1.1.1) &middot; httputil repo tag v1.2.0</div>
+            <p>
+              v1.2.0 adds <code>CORSConfig.AllowPrivateNetwork</code> (Chrome Private
+              Network Access / Local Network Access preflight support) plus review-pass
+              test hardening. The PNA feature is directly relevant to cqrs-htmx's
+              deployment shape: admin/dashboard panels are typically reached from a LAN
+              or reverse-proxied origin, exactly the less-private&rarr;more-private
+              fetch pattern Chrome now blocks without
+              <code>Access-Control-Allow-Private-Network: true</code> on the preflight.
+              Bump is additive and low-risk.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              <code>go get github.com/larsartmann/httputil@v1.2.0</code> sweep across
+              workspace modules (per-module trains; run <code>nix run .#check-release-train</code>
+              after).
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="httputil-na">
+            <span class="severity severity-nice">Not Applicable (justified non-use)</span>
+            <h3>Logging, MaxBodySize, RequestID &mdash; deliberately replaced by domain code</h3>
+            <div class="where">decoder.go:16-68 (native 10 MB body cap via LimitReader) &middot; context enrichment middleware (ActorID) &middot; domain-aware Logging</div>
+            <p>
+              The three unused middleware families all have deliberate in-house
+              equivalents: request bodies are capped by the App's own
+              <code>MaxBodySize</code>/<code>LimitReader</code> path with typed decode
+              errors, request identity flows through the CQRS
+              <code>ActorID</code> context-enrichment middleware (deeper than a header),
+              and logging is domain-aware. These are correct scoping decisions, not
+              missed features.
+            </p>
+          </div>
+        </section>
+
+        <!-- Version Currency -->
+        <section id="versions">
+          <h2><span class="num">05</span>Version Currency</h2>
+          <p>
+            Verified 2026-09-17 against pushed tags (<code>git ls-remote</code>) and the
+            local trees' CHANGELOGs.
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Library</th>
+                <th>Installed</th>
+                <th>Latest tag</th>
+                <th>Delta</th>
+                <th>What's in the gap</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>httputil</strong></td>
+                <td>v1.1.1</td>
+                <td>v1.2.0</td>
+                <td class="yes">1 minor behind</td>
+                <td><code>CORSConfig.AllowPrivateNetwork</code> (Chrome PNA/LNA) &mdash; relevant to LAN-hosted admin/dashboard; test hardening</td>
+              </tr>
+              <tr>
+                <td><strong>go-etag</strong></td>
+                <td>v0.3.1</td>
+                <td>v0.3.1</td>
+                <td class="yes">current</td>
+                <td>Unreleased local work (typed error-code surface) not yet tagged &mdash; no consumer action</td>
+              </tr>
+              <tr>
+                <td><strong>go-sse</strong></td>
+                <td>v0.6.0</td>
+                <td>v0.6.0</td>
+                <td class="yes">current</td>
+                <td>Unreleased local work is CI/docs-only per changelog policy</td>
+              </tr>
+              <tr>
+                <td><strong>go-sse/ssetest</strong></td>
+                <td>v0.3.0</td>
+                <td>v0.3.0</td>
+                <td class="yes">current</td>
+                <td>&mdash;</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-teal">
+            <strong>Note</strong>
+            AGENTS.md's "Key dependencies" row still says "httputil v0.12.0" &mdash; stale
+            by three minor versions of drift. Corrected to v1.1.1 (with the v1.2.0 target
+            noted) as part of this audit.
+          </div>
+        </section>
+
+        <!-- Top Opportunities -->
+        <section id="opportunities">
+          <h2><span class="num">06</span>Top Opportunities (Pareto-ranked)</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Opportunity</th>
+                <th>Library</th>
+                <th>Impact</th>
+                <th>Ease</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Replace 4 exact-string <code>If-None-Match</code> checks with <code>etag.MatchesIfNoneMatch</code>; middleware (<code>SkipIfPresent</code>) for the dynamic status handler</td>
+                <td>go-etag</td>
+                <td class="yes">5</td>
+                <td class="yes">4</td>
+                <td><span class="highlight">20</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><code>Shutdown(ctx)</code> drain in <code>Bundle.Close</code> before hub close</td>
+                <td>go-sse</td>
+                <td class="yes">4</td>
+                <td class="yes">4</td>
+                <td><span class="highlight">16</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Send <code>retry:</code> hint in <code>ServeDomainEvents</code>/<code>ServeSSE</code> (<code>WriteRetry</code>, one line)</td>
+                <td>go-sse</td>
+                <td class="yes">3</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">15</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Bump httputil v1.1.1 &rarr; v1.2.0 (PNA preflight for LAN dashboards)</td>
+                <td>httputil</td>
+                <td class="yes">3</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">15</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Surface hub <code>Health()</code> as a dashboardui card + wire OnSubscribe/OnUnsubscribe gauges</td>
+                <td>go-sse</td>
+                <td class="yes">3</td>
+                <td>3</td>
+                <td><span class="highlight">9</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Adopt <code>ssetest.RequireDataJSON</code> in SSE assertions</td>
+                <td>go-sse</td>
+                <td>2</td>
+                <td class="yes">4</td>
+                <td><span class="highlight">8</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Wire ETag <code>On304</code>/<code>OnETagGenerated</code> into metrics once #1 lands</td>
+                <td>go-etag</td>
+                <td>2</td>
+                <td>3</td>
+                <td><span class="highlight">6</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Document <code>etagclient.NewTransport</code> recipe for consumers polling JSON endpoints</td>
+                <td>go-etag</td>
+                <td>2</td>
+                <td>3</td>
+                <td><span class="highlight">6</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Conclusion -->
+        <section id="conclusion">
+          <h2><span class="num">07</span>Conclusion</h2>
+          <p>
+            httputil and go-sse are used the way their author intended &mdash; deeply,
+            on current APIs, with the advanced surfaces (compliance-test embedding,
+            filtered replay, hub embedding) actually load-bearing. go-etag is the
+            exception: one demo call site while five production sites hand-roll the
+            library's core feature, one copy spec-incompletely. The single
+            highest-leverage change is mechanical: swap the four string comparisons for
+            <code>etag.MatchesIfNoneMatch</code> and let the middleware own the dynamic
+            handler. That plus a graceful-drain call and a one-line retry hint closes
+            every medium-impact finding in this report.
+          </p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p>
+            Generated 2026-09-17 &middot; cqrs-htmx workspace (27 modules) against
+            httputil v1.1.1 / v1.2.0, go-etag v0.3.1, go-sse v0.6.0 &middot; All claims
+            verified against local source trees, FEATURES.md/CHANGELOG.md inventories,
+            and pushed git tags
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
