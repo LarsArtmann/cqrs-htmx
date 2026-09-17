@@ -100,8 +100,10 @@ templ tenantHeader(d tenantDetailData) {
 
 // membersPage is the tenant-scoped members view (ModeTenantAdmin).
 templ membersPage(p pageData, d tenantDetailData) {
-	@Layout(p) {
-		@tenantHeader(d)
-		@membersCard(d)
-	}
+	@Layout(p, membersContent(d))
+}
+
+templ membersContent(d tenantDetailData) {
+	@tenantHeader(d)
+	@membersCard(d)
 }

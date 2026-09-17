@@ -166,7 +166,12 @@ func (d *Dashboard) renderProjectionDetail(p pageData, proj projectionStat) stri
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2>%s %s</h2>`, esc(proj.Name), badgeHTML(proj.Status, statusKindToBadgeType(proj.StatusKind)))
+		fmt.Fprintf(
+			&b,
+			`<h2>%s %s</h2>`,
+			esc(proj.Name),
+			badgeHTML(proj.Status, statusKindToBadgeType(proj.StatusKind)),
+		)
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="stat-grid">`)

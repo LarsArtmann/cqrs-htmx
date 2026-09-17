@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // ===== Dead-Letter Queue =====
@@ -136,8 +137,8 @@ func (d *Dashboard) renderDLQEntryDetail(p pageData, proj string, entry projecti
 		if entry.ErrorFamily != "" {
 			fmt.Fprintf(
 				&b,
-				`<tr><td class="meta-key">Error Family</td><td class="meta-val"><span class="badge badge-err">%s</span></td></tr>`,
-				esc(entry.ErrorFamily),
+				`<tr><td class="meta-key">Error Family</td><td class="meta-val">%s</td></tr>`,
+				badgeHTML(entry.ErrorFamily, display.BadgeError),
 			)
 		}
 
@@ -351,7 +352,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono" title="%s">%s</td><td><a href="%s/dead-letters/%s/%s"><code>%s</code></a></td><td><span class="badge badge-err">%s</span></td><td>%s</td><td><a href="%s/dead-letters/%s/%s" class="btn">View</a> %s</td></tr>`,
+				`<tr><td class="mono" title="%s">%s</td><td><a href="%s/dead-letters/%s/%s"><code>%s</code></a></td><td>%s</td><td>%s</td><td><a href="%s/dead-letters/%s/%s" class="btn">View</a> %s</td></tr>`,
 				esc(e.FailedAt.Format("2006-01-02 15:04:05")),
 				esc(relativeTime(e.FailedAt)),
 				p.BasePath,
@@ -359,7 +360,7 @@ func (d *Dashboard) renderDLQ(p pageData, proj string, entries []projectionhost.
 				esc(e.EventID),
 				esc(e.EventType),
 				esc(truncate(e.Error, errorDisplayWidth)),
-				esc(e.ErrorFamily),
+				badgeHTML(e.ErrorFamily, display.BadgeError),
 				p.BasePath,
 				esc(proj),
 				esc(e.EventID),

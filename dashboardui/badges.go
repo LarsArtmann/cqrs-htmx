@@ -13,7 +13,7 @@ func badgeHTML(text string, badgeType display.BadgeType) string {
 	var b strings.Builder
 
 	_ = display.Badge(display.BadgeProps{Text: text, Type: badgeType, Dot: true}).
-		Render(context.Background(), &b) //nolint:contextcheck // decorative format helper, no request context in scope
+		Render(context.Background(), &b)
 
 	return b.String()
 }
