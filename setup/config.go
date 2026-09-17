@@ -187,6 +187,26 @@ type Config struct {
 	LoginRedirect string // default: "/admin/" — where to redirect after login
 	HealthPath    string // default: "/health" — health check endpoint
 
+	// Machine endpoints (all opt-in: "" = not mounted — no surprise routes).
+	// Session-gated JSON surfaces for monitors, scripts, and runbooks;
+	// event metadata (stream IDs, types) is not public data — the /sse 401
+	// precedent (ADR-0050 reasoning).
+
+	// EventCatalogPath serves the usermgmt event catalog as immutable JSON
+	// (schemas for all domain events; 1-year cache + FNV-1a ETag). The
+	// catalog serializes eagerly at New — a failure aborts construction
+	// (fail-fast, mirroring attachSSE).
+	EventCatalogPath string
+
+	// ProjectionStatusPath serves live projection health as no-cache JSON
+	// (per-request ETag): worker states, lag, restart counts.
+	ProjectionStatusPath string
+
+	// DebugPath serves build metadata as JSON (version, Go version, title).
+	// Keep it session-gated (it is here) — build metadata leaks deployment
+	// details.
+	DebugPath string
+
 	// Session configuration.
 	CookieName string        // default: "session"
 	SessionTTL time.Duration // default: 0 (use usermgmt default of 24h)
@@ -386,6 +406,11 @@ func (c Config) withDefaults() Config {
 	// Health checks are exact-match routes; a trailing slash would force an
 	// ugly redirect from "/health" to "/health/".
 	cfg.HealthPath = trimTrailingSlash(cfg.HealthPath)
+
+	// Machine endpoints are exact-match routes, like health.
+	cfg.EventCatalogPath = trimTrailingSlash(cfg.EventCatalogPath)
+	cfg.ProjectionStatusPath = trimTrailingSlash(cfg.ProjectionStatusPath)
+	cfg.DebugPath = trimTrailingSlash(cfg.DebugPath)
 
 	// SSE is an exact-match endpoint, like health.
 	cfg.SSEPath = trimTrailingSlash(cfg.SSEPath)
@@ -646,6 +671,17 @@ func (c Config) validatePathShapes() error {
 // validateOptionalFeedPaths checks the optional SSE/DataStar mount paths —
 // empty means "feature disabled", which is always valid.
 func (c Config) validateOptionalFeedPaths() error {
+	for _, opt := range []struct{ name, path string }{
+		{"EventCatalogPath", c.EventCatalogPath},
+		{"ProjectionStatusPath", c.ProjectionStatusPath},
+		{"DebugPath", c.DebugPath},
+	} {
+		if opt.path != "" && !startsWithSlash(opt.path) {
+			return errorfamily.Newf(errorfamily.Rejection,
+				"setup.invalid_config", "%s must start with %q (got %q)", opt.name, "/", opt.path)
+		}
+	}
+
 	if c.SSEPath != "" && !startsWithSlash(c.SSEPath) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config", "SSEPath must start with %q (got %q)", "/", c.SSEPath)
@@ -673,10 +709,11 @@ func (c Config) validateOptionalFeedPaths() error {
 // Mount time.
 func (c Config) validatePathRoots() error {
 	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" || c.SSEPath == "/" ||
-		c.DataStarPath == "/" || (c.DataStarScriptPath == "/") {
+		c.DataStarPath == "/" || (c.DataStarScriptPath == "/") ||
+		c.EventCatalogPath == "/" || c.ProjectionStatusPath == "/" || c.DebugPath == "/" {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",
-			"AdminPath, DashboardPath, HealthPath, SSEPath, DataStarPath, and DataStarScriptPath must not be \"/\" — the site root is reserved for the login page",
+			"AdminPath, DashboardPath, HealthPath, SSEPath, DataStarPath, DataStarScriptPath, EventCatalogPath, ProjectionStatusPath, and DebugPath must not be \"/\" — the site root is reserved for the login page",
 		)
 	}
 
@@ -697,6 +734,9 @@ func requireDistinctPaths(c Config) error {
 		{"SSEPath", trimTrailingSlash(c.SSEPath)},
 		{"DataStarPath", trimTrailingSlash(c.DataStarPath)},
 		{"DataStarScriptPath", trimTrailingSlash(c.DataStarScriptPath)},
+		{"EventCatalogPath", trimTrailingSlash(c.EventCatalogPath)},
+		{"ProjectionStatusPath", trimTrailingSlash(c.ProjectionStatusPath)},
+		{"DebugPath", trimTrailingSlash(c.DebugPath)},
 	}
 
 	for i := range paths {
