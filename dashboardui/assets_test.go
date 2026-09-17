@@ -71,6 +71,7 @@ func TestDashboard_304OnETag(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard-tw.css", nil)
 	req.Header.Set("If-None-Match", assetETag)
+
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -99,6 +100,7 @@ func TestDashboard_LayoutLinksTailwindCSS(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
 	}
+
 	if body := rec.Body.String(); !strings.Contains(body, "/-/dashboard-tw.css") {
 		t.Error("layout head missing dashboard-tw.css link")
 	}

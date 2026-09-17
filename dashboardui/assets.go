@@ -15,8 +15,8 @@ var assetsFS embed.FS
 // content-security-policy-friendly content type (adminui pattern).
 func assetHandler(name, contentType string) http.Handler {
 	sub, _ := fs.Sub(assetsFS, "assets")
-	data, err := fs.ReadFile(sub, name)
 
+	data, err := fs.ReadFile(sub, name)
 	if err != nil {
 		// Guarded by go:embed at compile time; unreachable.
 		panic("dashboardui: missing embedded asset " + name)

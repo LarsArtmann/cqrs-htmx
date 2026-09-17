@@ -107,6 +107,23 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 
 ### Tier 1 — The 1% gate + proof (M4–M5)
 
+> **SPIKE VERDICT (M5.8, executed 2026-09-17): the hybrid `Render(ctx, &b)` path is PROVEN.**
+> `display.StatusBadge` renders cleanly into the existing `strings.Builder` with zero templ
+> conversion; the old badge switch in `renderProjectionRow` is deleted. Findings for the
+> remaining rungs: (1) `StatusBadge` colors by the MAPPED WORD, so unknown status kinds must
+> fall back to `display.Badge(BadgeProps{Type: BadgeNeutral, Text: raw})` to preserve text +
+> neutral styling (implemented in `statusBadge`, single mapping point `statusKindToStatus`).
+> (2) Badges must be wrapped in `<td>` by the caller (components render bare `<span>`).
+> (3) `go mod tidy` resolves NEW imports at `@latest` — always `go get <family modules>@v1.17.0`
+> BEFORE tidy or the family drifts (hit: tidy bumped the family to v1.18.0, re-pinned).
+> (4) contextcheck demands real ctx — plumbed `r.Context()` through the 3 render funcs
+> (4 signature changes, cheap). (5) The M4 false-green root cause was NOT the fallback
+> location but the module-cache layout: the icons module extracts at
+> `templ-components/icons@v1.17.0`; its parent is NOT the root module
+> (`templ-components@v1.17.0` is a sibling entry). The flake app now derives the version from
+> the icons dir, downloads the root module if missing, and canary-asserts the output
+> (plus fails loudly on zero scanned .templ files).
+
 | ID | Micro task | Min | Dep |
 | --- | --- | --- | --- |
 | M4.1 | Create `dashboardui/app.css`: `@import "tailwindcss";` | 8 | M3 |

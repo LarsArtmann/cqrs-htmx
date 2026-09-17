@@ -164,7 +164,10 @@ func statusBadge(ctx context.Context, b *strings.Builder, kind, statusText strin
 
 		return
 	}
-	_ = display.Badge(display.BadgeProps{Text: statusText, Type: display.BadgeNeutral, Dot: true}).Render(ctx, b) //nolint:exhaustruct // neutral fallback: Text/Type/Dot are the intended fields
+
+	_ = display.Badge(display.BadgeProps{Text: statusText, Type: display.BadgeNeutral, Dot: true}).
+		Render(ctx, b)
+	//nolint:exhaustruct // neutral fallback: Text/Type/Dot are the intended fields
 }
 
 func statCard(b *strings.Builder, value, label, variant string) {
