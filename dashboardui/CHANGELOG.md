@@ -13,6 +13,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - **Styled error pages** (`render.go`, `errors_test.go`): `renderError` maps HTTP status → error family (409 Conflict, 502/503/504 Transient, 4xx Rejection, else Infrastructure) and renders `errorpage.ErrorPage` — bare card for HTMX requests, full documented shell otherwise; `notFoundHandler` upgraded to `errorpage.NotFound404`.
   - **Library badges everywhere** (`badges.go`, `format.go`): every status/encoding/count badge routes through `display.StatusBadge`/`display.Badge` via `badgeHTML`; unknown kinds keep raw text as explicit neutral badges.
   - **Library stat cards with stable DOM hooks** (`stats.go`): overview + projection-detail stats render through `display.StatCard` with ValueIDs (`stat-total-events`, `stat-system-health`, `stat-<metric>-<slug>` …) so live-updating scripts survive future markup refactors.
+  - **Definition lists** (`definitions.go`): all six detail pages (event, command, query, DLQ entry, projection, snapshot) render metadata through `display.DefinitionList` with inline copy buttons.
+  - **Copy buttons** (`buttons.go`): every copyable ID and the event payload render `display.CopyButton`; the hand-rolled click-to-copy cell JS and `data-copyable` attribute protocol are gone.
+  - **Library buttons** (`buttons.go`): all navigation and form buttons render `display.Button` (Secondary / OutlineInfo / OutlineDanger); disabled pager links use the library's aria-disabled treatment.
+  - **Empty states** (`render.go`): every empty state renders `display.EmptyState` (`role="status"`, icon tile) with per-page nav icons.
+  - **Library tables**: all listing tables (events, commands, queries, aggregates, projections, dead letters, snapshots, time travel, recent events) render `display.Table` with typed headers (aria-sort), server-side sort links, and LazyRows content-visibility.
+  - **Toast host** (`layout.go`): `feedback.ToastContainer` mounted in the layout; write handlers emit a `dashboardui:toast` Hx-Trigger event bridged to `tcShowToast` by the external script (CSP-safe).
+  - **Global error handling** (`layout.go`): `htmx.GlobalErrorHandling` retries 5xx swaps with backoff and announces failures (2 retries, 1s base delay).
+  - **Page-size selector** (`pagination.go`): renders `forms.Select`.
 
 ### Changed
 

@@ -288,6 +288,21 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 
 ### Tier 4 — The long tail to 100% (M17–M28)
 
+> **RUN-2 FINAL VERDICT (2026-09-17): Tier 4 executed. 15 of 22 capabilities adopted; score re-estimated ~85/100.**
+> Adopted this tier: forms.Select (page size), display.Table raw-body + data-row paths across
+> all nine listing tables, display.DefinitionList across all six detail metadata surfaces,
+> display.CopyButton for every copyable ID and the event payload. **Deliberate exclusions with
+> reasons (not drift):** navigation.Pagination (cursor+history model, numbered pages meaningless
+> on append-only journals), display.ListNote (count-only vs the dashboard's range semantics),
+> navigation.SidebarNav/layout.AppShell (custom dark theme + mobile drawer, adminui precedent),
+> ThemeScript/ThemeToggle (new feature, not an adoption swap — routed to TODO_LIST if wanted).
+> Lint end-state: ZERO golangci-lint findings in dashboardui (all four planned M26 complexity
+> findings refactored away: LoadEventByID split into per-source loaders, FetchOverview health
+> classification extracted, renderOverview → renderStatGrid + renderRecentEventsTable,
+> renderEventDetail → eventMetaItems). New guards: golden markup pins, CSP handler-attribute
+> prohibition test, a11y live-region/landmark/aria-sort tests, hybrid-render benchmark
+> (~2µs/component, docs/benchmarks/dashboardui-render-2026-09-17.md).
+
 | ID | Micro task | Min | Dep |
 | --- | --- | --- | --- |
 | M17.1a | Pagination URL/param builder helper | 10 | M14 |
