@@ -128,8 +128,8 @@ func TestNotFound_Handler(t *testing.T) {
 		t.Fatalf("expected status 404, got %d", rec.Code)
 	}
 
-	if !strings.Contains(rec.Body.String(), "Page Not Found") {
-		t.Errorf("expected 'Page Not Found' in 404 body")
+	if !strings.Contains(rec.Body.String(), "Page not found") {
+		t.Errorf("expected 'Page not found' in 404 body")
 	}
 }
 

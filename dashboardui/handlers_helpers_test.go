@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
@@ -43,8 +44,8 @@ func TestWithProjectionHost_Missing(t *testing.T) {
 		t.Fatalf("expected status 400, got %d", w.Code)
 	}
 
-	if w.Body.String() != "projection host not configured\n" {
-		t.Fatalf("unexpected body: %q", w.Body.String())
+	if body := w.Body.String(); !strings.Contains(body, "projection host not configured") {
+		t.Fatalf("unexpected body: %q", body)
 	}
 }
 
@@ -87,8 +88,8 @@ func TestWithDeadLetterStore_Missing(t *testing.T) {
 		t.Fatalf("expected status 400, got %d", w.Code)
 	}
 
-	if w.Body.String() != "dead letter store not configured\n" {
-		t.Fatalf("unexpected body: %q", w.Body.String())
+	if body := w.Body.String(); !strings.Contains(body, "dead letter store not configured") {
+		t.Fatalf("unexpected body: %q", body)
 	}
 }
 

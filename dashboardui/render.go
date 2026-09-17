@@ -99,7 +99,9 @@ func (d *Dashboard) renderErrorShell(title, inner string) string {
 	var b strings.Builder
 
 	b.WriteString("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
-	b.WriteString("<meta charset=\"utf-8\"/>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n")
+	b.WriteString(
+		"<meta charset=\"utf-8\"/>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n",
+	)
 	fmt.Fprintf(&b, "<title>%s</title>\n", esc(title))
 	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", d.config.BasePath)
 	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard-tw.css\"/>\n", d.config.BasePath)
