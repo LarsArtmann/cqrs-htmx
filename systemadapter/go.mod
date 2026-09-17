@@ -94,7 +94,7 @@ require (
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.58.0 // indirect
+	modernc.org/sqlite v1.59.0 // indirect
 )
 
 require (
@@ -104,11 +104,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
 )
 
-replace github.com/larsartmann/cqrs-htmx => ../
+replace github.com/larsartmann/cqrs-htmx/v4 => ../
 
 replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model
 
@@ -119,3 +117,9 @@ replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
 // use it. Required for hermetic GOWORK=off builds. Remove once
 // metaengine/projectionadapter/v4 v4.5.0+ is tagged.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => ../../go-cqrs-lite/metaengine/projectionadapter
+
+// TEMPORARY local replace: master's projectionadapter now also calls
+// metaengine.Store.Reset (ResetResult API), which published metaengine
+// v4.13.0 lacks. Required for hermetic GOWORK=off builds. Remove once
+// metaengine/v4 ships the Reset API.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../go-cqrs-lite/metaengine

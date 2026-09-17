@@ -87,7 +87,7 @@ require (
 	golang.org/x/time v0.16.0 // indirect
 )
 
-replace github.com/larsartmann/cqrs-htmx => ../..
+replace github.com/larsartmann/cqrs-htmx/v4 => ../..
 
 replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../../identity-model
 
@@ -100,3 +100,9 @@ replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../../usermgmt
 // handlers. Required for hermetic GOWORK=off builds. Remove once
 // metaengine/projectionadapter/v4 v4.5.0+ is tagged.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => ../../../go-cqrs-lite/metaengine/projectionadapter
+
+// TEMPORARY local replace: master's projectionadapter now also calls
+// metaengine.Store.Reset (ResetResult API), which published metaengine
+// v4.13.0 lacks. Required for hermetic GOWORK=off builds. Remove once
+// metaengine/v4 ships the Reset API.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../../go-cqrs-lite/metaengine

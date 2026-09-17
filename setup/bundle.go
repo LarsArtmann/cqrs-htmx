@@ -8,11 +8,11 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
-	"github.com/larsartmann/go-datastar/broadcast"
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/httputil"
