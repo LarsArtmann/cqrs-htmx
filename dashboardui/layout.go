@@ -324,6 +324,9 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .empty-state { padding: 40px; text-align: center; color: var(--muted); }
 .empty-state h2 { margin-bottom: 8px; }
 
+/* ===== Error/404 shell (errorpage adoption) ===== */
+.error-shell { max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
+
 /* ===== Metadata table ===== */
 .meta-table { width: 100%; border-collapse: collapse; font-size: 0.88em; }
 .meta-table td { padding: 6px 8px; }

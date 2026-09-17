@@ -1,10 +1,12 @@
 package dashboardui
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/templ-components/errorpage"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // Handler returns the root HTTP handler for the dashboard. All internal
@@ -136,16 +138,34 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	return mux
 }
 
-// notFoundHandler renders a styled 404 page within the dashboard layout.
+// notFoundHandler renders a styled 404 page (templ-components errorpage):
+// the bare component for HTMX swaps, the shell document with dashboard
+// stylesheets otherwise.
 func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	p := d.page("Not Found", "", r)
+	props := errorpage.DefaultNotFound404Props()
+	props.GoHomeHref = d.config.BasePath + "/"
+	props.Links = []errorpage.NotFoundLink{
+		{Text: "Overview", Href: d.config.BasePath + "/", Icon: icons.Home},
+	}
+
+	var b strings.Builder
+	if err := errorpage.NotFound404(props).Render(r.Context(), &b); err != nil {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte("404 page not found\n"))
+
+		return
+	}
 
 	w.Header().Set("Content-Type", contentTypeHTML)
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprint(w, d.renderLayout(p, func() string {
-		return `<div class="empty-state"><h2>Page Not Found</h2><p>The requested page does not exist.</p><a href="` + esc(
-			p.BasePath,
-		) + `/" class="btn">Back to Overview</a></div>`
-	}))
+
+	if isHTMXRequest(r) {
+		_, _ = w.Write([]byte(b.String()))
+
+		return
+	}
+
+	_, _ = w.Write([]byte(d.renderErrorShell(props.Title, b.String())))
 }

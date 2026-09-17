@@ -205,8 +205,12 @@ type pageData struct {
 	Nav       []navItem
 	LogoutURL string
 	CSRFToken string
-	ReadOnly  bool
-	Caps      Capabilities
+	// Nonce is the per-request CSP nonce (httputil.NonceFromRequest). Inline
+	// scripts emitted by adopted templ-components components carry it; empty
+	// when the middleware stack does not issue nonces.
+	Nonce    string
+	ReadOnly bool
+	Caps     Capabilities
 	// HTMX is true when the request carries the HX-Request header (boosted
 	// link or explicit hx-get). When true, renderLayout returns only the
 	// <main> content, skipping the full HTML shell for faster swaps.

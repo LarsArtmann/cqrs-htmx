@@ -65,6 +65,7 @@ func (d *Dashboard) renderError(w http.ResponseWriter, r *http.Request, statusCo
 	props.StatusCode = statusCode
 	props.Title = http.StatusText(statusCode)
 	props.Message = message
+	props.Nonce = nonce
 	props.Timestamp = ""
 
 	var b strings.Builder
