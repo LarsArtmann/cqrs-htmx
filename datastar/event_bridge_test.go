@@ -7,6 +7,7 @@ import (
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +29,7 @@ func makeTestEvent(t *testing.T, eventType string) event.Event {
 func TestNewEventBridge(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	require.NotNil(t, bridge)
@@ -38,7 +39,7 @@ func TestNewEventBridge(t *testing.T) {
 func TestEventBridgeMapAndHandle(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	handlerCalled := false
@@ -58,7 +59,7 @@ func TestEventBridgeMapAndHandle(t *testing.T) {
 func TestEventBridgeUnmappedEventSkipped(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	evt := makeTestEvent(t, "UnknownEvent")
@@ -70,7 +71,7 @@ func TestEventBridgeUnmappedEventSkipped(t *testing.T) {
 func TestEventBridgeUnmap(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	bridge.Map("TodoCreated", func(e event.Event) (ds.Patch, error) {
@@ -92,7 +93,7 @@ func TestEventBridgeUnmap(t *testing.T) {
 func TestEventBridgeReplaceMapping(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	callCount := 0
@@ -117,7 +118,7 @@ func TestEventBridgeReplaceMapping(t *testing.T) {
 func TestEventBridgeHandlerReturnsError(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	bridge.Map("FailEvent", func(e event.Event) (ds.Patch, error) {
@@ -133,7 +134,7 @@ func TestEventBridgeHandlerReturnsError(t *testing.T) {
 func TestEventBridgeHandlerReturnsNilPatch(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	bridge.Map("NilPatch", func(e event.Event) (ds.Patch, error) {
@@ -149,7 +150,7 @@ func TestEventBridgeHandlerReturnsNilPatch(t *testing.T) {
 func TestEventBridgeMultipleMappings(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	bridge.Map("TodoCreated", func(e event.Event) (ds.Patch, error) {
@@ -175,7 +176,7 @@ func TestEventBridgeMultipleMappings(t *testing.T) {
 func TestEventBridgeRemovePatchMapping(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	bridge.Map("TodoDeleted", func(e event.Event) (ds.Patch, error) {
@@ -194,7 +195,7 @@ func TestEventBridgeRemovePatchMapping(t *testing.T) {
 func TestEventBridgeMappedEventTypesReturnsSortedCopy(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	bridge.Map("Z", func(e event.Event) (ds.Patch, error) { return nil, nil })
@@ -211,7 +212,7 @@ func TestEventBridgeMappedEventTypesReturnsSortedCopy(t *testing.T) {
 func TestEventBridgeOnError(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	var captured error
@@ -230,7 +231,7 @@ func TestEventBridgeOnError(t *testing.T) {
 func TestEventBridgeOnErrorNilDropsSilently(t *testing.T) {
 	t.Parallel()
 
-	broadcaster := ds.NewBroadcaster()
+	broadcaster := broadcast.NewBroadcaster()
 	bridge := ds.NewEventBridge(broadcaster)
 
 	bridge.Map("FailEvent", func(e event.Event) (ds.Patch, error) {
