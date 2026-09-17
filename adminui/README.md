@@ -7,11 +7,27 @@ management, tenant members, and an audit log.
 
 - **One-call mount** behind your existing session middleware.
 - **Two scopes**: a global _Super Admin_ panel, or a per-tenant _Tenant Admin_ panel.
-- **Modern look** out of the box — a self-contained stylesheet with automatic
-  light/dark theming and a configurable accent color. No Tailwind, no build step.
+- **Modern look** out of the box: a self-contained stylesheet (a committed
+  Tailwind v4 build, embedded at compile time) with automatic light/dark theming
+  and a configurable accent color. Consumers run no CSS build step.
 - **HTMX interactivity** — live search, inline actions, toast notifications.
 - **templ-powered** — type-safe HTML components. The generated Go is committed, so
   consumers never run a code generator.
+
+## adminui or dashboardui?
+
+cqrs-htmx ships two dashboards, and the names alone do not say which is which:
+
+- **adminui (this module) manages your users.** Identity operations over a
+  `*usermgmt.Service`: accounts, tenants, members, roles, and the audit log,
+  with write actions, gated by roles.
+- **[dashboardui](../dashboardui/README.md) introspects your event store.**
+  CQRS/event-sourcing observability: journal, aggregates, projections, dead
+  letters, snapshots, time-travel. Read-only by default.
+
+They are complementary, not alternatives: most apps mount both.
+[setup/v4](../setup/README.md) wires admin panel, dashboard, and
+[loginpage](../loginpage/README.md) in one call.
 
 ## Quick start
 

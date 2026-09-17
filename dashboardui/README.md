@@ -4,6 +4,14 @@ A self-contained, capability-aware dashboard for [go-cqrs-lite](https://github.c
 Mount it on any `http.ServeMux` to get instant visibility into your event store, aggregates, projections, dead letters,
 commands, queries, snapshots, and time-travel state reconstruction.
 
+> **dashboardui or adminui?** **dashboardui (this module) introspects your event
+> store**: CQRS/event-sourcing observability over go-cqrs-lite interfaces
+> (journal, aggregates, projections, dead letters, snapshots), read-only by
+> default. **[adminui](../adminui/README.md) manages your users**: identity
+> operations (accounts, tenants, members, audit log) over a `*usermgmt.Service`,
+> with write actions, role-gated. They are complementary, not alternatives:
+> most apps mount both, and [setup/v4](../setup/README.md) wires both in one call.
+
 ## Quick Start
 
 ```go

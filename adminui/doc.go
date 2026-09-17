@@ -13,6 +13,15 @@
 // (e.g. [usermgmt.NewSessionMiddleware]) so that [*identitymodel.User] is present in
 // the request context. Access is gated by [Config.Authorizer].
 //
+// # Which dashboard?
+//
+// cqrs-htmx ships two dashboards: adminui (this package) manages users,
+// tenants, members, and the audit log over a [*usermgmt.Service], with write
+// actions; [github.com/larsartmann/cqrs-htmx/dashboardui/v4] introspects the
+// event store (journal, aggregates, projections, dead letters) and is
+// read-only by default. They are complementary: most apps mount both, and
+// [github.com/larsartmann/cqrs-htmx/setup/v4] wires them in one call.
+//
 // # Two scopes
 //
 //   - Super Admin (default): a global view of every user, tenant, and audit
