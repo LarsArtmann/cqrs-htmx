@@ -1,6 +1,6 @@
 # SSE and Datastar Broadcaster Guide
 
-> How cqrs-htmx's `Broadcaster` and datastar's `Broadcaster` relate, and how to share one fan-out hub across both transports.
+> How cqrs-htmx's `Broadcaster` and the go-datastar `broadcast.Broadcaster` relate, and how to share one fan-out hub across both transports.
 
 ## The Hub Comes First
 
@@ -10,7 +10,9 @@ The canonical shareable object is go-sse's [`*sse.Broadcaster[sse.Event]`](https
 | ----------------------------- | --------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
 | `*sse.Broadcaster[sse.Event]` | go-sse                | (none — hub) | Core fan-out: Subscribe, Broadcast, SubscribeFilter, Health, Shutdown, replay plumbing                               |
 | `cqrshtmx.Broadcaster`        | Root (`cqrs-htmx/v4`) | HTMX SSE     | CQRS dispatch-hook constructors (`BroadcastOnSuccess`, `BroadcastOnError`) + `ServeSSE` lifecycle helper             |
-| `datastar.Broadcaster`        | `datastar/v4`         | Datastar SSE | Patch ergonomics (`Broadcast(patch)`, typed patch constructors) + `http.Handler` mount + optional replay ring buffer |
+| `broadcast.Broadcaster`       | `go-datastar/broadcast` | Datastar SSE | Patch ergonomics (`Broadcast(patch)`, typed patch constructors) + `http.Handler` mount + optional replay ring buffer |
+
+The Datastar adapter lives in the [`go-datastar/broadcast`](https://github.com/LarsArtmann/go-datastar) submodule (moved upstream 2026-09-17); `datastar/v4` keeps a deprecated transparent type alias (`ds.Broadcaster`) plus deprecated constructor shims until v5. The domain-coupled `EventBridge` (go-cqrs-lite events → patches) stays in `cqrs-htmx/datastar/v4` by go-datastar's documented non-goals.
 
 Both adapters **embed** `*sse.Broadcaster[sse.Event]`, so the full go-sse method set (including `SubscribeFilter`, `Health`, `Shutdown`, `OnSubscribe`, `OnUnsubscribe`) is promoted and callable directly on either adapter.
 
@@ -26,7 +28,7 @@ Both adapters **embed** `*sse.Broadcaster[sse.Event]`, so the full go-sse method
            ┌───────────────────┴───────────────────┐
            │                                       │
 ┌──────────┴──────────┐              ┌─────────────┴──────────────┐
-│ cqrshtmx.Broadcaster │              │  datastar.Broadcaster      │
+│ cqrshtmx.Broadcaster │              │  broadcast.Broadcaster     │
 │  (embeds the hub)    │              │  (embeds the hub)          │
 │                       │              │                            │
 │  + BroadcastOnSuccess │              │  + Broadcast(patch)        │
@@ -52,7 +54,9 @@ b := cqrshtmx.NewBroadcaster()
 hub := b.Hub() // *sse.Broadcaster[sse.Event]
 
 // Datastar
-dsb := ds.NewBroadcaster()
+import "github.com/larsartmann/go-datastar/broadcast"
+
+dsb := broadcast.NewBroadcaster()
 hub := dsb.Hub() // *sse.Broadcaster[sse.Event]
 ```
 
@@ -73,7 +77,7 @@ import (
     "net/http"
 
     cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
-    ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+    "github.com/larsartmann/go-datastar/broadcast"
     "github.com/larsartmann/go-sse"
 )
 
@@ -83,7 +87,7 @@ func main() {
 
     // 2. Wrap it for each transport
     htmxBroadcaster := cqrshtmx.NewBroadcasterFromHub(hub)
-    dsBroadcaster := ds.NewBroadcasterFromHub(hub)
+    dsBroadcaster := broadcast.NewBroadcasterFromHub(hub)
 
     mux := http.NewServeMux()
 
@@ -119,12 +123,12 @@ The pre-hub vocabulary framed the hub as a "raw" escape hatch. It is deprecated 
 
 | Deprecated (until v5)                 | Use instead                                         |
 | ------------------------------------- | --------------------------------------------------- |
-| `b.Raw()`                             | `b.Hub()`                                           |
+| `b.Raw()` (cqrshtmx)                  | `b.Hub()`                                           |
 | `cqrshtmx.NewBroadcasterFromRaw(hub)` | `cqrshtmx.NewBroadcasterFromHub(hub)`               |
-| `ds.NewBroadcasterFromRaw(hub)`       | `ds.NewBroadcasterFromHub(hub)`                     |
+| `ds.NewBroadcasterFromRaw(hub)`       | `broadcast.NewBroadcasterFromHub(hub)`              |
 | `cqrshtmx.RawBroadcaster` interface   | Pass `*sse.Broadcaster[sse.Event]` (the hub itself) |
 
-The deprecated symbols remain functional through v4; staticcheck flags call sites. The datastar adapter's hub was previously a hidden unexported field (`inner`) with hand-written pass-throughs — it is now embedded, so `Subscribe`/`SubscribeFilter` and friends promote for free.
+The deprecated symbols remain functional through v4; staticcheck flags call sites. Note the Datastar adapter moved to `go-datastar/broadcast` as a fresh module: `ds.NewBroadcasterFromRaw` still exists as a deprecated shim delegating to `broadcast.NewBroadcasterFromHub`, but the `Raw()` **method** was dropped with the move (a transparent type alias cannot carry methods; it had zero in-repo consumers). The adapter's hub was previously a hidden unexported field (`inner`) with hand-written pass-throughs — it is now embedded, so `Subscribe`/`SubscribeFilter` and friends promote for free.
 
 ## Choosing a Transport
 
@@ -200,7 +204,7 @@ during backfill would be a security hole, never a degradation.
 The SSE push path emits no spans or metrics of its own — the library stays
 dep-free by design. Everything needed to instrument it is already on the hub
 surface (verified against go-sse; all hooks are promoted on both the
-`cqrshtmx` and `datastar` adapters):
+`cqrshtmx` and `broadcast` adapters):
 
 | Surface                                   | Fires / returns                                              | Instrument it as                    |
 | ----------------------------------------- | ------------------------------------------------------------ | ------------------------------------ |

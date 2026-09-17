@@ -12,12 +12,16 @@ Datastar replaces Alpine.js, HTMX extensions (idiomorph, SSE, WS), and hand-roll
 
 ```bash
 go get github.com/larsartmann/cqrs-htmx/datastar/v4
+go get github.com/larsartmann/go-datastar/broadcast
 ```
 
 Import as:
 
 ```go
-import ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+import (
+	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
+)
 ```
 
 ## Quick Start
@@ -38,30 +42,26 @@ Add the script tag to your HTML:
 
 ### 2. Set up real-time SSE
 
-The `Broadcaster` fans out Datastar patches to all connected clients with built-in reconnection replay:
+The `Broadcaster` (now living in the [`go-datastar/broadcast`](https://github.com/LarsArtmann/go-datastar) submodule — the `ds.NewBroadcaster*` constructors here are deprecated aliases) fans out Datastar patches to all connected clients with built-in reconnection replay:
 
 ```go
-broadcaster := ds.NewBroadcaster()
+import "github.com/larsartmann/go-datastar/broadcast"
+
+broadcaster := broadcast.NewBroadcaster()
 mux.Handle("GET /events", broadcaster)
 ```
 
 When a client reconnects (sending the `Last-Event-ID` header), missed patches are replayed automatically. Configure the replay buffer size:
 
 ```go
-broadcaster := ds.NewBroadcasterWithReplay(1024) // 1024-patch ring buffer
+broadcaster := broadcast.NewBroadcasterWithReplay(1024) // 1024-patch ring buffer
 ```
 
 Pass `0` to disable replay entirely (clients that disconnect miss patches until reconnect).
 
 #### Heartbeat (keep-alive)
 
-Proxies (nginx, Cloudflare, load balancers) close idle SSE connections after a timeout. Enable periodic heartbeats to keep the connection alive:
-
-```go
-broadcaster := ds.NewBroadcasterWithHeartbeat(30 * time.Second)
-```
-
-Heartbeats are sent as lightweight SSE events (`event: ping`) that the Datastar client silently ignores. They reset proxy idle timers without producing any visible UI update.
+Proxies (nginx, Cloudflare, load balancers) close idle SSE connections after a timeout. Every `broadcast.Broadcaster` connection already sends a lightweight SSE comment frame (`: heartbeat`) every 15 seconds — no configuration needed. Browsers ignore comment frames, but they reset proxy idle timers without producing any visible UI update. For a custom interval or custom per-connection serving, subscribe to `broadcaster.Hub()` and run your own `sse.Stream` with `stream.Heartbeat(ctx, interval)`.
 
 ### 3. Decode client signals
 
@@ -212,9 +212,9 @@ What you get:
 - `/ds/events` — DataStar SSE feed of every committed domain event,
   session-gated 401 exactly like `/sse` (event metadata is not public data).
 - `/datastar.js` — the SDK script, ETag-cached.
-- `bundle.DataStarBroadcaster` — broadcast your own patches to the feed
-  (`ds.SignalsPatch`, `ds.ElementsPatch`, ...). It shares the fan-out hub
-  with `bundle.Broadcaster`, so one broadcast reaches BOTH transports.
+- `bundle.DataStarBroadcaster` — a `*broadcast.Broadcaster`; broadcast your own
+  patches to the feed (`ds.SignalsPatch`, `ds.ElementsPatch`, ...). It shares the
+  fan-out hub with `bundle.Broadcaster`, so one broadcast reaches BOTH transports.
 
 The feed is live fan-out; `/sse` remains the replay-capable endpoint
 (Last-Event-ID backfill from the journal). See `fullstack-wiring.md` for the

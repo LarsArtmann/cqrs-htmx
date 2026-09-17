@@ -265,8 +265,9 @@ same wiring the flag performs:
 ```go
 // Requires: setup bundle with SSEPath set (owns the hub + journal bridge).
 //   go get github.com/larsartmann/cqrs-htmx/datastar/v4
+//   go get github.com/larsartmann/go-datastar/broadcast
 
-dsb := ds.NewBroadcasterFromHub(bundle.Broadcaster.Hub())
+dsb := broadcast.NewBroadcasterFromHub(bundle.Broadcaster.Hub())
 
 // Optional: map domain events to DataStar patches (fragment/signal patches).
 bridge := ds.NewEventBridge(dsb)
