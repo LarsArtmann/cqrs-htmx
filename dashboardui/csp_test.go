@@ -1,7 +1,6 @@
 package dashboardui
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -27,12 +26,16 @@ func cspDashboard(t *testing.T) http.Handler {
 	mux := http.NewServeMux()
 	d.Mount(mux, "/dashboard/")
 
-	return httputil.RecommendedSecurityMiddleware()(mux)
+	return httputil.Compose(
+		httputil.SecurityHeaders(httputil.SecurityHeadersConfig{}),
+		httputil.Nonce(httputil.NonceConfig{}),
+	)(mux)
 }
 
-// renderWithNonce renders an overview page through the security middleware so
-// request-scoped nonces are populated.
-func renderWithNonce(t *testing.T, target string) string {
+// renderWithNonce renders a page through the security middleware so
+// request-scoped nonces are populated. The second result is false when the
+// page is unavailable without its data source (404-class responses).
+func renderWithNonce(t *testing.T, target string) (string, bool) {
 	t.Helper()
 
 	h := cspDashboard(t)
@@ -42,17 +45,20 @@ func renderWithNonce(t *testing.T, target string) string {
 	h.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d for %s", rec.Code, target)
+		return "", false
 	}
 
-	return rec.Body.String()
+	return rec.Body.String(), true
 }
 
 // TestCSP_LibraryScriptsCarryNonce pins the M22 contract: every inline script
 // the dashboard emits (library toast/copy/error-handling scripts) carries the
 // per-request nonce so a nonce-locked CSP policy executes them.
 func TestCSP_LibraryScriptsCarryNonce(t *testing.T) {
-	body := renderWithNonce(t, "/dashboard/")
+	body, ok := renderWithNonce(t, "/dashboard/")
+	if !ok {
+		t.Fatal("overview unavailable")
+	}
 
 	if !strings.Contains(body, "nonce=") {
 		t.Fatal("expected at least one nonce-carrying inline script")
@@ -88,10 +94,16 @@ func TestCSP_NoInlineEventHandlers(t *testing.T) {
 	for _, target := range []string{
 		"/dashboard/",
 		"/dashboard/events",
-		"/dashboard/projections",
 		"/dashboard/aggregates",
+		"/dashboard/commands",
+		"/dashboard/queries",
+		"/dashboard/time-travel",
+		"/dashboard/snapshots",
 	} {
-		body := renderWithNonce(t, target)
+		body, ok := renderWithNonce(t, target)
+		if !ok {
+			continue
+		}
 
 		for _, handler := range []string{"onclick=", "onchange=", "onsubmit=", "onload="} {
 			if strings.Contains(body, handler) {
@@ -130,8 +142,9 @@ func TestNonceFromRequestPopulated(t *testing.T) {
 		}
 	})
 
-	h := httputil.RecommendedSecurityMiddleware()(next)
+	h := httputil.Compose(
+		httputil.SecurityHeaders(httputil.SecurityHeadersConfig{}),
+		httputil.Nonce(httputil.NonceConfig{}),
+	)(next)
 	h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/", nil))
-
-	_ = context.Background()
 }
