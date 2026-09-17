@@ -185,7 +185,21 @@ type Config struct {
 	AdminPath     string // default: "/admin/"
 	DashboardPath string // default: "/dashboard/"
 	LoginRedirect string // default: "/admin/" — where to redirect after login
-	HealthPath    string // default: "/health" — health check endpoint
+
+	// HealthPath is the readiness endpoint mount (default: "/health"; 503
+	// while projections drain, then 200). Set to "-" to NOT mount it at all —
+	// for consumers whose own health stack owns probing (go-health via the
+	// health module, appkit's /health/* via RunWithAppkit). "" re-defaults to
+	// "/health"; "-" is the explicit opt-out.
+	HealthPath string
+
+	// LivePath mounts a liveness endpoint (default: "" = not mounted —
+	// opt-in, no surprise routes). Unlike HealthPath (readiness: 503 while
+	// projections catch up), liveness answers 200 whenever the process is
+	// serving — point orchestrator restart probes (k8s livenessProbe) here so
+	// a draining journal never triggers a restart loop. Public, like health:
+	// it exposes no data beyond "the process is up".
+	LivePath string
 
 	// Machine endpoints (all opt-in: "" = not mounted — no surprise routes).
 	// Session-gated JSON surfaces for monitors, scripts, and runbooks;
@@ -404,8 +418,12 @@ func (c Config) withDefaults() Config {
 	cfg.DashboardPath = ensureTrailingSlash(cfg.DashboardPath)
 
 	// Health checks are exact-match routes; a trailing slash would force an
-	// ugly redirect from "/health" to "/health/".
+	// ugly redirect from "/health" to "/health/". "-" is the opt-out and
+	// passes through untouched (trimTrailingSlash leaves single chars alone).
 	cfg.HealthPath = trimTrailingSlash(cfg.HealthPath)
+
+	// Liveness is an exact-match route, like health.
+	cfg.LivePath = trimTrailingSlash(cfg.LivePath)
 
 	// Machine endpoints are exact-match routes, like health.
 	cfg.EventCatalogPath = trimTrailingSlash(cfg.EventCatalogPath)
@@ -646,9 +664,15 @@ func (c Config) validatePathShapes() error {
 		)
 	}
 
-	if !startsWithSlash(c.HealthPath) {
+	if c.HealthPath != "-" && !startsWithSlash(c.HealthPath) {
 		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config", "HealthPath must start with %q (got %q)", "/", c.HealthPath)
+			"setup.invalid_config",
+			"HealthPath must start with %q or be \"-\" to disable (got %q)", "/", c.HealthPath)
+	}
+
+	if c.LivePath != "" && !startsWithSlash(c.LivePath) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config", "LivePath must start with %q (got %q)", "/", c.LivePath)
 	}
 
 	if err := c.validateOptionalFeedPaths(); err != nil {
@@ -708,9 +732,9 @@ func (c Config) validateOptionalFeedPaths() error {
 // as its catch-all, so any panel or health endpoint there would collide at
 // Mount time.
 func (c Config) validatePathRoots() error {
-	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" || c.SSEPath == "/" ||
+	if c.AdminPath == "/" || c.DashboardPath == "/" || c.SSEPath == "/" ||
 		c.DataStarPath == "/" || (c.DataStarScriptPath == "/") ||
-		c.EventCatalogPath == "/" || c.ProjectionStatusPath == "/" || c.DebugPath == "/" {
+		c.LivePath == "/" || c.EventCatalogPath == "/" || c.ProjectionStatusPath == "/" || c.DebugPath == "/" {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",
 			"AdminPath, DashboardPath, HealthPath, SSEPath, DataStarPath, DataStarScriptPath, EventCatalogPath, ProjectionStatusPath, and DebugPath must not be \"/\" — the site root is reserved for the login page",
@@ -734,6 +758,7 @@ func requireDistinctPaths(c Config) error {
 		{"SSEPath", trimTrailingSlash(c.SSEPath)},
 		{"DataStarPath", trimTrailingSlash(c.DataStarPath)},
 		{"DataStarScriptPath", trimTrailingSlash(c.DataStarScriptPath)},
+		{"LivePath", trimTrailingSlash(c.LivePath)},
 		{"EventCatalogPath", trimTrailingSlash(c.EventCatalogPath)},
 		{"ProjectionStatusPath", trimTrailingSlash(c.ProjectionStatusPath)},
 		{"DebugPath", trimTrailingSlash(c.DebugPath)},
@@ -741,9 +766,9 @@ func requireDistinctPaths(c Config) error {
 
 	for i := range paths {
 		for j := i + 1; j < len(paths); j++ {
-			// Unset optional paths ("") never conflict with each other — two
-			// disabled features are not a route collision.
-			if paths[i].path == "" || paths[j].path == "" {
+			// Unset optional paths ("" and the "-" opt-out) never conflict
+			// with each other — two disabled features are not a route collision.
+			if paths[i].path == "" || paths[j].path == "" || paths[i].path == "-" || paths[j].path == "-" {
 				continue
 			}
 

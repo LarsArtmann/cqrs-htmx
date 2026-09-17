@@ -101,9 +101,17 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	// for monitors and runbooks (the /sse 401 precedent).
 	b.mountMachineEndpoints(mux)
 
-	// Health check — public, no auth.
-	if cfg.HealthPath != "" {
+	// Health check (readiness) — public, no auth. "-" opts out entirely for
+	// consumers whose own health stack owns probing.
+	if cfg.HealthPath != "" && cfg.HealthPath != "-" {
 		mux.Handle(cfg.HealthPath, b.healthHandler())
+	}
+
+	// Liveness — public, always-200 while the process serves. Opt-in via
+	// LivePath; distinct from HealthPath (readiness) so a draining journal
+	// never triggers an orchestrator restart loop.
+	if cfg.LivePath != "" {
+		mux.HandleFunc(cfg.LivePath, cqrshtmx.ReadinessHandler())
 	}
 }
 

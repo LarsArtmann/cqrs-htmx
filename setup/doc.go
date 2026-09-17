@@ -58,6 +58,8 @@
 //   - [Config.EventCatalogPath] / [Config.ProjectionStatusPath] /
 //     [Config.DebugPath] — opt-in session-gated JSON machine endpoints
 //     (event catalog, live projection statuses, build metadata)
+//   - [Config.LivePath] — opt-in public liveness probe (always-200);
+//     [Config.HealthPath] "-" opts the readiness endpoint out entirely
 //   - [Config.Logger] — structured auth event logging (default: slog.Default())
 //   - [Config.LogoutURL] — logout link shown in admin and dashboard panels
 //   - [Config.SSEURL] — enables admin panel real-time sync indicator
