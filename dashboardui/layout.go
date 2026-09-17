@@ -330,15 +330,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .page-header h2 { margin: 0 0 4px; }
 .page-header .page-subtitle { color: var(--muted); font-size: 0.88em; }
 
-/* ===== Tables ===== */
-.data-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-.data-table th { padding: 8px; text-align: left; border-bottom: 2px solid var(--border); font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-.data-table td { padding: 8px; }
-.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
-.data-table tbody tr:hover { background: var(--surface-hover); }
-.data-table tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface-hover) 50%, transparent); }
-.data-table thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
-
 /* ===== Stat cards ===== */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--gap); margin-bottom: 24px; }
 /* ===== Error/404 shell (errorpage adoption) ===== */
@@ -418,7 +409,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 	.app-header { padding: 12px 16px; }
 	.content-area { padding: 16px; }
 	.two-col-grid { grid-template-columns: 1fr; }
-	.data-table { font-size: 0.8em; }
 	.filter-bar { flex-direction: column; align-items: stretch; }
 	.filter-bar input, .filter-bar select { width: 100%; }
 	.nav-link { padding: 12px 10px; font-size: 1rem; }

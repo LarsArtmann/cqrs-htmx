@@ -164,11 +164,7 @@ func (d *Dashboard) renderAggregateDetail(
 		}
 
 		b.WriteString(`<h3>Event Timeline</h3>`)
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th><th scope="col">Event ID</th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
+		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Version", "Type", "Occurred At", "Event ID"), rows.String(), ""))
 
 		timelinePage := page
 
@@ -188,9 +184,7 @@ func (d *Dashboard) renderAggregateDetail(
 			ctx,
 			p.BasePath,
 			"/aggregates/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
-			timelinePage,
-			"",
-		))
+			timelinePage,		))
 
 		return b.String()
 	})
@@ -260,10 +254,9 @@ func (d *Dashboard) renderAggregates(
 		}
 
 		var b strings.Builder
-		fmt.Fprintf(
-			&b,
-			`<h2>Aggregates</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
+		b.WriteString(`<h2>Aggregates</h2>`)
+		b.WriteString(
+			tableHTMLRaw(ctx, plainHeaders("ID", "Type", "Version", "Events", "Last Event"), rows.String(), ""),
 		)
 		b.WriteString(renderPagination(ctx, p.BasePath, "/aggregates", page, ""))
 

@@ -144,9 +144,7 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 			inner.WriteString(tableHTMLRaw(
 				ctx,
 				plainHeaders("Time", "Type", "Stream", "Version"),
-				rows.String(),
-				"",
-			))
+				rows.String(),			))
 		}
 
 		return inner.String()

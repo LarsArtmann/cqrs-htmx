@@ -74,11 +74,7 @@ func (d *Dashboard) renderStreamListingPage(
 			)
 		}
 
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Type</th><th scope="col">ID</th><th scope="col">Current Version</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
+		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Type", "ID", "Current Version", ""), rows.String(), ""))
 
 		b.WriteString(renderPagination(ctx, p.BasePath, config.pagePath, page, ""))
 
@@ -266,11 +262,7 @@ func (d *Dashboard) renderTimeTravelDetail(
 			)
 		}
 
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Version</th><th scope="col">Type</th><th scope="col">Occurred At</th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
+		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Version", "Type", "Occurred At"), rows.String(), ""))
 
 		return b.String()
 	})

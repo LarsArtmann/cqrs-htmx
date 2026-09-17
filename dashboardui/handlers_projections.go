@@ -182,10 +182,18 @@ func (d *Dashboard) renderProjections(
 
 		b.WriteString(tableHTMLRaw(
 			ctx,
-			plainHeaders("Name", "Status", "Lag", "Processed", "Errors", "Restarts", "Checkpoint", "Last Error", "Actions"),
-			rows.String(),
-			"",
-		))
+			plainHeaders(
+				"Name",
+				"Status",
+				"Lag",
+				"Processed",
+				"Errors",
+				"Restarts",
+				"Checkpoint",
+				"Last Error",
+				"Actions",
+			),
+			rows.String(),		))
 
 		return b.String()
 	})

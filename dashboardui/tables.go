@@ -72,7 +72,7 @@ func plainHeaders(labels ...string) []display.TableHeader {
 // pre-rendered <tr> markup. Use for tables whose rows are built as strings by
 // existing renderers; the headers still go through the typed path for
 // consistent styling.
-func tableHTMLRaw(ctx context.Context, headers []display.TableHeader, rowsHTML, bodyID string) string {
+func tableHTMLRaw(ctx context.Context, headers []display.TableHeader, rowsHTML string) string {
 	var b strings.Builder
 
 	props := display.TableProps{
@@ -88,7 +88,7 @@ func tableHTMLRaw(ctx context.Context, headers []display.TableHeader, rowsHTML, 
 		CellPadding:  display.TableCellPaddingCompact,
 		LazyRows:     true,
 		Body:         templ.Raw(rowsHTML),
-		BodyID:       bodyID,
+		BodyID:       "",
 	}
 	_ = display.Table(props).Render(ctx, &b)
 

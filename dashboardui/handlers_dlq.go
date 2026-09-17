@@ -64,11 +64,7 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 				)
 			}
 
-			fmt.Fprintf(
-				&b,
-				`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Projection</th><th scope="col">Dead Letters</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
-				rows.String(),
-			)
+			b.WriteString(tableHTMLRaw(ctx, plainHeaders("Projection", "Dead Letters", ""), rows.String(), ""))
 
 			return b.String()
 		},
@@ -460,11 +456,10 @@ func (d *Dashboard) renderDLQ(
 			)
 		}
 
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Failed At</th><th scope="col">Event Type</th><th scope="col">Error</th><th scope="col">Family</th><th scope="col">Actions</th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
+		b.WriteString(tableHTMLRaw(
+			ctx,
+			plainHeaders("Failed At", "Event Type", "Error", "Family", "Actions"),
+			rows.String(),		))
 
 		return b.String()
 	})
