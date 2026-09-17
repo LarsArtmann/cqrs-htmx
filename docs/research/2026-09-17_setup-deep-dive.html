@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>httputil, go-etag &amp; go-sse — Adoption &amp; Utilization Audit</title>
+    <title>setup/ — Composition-Root Utilization Audit</title>
     <style>
       /* =========================================================================
          BAUHAUS LIGHT — Editorial template
@@ -895,7 +895,7 @@
             <span class="tag">setup v4.10.0 (latest tag)</span>
             <span class="tag">go-appkit v0.4.0 (latest v0.5.0)</span>
             <span class="tag">httputil v1.1.1 (latest v1.2.0)</span>
-            <span class="tag teal">9 files &middot; 2,532 LOC (excl. tests)</span>
+            <span class="tag teal">8 files &middot; 1,614 LOC (excl. tests)</span>
           </div>
         </header>
 
@@ -929,7 +929,7 @@
           <p>
             This audit reads every production file of the <code>setup/v4</code> module
             (setup.go, config.go, bundle.go, mount.go, run.go, run_appkit.go, sse.go,
-            doc.go &mdash; 2,532 LOC excluding tests) and compares what it wires against
+            doc.go &mdash; 1,614 LOC excluding tests) and compares what it wires against
             the capability surface of everything it already depends on:
             usermgmt, root cqrshtmx, dashboardui/adminui/loginpage, datastar,
             transport, go-cqrs-lite middleware, httputil, and go-appkit. Version
