@@ -32,8 +32,9 @@ func assetHandler(name, contentType string) http.Handler {
 	})
 }
 
-// assetETag lets ServeContent answer If-None-Match with a 304.
-const assetETag = `adminui-v3.4.0`
+// assetETag lets ServeContent answer If-None-Match with a 304. Quoted per
+// RFC 7232 — net/http's etagStrongMatch requires a leading quote.
+const assetETag = `"adminui-v3.4.0"`
 
 // htmxScriptHandler serves the embedded HTMX script (v2.0.10) from the root
 // cqrs-htmx module, so the panel is fully self-contained.

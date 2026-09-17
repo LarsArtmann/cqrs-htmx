@@ -32,4 +32,5 @@ func assetHandler(name, contentType string) http.Handler {
 
 // assetETag lets ServeContent answer If-None-Match with a 304. Bump when the
 // compiled Tailwind bundle changes shape (nix run .#build-dashboardui-css).
-const assetETag = `dashboardui-v4.9.0`
+// Quoted per RFC 7232 — net/http's etagStrongMatch requires a leading quote.
+const assetETag = `"dashboardui-v4.9.0"`
