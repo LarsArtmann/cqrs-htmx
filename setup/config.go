@@ -266,6 +266,19 @@ type Config struct {
 	// Metrics is also set).
 	Version string
 
+	// RequestLogging, when set, composes cqrshtmx.RequestLoggingSlog OUTERMOST
+	// in [Bundle.Middleware] — one structured access-log line per request
+	// (method, path, status, duration, plus correlation/user/request IDs when
+	// present in the context). Because it rides Middleware, every serve path
+	// picks it up: [Bundle.Handler], [Bundle.Run], [Bundle.RunHandler], and
+	// the bundle's inner chain under RunWithAppkit (appkit's own access logs,
+	// if enabled there, are separate).
+	//
+	// Zero value (nil) = silence, byte-identical to before this field
+	// existed. Pass slog.Default() for standard logging or a dedicated
+	// buffer/file logger for access logs.
+	RequestLogging *slog.Logger
+
 	// Logger is used for structured auth event logging by the usermgmt service
 	// (default: nil = slog.Default()).
 	Logger *slog.Logger
