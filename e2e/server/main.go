@@ -1,12 +1,3 @@
-// Server timeout posture for the e2e server (mirrors setup.Bundle's HTTP
-// server defaults; SSE endpoints need generous write windows).
-const (
-	e2eReadHeaderTimeout = 5 * time.Second
-	e2eReadTimeout       = 10 * time.Second
-	e2eWriteTimeout      = 30 * time.Second
-	e2eIdleTimeout       = 60 * time.Second
-)
-
 // Package main is a minimal HTTP server for Playwright E2E testing of the
 // cqrs-htmx offline sync stack (sync-worker.js + sync-client.js).
 //
@@ -35,12 +26,21 @@ import (
 	"github.com/larsartmann/go-sse"
 )
 
+// Server timeout posture for the e2e server (mirrors setup.Bundle's HTTP
+// server defaults; SSE endpoints need generous write windows).
+const (
+	e2eReadHeaderTimeout = 5 * time.Second
+	e2eReadTimeout       = 10 * time.Second
+	e2eWriteTimeout      = 30 * time.Second
+	e2eIdleTimeout       = 60 * time.Second
+)
+
 func main() {
 	addr := flag.String("addr", ":18923", "listen address")
 
 	flag.Parse()
 
-	store := &itemStore{}
+	store := &itemStore{mu: sync.Mutex{}, items: nil}
 	broadcaster := cqrshtmx.NewBroadcaster()
 	ackHook := broadcaster.BroadcastOnAck()
 
