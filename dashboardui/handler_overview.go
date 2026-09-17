@@ -41,44 +41,7 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 		}
 
 		if len(stats.RecentEvents) > 0 {
-			inner.WriteString(`<h2>Recent Events</h2>`)
-
-			var rows strings.Builder
-
-			for _, e := range stats.RecentEvents {
-				timeDisplay := esc(e.Time)
-				if !e.OccurredAt.IsZero() {
-					timeDisplay = esc(relativeTime(e.OccurredAt))
-				}
-
-				streamCell := esc(truncate(e.StreamID, eventIDWidth))
-				if e.StreamType != "" {
-					streamCell = fmt.Sprintf(
-						`<a href="%s/aggregates/%s/%s" class="mono">%s</a>`,
-						p.BasePath,
-						esc(e.StreamType),
-						esc(e.StreamID),
-						esc(truncate(e.StreamID, eventIDWidth)),
-					)
-				}
-
-				fmt.Fprintf(
-					&rows,
-					`<tr><td class="mono" title="%s">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td>%s</td><td>%s</td></tr>`,
-					esc(e.Time),
-					timeDisplay,
-					p.BasePath,
-					esc(e.EventID),
-					esc(e.Type),
-					streamCell,
-					esc(e.Version),
-				)
-			}
-
-			inner.WriteString(tableHTMLRaw(
-				ctx,
-				plainHeaders("Time", "Type", "Stream", "Version"),
-				rows.String()))
+			inner.WriteString(renderRecentEventsTable(ctx, p.BasePath, stats.RecentEvents))
 		}
 
 		return inner.String()
@@ -266,6 +229,50 @@ func renderStatGrid(ctx context.Context, stats overviewStats) string {
 	}
 
 	b.WriteString(`</div>`)
+
+	return b.String()
+}
+
+// renderRecentEventsTable builds the recent-events table (library table shell
+// + string-built rows) for the overview page.
+func renderRecentEventsTable(ctx context.Context, basePath string, events []RecentEvent) string {
+	var b strings.Builder
+
+	b.WriteString(`<h2>Recent Events</h2>`)
+
+	var rows strings.Builder
+
+	for _, e := range events {
+		timeDisplay := esc(e.Time)
+		if !e.OccurredAt.IsZero() {
+			timeDisplay = esc(relativeTime(e.OccurredAt))
+		}
+
+		streamCell := esc(truncate(e.StreamID, eventIDWidth))
+		if e.StreamType != "" {
+			streamCell = fmt.Sprintf(
+				`<a href="%s/aggregates/%s/%s" class="mono">%s</a>`,
+				basePath,
+				esc(e.StreamType),
+				esc(e.StreamID),
+				esc(truncate(e.StreamID, eventIDWidth)),
+			)
+		}
+
+		fmt.Fprintf(
+			&rows,
+			`<tr><td class="mono" title="%s">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td>%s</td><td>%s</td></tr>`,
+			esc(e.Time),
+			timeDisplay,
+			basePath,
+			esc(e.EventID),
+			esc(e.Type),
+			streamCell,
+			esc(e.Version),
+		)
+	}
+
+	b.WriteString(tableHTMLRaw(ctx, plainHeaders("Time", "Type", "Stream", "Version"), rows.String()))
 
 	return b.String()
 }

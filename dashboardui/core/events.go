@@ -188,7 +188,11 @@ func LoadEventByID(
 }
 
 // loadEventByLoader loads via the O(1) EventByIDLoader path.
-func loadEventByLoader(ctx context.Context, loader EventByIDLoader, eventID id.EventID) (event.Event, error) {
+func loadEventByLoader(
+	ctx context.Context,
+	loader EventByIDLoader,
+	eventID id.EventID,
+) (event.Event, error) {
 	evt, err := loader.LoadByEventID(ctx, eventID)
 	if err != nil {
 		var zero event.Event
@@ -202,7 +206,11 @@ func loadEventByLoader(ctx context.Context, loader EventByIDLoader, eventID id.E
 
 // loadEventByJournalScan pages the SeekableJournal until the event is found
 // or the journal is exhausted.
-func loadEventByJournalScan(ctx context.Context, journal event.SeekableJournal, eventID id.EventID) (event.Event, error) {
+func loadEventByJournalScan(
+	ctx context.Context,
+	journal event.SeekableJournal,
+	eventID id.EventID,
+) (event.Event, error) {
 	const scanLimit = 5000
 
 	var after id.EventID
@@ -232,7 +240,11 @@ func loadEventByJournalScan(ctx context.Context, journal event.SeekableJournal, 
 }
 
 // loadEventFromAll reads the whole Journal and finds the event.
-func loadEventFromAll(ctx context.Context, journal event.Journal, eventID id.EventID) (event.Event, error) {
+func loadEventFromAll(
+	ctx context.Context,
+	journal event.Journal,
+	eventID id.EventID,
+) (event.Event, error) {
 	all, err := journal.ReadAll(ctx)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err,

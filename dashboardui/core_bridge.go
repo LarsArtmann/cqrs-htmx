@@ -35,6 +35,7 @@ type DefaultPayloadRenderer = core.DefaultPayloadRenderer
 type (
 	projectionStat    = core.ProjectionStat
 	overviewStats     = core.Overview
+	RecentEvent       = core.RecentEvent
 	paginationState   = core.PageState
 	eventFilter       = core.EventFilter
 	dlqProjectionLink = core.DLQProjectionLink

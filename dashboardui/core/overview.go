@@ -117,7 +117,7 @@ func ProjectionStats(host *projectionhost.Host) []ProjectionStat {
 
 // FetchOverview aggregates events count, aggregates count, projection health,
 // DLQ count, and recent events into a single Overview struct.
-func FetchOverview( //nolint:gocognit // multi-source aggregation
+func FetchOverview( //nolint:gocognit,cyclop // multi-source aggregation
 	ctx context.Context,
 	cfg Config,
 ) Overview {
@@ -192,7 +192,7 @@ func FetchOverview( //nolint:gocognit // multi-source aggregation
 
 // classifyProjectionHealth sums DLQ counts and derives the overall health
 // word and kind from per-projection status kinds.
-func classifyProjectionHealth(projs []ProjectionStat) (dlqCount, status, kind string) {
+func classifyProjectionHealth(projs []ProjectionStat) (string, string, string) {
 	totalErrors := int64(0)
 	anyBad := false
 	anyWarn := false
@@ -207,6 +207,8 @@ func classifyProjectionHealth(projs []ProjectionStat) (dlqCount, status, kind st
 			anyWarn = true
 		}
 	}
+
+	var dlqCount string
 
 	if totalErrors > 0 {
 		dlqCount = strconv.FormatInt(totalErrors, 10)
