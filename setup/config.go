@@ -732,12 +732,12 @@ func (c Config) validateOptionalFeedPaths() error {
 // as its catch-all, so any panel or health endpoint there would collide at
 // Mount time.
 func (c Config) validatePathRoots() error {
-	if c.AdminPath == "/" || c.DashboardPath == "/" || c.SSEPath == "/" ||
+	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" || c.SSEPath == "/" ||
 		c.DataStarPath == "/" || (c.DataStarScriptPath == "/") ||
 		c.LivePath == "/" || c.EventCatalogPath == "/" || c.ProjectionStatusPath == "/" || c.DebugPath == "/" {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",
-			"AdminPath, DashboardPath, HealthPath, SSEPath, DataStarPath, DataStarScriptPath, EventCatalogPath, ProjectionStatusPath, and DebugPath must not be \"/\" — the site root is reserved for the login page",
+			"AdminPath, DashboardPath, HealthPath, SSEPath, DataStarPath, DataStarScriptPath, LivePath, EventCatalogPath, ProjectionStatusPath, and DebugPath must not be \"/\" — the site root is reserved for the login page",
 		)
 	}
 
