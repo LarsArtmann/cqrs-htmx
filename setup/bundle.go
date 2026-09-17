@@ -8,7 +8,7 @@ import (
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
-	"github.com/larsartmann/cqrs-htmx/datastar/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
 	"github.com/larsartmann/cqrs-htmx/loginpage/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -73,7 +73,7 @@ type Bundle struct {
 	// broadcast your own DataStar patches to the feed's subscribers
 	// (Broadcast/SignalPatch/ElementsPatch). Do not close it — lifecycle is
 	// owned by [Bundle.Close] via the shared hub.
-	DataStarBroadcaster *datastar.Broadcaster
+	DataStarBroadcaster *broadcast.Broadcaster
 
 	// config holds the resolved configuration (defaults applied).
 	config Config
@@ -89,6 +89,13 @@ type Bundle struct {
 	// the shared SSE endpoint. Nil when the event store does not implement
 	// event.Journal or when neither SSEPath nor DataStarPath is configured.
 	sseStore sse.EventStore
+
+	// Machine-endpoint handlers (M6): built once at New (the event catalog
+	// serializes eagerly — fail-fast), mounted only at their opt-in Config
+	// paths, always behind the session gate.
+	eventCatalog     http.HandlerFunc
+	projectionStatus http.HandlerFunc
+	debug            http.HandlerFunc
 }
 
 // Stores holds the shared event infrastructure created by [New].

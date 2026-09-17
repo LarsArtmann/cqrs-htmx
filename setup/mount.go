@@ -97,6 +97,10 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 		mux.Handle(cfg.DataStarPath, b.datastarHandler())
 	}
 
+	// Machine endpoints — opt-in (Config paths), session-gated JSON surfaces
+	// for monitors and runbooks (the /sse 401 precedent).
+	b.mountMachineEndpoints(mux)
+
 	// Health check — public, no auth.
 	if cfg.HealthPath != "" {
 		mux.Handle(cfg.HealthPath, b.healthHandler())

@@ -19,10 +19,17 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
+	github.com/larsartmann/go-datastar/broadcast v0.6.0
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/httputil v1.2.0
 	modernc.org/sqlite v1.58.0
 )
+
+// TEMPORARY sibling replace until go-datastar/broadcast is tagged+pushed on
+// the go-datastar lockstep train (ADR 002 there; module moved up 2026-09-17).
+// Removal condition: broadcast/v0.6.0 exists on the remote — then delete this
+// replace and let the require above resolve from the proxy.
+replace github.com/larsartmann/go-datastar/broadcast => ../../go-datastar/broadcast
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect

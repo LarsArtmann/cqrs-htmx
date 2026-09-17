@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/larsartmann/cqrs-htmx/datastar/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/v4/transport"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -58,7 +58,7 @@ func (b *Bundle) attachSSE() error {
 	}
 
 	if b.config.DataStarPath != "" {
-		b.DataStarBroadcaster = datastar.NewBroadcasterFromHub(b.Broadcaster.Hub())
+		b.DataStarBroadcaster = broadcast.NewBroadcasterFromHub(b.Broadcaster.Hub())
 	}
 
 	return nil

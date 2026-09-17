@@ -83,6 +83,12 @@ func New(cfg Config) (*Bundle, error) {
 		return nil, err
 	}
 
+	if err := bundle.attachMachineEndpoints(); err != nil {
+		bundle.cleanup()
+
+		return nil, err
+	}
+
 	return bundle, nil
 }
 
