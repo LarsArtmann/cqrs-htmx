@@ -45,10 +45,17 @@ type toastDetail = cqrshtmx.ToastDetail
 // any HX-Trigger events already set on the response.
 func triggerToast(w http.ResponseWriter, kind, message string) {
 	detail, _ := json.Marshal(toastDetail{Message: message, Kind: kind})
-	triggers := map[string]jsontext.Value{}
+
+	var triggers map[string]jsontext.Value
+
 	if h := w.Header().Get("Hx-Trigger"); h != "" {
 		_ = json.Unmarshal([]byte(h), &triggers) // best-effort merge
 	}
+
+	if triggers == nil {
+		triggers = map[string]jsontext.Value{}
+	}
+
 	triggers["dashboardui:toast"] = detail
 	merged, _ := json.Marshal(triggers)
 	w.Header().Set("Hx-Trigger", string(merged))

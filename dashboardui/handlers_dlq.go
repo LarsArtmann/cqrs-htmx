@@ -20,13 +20,15 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	links := d.buildDLQProjectionLinks(r.Context())
 
+	ctx := r.Context()
+
 	html := d.renderLayout(
-		r.Context(),
+		ctx,
 		p,
 		func() string {
 			if len(links) == 0 {
 				return emptyStateIcon(
-					r.Context(),
+					ctx,
 					icons.BugAnt,
 					"Dead-Letter Queue",
 					"No projections registered. Dead letters will appear here when projection errors occur.",
@@ -50,9 +52,9 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 					p.BasePath,
 					esc(link.Name),
 					esc(link.Name),
-					badgeHTML(r.Context(), strconv.Itoa(link.Count), countBadgeType(link.Count)),
+					badgeHTML(ctx, strconv.Itoa(link.Count), countBadgeType(link.Count)),
 					buttonLink(
-						r.Context(),
+						ctx,
 						"View",
 						p.BasePath+"/dead-letters/"+esc(link.Name),
 						"",

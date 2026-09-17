@@ -726,3 +726,42 @@ func TestEmptyStateIcon_PerPage(t *testing.T) {
 		t.Errorf("expected icon svg in output")
 	}
 }
+
+// TestLayout_ToastBridge pins the M11 toast adoption: the layout mounts the
+// library ToastContainer (id tc-toast-container, nonce-gated tcShowToast
+// script) and dashboardJS bridges the "dashboardui:toast" HX-Trigger event to
+// it. The legacy #toast-container host and showToast listener must stay gone.
+func TestLayout_ToastBridge(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	d, err := New(Config{EventSource: store, Journal: store})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/", nil))
+
+	body := rec.Body.String()
+
+	for _, want := range []string{
+		`id="tc-toast-container"`,              // library container mounted
+		"tcShowToast",                          // library inline script present
+		`addEventListener("dashboardui:toast"`, // dashboardJS bridge
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("layout missing toast bridge element %q", want)
+		}
+	}
+
+	if strings.Contains(body, `id="toast-container"`) {
+		t.Error("legacy toast-container div must be gone")
+	}
+
+	if strings.Contains(body, `addEventListener("showToast"`) {
+		t.Error("legacy showToast listener must be gone")
+	}
+}
