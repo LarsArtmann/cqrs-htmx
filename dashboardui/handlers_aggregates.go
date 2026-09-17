@@ -109,10 +109,10 @@ func (d *Dashboard) renderAggregateDetail(
 		b.WriteString(`<div class="page-header">`)
 		fmt.Fprintf(
 			&b,
-			`<h2>%s: <code class="copyable" data-copyable="%s" title="Click to copy">%s</code></h2>`,
+			`<h2>%s: <code>%s</code> %s</h2>`,
 			esc(string(ref.Type)),
 			esc(ref.ID.String()),
-			esc(ref.ID.String()),
+			copyButtonHTML(ctx, ref.ID.String(), ""),
 		)
 		fmt.Fprintf(
 			&b,
@@ -152,14 +152,14 @@ func (d *Dashboard) renderAggregateDetail(
 		for _, evt := range pagedEvents {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono copyable" data-copyable="%s" title="Click to copy">%s</code></td></tr>`,
+				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono">%s</code> %s</td></tr>`,
 				esc(evt.Version().String()),
 				p.BasePath,
 				esc(evt.ID().String()),
 				esc(string(evt.Type())),
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
-				esc(evt.ID().String()),
 				truncate(evt.ID().String(), eventIDWidth),
+				copyButtonHTML(ctx, evt.ID().String(), ""),
 			)
 		}
 

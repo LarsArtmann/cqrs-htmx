@@ -92,9 +92,9 @@ func (d *Dashboard) renderSnapshotDetail(
 		b.WriteString(`<div class="page-header">`)
 		fmt.Fprintf(
 			&b,
-			`<h2>Snapshot: <code class="copyable" data-copyable="%s" title="Click to copy">%s</code></h2>`,
+			`<h2>Snapshot: <code>%s</code> %s</h2>`,
 			esc(ref.ID.String()),
-			esc(ref.ID.String()),
+			copyButtonHTML(ctx, ref.ID.String(), ""),
 		)
 		fmt.Fprintf(
 			&b,

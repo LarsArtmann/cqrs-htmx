@@ -644,11 +644,11 @@ func TestMetaRow(t *testing.T) {
 
 func TestMetaRowCopyable(t *testing.T) {
 	var b strings.Builder
-	metaRowCopyable(&b, "ID", "display-id", "raw-id-val")
+	metaRowCopyable(&b, context.Background(), "ID", "display-id", "raw-id-val")
 
 	html := b.String()
-	if !strings.Contains(html, "data-copyable=\"raw-id-val\"") {
-		t.Errorf("expected data-copyable attribute with raw value")
+	if !strings.Contains(html, `data-tc-copy="raw-id-val"`) {
+		t.Errorf("expected library CopyButton carrying the raw value, got: %s", html)
 	}
 
 	if !strings.Contains(html, "display-id") {

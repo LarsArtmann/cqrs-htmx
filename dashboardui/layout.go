@@ -321,8 +321,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .live-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); opacity: 0.4; transition: opacity 0.3s; }
 .sse-status { font-size: 0.75rem; color: var(--muted); }
 .sse-count { font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-.copyable { cursor: pointer; position: relative; }
-.copyable:hover::after { content: "📋"; font-size: 0.75em; margin-left: 4px; opacity: 0.6; }
 
 /* ===== Content area ===== */
 .content-area { width: 100%; max-width: 1200px; padding: 24px; }
@@ -557,18 +555,6 @@ document.addEventListener("dashboard:event", function(e) {
 });
 
 document.addEventListener("click", function(e) {
-  var el = e.target.closest("[data-copyable]");
-  if (!el) return;
-  var text = el.getAttribute("data-copyable");
-  if (text === "") text = el.textContent.trim();
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      document.body.dispatchEvent(new CustomEvent("showToast", { detail: { kind: "ok", message: "Copied to clipboard" } }));
-    }).catch(function() {});
-  }
-});
-
-document.addEventListener("click", function(e) {
   var hamburger = e.target.closest("[data-hamburger]");
   if (hamburger) {
     var sidebar = document.querySelector(".sidebar");
@@ -589,17 +575,6 @@ document.addEventListener("click", function(e) {
     if (backdrop) backdrop.classList.remove("visible");
   }
 });
-
-window.copyPayload = function() {
-  var el = document.querySelector("#event-payload code");
-  if (!el) return;
-  var text = el.textContent;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      document.body.dispatchEvent(new CustomEvent("showToast", { detail: { kind: "ok", message: "Payload copied" } }));
-    }).catch(function() {});
-  }
-};
 
 window.downloadPayload = function(eventID) {
   var el = document.querySelector("#event-payload code");

@@ -136,9 +136,9 @@ func (d *Dashboard) renderEventDetail(
 		)
 		fmt.Fprintf(
 			&b,
-			`<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
+			`<div class="page-subtitle mono">%s %s</div>`,
 			esc(evt.ID().String()),
-			esc(evt.ID().String()),
+			copyButtonHTML(ctx, evt.ID().String(), ""),
 		)
 
 		if prevID != "" || nextID != "" {
@@ -224,15 +224,7 @@ func (d *Dashboard) renderEventDetail(
 
 		b.WriteString(`<div><h3>Payload</h3>`)
 		b.WriteString(`<div class="filter-bar">`)
-		b.WriteString(
-			buttonSubmit(
-				ctx,
-				"Copy",
-				"",
-				display.ButtonSecondary,
-				templ.Attributes{"onclick": "copyPayload()"},
-			),
-		)
+		b.WriteString(copyButtonHTML(ctx, string(payload), "Copy Payload"))
 		b.WriteString(buttonSubmit(
 			ctx,
 			"Download JSON",
@@ -291,13 +283,13 @@ func (d *Dashboard) renderEvents(
 		for _, evt := range events {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td>%s</td><td>%s</td></tr>`,
+				`<tr><td class="mono">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s %s</td><td>%s</td><td>%s</td></tr>`,
 				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
 				p.BasePath,
 				esc(evt.ID().String()),
 				esc(string(evt.Type())),
-				esc(evt.StreamID().String()),
 				esc(truncate(evt.StreamID().String(), listIDWidth)),
+				copyButtonHTML(ctx, evt.StreamID().String(), ""),
 				esc(string(evt.StreamType())),
 				esc(evt.Version().String()),
 			)

@@ -116,14 +116,14 @@ func (d *Dashboard) renderCommands(
 		for _, cmd := range cmds {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td>%s</td></tr>`,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono">%s %s</td><td class="mono">%s %s</td><td>%s</td></tr>`,
 				esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(cmd.Type())),
 				esc(string(cmd.StreamType())),
-				esc(cmd.StreamID().String()),
-				esc(cmd.StreamID().String()),
-				esc(cmd.ID().String()),
+				truncate(cmd.StreamID().String(), listIDWidth),
+				copyButtonHTML(ctx, cmd.StreamID().String(), ""),
 				truncate(cmd.ID().String(), eventIDWidth),
+				copyButtonHTML(ctx, cmd.ID().String(), ""),
 				buttonLink(
 					ctx,
 					"View",
@@ -248,11 +248,11 @@ func (d *Dashboard) renderQueries(
 		for _, q := range queries {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td>%s</td></tr>`,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono">%s %s</td><td>%s</td></tr>`,
 				esc(q.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(q.Type())),
-				esc(q.ID().String()),
 				truncate(q.ID().String(), eventIDWidth),
+				copyButtonHTML(ctx, q.ID().String(), ""),
 				buttonLink(
 					ctx,
 					"View",
@@ -339,9 +339,9 @@ func (d *Dashboard) renderCommandDetail(ctx context.Context, p pageData, cmd *co
 		fmt.Fprintf(&b, `<h2><code>%s</code></h2>`, esc(string(cmd.Type())))
 		fmt.Fprintf(
 			&b,
-			`<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
+			`<div class="page-subtitle mono">%s %s</div>`,
 			esc(cmd.ID().String()),
-			esc(cmd.ID().String()),
+			copyButtonHTML(ctx, cmd.ID().String(), ""),
 		)
 		b.WriteString(`</div>`)
 
@@ -447,9 +447,9 @@ func (d *Dashboard) renderQueryDetail(ctx context.Context, p pageData, q *query.
 		fmt.Fprintf(&b, `<h2><code>%s</code></h2>`, esc(string(q.Type())))
 		fmt.Fprintf(
 			&b,
-			`<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
+			`<div class="page-subtitle mono">%s %s</div>`,
 			esc(q.ID().String()),
-			esc(q.ID().String()),
+			copyButtonHTML(ctx, q.ID().String(), ""),
 		)
 		b.WriteString(`</div>`)
 

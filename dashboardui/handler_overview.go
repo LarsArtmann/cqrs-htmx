@@ -122,10 +122,9 @@ func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overvi
 				streamCell := esc(truncate(e.StreamID, eventIDWidth))
 				if e.StreamType != "" {
 					streamCell = fmt.Sprintf(
-						`<a href="%s/aggregates/%s/%s" class="mono copyable" data-copyable="%s" title="Click to copy">%s</a>`,
+						`<a href="%s/aggregates/%s/%s" class="mono">%s</a>`,
 						p.BasePath,
 						esc(e.StreamType),
-						esc(e.StreamID),
 						esc(e.StreamID),
 						esc(truncate(e.StreamID, eventIDWidth)),
 					)
