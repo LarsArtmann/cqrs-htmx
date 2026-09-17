@@ -204,6 +204,38 @@ type Config struct {
 	// cookie/header names — is available.
 	CSRF *httputil.CSRFConfig
 
+	// AuthHandlerConfig, when set, is merged into the usermgmt.HandlerConfig
+	// the bundle constructs for its auth endpoints (/auth/*). This is the seam
+	// for the HTTP-layer hardening usermgmt offers but the flattened fields
+	// cannot express: the six per-group rate limiters
+	// (WebAuthnRateLimit, RegistrationRateLimit, TOTPRateLimit,
+	// VerificationRateLimit, ImportRateLimit, OAuthRateLimit — brute-force
+	// protection for the passwordless ceremonies), the cookie Secure flag and
+	// SessionMaxAge, the per-request handler Timeout, the OAuth2 redirect
+	// URLs, and the ImportExportAuthorizer.
+	//
+	// This does NOT violate the ServiceConfig-verbatim policy
+	// (see [Config.ServiceConfig]): usermgmt.HandlerConfig is a different
+	// struct — HTTP-layer, constructed only by this bundle — so there is no
+	// verbatim form a consumer could pass instead.
+	//
+	// Zero value (nil) = today's literal: HandlerConfig{CookieName: cfg.CookieName}
+	// — byte-identical defaults, no rate limits.
+	//
+	// Merging: an empty CookieName inside AuthHandlerConfig inherits
+	// [Config.CookieName] (the auth handler MUST write the same cookie the
+	// session middleware reads); a non-empty CookieName that differs from
+	// Config.CookieName is rejected at New. The value is copied — later
+	// mutations of the caller's struct do not leak into the bundle. It composes
+	// with all three service sources (Service, ServiceConfig, flattened).
+	//
+	// 	AuthHandlerConfig: &usermgmt.HandlerConfig{
+	// 		WebAuthnRateLimit: usermgmt.RateLimitConfig{
+	// 			Enabled: true, MaxRequests: 10, Window: time.Minute,
+	// 		},
+	// 	},
+	AuthHandlerConfig *usermgmt.HandlerConfig
+
 	// Logger is used for structured auth event logging by the usermgmt service
 	// (default: nil = slog.Default()).
 	Logger *slog.Logger
@@ -358,6 +390,10 @@ func (c Config) validate() error {
 		return err
 	}
 
+	if err := c.validateAuthHandlerConfig(); err != nil {
+		return err
+	}
+
 	if c.SSEMaxReplay < 0 {
 		return errorfamily.Newf(
 			errorfamily.Rejection,
@@ -465,6 +501,34 @@ func (c Config) validateReadModelDialect() error {
 		"ReadModelDB does not speak SQLite (dialect probe failed: %s) — the flattened config path always builds SQLite-dialect read models; for this database use Config.ServiceConfig with ReadModelDB and ReadModelDialect set together (\"postgres\", \"pgx\", or \"mysql\")",
 		probeErr,
 	)
+}
+
+// validateAuthHandlerConfig rejects an AuthHandlerConfig whose CookieName
+// disagrees with the flattened Config.CookieName. The auth handler must write
+// the same cookie the session middleware reads — a mismatch silently breaks
+// every authenticated request while the login flow still looks fine (the
+// historical default-composition bug the SQL restart contract test guards).
+// An empty CookieName inside AuthHandlerConfig is NOT a conflict: it inherits
+// Config.CookieName at construction (see resolveAuthHandlerConfig).
+//
+// Must run after withDefaults (New applies defaults first), so an unset
+// Config.CookieName has already become "session" by the time this compares.
+func (c Config) validateAuthHandlerConfig() error {
+	if c.AuthHandlerConfig == nil {
+		return nil
+	}
+
+	if name := c.AuthHandlerConfig.CookieName; name != "" && name != c.CookieName {
+		return errorfamily.Newf(
+			errorfamily.Rejection,
+			"setup.invalid_config",
+			"AuthHandlerConfig.CookieName %q does not match Config.CookieName %q — the auth handler must write the same cookie the session middleware reads; leave it empty to inherit",
+			name,
+			c.CookieName,
+		)
+	}
+
+	return nil
 }
 
 // serviceConstructionConflicts lists the flattened service-construction fields

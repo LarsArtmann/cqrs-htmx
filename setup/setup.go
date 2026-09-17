@@ -53,8 +53,9 @@ func New(cfg Config) (*Bundle, error) {
 	store, bus := svc.Journal(), svc.EventBus()
 
 	// Other HandlerConfig fields take applyConfigDefaults' zero values by
-	// design — only the cookie name needs overriding here.
-	authCfg := usermgmt.HandlerConfig{CookieName: cfg.CookieName} //nolint:exhaustruct // defaults apply
+	// design — only the cookie name needs overriding here. An explicit
+	// Config.AuthHandlerConfig merges on top (see resolveAuthHandlerConfig).
+	authCfg := resolveAuthHandlerConfig(cfg)
 
 	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login/SSE assigned conditionally below
 		Service: svc,
@@ -83,6 +84,26 @@ func New(cfg Config) (*Bundle, error) {
 	}
 
 	return bundle, nil
+}
+
+// resolveAuthHandlerConfig builds the usermgmt.HandlerConfig for the bundle's
+// auth endpoints. The zero-value seam: nil AuthHandlerConfig produces exactly
+// today's one-field literal (byte-identical defaults, no rate limits). An
+// explicit AuthHandlerConfig is COPIED (caller mutations must not leak) with
+// only the cookie name defaulted: empty inherits Config.CookieName — the auth
+// handler must write the same cookie the session middleware reads. A
+// non-empty mismatch is rejected earlier by validateAuthHandlerConfig.
+func resolveAuthHandlerConfig(cfg Config) usermgmt.HandlerConfig {
+	if cfg.AuthHandlerConfig == nil { //nolint:exhaustruct // the documented one-field literal — see test pin
+		return usermgmt.HandlerConfig{CookieName: cfg.CookieName}
+	}
+
+	resolved := *cfg.AuthHandlerConfig
+	if resolved.CookieName == "" {
+		resolved.CookieName = cfg.CookieName
+	}
+
+	return resolved
 }
 
 // buildService constructs the usermgmt.Service from Config. Only called when

@@ -49,6 +49,9 @@
 // Config fields cover the most common production needs:
 //
 //   - [Config.SessionTTL] — session cookie lifetime (default: 24h via usermgmt)
+//   - [Config.AuthHandlerConfig] — HTTP-layer auth hardening (rate limits for
+//     the passwordless ceremonies, cookie flags, OAuth2 redirects) merged into
+//     the /auth/* handler config; nil keeps the historical defaults
 //   - [Config.Logger] — structured auth event logging (default: slog.Default())
 //   - [Config.LogoutURL] — logout link shown in admin and dashboard panels
 //   - [Config.SSEURL] — enables admin panel real-time sync indicator
