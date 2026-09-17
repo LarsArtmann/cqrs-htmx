@@ -18,13 +18,17 @@ import (
 // subscribe-before-replay ordering) is maintained upstream. The tests here pin
 // only the deprecated facade: alias transparency and constructor delegation.
 
-// The deprecated facade is a transparent type alias: a broadcaster built
-// through the upstream module IS a *ds.Broadcaster, so EventBridge and every
-// existing consumer signature keep compiling unchanged.
+// acceptBroadcaster takes the deprecated facade type. The call in the test
+// below compiles only because ds.Broadcaster is a transparent alias of
+// broadcast.Broadcaster — EventBridge and every existing consumer signature
+// keep compiling unchanged.
+func acceptBroadcaster(_ *ds.Broadcaster) {}
+
 func TestBroadcasterFacadeIsAlias(t *testing.T) {
 	t.Parallel()
 
-	var b *ds.Broadcaster = broadcast.NewBroadcaster()
+	b := broadcast.NewBroadcaster()
+	acceptBroadcaster(b)
 	require.NotNil(t, b)
 	require.Equal(t, 0, b.SubscriberCount())
 }

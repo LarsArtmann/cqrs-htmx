@@ -1,10 +1,13 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"html"
 	"net/http"
 	"strings"
+
+	"github.com/larsartmann/templ-components/display"
 )
 
 // Display truncation widths for IDs shown in the dashboard UI.
@@ -123,26 +126,38 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 }
 
 func renderProjectionRow(p projectionStat) string {
-	badgeClass := badgeNeutral
+	var b strings.Builder
 
-	switch p.StatusKind {
+	fmt.Fprintf(&b, `<tr><td>%s</td><td>`, esc(p.Name))
+	statusBadge(&b, statusKindToStatus(p.StatusKind, p.Status))
+	fmt.Fprintf(&b, `</td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`, esc(p.Lag), p.Processed, p.Errors)
+
+	return b.String()
+}
+
+// statusKindToStatus maps an internal health kind to the status word the
+// library's display.StatusBadge understands (active/degraded/error color
+// families). Unknown kinds fall back to the raw status text, which the
+// library renders as a neutral badge — the old default behavior.
+func statusKindToStatus(kind, fallback string) string {
+	switch kind {
 	case statusGood:
-		badgeClass = badgeOK
+		return "healthy"
 	case statusWarn:
-		badgeClass = badgeWarn
+		return "degraded"
 	case statusBad:
-		badgeClass = badgeErr
+		return "error"
+	default:
+		return fallback
 	}
+}
 
-	return fmt.Sprintf(
-		`<tr><td>%s</td><td><span class="%s">%s</span></td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`,
-		esc(p.Name),
-		badgeClass,
-		esc(p.Status),
-		esc(p.Lag),
-		p.Processed,
-		p.Errors,
-	)
+// statusBadge renders a templ-components StatusBadge into b (the hybrid
+// adoption path: templ.Component.Render into the existing strings.Builder —
+// no .templ conversion). Render only errors on writer failure, which
+// strings.Builder cannot produce.
+func statusBadge(b *strings.Builder, status string) {
+	_ = display.StatusBadge(status).Render(context.Background(), b)
 }
 
 func statCard(b *strings.Builder, value, label, variant string) {
