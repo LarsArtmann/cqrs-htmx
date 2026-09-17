@@ -333,12 +333,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 
 /* ===== Buttons ===== */
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); cursor: pointer; font-size: 0.85em; font-weight: 500; transition: background var(--transition), border-color var(--transition); text-decoration: none; }
-.btn:hover { background: var(--surface-hover); opacity: 1; }
-.btn-danger { border-color: var(--err); color: var(--err); background: transparent; }
-.btn-danger:hover { background: color-mix(in srgb, var(--err) 8%, transparent); }
-.btn-accent { border-color: var(--accent); color: var(--accent); }
-.btn-accent:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 
 /* ===== Pagination ===== */
 .pagination { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
@@ -403,7 +397,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 	.content-area { padding: 16px; }
 	.two-col-grid { grid-template-columns: 1fr; }
 	.data-table { font-size: 0.8em; }
-	.btn { min-height: 44px; padding: 10px 16px; }
 	.filter-bar { flex-direction: column; align-items: stretch; }
 	.filter-bar input, .filter-bar select { width: 100%; }
 	.nav-link { padding: 12px 10px; font-size: 1rem; }

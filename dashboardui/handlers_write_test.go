@@ -48,7 +48,10 @@ func (errorDeadLetterStore) Store(_ context.Context, _ projectionhost.DeadLetter
 	return nil
 }
 
-func (errorDeadLetterStore) List(_ context.Context, _ string) ([]projectionhost.DeadLetterEntry, error) {
+func (errorDeadLetterStore) List(
+	_ context.Context,
+	_ string,
+) ([]projectionhost.DeadLetterEntry, error) {
 	return nil, nil
 }
 

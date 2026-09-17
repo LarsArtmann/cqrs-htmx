@@ -9,8 +9,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	"github.com/larsartmann/templ-components/display"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/icons"
 )
 
@@ -124,7 +124,14 @@ func (d *Dashboard) renderCommands(
 				esc(cmd.StreamID().String()),
 				esc(cmd.ID().String()),
 				truncate(cmd.ID().String(), eventIDWidth),
-				buttonLink(ctx, "View", p.BasePath+"/commands/"+esc(cmd.ID().String()), "", display.ButtonSecondary, false),
+				buttonLink(
+					ctx,
+					"View",
+					p.BasePath+"/commands/"+esc(cmd.ID().String()),
+					"",
+					display.ButtonSecondary,
+					false,
+				),
 			)
 		}
 
@@ -246,7 +253,14 @@ func (d *Dashboard) renderQueries(
 				esc(string(q.Type())),
 				esc(q.ID().String()),
 				truncate(q.ID().String(), eventIDWidth),
-				buttonLink(ctx, "View", p.BasePath+"/queries/"+esc(q.ID().String()), "", display.ButtonSecondary, false),
+				buttonLink(
+					ctx,
+					"View",
+					p.BasePath+"/queries/"+esc(q.ID().String()),
+					"",
+					display.ButtonSecondary,
+					false,
+				),
 			)
 		}
 

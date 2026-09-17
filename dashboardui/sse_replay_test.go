@@ -83,11 +83,19 @@ func TestDashboard_SSEReconnectReplay(t *testing.T) {
 
 	// Body should contain events 2 and 3, but NOT event 1 (it's the cursor).
 	if !strings.Contains(body, events[1].ID().String()) {
-		t.Errorf("body should contain replayed event 2 ID %q\nbody:\n%s", events[1].ID().String(), body)
+		t.Errorf(
+			"body should contain replayed event 2 ID %q\nbody:\n%s",
+			events[1].ID().String(),
+			body,
+		)
 	}
 
 	if !strings.Contains(body, events[2].ID().String()) {
-		t.Errorf("body should contain replayed event 3 ID %q\nbody:\n%s", events[2].ID().String(), body)
+		t.Errorf(
+			"body should contain replayed event 3 ID %q\nbody:\n%s",
+			events[2].ID().String(),
+			body,
+		)
 	}
 }
 

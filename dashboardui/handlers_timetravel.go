@@ -10,8 +10,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
-	"github.com/larsartmann/templ-components/icons"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Time-Travel =====
@@ -140,7 +140,14 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	p := d.page("Time Travel: "+streamTitlePath(ref), "/time-travel", r)
-	html := d.renderTimeTravelDetail(r.Context(), p, ref, eventsToVersion, requestedVersion, maxVersion)
+	html := d.renderTimeTravelDetail(
+		r.Context(),
+		p,
+		ref,
+		eventsToVersion,
+		requestedVersion,
+		maxVersion,
+	)
 	renderPage(w, r, html)
 }
 
@@ -207,7 +214,13 @@ func (d *Dashboard) renderTimeTravelDetail(
 			b.WriteString(buttonLink(
 				ctx,
 				fmt.Sprintf("Latest (v%d)", maxVersion.Int()),
-				fmt.Sprintf("%s/time-travel/%s/%s?v=%d", p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), maxVersion.Int()),
+				fmt.Sprintf(
+					"%s/time-travel/%s/%s?v=%d",
+					p.BasePath,
+					esc(string(ref.Type)),
+					esc(ref.ID.String()),
+					maxVersion.Int(),
+				),
 				"",
 				display.ButtonOutlineInfo,
 				false,
@@ -221,7 +234,11 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 			for v := event.Version(1); v <= maxVersion; v++ {
 				if v == currentVersion {
-					fmt.Fprintf(&b, `<span class="pagination"><span class="current">%d</span></span>`, v.Int())
+					fmt.Fprintf(
+						&b,
+						`<span class="pagination"><span class="current">%d</span></span>`,
+						v.Int(),
+					)
 				} else {
 					fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d">%d</a>`,
 						p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), v.Int(), v.Int())

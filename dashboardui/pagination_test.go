@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
@@ -59,7 +60,7 @@ func TestPopCursor(t *testing.T) {
 // TestRenderPagination_PreviousUsesCursorHistory verifies that the Previous
 // link navigates back using the cursor history, not just to page 1.
 func TestRenderPagination_PreviousUsesCursorHistory(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{
 		HasNext:     true,
 		NextCursor:  "cursor3",
 		PageSize:    50,
@@ -87,7 +88,7 @@ func TestRenderPagination_PreviousUsesCursorHistory(t *testing.T) {
 // TestRenderPagination_NextPushesCursor verifies that the Next link pushes
 // the current cursor onto the history stack.
 func TestRenderPagination_NextPushesCursor(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{
 		HasNext:     true,
 		NextCursor:  "cursor2",
 		PageSize:    50,
@@ -109,7 +110,7 @@ func TestRenderPagination_NextPushesCursor(t *testing.T) {
 // TestRenderPagination_PreviousToFirstPage verifies that when there is no
 // history, Previous navigates to the first page (empty after).
 func TestRenderPagination_PreviousToFirstPage(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{
 		HasNext:     false,
 		NextCursor:  "",
 		PageSize:    50,
@@ -136,7 +137,7 @@ func TestRenderPagination_PreviousToFirstPage(t *testing.T) {
 // TestRenderPagination_FiltersPreserved verifies extra filter params survive
 // in both Previous and Next links.
 func TestRenderPagination_FiltersPreserved(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{
 		HasNext:     true,
 		NextCursor:  "c2",
 		PageSize:    50,

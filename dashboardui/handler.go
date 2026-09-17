@@ -81,7 +81,10 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	if d.caps.ProjectionHost {
 		mux.HandleFunc("GET /projections", d.guard(d.projectionsIndexHandler))
 		mux.HandleFunc("GET /projections/{name}", d.guard(d.projectionDetailHandler))
-		mux.HandleFunc("GET /-/partials/projection-health", d.guard(d.projectionHealthPartialHandler))
+		mux.HandleFunc(
+			"GET /-/partials/projection-health",
+			d.guard(d.projectionHealthPartialHandler),
+		)
 
 		if !d.config.ReadOnly {
 			mux.HandleFunc("POST /projections/{name}/reset", d.guard(d.projectionResetHandler))
@@ -99,7 +102,10 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 		}
 
 		if !d.config.ReadOnly && d.caps.DeadLetterStore {
-			mux.HandleFunc("POST /dead-letters/{projection}/{eventID}/delete", d.guard(d.dlqDeleteHandler))
+			mux.HandleFunc(
+				"POST /dead-letters/{projection}/{eventID}/delete",
+				d.guard(d.dlqDeleteHandler),
+			)
 			mux.HandleFunc("POST /dead-letters/{projection}/purge", d.guard(d.dlqPurgeHandler))
 		}
 	}

@@ -12,7 +12,12 @@ import (
 // renderPagination renders Prev/Next links with cursor-history tracking.
 // basePath is the dashboard base path, path is the page path (e.g., "/events").
 // Extra query params (filters, sort) are preserved across pagination links.
-func renderPagination(ctx context.Context, basePath, path string, state paginationState, extraParams string) string {
+func renderPagination(
+	ctx context.Context,
+	basePath, path string,
+	state paginationState,
+	extraParams string,
+) string {
 	if !state.HasNext && !state.HasPrev {
 		return ""
 	}
@@ -24,7 +29,16 @@ func renderPagination(ctx context.Context, basePath, path string, state paginati
 	if state.HasPrev {
 		prevAfter, prevHistory := popCursor(state.PrevHistory)
 		query := paginationQuery(prevAfter, prevHistory, state.PageSize, extraParams)
-		b.WriteString(buttonLink(ctx, "← Previous", fmt.Sprintf("%s%s?%s", basePath, path, query), "", display.ButtonSecondary, false))
+		b.WriteString(
+			buttonLink(
+				ctx,
+				"← Previous",
+				fmt.Sprintf("%s%s?%s", basePath, path, query),
+				"",
+				display.ButtonSecondary,
+				false,
+			),
+		)
 	} else {
 		b.WriteString(`<span class="pagination disabled">← Previous</span>`)
 	}
@@ -35,7 +49,16 @@ func renderPagination(ctx context.Context, basePath, path string, state paginati
 	if state.HasNext {
 		nextHistory := pushCursor(state.PrevHistory, state.After)
 		query := paginationQuery(state.NextCursor, nextHistory, state.PageSize, extraParams)
-		b.WriteString(buttonLink(ctx, "Next →", fmt.Sprintf("%s%s?%s", basePath, path, query), "", display.ButtonOutlineInfo, false))
+		b.WriteString(
+			buttonLink(
+				ctx,
+				"Next →",
+				fmt.Sprintf("%s%s?%s", basePath, path, query),
+				"",
+				display.ButtonOutlineInfo,
+				false,
+			),
+		)
 	}
 
 	b.WriteString(`</div>`)
@@ -72,7 +95,11 @@ var pageSizeOptions = []int{25, 50, 100, 200}
 // renderPageSizeSelector renders a dropdown for choosing items per page.
 // Changing the selection navigates to the same path with the new limit,
 // preserving active filters but resetting cursor position.
-func renderPageSizeSelector(basePath, path string, state paginationState, extraParams string) string {
+func renderPageSizeSelector(
+	basePath, path string,
+	state paginationState,
+	extraParams string,
+) string {
 	current := state.PageSize
 	if current == 0 {
 		current = defaultPageSize
@@ -94,7 +121,15 @@ func renderPageSizeSelector(basePath, path string, state paginationState, extraP
 			query += "&" + extraParams
 		}
 
-		fmt.Fprintf(&b, `<option value="%s%s?%s"%s>%d</option>`, basePath, path, query, selected, opt)
+		fmt.Fprintf(
+			&b,
+			`<option value="%s%s?%s"%s>%d</option>`,
+			basePath,
+			path,
+			query,
+			selected,
+			opt,
+		)
 	}
 
 	b.WriteString(`</select></label></span>`)

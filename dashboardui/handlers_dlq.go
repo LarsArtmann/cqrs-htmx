@@ -24,7 +24,9 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 		p,
 		func() string { //nolint:contextcheck // closure captures r and passes r.Context() to badgeHTML explicitly
 			if len(links) == 0 {
-				return emptyStateIcon(r.Context(), icons.BugAnt,
+				return emptyStateIcon(
+					r.Context(),
+					icons.BugAnt,
 					"Dead-Letter Queue",
 					"No projections registered. Dead letters will appear here when projection errors occur.",
 				)
@@ -33,7 +35,9 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 			var b strings.Builder
 
 			b.WriteString(`<div class="page-header"><h2>Dead-Letter Queue</h2>`)
-			b.WriteString(`<p class="page-subtitle">Select a projection to view its dead letters.</p></div>`)
+			b.WriteString(
+				`<p class="page-subtitle">Select a projection to view its dead letters.</p></div>`,
+			)
 
 			// Summary table with counts.
 			var rows strings.Builder
@@ -46,7 +50,14 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 					esc(link.Name),
 					esc(link.Name),
 					badgeHTML(r.Context(), strconv.Itoa(link.Count), countBadgeType(link.Count)),
-					buttonLink(r.Context(), "View", p.BasePath+"/dead-letters/"+esc(link.Name), "", display.ButtonSecondary, false),
+					buttonLink(
+						r.Context(),
+						"View",
+						p.BasePath+"/dead-letters/"+esc(link.Name),
+						"",
+						display.ButtonSecondary,
+						false,
+					),
 				)
 			}
 
@@ -127,9 +138,18 @@ func (d *Dashboard) renderDLQEntryDetail(
 		var b strings.Builder
 
 		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2>Dead Letter: <code>%s</code></h2>`, esc(truncate(entry.EventID, eventIDWidth)))
-		fmt.Fprintf(&b, `<div class="page-subtitle">Projection: <a href="%s/dead-letters/%s">%s</a></div>`,
-			p.BasePath, esc(proj), esc(proj))
+		fmt.Fprintf(
+			&b,
+			`<h2>Dead Letter: <code>%s</code></h2>`,
+			esc(truncate(entry.EventID, eventIDWidth)),
+		)
+		fmt.Fprintf(
+			&b,
+			`<div class="page-subtitle">Projection: <a href="%s/dead-letters/%s">%s</a></div>`,
+			p.BasePath,
+			esc(proj),
+			esc(proj),
+		)
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="two-col-grid">`)
@@ -194,11 +214,29 @@ func (d *Dashboard) renderDLQEntryDetail(
 }
 
 func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
-	d.withProjectionHost(w, func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
-		proj := r.PathValue("projection")
+	d.withProjectionHost(
+		w,
+		func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
+			proj := r.PathValue("projection")
 
-		result, err := host.ReplayDeadLetters(r.Context(), proj)
-		if err != nil {
+			result, err := host.ReplayDeadLetters(r.Context(), proj)
+			if err != nil {
+				slog.InfoContext(
+					r.Context(),
+					"dashboardui.audit",
+					"op",
+					"dlq.replay",
+					"projection",
+					proj,
+					"result",
+					"error",
+				)
+				triggerToast(w, "err", "Replay failed")
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
 			slog.InfoContext(
 				r.Context(),
 				"dashboardui.audit",
@@ -206,42 +244,51 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 				"dlq.replay",
 				"projection",
 				proj,
+				"replayed",
+				len(result.Replayed),
+				"still_failing",
+				len(result.StillFailing),
 				"result",
-				"error",
+				"ok",
 			)
-			triggerToast(w, "err", "Replay failed")
-			w.WriteHeader(http.StatusInternalServerError)
 
-			return
-		}
-
-		slog.InfoContext(
-			r.Context(),
-			"dashboardui.audit",
-			"op",
-			"dlq.replay",
-			"projection",
-			proj,
-			"replayed",
-			len(result.Replayed),
-			"still_failing",
-			len(result.StillFailing),
-			"result",
-			"ok",
-		)
-
-		msg := fmt.Sprintf("Replayed %d, %d still failing", len(result.Replayed), len(result.StillFailing))
-		triggerToast(w, "ok", msg)
-		redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
-	})
+			msg := fmt.Sprintf(
+				"Replayed %d, %d still failing",
+				len(result.Replayed),
+				len(result.StillFailing),
+			)
+			triggerToast(w, "ok", msg)
+			redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
+		},
+	)
 }
 
 func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // handler closure
-		proj := r.PathValue("projection")
+	d.withDeadLetterStore(
+		w,
+		func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // handler closure
+			proj := r.PathValue("projection")
 
-		eventID := r.PathValue("eventID")
-		if err := store.Delete(r.Context(), proj, eventID); err != nil {
+			eventID := r.PathValue("eventID")
+			if err := store.Delete(r.Context(), proj, eventID); err != nil {
+				slog.InfoContext(
+					r.Context(),
+					"dashboardui.audit",
+					"op",
+					"dlq.delete",
+					"projection",
+					proj,
+					"event_id",
+					eventID,
+					"result",
+					"error",
+				)
+				triggerToast(w, "err", "Delete failed")
+				w.WriteHeader(http.StatusInternalServerError)
+
+				return
+			}
+
 			slog.InfoContext(
 				r.Context(),
 				"dashboardui.audit",
@@ -252,46 +299,50 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 				"event_id",
 				eventID,
 				"result",
-				"error",
+				"ok",
 			)
-			triggerToast(w, "err", "Delete failed")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		slog.InfoContext(
-			r.Context(),
-			"dashboardui.audit",
-			"op",
-			"dlq.delete",
-			"projection",
-			proj,
-			"event_id",
-			eventID,
-			"result",
-			"ok",
-		)
-		triggerToast(w, "ok", "Dead letter deleted")
-		redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
-	})
+			triggerToast(w, "ok", "Dead letter deleted")
+			redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
+		},
+	)
 }
 
 func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
-	d.withDeadLetterStore(w, func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // handler closure
-		proj := r.PathValue("projection")
-		if err := store.Purge(r.Context(), proj); err != nil {
-			slog.InfoContext(r.Context(), "dashboardui.audit", "op", "dlq.purge", "projection", proj, "result", "error")
-			triggerToast(w, "err", "Purge failed")
-			w.WriteHeader(http.StatusInternalServerError)
+	d.withDeadLetterStore(
+		w,
+		func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // handler closure
+			proj := r.PathValue("projection")
+			if err := store.Purge(r.Context(), proj); err != nil {
+				slog.InfoContext(
+					r.Context(),
+					"dashboardui.audit",
+					"op",
+					"dlq.purge",
+					"projection",
+					proj,
+					"result",
+					"error",
+				)
+				triggerToast(w, "err", "Purge failed")
+				w.WriteHeader(http.StatusInternalServerError)
 
-			return
-		}
+				return
+			}
 
-		slog.InfoContext(r.Context(), "dashboardui.audit", "op", "dlq.purge", "projection", proj, "result", "ok")
-		triggerToast(w, "ok", "Dead letters purged")
-		redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
-	})
+			slog.InfoContext(
+				r.Context(),
+				"dashboardui.audit",
+				"op",
+				"dlq.purge",
+				"projection",
+				proj,
+				"result",
+				"ok",
+			)
+			triggerToast(w, "ok", "Dead letters purged")
+			redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
+		},
+	)
 }
 
 func (d *Dashboard) renderDLQ(
@@ -320,7 +371,15 @@ func (d *Dashboard) renderDLQ(
 					esc(proj),
 				)
 				fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-				b.WriteString(buttonSubmit(ctx, "Replay All", "Replay all dead letters", display.ButtonOutlineInfo, nil))
+				b.WriteString(
+					buttonSubmit(
+						ctx,
+						"Replay All",
+						"Replay all dead letters",
+						display.ButtonOutlineInfo,
+						nil,
+					),
+				)
 				b.WriteString(`</form>`)
 			}
 
@@ -334,7 +393,15 @@ func (d *Dashboard) renderDLQ(
 					esc(proj),
 				)
 				fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-				b.WriteString(buttonSubmit(ctx, "Purge All", "Purge all dead letters", display.ButtonOutlineDanger, nil))
+				b.WriteString(
+					buttonSubmit(
+						ctx,
+						"Purge All",
+						"Purge all dead letters",
+						display.ButtonOutlineDanger,
+						nil,
+					),
+				)
 				b.WriteString(`</form>`)
 			}
 
@@ -357,7 +424,13 @@ func (d *Dashboard) renderDLQ(
 					esc(e.EventID),
 					esc(e.EventID),
 					esc(p.CSRFToken),
-					buttonSubmit(ctx, "Delete", "Delete dead letter "+esc(e.EventID), display.ButtonOutlineDanger, nil),
+					buttonSubmit(
+						ctx,
+						"Delete",
+						"Delete dead letter "+esc(e.EventID),
+						display.ButtonOutlineDanger,
+						nil,
+					),
 				)
 			}
 
@@ -372,7 +445,14 @@ func (d *Dashboard) renderDLQ(
 				esc(e.EventType),
 				esc(truncate(e.Error, errorDisplayWidth)),
 				badgeHTML(ctx, e.ErrorFamily, display.BadgeError),
-				buttonLink(ctx, "View", p.BasePath+"/dead-letters/"+esc(proj)+"/"+esc(e.EventID), "", display.ButtonSecondary, false),
+				buttonLink(
+					ctx,
+					"View",
+					p.BasePath+"/dead-letters/"+esc(proj)+"/"+esc(e.EventID),
+					"",
+					display.ButtonSecondary,
+					false,
+				),
 				actions,
 			)
 		}

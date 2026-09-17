@@ -117,7 +117,10 @@ func ProjectionStats(host *projectionhost.Host) []ProjectionStat {
 
 // FetchOverview aggregates events count, aggregates count, projection health,
 // DLQ count, and recent events into a single Overview struct.
-func FetchOverview(ctx context.Context, cfg Config) Overview { //nolint:cyclop,gocognit // multi-source aggregation
+func FetchOverview( //nolint:gocognit // multi-source aggregation
+	ctx context.Context,
+	cfg Config,
+) Overview {
 	stats := Overview{
 		TotalAggregates: "0",
 		TotalEvents:     "0",

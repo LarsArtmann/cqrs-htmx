@@ -25,7 +25,11 @@ func (f *fakeSeekableJournal) ReadAll(_ context.Context) ([]event.Event, error) 
 	return f.events, nil
 }
 
-func (f *fakeSeekableJournal) ReadFrom(_ context.Context, _ id.EventID, limit int) ([]event.Event, error) {
+func (f *fakeSeekableJournal) ReadFrom(
+	_ context.Context,
+	_ id.EventID,
+	limit int,
+) ([]event.Event, error) {
 	if f.readErr != nil {
 		return nil, f.readErr
 	}
@@ -81,7 +85,10 @@ func (s *fakeDeadLetterStore) Store(_ context.Context, _ projectionhost.DeadLett
 	return nil
 }
 
-func (s *fakeDeadLetterStore) List(_ context.Context, _ string) ([]projectionhost.DeadLetterEntry, error) {
+func (s *fakeDeadLetterStore) List(
+	_ context.Context,
+	_ string,
+) ([]projectionhost.DeadLetterEntry, error) {
 	return s.entries, nil
 }
 

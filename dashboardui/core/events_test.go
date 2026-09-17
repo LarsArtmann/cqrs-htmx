@@ -13,7 +13,13 @@ import (
 func makeTestEvent(eventType string, version int) event.Event {
 	streamID := id.NewStreamID()
 
-	evt, _ := event.New(event.Type(eventType), streamID, "TestAgg", event.Version(version), map[string]string{"k": "v"})
+	evt, _ := event.New(
+		event.Type(eventType),
+		streamID,
+		"TestAgg",
+		event.Version(version),
+		map[string]string{"k": "v"},
+	)
 
 	return evt
 }
@@ -112,7 +118,11 @@ func TestEventFilter_ExtraParams(t *testing.T) {
 func TestParseEventFilter(t *testing.T) {
 	t.Parallel()
 
-	r := httptest.NewRequest(http.MethodGet, "/?type=user.created&streamType=User&streamID=01HX", nil)
+	r := httptest.NewRequest(
+		http.MethodGet,
+		"/?type=user.created&streamType=User&streamID=01HX",
+		nil,
+	)
 	f := ParseEventFilter(r)
 
 	if f.Type != "user.created" {

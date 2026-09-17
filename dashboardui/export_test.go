@@ -15,8 +15,20 @@ func TestEventsExport_CSV(t *testing.T) {
 	t.Parallel()
 
 	streamID := id.NewStreamID()
-	evt1, _ := event.New(event.Type("test.created"), streamID, "TestAgg", 1, map[string]string{"k": "v"})
-	evt2, _ := event.New(event.Type("test.updated"), streamID, "TestAgg", 2, map[string]string{"k": "v2"})
+	evt1, _ := event.New(
+		event.Type("test.created"),
+		streamID,
+		"TestAgg",
+		1,
+		map[string]string{"k": "v"},
+	)
+	evt2, _ := event.New(
+		event.Type("test.updated"),
+		streamID,
+		"TestAgg",
+		2,
+		map[string]string{"k": "v2"},
+	)
 
 	d := MustNew(Config{
 		Journal: &fakeSeekableJournal{events: []event.Event{evt1, evt2}},
@@ -44,7 +56,13 @@ func TestEventsExport_JSON(t *testing.T) {
 	t.Parallel()
 
 	streamID := id.NewStreamID()
-	evt, _ := event.New(event.Type("test.created"), streamID, "TestAgg", 1, map[string]string{"k": "v"})
+	evt, _ := event.New(
+		event.Type("test.created"),
+		streamID,
+		"TestAgg",
+		1,
+		map[string]string{"k": "v"},
+	)
 
 	d := MustNew(Config{
 		Journal: &fakeSeekableJournal{events: []event.Event{evt}},

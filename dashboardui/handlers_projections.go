@@ -134,7 +134,13 @@ func (d *Dashboard) renderProjections(
 					esc(proj.Name),
 					esc(proj.Name),
 					esc(p.CSRFToken),
-					buttonSubmit(ctx, "Reset", "Reset projection "+esc(proj.Name), display.ButtonOutlineDanger, nil),
+					buttonSubmit(
+						ctx,
+						"Reset",
+						"Reset projection "+esc(proj.Name),
+						display.ButtonOutlineDanger,
+						nil,
+					),
 				)
 			}
 
@@ -271,7 +277,16 @@ func (d *Dashboard) renderProjectionDetail(
 			)
 		}
 
-		b.WriteString(buttonLink(ctx, "Back to Projections", p.BasePath+"/projections", "", display.ButtonSecondary, false))
+		b.WriteString(
+			buttonLink(
+				ctx,
+				"Back to Projections",
+				p.BasePath+"/projections",
+				"",
+				display.ButtonSecondary,
+				false,
+			),
+		)
 		b.WriteString(`</div>`)
 
 		return b.String()

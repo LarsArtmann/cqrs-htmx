@@ -34,7 +34,11 @@ func (f *fakeSeekableJournal) ReadAll(_ context.Context) ([]event.Event, error) 
 	return f.events, nil
 }
 
-func (f *fakeSeekableJournal) ReadFrom(_ context.Context, _ id.EventID, _ int) ([]event.Event, error) {
+func (f *fakeSeekableJournal) ReadFrom(
+	_ context.Context,
+	_ id.EventID,
+	_ int,
+) ([]event.Event, error) {
 	if f.readErr != nil {
 		return nil, f.readErr
 	}
@@ -59,11 +63,17 @@ type populatedDeadLetterStore struct {
 	entries []projectionhost.DeadLetterEntry
 }
 
-func (s *populatedDeadLetterStore) Store(_ context.Context, _ projectionhost.DeadLetterEntry) error {
+func (s *populatedDeadLetterStore) Store(
+	_ context.Context,
+	_ projectionhost.DeadLetterEntry,
+) error {
 	return nil
 }
 
-func (s *populatedDeadLetterStore) List(_ context.Context, _ string) ([]projectionhost.DeadLetterEntry, error) {
+func (s *populatedDeadLetterStore) List(
+	_ context.Context,
+	_ string,
+) ([]projectionhost.DeadLetterEntry, error) {
 	return s.entries, nil
 }
 
@@ -91,7 +101,13 @@ func makeTestEvent(t *testing.T, eventType string, version event.Version) event.
 
 	aggID := id.NewStreamID()
 
-	evt, err := event.New(event.Type(eventType), aggID, "TestAggregate", version, map[string]string{"key": "value"})
+	evt, err := event.New(
+		event.Type(eventType),
+		aggID,
+		"TestAggregate",
+		version,
+		map[string]string{"key": "value"},
+	)
 	if err != nil {
 		t.Fatalf("event.New: %v", err)
 	}
@@ -503,7 +519,11 @@ func (f *fakeCommandJournal) ReadAll(_ context.Context) ([]*command.PersistedCom
 	return f.cmds, nil
 }
 
-func (f *fakeCommandJournal) ReadFrom(_ context.Context, _ id.CommandID, _ int) ([]*command.PersistedCommand, error) {
+func (f *fakeCommandJournal) ReadFrom(
+	_ context.Context,
+	_ id.CommandID,
+	_ int,
+) ([]*command.PersistedCommand, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
@@ -609,7 +629,11 @@ func (f *fakeQueryJournal) ReadAllQueries(_ context.Context) ([]*query.Persisted
 	return f.queries, nil
 }
 
-func (f *fakeQueryJournal) ReadQueriesFrom(_ context.Context, _ id.RequestID, _ int) ([]*query.PersistedQuery, error) {
+func (f *fakeQueryJournal) ReadQueriesFrom(
+	_ context.Context,
+	_ id.RequestID,
+	_ int,
+) ([]*query.PersistedQuery, error) {
 	if f.err != nil {
 		return nil, f.err
 	}
@@ -713,8 +737,10 @@ func TestDLQEntryDetailHandler_Renders(t *testing.T) {
 	}
 
 	d, err := New(Config{
-		Journal:         &stubJournal{},
-		DeadLetterStore: &populatedDeadLetterStore{entries: []projectionhost.DeadLetterEntry{entry}},
+		Journal: &stubJournal{},
+		DeadLetterStore: &populatedDeadLetterStore{
+			entries: []projectionhost.DeadLetterEntry{entry},
+		},
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -822,7 +848,11 @@ func TestAggregateDetail_Pagination(t *testing.T) {
 
 	// Page 2: after version 50, should show remaining 10 events and a Prev link.
 	w2 := httptest.NewRecorder()
-	r2 := httptest.NewRequest(http.MethodGet, "/aggregates/TestAggregate/"+streamID.String()+"?after=50", nil)
+	r2 := httptest.NewRequest(
+		http.MethodGet,
+		"/aggregates/TestAggregate/"+streamID.String()+"?after=50",
+		nil,
+	)
 	r2.SetPathValue("type", "TestAggregate")
 	r2.SetPathValue("id", streamID.String())
 	d.aggregateDetailHandler(w2, r2)

@@ -39,7 +39,13 @@ func newTestProjectionHost(t *testing.T) *projectionhost.Host {
 
 	aggID := id.NewStreamID()
 
-	evt, err := event.New(event.Type("test.event"), aggID, "TestAggregate", 1, map[string]string{"k": "v"})
+	evt, err := event.New(
+		event.Type("test.event"),
+		aggID,
+		"TestAggregate",
+		1,
+		map[string]string{"k": "v"},
+	)
 	if err != nil {
 		t.Fatalf("event.New: %v", err)
 	}
@@ -247,7 +253,10 @@ func TestOverview_HealthStatCard(t *testing.T) {
 	}
 
 	if value != "Healthy" {
-		t.Errorf("expected healthy stat card for drained journal-only host (stopped = ready), got %q", value)
+		t.Errorf(
+			"expected healthy stat card for drained journal-only host (stopped = ready), got %q",
+			value,
+		)
 	}
 }
 

@@ -28,7 +28,13 @@ func TestPushCursor(t *testing.T) {
 
 			got := PushCursor(tt.history, tt.cursor)
 			if got != tt.expected {
-				t.Errorf("PushCursor(%q, %q) = %q, want %q", tt.history, tt.cursor, got, tt.expected)
+				t.Errorf(
+					"PushCursor(%q, %q) = %q, want %q",
+					tt.history,
+					tt.cursor,
+					got,
+					tt.expected,
+				)
 			}
 		})
 	}
@@ -59,7 +65,12 @@ func TestPopCursor(t *testing.T) {
 			}
 
 			if remaining != tt.wantRemaining {
-				t.Errorf("PopCursor(%q) remaining = %q, want %q", tt.history, remaining, tt.wantRemaining)
+				t.Errorf(
+					"PopCursor(%q) remaining = %q, want %q",
+					tt.history,
+					remaining,
+					tt.wantRemaining,
+				)
 			}
 		})
 	}

@@ -49,7 +49,12 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 // page (templ-components errorpage): a bare card for HTMX swaps, a minimal
 // document loading the dashboard stylesheets otherwise. Safe to call with a
 // nil request (renders the shell-less plain fallback path).
-func (d *Dashboard) renderError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
+func (d *Dashboard) renderError(
+	w http.ResponseWriter,
+	r *http.Request,
+	statusCode int,
+	message string,
+) {
 	ctx := context.Background() //nolint:contextcheck // fallback when request is nil; replaced by r.Context() below
 	nonce := ""
 	path := ""
@@ -107,7 +112,11 @@ func (d *Dashboard) renderErrorShell(title, inner string) string {
 	)
 	fmt.Fprintf(&b, "<title>%s</title>\n", esc(title))
 	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", d.config.BasePath)
-	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard-tw.css\"/>\n", d.config.BasePath)
+	fmt.Fprintf(
+		&b,
+		"<link rel=\"stylesheet\" href=\"%s/-/dashboard-tw.css\"/>\n",
+		d.config.BasePath,
+	)
 	b.WriteString("</head>\n<body>\n<div class=\"error-shell\">\n")
 	b.WriteString(inner)
 	b.WriteString("\n</div>\n</body>\n</html>")

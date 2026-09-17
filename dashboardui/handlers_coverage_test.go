@@ -187,7 +187,12 @@ func TestRenderProjectionRow_AllStatusKinds(t *testing.T) {
 			Processed: 100, Errors: 2,
 		})
 		if !strings.Contains(html, tc.wantClass) {
-			t.Errorf("renderProjectionRow(%s): expected class %q, got: %s", tc.name, tc.wantClass, html)
+			t.Errorf(
+				"renderProjectionRow(%s): expected class %q, got: %s",
+				tc.name,
+				tc.wantClass,
+				html,
+			)
 		}
 
 		if !strings.Contains(html, tc.name) {
@@ -413,7 +418,10 @@ func TestRelativeTime(t *testing.T) {
 		t.Errorf("relativeTime(-90s) = %q, want %q", got, "1 minute ago")
 	}
 
-	if got := relativeTime(time.Now().Add(-5 * time.Minute)); !strings.Contains(got, "minutes ago") {
+	if got := relativeTime(time.Now().Add(-5 * time.Minute)); !strings.Contains(
+		got,
+		"minutes ago",
+	) {
 		t.Errorf("relativeTime(-5m) = %q, want 'minutes ago'", got)
 	}
 
@@ -530,14 +538,14 @@ func TestParsePageSize(t *testing.T) {
 // ===== renderPagination =====
 
 func TestRenderPagination_NoPagination(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{}, "")
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{}, "")
 	if html != "" {
 		t.Fatalf("expected empty string for no pagination, got: %s", html)
 	}
 }
 
 func TestRenderPagination_HasNextOnly(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{
 		HasNext: true, NextCursor: "abc", PageSize: 10,
 	}, "")
 
@@ -555,7 +563,7 @@ func TestRenderPagination_HasNextOnly(t *testing.T) {
 }
 
 func TestRenderPagination_HasPrevOnly(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{
 		HasPrev: true,
 	}, "")
 
@@ -569,7 +577,7 @@ func TestRenderPagination_HasPrevOnly(t *testing.T) {
 }
 
 func TestRenderPagination_Both(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{
 		HasNext: true, NextCursor: "xyz", PageSize: 20, HasPrev: true,
 	}, "")
 
@@ -583,7 +591,7 @@ func TestRenderPagination_Both(t *testing.T) {
 }
 
 func TestRenderPagination_WithExtraParams(t *testing.T) {
-	html := renderPagination("/d", "/events", paginationState{
+	html := renderPagination(context.Background(), "/d", "/events", paginationState{
 		HasNext: true, NextCursor: "cur", PageSize: 10,
 	}, "type=user.created")
 

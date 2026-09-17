@@ -81,7 +81,12 @@ func ParseEventFilter(r *http.Request) EventFilter {
 // LoadRecentEvents reads up to limit events starting after the given cursor.
 // Uses SeekableJournal when available (efficient cursor-based reads), falls
 // back to Journal.ReadAll when only a basic Journal is configured.
-func LoadRecentEvents(ctx context.Context, cfg Config, after id.EventID, limit int) ([]event.Event, error) {
+func LoadRecentEvents(
+	ctx context.Context,
+	cfg Config,
+	after id.EventID,
+	limit int,
+) ([]event.Event, error) {
 	if cfg.SeekableJournal != nil {
 		events, err := cfg.SeekableJournal.ReadFrom(ctx, after, limit)
 		if err != nil {
@@ -161,7 +166,11 @@ func LoadFilteredEvents(
 // LoadEventByID finds a single event by its EventID. Uses EventByIDLoader
 // when available (O(1)), falls back to scanning the SeekableJournal, then
 // the Journal.
-func LoadEventByID(ctx context.Context, cfg Config, eventID id.EventID) (event.Event, error) { //nolint:cyclop
+func LoadEventByID(
+	ctx context.Context,
+	cfg Config,
+	eventID id.EventID,
+) (event.Event, error) {
 	if cfg.EventByIDLoader != nil {
 		evt, err := cfg.EventByIDLoader.LoadByEventID(ctx, eventID)
 		if err != nil {

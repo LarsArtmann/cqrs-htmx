@@ -83,8 +83,19 @@ func TestMount_CoexistsWithRootIndex(t *testing.T) {
 func TestDashboard_EventBrowserRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 	aggID := id.NewStreamID()
-	evt, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
-	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
+	evt, _ := event.New(
+		"user.created",
+		aggID,
+		"User",
+		event.Version(1),
+		struct{ Name string }{Name: "Alice"},
+	)
+	_ = store.Save(
+		context.Background(),
+		id.NewStreamRef("User", aggID),
+		[]event.Event{evt},
+		event.Version(0),
+	)
 
 	d, _ := New(Config{
 		EventSource: store,
@@ -178,8 +189,19 @@ func TestDashboard_NavBuildsFromCapabilities(t *testing.T) {
 func TestDashboard_EventDetailRenders(t *testing.T) {
 	store := memorystorage.NewMemoryStore()
 	aggID := id.NewStreamID()
-	evt, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
-	_ = store.Save(context.Background(), id.NewStreamRef("User", aggID), []event.Event{evt}, event.Version(0))
+	evt, _ := event.New(
+		"user.created",
+		aggID,
+		"User",
+		event.Version(1),
+		struct{ Name string }{Name: "Alice"},
+	)
+	_ = store.Save(
+		context.Background(),
+		id.NewStreamRef("User", aggID),
+		[]event.Event{evt},
+		event.Version(0),
+	)
 
 	d, _ := New(Config{
 		EventSource: store,
@@ -211,10 +233,22 @@ func TestDashboard_AggregateDetailRenders(t *testing.T) {
 	aggID := id.NewStreamID()
 	ref := id.NewStreamRef("User", aggID)
 
-	evt1, _ := event.New("user.created", aggID, "User", event.Version(1), struct{ Name string }{Name: "Alice"})
+	evt1, _ := event.New(
+		"user.created",
+		aggID,
+		"User",
+		event.Version(1),
+		struct{ Name string }{Name: "Alice"},
+	)
 	_ = store.Save(context.Background(), ref, []event.Event{evt1}, event.Version(0))
 
-	evt2, _ := event.New("user.renamed", aggID, "User", event.Version(2), struct{ Name string }{Name: "Bob"})
+	evt2, _ := event.New(
+		"user.renamed",
+		aggID,
+		"User",
+		event.Version(2),
+		struct{ Name string }{Name: "Bob"},
+	)
 	_ = store.Save(context.Background(), ref, []event.Event{evt2}, event.Version(1))
 
 	d, _ := New(Config{
@@ -436,7 +470,13 @@ func TestDashboard_SSEBridgeWorks(t *testing.T) {
 	// Publish an event to the bus
 	aggID := id.NewStreamID()
 
-	evt, _ := event.New("order.placed", aggID, "Order", event.Version(1), struct{ Total int }{Total: 42})
+	evt, _ := event.New(
+		"order.placed",
+		aggID,
+		"Order",
+		event.Version(1),
+		struct{ Total int }{Total: 42},
+	)
 	if err := bus.Publish(context.Background(), evt); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}

@@ -23,7 +23,11 @@ func (d *Dashboard) healthzHandler(w http.ResponseWriter, _ *http.Request) {
 func (d *Dashboard) readyzHandler(w http.ResponseWriter, _ *http.Request) {
 	select {
 	case <-d.done:
-		writeJSON(w, http.StatusServiceUnavailable, map[string]any{jsonKeyStatus: "shutting_down", jsonKeyReady: false})
+		writeJSON(
+			w,
+			http.StatusServiceUnavailable,
+			map[string]any{jsonKeyStatus: "shutting_down", jsonKeyReady: false},
+		)
 
 		return
 	default:

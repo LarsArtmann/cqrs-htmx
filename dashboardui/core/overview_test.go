@@ -127,7 +127,11 @@ func TestFetchOverview_RecentEventsLimit(t *testing.T) {
 	overview := FetchOverview(context.Background(), cfg)
 
 	if len(overview.RecentEvents) != RecentEventsLimit {
-		t.Errorf("RecentEvents should be capped at %d, got %d", RecentEventsLimit, len(overview.RecentEvents))
+		t.Errorf(
+			"RecentEvents should be capped at %d, got %d",
+			RecentEventsLimit,
+			len(overview.RecentEvents),
+		)
 	}
 }
 

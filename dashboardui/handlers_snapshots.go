@@ -12,8 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	"github.com/larsartmann/templ-components/icons"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Snapshots =====
@@ -80,7 +80,12 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderSnapshotDetail(ctx context.Context, p pageData, ref id.StreamRef, snap *snapshot.Snapshot) string {
+func (d *Dashboard) renderSnapshotDetail(
+	ctx context.Context,
+	p pageData,
+	ref id.StreamRef,
+	snap *snapshot.Snapshot,
+) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 

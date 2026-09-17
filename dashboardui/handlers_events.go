@@ -1,14 +1,13 @@
 package dashboardui
 
 import (
-	"github.com/a-h/templ"
-
 	"context"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/templ-components/display"
@@ -155,7 +154,9 @@ func (d *Dashboard) renderEventDetail(
 					false,
 				))
 			} else {
-				b.WriteString(buttonLink(ctx, "← Previous", "#", "Previous event (disabled)", display.ButtonSecondary, true))
+				b.WriteString(
+					buttonLink(ctx, "← Previous", "#", "Previous event (disabled)", display.ButtonSecondary, true),
+				)
 			}
 
 			if nextID != "" {
@@ -223,13 +224,23 @@ func (d *Dashboard) renderEventDetail(
 
 		b.WriteString(`<div><h3>Payload</h3>`)
 		b.WriteString(`<div class="filter-bar">`)
-		b.WriteString(buttonSubmit(ctx, "Copy", "", display.ButtonSecondary, templ.Attributes{"onclick": "copyPayload()"}))
+		b.WriteString(
+			buttonSubmit(
+				ctx,
+				"Copy",
+				"",
+				display.ButtonSecondary,
+				templ.Attributes{"onclick": "copyPayload()"},
+			),
+		)
 		b.WriteString(buttonSubmit(
 			ctx,
 			"Download JSON",
 			"",
 			display.ButtonSecondary,
-			templ.Attributes{"onclick": fmt.Sprintf("downloadPayload('%s')", esc(evt.ID().String()))},
+			templ.Attributes{
+				"onclick": fmt.Sprintf("downloadPayload('%s')", esc(evt.ID().String())),
+			},
 		))
 		b.WriteString(`</div>`)
 		fmt.Fprintf(
@@ -327,8 +338,21 @@ func renderEventFilterBar(ctx context.Context, basePath string, filter eventFilt
 			`<label for="filter-type">Type</label><input id="filter-type" type="text" name="type" value="%s" placeholder="event.type"/>`+
 			`<label for="filter-stream-type">Stream Type</label><input id="filter-stream-type" type="text" name="streamType" value="%s" placeholder="User"/>`+
 			`<label for="filter-stream-id">Stream ID</label><input id="filter-stream-id" type="text" name="streamID" value="%s" placeholder="01H..."/>`+
-			buttonSubmit(ctx, "Filter", "", display.ButtonOutlineInfo, nil)+
-			buttonLink(ctx, "Clear", basePath+"/events", "", display.ButtonSecondary, false)+
+			buttonSubmit(
+				ctx,
+				"Filter",
+				"",
+				display.ButtonOutlineInfo,
+				nil,
+			)+
+			buttonLink(
+				ctx,
+				"Clear",
+				basePath+"/events",
+				"",
+				display.ButtonSecondary,
+				false,
+			)+
 			`</form>`,
 		esc(basePath),
 		esc(filter.Type),

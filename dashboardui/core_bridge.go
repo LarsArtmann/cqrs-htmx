@@ -137,7 +137,11 @@ func (d *Dashboard) buildDLQProjectionLinks(ctx context.Context) []dlqProjection
 	return core.DLQProjectionLinks(ctx, d.config.coreConfig())
 }
 
-func (d *Dashboard) loadRecentEvents(ctx context.Context, after id.EventID, limit int) ([]event.Event, error) {
+func (d *Dashboard) loadRecentEvents(
+	ctx context.Context,
+	after id.EventID,
+	limit int,
+) ([]event.Event, error) {
 	return core.LoadRecentEvents(ctx, d.config.coreConfig(), after, limit)
 }
 
