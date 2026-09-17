@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>go-cqrs-lite command/v4 — Utilization Audit Across cqrs-htmx</title>
     <style>
       /* =========================================================================
          BAUHAUS LIGHT — Editorial template
@@ -848,68 +848,74 @@
     </style>
   </head>
   <body>
-    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <!-- Full-bleed top bar -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>LIBRARY DEEP DIVE</span>
+      <span>2026-09-17</span>
+      <span>cqrs-htmx &times; go-cqrs-lite command/v4</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
-          <a href="#scorecard">Scorecard</a>
-          <a href="#strengths">Strengths</a>
+          <a href="#strengths">Current Usage</a>
+          <a href="#capability-map">Capability Map</a>
           <a href="#findings">Findings</a>
-          <a href="#proposal">Proposal</a>
-          <a href="#appendix">Appendix</a>
+          <a href="#version">Version Currency</a>
+          <a href="#priorities">Priorities</a>
+          <a href="#conclusion">Conclusion</a>
         </nav>
       </aside>
 
-      <!-- Main content -->
       <main class="main">
         <!-- Hero -->
         <header class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="bar"></div>
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="eyebrow">REPORT TYPE &middot; YYYY-MM-DD</div>
-          <h1>Report Title</h1>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-09-17</div>
+          <h1>
+            go-cqrs-lite <code>command/v4</code> — Utilization Audit Across
+            cqrs-htmx
+          </h1>
           <p class="subtitle">
-            One or two sentences that set the frame: who this is for, what was
-            reviewed, and what the reader will take away.
+            How well does cqrs-htmx — the root module and all 26 sibling
+            modules — leverage the command side of go-cqrs-lite? Verdict: the
+            command <em>mechanics</em> are exemplary (20/20 domain commands,
+            fully typed); the command <em>ecosystem</em> (metadata&ndash;audit
+            chain, dispatch middleware, idempotency, persistence) is largely
+            untapped.
           </p>
           <div class="meta">
-            <span class="tag amber">Scope: example</span>
-            <span class="tag">Version: 1.0.0</span>
-            <span class="tag teal">Status: draft</span>
+            <span class="tag amber">Adoption Score: 62/100</span>
+            <span class="tag">Pinned: command/v4 v4.10.0</span>
+            <span class="tag">Latest: v4.10.0</span>
+            <span class="tag teal">Scope: 27 modules</span>
           </div>
         </header>
 
         <!-- Scorecard -->
         <section id="scorecard" class="scorecard">
-          <div class="score-card score-good">
-            <div class="score">8</div>
-            <div class="label">Items passing</div>
-          </div>
           <div class="score-card score-warn">
-            <div class="score">3</div>
-            <div class="label">Warnings</div>
+            <div class="score">62</div>
+            <div class="label">Adoption Score / 100</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Versions behind latest</div>
           </div>
           <div class="score-card score-bad">
-            <div class="score">1</div>
-            <div class="label">Blockers</div>
+            <div class="score">4</div>
+            <div class="label">Missed opportunities</div>
           </div>
-          <div class="score-card">
-            <div class="score">12</div>
-            <div class="label">Total reviewed</div>
+          <div class="score-card score-bad">
+            <div class="score">0/13</div>
+            <div class="label">Middleware factories used in the core path</div>
           </div>
         </section>
 
@@ -917,154 +923,697 @@
         <section id="summary">
           <h2><span class="num">00</span>Summary</h2>
           <p>
-            Replace this with the bottom-line verdict. A good summary tells the
-            reader whether the subject is ready, what the biggest risk is, and
-            what one action would unlock the most value.
+            cqrs-htmx uses commands everywhere it should structurally: all 20
+            identity-domain commands are registered via
+            <code>command.RegisterTyped</code>, every command struct embeds
+            <code>*command.BasicCommand</code>, the HTTP&harr;CQRS bridge
+            enriches and dispatches through the dispatcher in both typed and
+            untyped form, and errors flow through the dispatcher's
+            error-family wrapping into <code>MapError</code>. Six of the 27
+            modules use commands directly; the rest are UI, transport, or
+            strategy modules for which that is architecturally correct.
+          </p>
+          <p>
+            The gaps are systemic rather than mechanical. The library's own
+            most-used command pipeline — usermgmt's 20-command internal
+            dispatcher — ships with <strong>zero middleware</strong> and no
+            config hook for consumers to add any. The upstream audit-trail
+            chain (<code>CommandActorContext</code> &rarr;
+            <code>ActorEnricher</code>) has zero call sites in this repo, so
+            every event the library's own domain emits is anonymous. Command
+            idempotency and command persistence are entirely unadopted, which
+            leaves the dashboard's command audit view dead for the default
+            stack.
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
-            State the verdict plainly. If the report is blocking, say so. If
-            it's mostly positive, lead with that.
+            The library documents and exports everything needed for a complete
+            audit trail — <code>CommandOptionsFromContext</code>,
+            <code>WithActor</code>, <code>CommandActorContext</code>,
+            <code>ActorEnricher</code> — yet none of it is wired end-to-end in
+            its own domain: commands are constructed without metadata and
+            repositories are built without an enricher. Fixing the two wiring
+            points (findings 1 and 2) is roughly a dozen lines and would
+            activate the audit story the project already sells.
           </div>
         </section>
 
-        <!-- Strengths -->
+        <!-- Current Usage -->
         <section id="strengths">
-          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <h2><span class="num">01</span>Current Usage</h2>
           <p>
-            Before the criticism: acknowledge what works. This builds trust and
-            keeps the report from reading like a pure complaint list.
+            What the codebase does with commands today — each point verified
+            against source.
           </p>
-
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength one</strong>
-                <span>Explain why it matters and what it enables.</span>
+                <strong>20/20 domain commands registered typed</strong>
+                <span
+                  ><code>usermgmt/es_dispatch.go</code> (11),
+                  <code>es_tenant_dispatch.go</code> (4),
+                  <code>es_membership_dispatch.go</code> (3),
+                  <code>es_bot_dispatch.go</code> (2) — all via
+                  <code>command.RegisterTyped</code>; zero untyped
+                  <code>Register</code> in domain code. Handlers delegate to
+                  pure deciders via <code>repo.ExecuteRef</code>
+                  (es_dispatch.go:21-27).</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength two</strong>
+                <strong>Embedded <code>BasicCommand</code> pattern with
+                accessor encapsulation</strong>
                 <span
-                  >Reference files, metrics, or patterns where possible.</span
+                  >Every identity-model command embeds
+                  <code>*command.BasicCommand</code> via
+                  <code>mustCommand</code> and exposes payload fields only
+                  through accessor methods (<code>identity-model/commands.go</code>)
+                  — metadata-capable, immutable, and consistent across all 20
+                  types.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>HTTP&harr;CQRS bridge with typed endpoints</strong>
+                <span
+                  ><code>App.Command</code>/<code>App.Query</code> and
+                  <code>CommandTyped</code>/<code>QueryTyped</code> dispatch
+                  through <code>a.commands.Dispatch</code>
+                  (handler.go:151, 243, 285, 326) with the full
+                  <code>HandlerOption</code> pipeline (Authorize &rarr; decode
+                  &rarr; validate &rarr; guard &rarr; dispatch).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Error-family discipline on the dispatch path</strong>
+                <span
+                  >The dispatcher wraps handler-not-found as a Rejection
+                  (upstream dispatcher.go:66-72) and usermgmt's ~25
+                  <code>Dispatch</code> call sites rely on typed domain errors
+                  flowing through <code>MapError</code> to correct HTTP
+                  statuses — no error translation glue anywhere.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Command journal read-side in dashboardui</strong>
+                <span
+                  ><code>dashboardui/handlers_audit.go:26-58</code> and
+                  <code>export.go:120-136</code> consume
+                  <code>command.PersistedCommand</code>,
+                  <code>CommandJournal</code>, and
+                  <code>SeekableCommandJournal</code> — a genuinely advanced
+                  corner of the API, used defensively with a scan fallback.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Metadata helper exported and documented</strong>
+                <span
+                  ><code>CommandOptionsFromContext</code>
+                  (context.go:297-325) builds four of the seven upstream
+                  options (UserID, Actor, Correlation, Request); root applies
+                  it in both typed and untyped dispatch paths
+                  (handler.go:347-351).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Examples prove the full middleware stack</strong>
+                <span
+                  ><code>examples/middleware-demo/main.go:124-126</code>
+                  (Recovery, Retry, CircuitBreaker) and
+                  <code>examples/observability-demo/main.go:118-122</code>
+                  (+ Tracing, TypedMetrics, Logging) — runnable proof that the
+                  zero-glue <code>Use()</code> composition works.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Declarative third pathway via systemadapter</strong>
+                <span
+                  ><code>systemadapter/domain_config.go:113</code> pre-wires
+                  all 20 commands into go-cqrs-lite's
+                  <code>system.DomainConfig</code> for
+                  <code>system.Execute</code> declarative routing — command
+                  types referenced by constant, not string.</span
                 >
               </div>
             </div>
           </div>
-        </section>
-
-        <!-- Findings -->
-        <section id="findings">
-          <h2><span class="num">01</span>Findings</h2>
-          <p>These are the issues that need attention, ordered by impact.</p>
-
-          <!-- Issue 1 -->
-          <div class="issue issue-critical" id="issue-1">
-            <span class="severity severity-critical"
-              >Blocking &middot; High impact</span
-            >
-            <h3>Critical issue title</h3>
-            <div class="where">
-              path/to/file.go:42-58 &middot; short context
-            </div>
-            <p>
-              Describe the problem, cite the code or behavior, and explain why
-              it matters to the reader's goals.
-            </p>
-            <pre><code>// Example of the problematic pattern
-func BadExample() {}</code></pre>
-            <div class="callout callout-teal">
-              <strong>Fix: recommended action</strong>
-              State the concrete fix, including file names, function names, or
-              configuration changes.
-            </div>
-          </div>
-
-          <!-- Issue 2 -->
-          <div class="issue issue-important" id="issue-2">
-            <span class="severity severity-important"
-              >Important &middot; Medium impact</span
-            >
-            <h3>Important issue title</h3>
-            <div class="where">path/to/another.go:12-19</div>
-            <p>
-              Explain the risk. Important issues are not blockers but would make
-              a careful reviewer hesitate before shipping.
-            </p>
-          </div>
-
-          <!-- Issue 3 -->
-          <div class="issue issue-nice" id="issue-3">
-            <span class="severity severity-nice"
-              >Nice to have &middot; Low impact</span
-            >
-            <h3>Nice-to-have improvement</h3>
-            <div class="where">docs/ or config</div>
-            <p>
-              Minor polish, documentation gaps, or future-proofing suggestions
-              go here.
-            </p>
-          </div>
-        </section>
-
-        <!-- Proposal -->
-        <section id="proposal">
-          <h2><span class="num">02</span>What the solution could look like</h2>
           <p>
-            If the findings were fixed, what would the new state be? Show the
-            target API, structure, or workflow.
+            Module coverage: <strong>root</strong> (App bridge + typed
+            endpoints), <strong>identity-model</strong> (command definitions),
+            <strong>usermgmt</strong> (dispatch engine),
+            <strong>dashboardui</strong> (journal read-side),
+            <strong>systemadapter</strong> (declarative config), and six
+            examples. <strong>totp/webauthn/oauth2</strong> go through the
+            service's dispatcher (e.g. <code>totp.go:80,110</code>);
+            <strong>adminui, loginpage, datastar, setup, health, auditlog</strong>
+            contain no direct command usage — correct for UI, transport, and
+            bridge layers that operate above or beside the write model.
           </p>
-          <pre><code>// Target state after the recommended changes
-type BetterAPI struct {
-    Field string
-}</code></pre>
-          <div class="callout callout-teal">
-            <strong>This is the target</strong>
-            Summarize why this state is better and what it unlocks.
-          </div>
         </section>
 
-        <!-- Appendix -->
-        <section id="appendix">
-          <h2><span class="num">03</span>Appendix</h2>
+        <!-- Capability Map -->
+        <section id="capability-map">
+          <h2><span class="num">02</span>Capability Map</h2>
           <p>
-            Methodology, links to related files, or a priority matrix can live
-            here.
+            The full public surface of <code>command/v4</code> v4.10.0 plus
+            its 13 middleware factories, graded by adoption status.
           </p>
           <table class="compare">
             <thead>
               <tr>
-                <th>Issue</th>
-                <th>Severity</th>
-                <th>Effort</th>
+                <th>Capability</th>
                 <th>Status</th>
+                <th>Evidence</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Issue one</td>
-                <td class="no">Critical</td>
-                <td>Low</td>
-                <td class="no">Open</td>
+                <td>Dispatcher + <code>RegisterTyped[T]</code></td>
+                <td class="yes">Fully leveraged</td>
+                <td>20/20 domain commands typed; 4 dispatch files in usermgmt</td>
               </tr>
               <tr>
-                <td>Issue two</td>
-                <td class="no">Important</td>
-                <td>Medium</td>
-                <td class="yes">In progress</td>
+                <td>HTTP bridge (<code>App.Command</code>/<code>CommandTyped</code>)</td>
+                <td class="yes">Fully leveraged</td>
+                <td>handler.go:151,283 + options_decode.go decoders</td>
+              </tr>
+              <tr>
+                <td>Embedded <code>BasicCommand</code> + accessors</td>
+                <td class="yes">Fully leveraged</td>
+                <td>identity-model/commands.go — all 20 structs</td>
+              </tr>
+              <tr>
+                <td>Error-family integration</td>
+                <td class="yes">Fully leveraged</td>
+                <td>Dispatcher Rejection wrapping &rarr; <code>MapError</code></td>
+              </tr>
+              <tr>
+                <td>Metadata options (7: Actor, User, Correlation, Request,
+                Causation, Custom, CommandID)</td>
+                <td>Partially used</td>
+                <td>4 built by context.go:297-325 but applied only to exact
+                <code>*BasicCommand</code>; WithCausationID/WithCustomMetadata
+                never used anywhere</td>
+              </tr>
+              <tr>
+                <td>Command journal (read side)</td>
+                <td>Partially used</td>
+                <td>dashboardui reads it; no producer in the core stack</td>
+              </tr>
+              <tr>
+                <td><code>Dispatcher.Close()</code></td>
+                <td>Partially used</td>
+                <td>Created in service_core.go:331, never closed</td>
+              </tr>
+              <tr>
+                <td>Dispatch middleware (13 <code>Command*</code> factories)</td>
+                <td class="no">Missed in core</td>
+                <td>usermgmt dispatcher bare; examples-only adoption</td>
+              </tr>
+              <tr>
+                <td>Actor/causation enrichers (<code>CommandActorContext</code>
+                + <code>ActorEnricher</code>)</td>
+                <td class="no">Missed</td>
+                <td>Zero call sites; repositoryOptions lacks WithEnricher</td>
+              </tr>
+              <tr>
+                <td><code>CommandIdempotency</code></td>
+                <td class="no">Missed</td>
+                <td>Zero call sites repo-wide</td>
+              </tr>
+              <tr>
+                <td>Command persistence (<code>Store</code>,
+                <code>TypedCommandStore[P]</code>)</td>
+                <td class="no">Missed in core</td>
+                <td>Only memory store in examples/dashboard-demo:43,75</td>
+              </tr>
+              <tr>
+                <td><code>MemoryBus</code>, <code>AsRecord</code>,
+                <code>commandtest</code></td>
+                <td>Not applicable</td>
+                <td>No in-process command fan-out need; root ships its own
+                fakes; record bridge used via systemadapter instead</td>
               </tr>
             </tbody>
           </table>
         </section>
 
+        <!-- Findings -->
+        <section id="findings">
+          <h2><span class="num">03</span>Findings</h2>
+          <p>Ordered by impact. Every claim is cited to source.</p>
+
+          <!-- Issue 1 -->
+          <div class="issue issue-critical" id="issue-1">
+            <span class="severity severity-critical"
+              >Missed Opportunity &middot; High impact</span
+            >
+            <h3>
+              The audit-trail chain is unwired — every event from the library's
+              own domain is anonymous
+            </h3>
+            <div class="where">
+              usermgmt/snapshot.go:88-91 (repositoryOptions) &middot;
+              identity-model/commands.go (constructors take no metadata)
+              &middot; zero call sites of middleware.CommandActorContext /
+              event.ActorEnricher repo-wide
+            </div>
+            <p>
+              go-cqrs-lite documents a precise two-link chain for attributing
+              events to actors: <code>middleware.CommandActorContext()</code>
+              on the dispatcher copies the command's actor metadata into the
+              context, and <code>decider.WithEnricher(event.ActorEnricher)</code>
+              on the repository writes it into every emitted event (upstream
+              event/actor_context.go:35-49, middleware/actor.go:18-49). A
+              causation counterpart (<code>CommandCausalityEnricher</code>)
+              links events to the command that produced them. cqrs-htmx wires
+              <strong>neither link</strong>:
+              <code>repositoryOptions</code> carries only snapshot options and
+              a state cache, and none of the 20 command constructors accept or
+              set metadata. Result: ~25 dispatch sites in usermgmt emit events
+              with zero actor/causation attribution, so the auditlog bridge
+              (auditlog/v4) and dashboardui's audit views render the library's
+              own activity as anonymous. The project lists "Event propagation:
+              event.WithActor" as an integration win — but it exists only as
+              an exported helper for consumers, not in the domain itself.
+            </p>
+            <pre><code><span class="tok-comment">// Before: usermgmt/snapshot.go:88 — the complete option list today</span>
+<span class="tok-keyword">func</span> <span class="tok-function">repositoryOptions</span>[State any](config SnapshotConfig) []decider.RepositoryOption[State] {
+	opts := <span class="tok-function">snapshotOptions</span>[State](config)
+	<span class="tok-keyword">return</span> <span class="tok-function">append</span>(opts, decider.<span class="tok-function">WithStateCache</span>[State](decider.<span class="tok-function">NewStateCache</span>[State](<span class="tok-number">0</span>)))
+	<span class="tok-comment">// no WithEnricher — events never inherit the actor</span>
+}
+
+<span class="tok-comment">// After: two wiring points activate the whole chain</span>
+opts = <span class="tok-function">append</span>(opts, decider.<span class="tok-function">WithEnricher</span>[State](event.<span class="tok-function">ActorEnricher</span>))
+
+<span class="tok-comment">// usermgmt/service_core.go, next to RegisterCommands:</span>
+dispatcher.<span class="tok-function">Use</span>(middleware.<span class="tok-function">CommandActorContext</span>())</code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Add <code>decider.WithEnricher(event.ActorEnricher)</code> (and
+              ideally <code>CommandCausalityEnricher</code>) to
+              <code>repositoryOptions</code>, and
+              <code>dispatcher.Use(middleware.CommandActorContext())</code> in
+              <code>NewService</code> after command registration. Then make
+              usermgmt's service methods apply
+              <code>CommandOptionsFromContext(ctx)</code> onto commands before
+              dispatch so HTTP-derived identity actually reaches the metadata.
+            </div>
+          </div>
+
+          <!-- Issue 2 -->
+          <div class="issue issue-critical" id="issue-2">
+            <span class="severity severity-critical"
+              >Misused &middot; High impact</span
+            >
+            <h3>
+              HTTP metadata enrichment silently skips the library's own command
+              pattern
+            </h3>
+            <div class="where">
+              handler.go:347-351 &middot; affects every command embedding
+              *BasicCommand (all 20 identity-model types, datastar-demo)
+            </div>
+            <p>
+              <code>enrichCommandFromContext</code> applies the context-derived
+              options only when the decoded command's <em>dynamic type</em> is
+              exactly <code>*command.BasicCommand</code>. Every identity-model
+              command is a wrapper struct embedding <code>*BasicCommand</code>
+              — its dynamic type is <code>*RegisterUserCmd</code> etc., so the
+              assertion fails and enrichment is <em>silently</em> skipped (the
+              comment on handler.go:338-341 documents the skip). Upstream
+              solved this exact problem with the
+              <code>MetadataCarrier</code> capability interface
+              (command/capability.go:9-16): "middleware ... type-asserts
+              Command to MetadataCarrier instead of growing the exported
+              Command interface". Because embedding promotes
+              <code>ApplyOptions</code> to the wrapper, a one-line structural
+              interface covers both plain and embedded commands. Compounding
+              factor: usermgmt's HTTP handlers bypass <code>App.Command</code>
+              entirely (they call service methods that dispatch internally), so
+              root enrichment never even runs for the library's own domain —
+              the affected population is consumers' embedded-command endpoints,
+              of which <code>examples/basic/main.go:316</code> is the only
+              in-repo site that re-applies the options manually.
+            </p>
+            <pre><code><span class="tok-comment">// Before: handler.go:347 — exact-type assertion; embedded commands skipped</span>
+<span class="tok-keyword">func</span> <span class="tok-function">enrichCommandFromContext</span>(ctx context.Context, cmd command.Command) {
+	<span class="tok-keyword">if</span> basic, ok := cmd.(<span class="tok-type">*command.BasicCommand</span>); ok {
+		<span class="tok-keyword">for</span> _, opt := <span class="tok-keyword">range</span> <span class="tok-function">CommandOptionsFromContext</span>(ctx) { opt(basic) }
+	}
+}
+
+<span class="tok-comment">// After: structural — matches *BasicCommand AND every wrapper embedding it</span>
+<span class="tok-keyword">type</span> <span class="tok-type">optionApplier</span> <span class="tok-keyword">interface</span> { <span class="tok-function">ApplyOptions</span>(...command.Option) }
+
+<span class="tok-keyword">func</span> <span class="tok-function">enrichCommandFromContext</span>(ctx context.Context, cmd command.Command) {
+	<span class="tok-keyword">if</span> ap, ok := cmd.(optionApplier); ok {
+		ap.<span class="tok-function">ApplyOptions</span>(<span class="tok-function">CommandOptionsFromContext</span>(ctx)...)
+	}
+}</code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Swap the concrete assertion for the structural
+              <code>ApplyOptions</code> interface (same published API surface,
+              so the hermetic-build rationale in the existing comment still
+              holds), and log at debug level when enrichment finds nothing to
+              apply. Add a regression test dispatching an embedded
+              <code>BasicCommand</code> wrapper through
+              <code>App.Command</code>.
+            </div>
+          </div>
+
+          <!-- Issue 3 -->
+          <div class="issue issue-important" id="issue-3">
+            <span class="severity severity-important"
+              >Missed Opportunity &middot; Medium-high impact</span
+            >
+            <h3>
+              usermgmt's internal dispatcher ships bare — 20 commands, zero
+              middleware, no consumer hook
+            </h3>
+            <div class="where">
+              usermgmt/service_core.go:331-347 &middot; usermgmt/config.go
+              (ServiceConfig exposes SecurityHooks for the event bus only)
+            </div>
+            <p>
+              <code>NewService</code> constructs
+              <code>command.NewDispatcher()</code> and registers all 20
+              handlers, but never calls <code>Use()</code> — no recovery, no
+              retry, no circuit breaker, no metrics, no tracing on the
+              library's most-travelled write path. The asymmetry is stark: the
+              event <em>bus</em> gets configurable middleware
+              (<code>SecurityHooks.PublishMiddleware/HandlerMiddleware</code>),
+              the command <em>dispatcher</em> gets none, and
+              <code>ServiceConfig</code> offers no field through which a
+              consumer could add any. Meanwhile root's own doc.go:66-85
+              documents the zero-glue composition and two examples prove it —
+              the capability is one struct field away.
+            </p>
+            <pre><code><span class="tok-comment">// After: ServiceConfig gains one field; NewService gains one line</span>
+<span class="tok-keyword">type</span> <span class="tok-type">ServiceConfig</span> <span class="tok-keyword">struct</span> {
+	<span class="tok-comment">// CommandMiddleware runs at the CQRS layer for every dispatched command.</span>
+	<span class="tok-comment">// Applied before projections subscribe; nil = bare dispatcher (today's behavior).</span>
+	CommandMiddleware []command.Middleware
+}
+
+<span class="tok-comment">// service_core.go, after RegisterBotCommands:</span>
+dispatcher.<span class="tok-function">Use</span>(config.CommandMiddleware...)</code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Add <code>CommandMiddleware []command.Middleware</code> to
+              <code>ServiceConfig</code>/<code>EventSourcedConfig</code> (and
+              thread it through <code>setup.Config</code>), applied in
+              <code>NewService</code>. Document a recommended production chain
+              (Recovery &rarr; Retry &rarr; CircuitBreaker &rarr; TypedMetrics)
+              mirroring <code>docs/guides/dispatch-middleware-ordering.md</code>.
+            </div>
+          </div>
+
+          <!-- Issue 4 -->
+          <div class="issue issue-important" id="issue-4">
+            <span class="severity severity-important"
+              >Missed Opportunity &middot; Medium impact</span
+            >
+            <h3>
+              No command idempotency on the mutation surface that needs it most
+            </h3>
+            <div class="where">
+              middleware.CommandIdempotency: zero call sites &middot; risk
+              surface: service_register.go:98, service_oauth2_extracted.go:214-336,
+              email_verification.go:155
+            </div>
+            <p>
+              Register, verify-email, and OAuth link/unlink are exactly the
+              paths where browsers retry and users double-submit. Today the
+              defense is indirect: decider Conflict decisions plus the
+              deliberately idempotent append handlers noted for at-least-once
+              crash semantics. The upstream middleware provides systematic
+              command-ID-keyed dedup with a TTL — one
+              <code>Use()</code> call — and defaults to
+              <code>cmd.ID().String()</code> as the key when no extractor is
+              given (middleware/idempotency.go:57-69).
+            </p>
+            <pre><code>dispatcher.<span class="tok-function">Use</span>(middleware.<span class="tok-function">CommandIdempotency</span>(
+	store,             <span class="tok-comment">// idempotency.Store (in-memory dev, SQL in prod)</span>
+	<span class="tok-number">10</span>*time.Minute,    <span class="tok-comment">// dedup window</span>
+	<span class="tok-keyword">nil</span>,               <span class="tok-comment">// nil = key on cmd.ID().String()</span>
+))</code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Wire <code>CommandIdempotency</code> via the new
+              <code>CommandMiddleware</code> hook (finding 3) once a
+              production-grade <code>idempotency.Store</code> is chosen;
+              document the memory-only caveat for the default in-memory store.
+            </div>
+          </div>
+
+          <!-- Issue 5 -->
+          <div class="issue issue-important" id="issue-5">
+            <span class="severity severity-important"
+              >Missed Opportunity &middot; Medium impact</span
+            >
+            <h3>
+              Command persistence never wired — the dashboard's command audit
+              is dead by default
+            </h3>
+            <div class="where">
+              dashboardui/core/capabilities.go:51 (CommandJournal config field)
+              &middot; no command.Store wiring anywhere in usermgmt/setup
+              &middot; examples/dashboard-demo/main.go:43,75 (memory only)
+            </div>
+            <p>
+              dashboardui renders a full command audit view (list, detail,
+              CSV/JSON export) over <code>command.PersistedCommand</code> — but
+              nothing in the library's core stack ever persists a command, so
+              the view only works for consumers who build their own journal
+              (the demo uses an in-memory store). The unadopted
+              <code>TypedCommandStore[P]</code> (typed_store.go:28) closes the
+              untyped-payload hole at the store boundary. A SQL-backed command
+              journal would also give finding 4's idempotency store a natural
+              home and enable durable outbox semantics later.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix</strong>
+              Add an optional <code>CommandJournal</code> to the
+              <code>EventSourcedConfig</code>/SQL setup family that persists
+              each dispatched command (type, stream ref, payload, metadata)
+              next to the event journal, and document it as the producer that
+              makes dashboardui's existing read-side live.
+            </div>
+          </div>
+
+          <!-- Issue 6 -->
+          <div class="issue issue-nice" id="issue-6">
+            <span class="severity severity-nice"
+              >Nice to have &middot; Low impact</span
+            >
+            <h3>Small hygiene gaps</h3>
+            <div class="where">
+              service_core.go:331 (dispatcher never closed) &middot;
+              middleware.CommandValidation unused &middot; doc.go:66-85
+              (guidance without a production chain)
+            </div>
+            <p>
+              Three low-cost items: (1) <code>Dispatcher.Close()</code> is
+              never called — <code>Service.Close</code> stops projections,
+              eviction loops, and the bus, but not the dispatcher; closing it
+              would convert post-shutdown dispatch attempts into a clean
+              errorfamily error instead of a silently running handler map.
+              (2) <code>CommandValidation</code> could standardize syntactic
+              400s at the dispatch layer; domain invariants rightly stay in
+              deciders, but duplicate ad-hoc checks in handlers could collapse.
+              (3) No doc shows a complete recommended production middleware
+              chain for usermgmt consumers specifically.
+            </p>
+          </div>
+
+          <!-- Fully leveraged -->
+          <div class="issue issue-nice" id="issue-7">
+            <span class="severity severity-nice"
+              >Fully Leveraged &middot; builds confidence</span
+            >
+            <h3>What needs no work</h3>
+            <div class="where">
+              usermgmt/es_dispatch.go &middot; identity-model/commands.go
+              &middot; handler.go &middot; systemadapter/domain_config.go
+            </div>
+            <p>
+              Typed registration discipline (20/20 via
+              <code>RegisterTyped</code>, zero stringly-typed
+              <code>Register</code> in domain code), the embedded
+              <code>BasicCommand</code> pattern with accessor encapsulation,
+              the decider-separation of handlers (typed handler &rarr;
+              <code>ExecuteRef</code> &rarr; pure decide function), error-family
+              propagation without glue, and version currency (v4.10.0 = latest
+              tag). The mechanical foundation is not the problem — the wiring
+              above is.
+            </p>
+          </div>
+        </section>
+
+        <!-- Version Currency -->
+        <section id="version">
+          <h2><span class="num">04</span>Version Currency</h2>
+          <div class="callout callout-teal">
+            <strong>Current</strong>
+            Root <code>go.mod:9</code> pins
+            <code>go-cqrs-lite/command/v4 v4.10.0</code>; the highest upstream
+            tag is <code>command/v4.10.0</code>. Zero version gap — every
+            capability graded above exists in the pinned release, so none of
+            the findings require an upgrade.
+          </div>
+          <p>
+            Note on trains: go-cqrs-lite releases per-module version trains, so
+            "latest" here means the <code>command/</code> train specifically
+            (event/v4 sits at v4.11.0 in the same repo). The
+            <code>check-release-train</code> gate already guards this
+            alignment mechanically.
+          </p>
+        </section>
+
+        <!-- Priorities -->
+        <section id="priorities">
+          <h2><span class="num">05</span>Top Opportunities</h2>
+          <p>Prioritized by impact &times; ease.</p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Opportunity</th>
+                <th>Impact</th>
+                <th>Ease</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>
+                  Structural <code>ApplyOptions</code> enrichment in root
+                  (finding 2) — ~10 lines + regression test
+                </td>
+                <td class="yes">4</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">20</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>
+                  Wire ActorEnricher + CommandActorContext + causation into
+                  usermgmt (finding 1) — ~12 lines
+                </td>
+                <td class="yes">5</td>
+                <td class="yes">4</td>
+                <td><span class="highlight">20</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>
+                  Expose <code>ServiceConfig.CommandMiddleware</code> and
+                  <code>Use()</code> it (finding 3)
+                </td>
+                <td class="yes">4</td>
+                <td class="yes">4</td>
+                <td><span class="highlight">16</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>
+                  <code>CommandIdempotency</code> on auth mutations via the new
+                  hook (finding 4)
+                </td>
+                <td class="yes">4</td>
+                <td>3</td>
+                <td><span class="highlight">12</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>
+                  Document the recommended production middleware chain for
+                  usermgmt consumers (finding 6)
+                </td>
+                <td>2</td>
+                <td class="yes">4</td>
+                <td><span class="highlight">8</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>
+                  Optional SQL command journal producer for dashboardui's audit
+                  view (finding 5)
+                </td>
+                <td class="yes">3</td>
+                <td>2</td>
+                <td><span class="highlight">6</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>
+                  <code>CommandValidation</code> for uniform syntactic 400s
+                  (finding 6)
+                </td>
+                <td>2</td>
+                <td>3</td>
+                <td><span class="highlight">6</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>Close the dispatcher in <code>Service.Close</code>
+                (finding 6)</td>
+                <td>1</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">5</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Conclusion -->
+        <section id="conclusion">
+          <h2><span class="num">06</span>Conclusion</h2>
+          <p>
+            cqrs-htmx leverages commands <em>structurally</em> at a level most
+            CQRS codebases never reach — full typed coverage, clean decider
+            separation, disciplined error propagation, and a current
+            dependency. It leverages them <em>ecosystem-wise</em> at maybe a
+            third of what the pinned release offers: the audit-trail chain,
+            dispatch middleware, idempotency, and command persistence are all
+            one wiring step away, and two of the four gaps are roughly a dozen
+            lines each. The highest-leverage next change is not a feature — it
+            is connecting the metadata plumbing the library already exports to
+            the domain it already owns.
+          </p>
+        </section>
+
         <!-- Footer -->
         <footer class="footer">
           <p>
-            Generated YYYY-MM-DD &middot; Reviewed against version X.Y.Z
-            &middot; All claims verified against source code where noted
+            Generated 2026-09-17 &middot; Reviewed against go-cqrs-lite
+            command/v4 v4.10.0 (latest tag) &middot; All claims verified
+            against source with file:line citations
           </p>
         </footer>
       </main>
