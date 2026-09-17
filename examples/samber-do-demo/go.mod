@@ -9,9 +9,9 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
-	github.com/larsartmann/go-health v0.1.3
-	github.com/larsartmann/go-health-dashboard v0.7.0
-	github.com/larsartmann/httputil v1.1.1
+	github.com/larsartmann/go-health v0.2.0
+	github.com/larsartmann/go-health-dashboard v0.9.0
+	github.com/larsartmann/httputil v1.2.0
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/samber/do/v2 v2.1.0
 )
@@ -34,7 +34,7 @@ require (
 	github.com/go-sql-driver/mysql v1.10.1 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/jackc/pgx/v5 v5.11.0 // indirect
-	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
+	github.com/larsartmann/go-atomic-write v0.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 // indirect
@@ -92,8 +92,8 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
-	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-codec v0.2.0 // indirect
+	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
@@ -115,7 +115,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect

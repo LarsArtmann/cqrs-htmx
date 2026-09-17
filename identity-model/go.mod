@@ -1,15 +1,15 @@
 module github.com/larsartmann/cqrs-htmx/identity-model/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	github.com/casbin/casbin/v3 v3.11.0
-	github.com/larsartmann/go-branded-id v0.5.1
-	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-branded-id v0.6.0
+	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	github.com/oklog/ulid/v2 v2.1.2
 )
 

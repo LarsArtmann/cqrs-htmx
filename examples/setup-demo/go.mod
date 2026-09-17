@@ -42,9 +42,9 @@ require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.9.0 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.10.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0 // indirect
-	github.com/larsartmann/go-appkit v0.4.0 // indirect
-	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-codec v0.2.0 // indirect
+	github.com/larsartmann/go-appkit v0.5.0 // indirect
+	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0 // indirect
@@ -73,11 +73,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-datastar v0.5.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
-	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
-	github.com/larsartmann/httputil v1.1.1 // indirect
+	github.com/larsartmann/httputil v1.2.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.17.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.17.0 // indirect

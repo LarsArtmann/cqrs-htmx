@@ -4,9 +4,9 @@ go 1.26.7
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
-	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-health v0.1.3
-	github.com/larsartmann/go-health-dashboard v0.7.0
+	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-health v0.2.0
+	github.com/larsartmann/go-health-dashboard v0.9.0
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
 )
@@ -18,8 +18,8 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-playground/form/v4 v4.3.1 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-codec v0.2.0 // indirect
+	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0 // indirect
@@ -33,7 +33,7 @@ require (
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
-	github.com/larsartmann/httputil v1.1.1 // indirect
+	github.com/larsartmann/httputil v1.2.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.17.0 // indirect
 	github.com/larsartmann/templ-components/datastar v1.17.0 // indirect

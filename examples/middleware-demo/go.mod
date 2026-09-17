@@ -9,8 +9,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.0
-	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/httputil v1.1.1
+	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/httputil v1.2.0
 	go.opentelemetry.io/otel v1.46.0
 )
 
@@ -26,8 +26,8 @@ require (
 	github.com/go-playground/form/v4 v4.3.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-codec v0.2.0 // indirect
+	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
@@ -37,7 +37,7 @@ require (
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
-	github.com/larsartmann/go-retry v0.6.0 // indirect
+	github.com/larsartmann/go-retry v0.7.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
