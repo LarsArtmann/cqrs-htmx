@@ -179,59 +179,7 @@ func (d *Dashboard) renderEventDetail(
 
 		b.WriteString(`<div class="two-col-grid">`)
 
-		items := []display.DefinitionItem{
-			defItem("Stream Type", string(evt.StreamType())),
-			defItemCopy(
-				"Stream ID",
-				"<span class=\"mono\">"+esc(evt.StreamID().String())+"</span>",
-				evt.StreamID().String(),
-			),
-			defItem("Version", evt.Version().String()),
-			defItem("Schema Version", fmt.Sprintf("%d", evt.SchemaVersion())),
-			defItem("Encoding", string(evt.Encoding())),
-			defItem("Occurred At", evt.OccurredAt().Format(time.RFC3339)),
-		}
-
-		if corrID := meta.CorrelationID.String(); corrID != "" {
-			items = append(
-				items,
-				defItemCopy(
-					"Correlation ID",
-					"<span class=\"mono\">"+esc(corrID)+"</span>",
-					corrID,
-				),
-			)
-		}
-
-		if causID := meta.CausationID.String(); causID != "" {
-			items = append(
-				items,
-				defItemCopy("Causation ID", "<span class=\"mono\">"+esc(causID)+"</span>", causID),
-			)
-		}
-
-		if actorID := meta.ActorID; !actorID.IsZero() {
-			actorPrefixed := actorID.PrefixedString()
-			items = append(
-				items,
-				defItemCopy(
-					"Actor ID",
-					"<span class=\"mono\">"+esc(actorPrefixed)+"</span>",
-					actorPrefixed,
-				),
-			)
-		}
-
-		if reqID := meta.RequestID.String(); reqID != "" {
-			items = append(
-				items,
-				defItemCopy("Request ID", "<span class=\"mono\">"+esc(reqID)+"</span>", reqID),
-			)
-		}
-
-		if deadline, ok := evt.Deadline(); ok {
-			items = append(items, defItem("Deadline", deadline.Format(time.RFC3339)))
-		}
+		items := eventMetaItems(evt, meta)
 
 		b.WriteString(`<div><h3>Metadata</h3>`)
 		b.WriteString(definitionListHTML(ctx, items))
@@ -386,4 +334,46 @@ func renderEventFilterBar(ctx context.Context, basePath string, filter eventFilt
 		esc(filter.StreamID),
 		esc(basePath),
 	)
+}
+
+// monoSpan renders s as an inline mono span for definition list details.
+func monoSpan(s string) string {
+	return "<span class=\"mono\">" + s + "</span>"
+}
+
+// eventMetaItems builds the metadata definition items for an event detail
+// page: stream/version/encoding facts plus correlation, causation, actor, and
+// request IDs when present.
+func eventMetaItems(evt event.Event, meta event.Metadata) []display.DefinitionItem {
+	items := []display.DefinitionItem{
+		defItem("Stream Type", string(evt.StreamType())),
+		defItemCopy("Stream ID", monoSpan(esc(evt.StreamID().String())), evt.StreamID().String()),
+		defItem("Version", evt.Version().String()),
+		defItem("Schema Version", fmt.Sprintf("%d", evt.SchemaVersion())),
+		defItem("Encoding", string(evt.Encoding())),
+		defItem("Occurred At", evt.OccurredAt().Format(time.RFC3339)),
+	}
+
+	if corrID := meta.CorrelationID.String(); corrID != "" {
+		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID))
+	}
+
+	if causID := meta.CausationID.String(); causID != "" {
+		items = append(items, defItemCopy("Causation ID", monoSpan(esc(causID)), causID))
+	}
+
+	if actorID := meta.ActorID; !actorID.IsZero() {
+		actorPrefixed := actorID.PrefixedString()
+		items = append(items, defItemCopy("Actor ID", monoSpan(esc(actorPrefixed)), actorPrefixed))
+	}
+
+	if reqID := meta.RequestID.String(); reqID != "" {
+		items = append(items, defItemCopy("Request ID", monoSpan(esc(reqID)), reqID))
+	}
+
+	if deadline, ok := evt.Deadline(); ok {
+		items = append(items, defItem("Deadline", deadline.Format(time.RFC3339)))
+	}
+
+	return items
 }
