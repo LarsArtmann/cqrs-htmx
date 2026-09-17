@@ -75,6 +75,8 @@ func (b *Bundle) runWithAppkit(
 		DrainDelay:        drainDelay,
 		ReadyCheck:        b.projectionReadyCheck(),
 		RegisterHealth:    nil, // default: appkit serves /health, /health/live, /health/ready
+		Metrics:           b.config.Metrics,
+		Version:           b.config.Version,
 	})
 	if err != nil {
 		//cqrs-lint:ignore(C023) error path: the config rejection is primary; Close is secondary

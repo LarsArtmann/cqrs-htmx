@@ -52,6 +52,9 @@
 //   - [Config.AuthHandlerConfig] — HTTP-layer auth hardening (rate limits for
 //     the passwordless ceremonies, cookie flags, OAuth2 redirects) merged into
 //     the /auth/* handler config; nil keeps the historical defaults
+//   - [Config.Metrics] / [Config.Version] — Prometheus /metrics (Basic-Auth
+//     by default) and the /version JSON build stamp on the RunWithAppkit
+//     serve path; nil/"" mount nothing
 //   - [Config.Logger] — structured auth event logging (default: slog.Default())
 //   - [Config.LogoutURL] — logout link shown in admin and dashboard panels
 //   - [Config.SSEURL] — enables admin panel real-time sync indicator

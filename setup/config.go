@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	appkit "github.com/larsartmann/go-appkit"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -235,6 +236,35 @@ type Config struct {
 	// 		},
 	// 	},
 	AuthHandlerConfig *usermgmt.HandlerConfig
+
+	// Metrics enables the go-appkit Prometheus surface on the
+	// [Bundle.RunWithAppkit] serve path: a dependency-free text-exposition
+	// endpoint (default /metrics) plus request-duration histogram, response
+	// totals, in-flight gauge, and build-info metrics. Authentication is
+	// mandatory by default — set BasicAuthUser/BasicAuthPass, or an explicit
+	// AllowUnauthenticated for proxy-authed or loopback-only deployments.
+	//
+	// RunWithAppkit-only: [Bundle.Run] and [Bundle.RunHandler] serve via
+	// httputil and ignore this field — mount your own metrics handler next to
+	// the bundle's routes there (e.g. the go-cqrs-lite prometheus module, see
+	// docs/guides/leveraging-go-cqrs-lite.md §2.3). Zero value (nil) = no
+	// metrics route, byte-identical to before this field existed. appkit
+	// validates the config (nil-auth without AllowUnauthenticated is
+	// rejected) and the error surfaces from RunWithAppkit.
+	//
+	// 	Metrics: &appkit.MetricsConfig{
+	// 		BasicAuthUser: "metrics",
+	// 		BasicAuthPass: os.Getenv("METRICS_PASS"),
+	// 	},
+	Metrics *appkit.MetricsConfig
+
+	// Version stamps the build served by [Bundle.RunWithAppkit]: GET /version
+	// answers {"version": "..."} as JSON and the appkit_build_info metric
+	// carries it as a label. RunWithAppkit-only, like Metrics — RunHandler
+	// users mount their own build-info endpoint. Zero value ("") = no
+	// /version route (rendered as "dev" in the build-info metric only, when
+	// Metrics is also set).
+	Version string
 
 	// Logger is used for structured auth event logging by the usermgmt service
 	// (default: nil = slog.Default()).
