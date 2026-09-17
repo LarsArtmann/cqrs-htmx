@@ -223,22 +223,6 @@ func esc(s string) string {
 	return html.EscapeString(s)
 }
 
-func metaRow(b *strings.Builder, key, value string) {
-	fmt.Fprintf(b, `<tr><td class="meta-key">%s</td><td class="meta-val">%s</td></tr>`, key, value)
-}
-
-// metaRowCopyable renders a metadata row whose value carries a library
-// CopyButton for the raw value; displayValue is shown beside it.
-func metaRowCopyable(b *strings.Builder, ctx context.Context, key, displayValue, rawValue string) {
-	fmt.Fprintf(
-		b,
-		`<tr><td class="meta-key">%s</td><td class="meta-val">%s %s</td></tr>`,
-		key,
-		displayValue,
-		copyButtonHTML(ctx, rawValue, ""),
-	)
-}
-
 // projectionHealthPartialHandler returns just the projection health panel HTML
 // for HTMX polling. Registered at GET /-/partials/projection-health.
 func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *http.Request) {

@@ -336,9 +336,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .error-shell { max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
 
 /* ===== Metadata table ===== */
-.meta-table { width: 100%; border-collapse: collapse; font-size: 0.88em; }
-.meta-table td { padding: 6px 8px; }
-.meta-table tr { border-bottom: 1px solid var(--border); }
 .meta-key { color: var(--muted); font-weight: 500; }
 .meta-val { font-family: ui-monospace, monospace; font-size: 0.85em; }
 

@@ -181,7 +181,11 @@ func (d *Dashboard) renderEventDetail(
 
 		items := []display.DefinitionItem{
 			defItem("Stream Type", string(evt.StreamType())),
-			defItemCopy("Stream ID", "<span class=\"mono\">"+esc(evt.StreamID().String())+"</span>", evt.StreamID().String()),
+			defItemCopy(
+				"Stream ID",
+				"<span class=\"mono\">"+esc(evt.StreamID().String())+"</span>",
+				evt.StreamID().String(),
+			),
 			defItem("Version", evt.Version().String()),
 			defItem("Schema Version", fmt.Sprintf("%d", evt.SchemaVersion())),
 			defItem("Encoding", string(evt.Encoding())),
@@ -198,7 +202,10 @@ func (d *Dashboard) renderEventDetail(
 
 		if actorID := meta.ActorID; !actorID.IsZero() {
 			actorPrefixed := actorID.PrefixedString()
-			items = append(items, defItemCopy("Actor ID", "<span class=\"mono\">"+esc(actorPrefixed)+"</span>", actorPrefixed))
+			items = append(
+				items,
+				defItemCopy("Actor ID", "<span class=\"mono\">"+esc(actorPrefixed)+"</span>", actorPrefixed),
+			)
 		}
 
 		if reqID := meta.RequestID.String(); reqID != "" {

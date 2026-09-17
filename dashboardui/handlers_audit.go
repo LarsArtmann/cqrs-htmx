@@ -364,28 +364,33 @@ func (d *Dashboard) renderCommandDetail(ctx context.Context, p pageData, cmd *co
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="two-col-grid">`)
-		b.WriteString(`<div><h3>Metadata</h3><table class="meta-table">`)
-		metaRow(&b, "Command Type", esc(string(cmd.Type())))
-		metaRow(&b, "Stream Type", esc(string(cmd.StreamType())))
-		metaRowCopyable(&b, ctx, "Stream ID", esc(cmd.StreamID().String()), cmd.StreamID().String())
-		metaRow(&b, "Received At", esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")))
-		metaRowCopyable(&b, ctx, "Command ID", esc(cmd.ID().String()), cmd.ID().String())
+
+		mono := func(s string) string { return "<span class=\"mono\">" + s + "</span>" }
+
+		items := []display.DefinitionItem{
+			defItem("Command Type", string(cmd.Type())),
+			defItem("Stream Type", string(cmd.StreamType())),
+			defItemCopy("Stream ID", mono(esc(cmd.StreamID().String())), cmd.StreamID().String()),
+			defItem("Received At", cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
+			defItemCopy("Command ID", mono(esc(cmd.ID().String())), cmd.ID().String()),
+		}
 
 		meta := cmd.Metadata()
 		if corrID := meta.CorrelationID.String(); corrID != "" {
-			metaRowCopyable(&b, ctx, "Correlation ID", esc(corrID), corrID)
+			items = append(items, defItemCopy("Correlation ID", mono(esc(corrID)), corrID))
 		}
 
 		if causID := meta.CausationID.String(); causID != "" {
-			metaRowCopyable(&b, ctx, "Causation ID", esc(causID), causID)
+			items = append(items, defItemCopy("Causation ID", mono(esc(causID)), causID))
 		}
 
 		if actorID := meta.ActorID; !actorID.IsZero() {
 			actorPrefixed := actorID.PrefixedString()
-			metaRowCopyable(&b, ctx, "Actor ID", esc(actorPrefixed), actorPrefixed)
+			items = append(items, defItemCopy("Actor ID", mono(esc(actorPrefixed)), actorPrefixed))
 		}
 
-		b.WriteString(`</table></div>`)
+		b.WriteString(`<div><h3>Metadata</h3>`)
+		b.WriteString(definitionListHTML(ctx, items))
 
 		b.WriteString(`<div><h3>Payload</h3>`)
 
@@ -472,26 +477,31 @@ func (d *Dashboard) renderQueryDetail(ctx context.Context, p pageData, q *query.
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="two-col-grid">`)
-		b.WriteString(`<div><h3>Metadata</h3><table class="meta-table">`)
-		metaRow(&b, "Query Type", esc(string(q.Type())))
-		metaRow(&b, "Received At", esc(q.ReceivedAt().Format("2006-01-02 15:04:05")))
-		metaRowCopyable(&b, ctx, "Request ID", esc(q.ID().String()), q.ID().String())
+
+		mono := func(s string) string { return "<span class=\"mono\">" + s + "</span>" }
+
+		items := []display.DefinitionItem{
+			defItem("Query Type", string(q.Type())),
+			defItem("Received At", q.ReceivedAt().Format("2006-01-02 15:04:05")),
+			defItemCopy("Request ID", mono(esc(q.ID().String())), q.ID().String()),
+		}
 
 		meta := q.Metadata()
 		if corrID := meta.CorrelationID.String(); corrID != "" {
-			metaRowCopyable(&b, ctx, "Correlation ID", esc(corrID), corrID)
+			items = append(items, defItemCopy("Correlation ID", mono(esc(corrID)), corrID))
 		}
 
 		if causID := meta.CausationID.String(); causID != "" {
-			metaRowCopyable(&b, ctx, "Causation ID", esc(causID), causID)
+			items = append(items, defItemCopy("Causation ID", mono(esc(causID)), causID))
 		}
 
 		if actorID := meta.ActorID; !actorID.IsZero() {
 			actorPrefixed := actorID.PrefixedString()
-			metaRowCopyable(&b, ctx, "Actor ID", esc(actorPrefixed), actorPrefixed)
+			items = append(items, defItemCopy("Actor ID", mono(esc(actorPrefixed)), actorPrefixed))
 		}
 
-		b.WriteString(`</table></div>`)
+		b.WriteString(`<div><h3>Metadata</h3>`)
+		b.WriteString(definitionListHTML(ctx, items))
 
 		b.WriteString(`<div><h3>Payload</h3>`)
 

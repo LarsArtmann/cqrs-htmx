@@ -124,14 +124,20 @@ func (d *Dashboard) renderSnapshotDetail(
 			b.WriteString(`</form>`)
 		}
 
+		metaItems := []display.DefinitionItem{
+			defItem("Stream Type", string(snap.StreamType)),
+			defItemCopy(
+				"Stream ID",
+				"<span class=\"mono\">"+esc(snap.StreamID.String())+"</span>",
+				snap.StreamID.String(),
+			),
+			defItem("Version", snap.Version.String()),
+			defItem("Created At", snap.CreatedAt.Format(time.RFC3339)),
+			defItem("State Size", humanByteSize(len(snap.State))),
+		}
+
 		b.WriteString(`<h3>Metadata</h3>`)
-		b.WriteString(`<table class="meta-table section-gap-lg">`)
-		metaRow(&b, "Stream Type", esc(string(snap.StreamType)))
-		metaRowCopyable(&b, ctx, "Stream ID", esc(snap.StreamID.String()), snap.StreamID.String())
-		metaRow(&b, "Version", esc(snap.Version.String()))
-		metaRow(&b, "Created At", esc(snap.CreatedAt.Format(time.RFC3339)))
-		metaRow(&b, "State Size", esc(humanByteSize(len(snap.State))))
-		b.WriteString(`</table></div>`)
+		b.WriteString(definitionListHTML(ctx, metaItems))
 
 		b.WriteString(`<h3>State</h3>`)
 

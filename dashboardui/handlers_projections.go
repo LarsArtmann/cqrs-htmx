@@ -247,23 +247,23 @@ func (d *Dashboard) renderProjectionDetail(
 		b.WriteString(statCardHTML(ctx, "stat-lag-"+slug, proj.Lag, "Lag", display.StatToneBlue))
 		b.WriteString(`</div>`)
 
-		b.WriteString(`<h3>Details</h3><table class="meta-table">`)
-		metaRowCopyable(
-			&b,
-			ctx,
-			"Checkpoint",
-			esc(truncate(proj.Checkpoint, listIDWidth)),
-			proj.Checkpoint,
-		)
-		metaRow(&b, "Status", esc(proj.Status))
-
-		if proj.LastError != "" {
-			metaRow(&b, "Last Error", esc(proj.LastError))
-		} else {
-			metaRow(&b, "Last Error", "<span class=\"muted\">none</span>")
+		detailItems := []display.DefinitionItem{
+			defItemCopy(
+				"Checkpoint",
+				"<span class=\"mono\">"+esc(truncate(proj.Checkpoint, listIDWidth))+"</span>",
+				proj.Checkpoint,
+			),
+			defItem("Status", proj.Status),
 		}
 
-		b.WriteString(`</table>`)
+		if proj.LastError != "" {
+			detailItems = append(detailItems, defItem("Last Error", proj.LastError))
+		} else {
+			detailItems = append(detailItems, defItemRaw("Last Error", `<span class="muted">none</span>`))
+		}
+
+		b.WriteString(`<h3>Details</h3>`)
+		b.WriteString(definitionListHTML(ctx, detailItems))
 
 		b.WriteString(`<div class="filter-bar">`)
 		b.WriteString(buttonLink(

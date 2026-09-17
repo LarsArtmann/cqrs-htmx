@@ -152,29 +152,30 @@ func (d *Dashboard) renderDLQEntryDetail(
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="two-col-grid">`)
-		b.WriteString(`<div><h3>Error Details</h3><table class="meta-table">`)
-		metaRow(&b, "Event Type", esc(entry.EventType))
-		metaRow(&b, "Event ID", esc(entry.EventID))
-
-		if entry.StreamID != "" {
-			metaRowCopyable(&b, ctx, "Stream ID", esc(entry.StreamID), entry.StreamID)
+		items := []display.DefinitionItem{
+			defItem("Event Type", entry.EventType),
+			defItem("Event ID", entry.EventID),
 		}
 
-		metaRow(&b, "Failed At", esc(entry.FailedAt.Format("2006-01-02 15:04:05")))
-
-		if entry.ErrorFamily != "" {
-			fmt.Fprintf(
-				&b,
-				`<tr><td class="meta-key">Error Family</td><td class="meta-val">%s</td></tr>`,
-				badgeHTML(ctx, entry.ErrorFamily, display.BadgeError),
+		if entry.StreamID != "" {
+			items = append(
+				items,
+				defItemCopy("Stream ID", "<span class=\"mono\">"+esc(entry.StreamID)+"</span>", entry.StreamID),
 			)
 		}
 
-		if entry.ErrorCode != "" {
-			metaRow(&b, "Error Code", esc(entry.ErrorCode))
+		items = append(items, defItem("Failed At", entry.FailedAt.Format("2006-01-02 15:04:05")))
+
+		if entry.ErrorFamily != "" {
+			items = append(items, defItemRaw("Error Family", badgeHTML(ctx, entry.ErrorFamily, display.BadgeError)))
 		}
 
-		b.WriteString(`</table>`)
+		if entry.ErrorCode != "" {
+			items = append(items, defItem("Error Code", entry.ErrorCode))
+		}
+
+		b.WriteString(`<div><h3>Error Details</h3>`)
+		b.WriteString(definitionListHTML(ctx, items))
 
 		b.WriteString(`<h3>Error Message</h3>`)
 		fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, esc(entry.Error))
