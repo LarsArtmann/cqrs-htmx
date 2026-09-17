@@ -60,6 +60,8 @@
 //     (event catalog, live projection statuses, build metadata)
 //   - [Config.LivePath] — opt-in public liveness probe (always-200);
 //     [Config.HealthPath] "-" opts the readiness endpoint out entirely
+//   - [Config.SSEScriptPath] — HTMX SSE extension served at "/sse.js" when
+//     SSEPath is set ("-" opts out)
 //   - [Config.Logger] — structured auth event logging (default: slog.Default())
 //   - [Config.LogoutURL] — logout link shown in admin and dashboard panels
 //   - [Config.SSEURL] — enables admin panel real-time sync indicator

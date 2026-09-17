@@ -83,6 +83,13 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	// [Bundle.Broadcaster]. Guarded by SSEPath (not Broadcaster): the hub also
 	// exists when only DataStarPath is set, and no /sse route mounts then.
 	if b.Broadcaster != nil && cfg.SSEPath != "" {
+		// The HTMX SSE extension script is a static JS file: public, no
+		// session needed (DataStarScriptPath symmetry — HTMX SSE consumers
+		// self-host nothing unless they opt out with "-").
+		if cfg.SSEScriptPath != "" && cfg.SSEScriptPath != "-" {
+			mux.Handle(cfg.SSEScriptPath, cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
+		}
+
 		mux.Handle(cfg.SSEPath, b.sseHandler())
 	}
 

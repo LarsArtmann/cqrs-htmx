@@ -154,6 +154,15 @@ type Config struct {
 	// window and prevent sending the entire journal history on first connect.
 	SSEMaxReplay int
 
+	// SSEScriptPath controls where the HTMX SSE extension script
+	// (cqrshtmx.HTMXExtensionHandler(HTMXExtSSE)) is served when SSEPath is
+	// set. Default ("") = "/sse.js" — HTMX SSE consumers self-host nothing,
+	// the same asymmetry-free treatment DataStarScriptPath gives the DataStar
+	// SDK. Set to "-" to NOT serve the script from the bundle (e.g. you load
+	// the extension from a CDN); the hx-ext="sse" script tag must then point
+	// at your own location. Ignored when SSEPath is empty.
+	SSEScriptPath string
+
 	// DataStarPath mounts a DataStar SSE feed that streams the same events as
 	// the SSEPath feed, encoded as DataStar patches for the Datastar SDK
 	// (default: "" = not mounted). Both feeds fan out from ONE shared hub
@@ -432,6 +441,11 @@ func (c Config) withDefaults() Config {
 
 	// SSE is an exact-match endpoint, like health.
 	cfg.SSEPath = trimTrailingSlash(cfg.SSEPath)
+	cfg.SSEScriptPath = trimTrailingSlash(cfg.SSEScriptPath)
+
+	if cfg.SSEPath != "" && cfg.SSEScriptPath == "" {
+		cfg.SSEScriptPath = "/sse.js"
+	}
 
 	// DataStar endpoints are exact-match endpoints, like SSE.
 	cfg.DataStarPath = trimTrailingSlash(cfg.DataStarPath)
@@ -711,6 +725,15 @@ func (c Config) validateOptionalFeedPaths() error {
 			"setup.invalid_config", "SSEPath must start with %q (got %q)", "/", c.SSEPath)
 	}
 
+	if c.SSEScriptPath != "" && c.SSEScriptPath != "-" && !startsWithSlash(c.SSEScriptPath) {
+		return errorfamily.Newf(errorfamily.Rejection,
+			"setup.invalid_config",
+			"SSEScriptPath must start with %q, be empty, or be \"-\" to disable (got %q)",
+			"/",
+			c.SSEScriptPath,
+		)
+	}
+
 	if c.DataStarPath != "" && !startsWithSlash(c.DataStarPath) {
 		return errorfamily.Newf(errorfamily.Rejection,
 			"setup.invalid_config", "DataStarPath must start with %q (got %q)", "/", c.DataStarPath)
@@ -733,7 +756,7 @@ func (c Config) validateOptionalFeedPaths() error {
 // Mount time.
 func (c Config) validatePathRoots() error {
 	if c.AdminPath == "/" || c.DashboardPath == "/" || c.HealthPath == "/" || c.SSEPath == "/" ||
-		c.DataStarPath == "/" || (c.DataStarScriptPath == "/") ||
+		c.DataStarPath == "/" || (c.DataStarScriptPath == "/") || (c.SSEScriptPath == "/") ||
 		c.LivePath == "/" || c.EventCatalogPath == "/" || c.ProjectionStatusPath == "/" || c.DebugPath == "/" {
 		return errorfamily.NewRejection(
 			"setup.invalid_config",
@@ -756,6 +779,7 @@ func requireDistinctPaths(c Config) error {
 		{"DashboardPath", trimTrailingSlash(c.DashboardPath)},
 		{"HealthPath", trimTrailingSlash(c.HealthPath)},
 		{"SSEPath", trimTrailingSlash(c.SSEPath)},
+		{"SSEScriptPath", trimTrailingSlash(c.SSEScriptPath)},
 		{"DataStarPath", trimTrailingSlash(c.DataStarPath)},
 		{"DataStarScriptPath", trimTrailingSlash(c.DataStarScriptPath)},
 		{"LivePath", trimTrailingSlash(c.LivePath)},
