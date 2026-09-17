@@ -1,0 +1,52 @@
+package dashboardui
+
+import (
+	"context"
+	"strings"
+
+	"github.com/a-h/templ"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/utils"
+)
+
+// tableHTML renders the library Table into a string (the hybrid adoption
+// path: display.Table.Render into the existing strings.Builder — no templ
+// conversion). TypedHeaders drive aria-sort + server-side sort links; rows
+// are plain data, so the templ-children limitation that blocked display.Grid
+// does not apply. Cells containing markup (links, badges, copy buttons) pass
+// through templ.Raw; plain text cells should prefer TableCell.Text (escaped).
+// LazyRows is on: the dashboard's listings render content-visibility rows, so
+// long tables skip off-screen row rendering.
+func tableHTML(ctx context.Context, headers []display.TableHeader, rows []display.TableRow, bodyID string) string {
+	var b strings.Builder
+
+	props := display.TableProps{
+		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Caption:      "",
+		Headers:      nil,
+		TypedHeaders: headers,
+		Rows:         rows,
+		Striped:      false,
+		Hover:        true,
+		Bordered:     false,
+		Flush:        false,
+		CellPadding:  display.TableCellPaddingCompact,
+		LazyRows:     true,
+		Body:         nil,
+		BodyID:       bodyID,
+	}
+	_ = display.Table(props).Render(ctx, &b)
+
+	return b.String()
+}
+
+// rawCell wraps pre-rendered cell HTML (links, copy buttons, badges) as a
+// table cell. Only pass trusted, already-escaped markup.
+func rawCell(html string) display.TableCell {
+	return display.TableCell{Text: "", Content: templ.Raw(html)}
+}
+
+// textCell builds an escaped plain-text table cell.
+func textCell(text string) display.TableCell {
+	return display.TableCell{Text: text, Content: nil}
+}

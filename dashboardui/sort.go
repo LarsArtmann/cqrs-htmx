@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/larsartmann/templ-components/display"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
@@ -113,4 +115,30 @@ func sortHeader(basePath, label, column string, s sortState, extraParams string)
 
 	return `<th scope="col"><a href="` + basePath + "/events?" + query + `" class="sort-header">` +
 		label + indicator + `</a></th>`
+}
+
+// eventSortHeader builds a typed sortable header for the events table,
+// preserving the existing server-side sort contract (?sort=&dir= toggling)
+// plus any active filter params. The library renders the aria-sort value and
+// direction indicator from SortDirection.
+func eventSortHeader(basePath, label, column string, s sortState, extraParams string) display.TableHeader {
+	direction := display.SortNone
+	next := sortAsc
+
+	if s.Column == column {
+		if s.Direction == sortAsc {
+			direction = display.SortAsc
+			next = sortDesc
+		} else {
+			direction = display.SortDesc
+			next = sortAsc
+		}
+	}
+
+	href := basePath + "/events?sort=" + column + "&dir=" + next
+	if extraParams != "" {
+		href += "&" + extraParams
+	}
+
+	return display.TableHeader{Label: label, Sortable: true, SortDirection: direction, Href: href}
 }

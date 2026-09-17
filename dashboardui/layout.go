@@ -536,7 +536,7 @@ document.addEventListener("dashboard:event", function(e) {
     htmx.trigger("#projection-health", "refresh");
   }
 
-  var tbody = document.querySelector("#main-content .data-table tbody");
+  var tbody = document.getElementById("events-tbody");
   if (!tbody || !data.eventId) return;
 
   var script = document.querySelector("script[src$='dashboard.js']");

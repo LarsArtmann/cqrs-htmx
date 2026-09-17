@@ -278,23 +278,6 @@ func (d *Dashboard) renderEvents(
 			)
 		}
 
-		var rows strings.Builder
-
-		for _, evt := range events {
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="mono">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s %s</td><td>%s</td><td>%s</td></tr>`,
-				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
-				p.BasePath,
-				esc(evt.ID().String()),
-				esc(string(evt.Type())),
-				esc(truncate(evt.StreamID().String(), listIDWidth)),
-				copyButtonHTML(ctx, evt.StreamID().String(), ""),
-				esc(string(evt.StreamType())),
-				esc(evt.Version().String()),
-			)
-		}
-
 		combinedParams := filter.ExtraParams()
 		if sp := sortBy.extraParams(); sp != "" {
 			if combinedParams != "" {
@@ -304,16 +287,42 @@ func (d *Dashboard) renderEvents(
 			}
 		}
 
-		fmt.Fprintf(
-			&b,
-			`<div class="table-scroll"><table class="data-table"><thead><tr>%s%s%s%s%s</tr></thead><tbody>%s</tbody></table></div>`,
-			sortHeader(p.BasePath, "Time", "time", sortBy, filter.ExtraParams()),
-			sortHeader(p.BasePath, "Type", "type", sortBy, filter.ExtraParams()),
-			`<th scope="col">Stream ID</th>`,
-			sortHeader(p.BasePath, "Stream Type", "streamType", sortBy, filter.ExtraParams()),
-			sortHeader(p.BasePath, "Version", "version", sortBy, filter.ExtraParams()),
-			rows.String(),
-		)
+		headers := []display.TableHeader{
+			eventSortHeader(p.BasePath, "Time", "time", sortBy, filter.ExtraParams()),
+			eventSortHeader(p.BasePath, "Type", "type", sortBy, filter.ExtraParams()),
+			{Label: "Stream ID", Sortable: false, SortDirection: "", Href: ""},
+			eventSortHeader(p.BasePath, "Stream Type", "streamType", sortBy, filter.ExtraParams()),
+			eventSortHeader(p.BasePath, "Version", "version", sortBy, filter.ExtraParams()),
+		}
+
+		rows := make([]display.TableRow, 0, len(events))
+
+		for _, evt := range events {
+			typeCell := fmt.Sprintf(
+				`<a href="%s/events/%s"><code>%s</code></a>`,
+				p.BasePath,
+				esc(evt.ID().String()),
+				esc(string(evt.Type())),
+			)
+			streamCell := fmt.Sprintf(
+				`<span class="mono">%s</span> %s`,
+				esc(truncate(evt.StreamID().String(), listIDWidth)),
+				copyButtonHTML(ctx, evt.StreamID().String(), ""),
+			)
+
+			rows = append(rows, display.TableRow{
+				Cells: []display.TableCell{
+					textCell(evt.OccurredAt().Format("2006-01-02 15:04:05")),
+					rawCell(typeCell),
+					rawCell(streamCell),
+					textCell(string(evt.StreamType())),
+					textCell(evt.Version().String()),
+				},
+				Href: "",
+			})
+		}
+
+		b.WriteString(tableHTML(ctx, headers, rows, "events-tbody"))
 
 		b.WriteString(renderPagination(ctx, p.BasePath, "/events", page, combinedParams))
 		b.WriteString(formatLinks(ctx, p.BasePath, "/events"))
