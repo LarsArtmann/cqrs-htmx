@@ -109,8 +109,13 @@ func TestOverviewStats_AccurateCount(t *testing.T) {
 	}
 
 	body := rec.Body.String()
-	if strings.Contains(body, ">1<") && !strings.Contains(body, ">10<") && !strings.Contains(body, ">10<") {
-		t.Errorf("overview stats should show accurate count for 10 events, not 1; check stat values")
+	value, ok := statValueByHTMLID(body, "stat-total-events")
+	if !ok {
+		t.Fatalf("stat-total-events element missing from overview; body=%s", body)
+	}
+
+	if value != "10" {
+		t.Errorf("overview stats should show accurate count for 10 events, got %q", value)
 	}
 }
 

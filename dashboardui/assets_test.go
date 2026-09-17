@@ -47,8 +47,20 @@ func TestDashboard_TailwindCSSRoute(t *testing.T) {
 
 	body := rec.Body.String()
 	// display.StatusBadge emits these only from library .templ files; their
-	// presence proves the @source scan fed Tailwind the library source.
-	for _, want := range []string{"bg-green-100", "bg-blue-100", `dark\:bg-green-900`, ":root"} {
+	// presence proves the @source scan fed Tailwind the library source. The
+	// amber family comes from errorpage.ErrorPage adoption — amber was the
+	// missed utility family of the M6 false-green (bundle predating the
+	// component swap), so it is pinned here permanently.
+	for _, want := range []string{
+		"bg-green-100",
+		"bg-blue-100",
+		`dark\:bg-green-900`,
+		":root",
+		"bg-amber-50",
+		"bg-amber-100",
+		"border-amber-200",
+		`dark\:bg-amber-900`,
+	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("dashboard-tw.css missing canary %q", want)
 		}

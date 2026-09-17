@@ -113,3 +113,30 @@ func TestWithDeadLetterStore_Present(t *testing.T) {
 		t.Fatalf("expected status 200, got %d", w.Code)
 	}
 }
+
+// statValueByHTMLID extracts the rendered value text of a stat card by its
+// ValueID (the <dd id="stat-..."> element the library StatCard emits). The
+// second result reports whether the element was found. Scoping assertions to
+// the ValueID region keeps them honest: a bare strings.Contains over the whole
+// page can match a different card's markup (the vacuous-assertion class of bug
+// the old "stat-card ok" check suffered from).
+func statValueByHTMLID(body, id string) (string, bool) {
+	marker := `id="` + id + `"`
+	idx := strings.Index(body, marker)
+	if idx < 0 {
+		return "", false
+	}
+
+	seg := body[idx:]
+	closeIdx := strings.Index(seg, "</dd>")
+	if closeIdx < 0 {
+		return "", false
+	}
+
+	value := seg[:closeIdx]
+	if gt := strings.LastIndex(value, ">"); gt >= 0 {
+		value = value[gt+1:]
+	}
+
+	return strings.TrimSpace(value), true
+}
