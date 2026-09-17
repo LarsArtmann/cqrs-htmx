@@ -3,6 +3,11 @@
 A ready-made, self-contained login page that eliminates the 200+ lines of
 hand-rolled HTML/JS every cqrs-htmx consumer currently writes.
 
+> Sibling panels: [adminui](../adminui/README.md) manages users and tenants
+> (identity operations); [dashboardui](../dashboardui/README.md) introspects
+> the event store (CQRS/ES observability). [setup/v4](../setup/README.md)
+> mounts all three in one call.
+
 ## What it does
 
 - Renders a polished login page with WebAuthn (passkey) sign-in

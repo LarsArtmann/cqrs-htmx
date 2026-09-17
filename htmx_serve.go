@@ -3,6 +3,8 @@ package cqrshtmx
 import (
 	"fmt"
 	"net/http"
+
+	etag "github.com/larsartmann/go-etag/server"
 )
 
 // HTMXScriptHandler returns an http.Handler that serves the embedded HTMX
@@ -31,7 +33,7 @@ func HTMXScriptHandlerWith(js []byte, version string) http.Handler {
 // serveJS is the shared handler for serving JavaScript with long-lived caching.
 // Used by HTMXScriptHandlerWith, HTMXExtensionHandler, HTMXExtensionsHandler,
 // SyncWorkerHandlerWith, and SyncClientHandlerWith.
-func serveJS(js []byte, etag string) http.Handler {
+func serveJS(js []byte, tag string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -41,9 +43,9 @@ func serveJS(js []byte, etag string) http.Handler {
 
 		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		w.Header().Set("ETag", etag)
+		w.Header().Set("ETag", tag)
 
-		if r.Header.Get("If-None-Match") == etag {
+		if current, ok := etag.ParseETag(tag); ok && etag.MatchesIfNoneMatch(current, r.Header.Get("If-None-Match")) {
 			w.WriteHeader(http.StatusNotModified)
 
 			return

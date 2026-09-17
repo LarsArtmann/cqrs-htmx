@@ -3,6 +3,8 @@ package cqrshtmx
 import (
 	"encoding/json/v2"
 	"net/http"
+
+	etag "github.com/larsartmann/go-etag/server"
 )
 
 // ProjectionStatusEntry represents the health of a single projection worker.
@@ -61,13 +63,13 @@ func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc
 			return
 		}
 
-		etag := `"` + hashTag(data) + `"`
+		tag := `"` + hashTag(data) + `"`
 
 		w.Header().Set("Content-Type", ContentTypeJSON)
 		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("ETag", etag)
+		w.Header().Set("ETag", tag)
 
-		if match := r.Header.Get("If-None-Match"); match != "" && match == etag {
+		if current, ok := etag.ParseETag(tag); ok && etag.MatchesIfNoneMatch(current, r.Header.Get("If-None-Match")) {
 			w.WriteHeader(http.StatusNotModified)
 
 			return

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	etag "github.com/larsartmann/go-etag/server"
 )
 
 // jsonSerializer is the structural interface for any type with a JSON()
@@ -69,12 +70,12 @@ type immutableJSONServer struct {
 	marshal []byte
 }
 
-func serveImmutableJSON(w http.ResponseWriter, r *http.Request, etag string, data []byte) {
+func serveImmutableJSON(w http.ResponseWriter, r *http.Request, tag string, data []byte) {
 	w.Header().Set("Content-Type", ContentTypeJSON)
 	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	w.Header().Set("ETag", etag)
+	w.Header().Set("ETag", tag)
 
-	if match := r.Header.Get("If-None-Match"); match != "" && match == etag {
+	if current, ok := etag.ParseETag(tag); ok && etag.MatchesIfNoneMatch(current, r.Header.Get("If-None-Match")) {
 		w.WriteHeader(http.StatusNotModified)
 
 		return

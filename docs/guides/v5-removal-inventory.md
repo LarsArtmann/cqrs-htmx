@@ -73,7 +73,26 @@ Files: every `es_*.go` event/command/state file plus `authz_types.go`,
 - Root in-memory idempotency default — nolint-justified (library principle,
   consumer opts into a durable store); revisit at v5.
 
-### 5. Already removed (for completeness — do NOT re-plan)
+### 5. Module renames: discovery fix (proposed, needs a decision)
+
+`adminui` vs `dashboardui` does not say "identity ops" vs "event-store
+observability"; newcomers routinely land on the wrong module. Docs mitigation
+landed 2026-09-17: cross-linked contrast sections in both module READMEs, both
+doc.go package docs, the root README UI-modules table, and the loginpage
+README. v5 is the only breaking window for module-path renames:
+
+- `adminui/v4` → `identityadmin/v4` (alt: `useradmin/v4`): identity
+  operations over a `*usermgmt.Service`.
+- `dashboardui/v4` → `esdashboard/v4` (alt: `observui/v4`): CQRS/ES
+  observability over go-cqrs-lite introspection interfaces.
+- **Removal criterion:** pick final names, cut the new module paths in the v5
+  train via the verify-tag protocol, keep old paths as deprecated doc-only
+  shims for one cycle, then sweep README/AGENTS/guides/examples for old names
+  (`check-docs-links` catches stale relative links).
+- **Decision needed:** final name choice per module. If rejected, the docs
+  mitigation becomes the permanent fix.
+
+### 6. Already removed (for completeness — do NOT re-plan)
 
 - **WebSocket transport** — ADR-0046 (executed): `WSBroadcaster`,
   `WSMessage`, `WSOOBHTML`, dispatch/encoder helpers, `HTMXExtWS`, all WS

@@ -1168,6 +1168,22 @@ cqrs-htmx/
     └── dashboard-demo/  # CQRS/ES observability dashboard demo
 ```
 
+### Ready-Made UI Modules
+
+Three ready-made UIs ship as independent modules. They answer different
+questions, so most apps mount several:
+
+| Module                               | Question it answers            | Write ops            | Wired to                              |
+| ------------------------------------ | ------------------------------ | -------------------- | ------------------------------------- |
+| [adminui](adminui/README.md)         | "Who uses my app?"             | Yes (role-gated)     | `*usermgmt.Service`                   |
+| [dashboardui](dashboardui/README.md) | "How is my event store doing?" | Read-only by default | go-cqrs-lite introspection interfaces |
+| [loginpage](loginpage/README.md)     | "How do users sign in?"        | No (auth UX)         | `*usermgmt.Service`                   |
+
+adminui = identity operations (users, tenants, members, audit log);
+dashboardui = event-store observability (journal, aggregates, projections,
+DLQ, snapshots). They are complementary, not alternatives:
+[setup/v4](setup/README.md) mounts all three behind correct middleware in one call.
+
 ## Optional Sub-Packages
 
 ### API Documentation Generation
@@ -1195,23 +1211,27 @@ See [go-cqrs-lite/catalog/README.md](https://github.com/LarsArtmann/go-cqrs-lite
 
 ## Dependencies
 
-| Dependency                  | Purpose                                                                           |
-| --------------------------- | --------------------------------------------------------------------------------- |
-| go-cqrs-lite v4.6.0         | CQRS command/query dispatch, pagination                                           |
-| casbin/casbin/v3            | Authorization                                                                     |
-| go-error-family v0.10.0     | Error classification                                                              |
-| go-sse v0.5.0               | SSE protocol writer, broadcaster, replay                                          |
-| larsartmann/httputil v0.9.0 | CSRF, Server-Timing, rate limiting, ClientIP, security headers, compression, CORS |
-| go-branded-id v0.5.0        | Branded types (usermgmt)                                                          |
-| go-playground/form/v4       | Form decoding                                                                     |
-| templ-components v1.7.0     | UI component library (adminui, loginpage)                                         |
+Pinned versions live in [go.mod](go.mod); go-cqrs-lite ships per-module
+version trains, so exact versions are intentionally not repeated here.
 
-**Optional sub-module dependencies** (only import the auth strategies you need):
+| Dependency            | Purpose                                                                           |
+| --------------------- | --------------------------------------------------------------------------------- |
+| go-cqrs-lite          | CQRS command/query dispatch, event sourcing, pagination                           |
+| casbin/casbin/v3      | Authorization                                                                     |
+| go-error-family       | Error classification                                                              |
+| go-sse                | SSE protocol writer, broadcaster, replay                                          |
+| larsartmann/httputil  | CSRF, Server-Timing, rate limiting, ClientIP, security headers, compression, CORS |
+| go-datastar           | DataStar frontend adapter protocol (optional `datastar` module)                   |
+| go-branded-id         | Branded types (usermgmt)                                                          |
+| go-playground/form/v4 | Form decoding                                                                     |
+| templ-components      | UI component library (adminui, dashboardui)                                       |
+
+**Optional sub-module dependencies** (only import the auth strategies you need; versions live in each sub-module's go.mod):
 
 | Sub-module           | Dependency          | Purpose                                |
 | -------------------- | ------------------- | -------------------------------------- |
-| usermgmt/totp/v4     | pquerna/otp v1.5.0  | TOTP MFA (RFC 6238)                    |
-| usermgmt/webauthn/v4 | go-webauthn v0.17.4 | WebAuthn/Passkey authentication        |
+| usermgmt/totp/v4     | pquerna/otp         | TOTP MFA (RFC 6238)                    |
+| usermgmt/webauthn/v4 | go-webauthn         | WebAuthn/Passkey authentication        |
 | usermgmt/oauth2/v4   | golang.org/x/oauth2 | OAuth2 authorization code + PKCE       |
 | usermgmt/oauth2/v4   | coreos/go-oidc/v3   | OIDC discovery + ID token verification |
 

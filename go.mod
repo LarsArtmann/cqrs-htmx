@@ -1,7 +1,7 @@
 //cqrs-lint:ignore(E003) identity-model is intentionally a cohesive pure-domain package (IDs, events, commands, fold); splitting would break usermgmt's alias/re-export architecture
 module github.com/larsartmann/cqrs-htmx/v4
 
-go 1.27.1
+go 1.26.7
 
 require (
 	github.com/casbin/casbin/v3 v3.11.0
@@ -40,7 +40,7 @@ require (
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (record/v4 trails event/command; detector compares one module's max)
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-etag v0.3.1 // indirect
+	github.com/larsartmann/go-etag v0.3.1
 	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect

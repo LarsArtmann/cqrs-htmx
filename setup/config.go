@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"context"
 	"database/sql"
 	"log/slog"
 	"net/http"
@@ -123,6 +124,12 @@ type Config struct {
 	EventBus   event.Bus
 
 	// ReadModelDB enables SQL-backed read models (optional, nil = in-memory).
+	// The flattened path always uses the SQLite read-model dialect: the
+	// handle must speak SQLite (modernc.org/sqlite "sqlite" or
+	// mattn/go-sqlite3 "sqlite3"), which New verifies with a one-query
+	// dialect probe. For Postgres or MySQL read models, use
+	// [Config.ServiceConfig] with ReadModelDB AND ReadModelDialect set
+	// together ("postgres"/"pgx"/"mysql").
 	ReadModelDB *sql.DB
 
 	// SSEPath mounts a shared Server-Sent Events endpoint that streams every
@@ -347,6 +354,10 @@ func (c Config) validate() error {
 		return err
 	}
 
+	if err := c.validateReadModelDialect(); err != nil {
+		return err
+	}
+
 	if c.SSEMaxReplay < 0 {
 		return errorfamily.Newf(
 			errorfamily.Rejection,
@@ -400,6 +411,60 @@ func (c Config) validateServiceSources() error {
 	}
 
 	return nil
+}
+
+// readModelDialectProbeTimeout bounds the dialect probe so a hung database
+// cannot stall New indefinitely. The flattened path connects to ReadModelDB
+// during New anyway (view-store auto-migration), so the probe adds no new
+// connection behavior — only a bound on how long the first one may take.
+const readModelDialectProbeTimeout = 5 * time.Second
+
+// validateReadModelDialect rejects a ReadModelDB handle that does not speak
+// SQLite. The flattened convenience path never sets ReadModelDialect, so
+// usermgmt resolves "" to the SQLite read-model constructor family — against
+// a Postgres or MySQL handle that family's DDL mostly parses and silently
+// creates SQLite-schema tables, corrupting the deployment far from the
+// misconfiguration. Failing at New with a pointer to the supported path
+// (ServiceConfig.ReadModelDialect) is the honest alternative.
+//
+// Detection is a dialect probe, not a driver-name check: database/sql does
+// not expose the registered driver name, so the validator asks the database
+// itself. "SELECT sqlite_version()" answers successfully on every SQLite
+// engine and fails on Postgres/MySQL. An unreachable database passes
+// validation (it cannot be disproven) and fails later inside usermgmt with
+// its own infrastructure error — a rejection here would lie about the cause.
+//
+// Must run after validateServiceSources: a non-nil ReadModelDB can only
+// reach this check on the flattened path (the explicit service sources
+// reject it as a conflict there).
+func (c Config) validateReadModelDialect() error {
+	if c.ReadModelDB == nil {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), readModelDialectProbeTimeout)
+	defer cancel()
+
+	var version string
+	probeErr := c.ReadModelDB.QueryRowContext(ctx, "SELECT sqlite_version()").Scan(&version)
+	if probeErr == nil {
+		return nil
+	}
+
+	// The probe failed for one of two reasons: the database is reachable and
+	// does not speak SQLite (reject with the actionable pointer), or the
+	// connection itself failed (pass — see the doc comment). Ping separates
+	// the two cases.
+	if err := c.ReadModelDB.PingContext(ctx); err != nil {
+		return nil
+	}
+
+	return errorfamily.Newf(
+		errorfamily.Rejection,
+		"setup.invalid_config",
+		"ReadModelDB does not speak SQLite (dialect probe failed: %s) — the flattened config path always builds SQLite-dialect read models; for this database use Config.ServiceConfig with ReadModelDB and ReadModelDialect set together (\"postgres\", \"pgx\", or \"mysql\")",
+		probeErr,
+	)
 }
 
 // serviceConstructionConflicts lists the flattened service-construction fields
