@@ -41,13 +41,12 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 			for _, link := range links {
 				fmt.Fprintf(
 					&rows,
-					`<tr><td class="cell-emph"><a href="%s/dead-letters/%s">%s</a></td><td>%s</td><td><a href="%s/dead-letters/%s" class="btn">View</a></td></tr>`,
+					`<tr><td class="cell-emph"><a href="%s/dead-letters/%s">%s</a></td><td>%s</td><td>%s</td></tr>`,
 					p.BasePath,
 					esc(link.Name),
 					esc(link.Name),
 					badgeHTML(r.Context(), strconv.Itoa(link.Count), countBadgeType(link.Count)),
-					p.BasePath,
-					esc(link.Name),
+					buttonLink(r.Context(), "View", p.BasePath+"/dead-letters/"+esc(link.Name), "", display.ButtonSecondary, false),
 				)
 			}
 
@@ -180,11 +179,12 @@ func (d *Dashboard) renderDLQEntryDetail(
 			b.WriteString(`<div class="filter-bar section-gap">`)
 			fmt.Fprintf(
 				&b,
-				`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" data-confirm="Delete this dead letter?"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Delete</button></form>`,
+				`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" data-confirm="Delete this dead letter?"><input type="hidden" name="_csrf" value="%s"/>%s</form>`,
 				p.BasePath,
 				esc(proj),
 				esc(entry.EventID),
 				esc(p.CSRFToken),
+				buttonSubmit(ctx, "Delete", "Delete dead letter", display.ButtonOutlineDanger, nil),
 			)
 			b.WriteString(`</div>`)
 		}
@@ -320,9 +320,7 @@ func (d *Dashboard) renderDLQ(
 					esc(proj),
 				)
 				fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-				b.WriteString(
-					`<button type="submit" class="btn btn-accent" aria-label="Replay all dead letters">Replay All</button>`,
-				)
+				b.WriteString(buttonSubmit(ctx, "Replay All", "Replay all dead letters", display.ButtonOutlineInfo, nil))
 				b.WriteString(`</form>`)
 			}
 
@@ -336,9 +334,7 @@ func (d *Dashboard) renderDLQ(
 					esc(proj),
 				)
 				fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-				b.WriteString(
-					`<button type="submit" class="btn btn-danger" aria-label="Purge all dead letters">Purge All</button>`,
-				)
+				b.WriteString(buttonSubmit(ctx, "Purge All", "Purge all dead letters", display.ButtonOutlineDanger, nil))
 				b.WriteString(`</form>`)
 			}
 
@@ -355,19 +351,19 @@ func (d *Dashboard) renderDLQ(
 			var actions string
 			if !p.ReadOnly && d.caps.DeadLetterStore {
 				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" data-confirm="Delete this dead letter?" aria-label="Delete dead letter %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Delete dead letter %s">Delete</button></form>`,
+					`<form method="POST" action="%s/dead-letters/%s/%s/delete" class="inline-form" data-confirm="Delete this dead letter?" aria-label="Delete dead letter %s"><input type="hidden" name="_csrf" value="%s"/>%s</form>`,
 					p.BasePath,
 					esc(proj),
 					esc(e.EventID),
 					esc(e.EventID),
 					esc(p.CSRFToken),
-					esc(e.EventID),
+					buttonSubmit(ctx, "Delete", "Delete dead letter "+esc(e.EventID), display.ButtonOutlineDanger, nil),
 				)
 			}
 
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono" title="%s">%s</td><td><a href="%s/dead-letters/%s/%s"><code>%s</code></a></td><td>%s</td><td>%s</td><td><a href="%s/dead-letters/%s/%s" class="btn">View</a> %s</td></tr>`,
+				`<tr><td class="mono" title="%s">%s</td><td><a href="%s/dead-letters/%s/%s"><code>%s</code></a></td><td>%s</td><td>%s</td><td>%s %s</td></tr>`,
 				esc(e.FailedAt.Format("2006-01-02 15:04:05")),
 				esc(relativeTime(e.FailedAt)),
 				p.BasePath,
@@ -376,9 +372,7 @@ func (d *Dashboard) renderDLQ(
 				esc(e.EventType),
 				esc(truncate(e.Error, errorDisplayWidth)),
 				badgeHTML(ctx, e.ErrorFamily, display.BadgeError),
-				p.BasePath,
-				esc(proj),
-				esc(e.EventID),
+				buttonLink(ctx, "View", p.BasePath+"/dead-letters/"+esc(proj)+"/"+esc(e.EventID), "", display.ButtonSecondary, false),
 				actions,
 			)
 		}

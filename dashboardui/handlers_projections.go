@@ -128,24 +128,25 @@ func (d *Dashboard) renderProjections(
 			var actions string
 			if !p.ReadOnly {
 				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" data-confirm="Reset projection %s? This will re-process all events from the beginning." aria-label="Reset projection %s"><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger" aria-label="Reset projection %s">Reset</button></form>`,
+					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" data-confirm="Reset projection %s? This will re-process all events from the beginning." aria-label="Reset projection %s"><input type="hidden" name="_csrf" value="%s"/>%s</form>`,
 					p.BasePath,
 					esc(proj.Name),
 					esc(proj.Name),
 					esc(proj.Name),
 					esc(p.CSRFToken),
-					esc(proj.Name),
+					buttonSubmit(ctx, "Reset", "Reset projection "+esc(proj.Name), display.ButtonOutlineDanger, nil),
 				)
 			}
 
 			dlqLink := ""
 			if proj.Errors > 0 || d.caps.DeadLetterStore || d.caps.ProjectionHost {
-				dlqLink = fmt.Sprintf(
-					`<a href="%s/dead-letters/%s" class="btn" aria-label="View dead letters for %s">DLQ (%d)</a>`,
-					p.BasePath,
-					esc(proj.Name),
-					esc(proj.Name),
-					proj.Errors,
+				dlqLink = buttonLink(
+					ctx,
+					fmt.Sprintf("DLQ (%d)", proj.Errors),
+					p.BasePath+"/dead-letters/"+esc(proj.Name),
+					"View dead letters for "+esc(proj.Name),
+					display.ButtonSecondary,
+					false,
 				)
 			}
 
@@ -249,26 +250,28 @@ func (d *Dashboard) renderProjectionDetail(
 		b.WriteString(`</table>`)
 
 		b.WriteString(`<div class="filter-bar">`)
-		fmt.Fprintf(
-			&b,
-			`<a href="%s/dead-letters/%s" class="btn">View Dead Letters (%d)</a>`,
-			p.BasePath,
-			esc(proj.Name),
-			proj.Errors,
-		)
+		b.WriteString(buttonLink(
+			ctx,
+			fmt.Sprintf("View Dead Letters (%d)", proj.Errors),
+			p.BasePath+"/dead-letters/"+esc(proj.Name),
+			"",
+			display.ButtonSecondary,
+			false,
+		))
 
 		if !p.ReadOnly {
 			fmt.Fprintf(
 				&b,
-				`<form method="POST" action="%s/projections/%s/reset" class="inline-form" data-confirm="Reset projection %s? This will re-process all events from the beginning."><input type="hidden" name="_csrf" value="%s"/><button type="submit" class="btn btn-danger">Reset Projection</button></form>`,
+				`<form method="POST" action="%s/projections/%s/reset" class="inline-form" data-confirm="Reset projection %s? This will re-process all events from the beginning."><input type="hidden" name="_csrf" value="%s"/>%s</form>`,
 				p.BasePath,
 				esc(proj.Name),
 				esc(proj.Name),
 				esc(p.CSRFToken),
+				buttonSubmit(ctx, "Reset Projection", "", display.ButtonOutlineDanger, nil),
 			)
 		}
 
-		fmt.Fprintf(&b, `<a href="%s/projections" class="btn">Back to Projections</a>`, p.BasePath)
+		b.WriteString(buttonLink(ctx, "Back to Projections", p.BasePath+"/projections", "", display.ButtonSecondary, false))
 		b.WriteString(`</div>`)
 
 		return b.String()

@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // ===== Aggregate Browser =====
@@ -122,13 +123,16 @@ func (d *Dashboard) renderAggregateDetail(
 		b.WriteString(`</div>`)
 
 		if d.caps.EventSource && len(events) > 0 {
-			fmt.Fprintf(
-				&b,
-				`<div class="section-gap"><a href="%s/time-travel/%s/%s" class="btn btn-accent">Inspect time-travel for this aggregate</a></div>`,
-				p.BasePath,
-				esc(string(ref.Type)),
-				esc(ref.ID.String()),
-			)
+			b.WriteString(`<div class="section-gap">`)
+			b.WriteString(buttonLink(
+				ctx,
+				"Inspect time-travel for this aggregate",
+				p.BasePath+"/time-travel/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
+				"",
+				display.ButtonOutlineInfo,
+				false,
+			))
+			b.WriteString(`</div>`)
 		}
 
 		if len(events) == 0 {

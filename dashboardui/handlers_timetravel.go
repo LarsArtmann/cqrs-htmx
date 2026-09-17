@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // ===== Time-Travel =====
@@ -58,15 +59,18 @@ func (d *Dashboard) renderStreamListingPage(
 		for _, l := range listings {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td><a href="%s%s/%s/%s" class="btn">%s</a></td></tr>`,
+				`<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td>%s</td></tr>`,
 				esc(string(l.Type)),
 				esc(truncate(l.ID.String(), listIDWidth)),
 				esc(l.Version.String()),
-				p.BasePath,
-				config.linkPath,
-				esc(string(l.Type)),
-				esc(l.ID.String()),
-				esc(config.linkText),
+				buttonLink(
+					ctx,
+					esc(config.linkText),
+					p.BasePath+config.linkPath+"/"+esc(string(l.Type))+"/"+esc(l.ID.String()),
+					"",
+					display.ButtonSecondary,
+					false,
+				),
 			)
 		}
 
@@ -136,11 +140,12 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	p := d.page("Time Travel: "+streamTitlePath(ref), "/time-travel", r)
-	html := d.renderTimeTravelDetail(p, ref, eventsToVersion, requestedVersion, maxVersion)
+	html := d.renderTimeTravelDetail(r.Context(), p, ref, eventsToVersion, requestedVersion, maxVersion)
 	renderPage(w, r, html)
 }
 
 func (d *Dashboard) renderTimeTravelDetail(
+	ctx context.Context,
 	p pageData,
 	ref id.StreamRef,
 	events []event.Event,
@@ -188,13 +193,25 @@ func (d *Dashboard) renderTimeTravelDetail(
 		b.WriteString(`<div class="filter-bar">`)
 
 		if currentVersion > event.Version(1) {
-			fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s" class="btn">First</a>`,
-				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()))
+			b.WriteString(buttonLink(
+				ctx,
+				"First",
+				p.BasePath+"/time-travel/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
+				"",
+				display.ButtonSecondary,
+				false,
+			))
 		}
 
 		if currentVersion < maxVersion {
-			fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d" class="btn btn-accent">Latest (v%d)</a>`,
-				p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), maxVersion.Int(), maxVersion.Int())
+			b.WriteString(buttonLink(
+				ctx,
+				fmt.Sprintf("Latest (v%d)", maxVersion.Int()),
+				fmt.Sprintf("%s/time-travel/%s/%s?v=%d", p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), maxVersion.Int()),
+				"",
+				display.ButtonOutlineInfo,
+				false,
+			))
 		}
 
 		b.WriteString(`</div>`)

@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // ===== Snapshots =====
@@ -75,11 +76,11 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
-	html := d.renderSnapshotDetail(p, ref, snap)
+	html := d.renderSnapshotDetail(r.Context(), p, ref, snap)
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *snapshot.Snapshot) string {
+func (d *Dashboard) renderSnapshotDetail(ctx context.Context, p pageData, ref id.StreamRef, snap *snapshot.Snapshot) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -108,11 +109,13 @@ func (d *Dashboard) renderSnapshotDetail(p pageData, ref id.StreamRef, snap *sna
 				esc(ref.ID.String()),
 			)
 			fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-			fmt.Fprintf(
-				&b,
-				`<button type="submit" class="btn btn-danger" aria-label="Delete snapshot for %s">Delete Snapshot</button>`,
-				esc(ref.ID.String()),
-			)
+			b.WriteString(buttonSubmit(
+				ctx,
+				"Delete Snapshot",
+				"Delete snapshot for "+esc(ref.ID.String()),
+				display.ButtonOutlineDanger,
+				nil,
+			))
 			b.WriteString(`</form>`)
 		}
 
