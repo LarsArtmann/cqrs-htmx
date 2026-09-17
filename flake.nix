@@ -693,6 +693,12 @@
                   ERRORPAGE_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/errorpage 2>/dev/null || true)
                   if [ -n "$ERRORPAGE_DIR" ] && [ -d "$ERRORPAGE_DIR" ]; then
                     cp "$ERRORPAGE_DIR/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                    # errorpage defines its runtime class strings in
+                    # styles.go (Go source, NOT .templ) — without copying
+                    # it the amber utility family is silently absent from
+                    # the bundle while the build stays green (M6-class
+                    # false green, found 2026-09-17).
+                    cp "$ERRORPAGE_DIR/styles.go" "$SCAN_DIR/" 2>/dev/null || true
                   fi
                   if [ -z "$(find "$SCAN_DIR" -name '*.templ' -print -quit)" ]; then
                     echo "ERROR: zero .templ files copied from $TC_DIR — the @source scan would be empty (false-green guard)" >&2
@@ -714,7 +720,7 @@
                   # green). Fail loudly instead. NOTE: minified CSS escapes
                   # the variant as dark\: — the canary greps the escaped
                   # form.
-                  for needle in 'bg-green-100' 'bg-blue-100' 'bg-green-900' 'dark\\:'; do
+                  for needle in 'bg-green-100' 'bg-blue-100' 'bg-green-900' 'dark\\:' 'bg-amber-50' 'bg-amber-100' 'border-amber-200' 'bg-amber-900'; do
                     if ! grep -q "$needle" assets/dashboard-tw.css; then
                       echo "ERROR: canary '$needle' missing from assets/dashboard-tw.css — Tailwind scanned no templ-components source" >&2
                       exit 1
