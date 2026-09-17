@@ -631,28 +631,50 @@ func TestListStreamsPaged_WithReader(t *testing.T) {
 	}
 }
 
-// ===== Meta Row Helpers =====
+// ===== Definition List Helpers =====
 
-func TestMetaRow(t *testing.T) {
-	var b strings.Builder
-	metaRow(&b, "Type", "user.created")
+func TestDefItem(t *testing.T) {
+	item := defItem("Type", "user.created")
 
-	if !strings.Contains(b.String(), "Type") || !strings.Contains(b.String(), "user.created") {
-		t.Fatalf("expected key and value in meta row, got: %s", b.String())
+	if item.Term != "Type" || item.Detail != "user.created" {
+		t.Fatalf("unexpected item: %+v", item)
+	}
+
+	if item.DetailComponent != nil {
+		t.Fatal("plain defItem must not carry a DetailComponent")
 	}
 }
 
-func TestMetaRowCopyable(t *testing.T) {
-	var b strings.Builder
-	metaRowCopyable(&b, context.Background(), "ID", "display-id", "raw-id-val")
+func TestDefItemCopy(t *testing.T) {
+	item := defItemCopy("ID", `<span class="mono">abc</span>`, "raw-id")
 
-	html := b.String()
-	if !strings.Contains(html, `data-tc-copy="raw-id-val"`) {
-		t.Errorf("expected library CopyButton carrying the raw value, got: %s", html)
+	if item.DetailComponent == nil {
+		t.Fatal("defItemCopy must carry a DetailComponent")
 	}
 
-	if !strings.Contains(html, "display-id") {
-		t.Errorf("expected display value in output")
+	var b strings.Builder
+
+	if err := item.DetailComponent.Render(context.Background(), &b); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+
+	if !strings.Contains(b.String(), `data-tc-copy="raw-id"`) {
+		t.Errorf("expected CopyButton carrying raw value, got: %s", b.String())
+	}
+
+	if !strings.Contains(b.String(), "abc") {
+		t.Errorf("expected display markup, got: %s", b.String())
+	}
+}
+
+func TestDefinitionListHTML(t *testing.T) {
+	items := []display.DefinitionItem{defItem("Type", "user.created"), defItem("Version", "7")}
+	html := definitionListHTML(context.Background(), items)
+
+	for _, want := range []string{"<dl", "Type", "user.created", "Version"} {
+		if !strings.Contains(html, want) {
+			t.Errorf("definition list missing %q", want)
+		}
 	}
 }
 

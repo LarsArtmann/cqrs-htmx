@@ -193,23 +193,40 @@ func (d *Dashboard) renderEventDetail(
 		}
 
 		if corrID := meta.CorrelationID.String(); corrID != "" {
-			items = append(items, defItemCopy("Correlation ID", "<span class=\"mono\">"+esc(corrID)+"</span>", corrID))
+			items = append(
+				items,
+				defItemCopy(
+					"Correlation ID",
+					"<span class=\"mono\">"+esc(corrID)+"</span>",
+					corrID,
+				),
+			)
 		}
 
 		if causID := meta.CausationID.String(); causID != "" {
-			items = append(items, defItemCopy("Causation ID", "<span class=\"mono\">"+esc(causID)+"</span>", causID))
+			items = append(
+				items,
+				defItemCopy("Causation ID", "<span class=\"mono\">"+esc(causID)+"</span>", causID),
+			)
 		}
 
 		if actorID := meta.ActorID; !actorID.IsZero() {
 			actorPrefixed := actorID.PrefixedString()
 			items = append(
 				items,
-				defItemCopy("Actor ID", "<span class=\"mono\">"+esc(actorPrefixed)+"</span>", actorPrefixed),
+				defItemCopy(
+					"Actor ID",
+					"<span class=\"mono\">"+esc(actorPrefixed)+"</span>",
+					actorPrefixed,
+				),
 			)
 		}
 
 		if reqID := meta.RequestID.String(); reqID != "" {
-			items = append(items, defItemCopy("Request ID", "<span class=\"mono\">"+esc(reqID)+"</span>", reqID))
+			items = append(
+				items,
+				defItemCopy("Request ID", "<span class=\"mono\">"+esc(reqID)+"</span>", reqID),
+			)
 		}
 
 		if deadline, ok := evt.Deadline(); ok {

@@ -152,6 +152,7 @@ func (d *Dashboard) renderDLQEntryDetail(
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="two-col-grid">`)
+
 		items := []display.DefinitionItem{
 			defItem("Event Type", entry.EventType),
 			defItem("Event ID", entry.EventID),
