@@ -40,6 +40,7 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 
 	// Static assets
 	mux.Handle("GET /-/dashboard.css", d.guard(d.serveCSS()))
+	mux.Handle("GET /-/dashboard-tw.css", d.guard(assetHandler("dashboard-tw.css", "text/css; charset=utf-8")))
 	mux.Handle("GET /-/dashboard.js", d.guard(d.serveJS()))
 	mux.Handle("GET /-/htmx.js", cqrshtmx.HTMXScriptHandler())
 

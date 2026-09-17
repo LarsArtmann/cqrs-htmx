@@ -32,6 +32,12 @@ require (
 // replace and let the require above resolve from the proxy.
 replace github.com/larsartmann/go-datastar/broadcast => ../../go-datastar/broadcast
 
+// TEMPORARY family dev-replace: the migrated tests pass go-datastar/broadcast
+// values into ds.NewEventBridge, which needs the local type alias — published
+// datastar/v4 v4.9.0 still carries the concrete struct. Removal condition:
+// the next datastar/v4 tag (>= v4.9.1) with the broadcast facade is pushed.
+replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../datastar
+
 require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
@@ -49,7 +55,7 @@ require (
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
-	github.com/larsartmann/go-codec v0.2.0 // indirect
+	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
@@ -90,8 +96,6 @@ require (
 	github.com/xo/terminfo v1.0.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 )
 
@@ -104,7 +108,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/coreos/go-oidc/v3 v3.21.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
@@ -122,7 +126,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
-	github.com/larsartmann/go-branded-id v0.5.1 // indirect
+	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
@@ -139,7 +143,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
-	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-sse v0.6.0
 	github.com/larsartmann/httputil v1.2.0
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

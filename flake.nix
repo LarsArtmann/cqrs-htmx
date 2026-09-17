@@ -711,8 +711,10 @@
                   # classes live only in library .templ files) plus dark:
                   # variants. Absence means the @source scan failed — a
                   # utility-free stylesheet passed to users (exit 0 false
-                  # green). Fail loudly instead.
-                  for needle in 'bg-green-100' 'bg-blue-100' 'bg-green-900' 'dark:'; do
+                  # green). Fail loudly instead. NOTE: minified CSS escapes
+                  # the variant as dark\: — the canary greps the escaped
+                  # form.
+                  for needle in 'bg-green-100' 'bg-blue-100' 'bg-green-900' 'dark\\:'; do
                     if ! grep -q "$needle" assets/dashboard-tw.css; then
                       echo "ERROR: canary '$needle' missing from assets/dashboard-tw.css — Tailwind scanned no templ-components source" >&2
                       exit 1
