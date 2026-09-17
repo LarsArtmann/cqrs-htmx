@@ -1,0 +1,17 @@
+# go-structure-linter suppressions for cqrs-htmx (triaged 2026-09-17, task M3).
+# This is a multi-module LIBRARY repo: the root module's public API lives at the
+# module root BY DESIGN - the import path github.com/larsartmann/cqrs-htmx/v4 IS
+# the repo root. Moving root .go files under /pkg/ or /internal/ would break
+# every consumer import. The application-repo layout heuristics below do not
+# apply to a published library; suppress with reasons, revisit on policy change.
+suppressions:
+  - rule: root-package-files
+    reason: >
+      Published library - the root module's public API is deliberately at the
+      module root (github.com/larsartmann/cqrs-htmx/v4 imports resolve there).
+      /pkg/ or /internal/ relocation would break every consumer; the rule's
+      application-repo heuristic does not apply to library roots.
+  - id: go-structure-linter:go-sum-out-of-sync:scripts/testdata/verify-tag/clean-go-mod/go.mod:0:0:4f98394c
+    reason: >
+      Test fixture for verify-tag's clean-go.mod detection (scripts/testdata) -
+      a synthetic minimal go.mod with no go.sum is the fixture's whole point.
