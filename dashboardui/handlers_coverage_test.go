@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Aggregates Index Handler =====
@@ -677,9 +678,43 @@ func TestEmptyState_NoMessage(t *testing.T) {
 	}
 }
 
+// TestEmptyState_LibraryShape pins the library EmptyState adoption: the
+// component renders role="status" (a11y live region), the icon tile, and the
+// h2 title tag requested via TitleTag — replacing the old hand-rolled
+// .empty-state div.
+func TestEmptyState_LibraryShape(t *testing.T) {
+	html := emptyState("Nothing Here", "Try again later")
+
+	for _, want := range []string{
+		`role="status"`,
+		`<h2`, // TitleTag override (library default is h3)
+		"<svg", // inbox icon renders
+		"Try again later",
+	} {
+		if !strings.Contains(html, want) {
+			t.Errorf("empty state missing %q in output: %s", want, html)
+		}
+	}
+
+	if strings.Contains(html, "empty-state") {
+		t.Errorf("legacy empty-state class must be gone, got: %s", html)
+	}
+}
+
 func TestEmptyState_WithMessage(t *testing.T) {
 	html := emptyState("Nothing Here", "Try again later")
 	if !strings.Contains(html, "Try again later") {
 		t.Errorf("expected message in output")
+	}
+}
+
+func TestEmptyStateIcon_PerPage(t *testing.T) {
+	html := emptyStateIcon(icons.Cube, "No aggregates", "")
+	if !strings.Contains(html, "No aggregates") {
+		t.Errorf("expected title in output")
+	}
+
+	if !strings.Contains(html, "<svg") {
+		t.Errorf("expected icon svg in output")
 	}
 }

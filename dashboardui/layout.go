@@ -311,13 +311,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 
 /* ===== Stat cards ===== */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--gap); margin-bottom: 24px; }
-.stat-card-value { font-size: 2.5rem; font-weight: 900; line-height: 1; }
-.stat-card-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 6px; color: var(--muted); }
-
-/* ===== Empty state ===== */
-.empty-state { padding: 40px; text-align: center; color: var(--muted); }
-.empty-state h2 { margin-bottom: 8px; }
-
 /* ===== Error/404 shell (errorpage adoption) ===== */
 .error-shell { max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
 
@@ -415,8 +408,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 	.filter-bar input, .filter-bar select { width: 100%; }
 	.nav-link { padding: 12px 10px; font-size: 1rem; }
 	.stat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-	.stat-card { padding: 14px; }
-	.stat-card-value { font-size: 1.8rem; }
 }
 
 /* ===== Print styles ===== */
