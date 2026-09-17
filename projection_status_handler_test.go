@@ -193,3 +193,12 @@ func TestProjectionStatusHandler_NilProvider(t *testing.T) {
 		t.Errorf("status = %d, want %d", w.Code, http.StatusServiceUnavailable)
 	}
 }
+
+func TestProjectionStatusHandler_IfNoneMatchSpec(t *testing.T) {
+	provider := &mockStatusProvider{
+		statuses: []cqrshtmx.ProjectionStatusEntry{
+			{Name: "test", Status: "live", Processed: 100},
+		},
+	}
+	runConditionalGetSpec(t, cqrshtmx.ProjectionStatusHandler(provider), "/health/projections")
+}

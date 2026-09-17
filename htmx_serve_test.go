@@ -3,6 +3,7 @@ package cqrshtmx_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	. "github.com/onsi/ginkgo/v2"
@@ -225,3 +226,17 @@ var _ = Describe("HTMXCDNScriptTag", func() {
 		))
 	})
 })
+
+func TestHTMXScriptHandler_IfNoneMatchSpec(t *testing.T) {
+	runConditionalGetSpec(t, cqrshtmx.HTMXScriptHandler(), "/htmx.js")
+}
+
+func TestSyncHandlers_IfNoneMatchSpec(t *testing.T) {
+	t.Run("sync-worker", func(t *testing.T) {
+		runConditionalGetSpec(t, cqrshtmx.SyncWorkerHandler(), "/sync-worker.js")
+	})
+
+	t.Run("sync-client", func(t *testing.T) {
+		runConditionalGetSpec(t, cqrshtmx.SyncClientHandler(), "/sync-client.js")
+	})
+}

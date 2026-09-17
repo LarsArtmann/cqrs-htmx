@@ -122,6 +122,10 @@ func TestEventCatalogHandler_NilCatalogReturnsError(t *testing.T) {
 	}
 }
 
+func TestEventCatalogHandler_IfNoneMatchSpec(t *testing.T) {
+	runConditionalGetSpec(t, mustCatalogHandler(t, sampleCatalog()), "/events/catalog")
+}
+
 func TestEventCatalogHandler_ConcurrentRequestsAreSafe(t *testing.T) {
 	handler := mustCatalogHandler(t, sampleCatalog())
 
