@@ -111,36 +111,47 @@ func (d *Dashboard) renderCommands(
 			)
 		}
 
-		var rows strings.Builder
+		headers := plainHeaders("Received At", "Type", "Stream Type", "Stream ID", "Command ID", "")
+
+		rows := make([]display.TableRow, 0, len(cmds))
 
 		for _, cmd := range cmds {
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono">%s %s</td><td class="mono">%s %s</td><td>%s</td></tr>`,
-				esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
-				esc(string(cmd.Type())),
-				esc(string(cmd.StreamType())),
-				truncate(cmd.StreamID().String(), listIDWidth),
+			streamCell := fmt.Sprintf(
+				`<span class="mono">%s</span> %s`,
+				esc(truncate(cmd.StreamID().String(), listIDWidth)),
 				copyButtonHTML(ctx, cmd.StreamID().String(), ""),
-				truncate(cmd.ID().String(), eventIDWidth),
-				copyButtonHTML(ctx, cmd.ID().String(), ""),
-				buttonLink(
-					ctx,
-					"View",
-					p.BasePath+"/commands/"+esc(cmd.ID().String()),
-					"",
-					display.ButtonSecondary,
-					false,
-				),
 			)
+			idCell := fmt.Sprintf(
+				`<span class="mono">%s</span> %s`,
+				esc(truncate(cmd.ID().String(), eventIDWidth)),
+				copyButtonHTML(ctx, cmd.ID().String(), ""),
+			)
+			typeCell := fmt.Sprintf(`<code>%s</code>`, esc(string(cmd.Type())))
+			viewCell := buttonLink(
+				ctx,
+				"View",
+				p.BasePath+"/commands/"+esc(cmd.ID().String()),
+				"",
+				display.ButtonSecondary,
+				false,
+			)
+
+			rows = append(rows, display.TableRow{
+				Cells: []display.TableCell{
+					textCell(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
+					rawCell(typeCell),
+					textCell(string(cmd.StreamType())),
+					rawCell(streamCell),
+					rawCell(idCell),
+					rawCell(viewCell),
+				},
+				Href: "",
+			})
 		}
 
 		var b strings.Builder
-		fmt.Fprintf(
-			&b,
-			`<h2>Command Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
+		b.WriteString(`<h2>Command Audit</h2>`)
+		b.WriteString(tableHTML(ctx, headers, rows, ""))
 		b.WriteString(renderPagination(ctx, p.BasePath, "/commands", page, ""))
 		b.WriteString(formatLinks(ctx, p.BasePath, "/commands"))
 
@@ -243,33 +254,40 @@ func (d *Dashboard) renderQueries(
 			)
 		}
 
-		var rows strings.Builder
+		headers := plainHeaders("Received At", "Type", "Request ID", "")
+
+		rows := make([]display.TableRow, 0, len(queries))
 
 		for _, q := range queries {
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono">%s %s</td><td>%s</td></tr>`,
-				esc(q.ReceivedAt().Format("2006-01-02 15:04:05")),
-				esc(string(q.Type())),
-				truncate(q.ID().String(), eventIDWidth),
+			idCell := fmt.Sprintf(
+				`<span class="mono">%s</span> %s`,
+				esc(truncate(q.ID().String(), eventIDWidth)),
 				copyButtonHTML(ctx, q.ID().String(), ""),
-				buttonLink(
-					ctx,
-					"View",
-					p.BasePath+"/queries/"+esc(q.ID().String()),
-					"",
-					display.ButtonSecondary,
-					false,
-				),
 			)
+			typeCell := fmt.Sprintf(`<code>%s</code>`, esc(string(q.Type())))
+			viewCell := buttonLink(
+				ctx,
+				"View",
+				p.BasePath+"/queries/"+esc(q.ID().String()),
+				"",
+				display.ButtonSecondary,
+				false,
+			)
+
+			rows = append(rows, display.TableRow{
+				Cells: []display.TableCell{
+					textCell(q.ReceivedAt().Format("2006-01-02 15:04:05")),
+					rawCell(typeCell),
+					rawCell(idCell),
+					rawCell(viewCell),
+				},
+				Href: "",
+			})
 		}
 
 		var b strings.Builder
-		fmt.Fprintf(
-			&b,
-			`<h2>Query Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
-			rows.String(),
-		)
+		b.WriteString(`<h2>Query Audit</h2>`)
+		b.WriteString(tableHTML(ctx, headers, rows, ""))
 		b.WriteString(renderPagination(ctx, p.BasePath, "/queries", page, ""))
 		b.WriteString(formatLinks(ctx, p.BasePath, "/queries"))
 
