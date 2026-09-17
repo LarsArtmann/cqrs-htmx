@@ -83,6 +83,7 @@ func (d *Dashboard) commandsIndexHandler(
 	}
 
 	html := d.renderCommands(
+		r.Context(),
 		p,
 		cmds,
 		paginationState{
@@ -93,10 +94,20 @@ func (d *Dashboard) commandsIndexHandler(
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderCommands(p pageData, cmds []*command.PersistedCommand, page paginationState) string {
+func (d *Dashboard) renderCommands(
+	ctx context.Context,
+	p pageData,
+	cmds []*command.PersistedCommand,
+	page paginationState,
+) string {
 	return d.renderLayout(p, func() string {
 		if len(cmds) == 0 {
-			return emptyStateIcon(icons.Clipboard, "No commands recorded", "Commands will appear here as they are dispatched.")
+			return emptyStateIcon(
+				ctx,
+				icons.Clipboard,
+				"No commands recorded",
+				"Commands will appear here as they are dispatched.",
+			)
 		}
 
 		var rows strings.Builder
@@ -198,6 +209,7 @@ func (d *Dashboard) queriesIndexHandler(
 	}
 
 	html := d.renderQueries(
+		r.Context(),
 		p,
 		queries,
 		paginationState{
@@ -208,10 +220,20 @@ func (d *Dashboard) queriesIndexHandler(
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderQueries(p pageData, queries []*query.PersistedQuery, page paginationState) string {
+func (d *Dashboard) renderQueries(
+	ctx context.Context,
+	p pageData,
+	queries []*query.PersistedQuery,
+	page paginationState,
+) string {
 	return d.renderLayout(p, func() string {
 		if len(queries) == 0 {
-			return emptyStateIcon(icons.Search, "No queries recorded", "Queries will appear here as they are executed.")
+			return emptyStateIcon(
+				ctx,
+				icons.Search,
+				"No queries recorded",
+				"Queries will appear here as they are executed.",
+			)
 		}
 
 		var rows strings.Builder
@@ -302,8 +324,12 @@ func (d *Dashboard) renderCommandDetail(p pageData, cmd *command.PersistedComman
 
 		b.WriteString(`<div class="page-header">`)
 		fmt.Fprintf(&b, `<h2><code>%s</code></h2>`, esc(string(cmd.Type())))
-		fmt.Fprintf(&b, `<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
-			esc(cmd.ID().String()), esc(cmd.ID().String()))
+		fmt.Fprintf(
+			&b,
+			`<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
+			esc(cmd.ID().String()),
+			esc(cmd.ID().String()),
+		)
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="two-col-grid">`)
@@ -406,8 +432,12 @@ func (d *Dashboard) renderQueryDetail(p pageData, q *query.PersistedQuery) strin
 
 		b.WriteString(`<div class="page-header">`)
 		fmt.Fprintf(&b, `<h2><code>%s</code></h2>`, esc(string(q.Type())))
-		fmt.Fprintf(&b, `<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
-			esc(q.ID().String()), esc(q.ID().String()))
+		fmt.Fprintf(
+			&b,
+			`<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
+			esc(q.ID().String()),
+			esc(q.ID().String()),
+		)
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div class="two-col-grid">`)

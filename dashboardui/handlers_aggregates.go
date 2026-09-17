@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -51,7 +52,7 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 		nextCursor = listings[len(listings)-1].ID.String()
 	}
 
-	html := d.renderAggregates(p, listings, paginationState{
+	html := d.renderAggregates(r.Context(), p, listings, paginationState{
 		HasNext:     hasMore,
 		NextCursor:  nextCursor,
 		PageSize:    pageSize,
@@ -69,7 +70,7 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	p := d.page("Aggregate: "+streamTitlePath(ref), "/aggregates", r)
-	html := d.renderAggregateDetail(p, ref, events, d.aggregateTimelinePagination(r))
+	html := d.renderAggregateDetail(r.Context(), p, ref, events, d.aggregateTimelinePagination(r))
 	renderPage(w, r, html)
 }
 
@@ -95,6 +96,7 @@ func (d *Dashboard) aggregateTimelinePagination(r *http.Request) paginationState
 }
 
 func (d *Dashboard) renderAggregateDetail(
+	ctx context.Context,
 	p pageData,
 	ref id.StreamRef,
 	events []event.Event,
@@ -130,7 +132,7 @@ func (d *Dashboard) renderAggregateDetail(
 		}
 
 		if len(events) == 0 {
-			return emptyStateIcon(icons.Cube, "No events", "This aggregate has no recorded events.")
+			return emptyStateIcon(ctx, icons.Cube, "No events", "This aggregate has no recorded events.")
 		}
 
 		// In-memory pagination using version numbers as cursors.
@@ -222,10 +224,15 @@ func paginateEventsByVersion(events []event.Event, page paginationState) ([]even
 	return paged, hasMore
 }
 
-func (d *Dashboard) renderAggregates(p pageData, listings []listing.StreamListing, page paginationState) string {
+func (d *Dashboard) renderAggregates(
+	ctx context.Context,
+	p pageData,
+	listings []listing.StreamListing,
+	page paginationState,
+) string {
 	return d.renderLayout(p, func() string {
 		if len(listings) == 0 {
-			return emptyStateIcon(icons.Cube, "No aggregates found", "")
+			return emptyStateIcon(ctx, icons.Cube, "No aggregates found", "")
 		}
 
 		var rows strings.Builder

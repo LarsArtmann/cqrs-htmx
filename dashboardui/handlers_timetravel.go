@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -104,9 +105,10 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if len(allEvents) == 0 {
+		ctx := r.Context()
 		p := d.page("Time Travel: "+string(ref.Type), "/time-travel", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
-			return emptyState("No events", "")
+			return emptyState(ctx, "No events", "")
 		}))
 
 		return

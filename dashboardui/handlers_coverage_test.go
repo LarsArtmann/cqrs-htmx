@@ -668,7 +668,7 @@ func TestEsc(t *testing.T) {
 // ===== Empty State =====
 
 func TestEmptyState_NoMessage(t *testing.T) {
-	html := emptyState("Nothing Here", "")
+	html := emptyState(context.Background(), "Nothing Here", "")
 	if !strings.Contains(html, "Nothing Here") {
 		t.Errorf("expected title in output")
 	}
@@ -683,11 +683,11 @@ func TestEmptyState_NoMessage(t *testing.T) {
 // h2 title tag requested via TitleTag — replacing the old hand-rolled
 // .empty-state div.
 func TestEmptyState_LibraryShape(t *testing.T) {
-	html := emptyState("Nothing Here", "Try again later")
+	html := emptyState(context.Background(), "Nothing Here", "Try again later")
 
 	for _, want := range []string{
 		`role="status"`,
-		`<h2`, // TitleTag override (library default is h3)
+		`<h2`,  // TitleTag override (library default is h3)
 		"<svg", // inbox icon renders
 		"Try again later",
 	} {
@@ -702,14 +702,14 @@ func TestEmptyState_LibraryShape(t *testing.T) {
 }
 
 func TestEmptyState_WithMessage(t *testing.T) {
-	html := emptyState("Nothing Here", "Try again later")
+	html := emptyState(context.Background(), "Nothing Here", "Try again later")
 	if !strings.Contains(html, "Try again later") {
 		t.Errorf("expected message in output")
 	}
 }
 
 func TestEmptyStateIcon_PerPage(t *testing.T) {
-	html := emptyStateIcon(icons.Cube, "No aggregates", "")
+	html := emptyStateIcon(context.Background(), icons.Cube, "No aggregates", "")
 	if !strings.Contains(html, "No aggregates") {
 		t.Errorf("expected title in output")
 	}

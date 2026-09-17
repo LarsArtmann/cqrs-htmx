@@ -24,7 +24,7 @@ func (d *Dashboard) dlqIndexHandler(w http.ResponseWriter, r *http.Request) {
 		p,
 		func() string { //nolint:contextcheck // closure captures r and passes r.Context() to badgeHTML explicitly
 			if len(links) == 0 {
-				return emptyStateIcon(icons.BugAnt,
+				return emptyStateIcon(r.Context(), icons.BugAnt,
 					"Dead-Letter Queue",
 					"No projections registered. Dead letters will appear here when projection errors occur.",
 				)
@@ -346,7 +346,7 @@ func (d *Dashboard) renderDLQ(
 		}
 
 		if len(entries) == 0 {
-			return emptyStateIcon(icons.BugAnt, "No dead letters for "+esc(proj), "")
+			return emptyStateIcon(ctx, icons.BugAnt, "No dead letters for "+esc(proj), "")
 		}
 
 		var rows strings.Builder

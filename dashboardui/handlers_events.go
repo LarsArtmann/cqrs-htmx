@@ -76,7 +76,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		nextCursor = events[len(events)-1].ID().String()
 	}
 
-	html := d.renderEvents(p, events, paginationState{
+	html := d.renderEvents(r.Context(), p, events, paginationState{
 		HasNext:     hasNext,
 		NextCursor:  nextCursor,
 		PageSize:    pageSize,
@@ -111,7 +111,12 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 	renderPage(w, r, html)
 }
 
-func (d *Dashboard) renderEventDetail(ctx context.Context, p pageData, evt event.Event, prevID, nextID string) string {
+func (d *Dashboard) renderEventDetail(
+	ctx context.Context,
+	p pageData,
+	evt event.Event,
+	prevID, nextID string,
+) string {
 	return d.renderLayout(p, func() string {
 		var b strings.Builder
 
@@ -128,20 +133,34 @@ func (d *Dashboard) renderEventDetail(ctx context.Context, p pageData, evt event
 			badgeHTML(ctx, fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral),
 			encodingBadge(ctx, string(evt.Encoding())),
 		)
-		fmt.Fprintf(&b, `<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
-			esc(evt.ID().String()), esc(evt.ID().String()))
+		fmt.Fprintf(
+			&b,
+			`<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
+			esc(evt.ID().String()),
+			esc(evt.ID().String()),
+		)
 
 		if prevID != "" || nextID != "" {
 			b.WriteString(`<div class="filter-bar section-gap">`)
 
 			if prevID != "" {
-				fmt.Fprintf(&b, `<a href="%s/events/%s" class="btn">← Previous</a>`, p.BasePath, esc(prevID))
+				fmt.Fprintf(
+					&b,
+					`<a href="%s/events/%s" class="btn">← Previous</a>`,
+					p.BasePath,
+					esc(prevID),
+				)
 			} else {
 				b.WriteString(`<span class="btn" aria-disabled="true">← Previous</span>`)
 			}
 
 			if nextID != "" {
-				fmt.Fprintf(&b, `<a href="%s/events/%s" class="btn btn-accent">Next →</a>`, p.BasePath, esc(nextID))
+				fmt.Fprintf(
+					&b,
+					`<a href="%s/events/%s" class="btn btn-accent">Next →</a>`,
+					p.BasePath,
+					esc(nextID),
+				)
 			} else {
 				b.WriteString(`<span class="btn" aria-disabled="true">Next →</span>`)
 			}
@@ -202,7 +221,11 @@ func (d *Dashboard) renderEventDetail(ctx context.Context, p pageData, evt event
 			`<div class="filter-bar"><button class="btn" onclick="copyPayload()">Copy</button><button class="btn" onclick="downloadPayload('%s')">Download JSON</button></div>`,
 			esc(evt.ID().String()),
 		)
-		fmt.Fprintf(&b, `<pre class="code-block" id="event-payload"><code>%s</code></pre>`, esc(string(payload)))
+		fmt.Fprintf(
+			&b,
+			`<pre class="code-block" id="event-payload"><code>%s</code></pre>`,
+			esc(string(payload)),
+		)
 		b.WriteString(`</div>`)
 
 		b.WriteString(`</div>`)
@@ -212,6 +235,7 @@ func (d *Dashboard) renderEventDetail(ctx context.Context, p pageData, evt event
 }
 
 func (d *Dashboard) renderEvents(
+	ctx context.Context,
 	p pageData,
 	events []event.Event,
 	page paginationState,
@@ -226,13 +250,18 @@ func (d *Dashboard) renderEvents(
 
 		if len(events) == 0 {
 			if filter.Active() {
-				return emptyStateIcon(icons.Search,
+				return emptyStateIcon(ctx, icons.Search,
 					"No matching events",
 					"No events match the current filters. Try adjusting or clearing them.",
 				)
 			}
 
-			return emptyStateIcon(icons.QueueList, "No events yet", "Events will appear here as they are committed to the store.")
+			return emptyStateIcon(
+				ctx,
+				icons.QueueList,
+				"No events yet",
+				"Events will appear here as they are committed to the store.",
+			)
 		}
 
 		var rows strings.Builder

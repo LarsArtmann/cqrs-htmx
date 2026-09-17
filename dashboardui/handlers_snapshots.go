@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -49,10 +50,11 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 
 	snap, err := d.config.SnapshotStore.Load(r.Context(), ref)
 	if err != nil {
+		ctx := r.Context()
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
 			return emptyStateIcon(
-				r.Context(),
+				ctx,
 				icons.ArchiveBox,
 				"No snapshot found",
 				"No snapshot exists for "+streamType+"/"+truncate(streamID, snapshotIDWidth)+".",
@@ -63,9 +65,10 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if snap == nil {
+		ctx := r.Context()
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
 		renderPage(w, r, d.renderLayout(p, func() string {
-			return emptyStateIcon(r.Context(), icons.ArchiveBox, "No snapshot", "")
+			return emptyStateIcon(ctx, icons.ArchiveBox, "No snapshot", "")
 		}))
 
 		return

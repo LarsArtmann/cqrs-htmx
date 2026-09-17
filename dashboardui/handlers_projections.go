@@ -116,7 +116,7 @@ func (d *Dashboard) renderProjections(
 ) string {
 	return d.renderLayout(p, func() string {
 		if len(projs) == 0 {
-			return emptyStateIcon(icons.ArrowPath, "No projections registered", "")
+			return emptyStateIcon(ctx, icons.ArrowPath, "No projections registered", "")
 		}
 
 		var b strings.Builder
