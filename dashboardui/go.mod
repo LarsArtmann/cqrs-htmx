@@ -56,6 +56,7 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/httputil v1.2.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.17.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.17.0 // indirect
 	github.com/larsartmann/templ-components/utils v1.17.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect

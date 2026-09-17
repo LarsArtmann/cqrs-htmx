@@ -35,7 +35,7 @@ func (d *Dashboard) projectionDetailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if found == nil {
-		renderError(w, r, http.StatusNotFound, "projection not found")
+		d.renderError(w, r, http.StatusNotFound, "projection not found")
 
 		return
 	}
@@ -47,7 +47,7 @@ func (d *Dashboard) projectionDetailHandler(w http.ResponseWriter, r *http.Reque
 
 func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *projectionhost.Host)) {
 	if d.config.ProjectionHost == nil {
-		renderError(w, nil, http.StatusBadRequest, "projection host not configured")
+		d.renderError(w, nil, http.StatusBadRequest, "projection host not configured")
 
 		return
 	}
@@ -57,7 +57,7 @@ func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *proj
 
 func (d *Dashboard) withDeadLetterStore(w http.ResponseWriter, fn func(store projectionhost.DeadLetterStore)) {
 	if d.config.DeadLetterStore == nil {
-		renderError(w, nil, http.StatusBadRequest, "dead letter store not configured")
+		d.renderError(w, nil, http.StatusBadRequest, "dead letter store not configured")
 
 		return
 	}

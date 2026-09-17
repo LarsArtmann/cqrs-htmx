@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	"github.com/larsartmann/httputil"
+	"github.com/larsartmann/templ-components/errorpage"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -39,20 +42,90 @@ func triggerToast(w http.ResponseWriter, kind, message string) {
 	w.Header().Set("Hx-Trigger", string(detail))
 }
 
-// renderError logs the full error and shows a generic message to the user.
-// Safe to call with a nil request.
-func renderError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
+// renderError logs the full error and renders a styled, family-aware error
+// page (templ-components errorpage): a bare card for HTMX swaps, a minimal
+// document loading the dashboard stylesheets otherwise. Safe to call with a
+// nil request (renders the shell-less plain fallback path).
+func (d *Dashboard) renderError(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
 	ctx := context.Background() //nolint:contextcheck // fallback when request is nil; replaced by r.Context() below
+	nonce := ""
 	path := ""
 
 	if r != nil {
 		ctx = r.Context()
+		nonce = httputil.NonceFromRequest(r)
 		path = r.URL.Path
 	}
 
 	slog.ErrorContext(ctx, "dashboardui: handler error",
 		"status", statusCode, "message", message, "path", path)
-	http.Error(w, message, statusCode)
+
+	props := errorpage.DefaultErrorPageProps()
+	props.Family = statusToFamily(statusCode)
+	props.StatusCode = statusCode
+	props.Title = http.StatusText(statusCode)
+	props.Message = message
+	props.Timestamp = ""
+
+	var b strings.Builder
+	if err := errorpage.ErrorPage(props).Render(ctx, &b); err != nil {
+		// Library render failed; keep the plain-text fallback so the user
+		// still sees status + message.
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(statusCode)
+		_, _ = fmt.Fprintf(w, "%s\n", message)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", contentTypeHTML)
+	w.WriteHeader(statusCode)
+
+	if isHTMXRequest(r) {
+		_, _ = w.Write([]byte(b.String()))
+
+		return
+	}
+
+	_, _ = w.Write([]byte(d.renderErrorShell(props.Title, b.String())))
+}
+
+// renderErrorShell wraps pre-rendered error markup in a minimal HTML document
+// that loads the dashboard stylesheets. It bridges the library's bare
+// component output and the full renderLayout shell (which needs pageData);
+// the CSS keeps the card centered without duplicating the layout.
+func (d *Dashboard) renderErrorShell(title, inner string) string {
+	var b strings.Builder
+
+	b.WriteString("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
+	b.WriteString("<meta charset=\"utf-8\"/>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n")
+	fmt.Fprintf(&b, "<title>%s</title>\n", esc(title))
+	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", d.config.BasePath)
+	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard-tw.css\"/>\n", d.config.BasePath)
+	b.WriteString("</head>\n<body>\n<div class=\"error-shell\">\n")
+	b.WriteString(inner)
+	b.WriteString("\n</div>\n</body>\n</html>")
+
+	return b.String()
+}
+
+// statusToFamily maps an HTTP status code to the error-page family the
+// library styles with. Client errors read as Rejection (helpful tone),
+// conflicts as Conflict, availability blips as Transient, everything else
+// (500s) as Infrastructure.
+func statusToFamily(statusCode int) errorpage.Family {
+	switch {
+	case statusCode == http.StatusConflict:
+		return errorpage.FamilyConflict
+	case statusCode == http.StatusServiceUnavailable,
+		statusCode == http.StatusBadGateway,
+		statusCode == http.StatusGatewayTimeout:
+		return errorpage.FamilyTransient
+	case statusCode >= 400 && statusCode < 500:
+		return errorpage.FamilyRejection
+	default:
+		return errorpage.FamilyInfrastructure
+	}
 }
 
 // emptyState renders the standard empty-state panel.

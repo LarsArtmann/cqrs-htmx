@@ -36,7 +36,7 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 
 	ref, err := streamRefFromRequest(r)
 	if err != nil {
-		renderError(w, r, http.StatusBadRequest, "invalid stream reference")
+		d.renderError(w, r, http.StatusBadRequest, "invalid stream reference")
 
 		return
 	}
@@ -139,14 +139,14 @@ func (d *Dashboard) renderSnapshotState(state []byte) string {
 
 func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if d.config.SnapshotStore == nil {
-		renderError(w, r, http.StatusBadRequest, "snapshot store not configured")
+		d.renderError(w, r, http.StatusBadRequest, "snapshot store not configured")
 
 		return
 	}
 
 	ref, err := streamRefFromRequest(r)
 	if err != nil {
-		renderError(w, r, http.StatusBadRequest, "invalid stream reference")
+		d.renderError(w, r, http.StatusBadRequest, "invalid stream reference")
 
 		return
 	}

@@ -19,7 +19,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	if fmt := parseFormat(r); fmt != formatHTML {
 		events, err := d.loadFilteredEvents(r.Context(), id.EventID{}, filters, exportLimit)
 		if err != nil {
-			renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
+			d.renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
 
 			return
 		}
@@ -56,7 +56,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		renderError(w, r, http.StatusInternalServerError, "failed to load events")
+		d.renderError(w, r, http.StatusInternalServerError, "failed to load events")
 
 		return
 	}
@@ -89,14 +89,14 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	eventID, err := id.ParseEventID(eventIDStr)
 	if err != nil {
-		renderError(w, r, http.StatusBadRequest, "invalid event ID")
+		d.renderError(w, r, http.StatusBadRequest, "invalid event ID")
 
 		return
 	}
 
 	evt, err := d.loadEventByID(r.Context(), eventID)
 	if err != nil {
-		renderError(w, r, http.StatusNotFound, "event not found")
+		d.renderError(w, r, http.StatusNotFound, "event not found")
 
 		return
 	}

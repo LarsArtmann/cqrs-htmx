@@ -159,6 +159,8 @@ github.com/larsartmann/httputil/server_timing v1.0.1 h1:9T2YwZfrj71F1NFblFwIDsJZ
 github.com/larsartmann/httputil/server_timing v1.0.1/go.mod h1:QumWlp/L8NhkwNXZkN/IeLjtE5Y97axZ9LCK9NzSVck=
 github.com/larsartmann/templ-components v1.17.0 h1:BlYoLYoF6TAMnZHXH73hhBhKnG3BlpIqIP98WioDENg=
 github.com/larsartmann/templ-components v1.17.0/go.mod h1:CzyxrzY5Pdi9/Yz97YOu+EeuMme1roqBvZDYQNC7eIQ=
+github.com/larsartmann/templ-components/errorpage v1.17.0 h1:zSQgYBKgWm6TtcUaUz+S1GlzH5HJYhCRYpRcFW/KaZ0=
+github.com/larsartmann/templ-components/errorpage v1.17.0/go.mod h1:B+ra2RSOb4+UTeB7CFFvSKsGpQwINZh6Shw05KjBgC0=
 github.com/larsartmann/templ-components/htmx v1.17.0 h1:yZqeQ5qRRmBnnWoTgR7IE9C8/aULc0kbUvmonBBs9Tc=
 github.com/larsartmann/templ-components/htmx v1.17.0/go.mod h1:xJOE/TCDav1LtO2u8qmU9GMNihdHB3wSAPrOv9uyduE=
 github.com/larsartmann/templ-components/icons v1.17.0 h1:WvxzZxlYPS61BFKTJcfAw989oOZwZSxNgjMmqHziG2Q=

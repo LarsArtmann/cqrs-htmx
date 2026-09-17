@@ -17,14 +17,14 @@ func (d *Dashboard) loadStreamFromRequest(
 ) (id.StreamRef, []event.Event, bool) {
 	ref, err := streamRefFromRequest(r)
 	if err != nil {
-		renderError(w, r, http.StatusBadRequest, "invalid stream reference")
+		d.renderError(w, r, http.StatusBadRequest, "invalid stream reference")
 
 		return id.StreamRef{}, nil, false
 	}
 
 	events, err := d.config.EventSource.Load(r.Context(), ref)
 	if err != nil {
-		renderError(w, r, http.StatusInternalServerError, "failed to load aggregate")
+		d.renderError(w, r, http.StatusInternalServerError, "failed to load aggregate")
 
 		return id.StreamRef{}, nil, false
 	}

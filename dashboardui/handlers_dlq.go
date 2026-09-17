@@ -72,7 +72,7 @@ func (d *Dashboard) dlqDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 		entries, err = d.config.DeadLetterStore.List(r.Context(), proj)
 		if err != nil {
-			renderError(w, r, http.StatusInternalServerError, "failed to list dead letters")
+			d.renderError(w, r, http.StatusInternalServerError, "failed to list dead letters")
 
 			return
 		}
@@ -92,7 +92,7 @@ func (d *Dashboard) dlqEntryDetailHandler(w http.ResponseWriter, r *http.Request
 	if d.config.DeadLetterStore != nil {
 		entries, err := d.config.DeadLetterStore.List(r.Context(), proj)
 		if err != nil {
-			renderError(w, r, http.StatusInternalServerError, "failed to load dead letter")
+			d.renderError(w, r, http.StatusInternalServerError, "failed to load dead letter")
 
 			return
 		}
@@ -107,7 +107,7 @@ func (d *Dashboard) dlqEntryDetailHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if entry.EventID == "" {
-		renderError(w, r, http.StatusNotFound, "dead letter not found")
+		d.renderError(w, r, http.StatusNotFound, "dead letter not found")
 
 		return
 	}

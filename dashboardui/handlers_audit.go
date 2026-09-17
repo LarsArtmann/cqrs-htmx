@@ -65,7 +65,7 @@ func (d *Dashboard) commandsIndexHandler(
 		}
 
 		if err != nil {
-			renderError(w, r, http.StatusInternalServerError, "failed to load commands")
+			d.renderError(w, r, http.StatusInternalServerError, "failed to load commands")
 
 			return
 		}
@@ -180,7 +180,7 @@ func (d *Dashboard) queriesIndexHandler(
 		}
 
 		if err != nil {
-			renderError(w, r, http.StatusInternalServerError, "failed to load queries")
+			d.renderError(w, r, http.StatusInternalServerError, "failed to load queries")
 
 			return
 		}
@@ -248,14 +248,14 @@ func (d *Dashboard) commandDetailHandler(w http.ResponseWriter, r *http.Request)
 
 	cmdID, err := id.ParseCommandID(cmdIDStr)
 	if err != nil {
-		renderError(w, r, http.StatusBadRequest, "invalid command ID")
+		d.renderError(w, r, http.StatusBadRequest, "invalid command ID")
 
 		return
 	}
 
 	cmd, err := d.loadCommandByID(r.Context(), cmdID)
 	if err != nil {
-		renderError(w, r, http.StatusNotFound, "command not found")
+		d.renderError(w, r, http.StatusNotFound, "command not found")
 
 		return
 	}
@@ -352,14 +352,14 @@ func (d *Dashboard) queryDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	queryID, err := id.ParseRequestID(queryIDStr)
 	if err != nil {
-		renderError(w, r, http.StatusBadRequest, "invalid query ID")
+		d.renderError(w, r, http.StatusBadRequest, "invalid query ID")
 
 		return
 	}
 
 	q, err := d.loadQueryByID(r.Context(), queryID)
 	if err != nil {
-		renderError(w, r, http.StatusNotFound, "query not found")
+		d.renderError(w, r, http.StatusNotFound, "query not found")
 
 		return
 	}
