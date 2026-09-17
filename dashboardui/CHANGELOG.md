@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **templ-components adoption (M4–M8):** dashboardui now renders errors, 404s, status badges, and stat cards through `github.com/larsartmann/templ-components` (v1.17.0 family) instead of hand-rolled CSS, while keeping the strings.Builder hybrid render path (no templ conversion).
+  - **Compiled Tailwind bundle** (`assets/dashboard-tw.css`, `assets.go`): embedded stylesheet served at `/-/dashboard-tw.css` with ETag/304 + cache headers; built by `nix run .#build-dashboardui-css`, which scans the library's `.templ` files AND errorpage's `styles.go` (runtime class strings live in Go source) and fails loudly on a utility-free output.
+  - **Styled error pages** (`render.go`, `errors_test.go`): `renderError` maps HTTP status → error family (409 Conflict, 502/503/504 Transient, 4xx Rejection, else Infrastructure) and renders `errorpage.ErrorPage` — bare card for HTMX requests, full documented shell otherwise; `notFoundHandler` upgraded to `errorpage.NotFound404`.
+  - **Library badges everywhere** (`badges.go`, `format.go`): every status/encoding/count badge routes through `display.StatusBadge`/`display.Badge` via `badgeHTML`; unknown kinds keep raw text as explicit neutral badges.
+  - **Library stat cards with stable DOM hooks** (`stats.go`): overview + projection-detail stats render through `display.StatCard` with ValueIDs (`stat-total-events`, `stat-system-health`, `stat-<metric>-<slug>` …) so live-updating scripts survive future markup refactors.
+
+### Changed
+
+- **Projection status semantics:** `stopped` workers now classify as healthy (`StatusGood`), aligning the dashboard with the root library's readiness gate (`ProjectionReadinessCheck` treats live/stopped as ready). Journal-only hosts drain to `stopped` when fully caught up and no longer show a false "Unhealthy"; only `failed` marks a projection unhealthy.
+- **Context plumbing:** render handlers thread `r.Context()` end-to-end (no synthetic `context.Background()` in render closures).
+
+### Fixed
+
+- **Health card test false-positive:** the overview health test's `stat-card ok` assertion had been matching the *Projections* card's CSS class since inception; it now asserts the actual health value scoped to the `stat-system-health` element. The event-count test similarly asserts the exact value ("10") inside the `stat-total-events` element instead of page-wide string containment.
+
 ## [v4.2.0] - 2026-08-07
 
 ### Added

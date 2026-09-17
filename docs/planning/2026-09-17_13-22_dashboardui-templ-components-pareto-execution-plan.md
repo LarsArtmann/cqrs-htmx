@@ -147,6 +147,43 @@ Sorted by importance/impact/effort/customer-value. Impact: 5 = every dashboard u
 
 ### Tier 2 — The 4% user-facing core (M6–M8)
 
+> **M8 VERDICT (executed 2026-09-17, closed after daemon-interrupt recovery):**
+> (1) **StatCard adopted, Grid NOT.** `display.Grid` uses templ `{children...}`, which is
+> EMPTY in the standalone hybrid `.Render` path — the container renders as a bare `<div>`
+> with no children. Kept the `.stat-grid` div; only the leaf cards moved to
+> `statCardHTML(ctx, valueID, value, label, tone)`. Same pre-check applies to `display.Table`
+> in M14 (inspect its `Body` slot mechanics BEFORE converting).
+> (2) **ValueID scheme landed:** `stat-total-events`, `stat-total-aggregates`,
+> `stat-projections-active`, `stat-system-health`, `stat-dlq-count`, `stat-<metric>-<slug>`
+> on projection detail — stable DOM hooks for live-updating scripts.
+> **M8.7 SSE JS decision: no JS change needed.** The embedded dashboard JS targets only
+> `data-*` hooks, `#projection-health`, and `#main-content .data-table tbody` — it never
+> addressed `.stat-card-value`, so the markup swap cannot break it. Future scripts should
+> address values through the ValueIDs.
+> (3) **Both "failing M8 tests" were pre-existing test bugs EXPOSED, not M8 breakage:**
+> `TestOverview_HealthStatCard` asserted `stat-card ok` — which matched the old
+> PROJECTIONS card's variant class (emitted by the old `statCard(.., "ok")`), never the
+> health card. Vacuously green since inception; the M8 swap removed the wrong card it was
+> matching. Root cause of the real value ("Unhealthy"): journal-only projection hosts drain
+> to `stopped` (no subscriber → `process()` returns nil → worker run loop exits
+> `stopped`), which dashboardui classified as StatusBad — contradicting the root library's
+> readiness semantics (`ProjectionReadinessCheck`: live/stopped = ready). FIXED at root
+> cause: `ProjectionStatusKind("stopped")` → StatusGood (only `failed` is unhealthy), with
+> both classification tables + `TestOverviewStats_ProjectionHostHealthClassification`
+> updated to the corrected semantics. `TestOverviewStats_AccurateCount` now asserts the
+> exact value ("10") scoped to the `stat-total-events` ValueID region via the new
+> `statValueByHTMLID` test helper — the bare `>1<`/`>10<` page-wide Contains was the
+> vacuous-assertion class this program is eliminating.
+> (4) **Second false-green found and fixed (M8.5+):** the rebuilt bundle STILL lacked all
+> amber classes — errorpage defines its runtime class strings in `styles.go` (Go source),
+> not `.templ`, and the CSS build only scanned `*.templ`. The flake app now copies
+> `styles.go` into the scan dir and the canary list pins `bg-amber-50/100`,
+> `border-amber-200`, `bg-amber-900` (bundle 58,126 → 69,156 bytes). Lesson generalized:
+> **a family module may carry runtime classes in ANY source file — scan the module's
+> non-test `.templ` AND its styles source, and extend canaries per adopted component.**
+> (5) Lint end-state: exactly the 4 pre-planned M26 complexity findings; the M8 WIP's
+> `ctx := context.Background()` shadow (contextcheck) removed in favor of the passed ctx.
+
 | ID | Micro task | Min | Dep |
 | --- | --- | --- | --- |
 | M6.1 | Add `templ-components/errorpage` dep; read ErrorHandlerConfig contract | 10 | M4 |
