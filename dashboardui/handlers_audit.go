@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/templ-components/display"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/templ-components/icons"
 )
@@ -115,7 +116,7 @@ func (d *Dashboard) renderCommands(
 		for _, cmd := range cmds {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td><a href="%s/commands/%s" class="btn">View</a></td></tr>`,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td>%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td>%s</td></tr>`,
 				esc(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(cmd.Type())),
 				esc(string(cmd.StreamType())),
@@ -123,8 +124,7 @@ func (d *Dashboard) renderCommands(
 				esc(cmd.StreamID().String()),
 				esc(cmd.ID().String()),
 				truncate(cmd.ID().String(), eventIDWidth),
-				p.BasePath,
-				esc(cmd.ID().String()),
+				buttonLink(ctx, "View", p.BasePath+"/commands/"+esc(cmd.ID().String()), "", display.ButtonSecondary, false),
 			)
 		}
 
@@ -134,8 +134,8 @@ func (d *Dashboard) renderCommands(
 			`<h2>Command Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Stream Type</th><th scope="col">Stream ID</th><th scope="col">Command ID</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
-		b.WriteString(renderPagination(p.BasePath, "/commands", page, ""))
-		b.WriteString(formatLinks(p.BasePath, "/commands"))
+		b.WriteString(renderPagination(ctx, p.BasePath, "/commands", page, ""))
+		b.WriteString(formatLinks(ctx, p.BasePath, "/commands"))
 
 		return b.String()
 	})
@@ -241,13 +241,12 @@ func (d *Dashboard) renderQueries(
 		for _, q := range queries {
 			fmt.Fprintf(
 				&rows,
-				`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td><a href="%s/queries/%s" class="btn">View</a></td></tr>`,
+				`<tr><td class="mono">%s</td><td><code>%s</code></td><td class="mono copyable" data-copyable="%s" title="Click to copy">%s</td><td>%s</td></tr>`,
 				esc(q.ReceivedAt().Format("2006-01-02 15:04:05")),
 				esc(string(q.Type())),
 				esc(q.ID().String()),
 				truncate(q.ID().String(), eventIDWidth),
-				p.BasePath,
-				esc(q.ID().String()),
+				buttonLink(ctx, "View", p.BasePath+"/queries/"+esc(q.ID().String()), "", display.ButtonSecondary, false),
 			)
 		}
 
@@ -257,8 +256,8 @@ func (d *Dashboard) renderQueries(
 			`<h2>Query Audit</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">Received At</th><th scope="col">Type</th><th scope="col">Request ID</th><th scope="col"></th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
-		b.WriteString(renderPagination(p.BasePath, "/queries", page, ""))
-		b.WriteString(formatLinks(p.BasePath, "/queries"))
+		b.WriteString(renderPagination(ctx, p.BasePath, "/queries", page, ""))
+		b.WriteString(formatLinks(ctx, p.BasePath, "/queries"))
 
 		return b.String()
 	})

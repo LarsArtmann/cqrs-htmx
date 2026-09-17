@@ -1,11 +1,15 @@
 package dashboardui
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"net/http"
+	"strings"
+
+	"github.com/larsartmann/templ-components/display"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -186,12 +190,13 @@ func exportQueriesJSON(w http.ResponseWriter, queries []*query.PersistedQuery) {
 }
 
 // formatLinks renders CSV and JSON export links for the given page path.
-func formatLinks(basePath, path string) string {
-	return fmt.Sprintf(
-		`<div class="filter-bar"><span class="muted">Export:</span><a href="%s%s?format=csv" class="btn">CSV</a><a href="%s%s?format=json" class="btn">JSON</a></div>`,
-		basePath,
-		path,
-		basePath,
-		path,
-	)
+func formatLinks(ctx context.Context, basePath, path string) string {
+	var b strings.Builder
+
+	b.WriteString(`<div class="filter-bar"><span class="muted">Export:</span>`)
+	b.WriteString(buttonLink(ctx, "CSV", basePath+path+"?format=csv", "", display.ButtonSecondary, false))
+	b.WriteString(buttonLink(ctx, "JSON", basePath+path+"?format=json", "", display.ButtonSecondary, false))
+	b.WriteString(`</div>`)
+
+	return b.String()
 }

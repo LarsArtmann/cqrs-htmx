@@ -1,6 +1,8 @@
 package dashboardui
 
 import (
+	"github.com/a-h/templ"
+
 	"context"
 	"fmt"
 	"net/http"
@@ -144,25 +146,29 @@ func (d *Dashboard) renderEventDetail(
 			b.WriteString(`<div class="filter-bar section-gap">`)
 
 			if prevID != "" {
-				fmt.Fprintf(
-					&b,
-					`<a href="%s/events/%s" class="btn">← Previous</a>`,
-					p.BasePath,
-					esc(prevID),
-				)
+				b.WriteString(buttonLink(
+					ctx,
+					"← Previous",
+					p.BasePath+"/events/"+esc(prevID),
+					"",
+					display.ButtonSecondary,
+					false,
+				))
 			} else {
-				b.WriteString(`<span class="btn" aria-disabled="true">← Previous</span>`)
+				b.WriteString(buttonLink(ctx, "← Previous", "#", "Previous event (disabled)", display.ButtonSecondary, true))
 			}
 
 			if nextID != "" {
-				fmt.Fprintf(
-					&b,
-					`<a href="%s/events/%s" class="btn btn-accent">Next →</a>`,
-					p.BasePath,
-					esc(nextID),
-				)
+				b.WriteString(buttonLink(
+					ctx,
+					"Next →",
+					p.BasePath+"/events/"+esc(nextID),
+					"",
+					display.ButtonOutlineInfo,
+					false,
+				))
 			} else {
-				b.WriteString(`<span class="btn" aria-disabled="true">Next →</span>`)
+				b.WriteString(buttonLink(ctx, "Next →", "#", "Next event (disabled)", display.ButtonOutlineInfo, true))
 			}
 
 			b.WriteString(`</div>`)
@@ -216,11 +222,16 @@ func (d *Dashboard) renderEventDetail(
 		b.WriteString(`</div>`)
 
 		b.WriteString(`<div><h3>Payload</h3>`)
-		fmt.Fprintf(
-			&b,
-			`<div class="filter-bar"><button class="btn" onclick="copyPayload()">Copy</button><button class="btn" onclick="downloadPayload('%s')">Download JSON</button></div>`,
-			esc(evt.ID().String()),
-		)
+		b.WriteString(`<div class="filter-bar">`)
+		b.WriteString(buttonSubmit(ctx, "Copy", "", display.ButtonSecondary, templ.Attributes{"onclick": "copyPayload()"}))
+		b.WriteString(buttonSubmit(
+			ctx,
+			"Download JSON",
+			"",
+			display.ButtonSecondary,
+			templ.Attributes{"onclick": fmt.Sprintf("downloadPayload('%s')", esc(evt.ID().String()))},
+		))
+		b.WriteString(`</div>`)
 		fmt.Fprintf(
 			&b,
 			`<pre class="code-block" id="event-payload"><code>%s</code></pre>`,
@@ -246,7 +257,7 @@ func (d *Dashboard) renderEvents(
 		var b strings.Builder
 		b.WriteString(`<div class="page-header"><h2>Event Stream</h2></div>`)
 
-		b.WriteString(renderEventFilterBar(p.BasePath, filter))
+		b.WriteString(renderEventFilterBar(ctx, p.BasePath, filter))
 
 		if len(events) == 0 {
 			if filter.Active() {
@@ -302,7 +313,7 @@ func (d *Dashboard) renderEvents(
 		)
 
 		b.WriteString(renderPagination(ctx, p.BasePath, "/events", page, combinedParams))
-		b.WriteString(formatLinks(p.BasePath, "/events"))
+		b.WriteString(formatLinks(ctx, p.BasePath, "/events"))
 
 		return b.String()
 	})
@@ -310,14 +321,14 @@ func (d *Dashboard) renderEvents(
 
 // renderEventFilterBar renders the filter form with current values pre-filled.
 // The form uses hx-get for partial content swapping (no full page reload).
-func renderEventFilterBar(basePath string, filter eventFilter) string {
+func renderEventFilterBar(ctx context.Context, basePath string, filter eventFilter) string {
 	return fmt.Sprintf(
 		`<form class="filter-bar" hx-get="%s/events" hx-target="#main-content" hx-select="#main-content" hx-swap="outerHTML" hx-push-url="true">`+
 			`<label for="filter-type">Type</label><input id="filter-type" type="text" name="type" value="%s" placeholder="event.type"/>`+
 			`<label for="filter-stream-type">Stream Type</label><input id="filter-stream-type" type="text" name="streamType" value="%s" placeholder="User"/>`+
 			`<label for="filter-stream-id">Stream ID</label><input id="filter-stream-id" type="text" name="streamID" value="%s" placeholder="01H..."/>`+
-			`<button type="submit" class="btn btn-accent">Filter</button>`+
-			`<a href="%s/events" class="btn">Clear</a>`+
+			buttonSubmit(ctx, "Filter", "", display.ButtonOutlineInfo, nil)+
+			buttonLink(ctx, "Clear", basePath+"/events", "", display.ButtonSecondary, false)+
 			`</form>`,
 		esc(basePath),
 		esc(filter.Type),
