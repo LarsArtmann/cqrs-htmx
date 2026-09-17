@@ -65,3 +65,9 @@ project. See `docs/planning/2026-07-30_21-15_dashboardui-sprint-session3.md`.
   (SQLite FTS, Elasticsearch) that is out of scope for a zero-dependency dashboard.
 - **Multi-tenant dashboard isolation** — consumers should wrap the dashboard with
   their own tenant-scoped middleware.
+- **datastar module adoption** — dashboardui is HTMX+SSE by design (2026-09-17 audit,
+  "what NOT to adopt"); the datastar adapter targets a different transport and would
+  duplicate the existing SSE fan-out path.
+- **charts/echarts charting** — violates the zero-dependency dashboard philosophy.
+  (Dependency-free exception worth considering: templ-components `display.Sparkline`
+  for projection trends — candidate for the adoption ladder's Tier 4.)
