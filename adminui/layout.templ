@@ -1,109 +1,147 @@
 package adminui
 
-import "github.com/larsartmann/templ-components/display"
-import "github.com/larsartmann/templ-components/htmx"
+import (
+	"strings"
+
+	"github.com/a-h/templ"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/htmx"
+	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/layout"
+	"github.com/larsartmann/templ-components/navigation"
+)
 
 templ Layout(p pageData) {
-	<!DOCTYPE html>
-	<html lang="en">
-		<head>
-			<meta charset="utf-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<meta name="color-scheme" content="light dark"/>
-			<meta name="robots" content="noindex"/>
-			if p.CSRFMeta != "" {
-				@templ.Raw(p.CSRFMeta)
-			}
-			<title>{ p.Title } · { p.Brand }</title>
-			<style>:root&#123;--accent:{ p.Accent };&#125;</style>
-			<link rel="stylesheet" href={ p.BasePath + "/-/admin-tw.css" }/>
-			<script src={ p.BasePath + "/-/htmx.js" }></script>
-		</head>
-		<body
+	@layout.Base(layout.PageProps{
+		Title:         p.Title + " · " + p.Brand,
+		CSSPath:       p.BasePath + "/-/admin-tw.css",
+		HTMXSrc:       p.BasePath + "/-/htmx.js",
+		Nonce:         p.Nonce,
+		SEO:           layout.SEOMeta{NoIndex: true},
+		BodyDataAttrs: sseBodyAttrs(p.SSEURL),
+		HeadContent:   headExtras(p),
+		Footer:        pageFoot(p),
+	}) {
+		@layout.AppShell(layout.AppShellProps{
+			Sidebar:        sidebar(p),
+			MobileNav:      mobileNav(p),
+			Header:         topBar(p),
+			Content:        children,
+			SidebarWidth:   layout.SidebarWidthMD,
+			ContainerWidth: layout.ContainerWidthXL,
+		})
+	}
+}
+
+templ headExtras(p pageData) {
+	if p.CSRFMeta != "" {
+		@templ.Raw(p.CSRFMeta)
+	}
+	@templ.Raw(accentStyleTag(p))
+}
+
+templ sidebar(p pageData) {
+	@navigation.SidebarNav(navigation.SidebarNavProps{
+		AriaLabel: "Admin sections",
+		BaseProps: utils_propsWithClass("admin-sidebar-scope"),
+		Brand:     brandMark(p),
+		Items:     sidebarItems(p),
+		Footer:    sidebarFooter(),
+	})
+}
+
+templ brandMark(p pageData) {
+	<span class="flex items-center gap-2.5">
+		<span class="admin-accent-bg grid h-[26px] w-[26px] place-items-center rounded-lg text-sm font-extrabold text-white">{ initials(p.Brand) }</span>
+		<span class="text-base font-bold text-white">{ p.Brand }</span>
+	</span>
+}
+
+templ sidebarFooter() {
+	<span class="text-xs text-gray-400">cqrs-htmx admin</span>
+}
+
+templ topBar(p pageData) {
+	<div class="flex items-center justify-between gap-3.5 px-6 py-3.5">
+		<div class="flex items-center gap-3.5">
+			<button
+				class="admin-toggle hidden max-lg:block"
+				aria-label="Menu"
+			>
+				@icon("menu")
+			</button>
+			<div class="text-[17px]">{ p.Title }</div>
+		</div>
+		<div class="flex items-center gap-3.5">
 			if p.SSEURL != "" {
-				data-sse-url={ p.SSEURL }
-			}
-		>
-			<div class="grid min-h-screen grid-cols-[248px_1fr] max-md:grid-cols-1">
-				<aside
-					class="admin-sidebar sticky top-0 flex h-screen flex-col gap-1.5 p-[18px_14px] text-gray-400 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:w-64 max-md:-translate-x-full max-md:transition-transform [&.open]:translate-x-0"
-					style="background:var(--sidebar-bg)"
-				>
-					<div class="flex items-center gap-2.5 pt-1.5 pb-4 px-2.5 text-base font-bold text-gray-100">
-						<span class="grid h-[26px] w-[26px] place-items-center rounded-lg text-sm font-extrabold text-white" style="background:var(--accent)">{ initials(p.Brand) }</span>
-						{ p.Brand }
-					</div>
-					<nav class="flex flex-col gap-0.5">
-						for _, item := range p.Nav {
-							<a
-								href={ p.BasePath + item.Href }
-								class={ "flex items-center gap-2.5 rounded-md px-2.5 py-2 font-medium no-underline hover:text-gray-100 hover:bg-white/[0.07]", templ.KV("text-white", item.Active) }
-								style={ templ.SafeCSS("background:" + navBg(item.Active)) }
-							>
-								<span class="h-[18px] w-[18px] shrink-0 opacity-90">
-									@icon(item.Icon)
-								</span>
-								{ item.Label }
-							</a>
-						}
-					</nav>
-					<div class="mt-auto px-1.5 pt-0.5 text-xs opacity-55">cqrs-htmx admin</div>
-				</aside>
-				<div class="flex min-w-0 flex-col">
-					<header
-						class="sticky top-0 z-[5] flex items-center justify-between gap-3.5 border-b border-gray-200 px-6 py-3.5 backdrop-blur"
-						style="background:color-mix(in srgb, var(--surface) 86%, transparent)"
-					>
-						<div class="flex items-center gap-3.5">
-							<button
-								class="admin-toggle hidden max-md:block"
-								aria-label="Menu"
-							>
-								@icon("menu")
-							</button>
-							<div class="text-[17px]">{ p.Title }</div>
-						</div>
-						<div class="flex items-center gap-3.5">
-							if p.SSEURL != "" {
-								<div class="sync-bar" data-sync-status="idle">
-									<span class="sync-dot"></span>
-									Synced
-								</div>
-							}
-							if p.User != nil {
-								<div class="flex items-center gap-2 font-medium text-gray-500">
-									@display.Avatar(display.AvatarProps{Initials: initials(p.User.Email), Size: display.AvatarSizeSM})
-									{ p.User.Email }
-								</div>
-								if p.LogoutURL != "" {
-									<a
-										class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900"
-										href={ p.LogoutURL }
-									>
-										@icon("arrow-right-on-rectangle")
-										Sign out
-									</a>
-								}
-							}
-						</div>
-					</header>
-					<main class="w-full max-w-[1200px] p-6">
-						{ children... }
-					</main>
+				<div class="sync-bar" data-sync-status="idle">
+					<span class="sync-dot"></span>
+					Synced
 				</div>
-			</div>
-			<div
-				class="admin-scrim fixed inset-0 z-40 hidden bg-black/40 max-md:block"
-			></div>
-			@toastHost(p.Nonce)
-			@htmx.GlobalErrorHandling(htmx.ErrorHandlingConfig{Nonce: p.Nonce})
-			if p.SSEURL != "" {
-				// sync-client.js must load before admin.js: it registers htmx:beforeRequest
-				// and htmx:sendError listeners that admin.js's CSRF config depends on being
-				// in place. Both scripts run synchronously, so load order is deterministic.
-				<script src={ p.BasePath + "/-/sync-client.js" }></script>
 			}
-			<script src={ p.BasePath + "/-/admin.js" }></script>
-		</body>
-	</html>
+			if p.User != nil {
+				<div class="flex items-center gap-2 font-medium text-gray-500">
+					@display.Avatar(display.AvatarProps{Initials: initials(p.User.Email), Size: display.AvatarSizeSM})
+					{ p.User.Email }
+				</div>
+				if p.LogoutURL != "" {
+					<a
+						class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900"
+						href={ p.LogoutURL }
+					>
+						@icon("arrow-right-on-rectangle")
+						Sign out
+					</a>
+				}
+			}
+		</div>
+	</div>
+}
+
+templ mobileNav(p pageData) {
+	<div class="admin-sidebar fixed inset-y-0 left-0 z-50 w-64 -translate-x-full transition-transform duration-200 lg:hidden [&.open]:translate-x-0">
+		@sidebar(p)
+	</div>
+	<div class="admin-scrim fixed inset-0 z-40 hidden bg-black/40 lg:hidden [&.open]:block"></div>
+}
+
+templ pageFoot(p pageData) {
+	@toastHost(p.Nonce)
+	@htmx.GlobalErrorHandling(htmx.ErrorHandlingConfig{Nonce: p.Nonce})
+	if p.SSEURL != "" {
+		// sync-client.js must load before admin.js: it registers htmx:beforeRequest
+		// and htmx:sendError listeners that admin.js's CSRF config depends on being
+		// in place. Both scripts run synchronously, so load order is deterministic.
+		<script src={ p.BasePath + "/-/sync-client.js" }></script>
+	}
+	<script src={ p.BasePath + "/-/admin.js" }></script>
+}
+
+func sidebarItems(p pageData) []navigation.SidebarNavItem {
+	items := make([]navigation.SidebarNavItem, 0, len(p.Nav))
+	for _, n := range p.Nav {
+		items = append(items, navigation.SidebarNavItem{
+			Label:  n.Label,
+			Href:   p.BasePath + n.Href,
+			Icon:   icons.Name(n.Icon),
+			Active: n.Active,
+		})
+	}
+	return items
+}
+
+func sseBodyAttrs(sseURL string) templ.Attributes {
+	if sseURL == "" {
+		return nil
+	}
+	return templ.Attributes{"data-sse-url": sseURL}
+}
+
+func accentStyleTag(p pageData) string {
+	nonce := strings.ReplaceAll(p.Nonce, `"`, "")
+	nonceAttr := ""
+	if nonce != "" {
+		nonceAttr = ` nonce="` + nonce + `"`
+	}
+	return `<style` + nonceAttr + `>:root{--accent:` + p.Accent + `}</style>`
 }

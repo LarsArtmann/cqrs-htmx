@@ -23,7 +23,7 @@ const (
 func (d *Dashboard) overviewHandler(w http.ResponseWriter, r *http.Request) {
 	p := d.page("Overview", "/", r)
 	stats := d.overviewStats(r.Context())
-	html := d.renderOverview(p, stats)
+	html := d.renderOverview(r.Context(), p, stats)
 	renderPage(w, r, html)
 }
 
@@ -42,7 +42,7 @@ func healthKindToVariant(kind string) string {
 	}
 }
 
-func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
+func (d *Dashboard) renderOverview(ctx context.Context, p pageData, stats overviewStats) string {
 	var b strings.Builder
 
 	b.WriteString(d.renderLayout(p, func() string {
@@ -75,7 +75,7 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 		inner.WriteString(`</div>`)
 
 		if len(stats.Projections) > 0 {
-			inner.WriteString(renderProjectionHealthPanel(p.BasePath, stats.Projections))
+			inner.WriteString(renderProjectionHealthPanel(ctx, p.BasePath, stats.Projections))
 		}
 
 		if len(stats.RecentEvents) > 0 {
@@ -125,11 +125,11 @@ func (d *Dashboard) renderOverview(p pageData, stats overviewStats) string {
 	return b.String()
 }
 
-func renderProjectionRow(p projectionStat) string {
+func renderProjectionRow(ctx context.Context, p projectionStat) string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, `<tr><td>%s</td><td>`, esc(p.Name))
-	statusBadge(&b, p.StatusKind, p.Status)
+	statusBadge(ctx, &b, p.StatusKind, p.Status)
 	fmt.Fprintf(&b, `</td><td class="mono">%s</td><td>%d</td><td>%d</td></tr>`, esc(p.Lag), p.Processed, p.Errors)
 
 	return b.String()
@@ -158,14 +158,13 @@ func statusKindToStatus(kind string) string {
 // status text styled as an explicitly neutral badge (old default behavior).
 // Render only errors on writer failure, which strings.Builder cannot
 // produce.
-func statusBadge(b *strings.Builder, kind, statusText string) {
+func statusBadge(ctx context.Context, b *strings.Builder, kind, statusText string) {
 	if mapped := statusKindToStatus(kind); mapped != "" {
-		_ = display.StatusBadge(mapped).Render(context.Background(), b)
+		_ = display.StatusBadge(mapped).Render(ctx, b)
 
 		return
 	}
-	_ = display.Badge(display.BadgeProps{Text: statusText, Type: display.BadgeNeutral, Dot: true}).
-		Render(context.Background(), b)
+	_ = display.Badge(display.BadgeProps{Text: statusText, Type: display.BadgeNeutral, Dot: true}).Render(ctx, b) //nolint:exhaustruct // neutral fallback: Text/Type/Dot are the intended fields
 }
 
 func statCard(b *strings.Builder, value, label, variant string) {
@@ -212,14 +211,14 @@ func metaRowCopyable(b *strings.Builder, key, displayValue, rawValue string) {
 // for HTMX polling. Registered at GET /-/partials/projection-health.
 func (d *Dashboard) projectionHealthPartialHandler(w http.ResponseWriter, r *http.Request) {
 	projs := buildProjectionStats(d.config.ProjectionHost)
-	html := renderProjectionHealthPanel(d.config.BasePath, projs)
+	html := renderProjectionHealthPanel(r.Context(), d.config.BasePath, projs)
 	writeHTML(w, r, html, "projection health partial")
 }
 
 // renderProjectionHealthPanel renders the projection health panel div with
 // HTMX polling attributes and the table inside. Used by both the overview page
 // and the projection-health partial endpoint.
-func renderProjectionHealthPanel(basePath string, projs []projectionStat) string {
+func renderProjectionHealthPanel(ctx context.Context, basePath string, projs []projectionStat) string {
 	var b strings.Builder
 
 	b.WriteString(`<div class="panel" id="projection-health" hx-get="`)
@@ -232,7 +231,7 @@ func renderProjectionHealthPanel(basePath string, projs []projectionStat) string
 	b.WriteString(`</tr></thead><tbody>`)
 
 	for _, pr := range projs {
-		b.WriteString(renderProjectionRow(pr))
+		b.WriteString(renderProjectionRow(ctx, pr))
 	}
 
 	b.WriteString(`</tbody></table></div></div>`)

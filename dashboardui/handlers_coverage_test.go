@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -179,7 +180,7 @@ func TestRenderProjectionRow_AllStatusKinds(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		html := renderProjectionRow(projectionStat{
+		html := renderProjectionRow(context.Background(), projectionStat{
 			Name: tc.name, Status: "active", StatusKind: tc.statusKind,
 			Processed: 100, Errors: 2,
 		})
@@ -196,7 +197,7 @@ func TestRenderProjectionRow_AllStatusKinds(t *testing.T) {
 // ===== Projection Health Panel Rendering =====
 
 func TestRenderProjectionHealthPanel_Empty(t *testing.T) {
-	html := renderProjectionHealthPanel("/dashboard", nil)
+	html := renderProjectionHealthPanel(context.Background(), "/dashboard", nil)
 
 	if !strings.Contains(html, "projection-health") {
 		t.Fatalf("expected panel div id")
@@ -223,7 +224,7 @@ func TestRenderProjectionHealthPanel_WithProjections(t *testing.T) {
 		},
 	}
 
-	html := renderProjectionHealthPanel("/dashboard", projs)
+	html := renderProjectionHealthPanel(context.Background(), "/dashboard", projs)
 
 	for _, want := range []string{"user-read-model", "casbin-projection", "bg-green-100", "bg-red-100", "500", "3"} {
 		if !strings.Contains(html, want) {

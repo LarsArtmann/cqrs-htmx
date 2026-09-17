@@ -16,10 +16,12 @@ var assetsFS embed.FS
 func assetHandler(name, contentType string) http.Handler {
 	sub, _ := fs.Sub(assetsFS, "assets")
 	data, err := fs.ReadFile(sub, name)
+
 	if err != nil {
 		// Guarded by go:embed at compile time; unreachable.
 		panic("dashboardui: missing embedded asset " + name)
 	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", contentType)
 		w.Header().Set("Cache-Control", "public, max-age=86400")
