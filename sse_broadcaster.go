@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	cqrshtmxtransport "github.com/larsartmann/cqrs-htmx/v4/transport"
 	"github.com/larsartmann/go-sse"
 )
 
@@ -157,6 +158,10 @@ func (b *Broadcaster) ServeSSE(w http.ResponseWriter, r *http.Request) {
 			slog.Debug("cqrshtmx: sse stream close failed", "error", err)
 		}
 	}()
+
+	if err := sse.WriteRetry(w, cqrshtmxtransport.DefaultRetryHintMillis); err != nil {
+		return
+	}
 
 	ch := b.Subscribe()
 	defer b.Unsubscribe(ch)

@@ -1,10 +1,12 @@
 package cqrshtmx_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-sse"
@@ -63,9 +65,32 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			b := cqrshtmx.NewBroadcaster()
 			ch := b.Subscribe()
 			b.Unsubscribe(ch)
-
 			_, ok := <-ch
 			Expect(ok).To(BeFalse())
+		})
+
+		It("sends the retry hint before the connected event", func() {
+			b := cqrshtmx.NewBroadcaster()
+			defer b.Close()
+
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+			rec := httptest.NewRecorder()
+
+			done := make(chan struct{})
+			go func() {
+				b.ServeSSE(rec, req)
+				close(done)
+			}()
+
+			time.Sleep(50 * time.Millisecond)
+			cancel()
+			<-done
+
+			Expect(rec.Body.String()).To(HavePrefix("retry: 5000\n\n"))
+			Expect(rec.Body.String()).To(ContainSubstring("connected"))
 		})
 
 		It("handles unsubscribe of unknown channel gracefully", func() {

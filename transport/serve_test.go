@@ -66,6 +66,42 @@ func TestServeDomainEvents_NilBroadcaster_CustomMessage(t *testing.T) {
 	}
 }
 
+func TestServeDomainEvents_RetryHintFirstOnWire(t *testing.T) {
+	t.Parallel()
+
+	b := sse.NewBroadcaster[sse.Event]()
+	defer b.Close()
+
+	h := ServeDomainEvents(b, nil, 0)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+
+	go func() {
+		h.ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(50 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.HasPrefix(body, "retry: 5000\n\n") {
+		t.Errorf("stream should start with the retry hint, got prefix %q", body[:min(len(body), 30)])
+	}
+
+	if !strings.Contains(body, "connected") {
+		t.Error("body should still contain the connected event")
+	}
+}
+
 func TestServeDomainEvents_ConnectedAndLivePump(t *testing.T) {
 	t.Parallel()
 

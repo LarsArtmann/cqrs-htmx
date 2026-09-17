@@ -129,13 +129,26 @@ func (b *Bundle) CSRFMiddleware() func(http.Handler) http.Handler {
 }
 
 // Middleware returns the outer middleware chain for the entire application:
-// security headers + per-request CSP nonce + panic recovery.
+// security headers + per-request CSP nonce + panic recovery, with optional
+// request logging composed outermost (see [Config.RequestLogging]).
 //
 // Wrap your mux with this:
 //
 //	http.ListenAndServe(":8080", bundle.Middleware()(mux))
 func (b *Bundle) Middleware() func(http.Handler) http.Handler {
-	return cqrshtmx.RecommendedSecurityMiddleware()
+	security := cqrshtmx.RecommendedSecurityMiddleware()
+
+	if b.config.RequestLogging == nil {
+		return security
+	}
+
+	// Logging runs outermost so the access line records the status the
+	// security stack actually produced (including its own error responses).
+	logging := cqrshtmx.RequestLoggingSlog(b.config.RequestLogging)
+
+	return func(next http.Handler) http.Handler {
+		return logging(security(next))
+	}
 }
 
 // Handler is a convenience method that mounts all routes and wraps the mux with

@@ -30,6 +30,13 @@ func WithSSEUnavailableMessage(msg string) ServeDomainEventsOption {
 	return func(c *serveDomainEventsConfig) { c.unavailableMessage = msg }
 }
 
+// DefaultRetryHintMillis is the reconnect back-off (in milliseconds) served
+// SSE streams advertise to browsers via the retry: field. Sent once before
+// the first event; per the SSE spec the value persists across reconnects of
+// the same EventSource, so a server restart produces a gentle reconnect
+// cadence instead of a stampede.
+const DefaultRetryHintMillis uint = 5000
+
 // WithSSEFilter restricts both stream paths — live delivery and journal
 // replay — to events matching pred. This is the mechanism behind
 // stream-type-scoped SSE endpoints: the domain envelope's stream type lives
@@ -156,6 +163,12 @@ func ServeDomainEvents(
 
 		stream := sse.NewStream(w, r)
 		defer func() { _ = stream.Close() }()
+
+		// Sent before the first event so even a connection dropped during
+		// startup carries the back-off hint to the browser.
+		if err := sse.WriteRetry(w, DefaultRetryHintMillis); err != nil {
+			return
+		}
 
 		// Subscribe BEFORE replay to avoid missing events during the replay
 		// window — live events buffer in the channel while replay writes.
