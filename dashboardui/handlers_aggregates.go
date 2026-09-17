@@ -176,6 +176,7 @@ func (d *Dashboard) renderAggregateDetail(
 		timelinePage.TotalCount = strconv.Itoa(len(events))
 
 		b.WriteString(renderPagination(
+			ctx,
 			p.BasePath,
 			"/aggregates/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
 			timelinePage,
@@ -255,7 +256,7 @@ func (d *Dashboard) renderAggregates(
 			`<h2>Aggregates</h2><div class="table-scroll"><table class="data-table"><thead><tr><th scope="col">ID</th><th scope="col">Type</th><th scope="col">Version</th><th scope="col">Events</th><th scope="col">Last Event</th></tr></thead><tbody>%s</tbody></table></div>`,
 			rows.String(),
 		)
-		b.WriteString(renderPagination(p.BasePath, "/aggregates", page, ""))
+		b.WriteString(renderPagination(ctx, p.BasePath, "/aggregates", page, ""))
 
 		return b.String()
 	})

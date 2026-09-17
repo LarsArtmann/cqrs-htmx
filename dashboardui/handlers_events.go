@@ -301,7 +301,7 @@ func (d *Dashboard) renderEvents(
 			rows.String(),
 		)
 
-		b.WriteString(renderPagination(p.BasePath, "/events", page, combinedParams))
+		b.WriteString(renderPagination(ctx, p.BasePath, "/events", page, combinedParams))
 		b.WriteString(formatLinks(p.BasePath, "/events"))
 
 		return b.String()

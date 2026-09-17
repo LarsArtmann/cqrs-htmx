@@ -76,7 +76,7 @@ func (d *Dashboard) renderStreamListingPage(
 			rows.String(),
 		)
 
-		b.WriteString(renderPagination(p.BasePath, config.pagePath, page, ""))
+		b.WriteString(renderPagination(ctx, p.BasePath, config.pagePath, page, ""))
 
 		return b.String()
 	})

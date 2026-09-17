@@ -1,15 +1,18 @@
 package dashboardui
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/larsartmann/templ-components/display"
 )
 
 // renderPagination renders Prev/Next links with cursor-history tracking.
 // basePath is the dashboard base path, path is the page path (e.g., "/events").
 // Extra query params (filters, sort) are preserved across pagination links.
-func renderPagination(basePath, path string, state paginationState, extraParams string) string {
+func renderPagination(ctx context.Context, basePath, path string, state paginationState, extraParams string) string {
 	if !state.HasNext && !state.HasPrev {
 		return ""
 	}
@@ -21,7 +24,7 @@ func renderPagination(basePath, path string, state paginationState, extraParams 
 	if state.HasPrev {
 		prevAfter, prevHistory := popCursor(state.PrevHistory)
 		query := paginationQuery(prevAfter, prevHistory, state.PageSize, extraParams)
-		fmt.Fprintf(&b, `<a href="%s%s?%s" class="btn">← Previous</a>`, basePath, path, query)
+		b.WriteString(buttonLink(ctx, "← Previous", fmt.Sprintf("%s%s?%s", basePath, path, query), "", display.ButtonSecondary, false))
 	} else {
 		b.WriteString(`<span class="pagination disabled">← Previous</span>`)
 	}
@@ -32,7 +35,7 @@ func renderPagination(basePath, path string, state paginationState, extraParams 
 	if state.HasNext {
 		nextHistory := pushCursor(state.PrevHistory, state.After)
 		query := paginationQuery(state.NextCursor, nextHistory, state.PageSize, extraParams)
-		fmt.Fprintf(&b, `<a href="%s%s?%s" class="btn btn-accent">Next →</a>`, basePath, path, query)
+		b.WriteString(buttonLink(ctx, "Next →", fmt.Sprintf("%s%s?%s", basePath, path, query), "", display.ButtonOutlineInfo, false))
 	}
 
 	b.WriteString(`</div>`)
