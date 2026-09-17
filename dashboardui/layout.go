@@ -345,13 +345,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 /* ===== Grid for two-column layouts ===== */
 .two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 
-/* ===== Badges/pills ===== */
-.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.75em; font-weight: 600; }
-.badge-ok { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
-.badge-warn { background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
-.badge-err { background: color-mix(in srgb, var(--err) 15%, transparent); color: var(--err); }
-.badge-neutral { background: var(--border); color: var(--muted); }
-
 /* ===== Buttons ===== */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); cursor: pointer; font-size: 0.85em; font-weight: 500; transition: background var(--transition), border-color var(--transition); text-decoration: none; }
 .btn:hover { background: var(--surface-hover); opacity: 1; }

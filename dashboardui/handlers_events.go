@@ -124,7 +124,7 @@ func (d *Dashboard) renderEventDetail(p pageData, evt event.Event, prevID, nextI
 				string(evt.Type()),
 			),
 			badgeHTML(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral),
-			badgeHTML(string(evt.Encoding()), encodingBadgeType(string(evt.Encoding()))),
+			encodingBadge(string(evt.Encoding())),
 		)
 		fmt.Fprintf(&b, `<div class="page-subtitle mono copyable" data-copyable="%s" title="Click to copy">%s</div>`,
 			esc(evt.ID().String()), esc(evt.ID().String()))

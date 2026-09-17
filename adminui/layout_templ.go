@@ -41,6 +41,7 @@ func Layout(p pageData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
+		content := children
 		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -57,7 +58,7 @@ func Layout(p pageData) templ.Component {
 				Sidebar:        sidebar(p),
 				MobileNav:      mobileNav(p),
 				Header:         topBar(p),
-				Content:        children,
+				Content:        content,
 				Container:      true,
 				SidebarWidth:   layout.SidebarWidthMD,
 				ContainerWidth: layout.ContainerWidthXL,
@@ -141,8 +142,7 @@ func sidebar(p pageData) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = navigation.SidebarNav(navigation.SidebarNavProps{
-			AriaLabel: "Admin sections",
-			BaseProps: utils.BaseProps{Class: "admin-sidebar-scope"},
+			BaseProps: utils.BaseProps{Class: "admin-sidebar-scope", AriaLabel: "Admin sections"},
 			Brand:     brandMark(p),
 			Items:     sidebarItems(p),
 			Footer:    sidebarFooter(),
