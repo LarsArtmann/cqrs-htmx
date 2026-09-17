@@ -712,46 +712,31 @@ func (c Config) validatePathShapes() error {
 	return nil
 }
 
-// validateOptionalFeedPaths checks the optional SSE/DataStar mount paths —
-// empty means "feature disabled", which is always valid.
+// validateOptionalFeedPaths checks the optional SSE/DataStar/machine mount
+// paths — empty means "feature disabled", which is always valid, and the two
+// script mounts additionally accept "-" (serve the feed but not the script).
 func (c Config) validateOptionalFeedPaths() error {
-	for _, opt := range []struct{ name, path string }{
-		{"EventCatalogPath", c.EventCatalogPath},
-		{"ProjectionStatusPath", c.ProjectionStatusPath},
-		{"DebugPath", c.DebugPath},
+	for _, opt := range []struct {
+		name, path string
+		allowDash  bool
+	}{
+		{"EventCatalogPath", c.EventCatalogPath, false},
+		{"ProjectionStatusPath", c.ProjectionStatusPath, false},
+		{"DebugPath", c.DebugPath, false},
+		{"LivePath", c.LivePath, false},
+		{"SSEPath", c.SSEPath, false},
+		{"SSEScriptPath", c.SSEScriptPath, true},
+		{"DataStarPath", c.DataStarPath, false},
+		{"DataStarScriptPath", c.DataStarScriptPath, true},
 	} {
-		if opt.path != "" && !startsWithSlash(opt.path) {
+		if opt.path == "" || (opt.allowDash && opt.path == "-") {
+			continue
+		}
+
+		if !startsWithSlash(opt.path) {
 			return errorfamily.Newf(errorfamily.Rejection,
 				"setup.invalid_config", "%s must start with %q (got %q)", opt.name, "/", opt.path)
 		}
-	}
-
-	if c.SSEPath != "" && !startsWithSlash(c.SSEPath) {
-		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config", "SSEPath must start with %q (got %q)", "/", c.SSEPath)
-	}
-
-	if c.SSEScriptPath != "" && c.SSEScriptPath != "-" && !startsWithSlash(c.SSEScriptPath) {
-		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config",
-			"SSEScriptPath must start with %q, be empty, or be \"-\" to disable (got %q)",
-			"/",
-			c.SSEScriptPath,
-		)
-	}
-
-	if c.DataStarPath != "" && !startsWithSlash(c.DataStarPath) {
-		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config", "DataStarPath must start with %q (got %q)", "/", c.DataStarPath)
-	}
-
-	if c.DataStarScriptPath != "" && c.DataStarScriptPath != "-" && !startsWithSlash(c.DataStarScriptPath) {
-		return errorfamily.Newf(errorfamily.Rejection,
-			"setup.invalid_config",
-			"DataStarScriptPath must start with %q, be empty, or be \"-\" to disable (got %q)",
-			"/",
-			c.DataStarScriptPath,
-		)
 	}
 
 	return nil

@@ -21,7 +21,7 @@ import (
 // sseDrainTimeout bounds how long [Bundle.Close] waits for the SSE hub to
 // deliver queued events to connected subscribers before falling back to an
 // abrupt close. A package variable so tests can shrink it.
-const sseDrainTimeout = 5 * time.Second
+var sseDrainTimeout = 5 * time.Second //nolint:gochecknoglobals // mutated by bundle_close_drain_internal_test.go for fast drains
 
 // Bundle is the result of [New] — a fully wired application with all sub-modules connected.
 //

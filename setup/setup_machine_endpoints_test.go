@@ -196,7 +196,11 @@ func TestMount_MachineEndpoints_ZeroPathsMountNothing(t *testing.T) {
 	}
 }
 
-func TestNew_MachineEndpoints_PathValidation(t *testing.T) {
+// TestNew_OptInPaths_Validation is the shared shape table for every opt-in
+// path knob added by the gap bundle (machine endpoints + liveness): missing
+// slash, site root, and health collision all reject at New with the same
+// contract wording.
+func TestNew_OptInPaths_Validation(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
@@ -205,21 +209,36 @@ func TestNew_MachineEndpoints_PathValidation(t *testing.T) {
 		want string
 	}{
 		{
-			name: "missing leading slash rejected",
+			name: "machine path missing leading slash rejected",
 			cfg:  setup.Config{Title: "Bad Shape", EventCatalogPath: "events"},
 			want: "must start with",
 		},
 		{
-			name: "root path rejected",
+			name: "machine root path rejected",
 			cfg:  setup.Config{Title: "Root", DebugPath: "/"},
 			want: "reserved for the login page",
 		},
 		{
-			name: "collision with health rejected",
+			name: "machine collision with health rejected",
 			cfg: setup.Config{
 				Title:                "Collision",
 				ProjectionStatusPath: "/health",
 			},
+			want: "routes would conflict",
+		},
+		{
+			name: "live path missing slash rejected",
+			cfg:  setup.Config{Title: "Shape", LivePath: "live"},
+			want: "must start with",
+		},
+		{
+			name: "live root rejected",
+			cfg:  setup.Config{Title: "Root", LivePath: "/"},
+			want: "reserved for the login page",
+		},
+		{
+			name: "live health collision rejected",
+			cfg:  setup.Config{Title: "Collision", LivePath: "/health"},
 			want: "routes would conflict",
 		},
 	} {

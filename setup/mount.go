@@ -84,31 +84,7 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 		)
 	}
 
-	// Shared SSE endpoint — behind an authenticated session. Streams every
-	// event committed to the event bus; see [Config.SSEPath] and
-	// [Bundle.Broadcaster]. Guarded by SSEPath (not Broadcaster): the hub also
-	// exists when only DataStarPath is set, and no /sse route mounts then.
-	if b.Broadcaster != nil && cfg.SSEPath != "" {
-		// The HTMX SSE extension script is a static JS file: public, no
-		// session needed (DataStarScriptPath symmetry — HTMX SSE consumers
-		// self-host nothing unless they opt out with "-").
-		if cfg.SSEScriptPath != "" && cfg.SSEScriptPath != "-" {
-			mux.Handle(cfg.SSEScriptPath, cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
-		}
-
-		mux.Handle(cfg.SSEPath, b.sseHandler())
-	}
-
-	// DataStar feed + SDK script — the feed is behind the same session gate as
-	// /sse (event metadata is not public data, ADR-0050). The script mount is
-	// a static JS file: public, no session needed.
-	if b.DataStarBroadcaster != nil {
-		if cfg.DataStarScriptPath != "" && cfg.DataStarScriptPath != "-" {
-			mux.Handle(cfg.DataStarScriptPath, datastar.ScriptHandler())
-		}
-
-		mux.Handle(cfg.DataStarPath, b.datastarHandler())
-	}
+	b.mountEventFeeds(mux)
 
 	// Machine endpoints — opt-in (Config paths), session-gated JSON surfaces
 	// for monitors and runbooks (the /sse 401 precedent).
@@ -125,6 +101,32 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 	// never triggers an orchestrator restart loop.
 	if cfg.LivePath != "" {
 		mux.HandleFunc(cfg.LivePath, cqrshtmx.ReadinessHandler())
+	}
+}
+
+// mountEventFeeds registers the two real-time feeds and their SDK scripts,
+// both fanning out from the one shared hub (ADR-0050). The feeds are behind
+// the session gate (event metadata is not public data); the script mounts
+// are static JS files — public, no session needed.
+func (b *Bundle) mountEventFeeds(mux *http.ServeMux) {
+	cfg := b.config
+
+	// Shared SSE endpoint. Guarded by SSEPath (not Broadcaster): the hub also
+	// exists when only DataStarPath is set, and no /sse route mounts then.
+	if b.Broadcaster != nil && cfg.SSEPath != "" {
+		if cfg.SSEScriptPath != "" && cfg.SSEScriptPath != "-" {
+			mux.Handle(cfg.SSEScriptPath, cqrshtmx.HTMXExtensionHandler(cqrshtmx.HTMXExtSSE))
+		}
+
+		mux.Handle(cfg.SSEPath, b.sseHandler())
+	}
+
+	if b.DataStarBroadcaster != nil {
+		if cfg.DataStarScriptPath != "" && cfg.DataStarScriptPath != "-" {
+			mux.Handle(cfg.DataStarScriptPath, datastar.ScriptHandler())
+		}
+
+		mux.Handle(cfg.DataStarPath, b.datastarHandler())
 	}
 }
 
