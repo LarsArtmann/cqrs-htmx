@@ -152,7 +152,7 @@ func TestProjectionStatusKind(t *testing.T) {
 		{"idle", statusWarn},
 		{"backoff", statusWarn},
 		{"draining", statusWarn},
-		{"stopped", statusBad},
+		{"stopped", statusGood},
 		{"failed", statusBad},
 		{"unknown", statusNeutral},
 		{"", statusNeutral},

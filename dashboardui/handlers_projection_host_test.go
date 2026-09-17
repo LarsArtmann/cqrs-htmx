@@ -98,7 +98,10 @@ func TestOverviewStats_WithProjectionHost(t *testing.T) {
 
 // TestOverviewStats_ProjectionHostHealthClassification verifies that
 // overviewStats correctly classifies health based on projection worker status.
-// After stopping the host, workers transition to "stopped" (statusBad → Unhealthy).
+// After stopping the host, workers are "stopped" — a healthy terminal state
+// (journal-only hosts drain to "stopped" once fully caught up, matching the
+// root library's live/stopped=ready readiness semantics), so the overview
+// reports Healthy with StatusGood.
 func TestOverviewStats_ProjectionHostHealthClassification(t *testing.T) {
 	t.Parallel()
 
@@ -121,13 +124,13 @@ func TestOverviewStats_ProjectionHostHealthClassification(t *testing.T) {
 		t.Fatal("expected at least 1 projection")
 	}
 
-	// After Stop, worker status is "stopped" → statusBad → Unhealthy.
-	if stats.HealthStatus != "Unhealthy" {
-		t.Errorf("expected HealthStatus 'Unhealthy' after stop, got %q", stats.HealthStatus)
+	// After Stop, worker status is "stopped" → statusGood → Healthy.
+	if stats.HealthStatus != "Healthy" {
+		t.Errorf("expected HealthStatus 'Healthy' after stop, got %q", stats.HealthStatus)
 	}
 
-	if stats.HealthKind != statusBad {
-		t.Errorf("expected HealthKind %q, got %q", statusBad, stats.HealthKind)
+	if stats.HealthKind != statusGood {
+		t.Errorf("expected HealthKind %q, got %q", statusGood, stats.HealthKind)
 	}
 }
 
@@ -238,8 +241,13 @@ func TestOverview_HealthStatCard(t *testing.T) {
 		t.Errorf("expected System Health stat card, got:\n%s", body)
 	}
 
-	if !strings.Contains(body, "stat-card ok") {
-		t.Errorf("expected healthy stat-card with ok variant, got:\n%s", body)
+	value, ok := statValueByHTMLID(body, "stat-system-health")
+	if !ok {
+		t.Fatalf("expected stat-system-health card, got:\n%s", body)
+	}
+
+	if value != "Healthy" {
+		t.Errorf("expected healthy stat card for drained journal-only host (stopped = ready), got %q", value)
 	}
 }
 

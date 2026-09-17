@@ -68,13 +68,17 @@ type Overview struct {
 
 // ProjectionStatusKind maps a raw projection status string to a semantic
 // status kind (StatusGood, StatusWarn, StatusBad, StatusNeutral).
+// "stopped" is a healthy terminal state: journal-only hosts drain to
+// "stopped" once fully caught up, and the root library's readiness gate
+// (ProjectionReadinessCheck) treats live/stopped as ready. Only "failed"
+// marks an unhealthy worker.
 func ProjectionStatusKind(status string) string {
 	switch strings.ToLower(status) {
-	case statusRunning, "live":
+	case statusRunning, "live", "stopped":
 		return StatusGood
 	case "idle", "backoff", "draining":
 		return StatusWarn
-	case "stopped", statusFailed:
+	case statusFailed:
 		return StatusBad
 	default:
 		return StatusNeutral
