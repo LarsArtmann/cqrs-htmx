@@ -559,7 +559,10 @@ document.addEventListener("click", function(e) {
   }
 });
 
-window.downloadPayload = function(eventID) {
+document.addEventListener("click", function(e) {
+  var btn = e.target.closest("[data-download-payload]");
+  if (!btn) return;
+  var eventID = btn.getAttribute("data-download-payload");
   var el = document.querySelector("#event-payload code");
   if (!el) return;
   var text = el.textContent;
@@ -572,7 +575,14 @@ window.downloadPayload = function(eventID) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-};
+});
+
+// Page-size selector: navigate on change (replaces the inline onchange attr).
+document.addEventListener("change", function(e) {
+  if (e.target && e.target.matches && e.target.matches('select[name="limit"]')) {
+    window.location.href = e.target.value;
+  }
+});
 
 // CSP-safe confirmation dialog: delegated submit listener for forms with
 // data-confirm attribute. Replaces inline onsubmit="return confirm(...)".

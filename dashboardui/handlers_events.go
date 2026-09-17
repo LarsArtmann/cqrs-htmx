@@ -257,9 +257,7 @@ func (d *Dashboard) renderEventDetail(
 			"Download JSON",
 			"",
 			display.ButtonSecondary,
-			templ.Attributes{
-				"onclick": fmt.Sprintf("downloadPayload('%s')", esc(evt.ID().String())),
-			},
+			templ.Attributes{"data-download-payload": esc(evt.ID().String())},
 		))
 		b.WriteString(`</div>`)
 		fmt.Fprintf(

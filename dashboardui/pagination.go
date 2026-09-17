@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/utils"
@@ -131,7 +130,7 @@ func renderPageSizeSelector(
 		BaseProps: utils.BaseProps{
 			ID:        "",
 			Class:     "",
-			Attrs:     templ.Attributes{"onchange": "window.location.href=this.value"},
+			Attrs:     nil,
 			AriaLabel: "",
 			Nonce:     "",
 		},
