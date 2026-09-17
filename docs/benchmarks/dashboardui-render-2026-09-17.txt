@@ -1,0 +1,11 @@
+BenchmarkRenderStatCard/hand-rolled-32         	10593046	       121.3 ns/op	     144 B/op	       2 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 8253465	       131.2 ns/op	     144 B/op	       2 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	11434408	       112.2 ns/op	     144 B/op	       2 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	11831953	       106.0 ns/op	     144 B/op	       2 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	11245064	       106.4 ns/op	     144 B/op	       2 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  600795	      1885 ns/op	    2209 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  678367	      2200 ns/op	    2209 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  652606	      2555 ns/op	    2209 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  575799	      2198 ns/op	    2209 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  550678	      2298 ns/op	    2209 B/op	      29 allocs/op
+ok  	github.com/larsartmann/cqrs-htmx/dashboardui/v4	12.959s
