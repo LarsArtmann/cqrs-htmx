@@ -46,27 +46,26 @@ skip_steps:
   - deadnix
   - dprint-format
 
-# fail_on: none — the findings gate is DEMOTED (triaged 2026-09-17, task M3):
-# every error/critical finding is a false positive for this repo's policy:
-#   - go-structure-linter root-package-files ×50: published library; the root
-#     module's public API IS the import path (v4) — /pkg//internal/ breaks
-#     every consumer. Suppressions are authored in .go-structure-linter.yml
-#     but the feature is 98 commits above go-structure-linter's last tag
-#     (v0.10.0) and BuildFlow pins the tag, so they cannot activate yet.
-#   - go-structure-linter go-sum-out-of-sync (critical): flags verify-tag
-#     TEST FIXTURES whose deliberately-unresolvable requires cannot get an
-#     honest go.sum.
-#   - go-structure-linter go-version: repo toolchain is deliberately pinned
-#     by flake.nix (check-go-toolchain gate owns this policy).
-#   - gomod-checker vendor-consistency ×25: flags an UNTRACKED local
-#     examples/middleware-showcase/vendor dir, not repo content.
-#   - gomod-checker missing-submodule-replace ×2: contradicts this repo's
-#     published-tag resolution policy (local replaces are FORBIDDEN in
-#     tagged go.mods — the exact opposite of what the rule suggests).
-# RESTORE fail_on: critical when go-structure-linter publishes the
-# suppression feature in a tag AND BuildFlow bumps its pin — the config file
-# is already in place. Every other pre-commit step (golangci-lint, govalid,
-# formatters, large-file guard) keeps running and keeps gating; only the
-# always-red findings threshold is off. Strict enforcement lives in CI +
-# nix run .#check-modules / .#lint.
-fail_on: none
+# fail_on: critical — findings gate RESTORED (2026-09-18, task M8 verification).
+# History: demoted 2026-09-17 (task M3) because the gate was always-red on
+# pre-existing findings. TWO root causes were found and fixed 2026-09-18:
+#   1. The suppression config was authored as `.go-structure-linter.yml` but
+#      the linter auto-discovers `.go-structure-linter.yaml` — the file was
+#      NEVER read by any session. Renamed; suppressions now apply.
+#   2. The buildflow binary was stale (built at 42fd89b, repo at 7d3d967).
+#      Rebuilt from BuildFlow HEAD into ~/go/bin (shadows the nix profile;
+#      ~/go/bin precedes ~/.nix-profile/bin on PATH). The old binary's rule
+#      set flagged root-package-files ×50; the current one does not.
+#   Additionally the gomod-checker vendor-consistency ×25 resolved naturally
+#   (examples/middleware-showcase/vendor/ was trashed).
+# Suppressions that keep the gate honest live in .go-structure-linter.yaml
+# (root-package-files, go-version, go-sum fixture ID) — each with a reason
+# and, for go-version, an explicit removal condition (TODO_LIST P2 toolchain
+# decision). CAVEAT: a go-structure-linter build from the v0.10.0 TAG does
+# not carry the suppression feature; machines running only tagged builds
+# would see the raw findings. Current verification: 5 findings (2 warnings
+# + 3 infos, 0 errors) with BUILDFLOW_NO_RESULT_CACHE=1.
+# GOTCHA: buildflow's result cache keys on matched FILES — config/binary
+# changes do NOT invalidate it; use BUILDFLOW_NO_RESULT_CACHE=1 when a
+# finding replays after its cause was fixed.
+fail_on: critical
