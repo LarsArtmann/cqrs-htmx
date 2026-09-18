@@ -54,7 +54,8 @@ func TestCommandValidation_WiredViaCommandMiddleware(t *testing.T) {
 	}
 
 	// Well-formed command passes through and registers.
-	if err := svc.dispatcher.Dispatch(t.Context(), NewRegisterUserCmd(aggID, "valid@example.com", "Valid Name", nil)); err != nil {
+	err = svc.dispatcher.Dispatch(t.Context(), NewRegisterUserCmd(aggID, "valid@example.com", "Valid Name", nil))
+	if err != nil {
 		t.Fatalf("valid dispatch: %v", err)
 	}
 	if _, ok := svc.readModel.FindByEmail("valid@example.com"); !ok {
