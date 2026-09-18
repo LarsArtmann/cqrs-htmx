@@ -39,7 +39,7 @@ linters:
         - errname
         - errorlint
         - exhaustive
-        - exhaustruct
+        - exhaustruct_v5
         - exptostd
         - fatcontext
         - forbidigo
@@ -147,8 +147,8 @@ linters:
                 - fmt.Println
                 - (*strings.Builder).WriteString
                 - (*bytes.Buffer).WriteString
-        exhaustruct:
-            exclude:
+        exhaustruct_v5:
+            ignore-patterns:
                 - os/exec.Cmd
                 - github\.com/larsartmann/cqrs-htmx/v4\.(Config|handlerConfig|RateLimiterConfig|CSRFConfig|SecurityHeadersConfig|EventCatalog|EventMetadata|PayloadField|ProjectionStatusEntry)$
                 - github\.com/larsartmann/httputil\.(CSRFConfig|KeyedRateLimiterConfig|SecurityHeadersConfig)$
@@ -335,6 +335,7 @@ linters:
                 - recvcheck
                 - contextcheck
                 - exhaustive
+                - exhaustruct_v5
             - path: benchmark_server_test\.go$
               linters:
                 - exhaustruct
