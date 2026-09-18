@@ -87,5 +87,10 @@ restoring `fail_on: critical`, check the go-structure-linter repo for:
   published-library-by-design false positive — all root-module files live in
   the repo root) gained a scope or exclude option.
 
-**Verification performed this session (2026-09-18):** not yet re-checked
-upstream — routed to the next hygiene pass. This file is the tracking note.
+**Verification performed this session (2026-09-18):** CHECKED. The in-config
+`suppressions:` feature is implemented on go-structure-linter master (CHANGELOG
+`## [Unreleased]`, checkout at `v0.10.0-98-g92af9d03`, 98 commits past the
+last tag) — i.e. the feature exists but NO release tag carries it yet. The
+findings-gate restoration in cqrs-htmx remains correctly blocked on: (1) a
+go-structure-linter release tag shipping suppressions, (2) BuildFlow bumping
+its pin. No action available in this repo; re-check at the next hygiene pass.
