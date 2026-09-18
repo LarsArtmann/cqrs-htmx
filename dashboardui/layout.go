@@ -438,7 +438,7 @@ const dashboardJS = `
 (function() {
   var scriptSrc = document.currentScript.src;
   var path = scriptSrc.replace(/\/dashboard\.js$/, "");
-  var base = path.replace(/\/-\/$/, "");
+  var base = path.replace(/\/-$/, "");
   var streamUrl = base + "/-/events/stream";
   var indicator = document.querySelector("[data-live-indicator]");
   var statusEl = document.querySelector("[data-sse-status]");
