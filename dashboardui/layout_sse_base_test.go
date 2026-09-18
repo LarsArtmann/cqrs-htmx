@@ -20,8 +20,12 @@ func TestDashboardJSSSEBaseURL(t *testing.T) {
 	// The broken and fixed patterns, extracted from the served script.
 	brokenPattern := `var base = path.replace(/\/-\/$/, "");`
 	if strings.Contains(dashboardJS, brokenPattern) {
-		t.Fatalf("dashboardJS still contains the broken base-strip pattern %q (matches nothing; base keeps the trailing /- and the SSE URL gains a spurious /-/)", brokenPattern)
+		t.Fatalf(
+			"dashboardJS still contains the broken base-strip pattern %q (matches nothing; base keeps the trailing /- and the SSE URL gains a spurious /-/)",
+			brokenPattern,
+		)
 	}
+
 	fixedPattern := `var base = path.replace(/\/-$/, "");`
 	if !strings.Contains(dashboardJS, fixedPattern) {
 		t.Fatalf("dashboardJS must derive base by stripping the trailing /- with %q", fixedPattern)
@@ -34,6 +38,7 @@ func TestDashboardJSSSEBaseURL(t *testing.T) {
 	baseStrip := regexp.MustCompile(`/-$`)
 	streamURL := func(scriptSrc string) string {
 		path := scriptSuffix.ReplaceAllString(scriptSrc, "")
+
 		return baseStrip.ReplaceAllString(path, "") + "/-/events/stream"
 	}
 

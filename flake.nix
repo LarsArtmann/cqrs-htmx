@@ -70,15 +70,17 @@
             {
               type = "app";
               meta = lib.optionalAttrs (description != null) { inherit description; };
-              program = lib.getExe (pkgs.writeShellApplication {
-                inherit name;
-                runtimeInputs = [
-                  goPkg
-                  pkgs.jq
-                ]
-                ++ runtimeInputs;
-                text = goEnv + text;
-              });
+              program = lib.getExe (
+                pkgs.writeShellApplication {
+                  inherit name;
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.jq
+                  ]
+                  ++ runtimeInputs;
+                  text = goEnv + text;
+                }
+              );
             };
           # benchstat (golang.org/x/perf/cmd/benchstat) is not packaged in
           # nixpkgs; build it from the canonical googlesource repo.
@@ -594,385 +596,409 @@
             build-adminui-css = {
               type = "app";
               meta.description = "Compile adminui Tailwind v4 CSS (tailwind.css → assets/admin-tw.css)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "build-adminui-css";
-                runtimeInputs = [
-                  pkgs.tailwindcss_4
-                  goPkg
-                ];
-                text = ''
-                  cd adminui
-                  # Resolve templ-components module dir at build time.
-                  TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components 2>/dev/null || true)
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "build-adminui-css";
+                  runtimeInputs = [
+                    pkgs.tailwindcss_4
+                    goPkg
+                  ];
+                  text = ''
+                    cd adminui
+                    # Resolve templ-components module dir at build time.
+                    TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components 2>/dev/null || true)
 
-                  TMP_CSS=$(mktemp --suffix=.css)
-                  cp tailwind.css "$TMP_CSS"
+                    TMP_CSS=$(mktemp --suffix=.css)
+                    cp tailwind.css "$TMP_CSS"
 
-                  # Add @source for adminui itself (the temp CSS lives in
-                  # /tmp so Tailwind's auto-detection won't find our .templ
-                  # files without this).
-                  ADMINUI_DIR=$(pwd)
-                  echo "@source \"$ADMINUI_DIR\";" >> "$TMP_CSS"
+                    # Add @source for adminui itself (the temp CSS lives in
+                    # /tmp so Tailwind's auto-detection won't find our .templ
+                    # files without this).
+                    ADMINUI_DIR=$(pwd)
+                    echo "@source \"$ADMINUI_DIR\";" >> "$TMP_CSS"
 
-                  if [ -n "$TC_DIR" ]; then
-                    # Copy ONLY .templ files to a temp dir.
-                    # _templ.go are generated mirrors (same class strings,
-                    # 3x larger). Scanning the full module cache causes
-                    # 55 GB RAM usage — this approach uses <500 MB.
-                    SCAN_DIR=$(mktemp -d)
-                    for pkg in display errorpage feedback forms htmx icons layout navigation; do
-                      if [ -d "$TC_DIR/$pkg" ]; then
-                        cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
-                      fi
-                    done
-                    echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
-                  fi
+                    if [ -n "$TC_DIR" ]; then
+                      # Copy ONLY .templ files to a temp dir.
+                      # _templ.go are generated mirrors (same class strings,
+                      # 3x larger). Scanning the full module cache causes
+                      # 55 GB RAM usage — this approach uses <500 MB.
+                      SCAN_DIR=$(mktemp -d)
+                      for pkg in display errorpage feedback forms htmx icons layout navigation; do
+                        if [ -d "$TC_DIR/$pkg" ]; then
+                          cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                        fi
+                      done
+                      echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
+                    fi
 
-                  tailwindcss -i "$TMP_CSS" -o assets/admin-tw.css --minify
+                    tailwindcss -i "$TMP_CSS" -o assets/admin-tw.css --minify
 
-                  rm -f "$TMP_CSS"
-                  [ -n "''${SCAN_DIR:-}" ] && rm -rf "$SCAN_DIR"
-                  echo "Done: adminui/assets/admin-tw.css"
-                '';
-              });
+                    rm -f "$TMP_CSS"
+                    [ -n "''${SCAN_DIR:-}" ] && rm -rf "$SCAN_DIR"
+                    echo "Done: adminui/assets/admin-tw.css"
+                  '';
+                }
+              );
             };
 
             build-dashboardui-css = {
               type = "app";
               meta.description = "Compile dashboardui Tailwind v4 CSS (tailwind.css → assets/dashboard-tw.css)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "build-dashboardui-css";
-                runtimeInputs = [
-                  pkgs.tailwindcss_4
-                  goPkg
-                ];
-                text = ''
-                  cd dashboardui
-                  # Resolve the templ-components ROOT module dir at build
-                  # time. dashboardui requires only the icons/utils
-                  # submodules (the root module is not in the build list),
-                  # so derive the root extraction path from the icons
-                  # version: the module cache lays out
-                  #   $GOMODCACHE/github.com/larsartmann/templ-components@<ver>/
-                  #   $GOMODCACHE/github.com/larsartmann/templ-components/icons@<ver>/
-                  # The icons dir's PARENT is NOT the root module (it holds
-                  # versioned submodule dirs) — the 2026-09-17 false green
-                  # came exactly from that fallback copying zero .templ
-                  # files and Tailwind emitting zero library utilities.
-                  ICONS_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/icons 2>/dev/null || true)
-                  TC_VERSION=$(basename "''${ICONS_DIR:-}" | sed -n 's/^icons@//p')
-                  if [ -z "$TC_VERSION" ]; then
-                    echo "ERROR: cannot resolve templ-components/icons via 'go list -m' in dashboardui/ (run 'go mod download' there first)" >&2
-                    exit 1
-                  fi
-                  TC_DIR="$(go env GOMODCACHE)/github.com/larsartmann/templ-components@$TC_VERSION"
-                  if [ ! -d "$TC_DIR" ]; then
-                    GOWORK=off go mod download "github.com/larsartmann/templ-components@$TC_VERSION" >&2 || true
-                  fi
-                  if [ ! -d "$TC_DIR" ]; then
-                    echo "ERROR: templ-components root module not extracted at $TC_DIR (download failed)" >&2
-                    exit 1
-                  fi
-
-                  TMP_CSS=$(mktemp --suffix=.css)
-                  cp tailwind.css "$TMP_CSS"
-
-                  # dashboardui has NO .templ files (strings.Builder renderers)
-                  # and its adopted components emit Tailwind utilities at
-                  # RUNTIME — class names that appear in no repo source. The
-                  # library's .templ files are therefore the ONLY scan source:
-                  # copy them (NOT the 3x-larger _templ.go mirrors) to a temp
-                  # dir and inject @source for it. errorpage is a separate
-                  # family module — include it once dashboardui requires it.
-                  SCAN_DIR=$(mktemp -d)
-                  for pkg in display feedback forms htmx icons layout navigation utils recipes; do
-                    if [ -d "$TC_DIR/$pkg" ]; then
-                      cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
-                      # Class maps for enums/variants live in the *_go.go
-                      # sources (button_go.go holds every Button variant), NOT
-                      # in .templ — without them whole variant families are
-                      # silently missing from the bundle (found with
-                      # ring-blue-300 after the M10 button swap).
-                      cp "$TC_DIR/$pkg/"*_go.go "$SCAN_DIR/" 2>/dev/null || true
-                    fi
-                  done
-                  ERRORPAGE_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/errorpage 2>/dev/null || true)
-                  if [ -n "$ERRORPAGE_DIR" ] && [ -d "$ERRORPAGE_DIR" ]; then
-                    cp "$ERRORPAGE_DIR/"*.templ "$SCAN_DIR/" 2>/dev/null || true
-                    # errorpage defines its runtime class strings in
-                    # styles.go (Go source, NOT .templ) — without copying
-                    # it the amber utility family is silently absent from
-                    # the bundle while the build stays green (M6-class
-                    # false green, found 2026-09-17).
-                    cp "$ERRORPAGE_DIR/styles.go" "$SCAN_DIR/" 2>/dev/null || true
-                  fi
-                  if [ -z "$(find "$SCAN_DIR" -name '*.templ' -print -quit)" ]; then
-                    echo "ERROR: zero .templ files copied from $TC_DIR — the @source scan would be empty (false-green guard)" >&2
-                    rm -f "$TMP_CSS"; rm -rf "$SCAN_DIR"
-                    exit 1
-                  fi
-                  echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
-
-                  tailwindcss -i "$TMP_CSS" -o assets/dashboard-tw.css --minify
-
-                  rm -f "$TMP_CSS"
-                  rm -rf "$SCAN_DIR"
-
-                  # Canary: the output MUST contain utilities that adopted
-                  # components emit at runtime (display.StatusBadge's badge
-                  # classes live only in library .templ files) plus dark:
-                  # variants. Absence means the @source scan failed — a
-                  # utility-free stylesheet passed to users (exit 0 false
-                  # green). Fail loudly instead. NOTE: minified CSS escapes
-                  # the variant as dark\: — the canary greps the escaped
-                  # form.
-                  for needle in 'bg-green-100' 'bg-blue-100' 'bg-green-900' 'dark\\:' 'bg-amber-50' 'bg-amber-100' 'border-amber-200' 'bg-amber-900'; do
-                    if ! grep -q "$needle" assets/dashboard-tw.css; then
-                      echo "ERROR: canary '$needle' missing from assets/dashboard-tw.css — Tailwind scanned no templ-components source" >&2
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "build-dashboardui-css";
+                  runtimeInputs = [
+                    pkgs.tailwindcss_4
+                    goPkg
+                  ];
+                  text = ''
+                    cd dashboardui
+                    # Resolve the templ-components ROOT module dir at build
+                    # time. dashboardui requires only the icons/utils
+                    # submodules (the root module is not in the build list),
+                    # so derive the root extraction path from the icons
+                    # version: the module cache lays out
+                    #   $GOMODCACHE/github.com/larsartmann/templ-components@<ver>/
+                    #   $GOMODCACHE/github.com/larsartmann/templ-components/icons@<ver>/
+                    # The icons dir's PARENT is NOT the root module (it holds
+                    # versioned submodule dirs) — the 2026-09-17 false green
+                    # came exactly from that fallback copying zero .templ
+                    # files and Tailwind emitting zero library utilities.
+                    ICONS_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/icons 2>/dev/null || true)
+                    TC_VERSION=$(basename "''${ICONS_DIR:-}" | sed -n 's/^icons@//p')
+                    if [ -z "$TC_VERSION" ]; then
+                      echo "ERROR: cannot resolve templ-components/icons via 'go list -m' in dashboardui/ (run 'go mod download' there first)" >&2
                       exit 1
                     fi
-                  done
-                  echo "Done: dashboardui/assets/dashboard-tw.css ($(wc -c < assets/dashboard-tw.css) bytes, canaries OK)"
-                '';
-              });
+                    TC_DIR="$(go env GOMODCACHE)/github.com/larsartmann/templ-components@$TC_VERSION"
+                    if [ ! -d "$TC_DIR" ]; then
+                      GOWORK=off go mod download "github.com/larsartmann/templ-components@$TC_VERSION" >&2 || true
+                    fi
+                    if [ ! -d "$TC_DIR" ]; then
+                      echo "ERROR: templ-components root module not extracted at $TC_DIR (download failed)" >&2
+                      exit 1
+                    fi
+
+                    TMP_CSS=$(mktemp --suffix=.css)
+                    cp tailwind.css "$TMP_CSS"
+
+                    # dashboardui has NO .templ files (strings.Builder renderers)
+                    # and its adopted components emit Tailwind utilities at
+                    # RUNTIME — class names that appear in no repo source. The
+                    # library's .templ files are therefore the ONLY scan source:
+                    # copy them (NOT the 3x-larger _templ.go mirrors) to a temp
+                    # dir and inject @source for it. errorpage is a separate
+                    # family module — include it once dashboardui requires it.
+                    SCAN_DIR=$(mktemp -d)
+                    for pkg in display feedback forms htmx icons layout navigation utils recipes; do
+                      if [ -d "$TC_DIR/$pkg" ]; then
+                        cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                        # Class maps for enums/variants live in the *_go.go
+                        # sources (button_go.go holds every Button variant), NOT
+                        # in .templ — without them whole variant families are
+                        # silently missing from the bundle (found with
+                        # ring-blue-300 after the M10 button swap).
+                        cp "$TC_DIR/$pkg/"*_go.go "$SCAN_DIR/" 2>/dev/null || true
+                      fi
+                    done
+                    ERRORPAGE_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/errorpage 2>/dev/null || true)
+                    if [ -n "$ERRORPAGE_DIR" ] && [ -d "$ERRORPAGE_DIR" ]; then
+                      cp "$ERRORPAGE_DIR/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                      # errorpage defines its runtime class strings in
+                      # styles.go (Go source, NOT .templ) — without copying
+                      # it the amber utility family is silently absent from
+                      # the bundle while the build stays green (M6-class
+                      # false green, found 2026-09-17).
+                      cp "$ERRORPAGE_DIR/styles.go" "$SCAN_DIR/" 2>/dev/null || true
+                    fi
+                    if [ -z "$(find "$SCAN_DIR" -name '*.templ' -print -quit)" ]; then
+                      echo "ERROR: zero .templ files copied from $TC_DIR — the @source scan would be empty (false-green guard)" >&2
+                      rm -f "$TMP_CSS"; rm -rf "$SCAN_DIR"
+                      exit 1
+                    fi
+                    echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
+
+                    tailwindcss -i "$TMP_CSS" -o assets/dashboard-tw.css --minify
+
+                    rm -f "$TMP_CSS"
+                    rm -rf "$SCAN_DIR"
+
+                    # Canary: the output MUST contain utilities that adopted
+                    # components emit at runtime (display.StatusBadge's badge
+                    # classes live only in library .templ files) plus dark:
+                    # variants. Absence means the @source scan failed — a
+                    # utility-free stylesheet passed to users (exit 0 false
+                    # green). Fail loudly instead. NOTE: minified CSS escapes
+                    # the variant as dark\: — the canary greps the escaped
+                    # form.
+                    for needle in 'bg-green-100' 'bg-blue-100' 'bg-green-900' 'dark\\:' 'bg-amber-50' 'bg-amber-100' 'border-amber-200' 'bg-amber-900'; do
+                      if ! grep -q "$needle" assets/dashboard-tw.css; then
+                        echo "ERROR: canary '$needle' missing from assets/dashboard-tw.css — Tailwind scanned no templ-components source" >&2
+                        exit 1
+                      fi
+                    done
+                    echo "Done: dashboardui/assets/dashboard-tw.css ($(wc -c < assets/dashboard-tw.css) bytes, canaries OK)"
+                  '';
+                }
+              );
             };
 
             gen = {
               type = "app";
               meta.description = "Regenerate adminui + loginpage templ components (module-dir generation is canonical) and normalize formatting";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "templ-generate";
-                runtimeInputs = [
-                  goPkg
-                  pkgs.templ
-                ];
-                text = ''
-                  (cd adminui && templ generate && gofmt -w ./*_templ.go)
-                  (cd loginpage && templ generate && gofmt -w ./*_templ.go)
-                  echo "Done: adminui + loginpage templ components regenerated (module-dir, bare FileName) and formatted"
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "templ-generate";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.templ
+                  ];
+                  text = ''
+                    (cd adminui && templ generate && gofmt -w ./*_templ.go)
+                    (cd loginpage && templ generate && gofmt -w ./*_templ.go)
+                    echo "Done: adminui + loginpage templ components regenerated (module-dir, bare FileName) and formatted"
+                  '';
+                }
+              );
             };
 
             render-diagrams = {
               type = "app";
               meta.description = "Render all .d2 source files under docs/ to SVG (dark canvas → theme 200, light → default)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "render-diagrams";
-                runtimeInputs = [ pkgs.d2 ];
-                text = ''
-                  shopt -s nullglob
-                  found=0
-                  for file in docs/**/*.d2 docs/*.d2; do
-                    [ -f "$file" ] || continue
-                    found=1
-                    out="''${file%.d2}.svg"
-                    if sed -n '1,10p' "$file" | grep -qE 'style:\s*\{[^}]*fill:\s*"#[01][0-9a-fA-F]{5}"'; then
-                      echo "[dark]  $file"
-                      d2 --layout=elk --theme=200 "$file" "$out"
-                    else
-                      echo "[light] $file"
-                      d2 --layout=elk "$file" "$out"
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "render-diagrams";
+                  runtimeInputs = [ pkgs.d2 ];
+                  text = ''
+                    shopt -s nullglob
+                    found=0
+                    for file in docs/**/*.d2 docs/*.d2; do
+                      [ -f "$file" ] || continue
+                      found=1
+                      out="''${file%.d2}.svg"
+                      if sed -n '1,10p' "$file" | grep -qE 'style:\s*\{[^}]*fill:\s*"#[01][0-9a-fA-F]{5}"'; then
+                        echo "[dark]  $file"
+                        d2 --layout=elk --theme=200 "$file" "$out"
+                      else
+                        echo "[light] $file"
+                        d2 --layout=elk "$file" "$out"
+                      fi
+                    done
+                    if [ "$found" -eq 0 ]; then
+                      echo "No .d2 files found under docs/"
+                      exit 1
                     fi
-                  done
-                  if [ "$found" -eq 0 ]; then
-                    echo "No .d2 files found under docs/"
-                    exit 1
-                  fi
-                '';
-              });
+                  '';
+                }
+              );
             };
 
             errorfamily = {
               type = "app";
               meta.description = "Verify all errors use go-error-family constructors (no stdlib errors.New/fmt.Errorf/errors.Join)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-errorfamily";
-                runtimeInputs = [ pkgs.go ];
-                text = ''
-                  # Root + usermgmt + adminui + identity-model + dashboardui + loginpage + datastar:
-                  # error-family constructors are mandatory in non-test code.
-                  # Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt:
-                  # they don't import go-cqrs-lite/event/v4 (keeping deps minimal), and
-                  # the Service layer wraps all provider errors with event.Wrapf at the
-                  # boundary — so error families are assigned at the correct layer.
-                  #
-                  # Uses a Go AST-based scanner (go/parser) instead of ripgrep, which
-                  # inherently ignores ALL comment types (//, /* */, inline, multi-line).
-                  set -euo pipefail
-                  export GOWORK=off
-                  export GOEXPERIMENT=jsonv2
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-errorfamily";
+                  runtimeInputs = [ pkgs.go ];
+                  text = ''
+                    # Root + usermgmt + adminui + identity-model + dashboardui + loginpage + datastar:
+                    # error-family constructors are mandatory in non-test code.
+                    # Auth sub-modules (totp/webauthn/oauth2) are intentionally exempt:
+                    # they don't import go-cqrs-lite/event/v4 (keeping deps minimal), and
+                    # the Service layer wraps all provider errors with event.Wrapf at the
+                    # boundary — so error families are assigned at the correct layer.
+                    #
+                    # Uses a Go AST-based scanner (go/parser) instead of ripgrep, which
+                    # inherently ignores ALL comment types (//, /* */, inline, multi-line).
+                    set -euo pipefail
+                    export GOWORK=off
+                    export GOEXPERIMENT=jsonv2
 
-                  check_module() {
-                    local dir="$1"
-                    local name="$2"
-                    echo "==> $name"
-                    go run scripts/errorfamily_scanner.go "$dir"
-                    echo "  OK"
-                  }
+                    check_module() {
+                      local dir="$1"
+                      local name="$2"
+                      echo "==> $name"
+                      go run scripts/errorfamily_scanner.go "$dir"
+                      echo "  OK"
+                    }
 
-                  check_module "." "Root module"
-                  check_module "usermgmt" "usermgmt submodule"
-                  check_module "adminui" "adminui submodule"
-                  check_module "identity-model" "identity-model submodule"
-                  check_module "dashboardui" "dashboardui submodule"
-                  check_module "loginpage" "loginpage submodule"
-                  check_module "datastar" "datastar submodule"
+                    check_module "." "Root module"
+                    check_module "usermgmt" "usermgmt submodule"
+                    check_module "adminui" "adminui submodule"
+                    check_module "identity-model" "identity-model submodule"
+                    check_module "dashboardui" "dashboardui submodule"
+                    check_module "loginpage" "loginpage submodule"
+                    check_module "datastar" "datastar submodule"
 
-                  echo "All modules pass errorfamily check."
-                '';
-              });
+                    echo "All modules pass errorfamily check."
+                  '';
+                }
+              );
             };
 
             check-modules = {
               type = "app";
               meta.description = "Run all module architecture checks (isolation, dep budgets, version drift, release train, replaces, docs). Default: abort at first red. --report: run every stage and print a red/green summary (exit 1 if any failed)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-modules";
-                runtimeInputs = [ goPkg ];
-                text = ''
-                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  if [ "''${1:-}" = "--report" ]; then
-                    stages=(
-                      "module-isolation:bash scripts/check-module-isolation.sh"
-                      "dep-budgets:bash scripts/check-dep-budgets.sh"
-                      "go-toolchain:bash scripts/check-go-toolchain.sh"
-                      "version-drift:bash scripts/check-version-drift.sh --strict"
-                      "release-train:bash scripts/check-release-train.sh"
-                      "replace-directives:bash scripts/check-replace-directives.sh"
-                      "docs-freshness:bash scripts/check-docs-freshness.sh"
-                      "docs-links:bash scripts/check-docs-links.sh"
-                    )
-                    red=0
-                    for stage in "''${stages[@]}"; do
-                      name="''${stage%%:*}"
-                      cmd="''${stage#*:}"
-                      if output=$($cmd 2>&1); then
-                        echo "  ✅ $name"
-                      else
-                        echo "  ❌ $name"
-                        printf '%s\n' "$output" | sed 's/^/      /' | tail -15
-                        red=$((red + 1))
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-modules";
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    if [ "''${1:-}" = "--report" ]; then
+                      stages=(
+                        "module-isolation:bash scripts/check-module-isolation.sh"
+                        "dep-budgets:bash scripts/check-dep-budgets.sh"
+                        "go-toolchain:bash scripts/check-go-toolchain.sh"
+                        "version-drift:bash scripts/check-version-drift.sh --strict"
+                        "release-train:bash scripts/check-release-train.sh"
+                        "replace-directives:bash scripts/check-replace-directives.sh"
+                        "docs-freshness:bash scripts/check-docs-freshness.sh"
+                        "docs-links:bash scripts/check-docs-links.sh"
+                      )
+                      red=0
+                      for stage in "''${stages[@]}"; do
+                        name="''${stage%%:*}"
+                        cmd="''${stage#*:}"
+                        if output=$($cmd 2>&1); then
+                          echo "  ✅ $name"
+                        else
+                          echo "  ❌ $name"
+                          printf '%s\n' "$output" | sed 's/^/      /' | tail -15
+                          red=$((red + 1))
+                        fi
+                      done
+                      echo ""
+                      if [ "$red" -gt 0 ]; then
+                        echo "✗ $red of ''${#stages[@]} module architecture checks failed"
+                        exit 1
                       fi
-                    done
-                    echo ""
-                    if [ "$red" -gt 0 ]; then
-                      echo "✗ $red of ''${#stages[@]} module architecture checks failed"
-                      exit 1
+                      echo "✓ All ''${#stages[@]} module architecture checks passed"
+                      exit 0
                     fi
-                    echo "✓ All ''${#stages[@]} module architecture checks passed"
-                    exit 0
-                  fi
-                  bash scripts/check-module-isolation.sh
-                  bash scripts/check-dep-budgets.sh
-                  bash scripts/check-go-toolchain.sh
-                  bash scripts/check-version-drift.sh --strict
-                  bash scripts/check-release-train.sh
-                  bash scripts/check-replace-directives.sh
-                  bash scripts/check-docs-freshness.sh
-                  bash scripts/check-docs-links.sh
-                  echo ""
-                  echo "✓ All module architecture checks passed"
-                '';
-              });
+                    bash scripts/check-module-isolation.sh
+                    bash scripts/check-dep-budgets.sh
+                    bash scripts/check-go-toolchain.sh
+                    bash scripts/check-version-drift.sh --strict
+                    bash scripts/check-release-train.sh
+                    bash scripts/check-replace-directives.sh
+                    bash scripts/check-docs-freshness.sh
+                    bash scripts/check-docs-links.sh
+                    echo ""
+                    echo "✓ All module architecture checks passed"
+                  '';
+                }
+              );
             };
 
             check-docs-freshness = {
               type = "app";
               meta.description = "Scan .md files for version strings that don't match go.mod";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-docs-freshness";
-                runtimeInputs = [ goPkg ];
-                text = ''
-                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  bash scripts/check-docs-freshness.sh
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-docs-freshness";
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-docs-freshness.sh
+                  '';
+                }
+              );
             };
 
             check-docs-links = {
               type = "app";
               meta.description = "Check all markdown file-path links resolve correctly";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-docs-links";
-                runtimeInputs = [
-                  pkgs.findutils
-                  pkgs.gnugrep
-                ];
-                text = ''
-                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  bash scripts/check-docs-links.sh
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-docs-links";
+                  runtimeInputs = [
+                    pkgs.findutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-docs-links.sh
+                  '';
+                }
+              );
             };
 
             check-release-train = {
               type = "app";
               meta.description = "Verify every internal require resolves to a PUBLISHED tag; list train-lag for the next family train (forwards flags: --json, --strict-lag N, --no-cache, --refresh-cache)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-release-train";
-                runtimeInputs = [
-                  pkgs.git
-                  pkgs.coreutils
-                  pkgs.gnugrep
-                  pkgs.gawk
-                  pkgs.findutils
-                ];
-                text = ''
-                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  bash scripts/check-release-train.sh "$@"
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-release-train";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.gawk
+                    pkgs.findutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-release-train.sh "$@"
+                  '';
+                }
+              );
             };
 
             check-go-toolchain = {
               type = "app";
               meta.description = "Fail when go.work's go directive is newer than the flake's nixpkgs Go toolchain";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-go-toolchain";
-                runtimeInputs = [ goPkg ];
-                text = ''
-                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  bash scripts/check-go-toolchain.sh
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-go-toolchain";
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-go-toolchain.sh
+                  '';
+                }
+              );
             };
 
             check-codegen = {
               type = "app";
               meta.description = "Verify adminui + loginpage _templ.go files match .templ sources (no codegen drift; module-dir generation is canonical)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-codegen";
-                runtimeInputs = [
-                  goPkg
-                  pkgs.templ
-                ];
-                text = ''
-                  for mod in adminui loginpage; do
-                    echo "==> $mod"
-                    (cd "$mod" && templ generate && gofmt -w ./*_templ.go)
-                    if ! git diff --exit-code -- "$mod"/*_templ.go; then
-                      echo ""
-                      echo "FAIL: Generated _templ.go files in $mod differ from committed versions."
-                      echo "Run 'nix run .#gen' (module-dir generation with bare FileName: is canonical) and commit the result."
-                      exit 1
-                    fi
-                  done
-                  echo "Codegen drift check PASSED"
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-codegen";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.templ
+                  ];
+                  text = ''
+                    for mod in adminui loginpage; do
+                      echo "==> $mod"
+                      (cd "$mod" && templ generate && gofmt -w ./*_templ.go)
+                      if ! git diff --exit-code -- "$mod"/*_templ.go; then
+                        echo ""
+                        echo "FAIL: Generated _templ.go files in $mod differ from committed versions."
+                        echo "Run 'nix run .#gen' (module-dir generation with bare FileName: is canonical) and commit the result."
+                        exit 1
+                      fi
+                    done
+                    echo "Codegen drift check PASSED"
+                  '';
+                }
+              );
             };
 
             check-templates = {
               type = "app";
               meta.description = "Verify //go:build ignore SQL setup template files compile (sqlite/postgres/mysql)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-templates";
-                runtimeInputs = [ goPkg ];
-                text = ''
-                  bash scripts/check-templates.sh
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-templates";
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    bash scripts/check-templates.sh
+                  '';
+                }
+              );
             };
 
             coverage-gate = goApp {
@@ -1023,144 +1049,154 @@
             release-checklist = {
               type = "app";
               meta.description = "Pre-release verification: CHANGELOG, versions, builds, git status";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "release-checklist";
-                runtimeInputs = [ goPkg ];
-                text = ''
-                  bash scripts/release-checklist.sh
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "release-checklist";
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    bash scripts/release-checklist.sh
+                  '';
+                }
+              );
             };
 
             e2e = {
               type = "app";
               meta.description = "Run Playwright E2E tests (offline sync) against the local Go test server";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "e2e";
-                runtimeInputs = [
-                  goPkg
-                  pkgs.nodejs
-                  pkgs.curl
-                ]
-                ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
-                text = ''
-                  export GOEXPERIMENT=jsonv2
-                  # Playwright must download browsers to a WRITABLE path. The
-                  # ambient value may point at a dead mount (e.g. the /mnt/buildcache
-                  # sda1 on the 2026-08 machine) — fall back to /tmp when the
-                  # configured path cannot be created.
-                  if ! mkdir -p "''${PLAYWRIGHT_BROWSERS_PATH:-/tmp/pw-browsers}" 2>/dev/null; then
-                    export PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers
-                    mkdir -p "$PLAYWRIGHT_BROWSERS_PATH"
-                  fi
-                  # On NixOS, Playwright's downloaded Chromium cannot run (no FHS linker).
-                  # Use the Nix-packaged Chromium via E2E_BROWSER_PATH.
-                  if [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
-                    E2E_BROWSER_PATH="$(command -v chromium)"
-                    export E2E_BROWSER_PATH
-                  fi
-                  cd "''${BUILD_ROOT:-$(pwd)}"
-                  echo "==> Building E2E test server"
-                  (cd e2e/server && go build -o /tmp/cqrs-htmx-e2e-server .)
-
-                  echo "==> Starting E2E test server"
-                  /tmp/cqrs-htmx-e2e-server &
-                  SERVER_PID=$!
-
-                  cleanup() {
-                    kill "$SERVER_PID" 2>/dev/null || true
-                    wait "$SERVER_PID" 2>/dev/null || true
-                  }
-                  trap cleanup EXIT
-
-                  sleep 1
-
-                  if ! curl -sf http://localhost:18923/ >/dev/null 2>&1; then
-                    echo "FAIL: E2E server did not start on :18923"
-                    exit 1
-                  fi
-
-                  echo "==> Running Playwright tests"
-                  cd e2e
-
-                  if command -v bun >/dev/null 2>&1; then
-                    bun install --frozen-lockfile 2>/dev/null || bun install
-                    # Auto-provision the browser when no Nix/system Chromium
-                    # was found (no-op fast path when already installed).
-                    if [ -z "''${E2E_BROWSER_PATH:-}" ]; then
-                      bun x playwright install chromium ffmpeg
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "e2e";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.nodejs
+                    pkgs.curl
+                  ]
+                  ++ pkgs.lib.optional (pkgs ? chromium) pkgs.chromium;
+                  text = ''
+                    export GOEXPERIMENT=jsonv2
+                    # Playwright must download browsers to a WRITABLE path. The
+                    # ambient value may point at a dead mount (e.g. the /mnt/buildcache
+                    # sda1 on the 2026-08 machine) — fall back to /tmp when the
+                    # configured path cannot be created.
+                    if ! mkdir -p "''${PLAYWRIGHT_BROWSERS_PATH:-/tmp/pw-browsers}" 2>/dev/null; then
+                      export PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers
+                      mkdir -p "$PLAYWRIGHT_BROWSERS_PATH"
                     fi
-                    bun run test
-                  elif command -v pnpm dlx >/dev/null 2>&1; then
-                    pnpm dlx playwright install chromium
-                    pnpm dlx playwright test
-                  else
-                    echo "FAIL: Neither bun nor pnpm dlx found. Install Node.js or Bun to run E2E tests."
-                    exit 1
-                  fi
-                '';
-              });
+                    # On NixOS, Playwright's downloaded Chromium cannot run (no FHS linker).
+                    # Use the Nix-packaged Chromium via E2E_BROWSER_PATH.
+                    if [ -z "''${E2E_BROWSER_PATH:-}" ] && command -v chromium >/dev/null 2>&1; then
+                      E2E_BROWSER_PATH="$(command -v chromium)"
+                      export E2E_BROWSER_PATH
+                    fi
+                    cd "''${BUILD_ROOT:-$(pwd)}"
+                    echo "==> Building E2E test server"
+                    (cd e2e/server && go build -o /tmp/cqrs-htmx-e2e-server .)
+
+                    echo "==> Starting E2E test server"
+                    /tmp/cqrs-htmx-e2e-server &
+                    SERVER_PID=$!
+
+                    cleanup() {
+                      kill "$SERVER_PID" 2>/dev/null || true
+                      wait "$SERVER_PID" 2>/dev/null || true
+                    }
+                    trap cleanup EXIT
+
+                    sleep 1
+
+                    if ! curl -sf http://localhost:18923/ >/dev/null 2>&1; then
+                      echo "FAIL: E2E server did not start on :18923"
+                      exit 1
+                    fi
+
+                    echo "==> Running Playwright tests"
+                    cd e2e
+
+                    if command -v bun >/dev/null 2>&1; then
+                      bun install --frozen-lockfile 2>/dev/null || bun install
+                      # Auto-provision the browser when no Nix/system Chromium
+                      # was found (no-op fast path when already installed).
+                      if [ -z "''${E2E_BROWSER_PATH:-}" ]; then
+                        bun x playwright install chromium ffmpeg
+                      fi
+                      bun run test
+                    elif command -v pnpm dlx >/dev/null 2>&1; then
+                      pnpm dlx playwright install chromium
+                      pnpm dlx playwright test
+                    else
+                      echo "FAIL: Neither bun nor pnpm dlx found. Install Node.js or Bun to run E2E tests."
+                      exit 1
+                    fi
+                  '';
+                }
+              );
             };
 
             check-require-tags = {
               type = "app";
               meta.description = "Detect zero pseudo-versions + verify every internal require resolves to a PUBLISHED tag (strict locally, advisory under CI)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-require-tags";
-                runtimeInputs = [
-                  pkgs.ripgrep
-                  pkgs.git
-                ];
-                text = ''
-                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  bash scripts/check-require-tags.sh
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-require-tags";
+                  runtimeInputs = [
+                    pkgs.ripgrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-require-tags.sh
+                  '';
+                }
+              );
             };
 
             check-phantom-version = {
               type = "app";
               meta.description = "DEPRECATED name for check-require-tags (the gate enforces tag existence now, not just pseudo-versions)";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-phantom-version";
-                runtimeInputs = [ pkgs.git ];
-                text = ''
-                  echo "check-phantom-version is deprecated; run .#check-require-tags (the gate enforces tag existence now, not just pseudo-versions)" >&2
-                  cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                  bash scripts/check-require-tags.sh
-                '';
-              });
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-phantom-version";
+                  runtimeInputs = [ pkgs.git ];
+                  text = ''
+                    echo "check-phantom-version is deprecated; run .#check-require-tags (the gate enforces tag existence now, not just pseudo-versions)" >&2
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-require-tags.sh
+                  '';
+                }
+              );
             };
 
             check-cqrs-lint = {
               type = "app";
               meta.description = "Run cqrs-lint --strict on all workspace modules";
-              program = pkgs.lib.getExe (pkgs.writeShellApplication {
-              name = "check-cqrs-lint";
-                text = ''
-                  set -euo pipefail
-                  # GOWORK=off: load each module from its own go.mod (published tags
-                  # + module-level relative replaces) instead of the workspace —
-                  # workspace-mode loading breaks when go.work's absolute-path
-                  # sibling replaces point at in-flight go-cqrs-lite work.
-                  export GOWORK=off
-                  export GOEXPERIMENT=jsonv2
-                  echo "=== cqrs-lint strict check ==="
-                  fail=0
-                  for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter health auditlog; do
-                    echo "==> $mod"
-                    if ! (cd "$mod" && cqrs-lint --strict . >/dev/null 2>&1); then
-                      echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --verbose .' for details)"
-                      fail=1
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-cqrs-lint";
+                  text = ''
+                    set -euo pipefail
+                    # GOWORK=off: load each module from its own go.mod (published tags
+                    # + module-level relative replaces) instead of the workspace —
+                    # workspace-mode loading breaks when go.work's absolute-path
+                    # sibling replaces point at in-flight go-cqrs-lite work.
+                    export GOWORK=off
+                    export GOEXPERIMENT=jsonv2
+                    echo "=== cqrs-lint strict check ==="
+                    fail=0
+                    for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter health auditlog; do
+                      echo "==> $mod"
+                      if ! (cd "$mod" && cqrs-lint --strict . >/dev/null 2>&1); then
+                        echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --verbose .' for details)"
+                        fail=1
+                      fi
+                    done
+                    if [ "$fail" -eq 0 ]; then
+                      echo "All modules pass cqrs-lint strict."
+                    else
+                      exit 1
                     fi
-                  done
-                  if [ "$fail" -eq 0 ]; then
-                    echo "All modules pass cqrs-lint strict."
-                  else
-                    exit 1
-                  fi
-                '';
-              });
+                  '';
+                }
+              );
             };
           };
         };
