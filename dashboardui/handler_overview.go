@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/larsartmann/templ-components/display"
@@ -229,7 +230,7 @@ func renderStatGrid(ctx context.Context, stats overviewStats) string {
 	}
 
 	if stats.SSEHub != nil {
-		value := fmt.Sprintf("%d", stats.SSEHub.Subscribers)
+		value := strconv.Itoa(stats.SSEHub.Subscribers)
 		tone := display.StatToneGreen
 
 		switch {

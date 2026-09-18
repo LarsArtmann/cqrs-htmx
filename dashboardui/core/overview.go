@@ -58,10 +58,10 @@ type RecentEvent struct {
 // overview page. Nil on Overview means the dashboard has no SSE hub (no
 // EventBus configured), so no hub card renders.
 type HubHealth struct {
-	Subscribers     int
-	BufferSize      int
-	Closed          bool
-	Draining        bool
+	Subscribers int
+	BufferSize  int
+	Closed      bool
+	Draining    bool
 }
 
 // Overview aggregates the top-level dashboard stats: event count, aggregate
