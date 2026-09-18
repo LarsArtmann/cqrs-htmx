@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **SSE stream URL 404 on every deployment:** the client-side base derivation in `dashboardJS` stripped the script's `/-` suffix with `/\/-\/$/`, a pattern requiring a trailing slash that never exists once `/dashboard.js` is removed — every page computed `<base>/-/-/events/stream` and the EventSource 404'd (connect/reconnect loop, never live). The pattern now strips the trailing `/-` (`/\/-$`); pinned by `TestDashboardJSSSEBaseURL`.
 - **Health card test false-positive:** the overview health test's `stat-card ok` assertion had been matching the *Projections* card's CSS class since inception; it now asserts the actual health value scoped to the `stat-system-health` element. The event-count test similarly asserts the exact value ("10") inside the `stat-total-events` element instead of page-wide string containment.
 
 ## [v4.2.0] - 2026-08-07
