@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	event "github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ReadinessCheck is a single health check function. Return nil if healthy,
@@ -129,11 +130,11 @@ func HubReadinessCheck(b *Broadcaster) NamedCheck {
 
 		switch {
 		case h.Closed:
-			return event.Newf("sse hub closed (subscribers=%d, bufferSize=%d)",
-				h.SubscriberCount, h.BufferSize)
+			return errorfamily.Newf(event.Infrastructure, "cqrshtmx.sse.hub_closed",
+				"sse hub closed (subscribers=%d, bufferSize=%d)", h.SubscriberCount, h.BufferSize)
 		case h.Draining:
-			return event.Newf("sse hub draining (subscribers=%d, bufferSize=%d)",
-				h.SubscriberCount, h.BufferSize)
+			return errorfamily.Newf(event.Infrastructure, "cqrshtmx.sse.hub_draining",
+				"sse hub draining (subscribers=%d, bufferSize=%d)", h.SubscriberCount, h.BufferSize)
 		}
 
 		return nil

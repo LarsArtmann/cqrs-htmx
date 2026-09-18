@@ -151,11 +151,19 @@ func requireSession(next http.Handler) http.Handler {
 // "live" state. If the service is nil (should not happen in normal usage), it
 // returns a simple 200 OK.
 func (b *Bundle) healthHandler() http.HandlerFunc {
-	if b.Service == nil {
+	checks := make([]cqrshtmx.NamedCheck, 0, 2)
+
+	if b.Service != nil {
+		checks = append(checks, cqrshtmx.ProjectionReadinessCheck(b.Service))
+	}
+
+	if b.Broadcaster != nil {
+		checks = append(checks, cqrshtmx.HubReadinessCheck(b.Broadcaster))
+	}
+
+	if len(checks) == 0 {
 		return cqrshtmx.ReadinessHandler()
 	}
 
-	return cqrshtmx.ReadinessHandler(
-		cqrshtmx.ProjectionReadinessCheck(b.Service),
-	)
+	return cqrshtmx.ReadinessHandler(checks...)
 }
