@@ -120,10 +120,12 @@ func NewNamedCheck(name string, check ReadinessCheck) NamedCheck {
 // is wired. The failure error carries the live subscriber count and buffer
 // size so operators can size capacity from the /health payload alone.
 //
-//mux.Handle("/health", cqrshtmx.ReadinessHandler(
-//    cqrshtmx.ProjectionReadinessCheck(svc),
-//    cqrshtmx.HubReadinessCheck(bundle.Broadcaster),
-//))
+// mux.Handle("/health", cqrshtmx.ReadinessHandler(
+//
+//	cqrshtmx.ProjectionReadinessCheck(svc),
+//	cqrshtmx.HubReadinessCheck(bundle.Broadcaster),
+//
+// )).
 func HubReadinessCheck(b *Broadcaster) NamedCheck {
 	return NewNamedCheck("sse-hub", func() error {
 		h := b.Health()

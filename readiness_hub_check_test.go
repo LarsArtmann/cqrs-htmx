@@ -27,11 +27,14 @@ func TestHubReadinessCheck_FailsOnceClosed(t *testing.T) {
 	t.Parallel()
 
 	b := NewBroadcaster()
+
 	ch := b.Subscribe()
 	defer func() { _ = ch }()
+
 	b.Close()
 
 	check := HubReadinessCheck(b)
+
 	err := check.Check()
 	if err == nil {
 		t.Fatal("expected error after hub Close")
