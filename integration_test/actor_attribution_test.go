@@ -63,9 +63,7 @@ func TestActorAttribution_VisibleInAuditViews(t *testing.T) {
 	user, err := svc.GetUser(ctx, userID)
 	require.NoError(t, err)
 
-	if err := svc.ChangeDisplayName(usermgmt.WithUser(ctx, user), userID, "Attributed"); err != nil {
-		t.Fatalf("ChangeDisplayName: %v", err)
-	}
+	require.NoError(t, svc.ChangeDisplayName(usermgmt.WithUser(ctx, user), userID, "Attributed"))
 
 	wantActor := identitymodel.ActorIDFromUser(userID)
 	require.False(t, wantActor.IsZero(), "actor under test must be non-zero")
@@ -91,17 +89,7 @@ func TestActorAttribution_VisibleInAuditViews(t *testing.T) {
 	requireAuditEntryWithActor(t, auditLog, aggID, wantActor)
 
 	// Surface 2: dashboardui event detail renders the actor.
-	handler := dash.Handler()
-
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/events/"+displayChangedID, nil))
-	require.Equal(t, http.StatusOK, w.Code, "body: %s", w.Body.String())
-	require.Contains(
-		t,
-		w.Body.String(),
-		wantActor.PrefixedString(),
-		"dashboard event detail must render the acting user's actor ID",
-	)
+	requireDashboardEventRendersActor(t, dash, displayChangedID, wantActor)
 }
 
 // requireAuditEntryWithActor asserts the usermgmt audit surface of the
@@ -116,4 +104,21 @@ func requireAuditEntryWithActor(t *testing.T, auditLog *usermgmt.AuditLog, aggID
 		}
 	}
 	t.Errorf("no audit entry carries actor %s", wantActor.PrefixedString())
+}
+
+// requireDashboardEventRendersActor asserts the dashboardui surface of the
+// attribution chain: the /events/{id} detail page renders the expected actor.
+func requireDashboardEventRendersActor(t *testing.T, dash *dashboardui.Dashboard, eventID string, wantActor id.ActorID) {
+	t.Helper()
+
+	handler := dash.Handler()
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/events/"+eventID, nil))
+	require.Equal(t, http.StatusOK, w.Code, "body: %s", w.Body.String())
+	require.Contains(
+		t,
+		w.Body.String(),
+		wantActor.PrefixedString(),
+		"dashboard event detail must render the acting user's actor ID",
+	)
 }

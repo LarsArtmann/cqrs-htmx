@@ -25,7 +25,7 @@ require (
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -91,18 +91,21 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/libc v1.75.7 // indirect
+	modernc.org/libc v1.76.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.59.0 // indirect
 )
 
 require (
+	github.com/bits-and-blooms/bitset v1.25.0 // indirect
+	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	github.com/larsartmann/go-retry v0.5.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 )
 
