@@ -218,6 +218,7 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 
 	bus := config.EventBus
 	if bus == nil {
+		//cqrs-lint:ignore(B024) deliberate library principle: never enforce middleware defaults consumers might disagree with — a consumer-injected bus keeps its own chain, and the default bus gets recovery (and any other) middleware via EventSourcedConfig.HandlerMiddleware/PublishMiddleware through applyBusMiddleware below
 		bus = watermill.NewEventBus()
 	}
 

@@ -17,6 +17,7 @@ import (
 // promoted from the embedded basic command.
 type wrappedCmd struct {
 	*command.BasicCommand
+
 	payload string
 }
 
@@ -24,13 +25,14 @@ type wrappedCmd struct {
 // enrichment skip path.
 type handRolledCmd struct{}
 
-func (handRolledCmd) Type() command.Type     { return "HandRolled" }
-func (handRolledCmd) StreamID() id.StreamID  { return id.NewStreamID() }
-func (handRolledCmd) ID() id.CommandID       { return id.NewCommandID() }
+func (handRolledCmd) Type() command.Type    { return "HandRolled" }
+func (handRolledCmd) StreamID() id.StreamID { return id.NewStreamID() }
+func (handRolledCmd) ID() id.CommandID      { return id.NewCommandID() }
 
 // wrappedQuery embeds *query.BasicQuery like wrappedCmd does for commands.
 type wrappedQuery struct {
 	*query.BasicQuery
+
 	filter string
 }
 
@@ -63,6 +65,7 @@ func TestEnrichCommandFromContext_EmbeddedWrapperIsEnriched(t *testing.T) {
 	if want := actorForTest(t, "user:01JXWRAPPERTEST000000"); meta.ActorID != want {
 		t.Errorf("wrapper command actor = %q, want %q", meta.ActorID, want)
 	}
+
 	if meta.CorrelationID.IsZero() {
 		t.Error("wrapper command correlation ID = zero, want the context correlation ID")
 	}
@@ -115,32 +118,34 @@ func TestEnrichQueryFromContext_EmbeddedWrapperIsEnriched(t *testing.T) {
 	}
 }
 
-// TestCommandTypedPipeline_EnrichesEmbeddedWrapper proves the fix end-to-end
-// through the public pipeline: a typed command endpoint dispatches a wrapper
+// TestCommandPipeline_EnrichesEmbeddedWrapper proves the fix end-to-end
+// through the public pipeline: a command endpoint dispatches a wrapper
 // command, and context set by an outer HTTP middleware reaches the handler
 // as command metadata.
-func TestCommandTypedPipeline_EnrichesEmbeddedWrapper(t *testing.T) {
+func TestCommandPipeline_EnrichesEmbeddedWrapper(t *testing.T) {
 	t.Parallel()
 
 	disp := command.NewDispatcher()
 
 	var gotActor id.ActorID
-	if err := command.RegisterTyped(
-		disp, "Wrapped",
-		func(_ context.Context, c *wrappedCmd) error {
-			gotActor = c.Metadata().ActorID
-			return nil
-		},
-	); err != nil {
-		t.Fatalf("RegisterTyped: %v", err)
+
+	if err := disp.Register("Wrapped", func(_ context.Context, cmd command.Command) error {
+		if wrapped, ok := cmd.(*wrappedCmd); ok {
+			gotActor = wrapped.Metadata().ActorID
+		}
+
+		return nil
+	}); err != nil {
+		t.Fatalf("Register: %v", err)
 	}
 
 	app := MustNew(Config{Commands: disp})
 
 	mux := http.NewServeMux()
-	mux.Handle("POST /wrapped", CommandTyped[*wrappedCmd](
-		app, "Wrapped",
-		DecodeJSONTyped[*wrappedCmd](),
+	mux.Handle("POST /wrapped", app.Command("Wrapped",
+		DecodeJSON(func(_ struct{}) (command.Command, error) {
+			return newWrappedCmd(t), nil
+		}),
 	))
 
 	actor := actorForTest(t, "user:01JXE2EWRAPPERTEST000000")
@@ -154,10 +159,11 @@ func TestCommandTypedPipeline_EnrichesEmbeddedWrapper(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/wrapped", strings.NewReader(`{}`))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
+
 	outer(mux).ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Fatalf("POST /wrapped status = %d, want 200", w.Code)
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("POST /wrapped status = %d, want 204", w.Code)
 	}
 	if gotActor != actor {
 		t.Errorf("handler saw actor %q, want %q (wrapper command must be enriched)", gotActor, actor)

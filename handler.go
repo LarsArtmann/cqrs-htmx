@@ -341,12 +341,12 @@ func handleQueryTypedDispatch[Q query.Query, R any](
 // assertion. Hand-rolled Command implementations that do not expose
 // ApplyOptions pass through unchanged (enrichment is skipped, as before).
 type commandOptionApplier interface {
-	ApplyOptions(...command.Option)
+	ApplyOptions(opts ...command.Option)
 }
 
 // queryOptionApplier is the query-side mirror of commandOptionApplier.
 type queryOptionApplier interface {
-	ApplyOptions(...query.Option)
+	ApplyOptions(opts ...query.Option)
 }
 
 // enrichCommandFromContext injects request-scoped metadata (actor ID, user ID,

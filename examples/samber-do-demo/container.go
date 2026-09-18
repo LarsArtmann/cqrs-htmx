@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	gohealth "github.com/larsartmann/go-health"
 	healthdashboard "github.com/larsartmann/go-health-dashboard"
 	doauditlog "github.com/larsartmann/samber-do-auditlog"
@@ -194,7 +194,8 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 		if err := command.RegisterTyped(disp, "Hello",
 			func(_ context.Context, cmd *helloCmd) error {
 				if cmd.Name == "" {
-					return fmt.Errorf("name must not be empty")
+					return errorfamily.NewRejection("samber_do_demo.hello.name_empty",
+						"name must not be empty")
 				}
 				return nil
 			}); err != nil {
