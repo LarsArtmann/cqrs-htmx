@@ -70,8 +70,6 @@ require (
 	github.com/xo/terminfo v1.2.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/net v0.59.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
@@ -156,3 +154,8 @@ retract (
 // bumped to it. Remove before tagging setup (verify-tag.sh refuses family
 // dev-replaces in tagged trees).
 replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
+
+// TEMPORARY family dev-replace until a root tag carrying
+// cqrshtmx.HubReadinessCheck is published and this module's require is
+// bumped to it. Same removal condition as the usermgmt replace above.
+replace github.com/larsartmann/cqrs-htmx/v4 => ../
