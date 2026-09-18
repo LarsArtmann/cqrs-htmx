@@ -54,18 +54,19 @@ func TestCommandMiddleware_ConsumerMiddlewareRunsAndSeesEnrichedCommands(t *test
 		t.Fatalf("ChangeDisplayName: %v", err)
 	}
 
-	if len(order) != 1 || order[0] != "consumer" {
-		t.Errorf("middleware order = %v, want exactly [consumer]", order)
+	if len(order) != 2 || order[0] != "consumer" || order[1] != "consumer" {
+		t.Errorf("middleware order = %v, want [consumer consumer] (register + change)", order)
 	}
 
-	if len(seen) != 1 {
-		t.Fatalf("consumer middleware saw %d commands, want 1", len(seen))
+	if len(seen) < 2 {
+		t.Fatalf("consumer middleware saw %d commands, want >= 2 (register + change)", len(seen))
 	}
 
-	if want := ActorIDFromUser(userID); seen[0].ActorID != want {
+	last := seen[len(seen)-1]
+	if want := ActorIDFromUser(userID); last.ActorID != want {
 		t.Errorf(
-			"consumer middleware saw actor %q, want %q (audit chain must run first)",
-			seen[0].ActorID,
+			"consumer middleware saw actor %q on the last command, want %q (audit chain must run first)",
+			last.ActorID,
 			want,
 		)
 	}

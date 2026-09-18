@@ -150,8 +150,6 @@ github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0 h1:trJNEAwj8Cc+mdrj9Xi
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0/go.mod h1:1snbKSGj4FYoqTddSPcg9yRCo28u7zpIl7jRtq6KLFQ=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.10.0 h1:ga/12MshHwnz2guFzqMn4vVCZqqaiDjDXZC3sx0VP60=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.10.0/go.mod h1:e1aRswRpm8J+d9cGelYkGut7odJ+rGPh7pCDeJEBz5o=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0 h1:vQbu4Dhmbg73uSwDgMFLnCsUfMh+sUTzBFzYPgLMnYs=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0/go.mod h1:n1QzhVQX5oCOxssLqx4RpBmCBOrXDpNHTO0g9N91Glw=
 github.com/larsartmann/cqrs-htmx/v4 v4.9.0 h1:w2iyy/TSzmlYa2TH1KlklZSnRgcbCLXhVE5CS/ESc5Y=
 github.com/larsartmann/cqrs-htmx/v4 v4.9.0/go.mod h1:4gcksTwUE6hBD4F4lG5B0gLg6PLWiQDSr8hXI48FXFw=
 github.com/larsartmann/go-appkit v0.5.1 h1:wAouDWj8SZE575AK/0hJG6ja2lz1JMGuQfBNJez0TKs=
