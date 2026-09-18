@@ -66,7 +66,32 @@ app := cqrshtmx.MustNew(cqrshtmx.Config{Commands: cmdDisp, Queries: qryDisp})
 
 `RetryConfig` and `CircuitBreakerConfig` default to sane values and classify retry/failure via the shared `errorfamily` taxonomy — so a `Transient` error (HTTP 503) is automatically retried, while a `Rejection` (400) is not.
 
-> **⚠️ Published-version hazard:** go-cqrs-lite submodule tags currently have broken zero pseudo-versions (see `AGENTS.md` → "go-cqrs-lite publish bug"). If you are NOT using the local `go.work` replaces, pin `middleware/v4` to `v4.2.0` explicitly and verify `go build` succeeds before committing. The go-cqrs-lite local replaces in this repo's `go.work` are required until upstream cuts a clean consolidated release.
+> **Published-version note:** the historical zero pseudo-version hazard was fixed upstream in August 2026 — all go-cqrs-lite submodule tags carry clean go.mod files now. Pin whatever the latest tag is and verify `go build` as usual.
+
+### Recommended production chain (usermgmt: it's built in)
+
+If you use the `usermgmt` service, you never touch a dispatcher: `NewService` already wires the audit chain (actor, causation, correlation — see AGENTS.md "Audit chain is BUILT-IN"), and your seam is one config field:
+
+```go
+svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+    CommandMiddleware: []command.Middleware{
+        middleware.CommandRecovery(),                            // panic → error, outermost consumer middleware
+        middleware.CommandValidation(usermgmt.ValidateCommand),  // uniform Rejection-family 400s
+        middleware.CommandIdempotency(idemStore, 5*time.Minute, nil), // replay protection
+        middleware.CommandRetry(middleware.DefaultRetryConfig()),     // Transient-only backoff
+        middleware.CommandCircuitBreaker(middleware.DefaultCircuitBreakerConfig()),
+        middleware.CommandMetrics(recorder),                   // optional
+    },
+})
+```
+
+Consumer middleware runs INSIDE the built-in audit chain, so your middleware observes commands already carrying actor metadata. Setup-bundle users pass the same slice through `setup.Config.CommandMiddleware`.
+
+Ordering rationale lives in [`dispatch-middleware-ordering.md`](dispatch-middleware-ordering.md) (recovery outermost; retry inside the breaker; validation before anything that mutates; idempotency before retry so replays don't burn retry budget).
+
+**Idempotency store decision:** `idempotency.NewMemoryStore` is development/test-only (in-process, swept TTL — it is deprecated for production use upstream). For production, implement `idempotency.Store` (`CheckAndRecord(ctx, key, ttl)`) against your SQL database — the contract is one atomic claim — and share the store across replicas so a replay hitting a different node is still deduplicated. HTTP consumers wanting client-driven idempotency keys pass a custom `keyExtractor` that reads the key from command metadata (populated by a decode hook from the `Idempotency-Key` header); commands without a key pass through un-deduped by design. A dispatch-path proof lives in `usermgmt/command_idempotency_test.go`.
+
+**What the built-in chain costs:** the three audit middlewares add roughly 0.3 µs and 14 allocations (~275 ns median delta, 3→17 allocs) per dispatch against a bare dispatcher (see `usermgmt/dispatch_bench_test.go` — `BenchmarkDispatchAuditChain`, benchstat-friendly `b.Loop` + `-count=5`); a full-stack register dispatch through journal + projections lands around 25 µs. Negligible next to the audit trail it buys.
 
 ### Two recovery layers (HTTP vs dispatch)
 

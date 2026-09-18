@@ -59,6 +59,8 @@ cmdDisp.Use(middleware.CommandTypedMetrics(metricsRecorder))                 // 
 cmdDisp.Use(middleware.CommandLogging(logger))                               // 6. innermost — log each attempt
 ```
 
+> **usermgmt users:** you never build this chain from dispatcher scratch — `NewService` wires the audit chain automatically and `ServiceConfig.CommandMiddleware` is the consumer seam (validation, idempotency, retry, breaker, metrics compose in the order you pass them, inside the audit chain). See [`leveraging-go-cqrs-lite.md`](leveraging-go-cqrs-lite.md) §1 "Recommended production chain".
+
 ## Decision flowchart
 
 ```mermaid
