@@ -32,7 +32,15 @@ Files: `sse_broadcaster.go` (`Broadcaster.Raw`, `NewBroadcasterFromRaw`,
   `*sse.Broadcaster[sse.Event]` directly. Both adapters EMBED the hub, so
   `Subscribe`/`SubscribeFilter`/`Close`/`OnSubscribe` promote automatically.
 - **Status:** zero production consumers at deprecation time; test-pinned
-  through v4.
+  through v4. NOTE (2026-09-17): the datastar `Raw()` METHOD was dropped
+  early with the upstream move to `go-datastar/broadcast` (a transparent
+  type alias cannot carry methods) — `datastar/broadcaster.go` now contains
+  the full deprecated facade (`Broadcaster` alias + constructor shims +
+  `NewBroadcasterFromRaw` delegating to `broadcast.NewBroadcasterFromHub`),
+  and the whole facade joins this removal class: at v5 delete
+  `datastar/broadcaster.go`, point every doc/consumer at
+  `github.com/larsartmann/go-datastar/broadcast`, and drop the
+  `go-datastar/broadcast` require (dep budget returns to 5).
 - **Removal criterion:** delete symbols + their tests; guide
   [sse-and-datastar.md](sse-and-datastar.md) already documents only Hub APIs.
 

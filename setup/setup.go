@@ -161,6 +161,7 @@ func resolveServiceConfig(cfg Config) usermgmt.ServiceConfig {
 		Logger:             cfg.Logger,
 		OnProjectionFailed: cfg.OnProjectionFailed,
 		AsyncStartup:       cfg.AsyncStartup,
+		CommandMiddleware:  cfg.CommandMiddleware,
 	}
 	applyObservability(&out.SecurityHooks, cfg.Observability)
 

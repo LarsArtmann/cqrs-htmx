@@ -125,3 +125,15 @@ Nothing unrecoverable. Honest damage list:
 ---
 
 _Report written from session memory per instruction (no fresh repo-wide research). Auto-commit daemon will pick this file up._
+
+---
+
+## ANNOTATED — 2026-09-18 follow-up session (docs + gates finished)
+
+Everything in section c) NOT STARTED plus follow-ups 19-21 and 24 is now DONE:
+
+- **Docs:** `datastar-integration.md` (broadcast imports, dead `NewBroadcasterWithHeartbeat` block replaced with the real 15s comment-frame heartbeat semantics — it never sent `event: ping`), `sse-and-datastar.md` (adapter table, diagram, snippets, deprecated-API table), `fullstack-wiring.md` route-split snippet, root `CHANGELOG.md` [Unreleased]/Changed entry (incl. the setup field spelling note), `AGENTS.md` (module bullet, key-deps, hub-vocabulary + replaces gotchas), `v5-removal-inventory.md` §2 (facade joins the removal class, dep budget back to 5 at v5), comment fixes 19/20/21 (`sse_broadcaster.go` Hub() doc, `setup/bundle.go` field doc, datastar README heartbeat). go-datastar: `docs/architecture.md` (broadcast node in the mermaid + protocol table + "four Go modules") and `ROADMAP.md` theme-2 refresh.
+- **Gates:** coverage-gate PASSED (datastar 100%/90, setup 88.6%/80). cqrs-lint PASSED 13/13 modules. check-modules --report: 7/8 green (isolation, toolchain, release-train [0 unpublished, my 3 replaces + family dev-replace exempt], replace-directives, docs-freshness, docs-links, dep-budgets after justifying datastar 6 and documenting dashboardui 21). Remaining red: version-drift — the CONCURRENT session's active dependency sweep (grew 4→9 drift families while this session ran); left to them.
+- **Discoveries fixed en route (cqrs-lint 4.6.0→4.8.1 tool drift):** V006 now anchors at the require block's first family line (suppression moved); C026 idempotency directive needed first-non-blank-line adjacency (reordered under the nolint); C035 sql_hydrate map is construction-time immutable (suppressed with justification); B024 es_setup bus recovery is the deliberate library-principle seam (suppressed); samber-do-demo `fmt.Errorf` → `errorfamily.NewRejection` (real fix, demo tests green); stale `examples/middleware-showcase/vendor/` re-synced (`go mod vendor` — the httputil v1.2.0 sweep missed it; this alone failed the root cqrs-lint gate via load errors). D005 doc-truth fixed in README ("v4.6.0" token dropped) + AGENTS ("v4.10.0+" token dropped).
+- **go-datastar verified:** `nix flake check` 8/8 (hermetic FOD builds of all 4 modules at the committed tree), docspec compile-checked snippets green, actionlint clean, `nix fmt` clean.
+- **Questions (g) status:** (1) tag/push authorization STILL OPEN — nothing tagged or pushed. (2) setup's 3 golangci findings are exhaustruct_v5-deprecation-era tool drift (golangci 2.13.2), untouched — separate sweep. (3) `Raw()` early removal stands as implemented (documented in CHANGELOG + v5 inventory).

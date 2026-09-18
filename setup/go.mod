@@ -103,7 +103,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect

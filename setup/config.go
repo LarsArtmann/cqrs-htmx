@@ -12,6 +12,7 @@ import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	appkit "github.com/larsartmann/go-appkit"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -364,6 +365,14 @@ type Config struct {
 	// health check at /health so it retries during the catch-up window instead
 	// of returning 502. See docs/guides/async-projection-startup.md.
 	AsyncStartup bool
+
+	// CommandMiddleware is applied to the usermgmt service's internal command
+	// dispatcher (all 20 domain commands), inside the built-in audit chain.
+	// Use the factories from go-cqrs-lite/middleware/v4 — Recovery, Retry,
+	// CircuitBreaker, TypedMetrics, Tracing — to harden the write path.
+	// Nil (the default) keeps the dispatcher bare apart from the audit chain.
+	// See docs/guides/leveraging-go-cqrs-lite.md for a recommended chain.
+	CommandMiddleware []command.Middleware
 
 	// DashboardReadOnly controls whether the CQRS dashboard allows write operations
 	// (projection reset, DLQ replay). Nil = true (safe default). Set to false at your

@@ -49,17 +49,17 @@ mux.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
 
 ## API
 
-| Function                         | Description                                     |
-| -------------------------------- | ----------------------------------------------- |
-| `ScriptHandler()`                | Serve embedded datastar.js with ETag caching    |
-| `ScriptTag(path)`                | HTML `<script type="module">` tag               |
-| `ReadSignals(r, &target)`        | Decode Datastar signals from request            |
-| `NewResponse(w, r)`              | Fluent Datastar SSE response builder            |
-| `ElementsPatch(html, opts...)`   | Create a patch-elements instruction             |
-| `SignalsPatch(signals, opts...)` | Create a patch-signals instruction              |
-| `RemovePatch(selector)`          | Create a remove-element instruction             |
-| `NewEventBridge(broadcaster)`    | Declarative event-to-patch mapping              |
-| `EventBridge.OnError(fn)`        | Callback for handler errors (logging/metrics)   |
+| Function                           | Description                                     |
+| ---------------------------------- | ----------------------------------------------- |
+| `ScriptHandler()`                  | Serve embedded datastar.js with ETag caching    |
+| `ScriptTag(path)`                  | HTML `<script type="module">` tag               |
+| `ReadSignals(r, &target)`          | Decode Datastar signals from request            |
+| `NewResponse(w, r)`                | Fluent Datastar SSE response builder            |
+| `ElementsPatch(html, opts...)`     | Create a patch-elements instruction             |
+| `SignalsPatch(signals, opts...)`   | Create a patch-signals instruction              |
+| `RemovePatch(selector)`            | Create a remove-element instruction             |
+| `NewEventBridge(broadcaster)`      | Declarative event-to-patch mapping              |
+| `EventBridge.OnError(fn)`          | Callback for handler errors (logging/metrics)   |
 | `ErrorResponse(stream, msg, code)` | Send an error as a Datastar notification signal |
 
 Fan-out, reconnection replay, and hub sharing live in
