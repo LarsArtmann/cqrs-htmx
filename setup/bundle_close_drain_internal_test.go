@@ -66,11 +66,8 @@ func TestBundleClose_DrainsQueuedEvents(t *testing.T) {
 func TestBundleClose_DrainTimeoutProceeds(t *testing.T) {
 	t.Parallel()
 
-	origTimeout := sseDrainTimeout
-	sseDrainTimeout = 50 * time.Millisecond
-	t.Cleanup(func() { sseDrainTimeout = origTimeout })
-
 	bundle := newDrainTestBundle(t)
+	bundle.sseDrainTimeout = 50 * time.Millisecond
 	_ = bundle.Broadcaster.Subscribe()
 
 	// Overflow the subscriber buffer (capacity 64) with an unread backlog so

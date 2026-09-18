@@ -18,10 +18,12 @@ import (
 	"github.com/larsartmann/httputil"
 )
 
-// sseDrainTimeout bounds how long [Bundle.Close] waits for the SSE hub to
-// deliver queued events to connected subscribers before falling back to an
-// abrupt close. A package variable so tests can shrink it.
-var sseDrainTimeout = 5 * time.Second //nolint:gochecknoglobals // mutated by bundle_close_drain_internal_test.go for fast drains
+// sseDrainTimeout is the default bound for how long [Bundle.Close] waits for
+// the SSE hub to deliver queued events to connected subscribers before
+// falling back to an abrupt close. Copied per-bundle at construction; tests
+// shrink the Bundle field, never this variable (parallel tests race on
+// package-variable mutation).
+var sseDrainTimeout = 5 * time.Second //nolint:gochecknoglobals // construction-time default for Bundle.sseDrainTimeout
 
 // Bundle is the result of [New] — a fully wired application with all sub-modules connected.
 //
@@ -85,6 +87,11 @@ type Bundle struct {
 
 	// sseDone stops the event-bus → Broadcaster bridge goroutine on Close.
 	sseDone chan struct{}
+
+	// sseDrainTimeout bounds Close's SSE hub drain; copied from the package
+	// default at construction so tests can shrink it per-bundle without
+	// racing parallel tests on the package variable.
+	sseDrainTimeout time.Duration
 
 	// sseStore backs reconnect replay (Last-Event-ID) and initial backfill for
 	// the shared SSE endpoint. Nil when the event store does not implement
@@ -196,7 +203,7 @@ func (b *Bundle) Close() error {
 		// Broadcaster and DataStarBroadcaster share one hub, so a single
 		// shutdown drains both feeds. A timed-out drain falls through to
 		// the abrupt Close below — shutdown never hangs on a slow client.
-		drainCtx, cancelDrain := context.WithTimeout(context.Background(), sseDrainTimeout)
+		drainCtx, cancelDrain := context.WithTimeout(context.Background(), b.sseDrainTimeout)
 		if err := b.Broadcaster.Shutdown(drainCtx); err != nil {
 			logger := b.config.Logger
 			if logger == nil {

@@ -65,10 +65,13 @@ func New(cfg Config) (*Bundle, error) {
 		// composition silently broke every authenticated request — the
 		// dashboard 401 gate still worked and masked it. Caught by the
 		// bundle-level SQL restart contract test (2026-08-30).
-		Auth:        usermgmt.NewAuthHandler(svc, authCfg),
-		Stores:      &Stores{EventStore: store, EventBus: bus},
-		ownsService: ownsService,
-		config:      cfg,
+		Auth:   usermgmt.NewAuthHandler(svc, authCfg),
+		Stores: &Stores{EventStore: store, EventBus: bus},
+		// Per-bundle copy of the drain deadline — immutable after
+		// construction (see Bundle.sseDrainTimeout).
+		sseDrainTimeout: sseDrainTimeout,
+		ownsService:     ownsService,
+		config:          cfg,
 	}
 
 	if err := bundle.attachPanels(store, bus); err != nil {
