@@ -238,7 +238,7 @@ func renderStatGrid(ctx context.Context, stats overviewStats) string {
 			tone = display.StatToneRed
 		case stats.SSEHub.Draining:
 			value = "draining"
-			tone = display.StatToneAmber
+			tone = display.StatToneYellow
 		}
 
 		b.WriteString(
