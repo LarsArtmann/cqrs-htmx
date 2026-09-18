@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -54,7 +55,7 @@ func TestDispatch_EventsCarryActorAndCausation(t *testing.T) {
 	svc := newTestService(t)
 	defer svc.Close() //nolint:errcheck // test cleanup
 
-	reg := registerTestUser(t, svc, "01HXQACT0RAUD1T0000000000", "audit@example.com")
+	reg := registerTestUser(t, svc, GenerateUserID().Get().String(), "audit@example.com")
 	userID := reg.User.ID
 
 	user, err := svc.GetUser(context.Background(), userID)
@@ -105,7 +106,7 @@ func TestDispatch_CorrelationIDPropagatesToEventMetadata(t *testing.T) {
 	svc := newTestService(t)
 	defer svc.Close() //nolint:errcheck // test cleanup
 
-	reg := registerTestUser(t, svc, "01HXQACT0RAUD1T0000000001", "corr@example.com")
+	reg := registerTestUser(t, svc, GenerateUserID().Get().String(), "corr@example.com")
 	userID := reg.User.ID
 
 	cid := cqrshtmx.NewCorrelationID()
@@ -136,7 +137,7 @@ func TestDispatch_ConsumerActorWins(t *testing.T) {
 	svc := newTestService(t)
 	defer svc.Close() //nolint:errcheck // test cleanup
 
-	reg := registerTestUser(t, svc, "01HXQACT0RAUD1T0000000002", "explicit@example.com")
+	reg := registerTestUser(t, svc, GenerateUserID().Get().String(), "explicit@example.com")
 	userID := reg.User.ID
 
 	user, err := svc.GetUser(context.Background(), userID)
@@ -171,7 +172,7 @@ func TestDispatch_UnauthenticatedContextStillRecordsCausation(t *testing.T) {
 	svc := newTestService(t)
 	defer svc.Close() //nolint:errcheck // test cleanup
 
-	reg := registerTestUser(t, svc, "01HXQACT0RAUD1T0000000003", "anon@example.com")
+	reg := registerTestUser(t, svc, GenerateUserID().Get().String(), "anon@example.com")
 	userID := reg.User.ID
 
 	if err := svc.ChangeDisplayName(t.Context(), userID, "Anonymous Cause"); err != nil {
@@ -200,11 +201,11 @@ func TestCommandOptionApplier_SatisfiedByDomainCommands(t *testing.T) {
 	t.Parallel()
 
 	commands := []command.Command{
-		NewRegisterUserCmd(GenerateStreamID(), "applier@example.com", "Applier", nil),
-		NewChangeEmailCmd(GenerateStreamID(), "applier@example.com"),
-		NewChangeDisplayNameCmd(GenerateStreamID(), "Applier"),
-		NewDeleteUserCmd(GenerateStreamID(), "test"),
-		NewVerifyEmailCmd(GenerateStreamID()),
+		NewRegisterUserCmd(id.NewStreamID(), "applier@example.com", "Applier", nil),
+		NewChangeEmailCmd(id.NewStreamID(), "applier@example.com"),
+		NewChangeDisplayNameCmd(id.NewStreamID(), "Applier"),
+		NewDeleteUserCmd(id.NewStreamID(), "test"),
+		NewVerifyEmailCmd(id.NewStreamID()),
 	}
 
 	for i, cmd := range commands {
