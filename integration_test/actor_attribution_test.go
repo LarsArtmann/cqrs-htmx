@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
@@ -53,7 +54,7 @@ func TestActorAttribution_VisibleInAuditViews(t *testing.T) {
 	// exactly what the session middleware produces for authenticated calls.
 	ctx := context.Background()
 	reg, err := svc.Register(ctx, usermgmt.RegisterRequest{
-		ID:    usermgmt.GenerateUserID(),
+		ID:    identitymodel.GenerateUserID(),
 		Email: "attribution@example.com",
 	})
 	require.NoError(t, err)
@@ -66,7 +67,7 @@ func TestActorAttribution_VisibleInAuditViews(t *testing.T) {
 		t.Fatalf("ChangeDisplayName: %v", err)
 	}
 
-	wantActor := usermgmt.ActorIDFromUser(userID)
+	wantActor := identitymodel.ActorIDFromUser(userID)
 	require.False(t, wantActor.IsZero(), "actor under test must be non-zero")
 
 	aggID, err := id.ParseStreamID(userID.Get().String())
@@ -87,16 +88,7 @@ func TestActorAttribution_VisibleInAuditViews(t *testing.T) {
 	require.NotEmpty(t, displayChangedID, "DisplayNameChanged event not found on stream")
 
 	// Surface 1: usermgmt AuditLog entries carry the actor.
-	found := false
-
-	for _, entry := range auditLog.EntriesFor(aggID) {
-		if entry.ActorID == wantActor {
-			found = true
-
-			break
-		}
-	}
-	require.True(t, found, "no audit entry carries actor %s", wantActor.PrefixedString())
+	requireAuditEntryWithActor(t, auditLog, aggID, wantActor)
 
 	// Surface 2: dashboardui event detail renders the actor.
 	handler := dash.Handler()
@@ -110,4 +102,18 @@ func TestActorAttribution_VisibleInAuditViews(t *testing.T) {
 		wantActor.PrefixedString(),
 		"dashboard event detail must render the acting user's actor ID",
 	)
+}
+
+// requireAuditEntryWithActor asserts the usermgmt audit surface of the
+// attribution chain: at least one audit entry for the stream carries the
+// expected actor.
+func requireAuditEntryWithActor(t *testing.T, auditLog *usermgmt.AuditLog, aggID id.StreamID, wantActor id.ActorID) {
+	t.Helper()
+
+	for _, entry := range auditLog.EntriesFor(aggID) {
+		if entry.ActorID == wantActor {
+			return
+		}
+	}
+	t.Errorf("no audit entry carries actor %s", wantActor.PrefixedString())
 }

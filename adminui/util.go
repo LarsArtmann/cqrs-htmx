@@ -104,11 +104,3 @@ func roleSelectOptions(assignable []identitymodel.Role, current []identitymodel.
 	}
 	return opts
 }
-
-// navBg returns the CSS background value for a nav item based on active state.
-func navBg(active bool) string {
-	if active {
-		return "var(--accent)"
-	}
-	return "transparent"
-}

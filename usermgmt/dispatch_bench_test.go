@@ -35,6 +35,7 @@ func BenchmarkDispatchAuditChain(b *testing.B) {
 }
 
 func benchNullDispatch(b *testing.B, withChain bool) {
+	b.Helper()
 	dispatcher := command.NewDispatcher()
 	if withChain {
 		dispatcher.Use(commandAuditMiddleware()...)
@@ -61,6 +62,7 @@ func benchNullDispatch(b *testing.B, withChain bool) {
 }
 
 func benchFullStackRegister(b *testing.B) {
+	b.Helper()
 	svc, err := NewService(ServiceConfig{})
 	if err != nil {
 		b.Fatalf("NewService: %v", err)
