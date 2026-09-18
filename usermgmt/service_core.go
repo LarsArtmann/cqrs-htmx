@@ -175,6 +175,16 @@ type ServiceConfig struct {
 	// every Load — zero behavior change. See SnapshotConfig for usage.
 	SnapshotConfig
 
+	// CommandMiddleware is applied to the internal command dispatcher for
+	// every dispatched usermgmt command (all 20 domain commands). It runs
+	// INSIDE the built-in audit chain (enrichment, actor context, causation),
+	// so consumer middleware sees fully enriched commands. Use the factories
+	// from go-cqrs-lite/middleware/v4 (Recovery, Retry, CircuitBreaker,
+	// TypedMetrics, Tracing, ...) — see docs/guides/leveraging-go-cqrs-lite.md
+	// for a recommended production chain. Nil (the default) keeps the
+	// dispatcher bare apart from the audit chain — backward compatible.
+	CommandMiddleware []command.Middleware
+
 	// TokenPepper is the server-side secret used for HMAC-SHA256 bot token hashing.
 	// Required for bot registration and API token authentication. Set this to a
 	// 32+ byte random value that is stored outside the database (e.g., in a
@@ -330,6 +340,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 
 	dispatcher := command.NewDispatcher()
 	dispatcher.Use(commandAuditMiddleware()...)
+	dispatcher.Use(config.CommandMiddleware...)
 	if err := RegisterCommands(dispatcher, setup.Repository); err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.command.register", "register commands").WithCause(err)
 	}
