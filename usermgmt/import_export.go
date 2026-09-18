@@ -140,6 +140,13 @@ func (s *Service) ImportUsersFromCSV(ctx context.Context, r io.Reader) (*ImportR
 }
 
 func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportResult, error) {
+	if s.maxUsers > 0 {
+		// Hold the shared registration lock for the whole batch so concurrent
+		// Register/OAuth2 flows see the updated count once this returns
+		// (importUsers bypassing the gate was the registration-lock hole #3).
+		s.registrationMu.Lock()
+		defer s.registrationMu.Unlock()
+	}
 	result := &ImportResult{Errors: []string{}, Imported: 0, Skipped: 0}
 	for i := range users {
 		if err := users[i].Validate(); err != nil {
@@ -149,6 +156,12 @@ func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportR
 		}
 		if _, ok := s.readModel.FindByEmail(users[i].Email); ok {
 			result.Skipped++
+			continue
+		}
+		if s.maxUsers > 0 && s.readModel.Count() >= s.maxUsers {
+			result.Skipped++
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("%s: registration is closed", users[i].Email))
 			continue
 		}
 

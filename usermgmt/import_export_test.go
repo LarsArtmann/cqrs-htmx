@@ -168,3 +168,41 @@ func TestImportExport_CSVWithFlexibleHeaders(t *testing.T) {
 		t.Errorf("display_name = %q, want %q", user.DisplayName, "Flexible User")
 	}
 }
+
+func TestImportUsers_RespectsMaxUsers(t *testing.T) {
+	svc := newTestServiceWithConfig(t, ServiceConfig{Authz: newTestAuthz(t), MaxUsers: 2})
+	ctx := context.Background()
+
+	first, err := json.Marshal([]ImportUser{
+		{Email: "cap1@test.com", DisplayName: "Cap One"},
+		{Email: "cap2@test.com", DisplayName: "Cap Two"},
+	})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	result, err := svc.ImportUsersFromJSON(ctx, bytes.NewReader(first))
+	if err != nil {
+		t.Fatalf("ImportUsersFromJSON: %v", err)
+	}
+	if result.Imported != 2 {
+		t.Errorf("imported = %d, want 2", result.Imported)
+	}
+
+	second, err := json.Marshal([]ImportUser{{Email: "cap3@test.com", DisplayName: "Cap Three"}})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	result, err = svc.ImportUsersFromJSON(ctx, bytes.NewReader(second))
+	if err != nil {
+		t.Fatalf("ImportUsersFromJSON over cap: %v", err)
+	}
+	if result.Imported != 0 || result.Skipped != 1 {
+		t.Errorf("imported = %d, skipped = %d, want 0/1", result.Imported, result.Skipped)
+	}
+	if len(result.Errors) != 1 || !strings.Contains(result.Errors[0], "registration is closed") {
+		t.Errorf("errors = %v, want a registration-closed message", result.Errors)
+	}
+	if _, ok := svc.readModel.FindByEmail("cap3@test.com"); ok {
+		t.Error("user beyond MaxUsers must not be registered")
+	}
+}
