@@ -21,6 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
 	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/larsartmann/httputil v1.2.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0
 	modernc.org/sqlite v1.58.0
@@ -88,7 +89,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-retry v0.5.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
