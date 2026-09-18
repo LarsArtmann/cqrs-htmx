@@ -48,7 +48,8 @@ func TestCommandValidation_WiredViaCommandMiddleware(t *testing.T) {
 
 	// Oversized display name: same treatment.
 	long := strings.Repeat("x", maxDisplayNameLength+1)
-	if err := svc.dispatcher.Dispatch(t.Context(), NewRegisterUserCmd(aggID, "valid@example.com", long, nil)); !errors.Is(err, ErrValidation) {
+	err = svc.dispatcher.Dispatch(t.Context(), NewRegisterUserCmd(aggID, "valid@example.com", long, nil))
+	if !errors.Is(err, ErrValidation) {
 		t.Errorf("oversized display name error = %v, want ErrValidation", err)
 	}
 

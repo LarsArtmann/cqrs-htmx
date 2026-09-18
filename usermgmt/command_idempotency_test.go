@@ -19,6 +19,7 @@ import (
 func TestCommandMiddleware_IdempotencyShortCircuitsDuplicateCommandID(t *testing.T) {
 	t.Parallel()
 
+	//nolint:staticcheck // SA1019: MemoryStore is deprecated for production use; tests are its sanctioned scope.
 	store := idempotency.NewMemoryStore(time.Minute)
 
 	svc := newTestServiceWithConfig(t, ServiceConfig{
