@@ -53,7 +53,7 @@ func TestOverview_SSEHubCardReflectsSubscribers(t *testing.T) {
 	grid := renderStatGrid(context.Background(), stats)
 
 	if !strings.Contains(grid, `id="stat-sse-hub"`) {
-		t.Errorf("overview grid missing SSE hub card\ncard grid:\n%s", grid)
+		t.Errorf("overview grid missing the SSE hub card\nrendered grid:\n%s", grid)
 	}
 
 	if !strings.Contains(grid, ">1 <") {
