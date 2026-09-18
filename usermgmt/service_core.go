@@ -521,6 +521,11 @@ func (s *Service) GracefulClose(ctx context.Context) error {
 // closeInfra closes the bus and store if they implement io.Closer.
 // Returns the first error encountered.
 func (s *Service) closeInfra() error {
+	if s.dispatcher != nil {
+		if err := s.dispatcher.Close(); err != nil {
+			return errorfamily.WrapTransient(err, "usermgmt.service.close_dispatcher", "close command dispatcher")
+		}
+	}
 	if s.projectionHost != nil {
 		if err := s.projectionHost.Stop(); err != nil {
 			slog.Warn(
