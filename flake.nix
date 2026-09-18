@@ -594,8 +594,8 @@
             build-adminui-css = {
               type = "app";
               meta.description = "Compile adminui Tailwind v4 CSS (tailwind.css → assets/admin-tw.css)";
-              program = pkgs.writeShellApplication {
-                name = "build-adminui-css";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "build-adminui-css";
                 runtimeInputs = [
                   pkgs.tailwindcss_4
                   goPkg
@@ -634,14 +634,14 @@
                   [ -n "''${SCAN_DIR:-}" ] && rm -rf "$SCAN_DIR"
                   echo "Done: adminui/assets/admin-tw.css"
                 '';
-              };
+              });
             };
 
             build-dashboardui-css = {
               type = "app";
               meta.description = "Compile dashboardui Tailwind v4 CSS (tailwind.css → assets/dashboard-tw.css)";
-              program = pkgs.writeShellApplication {
-                name = "build-dashboardui-css";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "build-dashboardui-css";
                 runtimeInputs = [
                   pkgs.tailwindcss_4
                   goPkg
@@ -734,14 +734,14 @@
                   done
                   echo "Done: dashboardui/assets/dashboard-tw.css ($(wc -c < assets/dashboard-tw.css) bytes, canaries OK)"
                 '';
-              };
+              });
             };
 
             gen = {
               type = "app";
               meta.description = "Regenerate adminui + loginpage templ components (module-dir generation is canonical) and normalize formatting";
-              program = pkgs.writeShellApplication {
-                name = "templ-generate";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "templ-generate";
                 runtimeInputs = [
                   goPkg
                   pkgs.templ
@@ -751,14 +751,14 @@
                   (cd loginpage && templ generate && gofmt -w ./*_templ.go)
                   echo "Done: adminui + loginpage templ components regenerated (module-dir, bare FileName) and formatted"
                 '';
-              };
+              });
             };
 
             render-diagrams = {
               type = "app";
               meta.description = "Render all .d2 source files under docs/ to SVG (dark canvas → theme 200, light → default)";
-              program = pkgs.writeShellApplication {
-                name = "render-diagrams";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "render-diagrams";
                 runtimeInputs = [ pkgs.d2 ];
                 text = ''
                   shopt -s nullglob
@@ -780,14 +780,14 @@
                     exit 1
                   fi
                 '';
-              };
+              });
             };
 
             errorfamily = {
               type = "app";
               meta.description = "Verify all errors use go-error-family constructors (no stdlib errors.New/fmt.Errorf/errors.Join)";
-              program = pkgs.writeShellApplication {
-                name = "check-errorfamily";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-errorfamily";
                 runtimeInputs = [ pkgs.go ];
                 text = ''
                   # Root + usermgmt + adminui + identity-model + dashboardui + loginpage + datastar:
@@ -821,14 +821,14 @@
 
                   echo "All modules pass errorfamily check."
                 '';
-              };
+              });
             };
 
             check-modules = {
               type = "app";
               meta.description = "Run all module architecture checks (isolation, dep budgets, version drift, release train, replaces, docs). Default: abort at first red. --report: run every stage and print a red/green summary (exit 1 if any failed)";
-              program = pkgs.writeShellApplication {
-                name = "check-modules";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-modules";
                 runtimeInputs = [ goPkg ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
@@ -874,27 +874,27 @@
                   echo ""
                   echo "✓ All module architecture checks passed"
                 '';
-              };
+              });
             };
 
             check-docs-freshness = {
               type = "app";
               meta.description = "Scan .md files for version strings that don't match go.mod";
-              program = pkgs.writeShellApplication {
-                name = "check-docs-freshness";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-docs-freshness";
                 runtimeInputs = [ goPkg ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-docs-freshness.sh
                 '';
-              };
+              });
             };
 
             check-docs-links = {
               type = "app";
               meta.description = "Check all markdown file-path links resolve correctly";
-              program = pkgs.writeShellApplication {
-                name = "check-docs-links";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-docs-links";
                 runtimeInputs = [
                   pkgs.findutils
                   pkgs.gnugrep
@@ -903,14 +903,14 @@
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-docs-links.sh
                 '';
-              };
+              });
             };
 
             check-release-train = {
               type = "app";
               meta.description = "Verify every internal require resolves to a PUBLISHED tag; list train-lag for the next family train (forwards flags: --json, --strict-lag N, --no-cache, --refresh-cache)";
-              program = pkgs.writeShellApplication {
-                name = "check-release-train";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-release-train";
                 runtimeInputs = [
                   pkgs.git
                   pkgs.coreutils
@@ -922,27 +922,27 @@
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-release-train.sh "$@"
                 '';
-              };
+              });
             };
 
             check-go-toolchain = {
               type = "app";
               meta.description = "Fail when go.work's go directive is newer than the flake's nixpkgs Go toolchain";
-              program = pkgs.writeShellApplication {
-                name = "check-go-toolchain";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-go-toolchain";
                 runtimeInputs = [ goPkg ];
                 text = ''
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-go-toolchain.sh
                 '';
-              };
+              });
             };
 
             check-codegen = {
               type = "app";
               meta.description = "Verify adminui + loginpage _templ.go files match .templ sources (no codegen drift; module-dir generation is canonical)";
-              program = pkgs.writeShellApplication {
-                name = "check-codegen";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-codegen";
                 runtimeInputs = [
                   goPkg
                   pkgs.templ
@@ -960,19 +960,19 @@
                   done
                   echo "Codegen drift check PASSED"
                 '';
-              };
+              });
             };
 
             check-templates = {
               type = "app";
               meta.description = "Verify //go:build ignore SQL setup template files compile (sqlite/postgres/mysql)";
-              program = pkgs.writeShellApplication {
-                name = "check-templates";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-templates";
                 runtimeInputs = [ goPkg ];
                 text = ''
                   bash scripts/check-templates.sh
                 '';
-              };
+              });
             };
 
             coverage-gate = goApp {
@@ -1023,20 +1023,20 @@
             release-checklist = {
               type = "app";
               meta.description = "Pre-release verification: CHANGELOG, versions, builds, git status";
-              program = pkgs.writeShellApplication {
-                name = "release-checklist";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "release-checklist";
                 runtimeInputs = [ goPkg ];
                 text = ''
                   bash scripts/release-checklist.sh
                 '';
-              };
+              });
             };
 
             e2e = {
               type = "app";
               meta.description = "Run Playwright E2E tests (offline sync) against the local Go test server";
-              program = pkgs.writeShellApplication {
-                name = "e2e";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "e2e";
                 runtimeInputs = [
                   goPkg
                   pkgs.nodejs
@@ -1099,14 +1099,14 @@
                     exit 1
                   fi
                 '';
-              };
+              });
             };
 
             check-require-tags = {
               type = "app";
               meta.description = "Detect zero pseudo-versions + verify every internal require resolves to a PUBLISHED tag (strict locally, advisory under CI)";
-              program = pkgs.writeShellApplication {
-                name = "check-require-tags";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-require-tags";
                 runtimeInputs = [
                   pkgs.ripgrep
                   pkgs.git
@@ -1115,28 +1115,28 @@
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-require-tags.sh
                 '';
-              };
+              });
             };
 
             check-phantom-version = {
               type = "app";
               meta.description = "DEPRECATED name for check-require-tags (the gate enforces tag existence now, not just pseudo-versions)";
-              program = pkgs.writeShellApplication {
-                name = "check-phantom-version";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-phantom-version";
                 runtimeInputs = [ pkgs.git ];
                 text = ''
                   echo "check-phantom-version is deprecated; run .#check-require-tags (the gate enforces tag existence now, not just pseudo-versions)" >&2
                   cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                   bash scripts/check-require-tags.sh
                 '';
-              };
+              });
             };
 
             check-cqrs-lint = {
               type = "app";
               meta.description = "Run cqrs-lint --strict on all workspace modules";
-              program = pkgs.writeShellApplication {
-                name = "check-cqrs-lint";
+              program = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "check-cqrs-lint";
                 text = ''
                   set -euo pipefail
                   # GOWORK=off: load each module from its own go.mod (published tags
@@ -1160,7 +1160,7 @@
                     exit 1
                   fi
                 '';
-              };
+              });
             };
           };
         };
