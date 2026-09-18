@@ -11,6 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0
@@ -48,6 +49,7 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
@@ -63,6 +65,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.11.0 // indirect
+	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -86,6 +89,7 @@ require (
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
+	github.com/larsartmann/go-retry v0.5.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect

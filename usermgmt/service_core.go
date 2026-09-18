@@ -329,6 +329,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 	}
 
 	dispatcher := command.NewDispatcher()
+	dispatcher.Use(commandAuditMiddleware()...)
 	if err := RegisterCommands(dispatcher, setup.Repository); err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.command.register", "register commands").WithCause(err)
 	}

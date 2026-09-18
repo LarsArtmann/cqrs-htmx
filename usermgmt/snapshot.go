@@ -80,14 +80,27 @@ func snapshotOptions[State any](config SnapshotConfig) []decider.RepositoryOptio
 }
 
 // repositoryOptions builds the full decider.RepositoryOption list: snapshot
-// options (if configured) plus a best-effort state cache. The state cache
-// eliminates full event replay on every Execute when a hot entry exists
-// (O(new events) instead of O(total events)). It is best-effort: a cache miss
-// falls back to the normal load path. The decider repository auto-invalidates
-// cache entries after writes, so consistency is preserved.
+// options (if configured), a best-effort state cache, and the audit-trail
+// enricher. The state cache eliminates full event replay on every Execute
+// when a hot entry exists (O(new events) instead of O(total events)); it is
+// best-effort: a cache miss falls back to the normal load path. The decider
+// repository auto-invalidates cache entries after writes, so consistency is
+// preserved.
+//
+// The enricher stamps every emitted event with the actor from the handler
+// context (event.ActorEnricher) and the command that caused it
+// (event.CommandCausalityEnricher). Paired with the dispatcher's audit
+// middleware chain (see commandAuditMiddleware), this is what makes usermgmt
+// events carry "who" and "which command" without consumer wiring.
 func repositoryOptions[State any](config SnapshotConfig) []decider.RepositoryOption[State] {
 	opts := snapshotOptions[State](config)
-	return append(opts, decider.WithStateCache[State](decider.NewStateCache[State](0)))
+	return append(opts,
+		decider.WithStateCache[State](decider.NewStateCache[State](0)),
+		decider.WithEnricher[State](event.CompositeEnricher(
+			event.ActorEnricher,
+			event.CommandCausalityEnricher,
+		)),
+	)
 }
 
 // MemorySnapshotStore is an in-process snapshot.SnapshotStore for development
