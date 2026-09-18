@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-error-family/errorfamily"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TestClose_PostCloseDispatchReturnsClosedError proves Service.Close closes
@@ -36,12 +36,19 @@ func TestClose_PostCloseDispatchReturnsClosedError(t *testing.T) {
 	if !errors.As(err, &famErr) {
 		t.Fatalf("post-close dispatch error is not an errorfamily.Error: %v", err)
 	}
-	if famErr.ErrorFamily() != errorfamily.FamilyInfrastructure {
+	// classifyDispatchError deliberately re-families dispatch-path failures as
+	// Transient (see service_register.go) — the closed sentinel survives as the
+	// CAUSE, which is what consumers check to distinguish shutdown from
+	// infrastructure faults.
+	if famErr.ErrorFamily() != errorfamily.Transient {
 		t.Errorf(
-			"post-close dispatch family = %s, want %s",
+			"post-close dispatch family = %s, want %s (dispatch-path classification policy)",
 			famErr.ErrorFamily(),
-			errorfamily.FamilyInfrastructure,
+			errorfamily.Transient,
 		)
+	}
+	if !errors.Is(famErr.Unwrap(), command.ErrDispatcherClosed) {
+		t.Errorf("errorfamily cause = %v, want command.ErrDispatcherClosed", famErr.Unwrap())
 	}
 }
 
