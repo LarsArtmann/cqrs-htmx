@@ -108,7 +108,12 @@ func requireAuditEntryWithActor(t *testing.T, auditLog *usermgmt.AuditLog, aggID
 
 // requireDashboardEventRendersActor asserts the dashboardui surface of the
 // attribution chain: the /events/{id} detail page renders the expected actor.
-func requireDashboardEventRendersActor(t *testing.T, dash *dashboardui.Dashboard, eventID string, wantActor id.ActorID) {
+func requireDashboardEventRendersActor(
+	t *testing.T,
+	dash *dashboardui.Dashboard,
+	eventID string,
+	wantActor id.ActorID,
+) {
 	t.Helper()
 
 	handler := dash.Handler()
