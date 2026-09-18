@@ -899,6 +899,33 @@
           </div>
         </header>
 
+        <!-- Verification update 2026-09-18 -->
+        <div
+          class="callout callout-teal"
+          style="margin-top: 24px"
+        >
+          <strong>Verification update &middot; 2026-09-18</strong>
+          This report's three weak evidences are now proven, and its headline
+          findings are fixed. Evidence: (1) the 20/20 command bijection is
+          enforced by <code>scripts/check-command-bijection.sh</code> (both
+          directions, exit 0); (2) the middleware grep was re-run at correct
+          paths &mdash; 0 library call sites confirmed; (3) every API the
+          snippets use is verified against the published module cache
+          (middleware v4.6.0 <code>CommandActorContext</code>, event v4.11.0
+          <code>ActorEnricher</code>/<code>CommandCausalityEnricher</code>/<code>CompositeEnricher</code>,
+          decider v4.6.0 <code>WithEnricher</code>, command v4.10.0
+          <code>ApplyOptions</code>). Findings 1&ndash;3 (audit chain) are
+          implemented in <code>usermgmt/audit_context.go</code> +
+          <code>usermgmt/snapshot.go</code> (actor, causation, and correlation
+          now flow end-to-end; e2e cover in
+          <code>integration_test/actor_attribution_test.go</code>), finding-4
+          exposure landed as <code>ServiceConfig.CommandMiddleware</code>
+          (2026-09-18 session). The 62/100 score describes the pre-wiring
+          state. A v2-era predecessor report
+          (<code>docs/research/go-cqrs-lite-feature-audit.html</code>, 2026-06-14)
+          is cross-linked and annotated with the same status.
+        </div>
+
         <!-- Scorecard -->
         <section id="scorecard" class="scorecard">
           <div class="score-card score-warn">

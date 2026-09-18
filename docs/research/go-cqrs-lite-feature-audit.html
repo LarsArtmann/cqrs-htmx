@@ -558,6 +558,37 @@
       </div>
     </header>
 
+    <!-- ═══════════════════ SUPERSESSION NOTICE (added 2026-09-18) ═══════════════════ -->
+    <div class="container" style="padding-top: 16px">
+      <div class="callout warning">
+        <div class="callout-title">Superseded in part — v2-era report (2026-06-14)</div>
+        <p>
+          This audit examined go-cqrs-lite <strong>v2.3.x</strong> against
+          cqrs-htmx <strong>v2</strong>. The library is now on the v4 per-module
+          trains (command/v4 v4.10.0, event/v4 v4.11.0, middleware/v4 v4.6.0) with 27
+          modules; module counts and symbol tables below are historical. Gap
+          resolution as of 2026-09-18:
+        </p>
+        <p style="margin-bottom: 0">
+          <strong>Fixed:</strong> #1 typed handlers (<code>RegisterTyped</code> 20/20,
+          enforced by <code>scripts/check-command-bijection.sh</code>) · #2 dispatcher
+          middleware (<code>ServiceConfig.CommandMiddleware</code>) · #5
+          <code>errorfamily.NewConflict/NewCorruption</code> · #6 event-bus→SSE bridge
+          (<code>Broadcaster</code>/<code>JournalSSEStore</code>/<code>transport.ServeDomainEvents</code>) ·
+          #7 CausationID (<code>event.CommandCausalityEnricher</code>) · #8
+          ContextEnricher (<code>CompositeEnricher</code> chain in
+          <code>usermgmt/audit_context.go</code>).<br />
+          <strong>Still open</strong> (routed to TODO_LIST): #3 IP/User-Agent → event
+          metadata, #4 Retry-After for transient errors, #9 offline ClientID
+          propagation, #10/#11 low-priority API exposure.<br />
+          <strong>Successor:</strong>
+          <code>docs/research/2026-09-17_go-cqrs-lite-command-deep-dive.html</code>
+          (v4-era command-side audit, evidence-verified and findings implemented
+          2026-09-18).
+        </p>
+      </div>
+    </div>
+
     <!-- ═════════════════════════════ NAV ═════════════════════════════ -->
     <nav>
       <div class="container">
