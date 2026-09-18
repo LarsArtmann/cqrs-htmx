@@ -9,7 +9,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$REPO_ROOT"
+cd "$REPO_ROOT" || exit 1
 
 # Dependency budgets per module.
 # Key = module directory, Value = max direct production deps (excluding test-only).
@@ -48,13 +48,16 @@ for mod in "${!DEP_BUDGET[@]}"; do
   # Count direct require entries (exclude replace and retract blocks)
   # Also exclude indirect deps (marked with // indirect)
   # Handles both require ( ... ) blocks and single-line require statements
-  dep_count=$(cd "$mod_path" && awk '
+  dep_count=$(
+    cd "$mod_path" || exit 1
+    awk '
         /^require \(/ { in_req=1; next }
         /^\)/ { in_req=0 }
         in_req && /^\t/ && !/\/\/ indirect/ { count++ }
         /^require [^(]/ && !/\/\/ indirect/ { count++ }
         END { print count+0 }
-    ' go.mod)
+    ' go.mod
+  )
 
   echo -n "  $module_name: $dep_count deps (budget: $budget) ... "
 

@@ -14,7 +14,7 @@
 
 set -uo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 
 constants_file="identity-model/constants.go"
 dispatch_files=(usermgmt/es_dispatch.go usermgmt/es_tenant_dispatch.go usermgmt/es_membership_dispatch.go usermgmt/es_bot_dispatch.go)
