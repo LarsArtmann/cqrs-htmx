@@ -350,6 +350,12 @@ http.ListenAndServe(":8080", cqrshtmx.Chain(
 
 Read `references/usermgmt.md` for: the full setup matrix (in-memory / SQLite / Postgres / event signing), enabling WebAuthn/OAuth2/TOTP/email-verification, role & tenant management, and the `Service` write/read API.
 
+**Per-module command posture (who owns the dispatcher?):**
+- **root**: YOU build the dispatcher and hand it to `Config.Commands` — `dispatcher.Use(...)` your middleware before `MustNew` (ordering: `docs/guides/dispatch-middleware-ordering.md`).
+- **usermgmt**: `NewService` owns the dispatcher and ALREADY wires the audit chain (actor + causation + correlation on every event, zero config). Your seam is `ServiceConfig.CommandMiddleware` (retry, breaker, idempotency, validation via the shipped `usermgmt.ValidateCommand`, metrics). Do NOT reach for the dispatcher — it is deliberately not exposed.
+- **setup**: same seam via `setup.Config.CommandMiddleware` (flattens to the service).
+Full recipes + measured chain cost: `docs/guides/leveraging-go-cqrs-lite.md` §1.
+
 ## Path C -- add the ready-made admin dashboard (adminui)
 
 ```go
