@@ -108,6 +108,7 @@ func TestEnrichQueryFromContext_EmbeddedWrapperIsEnriched(t *testing.T) {
 	if err != nil {
 		t.Fatalf("query.New: %v", err)
 	}
+
 	qry := &wrappedQuery{BasicQuery: basic, filter: "all"}
 
 	ctx := WithActorID(t.Context(), actorForTest(t, "user:01JXQWRAPPERTEST00000000"))
@@ -158,6 +159,7 @@ func TestCommandPipeline_EnrichesEmbeddedWrapper(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/wrapped", strings.NewReader(`{}`))
 	req.Header.Set("Content-Type", "application/json")
+
 	w := httptest.NewRecorder()
 
 	outer(mux).ServeHTTP(w, req)
@@ -165,6 +167,7 @@ func TestCommandPipeline_EnrichesEmbeddedWrapper(t *testing.T) {
 	if w.Code != http.StatusNoContent {
 		t.Fatalf("POST /wrapped status = %d, want 204", w.Code)
 	}
+
 	if gotActor != actor {
 		t.Errorf("handler saw actor %q, want %q (wrapper command must be enriched)", gotActor, actor)
 	}

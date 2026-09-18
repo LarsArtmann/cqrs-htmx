@@ -19,7 +19,6 @@ func assetHandler(name, contentType string) http.Handler {
 	data, err := fs.ReadFile(sub, name)
 	if err != nil {
 		// Guarded by go:embed at compile time; unreachable.
-		//cqrs-lint:ignore(B024) missing embedded assets are a build-time defect (go:embed fails the compile), not a runtime condition — a handler cannot meaningfully recover from its own binary being wrong
 		panic("dashboardui: missing embedded asset " + name)
 	}
 
