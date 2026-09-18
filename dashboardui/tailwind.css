@@ -28,26 +28,26 @@
    --accent override) to Tailwind utility classes so both `bg-blue-600`
    and `var(--accent)` produce the same color in light and dark mode. */
 @theme {
-	--color-blue-600: var(--accent);
-	--color-blue-500: color-mix(in srgb, var(--accent) 85%, white);
+  --color-blue-600: var(--accent);
+  --color-blue-500: color-mix(in srgb, var(--accent) 85%, white);
 
-	--color-gray-50: var(--surface-hover);
-	--color-gray-100: var(--bg);
-	--color-gray-200: var(--border);
-	--color-gray-300: var(--border);
-	--color-gray-400: var(--muted);
-	--color-gray-500: var(--muted);
-	--color-gray-600: var(--muted);
-	--color-gray-700: var(--muted);
-	--color-gray-800: var(--text);
-	--color-gray-900: var(--text);
+  --color-gray-50: var(--surface-hover);
+  --color-gray-100: var(--bg);
+  --color-gray-200: var(--border);
+  --color-gray-300: var(--border);
+  --color-gray-400: var(--muted);
+  --color-gray-500: var(--muted);
+  --color-gray-600: var(--muted);
+  --color-gray-700: var(--muted);
+  --color-gray-800: var(--text);
+  --color-gray-900: var(--text);
 
-	--color-green-600: var(--ok);
-	--color-green-500: var(--ok);
-	--color-red-600: var(--err);
-	--color-red-500: var(--err);
-	--color-yellow-600: var(--warn);
-	--color-amber-600: var(--warn);
+  --color-green-600: var(--ok);
+  --color-green-500: var(--ok);
+  --color-red-600: var(--err);
+  --color-red-500: var(--err);
+  --color-yellow-600: var(--warn);
+  --color-amber-600: var(--warn);
 }
 
 /* ---------- templ-components CSS bridge ---------- */
@@ -56,5 +56,5 @@
    adopted cards/tables match the theme in both modes (adminui pattern).
    dashboardui's own renderers never use the class bg-white directly. */
 .bg-white {
-	background-color: var(--surface);
+  background-color: var(--surface);
 }

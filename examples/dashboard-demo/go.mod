@@ -21,7 +21,7 @@ require (
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/gkampitakis/go-snaps v0.5.23 // indirect
@@ -53,8 +53,8 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components/icons v1.17.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.17.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.18.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.18.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect

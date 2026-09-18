@@ -55,11 +55,11 @@ require (
 	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
 	github.com/larsartmann/go-output/table v0.38.0 // indirect
 	github.com/larsartmann/go-output/tree v0.38.0 // indirect
-	github.com/larsartmann/templ-components v1.17.0 // indirect
-	github.com/larsartmann/templ-components/datastar v1.17.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.17.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.17.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.17.0 // indirect
+	github.com/larsartmann/templ-components v1.18.0 // indirect
+	github.com/larsartmann/templ-components/datastar v1.18.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.18.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.18.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.18.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.30 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
