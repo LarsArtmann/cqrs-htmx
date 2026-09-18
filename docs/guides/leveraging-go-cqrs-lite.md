@@ -46,6 +46,27 @@ This unlocks 27 production-grade middleware factories covering 9 concerns:
 
 (Query middleware mirrors these: `middleware.QueryRetry`, `middleware.QueryCircuitBreaker`, …)
 
+### Capability matrix — per factory, what cqrs-htmx gives you today
+
+Status: ✅ built into `usermgmt.NewService` (zero consumer code) · 🟡 consumer seam (one `ServiceConfig.CommandMiddleware` / `Config.Commands.Use` entry, proven by test or example) · 📄 documented pattern only.
+
+| #  | Factory / capability                                    | Status | Where proven                                                     |
+| -- | ------------------------------------------------------- | ------ | ---------------------------------------------------------------- |
+| 1  | `CommandActorContext` (actor → command metadata)        | ✅     | `usermgmt/audit_context.go` + e2e `actor_attribution_test.go`     |
+| 2  | `event.ActorEnricher` (actor → event metadata)          | ✅     | same — wired via `CompositeEnricher` on all repositories          |
+| 3  | `event.CommandCausationEnricher` (event → causing cmd)  | ✅     | same                                                              |
+| 4  | Correlation/request-ID enrichment                       | ✅     | local `requestContextEnricher` (upstream ships none — M27 watch)  |
+| 5  | `CommandRecovery`                                        | 🟡     | `examples/middleware-demo`, `command_middleware_test.go`          |
+| 6  | `CommandRetry`                                           | 🟡     | `examples/middleware-demo`                                        |
+| 7  | `CommandCircuitBreaker`                                  | 🟡     | §1 recipe + `dispatch-middleware-ordering.md`                     |
+| 8  | `CommandValidation` (+ shipped `ValidateCommand`)        | 🟡     | `usermgmt/command_validation_test.go`                             |
+| 9  | `CommandIdempotency`                                     | 🟡     | `usermgmt/command_idempotency_test.go`                            |
+| 10 | `CommandTracing` / `CommandTypedMetrics`                 | 🟡     | `examples/observability-demo`, `examples/middleware-demo`         |
+| 11 | `CommandLogging`                                         | 📄     | §1 recipe                                                         |
+| 12 | Query mirrors (`QueryRetry`, `QueryValidation`, …)      | 📄     | same factories, `Config.Queries` dispatcher                       |
+
+The blank row is deliberate: nothing in the middleware catalog is blocked — every remaining 🟡/📄 entry is a one-line consumer decision, not missing plumbing.
+
 ### The recipe
 
 ```go
