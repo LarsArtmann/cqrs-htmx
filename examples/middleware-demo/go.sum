@@ -97,8 +97,6 @@ github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
 github.com/larsartmann/go-idempotency v0.3.0/go.mod h1:VjTQypq0FQLA9AmageDkuFoUFfN2hd3eErSFZo9ip+I=
-github.com/larsartmann/go-retry v0.7.0 h1:pp4IXRtj9lG6bwkTAPoeOTNVE3ZDnXw9MMBtkaJv9jQ=
-github.com/larsartmann/go-retry v0.7.0/go.mod h1:jIPlAHcD/D+lqBo9CLWAEaJQqDgyFtvDE2RoG1SbZL4=
 github.com/larsartmann/go-retry v0.7.1 h1:e3MwEB8SvR0p1XMOtkFofFOS2y5rITzNLmbgZfCtO0c=
 github.com/larsartmann/go-retry v0.7.1/go.mod h1:jIPlAHcD/D+lqBo9CLWAEaJQqDgyFtvDE2RoG1SbZL4=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=

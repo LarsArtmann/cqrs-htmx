@@ -161,7 +161,7 @@ func (s *Service) importUsers(ctx context.Context, users []ImportUser) (*ImportR
 		if s.maxUsers > 0 && s.readModel.Count() >= s.maxUsers {
 			result.Skipped++
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("%s: registration is closed", users[i].Email))
+				users[i].Email+": registration is closed")
 			continue
 		}
 

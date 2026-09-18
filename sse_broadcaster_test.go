@@ -80,6 +80,7 @@ var _ = Describe("SSE Broadcaster and Integration", func() {
 			rec := httptest.NewRecorder()
 
 			done := make(chan struct{})
+
 			go func() {
 				b.ServeSSE(rec, req)
 				close(done)

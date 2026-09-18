@@ -41,8 +41,6 @@ github.com/docker/go-connections v0.8.1 h1:JibmG5hULs5qXSr/cp/w3Pw5fZuStt4MOHMUE
 github.com/docker/go-connections v0.8.1/go.mod h1:no1qkHdjq7kLMGUXYAduOhYPSJxxvgWBh7ogVvptn3Q=
 github.com/docker/go-units v0.5.0 h1:69rxXcBk27SvSaaxTtLh/8llcHD8vYHT7WSdRZ/jvr4=
 github.com/docker/go-units v0.5.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
-github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
-github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
 github.com/ebitengine/purego v0.11.0 h1:jhp/D+Nyv7UUW8HAcmcjt2N2rYrYi9m3SL21k0Ua/NI=
@@ -161,13 +159,8 @@ github.com/larsartmann/httputil v1.2.0 h1:EVU5GS4iUFGu+iuO1tbDt8zRJ56zjsn8cXZuIS
 github.com/larsartmann/httputil v1.2.0/go.mod h1:7tPYJfS0PcoSlmzMUUB5MXbLgHqLPLgf2nKolA8g7Fc=
 github.com/larsartmann/httputil/server_timing v1.0.1 h1:9T2YwZfrj71F1NFblFwIDsJZ7rnLU8K1BYlxBmrwfn8=
 github.com/larsartmann/httputil/server_timing v1.0.1/go.mod h1:QumWlp/L8NhkwNXZkN/IeLjtE5Y97axZ9LCK9NzSVck=
-github.com/larsartmann/templ-components v1.18.0/go.mod h1:hrLBd/Usd9nRea3Jg2Qw+zeTpuPdQIbqjmNF0f9D0Ns=
-github.com/larsartmann/templ-components/icons v1.17.0 h1:WvxzZxlYPS61BFKTJcfAw989oOZwZSxNgjMmqHziG2Q=
-github.com/larsartmann/templ-components/icons v1.17.0/go.mod h1:UEy94Xs5GqqvvwBlYGZiVS666BPAhAmgOOOzYFKkCg8=
 github.com/larsartmann/templ-components/icons v1.18.0 h1:H38YWeAPqU5X+MKWg73cwiIGsL6TGybJ/Kf66wo6ju4=
 github.com/larsartmann/templ-components/icons v1.18.0/go.mod h1:s4zU0W9ctdcLKfo21E+uz3aJJ2Hw+BDKtvIOJ65SkgQ=
-github.com/larsartmann/templ-components/utils v1.17.0 h1:g1GwAExEzvJW/kez9uLuVwy0l7k7L3sWH6874TWB/Y4=
-github.com/larsartmann/templ-components/utils v1.17.0/go.mod h1:LAAnuKcKtPSEgeI9AeGG/j+IEgYAzp8CMVNGqTsqD8M=
 github.com/larsartmann/templ-components/utils v1.18.0 h1:x3ptwd5S8gqhE0eXeUT7NQ6OQmGd/pvQ76gAQ8GhSn4=
 github.com/larsartmann/templ-components/utils v1.18.0/go.mod h1:LAAnuKcKtPSEgeI9AeGG/j+IEgYAzp8CMVNGqTsqD8M=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 h1:eveIIGn4BGM3qknO74omf6HYr30/exH+eVUTuAgwjZ0=
