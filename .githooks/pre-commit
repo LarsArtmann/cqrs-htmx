@@ -55,7 +55,12 @@ START=$(date +%s)
 bash "$(git rev-parse --show-toplevel)/scripts/prewarm-gocache.sh" 2>/dev/null || true
 
 # Run buildflow in pre-commit mode with performance budget
-buildflow --build-mode pre-commit --staged-only
+# BUILDFLOW_MAX_CONCURRENCY=1 pins the GOCACHE single-writer invariant: the
+# refreshed buildflow binary's CLI default (4) wins over the file's
+# max_concurrency: 1 and re-opens the documented govalid/golangci GOCACHE
+# race (random per-module step failures: 2/2 fast runs failed at 4,
+# 1/1 green at 1, 2026-09-18).
+BUILDFLOW_MAX_CONCURRENCY=1 buildflow --build-mode pre-commit --staged-only
 
 # Re-stage files that may have been modified by formatters
 # This ensures formatted code is included in the commit
