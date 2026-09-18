@@ -69,9 +69,10 @@ type Bundle struct {
 	Broadcaster *cqrshtmx.Broadcaster
 
 	// DataStarBroadcaster serves the DataStar wire format from the SAME hub as
-	// [Bundle.Broadcaster]. Nil unless Config.DataStarPath is set. Use it to
-	// broadcast your own DataStar patches to the feed's subscribers
-	// (Broadcast/SignalPatch/ElementsPatch). Do not close it — lifecycle is
+	// [Bundle.Broadcaster]. Nil unless Config.DataStarPath is set. Use its
+	// Broadcast method to push your own patches (built with the datastar
+	// module's SignalsPatch/ElementsPatch constructors) to the feed's
+	// subscribers. Do not close it — lifecycle is
 	// owned by [Bundle.Close] via the shared hub.
 	DataStarBroadcaster *broadcast.Broadcaster
 

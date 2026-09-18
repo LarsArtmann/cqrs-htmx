@@ -68,8 +68,10 @@ Fan-out, reconnection replay, and hub sharing live in
 The same-named constructors here are deprecated aliases (v5 removal);
 `NewEventBridge` accepts a `*broadcast.Broadcaster` directly.
 
-For SSE keep-alive (proxy idle timeouts), run `sse.Stream.Heartbeat(ctx, d)`
-per connection — the broadcaster itself owns no heartbeat timer.
+For SSE keep-alive (proxy idle timeouts), every `broadcast.Broadcaster`
+connection already sends an SSE comment-frame heartbeat every 15 seconds.
+For a custom interval, subscribe to `Hub()` and run your own
+`sse.Stream.Heartbeat(ctx, d)`.
 
 The `Response` builder also exposes `ConsoleLog`, `ConsoleError`,
 `DispatchCustomEvent`, `ReplaceURL`, `RemoveElementByID`, `Prefetch`, and

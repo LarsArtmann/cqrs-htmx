@@ -72,8 +72,9 @@ func NewBroadcasterFromRaw(raw *sse.Broadcaster[sse.Event]) *Broadcaster {
 
 // Hub returns the embedded [*sse.Broadcaster] — the canonical fan-out hub.
 // Use it to share one hub across transport adapters (via
-// [NewBroadcasterFromHub] or datastar's equivalent) or to access go-sse
-// features directly (SubscribeFilter, Health, Shutdown, custom buffer size).
+// [NewBroadcasterFromHub] or broadcast.NewBroadcasterFromHub from
+// go-datastar/broadcast) or to access go-sse features directly
+// (SubscribeFilter, Health, Shutdown, custom buffer size).
 func (b *Broadcaster) Hub() *sse.Broadcaster[sse.Event] {
 	return b.Broadcaster
 }
