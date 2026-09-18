@@ -105,7 +105,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-retry v0.5.0 // indirect
+	github.com/larsartmann/go-retry v0.7.1 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 )
 

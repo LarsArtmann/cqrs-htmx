@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
 	github.com/larsartmann/go-datastar/broadcast v0.6.0
-	github.com/larsartmann/go-health v0.1.3
+	github.com/larsartmann/go-health v0.2.0
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/pquerna/otp v1.5.0
 	github.com/samber/do/v2 v2.1.0
@@ -54,7 +54,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
-	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
+	github.com/larsartmann/go-atomic-write v0.5.2 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0 // indirect
@@ -63,7 +63,7 @@ require (
 	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-health-dashboard v0.7.0 // indirect
+	github.com/larsartmann/go-health-dashboard v0.9.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output v0.38.0 // indirect
@@ -78,13 +78,13 @@ require (
 	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
 	github.com/larsartmann/go-output/table v0.38.0 // indirect
 	github.com/larsartmann/go-output/tree v0.38.0 // indirect
-	github.com/larsartmann/go-retry v0.5.0 // indirect
+	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.16.0 // indirect
-	github.com/larsartmann/templ-components/datastar v1.16.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.16.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.16.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.16.0 // indirect
+	github.com/larsartmann/templ-components v1.18.0 // indirect
+	github.com/larsartmann/templ-components/datastar v1.18.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.18.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.18.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.18.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.29 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
