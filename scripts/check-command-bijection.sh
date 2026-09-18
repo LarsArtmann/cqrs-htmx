@@ -22,22 +22,22 @@ dispatch_files=(usermgmt/es_dispatch.go usermgmt/es_tenant_dispatch.go usermgmt/
 # 1. Collect defined constants: CmdFoo -> "RegisterUser"-ish suffix
 mapfile -t defined < <(grep -oE '^\s+Cmd[A-Za-z]+\s' "$constants_file" | tr -d ' \t' | sort)
 if [ "${#defined[@]}" -eq 0 ]; then
-	echo "FAIL: no Cmd* constants found in $constants_file"
-	exit 1
+  echo "FAIL: no Cmd* constants found in $constants_file"
+  exit 1
 fi
 
 # 2. Collect registered identifiers at RegisterTyped call sites: cmdFoo,
 registered=()
 for f in "${dispatch_files[@]}"; do
-	if [ ! -f "$f" ]; then
-		echo "FAIL: dispatch file missing: $f"
-		exit 1
-	fi
-	# The identifier is on the line after "command.RegisterTyped(" — the
-	# first argument line "dispatcher, cmdFoo,".
-	while IFS= read -r id; do
-		[ -n "$id" ] && registered+=("$id")
-	done < <(grep -A1 'command\.RegisterTyped(' "$f" | grep -oE 'cmd[A-Za-z]+' | sort -u)
+  if [ ! -f "$f" ]; then
+    echo "FAIL: dispatch file missing: $f"
+    exit 1
+  fi
+  # The identifier is on the line after "command.RegisterTyped(" — the
+  # first argument line "dispatcher, cmdFoo,".
+  while IFS= read -r id; do
+    [ -n "$id" ] && registered+=("$id")
+  done < <(grep -A1 'command\.RegisterTyped(' "$f" | grep -oE 'cmd[A-Za-z]+' | sort -u)
 done
 
 norm() { printf '%s' "$1" | sed -e 's/^Cmd//' -e 's/^cmd//'; }
@@ -46,37 +46,43 @@ fail=0
 
 # Direction 1: every defined constant is registered.
 for c in "${defined[@]}"; do
-	found=0
-	for r in "${registered[@]}"; do
-		if [ "$(norm "$c")" = "$(norm "$r")" ]; then found=1; break; fi
-	done
-	if [ "$found" -eq 0 ]; then
-		echo "FAIL: constant $c (identity-model) has NO RegisterTyped registration"
-		fail=1
-	fi
+  found=0
+  for r in "${registered[@]}"; do
+    if [ "$(norm "$c")" = "$(norm "$r")" ]; then
+      found=1
+      break
+    fi
+  done
+  if [ "$found" -eq 0 ]; then
+    echo "FAIL: constant $c (identity-model) has NO RegisterTyped registration"
+    fail=1
+  fi
 done
 
 # Direction 2: every registration references a defined constant.
 for r in "${registered[@]}"; do
-	found=0
-	for c in "${defined[@]}"; do
-		if [ "$(norm "$c")" = "$(norm "$r")" ]; then found=1; break; fi
-	done
-	if [ "$found" -eq 0 ]; then
-		echo "FAIL: registration $r (usermgmt) references NO identity-model constant"
-		fail=1
-	fi
+  found=0
+  for c in "${defined[@]}"; do
+    if [ "$(norm "$c")" = "$(norm "$r")" ]; then
+      found=1
+      break
+    fi
+  done
+  if [ "$found" -eq 0 ]; then
+    echo "FAIL: registration $r (usermgmt) references NO identity-model constant"
+    fail=1
+  fi
 done
 
 dups=$(printf '%s\n' "${registered[@]}" | sort | uniq -d)
 if [ -n "$dups" ]; then
-	echo "FAIL: duplicate registrations:"
-	echo "$dups"
-	fail=1
+  echo "FAIL: duplicate registrations:"
+  echo "$dups"
+  fail=1
 fi
 
 echo "constants: ${#defined[@]}  registrations: ${#registered[@]}"
 if [ "$fail" -ne 0 ]; then
-	exit 1
+  exit 1
 fi
 echo "OK: bijection proven (${#defined[@]}/${#registered[@]}, both directions)"

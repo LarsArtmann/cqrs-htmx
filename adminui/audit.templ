@@ -8,21 +8,21 @@ templ auditPage(p pageData, d auditData) {
 
 templ auditContent(d auditData) {
 	<div class="mb-5 flex flex-wrap items-center gap-3">
-			<h1 class="text-xl font-semibold">Audit log</h1>
-		</div>
-		if len(d.Entries) == 0 {
-			@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
-				@empty("audit", "No audit events", "User and tenant changes will be recorded here.")
-			}
-		} else {
-			@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
-				@display.Table(display.TableProps{
-					Headers: []string{"Action", "Who", "Aggregate", "When"},
-					Hover:   true,
-					Body:    auditRows(d),
-				})
-			}
+		<h1 class="text-xl font-semibold">Audit log</h1>
+	</div>
+	if len(d.Entries) == 0 {
+		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
+			@empty("audit", "No audit events", "User and tenant changes will be recorded here.")
 		}
+	} else {
+		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
+			@display.Table(display.TableProps{
+				Headers: []string{"Action", "Who", "Aggregate", "When"},
+				Hover:   true,
+				Body:    auditRows(d),
+			})
+		}
+	}
 }
 
 templ auditRows(d auditData) {
