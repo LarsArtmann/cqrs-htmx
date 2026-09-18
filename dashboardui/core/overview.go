@@ -54,8 +54,18 @@ type RecentEvent struct {
 	OccurredAt time.Time `json:"-"`
 }
 
+// HubHealth is a display DTO for the SSE hub (broadcaster) state on the
+// overview page. Nil on Overview means the dashboard has no SSE hub (no
+// EventBus configured), so no hub card renders.
+type HubHealth struct {
+	Subscribers     int
+	BufferSize      int
+	Closed          bool
+	Draining        bool
+}
+
 // Overview aggregates the top-level dashboard stats: event count, aggregate
-// count, projection health, DLQ count, and recent events.
+// count, projection health, DLQ count, recent events, and SSE hub state.
 type Overview struct {
 	TotalAggregates string
 	TotalEvents     string
@@ -64,6 +74,7 @@ type Overview struct {
 	RecentEvents    []RecentEvent
 	HealthStatus    string
 	HealthKind      string
+	SSEHub          *HubHealth
 }
 
 // ProjectionStatusKind maps a raw projection status string to a semantic

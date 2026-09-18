@@ -131,7 +131,19 @@ func (config Config) coreConfig() core.Config {
 }
 
 func (d *Dashboard) overviewStats(ctx context.Context) overviewStats {
-	return core.FetchOverview(ctx, d.config.coreConfig())
+	stats := core.FetchOverview(ctx, d.config.coreConfig())
+
+	if d.broadcaster != nil {
+		h := d.broadcaster.Health()
+		stats.SSEHub = &core.HubHealth{
+			Subscribers: h.SubscriberCount,
+			BufferSize:  h.BufferSize,
+			Closed:      h.Closed,
+			Draining:    h.Draining,
+		}
+	}
+
+	return stats
 }
 
 func (d *Dashboard) buildDLQProjectionLinks(ctx context.Context) []dlqProjectionLink {

@@ -228,6 +228,30 @@ func renderStatGrid(ctx context.Context, stats overviewStats) string {
 		)
 	}
 
+	if stats.SSEHub != nil {
+		value := fmt.Sprintf("%d", stats.SSEHub.Subscribers)
+		tone := display.StatToneGreen
+
+		switch {
+		case stats.SSEHub.Closed:
+			value = "closed"
+			tone = display.StatToneRed
+		case stats.SSEHub.Draining:
+			value = "draining"
+			tone = display.StatToneAmber
+		}
+
+		b.WriteString(
+			statCardHTML(
+				ctx,
+				"stat-sse-hub",
+				value,
+				"SSE Clients",
+				tone,
+			),
+		)
+	}
+
 	b.WriteString(`</div>`)
 
 	return b.String()
