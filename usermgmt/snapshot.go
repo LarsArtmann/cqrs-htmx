@@ -88,7 +88,8 @@ func snapshotOptions[State any](config SnapshotConfig) []decider.RepositoryOptio
 // preserved.
 //
 // The enricher stamps every emitted event with the actor from the handler
-// context (event.ActorEnricher) and the command that caused it
+// context (event.ActorEnricher), the request correlation/request IDs
+// (requestContextEnricher), and the command that caused the event
 // (event.CommandCausalityEnricher). Paired with the dispatcher's audit
 // middleware chain (see commandAuditMiddleware), this is what makes usermgmt
 // events carry "who" and "which command" without consumer wiring.
@@ -98,6 +99,7 @@ func repositoryOptions[State any](config SnapshotConfig) []decider.RepositoryOpt
 		decider.WithStateCache[State](decider.NewStateCache[State](0)),
 		decider.WithEnricher[State](event.CompositeEnricher(
 			event.ActorEnricher,
+			requestContextEnricher,
 			event.CommandCausalityEnricher,
 		)),
 	)

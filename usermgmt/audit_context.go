@@ -89,3 +89,23 @@ func commandCausalityContext() command.Middleware {
 		}
 	}
 }
+
+// requestContextEnricher is a ContextEnricher that propagates the request
+// correlation ID and request ID from cqrshtmx's context chain into event
+// metadata — the correlation counterpart to event.ActorEnricher (which covers
+// the actor). go-cqrs-lite does not ship a correlation enricher, so this
+// local one fills the gap; it returns nil options when neither ID is present,
+// making it safe to compose via event.CompositeEnricher.
+func requestContextEnricher(ctx context.Context) []event.Option {
+	var opts []event.Option
+
+	if cid := cqrshtmx.CorrelationIDFromContext(ctx); !cid.IsZero() {
+		opts = append(opts, event.WithCorrelationID(cid))
+	}
+
+	if rid := cqrshtmx.RequestIDFromContext(ctx); !rid.IsZero() {
+		opts = append(opts, event.WithRequestID(rid))
+	}
+
+	return opts
+}
