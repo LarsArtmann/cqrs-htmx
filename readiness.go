@@ -4,6 +4,8 @@ import (
 	"encoding/json/v2"
 	"net/http"
 	"sync"
+
+	event "github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // ReadinessCheck is a single health check function. Return nil if healthy,
@@ -108,6 +110,34 @@ type NamedCheck struct {
 // Convenience wrapper for ReadinessHandler callers.
 func NewNamedCheck(name string, check ReadinessCheck) NamedCheck {
 	return NamedCheck{Name: name, Check: check}
+}
+
+// HubReadinessCheck reports the SSE hub state as a readiness check. The
+// check passes while the hub accepts subscribers and fails once the hub is
+// closed (or draining) — a dead feed answering 200 is worse than failing
+// the readiness gate, matching the fail-fast posture used everywhere a hub
+// is wired. The failure error carries the live subscriber count and buffer
+// size so operators can size capacity from the /health payload alone.
+//
+//mux.Handle("/health", cqrshtmx.ReadinessHandler(
+//    cqrshtmx.ProjectionReadinessCheck(svc),
+//    cqrshtmx.HubReadinessCheck(bundle.Broadcaster),
+//))
+func HubReadinessCheck(b *Broadcaster) NamedCheck {
+	return NewNamedCheck("sse-hub", func() error {
+		h := b.Health()
+
+		switch {
+		case h.Closed:
+			return event.Newf("sse hub closed (subscribers=%d, bufferSize=%d)",
+				h.SubscriberCount, h.BufferSize)
+		case h.Draining:
+			return event.Newf("sse hub draining (subscribers=%d, bufferSize=%d)",
+				h.SubscriberCount, h.BufferSize)
+		}
+
+		return nil
+	})
 }
 
 // DebugHandler returns an http.HandlerFunc that serializes the provided
