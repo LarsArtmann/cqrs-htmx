@@ -42,6 +42,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
+	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260906173415-0277a179edd9 // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
@@ -51,16 +52,13 @@ require (
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/go-sql-driver/mysql v1.10.1 // indirect
+	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
-	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-datastar v0.5.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
 	github.com/larsartmann/go-etag v0.3.1 // indirect
@@ -80,6 +78,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
 	github.com/larsartmann/go-output/table v0.38.0 // indirect
 	github.com/larsartmann/go-output/tree v0.38.0 // indirect
+	github.com/larsartmann/go-retry v0.5.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.16.0 // indirect
 	github.com/larsartmann/templ-components/datastar v1.16.0 // indirect
@@ -171,3 +170,9 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 )
+
+// TEMPORARY family dev-replace until a usermgmt tag carrying the audit-chain
+// middleware + ServiceConfig.CommandMiddleware is published and this module's
+// require is bumped to it. Remove before the next family train
+// (verify-tag.sh refuses family dev-replaces in tagged trees).
+replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
