@@ -11,11 +11,13 @@ require (
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
+	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -46,6 +48,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0 // indirect
@@ -61,6 +64,7 @@ require (
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
+	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/larsartmann/httputil v1.2.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
