@@ -120,3 +120,26 @@
 ---
 
 **Verdict:** the plan is EXECUTED — 26/26 non-skipped tasks done, routed, asked, or blocked-with-owner; zero red tests; zero lint regressions; every change committed (mixed narrative/daemon attribution) and content-verified in HEAD. The open risk is concentrated in the not-yet-run repo-wide gates (lint/test/coverage/bench — items 1–5 of f) and the three Lars decisions above. M6 remains skipped per your instruction.
+
+---
+
+## h) ADDENDUM (2026-09-18 afternoon, final verification session)
+
+The queued battery (§f items 1–5) ran; **all five gates are GREEN** after four gate-blocking fixes:
+
+| Gate                                   | Result                                                       |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `nix run .#lint`                       | ✅ 15/15 modules, 0 issues                                   |
+| `nix run .#test`                       | ✅ 18/18 package suites                                      |
+| `nix run .#coverage-gate`              | ✅ 15/15 — root 93.7%/90, usermgmt 82.1%/74 (watch values hold, usermgmt UP from 81.9%) |
+| `nix run .#check-cqrs-lint`            | ✅ strict, all modules                                       |
+| `scripts/check-command-bijection.sh`   | ✅ 20/20 both directions                                     |
+
+Fixes made to get there (each committed; daemon absorbed several mid-flight, content verified in HEAD):
+
+1. **setup data race (6 test failures):** `TestBundleClose_DrainTimeoutProceeds` mutated the `sseDrainTimeout` package global from a parallel test, racing every concurrently-running `Bundle.Close` under `-race`. The deadline is now a per-bundle field (`Bundle.sseDrainTimeout`, copied from the package default at construction); the test shrinks the field — no global mutation. §f.30's pre-existing root `unconvert`, dead adminui `navBg` (orphaned by the templ-components adoption), and the attribution-test SA1019/funlen findings were fixed in the same sweep (§f items 30, 33 partially).
+2. **Toolchain:** root go.mod restored to `go 1.26.7` — a 07:51 daemon commit had re-applied the accidental 1.27.1 bump (after the 04:24 revert `19a37e9f`), breaking the root + systemadapter gate consumers under `GOTOOLCHAIN=local`. State restoration only; M16 (§g.2) stays OPEN.
+3. **systemadapter:** `go mod tidy` for drifted indirect requires off the replaced go-cqrs-lite master (bitset/failsafe-go via badgerengine); build/vet/lint/tests green.
+4. **Cross-repo (go-cqrs-lite):** the sibling daemon committed a half-done `errors`-import shuffle in `metaengine` (package did not compile — broke systemadapter's replace builds mid-battery). Completed mechanically (temporal.go gained the import; execute.go/store.go lost unused ones), build-verified, committed in that repo.
+
+**Not done / environment notes:** `nix run .#bench-spike` NOT run (§f item 11 — idle-machine precondition, deliberately deferred); family train (§f items 7–8) untouched — TODO_LIST P2 entry 1 remains the next session's work. `flake.nix` carries ANOTHER session's mid-edit `getExe`-wrapping of the two CSS-build apps (unformatted, foreign — left untouched). The sibling session was ACTIVE during the battery (go-cqrs-lite commits 14:40–14:47, flake.nix edit) — §g.1's M19 hold recommendation stands. §f item 48 done: AGENTS.md coverage row re-dated to this run.
