@@ -15,3 +15,11 @@ suppressions:
     reason: >
       Test fixture for verify-tag's clean-go.mod detection (scripts/testdata) -
       a synthetic minimal go.mod with no go.sum is the fixture's whole point.
+  - rule: go-version
+    reason: >
+      Repo toolchain is deliberately pinned by flake.nix (pkgs.go_1_26) and
+      go.work (1.26.7); scripts/check-go-toolchain.sh OWNS this policy and
+      gates it. The rule's "newer Go available" suggestion (1.27.1) is
+      already decided at TODO_LIST P2 - a coordinated flake+go.work+27-module
+      bump, not a per-go.mod edit. REMOVE this suppression when that P2
+      decision lands (the finding then disappears with the bump).
