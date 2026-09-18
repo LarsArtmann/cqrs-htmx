@@ -51,7 +51,7 @@ func ProjectionStatusHandler(provider ProjectionStatusProvider) http.HandlerFunc
 	cfg := etag.DefaultETagConfig()
 	cfg.SkipIfPresent = true
 
-	return etag.New(cfg)(http.HandlerFunc(serveProjectionStatus(provider))).ServeHTTP
+	return etag.New(cfg)(serveProjectionStatus(provider)).ServeHTTP
 }
 
 func serveProjectionStatus(provider ProjectionStatusProvider) http.HandlerFunc {
