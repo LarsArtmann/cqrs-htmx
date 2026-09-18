@@ -33,6 +33,7 @@ type Hydrator interface {
 //
 // Unknown projection names get the same treatment — the safe default is a
 // full replay, never silently skipped events.
+//cqrs-lint:ignore(C041) hydratable is written once in newHydrationAwareCheckpointStore before any projection worker exists and only read afterwards (construction-time immutable; concurrent Save/Load calls are read-only map accesses)
 type hydrationAwareCheckpointStore struct {
 	inner      event.CheckpointStore
 	hydratable map[string]bool

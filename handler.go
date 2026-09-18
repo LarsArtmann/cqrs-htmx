@@ -333,32 +333,38 @@ func handleQueryTypedDispatch[Q query.Query, R any](
 	)
 }
 
+// commandOptionApplier is the structural capability interface for commands
+// that accept metadata options after construction. *command.BasicCommand
+// satisfies it directly, and every wrapper struct embedding *BasicCommand
+// (the identity-model command pattern) satisfies it via method promotion —
+// so enrichCommandFromContext covers both without a concrete-type
+// assertion. Hand-rolled Command implementations that do not expose
+// ApplyOptions pass through unchanged (enrichment is skipped, as before).
+type commandOptionApplier interface {
+	ApplyOptions(...command.Option)
+}
+
+// queryOptionApplier is the query-side mirror of commandOptionApplier.
+type queryOptionApplier interface {
+	ApplyOptions(...query.Option)
+}
+
 // enrichCommandFromContext injects request-scoped metadata (actor ID, user ID,
 // correlation ID, request ID) from the context into a decoded command before
-// dispatch. If the command is not a *command.BasicCommand (custom Command
-// implementation), enrichment is silently skipped — the command dispatches
-// with whatever metadata the decoder set.
-//
-// Options are applied by direct invocation rather than the upstream
-// BasicCommand.ApplyOptions method: command.Option is an exported
-// func(*BasicCommand), and applying it inline keeps the root module
-// compilable against the latest PUBLISHED go-cqrs-lite tags in hermetic
-// (GOWORK=off) builds.
+// dispatch. The structural optionApplier interface matches *BasicCommand AND
+// every wrapper embedding it; custom Command implementations without an
+// ApplyOptions method are silently skipped — the command dispatches with
+// whatever metadata the decoder set.
 func enrichCommandFromContext(ctx context.Context, cmd command.Command) {
-	if basic, ok := cmd.(*command.BasicCommand); ok {
-		for _, opt := range CommandOptionsFromContext(ctx) {
-			opt(basic)
-		}
+	if applier, ok := cmd.(commandOptionApplier); ok {
+		applier.ApplyOptions(CommandOptionsFromContext(ctx)...)
 	}
 }
 
 // enrichQueryFromContext is the query-side mirror of enrichCommandFromContext.
-// Options are applied by direct invocation (see enrichCommandFromContext).
 func enrichQueryFromContext(ctx context.Context, qry query.Query) {
-	if basic, ok := qry.(*query.BasicQuery); ok {
-		for _, opt := range QueryOptionsFromContext(ctx) {
-			opt(basic)
-		}
+	if applier, ok := qry.(queryOptionApplier); ok {
+		applier.ApplyOptions(QueryOptionsFromContext(ctx)...)
 	}
 }
 
