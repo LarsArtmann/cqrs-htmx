@@ -70,7 +70,7 @@
             {
               type = "app";
               meta = lib.optionalAttrs (description != null) { inherit description; };
-              program = pkgs.writeShellApplication {
+              program = lib.getExe (pkgs.writeShellApplication {
                 inherit name;
                 runtimeInputs = [
                   goPkg
@@ -78,7 +78,7 @@
                 ]
                 ++ runtimeInputs;
                 text = goEnv + text;
-              };
+              });
             };
           # benchstat (golang.org/x/perf/cmd/benchstat) is not packaged in
           # nixpkgs; build it from the canonical googlesource repo.
