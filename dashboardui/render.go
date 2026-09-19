@@ -15,7 +15,6 @@ import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/errorpage"
 	"github.com/larsartmann/templ-components/icons"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -173,7 +172,7 @@ func emptyStateIcon(ctx context.Context, icon icons.Name, title, message string)
 	var b strings.Builder
 
 	props := display.EmptyStateProps{
-		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Title:       title,
 		TitleTag:    "h2",
 		Description: message,

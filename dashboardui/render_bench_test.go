@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // Benchmarks comparing the hand-rolled string-building renderers against the
@@ -48,18 +47,18 @@ func benchHybridStatCard(b *testing.B) {
 
 	ctx := context.Background()
 	props := display.StatCardProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Value:     "1234",
-		Label:     "Events",
-		Change:    "",
-		Trend:     display.TrendNone,
-		Tone:      display.StatToneBlue,
-		Icon:      "",
-		Href:      "",
-		HxGet:     "",
-		HxTarget:  "",
-		HxSwap:    "",
-		ValueID:   "stat-total-events",
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		Value:    "1234",
+		Label:    "Events",
+		Change:   "",
+		Trend:    display.TrendNone,
+		Tone:     display.StatToneBlue,
+		Icon:     "",
+		Href:     "",
+		HxGet:    "",
+		HxTarget: "",
+		HxSwap:   "",
+		ValueID:  "stat-total-events",
 	}
 
 	for b.Loop() {

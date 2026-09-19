@@ -6,7 +6,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // tableHTML renders the library Table into a string (the hybrid adoption
@@ -21,7 +20,7 @@ func tableHTML(ctx context.Context, headers []display.TableHeader, rows []displa
 	var b strings.Builder
 
 	props := display.TableProps{
-		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Caption:      "",
 		Headers:      nil,
 		TypedHeaders: headers,
@@ -76,7 +75,7 @@ func tableHTMLRaw(ctx context.Context, headers []display.TableHeader, rowsHTML s
 	var b strings.Builder
 
 	props := display.TableProps{
-		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Caption:      "",
 		Headers:      nil,
 		TypedHeaders: headers,

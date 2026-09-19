@@ -6,7 +6,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // buttonLink renders a library Button as an anchor (navigation actions
@@ -22,16 +21,16 @@ func buttonLink(
 	var b strings.Builder
 
 	props := display.ButtonProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: ariaLabel, Nonce: ""},
-		Text:      text,
-		Type:      display.ButtonHTMLButton,
-		Href:      href,
-		Variant:   variant,
-		Size:      display.ButtonSizeMD,
-		Disabled:  disabled,
-		Icon:      nil,
-		External:  false,
-		Wire:      nil,
+		ID: "", Class: "", Attrs: nil, AriaLabel: ariaLabel, Nonce: "",
+		Text:     text,
+		Type:     display.ButtonHTMLButton,
+		Href:     href,
+		Variant:  variant,
+		Size:     display.ButtonSizeMD,
+		Disabled: disabled,
+		Icon:     nil,
+		External: false,
+		Wire:     nil,
 	}
 	_ = display.Button(props).Render(ctx, &b)
 
@@ -50,22 +49,20 @@ func buttonSubmit(
 	var b strings.Builder
 
 	props := display.ButtonProps{
-		BaseProps: utils.BaseProps{
-			ID:        "",
-			Class:     "",
-			Attrs:     attrs,
-			AriaLabel: ariaLabel,
-			Nonce:     "",
-		},
-		Text:     text,
-		Type:     display.ButtonHTMLSubmit,
-		Href:     "",
-		Variant:  variant,
-		Size:     display.ButtonSizeMD,
-		Disabled: false,
-		Icon:     nil,
-		External: false,
-		Wire:     nil,
+		ID:        "",
+		Class:     "",
+		Attrs:     attrs,
+		AriaLabel: ariaLabel,
+		Nonce:     "",
+		Text:      text,
+		Type:      display.ButtonHTMLSubmit,
+		Href:      "",
+		Variant:   variant,
+		Size:      display.ButtonSizeMD,
+		Disabled:  false,
+		Icon:      nil,
+		External:  false,
+		Wire:      nil,
 	}
 	_ = display.Button(props).Render(ctx, &b)
 
@@ -79,7 +76,7 @@ func copyButtonHTML(ctx context.Context, text, label string) string {
 	var b strings.Builder
 
 	props := display.CopyButtonProps{
-		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Text:        text,
 		Label:       label,
 		CopiedLabel: "",
@@ -100,7 +97,7 @@ func rawComponent(html string) templ.Component {
 // embedding inside other components (definition list details).
 func copyButtonComponent(text string) templ.Component {
 	return display.CopyButton(display.CopyButtonProps{
-		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Text:        text,
 		Label:       "",
 		CopiedLabel: "",

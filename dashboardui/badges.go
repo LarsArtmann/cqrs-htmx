@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // badgeHTML renders a library Badge with an explicit type into a string.
@@ -14,13 +13,13 @@ func badgeHTML(ctx context.Context, text string, badgeType display.BadgeType) st
 	var b strings.Builder
 
 	props := display.BadgeProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Text:      text,
-		Type:      badgeType,
-		Size:      display.BadgeSizeMD,
-		Pill:      false,
-		Dot:       true,
-		Href:      "",
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		Text: text,
+		Type: badgeType,
+		Size: display.BadgeSizeMD,
+		Pill: false,
+		Dot:  true,
+		Href: "",
 	}
 	_ = display.Badge(props).Render(ctx, &b)
 

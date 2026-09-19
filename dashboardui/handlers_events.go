@@ -13,7 +13,6 @@ import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -313,7 +312,7 @@ func filterInput(ctx context.Context, id, label, name, value, placeholder string
 	var b strings.Builder
 
 	_ = forms.Input(forms.InputProps{
-		BaseProps:    utils.BaseProps{ID: id, Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: id, Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Type:         forms.InputText,
 		Name:         name,
 		Value:        value,

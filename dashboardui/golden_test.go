@@ -10,7 +10,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // updateGolden is set with -update to rewrite the golden files after an
@@ -41,30 +40,30 @@ func goldenRender(t *testing.T, c templ.Component) string {
 func TestGolden_ComponentMarkup(t *testing.T) {
 	statusBadge := display.StatusBadge("healthy")
 	badge := display.Badge(display.BadgeProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Text:      "42",
-		Type:      display.BadgeNeutral,
-		Size:      display.BadgeSizeMD,
-		Pill:      false,
-		Dot:       true,
-		Href:      "",
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		Text: "42",
+		Type: display.BadgeNeutral,
+		Size: display.BadgeSizeMD,
+		Pill: false,
+		Dot:  true,
+		Href: "",
 	})
 	statCard := display.StatCard(display.StatCardProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Value:     "1234",
-		Label:     "Events",
-		Change:    "",
-		Trend:     display.TrendNone,
-		Tone:      display.StatToneBlue,
-		Icon:      "",
-		Href:      "",
-		HxGet:     "",
-		HxTarget:  "",
-		HxSwap:    "",
-		ValueID:   "stat-total-events",
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		Value:    "1234",
+		Label:    "Events",
+		Change:   "",
+		Trend:    display.TrendNone,
+		Tone:     display.StatToneBlue,
+		Icon:     "",
+		Href:     "",
+		HxGet:    "",
+		HxTarget: "",
+		HxSwap:   "",
+		ValueID:  "stat-total-events",
 	})
 	emptyState := display.EmptyState(display.EmptyStateProps{
-		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
 		Title:       "No events yet",
 		TitleTag:    "h2",
 		Description: "Events will appear here.",

@@ -8,7 +8,6 @@ import (
 
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // renderPagination renders Prev/Next links with cursor-history tracking.
@@ -127,22 +126,20 @@ func renderPageSizeSelector(
 	var b strings.Builder
 
 	props := forms.SelectProps{
-		BaseProps: utils.BaseProps{
-			ID:        "",
-			Class:     "",
-			Attrs:     nil,
-			AriaLabel: "",
-			Nonce:     "",
-		},
-		Name:     "limit",
-		Label:    "Per page:",
-		Options:  options,
-		Groups:   nil,
-		Required: false,
-		Disabled: false,
-		Stylable: false,
-		Error:    "",
-		HelpText: "",
+		ID:        "",
+		Class:     "",
+		Attrs:     nil,
+		AriaLabel: "",
+		Nonce:     "",
+		Name:      "limit",
+		Label:     "Per page:",
+		Options:   options,
+		Groups:    nil,
+		Required:  false,
+		Disabled:  false,
+		Stylable:  false,
+		Error:     "",
+		HelpText:  "",
 	}
 	_ = forms.Select(props).Render(ctx, &b)
 

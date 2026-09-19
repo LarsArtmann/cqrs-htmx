@@ -6,7 +6,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
 
 // definitionListHTML renders the library DefinitionList into a string (hybrid
@@ -16,8 +15,8 @@ func definitionListHTML(ctx context.Context, items []display.DefinitionItem) str
 	var b strings.Builder
 
 	props := display.DefinitionListProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Items:     items,
+		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		Items: items,
 	}
 	_ = display.DefinitionList(props).Render(ctx, &b)
 

@@ -168,11 +168,11 @@ type StatusRecorder struct {
 // NewStatusRecorder wraps w to capture the status code. The initial status is
 // 0 (unset) — callers should check WroteHeader() before relying on Status().
 func NewStatusRecorder(w http.ResponseWriter) *StatusRecorder {
-	return &StatusRecorder{
-		delegatingWriter: delegatingWriter{ResponseWriter: w},
-		ErrorRecorder:    ErrorRecorder{}, //nolint:exhaustruct // zero values are correct
-		status:           0,
-		wrote:            false,
+	return &StatusRecorder{ //nolint:exhaustruct,exhaustruct_v5 // delegatingWriter is set via its promoted ResponseWriter field
+		ResponseWriter: w,
+		ErrorRecorder:  ErrorRecorder{}, //nolint:exhaustruct // zero values are correct
+		status:         0,
+		wrote:          false,
 	}
 }
 
