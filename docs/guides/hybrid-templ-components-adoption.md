@@ -43,6 +43,15 @@ child capture, which string-builder invocation doesn't provide. Components that
 take DATA props (strings, enums, slices) work fine. `display.Table` accepts
 rows as data AND raw-body HTML (`templ.Raw`), both hybrid-safe.
 
+Evaluated and excluded for exactly this reason (2026-09-19, N17.1–2):
+`htmx.PolledRegion` — the projection-health panel's `hx-trigger="every 10s,
+refresh"` polling stays hand-rolled because PolledRegion renders its region
+body via `templ.GetChildren`, which is empty in the standalone path. The
+hand-rolled version already covers the hx wiring; PolledRegion's extras
+(aria-live politeness, "Updated" timestamp footer, busy cue) need a full templ
+conversion or an upstream props-based body slot (`Body templ.Component`, the
+DefinitionList/DetailComponent pattern) — filed as a candidate upstream ask.
+
 ### 2. Class families live in Go sources, not only `.templ`
 
 Tailwind's scanner must see the class literals. The library ships them in

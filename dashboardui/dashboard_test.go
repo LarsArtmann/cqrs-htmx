@@ -385,7 +385,13 @@ func TestDashboard_TimeTravelDetailRenders(t *testing.T) {
 	}
 
 	body := rec.Body.String()
-	for _, want := range []string{"Time Travel", "Viewing version 2 of 3", "order.updated"} {
+	for _, want := range []string{
+		"Time Travel",
+		"Viewing version 2 of 3",
+		"order.updated",
+		`aria-valuetext="Version 2 of 3"`,
+		`data-nav-base="/dashboard/time-travel/Order/` + aggID.String() + `?v="`,
+	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("time-travel detail page should contain %q", want)
 		}

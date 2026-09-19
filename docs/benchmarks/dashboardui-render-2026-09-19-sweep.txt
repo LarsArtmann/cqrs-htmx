@@ -1,0 +1,66 @@
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/cqrs-htmx/dashboardui/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkRenderStatCard/hand-rolled-32         	 1000000	      2293 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 1000000	      1563 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 1000000	      1878 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 1000000	      1182 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 1000000	      1294 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  143049	     14165 ns/op	    2210 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  125043	      9602 ns/op	    2208 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  149076	     17063 ns/op	    2206 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	   88936	     12732 ns/op	    2206 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  107089	     11552 ns/op	    2208 B/op	      29 allocs/op
+BenchmarkRenderButton/link-hand-rolled-32      	 1535074	       791.4 ns/op	     128 B/op	       4 allocs/op
+BenchmarkRenderButton/link-hand-rolled-32      	 1601100	       650.5 ns/op	     128 B/op	       4 allocs/op
+BenchmarkRenderButton/link-hand-rolled-32      	 2875952	       514.3 ns/op	     128 B/op	       4 allocs/op
+BenchmarkRenderButton/link-hand-rolled-32      	 2279360	       747.6 ns/op	     128 B/op	       4 allocs/op
+BenchmarkRenderButton/link-hand-rolled-32      	 1272051	       868.8 ns/op	     128 B/op	       4 allocs/op
+BenchmarkRenderButton/link-hybrid-32           	   71253	     24483 ns/op	    4089 B/op	      22 allocs/op
+BenchmarkRenderButton/link-hybrid-32           	   74684	     23361 ns/op	    4089 B/op	      22 allocs/op
+BenchmarkRenderButton/link-hybrid-32           	   49746	     24038 ns/op	    4089 B/op	      22 allocs/op
+BenchmarkRenderButton/link-hybrid-32           	   72871	     18580 ns/op	    4087 B/op	      22 allocs/op
+BenchmarkRenderButton/link-hybrid-32           	   63738	     22611 ns/op	    4089 B/op	      22 allocs/op
+BenchmarkRenderButton/submit-hand-rolled-32    	 1000000	      1306 ns/op	     160 B/op	       4 allocs/op
+BenchmarkRenderButton/submit-hand-rolled-32    	 1492434	       934.4 ns/op	     160 B/op	       4 allocs/op
+BenchmarkRenderButton/submit-hand-rolled-32    	 1298024	       924.4 ns/op	     160 B/op	       4 allocs/op
+BenchmarkRenderButton/submit-hand-rolled-32    	 1230382	       973.2 ns/op	     160 B/op	       4 allocs/op
+BenchmarkRenderButton/submit-hand-rolled-32    	 1474694	       847.0 ns/op	     160 B/op	       4 allocs/op
+BenchmarkRenderButton/submit-hybrid-32         	  107216	     16959 ns/op	    3082 B/op	      19 allocs/op
+BenchmarkRenderButton/submit-hybrid-32         	   67370	     20776 ns/op	    3080 B/op	      19 allocs/op
+BenchmarkRenderButton/submit-hybrid-32         	   31917	     33878 ns/op	    3080 B/op	      19 allocs/op
+BenchmarkRenderButton/submit-hybrid-32         	   83431	     14939 ns/op	    3081 B/op	      19 allocs/op
+BenchmarkRenderButton/submit-hybrid-32         	   57928	     19297 ns/op	    3080 B/op	      19 allocs/op
+BenchmarkRenderEmptyState/hand-rolled-32       	 1000000	      1012 ns/op	     144 B/op	       4 allocs/op
+BenchmarkRenderEmptyState/hand-rolled-32       	 1457167	       705.0 ns/op	     144 B/op	       4 allocs/op
+BenchmarkRenderEmptyState/hand-rolled-32       	 1568667	       848.4 ns/op	     144 B/op	       4 allocs/op
+BenchmarkRenderEmptyState/hand-rolled-32       	 1839048	       658.3 ns/op	     144 B/op	       4 allocs/op
+BenchmarkRenderEmptyState/hand-rolled-32       	 1723864	       817.0 ns/op	     144 B/op	       4 allocs/op
+BenchmarkRenderEmptyState/hybrid-library-32    	   74120	     20603 ns/op	    3897 B/op	      43 allocs/op
+BenchmarkRenderEmptyState/hybrid-library-32    	   48499	     21443 ns/op	    3900 B/op	      43 allocs/op
+BenchmarkRenderEmptyState/hybrid-library-32    	   74580	     16402 ns/op	    3899 B/op	      43 allocs/op
+BenchmarkRenderEmptyState/hybrid-library-32    	   72230	     16371 ns/op	    3902 B/op	      43 allocs/op
+BenchmarkRenderEmptyState/hybrid-library-32    	   80223	     14146 ns/op	    3903 B/op	      43 allocs/op
+BenchmarkRenderDefinitionList/hand-rolled-32   	   19041	     65262 ns/op	   22647 B/op	      96 allocs/op
+BenchmarkRenderDefinitionList/hand-rolled-32   	   20886	     65359 ns/op	   22625 B/op	      96 allocs/op
+BenchmarkRenderDefinitionList/hand-rolled-32   	   12003	     97511 ns/op	   22593 B/op	      96 allocs/op
+BenchmarkRenderDefinitionList/hand-rolled-32   	   15702	     74300 ns/op	   22612 B/op	      96 allocs/op
+BenchmarkRenderDefinitionList/hand-rolled-32   	   19796	     55918 ns/op	   22627 B/op	      96 allocs/op
+BenchmarkRenderDefinitionList/hybrid-library-32         	   17325	     83781 ns/op	   25194 B/op	     139 allocs/op
+BenchmarkRenderDefinitionList/hybrid-library-32         	   10000	    163216 ns/op	   25161 B/op	     139 allocs/op
+BenchmarkRenderDefinitionList/hybrid-library-32         	   13278	     87279 ns/op	   25179 B/op	     139 allocs/op
+BenchmarkRenderDefinitionList/hybrid-library-32         	   10000	    129831 ns/op	   25170 B/op	     139 allocs/op
+BenchmarkRenderDefinitionList/hybrid-library-32         	   19634	     70924 ns/op	   25158 B/op	     139 allocs/op
+BenchmarkRenderTablePaths/data-row-32                   	    4065	    298705 ns/op	   46589 B/op	     560 allocs/op
+BenchmarkRenderTablePaths/data-row-32                   	    4722	    337746 ns/op	   46580 B/op	     560 allocs/op
+BenchmarkRenderTablePaths/data-row-32                   	    2352	    442440 ns/op	   46575 B/op	     560 allocs/op
+BenchmarkRenderTablePaths/data-row-32                   	    2847	    848064 ns/op	   46565 B/op	     560 allocs/op
+BenchmarkRenderTablePaths/data-row-32                   	    1322	    770342 ns/op	   46581 B/op	     560 allocs/op
+BenchmarkRenderTablePaths/raw-body-32                   	    9801	    138208 ns/op	   11319 B/op	      84 allocs/op
+BenchmarkRenderTablePaths/raw-body-32                   	   23847	     62562 ns/op	   11317 B/op	      84 allocs/op
+BenchmarkRenderTablePaths/raw-body-32                   	   14211	     77348 ns/op	   11335 B/op	      84 allocs/op
+BenchmarkRenderTablePaths/raw-body-32                   	   12222	    103713 ns/op	   11326 B/op	      84 allocs/op
+BenchmarkRenderTablePaths/raw-body-32                   	   10000	    110119 ns/op	   11325 B/op	      84 allocs/op
+PASS
+ok  	github.com/larsartmann/cqrs-htmx/dashboardui/v4	83.688s
