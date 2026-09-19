@@ -332,7 +332,6 @@ func renderEventFilterBar(ctx context.Context, basePath string, filter eventFilt
 		esc(filter.Type),
 		esc(filter.StreamType),
 		esc(filter.StreamID),
-		esc(basePath),
 	)
 }
 
