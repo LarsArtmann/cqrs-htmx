@@ -178,9 +178,11 @@ func (d *Dashboard) renderTimeTravelDetail(
 
 		fmt.Fprintf(
 			&b,
-			`<input type="range" min="1" max="%d" value="%d" class="version-slider" id="version-slider" onchange="window.location.href='%s/time-travel/%s/%s?v='+this.value" oninput="document.getElementById('slider-version-display').textContent=this.value" aria-label="Select version"/>`,
+			`<input type="range" min="1" max="%d" value="%d" class="version-slider" id="version-slider" aria-label="Select version" aria-valuetext="Version %d of %d" data-nav-base="%s/time-travel/%s/%s?v=" data-slider-display="slider-version-display"/>`,
 			maxVersion.Int(),
 			currentVersion.Int(),
+			currentVersion.Int(),
+			maxVersion.Int(),
 			p.BasePath,
 			esc(string(ref.Type)),
 			esc(ref.ID.String()),

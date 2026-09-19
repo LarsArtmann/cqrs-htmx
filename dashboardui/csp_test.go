@@ -1,11 +1,15 @@
 package dashboardui
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/httputil"
 )
@@ -31,6 +35,61 @@ func cspDashboard(t *testing.T) http.Handler {
 		httputil.Nonce(httputil.NonceConfig{CSPBuilder: httputil.RecommendedCSPWithNonce}),
 	)(mux)
 }
+
+// cspDashboardWithDetail builds the CSP dashboard with a seeded three-event
+// Order stream and returns the handler plus that stream's time-travel detail
+// URL. The detail page carries the interactive version slider — the route
+// class where inline event handlers previously hid from the CSP sweep (the
+// listing-only sweep was a vacuous pass).
+func cspDashboardWithDetail(t *testing.T) (http.Handler, string) {
+	t.Helper()
+
+	store := memorystorage.NewMemoryStore()
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("Order", aggID)
+
+	for i := 1; i <= 3; i++ {
+		evt, err := event.New(
+			"order.updated",
+			aggID,
+			"Order",
+			event.Version(i),
+			struct{ Step int }{Step: i},
+		)
+		if err != nil {
+			t.Fatalf("event.New: %v", err)
+		}
+
+		if err := store.Save(context.Background(), ref, []event.Event{evt}, event.Version(i-1)); err != nil {
+			t.Fatalf("store.Save: %v", err)
+		}
+	}
+
+	d, err := New(Config{
+		EventSource:  store,
+		Journal:      store,
+		StreamReader: listing.NewInMemoryStreamReader(store),
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	handler := httputil.Compose(
+		httputil.SecurityHeaders(httputil.SecurityHeadersConfig{}),
+		httputil.Nonce(httputil.NonceConfig{CSPBuilder: httputil.RecommendedCSPWithNonce}),
+	)(mux)
+
+	return handler, "/dashboard/time-travel/Order/" + aggID.String() + "?v=2"
+}
+
+// cspDashboardWithDetail builds the CSP dashboard with a seeded three-event
+// Order stream and returns the handler plus that stream's time-travel detail
+// URL. The detail page carries the interactive version slider — the route
+// class where inline event handlers previously hid from the CSP sweep (the
+// listing-only sweep was a vacuous pass).
 
 // renderWithNonce renders a page through the security middleware so
 // request-scoped nonces are populated. The second result is false when the
@@ -87,10 +146,12 @@ func TestCSP_LibraryScriptsCarryNonce(t *testing.T) {
 }
 
 // TestCSP_NoInlineEventHandlers proves the dashboard emits no inline event
-// handler attributes (onclick/onchange/onsubmit/onload). Nonce-based CSP does
-// NOT whitelist handler attributes, so any of them would silently die under a
-// consumer's RecommendedSecurityMiddleware.
+// handler attributes (onclick/onchange/oninput/onsubmit/onload). Nonce-based
+// CSP does NOT whitelist handler attributes, so any of them would silently
+// die under a consumer's RecommendedSecurityMiddleware.
 func TestCSP_NoInlineEventHandlers(t *testing.T) {
+	handler, timetravelDetail := cspDashboardWithDetail(t)
+
 	for _, target := range []string{
 		"/dashboard/",
 		"/dashboard/events",
@@ -98,18 +159,39 @@ func TestCSP_NoInlineEventHandlers(t *testing.T) {
 		"/dashboard/commands",
 		"/dashboard/queries",
 		"/dashboard/time-travel",
+		timetravelDetail,
 		"/dashboard/snapshots",
 	} {
-		body, ok := renderWithNonce(t, target)
-		if !ok {
+		req := httptest.NewRequest(http.MethodGet, target, nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
 			continue
 		}
 
-		for _, handler := range []string{"onclick=", "onchange=", "onsubmit=", "onload="} {
+		body := rec.Body.String()
+
+		for _, handler := range []string{"onclick=", "onchange=", "oninput=", "onsubmit=", "onload="} {
 			if strings.Contains(body, handler) {
 				t.Errorf("%s: found inline %q attribute (would break under CSP nonce)", target, handler)
 			}
 		}
+	}
+
+	// The sweep must actually reach the slider page — a detail URL that 404s
+	// would silently shrink the guarantee back to the listings-only vacuous
+	// pass this test existed to prevent.
+	req := httptest.NewRequest(http.MethodGet, timetravelDetail, nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("timetravel detail %s: status = %d, want 200 (slider page must render for the CSP sweep)", timetravelDetail, rec.Code)
+	}
+
+	if !strings.Contains(rec.Body.String(), "id=\"version-slider\"") {
+		t.Fatal("timetravel detail did not render the version slider")
 	}
 }
 

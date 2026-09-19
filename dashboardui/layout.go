@@ -365,6 +365,7 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 /* ===== Version slider (time-travel) ===== */
 .version-links { display: flex; flex-wrap: wrap; gap: 4px; }
 .version-slider { width: 100%; max-width: 400px; accent-color: var(--accent); cursor: pointer; }
+.version-slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .version-display { font-size: 0.9rem; color: var(--muted); }
 
 /* ===== Filter bar ===== */
@@ -595,6 +596,24 @@ document.addEventListener("submit", function(e) {
     e.preventDefault();
   }
 });
+
+// Time-travel version slider wiring (CSP-safe — replaces the former inline
+// onchange/oninput attributes, which nonce CSP blocks): update the version
+// display and aria-valuetext while dragging, navigate on release.
+(function() {
+  var slider = document.getElementById("version-slider");
+  if (!slider) return;
+  var display = document.getElementById(slider.dataset.sliderDisplay || "slider-version-display");
+  slider.addEventListener("input", function() {
+    if (display) display.textContent = slider.value;
+    slider.setAttribute("aria-valuetext", "Version " + slider.value + " of " + slider.max);
+  });
+  slider.addEventListener("change", function() {
+    if (slider.dataset.navBase) {
+      window.location.href = slider.dataset.navBase + slider.value;
+    }
+  });
+})();
 
 // Keyboard navigation for the time-travel version slider: ArrowLeft/ArrowRight
 // anywhere on the page move the slider and navigate to the selected version.
