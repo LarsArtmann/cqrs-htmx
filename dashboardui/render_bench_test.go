@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"html"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -85,7 +86,12 @@ func benchHandRolledButtonLink(b *testing.B) {
 	for b.Loop() {
 		var out strings.Builder
 
-		fmt.Fprintf(&out, `<a href="%s" class="btn">%s</a>`, esc("/dashboard/events/e_01HXYZ"), esc("View"))
+		fmt.Fprintf(
+			&out,
+			`<a href="%s" class="btn">%s</a>`,
+			esc("/dashboard/events/e_01HXYZ"),
+			esc("View"),
+		)
 		_ = out.String()
 	}
 }
@@ -98,7 +104,15 @@ func benchHybridButtonLink(b *testing.B) {
 	for b.Loop() {
 		var out strings.Builder
 
-		_, _ = out.WriteString(buttonLink(ctx, "View", "/dashboard/events/e_01HXYZ", "View event", display.ButtonSecondary, false))
+		link := buttonLink(
+			ctx,
+			"View",
+			"/dashboard/events/e_01HXYZ",
+			"View event",
+			display.ButtonSecondary,
+			false,
+		)
+		_, _ = out.WriteString(link)
 		_ = out.String()
 	}
 }
@@ -113,8 +127,12 @@ func benchHandRolledButtonSubmit(b *testing.B) {
 	for b.Loop() {
 		var out strings.Builder
 
-		fmt.Fprintf(&out, `<button type="submit" class="btn btn-danger" aria-label="%s">%s</button>`,
-			esc("Delete dead letter"), esc("Delete"))
+		fmt.Fprintf(
+			&out,
+			`<button type="submit" class="btn btn-danger" aria-label="%s">%s</button>`,
+			esc("Delete dead letter"),
+			esc("Delete"),
+		)
 		_ = out.String()
 	}
 }
@@ -127,7 +145,9 @@ func benchHybridButtonSubmit(b *testing.B) {
 	for b.Loop() {
 		var out strings.Builder
 
-		_, _ = out.WriteString(buttonSubmit(ctx, "Delete", "Delete dead letter", display.ButtonOutlineDanger, nil))
+		_, _ = out.WriteString(
+			buttonSubmit(ctx, "Delete", "Delete dead letter", display.ButtonOutlineDanger, nil),
+		)
 		_ = out.String()
 	}
 }
@@ -149,7 +169,12 @@ func benchHandRolledEmptyState(b *testing.B) {
 	for b.Loop() {
 		var out strings.Builder
 
-		fmt.Fprintf(&out, `<div class="empty-state"><h2>%s</h2><p>%s</p></div>`, esc("No events"), esc("Adjust the filters"))
+		fmt.Fprintf(
+			&out,
+			`<div class="empty-state"><h2>%s</h2><p>%s</p></div>`,
+			esc("No events"),
+			esc("Adjust the filters"),
+		)
 		_ = out.String()
 	}
 }
@@ -182,7 +207,11 @@ func benchMetaRow(b *strings.Builder, key, value string) {
 	fmt.Fprintf(b, `<tr><td class="meta-key">%s</td><td class="meta-val">%s</td></tr>`, key, value)
 }
 
-func benchMetaRowCopyable(b *strings.Builder, ctx context.Context, key, displayValue, rawValue string) {
+func benchMetaRowCopyable(
+	b *strings.Builder,
+	ctx context.Context,
+	key, displayValue, rawValue string,
+) {
 	fmt.Fprintf(
 		b,
 		`<tr><td class="meta-key">%s</td><td class="meta-val">%s %s</td></tr>`,
@@ -251,12 +280,13 @@ func benchTableDataRows(b *testing.B) {
 		rows := make([]display.TableRow, 0, 10)
 
 		for j := range 10 {
+			rowID := fmt.Sprintf("01HXYZ%02d", j)
 			rows = append(rows, display.TableRow{
 				Cells: []display.TableCell{
-					textCell(fmt.Sprintf("01HXYZ%02d", j)),
+					textCell(rowID),
 					textCell("user.created"),
-					textCell(fmt.Sprintf("%d", j)),
-					rawCell(`<a href="/dashboard/events/e`+fmt.Sprintf("%02d", j)+`" class="btn">View</a>`),
+					textCell(strconv.Itoa(j)),
+					rawCell(`<a href="/dashboard/events/e` + rowID + `" class="btn">View</a>`),
 				},
 			})
 		}
@@ -280,9 +310,14 @@ func benchTableRawBody(b *testing.B) {
 		var rows strings.Builder
 
 		for j := range 10 {
-			fmt.Fprintf(&rows,
+			fmt.Fprintf(
+				&rows,
 				`<tr><td class="mono">%s</td><td>%s</td><td>%d</td><td><a href="/dashboard/events/e%02d" class="btn">View</a></td></tr>`,
-				fmt.Sprintf("01HXYZ%02d", j), "user.created", j, j)
+				fmt.Sprintf("01HXYZ%02d", j),
+				"user.created",
+				j,
+				j,
+			)
 		}
 
 		var out strings.Builder

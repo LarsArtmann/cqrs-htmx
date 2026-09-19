@@ -337,9 +337,30 @@ func filterInput(ctx context.Context, id, label, name, value, placeholder string
 func renderEventFilterBar(ctx context.Context, basePath string, filter eventFilter) string {
 	return fmt.Sprintf(
 		`<form class="filter-bar" hx-get="%s/events" hx-target="#main-content" hx-select="#main-content" hx-swap="outerHTML" hx-push-url="true">`+
-			filterInput(ctx, "filter-type", "Type", "type", filter.Type, "event.type")+
-			filterInput(ctx, "filter-stream-type", "Stream Type", "streamType", filter.StreamType, "User")+
-			filterInput(ctx, "filter-stream-id", "Stream ID", "streamID", filter.StreamID, "01H...")+
+			filterInput(
+				ctx,
+				"filter-type",
+				"Type",
+				"type",
+				filter.Type,
+				"event.type",
+			)+
+			filterInput(
+				ctx,
+				"filter-stream-type",
+				"Stream Type",
+				"streamType",
+				filter.StreamType,
+				"User",
+			)+
+			filterInput(
+				ctx,
+				"filter-stream-id",
+				"Stream ID",
+				"streamID",
+				filter.StreamID,
+				"01H...",
+			)+
 			buttonSubmit(
 				ctx,
 				"Filter",

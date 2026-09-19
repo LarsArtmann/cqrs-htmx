@@ -324,9 +324,12 @@ typed sort headers + `LazyRows`, `display.EmptyState`, `display.Button`,
 Deliberate exclusions: `navigation.Pagination` (cursor + history pagination of
 append-only journals — numbered pages are meaningless), `navigation.SidebarNav`
 /`layout.AppShell` (custom dark-sidebar theme + mobile drawer, same precedent
-as adminui), `display.ListNote` (range semantics vs count-only), and
-`display.Grid` (templ `{children...}` renders empty in the hybrid standalone
-path).
+as adminui), `display.ListNote` (range semantics vs count-only),
+`display.Grid` and `htmx.PolledRegion` (templ `{children...}` renders empty in
+the hybrid standalone path — the projection-health polling therefore stays
+hand-rolled; see docs/guides/hybrid-templ-components-adoption.md). Adopted in
+the N16/N17 pass: `forms.Input` (event filter bar), library Button
+link/submit, EmptyState, and DefinitionList render benchmarks.
 
 ### Rebuilding the CSS bundle
 

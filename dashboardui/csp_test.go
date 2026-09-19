@@ -140,7 +140,11 @@ func TestCSP_LibraryScriptsCarryNonce(t *testing.T) {
 		tag := body[scriptStart:idx]
 
 		if !strings.Contains(tag, "nonce=") {
-			t.Errorf("inline script containing %q lacks nonce attribute: %q", want, tag[:min(len(tag), 120)])
+			t.Errorf(
+				"inline script containing %q lacks nonce attribute: %q",
+				want,
+				tag[:min(len(tag), 120)],
+			)
 		}
 	}
 }
@@ -174,7 +178,11 @@ func TestCSP_NoInlineEventHandlers(t *testing.T) {
 
 		for _, handler := range []string{"onclick=", "onchange=", "oninput=", "onsubmit=", "onload="} {
 			if strings.Contains(body, handler) {
-				t.Errorf("%s: found inline %q attribute (would break under CSP nonce)", target, handler)
+				t.Errorf(
+					"%s: found inline %q attribute (would break under CSP nonce)",
+					target,
+					handler,
+				)
 			}
 		}
 	}
@@ -187,7 +195,11 @@ func TestCSP_NoInlineEventHandlers(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
-		t.Fatalf("timetravel detail %s: status = %d, want 200 (slider page must render for the CSP sweep)", timetravelDetail, rec.Code)
+		t.Fatalf(
+			"timetravel detail %s: status = %d, want 200 (slider page must render for the CSP sweep)",
+			timetravelDetail,
+			rec.Code,
+		)
 	}
 
 	if !strings.Contains(rec.Body.String(), "id=\"version-slider\"") {
