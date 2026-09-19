@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"context"
 	"fmt"
+	"html"
 	"strings"
 	"testing"
 

@@ -1,0 +1,16 @@
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/cqrs-htmx/dashboardui/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkRenderStatCard/hand-rolled-32         	 8431682	       315.9 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 5463620	       448.4 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 6308007	       411.0 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 5289034	       464.9 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hand-rolled-32         	 8068416	       437.3 ns/op	     280 B/op	       6 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  618944	      4163 ns/op	    2209 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  522882	      4272 ns/op	    2208 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  592425	      4203 ns/op	    2208 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  550654	      4394 ns/op	    2208 B/op	      29 allocs/op
+BenchmarkRenderStatCard/hybrid-library-32      	  535327	      4288 ns/op	    2208 B/op	      29 allocs/op
+PASS
+ok  	github.com/larsartmann/cqrs-htmx/dashboardui/v4	25.725s
