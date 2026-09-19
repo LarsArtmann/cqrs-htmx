@@ -38,12 +38,11 @@ test.describe("dashboard badges + stat cards (N6)", () => {
     await page.goto("/dashboard/projections");
     await expect(page.getByText("demo-projection").first()).toBeVisible();
 
-    // The M8 semantics: a drained journal-only worker reports "stopped" but
-    // classifies healthy - the badge carries the success tone + status dot.
-    const badge = page.getByText("stopped", { exact: true }).first();
+    // The M8 semantics in the browser: the badge TEXT is "stopped" (drained)
+    // while its classes are the SUCCESS greens - that pairing IS "healthy".
+    const badge = page.locator("td span.bg-green-100", { hasText: "stopped" }).first();
     await expect(badge).toBeVisible();
-    await expect(badge.locator("xpath=ancestor::*[contains(@class,'badge')][1]"))
-      .toContainText("stopped");
+    await expect(badge.locator("span.bg-green-500")).toBeVisible(); // status dot
     await expect(page.getByText("4").first()).toBeVisible(); // processed
   });
 });
