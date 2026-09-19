@@ -6,6 +6,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // tableHTML renders the library Table into a string (the hybrid adoption
@@ -19,8 +20,9 @@ import (
 func tableHTML(ctx context.Context, headers []display.TableHeader, rows []display.TableRow, bodyID string) string {
 	var b strings.Builder
 
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	props := display.TableProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Caption:      "",
 		Headers:      nil,
 		TypedHeaders: headers,
@@ -74,8 +76,9 @@ func plainHeaders(labels ...string) []display.TableHeader {
 func tableHTMLRaw(ctx context.Context, headers []display.TableHeader, rowsHTML string) string {
 	var b strings.Builder
 
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	props := display.TableProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Caption:      "",
 		Headers:      nil,
 		TypedHeaders: headers,

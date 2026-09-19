@@ -10,6 +10,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // updateGolden is set with -update to rewrite the golden files after an
@@ -39,31 +40,34 @@ func goldenRender(t *testing.T, c templ.Component) string {
 // CSP attributes, or the compiled CSS class coverage.
 func TestGolden_ComponentMarkup(t *testing.T) {
 	statusBadge := display.StatusBadge("healthy")
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	badge := display.Badge(display.BadgeProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
-		Text: "42",
-		Type: display.BadgeNeutral,
-		Size: display.BadgeSizeMD,
-		Pill: false,
-		Dot:  true,
-		Href: "",
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Text:      "42",
+		Type:      display.BadgeNeutral,
+		Size:      display.BadgeSizeMD,
+		Pill:      false,
+		Dot:       true,
+		Href:      "",
 	})
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	statCard := display.StatCard(display.StatCardProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
-		Value:    "1234",
-		Label:    "Events",
-		Change:   "",
-		Trend:    display.TrendNone,
-		Tone:     display.StatToneBlue,
-		Icon:     "",
-		Href:     "",
-		HxGet:    "",
-		HxTarget: "",
-		HxSwap:   "",
-		ValueID:  "stat-total-events",
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Value:     "1234",
+		Label:     "Events",
+		Change:    "",
+		Trend:     display.TrendNone,
+		Tone:      display.StatToneBlue,
+		Icon:      "",
+		Href:      "",
+		HxGet:     "",
+		HxTarget:  "",
+		HxSwap:    "",
+		ValueID:   "stat-total-events",
 	})
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	emptyState := display.EmptyState(display.EmptyStateProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Title:       "No events yet",
 		TitleTag:    "h2",
 		Description: "Events will appear here.",

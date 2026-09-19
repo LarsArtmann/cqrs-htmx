@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/errorpage"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
@@ -171,8 +172,9 @@ func emptyState(ctx context.Context, title, message string) string {
 func emptyStateIcon(ctx context.Context, icon icons.Name, title, message string) string {
 	var b strings.Builder
 
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	props := display.EmptyStateProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Title:       title,
 		TitleTag:    "h2",
 		Description: message,

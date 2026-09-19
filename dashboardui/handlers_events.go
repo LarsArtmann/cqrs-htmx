@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -311,8 +312,9 @@ func (d *Dashboard) renderEvents(
 func filterInput(ctx context.Context, id, label, name, value, placeholder string) string {
 	var b strings.Builder
 
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	_ = forms.Input(forms.InputProps{
-		ID: id, Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		BaseProps:    utils.BaseProps{ID: id, Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Type:         forms.InputText,
 		Name:         name,
 		Value:        value,

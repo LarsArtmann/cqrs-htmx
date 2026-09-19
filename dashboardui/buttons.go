@@ -6,6 +6,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // buttonLink renders a library Button as an anchor (navigation actions
@@ -20,17 +21,18 @@ func buttonLink(
 ) string {
 	var b strings.Builder
 
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	props := display.ButtonProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: ariaLabel, Nonce: "",
-		Text:     text,
-		Type:     display.ButtonHTMLButton,
-		Href:     href,
-		Variant:  variant,
-		Size:     display.ButtonSizeMD,
-		Disabled: disabled,
-		Icon:     nil,
-		External: false,
-		Wire:     nil,
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: ariaLabel, Nonce: ""},
+		Text:      text,
+		Type:      display.ButtonHTMLButton,
+		Href:      href,
+		Variant:   variant,
+		Size:      display.ButtonSizeMD,
+		Disabled:  disabled,
+		Icon:      nil,
+		External:  false,
+		Wire:      nil,
 	}
 	_ = display.Button(props).Render(ctx, &b)
 
@@ -48,21 +50,24 @@ func buttonSubmit(
 ) string {
 	var b strings.Builder
 
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	props := display.ButtonProps{
-		ID:        "",
-		Class:     "",
-		Attrs:     attrs,
-		AriaLabel: ariaLabel,
-		Nonce:     "",
-		Text:      text,
-		Type:      display.ButtonHTMLSubmit,
-		Href:      "",
-		Variant:   variant,
-		Size:      display.ButtonSizeMD,
-		Disabled:  false,
-		Icon:      nil,
-		External:  false,
-		Wire:      nil,
+		BaseProps: utils.BaseProps{
+			ID:        "",
+			Class:     "",
+			Attrs:     attrs,
+			AriaLabel: ariaLabel,
+			Nonce:     "",
+		},
+		Text:     text,
+		Type:     display.ButtonHTMLSubmit,
+		Href:     "",
+		Variant:  variant,
+		Size:     display.ButtonSizeMD,
+		Disabled: false,
+		Icon:     nil,
+		External: false,
+		Wire:     nil,
 	}
 	_ = display.Button(props).Render(ctx, &b)
 
@@ -75,8 +80,9 @@ func buttonSubmit(
 func copyButtonHTML(ctx context.Context, text, label string) string {
 	var b strings.Builder
 
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	props := display.CopyButtonProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Text:        text,
 		Label:       label,
 		CopiedLabel: "",
@@ -96,8 +102,9 @@ func rawComponent(html string) templ.Component {
 // copyButtonComponent builds an unrendered library CopyButton component for
 // embedding inside other components (definition list details).
 func copyButtonComponent(text string) templ.Component {
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	return display.CopyButton(display.CopyButtonProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
+		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Text:        text,
 		Label:       "",
 		CopiedLabel: "",

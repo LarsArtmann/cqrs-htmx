@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // Benchmarks comparing the hand-rolled string-building renderers against the
@@ -46,19 +47,20 @@ func benchHybridStatCard(b *testing.B) {
 	b.Helper()
 
 	ctx := context.Background()
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	props := display.StatCardProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
-		Value:    "1234",
-		Label:    "Events",
-		Change:   "",
-		Trend:    display.TrendNone,
-		Tone:     display.StatToneBlue,
-		Icon:     "",
-		Href:     "",
-		HxGet:    "",
-		HxTarget: "",
-		HxSwap:   "",
-		ValueID:  "stat-total-events",
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Value:     "1234",
+		Label:     "Events",
+		Change:    "",
+		Trend:     display.TrendNone,
+		Tone:      display.StatToneBlue,
+		Icon:      "",
+		Href:      "",
+		HxGet:     "",
+		HxTarget:  "",
+		HxSwap:    "",
+		ValueID:   "stat-total-events",
 	}
 
 	for b.Loop() {

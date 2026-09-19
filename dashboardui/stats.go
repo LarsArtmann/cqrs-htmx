@@ -29,6 +29,7 @@ func healthKindToTone(kind string) display.StatTone {
 func statCardHTML(ctx context.Context, valueID, value, label string, tone display.StatTone) string {
 	var b strings.Builder
 
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	props := display.StatCardProps{
 		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Value:     value,
