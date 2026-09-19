@@ -201,3 +201,48 @@ Remaining replace inventory (all with removal conditions):
   local` — strip once projectionadapter v4.5.0+ is tagged (v4.4.1 is the
   current max; OccurredAt on EventWithID needs v4.5.0). When that unlocks,
   systemadapter's FIRST tag joins the then-current family version.
+
+## 7. Post-train state: v4.11.0 (EXECUTED 2026-09-19/20)
+
+The section §0 defers to. Current truth after the v4.11.0 train, recorded
+2026-09-20 — re-derive anything time-sensitive before relying on it.
+
+**Shipped.** 14 tags at `v4.11.0`: the 13-module family train (executed
+2026-09-19, tags first / master pushed after — see the two status reports
+in `docs/status/`) PLUS `systemadapter/v4.11.0` (FIRST tag ever, 2026-09-20,
+commit `f37bf68c`). All 14 resolve on proxy.golang.org; pkg.go.dev pages
+rendered (spot-checked root + setup).
+
+**The replace pile is GONE — all modules at zero replace directives.**
+The last two sibling replaces (systemadapter + examples/system-demo:
+projectionadapter "needs OccurredAt", metaengine "needs Reset") had their
+removal conditions satisfied by the sibling's 2026-09-19/20 wave
+(projectionadapter v4.5.0, metaengine v4.14.0), and the go-datastar
+broadcast replaces went with broadcast/v0.6.0. The "systemadapter train
+blocked on upstream tags" item from the v4.8.0 runbook §4 is CLOSED.
+
+**Train-lag alignment executed in-repo (2026-09-20).** The sibling wave
+left 447 lag entries; a scripted sweep bumped every internal go-cqrs-lite
+/ go-sse / templ-components / go-health require to its published max across
+all 28 go.mods (per-module hermetic tidy+build+vet green).
+`check-release-train`: **0 unpublished / 0 replace-exempted / 0 train lag.**
+`check-modules`: green. `coverage-gate`: green (15 modules; one real
+catch — templ-components v1.18.1 dropped `rounded-lg` from StatCard,
+drifting `stat_card_value_id.golden`; regenerated and diff-reviewed, CSS
+bundles rebuilt in the same change per the family-bump rule).
+
+**First-tag chicken-and-egg recipe (proven).** A consumer of a
+never-published module (examples/system-demo → systemadapter) cannot
+commit a require at the not-yet-existing version, and the tag needs the
+commit. Sequence that passes every gate: (1) commit with a temporary
+in-family replace + removal-comment in the consumer (the release-train
+gate exempts replace-satisfied requires), (2) `verify-tag.sh --push` the
+new tag, (3) dropreplace + retidy + commit the consumer.
+
+**Known residue at write time.** `bench-spike` re-run pending — the load
+guard correctly refused while a sibling compile storm saturated the box;
+re-run on a quiet machine, re-pin only if a real regression shows.
+go.work still carries workspace-mode replaces for go-cqrs-lite
+(system/metaengine/record + engines) — workspace builds compile the
+sibling tree, hermetic builds compile published tags; both green, the
+replace-strip decision there is a separate cleanup.
