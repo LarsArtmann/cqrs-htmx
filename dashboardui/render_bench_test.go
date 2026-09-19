@@ -27,7 +27,7 @@ import (
 func benchHandRolledStatCard(b *testing.B) {
 	b.Helper()
 
-	esc := func(s string) string { return html.EscapeString(s) }
+	esc := html.EscapeString
 
 	for b.Loop() {
 		var out strings.Builder
