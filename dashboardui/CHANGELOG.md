@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v4.10.1] - 2026-09-19
+
+### Fixed
+
+- **Compiled Tailwind bundle rebuilt against the templ-components v1.18.0 class set** (+2,104 bytes): v4.10.0's embedded `dashboard-tw.css` was generated before the v1.18.0 sweep and missed the new/renamed utilities the adopted components now emit (e.g. the 28px table-sort touch targets from the library's accessibility pack). Rule reinforced: rebuild `nix run .#build-dashboardui-css` after EVERY templ-components family bump, in the same change.
+
 ## [v4.10.0] - 2026-09-19
 
 ### Added
