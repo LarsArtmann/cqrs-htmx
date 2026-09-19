@@ -5,7 +5,7 @@ go 1.26.7
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.10.1
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.9.0
@@ -45,7 +45,7 @@ require (
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/larsartmann/go-atomic-write v0.5.2 // indirect
@@ -76,6 +76,7 @@ require (
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.18.0 // indirect
 	github.com/larsartmann/templ-components/datastar v1.18.0 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.18.0 // indirect
 	github.com/larsartmann/templ-components/htmx v1.18.0 // indirect
 	github.com/larsartmann/templ-components/icons v1.18.0 // indirect
 	github.com/larsartmann/templ-components/utils v1.18.0 // indirect

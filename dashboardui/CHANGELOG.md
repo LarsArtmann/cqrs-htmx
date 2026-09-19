@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Time-travel slider worked only without CSP (2026-09-19, N17):** the version slider carried inline `onchange`/`oninput` attributes, which nonce-based CSP (the recommended `RecommendedSecurityMiddleware` posture) silently blocks — slider navigation and live version display were dead under a CSP-enforcing consumer. Replaced with `data-nav-base`/`data-slider-display` attributes plus CSP-safe external listeners in the layout script (same behavior: drag updates display + `aria-valuetext`, release navigates; arrow keys unchanged). The inline handlers had also escaped `TestCSP_NoInlineEventHandlers`, because the sweep rendered only listing routes — the test now seeds a stream, sweeps the slider detail page, and fails loudly if the slider stops rendering (mutation-verified).
+
+### Added
+
+- **Event filter bar renders `forms.Input` (N17.3–4):** the three filter fields (Type, Stream Type, Stream ID) route through the library's labeled input instead of hand-rolled `<input>` markup; explicit DOM ids (`filter-type`, `filter-stream-type`, `filter-stream-id`) and the `hx-get` partial-swap wiring are pinned by a new label-pairing contract test (`TestA11y_FilterInputsKeepLabelPairing`). Slider gained `aria-valuetext` and a `:focus-visible` ring; the Tailwind bundle was rebuilt for the new input utility classes.
+- **Render benchmarks for every adopted family (N16.1–5):** `render_bench_test.go` now covers Button (link/submit), EmptyState, DefinitionList (pre-M20 meta-table baseline with honest copy-button parity), and the Table raw-body vs data-row paths. Findings recorded in `docs/benchmarks/dashboardui-render-2026-09-19.md`: the DefinitionList swap costs only ~1.3x, and the raw-body table path is ~4.3x cheaper than typed data-rows at 10 rows — keep `tableHTMLRaw` for string-built listings.
+- **`templ.Component` added to the root `ireturn` allow list (N16.6):** the templ component contract (returning `templ.Component` from render helpers) is idiomatic; the two `//nolint:ireturn` directives in `buttons.go` are gone.
+
 ## [v4.10.1] - 2026-09-19
 
 ### Fixed

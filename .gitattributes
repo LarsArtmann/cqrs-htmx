@@ -5,3 +5,5 @@ docs/status/*.md linguist-documentation
 reports/** linguist-generated
 # Enforce consistent line endings across all platforms
 * text=auto eol=lf
+# Binary files should not be diffed or merged
+*.png binary
