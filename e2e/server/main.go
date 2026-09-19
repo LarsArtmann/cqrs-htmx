@@ -19,6 +19,7 @@ import (
 	"html"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -92,11 +93,12 @@ func seedDashboard(store *memorystorage.MemoryStore, host *projectionhost.Host) 
 				aggID,
 				id.StreamType(streamType),
 				event.Version(v),
-				map[string]string{"seq": fmt.Sprintf("%d", v)},
+				map[string]string{"seq": strconv.FormatUint(v, 10)},
 			)
 			if eErr != nil {
 				log.Fatalf("event.New: %v", eErr)
 			}
+
 			if aErr := store.AppendBatch(ctx, ref, []event.Event{evt}); aErr != nil {
 				log.Fatalf("AppendBatch: %v", aErr)
 			}
@@ -110,6 +112,7 @@ func seedDashboard(store *memorystorage.MemoryStore, host *projectionhost.Host) 
 	if rErr := host.Register(demoProjection{}); rErr != nil {
 		log.Fatalf("host.Register: %v", rErr)
 	}
+
 	if sErr := host.Start(ctx); sErr != nil {
 		log.Fatalf("host.Start: %v", sErr)
 	}
@@ -136,14 +139,18 @@ func main() {
 	// capability stubs unlock the command/query/DLQ/projection/snapshot
 	// panels so all nine pages render without a full event-sourced stack. ---
 	dstore := memorystorage.NewMemoryStore()
+
 	var host *projectionhost.Host
+
 	if seekable, ok := any(dstore).(event.SeekableJournal); ok {
 		h, hErr := projectionhost.New(seekable, memorystorage.NewMemoryCheckpointStore())
 		if hErr != nil {
 			log.Fatalf("projectionhost.New: %v", hErr)
 		}
+
 		host = h
 	}
+
 	dash, err := dashboardui.New(dashboardui.Config{
 		EventSource:     dstore,
 		Journal:         dstore,
@@ -156,6 +163,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("dashboardui.New: %v", err)
 	}
+
 	seedDashboard(dstore, host)
 	dash.Mount(mux, "/dashboard/")
 
