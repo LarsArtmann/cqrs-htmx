@@ -19,7 +19,6 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
-	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
@@ -36,7 +35,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-etag v0.4.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
@@ -57,9 +55,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.46.0 // indirect
 	go.opentelemetry.io/otel/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
-	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	golang.org/x/tools v0.50.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
