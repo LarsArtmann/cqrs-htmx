@@ -128,15 +128,15 @@ func NewNamedCheck(name string, check ReadinessCheck) NamedCheck {
 // )).
 func HubReadinessCheck(b *Broadcaster) NamedCheck {
 	return NewNamedCheck("sse-hub", func() error {
-		h := b.Health()
+		health := b.Health()
 
 		switch {
-		case h.Closed:
+		case health.Closed:
 			return errorfamily.Newf(event.Infrastructure, "cqrshtmx.sse.hub_closed",
-				"sse hub closed (subscribers=%d, bufferSize=%d)", h.SubscriberCount, h.BufferSize)
-		case h.Draining:
+				"sse hub closed (subscribers=%d, bufferSize=%d)", health.SubscriberCount, health.BufferSize)
+		case health.Draining:
 			return errorfamily.Newf(event.Infrastructure, "cqrshtmx.sse.hub_draining",
-				"sse hub draining (subscribers=%d, bufferSize=%d)", h.SubscriberCount, h.BufferSize)
+				"sse hub draining (subscribers=%d, bufferSize=%d)", health.SubscriberCount, health.BufferSize)
 		}
 
 		return nil

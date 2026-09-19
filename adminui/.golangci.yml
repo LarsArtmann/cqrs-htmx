@@ -96,6 +96,8 @@ linters:
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.CreateTenantRequest$
         - github\.com/larsartmann/cqrs-htmx/usermgmt/v4\.RegisterResponse$
         - net/http\.Cookie$
+        - github\.com/larsartmann/templ-components/errorpage\.ErrorPageProps$
+        - github\.com/larsartmann/templ-components/errorpage\.NotFound404Props$
     gocritic:
       disabled-checks:
         - ifElseChain

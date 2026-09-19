@@ -42,12 +42,24 @@ func filterUsers(all []*identitymodel.User, q string) []*identitymodel.User {
 func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	target, err := identitymodel.ParseUserID(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid user id", http.StatusBadRequest)
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusBadRequest,
+			"Invalid user id",
+			"The id in the URL path is not a valid user id.",
+		)
 		return
 	}
 	shown, err := h.config.Service.GetUser(r.Context(), target)
 	if err != nil {
-		http.NotFound(w, r)
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusNotFound,
+			"User not found",
+			"No user with this id exists (it may have been deleted).",
+		)
 		return
 	}
 
@@ -73,7 +85,13 @@ func (h *Handler) userDetail(w http.ResponseWriter, r *http.Request, user *ident
 func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	target, err := identitymodel.ParseUserID(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid user id", http.StatusBadRequest)
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusBadRequest,
+			"Invalid user id",
+			"The id in the URL path is not a valid user id.",
+		)
 		return
 	}
 	reason := strings.TrimSpace(r.FormValue("reason"))
@@ -101,12 +119,18 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *identity
 func (h *Handler) userUnlinkExternal(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	target, err := identitymodel.ParseUserID(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid user id", http.StatusBadRequest)
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusBadRequest,
+			"Invalid user id",
+			"The id in the URL path is not a valid user id.",
+		)
 		return
 	}
 	provider := strings.TrimSpace(r.PathValue("provider"))
 	if provider == "" {
-		http.Error(w, "missing provider", http.StatusBadRequest)
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Missing provider", "The provider path segment is required.")
 		return
 	}
 	if err := h.config.Service.UnlinkExternalAccount(r.Context(), target, provider); err != nil {

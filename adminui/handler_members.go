@@ -89,7 +89,7 @@ func (h *Handler) tenantRemoveMember(w http.ResponseWriter, r *http.Request, _ *
 
 func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID identitymodel.TenantID, back string) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "invalid form", http.StatusBadRequest)
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
 		return
 	}
 	email := strings.TrimSpace(r.FormValue("email"))
@@ -158,7 +158,7 @@ func (h *Handler) doUpdateRole(
 	tenantID identitymodel.TenantID, actor identitymodel.ActorID, back string,
 ) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "invalid form", http.StatusBadRequest)
+		h.writeErrorPage(w, r, http.StatusBadRequest, "Invalid form", "The submitted form could not be parsed.")
 		return
 	}
 	role := identitymodel.Role(strings.TrimSpace(r.FormValue("role")))

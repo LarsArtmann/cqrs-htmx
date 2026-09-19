@@ -94,7 +94,13 @@ func (h *Handler) guard(fn func(http.ResponseWriter, *http.Request, *identitymod
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, _ := usermgmt.UserFromContext(r.Context())
 		if user == nil {
-			h.writeErrorPage(w, r, http.StatusUnauthorized, "Sign in required", "Your session is missing or expired. Sign in again to continue.")
+			h.writeErrorPage(
+				w,
+				r,
+				http.StatusUnauthorized,
+				"Sign in required",
+				"Your session is missing or expired. Sign in again to continue.",
+			)
 			return
 		}
 		if err := h.config.Authorizer(user); err != nil {
@@ -160,7 +166,13 @@ func (h *Handler) routes() http.Handler {
 	// less pattern catches non-GET requests to unknown paths.
 	mux.HandleFunc("GET /", h.guardPanel(h.notFoundHandler))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		h.writeErrorPage(w, r, http.StatusMethodNotAllowed, "Method not allowed", "This endpoint does not support that HTTP method.")
+		h.writeErrorPage(
+			w,
+			r,
+			http.StatusMethodNotAllowed,
+			"Method not allowed",
+			"This endpoint does not support that HTTP method.",
+		)
 	})
 
 	return mux

@@ -10,6 +10,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/httputil v1.2.0
 	github.com/larsartmann/templ-components v1.18.0
+	github.com/larsartmann/templ-components/errorpage v1.18.0
 	github.com/larsartmann/templ-components/htmx v1.18.0
 	github.com/larsartmann/templ-components/icons v1.18.0
 	github.com/larsartmann/templ-components/utils v1.18.0

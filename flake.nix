@@ -623,11 +623,22 @@
                       # 3x larger). Scanning the full module cache causes
                       # 55 GB RAM usage — this approach uses <500 MB.
                       SCAN_DIR=$(mktemp -d)
-                      for pkg in display errorpage feedback forms htmx icons layout navigation; do
+                      for pkg in display feedback forms htmx icons layout navigation; do
                         if [ -d "$TC_DIR/$pkg" ]; then
                           cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
                         fi
                       done
+                      # errorpage is a SEPARATE family module (not a package
+                      # inside the root module dir) and defines its runtime
+                      # class strings in styles.go (Go source, NOT .templ) —
+                      # without both, the error-page utility families are
+                      # silently absent from the bundle while the build stays
+                      # green (dashboardui M6-class false green).
+                      ERRORPAGE_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components/errorpage 2>/dev/null || true)
+                      if [ -n "$ERRORPAGE_DIR" ] && [ -d "$ERRORPAGE_DIR" ]; then
+                        cp "$ERRORPAGE_DIR/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                        cp "$ERRORPAGE_DIR/styles.go" "$SCAN_DIR/" 2>/dev/null || true
+                      fi
                       echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
                     fi
 
