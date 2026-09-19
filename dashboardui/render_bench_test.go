@@ -19,22 +19,23 @@ import (
 // These quantify the adoption cost the program accepted per component family;
 // see docs/benchmarks/dashboardui-render-2026-09-17.txt for the recorded run.
 
+// benchHandRolledStatCard reproduces the pre-adoption statCard helper
+// verbatim (git show 81088b64:dashboardui/handler_overview.go), including the
+// html escaping that was part of the real per-card work - the original
+// benchmark under-counted by rendering an unescaped, context-free approximation.
 func benchHandRolledStatCard(b *testing.B) {
 	b.Helper()
 
-	ctx := context.Background()
+	esc := func(s string) string { return html.EscapeString(s) }
 
 	for b.Loop() {
 		var out strings.Builder
 
-		fmt.Fprintf(
-			&out,
-			`<div class="stat-card"><div class="stat-card-value">%s</div><div class="stat-card-label">%s</div></div>`,
-			"1234",
-			"Events",
-		)
+		fmt.Fprintf(&out, `<div class="stat-card">`)
+		fmt.Fprintf(&out, `<div class="stat-card-value">%s</div>`, esc("1234"))
+		fmt.Fprintf(&out, `<div class="stat-card-label">%s</div>`, esc("Events"))
+		out.WriteString(`</div>`)
 		_ = out.String()
-		_ = ctx
 	}
 }
 

@@ -28,7 +28,7 @@ func cspDashboard(t *testing.T) http.Handler {
 
 	return httputil.Compose(
 		httputil.SecurityHeaders(httputil.SecurityHeadersConfig{}),
-		httputil.Nonce(httputil.NonceConfig{}),
+		httputil.Nonce(httputil.NonceConfig{CSPBuilder: httputil.RecommendedCSPWithNonce}),
 	)(mux)
 }
 
@@ -115,6 +115,10 @@ func TestCSP_NoInlineEventHandlers(t *testing.T) {
 
 // TestCSP_UnsafeInlineNotRequired verifies the security headers do not relax
 // script-src with unsafe-inline (the nonce path must be the only mechanism).
+// The middleware must be given an explicit CSPBuilder - the zero-value
+// NonceConfig emits no CSP header at all (the godoc's "Default:
+// RecommendedCSPWithNonce" claim is false for the zero value), which made an
+// earlier version of this test skip forever instead of assert.
 func TestCSP_UnsafeInlineNotRequired(t *testing.T) {
 	h := cspDashboard(t)
 
