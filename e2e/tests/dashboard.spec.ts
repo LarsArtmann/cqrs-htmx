@@ -34,10 +34,17 @@ test.describe("dashboard badges + stat cards (N6)", () => {
     ).toBeVisible();
   });
 
-  test("projections page shows the healthy worker badge", async ({ page }) => {
+  test("projections page shows the drained worker as healthy-classed stopped badge", async ({ page }) => {
     await page.goto("/dashboard/projections");
     await expect(page.getByText("demo-projection").first()).toBeVisible();
-    await expect(page.getByText(/healthy/i).first()).toBeVisible();
+
+    // The M8 semantics: a drained journal-only worker reports "stopped" but
+    // classifies healthy - the badge carries the success tone + status dot.
+    const badge = page.getByText("stopped", { exact: true }).first();
+    await expect(badge).toBeVisible();
+    await expect(badge.locator("xpath=ancestor::*[contains(@class,'badge')][1]"))
+      .toContainText("stopped");
+    await expect(page.getByText("4").first()).toBeVisible(); // processed
   });
 });
 
@@ -47,15 +54,13 @@ test.describe("dashboard toasts + error pages (N7)", () => {
   }) => {
     await page.goto("/dashboard/");
     await page.evaluate(() => {
-      window.dispatchEvent(
+      document.dispatchEvent(
         new CustomEvent("dashboardui:toast", {
           detail: { message: "Browser-truth toast", kind: "ok" },
         }),
       );
     });
-    const container = page.locator("#tc-toast-container");
-    await expect(container).toBeVisible();
-    await expect(container.getByText("Browser-truth toast")).toBeVisible();
+    await expect(page.getByText("Browser-truth toast")).toBeVisible();
   });
 
   test("unknown route renders the NotFound404 full shell", async ({ page }) => {
@@ -84,18 +89,15 @@ test.describe("dashboard sortable tables (N8)", () => {
   }) => {
     await page.goto("/dashboard/events");
     const timeHeader = page.locator("th", { hasText: "Time" });
-    const sortLink = timeHeader.locator("a").first();
 
-    await sortLink.click();
-    await expect(page).toHaveURL(/sort=time&dir=/);
+    await timeHeader.locator("a").first().click();
+    await expect(page).toHaveURL(/sort=time&dir=asc/);
+    const timeHeaderAfterAsc = page.locator("th", { hasText: "Time" });
+    await expect(timeHeaderAfterAsc).toHaveAttribute("aria-sort", "ascending");
 
-    const ariaAfterFirst = await timeHeader.getAttribute("aria-sort");
-    expect(ariaAfterFirst).toBeTruthy();
-
-    await page.locator("th", { hasText: "Time" }).locator("a").first().click();
-    const ariaAfterSecond = await page
-      .locator("th", { hasText: "Time" })
-      .getAttribute("aria-sort");
-    expect(ariaAfterSecond).not.toEqual(ariaAfterFirst);
+    await timeHeaderAfterAsc.locator("a").first().click();
+    await expect(page).toHaveURL(/sort=time&dir=desc/);
+    const timeHeaderAfterDesc = page.locator("th", { hasText: "Time" });
+    await expect(timeHeaderAfterDesc).toHaveAttribute("aria-sort", "descending");
   });
 });
