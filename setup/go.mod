@@ -13,21 +13,21 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.11.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.11.0
 	github.com/larsartmann/go-appkit v0.5.1
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-datastar/broadcast v0.6.0
 	github.com/larsartmann/go-error-family v0.10.1
-	github.com/larsartmann/go-sse v0.6.0
+	github.com/larsartmann/go-sse v0.6.1
 	github.com/larsartmann/httputil v1.2.0
-	modernc.org/sqlite v1.58.0
+	modernc.org/sqlite v1.59.0
 )
 
 require (
@@ -66,19 +66,19 @@ require (
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-datastar v0.6.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
 	github.com/larsartmann/go-etag v0.4.0 // indirect
@@ -86,11 +86,11 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.18.0 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.18.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.18.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.18.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.18.0 // indirect
+	github.com/larsartmann/templ-components v1.18.1 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.18.1 // indirect
+	github.com/larsartmann/templ-components/htmx v1.18.1 // indirect
+	github.com/larsartmann/templ-components/icons v1.18.1 // indirect
+	github.com/larsartmann/templ-components/utils v1.18.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
@@ -126,7 +126,7 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/libc v1.75.7 // indirect
+	modernc.org/libc v1.76.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
