@@ -300,12 +300,11 @@ func newHandler() http.Handler {
 		cqrshtmx.RenderJSON[int](),
 	))
 
-	// POST /api/audit — actor-metadata demo: the command decoder copies the
+	// POST /api/audit — actor-metadata demo: the dispatch path copies the
 	// acting user/actor/correlation ID out of the request context onto the
-	// command, and the handler reads it back from the command metadata.
-	// NOTE: from the next root-module tag onward this manual application is
-	// redundant — the dispatch path enriches any command exposing ApplyOptions
-	// automatically — but this example pins the published v4 API.
+	// command automatically (any command exposing ApplyOptions qualifies,
+	// so since root v4.11.0 no manual option application is needed), and
+	// the handler reads it back from the command metadata.
 	mux.Handle("POST /api/audit", demoActorMiddleware(app.Command(
 		"AuditAction",
 		cqrshtmx.DecodeJSONWithRequest(func(r *http.Request, req auditRequest) (command.Command, error) {
@@ -313,7 +312,6 @@ func newHandler() http.Handler {
 			if err != nil {
 				return nil, err
 			}
-			core.ApplyOptions(cqrshtmx.CommandOptionsFromContext(r.Context())...)
 			return &auditCmd{BasicCommand: core, Action: req.Action}, nil
 		}),
 		cqrshtmx.WithSuccessStatus(202),
