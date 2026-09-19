@@ -304,12 +304,12 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .sidebar-badge { display: grid; place-items: center; width: 26px; height: 26px; background: var(--accent); color: white; border-radius: var(--radius-lg); font-size: 0.85em; flex-shrink: 0; }
 .sidebar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
-.sidebar-footer { margin-top: auto; padding-top: 8px; font-size: 0.75rem; opacity: 0.5; }
+.sidebar-footer { margin-top: auto; padding-top: 8px; font-size: 0.75rem; opacity: 0.75; }
 
 /* ===== Navigation links ===== */
 .nav-link { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); text-decoration: none; font-size: 0.9rem; font-weight: 500; color: var(--sidebar-text); transition: background var(--transition), color var(--transition); }
 .nav-link:hover { background: rgba(255,255,255,0.06); color: var(--sidebar-active); opacity: 1; }
-.nav-link-active { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.nav-link-active { background: color-mix(in srgb, var(--accent) 14%, transparent); color: #a5b4fc; }
 .nav-icon { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0; }
 .nav-link-logout { margin-top: 8px; }
 
