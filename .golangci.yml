@@ -207,6 +207,7 @@ linters:
                 - anon
                 - stdlib
                 - generic
+                - templ\.Component
         makezero:
             always: false
         mnd:
