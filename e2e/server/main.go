@@ -14,6 +14,7 @@ package main
 import (
 	"encoding/json/v2"
 	"flag"
+	"context"
 	"fmt"
 	"html"
 	"log"
@@ -24,7 +25,13 @@ import (
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	dashboardui "github.com/larsartmann/cqrs-htmx/dashboardui/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-sse"
 )
 
@@ -36,6 +43,27 @@ const (
 	e2eWriteTimeout      = 30 * time.Second
 	e2eIdleTimeout       = 60 * time.Second
 )
+
+type emptyCommandJournal struct{}
+
+func (emptyCommandJournal) ReadAll(context.Context) ([]*command.PersistedCommand, error) { return nil, nil }
+
+type emptyQueryJournal struct{}
+
+func (emptyQueryJournal) ReadAllQueries(context.Context) ([]*query.PersistedQuery, error) {
+	return nil, nil
+}
+
+type emptySnapshotStore struct{}
+
+func (emptySnapshotStore) Save(context.Context, snapshot.Snapshot) error         { return nil }
+func (emptySnapshotStore) Delete(context.Context, id.StreamRef) error            { return nil }
+func (emptySnapshotStore) Load(context.Context, id.StreamRef) (*snapshot.Snapshot, error) {
+	return nil, nil
+}
+func (emptySnapshotStore) LoadAtVersion(context.Context, id.StreamRef, event.Version) (*snapshot.Snapshot, error) {
+	return nil, nil
+}
 
 func main() {
 	addr := flag.String("addr", ":18923", "listen address")
@@ -54,9 +82,27 @@ func main() {
 	mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 
 	// --- Dashboard (screenshots + browser-truth e2e; empty journal renders
-	// every page's empty state, which is itself an adopted surface) ---
+	// every page's empty state, which is itself an adopted surface). Empty
+	// capability stubs unlock the command/query/DLQ/projection/snapshot
+	// panels so all nine pages render without a full event-sourced stack. ---
 	dstore := memorystorage.NewMemoryStore()
-	dash, err := dashboardui.New(dashboardui.Config{EventSource: dstore, Journal: dstore})
+	var host *projectionhost.Host
+	if seekable, ok := any(dstore).(event.SeekableJournal); ok {
+		h, hErr := projectionhost.New(seekable, memorystorage.NewMemoryCheckpointStore())
+		if hErr != nil {
+			log.Fatalf("projectionhost.New: %v", hErr)
+		}
+		host = h
+	}
+	dash, err := dashboardui.New(dashboardui.Config{
+		EventSource:     dstore,
+		Journal:         dstore,
+		CommandJournal:  emptyCommandJournal{},
+		QueryJournal:    emptyQueryJournal{},
+		SnapshotStore:   emptySnapshotStore{},
+		DeadLetterStore: projectionhost.NewMemoryDeadLetterStore(),
+		ProjectionHost:  host,
+	})
 	if err != nil {
 		log.Fatalf("dashboardui.New: %v", err)
 	}
