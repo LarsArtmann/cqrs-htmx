@@ -1,3 +1,5 @@
+> **OUTCOME (2026-09-19):** Run-2 completed and shipped. All adoption tiers landed (M4-M8, M22-M24, goldens, benchmarks); the verification items this report left open were closed by Run 3 (verify-tag releases v4.10.0/v4.10.1, Playwright harness, axe sweep, coverage gate 85.3%, fmt-marker guard). See docs/planning/2026-09-18_16-09_run3-verify-ship-see-harden.md for the closing plan and docs/status/2026-09-18_05-42_dashboardui-adoption-run-2-complete.md for the Run-2 completion snapshot.
+
 # Status Report — dashboardui × templ-components Adoption Program, Execution Run 2
 
 **Written:** 2026-09-17 21:03 CEST

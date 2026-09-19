@@ -1,3 +1,5 @@
+> **OUTCOME (2026-09-19):** every finding in this audit was subsequently executed or explicitly excluded. 15 of 22 templ-components capabilities adopted (templ-components v1.18.0), compiled Tailwind bundle shipped, browser-truth layer added (27 screenshots, 7 e2e specs, 9-page axe sweep - all green), dashboardui/v4.10.0 + v4.10.1 released. Score moved 14/100 -> ~85/100. Deliberate exclusions and their reasons: cursor pagination, SidebarNav/AppShell, ListNote, Grid - see the module README's adoption section.
+
 # Status Report & Brutal Self-Review — dashboardui × templ-components Audit Session
 
 **Generated:** 2026-09-17 13:12 CEST
