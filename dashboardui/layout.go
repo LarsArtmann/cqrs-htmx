@@ -252,7 +252,7 @@ const dashboardCSS = `
 	--surface: #ffffff;
 	--surface-hover: #f0f1f4;
 	--text: #0f172a;
-	--muted: #64748b;
+	--muted: #5d6b7e;
 	--border: #e6e8ec;
 	--ok: #16a34a;
 	--warn: #d97706;
@@ -283,6 +283,9 @@ const dashboardCSS = `
 
 /* ===== Base ===== */
 body { background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; line-height: 1.6; }
+/* Copy-button labels sit on the button's own surface; keep them at --text
+   because the inherited muted table color fails WCAG 4.5:1 on it. */
+[data-tc-copy] span[data-tc-copy-text] { color: var(--text); }
 * { box-sizing: border-box; }
 a { color: var(--accent); text-decoration: none; transition: opacity var(--transition); }
 a:hover { opacity: 0.8; }
