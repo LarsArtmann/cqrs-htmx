@@ -65,6 +65,53 @@ func (emptySnapshotStore) LoadAtVersion(context.Context, id.StreamRef, event.Ver
 	return nil, nil
 }
 
+// demoProjection is a minimal projection.Projection: it processes every
+// event without error so the worker stays healthy for badge assertions.
+type demoProjection struct{}
+
+func (demoProjection) Name() string                          { return "demo-projection" }
+func (demoProjection) Handle(_ context.Context, _ event.Event) error { return nil }
+func (demoProjection) EventTypes() []event.Type              { return nil }
+
+// seedDashboard appends a few generic events across two streams and starts
+// the projection host, so the browser-truth specs assert real tables, badges,
+// and worker states instead of empty states.
+func seedDashboard(store *memorystorage.MemoryStore, host *projectionhost.Host) {
+	ctx := context.Background()
+
+	for _, streamType := range []string{"User", "Tenant"} {
+		aggID := id.NewStreamID()
+		ref := id.StreamRef{Type: id.StreamType(streamType), ID: aggID}
+
+		for v := uint64(1); v <= 2; v++ {
+			evt, eErr := event.New(
+				event.Type(streamType+".registered"),
+				aggID,
+				id.StreamType(streamType),
+				event.Version(v),
+				map[string]string{"seq": fmt.Sprintf("%d", v)},
+			)
+			if eErr != nil {
+				log.Fatalf("event.New: %v", eErr)
+			}
+			if aErr := store.AppendBatch(ctx, ref, []event.Event{evt}); aErr != nil {
+				log.Fatalf("AppendBatch: %v", aErr)
+			}
+		}
+	}
+
+	if host == nil {
+		return
+	}
+
+	if rErr := host.Register(demoProjection{}); rErr != nil {
+		log.Fatalf("host.Register: %v", rErr)
+	}
+	if sErr := host.Start(ctx); sErr != nil {
+		log.Fatalf("host.Start: %v", sErr)
+	}
+}
+
 func main() {
 	addr := flag.String("addr", ":18923", "listen address")
 
@@ -106,6 +153,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("dashboardui.New: %v", err)
 	}
+	seedDashboard(dstore, host)
 	dash.Mount(mux, "/dashboard/")
 
 	// --- HTML page --- ({$}: exact root only, else it conflicts with the
