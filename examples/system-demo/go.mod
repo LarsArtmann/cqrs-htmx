@@ -90,3 +90,6 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 )
+
+// TEMPORARY local replace: systemadapter/v4 has no published tag yet (first tag v4.11.0 is being cut in this change; the release-train gate requires the push before this require can resolve). Remove once systemadapter/v4.11.0 is pushed.
+replace github.com/larsartmann/cqrs-htmx/systemadapter/v4 => ../../systemadapter
