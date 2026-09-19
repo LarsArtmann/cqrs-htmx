@@ -140,14 +140,3 @@ retract (
 	v4.8.2
 	v4.8.1
 )
-
-// TEMPORARY family dev-replace until a usermgmt tag carrying
-// ServiceConfig.CommandMiddleware is published and this module's require is
-// bumped to it. Remove before tagging setup (verify-tag.sh refuses family
-// dev-replaces in tagged trees).
-replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
-
-// TEMPORARY family dev-replace until a root tag carrying
-// cqrshtmx.HubReadinessCheck is published and this module's require is
-// bumped to it. Same removal condition as the usermgmt replace above.
-replace github.com/larsartmann/cqrs-htmx/v4 => ../
