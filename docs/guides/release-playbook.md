@@ -86,6 +86,23 @@ forever; force-moving a tag makes it WORSE):
 - pkg.go.dev spot-check the new tags (license + docs render — the LICENSE
   files land per-tag).
 
+## 6. Daemon attribution (who authored which commit)
+
+The auto-commit daemon absorbs dirty files every 30-60 s, so long sessions
+land mostly as `chore: auto-commit N changed file(s) (heuristic)` commits.
+When you need to know what a heuristic commit actually contains:
+
+- `git show <sha> --stat` groups by file; combine with
+  `git log --format='%h %ad %s' --date=iso -- <paths>` to reconstruct a
+  task's real history.
+- Deliberate narrative commits survive only when made AT green boundaries
+  with named files; batched end-of-session commits get shredded.
+- The dashboardui Run-2/Run-3 work (2026-09-17..19) is attributed this way:
+  heuristic commits `490e802e` (go-datastar v0.6.0 sweep), `cb2d0033`
+  (lint posture), `d2465ad8` (broadcast replace strip) carry reviewed,
+  verified content despite their messages; the tagged releases
+  (dashboardui/v4.10.0, v4.10.1) are the authoritative artifacts.
+
 ## See Also
 
 - [release-next-train-prep runbook](../runbooks/release-next-train-prep.md) — the concrete train script + tag protocol (§6) + retraction recipe (§6b)
