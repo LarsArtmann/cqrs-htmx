@@ -399,7 +399,7 @@ jobs:
       - name: golangci-lint (root)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           args: "--timeout=5m"
         env:
           GOWORK: off
@@ -409,7 +409,7 @@ jobs:
       - name: golangci-lint (usermgmt)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: usermgmt
           args: "--timeout=5m"
         env:
@@ -420,7 +420,7 @@ jobs:
       - name: golangci-lint (adminui)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: adminui
           args: "--timeout=5m"
         env:
@@ -431,7 +431,7 @@ jobs:
       - name: golangci-lint (identity-model)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: identity-model
           args: "--timeout=5m"
         env:
@@ -442,7 +442,7 @@ jobs:
       - name: golangci-lint (dashboardui)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: dashboardui
           args: "--timeout=5m"
         env:
@@ -453,7 +453,7 @@ jobs:
       - name: golangci-lint (loginpage)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: loginpage
           args: "--timeout=5m"
         env:
@@ -464,7 +464,7 @@ jobs:
       - name: golangci-lint (datastar)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: datastar
           args: "--timeout=5m"
         env:
@@ -475,7 +475,7 @@ jobs:
       - name: golangci-lint (setup)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: setup
           args: "--timeout=5m"
         env:
@@ -486,7 +486,7 @@ jobs:
       - name: golangci-lint (systemadapter)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: systemadapter
           args: "--timeout=5m"
         env:
@@ -497,7 +497,7 @@ jobs:
       - name: golangci-lint (health)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: health
           args: "--timeout=5m"
         env:
@@ -508,7 +508,7 @@ jobs:
       - name: golangci-lint (auditlog)
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           working-directory: auditlog
           args: "--timeout=5m"
         env:

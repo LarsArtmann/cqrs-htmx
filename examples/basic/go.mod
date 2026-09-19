@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/basic
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0

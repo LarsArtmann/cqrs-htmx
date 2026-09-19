@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.3.0

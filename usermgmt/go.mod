@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/usermgmt/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/go-sql-driver/mysql v1.10.1

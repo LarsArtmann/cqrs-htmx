@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/system-demo
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0

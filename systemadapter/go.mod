@@ -1,7 +1,7 @@
 //cqrs-lint:ignore(A018) adapter module: it wires usermgmt deciders/projections into system.New(); dispatch happens in the system, not here
 module github.com/larsartmann/cqrs-htmx/systemadapter/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0

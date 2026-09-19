@@ -1,7 +1,7 @@
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
 module github.com/larsartmann/cqrs-htmx/dashboardui/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/a-h/templ v0.3.1020

@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/identity-model/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/casbin/casbin/v3 v3.11.0

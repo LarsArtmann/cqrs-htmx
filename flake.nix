@@ -29,7 +29,14 @@
           ...
         }:
         let
-          goPkg = pkgs.go_1_26;
+          # 2026-09-19: the fleet re-pin condition fired — go-cqrs-lite moved
+          # ALL its modules to go 1.27.1 (upstream go-finding v1.11 pushed
+          # module floors to >= 1.27.1) and go-etag v0.4.0 declares go 1.27.1
+          # too. GOTOOLCHAIN=local (sandbox forbids toolchain downloads)
+          # cannot satisfy those directives under go_1_26, so the toolchain
+          # moves to nixpkgs' go_1_27 — the same change go-cqrs-lite landed
+          # in its flake the same day.
+          goPkg = pkgs.go_1_27;
 
           goEnv = ''
             export GOWORK=off
