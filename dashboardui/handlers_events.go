@@ -11,7 +11,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -304,14 +306,40 @@ func (d *Dashboard) renderEvents(
 	})
 }
 
+// filterInput renders a library forms.Input field for the event filter bar.
+// The explicit ID keeps the historical DOM ids (filter-type, filter-stream-type,
+// filter-stream-id) so CSS, e2e probes, and hx-get serialization stay stable.
+func filterInput(ctx context.Context, id, label, name, value, placeholder string) string {
+	var b strings.Builder
+
+	_ = forms.Input(forms.InputProps{
+		BaseProps:    utils.BaseProps{ID: id, Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Type:         forms.InputText,
+		Name:         name,
+		Value:        value,
+		Placeholder:  placeholder,
+		Label:        label,
+		Required:     false,
+		Disabled:     false,
+		ReadOnly:     false,
+		AutoFocus:    false,
+		MaxLength:    0,
+		EnterKeyHint: "",
+		Error:        "",
+		HelpText:     "",
+	}).Render(ctx, &b)
+
+	return b.String()
+}
+
 // renderEventFilterBar renders the filter form with current values pre-filled.
 // The form uses hx-get for partial content swapping (no full page reload).
 func renderEventFilterBar(ctx context.Context, basePath string, filter eventFilter) string {
 	return fmt.Sprintf(
 		`<form class="filter-bar" hx-get="%s/events" hx-target="#main-content" hx-select="#main-content" hx-swap="outerHTML" hx-push-url="true">`+
-			`<label for="filter-type">Type</label><input id="filter-type" type="text" name="type" value="%s" placeholder="event.type"/>`+
-			`<label for="filter-stream-type">Stream Type</label><input id="filter-stream-type" type="text" name="streamType" value="%s" placeholder="User"/>`+
-			`<label for="filter-stream-id">Stream ID</label><input id="filter-stream-id" type="text" name="streamID" value="%s" placeholder="01H..."/>`+
+			filterInput(ctx, "filter-type", "Type", "type", filter.Type, "event.type")+
+			filterInput(ctx, "filter-stream-type", "Stream Type", "streamType", filter.StreamType, "User")+
+			filterInput(ctx, "filter-stream-id", "Stream ID", "streamID", filter.StreamID, "01H...")+
 			buttonSubmit(
 				ctx,
 				"Filter",
@@ -329,9 +357,6 @@ func renderEventFilterBar(ctx context.Context, basePath string, filter eventFilt
 			)+
 			`</form>`,
 		esc(basePath),
-		esc(filter.Type),
-		esc(filter.StreamType),
-		esc(filter.StreamID),
 	)
 }
 
