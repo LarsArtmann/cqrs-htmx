@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.9.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
@@ -155,7 +155,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
-	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
