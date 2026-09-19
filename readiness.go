@@ -150,7 +150,7 @@ func (n NamedCheck) runBounded() error {
 // NewNamedCheck creates a NamedCheck from a name and check function.
 // Convenience wrapper for ReadinessHandler callers.
 func NewNamedCheck(name string, check ReadinessCheck) NamedCheck {
-	return NamedCheck{Name: name, Check: check}
+	return NamedCheck{Name: name, Check: check, Timeout: 0}
 }
 
 // HubReadinessCheck reports the SSE hub state as a readiness check. The

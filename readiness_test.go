@@ -74,6 +74,7 @@ func TestReadinessHandler_HungCheckTimesOut(t *testing.T) {
 		NamedCheck{Name: "ok", Check: func() error { return nil }, Timeout: time.Second},
 		NamedCheck{Name: "hung", Check: func() error {
 			<-release
+
 			return nil
 		}, Timeout: 10 * time.Millisecond},
 	)
@@ -131,6 +132,7 @@ func TestReadinessHandler_ZeroTimeoutStaysUnbounded(t *testing.T) {
 	handler := ReadinessHandler(
 		NewNamedCheck("slow", func() error {
 			time.Sleep(50 * time.Millisecond)
+
 			return nil
 		}),
 	)
