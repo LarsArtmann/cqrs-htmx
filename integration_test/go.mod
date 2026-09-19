@@ -34,12 +34,6 @@ require (
 	github.com/stretchr/testify v1.12.1
 )
 
-// TEMPORARY family dev-replace: the migrated tests pass go-datastar/broadcast
-// values into ds.NewEventBridge, which needs the local type alias — published
-// datastar/v4 v4.9.0 still carries the concrete struct. Removal condition:
-// the next datastar/v4 tag (>= v4.9.1) with the broadcast facade is pushed.
-replace github.com/larsartmann/cqrs-htmx/datastar/v4 => ../datastar
-
 require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
@@ -161,9 +155,3 @@ require (
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
 )
-
-// TEMPORARY family dev-replace until a usermgmt tag carrying the audit-chain
-// middleware + ServiceConfig.CommandMiddleware is published and this module's
-// require is bumped to it. Remove before the next family train
-// (verify-tag.sh refuses family dev-replaces in tagged trees).
-replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt

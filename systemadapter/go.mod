@@ -106,12 +106,6 @@ require (
 	modernc.org/sqlite v1.59.0 // indirect
 )
 
-replace github.com/larsartmann/cqrs-htmx/v4 => ../
-
-replace github.com/larsartmann/cqrs-htmx/identity-model/v4 => ../identity-model
-
-replace github.com/larsartmann/cqrs-htmx/usermgmt/v4 => ../usermgmt
-
 // TEMPORARY local replace: go-cqrs-lite master's projectionadapter added the
 // OccurredAt field to EventWithID (after v4.4.0); declarations.go fold handlers
 // use it. Required for hermetic GOWORK=off builds. Remove once
