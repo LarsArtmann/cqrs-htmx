@@ -1,0 +1,179 @@
+go 1.27.1
+
+use (
+	.
+	./adminui
+	./auditlog
+	./dashboardui
+	./datastar
+	./e2e/server
+	./examples/admin-demo
+	./examples/async-startup-demo
+	./examples/basic
+	./examples/catalog-demo
+	./examples/dashboard-demo
+	./examples/datastar-demo
+	./examples/middleware-demo
+	./examples/middleware-showcase
+	./examples/observability-demo
+	./examples/samber-do-demo
+	./examples/setup-demo
+	./examples/system-demo
+	./health
+	./identity-model
+	./integration_test
+	./loginpage
+	./setup
+	./systemadapter
+	./usermgmt
+	./usermgmt/oauth2
+	./usermgmt/totp
+	./usermgmt/webauthn
+)
+
+// REQUIRED: local replaces for go-cqrs-lite master.
+//
+// UPDATE 2026-08-11: The original pseudo-version publish bug is FIXED —
+// published tags (event/v4.4.0, command/v4.4.0, etc.) now have clean go.mod
+// files with real version references. Verified via hermetic GOWORK=off builds.
+//
+// The replaces are STILL required because go-cqrs-lite master has unreleased
+// API changes that cqrs-htmx has migrated to:
+//   - ADR-0114: Tombstone-as-domain-event (event.MarkTombstone removed;
+//     deletion is now signaled by event type + stack.Materialize.DeleteTypes)
+//   - ADR-0111: Branded ActorID (record.CommonMetadata.UserID → ActorID
+//     id.ActorID, a kind-discriminated struct with Kind()/String()/Raw())
+//
+// cqrs-htmx uses meta.ActorID.String() and emits deletion events directly.
+// Published tags (event/v4.4.0, record/v4.0.0) still have the OLD API
+// (UserID string, MarkTombstone). Hermetic GOWORK=off builds of usermgmt
+// and dashboardui will FAIL until go-cqrs-lite publishes tags with these
+// changes (event/v4.5.0+, record/v4.2.0+, command/v4.5.0+, query/v4.4.0+).
+//
+// Removal condition: go-cqrs-lite cuts tags from a tree that includes
+// ADR-0114 + ADR-0111, and cqrs-htmx go.mod files are bumped to reference them.
+replace github.com/larsartmann/go-cqrs-lite => /home/lars/projects/go-cqrs-lite
+
+replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => /home/lars/projects/go-cqrs-lite/catalog
+
+// REMOVED 2026-08-15: codec/, flightrecorder/, and retry/ replaces.
+// go-cqrs-lite deleted these in-repo modules (ADR-0128 extraction to external
+// repos go-codec/go-flightrecorder/go-retry, commit 5127039da). The replace
+// targets no longer exist, which broke every workspace-mode build. cqrs-htmx
+// still requires the published tags (codec/v4.4.0, flightrecorder/v4.0.0,
+// retry/v4.x) which resolve from the proxy. Migration to the external
+// module paths must wait for post-extraction go-cqrs-lite tags (event/v4.7+
+// etc.) because published event/v4.6.0 APIs still take codec/v4 types.
+replace github.com/larsartmann/go-cqrs-lite/command/v4 => /home/lars/projects/go-cqrs-lite/command
+
+replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => /home/lars/projects/go-cqrs-lite/commandlifecycle
+
+replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 => /home/lars/projects/go-cqrs-lite/commandlifecycle/projections
+
+replace github.com/larsartmann/go-cqrs-lite/decider/v4 => /home/lars/projects/go-cqrs-lite/decider
+
+replace github.com/larsartmann/go-cqrs-lite/dedup/v4 => /home/lars/projects/go-cqrs-lite/dedup
+
+replace github.com/larsartmann/go-cqrs-lite/deriver/v4 => /home/lars/projects/go-cqrs-lite/deriver
+
+replace github.com/larsartmann/go-cqrs-lite/dispatcher/v4 => /home/lars/projects/go-cqrs-lite/dispatcher
+
+replace github.com/larsartmann/go-cqrs-lite/encryption/v4 => /home/lars/projects/go-cqrs-lite/encryption
+
+replace github.com/larsartmann/go-cqrs-lite/event/v4 => /home/lars/projects/go-cqrs-lite/event
+
+replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => /home/lars/projects/go-cqrs-lite/event/v4/eventtest
+
+replace github.com/larsartmann/go-cqrs-lite/graph/v4 => /home/lars/projects/go-cqrs-lite/graph
+
+replace github.com/larsartmann/go-cqrs-lite/id/v4 => /home/lars/projects/go-cqrs-lite/id
+
+replace github.com/larsartmann/go-cqrs-lite/integration/v4 => /home/lars/projects/go-cqrs-lite/integration
+
+replace github.com/larsartmann/go-cqrs-lite/kv/v4 => /home/lars/projects/go-cqrs-lite/kv
+
+replace github.com/larsartmann/go-cqrs-lite/listing/v4 => /home/lars/projects/go-cqrs-lite/listing
+
+replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => /home/lars/projects/go-cqrs-lite/metadata
+
+replace github.com/larsartmann/go-cqrs-lite/middleware/v4 => /home/lars/projects/go-cqrs-lite/middleware
+
+replace github.com/larsartmann/go-cqrs-lite/otel/v4 => /home/lars/projects/go-cqrs-lite/otel
+
+replace github.com/larsartmann/go-cqrs-lite/projection/v4 => /home/lars/projects/go-cqrs-lite/projection
+
+replace github.com/larsartmann/go-cqrs-lite/projectionhost/v4 => /home/lars/projects/go-cqrs-lite/projectionhost
+
+replace github.com/larsartmann/go-cqrs-lite/prometheus/v4 => /home/lars/projects/go-cqrs-lite/prometheus
+
+replace github.com/larsartmann/go-cqrs-lite/query/v4 => /home/lars/projects/go-cqrs-lite/query
+
+replace github.com/larsartmann/go-cqrs-lite/scenario/v4 => /home/lars/projects/go-cqrs-lite/scenario
+
+replace github.com/larsartmann/go-cqrs-lite/scheduling/v4 => /home/lars/projects/go-cqrs-lite/scheduling
+
+replace github.com/larsartmann/go-cqrs-lite/schema/v4 => /home/lars/projects/go-cqrs-lite/schema
+
+replace github.com/larsartmann/go-cqrs-lite/signing/v4 => /home/lars/projects/go-cqrs-lite/signing
+
+replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => /home/lars/projects/go-cqrs-lite/snapshot
+
+replace github.com/larsartmann/go-cqrs-lite/stack/v4 => /home/lars/projects/go-cqrs-lite/stack
+
+replace github.com/larsartmann/go-cqrs-lite/stack/memory/v4 => /home/lars/projects/go-cqrs-lite/stack/memory
+
+replace github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 => /home/lars/projects/go-cqrs-lite/stack/pebble
+
+replace github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 => /home/lars/projects/go-cqrs-lite/stack/postgres
+
+replace github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 => /home/lars/projects/go-cqrs-lite/stack/sqlite
+
+replace github.com/larsartmann/go-cqrs-lite/stack/turso/v4 => /home/lars/projects/go-cqrs-lite/stack/turso
+
+replace github.com/larsartmann/go-cqrs-lite/storage/v4 => /home/lars/projects/go-cqrs-lite/storage
+
+replace github.com/larsartmann/go-cqrs-lite/storage/memory/v4 => /home/lars/projects/go-cqrs-lite/storage/memory
+
+replace github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 => /home/lars/projects/go-cqrs-lite/storage/pebble
+
+replace github.com/larsartmann/go-cqrs-lite/storage/turso/v4 => /home/lars/projects/go-cqrs-lite/storage/turso
+
+replace github.com/larsartmann/go-cqrs-lite/testutil/v4 => /home/lars/projects/go-cqrs-lite/testutil
+
+replace github.com/larsartmann/go-cqrs-lite/transport/grpc/v4 => /home/lars/projects/go-cqrs-lite/transport/grpc
+
+replace github.com/larsartmann/go-cqrs-lite/transport/http/v4 => /home/lars/projects/go-cqrs-lite/transport/http
+
+replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => /home/lars/projects/go-cqrs-lite/watermill
+
+// Additional replace: system/, metaengine/, and record/ submodules.
+// Same reason as the main go-cqrs-lite block above (unreleased ADR-0114/ADR-0111 API).
+// Added 2026-08-09 to enable cqrs-htmx ↔ go-cqrs-lite system/metaengine integration.
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => /home/lars/projects/go-cqrs-lite/record
+
+replace github.com/larsartmann/go-cqrs-lite/system/v4 => /home/lars/projects/go-cqrs-lite/system
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/sqliteengine
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => /home/lars/projects/go-cqrs-lite/metaengine/projectionadapter
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/pebbleengine
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/pgengine
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/duckdbengine
+
+replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => /home/lars/projects/go-cqrs-lite/testutil/pgtestcontainer
+
+// Additional replace: go-idempotency is a transitive dep of local
+// go-cqrs-lite middleware/commandlifecycle (the in-repo idempotency/v4 shim
+// was deleted by the ADR-0128 extraction). Published (v0.1.2); replace kept
+// for local-dev consistency with the sibling repo.
+replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempotency
+
+// Additional replace: httputil/server_timing is a separate Go module (subdirectory
+// of httputil with its own go.mod). Now published (server_timing/v0.10.0) but kept
+// for workspace consistency with local httputil development.
+replace github.com/larsartmann/httputil/server_timing => /home/lars/projects/httputil/server_timing

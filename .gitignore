@@ -105,7 +105,11 @@ workflow-audit-log.*
 .buildflow-workflow-baseline.json
 
 ## Go
-go.work
+# go.work IS tracked (re-tracked 2026-09-19): CI checkouts need it — without
+# it the module-architecture job false-greens its isolation/budget steps and
+# hard-fails the toolchain check, and every forEachGoModule flake app silently
+# iterates zero modules on CI. Its replace-directive comments are load-bearing
+# documentation. Changes to it are meaningful and should be committed.
 # Machine-derived workspace checksum overlay; regenerated on demand by any
 # workspace go command. Untracked 2026-08-30 so the auto-git daemon stops
 # absorbing its drift into unrelated commits (it was still indexed despite
