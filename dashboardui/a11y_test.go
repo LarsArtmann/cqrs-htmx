@@ -126,3 +126,67 @@ func TestA11y_SortHeadersCarryAriaSort(t *testing.T) {
 		}
 	}
 }
+
+// TestA11y_FilterInputsKeepLabelPairing pins the label contract of the event
+// filter bar after the forms.Input adoption: every input keeps its explicit
+// DOM id and a matching label[for] (the library derives ids from Name when ID
+// is empty, which would silently break the historical selectors), and the
+// hx-get partial-swap wiring survives.
+func TestA11y_FilterInputsKeepLabelPairing(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+
+	aggID := id.NewStreamID()
+
+	evt, err := event.New("test.event", aggID, "TestAggregate", event.Version(1), struct{}{})
+	if err != nil {
+		t.Fatalf("event.New: %v", err)
+	}
+
+	if err := store.Save(
+		context.Background(),
+		id.NewStreamRef("TestAggregate", aggID),
+		[]event.Event{evt},
+		event.Version(0),
+	); err != nil {
+		t.Fatalf("store.Save: %v", err)
+	}
+
+	d, err := New(Config{EventSource: store, Journal: store})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/dashboard/events", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+
+	body := rec.Body.String()
+
+	for _, id := range []string{"filter-type", "filter-stream-type", "filter-stream-id"} {
+		if !strings.Contains(body, `id="`+id+`"`) {
+			t.Errorf("filter input #%s missing", id)
+		}
+
+		if !strings.Contains(body, `for="`+id+`"`) {
+			t.Errorf("filter label[for=%s] missing", id)
+		}
+	}
+
+	for _, want := range []string{
+		`class="filter-bar" hx-get="`,
+		`hx-target="#main-content"`,
+		`hx-select="#main-content"`,
+		`hx-swap="outerHTML"`,
+		`hx-push-url="true"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("filter form wiring %q missing", want)
+		}
+	}
+}
