@@ -12,9 +12,9 @@
 package main
 
 import (
+	"context"
 	"encoding/json/v2"
 	"flag"
-	"context"
 	"fmt"
 	"html"
 	"log"
@@ -23,15 +23,15 @@ import (
 	"sync"
 	"time"
 
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	dashboardui "github.com/larsartmann/cqrs-htmx/dashboardui/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-sse"
 )
 
@@ -46,7 +46,9 @@ const (
 
 type emptyCommandJournal struct{}
 
-func (emptyCommandJournal) ReadAll(context.Context) ([]*command.PersistedCommand, error) { return nil, nil }
+func (emptyCommandJournal) ReadAll(context.Context) ([]*command.PersistedCommand, error) {
+	return nil, nil
+}
 
 type emptyQueryJournal struct{}
 
@@ -56,11 +58,12 @@ func (emptyQueryJournal) ReadAllQueries(context.Context) ([]*query.PersistedQuer
 
 type emptySnapshotStore struct{}
 
-func (emptySnapshotStore) Save(context.Context, snapshot.Snapshot) error         { return nil }
-func (emptySnapshotStore) Delete(context.Context, id.StreamRef) error            { return nil }
+func (emptySnapshotStore) Save(context.Context, snapshot.Snapshot) error { return nil }
+func (emptySnapshotStore) Delete(context.Context, id.StreamRef) error    { return nil }
 func (emptySnapshotStore) Load(context.Context, id.StreamRef) (*snapshot.Snapshot, error) {
 	return nil, nil
 }
+
 func (emptySnapshotStore) LoadAtVersion(context.Context, id.StreamRef, event.Version) (*snapshot.Snapshot, error) {
 	return nil, nil
 }
@@ -69,9 +72,9 @@ func (emptySnapshotStore) LoadAtVersion(context.Context, id.StreamRef, event.Ver
 // event without error so the worker stays healthy for badge assertions.
 type demoProjection struct{}
 
-func (demoProjection) Name() string                          { return "demo-projection" }
+func (demoProjection) Name() string                                  { return "demo-projection" }
 func (demoProjection) Handle(_ context.Context, _ event.Event) error { return nil }
-func (demoProjection) EventTypes() []event.Type              { return nil }
+func (demoProjection) EventTypes() []event.Type                      { return nil }
 
 // seedDashboard appends a few generic events across two streams and starts
 // the projection host, so the browser-truth specs assert real tables, badges,

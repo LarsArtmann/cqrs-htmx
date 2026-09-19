@@ -44,9 +44,9 @@ func (fmtStubSnapshotStore) LoadAtVersion(context.Context, id.StreamRef, event.V
 
 type fmtStubProjection struct{}
 
-func (fmtStubProjection) Name() string                            { return "fmt-marker-projection" }
+func (fmtStubProjection) Name() string                                  { return "fmt-marker-projection" }
 func (fmtStubProjection) Handle(_ context.Context, _ event.Event) error { return nil }
-func (fmtStubProjection) EventTypes() []event.Type                { return nil }
+func (fmtStubProjection) EventTypes() []event.Type                      { return nil }
 
 // fmtDashboard builds a dashboard with every capability panel enabled and a
 // seeded journal, like a real consumer would run.
@@ -138,7 +138,12 @@ func TestRenderedPages_FreeOfFmtErrorMarkers(t *testing.T) {
 
 		body := rec.Body.String()
 		if idx := strings.Index(body, "%!("); idx >= 0 {
-			t.Errorf("%s: fmt error marker in output at %d: %q", route, idx, body[max(0, idx-40):min(len(body), idx+60)])
+			t.Errorf(
+				"%s: fmt error marker in output at %d: %q",
+				route,
+				idx,
+				body[max(0, idx-40):min(len(body), idx+60)],
+			)
 		}
 	}
 }
