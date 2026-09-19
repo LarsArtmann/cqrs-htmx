@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.11.0] - 2026-09-19
+
+### Added
+
+- **Built-in command-audit chain (2026-09-18):** every dispatched command now carries actor, causation, and correlation metadata with zero consumer wiring. `NewService` wires `commandAuditMiddleware()` onto the single dispatcher — a session→actor bridge (`bridgeSessionIdentity`: consumer-set actors always win, impersonation-safe), upstream `middleware.CommandActorContext()`, and a causation context — while the repository options compose `event.ActorEnricher`, a local `requestContextEnricher` (correlation/request-ID; go-cqrs-lite ships none), and `event.CommandCausalityEnricher`. End-to-end guarantee in `integration_test/actor_attribution_test.go` (actor visible in the AuditLog and the dashboardui event detail).
+- **`ServiceConfig.CommandMiddleware []command.Middleware`:** consumer dispatch middleware applied INSIDE the built-in audit chain so it sees enriched commands. Threaded through `setup.Config` as well. Deliberate: `EventSourcedConfig` has no mirror (EventSourcedSetup owns no dispatcher).
+- **`usermgmt.ValidateCommand` (opt-in):** the request-layer syntactic rules (email parse, display-name length, `ErrValidation` sentinel with stable messages) as a dispatch middleware via go-cqrs-lite `middleware.CommandValidation` — uniform Rejection-family 400s for direct-dispatcher consumers; commands with only opaque payloads pass through and the domain decide functions remain authoritative.
+- **Idempotency composability proven on the seam:** same-command-ID replay short-circuits with `idempotency.ErrDuplicate` before the handler (`command_idempotency_test.go`); store decision documented (memory store dev-only, SQL `idempotency.Store` for production).
+- `BenchmarkDispatchAuditChain`: the built-in chain costs ~275 ns / +14 allocs per dispatch against a bare dispatcher (median, 5×1s).
+
+### Changed
+
+- **Root's HTTP-context metadata enrichment now reaches all 20 identity-model commands:** root's `enrichCommandFromContext`/`enrichQueryFromContext` previously type-asserted the concrete `*BasicCommand`/`*BasicQuery` wrappers — which every identity-model command embeds-but-is-not — so HTTP context metadata was silently skipped for the whole domain. Both now assert the structural `ApplyOptions` interfaces. 5 regression tests including an e2e path through `app.Command`.
+- **`Service.Close` closes the dispatcher:** post-close dispatch fails fast with `command.ErrDispatcherClosed` (classified Transient by the dispatch-error policy, pinned by test).
+- **Mechanical command-bijection guard:** the 20/20 `Cmd*` constant ↔ `RegisterTyped` bijection is enforced by `scripts/check-command-bijection.sh`, wired into the repo's verification battery.
+
+## [v4.10.0] - 2026-09-10
+
 ### Added
 
 - **Registration cap (`ServiceConfig.MaxUsers`)**: when greater than zero, no new users can be created once the read model reaches the cap — `Service.Register` returns `ErrRegistrationClosed` (HTTP 403). Zero (default) keeps unlimited registration.

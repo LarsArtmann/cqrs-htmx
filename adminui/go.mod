@@ -4,9 +4,9 @@ go 1.27.1
 
 require (
 	github.com/a-h/templ v0.3.1020
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.11.0
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/httputil v1.2.0
 	github.com/larsartmann/templ-components v1.18.0

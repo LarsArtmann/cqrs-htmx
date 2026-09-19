@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+_(nothing yet)_
+
+## [v4.11.0] - 2026-09-19
+
+### Added
+
+- **templ-components core-shell migration (2026-09-17→09-19):** the hand-rolled layout shell is retired — `Layout` is now `layout.Base` + `layout.AppShell` + `navigation.SidebarNav` (the drawer keeps the legacy `.admin-sidebar`/`.admin-toggle` class names so `admin.js` is unchanged), and every `@Layout(p)` wrapper call site became a `content templ.Component` parameter (templ 0.3.1020 has no children-as-value). Verified across desktop/dark/mobile-390/tablet-768 with a browser run against a throwaway demo built from HEAD.
+- **Structured error pages:** new published require `github.com/larsartmann/templ-components/errorpage v1.18.0`; `Handler.writeErrorPage` renders the `ErrorPage` card (bare for HTMX swaps, inside `Layout` for navigations, HTTP statuses preserved) and a guarded 404 catch-all serves `NotFound404` — every bare `http.Error`/`http.NotFound` in the panel handlers is replaced (render.go's post-header fallback stays, deliberate). 4 new errorpage tests.
+- **Audit "Who" columns resolve actor emails** via the shared `resolveAuditEmails` read-model helper (dashboard + audit page).
+
+### Fixed
+
+- **Sidebar transparency + dark-mode gray inversion (browser-evidence verification):** (1) SidebarNav's `bg-[var(--tc-sidebar-bg)]` needs the variable defined — adminui's compiled bundle has no library `:root` defaults, so `.admin-shell` sets it alongside the CSP-safe `--tc-sidebar-w` (AppShell's inline style attribute is dropped under the CSP nonce posture); (2) adminui's `@theme` maps gray-800/900 to `--text`, which flips light in dark mode, so the library's `dark:` dark surfaces (e.g. `thead dark:bg-gray-800`) painted as light bands — the dark-mode media block pins those two tokens to the literal dark palette (safe: all 115 library `text-gray-800/900` occurrences carry a `dark:` override). `build-adminui-css` now also scans the errorpage module dir including its `styles.go`.
+
+## [v4.8.0] – [v4.10.0] — 2026-08-14 → 2026-09-07
+
+- Coordinated lockstep bumps riding the family release trains (root v4.8.0–v4.10.0, usermgmt, templ-components v1.18.0 CSS-bundle era). No adminui-specific feature entries were recorded in this file for those trains; the historical detail lives in the root `CHANGELOG.md` sections for those versions.
+
 ## [v4.7.0] - 2026-08-07
 
 ### Added

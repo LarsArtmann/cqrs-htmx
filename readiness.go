@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"net/http"
 	"sync"
+	"time"
 
 	event "github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -29,6 +30,12 @@ type readinessDetail struct {
 // parallel and returns 200 OK when every check passes, or 503 Service
 // Unavailable when any check fails. Each check name keys into the response
 // body so operators can identify failing subsystems.
+//
+// A check that hangs currently hangs the whole probe (the HTTP server has no
+// WriteTimeout by SSE design). Set NamedCheck.Timeout on individual checks to
+// bound them: an overdue check is reported as failed ("<name>: timed out ...")
+// and the probe answers 503 instead of hanging. Zero keeps the historical
+// unbounded behavior.
 //
 //	mux.Handle("/ready", cqrshtmx.ReadinessHandler(
 //	    cqrshtmx.NewNamedCheck("event-store", func() error { return db.Ping() }),
@@ -72,7 +79,7 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 				//nolint:exhaustruct // Error is omitempty; zero value is correct when check passes
 				detail := readinessDetail{Status: "ok"}
 
-				if err := namedCheck.Check(); err != nil {
+				if err := namedCheck.runBounded(); err != nil {
 					detail.Status = "fail"
 					detail.Error = err.Error()
 
@@ -102,9 +109,42 @@ func ReadinessHandler(checks ...NamedCheck) http.HandlerFunc {
 }
 
 // NamedCheck pairs a human-readable name with a ReadinessCheck.
+//
+// Timeout bounds a single check invocation: when it elapses first, the check
+// is reported as failed with a "<name>: timed out after <timeout>" error and
+// the probe answers 503 instead of hanging forever. Zero (the default) keeps
+// the historical unbounded behavior. The overdue check goroutine is
+// abandoned, not cancelled — ReadinessCheck carries no context — so checks
+// should be written to terminate on their own; the timeout only bounds how
+// long the probe waits for them.
 type NamedCheck struct {
-	Name  string
-	Check ReadinessCheck
+	Name    string
+	Check   ReadinessCheck
+	Timeout time.Duration
+}
+
+// runBounded executes the check honoring Timeout. A non-positive Timeout runs
+// the check inline, which is the exact historical behavior (no goroutine, no
+// allocation, no deadline).
+func (n NamedCheck) runBounded() error {
+	if n.Timeout <= 0 {
+		return n.Check()
+	}
+
+	results := make(chan error, 1) // buffered: an abandoned check must never block on send
+
+	go func() { results <- n.Check() }()
+
+	timer := time.NewTimer(n.Timeout)
+	defer timer.Stop()
+
+	select {
+	case err := <-results:
+		return err
+	case <-timer.C:
+		return errorfamily.Newf(event.Transient, "cqrshtmx.readiness.check_timeout",
+			"%s: timed out after %s", n.Name, n.Timeout)
+	}
 }
 
 // NewNamedCheck creates a NamedCheck from a name and check function.

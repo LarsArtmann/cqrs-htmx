@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.11.0] - 2026-09-19
+
 ### Changed
 
 - **`Broadcaster` moved upstream to `github.com/larsartmann/go-datastar/broadcast`** (new optional submodule of go-datastar, 2026-09-17): serve loop, patch fan-out, reconnection replay, hub sharing, and the promoted go-sse methods now live there — domain-agnostic, usable without cqrs-htmx. This module keeps `type Broadcaster = broadcast.Broadcaster` plus all constructors as a deprecated facade (removal bundled with v5); `NewEventBridge` accepts upstream-built broadcasters unchanged via the alias. The behavior test suite moved upstream with the implementation. setup/v4 and integration_test now import `broadcast` directly.

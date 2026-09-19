@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.11.0] - 2026-09-19
+
+### Changed
+
+- **Go 1.27.1 floor + dependency carrier:** `go.mod` requires Go 1.27.1 (matching the 2026-09-19 fleet cut; `go-etag v0.4.0` and go-cqrs-lite's re-pin force the floor). No domain-type or behavior changes since v4.9.0 (verified by tree diff): this release is the coordinated-train cut carrying the dependency alignment — go-branded-id v0.5.1→v0.6.0, go-codec v0.2.0→v0.3.0, go-cqrs-lite command v4.8.1→v4.10.0, event v4.9.0→v4.11.0, id v4.5.0→v4.6.0, go-error-family v0.10.0→v0.10.1.
+
+## [v4.3.0] – [v4.9.0] — 2026-08-14 → 2026-09-09
+
+- Coordinated lockstep bumps riding the family release trains (identity-model shipped v4.8.0 and v4.9.0 in the 2026-08-14/2026-09-01 trains). No identity-model-specific feature entries were recorded in this file for those trains; the historical detail lives in the root `CHANGELOG.md` sections for those versions.
+
 ## [v4.2.0] - 2026-08-07
 
 ## [v4.1.1] - 2026-07-27

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+_(nothing yet)_
+
+## [v4.11.0] - 2026-09-19
+
+### Changed
+
+- **Coordinated family-train cut (v4.11.0).** No loginpage code changes since v4.10.0 (verified by tree diff): internal requires (root, usermgmt, identity-model) move to v4.11.0 and dependencies ride the Go 1.27.1 fleet floor (`go-etag v0.4.0` requires Go ≥ 1.27.1). Consumer action: build with Go ≥ 1.27.1.
+
+## [v4.8.0] – [v4.10.0] — 2026-08-14 → 2026-09-10
+
+- Coordinated lockstep bumps riding the family release trains (root v4.8.0–v4.10.0, usermgmt v4.8.0–v4.10.0). No loginpage-specific feature entries were recorded in this file for those trains; the historical detail lives in the root `CHANGELOG.md` sections for those versions.
+
 ## [v4.7.0] - 2026-08-07
 
 ### Added

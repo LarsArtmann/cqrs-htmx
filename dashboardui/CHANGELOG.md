@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.11.0] - 2026-09-19
+
 ### Fixed
 
 - **Time-travel slider worked only without CSP (2026-09-19, N17):** the version slider carried inline `onchange`/`oninput` attributes, which nonce-based CSP (the recommended `RecommendedSecurityMiddleware` posture) silently blocks — slider navigation and live version display were dead under a CSP-enforcing consumer. Replaced with `data-nav-base`/`data-slider-display` attributes plus CSP-safe external listeners in the layout script (same behavior: drag updates display + `aria-valuetext`, release navigates; arrow keys unchanged). The inline handlers had also escaped `TestCSP_NoInlineEventHandlers`, because the sweep rendered only listing routes — the test now seeds a stream, sweeps the slider detail page, and fails loudly if the slider stops rendering (mutation-verified).

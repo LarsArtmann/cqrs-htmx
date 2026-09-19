@@ -3,12 +3,12 @@ module github.com/larsartmann/cqrs-htmx/examples/samber-do-demo
 go 1.27.1
 
 require (
-	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/health/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.9.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.10.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.9.0
+	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/health/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-error-family v0.10.1
