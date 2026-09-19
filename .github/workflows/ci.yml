@@ -321,21 +321,30 @@ jobs:
 
       - name: Usermgmt coverage check
         run: |
-          COVERAGE=$(go tool cover -func=usermgmt/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          cd usermgmt
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "Usermgmt coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 74) { print \"Usermgmt coverage ${COVERAGE}% is below 74% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
 
       - name: identity-model coverage check
         run: |
-          COVERAGE=$(go tool cover -func=identity-model/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          cd identity-model
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "identity-model coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 70) { print \"identity-model coverage ${COVERAGE}% is below 70% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
 
       - name: dashboardui coverage check
         run: |
-          COVERAGE=$(go tool cover -func=dashboardui/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          cd dashboardui
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "dashboardui coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 60) { print \"dashboardui coverage ${COVERAGE}% is below 60% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
 
       - name: dashboardui/core coverage check
         run: |
@@ -350,33 +359,48 @@ jobs:
 
       - name: datastar coverage check
         run: |
-          COVERAGE=$(go tool cover -func=datastar/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          cd datastar
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "datastar coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 90) { print \"datastar coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
 
       - name: setup coverage check
         run: |
-          COVERAGE=$(go tool cover -func=setup/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          cd setup
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "setup coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 80) { print \"setup coverage ${COVERAGE}% is below 80% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
 
       - name: systemadapter coverage check
         run: |
-          COVERAGE=$(go tool cover -func=systemadapter/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          cd systemadapter
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "systemadapter coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 70) { print \"systemadapter coverage ${COVERAGE}% is below 70% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
 
       - name: health coverage check
         run: |
-          COVERAGE=$(go tool cover -func=health/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          cd health
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "health coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 90) { print \"health coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
 
       - name: auditlog coverage check
         run: |
-          COVERAGE=$(go tool cover -func=auditlog/coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          cd auditlog
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
           echo "auditlog coverage: ${COVERAGE}%"
           awk "BEGIN { if ($COVERAGE < 90) { print \"auditlog coverage ${COVERAGE}% is below 90% threshold\"; exit 1 } }"
+        env:
+          GOWORK: off
 
   lint:
     runs-on: ubuntu-latest

@@ -55,7 +55,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-etag v0.3.1 // indirect
+	github.com/larsartmann/go-etag v0.4.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
