@@ -23,6 +23,8 @@ import (
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	dashboardui "github.com/larsartmann/cqrs-htmx/dashboardui/v4"
+	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-sse"
 )
 
@@ -51,8 +53,18 @@ func main() {
 	mux.Handle("GET /sync-worker.js", cqrshtmx.SyncWorkerHandler())
 	mux.Handle("GET /sync-client.js", cqrshtmx.SyncClientHandler())
 
-	// --- HTML page ---
-	mux.HandleFunc("GET /", indexHandler)
+	// --- Dashboard (screenshots + browser-truth e2e; empty journal renders
+	// every page's empty state, which is itself an adopted surface) ---
+	dstore := memorystorage.NewMemoryStore()
+	dash, err := dashboardui.New(dashboardui.Config{EventSource: dstore, Journal: dstore})
+	if err != nil {
+		log.Fatalf("dashboardui.New: %v", err)
+	}
+	dash.Mount(mux, "/dashboard/")
+
+	// --- HTML page --- ({$}: exact root only, else it conflicts with the
+	// /dashboard/ subtree's method-agnostic pattern)
+	mux.HandleFunc("GET /{$}", indexHandler)
 
 	// --- SSE endpoint (sync:ack delivery) ---
 	mux.HandleFunc("GET /events", sseHandler(broadcaster))
