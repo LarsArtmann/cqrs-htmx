@@ -11,12 +11,6 @@ require (
 	github.com/stretchr/testify v1.12.1
 )
 
-// TEMPORARY sibling replace until go-datastar/broadcast is tagged+pushed on
-// the go-datastar lockstep train (ADR 002 there; module moved up 2026-09-17).
-// Removal condition: broadcast/v0.6.0 exists on the remote — then delete this
-// replace and let the require above resolve from the proxy.
-replace github.com/larsartmann/go-datastar/broadcast => ../../go-datastar/broadcast
-
 require (
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect

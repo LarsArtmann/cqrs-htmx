@@ -26,12 +26,6 @@ require (
 	github.com/samber/do/v2 v2.1.0
 )
 
-// TEMPORARY sibling replace until go-datastar/broadcast is tagged+pushed on
-// the go-datastar lockstep train (ADR 002 there; module moved up 2026-09-17).
-// Removal condition: broadcast/v0.6.0 exists on the remote — then delete this
-// replace and let the require above resolve from the proxy.
-replace github.com/larsartmann/go-datastar/broadcast => ../../go-datastar/broadcast
-
 // TEMPORARY family dev-replace: the migrated tests pass go-datastar/broadcast
 // values into ds.NewEventBridge, which needs the local type alias — published
 // datastar/v4 v4.9.0 still carries the concrete struct. Removal condition:

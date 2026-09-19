@@ -25,12 +25,6 @@ require (
 	modernc.org/sqlite v1.58.0
 )
 
-// TEMPORARY sibling replace until go-datastar/broadcast is tagged+pushed on
-// the go-datastar lockstep train (ADR 002 there; module moved up 2026-09-17).
-// Removal condition: broadcast/v0.6.0 exists on the remote — then delete this
-// replace and let the require above resolve from the proxy.
-replace github.com/larsartmann/go-datastar/broadcast => ../../go-datastar/broadcast
-
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
@@ -49,8 +43,8 @@ require (
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/go-datastar v0.5.0 // indirect
-	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
+	github.com/larsartmann/go-datastar v0.6.0 // indirect
+	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
