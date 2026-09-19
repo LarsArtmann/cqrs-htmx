@@ -72,6 +72,16 @@
     --border: #233049;
     --border-strong: #2c3a56;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+
+    /* The @theme mapping below points gray-800/900 at --text, which flips
+       light in this mode — correct for text, but the library also uses
+       gray-800/900 as dark SURFACES via dark: variants (e.g. Table's
+       thead dark:bg-gray-800), which then painted as light bands. All
+       library text-gray-800/900 occurrences carry a dark: override, so
+       pinning these two tokens back to the literal dark palette in dark
+       mode loses nothing and restores the surfaces. */
+    --color-gray-800: #1f2937;
+    --color-gray-900: #111827;
   }
 }
 
