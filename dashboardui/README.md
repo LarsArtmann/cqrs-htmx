@@ -306,6 +306,57 @@ GOEXPERIMENT=jsonv2 go build ./dashboardui/...
 GOEXPERIMENT=jsonv2 go test ./dashboardui/...
 ```
 
+## Styling and templ-components Adoption
+
+The dashboard renders through the **hybrid path**: Go-string-builder HTML into
+which [templ-components](https://github.com/larsartmann/templ-components)
+components render via `Component.Render(ctx, &b)` — no templ conversion, no
+build step for consumers. Styling ships as a compiled Tailwind bundle
+(`assets/dashboard-tw.css`, served at `/-/dashboard-tw.css` with ETag/304).
+
+Adopted capabilities: `display.StatusBadge`/`Badge` (all status/encoding
+badges), `display.StatCard` with `ValueID` DOM hooks, `display.Table` with
+typed sort headers + `LazyRows`, `display.EmptyState`, `display.Button`,
+`display.CopyButton`, `display.DefinitionList`, `feedback.ToastContainer`,
+`htmx.GlobalErrorHandling`, `forms.Select` (page size), `errorpage.ErrorPage`
+/`NotFound404`, and `icons`.
+
+Deliberate exclusions: `navigation.Pagination` (cursor + history pagination of
+append-only journals — numbered pages are meaningless), `navigation.SidebarNav`
+/`layout.AppShell` (custom dark-sidebar theme + mobile drawer, same precedent
+as adminui), `display.ListNote` (range semantics vs count-only), and
+`display.Grid` (templ `{children...}` renders empty in the hybrid standalone
+path).
+
+### Rebuilding the CSS bundle
+
+After ANY component adoption or templ-components family bump:
+
+```bash
+nix run .#build-dashboardui-css   # from the repo root; scans .templ + *_go.go class sources
+```
+
+The build fails loudly if a utility family goes missing (canaries). Rebuild in
+the SAME change as a family bump — a stale bundle ships missing utilities.
+
+### Golden tests
+
+`golden_test.go` pins rendered pages under `testdata/golden/`. After an
+intentional markup change, regenerate:
+
+```bash
+cd dashboardui && GOEXPERIMENT=jsonv2 go test ./... -update
+```
+
+Review the diff before committing - goldens are the rendered-HTML contract.
+
+### Benchmarks
+
+`render_bench_test.go` compares the hand-rolled render path against the hybrid
+library path; interpretation and recorded artifacts live in
+[`docs/benchmarks/dashboardui-render-2026-09-19.md`](../docs/benchmarks/dashboardui-render-2026-09-19.md)
+(single-digit microseconds per card - noise behind network I/O).
+
 ## Architecture
 
 The dashboard follows the same pattern as `adminui/`:
@@ -320,5 +371,6 @@ The dashboard follows the same pattern as `adminui/`:
 - `payload.go` — PayloadRenderer interface and default implementation
 - `sse.go` — SSE event bridge (event bus to broadcaster)
 
-Rendering is currently Go-string-builder HTML. Future iterations will migrate
-to templ-components for richer UI.
+Rendering uses the hybrid string-builder + templ-components path described
+above; see `docs/guides/hybrid-templ-components-adoption.md` for the pattern,
+its pitfalls, and the context-threading contract.
