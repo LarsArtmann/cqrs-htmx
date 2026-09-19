@@ -94,11 +94,11 @@ func (h *Handler) guard(fn func(http.ResponseWriter, *http.Request, *identitymod
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, _ := usermgmt.UserFromContext(r.Context())
 		if user == nil {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			h.writeErrorPage(w, r, http.StatusUnauthorized, "Sign in required", "Your session is missing or expired. Sign in again to continue.")
 			return
 		}
 		if err := h.config.Authorizer(user); err != nil {
-			http.Error(w, "forbidden", http.StatusForbidden)
+			h.writeErrorPage(w, r, http.StatusForbidden, "Access denied", "Your role does not allow this action.")
 			return
 		}
 		// Inject the now-validated user into the page data via context-free
@@ -155,7 +155,23 @@ func (h *Handler) routes() http.Handler {
 	// --- Audit ---
 	mux.HandleFunc("GET /audit", h.guard(h.auditIndex))
 
+	// --- Error pages (templ-components errorpage) ---
+	// "GET /" is the catch-all below every specific route above; the method
+	// less pattern catches non-GET requests to unknown paths.
+	mux.HandleFunc("GET /", h.guardPanel(h.notFoundHandler))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		h.writeErrorPage(w, r, http.StatusMethodNotAllowed, "Method not allowed", "This endpoint does not support that HTTP method.")
+	})
+
 	return mux
+}
+
+// guardPanel wraps notFoundHandler with the session gate while dropping the
+// authenticated-user argument it does not need.
+func (h *Handler) guardPanel(fn http.HandlerFunc) http.HandlerFunc {
+	return h.guard(func(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
+		fn(w, r)
+	})
 }
 
 // Handler returns an http.Handler serving the whole panel at root-relative
