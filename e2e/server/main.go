@@ -75,7 +75,7 @@ func main() {
 	// detector and security scanners flag a bare ListenAndServe, and timeouts
 	// keep a hung Playwright run from pinning connections forever. Values
 	// mirror setup.Bundle's server posture (ReadHeaderTimeout 5s, idle 60s).
-	server := &http.Server{ //nolint:exhaustruct // optional server knobs intentionally default
+	server := &http.Server{ //nolint:exhaustruct,exhaustruct_v5 // optional server knobs intentionally default
 		Addr:              *addr,
 		Handler:           mux,
 		ReadHeaderTimeout: e2eReadHeaderTimeout,
