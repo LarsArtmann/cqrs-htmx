@@ -21,8 +21,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-datastar v0.5.0 // indirect
-	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
+	github.com/larsartmann/go-datastar v0.6.0 // indirect
+	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
 	github.com/larsartmann/go-etag v0.3.1 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

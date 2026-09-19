@@ -39,8 +39,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-datastar v0.5.0 // indirect
-	github.com/larsartmann/go-datastar/static v0.5.0 // indirect
+	github.com/larsartmann/go-datastar v0.6.0 // indirect
+	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output v0.38.0 // indirect

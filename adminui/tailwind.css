@@ -124,19 +124,21 @@ body {
 /* AppShell emits its sidebar-width custom property (--tc-sidebar-w) as an
    inline style attribute, which the CSP above silently drops (style-src
    'self' + nonce never authorizes style="" attributes). Redefine it in CSS
-   for the shell class instead — adminui pins SidebarWidthMD (16rem). */
+   for the shell class instead — adminui pins SidebarWidthMD (16rem). The
+   sidebar background var is defined here too: adminui compiles its own CSS
+   bundle, so the library's :root defaults (shipped in its prebuilt
+   styles.css) never load — without it bg-[var(--tc-sidebar-bg)] computes
+   to transparent and the light-gray nav labels vanish on the white page. */
 .admin-shell {
   --tc-sidebar-w: 16rem;
+  --tc-sidebar-bg: #111827;
 }
 
-/* SidebarNav hardcodes Tailwind's literal dark palette (bg-gray-900,
-   hover:bg-gray-800, text-gray-300), but the @theme block above remaps
-   gray-* to surface tokens (gray-900 = --text, which flips light in dark
-   mode). Pin the sidebar's palette back to literals inside its scope so
-   the sidebar stays dark in both modes. */
-.admin-sidebar-scope .bg-gray-900 {
-  background-color: #111827;
-}
+/* SidebarNav colors its inactive links with Tailwind's literal palette
+   (hover:bg-gray-800, text-gray-300; root bg is --tc-sidebar-bg above),
+   but the @theme block above remaps gray-* to surface tokens (gray-800 =
+   --text, which flips light in dark mode). Pin the sidebar's palette back
+   to literals inside its scope so the sidebar stays dark in both modes. */
 .admin-sidebar-scope .hover\:bg-gray-800:hover {
   background-color: #1f2937;
 }
