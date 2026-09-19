@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // healthKindToTone maps an internal health kind to a StatCard tone.
@@ -29,18 +30,18 @@ func statCardHTML(ctx context.Context, valueID, value, label string, tone displa
 	var b strings.Builder
 
 	props := display.StatCardProps{
-		ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: "",
-		Value:    value,
-		Label:    label,
-		Change:   "",
-		Trend:    display.TrendNone,
-		Tone:     tone,
-		Icon:     "",
-		Href:     "",
-		HxGet:    "",
-		HxTarget: "",
-		HxSwap:   "",
-		ValueID:  valueID,
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Value:     value,
+		Label:     label,
+		Change:    "",
+		Trend:     display.TrendNone,
+		Tone:      tone,
+		Icon:      "",
+		Href:      "",
+		HxGet:     "",
+		HxTarget:  "",
+		HxSwap:    "",
+		ValueID:   valueID,
 	}
 	_ = display.StatCard(props).Render(ctx, &b)
 
