@@ -2,6 +2,8 @@ package cqrshtmx_test
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -311,5 +313,94 @@ var _ = Describe("Context", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(app.ServiceName()).To(BeEmpty())
 		})
+	})
+})
+
+var _ = Describe("Client metadata (IP + User-Agent)", func() {
+	serve := func(r *http.Request, inspect func(ctx context.Context)) {
+		handler := cqrshtmx.ContextEnrichmentMiddleware(nil)(http.HandlerFunc(
+			func(_ http.ResponseWriter, req *http.Request) { inspect(req.Context()) },
+		))
+		handler.ServeHTTP(httptest.NewRecorder(), r)
+	}
+
+	It("captures the client IP from RemoteAddr", func() {
+		req := httptest.NewRequest(http.MethodGet, "/things", nil)
+		req.RemoteAddr = "203.0.113.7:54321"
+
+		serve(req, func(ctx context.Context) {
+			Expect(cqrshtmx.IPAddressFromContext(ctx).String()).To(Equal("203.0.113.7"))
+		})
+	})
+
+	It("prefers the first X-Forwarded-For entry over RemoteAddr", func() {
+		req := httptest.NewRequest(http.MethodGet, "/things", nil)
+		req.RemoteAddr = "10.0.0.1:1000"
+		req.Header.Set("X-Forwarded-For", "198.51.100.9, 192.0.2.1")
+
+		serve(req, func(ctx context.Context) {
+			Expect(cqrshtmx.IPAddressFromContext(ctx).String()).To(Equal("198.51.100.9"))
+		})
+	})
+
+	It("drops an unparsable client IP instead of failing the request", func() {
+		req := httptest.NewRequest(http.MethodGet, "/things", nil)
+		req.RemoteAddr = "not-an-ip:80"
+
+		serve(req, func(ctx context.Context) {
+			Expect(cqrshtmx.IPAddressFromContext(ctx).IsZero()).To(BeTrue())
+		})
+	})
+
+	It("captures the User-Agent header", func() {
+		req := httptest.NewRequest(http.MethodGet, "/things", nil)
+		req.Header.Set("User-Agent", "cqrs-htmx-test/1.0")
+
+		serve(req, func(ctx context.Context) {
+			Expect(cqrshtmx.UserAgentFromContext(ctx).String()).To(Equal("cqrs-htmx-test/1.0"))
+		})
+	})
+
+	It("omits an empty User-Agent", func() {
+		req := httptest.NewRequest(http.MethodGet, "/things", nil)
+		req.Header.Set("User-Agent", "  ")
+
+		serve(req, func(ctx context.Context) {
+			Expect(cqrshtmx.UserAgentFromContext(ctx).IsZero()).To(BeTrue())
+		})
+	})
+
+	It("propagates IP and User-Agent into event metadata", func() {
+		ctx := cqrshtmx.WithIPAddress(context.Background(), event.IPAddress("192.0.2.10"))
+		ctx = cqrshtmx.WithUserAgent(ctx, event.UserAgent("cqrs-htmx-test/1.0"))
+
+		opts := cqrshtmx.EventOptionsFromContext(ctx)
+		Expect(opts).To(HaveLen(2))
+
+		evt, err := event.NewEvent(
+			"UserLogin",
+			id.NewStreamID(),
+			"User",
+			1,
+			[]byte(`{}`),
+			opts...,
+		)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(evt.Metadata().IPAddress.String()).To(Equal("192.0.2.10"))
+		Expect(evt.Metadata().UserAgent.String()).To(Equal("cqrs-htmx-test/1.0"))
+	})
+
+	It("never propagates zero IP/User-Agent values", func() {
+		ctx := cqrshtmx.WithIPAddress(context.Background(), "")
+		ctx = cqrshtmx.WithUserAgent(ctx, "")
+
+		Expect(cqrshtmx.EventOptionsFromContext(ctx)).To(BeNil())
+	})
+
+	It("supports zero-value shadowing as the privacy escape hatch", func() {
+		ctx := cqrshtmx.WithIPAddress(context.Background(), event.IPAddress("192.0.2.10"))
+		ctx = cqrshtmx.WithIPAddress(ctx, "")
+
+		Expect(cqrshtmx.EventOptionsFromContext(ctx)).To(BeNil())
 	})
 })
