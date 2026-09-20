@@ -1,10 +1,14 @@
 package adminui
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
+	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 )
 
 // get renders a page through the test panel and returns status + body.
@@ -66,22 +70,41 @@ func TestConfirmModalNoInlineHandlers(t *testing.T) {
 // the modal is the ONLY confirm UX. The server-side handlers are unchanged;
 // the modal is progressive enhancement over the same htmx requests.
 func TestConfirmAttributesOnDestructiveButtons(t *testing.T) {
+	ctx := context.Background()
 	user := mustUser(t, "admin@example.com")
-	h, _ := newTestPanel(t, user)
+	h, svc := newTestPanel(t, user)
 
-	_, usersHTML := get(t, h, "/admin/users")
-	if !strings.Contains(usersHTML, `data-confirm-title="Delete user"`) {
+	// Destructive user actions live on the user DETAIL page (danger zone).
+	target, err := svc.Register(ctx, usermgmt.RegisterRequest{
+		ID: identitymodel.SyntheticUserID("u-confirm"), Email: "confirm@example.com",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, userDetail := get(t, h, "/admin/users/"+target.User.ID.Get().String())
+	if !strings.Contains(userDetail, `data-confirm-title="Delete user"`) {
 		t.Error("user delete button missing data-confirm-title")
 	}
-	if !strings.Contains(usersHTML, "This cannot be undone") {
+	if !strings.Contains(userDetail, "This cannot be undone") {
 		t.Error("user delete button missing data-confirm body")
 	}
-	if strings.Contains(usersHTML, "hx-confirm=") {
+	if strings.Contains(userDetail, "hx-confirm=") {
 		t.Error("hx-confirm must not remain: the shared modal replaces the native confirm")
 	}
 
-	_, tenantsHTML := get(t, h, "/admin/tenants")
-	if !strings.Contains(tenantsHTML, `data-confirm-title="Delete tenant"`) {
-		t.Error("tenant delete button missing data-confirm-title")
+	// Tenant suspend/reactivate/delete live on the tenant DETAIL page; a fresh
+	// tenant is active, so the Suspend action renders.
+	tenant := mustCreateTenant(t, svc, "confirm-tenant")
+	_, tenantDetail := get(t, h, "/admin/tenants/"+tenant.ID.Get())
+	for _, want := range []string{
+		`data-confirm-title="Delete tenant"`,
+		`data-confirm-title="Suspend tenant"`,
+	} {
+		if !strings.Contains(tenantDetail, want) {
+			t.Errorf("tenant detail missing %s", want)
+		}
+	}
+	if strings.Contains(tenantDetail, "hx-confirm=") {
+		t.Error("hx-confirm must not remain on tenant detail: the shared modal replaces the native confirm")
 	}
 }
