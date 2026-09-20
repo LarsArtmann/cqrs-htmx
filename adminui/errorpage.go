@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/larsartmann/templ-components/errorpage"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/templ-components/errorpage"
 )
 
 // errorFamilyFor maps an HTTP status to the errorpage visual family.
@@ -26,16 +26,21 @@ func errorFamilyFor(status int) errorpage.Family {
 	return errorpage.FamilyRejection
 }
 
+// tenantGoneMessage is shared by the three tenant lifecycle codes.
+const tenantGoneMessage = "This tenant no longer exists. Refresh the list and try again."
+
 // actionErrorMessages maps known domain error codes to user-safe guidance.
 // Codes come from the usermgmt deciders; unknown codes fall back to a
 // family-level message. Raw err.Error() text is never rendered to users — it
 // leaks internal detail (stream IDs, storage errors) that helps no one.
+//
+//nolint:gochecknoglobals // static lookup table, never mutated
 var actionErrorMessages = map[string]string{
 	"usermgmt.tenant.already_exists":         "A tenant with this ID already exists. Pick a different identifier.",
 	"usermgmt.tenant.name_required":          "A tenant name is required.",
-	"usermgmt.tenant_suspend.not_found":      "This tenant no longer exists. Refresh the list and try again.",
-	"usermgmt.tenant_reactivate.not_found":   "This tenant no longer exists. Refresh the list and try again.",
-	"usermgmt.tenant_delete.not_found":       "This tenant no longer exists. Refresh the list and try again.",
+	"usermgmt.tenant_suspend.not_found":      tenantGoneMessage,
+	"usermgmt.tenant_reactivate.not_found":   tenantGoneMessage,
+	"usermgmt.tenant_delete.not_found":       tenantGoneMessage,
 	"usermgmt.tenant_delete.already_deleted": "This tenant is already deleted.",
 	"usermgmt.email_exists":                  "That email address is already registered.",
 	"usermgmt.user_not_found":                "That user no longer exists. Refresh the list and try again.",
@@ -62,6 +67,8 @@ func actionErrorFallback(f errorfamily.Family) string {
 		return "Something is wrong with the stored data. This has been logged for investigation."
 	case errorfamily.Infrastructure:
 		return "A backing service failed. Try again in a moment."
+	case errorfamily.Orchestration:
+		return "A background process is still settling. Refresh and try again shortly."
 	default:
 		return "The request failed. Try again."
 	}
@@ -81,6 +88,8 @@ func actionErrorStatus(f errorfamily.Family) int {
 		return http.StatusInternalServerError
 	case errorfamily.Infrastructure:
 		return http.StatusServiceUnavailable
+	case errorfamily.Orchestration:
+		return http.StatusAccepted
 	default:
 		return http.StatusInternalServerError
 	}

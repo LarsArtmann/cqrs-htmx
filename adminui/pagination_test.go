@@ -2,6 +2,7 @@ package adminui
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,26 +14,108 @@ import (
 
 func TestPageBounds(t *testing.T) {
 	tests := []struct {
-		name                          string
-		page, total, pageSize         int
-		wantOffset, wantLimit         int
-		wantTotalPages, wantCurrent   int
+		name                        string
+		page, total, pageSize       int
+		wantOffset, wantLimit       int
+		wantTotalPages, wantCurrent int
 	}{
-		{name: "empty list is one empty page", page: 1, total: 0, pageSize: 50, wantOffset: 0, wantLimit: 0, wantTotalPages: 1, wantCurrent: 1},
-		{name: "single partial page", page: 1, total: 7, pageSize: 50, wantOffset: 0, wantLimit: 7, wantTotalPages: 1, wantCurrent: 1},
-		{name: "exact fit", page: 1, total: 100, pageSize: 50, wantOffset: 0, wantLimit: 50, wantTotalPages: 2, wantCurrent: 1},
-		{name: "second page", page: 2, total: 120, pageSize: 50, wantOffset: 50, wantLimit: 50, wantTotalPages: 3, wantCurrent: 2},
-		{name: "last partial page", page: 3, total: 120, pageSize: 50, wantOffset: 100, wantLimit: 20, wantTotalPages: 3, wantCurrent: 3},
-		{name: "page zero clamps to first", page: 0, total: 120, pageSize: 50, wantOffset: 0, wantLimit: 50, wantTotalPages: 3, wantCurrent: 1},
-		{name: "negative page clamps to first", page: -4, total: 120, pageSize: 50, wantOffset: 0, wantLimit: 50, wantTotalPages: 3, wantCurrent: 1},
-		{name: "beyond range clamps to last", page: 99, total: 120, pageSize: 50, wantOffset: 100, wantLimit: 20, wantTotalPages: 3, wantCurrent: 3},
-		{name: "pageSize zero falls back to listPageSize", page: 1, total: 80, pageSize: 0, wantOffset: 0, wantLimit: 50, wantTotalPages: 2, wantCurrent: 1},
+		{
+			name:           "empty list is one empty page",
+			page:           1,
+			total:          0,
+			pageSize:       50,
+			wantOffset:     0,
+			wantLimit:      0,
+			wantTotalPages: 1,
+			wantCurrent:    1,
+		},
+		{
+			name:           "single partial page",
+			page:           1,
+			total:          7,
+			pageSize:       50,
+			wantOffset:     0,
+			wantLimit:      7,
+			wantTotalPages: 1,
+			wantCurrent:    1,
+		},
+		{
+			name:           "exact fit",
+			page:           1,
+			total:          100,
+			pageSize:       50,
+			wantOffset:     0,
+			wantLimit:      50,
+			wantTotalPages: 2,
+			wantCurrent:    1,
+		},
+		{
+			name:           "second page",
+			page:           2,
+			total:          120,
+			pageSize:       50,
+			wantOffset:     50,
+			wantLimit:      50,
+			wantTotalPages: 3,
+			wantCurrent:    2,
+		},
+		{
+			name:           "last partial page",
+			page:           3,
+			total:          120,
+			pageSize:       50,
+			wantOffset:     100,
+			wantLimit:      20,
+			wantTotalPages: 3,
+			wantCurrent:    3,
+		},
+		{
+			name:           "page zero clamps to first",
+			page:           0,
+			total:          120,
+			pageSize:       50,
+			wantOffset:     0,
+			wantLimit:      50,
+			wantTotalPages: 3,
+			wantCurrent:    1,
+		},
+		{
+			name:           "negative page clamps to first",
+			page:           -4,
+			total:          120,
+			pageSize:       50,
+			wantOffset:     0,
+			wantLimit:      50,
+			wantTotalPages: 3,
+			wantCurrent:    1,
+		},
+		{
+			name:           "beyond range clamps to last",
+			page:           99,
+			total:          120,
+			pageSize:       50,
+			wantOffset:     100,
+			wantLimit:      20,
+			wantTotalPages: 3,
+			wantCurrent:    3,
+		},
+		{
+			name:           "pageSize zero falls back to listPageSize",
+			page:           1,
+			total:          80,
+			pageSize:       0,
+			wantOffset:     0,
+			wantLimit:      50,
+			wantTotalPages: 2,
+			wantCurrent:    1,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			offset, limit, totalPages, current := pageBounds(tt.page, tt.total, tt.pageSize)
-			if offset != tt.wantOffset || limit != tt.wantLimit || totalPages != tt.wantTotalPages || current != tt.wantCurrent {
+			if offset != tt.wantOffset || limit != tt.wantLimit || totalPages != tt.wantTotalPages ||
+				current != tt.wantCurrent {
 				t.Errorf("pageBounds(%d, %d, %d) = (%d, %d, %d, %d), want (%d, %d, %d, %d)",
 					tt.page, tt.total, tt.pageSize,
 					offset, limit, totalPages, current,
@@ -47,8 +130,8 @@ func TestPageBounds(t *testing.T) {
 
 func TestParsePageQuery(t *testing.T) {
 	tests := []struct {
-		raw   string
-		want  int
+		raw  string
+		want int
 	}{
 		{raw: "", want: 1},
 		{raw: "1", want: 1},
@@ -85,7 +168,7 @@ func TestPanel_UsersPagination(t *testing.T) {
 
 	// Seed 60 extra users: 50 fill page one, 10 spill onto page two.
 	for i := range 60 {
-		email := "pager" + strings.Repeat("0", 2-len(string(rune('0'+i%10)))) + string(rune('0'+i%10)) + "@p.dev"
+		email := fmt.Sprintf("pager%02d@p.dev", i)
 		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
 			ID:    identitymodel.SyntheticUserID("seed-" + email),
 			Email: email,

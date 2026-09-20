@@ -13,19 +13,20 @@ import (
 func (h *Handler) auditIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	var entries []usermgmt.AuditEntry
 	total := 0
-	offset, limit, totalPages, page := 0, 0, 1, 1
+	pg := listPage{Page: 1, TotalPages: 1}
 	if al := h.config.Service.AuditLog(); al != nil {
 		total = al.Count()
-		offset, limit, totalPages, page = pageBounds(parsePageQuery(r), total, listPageSize)
 		// Recent returns the latest n entries latest-first; the page window
 		// drops the offset newest entries to select the requested page.
+		offset, limit, totalPages, page := pageBounds(parsePageQuery(r), total, listPageSize)
 		entries = al.Recent(offset + limit)[offset:]
 		resolveAuditEmails(h.config.Service, entries)
+		pg = listPage{Page: page, TotalPages: totalPages}
 	}
 	p := h.page("Audit log", "/audit", user, r)
 	renderPage(w, r, auditPage(p, auditData{
 		Entries: entries, Total: total, BasePath: h.config.BasePath,
-		listPage: listPage{Page: page, TotalPages: totalPages},
+		listPage: pg,
 	}))
 }
 
