@@ -39,14 +39,30 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: "go run .",
-    cwd: "./server",
-    url: "http://localhost:18923/health",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000, // first `go run` compiles; subsequent runs are fast
-    env: {
-      GOEXPERIMENT: "jsonv2",
+  webServer: [
+    {
+      command: "go run .",
+      cwd: "./server",
+      url: "http://localhost:18923/health",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000, // first `go run` compiles; subsequent runs are fast
+      env: {
+        GOEXPERIMENT: "jsonv2",
+      },
     },
-  },
+    {
+      // admin-demo for tests/admin-behavior.spec.ts (adminui behavior gate).
+      // Needs the workspace toolchain pin: the demo rides the go 1.27.1
+      // floor while the ambient go is 1.26.7/GOTOOLCHAIN=local.
+      command: "go run .",
+      cwd: "../../examples/admin-demo",
+      url: "http://localhost:18930/",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        GOEXPERIMENT: "jsonv2",
+        GOTOOLCHAIN: "go1.27.1",
+      },
+    },
+  ],
 });
