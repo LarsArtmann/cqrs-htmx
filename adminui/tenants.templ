@@ -3,6 +3,7 @@ package adminui
 import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/navigation"
 	"github.com/larsartmann/templ-components/utils"
 )
 
@@ -11,17 +12,10 @@ templ tenantsPage(p pageData, d tenantsListData) {
 }
 
 templ tenantsContent(d tenantsListData) {
-	<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-		<h1 class="text-xl font-semibold">Tenants</h1>
-		@display.Button(display.ButtonProps{
-			Text:      "New tenant",
-			Href:      d.BasePath + "/tenants/new",
-			Variant:   display.ButtonPrimary,
-			Size:      display.ButtonSizeSM,
-			Icon:      icon("plus"),
-			BaseProps: utils.BaseProps{Class: classNoUnderline},
-		})
-	</div>
+	@display.PageHeader(display.PageHeaderProps{
+		Title:  "Tenants",
+		Action: newTenantAction(d),
+	})
 	if len(d.Tenants) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
 			@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.")
@@ -35,6 +29,19 @@ templ tenantsContent(d tenantsListData) {
 		})
 		@listNote(len(d.Tenants), d.Total)
 	}
+}
+
+// newTenantAction is the PageHeader action slot for the tenants list: the
+// primary "New tenant" entry point rides on the title row.
+templ newTenantAction(d tenantsListData) {
+	@display.Button(display.ButtonProps{
+		Text:      "New tenant",
+		Href:      d.BasePath + "/tenants/new",
+		Variant:   display.ButtonPrimary,
+		Size:      display.ButtonSizeSM,
+		Icon:      icon("plus"),
+		BaseProps: utils.BaseProps{Class: classNoUnderline},
+	})
 }
 
 templ tenantsRows(d tenantsListData) {
@@ -67,10 +74,13 @@ templ tenantNewPage(p pageData, basePath string) {
 }
 
 templ tenantNewContent(basePath string) {
-	<div class="mb-5 flex flex-wrap items-center gap-3">
-			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ basePath + "/tenants" }>← Tenants</a>
-		</div>
-		<h1 class="mb-4 text-xl font-semibold">New tenant</h1>
+	@display.PageHeader(display.PageHeaderProps{
+		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
+			{Text: "Tenants", Href: basePath + "/tenants"},
+			{Text: "New"},
+		}}),
+		Title: "New tenant",
+	})
 		<div class="max-w-[520px]">
 			@display.Card(display.CardProps{}) {
 				<form hx-post={ basePath + "/tenants" } hx-target="this">
@@ -99,23 +109,32 @@ templ tenantNewContent(basePath string) {
 		</div>
 }
 
+// tenantStatusAction is the PageHeader action slot on the tenant detail
+// page: the live tenant status rides on the title row.
+templ tenantStatusAction(d tenantDetailData) {
+	if d.Tenant.Suspended {
+		@statusBadge("suspended", "amber")
+	} else if d.Tenant.Deleted {
+		@statusBadge("deleted", "red")
+	} else {
+		@statusBadge("active", "green")
+	}
+}
+
 templ tenantDetailPage(p pageData, d tenantDetailData) {
 	@Layout(p, tenantDetailContent(d))
 }
 
 templ tenantDetailContent(d tenantDetailData) {
-	<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants" }>← Tenants</a>
-			if d.Tenant.Suspended {
-				@statusBadge("suspended", "amber")
-			} else if d.Tenant.Deleted {
-				@statusBadge("deleted", "red")
-			} else {
-				@statusBadge("active", "green")
-			}
-		</div>
-		<h1 class="mb-1 text-xl font-semibold">{ d.Tenant.DisplayName }</h1>
-		<div class="mb-5 font-mono text-xs text-gray-400">{ d.Tenant.Name }</div>
+	@display.PageHeader(display.PageHeaderProps{
+		Breadcrumb: navigation.Breadcrumbs(navigation.BreadcrumbsProps{Items: []navigation.BreadcrumbItem{
+			{Text: "Tenants", Href: d.BasePath + "/tenants"},
+			{Text: d.Tenant.DisplayName},
+		}}),
+		Title:    d.Tenant.DisplayName,
+		Subtitle: d.Tenant.Name,
+		Action:   tenantStatusAction(d),
+	})
 		<div class="mb-4">
 			@membersCard(d)
 		</div>

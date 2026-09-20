@@ -71,6 +71,15 @@ func statCardClass(href string) string {
 	return classNoUnderline
 }
 
+// tenantSubtitle renders the tenant identity line under the Members page
+// header ("Display Name · machine-name"); empty when the tenant is absent.
+func tenantSubtitle(t *identitymodel.Tenant) string {
+	if t == nil {
+		return ""
+	}
+	return t.DisplayName + " · " + t.Name
+}
+
 // dashboardData drives the overview page.
 type dashboardData struct {
 	Stats  []statCard

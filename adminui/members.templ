@@ -81,22 +81,24 @@ templ membersRows(d tenantDetailData) {
 	}
 }
 
-// tenantHeader renders the page title + tenant status badge + display name.
-// Extracted as a component because templ's parser rejects if/else blocks
-// directly inside @Layout children.
+// tenantHeader renders the page title + tenant status badge + display name
+// via the PageHeader pattern (status in the action slot, identity as the
+// subtitle).
 templ tenantHeader(d tenantDetailData) {
-	<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-		<h1 class="text-xl font-semibold">Members</h1>
-		if d.Tenant != nil {
-			if d.Tenant.Suspended {
-				@badge("suspended", "amber")
-			} else {
-				@badge("active", "green")
-			}
-		}
-	</div>
+	@display.PageHeader(display.PageHeaderProps{
+		Title:    "Members",
+		Subtitle: tenantSubtitle(d.Tenant),
+		Action:   tenantHeaderStatus(d),
+	})
+}
+
+templ tenantHeaderStatus(d tenantDetailData) {
 	if d.Tenant != nil {
-		<div class="mb-4 text-sm text-gray-500">{ d.Tenant.DisplayName } · <span class="font-mono text-xs">{ d.Tenant.Name }</span></div>
+		if d.Tenant.Suspended {
+			@badge("suspended", "amber")
+		} else {
+			@badge("active", "green")
+		}
 	}
 }
 

@@ -16,10 +16,20 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 	var stats []statCard
 	if h.config.Mode == ModeSuperAdmin {
 		stats = []statCard{
-			{Label: "Users", Value: strconv.Itoa(svc.ReadModel().Count()), Icon: iconUsers,
-				Tone: display.StatToneBlue, Href: p.BasePath + "/users"},
-			{Label: "Tenants", Value: strconv.Itoa(len(svc.AllTenants())), Icon: iconTenants,
-				Tone: display.StatTonePurple, Href: p.BasePath + "/tenants"},
+			{
+				Label: "Users",
+				Value: strconv.Itoa(svc.ReadModel().Count()),
+				Icon:  iconUsers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/users",
+			},
+			{
+				Label: "Tenants",
+				Value: strconv.Itoa(len(svc.AllTenants())),
+				Icon:  iconTenants,
+				Tone:  display.StatTonePurple,
+				Href:  p.BasePath + "/tenants",
+			},
 		}
 	} else {
 		members := svc.TenantMembers(r.Context(), h.config.TenantID)
@@ -28,15 +38,23 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 			tenantName = t.DisplayName
 		}
 		stats = []statCard{
-			{Label: "Members", Value: strconv.Itoa(len(members)), Icon: iconMembers,
-				Tone: display.StatToneBlue, Href: p.BasePath + "/members"},
+			{
+				Label: "Members",
+				Value: strconv.Itoa(len(members)),
+				Icon:  iconMembers,
+				Tone:  display.StatToneBlue,
+				Href:  p.BasePath + "/members",
+			},
 			{Label: "Tenant", Value: tenantName, Icon: iconTenants, Tone: display.StatTonePurple},
 		}
 	}
 	if al := svc.AuditLog(); al != nil {
 		stats = append(stats, statCard{
-			Label: "Audit events", Value: strconv.Itoa(al.Count()), Icon: iconAudit,
-			Tone: display.StatToneGreen, Href: p.BasePath + "/audit",
+			Label: "Audit events",
+			Value: strconv.Itoa(al.Count()),
+			Icon:  iconAudit,
+			Tone:  display.StatToneGreen,
+			Href:  p.BasePath + "/audit",
 		})
 	}
 
