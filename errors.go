@@ -197,7 +197,8 @@ func writeHTMXAuthRedirect(
 }
 
 // handleErrorCore handles the common logic for error responses:
-// default login redirect, HTMX auth redirect, and status code mapping.
+// default login redirect, HTMX auth redirect, status code mapping, and the
+// Retry-After header on 503 responses.
 // The writeBody callback handles the response body format.
 func handleErrorCore(
 	w http.ResponseWriter,
@@ -215,6 +216,7 @@ func handleErrorCore(
 	}
 
 	status := MapError(err)
+	setRetryAfterHeader(w, err, status)
 	writeBody(w, err, status)
 }
 

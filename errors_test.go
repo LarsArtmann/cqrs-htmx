@@ -1,8 +1,10 @@
 package cqrshtmx_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"time"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	. "github.com/onsi/ginkgo/v2"
@@ -147,6 +149,73 @@ var _ = Describe("Error Mapping", func() {
 			Expect(cqrshtmx.ErrUnauthorized).NotTo(Equal(cqrshtmx.ErrForbidden))
 			Expect(cqrshtmx.ErrDecodeFailed).NotTo(Equal(cqrshtmx.ErrDispatchFailed))
 			Expect(cqrshtmx.ErrEnforcerNil).NotTo(Equal(cqrshtmx.ErrValidationFailed))
+		})
+	})
+
+	Describe("Retry-After header", func() {
+		DescribeTable(
+			"error handlers send Retry-After on 503 responses",
+			func(h func(http.ResponseWriter, *http.Request, error)) {
+				w := httptest.NewRecorder()
+				r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+				h(w, r, cqrshtmx.ErrDispatchFailed)
+
+				Expect(w.Code).To(Equal(http.StatusServiceUnavailable))
+				Expect(w.Header().Get("Retry-After")).To(Equal("1"))
+			},
+			Entry("plain text handler", cqrshtmx.DefaultErrorHandler),
+			Entry("JSON handler", cqrshtmx.JSONErrorHandler),
+			Entry("problem details handler", cqrshtmx.ProblemDetailsErrorHandler),
+		)
+
+		It("honours a RetryAfterCarrier hint over the default", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.WithRetryAfter(cqrshtmx.ErrDispatchFailed, 30*time.Second))
+
+			Expect(w.Code).To(Equal(http.StatusServiceUnavailable))
+			Expect(w.Header().Get("Retry-After")).To(Equal("30"))
+		})
+
+		It("rounds sub-second hints up to one second", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.WithRetryAfter(cqrshtmx.ErrDispatchFailed, 300*time.Millisecond))
+
+			Expect(w.Header().Get("Retry-After")).To(Equal("1"))
+		})
+
+		It("falls back to the default for non-positive carrier hints", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.WithRetryAfter(cqrshtmx.ErrDispatchFailed, 0))
+
+			Expect(w.Header().Get("Retry-After")).To(Equal("1"))
+		})
+
+		It("does not send Retry-After on client errors", func() {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+			cqrshtmx.JSONErrorHandler(w, r, cqrshtmx.ErrDecodeFailed)
+
+			Expect(w.Code).To(Equal(http.StatusBadRequest))
+			Expect(w.Header().Get("Retry-After")).To(BeEmpty())
+		})
+
+		It("preserves status and sentinel identity when wrapping", func() {
+			wrapped := cqrshtmx.WithRetryAfter(cqrshtmx.ErrDispatchFailed, 5*time.Second)
+
+			Expect(errors.Is(wrapped, cqrshtmx.ErrDispatchFailed)).To(BeTrue())
+			Expect(cqrshtmx.MapError(wrapped)).To(Equal(http.StatusServiceUnavailable))
+		})
+
+		It("returns nil when wrapping nil", func() {
+			Expect(cqrshtmx.WithRetryAfter(nil, time.Second)).To(BeNil())
 		})
 	})
 })
