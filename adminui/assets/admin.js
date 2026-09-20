@@ -8,11 +8,13 @@
   "use strict";
 
   // --- CSRF: send token on every HTMX request (double-submit pattern) ---
-  var meta = document.querySelector('meta[name="csrf-token"]');
-  if (meta && typeof htmx !== "undefined") {
-    htmx.config.headers = htmx.config.headers || {};
-    htmx.config.headers["X-CSRF-Token"] = meta.content;
-  }
+  // htmx has no htmx.config.headers option (assigning one is a silent no-op —
+  // button POSTs 403'd under CSRF middleware). The sanctioned hook is the
+  // htmx:configRequest event, which carries the per-request header map.
+  document.addEventListener("htmx:configRequest", function (e) {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) e.detail.headers["X-CSRF-Token"] = meta.content;
+  });
 
   // --- Mobile sidebar toggle ---
   function toggleSidebar() {
