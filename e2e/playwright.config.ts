@@ -48,6 +48,9 @@ export default defineConfig({
       timeout: 120_000, // first `go run` compiles; subsequent runs are fast
       env: {
         GOEXPERIMENT: "jsonv2",
+        // e2e/server is a workspace member on the go 1.27.1 floor; pin the
+        // toolchain so the suite also runs outside the nix devShell.
+        GOTOOLCHAIN: "go1.27.1",
       },
     },
     {
@@ -55,7 +58,7 @@ export default defineConfig({
       // Needs the workspace toolchain pin: the demo rides the go 1.27.1
       // floor while the ambient go is 1.26.7/GOTOOLCHAIN=local.
       command: "go run .",
-      cwd: "../../examples/admin-demo",
+      cwd: "../examples/admin-demo",
       url: "http://localhost:18930/",
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
