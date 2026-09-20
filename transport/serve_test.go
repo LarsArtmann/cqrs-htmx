@@ -2,9 +2,9 @@ package transport
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -666,12 +666,14 @@ func TestSSEOptions_MatchesFunctionalOptions(t *testing.T) {
 	match := func(sse.Event) bool { return true }
 
 	structCfg := serveDomainEventsConfig{}
-	for _, opt := range SSEOptions{
+	structOpts := SSEOptions{
 		LogPrefix:          "app",
 		UnavailableMessage: "gone",
 		Filter:             match,
 		MaxReplay:          7,
-	}.Options() {
+	}.Options()
+
+	for _, opt := range structOpts {
 		opt(&structCfg)
 	}
 
