@@ -81,19 +81,40 @@ templ topBar(p pageData) {
 				</div>
 			}
 			if p.User != nil {
+				// Desktop: library Dropdown (native Popover API — click-toggle,
+				// light-dismiss, Esc, top layer; the positioner + keyboard-nav
+				// scripts ship with the component, only the animation CSS is
+				// vendored in tailwind.css). The avatar rides as a static sibling:
+				// DropdownProps has no custom-trigger slot (Label is a string) —
+				// upstream candidate noted in the adoption table.
 				<div class="flex items-center gap-2 font-medium text-gray-500">
 					@display.Avatar(display.AvatarProps{Initials: initials(p.User.Email), Size: display.AvatarSizeSM})
-					{ p.User.Email }
+					if p.LogoutURL != "" {
+						<div class="hidden lg:block">
+							@display.Dropdown(display.DropdownProps{
+								Label:    p.User.Email,
+								Position: display.DropdownPositionRight,
+								Items: []display.DropdownItem{
+									{
+										Text: "Sign out",
+										Href: p.LogoutURL,
+										Icon: icons.ArrowRightOnRectangle,
+										Kind: display.DropdownItemLink,
+									},
+								},
+							})
+						</div>
+						<a
+							class="lg:hidden inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900"
+							href={ p.LogoutURL }
+						>
+							@icon("arrow-right-on-rectangle")
+							Sign out
+						</a>
+					} else {
+						{ p.User.Email }
+					}
 				</div>
-				if p.LogoutURL != "" {
-					<a
-						class="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm text-gray-600 no-underline hover:bg-gray-100 hover:text-gray-900"
-						href={ p.LogoutURL }
-					>
-						@icon("arrow-right-on-rectangle")
-						Sign out
-					</a>
-				}
 			}
 		</div>
 	</div>

@@ -222,6 +222,42 @@ dialog.tc-modal[open] {
   }
 }
 
+/* ---------- Vendored library CSS: popover animations ---------- */
+/* display.Dropdown (user menu) renders its panel with the native Popover API
+   (popover="auto"): click-toggle, light-dismiss, Esc, and top-layer stacking
+   are native. The library's singleton scripts (anchor positioner + keyboard
+   nav) ship with the component; only this animation CSS from its compiled
+   bundle is missing from adminui's utility build. */
+[popover]::backdrop {
+  background-color: transparent;
+}
+[popover] {
+  transition:
+    opacity 0.15s ease-out,
+    transform 0.15s ease-out,
+    overlay 0.15s allow-discrete,
+    display 0.15s allow-discrete;
+}
+[popover]:popover-open {
+  opacity: 1;
+  transform: scale(1);
+}
+@starting-style {
+  [popover]:popover-open {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+[popover]:not(:popover-open) {
+  opacity: 0;
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  [popover] {
+    transition: none;
+  }
+}
+
 /* ---------- Honest UI: sync-state lifecycle ---------- */
 /* Driven by data-sync-state="pending|confirmed|rejected" DOM attributes.
    CSS reacts to the attribute — no JS class toggling needed for appearance.
