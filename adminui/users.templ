@@ -260,9 +260,10 @@ templ externalAccountRows(d userDetailData) {
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"hx-post":        d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
-						"hx-confirm":     "Unlink " + ea.Provider + " from " + d.User.Email + "?",
-						"hx-disabled-elt": "this",
+						"hx-post":            d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
+						"data-confirm":      "Unlink " + ea.Provider + " from " + d.User.Email + "? The account can be linked again later.",
+						"data-confirm-title": "Unlink account",
+						"hx-disabled-elt":   "this",
 					}},
 				})
 			</td>
