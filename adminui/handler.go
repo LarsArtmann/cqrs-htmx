@@ -127,6 +127,7 @@ func (h *Handler) routes() http.Handler {
 
 	// --- Dashboard ---
 	mux.HandleFunc("GET /{$}", h.guard(h.dashboard))
+	mux.HandleFunc("GET /partials/stats", h.guard(h.statsPartial))
 
 	// --- Users (super admin only) ---
 	if h.config.Mode == ModeSuperAdmin {

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	"github.com/larsartmann/templ-components/display"
 )
 
@@ -70,16 +69,16 @@ func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
 				Href:  p.BasePath + "/members",
 			},
 			{Label: "Tenant", Value: tenantName, Icon: iconTenants, Tone: display.StatTonePurple},
-			}
 		}
-		if al := svc.AuditLog(); al != nil {
-			stats = append(stats, statCard{
-				Label: "Audit events",
-				Value: strconv.Itoa(al.Count()),
-				Icon:  iconAudit,
-				Tone:  display.StatToneGreen,
-				Href:  p.BasePath + "/audit",
-			})
-		}
-		return stats
 	}
+	if al := svc.AuditLog(); al != nil {
+		stats = append(stats, statCard{
+			Label: "Audit events",
+			Value: strconv.Itoa(al.Count()),
+			Icon:  iconAudit,
+			Tone:  display.StatToneGreen,
+			Href:  p.BasePath + "/audit",
+		})
+	}
+	return stats
+}
