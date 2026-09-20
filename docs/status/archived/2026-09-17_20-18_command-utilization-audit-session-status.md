@@ -4,6 +4,12 @@
 **Scope:** THIS session only — the go-cqrs-lite `command/v4` utilization audit across cqrs-htmx. Per instruction, no unrelated research was done; everything below comes from what this session actually ran and observed.
 **Branch state at report time:** `master`, ahead of origin by 4+ commits, a **concurrent sibling session is actively committing** (heuristic daemon commits + a toolchain tug-of-war, see §d/§e). Deliverable: `docs/research/2026-09-17_go-cqrs-lite-command-deep-dive.html` (1659 lines, committed at `473bbf29`).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the audit's two headline findings and the top-3 remediation items were implemented 2026-09-18.
+> - **§b:** b2 DONE (bijection scripted); b1/b3/b4/b5 remain partial/notes.
+> - **§c:** c1–c3 DONE (structural `ApplyOptions` fix; built-in audit chain; `CommandMiddleware` seam); c4–c8 remain open.
+> - **§f:** struck rows confirmed done (the audit-trail chain, bijection script, AGENTS gotchas, toolchain fix, train-lag zero, harvest); unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (idempotency, validation, journal producer, prior-art cross-check, BuildFlow upstream asks).
+> - **§g:** Q1 answered (implemented); Q3 resolved (coordinated 1.27.1 bump 2026-09-19); Q2 (prior-art relationship) remains an owner call.
+
 ---
 
 ## a) FULLY DONE
@@ -21,7 +27,7 @@
 ## b) PARTIALLY DONE
 
 1. **Deliberate commit with narrative message — lost to the daemon race.** First `git commit` attempt ran the full BuildFlow hook (36s, red on pre-existing workspace failures). My drafted message never landed; when I attempted the documented `--no-verify` fallback, staging was already gone — the daemon had committed the file as `473bbf29 chore: auto-commit 1 changed file(s) (heuristic)`. Content intact, attribution lost.
-2. **"20/20 typed" proof.** Verified by counting `RegisterTyped` occurrences (11+4+3+2 = 20) against AGENTS.md's stated 20 commands — but the 1:1 bijection (each `Cmd*` constant ↔ one command struct) was not scripted/proven.
+2. ~~**"20/20 typed" proof.** Verified by counting `RegisterTyped` occurrences (11+4+3+2 = 20) against AGENTS.md's stated 20 commands — but the 1:1 bijection (each `Cmd*` constant ↔ one command struct) was not scripted/proven.~~ done (scripts/check-command-bijection.sh enforces the 20/20 bijection)
 3. **"0/13 middleware in the core path" supporting check.** One grep (`benchmark_middleware_test.go`) ran against a wrong path (`root/` subdir that doesn't exist), silently returned nothing, and the thread was dropped. The conclusion still holds structurally (root's `App` consumes consumer-supplied dispatchers; usermgmt's internal dispatcher demonstrably has no `Use()`), but that particular check was never completed.
 4. **Self-review integration.** The `brutal-self-review` skill prescribes its own HTML at `docs/reviews/`; per your single-file instruction it is folded into this report's §d/§e instead (format/location override, flagged here).
 5. **Overlap check with prior research.** `docs/research/go-cqrs-lite-feature-audit.html` exists (seen in the directory listing); per "do not research unrelated stuff" it was never opened — whether my deep-dive duplicates or contradicts it is **unknown**.
@@ -30,9 +36,9 @@
 
 All eight remediation items from the audit remain unimplemented (they are findings, not changes):
 
-1. Structural `ApplyOptions` enrichment fix in root (priority 20) + regression test
-2. Wire `ActorEnricher` + `CommandActorContext` + causation into usermgmt (priority 20)
-3. Expose `ServiceConfig.CommandMiddleware` and `Use()` it (priority 16)
+1. ~~Structural `ApplyOptions` enrichment fix in root (priority 20) + regression test~~ done (structural ApplyOptions fix landed)
+2. ~~Wire `ActorEnricher` + `CommandActorContext` + causation into usermgmt (priority 20)~~ done (audit chain built-in 2026-09-18)
+3. ~~Expose `ServiceConfig.CommandMiddleware` and `Use()` it (priority 16)~~ done (CommandMiddleware seam shipped)
 4. `CommandIdempotency` on auth mutations (priority 12)
 5. Document the recommended production middleware chain (priority 8)
 6. Optional SQL command journal producer for dashboardui's audit view (priority 6)
@@ -66,9 +72,9 @@ Also not started (session follow-through): filing the 8 items into `TODO_LIST.md
 *A brainstorm sorted by impact — not a commitment list; most items below #8 are ROADMAP/HARVEST fuel.*
 
 **Implement the audit's findings (highest impact):**
-1. Fix `enrichCommandFromContext` to a structural `ApplyOptions` interface + regression test (P20)
-2. Wire `CommandActorContext` + `decider.WithEnricher(event.ActorEnricher)` + causation enricher into usermgmt (P20)
-3. Add `CommandMiddleware []command.Middleware` to `ServiceConfig`/`EventSourcedConfig`, thread through `setup.Config` (P16)
+1. ~~Fix `enrichCommandFromContext` to a structural `ApplyOptions` interface + regression test (P20)~~ done (structural ApplyOptions fix landed (enrichment-skip footgun fixed 2026-09-18))
+2. ~~Wire `CommandActorContext` + `decider.WithEnricher(event.ActorEnricher)` + causation enricher into usermgmt (P20)~~ done (audit chain built-in in usermgmt 2026-09-18 (ActorEnricher + CommandActorContext + causation))
+3. ~~Add `CommandMiddleware []command.Middleware` to `ServiceConfig`/`EventSourcedConfig`, thread through `setup.Config` (P16)~~ done (ServiceConfig.CommandMiddleware + setup.Config threading shipped)
 4. Wire `CommandIdempotency` for register/verify/OAuth paths (P12)
 5. Document the recommended production middleware chain for usermgmt consumers (P8)
 6. Optional SQL command journal producer so dashboardui's command audit is live by default (P6)
@@ -76,29 +82,29 @@ Also not started (session follow-through): filing the 8 items into `TODO_LIST.md
 8. Close the dispatcher in `Service.Close` (P5)
 
 **Session follow-through (cheap, do first):**
-9. File items 1–8 into `TODO_LIST.md` (docs-health HARVEST) + append a CHANGELOG entry for the audit
+9. ~~File items 1–8 into `TODO_LIST.md` (docs-health HARVEST) + append a CHANGELOG entry for the audit~~ done (harvested + CHANGELOG entry)
 10. Open and cross-check `go-cqrs-lite-feature-audit.html`; merge, supersede, or cross-link
 11. Link the new report from the docs index and AGENTS.md research pointers
-12. Script the 20/20 bijection proof (command constants ↔ `RegisterTyped` targets)
+12. ~~Script the 20/20 bijection proof (command constants ↔ `RegisterTyped` targets)~~ done (scripts/check-command-bijection.sh enforces the bijection)
 13. Re-run the "0/13 middleware in core" grep with corrected paths and settle it
 14. Compile-verify the report's before/after snippets in a scratch module; annotate the report
-15. Add the embedded-`BasicCommand` enrichment-skip footgun to AGENTS.md gotchas (consumer-facing)
+15. ~~Add the embedded-`BasicCommand` enrichment-skip footgun to AGENTS.md gotchas (consumer-facing)~~ done (AGENTS.md enrichment-skip footgun gotcha recorded)
 16. Add pointer + one-line summary of the deep-dive to AGENTS.md so fresh sessions know it exists
-17. Decide ownership of the 5 foreign dirty files once the sibling session settles (not mine to touch now)
+17. ~~Decide ownership of the 5 foreign dirty files once the sibling session settles (not mine to touch now)~~ done (toolchain resolved; foreign-file ownership moot)
 
 **Repo-wide issues noticed this session (report-only, not mine):**
-18. Resolve the toolchain tug-of-war: `GOTOOLCHAIN=go1.26.7` pin for root-module commands OR a coordinated flake+go.work+27-module bump to 1.27.1 (policy decision, AGENTS.md-documented)
+18. ~~Resolve the toolchain tug-of-war: `GOTOOLCHAIN=go1.26.7` pin for root-module commands OR a coordinated flake+go.work+27-module bump to 1.27.1 (policy decision, AGENTS.md-documented)~~ done (coordinated 1.27.1 bump landed 2026-09-19)
 19. Report/fix BuildFlow docs-only pre-commit cost (full pipeline for one HTML file; 36s + guaranteed red during tug-of-war)
 20. Restore `fail_on` gating in `.buildflow.yml` when go-structure-linter ships suppression config + BuildFlow bumps its pin (already documented restoration condition)
 21. Report gomod-check double-count upstream (gomod-check + go-mod-ignore-check report the same 51 findings)
 22. Commit or gitignore the untracked `examples/middleware-showcase/vendor/` dir (25 vendor-consistency findings)
 23. Fix the stale README version claim flagged by cqrs-lint (`README v4.6.0` vs `go.mod v4.10.0` — a real two-line drift)
 24. Clean the AGENTS.md "v4.10.0+ vs v4.10.0" cqrs-lint warning (D005-adjacent phrasing)
-25. Route the 56 train-lag entries (templ-components v1.18.0 wave, go-appkit v0.5.1, go-retry v0.7.1, go-health v0.2.0, …) into the next family train
+25. ~~Route the 56 train-lag entries (templ-components v1.18.0 wave, go-appkit v0.5.1, go-retry v0.7.1, go-health v0.2.0, …) into the next family train~~ done (train-lag swept to ZERO 2026-09-20)
 26. Dependabot cap: 28 Go modules vs 20-entry generation limit
 27. Investigate samber-linter's 88% failure rate (61/69) flagged by preflight
 28. nix-checker vendorHash staleness warnings (go.mod modified after hash was set)
-29. govulncheck workspace-mode failure while the go-directive inconsistency persists (self-heals after #18)
+29. ~~govulncheck workspace-mode failure while the go-directive inconsistency persists (self-heals after #18)~~ done (self-healed after the toolchain fix)
 30. Purge the `setup-demo` 27MB blob from pushed history (AGENTS.md carry-over I re-confirmed exists in the gotchas, untouched)
 
 **Deeper follow-ups the audit suggests:**

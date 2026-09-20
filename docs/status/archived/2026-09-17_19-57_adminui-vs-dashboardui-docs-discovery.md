@@ -8,6 +8,12 @@
 **Canonical distinction established this session:**
 adminui = identity operations (users, tenants, members, audit log over a `*usermgmt.Service`; write actions, role-gated). dashboardui = event-store observability (journal, aggregates, projections, DLQ, snapshots via go-cqrs-lite interfaces; read-only by default). Complementary, not alternatives; setup/v4 mounts all three UIs in one call.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the canonical distinction + the module docs landed; the discovery-mesh remainder is partly closed and partly routed.
+> - **§b:** b3 (version de-rot) DONE; b1 (v5 rename) + b2 (mesh completion) remain open.
+> - **§c:** c1/c2/c5 DONE (skill module table gained dashboardui/loginpage/setup rows; stale demo note fixed; rename routed); c3/c4/c6/c7/c8 remain open.
+> - **§f:** struck rows confirmed done (setup/doc.go paragraph, ROADMAP routing, AGENTS version row, toolchain adjudication, skill row, demo note); unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (mesh completion, `choosing-your-uis` guide, screenshots, rename decision).
+> - **§g:** Q2 answered (doc-only CHANGELOG entries are repo convention); Q1 (rename) + Q3 (concurrent WIP) remain owner calls.
+
 ---
 
 ## a) FULLY DONE
@@ -37,8 +43,8 @@ adminui = identity operations (users, tenants, members, audit log over a `*userm
 
 ## c) NOT STARTED (noticed this session, untouched)
 
-1. **`.agents/skills/cqrs-htmx/SKILL.md` module table lists adminui but NOT dashboardui** — the primary AI-session discovery surface is missing a row for one of the two modules this whole session was about.
-2. **dashboardui/README Demo note is stale** — still says the demo "requires the `dashboardui/v4` module to be tagged and published"; `dashboardui/v4.8.2` is pushed.
+1. ~~**`.agents/skills/cqrs-htmx/SKILL.md` module table lists adminui but NOT dashboardui** — the primary AI-session discovery surface is missing a row for one of the two modules this whole session was about.~~ done (dashboardui row added to the skill module table)
+2. ~~**dashboardui/README Demo note is stale** — still says the demo "requires the `dashboardui/v4` module to be tagged and published"; `dashboardui/v4.8.2` is pushed.~~ done (stale demo note fixed in dashboardui/README.md)
 3. **Root README "Features at a Glance"** (lines 20-44) never checked for the same admin/dashboard ambiguity.
 4. **CHANGELOG.md entry** for the docs improvement (repo convention: finished work → CHANGELOG) — not written.
 5. ~~**ROADMAP.md routing** of the rename decision (docs-health ownership rule: vague/long-term → ROADMAP).~~ done (v5-removal-inventory class 5 landed)
@@ -70,8 +76,8 @@ Nothing is broken — all gates pass, HEAD verified. Honest failures, ranked:
 
 *Discovery-mesh completion (high impact, minutes each):*
 
-1. Add dashboardui row (and setup/loginpage rows) to `.agents/skills/cqrs-htmx/SKILL.md` module table.
-2. Fix stale dashboardui README demo note ("requires tagging" → tagged since v4.8.2, add run instructions that work).
+1. ~~Add dashboardui row (and setup/loginpage rows) to `.agents/skills/cqrs-htmx/SKILL.md` module table.~~ done (dashboardui/loginpage/setup rows added to the skill module table)
+2. ~~Fix stale dashboardui README demo note ("requires tagging" → tagged since v4.8.2, add run instructions that work).~~ done (stale demo note fixed in dashboardui/README.md)
 3. loginpage/doc.go: sibling-panel note (mirror the two doc.go additions).
 4. ~~setup/doc.go: "two dashboards" paragraph (composition root is where they meet).~~ done (setup/doc.go two-dashboards paragraph present)
 5. setup/README: link route table entries to adminui/dashboardui/loginpage READMEs.

@@ -48,7 +48,10 @@ An app typically composes some subset of these. They are **independent Go module
 | **usermgmt/totp**     | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`      | TOTP MFA (pquerna/otp). Inject `totp.New(...)` as `ServiceConfig.TOTP`.                                                                                                                                |
 | **usermgmt/webauthn** | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4`  | WebAuthn passkeys (go-webauthn). Inject `webauthn.New(...)` as `ServiceConfig.WebAuthn`.                                                                                                               |
 | **usermgmt/oauth2**   | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`    | OAuth2/OIDC login (oauth2+oidc). Inject `oauth2.New(...)` as `ServiceConfig.OAuth2`.                                                                                                                   |
-| **adminui**           | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | One-call admin dashboard (templ + HTMX). Depends on root + usermgmt                                                                                                                                    |
+| **adminui**           | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | Ready-made admin dashboard (templ + HTMX): **identity operations** (users/tenants/members/audit over a `*usermgmt.Service`; write actions, role-gated). Depends on root + usermgmt                                |
+| **dashboardui**       | `github.com/larsartmann/cqrs-htmx/dashboardui/v4`        | Ready-made **event-store observability** dashboard (projection health, event catalog, live SSE; read-only by default). NOT user administration — see adminui. Depends on root + usermgmt                                |
+| **loginpage**         | `github.com/larsartmann/cqrs-htmx/loginpage/v4`          | Ready-made passwordless login page (hand-rolled templ + `lp-*` CSS). Third sibling UI panel.                                                   |
+| **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering. |
 
 The core CQRS building blocks come from **go-cqrs-lite**, imported per-package:
 
