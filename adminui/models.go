@@ -3,6 +3,7 @@ package adminui
 import (
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // navItem is a single sidebar entry. Icon is a key resolved by the svgIcon
@@ -54,6 +55,16 @@ type statCard struct {
 	Icon  string
 	Tone  display.StatTone
 	Href  string
+}
+
+// statCardClass returns the extra classes for a stat card: linked cards drop
+// the anchor underline so the drill-down reads as a card, not a text link.
+func statCardClass(href string) string {
+	if href == "" {
+		return ""
+	}
+
+	return "no-underline"
 }
 
 // dashboardData drives the overview page.

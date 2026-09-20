@@ -4,6 +4,7 @@ import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 templ icon(name string) {
@@ -46,7 +47,7 @@ templ statCardView(c statCard) {
 		Icon:  icons.Name(c.Icon),
 		Tone:  c.Tone,
 		Href:  c.Href,
-		BaseProps: utils.BaseProps{Class: templ.KV("no-underline", c.Href != "")},
+		BaseProps: utils.BaseProps{Class: statCardClass(c.Href)},
 	})
 }
 
