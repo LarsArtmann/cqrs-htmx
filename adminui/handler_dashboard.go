@@ -11,8 +11,32 @@ import (
 
 func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	p := h.page("Dashboard", "/", user, r)
-	svc := h.config.Service
+	d := dashboardData{
+		Stats:    h.dashboardStats(r, p),
+		StatsURL: p.BasePath + "/partials/stats",
+	}
 
+	if al := h.config.Service.AuditLog(); al != nil {
+		d.Recent = al.Recent(8)
+		resolveAuditEmails(h.config.Service, d.Recent)
+	}
+
+	renderPage(w, r, dashboardPage(p, d))
+}
+
+// statsPartial serves the polled stats region for htmx.PolledRegion
+// (hx-swap=outerHTML): the response re-renders the region itself so polling
+// continues across refreshes. Session-gated by the same guard as the page.
+func (h *Handler) statsPartial(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
+	p := h.page("Dashboard", "/", user, r)
+	renderPartial(w, r, dashboardStatsRegion(dashboardData{
+		Stats:    h.dashboardStats(r, p),
+		StatsURL: p.BasePath + "/partials/stats",
+	}))
+}
+
+func (h *Handler) dashboardStats(r *http.Request, p pageData) []statCard {
+	svc := h.config.Service
 	var stats []statCard
 	if h.config.Mode == ModeSuperAdmin {
 		stats = []statCard{
@@ -46,23 +70,16 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request, user *identi
 				Href:  p.BasePath + "/members",
 			},
 			{Label: "Tenant", Value: tenantName, Icon: iconTenants, Tone: display.StatTonePurple},
+			}
 		}
+		if al := svc.AuditLog(); al != nil {
+			stats = append(stats, statCard{
+				Label: "Audit events",
+				Value: strconv.Itoa(al.Count()),
+				Icon:  iconAudit,
+				Tone:  display.StatToneGreen,
+				Href:  p.BasePath + "/audit",
+			})
+		}
+		return stats
 	}
-	if al := svc.AuditLog(); al != nil {
-		stats = append(stats, statCard{
-			Label: "Audit events",
-			Value: strconv.Itoa(al.Count()),
-			Icon:  iconAudit,
-			Tone:  display.StatToneGreen,
-			Href:  p.BasePath + "/audit",
-		})
-	}
-
-	var recent []usermgmt.AuditEntry
-	if al := svc.AuditLog(); al != nil {
-		recent = al.Recent(8)
-		resolveAuditEmails(svc, recent)
-	}
-
-	renderPage(w, r, dashboardPage(p, dashboardData{Stats: stats, Recent: recent}))
-}

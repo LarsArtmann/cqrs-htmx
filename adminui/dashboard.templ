@@ -1,21 +1,16 @@
 package adminui
 
-import "github.com/larsartmann/templ-components/display"
+import (
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/htmx"
+)
 
 templ dashboardPage(p pageData, d dashboardData) {
 	@Layout(p, dashboardContent(d))
 }
 
 templ dashboardContent(d dashboardData) {
-	@display.Grid(display.GridProps{
-		Cols:        display.GridColsAutoFit,
-		MinColWidth: "190px",
-		Gap:         display.GridGapMD,
-	}) {
-		for _, s := range d.Stats {
-			@statCardView(s)
-		}
-	}
+	@dashboardStatsRegion(d)
 	if len(d.Recent) == 0 {
 		@display.Card(display.CardProps{Title: "Recent activity", Padding: display.CardPaddingNone}) {
 			@empty("audit", "No activity yet", "User and tenant events will appear here.", "", "")
@@ -32,6 +27,35 @@ templ dashboardContent(d dashboardData) {
 				Flush:       true,
 				CellPadding: display.TableCellPaddingCompact,
 			})
+		}
+	}
+}
+
+// dashboardStatsRegion is the polled stats block shared by the dashboard
+// page and the /partials/stats endpoint. PolledRegion swaps itself
+// (outerHTML), so the partial response must render the region — polling
+// would stop after the first refresh if it returned bare children.
+//
+// ADR-lite (poll vs SSE): stats refresh via 30s HTMX polling, NOT the SSE
+// feed. The SSE channel (when configured) is a control plane — sync-state
+// signaling for the header sync-bar and the offline sync queue — and never
+// carries stat payloads. Stats are cheap read-model count queries; polling
+// keeps them fresh for every viewer with zero fan-out state and no per-page
+// SSE payload contract. The two mechanisms do not overlap.
+templ dashboardStatsRegion(d dashboardData) {
+	@htmx.PolledRegion(htmx.PolledRegionProps{
+		URL:           d.StatsURL,
+		Every:         "30s",
+		ShowTimestamp: true,
+	}) {
+		@display.Grid(display.GridProps{
+			Cols:        display.GridColsAutoFit,
+			MinColWidth: "190px",
+			Gap:         display.GridGapMD,
+		}) {
+			for _, s := range d.Stats {
+				@statCardView(s)
+			}
 		}
 	}
 }

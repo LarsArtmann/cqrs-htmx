@@ -82,8 +82,9 @@ func tenantSubtitle(t *usermgmt.Tenant) string {
 
 // dashboardData drives the overview page.
 type dashboardData struct {
-	Stats  []statCard
-	Recent []usermgmt.AuditEntry
+	Stats    []statCard
+	StatsURL string
+	Recent   []usermgmt.AuditEntry
 }
 
 // listPage carries the pagination footer state shared by all list pages.
