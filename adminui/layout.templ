@@ -94,6 +94,7 @@ templ topBar(p pageData) {
 							@display.Dropdown(display.DropdownProps{
 								Label:    p.User.Email,
 								Position: display.DropdownPositionRight,
+								BaseProps: utils.BaseProps{ID: "admin-user-menu"},
 								Items: []display.DropdownItem{
 									{
 										Text: "Sign out",

@@ -25,14 +25,14 @@ func TestUserMenuDropdownRendered(t *testing.T) {
 	html := rec.Body.String()
 
 	for _, want := range []string{
-		`popovertarget="dropdown`,        // trigger toggles the popover panel
-		`popover="auto"`,                 // native light-dismiss + top layer
-		`role="menu"`,                    // menu semantics
-		`href="/logout-test"`,            // the Sign out item keeps its link
-		`Sign out`,                       // item label
-		`aria-label="admin@example.com"`, // trigger is labelled by the email
-		`tcPopoverPosition`,              // library positioner singleton shipped
-		`data-tc-anchor`,                 // panel anchored to the trigger
+		`popovertarget="admin-user-menu-menu"`, // trigger toggles the popover panel
+		`popover="auto"`,                       // native light-dismiss + top layer
+		`role="menu"`,                          // menu semantics
+		`href="/logout-test"`,                  // the Sign out item keeps its link
+		`Sign out`,                             // item label
+		`aria-label="admin@example.com"`,       // trigger is labelled by the email
+		`tcPopoverPosition`,                    // library positioner singleton shipped
+		`data-tc-anchor`,                       // panel anchored to the trigger
 	} {
 		if !strings.Contains(html, want) {
 			t.Errorf("user menu dropdown missing %q", want)
@@ -61,6 +61,9 @@ func TestUserMenuMobileFallback(t *testing.T) {
 		t.Error("mobile fallback sign-out link (lg:hidden) missing")
 	}
 	if strings.Count(html, `href="/logout-test"`) != 2 {
-		t.Errorf("expected exactly 2 sign-out hrefs (dropdown item + mobile fallback), got %d", strings.Count(html, `href="/logout-test"`))
+		t.Errorf(
+			"expected exactly 2 sign-out hrefs (dropdown item + mobile fallback), got %d",
+			strings.Count(html, `href="/logout-test"`),
+		)
 	}
 }

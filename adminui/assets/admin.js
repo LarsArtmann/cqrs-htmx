@@ -16,6 +16,52 @@
     if (meta) e.detail.headers["X-CSRF-Token"] = meta.content;
   });
 
+  // --- Vendored popover positioner (templ-components v1.18.1 upstream bug) ---
+  // The library's anchor-positioning singleton registers on `toggle` WITHOUT
+  // capture; the popover toggle event does not bubble, so that listener never
+  // fires and Dropdown/Popover panels open at the viewport's top-left corner
+  // instead of at their trigger. This capture-phase mirror of the library's
+  // positioning (anchor rect + data-tc-position/data-tc-align, gap 8, viewport
+  // clamping) stays until the upstream fix ships.
+  function positionPopover(p) {
+    var aid = p.getAttribute("data-tc-anchor");
+    var t = aid ? document.getElementById(aid) : null;
+    if (!t) return;
+    var pos = p.getAttribute("data-tc-position") || "bottom";
+    var align = p.getAttribute("data-tc-align") || "center";
+    var gap = 8;
+    var r = t.getBoundingClientRect();
+    var w = p.offsetWidth, h = p.offsetHeight;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var left, top;
+    if (align === "start") left = r.left;
+    else if (align === "end") left = r.right - w;
+    else left = r.left + r.width / 2 - w / 2;
+    if (pos === "top") top = r.top - h - gap;
+    else if (pos === "left") { top = r.top + r.height / 2 - h / 2; left = r.left - w - gap; }
+    else if (pos === "right") { top = r.top + r.height / 2 - h / 2; left = r.right + gap; }
+    else top = r.bottom + gap;
+    if (pos === "bottom" && top + h > vh - gap && r.top - gap - h >= gap) top = r.top - h - gap;
+    left = Math.max(gap, Math.min(left, vw - w - gap));
+    top = Math.max(gap, Math.min(top, vh - h - gap));
+    p.style.inset = "auto";
+    p.style.left = left + "px";
+    p.style.top = top + "px";
+    p.style.margin = "0";
+  }
+  document.addEventListener("toggle", function (e) {
+    var el = e.target;
+    if (el && el.hasAttribute && el.hasAttribute("popover") && el.getAttribute("data-tc-anchor") && e.newState === "open") {
+      positionPopover(el);
+    }
+  }, true);
+  window.addEventListener("resize", function () {
+    document.querySelectorAll("[popover]:popover-open[data-tc-anchor]").forEach(positionPopover);
+  });
+  document.addEventListener("scroll", function () {
+    document.querySelectorAll("[popover]:popover-open[data-tc-anchor]").forEach(positionPopover);
+  }, true);
+
   // --- Mobile sidebar toggle ---
   function toggleSidebar() {
     var sb = document.querySelector(".admin-sidebar");
