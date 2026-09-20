@@ -74,8 +74,9 @@ func main() {
 		log.Fatalf("NewService: %v", err)
 	}
 
-	// 2. Seed an admin (with a session) plus demo users and tenants.
-	token := seed(ctx, svc)
+	// 2. Seed an admin (with a session) plus demo users and tenants. seed also
+	//    returns alice's session token so the tenant-admin panel can be demoed.
+	token, tenantToken := seed(ctx, svc)
 
 	// 3. Build the admin panel. The default (role-based) authorizer is used, so
 	//    the demo assigns the admin the super_admin role in seed() — proving the
@@ -99,6 +100,21 @@ func main() {
 		log.Fatalf("adminui.New: %v", err)
 	}
 
+	// Tenant-admin panel: the same service viewed through the ModeTenantAdmin
+	// lens (members + tenant dashboard). Alice holds the owner role in acme,
+	// so the default role-based authorizer admits her without custom wiring.
+	tenantPanel, err := adminui.New(adminui.Config{ //nolint:exhaustruct // demo uses sensible defaults
+		Service:   svc,
+		Title:     "Acme Admin",
+		BasePath:  "/tenant-admin",
+		Mode:      adminui.ModeTenantAdmin,
+		TenantID:  identitymodel.NewTenantID("acme"),
+		LogoutURL: "/dev-logout",
+	})
+	if err != nil {
+		log.Fatalf("adminui.New (tenant): %v", err)
+	}
+
 	// 4. Wire routes. The panel sits behind session middleware + CSRF + the
 	//    panel's recommended middleware (recovery + security headers). This is
 	//    the production-ready wiring pattern.
@@ -114,6 +130,7 @@ func main() {
 	ackMW := ackMiddleware(broadcaster, idemStore)
 
 	mux.Handle("/admin/", ackMW(sessionMW(csrfMW(panelMW(http.StripPrefix("/admin", panel.Handler()))))))
+	mux.Handle("/tenant-admin/", sessionMW(csrfMW(http.StripPrefix("/tenant-admin", tenantPanel.Handler()))))
 
 	// SSE endpoint — streams live events from the Broadcaster to the browser.
 	// Sits behind session middleware (auth required) but NOT CSRF (GET-only, safe).
@@ -125,6 +142,13 @@ func main() {
 			HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: 86400,
 		})
 		http.Redirect(w, r, "/admin/", http.StatusSeeOther)
+	})
+	mux.HandleFunc("/dev-login-tenant", func(w http.ResponseWriter, r *http.Request) {
+		http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct,gosec // dev-only demo cookie
+			Name: cookieName, Value: tenantToken, Path: "/",
+			HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: 86400,
+		})
+		http.Redirect(w, r, "/tenant-admin/", http.StatusSeeOther)
 	})
 	mux.HandleFunc("/dev-logout", func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct,gosec // dev-only
@@ -157,9 +181,10 @@ func main() {
 }
 
 // seed registers the admin (returning a session token) plus demo users and
-// tenants so the panel has something to show. Storage is in-memory, so every
-// boot starts fresh and the registrations always succeed.
-func seed(ctx context.Context, svc *usermgmt.Service) string {
+// tenants so the panel has something to show. It also returns the acme owner
+// (alice) session token for the tenant-admin panel demo. Storage is in-memory,
+// so every boot starts fresh and the registrations always succeed.
+func seed(ctx context.Context, svc *usermgmt.Service) (string, string) {
 	adminID := identitymodel.SyntheticUserID(adminUserID)
 	resp, err := svc.Register(ctx, usermgmt.RegisterRequest{
 		ID: adminID, Email: adminEmail, DisplayName: "Demo Admin",
@@ -175,14 +200,20 @@ func seed(ctx context.Context, svc *usermgmt.Service) string {
 		log.Fatalf("grant super_admin: %v", err)
 	}
 
+	var tenantToken string
 	for _, email := range []string{
 		"alice@acme.dev", "bob@acme.dev", "carol@other.dev", "dave@acme.dev",
 	} {
 		uid := identitymodel.SyntheticUserID("seed-" + email)
-		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
+		regResp, err := svc.Register(ctx, usermgmt.RegisterRequest{
 			ID: uid, Email: email, DisplayName: nameOf(email),
-		}); err != nil {
+		})
+		if err != nil {
 			log.Printf("seed register %s: %v", email, err)
+			continue
+		}
+		if email == "alice@acme.dev" && regResp.Session != nil {
+			tenantToken = regResp.Session.Token
 		}
 	}
 
@@ -215,7 +246,7 @@ func seed(ctx context.Context, svc *usermgmt.Service) string {
 		}
 	}
 
-	return resp.Session.Token
+	return resp.Session.Token, tenantToken
 }
 
 // nameOf turns an email into a capitalized display name.
