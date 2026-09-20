@@ -177,6 +177,10 @@ dialog.tc-overlay {
   background: transparent;
   border: 0;
   padding: 0;
+  /* Preflight zeroes margin, which kills the UA stylesheet's dialog:modal
+     auto-centering (fixed + inset:0 + margin:auto) and pins the panel to the
+     top-left corner. margin:auto restores native centering. */
+  margin: auto;
 }
 dialog.tc-overlay::backdrop {
   backdrop-filter: blur(2px);
