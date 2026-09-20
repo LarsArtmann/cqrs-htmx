@@ -109,6 +109,9 @@ templ mobileNav(p pageData) {
 templ pageFoot(p pageData) {
 	@toastHost(p.Nonce)
 	@htmx.GlobalErrorHandling(htmx.ErrorHandlingConfig{Nonce: p.Nonce})
+	// Shared confirm dialog for destructive actions (filled dynamically by
+	// admin.js from data-confirm/data-confirm-title on the triggering button).
+	@confirmModal(p.Nonce)
 	if p.SSEURL != "" {
 		// sync-client.js must load before admin.js: it registers htmx:beforeRequest
 		// and htmx:sendError listeners that admin.js's CSRF config depends on being

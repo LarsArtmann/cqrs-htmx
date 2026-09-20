@@ -45,13 +45,44 @@
     }
   });
 
-  // --- Confirm before destructive actions ---
+  // --- Confirm destructive actions via the shared native <dialog> modal ---
+  // Buttons carry data-confirm (body) + optional data-confirm-title. The
+  // #admin-confirm-modal dialog is rendered once by the server (Layout
+  // pageFoot). Confirm issues the intercepted htmx request; Cancel, backdrop
+  // click, and Escape (all native dialog behavior) drop it. Falls back to
+  // window.confirm when the dialog is missing or <dialog> unsupported.
+  var confirmIssue = null;
   document.addEventListener("htmx:confirm", function (e) {
     var elt = e.detail.elt;
     var msg = elt.getAttribute("data-confirm");
-    if (msg) {
-      e.preventDefault();
+    if (!msg) return;
+    e.preventDefault();
+    var dlg = document.getElementById("admin-confirm-modal");
+    if (!dlg || typeof dlg.showModal !== "function") {
       if (window.confirm(msg)) e.detail.issueRequest(true);
+      return;
     }
+    confirmIssue = function () {
+      e.detail.issueRequest(true);
+    };
+    var body = document.getElementById("admin-confirm-body");
+    var title = document.getElementById("admin-confirm-modal-title");
+    if (body) body.textContent = msg;
+    if (title) {
+      title.textContent = elt.getAttribute("data-confirm-title") || "Are you sure?";
+    }
+    dlg.showModal();
   });
+  document.addEventListener("click", function (e) {
+    var ok = e.target.closest && e.target.closest("#admin-confirm-ok");
+    if (!ok || !confirmIssue) return;
+    var issue = confirmIssue;
+    confirmIssue = null;
+    var dlg = document.getElementById("admin-confirm-modal");
+    if (dlg) dlg.close();
+    issue();
+  });
+  document.addEventListener("close", function () {
+    confirmIssue = null; // cancelled (button, backdrop, or Escape)
+  }, true);
 })();

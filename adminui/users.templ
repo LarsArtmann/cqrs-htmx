@@ -181,9 +181,9 @@ templ userDetailContent(d userDetailData) {
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"hx-post":        d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
-					"hx-confirm":     "Delete user " + d.User.Email + "?",
+					"hx-post":         d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
 					"data-confirm":   "Delete user " + d.User.Email + "? This cannot be undone.",
+					"data-confirm-title": "Delete user",
 					"hx-disabled-elt": "this",
 				}},
 				})

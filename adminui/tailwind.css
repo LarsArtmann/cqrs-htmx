@@ -165,6 +165,59 @@ body {
   opacity: 1;
 }
 
+/* ---------- Native dialog overlay (vendored from templ-components) ----------
+   display.Modal renders <dialog class="tc-overlay tc-modal ...">. The focus
+   trap, Escape-to-close, top-layer stacking, and focus restore are native
+   <dialog> behavior; this block vendors the library's component-layer CSS
+   (its compiled bundle is not part of adminui's utility build): the dialog
+   reset (browsers paint a default border/padding/background otherwise),
+   backdrop dimming, and the scale-in animation via @starting-style. */
+dialog.tc-overlay {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+dialog.tc-overlay::backdrop {
+  backdrop-filter: blur(2px);
+  transition:
+    background-color 0.2s ease-out,
+    overlay 0.2s allow-discrete,
+    display 0.2s allow-discrete;
+  background-color: transparent;
+}
+dialog.tc-overlay[open]::backdrop {
+  background-color: rgb(0 0 0 / 0.5);
+}
+dialog.tc-modal {
+  opacity: 0;
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out,
+    overlay 0.2s allow-discrete,
+    display 0.2s allow-discrete;
+  transform: scale(0.95);
+}
+dialog.tc-modal[open] {
+  opacity: 1;
+  transform: scale(1);
+}
+@starting-style {
+  dialog.tc-modal[open] {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  dialog.tc-overlay[open]::backdrop {
+    background-color: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.tc-overlay,
+  dialog.tc-overlay::backdrop {
+    transition: none;
+  }
+}
+
 /* ---------- Honest UI: sync-state lifecycle ---------- */
 /* Driven by data-sync-state="pending|confirmed|rejected" DOM attributes.
    CSS reacts to the attribute — no JS class toggling needed for appearance.
