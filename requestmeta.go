@@ -68,14 +68,14 @@ func UserAgentFromContext(ctx context.Context) event.UserAgent {
 // (WithIPAddress(ctx, "") overwrites the earlier capture; zero values are
 // never propagated).
 func enrichClientMetadata(ctx context.Context, r *http.Request) context.Context {
-	if ip, err := event.ParseIPAddress(httputil.ClientIP(r)); err != nil {
+	if clientIP, err := event.ParseIPAddress(httputil.ClientIP(r)); err != nil {
 		slog.Debug(
 			"cqrs-htmx: unparsable client IP",
 			slog.String("remote_addr", r.RemoteAddr),
 			slog.String("error", err.Error()),
 		)
-	} else if !ip.IsZero() {
-		ctx = WithIPAddress(ctx, ip)
+	} else if !clientIP.IsZero() {
+		ctx = WithIPAddress(ctx, clientIP)
 	}
 
 	if ua := event.NewUserAgent(r.UserAgent()); !ua.IsZero() {

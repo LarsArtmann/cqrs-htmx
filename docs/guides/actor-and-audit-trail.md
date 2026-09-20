@@ -44,8 +44,18 @@ For HTTP requests served by a `cqrshtmx` App (and by the `setup` bundle):
    (e.g. custom impersonation handling), it is left untouched.
 2. **Events.** Wherever the journal appender builds event metadata
    (`EventOptionsFromContext`), the actor ID, impersonator ID, correlation ID,
-   request ID, and context deadline propagate into the persisted event record.
-3. **Audit log.** The usermgmt audit projection renders the actor string
+   request ID, client IP address, User-Agent, and context deadline propagate
+   into the persisted event record.
+3. **Client metadata.** `ContextEnrichmentMiddleware` also captures the
+   client IP (via `httputil.ClientIP`: first `X-Forwarded-For` entry, then
+   `X-Real-IP`, then `RemoteAddr` — only trustworthy behind an overwriting
+   proxy) and the `User-Agent` header. Both land on every event built from
+   the request context — the security-auditing/fraud-detection counterpart
+   to the actor chain. IP addresses are personal data under GDPR; if you
+   must not persist them, either skip `ContextEnrichmentMiddleware` in your
+   chain or shadow the value with `cqrshtmx.WithIPAddress(ctx, "")` before
+   dispatch (zero values never propagate).
+4. **Audit log.** The usermgmt audit projection renders the actor string
    (`meta.ActorID.String()`) per entry, so admin actions read
    `user:01JX... removed tenant:01JY...` in the dashboard.
 
@@ -91,8 +101,9 @@ For bot traffic, derive the actor from the authenticated token
 - **Audit dashboard** — the adminui dashboard and the `setup` bundle's admin
   panel render the audit log with actor strings.
 - **Event metadata** — every journal event carries `metadata.ActorID`
-  (prefixed string), plus correlation/request IDs; query it from the event
-  store or stream it over the shared SSE feed.
+  (prefixed string), plus correlation/request IDs, the client IP, and the
+  User-Agent; query it from the event store or stream it over the shared SSE
+  feed.
 - **samber-do-auditlog** — the `auditlog/v4` bridge (`WithAuditLog`) serves the
   same trail through a live SSE viewer; see that module's README.
 

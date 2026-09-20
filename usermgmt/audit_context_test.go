@@ -214,3 +214,44 @@ func TestCommandOptionApplier_SatisfiedByDomainCommands(t *testing.T) {
 		}
 	}
 }
+
+// TestDispatch_ClientMetadataPropagatesToEventMetadata proves that client IP
+// and User-Agent set in the cqrshtmx context chain (as
+// cqrshtmx.ContextEnrichmentMiddleware captures them for HTTP requests)
+// reach the emitted event metadata via requestContextEnricher.
+func TestDispatch_ClientMetadataPropagatesToEventMetadata(t *testing.T) {
+	t.Parallel()
+
+	svc := newTestService(t)
+	defer svc.Close() //nolint:errcheck // test cleanup
+
+	reg := registerTestUser(t, svc, GenerateUserID().Get().String(), "clientmeta@example.com")
+	userID := reg.User.ID
+
+	ip, err := event.ParseIPAddress("203.0.113.42")
+	if err != nil {
+		t.Fatalf("ParseIPAddress: %v", err)
+	}
+
+	wantUA := event.UserAgent("usermgmt-test/1.0")
+	ctx := cqrshtmx.WithIPAddress(t.Context(), ip)
+	ctx = cqrshtmx.WithUserAgent(ctx, wantUA)
+
+	if err := svc.ChangeDisplayName(ctx, userID, "Client Meta"); err != nil {
+		t.Fatalf("ChangeDisplayName: %v", err)
+	}
+
+	events := loadUserEvents(t, svc, userID)
+	changed := findEvent(events, eventDisplayNameChanged)
+	if changed == nil {
+		t.Fatalf("no %s event on stream", eventDisplayNameChanged)
+	}
+
+	meta := changed.Metadata()
+	if meta.IPAddress != ip {
+		t.Errorf("event IP = %q, want %q", meta.IPAddress, ip)
+	}
+	if meta.UserAgent != wantUA {
+		t.Errorf("event user agent = %q, want %q", meta.UserAgent, wantUA)
+	}
+}
