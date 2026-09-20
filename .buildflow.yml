@@ -25,7 +25,52 @@ todo_min_severity: warning
 # shellcheck). BuildFlow's own shfmt would fight that on every staged script;
 # script linting is enforced by treefmt + CI. HTML/min.js are generated or
 # vendored artifacts that must not be reformatted.
+#
+# GOTCHA (verified 2026-09-20 via `buildflow config view`): a user `exclude:`
+# list REPLACES BuildFlow's built-in defaults — it does NOT merge. Listing only
+# the three repo-specific patterns silently dropped every default (vendor,
+# testdata, *_templ.go, lock files, ...), so formatters lost their protection
+# against generated/vendored trees. The list below therefore mirrors
+# DefaultExcludePatterns() (BuildFlow domain/file/ignore_dirs.go) explicitly,
+# then adds this repo's patterns. Keep both halves in sync when bumping
+# BuildFlow.
 exclude:
+  # --- BuildFlow defaults (do not drop; see gotcha above) ---
+  - "vendor"
+  - ".git"
+  - "node_modules"
+  - ".next"
+  - ".turbo"
+  - ".nuxt"
+  - ".svelte-kit"
+  - ".direnv"
+  - "dist"
+  - "target"
+  - "testdata"
+  - ".golden"
+  - "generated.go"
+  - "*.pb.go"
+  - "*.gen.go"
+  - "*_templ.go"
+  - "__snapshots__"
+  - "__pycache__"
+  - ".pytest_cache"
+  - ".mypy_cache"
+  - ".tox"
+  - ".venv"
+  - "venv"
+  - ".cache"
+  - "reports/"
+  - "flake.lock"
+  - "package-lock.json"
+  - "yarn.lock"
+  - "pnpm-lock.yaml"
+  - "Cargo.lock"
+  - "composer.lock"
+  - "poetry.lock"
+  - "Gemfile.lock"
+  - "mix.lock"
+  # --- Repo-specific ---
   - "*.html"
   - "*.min.js"
   - "*.sh"
@@ -38,6 +83,24 @@ exclude:
 # deadnix: not installed. eslint: biome handles JS formatting/linting.
 # dprint-format: dprint.json here scopes dprint to markdown only; markdown
 # formatting waits for a one-time normalization pass (257 files).
+#
+# go-version-auto-configure: DESTRUCTIVE here — SKIPPED 2026-09-20 after it
+# corrupted the tree in commit 27057e5c. Two independent failures, both
+# confirmed by reading the vendored SDK (go-version-auto-configure):
+#   1. Its policy is hardcoded to major.minor go directives, so it rewrote this
+#      repo's DELIBERATE `go 1.27.1` floor to `go 1.27` in go.work + 4 module
+#      go.mods (24 modules agree on 1.27.1 — see the AGENTS.md toolchain row;
+#      the patch floor is a repo decision, not drift).
+#   2. Its fixer runs `go mod tidy` after every `go mod edit` (pkg/fix
+#      ensureTidyStable). The verify-tag fixtures under scripts/testdata/ are
+#      go.mod-only modules (no .go files), so tidy deleted EVERY require line,
+#      silently disabling scripts/test-verify-tag.sh's 12-case guard (it then
+#      passed; the rejects had nothing left to reject). The SDK walker skips
+#      only vendor/node_modules/.git/result — NOT testdata, unlike BuildFlow's
+#      own DefaultExcludePatterns.
+# Re-enable only when BOTH are fixed upstream: testdata (and other fixture
+# trees) pruned from the walk, AND either a policy knob or repo alignment to
+# major.minor go directives. See the AGENTS.md gotcha + TODO_LIST item.
 skip_steps:
   - templ-generate
   - jest-test
@@ -45,6 +108,7 @@ skip_steps:
   - pnpm-audit
   - deadnix
   - dprint-format
+  - go-version-auto-configure
 
 # fail_on: critical — findings gate RESTORED (2026-09-18, task M8 verification).
 # History: demoted 2026-09-17 (task M3) because the gate was always-red on
