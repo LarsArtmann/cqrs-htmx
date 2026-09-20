@@ -215,7 +215,7 @@ var _ = Describe("Error Mapping", func() {
 		})
 
 		It("returns nil when wrapping nil", func() {
-			Expect(cqrshtmx.WithRetryAfter(nil, time.Second)).To(BeNil())
+			Expect(cqrshtmx.WithRetryAfter(nil, time.Second)).To(Succeed())
 		})
 	})
 })

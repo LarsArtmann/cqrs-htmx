@@ -160,9 +160,7 @@ func setRetryAfterHeader(w http.ResponseWriter, err error, status int) {
 	}
 
 	seconds := int(math.Ceil(delay.Seconds()))
-	if seconds < 1 {
-		seconds = 1
-	}
+	seconds = max(seconds, 1)
 
 	w.Header().Set(headerRetryAfter, strconv.Itoa(seconds))
 }
