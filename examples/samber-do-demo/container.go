@@ -73,6 +73,24 @@ func NewContainer(cfg AppConfig) (*Container, func()) {
 		slog.Error("failed to initialize service lifecycle", "error", err)
 	}
 
+	// Eagerly invoke the SSE hub lifecycle for the same shutdown-ordering
+	// reason as the service lifecycle above.
+	if _, err := do.Invoke[*broadcasterLifecycle](injector); err != nil {
+		slog.Error("failed to initialize broadcaster lifecycle", "error", err)
+	}
+
+	// Eagerly construct the health-gated services (go-health probe +
+	// dashboard): a lazily-provided health dashboard reports green precisely
+	// when it knows the least (samber-linter HW-4). Constructing them here
+	// means the dashboard exists — and shows real projection state — from the
+	// first second the server accepts traffic.
+	if _, err := do.Invoke[*gohealth.Probe](injector); err != nil {
+		slog.Error("failed to initialize health probe", "error", err)
+	}
+	if _, err := do.Invoke[*healthdashboard.Dashboard](injector); err != nil {
+		slog.Error("failed to initialize health dashboard", "error", err)
+	}
+
 	return &Container{injector: injector, AuditViewer: auditSetup.Viewer}, func() {
 		// injector.Shutdown() calls Shutdown() on every service that
 		// implements do.Shutdowner* — in reverse invocation order.
@@ -168,9 +186,14 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 		return health.NewDashboard(probe), nil
 	})
 
-	// Broadcaster — lazy singleton for SSE live updates.
-	do.Provide(injector, func(_ do.Injector) (*cqrshtmx.Broadcaster, error) {
-		return cqrshtmx.NewBroadcaster(), nil
+	// Broadcaster lifecycle — registers the SSE hub behind a wrapper that
+	// implements BOTH do.ShutdownerWithContextAndError and do.Healthchecker
+	// (the raw *cqrshtmx.Broadcaster only implements samber/do's Shutdowner
+	// half; its Health method uses a different, context-less shape). The
+	// wrapper pattern is the canonical fix when a third-party type cannot
+	// grow the missing interface method itself.
+	do.Provide(injector, func(_ do.Injector) (*broadcasterLifecycle, error) {
+		return &broadcasterLifecycle{hub: cqrshtmx.NewBroadcaster()}, nil
 	})
 
 	// cqrshtmx.App — lazy singleton that wires command/query dispatchers
@@ -231,11 +254,41 @@ type serviceLifecycle struct {
 	svc *usermgmt.Service
 }
 
-// Compile-time guard — catches missing interface methods at build time.
+// Compile-time guards — catch missing interface methods at build time.
 var _ do.ShutdownerWithContextAndError = (*serviceLifecycle)(nil)
+var _ do.Healthchecker = (*serviceLifecycle)(nil)
 
 func (l *serviceLifecycle) Shutdown(_ context.Context) error {
 	return l.svc.Close()
+}
+
+// HealthCheck reports the service unhealthy while any projection worker is
+// still draining or has exhausted its restart budget. It delegates to the
+// library's own readiness gate so the DI health dashboard and the /health
+// endpoint always agree on what "healthy" means (samber-linter HW-1).
+func (l *serviceLifecycle) HealthCheck() error {
+	return cqrshtmx.ProjectionReadinessCheck(l.svc).Check()
+}
+
+// broadcasterLifecycle adapts *cqrshtmx.Broadcaster to samber/do's
+// Shutdowner + Healthchecker pair. The hub's own Health() state (closed /
+// draining) becomes the health verdict, so a dead SSE feed surfaces on the
+// DI health dashboard instead of rendering an unconditional pass.
+type broadcasterLifecycle struct {
+	hub *cqrshtmx.Broadcaster
+}
+
+var (
+	_ do.ShutdownerWithContextAndError = (*broadcasterLifecycle)(nil)
+	_ do.Healthchecker                 = (*broadcasterLifecycle)(nil)
+)
+
+func (l *broadcasterLifecycle) Shutdown(ctx context.Context) error {
+	return l.hub.Shutdown(ctx)
+}
+
+func (l *broadcasterLifecycle) HealthCheck() error {
+	return cqrshtmx.HubReadinessCheck(l.hub).Check()
 }
 
 // --- Typed accessors ---
@@ -247,9 +300,15 @@ func (c *Container) Service() (*usermgmt.Service, error) {
 	return do.Invoke[*usermgmt.Service](c.injector)
 }
 
-// Broadcaster resolves the SSE broadcaster.
+// Broadcaster resolves the SSE broadcaster (registered behind its
+// lifecycle wrapper; the hub itself is the wrapper's field).
 func (c *Container) Broadcaster() (*cqrshtmx.Broadcaster, error) {
-	return do.Invoke[*cqrshtmx.Broadcaster](c.injector)
+	lifecycle, err := do.Invoke[*broadcasterLifecycle](c.injector)
+	if err != nil {
+		return nil, err
+	}
+
+	return lifecycle.hub, nil
 }
 
 // App resolves the cqrshtmx.App.
