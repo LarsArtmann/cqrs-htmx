@@ -234,10 +234,11 @@ func ImpersonatorIDFromContext(ctx context.Context) ImpersonatorID {
 }
 
 // EventOptionsFromContext builds event.Options from request context,
-// propagating user identity, correlation ID, request ID, and context deadline
-// into event metadata for auditing, tracing, and distributed request correlation.
+// propagating user identity, actor chain, correlation ID, request ID,
+// client IP address, User-Agent, and context deadline into event metadata
+// for auditing, tracing, and distributed request correlation.
 //
-// Returns nil options if none of user ID, correlation ID, request ID, or deadline is found.
+// Returns nil options if none of those values is found.
 // Invalid IDs (non-ULID strings) are silently dropped,
 // matching the behavior of ContextEnrichmentMiddleware for user IDs.
 func EventOptionsFromContext(ctx context.Context) []event.Option {
@@ -265,6 +266,16 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 
 	if rid := RequestIDFromContext(ctx); !rid.IsZero() {
 		opts = append(opts, event.WithRequestID(rid))
+	}
+
+	// Client metadata (captured by ContextEnrichmentMiddleware): security
+	// auditing, fraud detection, and debugging context for the audit trail.
+	if ip := IPAddressFromContext(ctx); !ip.IsZero() {
+		opts = append(opts, event.WithIPAddress(ip))
+	}
+
+	if ua := UserAgentFromContext(ctx); !ua.IsZero() {
+		opts = append(opts, event.WithUserAgent(ua))
 	}
 
 	if _, ok := ctx.Deadline(); ok {

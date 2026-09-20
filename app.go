@@ -203,10 +203,11 @@ func (a *App) ServiceName() string { return a.serviceName }
 // EventOptions returns event.Options built from the request context and
 // the App's configured ServiceName. Use this in command/query handlers
 // to pass to event dispatchers so emitted events carry user identity,
-// correlation IDs, request IDs, deadlines, and the service source.
+// correlation IDs, request IDs, client IP/User-Agent, deadlines, and the
+// service source.
 //
 // Returns nil options if none of user ID, correlation ID, request ID,
-// deadline, or service source is set.
+// client IP, User-Agent, deadline, or service source is set.
 func (a *App) EventOptions(ctx context.Context) []event.Option {
 	opts := EventOptionsFromContext(ctx)
 	if a == nil || a.serviceName == "" {
