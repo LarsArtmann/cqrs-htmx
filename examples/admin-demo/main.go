@@ -2,7 +2,7 @@
 //
 // It boots an in-memory usermgmt service, seeds a handful of demo users and
 // tenants, and mounts the admin panel at /admin behind cookie session auth.
-// Open http://localhost:8097/ to be signed in as the demo admin automatically.
+// Open http://localhost:18930/ to be signed in as the demo admin automatically.
 //
 // This is a demo only — it uses in-memory storage and a dev-only login
 // shortcut. Real applications back the panel with a persistent event store and
@@ -47,7 +47,9 @@ const (
 	adminUserID = "01JXSUPERADMIN001"
 )
 
-var addr = envOr("ADMIN_DEMO_ADDR", ":8097")
+// 18930 avoids clashing with unrelated services on well-known dev ports
+// (e.g. 8097, which is used by a different project on this machine).
+var addr = envOr("ADMIN_DEMO_ADDR", ":18930")
 
 func envOr(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
@@ -251,6 +253,18 @@ func seed(ctx context.Context, svc *usermgmt.Service) (string, string) {
 		uid := identitymodel.SyntheticUserID("seed-" + m.email)
 		if err := svc.AddMember(ctx, identitymodel.ActorIDFromUser(uid), identitymodel.NewTenantID(m.tenant), m.roles); err != nil {
 			log.Printf("seed member %s/%s: %v", m.email, m.tenant, err)
+		}
+	}
+
+	// Pad the user list past one page (50 rows) so the demo visually exercises
+	// the users pagination footer. Fillers are plain users with no memberships.
+	for i := range 60 {
+		email := fmt.Sprintf("team%02d@acme.dev", i+1)
+		uid := identitymodel.SyntheticUserID("seed-" + email)
+		if _, err := svc.Register(ctx, usermgmt.RegisterRequest{
+			ID: uid, Email: email, DisplayName: nameOf(email),
+		}); err != nil {
+			log.Printf("seed register %s: %v", email, err)
 		}
 	}
 
