@@ -5,6 +5,12 @@
 **Generated:** 2026-09-17 13:12 CEST
 **Session scope:** library-deep-dive audit of templ-components adoption in `dashboardui/`, plus planning-doc corrections. **No other work touched.** This report covers ONLY this session's work and what it noticed along the way.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the audit's adoption ladder was executed (see the OUTCOME banner above).
+> - **§b:** b3/b4/b6 DONE; b5 (cross-session reconciliation) remains open.
+> - **§c:** rungs 1–13, 15, 17 DONE (all adopted; findings gate demoted); c11 theme toggle + c14 broken-link fix + c16 reconciliation remain open.
+> - **§f:** struck rows confirmed done (adoption ladder, benches, a11y/e2e, train-lag zero, score re-measured); unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (theme toggle M089; docs-hygiene; complexity refactors; e2e G114).
+> - **§g:** findings-gate question resolved (`fail_on: none`, documented); improvement-priority answered (adoption ladder chosen + executed); report-reconciliation question remains open.
+
 **Deliverables produced this session:**
 
 | Artifact | Location | Status |
@@ -30,30 +36,30 @@
 
 1. **"How can we improve dashboardui/?" — the FIRST question in the prompt.** Answered only through the templ-components lens. Non-library improvements noticed during the session (4 golangci complexity warnings in dashboardui, `e2e/server` G114 missing http timeouts) were seen in hook output but not reported until this document. The audit is a complete answer to question 2 and only a partial answer to question 1.
 2. **Commit narrative for the audit report.** The file is safely in history, but inside a heuristic `chore: auto-commit 4 changed file(s)` (`21d4bf45`) mixed with a concurrent session's report, its AGENTS.md edit, and a 1517-line `adminui/styles.css` regen. My detailed commit message never landed — classic daemon race (documented loss class; I contributed by verifying-then-delaying instead of committing at the phase boundary).
-3. **Visual verification of the report.** Structural checks (well-formedness, class resolution) passed; never rendered it in a browser or took a screenshot. A styled HTML deliverable shipped without visual QA.
-4. **Adoption-path confidence.** The 12-step ladder is theory grounded in verified API facts, but no component has actually been adopted end-to-end. `Ease` scores are judgment, not measurement. One spike would convert the whole plan from plausible to proven.
+3. ~~**Visual verification of the report.** Structural checks (well-formedness, class resolution) passed; never rendered it in a browser or took a screenshot. A styled HTML deliverable shipped without visual QA.~~ done (27 screenshots + browser-truth layer (banner))
+4. ~~**Adoption-path confidence.** The 12-step ladder is theory grounded in verified API facts, but no component has actually been adopted end-to-end. `Ease` scores are judgment, not measurement. One spike would convert the whole plan from plausible to proven.~~ done (adoption executed; hybrid path proven)
 5. **Cross-session reconciliation.** A second session produced its own same-day report (`docs/research/2026-09-17_templ-components-deep-dive.html`, committed 13:00-13:03, before mine at ~13:07). I never read it, never checked for contradicting scores/recommendations, never linked it. Two unreconciled same-day deep-dives on the same question now coexist.
-6. **Memory maintenance.** A new, durable gotcha was discovered (findings gate fails EVERY commit on 103 pre-existing repo-wide errors — docs-only commits included) and was NOT written into AGENTS.md during the session, per the memory protocol.
+6. ~~**Memory maintenance.** A new, durable gotcha was discovered (findings gate fails EVERY commit on 103 pre-existing repo-wide errors — docs-only commits included) and was NOT written into AGENTS.md during the session, per the memory protocol.~~ done (AGENTS.md findings-gate gotcha recorded (fail_on:none))
 
 ## c) NOT STARTED
 
-1. Tailwind v4 pipeline for dashboardui (ladder rung 1 — the gate that unblocks everything else).
-2. errorpage adoption (styled `renderError`, 404 page, DLQ error display).
-3. StatusBadge/Badge swap (delete duplicated switches + `.badge-*` CSS).
-4. StatCard hybrid adoption with `ValueID` live hooks.
-5. Leaf sweep: EmptyState / PageHeader / DefinitionList / Button.
-6. ToastContainer + nonce plumbing (port adminui `toastHost`).
-7. Sortable Table/DataTable conversions (10+ tables).
-8. CopyButton for payload/ID copy.
-9. `htmx.GlobalErrorHandling` (HTMX failures are currently silent).
-10. Pagination + ListNote + Select trio swap.
-11. ThemeScript/ThemeToggle dark-mode override.
-12. SidebarNav structural swap.
-13. TODO_LIST.md harvest of the ladder (findings live in a point-in-time report, not in tracked actionable items).
+1. ~~Tailwind v4 pipeline for dashboardui (ladder rung 1 — the gate that unblocks everything else).~~ done (CSS bundle shipped (build-dashboardui-css))
+2. ~~errorpage adoption (styled `renderError`, 404 page, DLQ error display).~~ done (errorpage adopted)
+3. ~~StatusBadge/Badge swap (delete duplicated switches + `.badge-*` CSS).~~ done (StatusBadge adopted)
+4. ~~StatCard hybrid adoption with `ValueID` live hooks.~~ done (StatCard+ValueID adopted)
+5. ~~Leaf sweep: EmptyState / PageHeader / DefinitionList / Button.~~ done (EmptyState/DefinitionList/Button adopted)
+6. ~~ToastContainer + nonce plumbing (port adminui `toastHost`).~~ done (ToastContainer adopted)
+7. ~~Sortable Table/DataTable conversions (10+ tables).~~ done (Table adopted (typed sort headers))
+8. ~~CopyButton for payload/ID copy.~~ done (CopyButton adopted)
+9. ~~`htmx.GlobalErrorHandling` (HTMX failures are currently silent).~~ done (htmx.GlobalErrorHandling adopted)
+10. ~~Pagination + ListNote + Select trio swap.~~ done (forms.Select adopted (Pagination/ListNote excluded))
+11. ThemeScript/ThemeToggle dark-mode override. — STILL OPEN → `TODO_LIST.md` P2 (theme-toggle M089 sign-off gate)
+12. ~~SidebarNav structural swap.~~ **Won't implement — SidebarNav deliberately excluded (documented).**
+13. ~~TODO_LIST.md harvest of the ladder (findings live in a point-in-time report, not in tracked actionable items).~~ done (harvested 2026-09-20 (this sweep))
 14. Broken-link fix: both planning-doc corrections reference the report with paths that do not resolve from their location (`dashboardui/ROADMAP.md` → `docs/research/...` resolves to nonexistent `dashboardui/docs/research/`; the planning doc says "(repo root)" but is not a working link either).
-15. Triage of the 103 pre-existing findings-gate errors (go-structure-linter 51, gomod-check 26, go-mod-ignore-check 26) so commits stop needing `--no-verify`.
+15. ~~Triage of the 103 pre-existing findings-gate errors (go-structure-linter 51, gomod-check 26, go-mod-ignore-check 26) so commits stop needing `--no-verify`.~~ done (findings gate demoted to fail_on:none (M3 triage))
 16. Reconciliation/adjudication of the two same-day templ-components reports.
-17. AGENTS.md gotcha entry for the findings-gate behavior.
+17. ~~AGENTS.md gotcha entry for the findings-gate behavior.~~ done (AGENTS.md gotcha recorded)
 18. *(Noticed, out of scope, untouched — listed for completeness)*: complexity refactors (`renderOverview` 28, `LoadEventByID` 27, `renderEventDetail` 26, `FetchOverview` 22), `e2e/server` G114 + exhaustruct + param-name warnings, 118-entry train-lag advisory list, integration_test's templ-components indirects still at v1.16.0.
 
 ## d) TOTALLY FUCKED UP
@@ -108,7 +114,7 @@ Honest verdict: **my work product itself is sound; the fuckups are process, hist
 19. Table conversion: projections, DLQ, snapshots, aggregates, time-travel.
 20. Delete `.data-table` CSS block once all tables converted.
 21. ~~`navigation.Pagination` (numbered, MaxVisible) + `display.ListNote` + `forms.Select` trio.~~ **Won't implement — Pagination/ListNote deliberately excluded (documented); forms.Select adopted.**
-22. ~~`ThemeScript`/`ThemeToggle` class-based dark mode.~~ done (open — adminui theme-toggle M089 gate)
+22. `ThemeScript`/`ThemeToggle` class-based dark mode. — STILL OPEN → `TODO_LIST.md` P2 (adminui theme-toggle M089 sign-off gate)
 23. ~~`SidebarNav` structural swap (keep custom shell — adminui precedent).~~ **Won't implement — SidebarNav deliberately excluded (custom dark shell, documented).**
 24. ~~Security test: nonce end-to-end through CSP (extend `handlers_security_test.go`).~~ done (CSP nonce security test extended)
 25. Golden tests for adopted components (`utils/golden` pattern).
