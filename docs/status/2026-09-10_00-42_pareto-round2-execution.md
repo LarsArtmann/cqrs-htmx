@@ -43,8 +43,8 @@
 ## b) Partially done
 
 1. **P08 bench-spike — BLOCKED BY MACHINE, gate working as designed.** The load guard refused twice (load 26, then ~9 vs BENCH_MAX_LOAD 8; this box permanently carries QMD's llama-server + clickhouse + multiple crush sessions ≈ baseline load 5-9). A run finally fired at load just under 8 and **FAILED with +10%/+18% medians (baseline-httputil, json-roundtrip)** — near-certainly contention noise (json-roundtrip is pure encode/decode; the sweep didn't touch it), NOT a real regression. Per policy: never re-pin under load. Needs a genuinely idle window (see §g2).
-2. **P30 loginpage polish — favicon fix in working tree, unverified.** `firstRune` now returns the first letter/number (emoji brands like "🚀X" → "X" instead of tofu glyph) — edit applied but **not committed, not tested**; the no-auth copy rephrase (drop the `ServiceConfig` jargon from the user-facing page, move the dev hint to a server-side log) was **started and hit a stale-read edit refusal — NOT applied**; dark-mode error styling NOT started.
-3. **P11 train cut — prepared, not executed (user-gated).** Dry-runs green for loginpage/v4.10.0 + usermgmt/v4.10.0; the remaining train prep (full tag list + order per runbook §4, `check-release-train --refresh-cache` final) not yet assembled into a one-shot cut script.
+2. ~~**P30 loginpage polish — favicon fix in working tree, unverified.** `firstRune` now returns the first letter/number (emoji brands like "🚀X" → "X" instead of tofu glyph) — edit applied but **not committed, not tested**; the no-auth copy rephrase (drop the `ServiceConfig` jargon from the user-facing page, move the dev hint to a server-side log) was **started and hit a stale-read edit refusal — NOT applied**; dark-mode error styling NOT started.~~ done at `19f57fc0`, `d5a94f9d`
+3. ~~**P11 train cut — prepared, not executed (user-gated).** Dry-runs green for loginpage/v4.10.0 + usermgmt/v4.10.0; the remaining train prep (full tag list + order per runbook §4, `check-release-train --refresh-cache` final) not yet assembled into a one-shot cut script.~~ done (cut and pushed via verify-tag.sh --push)
 
 ## c) Not started
 
@@ -77,24 +77,24 @@
 ## f) Next up to 50 (importance-sorted, 1–12 are the immediate queue)
 
 1. **Re-run bench-spike in a genuinely idle window** (load ≪ 8, llama-server quiescent); compare medians; re-pin ONLY per policy (never under load) — this is the last open leg of the post-bump verification (P08/§b1).
-2. **P16 setup CSRF**: re-verify the Secure=false WARN premise (actual httputil WARN is AllowPlaintextBypass-related), then `Config.CSRF` knob + tokenless-mutation rejection test + explicit write-mode-dashboard CSRF posture with default preservation.
-3. **P27 SSE hardening**: SSEMaxReplay clamp in setup validate() + transport replay-before-subscribe ordering test.
-4. **P29 micro-debt**: usermgmt/http.go:315 write-check (inline the `writeAll` idiom), `errors.AsType` at service_oauth2_errorcontext_test.go:55, `slowJournal` → shared testutil.
-5. **Finish P30**: commit + test the favicon firstRune fix (currently uncommitted), complete the no-auth copy rephrase + templ regen + tests, dark-mode error styling.
-6. **CHANGELOG + FEATURES/ROADMAP rows** for P24/P25 (health+auditlog end-to-end wiring) and P28 (deprecation).
-7. **M100 final sweep** — git status clean, links gate, freshness gate, build.
-8. **P11 train cut on approval**: loginpage/v4.10.0 + usermgmt/v4.10.0 via verify-tag.sh (dry-runs already green), final `check-release-train --refresh-cache`, per runbook.
-9. **P31** examples: basic actor-metadata demo + async-startup-demo skeleton + go.work entry.
+2. ~~**P16 setup CSRF**: re-verify the Secure=false WARN premise (actual httputil WARN is AllowPlaintextBypass-related), then `Config.CSRF` knob + tokenless-mutation rejection test + explicit write-mode-dashboard CSRF posture with default preservation.~~ done at `43cdd1a1`
+3. ~~**P27 SSE hardening**: SSEMaxReplay clamp in setup validate() + transport replay-before-subscribe ordering test.~~ done at `4caad514`
+4. ~~**P29 micro-debt**: usermgmt/http.go:315 write-check (inline the `writeAll` idiom), `errors.AsType` at service_oauth2_errorcontext_test.go:55, `slowJournal` → shared testutil.~~ done at `2b8d3dd4`
+5. ~~**Finish P30**: commit + test the favicon firstRune fix (currently uncommitted), complete the no-auth copy rephrase + templ regen + tests, dark-mode error styling.~~ done at `19f57fc0`
+6. ~~**CHANGELOG + FEATURES/ROADMAP rows** for P24/P25 (health+auditlog end-to-end wiring) and P28 (deprecation).~~ done at `efd50425`
+7. ~~**M100 final sweep** — git status clean, links gate, freshness gate, build.~~ done at `efd50425`
+8. ~~**P11 train cut on approval**: loginpage/v4.10.0 + usermgmt/v4.10.0 via verify-tag.sh (dry-runs already green), final `check-release-train --refresh-cache`, per runbook.~~ done (usermgmt/v4.10.0 + loginpage/v4.10.0 cut and pushed)
+9. ~~**P31** examples: basic actor-metadata demo + async-startup-demo skeleton + go.work entry.~~ done at `384ab57e`
 10. **P32** example smoke tests (basic, datastar-demo — note the datastar-demo rebrand decision interacts here).
-11. **Strip examples/setup-demo's TEMPORARY setup/v4 dev-replace** — removal condition ("a published setup tag carrying Config.DataStarPath") is met by setup/v4.10.0; verify and strip.
+11. ~~**Strip examples/setup-demo's TEMPORARY setup/v4 dev-replace** — removal condition ("a published setup tag carrying Config.DataStarPath") is met by setup/v4.10.0; verify and strip.~~ done (setup-demo dev-replace stripped 2026-08-30)
 12. **datastar-demo rebrand** (decision recorded; execute at next docs pass).
 13. V007 spike execution per the new spike-plan (worktree-isolated).
 14. Migrate examples/system-demo off NewProjectionLayer (v5-prep, pairs with 13).
-15. ROADMAP OQ: systemadapter first-version number (user call, needs upstream Draft 1 first).
-16. File upstream Draft 1 (projectionadapter v4.5.0 tag ask) — the systemadapter-tag blocker.
-17. File upstream Draft 2 (compatibility matrix).
-18. File upstream Draft 3 (multi-module upgrade story).
-19. File upstream Draft 4 (stack/postgres v4.2.0 retraction).
+15. ~~ROADMAP OQ: systemadapter first-version number (user call, needs upstream Draft 1 first).~~ done (systemadapter/v4.11.0 tagged 2026-09-20)
+16. ~~File upstream Draft 1 (projectionadapter v4.5.0 tag ask) — the systemadapter-tag blocker.~~ done at `10becbf9`
+17. ~~File upstream Draft 2 (compatibility matrix).~~ done at `10becbf9`
+18. ~~File upstream Draft 3 (multi-module upgrade story).~~ done at `10becbf9`
+19. ~~File upstream Draft 4 (stack/postgres v4.2.0 retraction).~~ done at `10becbf9`
 20. buildflow `tailwind-build` fail-on-error (ROADMAP residual).
 21. check-modules leg: lint AGENTS.md replace-inventory claims vs go.mod state (ROADMAP residual).
 22. adoption-showcase remainder (ROADMAP residual).
@@ -125,7 +125,7 @@
 47. `setup.NewFromSystem` build-or-reject decision note (feeds V007).
 48. Huma recipes OQ.
 49. DOMAIN_LANGUAGE.md freshness pass (none exists yet? verify; else update).
-50. Consider making check-release-train's advisory CI output blocking-history annotation (one green week has now effectively passed WITH blocking on — record it).
+50. ~~Consider making check-release-train's advisory CI output blocking-history annotation (one green week has now effectively passed WITH blocking on — record it).~~ done (release-train blocking since 2026-09-09)
 
 ## g) Up to 3 questions I cannot figure out myself
 
