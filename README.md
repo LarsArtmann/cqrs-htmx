@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/cqrs-htmx/v4.svg)](https://pkg.go.dev/github.com/larsartmann/cqrs-htmx/v4)
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go 1.26+](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://go.dev/)
+[![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
 
 Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` in one line per endpoint. HTMX responses, Casbin authorization, CSRF, rate limiting, SSE, and event-sourced user management come built-in — but nothing is forced on you. Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), etc.), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you.
 
@@ -62,21 +62,21 @@ This library handles all of it. **If your endpoint doesn't need all of it**, you
 ## Install
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx
+go get github.com/larsartmann/cqrs-htmx/v4
 ```
 
 For the user management submodule:
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/usermgmt
+go get github.com/larsartmann/cqrs-htmx/usermgmt/v4
 ```
 
 Auth strategies (WebAuthn, TOTP, OAuth2) are now **optional sub-modules** in v4 — import only what you need:
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/usermgmt/webauthn  # Passkeys
-# go get github.com/larsartmann/cqrs-htmx/usermgmt/totp     # TOTP MFA
-# go get github.com/larsartmann/cqrs-htmx/usermgmt/oauth2   # OAuth2/OIDC
+go get github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4  # Passkeys
+# go get github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4     # TOTP MFA
+# go get github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4   # OAuth2/OIDC
 ```
 
 > **Upgrading from v3?** See the [v3→v4 Migration Guide](docs/migrations/v3-to-v4.md).
@@ -90,7 +90,7 @@ package main
 import (
     "net/http"
 
-    cqrshtmx "github.com/larsartmann/cqrs-htmx"
+    cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
     "github.com/larsartmann/go-cqrs-lite/command/v4"
     "github.com/larsartmann/go-cqrs-lite/query/v4"
     "github.com/casbin/casbin/v3"
@@ -852,7 +852,7 @@ ip := cqrshtmx.ClientIP(r)
 An independent submodule with **passwordless** authentication (WebAuthn/Passkeys), event-sourced CQRS, RBAC via Casbin, and session management:
 
 ```bash
-go get github.com/larsartmann/cqrs-htmx/usermgmt
+go get github.com/larsartmann/cqrs-htmx/usermgmt/v4
 ```
 
 ### Setup (v4 Provider Injection)
@@ -864,8 +864,8 @@ import (
     "log/slog"
     "time"
 
-    "github.com/larsartmann/cqrs-htmx/usermgmt"
-    "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn" // optional: passkeys
+    "github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+    "github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4" // optional: passkeys
 )
 
 // Create a WebAuthn provider
