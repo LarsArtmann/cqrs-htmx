@@ -65,9 +65,9 @@
 
 **Finish this program**
 1. Re-attempt `nix run .#bench-spike` on a quiet machine (M13; refused at load 16.4).
-2. When dashboardui migration settles: repo-wide `nix run .#lint`, `.#test`, `.#coverage-gate`, `.#check-modules` back to all-green (their 10 findings + 2 budgets).
-3. Cut the next family train (setup carries new API: AuthHandlerConfig, Metrics, Version, RequestLogging, 5 path knobs, dialect probe — `scripts/verify-tag.sh` only, per runbook).
-4. Post-train: strip the `go-datastar/broadcast` temp replace when its tag is pushed (budget comment already says so).
+2. ~~When dashboardui migration settles: repo-wide `nix run .#lint`, `.#test`, `.#coverage-gate`, `.#check-modules` back to all-green (their 10 findings + 2 budgets).~~ done (repo-wide gates all green)
+3. ~~Cut the next family train (setup carries new API: AuthHandlerConfig, Metrics, Version, RequestLogging, 5 path knobs, dialect probe — `scripts/verify-tag.sh` only, per runbook).~~ done (v4.11.0 family train shipped 2026-09-19)
+4. ~~Post-train: strip the `go-datastar/broadcast` temp replace when its tag is pushed (budget comment already says so).~~ done (broadcast replace stripped 2026-09-20)
 
 **setup follow-ups from this session's observations**
 5. `Config.AuthHandlerConfig`: consider an example snippet in `examples/setup-demo` (rate-limit + OAuth2 redirects wired for real).
@@ -78,13 +78,13 @@
 10. `SSEScriptPath`: bump `HTMXExtSSE` version pin when upstream releases (root module concern, tracked there).
 
 **Programs already queued (other plans)**
-11–28. dashboardui templ-components adoption program (28 medium tasks; `docs/planning/2026-09-17_13-22_*`).
-29–31. httputil/go-etag/go-sse adoption plan M-tasks (`docs/planning/2026-09-17_13-22` sibling, `c5006ee5`).
-32. systemadapter first tag (blocked on projectionadapter v4.5.0 upstream).
-33. M3 findings-gate triage (105 pre-existing go-structure/gomod findings — the sibling plan owns it).
-34. go-cqrs-lite command deep-dive report landed by the concurrent session (`2026-09-17_*_go-cqrs-lite-command-deep-dive.html`) — harvest TODOs from it.
-35. Templ-components v1.18.0 train-lag alignment (57 advisory entries from tonight's gate output).
-36. `examples/*` go-retry/go-health/go-atomic-write minor bumps (same train-lag list).
+~~11–28. dashboardui templ-components adoption program (28 medium tasks; `docs/planning/2026-09-17_13-22_*`).~~ done — adoption program executed (2026-09-17→19)
+~~29–31. httputil/go-etag/go-sse adoption plan M-tasks (`docs/planning/2026-09-17_13-22` sibling, `c5006ee5`).~~ done — adoption executed (etag/drain/retry/httputil v1.2.0)
+32. ~~systemadapter first tag (blocked on projectionadapter v4.5.0 upstream).~~ done (systemadapter/v4.11.0 tagged 2026-09-20)
+33. ~~M3 findings-gate triage (105 pre-existing go-structure/gomod findings — the sibling plan owns it).~~ done (findings gate triaged (fail_on:none))
+34. ~~go-cqrs-lite command deep-dive report landed by the concurrent session (`2026-09-17_*_go-cqrs-lite-command-deep-dive.html`) — harvest TODOs from it.~~ done (harvested 2026-09-20 (this sweep))
+35. ~~Templ-components v1.18.0 train-lag alignment (57 advisory entries from tonight's gate output).~~ done (train-lag swept to ZERO 2026-09-20)
+36. ~~`examples/*` go-retry/go-health/go-atomic-write minor bumps (same train-lag list).~~ done (train-lag swept to ZERO 2026-09-20)
 
 ## Questions (cannot resolve myself)
 

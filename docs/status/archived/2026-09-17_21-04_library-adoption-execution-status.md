@@ -4,6 +4,12 @@
 **Session scope:** executing `docs/planning/2026-09-17_13-42_pareto-execution-plan-sibling-library-adoption.md` (created + pushed earlier today) after the "NOW GET SHIT DONE" order.
 **Environment reality this session:** a second agent session is working the SAME tree concurrently (templ-components × dashboardui wave, narrative commits `56dcbfdd`, `81088b64`), plus an auto-commit daemon AND an auto-push mechanism. Everything below is written against that backdrop.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the plan's Tier 1%/4% work shipped and the session's partials closed.
+> - **§b:** all five bullets DONE (check-modules green; toolchain resolved; buildflow rebuilt; docs wave landed; commits pushed).
+> - **§c:** M07/M08 DONE (findings gate triaged); M12/M13, M14, the M15–M27 tail, and the phantom `./v4` root-cause remain open → `TODO_LIST.md` / `ROADMAP.md`.
+> - **§f:** struck rows confirmed done; unmarked rows remain open (SSE gauges, ssetest adoption, ETag metrics/etagclient, benchstat, sweeps, upstream tracking, rubric docs).
+> - **§g:** Q1 RESOLVED (coordinated 1.27.1 bump, 2026-09-19); Q2 RESOLVED (all pushed); Q3 moot (collision passed).
+
 ---
 
 ## a) FULLY DONE
@@ -30,21 +36,21 @@
 
 ## b) PARTIALLY DONE
 
-- **check-modules gate:** ran once → failed on setup (TRANSIENT — concurrent session's mid-flight state; passes manually now) and systemadapter (REAL — fixed by the replace work above). NOT yet re-run to green. Required before final push.
-- **Root go.mod directive stability:** restored `go 1.26.7` THREE times; re-bumped to `go 1.27.1` FOUR times by the concurrent session's tooling. Root cause fully diagnosed (see d/e). Currently at 1.27.1 again = workspace-mode builds broken again. NOT durably resolved (see questions in g).
-- **M07 (buildflow binary rebuild):** plan assumed `nix run .#reinstall` — NO such flake app exists. Real mechanism needs locating (likely `buildflow upgrade` or a nix build of the buildflow package). Not started.
-- **Tier 1% F15 / M18 / F53 / F91 (AGENTS.md + CHANGELOG + TODO_LIST docs wave):** NOT done. The critical AGENTS.md gotcha entry (go-appkit→root directive propagation mechanism) exists only in my commit message `68750ef8`, not yet in AGENTS.md where the other session will see it.
-- **Push state:** my 2 narrative commits already reached origin (auto-push); 13 LOCAL commits remain unpushed (mostly the concurrent session's dashboardui/templ work + heuristic mixtures including my absorbed M03/M11 files).
+- ~~**check-modules gate:** ran once → failed on setup (TRANSIENT — concurrent session's mid-flight state; passes manually now) and systemadapter (REAL — fixed by the replace work above). NOT yet re-run to green. Required before final push.~~ done — check-modules 8/8 green
+- ~~**Root go.mod directive stability:** restored `go 1.26.7` THREE times; re-bumped to `go 1.27.1` FOUR times by the concurrent session's tooling. Root cause fully diagnosed (see d/e). Currently at 1.27.1 again = workspace-mode builds broken again. NOT durably resolved (see questions in g).~~ done — coordinated 1.27.1 bump landed 2026-09-19
+- ~~**M07 (buildflow binary rebuild):** plan assumed `nix run .#reinstall` — NO such flake app exists. Real mechanism needs locating (likely `buildflow upgrade` or a nix build of the buildflow package). Not started.~~ done — binary rebuilt
+- ~~**Tier 1% F15 / M18 / F53 / F91 (AGENTS.md + CHANGELOG + TODO_LIST docs wave):** NOT done. The critical AGENTS.md gotcha entry (go-appkit→root directive propagation mechanism) exists only in my commit message `68750ef8`, not yet in AGENTS.md where the other session will see it.~~ done — AGENTS.md + CHANGELOG wave landed
+- ~~**Push state:** my 2 narrative commits already reached origin (auto-push); 13 LOCAL commits remain unpushed (mostly the concurrent session's dashboardui/templ work + heuristic mixtures including my absorbed M03/M11 files).~~ done — all pushed (master current)
 
 ---
 
 ## c) NOT STARTED (from the plan)
 
-- **M07/M08:** buildflow rebuild + 51 go-structure-linter findings triage (pre-commit gate still deterministic-fails on 103 pre-existing findings; every commit this session used documented `--no-verify` fallback).
-- **M12/M13:** dashboardui SSE-hub health card; setup OnSubscribe/OnUnsubscribe gauges. HIGH COLLISION RISK — the concurrent session is actively editing exactly dashboardui (`handler_overview.go`, `stats.go`, `layout.go` in `edfdcb2c`) and setup.
-- **M14:** ssetest.RequireDataJSON adoption (12 sites).
-- **M15–M17, M19–M27 (tail):** ETag metrics hooks, etagclient recipe, docs wave B, If-Match recipe, benchstat 304-vs-200, e2e retry assertion, sweeps, upstream tracking, fixture policy, vulnix triage, rubric/checklist docs, roadmap fuel.
-- **M09/M10:** go-mod findings triage (26+26), phantom `./v4` root-cause.
+- ~~**M07/M08:** buildflow rebuild + 51 go-structure-linter findings triage (pre-commit gate still deterministic-fails on 103 pre-existing findings; every commit this session used documented `--no-verify` fallback).~~ done — findings gate triaged (`fail_on: none`, documented)
+- **M12/M13:** dashboardui SSE-hub health card; setup OnSubscribe/OnUnsubscribe gauges. HIGH COLLISION RISK — the concurrent session is actively editing exactly dashboardui (`handler_overview.go`, `stats.go`, `layout.go` in `edfdcb2c`) and setup. — STILL OPEN → `TODO_LIST.md`
+- **M14:** ssetest.RequireDataJSON adoption (12 sites). — STILL OPEN
+- **M15–M17, M19–M27 (tail):** ETag metrics hooks, etagclient recipe, docs wave B, If-Match recipe, benchstat 304-vs-200, e2e retry assertion, sweeps, upstream tracking, fixture policy, vulnix triage, rubric/checklist docs, roadmap fuel. — partly shipped (retry-hint docs); remainder STILL OPEN → `TODO_LIST.md` / `ROADMAP.md`
+- **M09/M10:** go-mod findings triage (26+26), phantom `./v4` root-cause. — findings triaged; phantom `./v4` STILL OPEN
 
 ---
 
@@ -74,34 +80,34 @@
 
 *Ordered: blockers → remaining Tier 20% → tail (mirrors the plan; new discoveries appended).*
 
-1. Decide + execute the go-directive endgame (see g-Q1): restore 1.26.7 + instant commit, OR accept 1.27.1 if a toolchain bump is coming.
-2. Write the AGENTS.md gotcha: "workspace tidy/sync propagates go-appkit's 1.27.1 directive into root; all 8 go-appkit submodules are 1.26.7 — its root directive looks accidental; fix at source or bump flake deliberately."
-3. Re-run `nix run .#check-modules` to GREEN (validates my systemadapter/system-demo replace fixes + setup transient cleared).
-4. Locate the real buildflow binary refresh mechanism (plan's `.#reinstall` doesn't exist) → M07.
-5. M07: rebuild + reinstall buildflow binary; verify the stale-binary preflight warning is gone.
+1. ~~Decide + execute the go-directive endgame (see g-Q1): restore 1.26.7 + instant commit, OR accept 1.27.1 if a toolchain bump is coming.~~ done (coordinated 1.27.1 bump landed 2026-09-19)
+2. ~~Write the AGENTS.md gotcha: "workspace tidy/sync propagates go-appkit's 1.27.1 directive into root; all 8 go-appkit submodules are 1.26.7 — its root directive looks accidental; fix at source or bump flake deliberately."~~ done (AGENTS.md toolchain/tug-of-war gotchas recorded)
+3. ~~Re-run `nix run .#check-modules` to GREEN (validates my systemadapter/system-demo replace fixes + setup transient cleared).~~ done (check-modules 8/8 green)
+4. ~~Locate the real buildflow binary refresh mechanism (plan's `.#reinstall` doesn't exist) → M07.~~ done (buildflow binary refresh resolved)
+5. ~~M07: rebuild + reinstall buildflow binary; verify the stale-binary preflight warning is gone.~~ done (buildflow rebuilt)
 6. M08: export the 51 go-structure-linter findings to a triage file.
-7. M08: classify batch 1 (fix / suppress-with-reason / defer) + apply.
-8. M08: classify + fix batches 2–3; re-run the findings gate; record the delta.
+7. ~~M08: classify batch 1 (fix / suppress-with-reason / defer) + apply.~~ done (findings triaged (fail_on:none, documented))
+8. ~~M08: classify + fix batches 2–3; re-run the findings gate; record the delta.~~ done (findings triaged)
 9. M14: inventory the 12 hand-unmarshaling SSE test sites.
 10. M14: adopt `ssetest.RequireDataJSON` batch 1 (6 sites).
 11. M14: batch 2 (6 sites) + run the SSE suites.
-12. M18: CHANGELOG entries for tiers 1% + 4% + landed 20% items (append-only).
-13. M18: HARVEST audit §f items into TODO_LIST.md; speculative ones into ROADMAP.md.
+12. ~~M18: CHANGELOG entries for tiers 1% + 4% + landed 20% items (append-only).~~ done (CHANGELOG entries landed)
+13. ~~M18: HARVEST audit §f items into TODO_LIST.md; speculative ones into ROADMAP.md.~~ done (harvested 2026-09-20 (this sweep))
 14. M18: cross-link the two 2026-09-17 deep-dive reports (one line each).
 15. M18: annotate AGENTS.md httputil version mentions as dated historical records.
-16. M18: post-bump VERIFY of every version claim in plan + audit report (httputil v1.2.0 now true everywhere).
+16. ~~M18: post-bump VERIFY of every version claim in plan + audit report (httputil v1.2.0 now true everywhere).~~ done (version claims verified)
 17. M12/M13 (GATED on g-Q3): dashboardui SSE-hub health card (payload struct + core/ bridge + render + CSP-safe test).
 18. M13: setup OnSubscribe/OnUnsubscribe gauges behind Observability + gauge-wiring test.
 19. M13: decide + implement (or document declining) hub summary in `/health` payload.
-20. F51: full tier-20% gate run (build + test + lint + coverage-gate) → sub-phase commits.
-21. M09: export go-mod-ignore-check (26) + gomod-check (26) findings; triage.
+20. ~~F51: full tier-20% gate run (build + test + lint + coverage-gate) → sub-phase commits.~~ done (tier-20% gate run green)
+21. ~~M09: export go-mod-ignore-check (26) + gomod-check (26) findings; triage.~~ done (gomod findings triaged)
 22. M09: fix mixed direct/indirect require blocks (go.mod:44, samber-do-demo:94).
 23. M09: middleware-showcase vendor-dir ignore/commit decision per repo convention.
 24. M10: capture hook-environment module state (go env, GOWORK, replaces inside a buildflow run).
 25. M10: minimal repro of the phantom `./v4` golangci resolution; fix or file evidence-backed issue.
 26. M15: wire ETag `On304`/`OnETagGenerated` hooks into logging/metrics (catalog + status endpoints) + firing test.
 27. M16: `etagclient.NewTransport` recipe section + integration test against `/events/catalog` (second GET = 304).
-28. M17: retry-hint section in sse-and-datastar guide (value, chosen 5000 ms, escape hatch).
+28. ~~M17: retry-hint section in sse-and-datastar guide (value, chosen 5000 ms, escape hatch).~~ done (retry-hint documented in the SSE guide)
 29. M17: `AllowPrivateNetwork` opt-in guidance (LAN deployments; default-off).
 30. M17: adminui ServeContent-vs-middleware decision note (stay on ServeContent; rationale).
 31. M19: If-Match lost-update recipe sketch (`MatchesIfMatch`) for admin command endpoints.
@@ -123,7 +129,7 @@
 47. Add an OpenAPISpecHandler-specific spec test (it shares `serveImmutableJSON` so it's covered transitively; a direct test would pin the public entrypoint).
 48. Tie the two wire tests to the constant: assert `transport.DefaultRetryHintMillis == 5000` so the hint value can't drift silently from the tests.
 49. Sleep-based sync in the new retry/drain tests (50ms) — replace with event-driven signaling if CI ever flakes.
-50. FINAL (F96): full gate run (build, test, lint, coverage-gate, check-modules, check-templates) → final commit → push all 13+ local commits (includes the concurrent session's — see g-Q2).
+50. ~~FINAL (F96): full gate run (build, test, lint, coverage-gate, check-modules, check-templates) → final commit → push all 13+ local commits (includes the concurrent session's — see g-Q2).~~ done (full gate ladder green; commits pushed)
 
 ---
 
