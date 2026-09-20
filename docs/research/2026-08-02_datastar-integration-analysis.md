@@ -182,7 +182,7 @@ The demo deliberately **does not import the `cqrshtmx` root module** — it reim
 
 ## 5. The Architectural Decision: How to Integrate
 
-The May 2026 status report (`docs/status/archive/2026-05-21_23-43_datastar-demo-multi-user-simulation.md`) identified three options:
+The May 2026 status report (`docs/status/archived/2026-05-21_23-43_datastar-demo-multi-user-simulation.md`) identified three options:
 
 | Option                                | Description                                                               | Verdict                                                                     |
 | ------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
