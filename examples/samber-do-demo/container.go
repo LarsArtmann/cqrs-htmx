@@ -155,6 +155,8 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 	// This is the canonical pattern for integrating third-party types that
 	// have their own Close/Shutdown methods but don't implement samber/do's
 	// lifecycle interfaces directly.
+	//
+	//samber-linter:allow hw-4 NewContainer eagerly invokes this provider at boot (no false pre-construction green)
 	do.Provide(injector, func(i do.Injector) (*serviceLifecycle, error) {
 		svc, err := do.Invoke[*usermgmt.Service](i)
 		if err != nil {
@@ -168,6 +170,8 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 	// (a ProjectionStatusProvider). health.Recorder(svc) additionally merges
 	// the injector's own service checks when a go-health ecosystem wants a
 	// single recorder for app + infrastructure health.
+	//
+	//samber-linter:allow hw-4 NewContainer eagerly invokes this provider at boot (no false pre-construction green)
 	do.Provide(injector, func(i do.Injector) (*gohealth.Probe, error) {
 		svc, err := do.Invoke[*usermgmt.Service](i)
 		if err != nil {
@@ -178,6 +182,8 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 
 	// Health dashboard UI — renders the probe as an HTML page + SSE stream.
 	// Mounted by main.go at /health-ui.
+	//
+	//samber-linter:allow hw-4 NewContainer eagerly invokes this provider at boot (no false pre-construction green)
 	do.Provide(injector, func(i do.Injector) (*healthdashboard.Dashboard, error) {
 		probe, err := do.Invoke[*gohealth.Probe](i)
 		if err != nil {
@@ -256,7 +262,7 @@ type serviceLifecycle struct {
 
 // Compile-time guards — catch missing interface methods at build time.
 var _ do.ShutdownerWithContextAndError = (*serviceLifecycle)(nil)
-var _ do.Healthchecker = (*serviceLifecycle)(nil)
+var _ do.HealthcheckerWithContext = (*serviceLifecycle)(nil)
 
 func (l *serviceLifecycle) Shutdown(_ context.Context) error {
 	return l.svc.Close()
@@ -266,7 +272,7 @@ func (l *serviceLifecycle) Shutdown(_ context.Context) error {
 // still draining or has exhausted its restart budget. It delegates to the
 // library's own readiness gate so the DI health dashboard and the /health
 // endpoint always agree on what "healthy" means (samber-linter HW-1).
-func (l *serviceLifecycle) HealthCheck() error {
+func (l *serviceLifecycle) HealthCheck(_ context.Context) error {
 	return cqrshtmx.ProjectionReadinessCheck(l.svc).Check()
 }
 
@@ -280,14 +286,14 @@ type broadcasterLifecycle struct {
 
 var (
 	_ do.ShutdownerWithContextAndError = (*broadcasterLifecycle)(nil)
-	_ do.Healthchecker                 = (*broadcasterLifecycle)(nil)
+	_ do.HealthcheckerWithContext      = (*broadcasterLifecycle)(nil)
 )
 
 func (l *broadcasterLifecycle) Shutdown(ctx context.Context) error {
 	return l.hub.Shutdown(ctx)
 }
 
-func (l *broadcasterLifecycle) HealthCheck() error {
+func (l *broadcasterLifecycle) HealthCheck(_ context.Context) error {
 	return cqrshtmx.HubReadinessCheck(l.hub).Check()
 }
 
