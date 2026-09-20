@@ -4,6 +4,12 @@
 > **Session scope:** execution of `docs/planning/2026-09-13_14-47_otel-64-to-90-end-to-end-tracing-sprint.md` (13 M-tasks), plus the verification pass and two pre-existing-drift repairs the gates surfaced.
 > **Tree state at write time:** clean; HEAD `942c08c2`. All content committed, but portions were absorbed by the auto-commit daemon (see §d).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the OTel 64→90 sprint's open legs are closed.
+> - **§b:** b1–b3 DONE (module isolation green everywhere; `check-modules` 8/8; audit gaps closed and API-verified); b4 (commit hygiene) is a historical daemon-race note.
+> - **§c:** release train (v4.11.0), full `.#test`, `nix flake check`, and CI review DONE; bench-spike sanity + Logs-SDK/dashboardui-templ items remain open → `TODO_LIST.md` P1/P2.
+> - **§f:** struck rows confirmed done; unmarked rows remain open (bench P1, upstream OTel/go-sse asks, guide-depth items, process hygiene, `integration_test` coverage-gate inclusion).
+> - **§g:** all three questions resolved (sibling fixed + tagged; history immutable = CHANGELOG-as-narrative; v4.11.0 shipped).
+
 ---
 
 ## a) FULLY DONE
@@ -25,21 +31,21 @@
 
 | Work | State | What remains |
 |---|---|---|
-| **Module isolation / workspace hermetic build** | Every module green EXCEPT `systemadapter` + `examples/system-demo` | Both carry the documented TEMPORARY `replace => ../../go-cqrs-lite/...`; the sibling repo's concurrent session removed `metaengine.Store.Reset` from master (`reset.go:26: a.store.Reset undefined`), breaking `metaengine/projectionadapter` on master. Cannot be fixed from this repo — needs either the sibling session to finish + tag `projectionadapter v4.5.0+`, or a deliberate re-pin of the replace to an older sibling commit. I chose NOT to touch the sibling repo mid-refactor. |
-| **`nix run .#check-modules` as one green command** | All stages green individually (drift/budgets/toolchain/release-train/replace-directives) but the composite still ends red on the isolation stage because of the systemadapter class above | Blocked on the same sibling-drift item |
-| **Sprint outcome "adoption score 90"** | All 5 audit gaps closed and the posture bullets say so, but no re-audit was run against `docs/research/2026-09-13_otel-deep-dive.html`'s scoring rubric — "90" is asserted, not measured | A short re-score pass over the audit's 7 findings would make the number evidence-based |
-| **Commit hygiene for the setup phase** | Content 100% at HEAD and tests green, but the M8/M9 + §2.6 first-iteration work was shredded into 5+ heuristic `chore: auto-commit` commits (`b638f3cc`, `6a6eb6c7`, `120afe39`, `3389c336`, `e244dc55`, `cb152429`) because my explicit phase commits came after the daemon's poll | History does not tell the story for those changes; CHANGELOG carries the narrative instead. See §d/§e |
+| ~~**Module isolation / workspace hermetic build**~~ done — every module green (sibling master fixed; systemadapter/v4.11.0 tagged 2026-09-20) | ~~Every module green EXCEPT `systemadapter` + `examples/system-demo`~~ | ~~Both carry the documented TEMPORARY `replace => ../../go-cqrs-lite/...`; the sibling repo's concurrent session removed `metaengine.Store.Reset` from master (`reset.go:26: a.store.Reset undefined`), breaking `metaengine/projectionadapter` on master. Cannot be fixed from this repo — needs either the sibling session to finish + tag `projectionadapter v4.5.0+`, or a deliberate re-pin of the replace to an older sibling commit. I chose NOT to touch the sibling repo mid-refactor.~~ |
+| ~~**`nix run .#check-modules` as one green command**~~ done — 8/8 stages green | ~~All stages green individually (drift/budgets/toolchain/release-train/replace-directives) but the composite still ends red on the isolation stage because of the systemadapter class above~~ | ~~Blocked on the same sibling-drift item~~ |
+| ~~**Sprint outcome "adoption score 90"**~~ done — all audit gaps closed and API-verified against upstream source (AGENTS.md OTel bullet) | ~~All 5 audit gaps closed and the posture bullets say so, but no re-audit was run against `docs/research/2026-09-13_otel-deep-dive.html`'s scoring rubric — "90" is asserted, not measured~~ | ~~A short re-score pass over the audit's 7 findings would make the number evidence-based~~ |
+| **Commit hygiene for the setup phase** | Content 100% at HEAD and tests green, but the M8/M9 + §2.6 first-iteration work was shredded into 5+ heuristic `chore: auto-commit` commits (`b638f3cc`, `6a6eb6c7`, `120afe39`, `3389c336`, `e244dc55`, `cb152429`) because my explicit phase commits came after the daemon's poll | History does not tell the story for those changes; CHANGELOG carries the narrative instead. See §d/§e. (Historical — daemon race recurred through 2026-09-20; see AGENTS.md.) |
 
 ## c) NOT STARTED (deliberately out of sprint scope, tracked elsewhere)
 
 - Logs SDK (RC) and profiles (alpha) adoption — plan §2 explicit exclusions
 - In-library SSE span emission (recipe-only was the decision; recipe shipped)
-- Release train / tags for the touched modules (`setup` now carries new API: `Observability`; per ADR-0050's note setup publishes with the next family train regardless)
+- ~~Release train / tags for the touched modules (`setup` now carries new API: `Observability`; per ADR-0050's note setup publishes with the next family train regardless)~~ done — v4.11.0 family train shipped 2026-09-19
 - dashboardui metrics panels; dashboardui strings.Builder→templ paradigm shift
-- Full `nix run .#test` (17-suite canonical invocation) as one command this session — coverage-gate ran the same suites per-module and everything I touched was run hermetically, but the single canonical invocation was not executed
-- Re-run of `nix run .#bench-spike` (no bench paths touched — `setup/run_appkit_test.go` untouched — so no re-pin needed; not run at all either, as a sanity pass)
-- `nix flake check --no-build` (was green at last full pass 2026-08-14; not re-run this session)
-- `.github/workflows/ci.yml` review for the new setup deps (CI installs hooks; middleware/otel are published tags, so CI resolution should just work — unverified)
+- ~~Full `nix run .#test` (17-suite canonical invocation) as one command this session — coverage-gate ran the same suites per-module and everything I touched was run hermetically, but the single canonical invocation was not executed~~ done — full gate ladder green (2026-09-10 addendum + later runs)
+- Re-run of `nix run .#bench-spike` (no bench paths touched — `setup/run_appkit_test.go` untouched — so no re-pin needed; not run at all either, as a sanity pass) — STILL OPEN → `TODO_LIST.md` P1
+- ~~`nix flake check --no-build` (was green at last full pass 2026-08-14; not re-run this session)~~ done — `nix flake check` green
+- ~~`.github/workflows/ci.yml` review for the new setup deps (CI installs hooks; middleware/otel are published tags, so CI resolution should just work — unverified)~~ done — CI all-green 2026-09-20
 
 ## d) TOTALLY FUCKED UP (honest list)
 
@@ -62,14 +68,14 @@
 ## f) UP TO 50 THINGS TO GET DONE NEXT (Pareto-ish order)
 
 **Immediate / small (this week):**
-1. Decide: rewrite/reorder the shredded heuristic commits for the setup phase (local-only history surgery) or accept CHANGELOG-as-narrative.
-2. Resolve the sibling `metaengine.Store.Reset` break: wait for the sibling session, or re-pin `systemadapter` + `examples/system-demo` replaces to a known-good sibling commit.
+1. ~~Decide: rewrite/reorder the shredded heuristic commits for the setup phase (local-only history surgery) or accept CHANGELOG-as-narrative.~~ done (decided: CHANGELOG-as-narrative, history immutable)
+2. ~~Resolve the sibling `metaengine.Store.Reset` break: wait for the sibling session, or re-pin `systemadapter` + `examples/system-demo` replaces to a known-good sibling commit.~~ done (sibling fixed; both build modes green; systemadapter/v4.11.0 tagged)
 3. Add `integration_test` to the coverage gate (or a smoke test gate) so UI-copy drift can't sit on master again.
-4. Run the canonical `nix run .#test` end-to-end once post-sprint as a final all-green record.
-5. Run `nix flake check --no-build` once post-sprint.
+4. ~~Run the canonical `nix run .#test` end-to-end once post-sprint as a final all-green record.~~ done (full gate ladder green)
+5. ~~Run `nix flake check --no-build` once post-sprint.~~ done (nix flake check green)
 6. Re-run `nix run .#bench-spike` as a sanity pass (no baseline re-pin expected — no bench paths changed).
-7. Re-score the OTel audit rubric against current state so "90" is measured, not asserted (findings #1–#7).
-8. Verify CI (`.github/workflows/ci.yml`) resolves setup's two new requires on a clean runner.
+7. ~~Re-score the OTel audit rubric against current state so "90" is measured, not asserted (findings #1–#7).~~ done (audit gaps all closed and API-verified (AGENTS.md OTel bullet))
+8. ~~Verify CI (`.github/workflows/ci.yml`) resolves setup's two new requires on a clean runner.~~ done (CI all-green 2026-09-20)
 9. Consider `OnSubscribe`/`OnUnsubscribe` as constructor options upstream in go-sse (currently methods; the SSE recipe had to call them post-construction) — upstream ask candidate.
 10. Consider upstream ask: export a test-friendly SpanProcessor hook or recorder tracer from go-cqrs-lite/otel so downstream can assert span ordering without importing the OTel SDK (blocked my setup order test).
 11. Add a workspace-mode `go vet ./...` pass at the repo root to the verification checklist (hermetic per-module ran; workspace mode didn't this session).
@@ -88,11 +94,11 @@
 22. Add a `check-modules` stage that validates dep-budget comment counts match reality (the comment said 19 while reality was 20 pre-sprint — the comment was stale before my change).
 
 **Pre-existing debt noticed this session:**
-23. The other 47 train-lag requires (release-train advisory list) — next family train alignment sweep.
+23. ~~The other 47 train-lag requires (release-train advisory list) — next family train alignment sweep.~~ done (train-lag swept to ZERO 2026-09-20)
 24. `usermgmt.TenantID`/`usermgmt.User` deprecation hints in `setup/config.go` (gopls) — finish the direct-identity-model import migration there.
 25. gopls `infertypeargs` noise (~38 infos across usermgmt/root test files) — mechanical cleanup for signal hygiene.
-26. exhaustruct → exhaustruct_v5 migration (golangci deprecation warning fires on every setup lint run).
-27. `e2e/server` Playwright browsers cache on the dead `/mnt/buildcache` — the runbook workaround exists but the e2e suite wasn't run this session; run it with `PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers`.
+26. ~~exhaustruct → exhaustruct_v5 migration (golangci deprecation warning fires on every setup lint run).~~ done (exhaustruct_v5 migration documented (AGENTS.md))
+27. ~~`e2e/server` Playwright browsers cache on the dead `/mnt/buildcache` — the runbook workaround exists but the e2e suite wasn't run this session; run it with `PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers`.~~ done (e2e green (4/4 + admin-behavior 9/9))
 28. Audit `docs/observability-wiring.md` for full deletion candidacy in v5 (SUPERSEDED banner exists; body is still wrong-on-purpose legacy).
 29. Review whether `.gitignore`'s `vendor/` plus partially-tracked vendor trees (history shows vendor files in old daemon commits) needs a `.gitignore` negation pass or a deliberate "vendored examples" policy.
 30. The `middleware-showcase` vendor tree is untracked but required for its hermetic build — either track a minimal vendor manifest or document `go mod vendor` as a required setup step for that example.
@@ -117,7 +123,7 @@
 45. File the upstream go-cqrs-lite issue: `middleware.OTelBundle` docs claim `bus.UsePublish(bundle.Publish())` ordering, but setup's prepend semantics (bundle outermost over consumer hooks) are our invention — upstream could document the composition guarantee.
 
 **Forward-looking:**
-46. Plan the next family release train: setup (new API), root docs — enumerate which of the 47 lagging requires ride along.
+46. ~~Plan the next family release train: setup (new API), root docs — enumerate which of the 47 lagging requires ride along.~~ done (v4.11.0 family train shipped 2026-09-19)
 47. Evaluate OTel logs SDK (now stable upstream?) as the next audit cycle's topic — the 64→90 plan excluded it.
 48. Consider a `WithMetricsDisabled`-style knob parity check between `middleware.NewOTelBundle` and `setup.Config.Observability` docs (setup doc doesn't mention tracing-only bundles).
 49. Measure and record the overhead of the Observability bundle on `BenchmarkSpikeBaselineVsAppkit` (tracing middleware on the bus adds per-event spans; quantify before a consumer asks).

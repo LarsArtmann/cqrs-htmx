@@ -3,6 +3,12 @@
 **Date:** 2026-09-15 10:49 CEST | **Repo:** cqrs-htmx @ master | **Branch state:** clean except AGENTS.md/CHANGELOG.md final edits (daemon picks up)
 **Session scope:** execute the pasted TODO list. Outcome: most of it was already done silently; the rest was landed this session.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the truth sweep's own forward list is largely closed.
+> - **§b:** systemadapter first tag + templ-components uniformity DONE (tagged 2026-09-20; tree uniform at v1.18.1); bench-spike, cqrs-lint CI, appkit flip, DataStar Tier 4 remain open → `TODO_LIST.md`.
+> - **§c:** `cqrs-upgrade --workspace` shipped upstream; the rest (V007, stack decouple, checkpoint injection, history rewrites, datastar-demo) remain open/routed.
+> - **§f:** struck rows confirmed done (v4.11.0 train, #25 filed, systemadapter tag, workspace dry-run, SSE options, setup README, this sweep); unmarked rows remain open → `TODO_LIST.md` P1–P3.
+> - **§g:** train timing resolved (v4.11.0 shipped); `/sse` posture + upstream tag request resolved/closed.
+
 ---
 
 ## a) FULLY DONE
@@ -23,22 +29,22 @@
 
 ## b) PARTIALLY DONE
 
-- **bench-spike idle re-run** — sole remainder of the 2026-09-10 post-bump pass; refused again this session (load **825**/32 cores from a concurrent session; `BENCH_MAX_LOAD` guard enforces). Everything else in that pass was already green.
-- **systemadapter first tag** — repo-side ready (replace-strip + verify-tag path documented); hard-blocked on upstream `metaengine/projectionadapter/v4 v4.5.0` (needs `OccurredAt` on `EventWithID`).
-- **CI check-\* wiring** — everything except `check-cqrs-lint` (blocked: Nix-only binary, needs Go-installable distribution).
-- **templ-components uniformity** — direct consumers v1.17.0; integration_test indirects v1.16.0 (correct: published-tag graph). Catches up at the next family train; hand-bumping would break hermetic graphs.
-- **appkit adoption (ADR-001)** — `RunWithAppkit` stable since 2026-09-07; the default-flip fold-in (b)-(f) remains, gated on the DataStar ADR sequencing decision.
-- **DataStar Tier 4** — Tiers 1-3 shipped; M11-M16 demand-gated.
+- **bench-spike idle re-run** — sole remainder of the 2026-09-10 post-bump pass; refused again this session (load **825**/32 cores from a concurrent session; `BENCH_MAX_LOAD` guard enforces). Everything else in that pass was already green. — STILL OPEN → `TODO_LIST.md` P1
+- ~~**systemadapter first tag** — repo-side ready (replace-strip + verify-tag path documented); hard-blocked on upstream `metaengine/projectionadapter/v4 v4.5.0` (needs `OccurredAt` on `EventWithID`).~~ done — `systemadapter/v4.11.0` tagged 2026-09-20 (upstream projectionadapter v4.5.0 published)
+- **CI check-\* wiring** — everything except `check-cqrs-lint` (blocked: Nix-only binary, needs Go-installable distribution). — cqrs-lint still open → `TODO_LIST.md` P3
+- ~~**templ-components uniformity** — direct consumers v1.17.0; integration_test indirects v1.16.0 (correct: published-tag graph). Catches up at the next family train; hand-bumping would break hermetic graphs.~~ done — tree uniform at v1.18.1 (2026-09-20)
+- **appkit adoption (ADR-001)** — `RunWithAppkit` stable since 2026-09-07; the default-flip fold-in (b)-(f) remains, gated on the DataStar ADR sequencing decision. — open → C10
+- **DataStar Tier 4** — Tiers 1-3 shipped; M11-M16 demand-gated. — open (demand-gated)
 
 ## c) NOT STARTED
 
-- **V007 migration (usermgmt, 39 findings):** `stack.Materialize` ×3, `stack.Bundle` ×2, `storage.SQLViewStore` ×34 — v5-prep, compiles green today.
-- **Upstream asks:** decouple `stack/v4` root from metaengine; teach `cqrs-upgrade` workspace mode (22 manual runs last sweep).
-- **Declarative checkpoint/DLQ injection** — no `system.New` option exists; ProjectionLayer is still the only path with `WithCheckpointStore`.
-- **v4-branch history rewrite** (~27.7 MB blobs) + **setup-demo purge** (27 MB) — both need force-push (user gate).
-- **`examples/datastar-demo` rebrand-or-remove** — owner call.
-- **SSE hardening backlog remainder** (serve_test gaps, `WithSSEMaxReplay` option, fuzz, e2e reconnect scenario, …) — explicitly optional.
-- **ROADMAP residuals:** loginpage cosmetic polish, `setup.NewFromSystem` bridge decision (OQ12).
+- **V007 migration (usermgmt, 39 findings):** `stack.Materialize` ×3, `stack.Bundle` ×2, `storage.SQLViewStore` ×34 — v5-prep, compiles green today. — open → `TODO_LIST.md` P3 (now 78 findings per the 2026-09-20 workspace dry-run)
+- **Upstream asks:** ~~decouple `stack/v4` root from metaengine~~ (still open → `TODO_LIST.md` P3); ~~teach `cqrs-upgrade` workspace mode (22 manual runs last sweep)~~ done — shipped upstream, used 2026-09-20
+- **Declarative checkpoint/DLQ injection** — no `system.New` option exists; ProjectionLayer is still the only path with `WithCheckpointStore`. — open (accepted limitation noted in v5-removal inventory)
+- **v4-branch history rewrite** (~27.7 MB blobs) + **setup-demo purge** (27 MB) — both need force-push (user gate). — open → D4 prep
+- `examples/datastar-demo` rebrand-or-remove — owner call. — open
+- **SSE hardening backlog remainder** (serve_test gaps, ~~`WithSSEMaxReplay` option~~ done, fuzz, e2e reconnect scenario, …) — partly shipped; remainder optional
+- **ROADMAP residuals:** loginpage cosmetic polish, `setup.NewFromSystem` bridge decision (OQ12). — open
 
 ## d) TOTALLY FUCKED UP
 
@@ -63,12 +69,12 @@ Nothing destroyed this session — but three real process failures surfaced (two
 *(brainstorm, not commitments — most belong in TODO_LIST via HARVEST or ROADMAP; sorted roughly by impact)*
 
 **Release & trains**
-1. Cut the next family train (publishes `Config.CSRF`, DataStar setup API, OTel `Observability` seam; aligns integration_test indirects to v1.17.0).
-2. Request/file `metaengine/projectionadapter/v4 v4.5.0` upstream → unblocks systemadapter first tag.
-3. After (2): strip the last replace (systemadapter + system-demo), tag systemadapter via `verify-tag.sh`, drift exemptions drop to zero.
-4. Decide systemadapter first-version number (family-train version vs independent v4.8.0 — ROADMAP OQ12).
+1. ~~Cut the next family train (publishes `Config.CSRF`, DataStar setup API, OTel `Observability` seam; aligns integration_test indirects to v1.17.0).~~ done (v4.11.0 family train shipped 2026-09-19)
+2. ~~Request/file `metaengine/projectionadapter/v4 v4.5.0` upstream → unblocks systemadapter first tag.~~ done (filed as go-cqrs-lite #25; v4.5.0 published)
+3. ~~After (2): strip the last replace (systemadapter + system-demo), tag systemadapter via `verify-tag.sh`, drift exemptions drop to zero.~~ done (replaces stripped; systemadapter/v4.11.0 tagged 2026-09-20)
+4. ~~Decide systemadapter first-version number (family-train version vs independent v4.8.0 — ROADMAP OQ12).~~ done (decided: family-train version v4.11.0)
 5. Re-run `bench-spike` on an idle machine; re-pin `setup-baseline.raw.txt` if appkit-service alone trips the 10% gate.
-6. CHANGELOG straddle hygiene: move leftover `[Unreleased]` bullets under version headings at the train cut.
+6. ~~CHANGELOG straddle hygiene: move leftover `[Unreleased]` bullets under version headings at the train cut.~~ done (CHANGELOG straddle handled at the v4.11.0 cut)
 
 **Decisions awaiting the user**
 7. `/sse` endpoint posture (A-D one-pager ready: `docs/planning/2026-08-30_sse-endpoint-shape-decision.md`).
@@ -78,7 +84,7 @@ Nothing destroyed this session — but three real process failures surfaced (two
 11. `setup.NewFromSystem()` bridge — build or reject (ROADMAP OQ12).
 
 **Upstream asks (go-cqrs-lite)**
-12. Teach `cqrs-upgrade` multi-module/workspace mode (22 manual runs per sweep).
+12. ~~Teach `cqrs-upgrade` multi-module/workspace mode (22 manual runs per sweep).~~ done (cqrs-upgrade --workspace shipped upstream; used 2026-09-20)
 13. Decouple `stack/v4` root package from `metaengine/v4`.
 14. Expose checkpoint/DLQ store injection on `system.New` (closes the declarative path's one honest gap before ProjectionLayer removal).
 
@@ -87,7 +93,7 @@ Nothing destroyed this session — but three real process failures surfaced (two
 16. Migrate `stack.Bundle` ×2 → `system.New` composition (ADR-0123; overlaps #2/#3).
 17. Migrate `storage.SQLViewStore` ×34 → metaengine engines + layout planning (ADR-0126; largest, wait for API maturity).
 18. Remove `ProjectionLayer` itself in the v5 bundle (prep is now DONE).
-19. Re-run `cqrs-upgrade -dry-run` after the next train to refresh the V007 list.
+19. ~~Re-run `cqrs-upgrade -dry-run` after the next train to refresh the V007 list.~~ done (cqrs-upgrade -dry-run --workspace run 2026-09-20 (78 findings))
 
 **Tooling & gates**
 20. Extend `check-docs-freshness` to pin the NEW templ-components phrasing (direct-consumers vs indirect split is currently prose-only).
@@ -99,9 +105,9 @@ Nothing destroyed this session — but three real process failures surfaced (two
 
 **Tests & hardening**
 26. SSE backlog: `transport/serve_test.go` gaps (replay-before-subscribe, heartbeat join-on-exit, close-mid-stream, concurrent clients).
-27. SSE backlog: `WithSSEMaxReplay` handler option + shared `SSEOptions` struct.
+27. ~~SSE backlog: `WithSSEMaxReplay` handler option + shared `SSEOptions` struct.~~ done (WithSSEMaxReplay handler option + SSEOptions shipped)
 28. SSE backlog: fuzz `DomainEventToSSE`; e2e `/sse` reconnect-with-replay scenario.
-29. SSE backlog: cross-module identical-wire-format contract test; `Retry` field on replayed events.
+29. ~~SSE backlog: cross-module identical-wire-format contract test; `Retry` field on replayed events.~~ done (replayed Retry hint + cross-module contract test shipped)
 30. `JournalSSEStore.EventsAfter` bench on large journals.
 31. Parametrize MORE declarative tests over the engine matrix (today only lifecycle+authz run on SQLite; tenant/bot/membership suites are memory-only).
 32. Add a declarative-test for `Enforce` role inheritance edges (super_admin implies all) — currently only admin/viewer covered.
@@ -110,15 +116,15 @@ Nothing destroyed this session — but three real process failures surfaced (two
 **Docs**
 34. `docs/guides/declarative-projections.md`: add a checkpoint-store section update once upstream ships the injection option (link from #14).
 35. Link the new guide from `leveraging-system-metaengine.md` + FEATURES.md systemadapter row (cross-link sweep).
-36. setup/README: add `Config.CSRF` row adjacent to the security note (knob landed 2026-09-10; verify table completeness).
+36. ~~setup/README: add `Config.CSRF` row adjacent to the security note (knob landed 2026-09-10; verify table completeness).~~ done (setup/README CSRF row present)
 37. ROADMAP: record the direct-vs-indirect templ-components rationale so the next train sweep doesn't re-derive it.
-38. Annotate this report + the 2026-09-09 status refs in TODO_LIST sources (they cite pre-sweep state).
+38. ~~Annotate this report + the 2026-09-09 status refs in TODO_LIST sources (they cite pre-sweep state).~~ done (annotated 2026-09-20 (this sweep))
 
 **Repo hygiene**
 39. v4-branch filter-repo + force-push (27.7 MB binary blobs) — user gate.
 40. setup-demo blob purge from pushed master — user gate, low priority.
 41. loginpage cosmetic residuals (favicon edge glyphs, error-copy tone).
-42. Prune `docs/status/` archive README index as reports accumulate.
+42. ~~Prune `docs/status/` archive README index as reports accumulate.~~ done (docs/status/README.md counts + layout refreshed 2026-09-20)
 
 **Next-session process fixes**
 43. Start every TODO-execution session with the audit script pattern: for each item, `rg` the claimed file:line before believing it.
@@ -128,7 +134,7 @@ Nothing destroyed this session — but three real process failures surfaced (two
 47. Batch new test additions with an immediate per-module lint run (golines caught one overlong line today — cheap to catch at write time).
 48. Record `AuditEntryView` field naming (AggregateID, no Email) in the systemadapter README if one exists, else the guide.
 49. Evaluate whether `waitForView`-style polling deserves a small exported helper in systemadapter (consumers will all hand-roll it; v5 candidate, needs an owner call).
-50. After the train (#1): re-run the full gate battery (test-race/fuzz/flake/e2e/coverage) — the proven post-bump pass recipe.
+50. ~~After the train (#1): re-run the full gate battery (test-race/fuzz/flake/e2e/coverage) — the proven post-bump pass recipe.~~ done (full gate battery green post-train)
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

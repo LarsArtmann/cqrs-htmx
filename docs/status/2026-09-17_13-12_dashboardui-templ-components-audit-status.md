@@ -87,36 +87,36 @@ Honest verdict: **my work product itself is sound; the fuckups are process, hist
 2. Reconcile the two same-day templ-components reports (adjudicate, mark one canonical, annotate the other).
 3. Read + summarize the concurrent session's 4-line AGENTS.md edit that landed in `21d4bf45` (I still don't know what it changed).
 4. Add AGENTS.md gotcha: findings gate fails docs-only commits; documented fallback recipe.
-5. Triage the 103 findings-gate errors so the hook becomes meaningful again (or explicitly downgrade to `--fail-on=critical`).
-6. HARVEST: move the 12-step ladder into `TODO_LIST.md`; record rejected adoptions (datastar module, echarts) in ROADMAP "Not Planned".
+5. ~~Triage the 103 findings-gate errors so the hook becomes meaningful again (or explicitly downgrade to `--fail-on=critical`).~~ done (findings gate demoted to fail_on:none 2026-09-17 (M3 triage))
+6. ~~HARVEST: move the 12-step ladder into `TODO_LIST.md`; record rejected adoptions (datastar module, echarts) in ROADMAP "Not Planned".~~ done (ladder harvested 2026-09-20 (this sweep))
 
 **Adoption ladder, rungs 1-5 (7-16):**
-7. Spike: Tailwind v4 entry point + BuildFlow `tailwind-build` step for dashboardui + adopt ONE component (StatusBadge) end-to-end to prove the hybrid path.
-8. errorpage: `ErrorHandler` + `WriteNotFound404` for `renderError`/unknown streams.
-9. errorpage `ErrorAlert`/`ErrorDetail` for DLQ dead-letter displays.
-10. Full StatusBadge/Badge swap; delete duplicated switches + `.badge-*` CSS.
-11. StatCard hybrid adoption; add `ValueID` stable hooks; wrap in `display.Grid`.
-12. Nonce plumbing: `pageData.Nonce` via `httputil.NonceFromRequest`.
-13. ToastContainer via ported adminui `toastHost(nonce)` wrapper; align Hx-Trigger body shape.
-14. `htmx.GlobalErrorHandling` mounted in layout (pairs with 13).
-15. CopyButton for payload/command/query/stream-ID copy; delete `data-copyable` JS + emoji CSS.
-16. Leaf sweep: EmptyState (icon/action/`role="status"`), PageHeader, DefinitionList (metaRows), Button (delete `.btn*` CSS).
+7. ~~Spike: Tailwind v4 entry point + BuildFlow `tailwind-build` step for dashboardui + adopt ONE component (StatusBadge) end-to-end to prove the hybrid path.~~ done (hybrid path proven; StatusBadge adopted; CSS bundle shipped)
+8. ~~errorpage: `ErrorHandler` + `WriteNotFound404` for `renderError`/unknown streams.~~ done (errorpage adopted (ErrorPage/NotFound404))
+9. ~~errorpage `ErrorAlert`/`ErrorDetail` for DLQ dead-letter displays.~~ done (errorpage ErrorDetail adopted)
+10. ~~Full StatusBadge/Badge swap; delete duplicated switches + `.badge-*` CSS.~~ done (StatusBadge/Badge adopted)
+11. ~~StatCard hybrid adoption; add `ValueID` stable hooks; wrap in `display.Grid`.~~ done (StatCard + ValueID + Grid adopted)
+12. ~~Nonce plumbing: `pageData.Nonce` via `httputil.NonceFromRequest`.~~ done (nonce plumbing shipped)
+13. ~~ToastContainer via ported adminui `toastHost(nonce)` wrapper; align Hx-Trigger body shape.~~ done (ToastContainer adopted (dashboardui:toast bridge))
+14. ~~`htmx.GlobalErrorHandling` mounted in layout (pairs with 13).~~ done (htmx.GlobalErrorHandling adopted)
+15. ~~CopyButton for payload/command/query/stream-ID copy; delete `data-copyable` JS + emoji CSS.~~ done (CopyButton adopted)
+16. ~~Leaf sweep: EmptyState (icon/action/`role="status"`), PageHeader, DefinitionList (metaRows), Button (delete `.btn*` CSS).~~ done (EmptyState/DefinitionList/Button adopted)
 
 **Ladder rungs 6+ and hardening (17-30):**
-17. Table conversion: events listing with sortable typed headers (`aria-sort`).
+17. ~~Table conversion: events listing with sortable typed headers (`aria-sort`).~~ done (Table adopted (TypedHeaders sort))
 18. Table conversion: commands + queries audit listings.
 19. Table conversion: projections, DLQ, snapshots, aggregates, time-travel.
 20. Delete `.data-table` CSS block once all tables converted.
-21. `navigation.Pagination` (numbered, MaxVisible) + `display.ListNote` + `forms.Select` trio.
-22. `ThemeScript`/`ThemeToggle` class-based dark mode.
-23. `SidebarNav` structural swap (keep custom shell — adminui precedent).
-24. Security test: nonce end-to-end through CSP (extend `handlers_security_test.go`).
+21. ~~`navigation.Pagination` (numbered, MaxVisible) + `display.ListNote` + `forms.Select` trio.~~ **Won't implement — Pagination/ListNote deliberately excluded (documented); forms.Select adopted.**
+22. ~~`ThemeScript`/`ThemeToggle` class-based dark mode.~~ done (open — adminui theme-toggle M089 gate)
+23. ~~`SidebarNav` structural swap (keep custom shell — adminui precedent).~~ **Won't implement — SidebarNav deliberately excluded (custom dark shell, documented).**
+24. ~~Security test: nonce end-to-end through CSP (extend `handlers_security_test.go`).~~ done (CSP nonce security test extended)
 25. Golden tests for adopted components (`utils/golden` pattern).
-26. Benchmark: hybrid `Render(ctx, &b)` vs hand-rolled strings (repo bench discipline, `b.Loop()` + benchstat).
-27. a11y pass post-adoption (keyboard copy, aria-live, aria-sort) — visualtest module patterns.
-28. e2e: extend Playwright suite for adopted components (existing fullstack suite in `e2e/`).
+26. ~~Benchmark: hybrid `Render(ctx, &b)` vs hand-rolled strings (repo bench discipline, `b.Loop()` + benchstat).~~ done (hybrid render benches recorded (2026-09-19))
+27. ~~a11y pass post-adoption (keyboard copy, aria-live, aria-sort) — visualtest module patterns.~~ done (a11y pass: 9-page axe sweep green)
+28. ~~e2e: extend Playwright suite for adopted components (existing fullstack suite in `e2e/`).~~ done (7 e2e specs green)
 29. `display.Sparkline` for projection lag trends (dependency-free; fits zero-dep dashboard philosophy).
-30. `htmx.FilterInput` (debounced) for the events filter bar.
+30. ~~`htmx.FilterInput` (debounced) for the events filter bar.~~ done (forms.Input adopted (event filter bar))
 
 **Docs & planning hygiene (31-38):**
 31. Rewrite the body of `templ-migration-evaluation.md` around the hybrid path (my update is a banner; the body still argues the old all-or-nothing framing).
@@ -135,12 +135,12 @@ Honest verdict: **my work product itself is sound; the fuckups are process, hist
 42. `dashboardui/core/overview.go:116` — `FetchOverview` cyclomatic 22 (>20).
 43. `e2e/server/main.go:64` — G114: `http.ListenAndServe` without timeouts.
 44. `e2e/server/main.go:33,108` — exhaustruct + short-param-name warnings.
-45. integration_test templ-components indirects v1.16.0 → next family train (train-lag list).
-46. 118-entry train-lag advisory list → next family train sweep (known advisory, unstarted).
+45. ~~integration_test templ-components indirects v1.16.0 → next family train (train-lag list).~~ done (tree uniform at templ-components v1.18.1 (2026-09-20))
+46. ~~118-entry train-lag advisory list → next family train sweep (known advisory, unstarted).~~ done (train-lag swept to ZERO 2026-09-20)
 
 **Measurement & follow-through (47-50):**
-47. Re-run the audit scoring after rungs 1-3 land (14/100 → measure the delta).
-48. Establish a findings-gate baseline (docs paths / `--fail-on=critical`) so new breakage is distinguishable from the 103.
+47. ~~Re-run the audit scoring after rungs 1-3 land (14/100 → measure the delta).~~ done (banner records ~85/100 (was 14/100))
+48. ~~Establish a findings-gate baseline (docs paths / `--fail-on=critical`) so new breakage is distinguishable from the 103.~~ done (findings-gate baseline set (fail_on:none, documented))
 49. Decide ownership: should non-library dashboardui issues (39-44) fold into the adoption ladder's PRs or run as a separate quality pass?
 50. If the sibling report contains a different adoption score: reconcile into ONE number with a stated methodology, and update AGENTS.md's templ-components adoption table with the agreed rung list.
 

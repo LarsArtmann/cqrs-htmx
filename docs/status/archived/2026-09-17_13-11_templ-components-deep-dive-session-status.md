@@ -4,11 +4,17 @@
 **Session scope:** Library-deep-dive audit of `adminui/` vs `github.com/larsartmann/templ-components` (local repo at `/home/lars/projects/templ-components`). Per instruction, this report covers ONLY this session's run and what it observed — no new research was done for it.
 **Format note:** User requested `.md`; the status-report skill's canonical format is styled HTML. Override honored once, not propagated.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): audit-only session; its roadmap was subsequently executed.
+> - **§b:** b3/b4/b6 DONE (AGENTS row synced, lint triage cleared, harvested); b2 (rubric) + b5 (protocol exercise) remain open.
+> - **§c:** c1 DONE (adminui adoption complete); c4 harvested; c2 (loginpage deep-dive), c3 (upstream StatusBadge), c5 open.
+> - **§f:** struck rows confirmed done (Tier-1 quick wins, Pagination, errorpage, PolledRegion, AppShell, lint triage, train-lag zero, uniform v1.18.1, dashboardui audit, Dropdown, harvest); unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (upstream StatusBadge; loginpage/setup audits; Tier-6 design swings).
+> - **§g:** hook question resolved (lint 0 issues / 15 modules); implementation question answered (roadmap executed); audit-scope question partly closed (dashboardui audited).
+
 ---
 
 ## Executive summary
 
-One deliverable shipped: **`docs/research/2026-09-17_templ-components-deep-dive.html`** — a 1254-line, evidence-cited audit answering "is adminui using templ-components to the max?" (verdict: **68/100, deep where adopted, narrow where not**). Plus one corrective doc fix: the stale AppShell blocker rationale in `AGENTS.md`. Zero production code changed. Nothing from the resulting roadmap has been implemented.
+One deliverable shipped: **`docs/research/2026-09-17_templ-components-deep-dive.html`** — a 1254-line, evidence-cited audit answering "is adminui using templ-components to the max?" (verdict: **68/100, deep where adopted, narrow where not**). Plus one corrective doc fix: the stale AppShell blocker rationale in `AGENTS.md`. Zero production code changed. ~~Nothing from the resulting roadmap has been implemented.~~ **SUPERSEDED — the adminui adoption roadmap was implemented 2026-09-17→19 (core-shell migration complete; ~15 of 22 capabilities adopted; see AGENTS.md adoption table).**
 
 ---
 
@@ -36,17 +42,17 @@ One deliverable shipped: **`docs/research/2026-09-17_templ-components-deep-dive.
 |---|------|----------------|
 | 1 | **Phase 7 (git workflow)** — the report IS committed, but my detailed commit message was never used: the auto-commit daemon raced the (hook-failed) manual commit, so history has two heuristic `chore: auto-commit` entries instead of one narrative commit. The audit's findings live only in the HTML file, not in commit history. | Rich commit message lost; nothing to do now short of an empty "docs:" pointer commit |
 | 2 | **Score 68/100** — the number is asserted with prose reasoning (depth high, breadth penalty, duplication penalty, currency green) but the weights were never written down as an explicit rubric. A re-run next month could produce a different number with no way to diff why. | Rubric table in the report |
-| 3 | **AGENTS.md adoption-table sync** — AppShell row fixed, but the `display.StatusBadge` row (AGENTS.md:110) still reads "custom — uses badge() wrapper" without the upstream-map-gap note, and the section header doesn't link the deep-dive report as the canonical audit. | 2 small row/header edits |
-| 4 | **Pre-commit hook failure triage** — classified as "pre-existing, unrelated" (true: I touched zero Go/nix/go.mod files) but never independently verified. Hook output showed golangci-lint failures in examples/{admin-demo,catalog-demo,middleware-demo,middleware-showcase,setup-demo}, gomod-check errors (systemadapter + examples/system-demo missing replace directives), nix-checker warnings — while AGENTS.md still claims "ALL 15 lint-checked modules at 0 issues (2026-08-14)". One of those claims is now wrong; I didn't determine which. | Run `golangci-lint run` in one failing example module to see if it's real drift vs the stale-buildflow-binary artifact (hook warned: "binary was built at 9d11c8f but HEAD is 0373c15"; also "9 tools unavailable (health check failed)") |
+| ~~3~~ | ~~**AGENTS.md adoption-table sync** — AppShell row fixed, but the `display.StatusBadge` row (AGENTS.md:110) still reads "custom — uses badge() wrapper" without the upstream-map-gap note, and the section header doesn't link the deep-dive report as the canonical audit.~~ done — AGENTS.md StatusBadge row documents the deliberate custom choice | ~~2 small row/header edits~~ |
+| ~~4~~ | ~~**Pre-commit hook failure triage** — classified as "pre-existing, unrelated" (true: I touched zero Go/nix/go.mod files) but never independently verified. Hook output showed golangci-lint failures in examples/{admin-demo,catalog-demo,middleware-demo,middleware-showcase,setup-demo}, gomod-check errors (systemadapter + examples/system-demo missing replace directives), nix-checker warnings — while AGENTS.md still claims "ALL 15 lint-checked modules at 0 issues (2026-08-14)". One of those claims is now wrong; I didn't determine which.~~ done — lint 0 issues / 15 modules | ~~Run `golangci-lint run` in one failing example module to see if it's real drift vs the stale-buildflow-binary artifact (hook warned: "binary was built at 9d11c8f but HEAD is 0373c15"; also "9 tools unavailable (health check failed)")~~ |
 | 5 | **Verification protocol (report §07)** — written as advice ("expect byte-identical output for F1/F5"), never exercised: I never opened `seed_render_test.go`/`layout_render_test.go` to confirm they're actually golden-style (diff-catching) vs render smoke tests, nor ran them once. The protocol's load-bearing assumption is unverified. | Read the two test files; run adminui tests once |
-| 6 | **Cross-skill follow-ups (deep-dive Phase 6)** — mentioned deduplicate-code/data-model-review as relevant but the report doesn't route any finding into TODO_LIST/ROADMAP; section (f) below is the input for a future docs-health HARVEST and hasn't been harvested. | HARVEST pass when user approves |
+| ~~6~~ | ~~**Cross-skill follow-ups (deep-dive Phase 6)** — mentioned deduplicate-code/data-model-review as relevant but the report doesn't route any finding into TODO_LIST/ROADMAP; section (f) below is the input for a future docs-health HARVEST and hasn't been harvested.~~ done — harvested 2026-09-20 (this sweep) | ~~HARVEST pass when user approves~~ |
 
 ## c) NOT STARTED
 
-1. **All 10 roadmap items from the report** — implementation of every fix (Flush, icons, PageHeader, FilterInput, upstream StatusBadge patch, Breadcrumbs, Pagination, errorpage, PolledRegion/loading states, AppShell pilot). The session was audit-only by design.
+1. ~~**All 10 roadmap items from the report** — implementation of every fix (Flush, icons, PageHeader, FilterInput, upstream StatusBadge patch, Breadcrumbs, Pagination, errorpage, PolledRegion/loading states, AppShell pilot). The session was audit-only by design.~~ done (adminui adoption COMPLETE (15 of 22 capabilities))
 2. **Same audit for dashboardui and loginpage** — dashboardui has a strictly larger library-adoption backlog (strings.Builder-based, per AGENTS.md), and loginpage hand-rolls everything; adminui was the named scope this session.
 3. **Upstream StatusBadge contribution to templ-components** — not filed, not drafted (would need verify-before-filing + github-voice skills).
-4. **TODO_LIST.md / ROADMAP.md updates** from section (f) — deliberately deferred pending user instruction (skill says HARVEST only if session continues with approval).
+4. ~~**TODO_LIST.md / ROADMAP.md updates** from section (f) — deliberately deferred pending user instruction (skill says HARVEST only if session continues with approval).~~ done (harvested 2026-09-20 (this sweep))
 5. **CHANGELOG entry** — no repo-facing behavior changed, but the new research doc could merit a line under an Unreleased/docs heading; not added.
 
 ## d) TOTALLY FUCKED UP
@@ -72,54 +78,54 @@ Nothing rises to "totally fucked up." Closest misses, in order of severity:
 > Brainstorm, not commitment — items 1–10 come straight from the report's Pareto roadmap; the rest are session-observed follow-ups and ROADMAP fuel. Impact-sorted within tiers.
 
 **Tier 1 — implement the audit's quick wins (items 1–6 = one focused session)**
-1. `Table.Flush: true` on the 5 Card+Table nestings; delete the global `.overflow-hidden > .overflow-x-auto !important` hack (tailwind.css:114–117)
-2. Rewrite `icon()` as a one-line delegate to `icons.IconWithStrokeWidth(name, "h-[18px] w-[18px]", 1.8)`; delete `iconSVG()` + `templ.Raw` (icons.go)
-3. `display.PageHeader` on all 6 pages; move "New tenant" button + status badges into `Action` slots
-4. Replace the hand-rolled search form with `forms.FilterInput` (DebounceMS: 350, Wire target `#users-table`)
+1. ~~`Table.Flush: true` on the 5 Card+Table nestings; delete the global `.overflow-hidden > .overflow-x-auto !important` hack (tailwind.css:114–117)~~ done (adminui core-shell migration complete (Table.Flush adopted))
+2. ~~Rewrite `icon()` as a one-line delegate to `icons.IconWithStrokeWidth(name, "h-[18px] w-[18px]", 1.8)`; delete `iconSVG()` + `templ.Raw` (icons.go)~~ done (icons.IconWithStrokeWidth adopted)
+3. ~~`display.PageHeader` on all 6 pages; move "New tenant" button + status badges into `Action` slots~~ done (PageHeader adopted)
+4. ~~Replace the hand-rolled search form with `forms.FilterInput` (DebounceMS: 350, Wire target `#users-table`)~~ done (forms.FilterInput adopted (users.templ, audit.templ))
 5. Upstream: add `suspended`/`deleted`/`verified` to templ-components `statusToBadgeMap`; then adopt `StatusBadge` in tenants.templ (collapses 3 if-else chains)
 6. `navigation.Breadcrumbs` on the 3 detail pages (composes into PageHeader.Breadcrumb)
-7. After each: re-render golden parity check + `nix fmt` + adminui test suite + update the AGENTS.md adoption table rows
+7. ~~After each: re-render golden parity check + `nix fmt` + adminui test suite + update the AGENTS.md adoption table rows~~ done (verification workflow applied across adoption runs)
 
 **Tier 2 — structural gaps (second session)**
-8. `navigation.Pagination` on users/tenants/audit: parse `page` query param in the 3 list handlers, compute TotalPages from `capList`'s total
-9. `errorpage.WriteError`/`ErrorAlert` across the 12–14 handler error paths; stop the `err.Error()` response leaks (handler_tenants.go:45,78,89,100)
-10. `htmx.PolledRegion` on the dashboard stats grid (the panel's only live element today is the sync bar)
+8. ~~`navigation.Pagination` on users/tenants/audit: parse `page` query param in the 3 list handlers, compute TotalPages from `capList`'s total~~ done (navigation.Pagination adopted (users/tenants/audit))
+9. ~~`errorpage.WriteError`/`ErrorAlert` across the 12–14 handler error paths; stop the `err.Error()` response leaks (handler_tenants.go:45,78,89,100)~~ done (errorpage adopted across handler paths)
+10. ~~`htmx.PolledRegion` on the dashboard stats grid (the panel's only live element today is the sync bar)~~ done (htmx.PolledRegion adopted (dashboard stats))
 11. `htmx.LoadingButton` on mutating forms; `feedback.Spinner` + `hx-indicator` on tables
 12. `forms.Form` (CSRFToken + Layout:Inline) on the 4 hand-rolled `<form>` elements — adopt opportunistically
 13. `EmptyState` `Action` slot (e.g. "Create your first tenant") — currently only 3 of the props used
-14. AppShell/SidebarNav migration pilot on a branch (~95 lines deletable: layout.templ:27–97, admin.js:17–29, scrim) — or close it explicitly with the corrected AGENTS.md rationale
+14. ~~AppShell/SidebarNav migration pilot on a branch (~95 lines deletable: layout.templ:27–97, admin.js:17–29, scrim) — or close it explicitly with the corrected AGENTS.md rationale~~ done (AppShell + SidebarNav adopted (2026-09-17→19))
 15. `utils.Class` adoption where class strings are concatenated manually (minor DX)
 
 **Tier 3 — verify/repair what this session observed (unchanged code, noticed state)**
-16. Triage the pre-commit hook's golangci-lint failures in examples/* — real drift vs stale buildflow binary (`nix build . && nix run .#reinstall`, then re-run)
-17. Reconcile AGENTS.md's "ALL 15 lint-checked modules at 0 issues (2026-08-14)" claim with current hook reality; fix whichever is wrong
-18. Investigate gomod-check errors: systemadapter/go.mod + examples/system-demo/go.mod "sub-module required but has no replace directive"
+16. ~~Triage the pre-commit hook's golangci-lint failures in examples/* — real drift vs stale buildflow binary (`nix build . && nix run .#reinstall`, then re-run)~~ done (lint 0 issues / 15 modules)
+17. ~~Reconcile AGENTS.md's "ALL 15 lint-checked modules at 0 issues (2026-08-14)" claim with current hook reality; fix whichever is wrong~~ done (AGENTS.md claim reconciled)
+18. ~~Investigate gomod-check errors: systemadapter/go.mod + examples/system-demo/go.mod "sub-module required but has no replace directive"~~ done (replaces stripped; systemadapter/v4.11.0 tagged)
 19. gomod-check warnings: mixed direct/indirect require blocks (root go.mod:44, examples/samber-do-demo/go.mod:94) — `go mod tidy -go=1.17` style split
 20. Rebuild/reinstall the stale buildflow binary (built at 9d11c8f, HEAD is ahead) so hook verdicts reflect current code
 21. Check the "9 tools unavailable (health check failed)" from the hook — which tools, why
-22. Train-lag family sweep candidate (118 requires): httputil v1.1.1→v1.2.0, go-error-family v0.10.0→v0.10.1, go-branded-id v0.5.1→v0.6.0, go-codec v0.2.0→v0.3.0 (+ per-module stragglers go-retry v0.6.0→v0.7.0, go-health v0.1.3→v0.2.0, go-health-dashboard v0.7.0→v0.9.0, go-atomic-write v0.5.1→v0.5.2, go-appkit v0.4.0→v0.5.0)
-23. integration_test's templ-components v1.16.0 indirects — intentional per AGENTS.md, but they're now the only thing blocking the "uniform-at" CI drift gate from going green; plan the catch-up train
+22. ~~Train-lag family sweep candidate (118 requires): httputil v1.1.1→v1.2.0, go-error-family v0.10.0→v0.10.1, go-branded-id v0.5.1→v0.6.0, go-codec v0.2.0→v0.3.0 (+ per-module stragglers go-retry v0.6.0→v0.7.0, go-health v0.1.3→v0.2.0, go-health-dashboard v0.7.0→v0.9.0, go-atomic-write v0.5.1→v0.5.2, go-appkit v0.4.0→v0.5.0)~~ done (train-lag swept to ZERO 2026-09-20)
+23. ~~integration_test's templ-components v1.16.0 indirects — intentional per AGENTS.md, but they're now the only thing blocking the "uniform-at" CI drift gate from going green; plan the catch-up train~~ done (tree uniform at templ-components v1.18.1 (2026-09-20))
 24. vulnix CVE noise from the hook (binutils/bison/curl derivations) — decide bump-vs-accept policy for nix store inputs
 25. Verify the report's §07 protocol assumptions: open seed_render_test.go/layout_render_test.go, confirm golden-test semantics, run adminui suite once
 
 **Tier 4 — extend the audit**
-26. Run the same deep-dive for **dashboardui** (biggest expected gap: strings.Builder vs templ-components)
+26. ~~Run the same deep-dive for **dashboardui** (biggest expected gap: strings.Builder vs templ-components)~~ done (dashboardui deep-dive report exists (2026-09-17_13-12))
 27. Run it for **loginpage** (hand-rolls everything; AuthLayout/forms.Form/feedback.Alert adoption per AGENTS.md)
 28. Run it for **setup/** (mounts adminui + dashboardui panels; check Bundle surface vs library)
 29. Extract cross-module patterns from the three audits into one adoption matrix doc
 30. File the StatusBadge upstream contribution via verify-before-filing + github-voice
 31. Check upstream interest in a `FilterInput` icon slot (the one functional gap found in an adopted-adjacent component)
 32. Assess `display.Scrollback` for the audit-log page (terminal-style log is arguably a better fit than a table)
-33. Assess `display.Dropdown` for the header user identity (email + sign-out currently two loose elements)
+33. ~~Assess `display.Dropdown` for the header user identity (email + sign-out currently two loose elements)~~ done (display.Dropdown adopted (header identity menu))
 34. Consider `display.DefinitionGrid` for user-detail vs current Grid-of-StatCards + DefinitionList mix
 
 **Tier 5 — process/docs hygiene**
-35. HARVEST section (f) into TODO_LIST.md (items 1–15) and ROADMAP.md (items 22–34) via docs-health, applying extra rigor to Tier 5 brainstorm items
+35. ~~HARVEST section (f) into TODO_LIST.md (items 1–15) and ROADMAP.md (items 22–34) via docs-health, applying extra rigor to Tier 5 brainstorm items~~ done (harvested 2026-09-20 (this sweep))
 36. Add the deep-dive report link to AGENTS.md's templ-components section header
 37. Update AGENTS.md `display.StatusBadge` row with the upstream-map-gap note
 38. Add CHANGELOG entry for the research doc (docs-only note)
 39. Write the audit scoring rubric into the report (or a companion note) so future re-scores are diffable
-40. Archive/annotate this status report after the next session supersedes it (docs-health ANNOTATE mode)
+40. ~~Archive/annotate this status report after the next session supersedes it (docs-health ANNOTATE mode)~~ done (annotated + archived 2026-09-20 (this sweep))
 
 **Tier 6 — bigger swings (ROADMAP fuel, needs design)**
 41. Design pagination + error-page UX once for all three UI modules (adminui/dashboardui/loginpage) instead of three bespoke implementations
