@@ -551,9 +551,10 @@ func tenantDetailContent(d tenantDetailData) templ.Component {
 					Variant: display.ButtonPrimary,
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"hx-post":         d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
-						"hx-confirm":      "Reactivate this tenant?",
-						"hx-disabled-elt": "this",
+						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
+						"data-confirm":       "Reactivate this tenant? Members regain access immediately.",
+						"data-confirm-title": "Reactivate tenant",
+						"hx-disabled-elt":    "this",
 					}},
 				}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -565,9 +566,10 @@ func tenantDetailContent(d tenantDetailData) templ.Component {
 					Variant: display.ButtonSecondary,
 					Size:    display.ButtonSizeSM,
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"hx-post":         d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
-						"hx-confirm":      "Suspend this tenant?",
-						"hx-disabled-elt": "this",
+						"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
+						"data-confirm":       "Suspend this tenant? Members lose access until it is reactivated.",
+						"data-confirm-title": "Suspend tenant",
+						"hx-disabled-elt":    "this",
 					}},
 				}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -580,9 +582,10 @@ func tenantDetailContent(d tenantDetailData) templ.Component {
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"hx-post":         d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
-					"data-confirm":    "Delete this tenant and remove all memberships? This cannot be undone.",
-					"hx-disabled-elt": "this",
+					"hx-post":            d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
+					"data-confirm":       "Delete this tenant and remove all memberships? This cannot be undone.",
+					"data-confirm-title": "Delete tenant",
+					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

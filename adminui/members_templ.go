@@ -206,10 +206,10 @@ func membersRows(d tenantDetailData) templ.Component {
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"hx-post":         d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
-					"hx-confirm":      "Remove " + m.Actor.PrefixedString() + " from this tenant?",
-					"data-confirm":    "Remove " + m.Actor.PrefixedString() + " from this tenant?",
-					"hx-disabled-elt": "this",
+					"hx-post":            d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
+					"data-confirm":       "Remove " + m.Actor.PrefixedString() + " from this tenant?",
+					"data-confirm-title": "Remove member",
+					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

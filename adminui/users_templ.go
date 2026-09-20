@@ -536,10 +536,10 @@ func userDetailContent(d userDetailData) templ.Component {
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"hx-post":         d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
-					"hx-confirm":      "Delete user " + d.User.Email + "?",
-					"data-confirm":    "Delete user " + d.User.Email + "? This cannot be undone.",
-					"hx-disabled-elt": "this",
+					"hx-post":            d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
+					"data-confirm":       "Delete user " + d.User.Email + "? This cannot be undone.",
+					"data-confirm-title": "Delete user",
+					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -796,9 +796,10 @@ func externalAccountRows(d userDetailData) templ.Component {
 				Size:    display.ButtonSizeSM,
 				Icon:    icon("trash"),
 				BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-					"hx-post":         d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
-					"hx-confirm":      "Unlink " + ea.Provider + " from " + d.User.Email + "?",
-					"hx-disabled-elt": "this",
+					"hx-post":            d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
+					"data-confirm":       "Unlink " + ea.Provider + " from " + d.User.Email + "? The account can be linked again later.",
+					"data-confirm-title": "Unlink account",
+					"hx-disabled-elt":    "this",
 				}},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
