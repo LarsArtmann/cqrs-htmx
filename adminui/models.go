@@ -86,12 +86,20 @@ type dashboardData struct {
 	Recent []usermgmt.AuditEntry
 }
 
+// listPage carries the pagination footer state shared by all list pages.
+// TotalPages is always >= 1; the footer renders only when > 1.
+type listPage struct {
+	Page       int // current page, 1-based, clamped by pageBounds
+	TotalPages int
+}
+
 // usersListData drives the users index.
 type usersListData struct {
 	Users    []*identitymodel.User
-	Total    int // total matching the search (may exceed len(Users) when capped)
+	Total    int // total matching the search (may exceed len(Users) when paginated)
 	Search   string
 	BasePath string
+	listPage
 }
 
 // userDetailData drives a single user's page.
@@ -108,6 +116,7 @@ type tenantsListData struct {
 	Tenants  []*usermgmt.Tenant
 	Total    int
 	BasePath string
+	listPage
 }
 
 // tenantDetailData drives a single tenant's page with its members. It is also
@@ -140,5 +149,7 @@ func toMemberRows(memberships []*identitymodel.Membership) []memberRow {
 // auditData drives the audit log page.
 type auditData struct {
 	Entries  []usermgmt.AuditEntry
+	Total    int
 	BasePath string
+	listPage
 }

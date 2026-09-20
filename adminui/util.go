@@ -1,7 +1,10 @@
 package adminui
 
 import (
+	"net/http"
+	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
@@ -87,6 +90,59 @@ func capList[T any](in []T) ([]T, int) {
 		return in, total
 	}
 	return in[:MaxListRows], total
+}
+
+// listPageSize is the number of rows per page on paginated lists (users,
+// tenants, audit). Every row stays reachable — the pagination footer advances
+// the window — while a single page render stays bounded on large datasets.
+const listPageSize = 50
+
+// pageBounds clamps a 1-based page request against a total row count and
+// returns the slice window plus footer metadata: offset/limit select the
+// page's rows, totalPages is always >= 1 (an empty list is one empty page),
+// and current is the clamped page number. pageSize <= 0 falls back to
+// listPageSize.
+func pageBounds(page, total, pageSize int) (offset, limit, totalPages, current int) {
+	if pageSize <= 0 {
+		pageSize = listPageSize
+	}
+	totalPages = (total + pageSize - 1) / pageSize
+	if totalPages < 1 {
+		totalPages = 1
+	}
+	current = page
+	if current < 1 {
+		current = 1
+	}
+	if current > totalPages {
+		current = totalPages
+	}
+	offset = (current - 1) * pageSize
+	limit = min(pageSize, total-offset)
+	if limit < 0 {
+		limit = 0
+	}
+	return offset, limit, totalPages, current
+}
+
+// parsePageQuery reads the "page" query parameter, treating missing,
+// malformed, or non-positive values as page 1.
+func parsePageQuery(r *http.Request) int {
+	n, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil || n < 1 {
+		return 1
+	}
+	return n
+}
+
+// listPageURL builds the pagination BaseURL for a list page, preserving an
+// active search query so page links keep the filter applied. The pagination
+// component appends or replaces the page parameter on this URL.
+func listPageURL(base, search string) string {
+	if search == "" {
+		return base
+	}
+	return base + "?" + url.Values{"q": []string{search}}.Encode()
 }
 
 // roleSelectOptions builds a []forms.SelectOption from assignable roles,

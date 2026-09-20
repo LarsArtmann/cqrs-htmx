@@ -11,8 +11,11 @@ import (
 func (h *Handler) usersIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	matched := filterUsers(h.config.Service.ReadModel().AllUsers(), q)
-	users, total := capList(matched)
-	d := usersListData{Users: users, Total: total, Search: q, BasePath: h.config.BasePath}
+	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(matched), listPageSize)
+	d := usersListData{
+		Users: matched[offset : offset+limit], Total: len(matched), Search: q,
+		BasePath: h.config.BasePath, listPage: listPage{Page: page, TotalPages: totalPages},
+	}
 
 	if cqrshtmx.RenderPartial(r) {
 		renderPartial(w, r, usersTableContent(d))
@@ -99,8 +102,7 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request, _ *identity
 		reason = "deleted via admin panel"
 	}
 	if err := h.config.Service.DeleteUser(r.Context(), target, reason); err != nil {
-		triggerToast(w, "err", "Delete failed: "+err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		h.writeActionError(w, r, "Delete user", err)
 		return
 	}
 	triggerToast(w, "ok", "User deleted")
@@ -134,8 +136,7 @@ func (h *Handler) userUnlinkExternal(w http.ResponseWriter, r *http.Request, _ *
 		return
 	}
 	if err := h.config.Service.UnlinkExternalAccount(r.Context(), target, provider); err != nil {
-		triggerToast(w, "err", "Unlink failed: "+err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		h.writeActionError(w, r, "Unlink "+provider, err)
 		return
 	}
 	triggerToast(w, "ok", provider+" account unlinked")

@@ -7,14 +7,98 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/errorpage"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // errorFamilyFor maps an HTTP status to the errorpage visual family.
 func errorFamilyFor(status int) errorpage.Family {
+	switch status {
+	case http.StatusConflict:
+		return errorpage.FamilyConflict
+	case http.StatusServiceUnavailable:
+		return errorpage.FamilyTransient
+	case http.StatusInternalServerError:
+		return errorpage.FamilyCorruption
+	}
 	if status >= 500 {
 		return errorpage.FamilyInfrastructure
 	}
 	return errorpage.FamilyRejection
+}
+
+// actionErrorMessages maps known domain error codes to user-safe guidance.
+// Codes come from the usermgmt deciders; unknown codes fall back to a
+// family-level message. Raw err.Error() text is never rendered to users — it
+// leaks internal detail (stream IDs, storage errors) that helps no one.
+var actionErrorMessages = map[string]string{
+	"usermgmt.tenant.already_exists":         "A tenant with this ID already exists. Pick a different identifier.",
+	"usermgmt.tenant.name_required":          "A tenant name is required.",
+	"usermgmt.tenant_suspend.not_found":      "This tenant no longer exists. Refresh the list and try again.",
+	"usermgmt.tenant_reactivate.not_found":   "This tenant no longer exists. Refresh the list and try again.",
+	"usermgmt.tenant_delete.not_found":       "This tenant no longer exists. Refresh the list and try again.",
+	"usermgmt.tenant_delete.already_deleted": "This tenant is already deleted.",
+	"usermgmt.email_exists":                  "That email address is already registered.",
+	"usermgmt.user_not_found":                "That user no longer exists. Refresh the list and try again.",
+	"usermgmt.user_id_exists":                "That user ID is already taken.",
+	"usermgmt.membership.already_exists":     "That member is already in this tenant. Change their role instead.",
+	"usermgmt.membership.actor_required":     "A valid member identifier is required.",
+	"usermgmt.membership_roles.not_found":    "That membership no longer exists. Refresh the page.",
+	"usermgmt.membership_remove.not_found":   "That membership no longer exists. Refresh the page.",
+	"usermgmt.validation":                    "Some values are invalid. Check the form and try again.",
+}
+
+// actionErrorFallback returns the family-level fallback message shown when
+// the error code is not in the table.
+func actionErrorFallback(f errorfamily.Family) string {
+	switch f {
+	case errorfamily.Rejection:
+		return "The request was rejected. Check the values and try again."
+	case errorfamily.Conflict:
+		return "The record changed since you loaded it. Refresh and try again."
+	case errorfamily.Transient:
+		return "The service is temporarily unavailable. Try again in a moment."
+	case errorfamily.Corruption:
+		return "Something is wrong with the stored data. This has been logged for investigation."
+	case errorfamily.Infrastructure:
+		return "A backing service failed. Try again in a moment."
+	default:
+		return "The request failed. Try again."
+	}
+}
+
+// actionErrorStatus maps an errorfamily Family to its HTTP status (mirrors
+// errorpage.FamilyStatusCode).
+func actionErrorStatus(f errorfamily.Family) int {
+	switch f {
+	case errorfamily.Rejection:
+		return http.StatusBadRequest
+	case errorfamily.Conflict:
+		return http.StatusConflict
+	case errorfamily.Transient:
+		return http.StatusServiceUnavailable
+	case errorfamily.Corruption:
+		return http.StatusInternalServerError
+	case errorfamily.Infrastructure:
+		return http.StatusServiceUnavailable
+	default:
+		return http.StatusInternalServerError
+	}
+}
+
+// writeActionError reports a failed write action with a user-safe message:
+// a toast for the immediate feedback loop plus a themed error page (bare for
+// HTMX swaps). The raw error is logged server-side with its code, never shown.
+func (h *Handler) writeActionError(w http.ResponseWriter, r *http.Request, action string, err error) {
+	family := errorfamily.Classify(err)
+	code := errorfamily.Code(err)
+	message, known := actionErrorMessages[code]
+	if !known {
+		message = actionErrorFallback(family)
+	}
+	slog.WarnContext(r.Context(), "adminui: action failed",
+		"action", action, "family", family.String(), "code", code, "error", err)
+	triggerToast(w, "err", action+" failed: "+message)
+	h.writeErrorPage(w, r, actionErrorStatus(family), action+" failed", message)
 }
 
 // isHTMXRequest reports whether the request comes from an HTMX swap (in which
