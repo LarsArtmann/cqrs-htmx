@@ -1,3 +1,12 @@
+# Posture (reviewed 2026-09-20, TODO_LIST hygiene micro-pack):
+# - Only root, usermgmt, and integration_test are covered ON PURPOSE. The
+#   larsartmann/* family dependencies ride coordinated release trains
+#   (check-release-train gate), so dependabot's job here is the third-party
+#   surface (casbin, templ, ginkgo, ...), which these three modules watch.
+#   The other 24 modules share those deps via the train process; adding them
+#   would duplicate every bump as 24 PRs.
+# - open-pull-requests-limit 5 + weekly keeps PR noise bounded; the two
+#   gomod entries without an explicit limit use the same default (5).
 version: 2
 updates:
   - package-ecosystem: gomod

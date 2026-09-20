@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cqrs-htmx — All-TODO Pareto Comprehensive Execution Plan (2026-09-20)</title>
+    <style>
+      :root {
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+        --radius: 0px;
+        --font-heading: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      section[id], [id] { scroll-margin-top: 60px; }
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      a:focus-visible { outline-offset: -1px; }
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .layout { display: flex; gap: 2.5rem; padding: 2rem; }
+      .sidebar {
+        width: 220px; flex-shrink: 0; position: sticky; top: 1rem; align-self: flex-start;
+        height: calc(100vh - 2rem); overflow-y: auto; display: none;
+      }
+      .sidebar nav { display: flex; flex-direction: column; gap: 0; }
+      .sidebar .label {
+        font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.14em; color: var(--accent); margin-bottom: 0.75rem; padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem; color: var(--text-muted); text-decoration: none; padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent; transition: all 0.15s ease; line-height: 1.4; font-weight: 500;
+      }
+      .sidebar a:hover, .sidebar a.active {
+        color: var(--accent); border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main { flex: 1; min-width: 0; }
+      h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 0.6rem; }
+      h2 {
+        font-size: 1.4rem; margin: 2.5rem 0 1rem; padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong); display: flex; align-items: baseline; gap: 0.6rem;
+      }
+      h2 .num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 700; letter-spacing: 0.06em; }
+      h3 { font-size: 1.1rem; margin: 1.4rem 0 0.4rem; font-weight: 700; }
+      h4 { font-size: 0.98rem; margin: 0 0 0.3rem; font-weight: 700; }
+      p { margin: 0 0 1rem; }
+      .hero { padding: 1.5rem 0 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border-strong); }
+      .hero-badge {
+        display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.14em; color: var(--surface); background: var(--accent);
+        padding: 0.3rem 0.7rem; margin-bottom: 0.9rem;
+      }
+      .hero-subtitle { font-size: 1.05rem; color: var(--text-muted); max-width: 70ch; margin: 0; }
+      .card {
+        background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem; border-left: 4px solid var(--border-strong);
+      }
+      .card-problem { border-left-color: var(--problem); background: color-mix(in srgb, var(--problem) 8%, var(--surface-raised)); }
+      .card-solution { border-left-color: var(--solution); background: color-mix(in srgb, var(--solution) 8%, var(--surface-raised)); }
+      .card-warning { border-left-color: var(--warning); background: color-mix(in srgb, var(--warning) 8%, var(--surface-raised)); }
+      .badge {
+        display: inline-block; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+        letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong); color: var(--text-muted); white-space: nowrap;
+      }
+      .badge-critical { color: var(--problem); border-color: var(--problem); }
+      .badge-high { color: var(--warning); border-color: var(--warning); }
+      .badge-medium { color: var(--accent); border-color: var(--accent); }
+      .badge-low { color: var(--text-muted); }
+      .badge-fixed { color: var(--solution); border-color: var(--solution); }
+      .badge-gate { color: var(--problem); border-color: var(--problem); border-style: double; }
+      .stat-grid, .scorecard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+      .stat-card, .score-card {
+        background: var(--surface-raised); border: 1px solid var(--border); padding: 1.1rem 1rem; position: relative;
+      }
+      .stat-card::before, .score-card::before {
+        content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border-strong);
+      }
+      .stat-bad::before { background: var(--problem); }
+      .stat-good::before { background: var(--solution); }
+      .stat-warn::before { background: var(--warning); }
+      .stat-value, .score {
+        font-family: var(--font-heading); font-size: 2rem; font-weight: 800; line-height: 1;
+        letter-spacing: -0.03em; color: var(--text);
+      }
+      .stat-good .stat-value { color: var(--solution); }
+      .stat-warn .stat-value { color: var(--warning); }
+      .stat-bad .stat-value { color: var(--problem); }
+      .stat-label, .score-card .label {
+        font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+        letter-spacing: 0.1em; color: var(--text-faint); margin-top: 0.5rem;
+      }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+      th {
+        text-align: left; padding: 0.6rem 0.9rem; background: var(--surface-raised); color: var(--text-faint);
+        font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em;
+        text-transform: uppercase; border-bottom: 1px solid var(--border-strong);
+      }
+      td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+      tr:hover td { background: var(--surface-raised); }
+      code { font-family: var(--font-mono); }
+      p code, li code, td code { font-size: 0.88em; background: var(--surface-sunken); padding: 0.1rem 0.35rem; }
+      .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-faint); font-family: var(--font-mono); }
+      .svg-wrap { background: var(--surface-raised); border: 1px solid var(--border); padding: 0.5rem; margin: 1rem 0; overflow-x: auto; }
+      .svg-wrap svg { max-width: 100%; height: auto; display: block; }
+      .migration-step {
+        display: grid; grid-template-columns: 48px 1fr; gap: 1rem; margin: 1rem 0; padding: 1rem;
+        background: var(--surface-raised); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+      }
+      .migration-num { font-family: var(--font-mono); font-weight: 800; font-size: 1.5rem; color: var(--accent); line-height: 1; }
+      .migration-content h4 { margin-bottom: 0.2rem; }
+      .migration-content p { margin-bottom: 0; color: var(--text-muted); font-size: 0.92rem; }
+      @media (min-width: 1024px) { .sidebar { display: block; } }
+      @media (max-width: 768px) {
+        .layout { flex-direction: column; padding: 1rem; }
+        .top-bar { padding: 0.6rem 1rem; flex-wrap: wrap; gap: 0.3rem; }
+        .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        .migration-step { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Pareto Plan · All TODOs</span>
+      <span>2026-09-20 09:05</span>
+      <span>cqrs-htmx master @ 443dc00b</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#method">Method</a>
+          <a href="#graph">Execution Graph</a>
+          <a href="#comprehensive">Comprehensive Plan</a>
+          <a href="#tier1">Tier 1 · 1%→51%</a>
+          <a href="#tier2">Tier 2 · 4%→64%</a>
+          <a href="#tier3">Tier 3 · 20%→80%</a>
+          <a href="#gated">Gated &amp; Decisions</a>
+          <a href="#session">Session Log</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-badge">Pareto Comprehensive Execution Plan</div>
+          <h1>Every open TODO, broken to ≤12-minute tasks</h1>
+          <p class="hero-subtitle">
+            All 21 open TODO_LIST.md items (2026-09-18 revision, truth-checked against the tree
+            2026-09-20) expanded into 24 work packages and 94 schedulable micro-tasks — every task
+            bounded at 12 minutes, sorted by importance / impact / effort / customer value, with
+            every external gate made explicit. The 1% tier was executed in this session.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">21</div>
+            <div class="stat-label">Open TODO items</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">24</div>
+            <div class="stat-label">Work packages</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">94</div>
+            <div class="stat-label">Micro-tasks ≤12 min</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">9</div>
+            <div class="stat-label">External gates</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">4</div>
+            <div class="stat-label">User decisions owed</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">10</div>
+            <div class="stat-label">Executed this session</div>
+          </div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>Truth corrections found during planning (2026-09-20)</h4>
+          <p>
+            <strong>unconvert claim is stale:</strong> the hygiene micro-pack's
+            <code>projection_status_handler.go:54</code> finding no longer reproduces
+            (<code>golangci-lint --default=none --enable=unconvert</code> → 0 issues, hermetic
+            GOWORK=off run) — retired instead of "fixed".
+            <strong>dashboardui adoption program</strong> is further along than its TODO text says
+            (15/22 capabilities + N16/N17 hardening landed 2026-09-17→19; remainder is documented
+            deliberate exclusions) — TODO item re-scoped.
+            <strong>W12 and the P3 cqrs-lint CI item are the same work</strong> — merged.
+          </p>
+        </div>
+
+        <h2 id="method"><span class="num">01</span>Method</h2>
+        <p>
+          Pareto discipline: find the 1% of tasks delivering 51% of the result, then the 4% → 64%,
+          then the 20% → 80%; everything else is explicitly gated or parked with the gate named.
+          Every task is sized to fit a 12-minute focus block (user constraint, tighter than the
+          usual 15). Ranking composite: importance (P1/P2/P3) → impact → customer value → effort
+          ascending. Nothing is silently dropped: gated and parked items each carry their trigger.
+        </p>
+
+        <h2 id="graph"><span class="num">02</span>Execution Graph</h2>
+        <p>
+          Tier 1 (this session) unblocks docs + API surface; Tier 2 rides on it; Tier 3 tasks flow
+          in when their gates open. Red-bordered nodes are decision/gate clusters.
+        </p>
+        <div class="svg-wrap">
+          <?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.8.1-HEAD" preserveAspectRatio="xMinYMin meet" viewBox="0 0 2086 1444"><svg class="d2-1216884005 d2-svg" width="2086" height="1444" viewBox="-89 -145 2086 1444"><rect x="-89.000000" y="-145.000000" width="2086.000000" height="1444.000000" rx="0.000000" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-1216884005 .text {
+	font-family: "d2-1216884005-font-regular";
+}
+@font-face {
+	font-family: d2-1216884005-font-regular;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-1216884005 .text-bold {
+	font-family: "d2-1216884005-font-bold";
+}
+@font-face {
+	font-family: d2-1216884005-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-1216884005 .text-italic {
+	font-family: "d2-1216884005-font-italic";
+}
+@font-face {
+	font-family: d2-1216884005-font-italic;
+	src: url("data:application/font-woff;base64,d09GRgABAAAAABiMAAoAAAAAJPAAARhRAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgW1SVeGNtYXAAAAFUAAABAQAAAXxtvQ5bZ2x5ZgAAAlgAABCyAAAXsHre/t1oZWFkAAATDAAAADYAAAA2G7Ur2mhoZWEAABNEAAAAJAAAACQLeAj1aG10eAAAE2gAAAEVAAABRJHaB29sb2NhAAAUgAAAAKQAAACk/VUDCG1heHAAABUkAAAAIAAAACAAaQD2bmFtZQAAFUQAAAMmAAAIMgntVzNwb3N0AAAYbAAAACAAAAAg/8YAMgADAeEBkAAFAAACigJY//EASwKKAlgARAFeADIBIwAAAgsFAwMEAwkCBCAAAHcAAAADAAAAAAAAAABBREJPAAEAIP//Au7/BgAAA9gBESAAAZMAAAAAAeYClAAAACAAA3iclNA5T5pxAMfxzwP0oH16cfQ+HugFpS2UnlB6UHrRdmhcHImJL4DZwd3V12JiHDS6uztp1MTX8Td5JMbV3/5JvvkhkhUhlovGaEvkFCQee6Ku4bkXXmrq6OrpG/pv2sicecu2klJlsTobAhNTO2FaEzPwz5SRmYkpHpmwJ5F32x1XXBUrIyMOG2E9rIXVsB+WwmZYCOPdxs7K9kFaetpFfmj6ZuCnjz7p+q7llbbX3njrnfc+6Oj5LSMr54yzzjkv74KLYpdcTvuuKSgq6Su77oabbqXtd91z3wOJiqqHHqU/PFVT9+z4jT+++uWzL/4acggAAP//AQAA//++XTVnAAAAeJx8eAlwG+d1//c+gFgeIEgQFwHhILAAFjdILIDFQQAEQYIXwPuQJV46LUqyRR+05OjwIf9tWf9agTVKPLbV2I3dNBk3iUZOOo3jOLGVxrRceXo4rR3Han3RidWMbQ7rOJlwt7MLgITUY4az3MHu977v/d7v/d57i6qQFSF8Kz6HRKgGNaAmpEKIVphFIpphSI2IpiiSIBhKoSCs98Py/U+IM9s+cjz9B49J3HPfdwb+Y/45fG79INw7c8897PZTe/ZMXbvGuuBfriGEEOZeRwh+iQuoBskRUhA0ZbdTpEQCQCtIiiQ+iF2qFdeKxTqa/XvYvS030vSbBbh7cTG4PxK9mR3BhfXFK1cQAhTl1rAXn0cmhKosdnsomMR0QK0h7HbSIsMqpVpNB8KMRiIBy8C+cOu247nISHNYEbbH5jqtlv64I9NCWmekmSOD+XOHexiXs4VK7D7SHp8JtWwJmLz8WRGJEA4LZ1XwCNABtUopkZAUHQiHQ0E7SZInv/LwIxNPHZqcnDiWuXlXGBceuvvwD/Z0jH99x8wC7y8INhpxAdUJGBJmgiZIwkyQJ2F/PfuB63PZpzTYZbiQ/mXnF50V79dUvC8qve39vP6zdlxIf9jJ/msZgzg+jywCBv8LBAzJ0CKJBDx3HW/dft9IfETLKBhHcme3lcylrFGF7VT9G1HrrPTRI4PnDmc3gIjNhpsbf9jBfmi0bfixUPaDFpkVtIhUmEXkycEIOCL5k4Mp9q0kLrDXQLW+CBF2ubgGreECEhXXkCcHT/IBLNuDs7iAqkr2CPLk4F2grMeF9YtlHF7EBaQVnis0NCPsGA4zJCEiRTxnCBF5ciaqFmcvzZwcyNXopOKhlz0JtVgiq+7HBfYbp07BzvVFuN2z332WfRamz3oWPOyZku29uFCKqkJDh8OC9Q2rg193iSWy2u6Bk/lzbrGkoTaLC+z0w2230DC9vgjPPELvD7BPCRxp59bwLD6PGlFLZRTUKqUMU4Ek5nlSjAaYbl3yTS5l+/cEfZN3ZkJTSUv/IH/tkz52bKCw1N11dGzg0aXuTPvOpeiOpfjOpdj8XRs89ArYKyt5SIoUdKBMxB9N395/3/hCMD23Z3+udw8u9E8O39zGfgk9w0NRGm3YoXAB1SP1ph1CQYqus/SD6dtuHbtj7ODtTNeu2d0DvfO4kB3bfquc/QDU7CcwMZoN+4vclnJrwOLzyIWQxmKnGIFwoaCdoviEDIc32CiRqJRqjUYtnPvjzKIjaphg2ke8tpwrHpqOx+dNtDbrs4UMbdacPxjfK43F3O5AV8QaUPt0fUxgNBB0+IxOU+sWu1/t1fcwse1BBGgGIRzCBUTw3pCMmSBF31p6qR5er//pEs5nMuvPF885xK0J8VaXIiREmz8Snx8KITuMuw9IxP2DAzUd3ZFtqpHcqP5+6cJelV8Li+zDXks2P30AzrIHztzN2xtFCKcFHBEtohVqdYlB8Eh8aEtVtUisDel+OM5+BxfYc6FbwqFDQTgo0B4BmkNI5MEFZC7yXiIhimsVaqWqZIUUBcOMwMS5muFakUgs1rSqn+2pAbHSrTyTZ1d3ERjEMrP8eVxgHwseDIUOBmGBfSx4IBw+EISF9UV41DpEUTmKPSTEneLW4EtYRUqeAZpNpaAZWkTyO1G8TmzIxvMdOU//LE0l5GJFckeqWkxubbIPWT2qgN6aCZnapNsnsndP0w5zgtX12vwdPv/bdourbyaQShR5ZuLW4DO8jFR8JeGZQRKkgiZ4TwXOVWSGhCDU6k+ohFykTJ3JU2psHfcK24esmZCx1WkZIX1KWuowJ/DyS/MG97ZJfusOV98MnUy4bB/bLQiQjVuDi7CK9Nd5t8m8UiV4a2i3J78j5GlXexV2Q+tkOBprCasturx070zXHRN+i7ZVo+pazHRmdfKA0obK2GGqwpdN7P5v8GJNokZ7vlBCb9B2I3pUy9xL65Eb4cOCLz+FVaRDtsr9hEw1SzaqmogWShDv4YeTC96B6VYmbZRWsT+vacm4DFGN0TDyOIdFTU4yNCvdv6N7cdTjGw7oaVlq2KaV0yoT2Oqa6/VtpgkEyI0QPILfRBohj1K4MnMJoQC5J1J16caGwYTO1bSldovc7KyW75TumoBvR6tG+sfq6xiiNuAeS7JbecyAs8IqrCIT8lUqA8NIJOT17JNIRNeh91zbJGnVdzuS/TKtfdyfGHb3TbfZk3KRIrVXcUeUHLG41W16Mk0b/b+2G0IaS65jn90zOZG586YAz0fR3F4wu13/YLc4s1tb4/FizpkQgrfwcqmWbPKQEApKKMi7KTKdybc2ip2jnmSoOplrF4t79b2+brx8LUH60xGTlb0MHmVz/YDLx36b43ib6I/4IrajHEJIgvK9CCGO4x7gKPR74ffB4u/dm2f4HV5G0mLe8+dQkBRBmM7k5/Eftr6yNDizqMPLrAHgdfaj391+FAHycGvoj3gZNfEohoJFqVIpSxS4JS05mj8OIBdJCKhVS1NyLT6w/ihRI2oCHBeLN/bFn8Aqr9H8nkXXNSUAJNchUAnGjhQhto/ZY21V/q22RFgsTuYTYnGPqtfTzWOTVfe6u2Glz9rGODx0OiI3Kivx2bzbxB9WUXPlGW6En9/ROeq7Dn1hhxvB38hLeAdWUQMyVOZJUVyK7Vkx+d8cmvX0zwaG5jwDsy7vCB0O8Bfpvu3dd0z4iteOzsWuzp7MYldnVuhRv+Bo+AxWizlPVJxYhklBzQjFdfpVezolEdkmfELqB+ztCtxk+stK/bqCn+8weUuJb9r3FEBJwOy/sZnL/tCCRgt7VjG8sNyQK9dnCpjNRmzb6qvU6tNPVQrNlacO2/0bUr2eB7heqItxOQarqLEiLhrCXo5HndiQ82pVWxp11pwpASsznkRNV3Uqzl5BwP2JW4PjsIqoG2v/jaWfr/zFwv9M24y2VdNhdyWcEV/U0+fx9et9Ctpsbwu3JIOto9Kgw25y+EgdZdIlne60zWp0KHVek9HeZGn3eLts/JnbuTXYig9uaH2Y4RWLFlSqQut/1BEUQ7SnLmdNbzkqPR4V6S0yXZ280S9NeRt09dAUrXrwwST7SVOT0VhbxRANvO0ItwafwgqvE5rNPqGUcYqS3D+3kQ29hh5Pd44vkI5xaScjNykgzL6p0PI0ha2srp+kizkYRwjeg5X/3i/c35OziiVisdyq+GqeXYcV9mNygLT2WUHL6oprswjhV2FF6Bcq127eiUhRcYYiRAtkrhEAxA1bGu8dkGO+S9A13tP77pxM+NXQcBessO9buiyWLgsYK+50UEv2Wq29JPsFAu5NhOCfijiQCorWlLZiaEJDluY1gvD8avugq1pGiBtaGibGlncNearlteJGi2IW8IcH1ZRK6VQd/M/Pb1f71GqP5g6EgHuF88MHsIJ0CBECZ4SicB0iMiypbZFpm5psaW3TWM7Od1NyW9Of5dj3tfHefySIaE0iQMLH7KfmPEnmLCBf/9yf9whYcV8gBN+DFX52IhngG0KgidpqyLxbD4lq9ies1APHkl72/yX590WogVvDXfg8qkNtKIGQQqkpZ7VICH+YKXOZpy+h5nWTofk7DWGnJBKqSDc7f/9RnT1FNevcsbb+7f6cu6l10BcOh8d9qrTNmdBlTblWxt+SSLrmvxr1kd0tVKfGl4Z/t3s0vgipMQ+svz2WDQ8ndfFwZKot4aPzSUNwl8O9O9Z5NOiRJ5UhC/WML6LXuvcxpj5eL1zcGryBTyM5zwzN5gT8Pwwey4Eem6tvPhTIWp19c21UJmjw+ISrNLIredNfHOuJ7Upue/poNtF126muzFT3bae6OqcQ8HGCe/EJYeZj+A47zNAimtDV///522onmPid90s74GpAall/paOM/8/xaX4dySRFJYGkNsSTMBO11fNnZv10qCVtoTxTraNbXaPHxkAp9Y0c3XmTz9NuNrXanTd1hWbnF3s7eZu/59bgNXwaOW7QGZLZUHmCKlczVVFofpzeY6Q1/W1dU+N7pEPbqQBtyBiosZnhqYH+UDyxIE17HZbgQJTujDkTRldYr6FTw52JaZVY3htI3NTG48sLwhV8AtXyM5eZZMwM8L6TNpoJF7tzGOgl2d/WwOz48Jh0jOX+zi5pIsRKh/JCEJ5gF5PJnxjSZn2wuZjHiK9X+AQ/JW76seGAwkyQxAbTXkzPGgLqdMTV60kFTZ4W8zC4638blLu0vXOZW6Upr9McdOXpZHujXAfezherpRNjuUMJoY7Q3Bpcw6dRA/IgxCgrd5EoNdd9KeEL5OamR+MBeztJB7RDVlgID7u9w7d0hLqVQUt7YColM4+beyaYucvdE/5+B5O2+Os070d2pHY+c7izrcUZyxwdt1u3Dib38zxACwjhKnxC6HWSmDEzZkKGiSOG/kMj7GUZnKnddVdGc+TV7w53BmZe/MUtQi6auTX4FT6NTMiNomVGh8NMaKOeFCNsxPxhFWWnVEq1qOghn4Qqpfqqbyri7qL0xuBUwNnnyzJKh759h8HWHnF5skmjtcPhzFCBzj6ptS/S1h+Si/Vxism7WtKBjkmTuN4ZscTGvLCnuT/gD8ZDgTj7giHisNFOlX4gwpTmm0ZuDV4tY6woikA4WGo5FGVlC5fb3fLpZfiRYKB5mIR4wNZubQx2K4MtycBkqt48Zs5OMLNxZohHHb5bxFfKY82aWs08vKM2cutgaqGD2Zna8ezhziKnNNwaOoUO8vlZrFfFUGbVWkqvbrZJ9Wqdx6DWevg8eo+bRgV0kK/1fEYyZMUCZZ0/SmC1kTTo9Nue9TW1W3VqLWU19i0KPa2wzzK8iykUQx1wG5KgWOkbzlWoBS0SIcQXB1L6Tv3Vcs9NovfgOdAUn5kJsg6OS98Lh8vP8NXKZ/hCnfCM49AQSNHP4AFMoBiKQLOg67/mHoAL3N/w7xOMmbDWwWu1xwIBwVaaG4Yp/A6fr5oSZTQS4eOX5ivNZmZfv3f/wRql7ELHM6NLr/14Rvsg+2/f8O2dt/N23+SG0SeltVS4SSARU5QQ8O4/UNPUEOBNXNA9COY/9++dsys6vjm6dPkFfu3fcvPwTfwL4UxAQy9cjLD5p0V7//REEbMEt4Y/w08jCg0hH8gQhYZhG0KIQENwARUxakU3w2Xs4uPHhMgQHaJVtIpUXf3e99u/f+HmV6OXLkVfFXxED8ELWCa8RzEUo2E0hIagFhznzjnOnXN+7WvOcw85n3zSIfw5zwu2feghuIxlfC202UI2FUGoNBq4zO6G868fP/76Q9+K/VV6uFXcNoQwP6WV3q2vfLsqZFYVV1w+ceIyuxeeePLx9OPpAY/Y3f9uLFb0wQtiuARn+dkRLD68IfhGXP7+mtvio+xKNSl3a1Om4r210a1NgVhn0Rla9H5X8b+PH0ORkvsMJ3EVf+4qijGHzBQDKohQl9gO+NklCiSNrpdTL7vYL6s25ht0BVbK3xhNO/I7YUVongD14AF0EV/kcVNU0P2IwkhqlAYSD2jUWnOzWtuCQJjb3oAVngvE5sQq9H9tGlKurVU26s21h/KHZJm3a2uiEqLNja3r72Yn+VrBrUEHnEUN/GlunEUqK/HpWLrZ3+XmrxlK7zE2ttiEq3Qq7Z/O+6bSvpm8L2BL9ll97cWrwH8vtwbd+Oky1/4ZPgyyein+6/VxhNB/AQAA//8BAAD//yJhALQAAAABAAAAARhRnMVHDV8PPPUAAQPoAAAAANhdoMwAAAAA3WYvN/69/t0IHQPJAAIAAwACAAAAAAAAAAEAAAPY/u8AAAhA/r39vAgdA+gAwv/RAAAAAAAAAAAAAABReJwszjFL6mEcxfHv+f3Hey8KN/iXy0M8qZAZQUuSDQ7ZElghbdEUFEFTS3uvoLH30NTSaLUEQS0ugcMjzUVIaIT4hNJwOHDgwMdOmeMBNIqPVqBiW3gN8HrB2yYVO8EzxOsJb7d4O8bbGVUr4K2E1zd/NWLPDmnogx37ZN9mKNo0TtfkLaWoLnnlKNl/ZH9wvOF4j+fq4PhiIXE4+4ezhKKlsT/+axenizjUOlXLsqIWq3ZPXVexrVa802XsW52MAvMK5BRiXyEOFCYbCiwrcKTArAJZeqT0YnfcGruf8Ynw9GjoNXbkqSkf22rGmyRlTYElBWoKLP6mbNtMTeywMfEfkKEZyz8AAAD//wEAAP//JzlUjwAAAAAAAC4ALgBSAIQApgC+ANQBCgEkATIBQgFwAZYByAHsAhQCVAJoApACrgLoAyADWAOGA74D+AQgBGgEkgSeBKoExATmBSgFUgWABboF9AYSBk4GfAaoBsYHAAcsB1wHdAfSCAQIHAhGCIIIqgjeCSAJOgmQCdQJ6goIChQKIgowCj4KSApWCnQKkgqiCrQKyAriCvgLFgs+C1YLZAt6C5gLyAvYAAEAAABRAIwADABmAAcAAQAAAAAAAAAAAAAAAAAEAAN4nJyU204bVxSGPwfbbXq6qFBEbtC+TKVkTKMQJeHKlKCMinDqcXqQqkqDPT6I8czIM5iSJ+h136Jvkas+Rp+i6nW1fy+DHUVBIAT8e/Y6/Gutf21gk//YoFa/C/zdnBuusd382fAdvmgeGd5gv/mZ4ToPG/8YbjBovDXc5EGja/gT3tX/NPwpT+q/Gb7LVv3Q8Oc8rm8a/nLD8a/hr3jCuwWuwTP+MFxji8LwHTb51fAG97CYtTr32DHc4Gu2DTfZBnpMqEiZkDHCMWTCiDNmJJREJMyYMCRhgCOkTUqlrxmxkGP0wa8xERUzYkUcU+FIiUiJKRlbxLfyynmtjEOdZnbXpmJMzIk8TonJcOSMyMlIOFWcioqCF7RoUdIX34KKkoCSCSkBOTNGtOhwyBE9xkwocRwqkmcWkTOk4pxY+Z1Z+M70ScgojdUZGQPxdOKXyDvkCEeHQrarkY/WIjzE8aO8Pbdctt8S6NetMFvPu2QTM1c/U3Ul1c25JjjWrc/b5gfhihe4W/Vnncn1PRrof6XIJ5xp/gNNKhOTDOe2aBNJQZG7j2Nf55BIHfmJkB6v6PCGns5tunRpc0yPkJfy7dDF8R0djjmQRyi8uDuUYo75Bcf3hLLxsRPrz2JiCb9TmLpLcZypjimFeu6ZB6o1UYU3n7DfoXxNHaV8+tojb+k0v0x7FjMyVRRiOFUvl9oorX8DU8RUtfjZXt37bZjb7i23+IJcO+zVuuDkJ7dgdN1Ug/c0c66fgJgBOSey6JMzpUXFhXi/JuaMFMeBuvdKW1LRvvTxeS6kkoSpGIRkijOj0N/YdBMZ9/6a7p29JQP5e6anl1XdJotTr65m9EbdW95F1uVkZQItm2q+oqa+uGam/UQ7tco/km+p1y3nEaHiLnb7Q6/ADs/ZZY+xsvR1M7+886+Et9hTB05JZDWUpn0NjwnYJeApu+zynKfv9XLJxhkft8ZnNX+bA/bpsHdtNQvbDvu8XIv28cx/ie2O6nE8ujw9u/U0H9xAtd9o367eza4m56cxt2hX23FMzNRzcVurNbn7BP8DAAD//wEAAP//cqFRQAAAAAMAAP/1AAD/zgAyAAAAAAAAAAAAAAAAAAAAAAAAAAA=");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-1216884005 .fill-N1{fill:#0A0F25;}
+		.d2-1216884005 .fill-N2{fill:#676C7E;}
+		.d2-1216884005 .fill-N3{fill:#9499AB;}
+		.d2-1216884005 .fill-N4{fill:#CFD2DD;}
+		.d2-1216884005 .fill-N5{fill:#DEE1EB;}
+		.d2-1216884005 .fill-N6{fill:#EEF1F8;}
+		.d2-1216884005 .fill-N7{fill:#FFFFFF;}
+		.d2-1216884005 .fill-B1{fill:#0D32B2;}
+		.d2-1216884005 .fill-B2{fill:#0D32B2;}
+		.d2-1216884005 .fill-B3{fill:#E3E9FD;}
+		.d2-1216884005 .fill-B4{fill:#E3E9FD;}
+		.d2-1216884005 .fill-B5{fill:#EDF0FD;}
+		.d2-1216884005 .fill-B6{fill:#F7F8FE;}
+		.d2-1216884005 .fill-AA2{fill:#4A6FF3;}
+		.d2-1216884005 .fill-AA4{fill:#EDF0FD;}
+		.d2-1216884005 .fill-AA5{fill:#F7F8FE;}
+		.d2-1216884005 .fill-AB4{fill:#EDF0FD;}
+		.d2-1216884005 .fill-AB5{fill:#F7F8FE;}
+		.d2-1216884005 .stroke-N1{stroke:#0A0F25;}
+		.d2-1216884005 .stroke-N2{stroke:#676C7E;}
+		.d2-1216884005 .stroke-N3{stroke:#9499AB;}
+		.d2-1216884005 .stroke-N4{stroke:#CFD2DD;}
+		.d2-1216884005 .stroke-N5{stroke:#DEE1EB;}
+		.d2-1216884005 .stroke-N6{stroke:#EEF1F8;}
+		.d2-1216884005 .stroke-N7{stroke:#FFFFFF;}
+		.d2-1216884005 .stroke-B1{stroke:#0D32B2;}
+		.d2-1216884005 .stroke-B2{stroke:#0D32B2;}
+		.d2-1216884005 .stroke-B3{stroke:#E3E9FD;}
+		.d2-1216884005 .stroke-B4{stroke:#E3E9FD;}
+		.d2-1216884005 .stroke-B5{stroke:#EDF0FD;}
+		.d2-1216884005 .stroke-B6{stroke:#F7F8FE;}
+		.d2-1216884005 .stroke-AA2{stroke:#4A6FF3;}
+		.d2-1216884005 .stroke-AA4{stroke:#EDF0FD;}
+		.d2-1216884005 .stroke-AA5{stroke:#F7F8FE;}
+		.d2-1216884005 .stroke-AB4{stroke:#EDF0FD;}
+		.d2-1216884005 .stroke-AB5{stroke:#F7F8FE;}
+		.d2-1216884005 .background-color-N1{background-color:#0A0F25;}
+		.d2-1216884005 .background-color-N2{background-color:#676C7E;}
+		.d2-1216884005 .background-color-N3{background-color:#9499AB;}
+		.d2-1216884005 .background-color-N4{background-color:#CFD2DD;}
+		.d2-1216884005 .background-color-N5{background-color:#DEE1EB;}
+		.d2-1216884005 .background-color-N6{background-color:#EEF1F8;}
+		.d2-1216884005 .background-color-N7{background-color:#FFFFFF;}
+		.d2-1216884005 .background-color-B1{background-color:#0D32B2;}
+		.d2-1216884005 .background-color-B2{background-color:#0D32B2;}
+		.d2-1216884005 .background-color-B3{background-color:#E3E9FD;}
+		.d2-1216884005 .background-color-B4{background-color:#E3E9FD;}
+		.d2-1216884005 .background-color-B5{background-color:#EDF0FD;}
+		.d2-1216884005 .background-color-B6{background-color:#F7F8FE;}
+		.d2-1216884005 .background-color-AA2{background-color:#4A6FF3;}
+		.d2-1216884005 .background-color-AA4{background-color:#EDF0FD;}
+		.d2-1216884005 .background-color-AA5{background-color:#F7F8FE;}
+		.d2-1216884005 .background-color-AB4{background-color:#EDF0FD;}
+		.d2-1216884005 .background-color-AB5{background-color:#F7F8FE;}
+		.d2-1216884005 .color-N1{color:#0A0F25;}
+		.d2-1216884005 .color-N2{color:#676C7E;}
+		.d2-1216884005 .color-N3{color:#9499AB;}
+		.d2-1216884005 .color-N4{color:#CFD2DD;}
+		.d2-1216884005 .color-N5{color:#DEE1EB;}
+		.d2-1216884005 .color-N6{color:#EEF1F8;}
+		.d2-1216884005 .color-N7{color:#FFFFFF;}
+		.d2-1216884005 .color-B1{color:#0D32B2;}
+		.d2-1216884005 .color-B2{color:#0D32B2;}
+		.d2-1216884005 .color-B3{color:#E3E9FD;}
+		.d2-1216884005 .color-B4{color:#E3E9FD;}
+		.d2-1216884005 .color-B5{color:#EDF0FD;}
+		.d2-1216884005 .color-B6{color:#F7F8FE;}
+		.d2-1216884005 .color-AA2{color:#4A6FF3;}
+		.d2-1216884005 .color-AA4{color:#EDF0FD;}
+		.d2-1216884005 .color-AA5{color:#F7F8FE;}
+		.d2-1216884005 .color-AB4{color:#EDF0FD;}
+		.d2-1216884005 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-1216884005);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-1216884005);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-1216884005);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-1216884005);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-1216884005);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-1216884005);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-1216884005);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-1216884005);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]></style><g class="VElUTEU="><g class="shape" ></g><text x="953.500000" y="-16.000000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:28px">cqrs-htmx — All-TODO Pareto Execution Graph (2026-09-20)</text></g><g class="Z2F0ZV9zdHlsZQ=="><g class="shape" ><rect x="155.000000" y="227.000000" width="119.000000" height="66.000000" stroke="#e6a23c" fill="#fdf3e0" style="stroke-width:2;" /><rect x="160.000000" y="232.000000" width="109.000000" height="56.000000" stroke="#e6a23c" fill="transparent" style="stroke-width:2;" /></g><text x="214.500000" y="265.500000" fill="#0e0e10" class="text-bold" style="text-anchor:middle;font-size:16px">gate_style</text></g><g class="dGllcjE="><g class="shape" ><rect x="12.000000" y="313.000000" width="406.000000" height="512.000000" stroke="#ffb347" fill="#0e0e10" style="stroke-width:2;" /></g><text x="215.000000" y="346.000000" fill="#f4f4f0" class="text" style="text-anchor:middle;font-size:28px"><tspan x="215.000000" dy="0.000000">1% → 51% — session quick wins</tspan><tspan x="215.000000" dy="32.000000">(executed 2026-09-20)</tspan></text></g><g class="dGllcjI="><g class="shape" ><rect x="752.000000" y="12.000000" width="384.000000" height="512.000000" stroke="#6eb5ff" fill="#0e0e10" style="stroke-width:2;" /></g><text x="944.000000" y="45.000000" fill="#f4f4f0" class="text" style="text-anchor:middle;font-size:28px"><tspan x="944.000000" dy="0.000000">4% → 64% — next small batch</tspan><tspan x="944.000000" dy="32.000000">(ungated, ~1-2 sessions)</tspan></text></g><g class="dGllcjM="><g class="shape" ><rect x="1418.000000" y="262.000000" width="478.000000" height="614.000000" stroke="#f4d35e" fill="#0e0e10" style="stroke-width:2;" /></g><text x="1657.000000" y="295.000000" fill="#f4f4f0" class="text" style="text-anchor:middle;font-size:28px"><tspan x="1657.000000" dy="0.000000">20% → 80% — scheduled work</tspan><tspan x="1657.000000" dy="32.000000">(gated on events, each ≤12min tasks)</tspan></text></g><g class="Z2F0ZWQ="><g class="shape" ><rect x="747.000000" y="544.000000" width="394.000000" height="654.000000" stroke="#ff6b6b" fill="#0e0e10" style="stroke-width:2;" /></g><text x="944.000000" y="577.000000" fill="#f4f4f0" class="text" style="text-anchor:middle;font-size:28px">Gated — decisions &amp; upstream</text></g><g class="dGllcjEudDFh"><g class="shape" ><rect x="88.000000" y="387.000000" width="254.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="215.000000" y="425.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="215.000000" dy="0.000000">W09a unconvert claim retired</tspan><tspan x="215.000000" dy="18.500000">(verified 0 issues)</tspan></text></g><g class="dGllcjEudDFi"><g class="shape" ><rect x="128.000000" y="489.000000" width="174.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="215.000000" y="527.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="215.000000" dy="0.000000">W09b dependabot</tspan><tspan x="215.000000" dy="18.500000">posture decision</tspan></text></g><g class="dGllcjEudDFj"><g class="shape" ><rect x="104.000000" y="591.000000" width="221.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="214.500000" y="629.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="214.500000" dy="0.000000">W24 ProjectionLayer</tspan><tspan x="214.500000" dy="18.500000">accepted-limitation note</tspan></text></g><g class="dGllcjEudDFk"><g class="shape" ><rect x="123.000000" y="693.000000" width="183.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="214.500000" y="731.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="214.500000" dy="0.000000">W08a Retry-After</tspan><tspan x="214.500000" dy="18.500000">on 503 (code+tests)</tspan></text></g><g class="dGllcjIudDJh"><g class="shape" ><rect x="844.000000" y="86.000000" width="200.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="944.000000" y="124.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="944.000000" dy="0.000000">W08b IP/User-Agent →</tspan><tspan x="944.000000" dy="18.500000">event metadata</tspan></text></g><g class="dGllcjIudDJj"><g class="shape" ><rect x="855.000000" y="188.000000" width="178.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="944.000000" y="226.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="944.000000" dy="0.000000">W08c sync ClientID</tspan><tspan x="944.000000" dy="18.500000">propagation</tspan></text></g><g class="dGllcjIudDJk"><g class="shape" ><rect x="837.000000" y="290.000000" width="214.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="944.000000" y="328.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="944.000000" dy="0.000000">W05 templ-components</tspan><tspan x="944.000000" dy="18.500000">upstream asks ×3</tspan></text></g><g class="dGllcjIudDJl"><g class="shape" ><rect x="819.000000" y="392.000000" width="250.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="944.000000" y="430.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="944.000000" dy="0.000000">W02 requestContextEnricher</tspan><tspan x="944.000000" dy="18.500000">upstream ask</tspan></text></g><g class="dGllcjMudDNh"><g class="shape" ><rect x="1555.000000" y="336.000000" width="203.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1656.500000" y="374.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1656.500000" dy="0.000000">W01+W02 bench-spike</tspan><tspan x="1656.500000" dy="18.500000">(gate: load&lt;8)</tspan></text></g><g class="dGllcjMudDNi"><g class="shape" ><rect x="1548.000000" y="438.000000" width="218.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1657.000000" y="476.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1657.000000" dy="0.000000">W04 v1.19 train</tspan><tspan x="1657.000000" dy="18.500000">(gate: upstream release)</tspan></text></g><g class="dGllcjMudDNj"><g class="shape" ><rect x="1534.000000" y="540.000000" width="245.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1656.500000" y="578.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1656.500000" dy="0.000000">W16 usermgmt v5 migration</tspan><tspan x="1656.500000" dy="18.500000">cluster 2 → then 1</tspan></text></g><g class="dGllcjMudDNk"><g class="shape" ><rect x="1554.000000" y="642.000000" width="206.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1657.000000" y="680.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1657.000000" dy="0.000000">W08d DecodePayload /</tspan><tspan x="1657.000000" dy="18.500000">Pagination.Validate</tspan></text></g><g class="dGllcjMudDNl"><g class="shape" ><rect x="1543.000000" y="744.000000" width="227.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1656.500000" y="782.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1656.500000" dy="0.000000">W18 appkit /health dedup</tspan><tspan x="1656.500000" dy="18.500000">+ logging posture</tspan></text></g><g class="Z2F0ZWQuZzE="><g class="shape" ><rect x="837.000000" y="594.000000" width="214.000000" height="114.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="944.000000" y="632.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="944.000000" dy="0.000000">USER: /sse authz (W13)</tspan><tspan x="944.000000" dy="17.250000">theme-toggle (W06)</tspan><tspan x="944.000000" dy="17.250000">adminui approval (W14)</tspan><tspan x="944.000000" dy="17.250000">datastar-demo (W25)</tspan></text></g><g class="Z2F0ZWQuZzI="><g class="shape" ><rect x="809.000000" y="728.000000" width="269.000000" height="98.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="943.500000" y="766.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="943.500000" dy="0.000000">UPSTREAM: findings-gate (W03)</tspan><tspan x="943.500000" dy="17.666667">v1.19 (W04) · cqrs-lint</tspan><tspan x="943.500000" dy="17.666667">distribution (W12/W19)</tspan></text></g><g class="Z2F0ZWQuZzM="><g class="shape" ><rect x="834.000000" y="846.000000" width="220.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="944.000000" y="884.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="944.000000" dy="0.000000">DEMAND: DataStar Tier 4</tspan><tspan x="944.000000" dy="18.500000">M11–M16 (W11)</tspan></text></g><g class="Z2F0ZWQuZzQ="><g class="shape" ><rect x="819.000000" y="948.000000" width="249.000000" height="82.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="943.500000" y="986.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="943.500000" dy="0.000000">FORCE-PUSH: blob purges</tspan><tspan x="943.500000" dy="18.500000">(W20 v4 branch, W21 master)</tspan></text></g><g class="Z2F0ZWQuZzU="><g class="shape" ><rect x="821.000000" y="1050.000000" width="245.000000" height="98.000000" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="943.500000" y="1088.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="943.500000" dy="0.000000">CRITERIA: SidebarNav (W07)</tspan><tspan x="943.500000" dy="17.666667">SSE backlog (W23)</tspan><tspan x="943.500000" dy="17.666667">hardware watch (W22)</tspan></text></g><g class="KHRpZXIxIC0mZ3Q7IHRpZXIyKVswXQ=="><marker id="mk-d2-1216884005-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 420.000000 484.165985 L 748.000000 484.165985" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1216884005-3488378134)" mask="url(#d2-1216884005)" /><text x="585.500000" y="490.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">unblocks docs + API surface</text></g><g class="KHRpZXIyIC0mZ3Q7IHRpZXIzKVswXQ=="><path d="M 1138.000000 467.165985 L 1414.000000 467.165985" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1216884005-3488378134)" mask="url(#d2-1216884005)" /><text x="1277.000000" y="473.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">momentum</text></g><g class="KHRpZXIxIC0mZ3Q7IGdhdGVkKVswXQ=="><path d="M 420.000000 654.833008 L 743.000000 654.833008" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1216884005-3488378134)" mask="url(#d2-1216884005)" /><text x="582.500000" y="652.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="582.500000" dy="0.000000">decision one-pagers</tspan><tspan x="582.500000" dy="18.500000">already written</tspan></text></g><g class="KGdhdGVkIC0mZ3Q7IHRpZXIzKVswXQ=="><path d="M 1143.000000 671.833008 L 1414.000000 671.833008" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-1216884005-3488378134)" mask="url(#d2-1216884005)" /><text x="1279.500000" y="669.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px"><tspan x="1279.500000" dy="0.000000">gates open →</tspan><tspan x="1279.500000" dy="18.500000">tasks flow into tiers</tspan></text></g><mask id="d2-1216884005" maskUnits="userSpaceOnUse" x="-89" y="-145" width="2086" height="1444">
+<rect x="-89" y="-145" width="2086" height="1444" fill="white"></rect>
+<rect x="494.000000" y="474.000000" width="183" height="21" fill="black"></rect>
+<rect x="1237.000000" y="457.000000" width="80" height="21" fill="black"></rect>
+<rect x="514.000000" y="636.000000" width="137" height="37" fill="black"></rect>
+<rect x="1214.000000" y="653.000000" width="131" height="37" fill="black"></rect>
+</mask></svg></svg>
+
+        </div>
+
+        <h2 id="comprehensive"><span class="num">03</span>Comprehensive Plan — all work packages</h2>
+        <p>
+          One row per work package, sorted by the ranking composite. <em>Gate</em> names what must
+          happen before the package's tasks can run; "—" means runnable now.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th><th>W#</th><th>Package (TODO source)</th><th>Pri</th>
+                <th>Impact</th><th>Cust. value</th><th>Effort</th><th>Gate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>W01</td><td>bench-spike idle re-run — sole post-v4.11.0 verification residue (P1 item)</td><td><span class="badge badge-critical">P1</span></td><td>High</td><td>High (honest perf gate)</td><td>12m</td><td><span class="badge badge-gate">load &lt; 8</span></td></tr>
+              <tr><td>2</td><td>W08a</td><td>Retry-After header on Transient 503 responses (routed gap)</td><td><span class="badge badge-high">P2</span></td><td>High</td><td>High (standards-compliant clients)</td><td>40m</td><td>—</td></tr>
+              <tr><td>3</td><td>W14</td><td>Adminui prettier + gap-remediation program (101-micro plan exists)</td><td><span class="badge badge-high">P2</span></td><td>High</td><td>High (UI polish)</td><td>~31h</td><td><span class="badge badge-gate">user approval</span></td></tr>
+              <tr><td>4</td><td>W04</td><td>templ-components v1.19 train prep (sharp cards)</td><td><span class="badge badge-high">P2</span></td><td>Med-High</td><td>Med (visual freshness)</td><td>~60m</td><td><span class="badge badge-gate">upstream release</span></td></tr>
+              <tr><td>5</td><td>W15</td><td>Dashboardui adoption program — truth-check + re-scope TODO</td><td><span class="badge badge-high">P2</span></td><td>Med-High</td><td>Med</td><td>16m</td><td>—</td></tr>
+              <tr><td>6</td><td>W13</td><td>/sse authz posture decision (one-pager with rec. A)</td><td><span class="badge badge-high">P2</span></td><td>High</td><td>High (security posture)</td><td>0m</td><td><span class="badge badge-gate">user decision</span></td></tr>
+              <tr><td>7</td><td>W09</td><td>Hygiene micro-pack (unconvert†, benchstat, dependabot, samber)</td><td><span class="badge badge-high">P2</span></td><td>Med</td><td>Low-Med</td><td>~20m</td><td>partly (samber)</td></tr>
+              <tr><td>8</td><td>W05</td><td>templ-components upstream asks ×3 (verify → file)</td><td><span class="badge badge-high">P2</span></td><td>Med</td><td>Med (family quality)</td><td>~66m</td><td>—</td></tr>
+              <tr><td>9</td><td>W02</td><td>Command-audit tail: enricher upstream ask (bench = W01)</td><td><span class="badge badge-high">P2</span></td><td>Med</td><td>Med</td><td>19m</td><td>—</td></tr>
+              <tr><td>10</td><td>W08b</td><td>HTTP IP / User-Agent → event metadata (routed gap)</td><td><span class="badge badge-high">P2</span></td><td>Med</td><td>Med (audit trails)</td><td>38m</td><td>—</td></tr>
+              <tr><td>11</td><td>W03</td><td>Findings-gate restoration (fail_on: critical)</td><td><span class="badge badge-high">P2</span></td><td>Med</td><td>Low (tooling honesty)</td><td>30m</td><td><span class="badge badge-gate">2 upstream releases</span></td></tr>
+              <tr><td>12</td><td>W12</td><td>check-cqrs-lint into CI (absorbs P3 "strict CI gate")</td><td><span class="badge badge-medium">P2</span></td><td>Med</td><td>Low-Med</td><td>~40m</td><td><span class="badge badge-gate">installable dist</span></td></tr>
+              <tr><td>13</td><td>W08c</td><td>offline-sync ClientID propagation (routed gap)</td><td><span class="badge badge-medium">P2</span></td><td>Med</td><td>Med (offline correctness)</td><td>42m</td><td>—</td></tr>
+              <tr><td>14</td><td>W08d</td><td>Export DecodePayload[T] / Pagination.Validate (routed gap)</td><td><span class="badge badge-medium">P2</span></td><td>Low-Med</td><td>Low-Med</td><td>28m</td><td>—</td></tr>
+              <tr><td>15</td><td>W11</td><td>DataStar Tier 4 M11–M16 panel variants</td><td><span class="badge badge-medium">P2</span></td><td>Med (if demanded)</td><td>Demand-proven only</td><td>~4h</td><td><span class="badge badge-gate">consumer demand</span></td></tr>
+              <tr><td>16</td><td>W16</td><td>usermgmt off v5-removed APIs (39 findings, 3 clusters)</td><td><span class="badge badge-low">P3</span></td><td>High (v5 prep)</td><td>Indirect</td><td>~6h</td><td>cluster 3: metaengine maturity</td></tr>
+              <tr><td>17</td><td>W18</td><td>appkit remainder: (c) health dedup + (e) logging now; (b)(d)(f) gated</td><td><span class="badge badge-low">P3</span></td><td>Med</td><td>Med</td><td>24m + gated</td><td>ADR-001 flip for (b)(d)(f)</td></tr>
+              <tr><td>18</td><td>W17</td><td>go-cqrs-lite upstream asks ×2</td><td><span class="badge badge-low">P3</span></td><td>Med</td><td>Med</td><td>27m</td><td>—</td></tr>
+              <tr><td>19</td><td>W24</td><td>ProjectionLayer v5 removal — accepted-limitation note</td><td><span class="badge badge-low">P3</span></td><td>Med (v5 unblock)</td><td>Indirect</td><td>8m</td><td>—</td></tr>
+              <tr><td>20</td><td>W23</td><td>SSE hardening backlog (8 optional items)</td><td><span class="badge badge-low">P3</span></td><td>Med each</td><td>On demand</td><td>varies</td><td><span class="badge badge-gate">per-item demand</span></td></tr>
+              <tr><td>21</td><td>W20</td><td>v4 branch blob rewrite (~27.7 MB, filter-repo)</td><td><span class="badge badge-low">P3</span></td><td>Low</td><td>None</td><td>~30m</td><td><span class="badge badge-gate">force-push approval</span></td></tr>
+              <tr><td>22</td><td>W21</td><td>setup-demo 27 MB blob purge from pushed master</td><td><span class="badge badge-low">P3</span></td><td>Low</td><td>None</td><td>~30m</td><td><span class="badge badge-gate">force-push approval</span></td></tr>
+              <tr><td>23</td><td>W07</td><td>SidebarNav revisit (dashboardui custom dark sidebar)</td><td><span class="badge badge-low">P3</span></td><td>Low</td><td>Low</td><td>—</td><td>3 named criteria</td></tr>
+              <tr><td>24</td><td>W06</td><td>Dashboardui theme-toggle decision (rec. A: keep as-is)</td><td><span class="badge badge-low">P2</span></td><td>Low</td><td>Low</td><td>—</td><td>a consumer asks</td></tr>
+              <tr><td>25</td><td>W22</td><td>Hardware watch /mnt/buildcache</td><td><span class="badge badge-low">P3</span></td><td>Watch</td><td>—</td><td>1m/check</td><td>mass gate failure</td></tr>
+              <tr><td>26</td><td>W25</td><td>datastar-demo rebrand-or-remove</td><td><span class="badge badge-low">P3</span></td><td>Low</td><td>Low</td><td>—</td><td>owner call</td></tr>
+              <tr><td>27</td><td>W10</td><td>OTel guard note (policy: new work → ROADMAP, not TODO)</td><td><span class="badge badge-low">P2</span></td><td>None</td><td>—</td><td>0m</td><td>no-op by design</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>† verified non-reproducing on 2026-09-20 and retired, not fixed.</p>
+
+        <h2 id="tier1"><span class="num">04</span>Tier 1 — the 1% that delivers 51%</h2>
+        <p>Executed in this session (2026-09-20). Ten tasks, ≈80 minutes total.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Task</th><th>Effort</th><th>Verify by</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>09.1</td><td>Re-run unconvert on root; finding absent → retire the claim from TODO</td><td>3m</td><td>lint exit 0</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>09.2</td><td>Dependabot posture decision: keep 3-module coverage + limits, record rationale comment in yml</td><td>6m</td><td>yaml parse</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>09.3</td><td>benchstat vendorHash: no-op until benchstat rev bumps — record in TODO text</td><td>3m</td><td>doc diff</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>24.1</td><td>Add accepted-limitation note (declarative path: no custom checkpoint/DLQ injection yet) to v5-removal-inventory</td><td>8m</td><td>doc render</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>08a.1</td><td><code>RetryAfterCarrier</code> interface + exported <code>DefaultRetryAfter</code> in errors.go</td><td>10m</td><td>build</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>08a.2</td><td>Wire <code>setRetryAfterHeader</code> into <code>handleErrorCore</code> (503 only, carrier-first)</td><td>10m</td><td>tests</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>08a.3</td><td>Ginkgo tests: default on 503 ×3 handler families, carrier override honored, absent on 400</td><td>12m</td><td>go test</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>08a.4</td><td>CHANGELOG [Unreleased] entry + doc comments</td><td>8m</td><td>docs-freshness gate</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>15.1</td><td>Dashboardui program truth-check: adoption state vs plan tiers (AGENTS vs plan doc)</td><td>10m</td><td>cross-read</td><td><span class="badge badge-fixed">done</span></td></tr>
+              <tr><td>15.2</td><td>Re-scope the TODO item to the actual remainder (deliberate exclusions + hardening)</td><td>6m</td><td>doc diff</td><td><span class="badge badge-fixed">done</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="tier2"><span class="num">05</span>Tier 2 — the 4% that delivers 64%</h2>
+        <p>Ungated, next 1–2 sessions. 18 tasks, ≈3.5h total.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Task</th><th>Effort</th><th>Package</th></tr></thead>
+            <tbody>
+              <tr><td>08b.1</td><td>Locate enrichment points: <code>ContextEnrichmentMiddleware</code>, <code>EventOptionsFromContext</code>, <code>enrichUserID</code></td><td>6m</td><td>W08b</td></tr>
+              <tr><td>08b.2</td><td>Safe <code>clientIP(r)</code> (XFF-aware, first hop) + <code>userAgent(r)</code> helpers + unit tests</td><td>12m</td><td>W08b</td></tr>
+              <tr><td>08b.3</td><td>Thread both into event metadata enrichers (opt-in naming: <code>http.ip</code>, <code>http.user_agent</code>)</td><td>12m</td><td>W08b</td></tr>
+              <tr><td>08b.4</td><td>Doc row in actor-and-audit-trail guide + CHANGELOG</td><td>8m</td><td>W08b</td></tr>
+              <tr><td>05.1</td><td>Verify ListNote range/list-semantics gap still present on upstream HEAD</td><td>8m</td><td>W05</td></tr>
+              <tr><td>05.2</td><td>Draft + file upstream issue (a) — verify-before-filing + github-voice</td><td>10m</td><td>W05</td></tr>
+              <tr><td>05.3</td><td>Verify Grid <code>{children...}</code> empty-in-hybrid-path claim on upstream HEAD</td><td>8m</td><td>W05</td></tr>
+              <tr><td>05.4</td><td>Draft + file upstream issue (b)</td><td>10m</td><td>W05</td></tr>
+              <tr><td>05.5</td><td>Verify CopyButton span color-inherit issue in dashboardui's unlayered-table context</td><td>10m</td><td>W05</td></tr>
+              <tr><td>05.6</td><td>Draft + file upstream issue (c)</td><td>10m</td><td>W05</td></tr>
+              <tr><td>05.7</td><td>Record issue links in the TODO local record</td><td>2m</td><td>W05</td></tr>
+              <tr><td>02.1</td><td>Verify go-cqrs-lite event/ master lacks a request-context (correlation/request-ID) enricher</td><td>5m</td><td>W02</td></tr>
+              <tr><td>02.2</td><td>Draft upstream issue offering the local <code>requestContextEnricher</code> implementation</td><td>10m</td><td>W02</td></tr>
+              <tr><td>02.3</td><td>File + link from TODO; local copy drops at the next train</td><td>4m</td><td>W02</td></tr>
+              <tr><td>08c.1</td><td>Read <code>sync/sync-client.js</code> + worker: where does client-id live today?</td><td>8m</td><td>W08c</td></tr>
+              <tr><td>08c.2</td><td>Design plumbing: client header → request context → sync envelope</td><td>10m</td><td>W08c</td></tr>
+              <tr><td>08c.3</td><td>Implement + tests</td><td>12m</td><td>W08c</td></tr>
+              <tr><td>08c.4</td><td>e2e offline-sync run verifying propagation end-to-end</td><td>12m</td><td>W08c</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="tier3"><span class="num">06</span>Tier 3 — the 20% that delivers 80%</h2>
+        <p>Each task is ready-to-run the moment its gate opens. 29 listed here.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Task</th><th>Effort</th><th>Gate</th></tr></thead>
+            <tbody>
+              <tr><td>01.1</td><td>At session start: check 1-min load; if &lt; 8 run <code>nix run .#bench-spike</code></td><td>8m</td><td><span class="badge badge-gate">load &lt; 8</span></td></tr>
+              <tr><td>01.2</td><td>If appkit-service alone exceeds 10% (others green): re-pin <code>--save-baseline</code> + commit raw baseline in same change</td><td>10m</td><td>conditional on 01.1</td></tr>
+              <tr><td>01.3</td><td>Record result in runbook §7 residue note + retire TODO item</td><td>4m</td><td>after 01.1</td></tr>
+              <tr><td>04.1</td><td>Watch templ-components v1.19 tag (Unreleased today)</td><td>2m</td><td><span class="badge badge-gate">upstream release</span></td></tr>
+              <tr><td>04.2</td><td>Bump 5 family requires repo-wide + per-module tidy</td><td>12m</td><td>v1.19 out</td></tr>
+              <tr><td>04.3</td><td>Rebuild BOTH CSS bundles (flake builders, same change as bump)</td><td>10m</td><td>v1.19 out</td></tr>
+              <tr><td>04.4</td><td>Regenerate goldens on sharp-card markup drift (review the diff)</td><td>10m</td><td>v1.19 out</td></tr>
+              <tr><td>04.5</td><td>Screenshot pass: dashboardui N5 harness + adminui visual check</td><td>12m</td><td>v1.19 out</td></tr>
+              <tr><td>04.6</td><td>check-codegen + check-modules + verify-tag dry-run before the train</td><td>10m</td><td>v1.19 out</td></tr>
+              <tr><td>16.0</td><td>Re-surface V007 list: <code>cqrs-upgrade -dry-run</code> in usermgmt</td><td>5m</td><td>—</td></tr>
+              <tr><td>16.1</td><td>Port <code>es_setup_core.go:35</code> off <code>stack.Bundle</code> (systemadapter pattern)</td><td>12m</td><td>—</td></tr>
+              <tr><td>16.2</td><td>Port <code>stack_repositories.go:26</code></td><td>12m</td><td>after 16.1</td></tr>
+              <tr><td>16.3</td><td>Hermetic usermgmt tidy+build+vet+test after cluster 2</td><td>10m</td><td>after 16.2</td></tr>
+              <tr><td>16.4a-c</td><td>Migrate <code>es_materialize_adapter.go:48/65/79</code> to metaengine auto-projection (one site per task)</td><td>12m ea</td><td>after 16.3</td></tr>
+              <tr><td>16.5</td><td>Cluster 3: <code>storage.SQLViewStore</code> ×34 → metaengine engines (12 micro-tasks when layout-planning API matures)</td><td>12m ea</td><td><span class="badge badge-gate">metaengine maturity</span></td></tr>
+              <tr><td>08d.1</td><td>Audit internal usage of <code>DecodePayload</code> / <code>Pagination.Validate</code></td><td>8m</td><td>—</td></tr>
+              <tr><td>08d.2</td><td>Export both + doc comments</td><td>10m</td><td>after 08d.1</td></tr>
+              <tr><td>08d.3</td><td>Table tests for the new public surface</td><td>10m</td><td>after 08d.2</td></tr>
+              <tr><td>18c.1</td><td>appkit-mode /health dedup analysis (readiness→liveness flip, comparison finding 2)</td><td>10m</td><td>—</td></tr>
+              <tr><td>18c.2</td><td>LB guidance row in setup README health section</td><td>8m</td><td>after 18c.1</td></tr>
+              <tr><td>18e.1</td><td>Verify logging-posture claim (LogLevelError isolation) still holds on appkit v0.5.x</td><td>6m</td><td>—</td></tr>
+              <tr><td>17.1</td><td>Verify stack root-package metaengine imports on upstream master (options.go, bundle.go)</td><td>6m</td><td>—</td></tr>
+              <tr><td>17.2</td><td>Draft + file stack-decouple upstream issue</td><td>10m</td><td>after 17.1</td></tr>
+              <tr><td>17.3</td><td>Draft cqrs-upgrade workspace-mode issue</td><td>8m</td><td>—</td></tr>
+              <tr><td>17.4</td><td>File 17.3 + link both from TODO</td><td>3m</td><td>after 17.2</td></tr>
+              <tr><td>23.1-8</td><td>SSE backlog, one per demand: serve_test gaps ×4, WithSSEMaxReplay option, SSEOptions struct, Retry field on replayed events, EventsAfter bench, DomainEventToSSE fuzz, e2e reconnect scenario, wire-format contract test</td><td>≤12m ea</td><td><span class="badge badge-gate">per-item demand</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="gated"><span class="num">07</span>Gated work &amp; decisions owed</h2>
+        <div class="card card-problem">
+          <h4>Four user decisions block high-value packages</h4>
+          <p>
+            <strong>W13 /sse authz posture</strong> — one-pager at
+            <code>docs/planning/2026-08-30_sse-endpoint-shape-decision.md</code>, recommendation A
+            (ship as-is; WithSSEFilter exists for scoped feeds).
+            <strong>W14 adminui program approval</strong> — plan + preconditions ready (P0.1
+            render-test semantics 12m, P0.2 buildflow binary rebuild + hook lint triage 12m).
+            <strong>W25 datastar-demo rebrand-or-remove</strong> — owner call.
+            <strong>W06 theme-toggle</strong> — parked until a consumer asks (rec. A: keep
+            <code>prefers-color-scheme</code>-only).
+          </p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Task</th><th>Effort</th><th>Gate</th></tr></thead>
+            <tbody>
+              <tr><td>03.1</td><td>Check go-structure-linter release for in-config <code>suppressions:</code></td><td>2m</td><td>release watch</td></tr>
+              <tr><td>03.2</td><td>Adopt suppressions in <code>.go-structure-linter.yml</code> (config already authored)</td><td>10m</td><td>03.1</td></tr>
+              <tr><td>03.3</td><td>Flip <code>.buildflow.yml</code> to <code>fail_on: critical</code> + trim triage comment</td><td>8m</td><td>03.2 + BuildFlow pin bump</td></tr>
+              <tr><td>03.4</td><td>Verify a pre-commit run green under the restored gate</td><td>10m</td><td>03.3</td></tr>
+              <tr><td>12.1</td><td>Inspect cqrs-lint build: can it ship <code>go install</code>-able?</td><td>10m</td><td>—</td></tr>
+              <tr><td>12.2</td><td>Upstream: add Go-installable distribution path</td><td>~30m</td><td>12.1 outcome</td></tr>
+              <tr><td>12.3</td><td>Add CI job running cqrs-lint <code>--strict</code></td><td>10m</td><td>12.2</td></tr>
+              <tr><td>12.4</td><td>Wire <code>check-cqrs-lint</code> app parity + retire the merged P3 TODO item</td><td>5m</td><td>12.3</td></tr>
+              <tr><td>11.M11.1-3</td><td>dashboardui signal-patch spike + go/no-go (3 micro-tasks)</td><td>36m</td><td><span class="badge badge-gate">consumer demand</span></td></tr>
+              <tr><td>11.M12-M16</td><td>DataStar variant modules, loginpage forms, sync evaluation, adminui design doc, train (15 micro-tasks)</td><td>≤12m ea</td><td>M11 go + demand</td></tr>
+              <tr><td>18b.1</td><td>Fold appkit into <code>RunHandler</code> behind unchanged signature</td><td>12m</td><td><span class="badge badge-gate">ADR-001 flip</span></td></tr>
+              <tr><td>18d.1</td><td>Drop duplicate recovery + security-header pass in stacked chain</td><td>10m</td><td>ADR-001 flip</td></tr>
+              <tr><td>18f.1</td><td>Consider exposing <code>Addr()</code></td><td>8m</td><td>ADR-001 flip</td></tr>
+              <tr><td>20.1</td><td>Confirm the 3 v4-branch blobs + annotate rewrite plan</td><td>5m</td><td><span class="badge badge-gate">force-push approval</span></td></tr>
+              <tr><td>20.2</td><td><code>git filter-repo</code> on v4 branch</td><td>12m</td><td>20.1 + approval</td></tr>
+              <tr><td>20.3</td><td>Force-push + verify remote blob gone</td><td>5m</td><td>20.2</td></tr>
+              <tr><td>21.1-3</td><td>Same ladder for the 27 MB setup-demo blob on master</td><td>~25m</td><td>force-push approval</td></tr>
+              <tr><td>09.4-6</td><td>samber-linter failure-rate repro: build harness, collect rate, exclude-or-keep decision</td><td>12m ea</td><td>evidence timebox</td></tr>
+              <tr><td>14.P0.1</td><td>Confirm adminui render-test semantics (precondition)</td><td>12m</td><td><span class="badge badge-gate">user approval</span></td></tr>
+              <tr><td>14.P0.2</td><td>Rebuild stale buildflow binary + triage hook examples/* lint failures</td><td>12m</td><td>user approval</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h4>Parked with named triggers (no schedulable task)</h4>
+          <p>
+            W07 SidebarNav revisit (3 criteria: hybrid-path children, zero-JS drawer, dark-token
+            shell — re-evaluate at templ-components v2). W22 hardware watch (1-min
+            <code>df -h /mnt/buildcache</code> whenever gates fail en masse). W10 OTel guard note
+            (new observability ideas start in ROADMAP, not TODO — kept as a policy pointer).
+          </p>
+        </div>
+
+        <h2 id="session"><span class="num">08</span>Session log — 2026-09-20</h2>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Plan built from verified tree state</h4>
+            <p>
+              TODO_LIST read from disk; unconvert claim re-run (0 issues); dependabot yml read;
+              Retry-After insertion point identified (<code>handleErrorCore</code> in errors.go);
+              go-etag Middleware signature confirmed (<code>func(http.Handler) http.Handler</code>);
+              today's status report cross-read. Load 13.8/16.7/12.6 — bench gate mechanically closed.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Tier 1 executed</h4>
+            <p>
+              Doc truth fixes (unconvert retired, dependabot posture recorded, benchstat no-op
+              noted, v5-inventory limitation note, dashboardui TODO re-scope) + Retry-After
+              implementation with Ginkgo coverage. Verification: hermetic root build + targeted
+              test run + unconvert/golangci on changed files.
+            </p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Handoff</h4>
+            <p>
+              Tier 2 is fully ungated — start at 08b.1 or 05.1 next session. Load watcher owes the
+              bench window (W01). Four user decisions (W13, W14, W25, W06) gate the biggest
+              remaining value; one-pagers already exist for W13/W14.
+            </p>
+          </div>
+        </div>
+
+        <div class="footer">
+          Pareto comprehensive plan · generated 2026-09-20 09:05 CEST · TODO_LIST.md revision
+          2026-09-18 truth-checked 2026-09-20 · snapshot artifact — TODO_LIST.md stays the living
+          source
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -77,7 +77,14 @@ Files: every `es_*.go` event/command/state file plus `authz_types.go`,
   consumer examples left on the legacy path (`examples/system-demo` migrates
   with the same cut); the module's own equivalence tests keep exercising it
   until then via a scoped staticcheck exclusion in
-  `systemadapter/.golangci.yml`.
+  `systemadapter/.golangci.yml`. **Accepted limitation (recorded 2026-09-20):**
+  the declarative path has no custom checkpoint/DLQ store injection —
+  `system.New` uses an internal in-memory checkpoint store — so consumers with
+  durable-checkpoint or dead-letter requirements stay on `NewProjectionLayer`
+  (with `WithCheckpointStore`/`WithDeadLetterStore`) until go-cqrs-lite ships a
+  `system.New` option for both. If no such option lands before the v5 cut,
+  removal proceeds with this documented in the migration guide
+  (`docs/guides/declarative-projections.md` §checkpoint-store caveat).
 - Root in-memory idempotency default — nolint-justified (library principle,
   consumer opts into a durable store); revisit at v5.
 
