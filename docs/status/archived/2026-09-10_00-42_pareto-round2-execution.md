@@ -4,6 +4,12 @@
 **Session scope:** Execute `docs/planning/2026-09-09_20-15_pareto-round2-trust-gates-and-green-train.md` end-to-end (user: "Execute and Verify them one step at the time. Repeat until done.").
 **Verdict in one line:** Phases 0–3 are executed and verified; the 1% and 4% tiers (trust gates + train proof) are DONE; the session ends mid-P30 with P08/P16/P27/P29/P31/P32/M100 open, and the bench gate is failing on machine contention, not code.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the Pareto round-2 plan is fully executed — the trailing addendum below closed P08/P16/P27/P29/P30/P31/P32/P11/M100, and later sessions closed the rest.
+> - **§b (partially done):** b2/b3 DONE (`19f57fc0`, train cut+pushed); b1 (bench-spike idle re-run) STILL OPEN → `TODO_LIST.md` P1.
+> - **§c (not started):** ALL DONE — P16 `43cdd1a1`/`fa891b1a`, P27 `4caad514`, P29 `2b8d3dd4`, P31/P32 `384ab57e`, M100 + CHANGELOG `efd50425`.
+> - **§f:** struck rows are confirmed done; unmarked rows remain open and are routed to `TODO_LIST.md` (bench P1, V007 P3, templ-components v1.19 P2, cqrs-lint CI P3, `/sse` posture P2, blob purge P3, DataStar Tier 4 P2, DOMAIN_LANGUAGE A9). Upstream Drafts 1–4 were filed as go-cqrs-lite issues #25–#28 (`10becbf9`); the setup-demo dev-replace was stripped 2026-08-30; `systemadapter/v4.11.0` was tagged 2026-09-20.
+> - **§d/§g:** session-local lessons/second-guesses — historical record, no action.
+
 ---
 
 ## a) Fully done (executed + verified)
@@ -48,13 +54,13 @@
 
 ## c) Not started
 
-- **P16** setup `Config.CSRF` knob + tokenless-mutation rejection test + write-mode-dashboard CSRF posture (+ the Secure=false WARN triage at bundle.go:112 — httputil's actual WARN is `warnEmptyTrustedProxies` for `AllowPlaintextBypass`, which zero-config doesn't trigger; the finding's premise needs re-verification before designing the knob).
-- **P27** SSE hardening: SSEMaxReplay validation/clamp in setup validate() + `TestServeDomainEvents_ReplayBeforeSubscribe_Ordering` transport test.
-- **P29** usermgmt micro-debt: `http.go:315` write-check (repo idiom exists: root `safe_write.go` `writeAll`; usermgmt can't import root so replicate inline), `errors.AsType` migration at `service_oauth2_errorcontext_test.go:55` (precedent exists at `service_register.go:138`), `slowJournal` → shared testutil.
-- **P31** examples: basic actor-metadata demo + `async-startup-demo/` skeleton (+ go.work entry).
-- **P32** examples smoke tests (`basic`, `datastar-demo`).
-- **M100** final sweep (git status, links, freshness, build).
-- CHANGELOG entries for today's P24/P25/P28 features and the (pending) P30 fixes.
+- ~~**P16** setup `Config.CSRF` knob + tokenless-mutation rejection test + write-mode-dashboard CSRF posture (+ the Secure=false WARN triage at bundle.go:112 — httputil's actual WARN is `warnEmptyTrustedProxies` for `AllowPlaintextBypass`, which zero-config doesn't trigger; the finding's premise needs re-verification before designing the knob).~~ done at `43cdd1a1`, `fa891b1a`
+- ~~**P27** SSE hardening: SSEMaxReplay validation/clamp in setup validate() + `TestServeDomainEvents_ReplayBeforeSubscribe_Ordering` transport test.~~ done at `4caad514`
+- ~~**P29** usermgmt micro-debt: `http.go:315` write-check (repo idiom exists: root `safe_write.go` `writeAll`; usermgmt can't import root so replicate inline), `errors.AsType` migration at `service_oauth2_errorcontext_test.go:55` (precedent exists at `service_register.go:138`), `slowJournal` → shared testutil.~~ done at `2b8d3dd4` (M88 `slowJournal` extraction dropped with rationale)
+- ~~**P31** examples: basic actor-metadata demo + `async-startup-demo/` skeleton (+ go.work entry).~~ done at `384ab57e`
+- ~~**P32** examples smoke tests (`basic`, `datastar-demo`).~~ done at `384ab57e` (the wider catalog-demo/samber-do smokes remain open — TODO_LIST P2)
+- ~~**M100** final sweep (git status, links, freshness, build).~~ done — all green (addendum)
+- ~~CHANGELOG entries for today's P24/P25/P28 features and the (pending) P30 fixes.~~ done at `efd50425`
 
 ## d) Totally fucked up (honest self-review)
 

@@ -5,6 +5,10 @@
 - **Trigger:** User challenged the config: "our config is pretty fucked up .. like templ disabled!??!"
 - **Verdict:** The user was right. The old skip justification was **factually wrong** (documented a root cause that does not exist), and both steps are now enabled, root-caused, and verified green.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): read this report WITH its addendum — the `templ-generate` enablement **regressed within minutes** (the hook's adminui-scoped generator flipped the 7 adminui `_templ.go` files back to bare `FileName:`; daemon `cbfb93ae`). Net outcome stands: `deadnix` enabled (real win), `templ-generate` correctly skipped again with a TRUE root cause.
+> - **§f:** struck rows confirmed done; unmarked rows remain open, routed to `TODO_LIST.md` (markdown-format normalization; BuildFlow per-module templ provider + a-h/templ `FileName` base-dir asks = D1; exit-code-safe gate helper; upstream follows).
+> - **§g:** the standing-commit-authorization question is unresolved (daemon race recurred through 2026-09-20, documented in AGENTS.md); the FileName-flip release question is moot (flip rolled back; module-dir canonical).
+
 ---
 
 ## Executive Summary
@@ -40,17 +44,17 @@
 
 ## b) PARTIALLY DONE
 
-1. **Pre-commit hook end-to-end verification** — both steps verified individually via `buildflow -s` (full mode), but the actual hook path (`buildflow --build-mode pre-commit --staged-only` inside the 60s budget) was NOT exercised with the new steps active. Phantom-skip behavior for unstaged `.templ` files in pre-commit mode is assumed from BuildFlow source, not observed.
+1. ~~**Pre-commit hook end-to-end verification** — both steps verified individually via `buildflow -s` (full mode), but the actual hook path (`buildflow --build-mode pre-commit --staged-only` inside the 60s budget) was NOT exercised with the new steps active. Phantom-skip behavior for unstaged `.templ` files in pre-commit mode is assumed from BuildFlow source, not observed.~~ done (hook exercised; templ regressed → re-skipped (addendum))
 2. **Daemon commit audit** — `136ae3c6` stat shows exactly the 10 expected files, but a formal `git diff HEAD~1..HEAD` content audit against my verified staged state was not performed.
 3. **Docs consistency** — READMEs/guides may still describe per-module `templ generate` (the old canonical mode). Not grepped. `check-codegen`'s FAIL message now points to root-canonical instructions, but other docs were not swept.
-4. **This session's own docs hygiene** — CHANGELOG entry not written; section (f) below not yet harvested into TODO_LIST/ROADMAP (per docs-health convention).
+4. ~~**This session's own docs hygiene** — CHANGELOG entry not written; section (f) below not yet harvested into TODO_LIST/ROADMAP (per docs-health convention).~~ done (CHANGELOG + harvest done (this sweep))
 
 ## c) NOT STARTED
 
 1. **markdown-format normalization** — 257 `.md` files; the skip is still in place (deliberately, but the "one-time pass" has never been scheduled).
 2. **BuildFlow upstream improvement** — per-module templ generation provider (would make bare `FileName:` canonical again for all multi-module consumers). Flagged as the upstream-grade alternative; not filed.
 3. **a-h/templ upstream question** — whether templ can pin the `FileName:` base dir (would eliminate the whole canonicality question at the source). Not investigated per user's "don't research unrelated" constraint.
-4. **HARVEST of this report's next-steps into TODO_LIST/ROADMAP.**
+4. ~~**HARVEST of this report's next-steps into TODO_LIST/ROADMAP.**~~ done (harvested 2026-09-20 (docs-health sweep))
 
 ## d) TOTALLY FUCKED UP
 
@@ -75,14 +79,14 @@ _Brainstorm per status-report skill — most items below the top tier are ROADMA
 
 **P1 — close this session's loose ends (do now)**
 
-1. Commit the staged AGENTS.md edit with a narrative message (it documents the true root cause; leaving it staged invites daemon shredding).
+1. ~~Commit the staged AGENTS.md edit with a narrative message (it documents the true root cause; leaving it staged invites daemon shredding).~~ done (AGENTS.md root-cause gotcha committed)
 2. Write the CHANGELOG.md entry for the templ-generate/deadnix enablement + canonicality flip (repo convention: completed work lives in CHANGELOG, and right now AGENTS.md records a change CHANGELOG doesn't).
 3. Audit `136ae3c6` content: `git diff HEAD~1..HEAD` against the intended 10-file set (formal close of the daemon-commit audit).
-4. Simulate the real hook once: stage a trivial `.templ` whitespace change, run `buildflow --build-mode pre-commit --staged-only`, confirm templ-generate regenerates + restages within the 60s budget, then revert.
-5. Confirm the "1 no-op" semantics of the templ-generate step (deterministic-output detection vs result-cache skip) with the simulation from #4.
+4. ~~Simulate the real hook once: stage a trivial `.templ` whitespace change, run `buildflow --build-mode pre-commit --staged-only`, confirm templ-generate regenerates + restages within the 60s budget, then revert.~~ done (hook exercised by the report commit (addendum); regression isolated)
+5. ~~Confirm the "1 no-op" semantics of the templ-generate step (deterministic-output detection vs result-cache skip) with the simulation from #4.~~ done (falsified — no-op label is not output-match (addendum))
 6. Grep repo docs (README.md, adminui/, loginpage/, docs/guides/) for stale per-module `templ generate` instructions; update to root-canonical.
 7. Verify `.github/workflows/ci.yml` invokes `nix run .#check-codegen` (and that the rewritten app is what CI executes).
-8. Run the full gate battery after the flake edit: `nix run .#build`, `nix run .#test`, `nix flake check --no-build`, `nix run .#check-modules`.
+8. ~~Run the full gate battery after the flake edit: `nix run .#build`, `nix run .#test`, `nix flake check --no-build`, `nix run .#check-modules`.~~ done (full gate ladder green)
 
 **P2 — hardening (this week)**
 9. Add a templ version-consistency check to the pre-commit hook (ambient `~/go/bin/templ` vs nix templ; warn/fail on skew).

@@ -4,6 +4,12 @@
 
 **Commit range this session:** `d5a94f9d` → `3151b63a` (16 commits, ~6 authored by me with descriptive messages, ~10 absorbed by the auto-commit daemon with heuristic messages — attribution is a mess, see §d/e).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the round-2 completion session's follow-up gaps are closed.
+> - **§b:** b1–b5 DONE (CI all-green 2026-09-20, gate ladder green); b6 (bench-idle policy) STILL OPEN → `TODO_LIST.md` P1; b7 DONE (`systemadapter/v4.11.0` tagged 2026-09-20).
+> - **§c:** c1/c2/c4/c5 DONE (AGENTS/TODO/FEATURES synced; #25–#28 filed); c3 (V007 spike) STILL OPEN → `TODO_LIST.md` P3.
+> - **§f:** struck rows are confirmed done. Unmarked rows remain open, routed to `TODO_LIST.md` (bench P1; 7 remaining example smokes P2/D5; `verify-tag --build-hermetic` D2; daemon policy; V007 P3; ADR-001 flip C10; dashboardui templ migration; `/sse` C6; dashboard CSRF).
+> - **§g:** the three questions are owner calls; bench policy + daemon policy remain open (documented in AGENTS.md/TODO_LIST), CI question moot (all green).
+
 ---
 
 ## a) FULLY DONE
@@ -25,21 +31,21 @@
 
 ## b) PARTIALLY DONE
 
-1. **CI verification of the finished state** — master was pushed during the session (not by me; likely the daemon/user). The PREVIOUS CI run failed on the release-train blocking check (go-health-dashboard v0.6.1 lag — fixed this session) + mod-tidy (sweep intermediates — fixed); the run on the final tip is the one that counts and was still in progress at writing time. All the gates it runs were verified green locally (check-modules 8/8), so the expectation is green, but it is unconfirmed. Check: `gh run list --repo LarsArtmann/cqrs-htmx --workflow CI --limit 1`.
-2. **Full test suite after ALL changes** — I ran per-module suites for every module I touched (loginpage, setup, transport, usermgmt, integration_test, basic, datastar-demo, samber-do-demo, health build+vet) but never the single `nix run .#test` umbrella at the end. M100's plan definition (status/links/freshness/build) was met, but the stricter reading was not.
-3. **Lint / cqrs-lint / coverage gates after changes** — not re-run this session. New code: setup CSRF knob + 3 tests, transport ordering test, loginpage copy, ~200 lines of example code (with preemptive cqrs-lint suppressions). `nix run .#lint`, `.#check-cqrs-lint`, `.#coverage-gate` all unverified for the new code. Genuinely at risk: lint on the new example/test files.
-4. **M88 (`slowJournal` extraction)** — resolved by DROPPING it with documented rationale (the two helpers are differently-shaped tools in different modules; a cross-module testutil adds public API for test-only code). This is a judgment-call deviation from the plan, not an implementation.
-5. **e2e suite after the loginpage copy change** — e2e 4/4 was green EARLIER in the round, before I changed the loginpage no-auth copy. The Playwright suite was not re-run. handler_test passes and the e2e suite (seeded-admin render path) probably never exercises the no-auth state, but this is unverified, not verified-safe.
+1. ~~**CI verification of the finished state** — master was pushed during the session (not by me; likely the daemon/user). The PREVIOUS CI run failed on the release-train blocking check (go-health-dashboard v0.6.1 lag — fixed this session) + mod-tidy (sweep intermediates — fixed); the run on the final tip is the one that counts and was still in progress at writing time. All the gates it runs were verified green locally (check-modules 8/8), so the expectation is green, but it is unconfirmed. Check: `gh run list --repo LarsArtmann/cqrs-htmx --workflow CI --limit 1`.~~ done (CI all-green 2026-09-20)
+2. ~~**Full test suite after ALL changes** — I ran per-module suites for every module I touched (loginpage, setup, transport, usermgmt, integration_test, basic, datastar-demo, samber-do-demo, health build+vet) but never the single `nix run .#test` umbrella at the end. M100's plan definition (status/links/freshness/build) was met, but the stricter reading was not.~~ done (full gate ladder green)
+3. ~~**Lint / cqrs-lint / coverage gates after changes** — not re-run this session. New code: setup CSRF knob + 3 tests, transport ordering test, loginpage copy, ~200 lines of example code (with preemptive cqrs-lint suppressions). `nix run .#lint`, `.#check-cqrs-lint`, `.#coverage-gate` all unverified for the new code. Genuinely at risk: lint on the new example/test files.~~ done (lint/cqrs-lint/coverage all green)
+4. ~~**M88 (`slowJournal` extraction)** — resolved by DROPPING it with documented rationale (the two helpers are differently-shaped tools in different modules; a cross-module testutil adds public API for test-only code). This is a judgment-call deviation from the plan, not an implementation.~~ done (dropped with rationale (documented))
+5. ~~**e2e suite after the loginpage copy change** — e2e 4/4 was green EARLIER in the round, before I changed the loginpage no-auth copy. The Playwright suite was not re-run. handler_test passes and the e2e suite (seeded-admin render path) probably never exercises the no-auth state, but this is unverified, not verified-safe.~~ done (e2e suite green)
 6. **Bench policy question** — defaulted to "defer re-pin to an idle window" without the user choosing among the three offered options.
-7. **systemadapter first version** — remains blocked on upstream projectionadapter v4.5.0 (now requested via issue #25). Nothing more could be done; listing so it isn't forgotten.
+7. ~~**systemadapter first version** — remains blocked on upstream projectionadapter v4.5.0 (now requested via issue #25). Nothing more could be done; listing so it isn't forgotten.~~ done (systemadapter/v4.11.0 tagged 2026-09-20)
 
 ## c) NOT STARTED
 
-1. **AGENTS.md memory updates for this session's lessons** (the aggressive-update mandate) — nothing new written: the new-example-binary-ignore gotcha, the "uniform-across-sub-benches = contention noise" signature, `errors.AsType` test precedent, the twice-hit stale-cache-phantom-at-commit recipe (refresh BEFORE the commit attempt, not after the hook fails).
-2. **TODO_LIST.md sync** — the round-2 items that are now done (CSRF knob, SSE hardening, examples smoke tests, micro-debt, demos) presumably still sit as open `[ ]`/`[~]` rows there; per convention completions belong in CHANGELOG (done), but the stale rows were not annotated/removed.
+1. ~~**AGENTS.md memory updates for this session's lessons** (the aggressive-update mandate) — nothing new written: the new-example-binary-ignore gotcha, the "uniform-across-sub-benches = contention noise" signature, `errors.AsType` test precedent, the twice-hit stale-cache-phantom-at-commit recipe (refresh BEFORE the commit attempt, not after the hook fails).~~ done (AGENTS.md gotchas updated)
+2. ~~**TODO_LIST.md sync** — the round-2 items that are now done (CSRF knob, SSE hardening, examples smoke tests, micro-debt, demos) presumably still sit as open `[ ]`/`[~]` rows there; per convention completions belong in CHANGELOG (done), but the stale rows were not annotated/removed.~~ done (TODO_LIST synced)
 3. **V007 spike (P26)** — deliberately deferred last session with a plan doc (`1e70e16e`); still not started, by design.
-4. **ROADMAP/FEATURES refresh for the new setup knob + examples** — CHANGELOG covers the record, but FEATURES.md's setup section and the guides don't mention `Config.CSRF` or async-startup-demo yet.
-5. **Upstream follow-through on #25–#28** — issues filed; tagging/retraction/manifest decisions live upstream now.
+4. ~~**ROADMAP/FEATURES refresh for the new setup knob + examples** — CHANGELOG covers the record, but FEATURES.md's setup section and the guides don't mention `Config.CSRF` or async-startup-demo yet.~~ done (FEATURES.md setup row + async-projection guide)
+5. ~~**Upstream follow-through on #25–#28** — issues filed; tagging/retraction/manifest decisions live upstream now.~~ done (issues #25-#28 filed; systemadapter tagged)
 
 ## d) TOTALLY FUCKED UP
 
@@ -67,28 +73,28 @@
 
 **Verify / close the gaps (1–8)**
 
-1. Watch the in-progress CI run on the tip to completion; repair anything red (candidates: lint on new example code, drift on the fresh pushes).
-2. Run `nix run .#test` (full umbrella) once on the final tree.
-3. Run `nix run .#lint` and fix any findings in the new example/test code.
-4. Run `nix run .#coverage-gate` (setup gained untested-by-gate new tests; knob code is covered but gate numbers should be re-dated).
-5. Run `nix run .#check-cqrs-lint` over the new example suppressions (verify no stale-suppression warnings).
-6. Re-run e2e (`PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers nix run .#e2e`) to confirm the loginpage copy change didn't break the fullstack suite.
+1. ~~Watch the in-progress CI run on the tip to completion; repair anything red (candidates: lint on new example code, drift on the fresh pushes).~~ done (CI all-green 2026-09-20)
+2. ~~Run `nix run .#test` (full umbrella) once on the final tree.~~ done (full gate ladder green (addendum + later runs))
+3. ~~Run `nix run .#lint` and fix any findings in the new example/test code.~~ done (lint 0 issues / 15 modules)
+4. ~~Run `nix run .#coverage-gate` (setup gained untested-by-gate new tests; knob code is covered but gate numbers should be re-dated).~~ done (coverage-gate 15/15 green 2026-09-20)
+5. ~~Run `nix run .#check-cqrs-lint` over the new example suppressions (verify no stale-suppression warnings).~~ done (check-cqrs-lint green)
+6. ~~Re-run e2e (`PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers nix run .#e2e`) to confirm the loginpage copy change didn't break the fullstack suite.~~ done (e2e 4/4 + admin-behavior 9/9)
 7. Re-pin the bench baseline (`nix run .#bench-spike -- --save-baseline`) during a genuinely idle window (load < 3; consider pausing QMD llama-server/clickhouse first) — policy decision pending (§g Q1).
-8. `nix run .#check-release-train -- --refresh-cache` + `nix flake check --no-build` as the final umbrella pass.
+8. ~~`nix run .#check-release-train -- --refresh-cache` + `nix flake check --no-build` as the final umbrella pass.~~ done (check-modules 8/8 green)
 
 **Docs & memory sync (9–16)**
-9. Update AGENTS.md with the 4 session lessons (§e.10 list).
-10. Annotate/remove the completed round-2 rows in TODO_LIST.md (keep `[ ]`-only convention; completions live in CHANGELOG).
-11. Add `Config.CSRF` to FEATURES.md's setup section and the fullstack-wiring guide's middleware discussion.
+9. ~~Update AGENTS.md with the 4 session lessons (§e.10 list).~~ done (AGENTS.md gotchas updated)
+10. ~~Annotate/remove the completed round-2 rows in TODO_LIST.md (keep `[ ]`-only convention; completions live in CHANGELOG).~~ done (TODO_LIST synced (rounds 1-5))
+11. ~~Add `Config.CSRF` to FEATURES.md's setup section and the fullstack-wiring guide's middleware discussion.~~ done (FEATURES.md setup Hardening-Knobs row (Config.CSRF))
 12. Add async-startup-demo to FEATURES.md examples list + link from `docs/guides/async-projection-startup.md`.
 13. Add the actor-metadata pattern to `docs/guides/actor-and-audit-trail.md` (it documents the API; the basic demo is now the runnable proof — cross-link them).
-14. Note in `docs/planning/2026-08-30_upstream-issue-drafts.md`-adjacent tracking when #25–#28 get upstream responses; keep systemadapter's first-version blocked-on-#25 status visible in TODO_LIST.
-15. CHANGELOG: minor entry for the go-health-dashboard v0.7.0 sweep (currently only in the commit message).
-16. setup/README: the CSRF row exists — add a one-line "tokenless mutations on admin routes are rejected 403" behavior note next to it.
+14. ~~Note in `docs/planning/2026-08-30_upstream-issue-drafts.md`-adjacent tracking when #25–#28 get upstream responses; keep systemadapter's first-version blocked-on-#25 status visible in TODO_LIST.~~ done (systemadapter/v4.11.0 tagged 2026-09-20)
+15. ~~CHANGELOG: minor entry for the go-health-dashboard v0.7.0 sweep (currently only in the commit message).~~ done (CHANGELOG entry landed)
+16. ~~setup/README: the CSRF row exists — add a one-line "tokenless mutations on admin routes are rejected 403" behavior note next to it.~~ done (setup/README CSRF row + security section)
 
 **Upstream follow-through (17–20)**
-17. When go-cqrs-lite publishes projectionadapter v4.5.0 (per #25): strip the 2 remaining local replaces (systemadapter, examples/system-demo), then cut systemadapter's first family tag (train step that was blocked).
-18. Watch #26 (postgres v4.2.0 retraction); when done, drop the "NOT v4.2.0" comment pin in `check-templates.sh` to point at the retraction instead.
+17. ~~When go-cqrs-lite publishes projectionadapter v4.5.0 (per #25): strip the 2 remaining local replaces (systemadapter, examples/system-demo), then cut systemadapter's first family tag (train step that was blocked).~~ done (replaces stripped 2026-09-20; systemadapter/v4.11.0 tagged)
+18. ~~Watch #26 (postgres v4.2.0 retraction); when done, drop the "NOT v4.2.0" comment pin in `check-templates.sh` to point at the retraction instead.~~ done (stack tags at v4.3.0; no v4.2.0 pin remains)
 19. If #27/#28 are accepted, contribute the manifest generator or cqrs-upgrade tool sketch.
 20. Consider retract proposal symmetry: audit OUR published tags for the same broken-in-isolation class (verify-tag can't check sibling-tag buildability — a `verify-tag --build-hermetic` mode would close it).
 
@@ -128,7 +134,7 @@
 47. Consider publicizing #25–#28 outcomes in the release runbook once resolved (train-lag axes that can now clear).
 48. Feature: setup `Config.CSRF` analog for the dashboard write-mode path (dashboard CSRF is still consumer-owned by design — document or knob).
 49. Audit other examples for the `RegisterHealth` + custom-probe double-registration class (basic had it; the pattern likely exists elsewhere).
-50. Coverage re-dates in AGENTS.md after the next full coverage run (the 2026-09-10 row predates this session's new tests).
+50. ~~Coverage re-dates in AGENTS.md after the next full coverage run (the 2026-09-10 row predates this session's new tests).~~ done (coverage numbers re-dated 2026-09-18/20)
 
 ## g) THREE QUESTIONS I CANNOT ANSWER MYSELF
 
