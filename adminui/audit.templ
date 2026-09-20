@@ -31,18 +31,18 @@ templ auditContent(d auditData) {
 templ auditRows(d auditData) {
 	for _, e := range d.Entries {
 		<tr>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				@badge(e.Action, "accent")
 			</td>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				if e.Email != "" {
 					<span class="font-medium">{ e.Email }</span>
 				} else {
 					<span class="text-gray-400">—</span>
 				}
 			</td>
-			<td class="px-4 py-3 font-mono text-xs">{ e.AggregateID.String() }</td>
-			<td class="px-4 py-3 text-gray-500">
+			<td class="px-4 py-2 font-mono text-xs">{ e.AggregateID.String() }</td>
+			<td class="px-4 py-2 text-gray-500">
 				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
 			</td>
 		</tr>

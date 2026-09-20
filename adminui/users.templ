@@ -64,7 +64,7 @@ templ usersTableContent(d usersListData) {
 templ usersRows(d usersListData) {
 	for _, u := range d.Users {
 		<tr>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				<a class="flex no-underline" href={ d.BasePath + "/users/" + u.ID.Get().String() }>
 					<div class="flex items-center gap-2.5">
 						@display.Avatar(display.AvatarProps{Initials: initials(u.Email), Size: display.AvatarSizeSM})
@@ -77,7 +77,7 @@ templ usersRows(d usersListData) {
 					</div>
 				</a>
 			</td>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				<div class="flex flex-wrap gap-1">
 					if u.EmailVerified {
 						@statusBadge("verified", "green")
@@ -89,10 +89,10 @@ templ usersRows(d usersListData) {
 					}
 				</div>
 			</td>
-			<td class="px-4 py-3 text-gray-500">
+			<td class="px-4 py-2 text-gray-500">
 				@display.RelativeTime(display.RelativeTimeProps{Time: u.CreatedAt})
 			</td>
-			<td class="px-4 py-3 text-right">
+			<td class="px-4 py-2 text-right">
 				<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/users/" + u.ID.Get().String() }>View</a>
 			</td>
 		</tr>
@@ -179,8 +179,8 @@ templ userDetailContent(d userDetailData) {
 templ tenantRolesRows(tenantRoles map[string][]identitymodel.Role) {
 	for tenant, roles := range tenantRoles {
 		<tr>
-			<td class="px-4 py-3 font-mono text-xs">{ tenant }</td>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2 font-mono text-xs">{ tenant }</td>
+			<td class="px-4 py-2">
 				<div class="flex flex-wrap gap-1">
 					for _, r := range roles {
 						@roleBadge(string(r))
@@ -203,7 +203,7 @@ templ externalAccountsCard(d userDetailData) {
 		BaseProps: utils.BaseProps{Class: "mb-4"},
 	}) {
 		if len(d.User.ExternalAccounts) == 0 {
-			<div class="px-4 py-3 text-sm text-gray-500">No external accounts linked.</div>
+			<div class="px-4 py-2 text-sm text-gray-500">No external accounts linked.</div>
 		} else {
 			@display.Table(display.TableProps{
 				Headers:     []string{"Provider", "Email", "Linked", ""},
@@ -213,7 +213,7 @@ templ externalAccountsCard(d userDetailData) {
 				CellPadding: display.TableCellPaddingCompact,
 			})
 		}
-		<div class="flex flex-wrap items-center gap-2 px-4 py-3">
+		<div class="flex flex-wrap items-center gap-2 px-4 py-2">
 			<span class="text-xs text-gray-400">Linking is done via the user's own OAuth2 login flow.</span>
 			<div class="flex flex-wrap gap-1">
 				for _, provider := range d.ConfiguredProviders {
@@ -227,12 +227,12 @@ templ externalAccountsCard(d userDetailData) {
 templ externalAccountRows(d userDetailData) {
 	for _, ea := range d.User.ExternalAccounts {
 		<tr>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				@display.Badge(display.BadgeProps{Text: ea.Provider, Type: display.BadgeNeutral, Pill: true})
 			</td>
-			<td class="px-4 py-3 text-sm">{ ea.Email }</td>
-			<td class="px-4 py-3 text-sm text-gray-500">{ ea.LinkedAt.Format("Jan 2, 2006") }</td>
-			<td class="px-4 py-3 text-right">
+			<td class="px-4 py-2 text-sm">{ ea.Email }</td>
+			<td class="px-4 py-2 text-sm text-gray-500">{ ea.LinkedAt.Format("Jan 2, 2006") }</td>
+			<td class="px-4 py-2 text-right">
 				@display.Button(display.ButtonProps{
 					Text:    "Unlink",
 					Variant: display.ButtonDanger,

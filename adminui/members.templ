@@ -54,8 +54,8 @@ templ membersCard(d tenantDetailData) {
 templ membersRows(d tenantDetailData) {
 	for _, m := range d.Members {
 		<tr>
-			<td class="px-4 py-3 font-mono text-xs">{ m.Actor.PrefixedString() }</td>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2 font-mono text-xs">{ m.Actor.PrefixedString() }</td>
+			<td class="px-4 py-2">
 				<form class="flex items-center gap-1.5" hx-post={ d.UpdateRoleBase + "/" + m.Actor.PrefixedString() }>
 					@forms.Select(forms.SelectProps{
 						Name:      "role",
@@ -65,7 +65,7 @@ templ membersRows(d tenantDetailData) {
 					@display.Button(display.ButtonProps{Text: "Set", Type: display.ButtonHTMLSubmit, Variant: display.ButtonSecondary, Size: display.ButtonSizeSM})
 				</form>
 			</td>
-			<td class="px-4 py-3 text-right">
+			<td class="px-4 py-2 text-right">
 				@display.Button(display.ButtonProps{
 					Variant: display.ButtonSecondary,
 					Size:    display.ButtonSizeSM,

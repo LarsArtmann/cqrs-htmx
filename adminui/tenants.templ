@@ -40,13 +40,13 @@ templ tenantsContent(d tenantsListData) {
 templ tenantsRows(d tenantsListData) {
 	for _, t := range d.Tenants {
 		<tr>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				<a class="flex flex-col no-underline" href={ d.BasePath + "/tenants/" + t.ID.Get() }>
 					<span class="font-medium text-gray-900">{ t.DisplayName }</span>
 					<span class="font-mono text-xs text-gray-400">{ t.Name }</span>
 				</a>
 			</td>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				if t.Suspended {
 					@statusBadge("suspended", "amber")
 				} else if t.Deleted {
@@ -55,7 +55,7 @@ templ tenantsRows(d tenantsListData) {
 					@statusBadge("active", "green")
 				}
 			</td>
-			<td class="px-4 py-3 text-right">
+			<td class="px-4 py-2 text-right">
 				<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants/" + t.ID.Get() }>Manage</a>
 			</td>
 		</tr>

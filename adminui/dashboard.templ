@@ -39,17 +39,17 @@ templ dashboardContent(d dashboardData) {
 templ recentActivityRows(d dashboardData) {
 	for _, e := range d.Recent {
 		<tr>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				@badge(e.Action, "accent")
 			</td>
-			<td class="px-4 py-3">
+			<td class="px-4 py-2">
 				if e.Email != "" {
 					<span class="font-medium">{ e.Email }</span>
 				} else {
 					<span class="font-mono text-xs">{ e.AggregateID.String() }</span>
 				}
 			</td>
-			<td class="px-4 py-3 text-gray-500">
+			<td class="px-4 py-2 text-gray-500">
 				@display.RelativeTime(display.RelativeTimeProps{Time: e.OccurredAt})
 			</td>
 		</tr>
