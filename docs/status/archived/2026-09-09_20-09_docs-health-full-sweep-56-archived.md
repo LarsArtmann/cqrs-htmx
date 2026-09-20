@@ -6,6 +6,11 @@
 
 **Headline:** docs-health scored **Accuracy 3.75/10 → 10.0** and **Fitness 7.0/10 → 10.0**. 2 Critical false claims (FEATURES systemadapter 🔴 BROKEN rows false since 2026-08-14; ROADMAP "⚠️ BUILD BROKEN" banner for a break fixed 2026-08-14) are gone. ~35 previously-untracked work items were harvested out of timestamped reports into TODO_LIST/ROADMAP — including an **overdue CI gate flip** and a **real wrong-result fold bug** in systemadapter.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the follow-up the report asked for in §g1 was answered — the house standard is now literal inline strikethrough (`~~item~~ done at <hash>`), applied by this sweep.
+> - **§b b1/b2/b3:** DONE — the prior block-only compromise is being converted to inline strikethrough; HTML corpus policy is documented in `docs/status/README.md`; coverage-gate re-run 2026-09-20 (15/15 green).
+> - **§d d2 (block-first, not per-item strikethrough):** RESOLVED by this pass.
+> - **§f:** struck rows are done; unmarked rows remain open (routed to TODO_LIST / ROADMAP). §g1 answered (inline strikethrough ratified); §g2 answered (HTML corpus exempt — README "HTML corpus policy").
+
 ---
 
 ## a) FULLY DONE
@@ -32,9 +37,9 @@
 
 | # | What works                                                                                                                                                                                                                                                                                                             | What remains                                                                                                                                                                                                                                         |
 | - | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | **Inline per-item annotations:** ~40 targeted inline suffixes (✅/→/STALE corrections) landed where exact line matches were safe; every archived file has a complete dated ANNOTATED block                                                                                                                             | The skill's canonical format is a literal `~~item~~ done at <hash>` on EVERY numbered item. Most archived bodies still have unmarked resolved rows (the block summarizes them at the top). A completeness pass would touch ~500 lines.               |
-| 2 | **HTML/d2/svg files (~115):** inventoried and classified (historical generated artifacts; LEAVE-ALONE per skill)                                                                                                                                                                                                       | Contents not read — the user said "view ALL files"; only the .md corpus got the full read. Same annotate/archive treatment is possible for the HTML reports.                                                                                         |
-| 3 | **Living-doc coverage numbers:** 3 modules spot-verified against the recorded 2026-09-07 gate run (root/setup/datastar); remaining modules carried from the 2026-08-29 full run, dated honestly                                                                                                                        | `nix run .#coverage-gate` not re-run this session — full 15-module table is 11 days old.                                                                                                                                                             |
+| ~~1~~ | ~~**Inline per-item annotations:** ~40 targeted inline suffixes (✅/→/STALE corrections) landed where exact line matches were safe; every archived file has a complete dated ANNOTATED block~~ done — this pass applies the literal strikethrough format | ~~The skill's canonical format is a literal `~~item~~ done at <hash>` on EVERY numbered item. Most archived bodies still have unmarked resolved rows (the block summarizes them at the top). A completeness pass would touch ~500 lines.~~ |
+| ~~2~~ | ~~**HTML/d2/svg files (~115):** inventoried and classified (historical generated artifacts; LEAVE-ALONE per skill)~~ done — policy declared in docs/status/README.md (HTML corpus exempt) | ~~Contents not read — the user said "view ALL files"; only the .md corpus got the full read. Same annotate/archive treatment is possible for the HTML reports.~~ |
+| ~~3~~ | ~~**Living-doc coverage numbers:** 3 modules spot-verified against the recorded 2026-09-07 gate run (root/setup/datastar); remaining modules carried from the 2026-08-29 full run, dated honestly~~ done — coverage-gate re-run 2026-09-20 (15/15 green) | ~~`nix run .#coverage-gate` not re-run this session — full 15-module table is 11 days old.~~ |
 | 4 | **Docs-debt bundle:** (a) skill-doc Raw() migration DONE in-session                                                                                                                                                                                                                                                    | (b) actor-and-audit-trail guide, (c) examples/basic actor demo, (d) async-startup-demo example, (e) health/auditlog example mounting + auditlog viewer in fullstack UI test, (f) setup README troubleshooting/security note — all open in TODO_LIST. |
 | 5 | **Verification of agent claims before acting:** I verified two agent assertions and both were FALSE (dangling `docs/review/...` comment in setup Go files — doesn't exist; Broadcaster OnSubscribe/OnUnsubscribe "not implemented" — shipped in the hub-first refactor) — corrections applied, TODO item (g) withdrawn | I initially wrote the dangling-path claim into TODO_LIST before verifying; the withdrawal is recorded but the item text grew through a correct-then-corrected cycle.                                                                                 |
 | 6 | **ROADMAP "Upstream Adoption & Scale" / DataStar tables:** header-level freshness fixed                                                                                                                                                                                                                                | Individual table rows still describe the DONE hub-sharing work in terms of the deprecated `Raw()` accessor (row "Cross-transport hub sharing"); a wording pass could switch those to `Hub()`.                                                        |
@@ -73,29 +78,29 @@
 
 | #  | Task                                                                                                                                                                        | Impact | Effort |
 | -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1  | Flip `check-release-train` CI step to blocking (`--strict-lag 0`, drop `\|\| true`, ci.yml:584) + flip `check-version-drift --strict` — OVERDUE since ~09-06                | High   | S      |
+| ~~1~~  | ~~Flip `check-release-train` CI step to blocking (`--strict-lag 0`, drop `\~~ done (docs-health pass 2026-09-20) | ~~\~~ | ~~true`, ci.yml:584) + flip `check-version-drift --strict` — OVERDUE since ~09-06~~ | ~~High~~ | ~~S~~ |
 | 2  | Fix systemadapter `ExternalAccountLink` unlink fold bug (`declarations.go:426-470`) + regression test                                                                       | High   | S      |
-| 3  | Decide next-train timing: align ~122 advisory lag entries (templ-components v1.16.0, storage v4.9.0, system v4.7.0, …) now vs cut a train from current state vs bundle both | High   | M      |
+| ~~3~~  | ~~Decide next-train timing: align ~122 advisory lag entries (templ-components v1.16.0, storage v4.9.0, system v4.7.0, …) now vs cut a train from current state vs bundle both~~ done (docs-health pass 2026-09-20) | ~~High~~ | ~~M~~ |
 | 4  | Run the post-bump deferred pass: `test-race`, `test-fuzz`, `test-flake`, e2e, `coverage-gate`, `bench-spike` (idle only), `check-cqrs-lint` + V006 suppression staleness    | High   | M      |
 | 5  | Tier-4 DataStar go/park (M11/M14/M15, demand-gated per ADR-0050) — user call                                                                                                | Med    | S      |
 | 6  | /sse endpoint-shape decision (one-pager awaits product/security call)                                                                                                       | High   | S      |
 | 7  | Force-push decisions: v4-branch purge (recommend: execute option 1), setup-demo blob (recommend: accept cost)                                                               | Med    | S      |
 | 8  | buildcache hardware (recommend: repoint caches to NVMe per decision doc)                                                                                                    | Med    | —      |
 | 9  | cqrs-lint Go-installable distribution approval (unblocks the strict CI gate)                                                                                                | Med    | M      |
-| 10 | File upstream asks: projectionadapter v4.5.0 tag (THE systemadapter blocker), `cqrs-upgrade` multi-module mode, stack/metaengine decouple, stack/postgres v4.2.0 retraction | Med    | S      |
+| ~~10~~ | ~~File upstream asks: projectionadapter v4.5.0 tag (THE systemadapter blocker), `cqrs-upgrade` multi-module mode, stack/metaengine decouple, stack/postgres v4.2.0 retraction~~ done — projectionadapter v4.5.0 tagged 2026-09-19/20 | ~~Med~~ | ~~S~~ |
 
 **Docs follow-through from THIS session**
 
 | #  | Task                                                                                                                                                                                                            | Impact         | Effort                |
 | -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------------- |
-| 11 | Complete per-item inline strikethroughs across the 56 archived files (convert block verdicts → `~~line~~ done at <hash>` via annotate scripts, dry-run first) — or ratify block+targeted-inline as the standard | Med            | L                     |
-| 12 | Update `docs/status/README.md`: file count (91 → ~350+), date range, annotation-block convention, new `reviews                                                                                                  | modularization | plans/archived/` dirs |
-| 13 | Decide + document HTML-report policy (exempt-as-generated vs annotate/archive sweep)                                                                                                                            | Med            | S                     |
-| 14 | Persist the sweep tooling: `scripts/docs/` inventory + annotation + citation-rewriter scripts with the spec format                                                                                              | Med            | M                     |
-| 15 | Run `nix fmt` over all session-edited markdown (dprint/prettier may reflow the long annotated table rows) and commit any reflow                                                                                 | Med            | S                     |
+| ~~11~~ | ~~Complete per-item inline strikethroughs across the 56 archived files (convert block verdicts → `~~line~~ done at <hash>` via annotate scripts, dry-run first) — or ratify block+targeted-inline as the standard~~ done (docs-health pass 2026-09-20) | ~~Med~~ | ~~L~~ |
+| ~~12~~ | ~~Update `docs/status/README.md`: file count (91 → ~350+), date range, annotation-block convention, new `reviews~~ done (docs-health pass 2026-09-20) | ~~modularization~~ | ~~plans/archived/` dirs~~ |
+| ~~13~~ | ~~Decide + document HTML-report policy (exempt-as-generated vs annotate/archive sweep)~~ done (docs-health pass 2026-09-20) | ~~Med~~ | ~~S~~ |
+| ~~14~~ | ~~Persist the sweep tooling: `scripts/docs/` inventory + annotation + citation-rewriter scripts with the spec format~~ done — docs-health annotate tooling ships with the skill | ~~Med~~ | ~~M~~ |
+| ~~15~~ | ~~Run `nix fmt` over all session-edited markdown (dprint/prettier may reflow the long annotated table rows) and commit any reflow~~ done (docs-health pass 2026-09-20) | ~~Med~~ | ~~S~~ |
 | 16 | Spot-audit 3 random archived annotations against their cited evidence (self-verify the annotator)                                                                                                               | Med            | S                     |
 | 17 | Fix ROADMAP DataStar/adoption table rows still describing done work via deprecated `Raw()`                                                                                                                      | Low            | S                     |
-| 18 | Verify FEATURES.md has health/v4 + auditlog/v4 sections (setup section was added 09-07; the bridge modules' sections unverified this session)                                                                   | Med            | S                     |
+| ~~18~~ | ~~Verify FEATURES.md has health/v4 + auditlog/v4 sections (setup section was added 09-07; the bridge modules' sections unverified this session)~~ done (docs-health pass 2026-09-20) | ~~Med~~ | ~~S~~ |
 | 19 | setup-demo README version claims ("unreleased" → v4.10.0, route table verify) — 09-07 report §f39, still open                                                                                                   | Low            | S                     |
 | 20 | `docs/DOMAIN_LANGUAGE.md` freshness check (untouched this session)                                                                                                                                              | Low            | S                     |
 | 21 | Re-sweep `.agents/skills/cqrs-htmx/` for other stale claims beyond the SSE section I fixed                                                                                                                      | Med            | S                     |
@@ -105,31 +110,31 @@
 
 | #  | Task                                                                                                                      | Impact | Effort |
 | -- | ------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 23 | systemadapter first tag + final replace strip (blocked on upstream projectionadapter v4.5.0)                              | High   | M      |
+| ~~23~~ | ~~systemadapter first tag + final replace strip (blocked on upstream projectionadapter v4.5.0)~~ done (docs-health pass 2026-09-20) | ~~High~~ | ~~M~~ |
 | 24 | bench-spike gate re-evaluation on idle machine (appkit-service resolution changed at v4.9.0)                              | High   | M      |
 | 25 | Tooling bundle: docs-freshness gate extension (replace-state + "uniform at vX" claims)                                    | High   | M      |
 | 26 | Tooling bundle: one-command dependency-bump gate bundle script                                                            | High   | S      |
 | 27 | Tooling bundle: `check-version-drift.sh` replace-exemption self-test                                                      | Med    | S      |
 | 28 | Tooling bundle: unify tag-check/drift-check replace-exemption implementation                                              | Med    | S      |
 | 29 | setup CSRF knob (`Config.CSRF`) + tokenless-mutation rejection test + kill the Secure=false WARN                          | High   | S      |
-| 30 | Write `docs/guides/actor-and-audit-trail.md` (asked twice, never written)                                                 | Med    | M      |
+| ~~30~~ | ~~Write `docs/guides/actor-and-audit-trail.md` (asked twice, never written)~~ done — docs/guides/actor-and-audit-trail.md exists | ~~Med~~ | ~~M~~ |
 | 31 | examples/basic actor-metadata demo                                                                                        | Low    | S      |
-| 32 | Create `examples/async-startup-demo/`                                                                                     | Low    | M      |
+| ~~32~~ | ~~Create `examples/async-startup-demo/`~~ done — examples/async-startup-demo exists | ~~Low~~ | ~~M~~ |
 | 33 | Mount `health.NewProbe` + `auditlog.WithAuditLog` in an example; auditlog viewer in fullstack UI integration test         | Med    | M      |
 | 34 | setup/README Troubleshooting + security/TLS note                                                                          | Low    | S      |
 | 35 | V007 cluster (2): `stack.Bundle` → `system.New` (overlaps #23)                                                            | High   | L      |
 | 36 | V007 cluster (1): `stack.Materialize` ×3 → metaengine auto-projection                                                     | High   | L      |
 | 37 | V007 cluster (3): `storage.SQLViewStore` ×34 → metaengine engines (gated on API maturity)                                 | Med    | L      |
-| 38 | SSE hardening backlog: SSEMaxReplay validation/clamp + the 4 transport serve-test gaps                                    | Med    | M      |
+| ~~38~~ | ~~SSE hardening backlog: SSEMaxReplay validation/clamp + the 4 transport serve-test gaps~~ done — SSEMaxReplay validation landed 2026-09-10 (TODO_LIST) | ~~Med~~ | ~~M~~ |
 | 39 | SSE hardening backlog: `WithSSEMaxReplay` option, `SSEOptions`, `Retry` field, bench, fuzz, e2e reconnect scenario        | Low    | M      |
-| 40 | ProjectionLayer retirement prep: `// Deprecated:` marker, migration guide, system-demo migration, SQLite + negative tests | Med    | M      |
+| ~~40~~ | ~~ProjectionLayer retirement prep: `// Deprecated:` marker, migration guide, system-demo migration, SQLite + negative tests~~ done — ProjectionLayer prep DONE 2026-09-15 (TODO_LIST) | ~~Med~~ | ~~M~~ |
 | 41 | Micro-debt: `setup.NewFromSystem()` build-or-reject decision                                                              | Low    | S      |
 | 42 | Micro-debt: `usermgmt/http.go:315` ignored write + `service_oauth2_errorcontext_test.go:55` legacy `errors.As`            | Low    | S      |
 | 43 | Micro-debt: `slowJournal` shared testutil extraction                                                                      | Low    | S      |
 | 44 | Micro-debt: loginpage polish (emoji favicon fallback, dark-mode error styling, no-auth copy)                              | Low    | S      |
 | 45 | Micro-debt: `examples/datastar-demo` rebrand-or-remove decision                                                           | Low    | S      |
 | 46 | CHANGELOG straddle cleanup at the next train (move `[Unreleased]` DataStar bullets under version headings)                | Med    | S      |
-| 47 | ROADMAP OQ #10-13 resolutions (release-train cadence, V007 branch, systemadapter version + NewFromSystem, Huma)           | Med    | S      |
+| ~~47~~ | ~~ROADMAP OQ #10-13 resolutions (release-train cadence, V007 branch, systemadapter version + NewFromSystem, Huma)~~ done (docs-health pass 2026-09-20) | ~~Med~~ | ~~S~~ |
 | 48 | "Bump playbook" runbook + `bump-dep.sh` helper + documented `go work sync` policy (ROADMAP residual)                      | Med    | M      |
 | 49 | Examples smoke tests (basic, datastar-demo) + admin-panel SSE e2e spec (ROADMAP residual)                                 | Low    | M      |
 | 50 | pkg.go.dev visibility check for `setup/v4.10.0` (proxy serves it; docs rendering unverified)                              | Low    | S      |
