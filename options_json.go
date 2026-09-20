@@ -3,7 +3,9 @@ package cqrshtmx
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	httputil "github.com/larsartmann/httputil"
@@ -84,6 +86,56 @@ func DecodePagination(r *http.Request) query.Pagination {
 	pageSize := httputil.ParseUintQuery(r, "page_size")
 
 	return query.NewPagination(page, pageSize)
+}
+
+// DecodePaginationStrict extracts page and page_size from HTTP query
+// parameters, returning a rejection error for malformed or out-of-range
+// values instead of silently coercing them to defaults like
+// [DecodePagination] does.
+//
+// Missing parameters keep the go-cqrs-lite defaults (page=1, page_size=20).
+// Explicit values must satisfy query.Pagination.Validate: page >= 1 and
+// page_size in [1, 100]. Malformed numbers, zero, and oversized page sizes
+// return an errorfamily Rejection — routed through the App's error handler
+// it surfaces as a client-facing 400 with the offending value.
+//
+// Usage (inside a query decoder — the returned error aborts the request):
+//
+//	p, err := cqrshtmx.DecodePaginationStrict(r)
+//	if err != nil {
+//	    return nil, err
+//	}
+func DecodePaginationStrict(r *http.Request) (query.Pagination, error) {
+	pagination := query.NewPagination(0, 0)
+
+	if raw := r.URL.Query().Get("page"); raw != "" {
+		parsed, err := strconv.ParseUint(raw, 10, 32)
+		if err != nil {
+			return query.Pagination{}, errorfamily.Newf(event.Rejection,
+				"cqrshtmx.pagination.page_malformed",
+				"page must be a non-negative integer, got %s", raw)
+		}
+
+		pagination.Page = uint(parsed)
+	}
+
+	if raw := r.URL.Query().Get("page_size"); raw != "" {
+		parsed, err := strconv.ParseUint(raw, 10, 32)
+		if err != nil {
+			return query.Pagination{}, errorfamily.Newf(event.Rejection,
+				"cqrshtmx.pagination.page_size_malformed",
+				"page_size must be a non-negative integer, got %s", raw)
+		}
+
+		pagination.PageSize = uint(parsed)
+	}
+
+	if err := pagination.Validate(); err != nil {
+		return query.Pagination{}, errorfamily.Wrapf(err, event.Rejection,
+			"cqrshtmx.pagination.invalid", "invalid pagination parameters")
+	}
+
+	return pagination, nil
 }
 
 // RenderPaginatedJSON renders a query.PaginatedResult[T] as JSON with 200 OK.

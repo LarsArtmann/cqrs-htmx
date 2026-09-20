@@ -118,6 +118,40 @@ var _ = Describe("Coverage Gaps - Rendering and Decoding", func() {
 		})
 	})
 
+	Describe("DecodePaginationStrict", func() {
+		It("accepts explicit in-range values", func() {
+			r := httptest.NewRequest(http.MethodGet, "/items?page=3&page_size=25", nil)
+			p, err := cqrshtmx.DecodePaginationStrict(r)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(p.Page).To(Equal(uint(3)))
+			Expect(p.PageSize).To(Equal(uint(25)))
+		})
+
+		It("keeps defaults for missing parameters", func() {
+			r := httptest.NewRequest(http.MethodGet, "/items", nil)
+			p, err := cqrshtmx.DecodePaginationStrict(r)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(p.Page).To(Equal(uint(1)))
+			Expect(p.PageSize).To(Equal(uint(20)))
+		})
+
+		DescribeTable(
+			"rejects invalid values with a Rejection-class error",
+			func(query, wantCode string) {
+				r := httptest.NewRequest(http.MethodGet, "/items"+query, nil)
+				_, err := cqrshtmx.DecodePaginationStrict(r)
+				Expect(err).To(HaveOccurred())
+				Expect(cqrshtmx.MapError(err)).To(Equal(http.StatusBadRequest))
+				Expect(errorfamily.Code(err)).To(ContainSubstring(wantCode))
+			},
+			Entry("malformed page", "?page=abc", "cqrshtmx.pagination"),
+			Entry("zero page", "?page=0", "cqrshtmx.pagination"),
+			Entry("oversized page_size", "?page_size=500", "cqrshtmx.pagination"),
+			Entry("zero page_size", "?page_size=0", "cqrshtmx.pagination"),
+			Entry("malformed page_size", "?page_size=lots", "cqrshtmx.pagination"),
+		)
+	})
+
 	Describe("RenderPaginatedJSON", func() {
 		It("renders paginated result as JSON", func() {
 			app := newQueryAppWithResult(func(_ context.Context, _ query.Query) (any, error) {
