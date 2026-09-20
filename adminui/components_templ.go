@@ -320,7 +320,7 @@ func dangerZoneHeader() templ.Component {
 			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<h3 class=\"text-base font-semibold text-red-600\">Danger zone</h3>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex flex-col gap-0.5\"><span class=\"text-[11px] font-semibold tracking-wider text-red-600/70 uppercase\">Irreversible actions</span><h3 class=\"text-base font-semibold text-red-600\">Danger zone</h3></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
