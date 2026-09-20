@@ -57,6 +57,10 @@ type statCard struct {
 	Href  string
 }
 
+// classNoUnderline is the anchor-decoration suppressor shared by linked
+// stat cards and templ-components buttons rendered as links (BaseProps.Class).
+const classNoUnderline = "no-underline"
+
 // statCardClass returns the extra classes for a stat card: linked cards drop
 // the anchor underline so the drill-down reads as a card, not a text link.
 func statCardClass(href string) string {
@@ -64,7 +68,7 @@ func statCardClass(href string) string {
 		return ""
 	}
 
-	return "no-underline"
+	return classNoUnderline
 }
 
 // dashboardData drives the overview page.

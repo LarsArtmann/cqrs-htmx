@@ -19,7 +19,7 @@ templ tenantsContent(d tenantsListData) {
 			Variant:   display.ButtonPrimary,
 			Size:      display.ButtonSizeSM,
 			Icon:      icon("plus"),
-			BaseProps: utils.BaseProps{Class: "no-underline"},
+			BaseProps: utils.BaseProps{Class: classNoUnderline},
 		})
 	</div>
 	if len(d.Tenants) == 0 {
@@ -92,7 +92,7 @@ templ tenantNewContent(basePath string) {
 					</div>
 					<div class="flex gap-2.5">
 						@display.Button(display.ButtonProps{Text: "Create tenant", Type: display.ButtonHTMLSubmit, Variant: display.ButtonPrimary})
-						@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/tenants", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: "no-underline"}})
+						@display.Button(display.ButtonProps{Text: "Cancel", Href: basePath + "/tenants", Variant: display.ButtonSecondary, BaseProps: utils.BaseProps{Class: classNoUnderline}})
 					</div>
 				</form>
 			}
