@@ -198,6 +198,23 @@ func seed(ctx context.Context, svc *usermgmt.Service) string {
 		}
 	}
 
+	// Seed tenant memberships so the tenant-detail members table (and the
+	// membership read model) has real rows to render.
+	for _, m := range []struct {
+		email  string
+		tenant string
+		roles  []identitymodel.Role
+	}{
+		{"alice@acme.dev", "acme", []identitymodel.Role{identitymodel.RoleOwner}},
+		{"bob@acme.dev", "acme", []identitymodel.Role{identitymodel.RoleUser}},
+		{"carol@other.dev", "globex", []identitymodel.Role{identitymodel.RoleViewer}},
+	} {
+		uid := identitymodel.SyntheticUserID("seed-" + m.email)
+		if err := svc.AddMember(ctx, identitymodel.ActorIDFromUser(uid), identitymodel.NewTenantID(m.tenant), m.roles); err != nil {
+			log.Printf("seed member %s/%s: %v", m.email, m.tenant, err)
+		}
+	}
+
 	return resp.Session.Token
 }
 
