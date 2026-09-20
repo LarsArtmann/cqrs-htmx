@@ -33,7 +33,7 @@ adminui = identity operations (users, tenants, members, audit log over a `*userm
 
 1. **v5 module rename** — proposal filed with candidates and criteria; **final names undecided** (requires Lars; decision question (g)-1).
 2. **Discovery-surface mesh** — 7 of ~12 known surfaces carry the distinction (2 module READMEs, 2 doc.go, root README, loginpage README, AGENTS.md). NOT yet: loginpage/doc.go, setup/doc.go, setup/README route table, examples READMEs, the AI skill file, docs/guides/fullstack-wiring.md.
-3. **Version de-rot** — root README dependency table done. AGENTS.md Quick Reference / Key-dependencies rows NOT swept this session, and AGENTS.md says "httputil v0.12.0" while root go.mod now shows **httputil v1.2.0** (a concurrent session bumped it mid-session) — AGENTS row is likely stale right now.
+3. ~~**Version de-rot** — root README dependency table done. AGENTS.md Quick Reference / Key-dependencies rows NOT swept this session, and AGENTS.md says "httputil v0.12.0" while root go.mod now shows **httputil v1.2.0** (a concurrent session bumped it mid-session) — AGENTS row is likely stale right now.~~ done (AGENTS.md Quick Reference version rows swept; httputil row at v1.2.0)
 
 ## c) NOT STARTED (noticed this session, untouched)
 
@@ -41,7 +41,7 @@ adminui = identity operations (users, tenants, members, audit log over a `*userm
 2. **dashboardui/README Demo note is stale** — still says the demo "requires the `dashboardui/v4` module to be tagged and published"; `dashboardui/v4.8.2` is pushed.
 3. **Root README "Features at a Glance"** (lines 20-44) never checked for the same admin/dashboard ambiguity.
 4. **CHANGELOG.md entry** for the docs improvement (repo convention: finished work → CHANGELOG) — not written.
-5. **ROADMAP.md routing** of the rename decision (docs-health ownership rule: vague/long-term → ROADMAP).
+5. ~~**ROADMAP.md routing** of the rename decision (docs-health ownership rule: vague/long-term → ROADMAP).~~ done (v5-removal-inventory class 5 landed)
 6. **Claim-driven docs sweep** — never grepped all docs/guides for "admin dashboard"/"dashboard" phrasing that contradicts the new canonical distinction (verification was gate-driven: links + freshness, not semantic).
 7. **setup/README route table** — clear wording but zero cross-module links.
 8. **examples/admin-demo + examples/dashboard-demo READMEs** — no cross-references between the two demos.
@@ -73,7 +73,7 @@ Nothing is broken — all gates pass, HEAD verified. Honest failures, ranked:
 1. Add dashboardui row (and setup/loginpage rows) to `.agents/skills/cqrs-htmx/SKILL.md` module table.
 2. Fix stale dashboardui README demo note ("requires tagging" → tagged since v4.8.2, add run instructions that work).
 3. loginpage/doc.go: sibling-panel note (mirror the two doc.go additions).
-4. setup/doc.go: "two dashboards" paragraph (composition root is where they meet).
+4. ~~setup/doc.go: "two dashboards" paragraph (composition root is where they meet).~~ done (setup/doc.go two-dashboards paragraph present)
 5. setup/README: link route table entries to adminui/dashboardui/loginpage READMEs.
 6. Check root README "Features at a Glance" for admin/dashboard ambiguity; fix.
 7. Cross-reference examples/admin-demo ↔ examples/dashboard-demo READMEs.
@@ -85,15 +85,15 @@ Nothing is broken — all gates pass, HEAD verified. Honest failures, ranked:
 
 11. **Lars decides: rename modules in v5 or keep names + docs mitigation as permanent** (question g-1).
 12. If rename: pick final names per module; write the migration ADR (module paths, deprecation shims, tag strategy).
-13. Route the rename decision into ROADMAP.md (docs-health ownership rule).
+13. ~~Route the rename decision into ROADMAP.md (docs-health ownership rule).~~ done (v5-removal-inventory class 5 (module renames) landed)
 14. Add CHANGELOG.md entry for this session's docs improvement.
 
 *Drift found this session:*
 
-15. Verify + fix AGENTS.md httputil version row (v0.12.0 vs go.mod v1.2.0 — concurrent bump).
+15. ~~Verify + fix AGENTS.md httputil version row (v0.12.0 vs go.mod v1.2.0 — concurrent bump).~~ done (AGENTS.md httputil row corrected to v1.2.0)
 16. Re-run `scripts/check-docs-freshness.sh` after the AGENTS sweep; extend its AGENTS.md dep coverage beyond the current 4 deps.
 17. Consider a gate rule: README/AGENTS dependency tables must not carry bare `vX.Y.Z` tokens at all (finish the de-rot convention mechanically).
-18. Run `scripts/check-go-toolchain.sh` to adjudicate the go.work 1.26.7 vs "requires ≥1.27.1" LSP signal (likely stale, verify once).
+18. ~~Run `scripts/check-go-toolchain.sh` to adjudicate the go.work 1.26.7 vs "requires ≥1.27.1" LSP signal (likely stale, verify once).~~ done (toolchain conflict resolved (coordinated 1.27.1 bump 2026-09-19))
 
 *Process (from this session's failures):*
 

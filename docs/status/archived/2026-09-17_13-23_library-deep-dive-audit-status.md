@@ -3,7 +3,13 @@
 **Date:** 2026-09-17 13:23 CEST
 **Session scope:** Single-task session: "Are we using httputil, go-etag and go-sse SUPERBLY?" — full library-utilization deep dive (discovery → capability research → gap analysis → scoring → HTML report), executed per the `library-deep-dive` skill.
 **Deliverable:** `docs/research/2026-09-17_httputil-go-etag-go-sse-deep-dive.html` (1489 lines, 59,357 bytes, committed) + AGENTS.md version-drift fix.
-**Headline answer:** 2 of 3 superb (httputil 85/100, go-sse 80/100). go-etag 25/100 — one demo call site while five production sites hand-roll its core feature, one of them spec-incomplete.
+
+> **ANNOTATED 2026-09-20** (docs-health sweep): audit-only session; its Pareto fixes were subsequently applied.
+> - **§b:** b1/b3 DONE (fixes applied; AGENTS version row corrected); b2/b4/b5/b6 are process/rigor notes.
+> - **§c:** rows 1–5 DONE (etag adoption, drain, retry hint, httputil v1.2.0); rows 6–10 remain open.
+> - **§f:** struck rows confirmed done; unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (ETag metrics/doc, ssetest adoption, rubric, cross-linking, upstream releases).
+> - **§g:** execute-now question answered (fixes applied); findings-gate governance resolved (`fail_on: none`, documented); CORS/deployment question remains a fleet/owner call.
+**Headline answer:** 2 of 3 superb (httputil 85/100, go-sse 80/100). go-etag 25/100 — one demo call site while five production sites hand-roll its core feature, one of them spec-incomplete. ~~**go-etag 25/100**~~ **SUPERSEDED — all Pareto fixes applied (etag.MatchesIfNoneMatch/ParseETag/etag.New adopted; drain + retry hint landed; modules now on go-etag v0.4.0).**
 
 ---
 

@@ -4,6 +4,12 @@
 **Session scope:** Analysis-only session (run from go-hotspot workspace). No production code in cqrs-htmx was modified. Two questions answered: (1) which module is most stable, (2) which parts are ready to be extracted into their own repos.
 **Method:** git churn census, complexity×churn hotspot scoring (ran go-hotspot itself against cqrs-htmx), internal import graph, temporal coupling (strict + loose thresholds), external consumer census, live per-module test/coverage verification.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): analysis-only session; no extraction has been started (awaiting the owner go/no-go + naming policy).
+> - **§b:** b7 DONE (`check-release-train` green); b1–b6 remain open/partial.
+> - **§c:** c2 DONE (harvested); the extraction pilot + `openapi`/`transport` analyses remain open.
+> - **§f:** struck rows confirmed done (release-train, fresh coverage, lint, styles.css policy, tag-cache note, harvest); unmarked rows remain open — the extraction program is decision-gated → `ROADMAP.md` (owner calls g-1/g-2/g-3).
+> - **§g:** Q1–Q3 are owner calls (consumer universe, sequencing strategy, naming/versioning policy) — unresolved; the analysis stands as-is.
+
 ---
 
 ## a) FULLY DONE
@@ -35,14 +41,14 @@
 | 4 | External consumer counts | Counts correct per module | Display truncation bug: regex char class `[a-z/0-9]*` drops `-`/`_`, so `identity-model` printed as `identity`, `integration_test` as `integration`; 2 bare `cqrs-htmx` requires of unknown provenance | S |
 | 5 | Extraction cost model | External consumers counted; Tier list reflects them | In-monorepo consumer cost **not quantified**: setup, integration_test, 12 examples, e2e/server all require the modules — the sed-sweep surface inside the monorepo is unmeasured | S |
 | 6 | Finalist verification depth | Plain `go test -cover` green | No `-race -gcflags=all=-l` runs, no fresh `golangci-lint` run on finalists (lint-clean claim rests on AGENTS.md + buildflow hooks) | S |
-| 7 | Release-train state | go.mod requires shown as published (zero local replaces) | `check-release-train` gate never actually run — train-lag between extracted module and its new require targets unverified (tag-cache TTL gotcha applies) | S |
+| ~~7~~ | ~~Release-train state~~ done — check-release-train green | ~~go.mod requires shown as published (zero local replaces)~~ | ~~`check-release-train` gate never actually run — train-lag between extracted module and its new require targets unverified (tag-cache TTL gotcha applies)~~ | ~~S~~ |
 
 ## c) NOT STARTED
 
 | # | Item | Why |
 |---|------|-----|
 | 1 | **Actual extraction pilot (auditlog)** — subtree split, new repo, shim release, consumer sweep | Analysis-only session; awaiting your go/no-go |
-| 2 | HARVEST of this report's section (f) into cqrs-htmx TODO_LIST.md / ROADMAP.md | Report written first; harvest is the documented next step |
+| ~~2~~ | ~~HARVEST of this report's section (f) into cqrs-htmx TODO_LIST.md / ROADMAP.md~~ done — harvested 2026-09-20 (this sweep) | ~~Report written first; harvest is the documented next step~~ |
 | 3 | Deprecation-shim design ADR (module-path transition policy) | Blocked on question g-3 (naming/versioning policy) |
 | 4 | `openapi/` extraction-candidate analysis | Forgotten from the tier table — it is a root sub-package with zero deps, 99% cov, frozen since July; arguably Tier 1 material |
 | 5 | `transport/` (root sub-package) extraction analysis | dashboardui + setup both depend on `v4/transport`; never examined as a seam |
@@ -82,8 +88,8 @@ No data lost, no repo state damaged, no wrong conclusion shipped as final. But r
 | 3 | Cut final monorepo release with `// Deprecated:` re-export shim at `auditlog/v4` | High | S | Feature |
 | 4 | Sweep the 3 consumer repos importing auditlog (sed + `GOWORK=off go build` each) | High | M | Cleanup |
 | 5 | Same pilot loop for health (Tier 1 #2) | High | M | Feature |
-| 6 | Run `check-release-train` (+`--refresh-cache`) to map train-lag before sequencing extractions | High | S | Quality |
-| 7 | Fresh coverage run for all ~15 modules; replace the 2026-09-10 AGENTS.md table | High | M | Quality |
+| ~~6~~ | ~~Run `check-release-train` (+`--refresh-cache`) to map train-lag before sequencing extractions~~ done — check-release-train green (0 unpublished/0 lag, 2026-09-20) | ~~High~~ | ~~S~~ | ~~Quality~~ |
+| ~~7~~ | ~~Fresh coverage run for all ~15 modules; replace the 2026-09-10 AGENTS.md table~~ done — fresh coverage run 2026-09-18/20; 15/15 gates green | ~~High~~ | ~~M~~ | ~~Quality~~ |
 | 8 | Quantify in-monorepo requires per module (setup, integration_test, 12 examples, e2e/server) | High | S | Quality |
 | 9 | Fix consumer-census regex (`[a-z/0-9_-]*`); re-run census | Medium | S | Bug |
 | 10 | Chase the 2 bare `github.com/larsartmann/cqrs-htmx` requires — legacy v1-era paths? | Medium | S | Bug |
@@ -96,7 +102,7 @@ No data lost, no repo state damaged, no wrong conclusion shipped as final. But r
 | 17 | Analyze `openapi/` as extraction candidate (was forgotten; zero deps, 99% cov, frozen) | Medium | S | Feature |
 | 18 | Analyze `transport/` (root sub-package) as a seam — dashboardui+setup depend on it | Medium | S | Feature |
 | 19 | Race-test finalists (`-race -gcflags=all=-l`) to extend verification depth | Medium | S | Quality |
-| 20 | Fresh `golangci-lint run` on finalist modules (re-verify 0-issues claim today) | Medium | S | Quality |
+| ~~20~~ | ~~Fresh `golangci-lint run` on finalist modules (re-verify 0-issues claim today)~~ done — lint 0 issues / 15 modules | ~~Medium~~ | ~~S~~ | ~~Quality~~ |
 | 21 | Define identity-model extraction trigger: "domain API freeze" criteria | High | S | Decision |
 | 22 | Identity-model extraction ADR (co-change argument for/against, 20 consumers) | High | S | Documentation |
 | 23 | UI-trio extraction plan (loginpage → adminui → dashboardui, when UI work stabilizes) | Medium | S | Documentation |
@@ -115,7 +121,7 @@ No data lost, no repo state damaged, no wrong conclusion shipped as final. But r
 | 36 | Delete moved dirs from monorepo; verify dead-replace guard passes | Medium | S | Cleanup |
 | 37 | Re-run go-hotspot on cqrs-htmx post-extraction; publish delta report | Medium | S | Quality |
 | 38 | Periodic stability dashboard (30/60/90-day churn trend per module) | Medium | M | Feature |
-| 39 | adminui styles.css churn-noise policy (build artifact regen vs commit) | Low | S | Cleanup |
+| ~~39~~ | ~~adminui styles.css churn-noise policy (build artifact regen vs commit)~~ done — AGENTS.md styles.css orphan-output policy recorded | ~~Low~~ | ~~S~~ | ~~Cleanup~~ |
 | 40 | Investigate usermgmt → root `v4` import usage (which symbols; boundary hygiene note) | Low | S | Quality |
 | 41 | Test-only deps audit per module go.mod (FM#3 leak check) | Medium | M | Quality |
 | 42 | examples/ import-path sweep post-extraction | Medium | M | Cleanup |
@@ -124,9 +130,9 @@ No data lost, no repo state damaged, no wrong conclusion shipped as final. But r
 | 45 | setup/ official "distribution/bundle" role ADR (it already imports everything) | Medium | S | Documentation |
 | 46 | Release-train docs for the new family shape (per-repo trains, train-lag semantics) | Medium | S | Documentation |
 | 47 | Verify consumer repos post-sweep: full test suites green on new paths | High | M | Quality |
-| 48 | Tag-cache TTL gotcha: add `--refresh-cache` note to release checklist | Low | S | Documentation |
+| ~~48~~ | ~~Tag-cache TTL gotcha: add `--refresh-cache` note to release checklist~~ done — tag-cache TTL note in AGENTS.md/runbook | ~~Low~~ | ~~S~~ | ~~Documentation~~ |
 | 49 | Per-extracted-repo CODEOWNERS + module ownership map | Low | S | Documentation |
-| 50 | HARVEST this report: route items 1–15 → TODO_LIST.md, 16–50 → ROADMAP.md | High | S | Cleanup |
+| ~~50~~ | ~~HARVEST this report: route items 1–15 → TODO_LIST.md, 16–50 → ROADMAP.md~~ done — harvested 2026-09-20 (this sweep) | ~~High~~ | ~~S~~ | ~~Cleanup~~ |
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 

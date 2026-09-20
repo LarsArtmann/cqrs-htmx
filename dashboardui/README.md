@@ -287,8 +287,8 @@ See `examples/dashboard-demo/main.go` for a fully seeded demo with 8 users,
 6 orders, commands, queries, snapshots, a projection host, EventBus-powered
 SSE live updates, and a goroutine that publishes new events every 5 seconds.
 
-> **Note:** The demo requires the `dashboardui/v4` module to be tagged and
-> published. Once tagged, add `./examples/dashboard-demo` to `go.work` and run:
+> **Note:** `dashboardui/v4` is published (tagged since `dashboardui/v4.8.2`), so the
+> demo resolves from the tag. `./examples/dashboard-demo` is already in `go.work`; run:
 >
 > ```bash
 > cd examples/dashboard-demo
