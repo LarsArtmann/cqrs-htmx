@@ -16,8 +16,8 @@ const (
 // the provided extractor and stores it in the context for downstream CQRS handlers.
 // It also auto-generates a RequestID (or extracts it from X-Request-ID header),
 // extracts CorrelationID from X-Correlation-ID header, and captures the client
-// IP address and User-Agent for event-metadata propagation
-// (see [enrichClientMetadata] for the privacy notes).
+// IP address, User-Agent, and X-Client-ID (offline-first attribution) for
+// event-metadata propagation (see [enrichClientMetadata] for the notes).
 func ContextEnrichmentMiddleware(extractor UserIDExtractor) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

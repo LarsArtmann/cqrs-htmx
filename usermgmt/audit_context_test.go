@@ -255,3 +255,34 @@ func TestDispatch_ClientMetadataPropagatesToEventMetadata(t *testing.T) {
 		t.Errorf("event user agent = %q, want %q", meta.UserAgent, wantUA)
 	}
 }
+
+// TestDispatch_ClientIDPropagatesToEventMetadata proves that a client device
+// ID from the cqrshtmx context chain (captured from the X-Client-ID header
+// for offline-first attribution) reaches the emitted event metadata via
+// requestContextEnricher.
+func TestDispatch_ClientIDPropagatesToEventMetadata(t *testing.T) {
+	t.Parallel()
+
+	svc := newTestService(t)
+	defer svc.Close() //nolint:errcheck // test cleanup
+
+	reg := registerTestUser(t, svc, GenerateUserID().Get().String(), "clientid@example.com")
+	userID := reg.User.ID
+
+	clientID := id.NewClientID()
+	ctx := cqrshtmx.WithClientID(t.Context(), clientID)
+
+	if err := svc.ChangeDisplayName(ctx, userID, "Client Attribution"); err != nil {
+		t.Fatalf("ChangeDisplayName: %v", err)
+	}
+
+	events := loadUserEvents(t, svc, userID)
+	changed := findEvent(events, eventDisplayNameChanged)
+	if changed == nil {
+		t.Fatalf("no %s event on stream", eventDisplayNameChanged)
+	}
+
+	if got := changed.Metadata().Custom[event.MetadataKeyClientID]; got != clientID.String() {
+		t.Errorf("event client ID = %q, want %q", got, clientID.String())
+	}
+}

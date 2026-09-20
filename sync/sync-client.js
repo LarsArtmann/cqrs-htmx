@@ -31,7 +31,7 @@
 "use strict";
 
 (function () {
-  const VERSION = "1.3.0";
+  const VERSION = "1.4.0";
 
   // --- Sync state: tracks pending/confirmed/failed/queued mutation counts ---
   const sync = {
@@ -79,6 +79,59 @@
 
   function setSyncState(element, state) {
     element.setAttribute("data-sync-state", state);
+  }
+
+  // --- Persistent client ID (offline-first attribution) ---
+  // One ULID per browser, persisted in localStorage, stamped as X-Client-Id
+  // on every mutation so server-side events can attribute offline-originated
+  // commands to the device that created them (go-cqrs-lite metadata key
+  // "client.id"). ULID format: 26-char Crockford Base32 (timestamp + random),
+  // parseable by the server's id.ParseClientID — a crypto.randomUUID UUID
+  // would be rejected.
+  const CLIENT_ID_KEY = "cqrs-htmx-client-id";
+
+  /**
+   * Generate a ULID (26 chars, Crockford Base32, ULID-spec compatible).
+   * 48-bit millisecond timestamp + 80 random bits from crypto.getRandomValues.
+   * @returns {string} A new ULID string.
+   */
+  function ulid() {
+    const ENC = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    let time = Date.now();
+    let timePart = "";
+    for (let i = 0; i < 10; i++) {
+      timePart = ENC[time % 32] + timePart;
+      time = Math.floor(time / 32);
+    }
+    const bytes = new Uint8Array(16);
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      crypto.getRandomValues(bytes);
+    } else {
+      for (let i = 0; i < 16; i++) bytes[i] = (Math.random() * 256) | 0;
+    }
+    let randPart = "";
+    for (let i = 0; i < 16; i++) randPart += ENC[bytes[i] % 32];
+    return timePart + randPart;
+  }
+
+  /**
+   * Get (or lazily create) the persistent client ID for this browser.
+   * Survives restarts via localStorage; best-effort if storage is unavailable
+   * (private mode quotas) — falls back to a per-load ID.
+   * @returns {string} A ULID identifying this client device.
+   */
+  function getClientID() {
+    try {
+      let cid = localStorage.getItem(CLIENT_ID_KEY);
+      if (!cid || !/^[0-9A-HJKMNP-TV-Z]{26}$/.test(cid)) {
+        cid = ulid();
+        localStorage.setItem(CLIENT_ID_KEY, cid);
+      }
+      return cid;
+    } catch (e) {
+      // localStorage unavailable — per-session ID is still useful attribution
+      return ulid();
+    }
   }
 
   // --- aria-live region for screen reader announcements (confirmed only) ---
@@ -368,6 +421,9 @@
       cmdID = crypto.randomUUID();
       e.detail.requestConfig.headers["X-Command-Id"] = cmdID;
     }
+    // Stamp the persistent client ID for offline-first attribution. Persists
+    // into queued envelopes (headers are captured) so retries carry it too.
+    e.detail.requestConfig.headers["X-Client-Id"] = getClientID();
     if (!cmdID) return;
 
     const target = e.detail.elt;

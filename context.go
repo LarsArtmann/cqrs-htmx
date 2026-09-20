@@ -235,8 +235,8 @@ func ImpersonatorIDFromContext(ctx context.Context) ImpersonatorID {
 
 // EventOptionsFromContext builds event.Options from request context,
 // propagating user identity, actor chain, correlation ID, request ID,
-// client IP address, User-Agent, and context deadline into event metadata
-// for auditing, tracing, and distributed request correlation.
+// client IP address, User-Agent, client device ID, and context deadline into
+// event metadata for auditing, tracing, and distributed request correlation.
 //
 // Returns nil options if none of those values is found.
 // Invalid IDs (non-ULID strings) are silently dropped,
@@ -276,6 +276,11 @@ func EventOptionsFromContext(ctx context.Context) []event.Option {
 
 	if ua := UserAgentFromContext(ctx); !ua.IsZero() {
 		opts = append(opts, event.WithUserAgent(ua))
+	}
+
+	// Offline-first attribution: which client device created the command.
+	if clientID := ClientIDFromContext(ctx); !clientID.IsZero() {
+		opts = append(opts, event.WithClientID(clientID))
 	}
 
 	if _, ok := ctx.Deadline(); ok {

@@ -404,3 +404,49 @@ var _ = Describe("Client metadata (IP + User-Agent)", func() {
 		Expect(cqrshtmx.EventOptionsFromContext(ctx)).To(BeNil())
 	})
 })
+
+var _ = Describe("Client ID (offline-first attribution)", func() {
+	It("captures a valid ULID from the X-Client-ID header", func() {
+		req := httptest.NewRequest(http.MethodGet, "/things", nil)
+		req.Header.Set(cqrshtmx.HeaderClientID, "01HK1549P84T9XF8R94E960633")
+
+		handler := cqrshtmx.ContextEnrichmentMiddleware(nil)(http.HandlerFunc(
+			func(_ http.ResponseWriter, r *http.Request) {
+				Expect(cqrshtmx.ClientIDFromContext(r.Context()).String()).
+					To(Equal("01HK1549P84T9XF8R94E960633"))
+			},
+		))
+		handler.ServeHTTP(httptest.NewRecorder(), req)
+	})
+
+	It("drops a non-ULID client ID instead of failing the request", func() {
+		req := httptest.NewRequest(http.MethodGet, "/things", nil)
+		req.Header.Set(cqrshtmx.HeaderClientID, "not-a-ulid")
+
+		handler := cqrshtmx.ContextEnrichmentMiddleware(nil)(http.HandlerFunc(
+			func(_ http.ResponseWriter, r *http.Request) {
+				Expect(cqrshtmx.ClientIDFromContext(r.Context()).IsZero()).To(BeTrue())
+			},
+		))
+		handler.ServeHTTP(httptest.NewRecorder(), req)
+	})
+
+	It("propagates the client ID into event metadata under client.id", func() {
+		clientID := id.NewClientID()
+		ctx := cqrshtmx.WithClientID(context.Background(), clientID)
+
+		opts := cqrshtmx.EventOptionsFromContext(ctx)
+		Expect(opts).To(HaveLen(1))
+
+		evt, err := event.NewEvent(
+			"UserLogin",
+			id.NewStreamID(),
+			"User",
+			1,
+			[]byte(`{}`),
+			opts...,
+		)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(evt.Metadata().Custom[event.MetadataKeyClientID]).To(Equal(clientID.String()))
+	})
+})

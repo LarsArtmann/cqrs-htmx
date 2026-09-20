@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/httputil"
 )
 
@@ -13,6 +14,7 @@ import (
 var (
 	ipAddressKeyInstance = contextKey[event.IPAddress]{name: "ip_address"}
 	userAgentKeyInstance = contextKey[event.UserAgent]{name: "user_agent"}
+	clientIDKeyInstance  = contextKey[id.ClientID]{name: "client_id"}
 )
 
 // WithIPAddress stores the client IP address in the context.
@@ -43,6 +45,29 @@ func WithUserAgent(ctx context.Context, ua event.UserAgent) context.Context {
 // Returns the zero value if no User-Agent is present.
 func UserAgentFromContext(ctx context.Context) event.UserAgent {
 	v, _ := userAgentKeyInstance.FromContext(ctx)
+
+	return v
+}
+
+// HeaderClientID is the HTTP header carrying the persistent client/device ID
+// for offline-first attribution. The browser sync client (sync-client.js)
+// stamps it on every mutation with a localStorage-persisted ULID; the value
+// is attribution metadata, not authentication — it is trivially spoofable.
+const HeaderClientID = "X-Client-ID"
+
+// WithClientID stores the client device ID in the context.
+// Set automatically by [ContextEnrichmentMiddleware] from the
+// [HeaderClientID] request header; consumers only need this to inject an ID
+// from a non-HTTP source (e.g., a queue consumer replaying offline work).
+func WithClientID(ctx context.Context, clientID id.ClientID) context.Context {
+	return clientIDKeyInstance.WithValue(ctx, clientID)
+}
+
+// ClientIDFromContext retrieves the client device ID stored by
+// [WithClientID] (normally captured from the [HeaderClientID] header).
+// Returns the zero value if no client ID is present.
+func ClientIDFromContext(ctx context.Context) id.ClientID {
+	v, _ := clientIDKeyInstance.FromContext(ctx)
 
 	return v
 }
@@ -80,6 +105,21 @@ func enrichClientMetadata(ctx context.Context, r *http.Request) context.Context 
 
 	if ua := event.NewUserAgent(r.UserAgent()); !ua.IsZero() {
 		ctx = WithUserAgent(ctx, ua)
+	}
+
+	// Offline-first attribution: the sync client stamps a persistent ULID on
+	// mutations. Non-ULID values are logged at debug level and dropped,
+	// matching the invalid-header handling of the other enrichments.
+	if raw := r.Header.Get(HeaderClientID); raw != "" {
+		if clientID, err := id.ParseClientID(raw); err != nil {
+			slog.Debug(
+				"cqrs-htmx: invalid client ID header",
+				slog.String("header", HeaderClientID),
+				slog.String("error", err.Error()),
+			)
+		} else {
+			ctx = WithClientID(ctx, clientID)
+		}
 	}
 
 	return ctx
