@@ -111,7 +111,7 @@ func (h *Handler) doAddMember(w http.ResponseWriter, r *http.Request, tenantID i
 		tenantID,
 		[]identitymodel.Role{role},
 	); err != nil {
-		triggerToast(w, "err", "Add failed: "+err.Error())
+		triggerToast(w, "err", "Add member failed: "+actionErrorMessage(err))
 	} else {
 		triggerToast(w, "ok", "Member added")
 	}
@@ -126,7 +126,7 @@ func (h *Handler) doRemoveMember(
 	back string,
 ) {
 	if err := h.config.Service.RemoveMember(r.Context(), actor, tenantID); err != nil {
-		triggerToast(w, "err", "Remove failed: "+err.Error())
+		triggerToast(w, "err", "Remove member failed: "+actionErrorMessage(err))
 	} else {
 		triggerToast(w, "ok", "Member removed")
 	}
@@ -168,7 +168,7 @@ func (h *Handler) doUpdateRole(
 		return
 	}
 	if err := h.config.Service.UpdateMemberRoles(r.Context(), actor, tenantID, []identitymodel.Role{role}); err != nil {
-		triggerToast(w, "err", "Role update failed: "+err.Error())
+		triggerToast(w, "err", "Role update failed: "+actionErrorMessage(err))
 	} else {
 		triggerToast(w, "ok", "Role updated")
 	}

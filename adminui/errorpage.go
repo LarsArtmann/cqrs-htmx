@@ -85,6 +85,16 @@ func actionErrorStatus(f errorfamily.Family) int {
 	}
 }
 
+// actionErrorMessage returns the user-safe message for a failed action —
+// used where the flow redirects back with a toast instead of rendering an
+// error page (member add/remove/role-update).
+func actionErrorMessage(err error) string {
+	if message, ok := actionErrorMessages[errorfamily.Code(err)]; ok {
+		return message
+	}
+	return actionErrorFallback(errorfamily.Classify(err))
+}
+
 // writeActionError reports a failed write action with a user-safe message:
 // a toast for the immediate feedback loop plus a themed error page (bare for
 // HTMX swaps). The raw error is logged server-side with its code, never shown.

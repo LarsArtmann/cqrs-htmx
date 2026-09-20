@@ -18,7 +18,7 @@ templ tenantsContent(d tenantsListData) {
 	})
 	if len(d.Tenants) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
-			@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.")
+			@empty("tenants", "No tenants yet", "Create a tenant to scope roles and memberships.", "New tenant", d.BasePath+"/tenants/new")
 		}
 	} else {
 		@display.Table(display.TableProps{
@@ -28,6 +28,7 @@ templ tenantsContent(d tenantsListData) {
 			CellPadding: display.TableCellPaddingCompact,
 		})
 		@listNote(len(d.Tenants), d.Total)
+		@listPager(d.BasePath+"/tenants", d.Page, d.TotalPages)
 	}
 }
 
@@ -148,8 +149,9 @@ templ tenantDetailContent(d tenantDetailData) {
 						Variant: display.ButtonPrimary,
 						Size:    display.ButtonSizeSM,
 						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-							"hx-post":    d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
-							"hx-confirm": "Reactivate this tenant?",
+							"hx-post":        d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/reactivate",
+							"hx-confirm":     "Reactivate this tenant?",
+							"hx-disabled-elt": "this",
 						}},
 					})
 				} else {
@@ -158,8 +160,9 @@ templ tenantDetailContent(d tenantDetailData) {
 						Variant: display.ButtonSecondary,
 						Size:    display.ButtonSizeSM,
 						BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-							"hx-post":    d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
-							"hx-confirm": "Suspend this tenant?",
+							"hx-post":        d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/suspend",
+							"hx-confirm":     "Suspend this tenant?",
+							"hx-disabled-elt": "this",
 						}},
 					})
 				}
@@ -169,8 +172,9 @@ templ tenantDetailContent(d tenantDetailData) {
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"hx-post":      d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
-						"data-confirm": "Delete this tenant and remove all memberships? This cannot be undone.",
+						"hx-post":        d.BasePath + "/tenants/" + d.Tenant.ID.Get() + "/delete",
+						"data-confirm":   "Delete this tenant and remove all memberships? This cannot be undone.",
+						"hx-disabled-elt": "this",
 					}},
 				})
 			</div>

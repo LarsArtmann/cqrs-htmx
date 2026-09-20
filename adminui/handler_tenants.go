@@ -9,8 +9,12 @@ import (
 )
 
 func (h *Handler) tenantsIndex(w http.ResponseWriter, r *http.Request, user *identitymodel.User) {
-	tenants, total := capList(h.config.Service.AllTenants())
-	d := tenantsListData{Tenants: tenants, Total: total, BasePath: h.config.BasePath}
+	all := h.config.Service.AllTenants()
+	offset, limit, totalPages, page := pageBounds(parsePageQuery(r), len(all), listPageSize)
+	d := tenantsListData{
+		Tenants: all[offset : offset+limit], Total: len(all), BasePath: h.config.BasePath,
+		listPage: listPage{Page: page, TotalPages: totalPages},
+	}
 	p := h.page("Tenants", "/tenants", user, r)
 	renderPage(w, r, tenantsPage(p, d))
 }
@@ -41,8 +45,7 @@ func (h *Handler) tenantCreate(w http.ResponseWriter, r *http.Request, _ *identi
 		DisplayName: display,
 	})
 	if err != nil {
-		triggerToast(w, "err", "Create failed: "+err.Error())
-		h.writeErrorPage(w, r, http.StatusBadRequest, "Could not create tenant", err.Error())
+		h.writeActionError(w, r, "Create tenant", err)
 		return
 	}
 	triggerToast(w, "ok", "Tenant created")
@@ -80,8 +83,7 @@ func (h *Handler) tenantDetail(w http.ResponseWriter, r *http.Request, user *ide
 func (h *Handler) tenantSuspend(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	id := identitymodel.NewTenantID(r.PathValue("id"))
 	if err := h.config.Service.SuspendTenant(r.Context(), id, "suspended via admin panel"); err != nil {
-		triggerToast(w, "err", "Suspend failed: "+err.Error())
-		h.writeErrorPage(w, r, http.StatusBadRequest, "Could not suspend tenant", err.Error())
+		h.writeActionError(w, r, "Suspend tenant", err)
 		return
 	}
 	triggerToast(w, "ok", "Tenant suspended")
@@ -91,8 +93,7 @@ func (h *Handler) tenantSuspend(w http.ResponseWriter, r *http.Request, _ *ident
 func (h *Handler) tenantReactivate(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	id := identitymodel.NewTenantID(r.PathValue("id"))
 	if err := h.config.Service.ReactivateTenant(r.Context(), id); err != nil {
-		triggerToast(w, "err", "Reactivate failed: "+err.Error())
-		h.writeErrorPage(w, r, http.StatusBadRequest, "Could not reactivate tenant", err.Error())
+		h.writeActionError(w, r, "Reactivate tenant", err)
 		return
 	}
 	triggerToast(w, "ok", "Tenant reactivated")
@@ -102,8 +103,7 @@ func (h *Handler) tenantReactivate(w http.ResponseWriter, r *http.Request, _ *id
 func (h *Handler) tenantDelete(w http.ResponseWriter, r *http.Request, _ *identitymodel.User) {
 	id := identitymodel.NewTenantID(r.PathValue("id"))
 	if err := h.config.Service.DeleteTenant(r.Context(), id, "deleted via admin panel"); err != nil {
-		triggerToast(w, "err", "Delete failed: "+err.Error())
-		h.writeErrorPage(w, r, http.StatusBadRequest, "Could not delete tenant", err.Error())
+		h.writeActionError(w, r, "Delete tenant", err)
 		return
 	}
 	triggerToast(w, "ok", "Tenant deleted")

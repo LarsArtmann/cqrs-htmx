@@ -4,6 +4,7 @@ import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/navigation"
 	"github.com/larsartmann/templ-components/utils"
 )
 
@@ -51,11 +52,13 @@ templ statCardView(c statCard) {
 	})
 }
 
-templ empty(iconName, title, hint string) {
+templ empty(iconName, title, hint, actionText, actionHref string) {
 	@display.EmptyState(display.EmptyStateProps{
 		Icon:        icons.Name(iconName),
 		Title:       title,
 		Description: hint,
+		ActionText:  actionText,
+		ActionHref:  actionHref,
 	})
 }
 
@@ -93,8 +96,25 @@ templ totpBadge(enabled bool) {
 	@stateBadge(enabled, "enabled", "blue", "disabled", "")
 }
 
+// listPager renders the pagination footer for a list page. baseURL must
+// already carry any active search query (build it with listPageURL) — the
+// component appends or replaces the page parameter. Links full-navigate:
+// browser history and back/forward stay honest (M058 decision). Renders
+// nothing on a single page.
+templ listPager(baseURL string, page, totalPages int) {
+	if totalPages > 1 {
+		<div class="mt-4">
+			@navigation.Pagination(navigation.PaginationProps{
+				CurrentPage: uint(page),
+				TotalPages:  uint(totalPages),
+				BaseURL:     baseURL,
+			})
+		</div>
+	}
+}
+
 // listNote renders a "showing N of M" hint when a list is truncated by the
-// MaxListRows cap. shown is the rendered count; total is the unfiltered match
+// page window. shown is the rendered count; total is the unfiltered match
 // count. Renders nothing when all rows fit.
 templ listNote(shown, total int) {
 	@display.ListNote(display.ListNoteProps{Shown: shown, Total: total})

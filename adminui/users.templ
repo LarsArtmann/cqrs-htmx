@@ -5,6 +5,7 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/navigation"
 	"github.com/larsartmann/templ-components/utils"
@@ -17,13 +18,14 @@ templ usersPage(p pageData, d usersListData) {
 
 templ usersContent(d usersListData) {
 	@display.PageHeader(display.PageHeaderProps{Title: "Users"})
-	<div class="mb-4">
+	<div class="mb-4 flex items-center gap-2">
 		// FilterInput carries the search affordance without an icon (library
 		// look accepted: the component reserves no start padding, so an
 		// overlaid icon would collide with typed text). The form-level
 		// hx-get/hx-trigger intercept Enter-submits so they swap like typing;
-		// hx-push-url and autocomplete are inherited from the form by htmx
-		// and the browser respectively.
+		// hx-push-url, hx-swap, hx-indicator, and autocomplete are inherited
+		// from the form by htmx and the browser respectively. The spinner
+		// shows while a search request is in flight.
 		@forms.FilterInput(forms.FilterInputProps{
 			Name:        "q",
 			Value:       d.Search,
@@ -35,15 +37,19 @@ templ usersContent(d usersListData) {
 				AriaLabel: "Search users",
 				Class:     "w-full max-w-xs",
 				Attrs: templ.Attributes{
-					"autocomplete": "off",
-					"hx-get":       d.BasePath + "/users",
-					"hx-trigger":   "submit",
-					"hx-target":    "#users-table",
-					"hx-swap":      "innerHTML",
-					"hx-push-url":  "true",
+					"autocomplete":  "off",
+					"hx-get":        d.BasePath + "/users",
+					"hx-trigger":    "submit",
+					"hx-target":     "#users-table",
+					"hx-swap":       "innerHTML",
+					"hx-push-url":   "true",
+					"hx-indicator":  "#users-search-spinner",
 				},
 			},
 		})
+		<span id="users-search-spinner" class="htmx-indicator text-gray-400">
+			@feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM})
+		</span>
 	</div>
 	<div id="users-table">
 		@usersTableContent(d)
@@ -53,7 +59,11 @@ templ usersContent(d usersListData) {
 templ usersTableContent(d usersListData) {
 	if len(d.Users) == 0 {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
-			@empty("users", "No users found", "Registered users will appear here.")
+			if d.Search != "" {
+				@empty("users", "No users match your search", "No registered user matches the search term.", "Clear search", d.BasePath+"/users")
+			} else {
+				@empty("users", "No users found", "Registered users will appear here.", "", "")
+			}
 		}
 	} else {
 		@display.Table(display.TableProps{
@@ -64,6 +74,7 @@ templ usersTableContent(d usersListData) {
 			CellPadding: display.TableCellPaddingCompact,
 		})
 		@listNote(len(d.Users), d.Total)
+		@listPager(listPageURL(d.BasePath+"/users", d.Search), d.Page, d.TotalPages)
 	}
 }
 
@@ -170,10 +181,11 @@ templ userDetailContent(d userDetailData) {
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"hx-post":      d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
-						"hx-confirm":   "Delete user " + d.User.Email + "?",
-						"data-confirm": "Delete user " + d.User.Email + "? This cannot be undone.",
-					}},
+					"hx-post":        d.BasePath + "/users/" + d.User.ID.Get().String() + "/delete",
+					"hx-confirm":     "Delete user " + d.User.Email + "?",
+					"data-confirm":   "Delete user " + d.User.Email + "? This cannot be undone.",
+					"hx-disabled-elt": "this",
+				}},
 				})
 			</div>
 		}
@@ -248,8 +260,9 @@ templ externalAccountRows(d userDetailData) {
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"hx-post":    d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
-						"hx-confirm": "Unlink " + ea.Provider + " from " + d.User.Email + "?",
+						"hx-post":        d.UnlinkExternalBase + "/" + ea.Provider + "/unlink",
+						"hx-confirm":     "Unlink " + ea.Provider + " from " + d.User.Email + "?",
+						"hx-disabled-elt": "this",
 					}},
 				})
 			</td>
