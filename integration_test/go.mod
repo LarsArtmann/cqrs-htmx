@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/integration_test
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.11.0

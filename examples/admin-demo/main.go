@@ -251,7 +251,12 @@ func seed(ctx context.Context, svc *usermgmt.Service) (string, string) {
 		{"carol@other.dev", "globex", []identitymodel.Role{identitymodel.RoleViewer}},
 	} {
 		uid := identitymodel.SyntheticUserID("seed-" + m.email)
-		if err := svc.AddMember(ctx, identitymodel.ActorIDFromUser(uid), identitymodel.NewTenantID(m.tenant), m.roles); err != nil {
+		if err := svc.AddMember(
+			ctx,
+			identitymodel.ActorIDFromUser(uid),
+			identitymodel.NewTenantID(m.tenant),
+			m.roles,
+		); err != nil {
 			log.Printf("seed member %s/%s: %v", m.email, m.tenant, err)
 		}
 	}

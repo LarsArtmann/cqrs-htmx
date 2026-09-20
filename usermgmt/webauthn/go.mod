@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/go-webauthn/webauthn v0.18.1
