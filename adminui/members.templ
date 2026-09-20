@@ -18,9 +18,11 @@ templ membersCard(d tenantDetailData) {
 			@empty("members", "No members", "Add a user below to grant tenant access.")
 		} else {
 			@display.Table(display.TableProps{
-				Headers: []string{"Actor", "Role", ""},
-				Hover:   true,
-				Body:    membersRows(d),
+				Headers:     []string{"Actor", "Role", ""},
+				Hover:       true,
+				Body:        membersRows(d),
+				Flush:       true,
+				CellPadding: display.TableCellPaddingCompact,
 			})
 		}
 		<div class="border-t border-gray-200 pt-4 mt-4">

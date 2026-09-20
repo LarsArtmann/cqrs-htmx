@@ -28,9 +28,10 @@ templ tenantsContent(d tenantsListData) {
 		}
 	} else {
 		@display.Table(display.TableProps{
-			Headers: []string{"Name", "Status", ""},
-			Hover:   true,
-			Body:    tenantsRows(d),
+			Headers:     []string{"Name", "Status", ""},
+			Hover:       true,
+			Body:        tenantsRows(d),
+			CellPadding: display.TableCellPaddingCompact,
 		})
 		@listNote(len(d.Tenants), d.Total)
 	}
@@ -47,11 +48,11 @@ templ tenantsRows(d tenantsListData) {
 			</td>
 			<td class="px-4 py-3">
 				if t.Suspended {
-					@badge("suspended", "amber")
+					@statusBadge("suspended", "amber")
 				} else if t.Deleted {
-					@badge("deleted", "red")
+					@statusBadge("deleted", "red")
 				} else {
-					@badge("active", "green")
+					@statusBadge("active", "green")
 				}
 			</td>
 			<td class="px-4 py-3 text-right">
@@ -106,11 +107,11 @@ templ tenantDetailContent(d tenantDetailData) {
 	<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
 			<a class="rounded-md px-2.5 py-1 text-sm text-gray-600 no-underline hover:bg-gray-100" href={ d.BasePath + "/tenants" }>← Tenants</a>
 			if d.Tenant.Suspended {
-				@badge("suspended", "amber")
+				@statusBadge("suspended", "amber")
 			} else if d.Tenant.Deleted {
-				@badge("deleted", "red")
+				@statusBadge("deleted", "red")
 			} else {
-				@badge("active", "green")
+				@statusBadge("active", "green")
 			}
 		</div>
 		<h1 class="mb-1 text-xl font-semibold">{ d.Tenant.DisplayName }</h1>

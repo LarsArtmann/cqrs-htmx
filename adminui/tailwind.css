@@ -156,15 +156,6 @@ body {
   color: #d1d5db;
 }
 
-/* Fix double border when display.Table is nested inside display.Card(CardPaddingNone).
-   Table hardcodes border+rounded-lg on its wrapper div; Card has the identical classes.
-   Card always emits overflow-hidden; Table wrapper always emits overflow-x-auto.
-   This selector matches exactly that nesting and suppresses the inner border. */
-.overflow-hidden > .overflow-x-auto {
-  border: 0 !important;
-  border-radius: 0 !important;
-}
-
 /* ---------- HTMX indicator visibility convention ---------- */
 .htmx-indicator {
   opacity: 0;

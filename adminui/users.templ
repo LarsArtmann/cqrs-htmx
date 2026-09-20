@@ -50,9 +50,11 @@ templ usersTableContent(d usersListData) {
 	} else {
 		<div id="users-table">
 			@display.Table(display.TableProps{
-				Headers: []string{"User", "Status", "Created", ""},
-				Hover:   true,
-				Body:    usersRows(d),
+				Headers:     []string{"User", "Status", "Created", ""},
+				Hover:       true,
+				Body:        usersRows(d),
+				Striped:     true,
+				CellPadding: display.TableCellPaddingCompact,
 			})
 			@listNote(len(d.Users), d.Total)
 		</div>
@@ -78,12 +80,12 @@ templ usersRows(d usersListData) {
 			<td class="px-4 py-3">
 				<div class="flex flex-wrap gap-1">
 					if u.EmailVerified {
-						@badge("verified", "green")
+						@statusBadge("verified", "green")
 					} else {
-						@badge("unverified", "")
+						@statusBadge("unverified", "")
 					}
 					if u.TOTPEnabled {
-						@badge("MFA", "blue")
+						@statusBadge("MFA", "blue")
 					}
 				</div>
 			</td>
@@ -145,9 +147,11 @@ templ userDetailContent(d userDetailData) {
 				BaseProps: utils.BaseProps{Class: "mb-4"},
 			}) {
 				@display.Table(display.TableProps{
-					Headers: []string{"Tenant", "Roles"},
-					Hover:   true,
-					Body:    tenantRolesRows(d.TenantRoles),
+					Headers:     []string{"Tenant", "Roles"},
+					Hover:       true,
+					Body:        tenantRolesRows(d.TenantRoles),
+					Flush:       true,
+					CellPadding: display.TableCellPaddingCompact,
 				})
 			}
 		}
@@ -202,9 +206,11 @@ templ externalAccountsCard(d userDetailData) {
 			<div class="px-4 py-3 text-sm text-gray-500">No external accounts linked.</div>
 		} else {
 			@display.Table(display.TableProps{
-				Headers: []string{"Provider", "Email", "Linked", ""},
-				Hover:   true,
-				Body:    externalAccountRows(d),
+				Headers:     []string{"Provider", "Email", "Linked", ""},
+				Hover:       true,
+				Body:        externalAccountRows(d),
+				Flush:       true,
+				CellPadding: display.TableCellPaddingCompact,
 			})
 		}
 		<div class="flex flex-wrap items-center gap-2 px-4 py-3">

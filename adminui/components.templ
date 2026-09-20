@@ -44,6 +44,9 @@ templ statCardView(c statCard) {
 		Value: c.Value,
 		Label: c.Label,
 		Icon:  icons.Name(c.Icon),
+		Tone:  c.Tone,
+		Href:  c.Href,
+		BaseProps: utils.BaseProps{Class: templ.KV("no-underline", c.Href != "")},
 	})
 }
 

@@ -42,11 +42,18 @@ type pageData struct {
 	Nonce string
 }
 
-// statCard is one metric tile on the dashboard.
+// statCard is one metric tile on the dashboard. Tone and Href are optional
+// enrichment: the tone colors the icon tile (semantic — blue for people,
+// purple for tenants, green for audit volume), and Href turns the card into
+// a drill-down link. Change/Trend stay unset on purpose (honest UI): the
+// handler has no period-over-period data, and decorative numbers are worse
+// than none.
 type statCard struct {
 	Label string
 	Value string
 	Icon  string
+	Tone  display.StatTone
+	Href  string
 }
 
 // dashboardData drives the overview page.
