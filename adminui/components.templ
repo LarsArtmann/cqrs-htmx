@@ -7,7 +7,7 @@ import (
 )
 
 templ icon(name string) {
-	@templ.Raw(iconSVG(name))
+	@icons.IconWithStrokeWidth(icons.Name(name), "h-[18px] w-[18px]", 1.8)
 }
 
 templ badge(text, kind string) {
@@ -15,6 +15,19 @@ templ badge(text, kind string) {
 		Text: text,
 		Type: badgeKindToType(kind),
 		Pill: true,
+	})
+}
+
+// statusBadge is badge() plus a status dot: the glanceable variant for
+// state-like values (active/suspended, verified, MFA on/off). Accent badges
+// (audit actions) stay dotless on purpose — the dot encodes a STATE, and an
+// action is not a state.
+templ statusBadge(text, kind string) {
+	@display.Badge(display.BadgeProps{
+		Text: text,
+		Type: badgeKindToType(kind),
+		Pill: true,
+		Dot:  true,
 	})
 }
 
@@ -62,9 +75,9 @@ templ dangerZoneHeader() {
 // string means default styling). Shared by verifiedBadge and totpBadge.
 templ stateBadge(cond bool, labelIf, kindIf, labelElse, kindElse string) {
 	if cond {
-		@badge(labelIf, kindIf)
+		@statusBadge(labelIf, kindIf)
 	} else {
-		@badge(labelElse, kindElse)
+		@statusBadge(labelElse, kindElse)
 	}
 }
 

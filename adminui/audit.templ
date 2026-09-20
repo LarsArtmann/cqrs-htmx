@@ -17,9 +17,12 @@ templ auditContent(d auditData) {
 	} else {
 		@display.Card(display.CardProps{Padding: display.CardPaddingNone}) {
 			@display.Table(display.TableProps{
-				Headers: []string{"Action", "Who", "Aggregate", "When"},
-				Hover:   true,
-				Body:    auditRows(d),
+				Headers:     []string{"Action", "Who", "Aggregate", "When"},
+				Hover:       true,
+				Body:        auditRows(d),
+				Flush:       true,
+				Striped:     true,
+				CellPadding: display.TableCellPaddingCompact,
 			})
 		}
 	}

@@ -26,9 +26,11 @@ templ dashboardContent(d dashboardData) {
 			Padding: display.CardPaddingNone,
 		}) {
 			@display.Table(display.TableProps{
-				Headers: []string{"Action", "Who", "When"},
-				Hover:   true,
-				Body:    recentActivityRows(d),
+				Headers:     []string{"Action", "Who", "When"},
+				Hover:       true,
+				Body:        recentActivityRows(d),
+				Flush:       true,
+				CellPadding: display.TableCellPaddingCompact,
 			})
 		}
 	}
