@@ -15,7 +15,7 @@ cd "$REPO_ROOT" || exit 1
 # Key = module directory, Value = max direct production deps (excluding test-only).
 # These are CURRENT counts + 20% headroom. Adjust when intentionally adding deps.
 declare -A DEP_BUDGET=(
-  ["."]=18                # Root: 16 current (casbin, form, nosurf, branded-id, cqrs-lite x6, httputil, ulid, ginkgo, gomega, x/time)
+  ["."]=19                # Root: 17 current (casbin, form, nosurf, branded-id, cqrs-lite x6, httputil, ulid, ginkgo, gomega, x/time + go-codec [direct since the 2026-09-20 DecodePayload re-exports in payload.go])
   ["identity-model"]=10   # identity-model: 8 current (casbin, branded-id, cqrs-lite event/id/codec/metadata, ulid, rapid)
   ["usermgmt"]=28         # usermgmt: 25 current (casbin, cqrs-htmx, branded-id, cqrs-lite x8, sqlite, ulid, rapid, watermill, kv)
   ["usermgmt/totp"]=3     # totp: 1 current (pquerna/otp)
