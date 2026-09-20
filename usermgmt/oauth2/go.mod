@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/coreos/go-oidc/v3 v3.21.0
