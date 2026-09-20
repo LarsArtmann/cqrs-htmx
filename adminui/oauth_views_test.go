@@ -113,8 +113,10 @@ func TestPanel_UserDetailShowsExternalCard(t *testing.T) {
 }
 
 // TestPanel_UnlinkRouteWired verifies the unlink route is mounted and calls the
-// Service. For a user with no matching provider link, UnlinkExternalAccount
-// returns an error, so the handler responds 400 with an error toast. This
+// Service. For a service without OAuth2 configured, UnlinkExternalAccount
+// returns a transient-family error (usermgmt.oauth_not_configured), so the
+// handler maps it to 503 with a themed error page + toast via
+// writeActionError (family-derived status instead of the old flat 400). This
 // proves the route → handler → service path is wired end-to-end.
 func TestPanel_UnlinkRouteWired(t *testing.T) {
 	ctx := context.Background()
@@ -133,8 +135,8 @@ func TestPanel_UnlinkRouteWired(t *testing.T) {
 	unlinkURL := "/admin/users/" + created.User.ID.Get().String() + "/external/google/unlink"
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, unlinkURL, nil))
 
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("unlink (no matching provider): status = %d, want 400; body=%s",
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Errorf("unlink (oauth not configured): status = %d, want 503; body=%s",
 			rec.Code, rec.Body.String())
 	}
 	if !strings.Contains(rec.Header().Get("HX-Trigger"), "adminui:toast") {

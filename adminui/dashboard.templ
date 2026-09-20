@@ -18,7 +18,7 @@ templ dashboardContent(d dashboardData) {
 	}
 	if len(d.Recent) == 0 {
 		@display.Card(display.CardProps{Title: "Recent activity", Padding: display.CardPaddingNone}) {
-			@empty("audit", "No activity yet", "User and tenant events will appear here.")
+			@empty("audit", "No activity yet", "User and tenant events will appear here.", "", "")
 		}
 	} else {
 		@display.Card(display.CardProps{

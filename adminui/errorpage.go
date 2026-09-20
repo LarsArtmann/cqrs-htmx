@@ -45,6 +45,7 @@ var actionErrorMessages = map[string]string{
 	"usermgmt.membership_roles.not_found":    "That membership no longer exists. Refresh the page.",
 	"usermgmt.membership_remove.not_found":   "That membership no longer exists. Refresh the page.",
 	"usermgmt.validation":                    "Some values are invalid. Check the form and try again.",
+	"usermgmt.oauth_not_configured":          "OAuth2 is not configured on this deployment. Unlinking external accounts requires a provider configuration.",
 }
 
 // actionErrorFallback returns the family-level fallback message shown when

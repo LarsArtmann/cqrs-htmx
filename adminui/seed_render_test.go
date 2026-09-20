@@ -182,10 +182,14 @@ func TestPanel_TemplComponentsRenderStructurally(t *testing.T) {
 		t.Error("user detail: Button should render 'Delete user' text")
 	}
 
-	// display.EmptyState: renders title for no-match search.
+	// display.EmptyState: search-aware copy + clear-search action for a
+	// no-match search (Phase 3 M076).
 	emptyRec := httptest.NewRecorder()
 	h.ServeHTTP(emptyRec, httptest.NewRequest(http.MethodGet, "/admin/users?q=zzzznomatch", nil))
-	if !strings.Contains(emptyRec.Body.String(), "No users found") {
-		t.Error("users list: EmptyState should render 'No users found' title")
+	if !strings.Contains(emptyRec.Body.String(), "No users match your search") {
+		t.Error("users list: EmptyState should render the search-aware no-match title")
+	}
+	if !strings.Contains(emptyRec.Body.String(), "Clear search") {
+		t.Error("users list: EmptyState should render a Clear search action when a search is active")
 	}
 }

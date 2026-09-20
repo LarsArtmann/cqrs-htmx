@@ -2,7 +2,9 @@ package adminui
 
 import (
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/utils"
 )
 
@@ -15,7 +17,7 @@ templ membersCard(d tenantDetailData) {
 		Title: "Members",
 	}) {
 		if len(d.Members) == 0 {
-			@empty("members", "No members", "Add a user below to grant tenant access.")
+			@empty("members", "No members", "Add a user below to grant tenant access.", "", "")
 		} else {
 			@display.Table(display.TableProps{
 				Headers:     []string{"Actor", "Role", ""},
@@ -39,13 +41,16 @@ templ membersCard(d tenantDetailData) {
 					Options:   roleSelectOptions(d.AssignableRoles, nil),
 					BaseProps: utils.BaseProps{Class: "max-w-[150px]"},
 				})
-				@display.Button(display.ButtonProps{
-					Text:    "Add member",
-					Type:    display.ButtonHTMLSubmit,
-					Variant: display.ButtonPrimary,
-					Size:    display.ButtonSizeSM,
-					Icon:    icon("plus"),
-				})
+				// Hand-rolled submit carrying the library's ButtonPrimary+SM class
+				// strings verbatim (display.Button cannot host LoadingButton content —
+				// no children slot). LoadingButton swaps the label to "Adding…" + a
+				// spinner while the enclosing form's htmx request runs.
+				<button
+					type="submit"
+					class="inline-flex items-center justify-center rounded-md font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-blue-600 text-white hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-400 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-500 px-2.5 py-1.5 text-xs"
+				>
+					@htmx.LoadingButton("Add member", "Adding…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM, Color: "text-white"}))
+				</button>
 			</form>
 		</div>
 	}
@@ -62,7 +67,14 @@ templ membersRows(d tenantDetailData) {
 						Options:   roleSelectOptions(d.AssignableRoles, m.Roles),
 						BaseProps: utils.BaseProps{Class: "max-w-[120px]"},
 					})
-					@display.Button(display.ButtonProps{Text: "Set", Type: display.ButtonHTMLSubmit, Variant: display.ButtonSecondary, Size: display.ButtonSizeSM})
+					// Same hand-rolled pattern as the Add member submit (Secondary
+					// variant): LoadingButton shows "Saving…" while the POST runs.
+					<button
+						type="submit"
+						class="inline-flex items-center justify-center rounded-md font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-700 px-2.5 py-1.5 text-xs"
+					>
+						@htmx.LoadingButton("Set", "Saving…", feedback.Spinner(feedback.SpinnerProps{Size: feedback.SpinnerSM}))
+					</button>
 				</form>
 			</td>
 			<td class="px-4 py-2 text-right">
@@ -71,9 +83,10 @@ templ membersRows(d tenantDetailData) {
 					Size:    display.ButtonSizeSM,
 					Icon:    icon("trash"),
 					BaseProps: utils.BaseProps{Attrs: templ.Attributes{
-						"hx-post":      d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
-						"hx-confirm":   "Remove " + m.Actor.PrefixedString() + " from this tenant?",
-						"data-confirm": "Remove " + m.Actor.PrefixedString() + " from this tenant?",
+						"hx-post":        d.RemoveMemberBase + "/" + m.Actor.PrefixedString() + "/delete",
+						"hx-confirm":     "Remove " + m.Actor.PrefixedString() + " from this tenant?",
+						"data-confirm":   "Remove " + m.Actor.PrefixedString() + " from this tenant?",
+						"hx-disabled-elt": "this",
 					}},
 				})
 			</td>
