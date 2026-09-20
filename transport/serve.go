@@ -16,6 +16,64 @@ type serveDomainEventsConfig struct {
 	logPrefix          string
 	unavailableMessage string
 	filter             func(sse.Event) bool
+	maxReplay          int
+}
+
+// SSEOptions collects the [ServeDomainEvents] configuration in one struct for
+// consumers that prefer structure over functional options. The zero value
+// means "all defaults" — empty strings keep the built-in defaults, nil Filter
+// disables filtering, and MaxReplay <= 0 keeps the store's own replay limit.
+//
+// It exists so setup-style composition roots can embed one SSE config block
+// instead of threading four option closures through their own option chain.
+//
+//	handler := transport.ServeDomainEvents(hub, store, 15*time.Second,
+//	    transport.SSEOptions{LogPrefix: "myapp"}.Options()...)
+//
+// [SSEOptions.Options] converts the struct to the equivalent functional
+// options; the two forms are interchangeable.
+type SSEOptions struct {
+	// LogPrefix is the prefix for slog warnings on replay failures.
+	// Empty keeps the default ("transport").
+	LogPrefix string
+
+	// UnavailableMessage is the 503 body served when the broadcaster is nil.
+	// Empty keeps the default ("SSE not available").
+	UnavailableMessage string
+
+	// Filter restricts both the live stream and the replay to matching
+	// events (see [WithSSEFilter]). Nil disables filtering.
+	Filter func(sse.Event) bool
+
+	// MaxReplay caps the number of replayed/backfilled events per
+	// connection (see [WithSSEMaxReplay]). Values <= 0 keep the store's own
+	// replay limit.
+	MaxReplay int
+}
+
+// Options converts the struct into the equivalent slice of functional
+// options for [ServeDomainEvents]. Zero-valued fields contribute no option,
+// so the defaults apply.
+func (o SSEOptions) Options() []ServeDomainEventsOption {
+	var opts []ServeDomainEventsOption
+
+	if o.LogPrefix != "" {
+		opts = append(opts, WithSSELogPrefix(o.LogPrefix))
+	}
+
+	if o.UnavailableMessage != "" {
+		opts = append(opts, WithSSEUnavailableMessage(o.UnavailableMessage))
+	}
+
+	if o.Filter != nil {
+		opts = append(opts, WithSSEFilter(o.Filter))
+	}
+
+	if o.MaxReplay > 0 {
+		opts = append(opts, WithSSEMaxReplay(o.MaxReplay))
+	}
+
+	return opts
 }
 
 // WithSSELogPrefix sets the prefix used in slog warnings for replay failures.
@@ -51,6 +109,48 @@ const DefaultRetryHintMillis uint = 5000
 // nil (the default) means no filtering: every event reaches every subscriber.
 func WithSSEFilter(pred func(sse.Event) bool) ServeDomainEventsOption {
 	return func(c *serveDomainEventsConfig) { c.filter = pred }
+}
+
+// WithSSEMaxReplay caps the number of events replayed/backfilled per
+// connection at the HANDLER level, truncating to the MOST RECENT n events —
+// the same tail semantics [NewJournalSSEStore] applies via [WithMaxReplay].
+// It works with any [sse.EventStore], including test fakes and custom
+// stores, so consumers do not need the journal-backed store just for the cap.
+//
+// A value <= 0 (the default) keeps the store's own replay limit untouched.
+// When both this option and a store-level limit are set, the tighter cap wins
+// (the handler truncates after the store has already limited).
+func WithSSEMaxReplay(n int) ServeDomainEventsOption {
+	return func(c *serveDomainEventsConfig) { c.maxReplay = n }
+}
+
+// replayAdjustedStore wraps an [sse.EventStore] with the handler-level
+// replay adjustments: tail-truncation to maxReplay (> 0) and the reconnect
+// retry hint stamped on replayed events whose Retry is zero. Both apply to
+// the reconnect/backfill path only — live events are untouched.
+type replayAdjustedStore struct {
+	inner    sse.EventStore
+	maxN     int
+	retryHit uint
+}
+
+func (s *replayAdjustedStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
+	events, err := s.inner.EventsAfter(lastID) //nolint:wrapcheck // adapter propagates the store error verbatim
+	if err != nil {
+		return nil, err
+	}
+
+	if s.maxN > 0 && len(events) > s.maxN {
+		events = events[len(events)-s.maxN:]
+	}
+
+	for i := range events {
+		if events[i].Retry == 0 && s.retryHit > 0 {
+			events[i].Retry = s.retryHit
+		}
+	}
+
+	return events, nil
 }
 
 // filteredEventStore adapts any [sse.EventStore] to [sse.FilteredEventStore]
@@ -96,9 +196,21 @@ func (c serveDomainEventsConfig) subscribe(b *sse.Broadcaster[sse.Event]) <-chan
 
 // replayEvents writes the journal backfill to the stream, honoring the
 // configured filter. A nil store means live-only (no backfill).
+//
+// Replayed events whose Retry is zero carry the handler's reconnect hint
+// ([DefaultRetryHintMillis]) — a client whose original retry frame was lost
+// (proxy buffering, page reload mid-stream) re-learns the cadence from the
+// backfill itself, and per the SSE spec the field simply persists for the
+// connection.
 func (c serveDomainEventsConfig) replayEvents(stream *sse.Stream, store sse.EventStore) {
 	if store == nil {
 		return
+	}
+
+	if c.maxReplay > 0 {
+		store = &replayAdjustedStore{inner: store, maxN: c.maxReplay, retryHit: DefaultRetryHintMillis}
+	} else {
+		store = &replayAdjustedStore{inner: store, retryHit: DefaultRetryHintMillis}
 	}
 
 	lastID := stream.LastEventID()
@@ -149,6 +261,7 @@ func ServeDomainEvents(
 		logPrefix:          "transport",
 		unavailableMessage: "SSE not available",
 		filter:             nil,
+		maxReplay:          0,
 	}
 	for _, opt := range opts {
 		opt(&cfg)

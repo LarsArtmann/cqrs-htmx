@@ -198,6 +198,7 @@ func registerProviders(injector do.Injector, cfg AppConfig) {
 	// half; its Health method uses a different, context-less shape). The
 	// wrapper pattern is the canonical fix when a third-party type cannot
 	// grow the missing interface method itself.
+	//samber-linter:allow hw-4 NewContainer eagerly invokes this provider at boot (no false pre-construction green)
 	do.Provide(injector, func(_ do.Injector) (*broadcasterLifecycle, error) {
 		return &broadcasterLifecycle{hub: cqrshtmx.NewBroadcaster()}, nil
 	})
