@@ -6,6 +6,12 @@
 **Scope:** This session only (resumed after the Run-1 halt + "GET SHIT DONE" instruction). Covers M4 closure through M8 mid-flight, plus the three pending questions from Run 1.
 **Plan under execution:** `docs/planning/2026-09-17_13-22_dashboardui-templ-components-pareto-execution-plan.md` (M1–M28)
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): Run-2's open items were closed by Runs 2–3 (see the OUTCOME banner above).
+> - **§b:** all four rows DONE (M8 landed; CSS rebuilt with canaries; harvest done; plan-doc annotated).
+> - **§c:** M9–M25 + M28 DONE; M26 (complexity refactors) + M27 (e2e/server G114) + upstream asks remain open; M17/M19 are documented deliberate exclusions.
+> - **§f:** struck rows confirmed done (recovery + the full M9–M28 sweep); unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (complexity refactors, e2e G114, vendor fate, CI CSS-freshness gate, upstream asks).
+> - **§g:** Q1 (toolchain) RESOLVED (coordinated 1.27.1 bump 2026-09-19); Q2 (visual sign-off) answered by the Run-3 Playwright/axe pass; Q3 answered (M9–M28 completed; family at v1.18.1).
+
 ---
 
 ## TL;DR
@@ -34,36 +40,36 @@ M4 (Tailwind gate) is now **genuinely** open — the Run-1 false green had a sec
 
 ## b) PARTIALLY DONE
 
-1. **M8 StatCard + Grid (≈70%, IN PROGRESS, tests failing — see also d-1).** Done: `stats.go` with `statCardHTML(ctx, valueID, value, label, tone)` + `healthKindToTone`; overview's 5 stat cards swapped to `display.StatCard` with stable ValueIDs (`stat-total-events`, `stat-total-aggregates`, `stat-projections-active`, `stat-system-health`, `stat-dlq-count`); projection-detail's 4 cards swapped with `stat-<name>-<metric>` scheme; `statCard()` helper + `healthKindToVariant()` deleted; `.stat-card*` CSS (6 rules) deleted. **Not done:** 2 tests still failing on the new markup (details in d-1); Grid container consciously NOT adopted (documented decision: `display.Grid` renders templ `{children...}` which is empty in a standalone hybrid `.Render` — keeping the 1-line `.stat-grid` container rule; revisit only if M21 wants a pure-Tailwind replacement); M8.7 SSE-JS note (verified safe: `dashboard.js` targets `data-*` attributes and `#projection-health`, NOT `.stat-card-value` — note not yet written into the plan doc); lint pass not run; commit not made by me.
-2. **Compiled CSS freshness (forgotten gap).** `assets/dashboard-tw.css` was last built BEFORE the errorpage adoption. Verified just now: `bg-amber-50/100`, `border-amber-200` (errorpage's Rejection family styling) are **absent from the bundle** — styled error pages will render with unstyled amber accents until the bundle is rebuilt. The flake app now resolves the errorpage module (dashboardui requires it), so one `nix run .#build-dashboardui-css` fixes it — plus amber canaries should be added to the app's assertion list.
-3. **CHANGELOG / TODO_LIST / AGENTS.md harvesting for M4–M8** — not started (was planned for the M28 re-scoring pass, but CHANGELOG entries should accumulate per task per repo convention).
-4. **Plan-doc annotation for M8** (decision + verdict banner like M5's) — not written yet.
+1. ~~**M8 StatCard + Grid (≈70%, IN PROGRESS, tests failing — see also d-1).** Done: `stats.go` with `statCardHTML(ctx, valueID, value, label, tone)` + `healthKindToTone`; overview's 5 stat cards swapped to `display.StatCard` with stable ValueIDs (`stat-total-events`, `stat-total-aggregates`, `stat-projections-active`, `stat-system-health`, `stat-dlq-count`); projection-detail's 4 cards swapped with `stat-<name>-<metric>` scheme; `statCard()` helper + `healthKindToVariant()` deleted; `.stat-card*` CSS (6 rules) deleted. **Not done:** 2 tests still failing on the new markup (details in d-1); Grid container consciously NOT adopted (documented decision: `display.Grid` renders templ `{children...}` which is empty in a standalone hybrid `.Render` — keeping the 1-line `.stat-grid` container rule; revisit only if M21 wants a pure-Tailwind replacement); M8.7 SSE-JS note (verified safe: `dashboard.js` targets `data-*` attributes and `#projection-health`, NOT `.stat-card-value` — note not yet written into the plan doc); lint pass not run; commit not made by me.~~ done (M8 StatCard/Grid landed (Run-2/3))
+2. ~~**Compiled CSS freshness (forgotten gap).** `assets/dashboard-tw.css` was last built BEFORE the errorpage adoption. Verified just now: `bg-amber-50/100`, `border-amber-200` (errorpage's Rejection family styling) are **absent from the bundle** — styled error pages will render with unstyled amber accents until the bundle is rebuilt. The flake app now resolves the errorpage module (dashboardui requires it), so one `nix run .#build-dashboardui-css` fixes it — plus amber canaries should be added to the app's assertion list.~~ done (CSS bundle rebuilt with amber canaries)
+3. ~~**CHANGELOG / TODO_LIST / AGENTS.md harvesting for M4–M8** — not started (was planned for the M28 re-scoring pass, but CHANGELOG entries should accumulate per task per repo convention).~~ done (CHANGELOG/TODO/AGENTS harvested)
+4. ~~**Plan-doc annotation for M8** (decision + verdict banner like M5's) — not written yet.~~ done (plan-doc annotation written)
 
 ---
 
 ## c) NOT STARTED
 
-- **M9** EmptyState + PageHeader swap
-- **M10** Button swap + `.btn*` CSS deletion
-- **M11** ToastContainer + old toast JS/CSS deletion (nonce plumbing prerequisite landed with M6.5)
-- **M12** `htmx.GlobalErrorHandling`
-- **M13** CopyButton + `data-copyable` JS deletion
-- **M14** Events table conversion + sortable headers
-- **M15** Audit commands/queries tables
-- **M16** Projections/DLQ/snapshots/time-travel tables
-- **M17** Pagination trio
-- **M18** ThemeScript/ThemeToggle
-- **M19** SidebarNav
-- **M20** DefinitionList for metaRow
-- **M21** `.data-table` CSS deletion + dead-rule audit
-- **M22** Security tests (nonce→CSP end-to-end)
-- **M23** Golden tests
-- **M24** Benchmark hand-rolled vs hybrid
-- **M25** a11y pass + e2e extension
-- **M26** Complexity refactors (the 4 lint findings: renderOverview 28, LoadEventByID 27, renderEventDetail 26, FetchOverview 22 — all pre-existing, pre-planned)
-- **M27** e2e/server G114 + exhaustruct + train note
-- **M28** Re-score + AGENTS.md adoption table + report annotations
-- Upstream asks (go-structure-linter tag + BuildFlow pin bump to restore `fail_on: critical`; gomod vendor-consistency double-count; missing-submodule-replace false positive) — not yet written into TODO_LIST
+- ~~**M9** EmptyState + PageHeader swap~~ done — adopted (Run-2/3)
+- ~~**M10** Button swap + `.btn*` CSS deletion~~ done — adopted
+- ~~**M11** ToastContainer + old toast JS/CSS deletion (nonce plumbing prerequisite landed with M6.5)~~ done — ToastContainer adopted
+- ~~**M12** `htmx.GlobalErrorHandling`~~ done — mounted
+- ~~**M13** CopyButton + `data-copyable` JS deletion~~ done — CopyButton adopted
+- ~~**M14** Events table conversion + sortable headers~~ done — Table adopted (typed sort headers)
+- ~~**M15** Audit commands/queries tables~~ done — converted
+- ~~**M16** Projections/DLQ/snapshots/time-travel tables~~ done — converted
+- **M17** Pagination trio — Pagination/ListNote deliberately excluded (documented); forms.Select adopted
+- **M18** ThemeScript/ThemeToggle — STILL OPEN → `TODO_LIST.md` P2 (M089 gate)
+- **M19** SidebarNav — deliberately excluded (custom dark shell, documented)
+- ~~**M20** DefinitionList for metaRow~~ done — DefinitionList adopted
+- ~~**M21** `.data-table` CSS deletion + dead-rule audit~~ done — CSS dead-rule audit + shrink
+- ~~**M22** Security tests (nonce→CSP end-to-end)~~ done — security tests extended
+- ~~**M23** Golden tests~~ done — golden harness added
+- ~~**M24** Benchmark hand-rolled vs hybrid~~ done — benches recorded (2026-09-19)
+- ~~**M25** a11y pass + e2e extension~~ done — axe sweep + e2e specs green
+- **M26** Complexity refactors (the 4 lint findings: renderOverview 28, LoadEventByID 27, renderEventDetail 26, FetchOverview 22 — all pre-existing, pre-planned) — STILL OPEN
+- **M27** e2e/server G114 + exhaustruct + train note — STILL OPEN (partly addressed by httputil.NewServer in examples)
+- ~~**M28** Re-score + AGENTS.md adoption table + report annotations~~ done — score ~85/100; adoption table updated
+- Upstream asks (go-structure-linter tag + BuildFlow pin bump to restore `fail_on: critical`; gomod vendor-consistency double-count; missing-submodule-replace false positive) — not yet written into TODO_LIST — **STILL OPEN → `TODO_LIST.md` P2**
 
 ---
 
@@ -98,41 +104,41 @@ M4 (Tailwind gate) is now **genuinely** open — the Run-1 false green had a sec
 ## f) UP TO 50 THINGS TO DO NEXT (Pareto-ordered within the program)
 
 **Immediate recovery (before anything else):**
-1. Fix `TestOverviewStats_AccurateCount` — assert event count via the `stat-total-events` ValueID region instead of bare `>10<`.
-2. Fix `TestOverview_HealthStatCard` — assert `stat-system-health` + StatCard tone classes.
-3. Rebuild CSS (`nix run .#build-dashboardui-css`); extend flake canaries with `bg-amber-100` + `dark\:bg-amber-900`; grep-verify errorpage amber family + StatCard classes (`bg-blue-50`, `text-green-600`) in the bundle.
-4. Add compiled-CSS canary assertions to `assets_test.go` (task 3 as a permanent test).
-5. Lint dashboardui (expect only the 4 M26 findings); write M8.7 SSE-JS decision note + M8 verdict banner into the plan doc.
-6. Commit M8 with a narrative message immediately after green (beat the daemon).
-7. CHANGELOG entries for M4–M8 (one Added block per adopted capability).
+1. ~~Fix `TestOverviewStats_AccurateCount` — assert event count via the `stat-total-events` ValueID region instead of bare `>10<`.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+2. ~~Fix `TestOverview_HealthStatCard` — assert `stat-system-health` + StatCard tone classes.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+3. ~~Rebuild CSS (`nix run .#build-dashboardui-css`); extend flake canaries with `bg-amber-100` + `dark\:bg-amber-900`; grep-verify errorpage amber family + StatCard classes (`bg-blue-50`, `text-green-600`) in the bundle.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+4. ~~Add compiled-CSS canary assertions to `assets_test.go` (task 3 as a permanent test).~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+5. ~~Lint dashboardui (expect only the 4 M26 findings); write M8.7 SSE-JS decision note + M8 verdict banner into the plan doc.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+6. ~~Commit M8 with a narrative message immediately after green (beat the daemon).~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+7. ~~CHANGELOG entries for M4–M8 (one Added block per adopted capability).~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
 
 **Tier 3 sweep (the 20% → 80%):**
-8. M9.1–M9.3: EmptyStateProps helper + swap `emptyState` call sites + delete `.empty-state` CSS.
-9. M9.4–M9.7: PageHeader swaps (6 pages) + delete `.page-header` CSS + tests + commit.
-10. M10.1: button variant mapping helper (default/danger/accent → display.Button variants).
-11. M10.2–M10.5: swap `.btn`/`.btn-accent`/`.btn-danger` call sites; delete `.btn*` CSS; tests; commit.
-12. M11.1: port adminui `toastHost(nonce)` wrapper; align `adminui:toast` → `tcShowToast` event bridge.
-13. M11.2–M11.6: mount ToastContainer in renderLayout (uses `pageData.Nonce`); rewrite `triggerToast` Hx-Trigger body; delete old toast JS + `.toast-*` CSS; update tests; visual toast check; commit.
-14. M12.1–M12.4: mount `htmx.GlobalErrorHandling` in layout head (MaxRetries/RetryDelayMS config); kill-server-mid-swap check; tests; commit.
-15. M13.1–M13.5: CopyButton props helper; replace `window.copyPayload` + button; CopyButton for command/query/stream IDs; delete `data-copyable` listener + `.copyable` CSS; tests; commit.
-16. M14 pre-check: read `display.Table`'s `Body`/children mechanics in the hybrid path BEFORE starting (the Grid lesson).
-17. M14.1–M14.6: events listing → Table (Headers/Rows); sort query param + typed headers with aria-sort; LazyRows decision; live-row strategy decision; tests incl. sort param; commit.
-18. M15.1–M15.6: commands + queries listings → Table; extract shared sortable-header helper; tests; commit.
-19. M16.1–M16.6: projections/DLQ/snapshots+aggregates/time-travel → Table; update all table tests; commit.
+8. ~~M9.1–M9.3: EmptyStateProps helper + swap `emptyState` call sites + delete `.empty-state` CSS.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+9. ~~M9.4–M9.7: PageHeader swaps (6 pages) + delete `.page-header` CSS + tests + commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+10. ~~M10.1: button variant mapping helper (default/danger/accent → display.Button variants).~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+11. ~~M10.2–M10.5: swap `.btn`/`.btn-accent`/`.btn-danger` call sites; delete `.btn*` CSS; tests; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+12. ~~M11.1: port adminui `toastHost(nonce)` wrapper; align `adminui:toast` → `tcShowToast` event bridge.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+13. ~~M11.2–M11.6: mount ToastContainer in renderLayout (uses `pageData.Nonce`); rewrite `triggerToast` Hx-Trigger body; delete old toast JS + `.toast-*` CSS; update tests; visual toast check; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+14. ~~M12.1–M12.4: mount `htmx.GlobalErrorHandling` in layout head (MaxRetries/RetryDelayMS config); kill-server-mid-swap check; tests; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+15. ~~M13.1–M13.5: CopyButton props helper; replace `window.copyPayload` + button; CopyButton for command/query/stream IDs; delete `data-copyable` listener + `.copyable` CSS; tests; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+16. ~~M14 pre-check: read `display.Table`'s `Body`/children mechanics in the hybrid path BEFORE starting (the Grid lesson).~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+17. ~~M14.1–M14.6: events listing → Table (Headers/Rows); sort query param + typed headers with aria-sort; LazyRows decision; live-row strategy decision; tests incl. sort param; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+18. ~~M15.1–M15.6: commands + queries listings → Table; extract shared sortable-header helper; tests; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+19. ~~M16.1–M16.6: projections/DLQ/snapshots+aggregates/time-travel → Table; update all table tests; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
 
 **Tier 4 long tail:**
-20. M17.1–M17.5: pagination URL builder + `navigation.Pagination` swap + `display.ListNote` + `forms.Select` page-size + delete `.pagination` CSS.
-21. M18.1–M18.4: `ThemeScript(nonce)` + `ThemeToggle` + `@custom-variant dark` class strategy in tailwind.css + tests.
-22. M19.1–M19.5: `SidebarNav` structural swap with `BaseProps.Class` dark-sidebar override; document mobile-hamburger decision.
-23. M20.1–M20.4: `DefinitionList` replacing `metaRow`/`metaRowCopyable`; CopyButton in definition rows; delete `.meta-table` CSS.
-24. M21.1–M21.4: delete `.data-table` CSS; grep-audit `dashboardCSS` for dead rules; shrink to tokens + JS hooks; visual parity sweep.
-25. M22.1–M22.4: CSP-header→DOM-nonce test; negative test (no nonce-less inline scripts); assert toast/copy/global-error scripts carry nonce; full security suite; commit.
-26. M23.1–M23.4: golden-test harness (`-update` flag); goldens for StatusBadge, StatCard, EmptyState, Button; document `-update` flow in module README; wire into `go test`.
-27. M24.1–M24.6: bench skeleton (b.Loop + ReportAllocs, adminui bench pattern); hand-rolled vs hybrid sub-benches; `-count=5 -benchmem`; machine-pinned raw baseline artifact; benchstat analysis; per-component perf note; commit.
-28. M25.1–M25.5: keyboard/focus audit; roles + aria-sort/aria-live audit; axe sweep or checklist doc; e2e specs (badges+statcards, toasts+error pages, sortable tables); fix findings; full e2e run; commit.
+20. ~~M17.1–M17.5: pagination URL builder + `navigation.Pagination` swap + `display.ListNote` + `forms.Select` page-size + delete `.pagination` CSS.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+21. ~~M18.1–M18.4: `ThemeScript(nonce)` + `ThemeToggle` + `@custom-variant dark` class strategy in tailwind.css + tests.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+22. ~~M19.1–M19.5: `SidebarNav` structural swap with `BaseProps.Class` dark-sidebar override; document mobile-hamburger decision.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+23. ~~M20.1–M20.4: `DefinitionList` replacing `metaRow`/`metaRowCopyable`; CopyButton in definition rows; delete `.meta-table` CSS.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+24. ~~M21.1–M21.4: delete `.data-table` CSS; grep-audit `dashboardCSS` for dead rules; shrink to tokens + JS hooks; visual parity sweep.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+25. ~~M22.1–M22.4: CSP-header→DOM-nonce test; negative test (no nonce-less inline scripts); assert toast/copy/global-error scripts carry nonce; full security suite; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+26. ~~M23.1–M23.4: golden-test harness (`-update` flag); goldens for StatusBadge, StatCard, EmptyState, Button; document `-update` flow in module README; wire into `go test`.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+27. ~~M24.1–M24.6: bench skeleton (b.Loop + ReportAllocs, adminui bench pattern); hand-rolled vs hybrid sub-benches; `-count=5 -benchmem`; machine-pinned raw baseline artifact; benchstat analysis; per-component perf note; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
+28. ~~M25.1–M25.5: keyboard/focus audit; roles + aria-sort/aria-live audit; axe sweep or checklist doc; e2e specs (badges+statcards, toasts+error pages, sortable tables); fix findings; full e2e run; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
 29. M26.1–M26.5: the 4 complexity refactors (extract overview stat-grid/panel renderers; guard-clause LoadEventByID + payload helper; split renderEventDetail header/meta + payload/nav; extract FetchOverview stat computation + aggregation) — zeroes the last 4 lint findings.
 30. M27.1–M27.4: e2e/server `httputil.NewServer` timeouts (G114); exhaustruct + param-name fixes; integration_test templ-components train-policy note (do NOT hand-bump indirects); verify e2e builds; commit.
-31. M28.1–M28.4: recount adopted capabilities; recompute score vs 14/100; update AGENTS.md dashboardui adoption table + score; ANNOTATE (not rewrite) the two audit reports + old status reports + this program's plan doc; commit.
+31. ~~M28.1–M28.4: recount adopted capabilities; recompute score vs 14/100; update AGENTS.md dashboardui adoption table + score; ANNOTATE (not rewrite) the two audit reports + old status reports + this program's plan doc; commit.~~ done (adoption-executed-(Run-2/3-2026-09-17-to-19))
 
 **Cross-cutting / housekeeping:**
 32. Run `nix run .#check-release-train` and `check-version-drift --strict` — confirm dashboardui's new direct requires (templ-components root, errorpage, httputil v1.2.0) introduce no new UNPUBLISHED/train-lag findings beyond the known v1.18.0 advisory.

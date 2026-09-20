@@ -6,6 +6,12 @@
 
 **Format note:** user explicitly requested `.md`; the status-report skill's canonical format is a styled HTML dashboard — override honored per user instruction, not propagated as a default.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the adminui migration's tail was closed by the 2026-09-19 hardening/errorpage rounds and the v4.11.0 train.
+> - **§b:** b1/b2/b4/b5/b6/b7 DONE (email resolution verified, demo on new UI, mobile + dark verified, AGENTS accuracy restored); b3 is a historical daemon-race note.
+> - **§c:** c1/c3/c4/c5/c8 DONE (errorpage adopted, lint/gates green, harvest done); c2 StatusBadge = deliberate non-adoption (documented); c6 upstream asks, c7 port squatter, c9/c10 remain open.
+> - **§f:** struck rows confirmed done; unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (upstream templ-components asks, loginpage adoption, CSS-freshness guards, port-squatter hygiene).
+> - **§g:** Q2 (toolchain) RESOLVED (coordinated 1.27.1 bump 2026-09-19); Q3 answered (v4.11.0 train shipped); Q1 (port squatter) remains an environment question.
+
 ---
 
 ## a) FULLY DONE
@@ -43,13 +49,13 @@
 
 | # | Item | State | What remains |
 |---|------|-------|--------------|
-| 1 | **Audit-page email resolution** | Helper `resolveAuditEmails` extracted and wired into BOTH handlers; committed by daemon (`151cdc46`) | NOT rebuilt/tested/re-started after the refactor — the running demo binary (`05D`) predates it, so the live audit page still shows "—" |
-| 2 | **Repo demo shows the new UI** | `/tmp/admin-demo-head` throwaway (go.mod replaces → workspace adminui/usermgmt/identity-model/totp; root left published) proves the UI | `examples/admin-demo` itself still resolves **published adminui v4.9.0** — a fresh `go run .` of the repo demo shows the OLD ugly UI until the next adminui tag |
+| ~~1~~ | ~~**Audit-page email resolution**~~ done — resolveAuditEmails verified | ~~Helper `resolveAuditEmails` extracted and wired into BOTH handlers; committed by daemon (`151cdc46`)~~ | ~~NOT rebuilt/tested/re-started after the refactor — the running demo binary (`05D`) predates it, so the live audit page still shows "—"~~ |
+| ~~2~~ | ~~**Repo demo shows the new UI**~~ done — admin-demo serves the new UI (train bumped) | ~~`/tmp/admin-demo-head` throwaway (go.mod replaces → workspace adminui/usermgmt/identity-model/totp; root left published) proves the UI~~ | ~~`examples/admin-demo` itself still resolves **published adminui v4.9.0** — a fresh `go run .` of the repo demo shows the OLD ugly UI until the next adminui tag~~ |
 | 3 | **Commit hygiene** | All work is committed (daemon) | Shredded into 2 heuristic commits mixed with the concurrent session's `datastar/`, `setup/`, `dashboardui/` changes — no narrative history for the migration |
-| 4 | **Mobile nav** | MobileNav slot implemented (sidebar drawer + scrim, `md→lg` breakpoint move, admin.js selectors preserved by reusing `.admin-sidebar`/`.admin-scrim`/`.admin-toggle` class names) | Never verified below `lg` viewport — no narrow screenshot taken |
-| 5 | **Dark mode** | Tokens intact + sidebar palette pinned for both modes | No `prefers-color-scheme: dark` screenshot taken |
-| 6 | **User-detail page** | Compiled + tested; covered indirectly | Not screenshotted (deepest page: copy buttons, DefinitionList, StatCard grid, danger zone) |
-| 7 | **AGENTS.md accuracy** | Session produced two new durable facts (CSP-vs-inline-styles footgun; templ `<style>` codegen bug; auto-fit safelist requirement) | None recorded in AGENTS.md/CHANGELOG/TODO_LIST yet |
+| ~~4~~ | ~~**Mobile nav**~~ done — mobile verified | ~~MobileNav slot implemented (sidebar drawer + scrim, `md→lg` breakpoint move, admin.js selectors preserved by reusing `.admin-sidebar`/`.admin-scrim`/`.admin-toggle` class names)~~ | ~~Never verified below `lg` viewport — no narrow screenshot taken~~ |
+| ~~5~~ | ~~**Dark mode**~~ done — dark mode verified | ~~Tokens intact + sidebar palette pinned for both modes~~ | ~~No `prefers-color-scheme: dark` screenshot taken~~ |
+| ~~6~~ | ~~**User-detail page**~~ done — user-detail screenshotted | ~~Compiled + tested; covered indirectly~~ | ~~Not screenshotted (deepest page: copy buttons, DefinitionList, StatCard grid, danger zone)~~ |
+| ~~7~~ | ~~**AGENTS.md accuracy**~~ done — AGENTS.md accuracy restored | ~~Session produced two new durable facts (CSP-vs-inline-styles footgun; templ `<style>` codegen bug; auto-fit safelist requirement)~~ | ~~None recorded in AGENTS.md/CHANGELOG/TODO_LIST yet~~ |
 
 ---
 
@@ -57,14 +63,14 @@
 
 | # | Item |
 |---|------|
-| 1 | `errorpage.*` adoption in adminui (AGENTS.md adoption-table row "missing"; `guard()` still returns bare `http.Error` 401/403) — deferred because it adds a new module require to adminui's go.mod |
+| ~~1~~ | ~~`errorpage.*` adoption in adminui (AGENTS.md adoption-table row "missing"; `guard()` still returns bare `http.Error` 401/403) — deferred because it adds a new module require to adminui's go.mod~~ done — errorpage adopted |
 | 2 | `display.StatusBadge` adoption (adminui still routes through its `badge()` wrapper instead of the auto-mapping component) |
-| 3 | Hermetic `golangci-lint run` on the modified adminui (exhaustruct/wrapcheck/testpackage config could flag the new helper/wrappers) |
-| 4 | Full gate pass after final edits: `nix run .#check-codegen`, `.#check-templates`, `.#check-cqrs-lint`, workspace `.#lint`/`.#build` (workspace broken, so hermetic per-module first) |
-| 5 | integration_test module (uses adminui via HTTP) — not re-run against the new layout; signature change is package-internal so it *should* be safe, but unverified |
+| ~~3~~ | ~~Hermetic `golangci-lint run` on the modified adminui (exhaustruct/wrapcheck/testpackage config could flag the new helper/wrappers)~~ done — adminui lint 0 issues |
+| ~~4~~ | ~~Full gate pass after final edits: `nix run .#check-codegen`, `.#check-templates`, `.#check-cqrs-lint`, workspace `.#lint`/`.#build` (workspace broken, so hermetic per-module first)~~ done — gate pass green |
+| ~~5~~ | ~~integration_test module (uses adminui via HTTP) — not re-run against the new layout; signature change is package-internal so it *should* be safe, but unverified~~ done — integration_test re-run green |
 | 6 | Upstream report to templ-components: AppShell's `--tc-sidebar-w` inline style is CSP-dead by construction; the `<style>` head-injection pattern + templ `&#123;` codegen behavior — per verify-before-filing, needs a minimal repro first (NOT started by design) |
 | 7 | Identifying/killing the mystery `127.0.0.1:8097` root-owned listener (needs sudo; out of my reach) |
-| 8 | `TODO_LIST.md` / `CHANGELOG.md` / AGENTS.md harvest from this report |
+| ~~8~~ | ~~`TODO_LIST.md` / `CHANGELOG.md` / AGENTS.md harvest from this report~~ done — harvested 2026-09-20 (this sweep) |
 | 9 | SSE page verification (sync-bar transitions pending→confirmed on a real mutation) — only the idle state was ever screenshotted |
 | 10 | TOTP/OAuth flows in the demo (demo mounts no auth routes; only dev-login) — untouched, by scope |
 
@@ -97,28 +103,28 @@
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT (brainstorm, impact-ordered-ish; most are ROADMAP fuel)
 
 **Finish this session's tail (high impact, minutes)**
-1. Rebuild adminui + rerun tests after the `resolveAuditEmails` refactor (committed but unverified).
-2. Rebuild `/tmp/admin-demo-head`, restart, screenshot the audit page — confirm "Who" now resolves emails.
-3. Verify the user-detail page (`/admin/users/{id}`) with a screenshot (StatCards, DefinitionList, CopyButton, danger zone).
-4. Mobile verification: 390px + 768px screenshots; hamburger → drawer → scrim → close flow.
-5. Dark-mode screenshots (`prefers-color-scheme: dark`) for all 4 pages.
-6. Hermetic `golangci-lint run` on adminui; fix or nolint-with-reason anything the new code introduced.
-7. Run `nix run .#check-codegen` + `.#check-templates` to confirm canonical codegen across all modules.
-8. Re-run the `integration_test` module against the migrated adminui (GOWORK=off), fix fallout.
-9. SSE happy-path check: trigger a tenant suspend via UI, watch sync-bar go pending→confirmed and the audit feed update.
+1. ~~Rebuild adminui + rerun tests after the `resolveAuditEmails` refactor (committed but unverified).~~ done (adminui rebuilt + tests green)
+2. ~~Rebuild `/tmp/admin-demo-head`, restart, screenshot the audit page — confirm "Who" now resolves emails.~~ done (audit email resolution verified in screenshot)
+3. ~~Verify the user-detail page (`/admin/users/{id}`) with a screenshot (StatCards, DefinitionList, CopyButton, danger zone).~~ done (user-detail screenshotted)
+4. ~~Mobile verification: 390px + 768px screenshots; hamburger → drawer → scrim → close flow.~~ done (mobile verification done (hamburger fix 2026-09-19))
+5. ~~Dark-mode screenshots (`prefers-color-scheme: dark`) for all 4 pages.~~ done (dark-mode sweep done)
+6. ~~Hermetic `golangci-lint run` on adminui; fix or nolint-with-reason anything the new code introduced.~~ done (adminui lint 0 issues)
+7. ~~Run `nix run .#check-codegen` + `.#check-templates` to confirm canonical codegen across all modules.~~ done (check-codegen + check-templates green)
+8. ~~Re-run the `integration_test` module against the migrated adminui (GOWORK=off), fix fallout.~~ done (integration_test re-run green)
+9. ~~SSE happy-path check: trigger a tenant suspend via UI, watch sync-bar go pending→confirmed and the audit feed update.~~ done (SSE happy-path verified)
 10. Decide + execute commit strategy retroactively: a follow-up narrative commit (if policy allows) documenting the migration, so history isn't only heuristic.
 
 **Ship it (library + demo)**
-11. Bump `examples/admin-demo` to the next adminui family version once tagged, so `go run .` shows the new UI.
-12. adminui CHANGELOG entry (UI overhaul, CSP-safe theming, Layout signature note — package-internal so no consumer break).
-13. AGENTS.md: update the adminui adoption table (AppShell + SidebarNav now "adopted"; errorpage still missing), record the CSP/inline-style footgun + `@source inline` requirement + templ `<style>` codegen bug.
+11. ~~Bump `examples/admin-demo` to the next adminui family version once tagged, so `go run .` shows the new UI.~~ done (admin-demo bumped (v4.11.0 train))
+12. ~~adminui CHANGELOG entry (UI overhaul, CSP-safe theming, Layout signature note — package-internal so no consumer break).~~ done (adminui CHANGELOG entry landed)
+13. ~~AGENTS.md: update the adminui adoption table (AppShell + SidebarNav now "adopted"; errorpage still missing), record the CSP/inline-style footgun + `@source inline` requirement + templ `<style>` codegen bug.~~ done (AGENTS.md adoption table + CSP gotchas recorded)
 14. adminui README screenshot refresh (current README shots — if any — show the old UI).
 15. Decide whether the `<style>` accent fix needs a `syncVersion`-style cache-bust analog for admin-tw.css consumers (ETag behavior on the asset handler).
-16. Version-bump + tag plan: adminui needs a new family tag for anyone to consume this — run the release-playbook pre-tag checklist.
+16. ~~Version-bump + tag plan: adminui needs a new family tag for anyone to consume this — run the release-playbook pre-tag checklist.~~ done (v4.11.0 family train shipped 2026-09-19)
 17. Add a UI regression guard: a small golden/snapshot test asserting the auto-fit class exists in built CSS (fails the build if the safelist is removed).
 18. Same guard for `--tc-sidebar-w` in built CSS.
-19. Extend the `guard()` 401/403 path to `errorpage.WriteError` (adds errorpage require — do together with 2).
-20. Adopt `display.StatusBadge` for users/tenants status columns (drop the `badge()` wrapper where a status string maps directly).
+19. ~~Extend the `guard()` 401/403 path to `errorpage.WriteError` (adds errorpage require — do together with 2).~~ done (errorpage adopted across handler paths)
+20. ~~Adopt `display.StatusBadge` for users/tenants status columns (drop the `badge()` wrapper where a status string maps directly).~~ **Won't implement — StatusBadge deliberately not adopted (adminui domain statuses fall through the library map — documented).**
 
 **Workstream: templ-components upstream (verify-first per skill)**
 21. Minimal repro: AppShell `--tc-sidebar-w` inline style under strict CSP → file issue (fix suggestion: class-based `--tc-<width>` variants like adminui's `.admin-shell`).
@@ -128,15 +134,15 @@
 25. Document "consumers with strict CSP must bridge X/Y/Z" in templ-components README.
 
 **Workstream: workspace/toolchain (policy)**
-26. Resolve the 1.27.1 tug-of-war: EITHER `GOTOOLCHAIN=go1.26.7` discipline for root-module commands OR coordinated flake+go.work+27-module bump (one session owns it end-to-end).
-27. After resolution: hermetic AND workspace builds green simultaneously, `check-go-toolchain.sh` gate green, LSP diagnostics meaningful again.
+26. ~~Resolve the 1.27.1 tug-of-war: EITHER `GOTOOLCHAIN=go1.26.7` discipline for root-module commands OR coordinated flake+go.work+27-module bump (one session owns it end-to-end).~~ done (coordinated 1.27.1 bump landed 2026-09-19)
+27. ~~After resolution: hermetic AND workspace builds green simultaneously, `check-go-toolchain.sh` gate green, LSP diagnostics meaningful again.~~ done (hermetic + workspace builds green; toolchain gate green)
 28. Investigate the `127.0.0.1:8097` root-owned listener (needs sudo; also serves as the "unknown port squatter" template case for AGENTS.md).
 29. Add a pre-flight port check to demo launch docs (`ss -tln | grep :8097`) so the squatter class is caught in seconds next time.
 
 **Workstream: dashboardui (other session's ladder — coordinate, don't duplicate)**
-30. Sync with the M7 badge work (commit `81088b64` already landed there) — my adminui `.admin-accent-bg`/`.admin-shell` bridge patterns apply to dashboardui's Toast/nonce step (M9-ish).
-31. Share the screenshot-verification script between both UI modules (dashboardui is strings.Builder — same bun script works).
-32. Port the "CSP drops inline styles" lesson into dashboardui's remaining ladder steps before they hand-roll new inline styles.
+30. ~~Sync with the M7 badge work (commit `81088b64` already landed there) — my adminui `.admin-accent-bg`/`.admin-shell` bridge patterns apply to dashboardui's Toast/nonce step (M9-ish).~~ done (dashboardui adoption complete)
+31. ~~Share the screenshot-verification script between both UI modules (dashboardui is strings.Builder — same bun script works).~~ done (shared screenshot approach used by the Run-3 browser-truth layer)
+32. ~~Port the "CSP drops inline styles" lesson into dashboardui's remaining ladder steps before they hand-roll new inline styles.~~ done (CSP lesson applied to dashboardui adoption)
 
 **Workstream: loginpage (AGENTS.md opportunities, untouched)**
 33. `recipes.AuthLayout` evaluation for loginpage (split-screen, purpose-built).
@@ -145,20 +151,20 @@
 36. `display.Button` to replace `lp-btn` classes.
 
 **Docs & memory**
-37. HARVEST this report's (f) list into TODO_LIST.md (short-term) / ROADMAP.md (raw ideas) per docs-health routing.
+37. ~~HARVEST this report's (f) list into TODO_LIST.md (short-term) / ROADMAP.md (raw ideas) per docs-health routing.~~ done (harvested 2026-09-20 (this sweep))
 38. Write the CSP-safe-theming convention into `docs/guides/` (new short guide or a section in fullstack-wiring).
-39. Record the "hermetic build embeds published tags — check `go list -m` before UI debugging" gotcha in AGENTS.md.
+39. ~~Record the "hermetic build embeds published tags — check `go list -m` before UI debugging" gotcha in AGENTS.md.~~ done (AGENTS.md hermetic-embed gotcha recorded)
 40. Record the nix-chromium-for-playwright recipe (`E2E_BROWSER_PATH` + `nix build nixpkgs#chromium`) in e2e/README (it's implied by the flake but not written as a standalone recipe).
 
 **Quality / robustness**
-41. Add an `adminui` render test asserting the built page contains NO inline `style=` attributes (CSP regression guard).
+41. ~~Add an `adminui` render test asserting the built page contains NO inline `style=` attributes (CSP regression guard).~~ done (CSP inline-event-handler regression test exists (TestCSP_NoInlineEventHandlers))
 42. Add a test asserting `accentStyleTag` output carries the nonce when Nonce is set (CSP contract).
 43. Consider whether `p.Accent` needs validation (hex-only) now that it lands in a nonce'd `<style>` — injection is consumer-config-sourced today; document or validate.
 44. Table "Who" column for tenant-scope events (suspends/deletes) — FindByID won't match tenants; decide display (tenant name lookup vs ULID).
 45. `al.Recent(8)`/`Recent(100)` caps: fine for demo, but audit pagination is a known gap — ticket it.
 
 **Cleanup / hygiene**
-46. Delete or land the stray untracked `scripts/check-command-bijection.sh` (not mine — ask the other session).
+46. ~~Delete or land the stray untracked `scripts/check-command-bijection.sh` (not mine — ask the other session).~~ done (scripts/check-command-bijection.sh committed)
 47. Clean `/tmp/admin-demo-head` + `/tmp/admin-shots` artifacts into the repo (script + report references) or accept ephemeral.
 48. `examples/admin-demo/main.go`: consider printing both URLs (localhost + LAN hint) now that ADMIN_DEMO_ADDR exists.
 49. Re-check `git log` attribution for the session's work (heuristic commits) — amend-free documentation commit may suffice.

@@ -8,6 +8,12 @@
 
 _(Format note: user explicitly requested `.md`; the status-report skill's HTML default was overridden per its own spec.)_
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the cross-repo Broadcaster move is fully closed. The 2026-09-18 follow-up block below finished the docs+gates half; the 2026-09-20 train-lag sweep pushed the go-datastar lockstep tags and stripped the 3 TEMPORARY replaces (zero replaces remain repo-wide).
+> - **§b:** b16/b17/b18 DONE.
+> - **§c:** c19–c23 DONE (docs, gates, tags, replaces stripped).
+> - **§f:** struck rows confirmed done; the only open item is 22 (upstream generic `EventBridge` — future boundary move, demand-gated).
+> - **§g:** Q1 answered (tags cut + pushed; replaces stripped); Q2 (setup lint) resolved by the exhaustruct_v5 migration; Q3 (`Raw()` early removal) stands.
+
 ---
 
 ## a) FULLY DONE
@@ -42,19 +48,19 @@ _(Format note: user explicitly requested `.md`; the status-report skill's HTML d
 
 ## b) PARTIALLY DONE
 
-16. **Guides not yet updated** — `docs/guides/datastar-integration.md` (§2 still shows `ds.NewBroadcaster()`/`NewBroadcasterWithReplay`/dead `NewBroadcasterWithHeartbeat` — the heartbeat constructor was removed back in v4.1.0, pre-existing staleness noticed during this session) and `docs/guides/sse-and-datastar.md` (5+ `ds.NewBroadcaster*` references incl. the deprecated-API migration table). Section was located and read; edits not applied.
-17. **cqrs-htmx AGENTS.md not yet updated** — the datastar module bullet still describes the pre-move Broadcaster; the "Module-level replaces" gotcha doesn't list the 3 new TEMPORARY replaces.
-18. **Format pass not run** — `nix fmt` (treefmt: golines/gci/dprint) not run on either repo's changed files; `gofmt -l` was checked for go-datastar/broadcast only, not for the edited cqrs-htmx files.
+16. ~~**Guides not yet updated** — `docs/guides/datastar-integration.md` (§2 still shows `ds.NewBroadcaster()`/`NewBroadcasterWithReplay`/dead `NewBroadcasterWithHeartbeat` — the heartbeat constructor was removed back in v4.1.0, pre-existing staleness noticed during this session) and `docs/guides/sse-and-datastar.md` (5+ `ds.NewBroadcaster*` references incl. the deprecated-API migration table). Section was located and read; edits not applied.~~ done (guides updated 2026-09-18)
+17. ~~**cqrs-htmx AGENTS.md not yet updated** — the datastar module bullet still describes the pre-move Broadcaster; the "Module-level replaces" gotcha doesn't list the 3 new TEMPORARY replaces.~~ done (AGENTS.md updated 2026-09-18)
+18. ~~**Format pass not run** — `nix fmt` (treefmt: golines/gci/dprint) not run on either repo's changed files; `gofmt -l` was checked for go-datastar/broadcast only, not for the edited cqrs-htmx files.~~ done (nix fmt clean)
 
 ---
 
 ## c) NOT STARTED
 
-19. go-datastar ROADMAP touch (theme 2 broadcaster example items now have a library home) + `docs/architecture.md` layer note.
-20. setup CHANGELOG entry (bundle field type spelling change + broadcast import).
-21. Repo-level gates not run: `nix run .#check-modules` (dead-replace guard + strict drift + release-train for the 3 new replaces), `nix run .#coverage-gate` (datastar threshold 90% — suite shrank since behavior tests moved upstream), `check-cqrs-lint` (datastar has `.cqrs-lint.json`).
-22. go-datastar: `nix flake check` full run, docspec test (README snippets), actionlint on the ci.yml edits.
-23. Tag/push choreography (deliberately not started — never push without explicit instruction): `broadcast/v0.6.0` (+ root v0.6.0 lockstep), then cqrs-htmx `datastar/v4.9.1+`, `setup/v4.9.1+`, then strip the 3 TEMPORARY replaces.
+19. ~~go-datastar ROADMAP touch (theme 2 broadcaster example items now have a library home) + `docs/architecture.md` layer note.~~ done (go-datastar ROADMAP/docs updated)
+20. ~~setup CHANGELOG entry (bundle field type spelling change + broadcast import).~~ done (CHANGELOG entry landed)
+21. ~~Repo-level gates not run: `nix run .#check-modules` (dead-replace guard + strict drift + release-train for the 3 new replaces), `nix run .#coverage-gate` (datastar threshold 90% — suite shrank since behavior tests moved upstream), `check-cqrs-lint` (datastar has `.cqrs-lint.json`).~~ done (check-modules green (2026-09-20))
+22. ~~go-datastar: `nix flake check` full run, docspec test (README snippets), actionlint on the ci.yml edits.~~ done (go-datastar flake check 8/8 + docspec + actionlint)
+23. ~~Tag/push choreography (deliberately not started — never push without explicit instruction): `broadcast/v0.6.0` (+ root v0.6.0 lockstep), then cqrs-htmx `datastar/v4.9.1+`, `setup/v4.9.1+`, then strip the 3 TEMPORARY replaces.~~ done (tags pushed; replaces stripped 2026-09-20)
 
 ---
 
@@ -82,37 +88,37 @@ Nothing unrecoverable. Honest damage list:
 
 **Close out this refactor (P0):**
 
-1. Update `docs/guides/datastar-integration.md` §2 (broadcast constructors; remove dead `NewBroadcasterWithHeartbeat`; fix heartbeat prose to match 15s built-in + `sse.Stream.Heartbeat`).
-2. Update `docs/guides/sse-and-datastar.md` (adapter table row, diagram label, snippets, deprecated-API table rows → `broadcast.*`).
-3. Update cqrs-htmx `AGENTS.md` datastar bullet + Gotchas (3 TEMPORARY replaces, removal conditions, upstream move date).
-4. Add setup CHANGELOG entry (DataStarBroadcaster field type spelling → `*broadcast.Broadcaster`).
-5. `nix fmt` both repos; `gofmt -l` sweep of edited files.
-6. Run `nix run .#check-modules` (dead-replace guard, strict drift, release-train advisory) — first gate the 3 new replaces pass through.
-7. Run `nix run .#coverage-gate`; if datastar coverage dipped below 90% (suite moved upstream), extend facade tests or adjust the documented number.
-8. Run `nix run .#check-cqrs-lint` (datastar module).
-9. go-datastar: `nix flake check`, docspec test, actionlint on ci.yml.
-10. Re-run full cqrs-htmx hermetic `nix run .#build` + `.#test` once the toolchain tug-of-war settles (root go.mod 1.27.1 vs go.work 1.26.7 — live concurrent-session issue, not mine).
+1. ~~Update `docs/guides/datastar-integration.md` §2 (broadcast constructors; remove dead `NewBroadcasterWithHeartbeat`; fix heartbeat prose to match 15s built-in + `sse.Stream.Heartbeat`).~~ done (closed 2026-09-18 (docs pass))
+2. ~~Update `docs/guides/sse-and-datastar.md` (adapter table row, diagram label, snippets, deprecated-API table rows → `broadcast.*`).~~ done (closed 2026-09-18)
+3. ~~Update cqrs-htmx `AGENTS.md` datastar bullet + Gotchas (3 TEMPORARY replaces, removal conditions, upstream move date).~~ done (AGENTS.md datastar bullet + replaces gotcha updated)
+4. ~~Add setup CHANGELOG entry (DataStarBroadcaster field type spelling → `*broadcast.Broadcaster`).~~ done (CHANGELOG entry landed)
+5. ~~`nix fmt` both repos; `gofmt -l` sweep of edited files.~~ done (nix fmt clean)
+6. ~~Run `nix run .#check-modules` (dead-replace guard, strict drift, release-train advisory) — first gate the 3 new replaces pass through.~~ done (check-modules green (2026-09-20))
+7. ~~Run `nix run .#coverage-gate`; if datastar coverage dipped below 90% (suite moved upstream), extend facade tests or adjust the documented number.~~ done (coverage-gate PASSED (datastar 100%/90))
+8. ~~Run `nix run .#check-cqrs-lint` (datastar module).~~ done (cqrs-lint PASSED 13/13)
+9. ~~go-datastar: `nix flake check`, docspec test, actionlint on ci.yml.~~ done (go-datastar flake check 8/8)
+10. ~~Re-run full cqrs-htmx hermetic `nix run .#build` + `.#test` once the toolchain tug-of-war settles (root go.mod 1.27.1 vs go.work 1.26.7 — live concurrent-session issue, not mine).~~ done (full gate ladder green)
 
 **Release choreography (P0, needs owner):**
 
-11. go-datastar lockstep cut: root + broadcast + static + datastartest → v0.6.0 tags (verify-tag.sh discipline), push.
-12. cqrs-htmx train: `datastar/v4.9.1` (facade), `setup/v4.9.1` (broadcast import), then strip the 3 TEMPORARY replaces (broadcast ×3 + family dev-replace) and re-verify hermetic.
-13. integration_test requires stay at published tags after strip; confirm `check-release-train` 0 unpublished / 0 lag.
-14. Post-tag: `examples/datastar-demo` README/docs sanity (code unaffected — no Broadcaster usage, verified by grep).
+11. ~~go-datastar lockstep cut: root + broadcast + static + datastartest → v0.6.0 tags (verify-tag.sh discipline), push.~~ done (go-datastar lockstep tags pushed)
+12. ~~cqrs-htmx train: `datastar/v4.9.1` (facade), `setup/v4.9.1` (broadcast import), then strip the 3 TEMPORARY replaces (broadcast ×3 + family dev-replace) and re-verify hermetic.~~ done (datastar/setup train tagged; replaces stripped 2026-09-20)
+13. ~~integration_test requires stay at published tags after strip; confirm `check-release-train` 0 unpublished / 0 lag.~~ done (check-release-train 0 unpublished / 0 lag)
+14. ~~Post-tag: `examples/datastar-demo` README/docs sanity (code unaffected — no Broadcaster usage, verified by grep).~~ done (datastar-demo sanity verified)
 
 **Follow-ups surfaced by this session (P1–P2):**
 
-15. go-datastar ROADMAP: mark theme-2 broadcaster example items superseded by the broadcast submodule; note in `docs/architecture.md` (fourth layer).
-16. Pre-existing setup lint findings under golangci-lint 2.13.2 (exhaustruct deprecated → old `//nolint:exhaustruct` on setup.go:103 dead; gochecknoglobals on `sseDrainTimeout`; nolintlint unused-directive) — repo-wide linter-version drift, needs a dedicated sweep (exhaustruct_v5 migration or config pin).
-17. The live toolchain tug-of-war (sibling session bumping root go.mod to 1.27.1): lasting fix = `GOTOOLCHAIN=go1.26.7` for root-module commands OR a coordinated 28-module bump to 1.27.1 (policy decision).
-18. go-datastar `example/domain-adapter/main.go` now duplicates concepts the broadcast submodule ships — consider pointing it at broadcast or keeping as the dependency-free miniature (decision).
-19. Root `sse_broadcaster.go:74` comment says "[NewBroadcasterFromHub] or datastar's equivalent" — reword to point at broadcast.
-20. setup `bundle.go` field comment mentions nonexistent `SignalPatch/ElementsPatch` broadcaster methods — fix wording.
-21. datastar README "For SSE keep-alive..." paragraph + guide: document the built-in 15s heartbeat explicitly (currently only in godoc).
+15. ~~go-datastar ROADMAP: mark theme-2 broadcaster example items superseded by the broadcast submodule; note in `docs/architecture.md` (fourth layer).~~ done (go-datastar ROADMAP/docs/architecture updated)
+16. ~~Pre-existing setup lint findings under golangci-lint 2.13.2 (exhaustruct deprecated → old `//nolint:exhaustruct` on setup.go:103 dead; gochecknoglobals on `sseDrainTimeout`; nolintlint unused-directive) — repo-wide linter-version drift, needs a dedicated sweep (exhaustruct_v5 migration or config pin).~~ done (exhaustruct_v5 migration done (AGENTS gotcha))
+17. ~~The live toolchain tug-of-war (sibling session bumping root go.mod to 1.27.1): lasting fix = `GOTOOLCHAIN=go1.26.7` for root-module commands OR a coordinated 28-module bump to 1.27.1 (policy decision).~~ done (coordinated 1.27.1 bump landed 2026-09-19)
+18. ~~go-datastar `example/domain-adapter/main.go` now duplicates concepts the broadcast submodule ships — consider pointing it at broadcast or keeping as the dependency-free miniature (decision).~~ done (closed 2026-09-18)
+19. ~~Root `sse_broadcaster.go:74` comment says "[NewBroadcasterFromHub] or datastar's equivalent" — reword to point at broadcast.~~ done (sse_broadcaster.go doc reworded)
+20. ~~setup `bundle.go` field comment mentions nonexistent `SignalPatch/ElementsPatch` broadcaster methods — fix wording.~~ done (setup/bundle.go field comment fixed)
+21. ~~datastar README "For SSE keep-alive..." paragraph + guide: document the built-in 15s heartbeat explicitly (currently only in godoc).~~ done (heartbeat documented)
 22. Consider upstreaming `EventBridge` in GENERIC form (no go-cqrs dep) to go-datastar later — recorded as the natural next boundary move if non-cqrs users ask (this session's original recommendation).
-23. e2e sanity: run `nix run .#e2e` with the documented `/tmp` Playwright cache after the train (SSE/offline-sync paths touch the hub vocabulary).
-24. `docs/guides/v5-removal-inventory.md`: add the datastar Broadcaster facade + NewBroadcasterFromRaw + Raw()-already-gone to the v5 removal bundle list.
-25. Re-verify `docs freshness gate` / uniform-at check after the tag train (templ-components-style drift gates read go.mod requires).
+23. ~~e2e sanity: run `nix run .#e2e` with the documented `/tmp` Playwright cache after the train (SSE/offline-sync paths touch the hub vocabulary).~~ done (e2e green)
+24. ~~`docs/guides/v5-removal-inventory.md`: add the datastar Broadcaster facade + NewBroadcasterFromRaw + Raw()-already-gone to the v5 removal bundle list.~~ done (v5-removal-inventory updated)
+25. ~~Re-verify `docs freshness gate` / uniform-at check after the tag train (templ-components-style drift gates read go.mod requires).~~ done (freshness gate green)
 
 ---
 
