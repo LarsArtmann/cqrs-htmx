@@ -53,15 +53,15 @@ func setupSSEStack(t *testing.T) (http.HandlerFunc, *usermgmt.Service) {
 	return transport.ServeDomainEvents(broadcaster.Hub(), sseStore, 0), svc
 }
 
-// streamOnce connects to an SSE handler, reads until the client context is
-// cancelled, and returns the raw response body.
-func streamOnce(t *testing.T, h http.HandlerFunc, lastEventID string) string {
+// streamOnce connects to an SSE handler at path, reads until the client
+// context is cancelled, and returns the raw response body.
+func streamOnce(t *testing.T, h http.HandlerFunc, path, lastEventID string) string {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	req := httptest.NewRequest(http.MethodGet, path, nil).WithContext(ctx)
 	if lastEventID != "" {
 		req.Header.Set("Last-Event-ID", lastEventID)
 	}
@@ -150,7 +150,7 @@ func TestSSE_ReconnectWithReplay(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	first := streamOnce(t, sseHandler, "")
+	first := streamOnce(t, sseHandler, "/events", "")
 	firstID := firstDomainEventID(t, first)
 
 	require.Contains(t, first, "connected", "first connect must open with the connected event")
@@ -158,7 +158,7 @@ func TestSSE_ReconnectWithReplay(t *testing.T) {
 
 	// Reconnect with the cursor: the frame at the cursor must NOT replay;
 	// later events must.
-	reconnected := streamOnce(t, sseHandler, firstID)
+	reconnected := streamOnce(t, sseHandler, "/events", firstID)
 
 	require.NotContains(t, reconnected, "id: "+firstID+"\n",
 		"the cursor event itself must not replay")
@@ -218,8 +218,8 @@ func TestSSE_CrossModuleWireFormatContract(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	setupBody := streamOnce(t, setupShaped, "")
-	dashBody := streamOnce(t, dash.Handler().ServeHTTP, "")
+	setupBody := streamOnce(t, setupShaped, "/events", "")
+	dashBody := streamOnce(t, dash.Handler().ServeHTTP, "/-/events/stream", "")
 
 	eventID := firstDomainEventID(t, setupBody)
 

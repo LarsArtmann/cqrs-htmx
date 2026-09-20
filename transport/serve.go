@@ -135,8 +135,9 @@ type replayAdjustedStore struct {
 }
 
 func (s *replayAdjustedStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
-	events, err := s.inner.EventsAfter(lastID) //nolint:wrapcheck // adapter propagates the store error verbatim
+	events, err := s.inner.EventsAfter(lastID)
 	if err != nil {
+		//nolint:wrapcheck // adapter propagates the store error verbatim
 		return nil, err
 	}
 
@@ -207,11 +208,7 @@ func (c serveDomainEventsConfig) replayEvents(stream *sse.Stream, store sse.Even
 		return
 	}
 
-	if c.maxReplay > 0 {
-		store = &replayAdjustedStore{inner: store, maxN: c.maxReplay, retryHit: DefaultRetryHintMillis}
-	} else {
-		store = &replayAdjustedStore{inner: store, retryHit: DefaultRetryHintMillis}
-	}
+	store = &replayAdjustedStore{inner: store, maxN: c.maxReplay, retryHit: DefaultRetryHintMillis}
 
 	lastID := stream.LastEventID()
 

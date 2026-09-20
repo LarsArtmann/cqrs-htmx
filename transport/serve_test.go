@@ -476,10 +476,7 @@ func TestServeDomainEvents_BroadcasterCloseMidStream(t *testing.T) {
 
 	h := ServeDomainEvents(b, nil, 0)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+	req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(t.Context())
 	rec := httptest.NewRecorder()
 
 	done := make(chan struct{})
@@ -521,10 +518,7 @@ func TestServeDomainEvents_ConcurrentClients(t *testing.T) {
 	dones := make([]chan struct{}, clients)
 
 	for i := range clients {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(ctx)
+		req := httptest.NewRequest(http.MethodGet, "/events", nil).WithContext(t.Context())
 		rec := httptest.NewRecorder()
 		recorders[i] = rec
 
