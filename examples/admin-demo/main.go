@@ -156,6 +156,14 @@ func main() {
 		})
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
+	// Browsers auto-request /favicon.ico on every page. Without this handler
+	// that request fell through to the "/" catch-all, which redirects to
+	// /dev-login — silently re-issuing the SUPER-ADMIN session cookie and
+	// clobbering a just-switched tenant-admin session (found via CDP
+	// set-cookie tracing 2026-09-20). Serve an empty 204 instead.
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dev-login", http.StatusSeeOther)
 	})
