@@ -8,11 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Nothing yet.
+- **Repo-owned status row-integrity gate (`scripts/check-status-rows.py`, docs-health Gate 2):** the row check previously existed only as a read-only skill asset outside the repo; it is now a repo-owned, CI-runnable gate encoding the adjudicated annotation policy — a `PARTIAL` row (cells within one row disagree) is the only hard failure; deliberately-mixed tables (struck rows = done, unstruck = open) are first-class, counted and reported, never failed; tildes inside inline code spans never count as strikethrough. Scope identity with the docs-health skill's authoring aid was verified per-file and per-line (same 19 mixed tables). Ships complete per the gate checklist: checker + 17-case fixture self-test (`scripts/test-check-status-rows.sh`, exact counts and file names asserted) + flake apps (`nix run .#check-status-rows` / `.#test-status-rows`, `pkgs.python3`-pinned) + `check-modules` stage + CI `checks` job steps + `docs/status/README.md` command.
+- **Gate 1 fixture self-test (`scripts/test-check-status-annotations.sh`, 16 cases)** wired into `check-modules` and CI alongside the annotation-presence gate itself, which had never run in CI; the epoch boundary (2026-09-09 exactly = gated) and the legacy-exempt era are pinned by fixtures so the policy cannot drift silently.
+- **Toolchain floor alignment in `scripts/lib/go-cache-env.sh`:** when the ambient toolchain is older than `go.work`'s `go` directive (bare shells run go1.26.7 under `GOTOOLCHAIN=local`), the shared cache-guard library now exports `GOTOOLCHAIN=go<floor>` — raising only, never downgrading, resolving from the local module cache. This un-breaks the pre-commit hook from every non-devShell shell (its buildflow steps failed on the 1.27.1 workspace, so commits silently landed as daemon heuristic commits); the hook self-test gains a T9 alignment case (12/12) and the fix was proven live by a full bare-shell hook run (large-file + release-train + buildflow all green).
 
 ### Fixed
 
-- Nothing yet.
+- `docs/status/README.md` Gate 2 section no longer points at the read-only skill asset as the gate of record; it documents the repo-owned command, the python3 ownership decision (ambient `python3` is the contract; flake apps pin `pkgs.python3`), and the skill asset's continuing role as the annotator's authoring aid. File counts refreshed (8 unarchived reports / 405 archived).
 
 ## [v4.12.0] - 2026-09-21
 

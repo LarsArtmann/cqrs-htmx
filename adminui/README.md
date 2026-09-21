@@ -103,6 +103,11 @@ Override with your own `Config.Authorizer`, or use the helpers
 - **Members** — add a user by email + role, or remove a member, on any tenant
   (super-admin) or your scoped tenant (tenant-admin).
 - **Audit log** — the recorded user/tenant events.
+- **Theme toggle** — user-controllable dark mode (v4.12.0): a header button
+  persists the choice to `localStorage` and a pre-paint script applies it
+  (falling back to the OS preference), so there is no flash of the wrong
+  theme. No-JS degrades to light. Rides the templ-components library's
+  `layout.ThemeToggle` + `layout.ThemeScript`.
 
 ## Run the demo
 
