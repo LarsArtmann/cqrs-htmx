@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.9.0
 )
 
 require (
@@ -51,9 +51,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1 // indirect

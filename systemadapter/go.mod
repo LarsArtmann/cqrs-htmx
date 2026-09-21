@@ -13,10 +13,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.9.0
 	github.com/larsartmann/go-error-family v0.10.1
 )
 
