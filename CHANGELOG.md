@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [v4.12.0] - 2026-09-21
+
+> **Coordinated family train (13 modules).** Tagged in dependency waves (identity-model + root + datastar + the three auth-strategy modules + auditlog first; usermgmt after its DEV-ONLY root replace was stripped against the published root tag; then adminui/loginpage/systemadapter, dashboardui/health, setup last) — each wave's requires only ever point at already-published tags, so every commit passes the release-train gate without `--no-verify`.
+
+### Added
+
 - **`setup.Config.SSEFilter` — scoped shared `/sse` feed (2026-09-21, resolves the 2026-08-30 endpoint-shape decision, owner Option B):** the shared SSEPath handler now accepts a `func(sse.Event) bool` predicate threaded through `transport.WithSSEFilter` — both the live stream AND journal replay are scoped (replay filters fail-closed; a filter that leaked backfill would be a security hole). Nil (the default) preserves the documented authenticated-full-feed contract; the DataStar feed stays a full hub mirror. Test: `TestBundle_SSEHandlerFilterScopesReplay`. Decision one-pager updated to RESOLVED; recipe added to `docs/guides/sse-and-datastar.md` §Scoped Feeds.
 - **adminui user-controllable theme toggle (2026-09-21, M089 Option B — owner-approved via design-tree interview):** dark mode is now class-driven instead of OS-locked. Implementation rides the LIBRARY's existing components rather than hand-rolled JS: `layout.ThemeToggle` in the header (ghost sun/moon button, `role="switch"` + `aria-checked`, CSP-nonce'd click script persisting to `localStorage 'theme'`) and `layout.ThemeScript` in `<head>` (applies the stored choice — falling back to the system preference — plus `color-scheme` BEFORE first paint, so no flash). adminui's `tailwind.css` declares `@custom-variant dark (&:where(.dark, .dark *))` so every `dark:` utility (adminui's own and the library components') follows the `.dark` class, and the dark token block moved from `@media (prefers-color-scheme: dark)` to `html.dark` (no-JS degrades to light; the gray-800/900 surface re-pin rides along). Auto mode renders byte-identically to before: all 20 screenshot baselines held. New e2e gate: the toggle flips `.dark`, syncs `aria-checked`, and the choice persists across a reload (admin-behavior spec now 10/10).
 - **templ-components v1.19.0 family train adopted (2026-09-21, cut from this workspace after the bugs were found here):** the release fixes two real popover-positioner defects in the library — (1) its `toggle` listener registered on `document` WITHOUT capture, and the Popover API's toggle event does not bubble, so every anchored `[popover]` panel (Dropdown/Popover/ContextMenu) rendered at the viewport corner; (2) a panel already open when the script executed never got positioned — v1.19.0 registers with `capture: true` and self-heals `[popover]:popover-open[data-tc-anchor]` at attach time. It also adds `DropdownProps.Trigger`, a custom trigger-content slot (functionally wired button keeps `popovertarget`/`aria-haspopup`/`data-dropdown-trigger`; the consumer component owns the visuals). cqrs-htmx consumption: all 12 module `go.mod` files bumped (hermetic tidy+build+vet green per module), BOTH CSS bundles rebuilt in the same change, adminui's vendored capture-phase positioner DELETED from `admin.js` (the library singleton now owns anchoring — requires passing `Nonce` on the Dropdown so its inline script survives the CSP), and the header identity menu now renders the avatar + email INSIDE the trigger via the new slot (the avatar-sibling workaround retired). e2e: admin-behavior 9/9, full suite 57/57.
