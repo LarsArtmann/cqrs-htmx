@@ -3,6 +3,14 @@
 **Date:** 2026-09-20 10:57 CEST
 **Session context:** Continuation of the "execute the ENTIRE TODO_LIST" directive (round 1 = 2026-09-20 09:05 Pareto plan + Tier-1 items). This round executed: the routed-gaps code bundle (IP/User-Agent, ClientID, API exposure), the samber-linter repro, the full SSE hardening backlog, five upstream issue filings, and adminui program P0 + Phase 1. Load average 13.8→57 the whole session (bench-spike correctly refused; 5th documented refusal).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep, same day): the later rounds (3/4/5) executed the adminui program to completion.
+> - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
+> - **§b:** b1 (adminui lint) DONE; b2 (members visual gap), b3 (icon stroke parity), b4 (V007/appkit re-assess) remain open → `TODO_LIST.md`.
+> - **§c (bullets):** adminui Phases 2–4 landed in rounds 4/5; the docs hygiene pass done; `/sse` posture, datastar-demo rebrand, theme toggle, force-push purges, DataStar Tier 4, cqrs-lint CI remain open → `TODO_LIST.md`/`ROADMAP.md`.
+> - **§d / §e:** retrospective incidents + process lessons — historical record; the workspace-vs-hermetic build lesson and screenshot-harness learnings are captured.
+> - **§f:** struck rows confirmed done; open rows (f2/f3/f4/f23/f24/f28–f40) are routed to `TODO_LIST.md`/`ROADMAP.md` (worktree cleanup, seed membership, admin screenshot spec, V007 maturity, appkit ADR-001, upstream tracking, linter release watch, bench automation, `/sse` posture, datastar rebrand, theme toggle, force-push approvals, Tier-4, cqrs-lint distribution).
+> - **§g:** q1/q2 resolved (phases executed; P4 completed); q3 open — destructive force-push approvals remain a user call.
+
 ---
 
 ## a) FULLY DONE
@@ -50,7 +58,7 @@
 
 ## b) PARTIALLY DONE
 
-1. **Adminui Phase-1 gate (P1.6) — 2 lint findings open:** `goconst: 1` + `gofumpt: 1` on adminui (from the new `statCardClass`/statusBadge code). Everything else in the gate is green. Fix is minutes.
+1. ~~**Adminui Phase-1 gate (P1.6) — 2 lint findings open:** `goconst: 1` + `gofumpt: 1` on adminui (from the new `statCardClass`/statusBadge code). Everything else in the gate is green. Fix is minutes.~~ done (adminui lint 0 (15/15 modules clean))
 2. **Adminui Phase-1 visual verification — members/tenant-detail gap:** AE=0 diff on both pages because the admin-demo seed creates **no tenant memberships** — the members table (Flush + compact changes) renders as empty state on both sides. Structural changes are test-verified but not visually confirmed. Options: seed one membership in the demo, or extend an adminui render test.
 3. **M021 (icon stroke-width parity) not explicitly confirmed** — icons render via the typed component (verified in DOM), but no pixel-level parity check against the old 1.8-stroke SVGs was performed.
 4. **Gated-items verification:** findings-gate + templ-components gates re-verified (closed); **V007 migration maturity** and **appkit ADR-001 (b)–(f)** not yet re-assessed this session.
@@ -99,33 +107,33 @@ Nothing irreversible. Honest low points:
 
 ## f) Up to 50 things next
 
-1. Fix the 2 adminui lint findings (goconst, gofumpt) — Phase-1 gate fully green
+1. ~~Fix the 2 adminui lint findings (goconst, gofumpt) — Phase-1 gate fully green~~ done (adminui lint 0 (15/15 modules clean))
 2. Remove the `/tmp/cqrs-adminui-head` git worktree
 3. Extend admin-demo seed with one tenant membership (visual coverage for members table)
 4. Check-in `tests/admin-screenshots.spec.ts` (Playwright admin harness; port learnings from e)
-5. Adminui Phase 2: PageHeader on dashboard page (M034-adjacent)
-6. Adminui Phase 2: PageHeader ×5 remaining pages (users, tenants list/new/detail, audit, members) — M035–M040
-7. Adminui Phase 2: Breadcrumbs on user/tenant detail + tenant new — M041–M043
-8. Adminui Phase 2: delete the 3 hand-rolled "← Back" rows — M044
-9. Adminui Phase 2: FilterInput replaces the hand-rolled search form — M045–M047
-10. Adminui Phase 2 gate: gen + codegen + CSS + screenshots + race + coverage — M048–M050
-11. Adminui Phase 3: Pagination on users (page param + TotalPages + footer) — the highest-value functional fix
-12. Adminui Phase 3: Pagination on tenants + audit
-13. Adminui Phase 3: Spinner hx-indicator on swap regions
-14. Adminui Phase 3: LoadingButton on mutating forms/buttons
-15. Adminui Phase 3: errorpage.ErrorAlert across the 14 handler error paths
-16. Adminui Phase 3: kill the `err.Error()` response leaks (handler_tenants.go:45,78,89,100)
-17. Adminui Phase 3: EmptyState action buttons
-18. Adminui Phase 3 gate
-19. Adminui Phase 4 (delight lane — droppable): Modal confirmations, Dropdown menu, PolledRegion, dark-QA sweep, ThemeToggle spike
-20. Docs: TODO_LIST truth pass (routed gaps #3/#9/#10/#11 DONE; samber-linter CLOSED; cqrs-upgrade --workspace landed; findings-gate text stale)
-21. Docs: CHANGELOG `[Unreleased]` entries for round 2 (IP/UA, ClientID, payload/pagination API, SSE hardening incl. the replay wire-format note, sync v1.4.0, samber-do-demo health wiring, upstream issue links)
-22. Docs: retire the OTel-posture note item to ROADMAP (per its own wording)
+5. ~~Adminui Phase 2: PageHeader on dashboard page (M034-adjacent)~~ done (adminui Phase 2 complete)
+6. ~~Adminui Phase 2: PageHeader ×5 remaining pages (users, tenants list/new/detail, audit, members) — M035–M040~~ done (adminui Phase 2 complete)
+7. ~~Adminui Phase 2: Breadcrumbs on user/tenant detail + tenant new — M041–M043~~ done (adminui Phase 2 complete)
+8. ~~Adminui Phase 2: delete the 3 hand-rolled "← Back" rows — M044~~ done (adminui Phase 2 complete)
+9. ~~Adminui Phase 2: FilterInput replaces the hand-rolled search form — M045–M047~~ done (adminui Phase 2 complete)
+10. ~~Adminui Phase 2 gate: gen + codegen + CSS + screenshots + race + coverage — M048–M050~~ done (adminui Phase 2 complete)
+11. ~~Adminui Phase 3: Pagination on users (page param + TotalPages + footer) — the highest-value functional fix~~ done (adminui Phase 3 complete)
+12. ~~Adminui Phase 3: Pagination on tenants + audit~~ done (adminui Phase 3 complete)
+13. ~~Adminui Phase 3: Spinner hx-indicator on swap regions~~ done (adminui Phase 3 complete)
+14. ~~Adminui Phase 3: LoadingButton on mutating forms/buttons~~ done (adminui Phase 3 complete)
+15. ~~Adminui Phase 3: errorpage.ErrorAlert across the 14 handler error paths~~ done (adminui Phase 3 complete)
+16. ~~Adminui Phase 3: kill the `err.Error()` response leaks (handler_tenants.go:45,78,89,100)~~ done (adminui Phase 3 complete)
+17. ~~Adminui Phase 3: EmptyState action buttons~~ done (adminui Phase 3 complete)
+18. ~~Adminui Phase 3 gate~~ done (adminui Phase 3 complete)
+19. ~~Adminui Phase 4 (delight lane — droppable): Modal confirmations, Dropdown menu, PolledRegion, dark-QA sweep, ThemeToggle spike~~ done (round4 phase-4 modals complete)
+20. ~~Docs: TODO_LIST truth pass (routed gaps #3/#9/#10/#11 DONE; samber-linter CLOSED; cqrs-upgrade --workspace landed; findings-gate text stale)~~ done (TODO_LIST truth pass landed)
+21. ~~Docs: CHANGELOG `[Unreleased]` entries for round 2 (IP/UA, ClientID, payload/pagination API, SSE hardening incl. the replay wire-format note, sync v1.4.0, samber-do-demo health wiring, upstream issue links)~~ done (CHANGELOG entries landed)
+22. ~~Docs: retire the OTel-posture note item to ROADMAP (per its own wording)~~ done (OTel note moved to ROADMAP)
 23. Re-verify V007 (39 findings) maturity: `cqrs-upgrade -dry-run --workspace` from the new master
 24. Assess appkit ADR-001 (b)–(f) — default-flip decision inputs
-25. Write the final table-view session report
-26. Ask the 3 questions below (section g) and act on answers
-27. Usermgmt dev-replace strip + next family train (root tag carrying IPAddress/ClientID symbols)
+25. ~~Write the final table-view session report~~ done (round reports written)
+26. ~~Ask the 3 questions below (section g) and act on answers~~ done (questions asked + answered)
+27. ~~Usermgmt dev-replace strip + next family train (root tag carrying IPAddress/ClientID symbols)~~ done (all replaces stripped 2026-09-20)
 28. Track upstream: templ-components #20/#21/#22 (watch for v1.19 — sharp cards + CSS rebuild + screenshot pass)
 29. Track upstream: go-cqrs-lite #35 (RequestContext enricher — drops the local copy)
 30. Track upstream: go-cqrs-lite #36 (stack decoupling — drops usermgmt's transitive metaengine require)
