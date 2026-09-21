@@ -16,6 +16,10 @@
 #      on device" errors, corrupted module-cache files, and bogus "missing
 #      go.sum entry" messages (the 2026-08-29 /tmp tmpfs incident). Set
 #      GO_CACHE_MIN_FREE_MB=0 to disable the check.
+#   3. Raise GOTOOLCHAIN to the workspace floor when the ambient toolchain is
+#      older (bare shells run go1.26.7 with GOTOOLCHAIN=local while go.work
+#      demands 1.27.1 — the root cause of pre-commit-hook failures from
+#      non-devShell shells). Never downgrades; a no-op when ambient is current.
 #
 # shellcheck shell=bash
 
@@ -58,4 +62,25 @@ if [ "$_cache_min_free_mb" != "0" ] && command -v df >/dev/null 2>&1; then
       fi
     fi
   done
+fi
+
+# --- Toolchain floor alignment (2026-09-22) ---
+# go.work's `go` directive demands a minimum toolchain. Ambient shells on this
+# fleet run an older go with GOTOOLCHAIN=local, which cannot load the
+# workspace — buildflow's Go steps then fail, so commits from bare shells
+# bypassed the hook entirely (the heuristic-commit pile of 2026-09-21/22).
+# Only RAISE to the floor, never downgrade a newer ambient toolchain. The
+# required toolchain resolves from the local module cache — no network.
+if [ -z "${GOTOOLCHAIN:-}" ] || [ "${GOTOOLCHAIN:-}" = "local" ]; then
+  _repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  _ws_floor="$(awk '$1 == "go" { print $2; exit }' "${_repo_root}/go.work" 2>/dev/null || true)"
+  _ws_floor="${_ws_floor#go}"
+  _ambient_go="$(go version 2>/dev/null | awk '{ print $3 }' | sed 's/^go//')"
+  if [ -n "$_ws_floor" ] && [ -n "$_ambient_go" ]; then
+    _older_of="$(printf '%s\n%s\n' "$_ws_floor" "$_ambient_go" | sort -V | head -1)"
+    if [ "$_older_of" = "$_ambient_go" ] && [ "$_ws_floor" != "$_ambient_go" ]; then
+      export GOTOOLCHAIN="go$_ws_floor"
+    fi
+  fi
+  unset _repo_root _ws_floor _ambient_go _older_of
 fi

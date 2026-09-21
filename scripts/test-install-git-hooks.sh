@@ -9,6 +9,9 @@
 #   - core.hooksPath (repo-local) is honored as the active hook path
 #   - BEHAVIOR: with the hook installed, a scratch commit succeeds past
 #     the gates (stub buildflow), and a staged >1 MB file is BLOCKED
+#   - BEHAVIOR: the sourced go-cache-env.sh raises GOTOOLCHAIN to the
+#     go.work floor when the ambient toolchain is older, and never
+#     downgrades a newer one
 #
 # Usage: ./scripts/test-install-git-hooks.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
@@ -165,6 +168,23 @@ bash "$S/scripts/install-git-hooks.sh" >/dev/null 2>&1
 rc=$?
 set -e
 report "$([ "$rc" -eq 0 ] && [ -f "$S/.myhooks/pre-commit" ] && echo 0 || echo 1)" "T8 default installs into .myhooks/"
+rm -rf "$S"
+
+# --- T9: go-cache-env.sh aligns GOTOOLCHAIN with the go.work floor ----------
+S="$(new_scratch)"
+mkdir -p "$S/bin"
+printf '#!/usr/bin/env bash\necho "go version go1.26.7 linux/amd64"\n' >"$S/bin/go"
+chmod +x "$S/bin/go"
+printf 'go 1.27.1\n' >"$S/go.work"
+set +e
+OUT="$(cd "$S" && PATH="$S/bin:$PATH" GOTOOLCHAIN=local bash -c 'source scripts/lib/go-cache-env.sh >/dev/null 2>&1; echo "$GOTOOLCHAIN"')"
+set -e
+report "$([ "$OUT" = "go1.27.1" ] && echo 0 || echo 1)" "T9 GOTOOLCHAIN raised to go.work floor (got '$OUT')"
+printf 'go 1.20.0\n' >"$S/go.work"
+set +e
+OUT="$(cd "$S" && PATH="$S/bin:$PATH" GOTOOLCHAIN=local bash -c 'source scripts/lib/go-cache-env.sh >/dev/null 2>&1; echo "${GOTOOLCHAIN:-UNSET}"')"
+set -e
+report "$([ "$OUT" = "local" ] && echo 0 || echo 1)" "T9 newer ambient toolchain never downgraded (got '$OUT')"
 rm -rf "$S"
 
 echo ""
