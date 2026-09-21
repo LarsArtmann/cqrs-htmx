@@ -4,6 +4,12 @@
 **Session scope:** Executed `docs/planning/2026-09-17_13-46_setup-gap-bundle-pareto-execution-plan.md` (M1–M13, 13 medium tasks / 660 min planned) — the P1 "setup composition-root gap bundle" from the 2026-09-17 setup deep-dive.
 **Concurrent context:** a second session ran the whole time on this tree (dashboardui templ-components migration, httputil v1.2.0 sweep, SSE drain work, go-datastar/broadcast extraction) plus the auto-commit daemon; several interactions below.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the setup gap-bundle plan shipped, and the repo-wide gates it left red on the concurrent session's work are now green.
+> - **§b:** M12 repo-wide gates DONE (lint 0/15, tests green, coverage 15/15, budgets justified); M13 bench-spike remains open → `TODO_LIST.md` P1.
+> - **§c:** all three rows DONE (gates fixed, adoption program executed, v4.11.0 train shipped).
+> - **§f:** struck rows confirmed done (train, replace-strip, adoption programs, systemadapter tag, findings triage, harvest, train-lag zero); unmarked rows remain open (bench-spike, setup follow-ups: setup-demo AuthHandlerConfig example, machine-endpoint e2e, k8s probe recipe).
+> - **§g:** Q1 (bench ownership) stays `TODO_LIST.md` P1; Q2 (gates) resolved all-green; Q3 (train timing) resolved (v4.11.0 shipped).
+
 ---
 
 ## a) FULLY DONE
@@ -29,20 +35,20 @@
 
 ## b) PARTIALLY DONE
 
-- **M12 repo-wide gates:** blocked on modules the concurrent session is actively migrating, NOT on my work:
-  - `nix run .#test`: **dashboardui `TestOverview_HealthStatCard` FAILS** — their in-flight templ-components stat-card migration (last dashboardui commit: their "M7 badges"). I did not touch dashboardui; fixing it mid-migration would collide with their session.
-  - `nix run .#lint`: red on **dashboardui (8: gocognit ×3, gocyclo, golines ×2, wsl, contextcheck)**, **datastar (1: wsl)**, **adminui (1: unused `navBg`)** — all their files. setup = 0 issues.
-  - `nix run .#check-modules`: dep budgets **datastar 6/5** and **dashboardui 18/16** over — both from their in-flight work; theirs to justify (setup 22/22 fixed by me).
-  - `coverage-gate` cannot complete while dashboardui tests fail.
-- **M13 bench-spike:** correctly REFUSED by the `BENCH_MAX_LOAD` guard (load 16.4 ≥ 8; concurrent session active) — recorded in TODO_LIST (3rd refusal: 2026-09-15 load 825, today 16.4). Re-attempt on a quiet machine; re-pin only if appkit-service alone exceeds 10%.
+- ~~**M12 repo-wide gates:** blocked on modules the concurrent session is actively migrating, NOT on my work:~~
+  - ~~`nix run .#test`: **dashboardui `TestOverview_HealthStatCard` FAILS** — their in-flight templ-components stat-card migration (last dashboardui commit: their "M7 badges"). I did not touch dashboardui; fixing it mid-migration would collide with their session.~~
+  - ~~`nix run .#lint`: red on **dashboardui (8: gocognit ×3, gocyclo, golines ×2, wsl, contextcheck)**, **datastar (1: wsl)**, **adminui (1: unused `navBg`)** — all their files. setup = 0 issues.~~
+  - ~~`nix run .#check-modules`: dep budgets **datastar 6/5** and **dashboardui 18/16** over — both from their in-flight work; theirs to justify (setup 22/22 fixed by me).~~
+  - ~~`coverage-gate` cannot complete while dashboardui tests fail.~~ done — repo-wide gates all green (lint 0/15, tests green, coverage-gate 15/15)
+- **M13 bench-spike:** correctly REFUSED by the `BENCH_MAX_LOAD` guard (load 16.4 ≥ 8; concurrent session active) — recorded in TODO_LIST (3rd refusal: 2026-09-15 load 825, today 16.4). Re-attempt on a quiet machine; re-pin only if appkit-service alone exceeds 10%. — STILL OPEN → `TODO_LIST.md` P1
 
 ---
 
 ## c) NOT STARTED (deliberately out of this session's scope)
 
-- Fixing dashboardui/datastar/adminui lint + tests + budgets (concurrent session owns them mid-flight).
-- The dashboardui templ-components adoption program (28 tasks, separate plan `2026-09-17_13-22_*`).
-- Version train for the new setup API (next family train decides; no tags cut — per plan's "No tagging" rule).
+- ~~Fixing dashboardui/datastar/adminui lint + tests + budgets (concurrent session owns them mid-flight).~~ done — gates green
+- ~~The dashboardui templ-components adoption program (28 tasks, separate plan `2026-09-17_13-22_*`).~~ done — program executed
+- ~~Version train for the new setup API (next family train decides; no tags cut — per plan's "No tagging" rule).~~ done — v4.11.0 family train shipped 2026-09-19
 
 ## d) TOTALLY FUCKED UP (caught + fixed, or owned)
 
