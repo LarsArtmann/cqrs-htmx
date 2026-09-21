@@ -21,7 +21,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$REPO_ROOT"
+cd "$REPO_ROOT" || exit 1
 
 ANNOTATION_EPOCH="2026-09-09"
 DIR="${1:-docs/status/archived}"

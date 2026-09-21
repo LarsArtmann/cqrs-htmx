@@ -1,4 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "node:path";
+
+// Absolute path to the repo's go.work. The webServers must resolve Go code
+// against the WORKSPACE (local unreleased adminui/cqrs-htmx), but `go` only
+// accepts an absolute GOWORK — and inside `nix develop` the devShell exports
+// GOWORK=off, which would silently compile the servers against PUBLISHED
+// module tags (observed 2026-09-21: the adminui pagination gate failed with
+// 65 rows because the published adminui predates pagination).
+const GOWORK = path.resolve(__dirname, "../go.work");
 
 /**
  * Playwright config for cqrs-htmx offline sync E2E tests.
@@ -51,13 +60,9 @@ export default defineConfig({
         // e2e/server is a workspace member on the go 1.27.1 floor; pin the
         // toolchain so the suite also runs outside the nix devShell.
         GOTOOLCHAIN: "go1.27.1",
-        // Pin workspace resolution explicitly (relative to this webServer's
-        // cwd): inside `nix develop` the devShell exports GOWORK=off, which
-        // would silently compile the demo against PUBLISHED module tags
-        // instead of the local workspace members (observed 2026-09-21: the
-        // adminui pagination gate failed with 65 rows because the published
-        // adminui predates pagination).
-        GOWORK: "../go.work",
+        // Pin workspace resolution explicitly; see the GOWORK note at the
+        // top of this file.
+        GOWORK,
       },
     },
     {
@@ -72,10 +77,8 @@ export default defineConfig({
       env: {
         GOEXPERIMENT: "jsonv2",
         GOTOOLCHAIN: "go1.27.1",
-        // See the first webServer: pin the workspace so a devShell-inherited
-        // GOWORK=off cannot silently resolve the demo against published tags
-        // (this cwd sits two levels below the repo root).
-        GOWORK: "../../go.work",
+        // See the GOWORK note at the top of this file.
+        GOWORK,
       },
     },
   ],
