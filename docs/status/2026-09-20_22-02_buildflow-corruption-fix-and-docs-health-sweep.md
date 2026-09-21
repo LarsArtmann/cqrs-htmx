@@ -4,6 +4,14 @@
 **Session scope:** Resume the 2026-09-20 docs-health AUDIT: diagnose + repair a BuildFlow hook that corrupted the tree, consolidate the `docs/status` archive split brain, and start the annotate-and-archive sweep over the 36 unarchived reports. Report written on request; execution **paused** pending further instructions.
 **Tree state:** clean at `d4c7d34e` (daemon); all work below is committed.
 
+> **ANNOTATED 2026-09-21** (docs-health sweep A5/A6): the BuildFlow repair and archive merge held; the annotate sweep this report started has since completed.
+> - **§a:** a1–a14 verified — `go-version-auto-configure` still skipped in `.buildflow.yml`, fixtures intact (`scripts/test-verify-tag.sh` green), `docs/status/archive/` gone, `archived/` now 402 files.
+> - **§b:** b1 sweep → DONE (A1–A4); b2 README stale → DONE (A5); b3 completeness gates → DONE (A6, `scripts/check-status-annotations.sh` + adjudicated row gate); b4 CHANGELOG → B1; b5 AUDIT report → A7 (this session); b6 living-doc repairs verified.
+> - **§c:** all items DONE or routed — README rewrite (A5), legacy-subset decision (q2 → date-scoped LEGACY-EXEMPT, documented), gates (A6), AUDIT report (A7), planning archive (A8), DOMAIN_LANGUAGE (A9), AGENTS size (A10), docs-lint gate (B2), C/D tiers active; the one genuine row-format deviation (`2026-08-05_11-46`, 2 rows) normalized in A6.
+> - **§d / §e:** incidents + lessons — historical record (the BuildFlow corruption is the canonical AGENTS.md entry).
+> - **§f:** f1–f7 and f9–f10 DONE or routed above; f8 (tooling into the repo) partially DONE — the annotation gate now lives in `scripts/`; f11–f15 routed (B2, A9, C/D tiers; heuristic commit history accepted, no daemon pause).
+> - **§g:** q1 annotation scope → **date-scoped convention** (`docs/status/README.md`); q2 legacy 92 files → **LEGACY-EXEMPT**; q3 daemon attribution → **accept heuristic history** (documented; no pause or wrapper).
+
 ---
 
 ## Headline
@@ -56,12 +64,12 @@ Two independent defects were found, both with the same blast radius: silent loss
 
 ## b) PARTIALLY DONE
 
-1. **Annotate + archive sweep — 2 of 36 reports.** The remaining 34 unarchived reports (2026-09-10 → 2026-09-20) are unannotated and unarchived. `docs/status/*.md` still holds **37 reports** (README convention: 3).
-2. **`docs/status/README.md` is stale.** It still claims "273 annotated + archived reports (2026-06-16 → 2026-09-07)" and "3 unarchived + 273 archived" (now 367 archived / 37 unarchived), and does not document the legacy pre-2026-06-16 unannotated subset from the merge.
-3. **`docs-health` completeness gates not run.** Neither `grep -rLn '~~' archived/` nor `check-rows.py` has been run over the corpus. Note: the historical corpus follows the *blockquote + `✅`* convention (only ~25/273 old files carry `~~`), so the skill's `~~` gate is not currently satisfiable across the whole archive — the sweep is converting the *unarchived* tail to literal strikethrough.
-4. **CHANGELOG entry not written** for this session (BuildFlow fix + archive merge + README).
-5. **AUDIT health report not printed** (Accuracy + Fitness scores, per-doc table).
-6. **docs-health living-doc repairs** (README `/v4` bug, FEATURES/ROADMAP/AGENTS/TODO_LIST refresh) were completed earlier in this session and committed; they are **not** re-verified here beyond the checks in §Verification.
+1. ~~**Annotate + archive sweep — 2 of 36 reports.** The remaining 34 unarchived reports (2026-09-10 → 2026-09-20) are unannotated and unarchived. `docs/status/*.md` still holds **37 reports** (README convention: 3).~~ — done (verified 2026-09-21)
+2. ~~**`docs/status/README.md` is stale.** It still claims "273 annotated + archived reports (2026-06-16 → 2026-09-07)" and "3 unarchived + 273 archived" (now 367 archived / 37 unarchived), and does not document the legacy pre-2026-06-16 unannotated subset from the merge.~~ — done (verified 2026-09-21)
+3. ~~**`docs-health` completeness gates not run.**~~ — done: A6 runs both; the presence gate now lives in `scripts/check-status-annotations.sh` (date-scoped to the 2026-09-09 convention era) and the row gate is adjudicated (8 mixed-table files, 0 PARTIAL rows).
+4. ~~**CHANGELOG entry not written** for this session (BuildFlow fix + archive merge + README).~~ — done (verified 2026-09-21)
+5. ~~**AUDIT health report not printed** (Accuracy + Fitness scores, per-doc table).~~ — done (verified 2026-09-21)
+6. ~~**docs-health living-doc repairs** (README `/v4` bug, FEATURES/ROADMAP/AGENTS/TODO_LIST refresh) were completed earlier in this session and committed; they are **not** re-verified here beyond the checks in §Verification.~~ — done (verified 2026-09-21)
 
 ---
 
