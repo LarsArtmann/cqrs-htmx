@@ -42,7 +42,6 @@ type CredentialAddedPayload struct {
 	CredentialCore
 }
 
-// cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
 type CredentialRemovedPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	ID            []byte `json:"id"`
@@ -53,7 +52,6 @@ type EmailVerifiedPayload struct {
 	Email         string `json:"email"`
 }
 
-// cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
 type TOTPEnabledPayload struct {
 	SchemaVersion int    `json:"schema_version"`
 	Secret        []byte `json:"secret"`
@@ -122,7 +120,6 @@ type TenantDeletedPayload struct {
 
 // --- Bot event payloads ---
 
-// cqrs-lint:ignore(P009) JSON codec chosen for cross-language interoperability; CBOR optional per consumer
 type BotRegisteredPayload struct {
 	SchemaVersion int      `json:"schema_version"`
 	Name          string   `json:"name"`
