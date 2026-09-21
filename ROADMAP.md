@@ -208,6 +208,7 @@ _Small hardening/doc ideas found while annotating the 2026-08-09 → 2026-09-07 
 
 These are explicitly out of scope for this library:
 
+- **History-rewrite force-pushes (`origin/v4` binary blobs; `setup-demo` 27 MB blob in pushed master)** — WAIVED 2026-09-20 (user decision, design-tree round 1). Cosmetic history cleanliness only vs. real force-push blast radius (tag churn, module-proxy poisoning risk); the repo already survived a 731.8 MB cleanup. Re-open only if repo size becomes an operational problem.
 - **WebSocket upgrade logic** — Dropped in v5 (ADR 0046). SSE covers the same use cases. Consumers needing bi-directional transport should integrate a dedicated WebSocket library directly.
 - **ORM integration** — Store interfaces are intentionally simple; consumers provide their own implementations.
 - **Template engine support beyond templ** — The `TemplComponent` duck-typing pattern covers any `Render(ctx, w) error` interface.
