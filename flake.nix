@@ -872,6 +872,7 @@
                         "release-train:bash scripts/check-release-train.sh"
                         "replace-directives:bash scripts/check-replace-directives.sh"
                         "docs-freshness:bash scripts/check-docs-freshness.sh"
+                        "docs-freshness-self-test:bash scripts/test-check-docs-freshness.sh"
                         "docs-links:bash scripts/check-docs-links.sh"
                         "status-annotations:bash scripts/check-status-annotations.sh"
                         "status-annotations-self-test:bash scripts/test-check-status-annotations.sh"
@@ -905,6 +906,7 @@
                     bash scripts/check-release-train.sh
                     bash scripts/check-replace-directives.sh
                     bash scripts/check-docs-freshness.sh
+                    bash scripts/test-check-docs-freshness.sh
                     bash scripts/check-docs-links.sh
                     bash scripts/check-status-annotations.sh
                     bash scripts/test-check-status-annotations.sh

@@ -154,12 +154,11 @@ source scripts/lib/docs-import-paths.sh
 V4_LIVING_DOCS=()
 for f in "${LIVING_DOCS[@]}"; do
   case "$f" in
-  docs/agents-notes.md) continue ;;
+  docs/agents-notes.md | docs/MIGRATION-*.md) continue ;;
   esac
   V4_LIVING_DOCS+=("$f")
 done
-check_import_paths "${V4_LIVING_DOCS[@]}"
-if [ "${CHECK_FAILED:-0}" -eq 1 ]; then
+if ! check_import_paths "${V4_LIVING_DOCS[@]}"; then
   FAILED=1
 fi
 

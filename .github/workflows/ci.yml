@@ -689,6 +689,11 @@ jobs:
       - name: Status row gate self-test
         run: bash scripts/test-check-status-rows.sh
 
+      # Fixture self-test for the /v4-suffix import-path rule inside
+      # check-docs-freshness.sh (scripts/lib/docs-import-paths.sh).
+      - name: Docs freshness self-test
+        run: bash scripts/test-check-docs-freshness.sh
+
       - name: Markdown link check
         run: bash scripts/check-docs-links.sh
 
