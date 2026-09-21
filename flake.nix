@@ -963,6 +963,26 @@
               );
             };
 
+            test-status-annotations = {
+              type = "app";
+              meta.description = "Fixture self-test for check-status-annotations.sh (16 cases: gated/legacy/epoch-boundary/undated/missing-dir)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-status-annotations";
+                  runtimeInputs = [
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-status-annotations.sh
+                  '';
+                }
+              );
+            };
+
             check-release-train = {
               type = "app";
               meta.description = "Verify every internal require resolves to a PUBLISHED tag; list train-lag for the next family train (forwards flags: --json, --strict-lag N, --no-cache, --refresh-cache)";
