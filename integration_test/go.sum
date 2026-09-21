@@ -190,8 +190,8 @@ github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0 h1:nND/2bnYCVeu6iIYvm
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0/go.mod h1:KI3H5BHbkthEoN3hwuCE4yHLyx6egic6t1yjAcd0e7w=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0 h1:YfVGxEfoAZ3/+GgsMJI55bNKQDY0zfteY0Glwkahpg4=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0/go.mod h1:WFSXzl0mTzO+bmL9M5Jfl6hgv/IHOt0nbptalu6wKak=
-github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.11.0 h1:G+/FI2CzgO8HuT+Bn01y3yzTGCcPRzQwK0bTm3Ck04k=
-github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.11.0/go.mod h1:BiJVlezFY9c6sxd0CzHLzN92AYd17+QiAa7bmhysjV8=
+github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.12.0 h1:f4Kae7+MP06tStH27mQeRCds45bGoY0mrydStoO1lG4=
+github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.12.0/go.mod h1:diVbitvG0bjPB6n9Dj9uCUP0SgNKUOEzVKlLpFMPeg0=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0 h1:yVGRCgucaBc31B4DQ+SE55HuDD5x9bu5CHO+QvNNoF4=
 github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0/go.mod h1:a+3ZIS0mBxFmzknq2JG50mSi1wcG4Y8Tkz4piAtQwtg=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.12.0 h1:khohC78S+neC9nNn5GsPPq5kNYBaiafoCZl5L3oko1M=

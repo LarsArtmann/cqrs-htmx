@@ -40,7 +40,7 @@ require (
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (dispatcher/v4 trails; cqrs-lint >=4.11 anchors the finding here, 4.8.x anchored at the block head — both suppressions kept)
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
