@@ -17,7 +17,7 @@ Each report in this tree captures what someone knew at the end of a work session
 
 | Path                               | Contents                                                                     |
 | ---------------------------------- | ---------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 3)          |
+| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 8)          |
 | `docs/status/archived/`            | 405 archived session reports (2026-05-03 → 2026-09-20)                       |
 | `docs/status/*.html`               | 12 generated HTML report artifacts (see "HTML corpus" below)                 |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`              |
@@ -54,21 +54,31 @@ The prose-blockquote and unannotated eras are **historically complete as written
 
 ### Mixed tables are first-class (not a defect)
 
-A table may mix **struck rows (done)** with **unstruck rows (open)**. That is exactly what "absence of a marker IS the open signal" means at row granularity, and it is how a report records partial completion honestly. The row tool `check-rows.py` reports such tables as `INCOMPLETE`; that finding is informational, **never** a reason to un-strike a verified-done row. The only row-level failure that matters is a `PARTIAL` row — a single row whose cells disagree (some struck, some not).
+A table may mix **struck rows (done)** with **unstruck rows (open)**. That is exactly what "absence of a marker IS the open signal" means at row granularity, and it is how a report records partial completion honestly. The repo gate `scripts/check-status-rows.py` counts such tables and reports them as `deliberately-mixed` — informational, **never** a reason to un-strike a verified-done row. The only row-level failure that matters is a `PARTIAL` row — a single row whose cells disagree (some struck, some not).
 
 ### Completeness gates
 
+Both gates are repo-owned, CI-wired (the `checks` job), and run inside `nix run .#check-modules`:
+
 ```bash
-# Gate 1 (CI-wired): presence + dated blockquote for every gated-era report.
+# Gate 1: presence + dated blockquote for every gated-era report.
 bash scripts/check-status-annotations.sh
 
-# Gate 2 (manual, per audit): no PARTIAL rows in any struck table.
-#   Mixed tables in the 8 adjudicated reports (2026-08-05_11-46, 2026-09-09_06-06,
-#   2026-09-09_20-09, 2026-09-14_13-56_otel, 2026-09-17_13-11_templ-components,
-#   2026-09-17_13-23_library-deep-dive, 2026-09-17_18-31_stability,
-#   2026-09-17_21-04_adminui-migration) are intentional; ONLY `PARTIAL` lines fail.
-python3 ~/.config/crush/skills/docs-health/assets/check-rows.py $(grep -rLl '~~' docs/status/archived/*.md)
+# Gate 2: no PARTIAL rows in any struck table; deliberately-mixed tables
+#   are counted and reported (first-class by convention), never failed.
+python3 scripts/check-status-rows.py
+
+# Fixture self-tests for both gates (also CI-wired).
+bash scripts/test-check-status-annotations.sh
+bash scripts/test-check-status-rows.sh
 ```
+
+Ambient `python3` is the contract for Gate 2 (CI runners ship it); the flake apps
+(`nix run .#check-status-rows` / `.#test-status-rows`) additionally pin
+`pkgs.python3` for hermetic use. The docs-health skill's authoring-time
+`check-rows.py` asset remains the annotator's aid — it reports mixed tables as
+`INCOMPLETE` for a human to adjudicate; scope-identity with the repo gate was
+verified per-file and per-line (same 19 mixed tables) on 2026-09-22.
 
 **Adjudication log:** the 8 files above were individually inspected on 2026-09-21; every mixed table pairs verified-done rows with genuinely-open ones, and the two `PARTIAL` rows in `2026-08-05_11-46` (hand-annotated before the tooling existed) were normalized to full-row strikethrough.
 
@@ -78,7 +88,7 @@ The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60
 
 ## File counts
 
-- `docs/status/`: **3 unarchived reports** + README + 12 HTML artifacts.
+- `docs/status/`: **8 unarchived reports** + README + 12 HTML artifacts.
 - `docs/status/archived/`: **405 archived reports** (2026-05-03 → 2026-09-20).
 - The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), and 2026-09-21 (the 34-report tail). Of the 405 archived reports, **40 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and 268 predate annotation entirely (legacy-exempt; plus 25 pre-convention files that happen to contain `~~`). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
 

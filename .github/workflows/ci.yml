@@ -681,6 +681,14 @@ jobs:
       - name: Status annotation gate self-test
         run: bash scripts/test-check-status-annotations.sh
 
+      # Row-integrity gate for annotated status reports (PARTIAL rows fail;
+      # deliberately-mixed tables are first-class) plus its fixture self-test.
+      - name: Status row gate
+        run: python3 scripts/check-status-rows.py
+
+      - name: Status row gate self-test
+        run: bash scripts/test-check-status-rows.sh
+
       - name: Markdown link check
         run: bash scripts/check-docs-links.sh
 
