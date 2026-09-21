@@ -13,13 +13,13 @@ Each report in this tree captures what someone knew at the end of a work session
   - `AGENTS.md` — non-obvious project context for AI sessions
   - `README.md` — what this project is, today
 
-## Layout (reorganized 2026-09-09)
+## Layout (reorganized 2026-09-09; archive consolidated 2026-09-20)
 
 | Path                               | Contents                                                                     |
 | ---------------------------------- | ---------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The 3 most recent session reports only (unarchived tail)                     |
-| `docs/status/archived/`            | 273 annotated + archived session reports (2026-06-16 → 2026-09-07)           |
-| `docs/status/*.html`               | Generated HTML report artifacts (see "HTML corpus" below)                    |
+| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 4)          |
+| `docs/status/archived/`            | 402 annotated + archived session reports (2026-05-03 → 2026-09-20)           |
+| `docs/status/*.html`               | 12 generated HTML report artifacts (see "HTML corpus" below)                 |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`              |
 | `docs/reviews/archived/`           | Archived review documents                                                    |
 | `docs/modularization/archived/`    | Archived module-assessment documents                                         |
@@ -27,14 +27,24 @@ Each report in this tree captures what someone knew at the end of a work session
 | `docs/feedback/processed/`         | Processed feedback documents                                                 |
 | `docs/architecture-understanding/` | Generated self-contained HTML architecture reports (see "HTML corpus" below) |
 
+`docs/status/archived/` is the ONLY archive directory — the older duplicate `docs/status/archive/` (a 92-file split-brain) was merged into it and removed.
+
 ## Annotation convention (since the 2026-09-09 full sweep)
 
 When a historical report is verified against the current tree, it receives:
 
-1. A dated **`> ANNOTATED YYYY-MM-DD`** blockquote at the top of the file, summarizing the verification verdict per section (DONE-SHIPPED / OPEN-TRACKED / OBSOLETE / HARVEST-CATCH, with evidence).
-2. Targeted **inline suffixes** where a specific line needs it: `✅ done` (shipped, evidence), `→ routed` (moved to TODO_LIST/ROADMAP with destination), or `STALE` (factually wrong today).
+1. A dated **`> ANNOTATED YYYY-MM-DD`** blockquote at the top of the file, summarizing the verification verdict per section (DONE-SHIPPED / OPEN-TRACKED / OBSOLETE / HARVEST-CATCH, with evidence), and routing the remaining open items to `TODO_LIST.md`/`ROADMAP.md`.
+2. **Inline strikethrough on every resolved item**: `~~original line~~ done at \`hash\``, `~~original line~~ done (evidence)`, `~~original line~~ done (docs-health pass YYYY-MM-DD)`, or `~~original line~~ **Won't implement — reason.**`. **Unmarked items are the "open" signal** — never strike an item you did not verify.
 
 Annotations are **additive only** — the original report text is never deleted. Cross-references in living docs point at the archived paths.
+
+**Completeness gates for an annotate sweep** (both must be clean before declaring the pass done):
+
+```bash
+grep -rLn '~~' docs/status/archived/          # every file carries >=1 resolution
+python3 ~/.config/crush/skills/docs-health/assets/check-rows.py docs/status/archived/*.md
+                                              # table rows uniformly struck/untouched (no PARTIAL)
+```
 
 ## HTML corpus policy
 
@@ -42,8 +52,9 @@ The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60
 
 ## File counts
 
-- `docs/status/`: 3 unarchived reports + 273 archived reports + 12 HTML artifacts.
-- Archived reports span 2026-06-16 through 2026-09-07. The pace of session reports grew through the v4.x trains; the 2026-09-09 docs-health sweep verified and archived the full backlog in one pass.
+- `docs/status/`: **4 unarchived reports** + README + 12 HTML artifacts.
+- `docs/status/archived/`: **402 annotated reports** (2026-05-03 → 2026-09-20).
+- The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), and 2026-09-21 (this sweep: 34 further reports). Every archived file carries at least one inline resolution marker; the two completeness gates above are the enforcement.
 
 ## Why not "update them all" ad hoc?
 
