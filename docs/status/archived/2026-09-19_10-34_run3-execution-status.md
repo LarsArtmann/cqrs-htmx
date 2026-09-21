@@ -5,6 +5,14 @@
 **Starting state:** tree clean at `6cf46e62`, go 1.26.7 aligned, Run-2 complete and pushed.
 **Ending state:** tree clean at `3caf7d48`, go 1.26.7 restored (sibling re-bumped twice mid-session, restored twice), dashboardui **v4.10.0 + v4.10.1 released and pushed**, browser-truth layer live (27 screenshots, 7 e2e specs, 9-page axe sweep — all green).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): Run-3 shipped; the v4.11.0 train carried the rest.
+> - **§a (fully done):** ID-less evidence table — self-declared done with per-row evidence; left unstruck (already clear).
+> - **§b (bullets):** b1 (N16 ireturn + benches) DONE; b2 (N8 SSE e2e portion) and b3 (N14 upstream filings) remain open → `TODO_LIST.md`.
+> - **§c (bullets):** N17.1–8 all landed (PolledRegion rejected with reasons, `forms.Input` adopted, slider CSP+a11y); the broader §f list is routed.
+> - **§d / §e:** retrospective incidents + improvement list — historical record; the class fixes landed (CSS-rebuild rule, playbook §6).
+> - **§f:** struck rows confirmed done; open rows (f7–f13/f17–f19/f21–f47) are routed to `TODO_LIST.md`/`ROADMAP.md` (mobile alignment, Lag cell, SSE e2e, detail screenshots, dark/mobile axe, coverage ratchet, upstream asks, buildflow garbage, styles.css fate, CI wiring, e2e app/README, CHANGELOG, doc.go, linter watch, hook commit, freshness check, testutil extraction, canaries, cqrs-lint, esc audit, ErrorPage Trace, DLQ shot, branding, …).
+> - **§g:** q1/q2/q3 resolved (1.27.1 coordinated bump; train shipped; screenshots accepted as canonical with the alignment quirk routed).
+
 ---
 
 ## a) Fully done (verified green)
@@ -64,12 +72,12 @@
 
 ## f) Next 50 (sorted, roughly by impact)
 
-1. N16.6 — add `templ.Component` to root `.golangci.yml` ireturn allow; delete the 2 nolints in `dashboardui/buttons.go`.
-2. N16.1–5 — write the four new benches (Button link+submit, EmptyState, DefinitionList, Table raw-body vs data-row), -count=5, extend the benchmark artifact.
-3. N16.7 — verify lint 0 + tests green + commit.
-4. N17.1–2 — read `htmx.PolledRegion`, decide vs the existing `hx-trigger` polling on the projection-health partial; implement or document.
-5. N17.3–4 — events filter bar → `forms.Input`/`FilterInput` swap (keep `hx-get` wiring); update goldens + screenshots.
-6. N17.5–6 — time-travel slider a11y (aria-valuetext, focus-visible), re-run axe.
+1. ~~N16.6 — add `templ.Component` to root `.golangci.yml` ireturn allow; delete the 2 nolints in `dashboardui/buttons.go`.~~ done (N16.6 ireturn allow landed)
+2. ~~N16.1–5 — write the four new benches (Button link+submit, EmptyState, DefinitionList, Table raw-body vs data-row), -count=5, extend the benchmark artifact.~~ done (N16.1-5 benches landed)
+3. ~~N16.7 — verify lint 0 + tests green + commit.~~ done (lint + tests green)
+4. ~~N17.1–2 — read `htmx.PolledRegion`, decide vs the existing `hx-trigger` polling on the projection-health partial; implement or document.~~ done (N17.1-2 PolledRegion rejected with reasons)
+5. ~~N17.3–4 — events filter bar → `forms.Input`/`FilterInput` swap (keep `hx-get` wiring); update goldens + screenshots.~~ done (N17.3-4 forms.Input adopted)
+6. ~~N17.5–6 — time-travel slider a11y (aria-valuetext, focus-visible), re-run axe.~~ done (N17.5-6 slider CSP + a11y)
 7. Fix the mobile header title right-alignment oddity seen in the mobile screenshots.
 8. Verify the Lag cell value ("11.041809977s" + adjacent "4" = Processed 4) is column adjacency, not a merged-cell rendering bug; add a scoping test if needed.
 9. SSE e2e: wire a real `event.Bus` into the e2e server; assert live-row injection into `#events-tbody` (closes the deferred N8.3–4).
@@ -77,13 +85,13 @@
 11. Add dark+mobile variants to the axe sweep (currently runs the default light scheme only).
 12. Ratchet dashboardui coverage-gate 60→80 (actual 85.3%).
 13. Re-run `verify-tag` cache-refresh flow on the next release (`--refresh-cache` before believing fresh UNPUBLISHED).
-14. go-etag v0.4.0 train sweep (25 train-lag advisory items: go-etag ×many, catalog v4.4.0, badgerengine v4.2.1) — next family train.
-15. Wait for go-cqrs-lite `claiming/v4.0.0` tag; then re-run full gates to bring systemadapter back green (sibling coordination).
-16. Tag root/usermgmt trains carrying the audit-chain work so the family dev-replaces (`=> ../usermgmt`, `=> ../`, `=> ../datastar` in setup/integration_test) can be stripped.
+14. ~~go-etag v0.4.0 train sweep (25 train-lag advisory items: go-etag ×many, catalog v4.4.0, badgerengine v4.2.1) — next family train.~~ done (go-etag v0.4.0 adopted)
+15. ~~Wait for go-cqrs-lite `claiming/v4.0.0` tag; then re-run full gates to bring systemadapter back green (sibling coordination).~~ done (systemadapter + go-cqrs-lite tags landed 2026-09-20)
+16. ~~Tag root/usermgmt trains carrying the audit-chain work so the family dev-replaces (`=> ../usermgmt`, `=> ../`, `=> ../datastar` in setup/integration_test) can be stripped.~~ done (v4.11.0 train shipped)
 17. File the three templ-components upstream asks (ListNote range, Grid children doc, CopyButton span color) — verify-before-filing first.
 18. Report buildflow's tailwind-step garbage-class scanning (`transient:tool.execution_failed` utility in one build) upstream.
 19. Decide orphan styles.css fate: gitignore `adminui/styles.css` + `dashboardui/styles.css` or ask buildflow to retarget — they are served by nothing.
-20. Update the stale AGENTS.md 2026-09-17 go-datastar note (broadcast replaces are stripped as of this session).
+20. ~~Update the stale AGENTS.md 2026-09-17 go-datastar note (broadcast replaces are stripped as of this session).~~ done (AGENTS.md notes the stripped broadcast replaces)
 21. Wire the axe sweep + fmt-marker guard into `.github/workflows/ci.yml` (currently local-only gates).
 22. Add a nix app running the full e2e suite (sync + dashboard + axe + screenshots) with the right env baked in.
 23. e2e/README: document `E2E_BROWSER_PATH` + `PLAYWRIGHT_BROWSERS_PATH` setup for new machines.
@@ -111,9 +119,9 @@
 45. Re-check `integration_test` hermetic build after the next dashboardui tag (its indirects resolve from published tags).
 46. Check whether `adminui`'s SidebarNav adoption (sibling) wants the same e2e screenshot/axe treatment (harness is reusable).
 47. Investigate the `.sidebar-footer` text ("dashboardui") — make it configurable via Config (branding) instead of hardcoded.
-48. `nix run .#check-modules` full run (isolation + absolute paths + strict drift) — only drift+train ran individually this session.
+48. ~~`nix run .#check-modules` full run (isolation + absolute paths + strict drift) — only drift+train ran individually this session.~~ done (check-modules green)
 49. Confirm the `Playwright report`/`test-results` artifacts are gitignored (they were not committed).
-50. Plan Run 4: the remaining 20% (N17 leftovers + upstream asks + coverage ratchet) as a fresh Pareto pass.
+50. ~~Plan Run 4: the remaining 20% (N17 leftovers + upstream asks + coverage ratchet) as a fresh Pareto pass.~~ done (rounds 4/5 executed)
 
 ## g) Questions I cannot answer myself
 

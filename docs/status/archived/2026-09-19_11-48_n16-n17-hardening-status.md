@@ -4,6 +4,14 @@
 **Tree at recording:** clean, master `ab5a2b6d`, go directive 1.26.7 (restored), dashboardui build/vet/test/lint/fmt all green, root lint+test green.
 **Scope note:** per instruction this report covers only this session's run and what it surfaced — not a whole-repo re-audit. Format is `.md` per explicit user instruction (status-report skill default is styled HTML; divergence flagged, not propagated back into the skill).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the N16/N17 hardening shipped in the v4.11.0 train.
+> - **§a (fully done):** ID-less evidence table — self-declared done with per-row evidence; left unstruck (already clear).
+> - **§b (bullets):** mostly open → `TODO_LIST.md` (screenshot regen vs HEAD, axe re-run, e2e re-run, 243 auto-fix audit, `.gitattributes` review, SSE e2e deferral, systemadapter unblock, toolchain policy — the last is now resolved by the 1.27.1 bump).
+> - **§c (bullets):** HARVEST is this sweep; v1.19 prep + theme toggle + toolchain are routed (`TODO_LIST.md`); the "~40 Run-3 §f items" were routed by the Run-3 report's own annotation.
+> - **§d / §e:** retrospective incidents + improvement list — historical record; the toolchain-class fix landed (1.27.1 bump).
+> - **§f:** struck rows confirmed done; open rows (f1/f3–f10/f16–f20/f22/f24–f36/f38–f50) are routed to `TODO_LIST.md`/`ROADMAP.md` (auto-fix audit, axe/e2e/screenshot re-runs, vacuous sweep, favicon, aria-live, slider keyboard, mobile wrap, upstream filings, README, filterInput doc, hook-incident note, CI wiring, render-bench app, fuzz, SSE spec, JS extraction, toolchain policy, hook hygiene, templ-conversion, theme toggle, benchstat gate).
+> - **§g:** q1 resolved (1.27.1 coordinated bump); q2/q3 resolved by the train (sibling reconciled; v4.11.0 tagged).
+
 ---
 
 ## a) FULLY DONE
@@ -67,7 +75,7 @@ Brainstorm, ranked roughly by impact; the top ~12 are real TODO_LIST candidates,
 
 **Correctness / security**
 1. Audit the 243 cqrs-lint auto-fixes that landed unreviewed (diff the daemon commits; confirm no behavior change, confirm no sibling-owned files mangled).
-2. Fleet-wide `GOTOOLCHAIN=go1.26.7` in `go-cache-env.sh` (kills the tug-of-war for every sourced gate) — pending the user's policy call.
+2. ~~Fleet-wide `GOTOOLCHAIN=go1.26.7` in `go-cache-env.sh` (kills the tug-of-war for every sourced gate) — pending the user's policy call.~~ done (1.27.1 coordinated bump landed 2026-09-19)
 3. Run the axe sweep (9 pages × light/dark) against the new filter-bar/slider DOM; fix any contrast/focus findings.
 4. Re-run `dashboard.spec.ts` (7 specs) against a local-replace server; confirm sort flip / NotFound / badge specs still pass.
 5. Regenerate the 27 golden PNGs against HEAD (filter bar + slider changed; also captures the new focus ring).
@@ -78,11 +86,11 @@ Brainstorm, ranked roughly by impact; the top ~12 are real TODO_LIST candidates,
 10. `filter-bar` layout with wrapped FormField divs: check the 375px mobile screenshot for flex-wrap collision with the Filter/Clear buttons.
 
 **Release / trains**
-11. Cut dashboardui v4.11.0 (CSP fix is consumer-facing; CHANGELOG already written) — requires the screenshot/axe re-runs above for the visual-change bar.
-12. go-etag v0.4.0 train (26+ modules still on v0.3.1 — the release-train gate's largest advisory block).
-13. go-cqrs-lite catalog v4.4.0 train (catalog-demo, integration_test).
-14. badgerengine v4.2.1 + remaining metaengine stragglers (systemadapter rows in the train list).
-15. After trains: re-run `check-release-train --refresh-cache` and shrink the advisory list to zero.
+11. ~~Cut dashboardui v4.11.0 (CSP fix is consumer-facing; CHANGELOG already written) — requires the screenshot/axe re-runs above for the visual-change bar.~~ done (v4.11.0 train shipped)
+12. ~~go-etag v0.4.0 train (26+ modules still on v0.3.1 — the release-train gate's largest advisory block).~~ done (go-etag v0.4.0 adopted, train-lag zero)
+13. ~~go-cqrs-lite catalog v4.4.0 train (catalog-demo, integration_test).~~ done (catalog v4.4.0 adopted, train-lag zero)
+14. ~~badgerengine v4.2.1 + remaining metaengine stragglers (systemadapter rows in the train list).~~ done (badgerengine bumped, train-lag zero)
+15. ~~After trains: re-run `check-release-train --refresh-cache` and shrink the advisory list to zero.~~ done (release-train 0/0)
 16. Decide release authority question (auto-tag trains vs explicit go) — blocks 11–15 from being automated.
 
 **Upstream filings (templ-components) — each behind verify-before-filing**
@@ -92,9 +100,9 @@ Brainstorm, ranked roughly by impact; the top ~12 are real TODO_LIST candidates,
 20. `httputil.NonceConfig` godoc fix (zero value emits no CSP header; the "Default:" claim is false — found in N10, fix never filed).
 
 **Docs**
-21. HARVEST this report's §f into TODO_LIST/ROADMAP (docs-health run).
+21. ~~HARVEST this report's §f into TODO_LIST/ROADMAP (docs-health run).~~ done (this docs-health sweep)
 22. Update `dashboardui/README.md` styling section with the forms.Input adoption row (adoption table lists Select but not Input yet).
-23. Annotate the 2026-09-17/18 status reports with outcomes (docs-health ANNOTATE mode) — the M-series/Run-2 reports now have stale "next steps" that this session consumed.
+23. ~~Annotate the 2026-09-17/18 status reports with outcomes (docs-health ANNOTATE mode) — the M-series/Run-2 reports now have stale "next steps" that this session consumed.~~ done (A2 + this A3 sweep)
 24. Document the `filterInput` helper pattern in the hybrid-adoption guide (explicit-ID pattern for DOM-stable adoption) — it's the reusable recipe.
 25. Record the "hook repaired its own sabotage" incident into release-playbook §6 (daemon/hook attribution section).
 
@@ -114,7 +122,7 @@ Brainstorm, ranked roughly by impact; the top ~12 are real TODO_LIST candidates,
 36. `filterInput` attrs (Attrs field) unused — wire the form's `data-confirm`-style extras through it if forms ever need it, else document.
 
 **Toolchain / repo hygiene**
-37. The lasting go 1.27.1 policy decision (root go-appkit go.mod mismatch was the original vector — file it upstream there too).
+37. ~~The lasting go 1.27.1 policy decision (root go-appkit go.mod mismatch was the original vector — file it upstream there too).~~ done (1.27.1 coordinated bump landed 2026-09-19)
 38. e2e/server go.mod "should be direct" gopls warnings (command/event/id/projectionhost/query/snapshot) — one tidy pass.
 39. `scripts/testdata/verify-tag/*` modules flagged "need go mod tidy" by every hook run — add a fixture exclusion so preflight stops warning about intentional fixtures.
 40. BuildFlow go-structure-linter root-package-files ×50 false positive — the suppression feature it needs shipped? Re-check and restore `fail_on: critical` if so.
