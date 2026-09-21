@@ -860,10 +860,7 @@
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-modules";
-                  runtimeInputs = [ goPkg ];
-                  text = ''
-                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    if [ "''${1:-}" = "--report" ]; then
+                  runtimeInputs = [ goPkg pkgs.python3 ];
                       stages=(
                         "module-isolation:bash scripts/check-module-isolation.sh"
                         "dep-budgets:bash scripts/check-dep-budgets.sh"
@@ -875,6 +872,8 @@
                         "docs-links:bash scripts/check-docs-links.sh"
                         "status-annotations:bash scripts/check-status-annotations.sh"
                         "status-annotations-self-test:bash scripts/test-check-status-annotations.sh"
+                        "status-rows:python3 scripts/check-status-rows.py"
+                        "status-rows-self-test:bash scripts/test-check-status-rows.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -906,6 +905,8 @@
                     bash scripts/check-docs-links.sh
                     bash scripts/check-status-annotations.sh
                     bash scripts/test-check-status-annotations.sh
+                    python3 scripts/check-status-rows.py
+                    bash scripts/test-check-status-rows.sh
                     echo ""
                     echo "✓ All module architecture checks passed"
                   '';

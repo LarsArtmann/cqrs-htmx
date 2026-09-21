@@ -60,7 +60,7 @@ EOF
 run_gate "$TMPDIR/all-struck.md"
 assert_rc "all-struck table passes" 0
 
-# --- Test 2: PARTIAL row fails ---
+# --- Test 2: PARTIAL row fails, with exact count and exact file name ---
 cat >"$TMPDIR/partial.md" <<'EOF'
 | # | Task | Owner |
 | --- | --- | --- |
@@ -68,7 +68,23 @@ cat >"$TMPDIR/partial.md" <<'EOF'
 EOF
 run_gate "$TMPDIR/partial.md"
 assert_rc "PARTIAL row fails" 1
-assert_contains "PARTIAL offender named" "PARTIAL"
+assert_contains "offender file named exactly" "partial.md: table at line 1 has 1 PARTIAL row(s)"
+assert_contains "offending row listed with its own line" "line 3: | ~~1~~ | ~~Done~~ | lars |"
+assert_contains "exact total in summary" "1 PARTIAL row(s) across 1 file(s)"
+
+# --- Test 2b: multiple PARTIAL rows count exactly (regression: the first
+# check_file implementation counted the per-table header line too and
+# printed 2 for a single PARTIAL row) ---
+cat >"$TMPDIR/partial-x2.md" <<'EOF'
+| # | Task | Owner |
+| --- | --- | --- |
+| ~~1~~ | ~~Done~~ | lars |
+| ~~2~~ | done text | lars |
+EOF
+run_gate "$TMPDIR/partial-x2.md"
+assert_rc "two PARTIAL rows fail" 1
+assert_contains "table header reports exactly 2" "has 2 PARTIAL row(s)"
+assert_contains "summary reports exactly 2" "2 PARTIAL row(s) across 1 file(s)"
 
 # --- Test 3: deliberately-mixed table passes but is reported ---
 cat >"$TMPDIR/mixed.md" <<'EOF'
@@ -108,7 +124,7 @@ cat >"$TMPDIR/corpus/2026-09-19_10-00_ok.md" <<'EOF'
 EOF
 run_gate "$TMPDIR/corpus"
 assert_rc "directory argument expands" 0
-assert_contains "directory scan counted the file" "1 file(s)"
+assert_contains "directory scan counted the file" "1 file(s) free of PARTIAL rows"
 
 # --- Test 7: a missing path fails loudly ---
 run_gate "$TMPDIR/does-not-exist.md"
