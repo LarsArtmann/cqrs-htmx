@@ -47,14 +47,15 @@ for mod in "${!DEP_BUDGET[@]}"; do
 
   # Count direct require entries (exclude replace and retract blocks)
   # Also exclude indirect deps (marked with // indirect)
+  # And standalone comment lines (e.g. //cqrs-lint:ignore(...) suppressions) — they are not deps
   # Handles both require ( ... ) blocks and single-line require statements
   dep_count=$(
     cd "$mod_path" || exit 1
     awk '
         /^require \(/ { in_req=1; next }
         /^\)/ { in_req=0 }
-        in_req && /^\t/ && !/\/\/ indirect/ { count++ }
-        /^require [^(]/ && !/\/\/ indirect/ { count++ }
+        in_req && /^\t/ && !/^[[:space:]]*\/\// && !/\/\/ indirect/ { count++ }
+        /^require [^(]/ && !/^[[:space:]]*\/\// && !/\/\/ indirect/ { count++ }
         END { print count+0 }
     ' go.mod
   )
