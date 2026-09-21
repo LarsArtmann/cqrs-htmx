@@ -44,7 +44,6 @@ type auditCmd struct {
 	Action string
 }
 
-// cqrs-lint:ignore(A032) example DTO: simple string actor for demo
 type auditEntry struct {
 	Action string `json:"action"`
 	Actor  string `json:"actor"`

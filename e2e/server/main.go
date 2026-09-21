@@ -157,6 +157,7 @@ func main() {
 		CommandJournal:  emptyCommandJournal{},
 		QueryJournal:    emptyQueryJournal{},
 		SnapshotStore:   emptySnapshotStore{},
+		//cqrs-lint:ignore(C017) ephemeral Playwright test server — in-memory DLQ is intentional, the process is disposable per test run
 		DeadLetterStore: projectionhost.NewMemoryDeadLetterStore(),
 		ProjectionHost:  host,
 	})

@@ -285,7 +285,6 @@ func (b *Bundle) attachLogin() error {
 // belongs to the caller who provided it.
 func (b *Bundle) cleanup() {
 	if b.Dashboard != nil {
-		//cqrs-lint:ignore(C015) Dashboard.Close has no error return — nothing to check
 		b.Dashboard.Close()
 	}
 

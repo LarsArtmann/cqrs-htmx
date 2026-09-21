@@ -188,7 +188,6 @@ func (b *Bundle) Handler(mux *http.ServeMux) http.Handler {
 // ownership stays with the caller who provided it.
 func (b *Bundle) Close() error {
 	if b.Dashboard != nil {
-		//cqrs-lint:ignore(C015) Dashboard.Close has no error return — nothing to check
 		b.Dashboard.Close()
 	}
 
@@ -216,7 +215,6 @@ func (b *Bundle) Close() error {
 
 		cancelDrain()
 
-		//cqrs-lint:ignore(C015) Broadcaster.Close has no error return — nothing to check
 		b.Broadcaster.Close()
 		b.Broadcaster = nil
 		b.DataStarBroadcaster = nil
