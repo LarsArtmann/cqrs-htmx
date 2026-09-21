@@ -75,13 +75,13 @@ Two independent defects were found, both with the same blast radius: silent loss
 
 ## c) NOT STARTED
 
-- **34 remaining reports**: annotate (inline strikethrough + block) and `git mv` to `archived/`; then reduce `docs/status/` to the 3 most recent.
-- **`docs/status/README.md` rewrite**: counts (367 archived), date range (2026-05-03 → 2026-09-07), merged-layout table, and a note that pre-2026-06-16 files are legacy-unannotated.
-- **Legacy-unannotated subset decision**: the 92 merged files (2026-05 → 2026-06-14) carry no annotation; decide annotate-as-batch vs declare-legacy in the README.
-- **Completeness gates** (`grep -rLn '~~'`, `check-rows.py`) and any offender fixes.
+- ~~**34 remaining reports**: annotate (inline strikethrough + block) and `git mv` to `archived/`~~ — done (A1–A4).
+- ~~**`docs/status/README.md` rewrite**: counts, date range, merged-layout table~~ — done (A5: 402 archived, 3 kept, layout table, both gates).
+- ~~**Legacy-unannotated subset decision**~~ — done: date-scoped LEGACY-EXEMPT policy in `docs/status/README.md` (epoch 2026-09-09).
+- ~~**Completeness gates** (`grep -rLn '~~'`, `check-rows.py`) and any offender fixes~~ — done (A6: `scripts/check-status-annotations.sh` + adjudicated row gate, 8 mixed files / 0 PARTIAL).
 - **AUDIT health report** (inline print, not filed).
-- **The `docs/planning/…SUPERB-plan.md` downstream phases**: C1–C10 (code/verify backlog) and D1–D8 (upstream/tooling/hygiene) — untouched.
-- **AGENTS.md size question** (120 KB; skill rubric calls >100 KB "Broken") — decision pending.
+- **The `docs/planning/…SUPERB-plan.md` downstream phases**: C1–C10 (code/verify backlog) and D1–D8 (upstream/tooling/hygiene) — active in the 2026-09-21 session.
+- **AGENTS.md size question** (120 KB; skill rubric calls >100 KB "Broken") — decided SPLIT (lean core + `docs/agents-notes.md`, plan A10).
 - **`docs/DOMAIN_LANGUAGE.md` freshness pass** (plan A9).
 - **docs-lint gate** rejecting `/v4`-less `larsartmann/cqrs-htmx/*` imports (plan B2).
 
