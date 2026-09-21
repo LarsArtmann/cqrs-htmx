@@ -53,7 +53,9 @@ func UserAgentFromContext(ctx context.Context) event.UserAgent {
 // for offline-first attribution. The browser sync client (sync-client.js)
 // stamps it on every mutation with a localStorage-persisted ULID; the value
 // is attribution metadata, not authentication — it is trivially spoofable.
-const HeaderClientID = "X-Client-ID"
+// ("X-Client-Id" is the canonical Go header spelling; net/http canonicalizes
+// on Get/Set, so the wire bytes are identical either way.)
+const HeaderClientID = "X-Client-Id"
 
 // WithClientID stores the client device ID in the context.
 // Set automatically by [ContextEnrichmentMiddleware] from the
