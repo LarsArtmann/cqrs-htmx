@@ -54,3 +54,4 @@
 | [0048](0048-liveness-readiness-decoupling.md)     | Liveness/Readiness Decoupling for Projection Startup (AsyncStartup)             | Accepted                                                             |
 | [0049](0049-datastar-go-sse-layer-split.md)       | datastar/go-sse Layer Split — SDK Owns the Wire, go-sse Owns the Fan-out        | Accepted                                                             |
 | [0050](0050-dual-frontend-protocol-strategy.md)   | Dual Frontend Protocol Strategy (HTMX + DataStar) — Route-Split, Opt-in Setup   | Accepted                                                             |
+| [0051](0051-v007-stack-surface-disposition.md)        | V007 Stack-Surface Disposition — Deprecate Now, Delete in v5, Gate Cluster 1 on Metaengine Maturity   | Proposed                                                             |

@@ -40,6 +40,11 @@ type MySQLSetupConfig struct {
 	SnapshotConfig
 }
 
+// DEPRECATED (ADR-0051): go-cqrs-lite v5 removes stack/v4 entirely. This
+// template keeps working through v4, but new code should compose the
+// declarative path instead: systemadapter.DomainConfig() + system.New (see
+// docs/guides/declarative-projections.md), or NewEventSourcedSetup with a
+// raw store+bus. This template is deleted in the v5 removal bundle.
 func NewMySQLEventSourcedSetup(config MySQLSetupConfig) (*MySQLEventSourcedSetup, error) {
 	bundle, err := stackmysql.New(config.DSN)
 	if err != nil {

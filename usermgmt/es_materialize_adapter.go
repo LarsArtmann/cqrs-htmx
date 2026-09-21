@@ -16,6 +16,12 @@ import (
 // bridging go-cqrs-lite's declarative read-model builder with our manual
 // projection dispatch ([StartProjections]).
 //
+// Deprecated: go-cqrs-lite v5 removes stack.Materialize (ADR-0123 — replaced by
+// metaengine auto-projection). This adapter has no in-repo consumers; new code
+// should use the declarative projections path via the systemadapter module
+// (systemadapter.DomainConfig + system.New — see docs/adr/0051 and
+// docs/guides/declarative-projections.md). Removal is bundled with the v5 cut.
+//
 // In go-cqrs-lite v4, [stack.Materialize] only exposes HandlerFunc for
 // Watermill router integration — it does not implement [projection.Projection]
 // directly. This adapter fills that gap by:
@@ -54,6 +60,8 @@ type MaterializeProjection[V any, K fmt.Stringer] struct {
 // NewMaterializeProjection creates an [projection.Projection] wrapper around a
 // [stack.Materialize]. The caller provides:
 //
+// Deprecated: removed in the v5 bundle — see the MaterializeProjection doc.
+//
 //   - mat: a configured Materialize with Store, KeyFromEvent, and On* callbacks.
 //   - name: projection name for diagnostics and runner registration.
 //   - eventTypes: the event types this projection handles (e.g., allTenantEventTypes).
@@ -76,6 +84,8 @@ func NewMaterializeProjection[V any, K fmt.Stringer](
 
 // Materialize returns the underlying [*stack.Materialize], exposing View and
 // List for direct queries.
+//
+// Deprecated: removed in the v5 bundle — see the MaterializeProjection doc.
 func (m *MaterializeProjection[V, K]) Materialize() *stack.Materialize[V, K] {
 	return m.mat
 }

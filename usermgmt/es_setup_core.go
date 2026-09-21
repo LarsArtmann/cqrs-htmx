@@ -32,8 +32,18 @@ type eventSourcedSetupCore struct {
 	MembershipReadModel  projection.Projection
 	TenantReadModel      projection.Projection
 	BotReadModel         projection.Projection
-	Bundle               *stack.Bundle
-	DB                   *sql.DB
+	// Bundle is the go-cqrs-lite stack bundle backing the SQL setup templates
+	// (SQLite/Postgres/MySQL). It exists only so the templates' lifecycle can
+	// close the preset-owned store/bus/DB in one call.
+	//
+	// Deprecated: go-cqrs-lite v5 removes stack/v4 entirely (owner decision
+	// 2026-09-21, recorded in go-cqrs-lite's ROADMAP and ADR-0051 here). The
+	// stack-free composition path is NewEventSourcedSetup (raw store+bus) or
+	// the declarative systemadapter path (systemadapter.DomainConfig +
+	// system.New). The stack-based SQL setup templates are removed in the v5
+	// bundle; until then they keep working unchanged.
+	Bundle *stack.Bundle
+	DB     *sql.DB
 
 	// backendName is the short label ("postgres", "sqlite") used to build
 	// stable error codes such as "usermgmt.postgres_setup.close".

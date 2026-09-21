@@ -28,6 +28,11 @@ type SQLiteSetupConfig struct {
 // backed by SQLite with persistent SQL read models. Uses go-cqrs-lite's
 // stack/sqlite preset for event store, bus, and database management.
 //
+// DEPRECATED (ADR-0051): go-cqrs-lite v5 removes stack/v4 entirely. This
+// template keeps working through v4, but new code should compose the
+// declarative path instead: systemadapter.DomainConfig() + system.New (see
+// docs/guides/declarative-projections.md), or NewEventSourcedSetup with a
+// raw store+bus. This template is deleted in the v5 removal bundle.
 // For event signing/encryption (SecurityHooks), use NewEventSourcedSetup with
 // a manually-configured EventStore and EventBus — the stack preset does not
 // expose the injection points needed for wrapping.

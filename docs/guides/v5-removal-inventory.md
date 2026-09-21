@@ -107,6 +107,24 @@ README. v5 is the only breaking window for module-path renames:
 - **Decision needed:** final name choice per module. If rejected, the docs
   mitigation becomes the permanent fix.
 
+
+### 5b. V007 stack surface (ADR-0051, dispositioned 2026-09-21)
+
+- **usermgmt stack surface** — `es_materialize_adapter.go`
+  (`MaterializeProjection`/`NewMaterializeProjection`/`.Materialize()` — zero
+  in-repo consumers, `// Deprecated:` since 2026-09-21),
+  `stack_repositories.go`'s `buildStackRepositories`, the `Bundle` field on
+  `eventSourcedSetupCore` (deprecated), and the three `//go:build ignore` SQL
+  setup templates (sqlite/postgres/mysql) + `sql_setup_shared.go`.
+  - **Removal criterion:** delete all of the above in the v5 bundle; consumers
+    migrate to `NewEventSourcedSetup` (raw store+bus) or the systemadapter
+    declarative path (`docs/guides/declarative-projections.md`). The
+    equivalence tests in systemadapter are the proof of replacement soundness.
+  - **Still gated (NOT v5-blocked for this repo):** the 68 `SQLViewStore`
+    findings (the SQL read models) wait for go-cqrs-lite metaengine
+    layout-planning to cover secondary-index semantics + a declarative
+    hydration equivalent (ADR-0051 cluster-1 criterion).
+
 ### 6. Already removed (for completeness — do NOT re-plan)
 
 - **WebSocket transport** — ADR-0046 (executed): `WSBroadcaster`,
