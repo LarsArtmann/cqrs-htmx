@@ -4,6 +4,14 @@
 **Session scope:** continued the Pareto plan (`docs/planning/2026-09-17_13-42_pareto-execution-plan-sibling-library-adoption.md`) after the two prior sibling programs (verification-battery, dashboardui-adoption run 2) finished and handed the tree back.
 **Verified state at writing:** tree CLEAN, all session work committed (partly via daemon heuristic commits after two hook-failure races), workspace build green at `go 1.26.7`, pre-commit hook passes for clean diffs (proven on `935f4b36`), `nix run .#check-modules` GREEN, findings gate restored to `fail_on: critical`, dashboardui/setup/root test suites green on HEAD.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): Run 3's debt was cleared by the 09-19 run 3 and the v4.11.0 train.
+> - **§a (fully done):** ID-less evidence table — Rows are self-declared done with per-row evidence; left unstruck (already clear).
+> - **§b:** b2 (M18 docs wave) and b5 (go.mod endgame) DONE; b1 (narrative-commit loss) historical; **b3 (M09 go-mod normalization)** and **b4 (M10 phantom-`./v4` root cause)** remain open → `TODO_LIST.md`.
+> - **§c:** c1/c2/c3/c5/c6 DONE; **c4 (M15–M17/M19–M27 tail)** and **c7 (upstream tool reports)** remain open → `TODO_LIST.md`.
+> - **§d / §e:** retrospective mistakes + process lessons — historical record, no action.
+> - **§f:** struck rows confirmed done; open rows (f15–f19/f27–f30/f35/f37–f41/f43–f49) are routed to `TODO_LIST.md`/`ROADMAP.md` (BuildFlow/linter upstream reports, go-mod normalization, samber-linter, eval-cache, verify-tag fixtures, upstream asks, etagclient/If-Match/bench/gauge recipes, e2e hardening, coverage math, harness extraction, retry-hint doc, roadmap fuel, v1.19/go-sse watch).
+> - **§g:** q1/q2/q3 resolved (1.27.1 coordinated bump; exhaustruct_v5 fix+migrate policy; the train shipped).
+
 ---
 
 ## a) FULLY DONE
@@ -25,19 +33,19 @@
 ## b) PARTIALLY DONE
 
 1. **M13 narrative commit lost to the daemon race — twice.** Both the M12 and M13 `git commit` attempts ran the (now slower, golangci-failing) hook while the daemon swept the staged files into heuristic commits (`68081b16`/`2d79270e`/`73a8e438`/`7fd79677`/`baaaa2f9`/`dff58fad`). Content verified intact per-file (`git log -- <file>` + `git show <rev>:<file>` spot-checks + post-absorption test runs), but the narrative history is archaeological again — the exact loss mode AGENTS.md warns about, hit despite the documented rule because the hook now runs 60-90s on failing diffs.
-2. **M18 docs/memory wave** — not started beyond what AGENTS.md already got (root-cause + corrected vector analysis). Missing: CHANGELOG entries for everything above, HARVEST of the audit §f into TODO_LIST/ROADMAP, the M14-rejection note, cross-links to this report, M12/M13 adoption-table rows in AGENTS.md, and the three new tool-behavior gotchas (below).
+2. ~~**M18 docs/memory wave** — not started beyond what AGENTS.md already got (root-cause + corrected vector analysis). Missing: CHANGELOG entries for everything above, HARVEST of the audit §f into TODO_LIST/ROADMAP, the M14-rejection note, cross-links to this report, M12/M13 adoption-table rows in AGENTS.md, and the three new tool-behavior gotchas (below).~~ done (M18 docs wave landed (CHANGELOG/AGENTS/harvest))
 3. **M09 go-mod findings** — narrowed but not done: the old ×26 double-count shrank to ×24 "mixed require blocks" warnings (gomod-check + go-mod-ignore-check report the same 24), all warning-level, below the critical gate. The vendor ×25 source resolved naturally (`examples/middleware-showcase/vendor/` was trashed by a sibling); the ×2 missing-submodule-replace findings did not reappear under the fresh binary. Normalization deferred to a quiet window.
 4. **M10 phantom-`./v4` root cause** — materially advanced, not closed: the doctor's `workspace/go-work-paths` check naively compares `go.work` `use` dirs to go.mod module names ("./adminui implies module adminui… likely missing /v4" ×13) — a false-positive rule class, now with captured evidence text. The related new classes (below) belong in the same upstream report.
-5. **Root go.mod directive ENDGAME** — restored to 1.26.7 (5th) and root-caused as far as the repo can see, but the war continues as long as any 1.27.1-toolchain session runs go commands here. The durable fix (coordinated bump or GOTOOLCHAIN pinning) is the open TODO_LIST P2 decision.
+5. ~~**Root go.mod directive ENDGAME** — restored to 1.26.7 (5th) and root-caused as far as the repo can see, but the war continues as long as any 1.27.1-toolchain session runs go commands here. The durable fix (coordinated bump or GOTOOLCHAIN pinning) is the open TODO_LIST P2 decision.~~ done (1.27.1 coordinated bump landed 2026-09-19)
 
 ## c) NOT STARTED
 
-1. **M18 docs wave** (see b2) — CHANGELOG, TODO_LIST/ROADMAP harvest, cross-links, annotations.
-2. **F96 full verification battery** — `nix run .#build` / `.#test` (workspace mode), `.#coverage-gate` (dashboardui grew new code paths), `.#check-release-train -- --refresh-cache`, `bash scripts/check-go-toolchain.sh`, full `.#lint`.
-3. **Push** — deferred per the standing default; note an auto-push mechanism has been observed pushing narrative commits earlier this week, so "defer push" is advisory, not enforced.
+1. ~~**M18 docs wave** (see b2) — CHANGELOG, TODO_LIST/ROADMAP harvest, cross-links, annotations.~~ done (M18 docs wave landed)
+2. ~~**F96 full verification battery** — `nix run .#build` / `.#test` (workspace mode), `.#coverage-gate` (dashboardui grew new code paths), `.#check-release-train -- --refresh-cache`, `bash scripts/check-go-toolchain.sh`, full `.#lint`.~~ done (F96 battery green)
+3. ~~**Push** — deferred per the standing default; note an auto-push mechanism has been observed pushing narrative commits earlier this week, so "defer push" is advisory, not enforced.~~ done (pushed with the train)
 4. **M15–M17, M19–M27 tail** (etagclient recipe, If-Match recipes, benches, WPT corpus notes, datastar retry-consistency patch, family-audit scheduling) — untouched this run.
-5. **Release train** — the tree now carries four unreleased API surfaces: `ServiceConfig.CommandMiddleware` (usermgmt), `HubReadinessCheck` (root), the SSE-hub card (dashboardui), drain+retry-hint (setup/transport). Two setup dev-replaces + verify-tag refusals make the strip order: tag usermgmt + root, then setup, then dashboardui per run-2's open Q2.
-6. **exhaustruct_v5 surge triage** — 10 findings (4 root + 6 dashboardui) + likely more in examples (admin-demo/catalog-demo/dashboard-demo hook failures) need the fix-or-suppress-with-reason batch treatment, plus a decision on migrating `//nolint:exhaustruct` directives to `//nolint:exhaustruct_v5` (or the config's `exhaustruct` alias, if golangci supports redirecting).
+5. ~~**Release train** — the tree now carries four unreleased API surfaces: `ServiceConfig.CommandMiddleware` (usermgmt), `HubReadinessCheck` (root), the SSE-hub card (dashboardui), drain+retry-hint (setup/transport). Two setup dev-replaces + verify-tag refusals make the strip order: tag usermgmt + root, then setup, then dashboardui per run-2's open Q2.~~ done (v4.11.0 train shipped)
+6. ~~**exhaustruct_v5 surge triage** — 10 findings (4 root + 6 dashboardui) + likely more in examples (admin-demo/catalog-demo/dashboard-demo hook failures) need the fix-or-suppress-with-reason batch treatment, plus a decision on migrating `//nolint:exhaustruct` directives to `//nolint:exhaustruct_v5` (or the config's `exhaustruct` alias, if golangci supports redirecting).~~ done (exhaustruct_v5 triage done, lint 0/15)
 7. **Upstream tool reports** — four evidence-backed BuildFlow/go-structure-linter findings are ready to file (see f37–f40).
 
 ## d) TOTALLY FUCKED UP
@@ -64,24 +72,24 @@
 ## f) NEXT (up to 50, Pareto-ordered within tiers)
 
 **Resolve session debris first:**
-1. Triage commit8's 3 failed hook steps to closure: fix my `varnamelen` (rename `h`), decide the exhaustruct_v5 response (below), CLI-verify examples/dashboard-demo, re-commit any narrative remnant with justification.
-2. exhaustruct_v5 batch: fix the 4 root + 6 dashboardui partial-struct literals (they are real `exhaustruct` findings the old nolint used to suppress) OR migrate the directives to `//nolint:exhaustruct_v5` — one consistent policy, applied repo-wide, so hook golangci steps go green again.
-3. M18: CHANGELOG entries — directive saga + drift sweep + gate restoration + M07 + M12 + M13 + M14-rejection (CHANGELOG is append-only per repo convention).
-4. M18: HARVEST into TODO_LIST/ROADMAP — the four upstream tool reports, the exhaustruct_v5 policy, the step-vs-gate mismatch, M14's rejection note (so no future session re-plans it), the gauge-recipe pointer (consumer-side, per sse-and-datastar.md §Observability).
-5. M18: AGENTS.md — add M12/M13 to the adoption tables; three new gotchas: (a) `.go-structure-linter.yaml` extension trap, (b) buildflow result cache replays findings after config/binary changes (use `BUILDFLOW_NO_RESULT_CACHE=1`), (c) hook golangci steps fail on warnings regardless of `fail_on`.
-6. M18: annotate the two prior status reports + this one with outcomes (the ANNOTATE-not-rewrite convention).
+1. ~~Triage commit8's 3 failed hook steps to closure: fix my `varnamelen` (rename `h`), decide the exhaustruct_v5 response (below), CLI-verify examples/dashboard-demo, re-commit any narrative remnant with justification.~~ done (exhaustruct_v5 adopted, lint 0/15)
+2. ~~exhaustruct_v5 batch: fix the 4 root + 6 dashboardui partial-struct literals (they are real `exhaustruct` findings the old nolint used to suppress) OR migrate the directives to `//nolint:exhaustruct_v5` — one consistent policy, applied repo-wide, so hook golangci steps go green again.~~ done (lint 0/15 modules)
+3. ~~M18: CHANGELOG entries — directive saga + drift sweep + gate restoration + M07 + M12 + M13 + M14-rejection (CHANGELOG is append-only per repo convention).~~ done (CHANGELOG entries landed)
+4. ~~M18: HARVEST into TODO_LIST/ROADMAP — the four upstream tool reports, the exhaustruct_v5 policy, the step-vs-gate mismatch, M14's rejection note (so no future session re-plans it), the gauge-recipe pointer (consumer-side, per sse-and-datastar.md §Observability).~~ done (harvested in TODO_LIST/ROADMAP + this sweep)
+5. ~~M18: AGENTS.md — add M12/M13 to the adoption tables; three new gotchas: (a) `.go-structure-linter.yaml` extension trap, (b) buildflow result cache replays findings after config/binary changes (use `BUILDFLOW_NO_RESULT_CACHE=1`), (c) hook golangci steps fail on warnings regardless of `fail_on`.~~ done (AGENTS.md gotchas landed)
+6. ~~M18: annotate the two prior status reports + this one with outcomes (the ANNOTATE-not-rewrite convention).~~ done (09-19 N13 + A2 annotation)
 
 **Full verification battery (F96):**
-7. `nix run .#build` + `.#test` workspace-mode (prove the 1.26.7 posture end-to-end).
-8. `nix run .#coverage-gate` — dashboardui gained code (hub card path); confirm the 85.2%/60 gate still holds.
-9. `nix run .#check-release-train -- --refresh-cache` + `bash scripts/check-go-toolchain.sh`.
-10. `nix run .#lint` all 15 modules; fold the exhaustruct_v5 surge into one triage pass (fix vs nolint-migration per module).
-11. `nix run .#check-codegen` + `.#check-templates` (untouched this run, but the battery exists to prove that).
+7. ~~`nix run .#build` + `.#test` workspace-mode (prove the 1.26.7 posture end-to-end).~~ done (workspace build+test green)
+8. ~~`nix run .#coverage-gate` — dashboardui gained code (hub card path); confirm the 85.2%/60 gate still holds.~~ done (coverage-gate 15/15 green)
+9. ~~`nix run .#check-release-train -- --refresh-cache` + `bash scripts/check-go-toolchain.sh`.~~ done (release-train + toolchain gates green)
+10. ~~`nix run .#lint` all 15 modules; fold the exhaustruct_v5 surge into one triage pass (fix vs nolint-migration per module).~~ done (lint 0/15 modules)
+11. ~~`nix run .#check-codegen` + `.#check-templates` (untouched this run, but the battery exists to prove that).~~ done (check-codegen + check-templates green)
 
 **Release + trains:**
-12. Cut the family train carrying this week's API: usermgmt (CommandMiddleware) + root (HubReadinessCheck, conditional-GET fix, retry hint) first, then setup (drain + hub health) — then strip setup's two TEMPORARY dev-replaces and re-verify hermetically (the documented strip recipe: tidy+build+**vet** per module).
-13. dashboardui release decision (run-2 g-Q2, still open): semantics + markup changed materially (stopped=healthy, all tables) — tag via `scripts/verify-tag.sh` or hold for the templ-components v1.18.0-train alignment.
-14. After tags: verify `check-release-train` drops to 0 UNPUBLISHED (train-lag list will name the next alignment targets).
+12. ~~Cut the family train carrying this week's API: usermgmt (CommandMiddleware) + root (HubReadinessCheck, conditional-GET fix, retry hint) first, then setup (drain + hub health) — then strip setup's two TEMPORARY dev-replaces and re-verify hermetically (the documented strip recipe: tidy+build+**vet** per module).~~ done (v4.11.0 train shipped)
+13. ~~dashboardui release decision (run-2 g-Q2, still open): semantics + markup changed materially (stopped=healthy, all tables) — tag via `scripts/verify-tag.sh` or hold for the templ-components v1.18.0-train alignment.~~ done (09-19 N2 dashboardui v4.10.0 + v4.10.1)
+14. ~~After tags: verify `check-release-train` drops to 0 UNPUBLISHED (train-lag list will name the next alignment targets).~~ done (release-train 0 unpublished)
 
 **Tool-behverity upstream reports (evidence in hand):**
 15. BuildFlow: result cache replays findings after config/binary changes (keys cover files only) — repro: rename `.yml`→`.yaml`, finding persists until `BUILDFLOW_NO_RESULT_CACHE=1`.
@@ -91,25 +99,25 @@
 19. BuildFlow step/gate semantics doc: per-tool steps exit-1-on-findings vs threshold gate — document the "exclude from hook fan-out" escape hatch.
 
 **Directive war endgame (needs Lars):**
-20. Execute the TODO_LIST P2 decision: coordinated flake+go.work+27-module bump to 1.27.1, OR `GOTOOLCHAIN=go1.26.7` pinning in fleet shells/hooks — then fix go-appkit's root go.mod at source (its own submodules say 1.26.7).
+20. ~~Execute the TODO_LIST P2 decision: coordinated flake+go.work+27-module bump to 1.27.1, OR `GOTOOLCHAIN=go1.26.7` pinning in fleet shells/hooks — then fix go-appkit's root go.mod at source (its own submodules say 1.26.7).~~ done (1.27.1 coordinated bump landed 2026-09-19)
 
 **Run-2 handoff debt (still open, from the sibling's report):**
-21. Playwright visual pass (light/dark/mobile) — the pixels have never been looked at.
-22. Vacuous-assertion sweep (`strings.Contains` scoped to pages not elements) across adminui/setup/integration_test.
-23. Fix `TestCSP_UnsafeInlineNotRequired` permanent SKIP (configure `NonceConfig.CSPBuilder` so the assertion path executes).
-24. Rebuild the dashboardui benchmark baseline from `git show 81088b64:...` (not from memory); drop the dead `_ = ctx`.
-25. M25 Playwright e2e specs (badges/stat cards, toasts/error pages, sortable tables) + axe sweep.
-26. `nix fmt` treefmt sweep at a clean-tree boundary.
+21. ~~Playwright visual pass (light/dark/mobile) — the pixels have never been looked at.~~ done (09-19 N5 27 screenshots)
+22. ~~Vacuous-assertion sweep (`strings.Contains` scoped to pages not elements) across adminui/setup/integration_test.~~ done (09-19 N11 no false-green class)
+23. ~~Fix `TestCSP_UnsafeInlineNotRequired` permanent SKIP (configure `NonceConfig.CSPBuilder` so the assertion path executes).~~ done (09-19 N10 CSP test asserts)
+24. ~~Rebuild the dashboardui benchmark baseline from `git show 81088b64:...` (not from memory); drop the dead `_ = ctx`.~~ done (09-19 N10 baseline from git history)
+25. ~~M25 Playwright e2e specs (badges/stat cards, toasts/error pages, sortable tables) + axe sweep.~~ done (09-19 N6-N9 e2e + axe green)
+26. ~~`nix fmt` treefmt sweep at a clean-tree boundary.~~ done (09-19 N15 nix fmt zero diff)
 27. M09 normalization: `go-mod-normalize` over the 24 mixed-require-block warnings in a quiet window (verify dep budgets unchanged after).
 28. samber-linter 88% hook failure rate (61/69) — root-cause or exclude with reason.
 29. nix eval-cache SQLITE_BUSY under concurrent sessions — fleet-level mitigation (serialized eval cache or per-session cache dir).
 30. Verify-tag fixtures: exclude `scripts/testdata/verify-tag/*` from the doctor's gomod-freshness warning (7 of the 9 "need tidy" modules are deliberate).
-31. README (dashboardui): adoption-surface table + golden `-update` flow + benchmark pointer (run-2 f#21).
-32. Doc guide: the hybrid-adoption pattern (`Component.Render(ctx, &b)`) so the next consumer module repeats it safely (run-2 f#22).
-33. AGENTS.md: "nolint lines stay ≤120 chars incl. reason" gotcha (run-2 f#24).
-34. Dashboardui release CHANGELOG cut from `[Unreleased]` once #13 is decided.
+31. ~~README (dashboardui): adoption-surface table + golden `-update` flow + benchmark pointer (run-2 f#21).~~ done (09-19 N12 README adoption table)
+32. ~~Doc guide: the hybrid-adoption pattern (`Component.Render(ctx, &b)`) so the next consumer module repeats it safely (run-2 f#22).~~ done (09-19 N12 hybrid guide)
+33. ~~AGENTS.md: "nolint lines stay ≤120 chars incl. reason" gotcha (run-2 f#24).~~ done (AGENTS.md nolint-line-length gotcha)
+34. ~~Dashboardui release CHANGELOG cut from `[Unreleased]` once #13 is decided.~~ done (v4.11.0 train cut the CHANGELOG)
 35. Upstream asks: ListNote range variant; Grid children-less render guidance (run-2 f#27/#28).
-36. Dashboardui TODO_LIST entries for the exclusions (theme-toggle decision, SidebarNav revisit criteria).
+36. ~~Dashboardui TODO_LIST entries for the exclusions (theme-toggle decision, SidebarNav revisit criteria).~~ done (09-19 N14 TODO entries)
 
 **Original pareto tail (M15–M27 leftovers):**
 37. M15: etagclient recipe + runnable proof.
@@ -117,7 +125,7 @@
 39. M17: benchmark additions for the conditional-GET paths (hashTag vs etag middleware).
 40. M19: dashboardui/health SSE fan-out gauge example built ON the recipe (consumer-side, uses `Bundle.Broadcaster.Hub()`; this is the sanctioned M13 remainder).
 41. M20: e2e assertion hardening (the vacuous class, e2e flavor).
-42. M21: upstream release tracking note for go-cqrs-lite projectionadapter/sqliteengine tags (the remaining systemadapter replace blockers).
+42. ~~M21: upstream release tracking note for go-cqrs-lite projectionadapter/sqliteengine tags (the remaining systemadapter replace blockers).~~ done (projectionadapter v4.5.0 + systemadapter tagged 2026-09-20)
 43. M22: sse-and-datastar.md — add `HubReadinessCheck` to the guide's health wiring example.
 44. M23: coverage: dashboardui hub-card path in the module's coverage budget math (new files shifted percentages).
 45. M24: `event_catalog_handler`/`htmx_serve` conditional-GET spec harness — extract the reusable harness into a documented pattern (currently root-test-local).
@@ -125,7 +133,7 @@
 47. M26: retry-hint constant: confirm `DefaultRetryHintMillis` is documented in the SSE guide's client-config section.
 48. M27: roadmap fuel — WPT corpus eval notes; polled-panel 304 research (from the original 50-item list).
 49. Family-audit scheduling: templ-components v1.19/go-sse v0.7 watch items into TODO_LIST.
-50. Post-train hygiene: after #12's tags, re-run `check-release-train`, strip replaces, `GOWORK=off` tidy+build+vet per affected module, and update AGENTS.md version claims (the post-bump VERIFY ritual).
+50. ~~Post-train hygiene: after #12's tags, re-run `check-release-train`, strip replaces, `GOWORK=off` tidy+build+vet per affected module, and update AGENTS.md version claims (the post-bump VERIFY ritual).~~ done (post-train hygiene done with the v4.11.0 train)
 
 ## g) QUESTIONS (cannot answer myself)
 

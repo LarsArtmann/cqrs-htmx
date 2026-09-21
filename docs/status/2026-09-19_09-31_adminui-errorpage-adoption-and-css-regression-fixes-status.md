@@ -5,6 +5,14 @@
 **Scope discipline:** per user instruction, this report covers ONLY what this session did and noticed. No unrelated research.
 **Format note:** skill default is a styled HTML dashboard; user explicitly requested `.md` — override honored (same as the 2026-09-17 report).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the adminui errorpage slice shipped in the v4.11.0 train.
+> - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
+> - **§b:** b4 (release) and b5 (toolchain) DONE; b1/b2/b3/b6/b7 (dark-mode verify of 5 unviewed shots + error pages, adminui prettier program, 403, toast interplay) remain open → `TODO_LIST.md`.
+> - **§c (bullets):** mostly open → `TODO_LIST.md` (Playwright against new shell, CSP `style=""` tests, loginpage adoption, upstream filings, visual-regression harness, offline-sync QA, 8097 squatter, cqrs-lint drift, README consumer note); dashboardui tiers are in the sibling lane.
+> - **§d / §e:** retrospective regressions + process lessons — historical record, no action.
+> - **§f:** struck rows confirmed done; open rows (f1–f3/f8–f13/f16–f22/f24–f33/f36–f40/f42–f44/f46–f49) are routed to `TODO_LIST.md`/`ROADMAP.md` (unviewed shots, dark error pages, 403, canary test + build step, toast/401 tests, demo recipe script, README note, upstream filings, stale-CSS-pin detector, CSP tests, screenshot harness, a11y/dark-QA, program tiers, loginpage, toolchain, squatter, evidence policy, cqrs-lint, linter watch, CSS budget, skill, offline-sync, logout, breadcrumbs, ErrorPage context).
+> - **§g:** all three resolved (sibling settled + 1.27.1 bump; adminui shipped in the train; squatter remains an environment note).
+
 ---
 
 ## 0. TL;DR
@@ -44,8 +52,8 @@ The pending tail of the adminui × templ-components migration was **finished and
 1. **Dark-mode verification.** Dashboard + thead fix verified visually; error pages (400/404) in dark were only checked functionally, never visually — and the errorpage families are exactly the `dark:`-variant class that just burned us twice. Tenants/members/users in dark: not checked.
 2. **Screenshot review discipline.** 12 screenshots captured, 8 inspected. **Never viewed:** `02-users`, `04-tenants`, `05-members`, `08-audit-dark`, `11-audit-mobile390`. Coverage claims must exclude these until opened.
 3. **Adminui prettier + gap-remediation program** (TODO_LIST P2, "awaiting execution approval"): my slice (shell migration, errorpage, audit emails, two CSS fixes) landed outside the plan's gate sequence and is now annotated in the item; the rest of the plan (Pagination, PageHeader, Breadcrumbs, FilterInput, Modal, Dropdown, PolledRegion, dark-QA, P0.1/P0.2 preconditions) remains open.
-4. **Release readiness for the adminui work.** Everything is committed but untagged — consumers only get it after the next adminui tag, and the tagging decision interacts with the pending templ-components v1.18.0 family sweep (M19, blocked on the sibling session). Also: three gates that touch this change class were NOT re-run (see e4).
-5. **Root go.mod toolchain posture.** Restored to 1.26.7 (documented state-restoration), but the durable policy decision (pin `GOTOOLCHAIN=go1.26.7` fleet-wide OR coordinated 27-module bump) is still open and the sibling can re-bump at any minute.
+4. ~~**Release readiness for the adminui work.** Everything is committed but untagged — consumers only get it after the next adminui tag, and the tagging decision interacts with the pending templ-components v1.18.0 family sweep (M19, blocked on the sibling session). Also: three gates that touch this change class were NOT re-run (see e4).~~ done (adminui shipped in the v4.11.0 train)
+5. ~~**Root go.mod toolchain posture.** Restored to 1.26.7 (documented state-restoration), but the durable policy decision (pin `GOTOOLCHAIN=go1.26.7` fleet-wide OR coordinated 27-module bump) is still open and the sibling can re-bump at any minute.~~ done (1.27.1 coordinated bump landed 2026-09-19)
 6. **403 forbidden path.** Code-swapped to `writeErrorPage`, covered by existing status-only tests, but never rendered/inspected (no fixture produces a 403 in the demo).
 7. **Toast + styled-error interplay.** The tenant error paths fire `triggerToast` (HX-Trigger header) *and* now return an HTML card; header preservation is by construction (writeErrorPage doesn't touch headers) but was verified by code-reading only, not by a test.
 
@@ -91,18 +99,18 @@ The pending tail of the adminui × templ-components migration was **finished and
 1. Visually inspect the 5 captured-but-unviewed screenshots (users, tenants, members, audit-dark, audit-mobile390).
 2. Visually verify the 400/404 error pages in dark mode (same `dark:`-variant class that broke the thead).
 3. Render + inspect the styled 403 (needs a deny-authorizer fixture in the demo or a test).
-4. Re-run the `e2e/` Playwright suite against the new shell + HTML error bodies; fix any plain-text assertions.
-5. Run `nix run .#coverage-gate` (adminui coverage after +4 tests — unmeasured).
-6. Run `nix run .#check-release-train` (prove the new `templ-components/errorpage` require resolves published).
-7. Run `check-docs-freshness` against the edited AGENTS.md/CHANGELOG version claims.
+4. ~~Re-run the `e2e/` Playwright suite against the new shell + HTML error bodies; fix any plain-text assertions.~~ done (09-19 N5-N8 e2e suite green)
+5. ~~Run `nix run .#coverage-gate` (adminui coverage after +4 tests — unmeasured).~~ done (coverage-gate 15/15 green)
+6. ~~Run `nix run .#check-release-train` (prove the new `templ-components/errorpage` require resolves published).~~ done (check-release-train green)
+7. ~~Run `check-docs-freshness` against the edited AGENTS.md/CHANGELOG version claims.~~ done (check-docs-freshness green)
 8. Add `adminui/assets_test.go` canary (see e1).
 9. Add the canary step to `build-adminui-css` (see e2).
 10. Add a test pinning the toast + styled-400 interplay (HX-Trigger preserved on HTML error responses).
 11. Add a test pinning `htmx.GlobalErrorHandling` behavior against the new HTML 401 body (session-expiry redirect contract).
 12. Commit the throwaway-demo recipe as `scripts/demo-admin-head.sh` (e7).
 13. Write the adminui README consumer note: error responses are now structured HTML (status codes unchanged).
-14. Decide + cut the adminui release (via `scripts/verify-tag.sh`) so consumers actually receive the errorpage work — sequencing question in g2.
-15. Confirm the sibling's dashboardui v4.10.0/v4.10.1 tags build hermetically (they landed mid-session).
+14. ~~Decide + cut the adminui release (via `scripts/verify-tag.sh`) so consumers actually receive the errorpage work — sequencing question in g2.~~ done (adminui shipped in the v4.11.0 train)
+15. ~~Confirm the sibling's dashboardui v4.10.0/v4.10.1 tags build hermetically (they landed mid-session).~~ done (dashboardui v4.10.1 resolves from the proxy)
 
 **Hardening / regression-proofing**
 16. Upstream filing: SidebarNav depends on `:root` defaults (`--tc-sidebar-bg`) that ship only in the library's prebuilt `styles.css` — consumers compiling their own Tailwind bundle get a transparent sidebar (verify-before-filing first).
@@ -112,7 +120,7 @@ The pending tail of the adminui × templ-components migration was **finished and
 20. Build the stale-CSS-pin detector (e8).
 21. Add CSP regression tests: no `style=""` attributes on any rendered page (nonce/CSSOM contract).
 22. Screenshot-baseline visual-regression harness (per-page, per-viewport) — the systemic hole behind d1.
-23. Library-bump visual re-verification checklist item in AGENTS.md (e9).
+23. ~~Library-bump visual re-verification checklist item in AGENTS.md (e9).~~ done (AGENTS.md templ-components family-bump CSS-rebuild rule)
 24. Keyboard/a11y pass on the new shell: drawer focus behavior, sidebar ARIA (SidebarNav has `AriaLabel`; the legacy-class drawer needs checking).
 25. Mobile drawer boundary check at exactly the hamburger breakpoint (1023/1024px and MD variant).
 26. Dark-QA the full adminui page matrix (plan tier; thead was the first find, likely not the last).
@@ -125,8 +133,8 @@ The pending tail of the adminui × templ-components migration was **finished and
 31. For audit pagination: likely document the same deliberate rejection as dashboardui (append-only journal, numbered pages meaningless) instead of adopting `navigation.Pagination`.
 32. loginpage × templ-components adoption (AuthLayout, forms, Alert, Button) — untouched since the audit.
 33. dashboardui program tiers (sibling's lane; coordinate, don't double-execute).
-34. templ-components v1.18.0 family sweep M19 + integration_test indirects (blocked on sibling completion).
-35. Release train for all changed modules once 34 lands (runbook order; adminui's new require rides it).
+34. ~~templ-components v1.18.0 family sweep M19 + integration_test indirects (blocked on sibling completion).~~ done (09-19 N3 v1.18.0 uniform repo-wide)
+35. ~~Release train for all changed modules once 34 lands (runbook order; adminui's new require rides it).~~ done (v4.11.0 train shipped)
 
 **Repo hygiene / environment**
 36. Toolchain policy decision (d5/f): pin `GOTOOLCHAIN=go1.26.7` fleet-wide OR coordinated 1.27.1 bump across flake+go.work+27 modules (TODO_LIST P2 ❓).
@@ -134,18 +142,18 @@ The pending tail of the adminui × templ-components migration was **finished and
 38. Stop the daemon-race attribution mud: consider a session-start `git status` snapshot + prompt commits at phase boundaries when the user authorizes commits at all.
 39. Preserve verification evidence policy (e5): in-repo screenshot assets or a canonical re-run recipe.
 40. `cqrs-lint` v4.8.1 drift triage (~11 pending findings, unrelated to adminui but aging).
-41. `examples/middleware-showcase/vendor/` untracked dir: vendor it deliberately or remove (known findings-gate noise).
+41. ~~`examples/middleware-showcase/vendor/` untracked dir: vendor it deliberately or remove (known findings-gate noise).~~ done (09-19 N15 vendor dir gone)
 42. go-structure-linter: watch for the suppression-feature tag that lets the findings gate return to `fail_on: critical` (config already authored).
 43. Verify CI job list still covers adminui (no new module this time, but the new require exercises the hermetic CI tidy path).
 44. Sanity-check `admin-tw.css` size delta after the errorpage scan (bundle grew; check against any budget expectations).
-45. Update the repo skill (`cqrs-htmx` SKILL.md) if it documents adminui adoption details — add errorpage require + CSS-gate notes.
+45. ~~Update the repo skill (`cqrs-htmx` SKILL.md) if it documents adminui adoption details — add errorpage require + CSS-gate notes.~~ done (SKILL.md module table updated (this sweep))
 
 **Smaller / roadmap fuel**
 46. Offline-sync QA on the new shell (sync-client `data-sse-url` flow post-migration).
 47. Verify dev-logout flow in the demo post-migration (header link still wired).
 48. Breadcrumbs-vs-back-links consistency check across detail pages (user-detail uses "← Users"; tenant-detail doesn't).
 49. Consider surfacing `errorpage.Context`/`CauseChain` fields from dispatch rejections (ErrorPageProps supports rich causes; adminui currently sends title+message only).
-50. Consider a `--screenshot` mode in the e2e suite (deterministic page captures for docs/status evidence).
+50. ~~Consider a `--screenshot` mode in the e2e suite (deterministic page captures for docs/status evidence).~~ done (09-19 N5 screenshots.spec.ts 27 PNGs)
 
 ## g) Questions I cannot answer myself
 
