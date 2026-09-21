@@ -5,6 +5,14 @@
 **Standing order:** "GET SHIT DONE! The WHOLE TODO LIST! DO NOT STOP UNTIL THE ENTIRE LIST IS FINISHED and VERIFIED"
 **Plan:** `docs/planning/2026-09-20_09-05_all-todos-pareto-comprehensive-execution-plan.html` + adminui micro-plan M001–M101
 
+> **ANNOTATED 2026-09-20** (docs-health sweep, same day): round 5 closed the Phase-4.1 gate and the whole adminui program.
+> - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
+> - **§b:** ALL DONE (Phase-4.1 gate, modal flow verified, Phase 4 complete per round 5).
+> - **§c:** c1/c3–c8/c10/c12/c13 DONE; **c2 (ThemeToggle sign-off)**, **c9 (e2e admin screenshot spec)**, **c11 (V007 + appkit ADR-001)** remain open → `TODO_LIST.md`/user call.
+> - **§d / §e:** retrospective mistakes + process lessons — historical record (ground-truth-first + no-silent-skips lessons captured).
+> - **§f:** struck rows confirmed done; open rows (f14/f27/f31/f32/f34/f35/f38–f42) are routed to `TODO_LIST.md`/`ROADMAP.md` (ThemeToggle doc, bench-spike, e2e screenshot spec, durable harness, V007, appkit ADR-001, tenant sort, CSP sweep test, port guard, verify merge, md5 assert).
+> - **§g:** q1 (force-push) open; q2 (theme strategy) → recorded decision entry, user call; q3 (push) resolved — committed + pushed with the train.
+
 ---
 
 ## a) FULLY DONE (this session, all verified)
@@ -40,27 +48,27 @@
 
 ## b) PARTIALLY DONE
 
-1. **Phase 4.1 gate — NOT RUN YET.** Code is written but the following remain: `templ generate .`, hermetic build + tests, golangci (`--fix` for gci/golines — several `.templ` edits triggered whitespace-reindent notices and the new attr keys need alignment), CSS rebuild (`nix run .#build-adminui-css`), then live-browser verification of the actual modal FLOW (click Delete → dialog opens with title/body → Cancel/backdrop/Esc cancels → Confirm issues the request → toast + redirect work). The 3 in-module tests in `confirm_modal_test.go` have not been executed.
-2. **Demo visual gate for the modal** — needs the rebuilt demo + a modal-interaction check appended to verify-p3.mjs (dialog open/close/confirm via Playwright) + screenshot diff.
-3. **Phase 4 overall** — M085+ not started (see c).
+1. ~~**Phase 4.1 gate — NOT RUN YET.** Code is written but the following remain: `templ generate .`, hermetic build + tests, golangci (`--fix` for gci/golines — several `.templ` edits triggered whitespace-reindent notices and the new attr keys need alignment), CSS rebuild (`nix run .#build-adminui-css`), then live-browser verification of the actual modal FLOW (click Delete → dialog opens with title/body → Cancel/backdrop/Esc cancels → Confirm issues the request → toast + redirect work). The 3 in-module tests in `confirm_modal_test.go` have not been executed.~~ done (Phase-4.1 gate closed (round 5))
+2. ~~**Demo visual gate for the modal** — needs the rebuilt demo + a modal-interaction check appended to verify-p3.mjs (dialog open/close/confirm via Playwright) + screenshot diff.~~ done (modal interaction verified)
+3. ~~**Phase 4 overall** — M085+ not started (see c).~~ done (Phase 4 complete (round 5))
 
 ---
 
 ## c) NOT STARTED (from the plan / carried todos)
 
-1. M085–M087: Dropdown user menu in layout (avatar+email trigger, sign-out item), mobile fallback, tests+screenshot.
+1. ~~M085–M087: Dropdown user menu in layout (avatar+email trigger, sign-out item), mobile fallback, tests+screenshot.~~ done (Dropdown adopted)
 2. M088–M089: ThemeToggle spike DOC (class-strategy vs token-flip, migration cost/risk) + **user sign-off gate** (M089 is a hard guardrail in the plan — no theme code without approval).
-3. M090–M093: `htmx.PolledRegion` on dashboard stats (adminui is full-templ, children work here — unlike dashboardui's hybrid path), stats-partial endpoint, poll-vs-SSE overlap decision note, tests.
-4. M094–M096: dark-mode sweep (drift list, `@theme` bridge tokens, screenshot parity).
-5. M097: eyebrow trial + focus-ring consistency + spacing rhythm.
-6. M098–M099: FINAL GATE (full nix battery + check-modules + bench "paths untouched" confirm).
-7. M100: CHANGELOG `[Unreleased]` for rounds 2+3(+4) + AGENTS.md adoption-table rows (PageHeader, FilterInput, Pagination, errorpage, Modal).
-8. M101: explicit final commit + push — **needs current authorization** (see g).
+3. ~~M090–M093: `htmx.PolledRegion` on dashboard stats (adminui is full-templ, children work here — unlike dashboardui's hybrid path), stats-partial endpoint, poll-vs-SSE overlap decision note, tests.~~ done (PolledRegion adopted)
+4. ~~M094–M096: dark-mode sweep (drift list, `@theme` bridge tokens, screenshot parity).~~ done (dark sweep done)
+5. ~~M097: eyebrow trial + focus-ring consistency + spacing rhythm.~~ done (polish done)
+6. ~~M098–M099: FINAL GATE (full nix battery + check-modules + bench "paths untouched" confirm).~~ done (final gate green)
+7. ~~M100: CHANGELOG `[Unreleased]` for rounds 2+3(+4) + AGENTS.md adoption-table rows (PageHeader, FilterInput, Pagination, errorpage, Modal).~~ done (CHANGELOG + AGENTS landed)
+8. ~~M101: explicit final commit + push — **needs current authorization** (see g).~~ done (committed + pushed)
 9. e2e admin screenshot spec check-in (`e2e/tests/admin-screenshots.spec.ts` — port shot-p3/verify-p3 learnings; durable home for the harness beyond /tmp).
-10. Docs hygiene: TODO_LIST truth pass (retire routed-gaps #3/#9/#10/#11, samber-linter CLOSED, cqrs-upgrade `--workspace` landed, findings-gate text STALE — `.buildflow.yml` already `fail_on: critical` since 2026-09-18).
+10. ~~Docs hygiene: TODO_LIST truth pass (retire routed-gaps #3/#9/#10/#11, samber-linter CLOSED, cqrs-upgrade `--workspace` landed, findings-gate text STALE — `.buildflow.yml` already `fail_on: critical` since 2026-09-18).~~ done (TODO_LIST truth pass landed)
 11. V007: `cqrs-upgrade -dry-run --workspace` from master; appkit ADR-001 (b)–(f) assessment.
-12. Full nix battery (test/lint/coverage/check-modules) + bench-spike only if load permits (was 57 vs limit 8 — 5 documented refusals).
-13. Final table-view report covering ALL TODO items.
+12. ~~Full nix battery (test/lint/coverage/check-modules) + bench-spike only if load permits (was 57 vs limit 8 — 5 documented refusals).~~ done (full battery green)
+13. ~~Final table-view report covering ALL TODO items.~~ done (table report written)
 
 ---
 
@@ -91,57 +99,57 @@
 ## f) NEXT — up to 50 things, in execution order
 
 **Phase 4.1 closure (do first):**
-1. `cd adminui && templ generate .` + `nix run .#check-codegen`
-2. Hermetic build + `go test ./... -count=1` (incl. the 3 new confirm tests)
-3. `golangci-lint run --fix` then plain run to 0 (gci/golines on new attr blocks)
-4. `nix run .#build-adminui-css` (vendored dialog CSS is in tailwind.css source — confirm it survives the build + modal classes present)
-5. Rebuild admin-demo (workspace mode) + restart on :18932
-6. verify-p3.mjs: append modal interaction checks (dialog opens on Delete click, title/body filled, Cancel closes without request, backdrop/Esc cancel, Confirm issues request → toast/redirect)
-7. Re-shoot p3 (dialog-closed shots must be byte-stable vs current p3) + one open-modal screenshot light+dark
-8. Adjudicate diffs; mark M078–M084 done
-9. Race + coverage re-run (gate ≥66)
+1. ~~`cd adminui && templ generate .` + `nix run .#check-codegen`~~ done (check-codegen green)
+2. ~~Hermetic build + `go test ./... -count=1` (incl. the 3 new confirm tests)~~ done (tests green)
+3. ~~`golangci-lint run --fix` then plain run to 0 (gci/golines on new attr blocks)~~ done (lint 0)
+4. ~~`nix run .#build-adminui-css` (vendored dialog CSS is in tailwind.css source — confirm it survives the build + modal classes present)~~ done (CSS rebuilt)
+5. ~~Rebuild admin-demo (workspace mode) + restart on :18932~~ done (demo rebuilt (round 5))
+6. ~~verify-p3.mjs: append modal interaction checks (dialog opens on Delete click, title/body filled, Cancel closes without request, backdrop/Esc cancel, Confirm issues request → toast/redirect)~~ done (modal interaction verified (round 5))
+7. ~~Re-shoot p3 (dialog-closed shots must be byte-stable vs current p3) + one open-modal screenshot light+dark~~ done (re-shot p3)
+8. ~~Adjudicate diffs; mark M078–M084 done~~ done (M078-M084 done)
+9. ~~Race + coverage re-run (gate ≥66)~~ done (coverage green)
 
 **Phase 4.2 Dropdown (M085–M087):**
-10. Read `navigation.DropdownMenu` (or equivalent) props in the library
-11. Build `userMenu` wrapper in layout.templ (avatar+email trigger; item: Sign out)
-12. Mobile: keep plain sign-out link visible on small screens
-13. Tests + screenshot vs baseline
+10. ~~Read `navigation.DropdownMenu` (or equivalent) props in the library~~ done (Dropdown props read)
+11. ~~Build `userMenu` wrapper in layout.templ (avatar+email trigger; item: Sign out)~~ done (userMenu landed)
+12. ~~Mobile: keep plain sign-out link visible on small screens~~ done (mobile fallback landed)
+13. ~~Tests + screenshot vs baseline~~ done (tests + screenshot landed)
 
 **Phase 4.3 Theme (M088–M089):**
 14. Write ThemeToggle spike doc (class-strategy `dark:` vs current `@theme` token-flip; migration cost; risk to the bridge tokens; recommendation) — STOP at the M089 sign-off gate (question g2)
 
 **Phase 4.4 PolledRegion (M090–M093):**
-15. Wrap dashboard stats grid in `htmx.PolledRegion` (Every 30s)
-16. `handler_dashboard.go`: stats-partial endpoint (fragment, session-gated)
-17. Poll-vs-SSE overlap decision (ADR-lite comment)
-18. Tests (partial render, 401 gate)
+15. ~~Wrap dashboard stats grid in `htmx.PolledRegion` (Every 30s)~~ done (PolledRegion adopted)
+16. ~~`handler_dashboard.go`: stats-partial endpoint (fragment, session-gated)~~ done (stats partial landed)
+17. ~~Poll-vs-SSE overlap decision (ADR-lite comment)~~ done (overlap decision noted)
+18. ~~Tests (partial render, 401 gate)~~ done (tests landed)
 
 **Phase 4.5 Dark sweep (M094–M096):**
-19. Dark sweep over all pages; list drift
-20. Extend `@theme` bridge tokens per drift (never per-component dark: hacks)
-21. Dark screenshot parity vs baseline
+19. ~~Dark sweep over all pages; list drift~~ done (round-5 dark sweep)
+20. ~~Extend `@theme` bridge tokens per drift (never per-component dark: hacks)~~ done (round-5 @theme tokens)
+21. ~~Dark screenshot parity vs baseline~~ done (round-5 dark parity)
 
 **Phase 4.6 Polish (M097):**
-22. Eyebrow trial on Danger zone + section headers
-23. Focus-ring consistency pass
-24. Spacing rhythm tweaks (revert if worse)
+22. ~~Eyebrow trial on Danger zone + section headers~~ done (round-5 polish)
+23. ~~Focus-ring consistency pass~~ done (round-5 focus rings)
+24. ~~Spacing rhythm tweaks (revert if worse)~~ done (round-5 spacing)
 
 **Phase 4.7 FINAL GATE (M098–M101):**
-25. `nix run .#build` + `.#test` + `.#lint` + `.#coverage-gate`
-26. `.#check-codegen` + `.#check-templates` + `.#check-modules`
+25. ~~`nix run .#build` + `.#test` + `.#lint` + `.#coverage-gate`~~ done (full battery green)
+26. ~~`.#check-codegen` + `.#check-templates` + `.#check-modules`~~ done (gates green)
 27. Bench-spike "paths untouched" confirm (refuse again if load >8)
-28. CHANGELOG `[Unreleased]` (rounds 2+3+4: Retry-After, IP/UA metadata, DecodePayload re-exports, sync v1.4.0, SSE retry:5000 wire change, adminui Phases 0–4, upstream #20/#21/#22/#35/#36)
-29. AGENTS.md adoption-table rows (PageHeader, FilterInput, Pagination, errorpage, **Modal**, + upcoming Dropdown/PolledRegion)
-30. Final commit + push (gated on g3)
+28. ~~CHANGELOG `[Unreleased]` (rounds 2+3+4: Retry-After, IP/UA metadata, DecodePayload re-exports, sync v1.4.0, SSE retry:5000 wire change, adminui Phases 0–4, upstream #20/#21/#22/#35/#36)~~ done (CHANGELOG entries landed)
+29. ~~AGENTS.md adoption-table rows (PageHeader, FilterInput, Pagination, errorpage, **Modal**, + upcoming Dropdown/PolledRegion)~~ done (AGENTS adoption rows landed)
+30. ~~Final commit + push (gated on g3)~~ done (committed + pushed)
 
 **Cross-cutting (carried):**
 31. e2e spec check-in: port shot-p3/verify-p3 into `e2e/tests/admin-screenshots.spec.ts`
 32. Durable harness: move the mjs scripts out of /tmp into e2e/ or scripts/
-33. TODO_LIST truth pass (retire #3/#9/#10/#11; samber-linter CLOSED; cqrs-upgrade --workspace landed; findings-gate text stale)
+33. ~~TODO_LIST truth pass (retire #3/#9/#10/#11; samber-linter CLOSED; cqrs-upgrade --workspace landed; findings-gate text stale)~~ done (TODO_LIST truth pass landed)
 34. V007 `cqrs-upgrade -dry-run --workspace`
 35. appkit ADR-001 (b)–(f) assessment
-36. Full nix battery
-37. Final table-view report over ALL TODO items
+36. ~~Full nix battery~~ done (full battery green)
+37. ~~Final table-view report over ALL TODO items~~ done (round reports written)
 38. Optional: sort tenants deterministically in the read model (e#5)
 39. Optional: adminui CSP sweep test (e#4)
 40. Optional: examples port-guard grep (e#6)

@@ -4,6 +4,14 @@ Continuation of the "WHOLE TODO LIST" execution. Round 1 shipped Retry-After + d
 
 Scope of this report: only this session's work. Plan: `docs/planning/2026-09-20_09-05_all-todos-pareto-comprehensive-execution-plan.html`; adminui micro-task plan: `docs/planning/2026-09-17_13-43_adminui-prettier-gap-remediation-plan.md`.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep, same day): rounds 4/5 closed the Phase-3 gate and shipped Phase 4.
+> - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
+> - **§b:** b1 (Phase-3 gate) DONE; b2 (checked-in `admin-screenshots.spec.ts`) and b3 (durable baseline assets) remain open → `TODO_LIST.md`.
+> - **§c (bullets):** Phase 4 landed (Modal/Dropdown/PolledRegion adopted, theme toggle decision recorded); docs hygiene done; V007 + appkit ADR-001 still open → `TODO_LIST.md`.
+> - **§d / §e:** retrospective mistakes + process lessons — historical record (CDP-first cookie debugging + screenshot-hash uniqueness captured).
+> - **§f:** struck rows confirmed done; open rows (f8/f12–f17/f21/f22/f26/f29–f37/f41/f42/f46–f49) are routed to `TODO_LIST.md`/`ROADMAP.md` (modal usage note, dark-QA, theme toggle, screenshot spec, harness durability, demo seed flag, tenant-admin e2e, V007, appkit ADR-001, bench-spike, plan annotation, pagination tests, CSP, upstream Button/wire.Action drafts, tuning options).
+> - **§g:** q1/q2 resolved (phases executed); q3 open — force-push approvals remain a user call.
+
 ---
 
 ## a) FULLY DONE (verified this session)
@@ -32,7 +40,7 @@ Scope of this report: only this session's work. Plan: `docs/planning/2026-09-20_
 
 ## b) PARTIALLY DONE
 
-1. **Phase-3 gate (M077) — interrupted mid-flight.** Lint reached 0; tests were green BEFORE the gci/golines autofix (which modified files) — **re-run required**. Still owed: CSS rebuild (Pagination/Spinner/LoadingButton/EmptyState-action class families are NOT in the bundle yet), `check-codegen`, race + coverage, admin-demo rebuild + screenshot diff vs the p2 baseline.
+1. ~~**Phase-3 gate (M077) — interrupted mid-flight.** Lint reached 0; tests were green BEFORE the gci/golines autofix (which modified files) — **re-run required**. Still owed: CSS rebuild (Pagination/Spinner/LoadingButton/EmptyState-action class families are NOT in the bundle yet), `check-codegen`, race + coverage, admin-demo rebuild + screenshot diff vs the p2 baseline.~~ done (Phase-3 gate closed green (round 4))
 2. **Todo #7 (demo seed + e2e)** — demo side done (memberships, tenant panel, favicon fix, fixed harness selectors/session ordering). The **e2e spec check-in is NOT started**: `e2e/tests/admin-screenshots.spec.ts` does not exist; all harness scripts (shot-p2.mjs, verify-p2.mjs, geo.mjs) live only in `/tmp/adminui-baseline/` (not durable).
 3. **Phase 2/3 verification assets** — new p2 baseline PNGs (18 shots incl. tenant panel) live in /tmp only; the mislabeled-"tenant-detail" discovery means the OLD p1 baseline's "tenant-detail" is actually tenants/new (only relevant when diffing; noted).
 
@@ -65,34 +73,34 @@ Scope of this report: only this session's work. Plan: `docs/planning/2026-09-20_
 
 ## f) NEXT — up to 50 things, in execution order
 
-1. Re-run adminui tests after the lint autofix (files changed post-green).
-2. `templ generate` + `nix run .#check-codegen` (Phase-3 regen state).
-3. Rebuild admin CSS (`nix run .#build-adminui-css`) — new class families from Pagination/Spinner/LoadingButton/EmptyState actions.
-4. Adminui race + coverage gates (≥66).
-5. Rebuild admin-demo (WORKSPACE mode), re-shoot, diff vs p2 baseline with md5-uniqueness.
-6. Update `verify-p2.mjs` with Phase-3 behavior checks (pagination footer, spinner span, LoadingButton labels, hx-disabled-elt presence).
-7. Mark M077 gate green → Phase 3 closed.
+1. ~~Re-run adminui tests after the lint autofix (files changed post-green).~~ done (adminui suite green (round 4/5))
+2. ~~`templ generate` + `nix run .#check-codegen` (Phase-3 regen state).~~ done (check-codegen green)
+3. ~~Rebuild admin CSS (`nix run .#build-adminui-css`) — new class families from Pagination/Spinner/LoadingButton/EmptyState actions.~~ done (CSS rebuilt with the new families)
+4. ~~Adminui race + coverage gates (≥66).~~ done (coverage green (gate 66))
+5. ~~Rebuild admin-demo (WORKSPACE mode), re-shoot, diff vs p2 baseline with md5-uniqueness.~~ done (round-4/5 visual verification)
+6. ~~Update `verify-p2.mjs` with Phase-3 behavior checks (pagination footer, spinner span, LoadingButton labels, hx-disabled-elt presence).~~ done (phase-3 behavior checks landed)
+7. ~~Mark M077 gate green → Phase 3 closed.~~ done (Phase 3 closed green)
 8. M078: read `display/modal.templ` props, write usage note.
-9. Phase 4: Modal confirmations replacing window.confirm on destructive actions (keep CSP-safe data-confirm path as fallback).
-10. Phase 4: Dropdown user menu (navigation package).
-11. Phase 4: PolledRegion on dashboard stats (needs SSE-compatible polling; verify CSP).
+9. ~~Phase 4: Modal confirmations replacing window.confirm on destructive actions (keep CSP-safe data-confirm path as fallback).~~ done (round4 phase-4 modal complete)
+10. ~~Phase 4: Dropdown user menu (navigation package).~~ done (adminui layout Dropdown adopted)
+11. ~~Phase 4: PolledRegion on dashboard stats (needs SSE-compatible polling; verify CSP).~~ done (htmx.PolledRegion adopted in dashboard.templ)
 12. Phase 4: dark-QA sweep across all pages.
 13. Phase 4: ThemeToggle spike — docs-only per plan.
 14. Check in `e2e/tests/admin-screenshots.spec.ts` (port shot-p2 learnings: load+settle, dev-login per session, selector exclusions, uniqueness assert, workspace-build note).
 15. Move/record harness scripts durably (e2e/ or scripts/ with a README note).
 16. Optional demo env flag to seed >50 users for visual pagination coverage.
 17. e2e tenant-admin flow spec (login-tenant, members page, add/remove member).
-18. TODO_LIST truth pass (retire: routed-gaps #3/#9/#10/#11, samber-linter, cqrs-upgrade --workspace, findings-gate-stale text).
-19. CHANGELOG `[Unreleased]`: IP/UA/ClientID metadata; DecodePayload re-exports + DecodePaginationStrict; sync assets v1.4.0; SSE replay `retry: 5000` wire change + WithSSEMaxReplay; samber-do-demo fixes; adminui Phases 1–3 (PageHeader/Breadcrumbs/FilterInput/pagination/error mapping/spinners/LoadingButton/EmptyState actions); demo memberships + tenant panel + favicon fix.
-20. Reference upstream issues #20/#21/#22 (templ-components) + #35/#36 (go-cqrs-lite) in CHANGELOG/TODO.
+18. ~~TODO_LIST truth pass (retire: routed-gaps #3/#9/#10/#11, samber-linter, cqrs-upgrade --workspace, findings-gate-stale text).~~ done (TODO_LIST truth pass landed)
+19. ~~CHANGELOG `[Unreleased]`: IP/UA/ClientID metadata; DecodePayload re-exports + DecodePaginationStrict; sync assets v1.4.0; SSE replay `retry: 5000` wire change + WithSSEMaxReplay; samber-do-demo fixes; adminui Phases 1–3 (PageHeader/Breadcrumbs/FilterInput/pagination/error mapping/spinners/LoadingButton/EmptyState actions); demo memberships + tenant panel + favicon fix.~~ done (CHANGELOG entries landed)
+20. ~~Reference upstream issues #20/#21/#22 (templ-components) + #35/#36 (go-cqrs-lite) in CHANGELOG/TODO.~~ done (upstream issues referenced)
 21. V007: run `cqrs-upgrade -dry-run --workspace` from go-cqrs-lite master; document.
 22. appkit ADR-001 (b)–(f) fold-in assessment; document.
-23. Full nix battery: `nix run .#test`, `.#lint`, `.#coverage-gate`.
-24. `nix run .#check-modules` (isolation/drift/release-train).
-25. integration_test suite (fullstack UI renders may assert adminui markup).
+23. ~~Full nix battery: `nix run .#test`, `.#lint`, `.#coverage-gate`.~~ done (full nix battery green)
+24. ~~`nix run .#check-modules` (isolation/drift/release-train).~~ done (check-modules green)
+25. ~~integration_test suite (fullstack UI renders may assert adminui markup).~~ done (integration_test suite green)
 26. Bench-spike re-attempt (check load first; 6th documented refusal if still high).
-27. Strip usermgmt's temporary `../` root dev-replace at the next family train.
-28. AGENTS.md: adminui adoption table rows for PageHeader/Breadcrumbs/FilterInput/Pagination/Spinner/LoadingButton/EmptyState-actions + favicon/dev-login lesson + CDP cookie-debug lesson.
+27. ~~Strip usermgmt's temporary `../` root dev-replace at the next family train.~~ done (all replaces stripped 2026-09-20)
+28. ~~AGENTS.md: adminui adoption table rows for PageHeader/Breadcrumbs/FilterInput/Pagination/Spinner/LoadingButton/EmptyState-actions + favicon/dev-login lesson + CDP cookie-debug lesson.~~ done (AGENTS.md adminui adoption rows updated)
 29. Annotate the adminui plan HTML: M035–M077 done-state.
 30. tenants-list pagination unit test (mirror users test).
 31. audit pagination test (seed >50 audit events).
@@ -102,14 +110,14 @@ Scope of this report: only this session's work. Plan: `docs/planning/2026-09-20_
 35. Check the autofix diff scope (`git show` on the last heuristic commits) — confirm gci/golines only touched intended files.
 36. tenantSubtitle mono styling decision (old font-mono name is now plain subtitle text).
 37. Consider aria-current/page-announce checks on pagination (library default verification).
-38. Final table-view report (docs/status) covering ALL TODO items with done/partial/gated/user-decision.
-39. Answer-pending integration: fold your Q1–Q3 answers (below) into the execution policy.
-40. Load check + cleanup of /tmp servers and background processes at session end.
+38. ~~Final table-view report (docs/status) covering ALL TODO items with done/partial/gated/user-decision.~~ done (round reports written)
+39. ~~Answer-pending integration: fold your Q1–Q3 answers (below) into the execution policy.~~ done (Q1-Q3 folded in)
+40. ~~Load check + cleanup of /tmp servers and background processes at session end.~~ done (cleanup done)
 41. Upstream issue draft: templ-components Button children slot.
 42. Upstream issue draft: wire.Action swap/push-url/select coverage.
-43. Root/usermgmt modules: run their focused suites again before any train (round-2 code untouched today, but the train checklist demands it).
-44. `gofmt -l` sweep over adminui (autofix aftermath).
-45. Kill the /tmp/adminui-baseline demo server when Phase 3/4 visual work concludes.
+43. ~~Root/usermgmt modules: run their focused suites again before any train (round-2 code untouched today, but the train checklist demands it).~~ done (root/usermgmt suites green)
+44. ~~`gofmt -l` sweep over adminui (autofix aftermath).~~ done (gofmt clean)
+45. ~~Kill the /tmp/adminui-baseline demo server when Phase 3/4 visual work concludes.~~ done (demo servers cleaned up)
 46. Optional: pagination `MaxVisible` tuning for mobile (container-aware flag).
 47. Optional: audit page tenant-scope filter (noted in handler comment as future work).
 48. Verify LoadingButton spinner color on secondary variant in dark mode (screenshot).
