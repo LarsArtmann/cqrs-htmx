@@ -1,6 +1,6 @@
 # ADR 0051: V007 stack-surface disposition — deprecate now, delete in v5, gate cluster 1 on metaengine maturity
 
-**Status:** Proposed (spike outcome, 2026-09-21) · **Supersedes:** none · **Related:** ADR-0123/ADR-0126 (go-cqrs-lite), ADR-0050, `docs/planning/2026-09-10_v007-spike-plan.md`, `docs/guides/v5-removal-inventory.md`
+**Status:** Accepted (deprecations shipped in v4.12.0, 2026-09-22) · **Supersedes:** none · **Related:** ADR-0123/ADR-0126 (go-cqrs-lite), ADR-0050, `docs/planning/2026-09-10_v007-spike-plan.md`, `docs/guides/v5-removal-inventory.md`
 
 ## Context
 
