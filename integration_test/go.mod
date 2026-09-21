@@ -3,18 +3,18 @@ module github.com/larsartmann/cqrs-htmx/integration_test
 go 1.27.1
 
 require (
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/health/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/health/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.1

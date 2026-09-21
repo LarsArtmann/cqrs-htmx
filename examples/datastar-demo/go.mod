@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/datastar-demo
 go 1.27.1
 
 require (
-	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
