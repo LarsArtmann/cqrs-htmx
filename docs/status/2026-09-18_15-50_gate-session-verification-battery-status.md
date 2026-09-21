@@ -4,6 +4,14 @@
 **Session scope:** The final verification battery of the command-audit Pareto plan (queued as §f items 1–6 of `docs/status/2026-09-18_10-15_command-audit-pareto-completion-status.md`), plus M26 formal close. This session ran the 5-gate battery, hit four distinct blockers, fixed them all, and closed the docs loop. No plan-task code was written — every code change this session was gate-repair.
 **Environment:** auto-commit daemon absorbed 5 of this session's commits (2 narrative survived: `97ec7574`, `0c3dfa9d`); the sibling session was LIVE during the battery (go-cqrs-lite commits 14:40–14:47, a `flake.nix` `getExe` edit, and the root go.mod re-bump lineage); workspace-mode LSP diagnostics remained phantom noise throughout (40–59 errors at all times, ignored per protocol — hermetic CLI was the only truth).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the battery's rigor gap is closed; the wider gate suite is green.
+> - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
+> - **§b:** b1 (atomic final pass) DONE — the whole ladder is green; b2 (wider suite: check-modules/release-train/templates/codegen/fuzz/flake/e2e) DONE; **b3 (M21 tail)** remains open → `TODO_LIST.md`.
+> - **§c (bullets):** bench-spike still deferred → `TODO_LIST.md`; `nix fmt` on the sibling `flake.nix` edit and the LSP restart are moot (tree settled, diagnostics transient).
+> - **§d / §e:** retrospective mistakes + process lessons — historical record, no action.
+> - **§f:** struck rows confirmed done; open rows (f8/f10/f14/f15/f17–f34/f36–f38/f40/f42) are routed to `TODO_LIST.md`/`ROADMAP.md` (bench-spike, examples tail, flake fmt, LSP, history hygiene, upstream issues, fullstack-wiring, causation surfacing, example demos, skill reference, offline-sync e2e, README, SQL idempotency store, routed gaps, idle-load probe, sibling coordination).
+> - **§g:** q1/q2 resolved (1.27.1 coordinated bump; cross-repo protocol ratified by the later train); q3 moot — pushed with the train.
+
 ---
 
 ## a) FULLY DONE (each verified green before moving on)
@@ -57,22 +65,22 @@
 
 ## f) THE NEXT 50 (session-derived; carried items marked ★)
 
-1. Atomic re-run of all five gates on the final commit (close b.1).
-2. `nix run .#check-modules` (expect: temporary replaces + root/usermgmt isolation green).
-3. `nix run .#check-release-train` (+ `-- --refresh-cache` caveat for fresh tags).
-4. `nix run .#check-templates` + `.#check-codegen`.
-5. `nix run .#test-fuzz` + `.#test-flake`.
-6. e2e Playwright suite (`PLAYWRIGHT_BROWSERS_PATH` fallback if /mnt cache is cold).
-7. `nix flake check --no-build`.
+1. ~~Atomic re-run of all five gates on the final commit (close b.1).~~ done (gates green (lint 15/15, test 18/18, coverage 15/15))
+2. ~~`nix run .#check-modules` (expect: temporary replaces + root/usermgmt isolation green).~~ done (check-modules green)
+3. ~~`nix run .#check-release-train` (+ `-- --refresh-cache` caveat for fresh tags).~~ done (check-release-train green 0/0)
+4. ~~`nix run .#check-templates` + `.#check-codegen`.~~ done (check-templates + check-codegen green)
+5. ~~`nix run .#test-fuzz` + `.#test-flake`.~~ done (test-fuzz + test-flake green)
+6. ~~e2e Playwright suite (`PLAYWRIGHT_BROWSERS_PATH` fallback if /mnt cache is cold).~~ done (09-19 N5-N8 e2e green)
+7. ~~`nix flake check --no-build`.~~ done (nix flake check green)
 8. `nix run .#bench-spike` on an idle machine — the M2 chain adds ~275 ns/dispatch; re-pin baseline in the same change if the gate trips.
-9. ★ Family train: tag usermgmt FIRST via `scripts/verify-tag.sh`, then bump setup + integration_test requires, strip the two `usermgmt/v4 => ../usermgmt` dev-replaces.
+9. ~~★ Family train: tag usermgmt FIRST via `scripts/verify-tag.sh`, then bump setup + integration_test requires, strip the two `usermgmt/v4 => ../usermgmt` dev-replaces.~~ done (v4.11.0 train shipped)
 10. ★ Post-train: drop `examples/basic`'s manual option line (M21 tail; NOTE comment marks it).
-11. ★ Post-train: cut the `[Unreleased]` CHANGELOG block into version sections.
-12. ★ M16 decision implemented (pin 1.26.7 everywhere via GOTOOLCHAIN, or coordinated 27-module 1.27.1 bump) — until then check `head -5 go.mod` before any go.mod work.
-13. Migrate `exhaustruct` → `exhaustruct_v5` (deprecation warning printed by every module's lint run all session).
+11. ~~★ Post-train: cut the `[Unreleased]` CHANGELOG block into version sections.~~ done (trained CHANGELOG cut)
+12. ~~★ M16 decision implemented (pin 1.26.7 everywhere via GOTOOLCHAIN, or coordinated 27-module 1.27.1 bump) — until then check `head -5 go.mod` before any go.mod work.~~ done (1.27.1 coordinated bump landed 2026-09-19)
+13. ~~Migrate `exhaustruct` → `exhaustruct_v5` (deprecation warning printed by every module's lint run all session).~~ done (exhaustruct_v5 adopted)
 14. `nix fmt` the daemon-committed `flake.nix` `getExe` change (coordinate with the owning session — verify the wrapping is even wanted).
 15. Restart gopls/LSP to clear the phantom workspace diagnostics (59 errors at session end, all stale).
-16. ★ M19: templ-components v1.18.0 sweep once the sibling dashboardui session lands (hold recommendation stands — sibling was live TODAY).
+16. ~~★ M19: templ-components v1.18.0 sweep once the sibling dashboardui session lands (hold recommendation stands — sibling was live TODAY).~~ done (09-19 N3 v1.18.0 uniform)
 17. ★ History hygiene: ~14+ heuristic commits now unpushed (5 more this session); rewrite-then-push or push-as-is (g.3).
 18. ★ File the BuildFlow docs-only fast-path issue (draft: `docs/research/2026-09-18_upstream-issue-drafts.md`, verify-before-filing first).
 19. ★ File the gomod double-count issue (same file, same gate).
@@ -91,13 +99,13 @@
 32. ★ `examples/setup-demo`: `setup.Config.CommandMiddleware` passthrough demo.
 33. ★ Bench: validation+idempotency variants on `BenchmarkDispatchAuditChain`.
 34. ★ e2e offline-sync replay × idempotency (ties M4 to the browser path).
-35. ★ E2E actor through the real `/auth/*` HTTP path (session middleware → bridge).
+35. ~~★ E2E actor through the real `/auth/*` HTTP path (session middleware → bridge).~~ done (integration_test/actor_attribution_test.go)
 36. ★ README quickstart: one-line CommandMiddleware mention.
 37. ★ SQL `idempotency.Store` as a usermgmt extra.
 38. ★ Routed v2-report gaps: IP/User-Agent metadata, Retry-After, ClientID, DecodePayload[T], Pagination.Validate.
-39. ★ TODO_LIST docs-health pass after the train (prune M19/M21 tails etc.).
+39. ~~★ TODO_LIST docs-health pass after the train (prune M19/M21 tails etc.).~~ done (this docs-health sweep)
 40. Consider an idle-load probe helper before bench gates (`uptime` check) so "deferred" is measured, never assumed.
-41. Session-close push decision once g.2/g.3 are answered (~35+ unpushed commits incl. this battery's fixes).
+41. ~~Session-close push decision once g.2/g.3 are answered (~35+ unpushed commits incl. this battery's fixes).~~ done (pushed with the train)
 42. Sibling-session collision log: today saw root-go.mod re-bump lineage + metaengine mid-edit + flake.nix mid-edit — if these sessions coordinate via a shared file, three of today's four blockers vanish.
 
 (42 items — not padded to 50; the remaining candidates are already inventoried in the 10:15 report's §f.)

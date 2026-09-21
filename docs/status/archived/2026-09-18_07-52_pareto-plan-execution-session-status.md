@@ -4,6 +4,15 @@
 **Session scope:** Execute the command-audit Pareto plan (`docs/planning/2026-09-17_20-28_command-audit-pareto-execution-plan.md`, 27 tasks) minus M6 (skipped by user decision), Lars-gated execution steps documented as asks.
 **Environment:** concurrent sibling session actively committing (dashboardui templ-components adoption + toolchain tug-of-war + go-appkit work); auto-commit daemon racing every manual commit; workspace mode broken by the go-directive mismatch (all verification done hermetically per module with GOWORK=off).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the command-audit Pareto execution is fully absorbed.
+> - **§a:** ALL DONE (a1–a6 verified live: bijection script, audit chain built-in, M2/M15 chain, structural enrichment fix, CommandMiddleware, `actor_attribution_test.go`).
+> - **§b:** M11 report annotation DONE (09-19 N13 + A2); M13 integration test DONE; the daemon commit absorption is historical record.
+> - **§c:** M4/M8 landed (command_idempotency_test.go, service_close_test.go); M7/M10/M12/M13(annotation)/M14 and the repo tail are done or routed; M6 skipped by user decision.
+> - **§d:** retrospective mistakes — historical record, no action.
+> - **§e:** process lessons — capture in AGENTS, no per-item action.
+> - **§f:** struck rows confirmed done; open rows (f3/f6/f8/f10/f11/f12/f14/f16/f17/f18/f21/f25/f26/f28/f33/f37) are routed to `TODO_LIST.md`/`ROADMAP.md` (feature-audit cross-link, production-chain docs, enricher bench, validation survey, examples sweep, capability matrix, skill posture, BuildFlow fast-path, blob-purge approval, root `unconvert`, fullstack-wiring update, upstream enricher, bench-spike re-pin, examples build).
+> - **§g:** q1/q3 resolved (v1.18.0 landed; 1.27.1 coordinated bump); q2 (history rewrite) moot — history left as-is, CHANGELOG carries the story.
+
 ---
 
 ## a) What is DONE (verified)

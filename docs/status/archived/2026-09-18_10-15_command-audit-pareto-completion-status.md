@@ -4,6 +4,15 @@
 **Session scope:** Resume-and-finish of the command-audit Pareto plan (`docs/planning/2026-09-17_20-28_command-audit-pareto-execution-plan.md`, 27 tasks M1–M27, M6 skipped by user decision). Prior session landed M1/M2/M3/M11/M13/M15; this session executed everything remaining. Predecessor record: `docs/status/2026-09-18_07-52_pareto-plan-execution-session-status.md`.
 **Environment:** unchanged — auto-commit daemon racing every commit (ate 4+ more narrative commits this session), workspace mode broken by the root `go 1.27.1` vs go.work `1.26.7` tug-of-war (sibling session), all verification hermetic per module (GOWORK=off; root module verifiable with `GOTOOLCHAIN=go1.27.1` — discovered this session).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the command-audit Pareto plan is fully executed (26/26).
+> - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
+> - **§b:** M26 + the final battery DONE (§h addendum: lint 15/15, test 18/18, coverage 15/15, cqrs-lint strict, bijection 20/20); **M21 examples tail** (drop `examples/basic` manual option line — root now tagged) remains open → `TODO_LIST.md`.
+> - **§c:** M6 skipped by user decision; the `/auth/*` E2E actor assertion is DONE (`integration_test/actor_attribution_test.go`); routed gaps remain `TODO_LIST.md` entries.
+> - **§d / §e:** retrospective mistakes + process lessons — historical record, no action.
+> - **§f:** struck rows confirmed done; open rows (f9/f11/f12/f16–f29/f31–f38/f42/f44–f47/f49) are routed to `TODO_LIST.md`/`ROADMAP.md` (examples tail, bench-spike, upstream enricher, fullstack-wiring, causation surfacing, upstream issues, routed audit gaps, example demos, skill reference, bench variants, offline-sync e2e, README, SQL idempotency store, history hygiene, blob purge, dependabot, samber-linter, vendorHash).
+> - **§g:** q1/q2 resolved (v1.18.0 landed; 1.27.1 coordinated bump); q3 moot — history left as-is, CHANGELOG carries the story.
+> - **§h:** addendum is self-contained (all five gates green); the green-✅ table left unstruck (already clear).
+
 ---
 
 ## a) FULLY DONE (this session, each verified green before commit)
@@ -60,21 +69,21 @@
 
 ## f) THE NEXT 50 (prioritized)
 
-1. Run `nix run .#lint` (15 modules) — final gate.
-2. Run `nix run .#test` — final gate.
-3. Run `nix run .#coverage-gate` — CRITICAL: root ≥90 / usermgmt ≥74; this session added non-trivial usermgmt code (audit_context.go, command_validation.go — small) and root changed only handler.go assertions (coverage should hold, but VERIFY).
-4. Run `nix run .#check-cqrs-lint` (library preset).
-5. Re-run `scripts/check-command-bijection.sh` (mechanical, exit 0 expected).
-6. M26 formal close: confirm sibling session's files settled with attribution (tree was clean at 10:15).
-7. Family train: tag **usermgmt FIRST** (audit chain + CommandMiddleware + ValidateCommand), via `scripts/verify-tag.sh`.
-8. Then bump setup + integration_test requires, strip the two `usermgmt/v4 => ../usermgmt` dev-replaces (train checklist entry).
+1. ~~Run `nix run .#lint` (15 modules) — final gate.~~ done (§h addendum green)
+2. ~~Run `nix run .#test` — final gate.~~ done (§h addendum green)
+3. ~~Run `nix run .#coverage-gate` — CRITICAL: root ≥90 / usermgmt ≥74; this session added non-trivial usermgmt code (audit_context.go, command_validation.go — small) and root changed only handler.go assertions (coverage should hold, but VERIFY).~~ done (§h addendum green root 93.7/90 usermgmt 82.1/74)
+4. ~~Run `nix run .#check-cqrs-lint` (library preset).~~ done (§h addendum green)
+5. ~~Re-run `scripts/check-command-bijection.sh` (mechanical, exit 0 expected).~~ done (§h addendum green 20/20)
+6. ~~M26 formal close: confirm sibling session's files settled with attribution (tree was clean at 10:15).~~ done (tree clean)
+7. ~~Family train: tag **usermgmt FIRST** (audit chain + CommandMiddleware + ValidateCommand), via `scripts/verify-tag.sh`.~~ done (v4.11.0 train shipped)
+8. ~~Then bump setup + integration_test requires, strip the two `usermgmt/v4 => ../usermgmt` dev-replaces (train checklist entry).~~ done (all replaces stripped 2026-09-20)
 9. Post-root-tag: drop `examples/basic` manual option line (M21 tail, NOTE comment marks the spot).
-10. Post-train: `nix run .#check-release-train` + `.#check-modules`.
+10. ~~Post-train: `nix run .#check-release-train` + `.#check-modules`.~~ done (release-train + check-modules green)
 11. `nix run .#bench-spike` (idle machine only) — the M2 middleware adds ~275 ns/dispatch; if appkit-service trips the 10% gate, re-pin in the same change.
 12. Upstream proposal: `requestContextEnricher` → go-cqrs-lite event/ (drop the local copy at next train).
-13. M19: templ-components v1.18.0 sweep once the sibling dashboardui session lands.
-14. M16: toolchain policy decision (Lars — see g.2).
-15. E2E actor through the real `/auth/*` HTTP path (session middleware → bridgeSessionIdentity), not just direct WithUser ctx.
+13. ~~M19: templ-components v1.18.0 sweep once the sibling dashboardui session lands.~~ done (09-19 N3 v1.18.0 uniform)
+14. ~~M16: toolchain policy decision (Lars — see g.2).~~ done (1.27.1 coordinated bump landed 2026-09-19)
+15. ~~E2E actor through the real `/auth/*` HTTP path (session middleware → bridgeSessionIdentity), not just direct WithUser ctx.~~ done (integration_test/actor_attribution_test.go)
 16. Refresh `docs/guides/fullstack-wiring.md` with the CommandMiddleware/audit-chain posture (skill done, this guide not).
 17. `docs/guides/leveraging-go-cqrs-lite.md` §2.6 correlation section: mention the now-built-in `requestContextEnricher` (currently reads as consumer-only recipe).
 18. Verify + document that the auditlog bridge's actor column is now populated by default (dashboardui/adminui views).
@@ -89,7 +98,7 @@
 27. Offline-sync ClientID propagation (routed gap #9).
 28. Decide DecodePayload[T] exposure (low, routed gap #10).
 29. Decide Pagination.Validate exposure (low, routed gap #11).
-30. Root pre-existing `unconvert` at `projection_status_handler.go:54` (NOT this session's; fix in hygiene pass).
+30. ~~Root pre-existing `unconvert` at `projection_status_handler.go:54` (NOT this session's; fix in hygiene pass).~~ done (§h addendum item 1 closed the unconvert)
 31. `examples/middleware-demo`: add `ValidateCommand` to demonstrate the M7 seam end-to-end.
 32. `examples/setup-demo`: `setup.Config.CommandMiddleware` passthrough demo (one slice).
 33. Skill `references/usermgmt.md`: mirror the command-posture note (SKILL.md done, reference file not).
@@ -98,18 +107,18 @@
 36. README quickstart: one-line CommandMiddleware mention under usermgmt section.
 37. Consider an SQL `idempotency.Store` implementation as a usermgmt extra (consumers currently hand-roll; contract is one atomic claim).
 38. M6 revisit (SQL command journal) — only with a fresh Lars go-ahead + mini-ADR first.
-39. AGENTS.md: add the `GOTOOLCHAIN=go1.27.1` root-module escape-hatch detail to the tug-of-war gotcha (e.4).
-40. TODO_LIST docs-health pass after the train (prune items this session completes, e.g. M19/M21 tails).
-41. When the train tags: cut the `[Unreleased]` CHANGELOG block into version sections.
+39. ~~AGENTS.md: add the `GOTOOLCHAIN=go1.27.1` root-module escape-hatch detail to the tug-of-war gotcha (e.4).~~ done (AGENTS.md records the GOTOOLCHAIN escape hatch)
+40. ~~TODO_LIST docs-health pass after the train (prune items this session completes, e.g. M19/M21 tails).~~ done (this docs-health sweep)
+41. ~~When the train tags: cut the `[Unreleased]` CHANGELOG block into version sections.~~ done (v4.11.0 train cut the CHANGELOG)
 42. `git log` authorship hygiene decision (g.3) — then possibly push.
-43. Session-close push decision: ~30+ unpushed commits incl. all this session's work.
+43. ~~Session-close push decision: ~30+ unpushed commits incl. all this session's work.~~ done (pushed with the train)
 44. v4 branch blob purge (tracked P3, sibling of the setup-demo purge).
 45. dependabot `open-pull-requests-limit` review (2 may be starving updates).
 46. samber-linter failure-rate repro before any exclude decision.
 47. benchstat `vendorHash` refresh next time benchstat bumps (recipe comment at flake.nix:86).
-48. Coverage docs row in AGENTS.md: re-date after gate (3) passes.
+48. ~~Coverage docs row in AGENTS.md: re-date after gate (3) passes.~~ done (§h addendum: coverage row re-dated)
 49. Consider teaching `cqrs-upgrade` about the new middleware/v4 v4.6.0-era symbols (paired with the existing multi-module ask).
-50. Next docs-health sweep: reconcile this report + the 07:52 predecessor against final gate outcomes.
+50. ~~Next docs-health sweep: reconcile this report + the 07:52 predecessor against final gate outcomes.~~ done (this docs-health sweep)
 
 ## g) QUESTIONS for Lars (cannot be resolved from inside the repo)
 
