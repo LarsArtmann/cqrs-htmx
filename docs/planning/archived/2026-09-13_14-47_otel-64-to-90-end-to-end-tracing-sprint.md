@@ -15,7 +15,7 @@
 
 > **Plan type:** Pareto-prioritized execution plan (point-in-time snapshot)
 > **Created:** 2026-09-13 14:47 CEST (`date` CLI)
-> **Source audit:** [`docs/research/2026-09-13_otel-deep-dive.html`](../research/2026-09-13_otel-deep-dive.html) (adoption score 64/100, 0 anti-patterns, all versions current)
+> **Source audit:** [`docs/research/2026-09-13_otel-deep-dive.html`](../../research/2026-09-13_otel-deep-dive.html) (adoption score 64/100, 0 anti-patterns, all versions current)
 > **Living source:** `TODO_LIST.md` P2 (3 OTel bullets reference this plan)
 > **Goal:** close the OTel discoverability + API parity gaps so any consumer gets end-to-end traces (HTTP root span → dispatch → domain → event metadata) with one Setup call and copy-paste recipes — WITHOUT breaking the library principle (zero OTel imports in library code) and without any breaking API change (additive config fields only).
 

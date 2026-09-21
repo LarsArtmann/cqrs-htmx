@@ -141,6 +141,28 @@ while IFS=: read -r f lineno line; do
   fi
 done < <(grep -nE "(uniform at|all [a-z]+ modules at) v" "${LIVING_DOCS[@]}" 2>/dev/null)
 
+# ---------------------------------------------------------------------------
+# /v4-suffix rule for cqrs-htmx import paths (docs-health B2): a subpackage
+# import in a LIVING doc must carry the /v4 major suffix — the README bug
+# class (2026-09-20) shipped paths that do not compile. docs/agents-notes.md
+# is the verbatim historical archive and is exempt.
+# ---------------------------------------------------------------------------
+echo ""
+echo "Checking cqrs-htmx import paths carry /v4 in living docs..."
+# shellcheck disable=SC1091
+source scripts/lib/docs-import-paths.sh
+V4_LIVING_DOCS=()
+for f in "${LIVING_DOCS[@]}"; do
+  case "$f" in
+  docs/agents-notes.md) continue ;;
+  esac
+  V4_LIVING_DOCS+=("$f")
+done
+check_import_paths "${V4_LIVING_DOCS[@]}"
+if [ "${CHECK_FAILED:-0}" -eq 1 ]; then
+  FAILED=1
+fi
+
 echo ""
 if [ "$FAILED" -eq 0 ]; then
   echo "✓ Docs freshness check PASSED"

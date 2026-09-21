@@ -1,6 +1,6 @@
 # Decision: `/mnt/buildcache` (sda1) — replace or retire
 
-**Status:** PREPARED, awaiting user decision (hardware spend).
+**Status:** PREPARED, awaiting user decision (hardware spend). **Update 2026-09-22 (docs-health): DORMANT** — the mount was repaired and has been healthy + build-verified since 2026-09-15 (see AGENTS.md "Go caches" row); the decision is only live again if the failure history recurs (watch item: TODO_LIST P3 hardware watch).
 **Prepared:** 2026-08-30.
 
 ## Facts (verified)

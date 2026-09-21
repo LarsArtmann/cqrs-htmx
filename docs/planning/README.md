@@ -18,5 +18,5 @@ Most planning files already include their own "what shipped" or "status" section
 
 ## Notable subdirectories
 
-- `docs/planning/archive/` — older plans moved out of active view
-- Many files reference D2 execution graphs (`.d2` + `.svg` pairs) that visualize the Pareto-prioritized work at the time of writing.
+- `docs/planning/archived/` — executed/superseded plans moved out of active view (swept 2026-09-22: 11 annotated plans + 16 pre-September artifacts)
+- Many files reference D2 execution graphs (`.d2` + `.svg` pairs) that visualize the Pareto-prioritized work at the time of writing; the pairs moved with their plans.

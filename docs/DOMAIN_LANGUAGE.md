@@ -10,13 +10,14 @@ Every term below should mean the **same thing** to everyone who reads it.
 | Term               | Definition                                                                                                                        | Context                       |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
 | AccountLockout     | Brute-force protection that blocks authentication after N failed attempts                                                         | Authentication                |
-| Actor              | A kind-discriminated identity: either a User or a Bot (used in authorization + audit)                                             | Identity model (ADR 0015)     |
-| ActorID            | A value identifying an Actor — carries kind (user/bot) + raw ID string                                                            | Identity model                |
+| Actor              | A kind-discriminated identity: User, Bot, System, Service, or Unknown (used in authorization + audit)                             | Identity model (ADR-0111)     |
+| ActorID            | A value identifying an Actor — carries kind (user/bot/system/service/unknown) + raw ID string                                    | Identity model (ADR-0111)     |
 | Aggregate          | A cluster of domain objects treated as a single unit for data consistency                                                         | Event-sourced CQRS            |
 | AuditLog           | A projection that records all user events as queryable audit entries                                                              | Compliance / Security         |
 | Authz              | Authorization engine wrapping Casbin RBAC with domains                                                                            | usermgmt module               |
 | Bot                | A non-human actor with an API token, registered to an owner for automated access                                                  | Identity model (ADR 0015)     |
 | BotID              | A branded string uniquely identifying a bot                                                                                       | Identity model                |
+| Broadcaster        | The SSE fan-out hub (`*sse.Broadcaster[sse.Event]`); adapters for CQRS dispatch hooks and DataStar embed it — `Hub()` is the canonical shareable object | cqrs-htmx root + datastar     |
 | Casbin             | External authorization library providing RBAC with domain support                                                                 | Authorization                 |
 | CasbinProjection   | A projection that derives all Casbin policies from user events                                                                    | Event sourcing                |
 | Ceremony           | A WebAuthn protocol flow (registration or login) split into a begin + finish exchange                                             | Authentication                |
@@ -51,14 +52,15 @@ Every term below should mean the **same thing** to everyone who reads it.
 | Session            | An ephemeral authentication artifact (token + expiry) created after login                                                         | Authentication                |
 | SessionOrigin      | The cause of a session: DirectLogin, Impersonation, or OAuth2                                                                     | Authentication                |
 | SnapshotConfig     | Opt-in configuration for aggregate snapshotting (Store + Codec + Strategy); zero-value = full-replay mode                         | Event sourcing (ADR 0041)     |
-| SQLEventStore      | Persistent `event.Store` for PostgreSQL and SQLite with optimistic concurrency                                                    | Persistence                   |
+| SQLEventStore      | Persistent `event.Store` for PostgreSQL, SQLite, and MySQL with optimistic concurrency                                            | Persistence                   |
+| Scoped Feed        | A shared `/sse` stream filtered by a predicate (`setup.Config.SSEFilter`) — scopes live events AND journal replay, fail-closed      | setup / transport (v4.12.0)    |
 | Templ              | Go HTML templating engine with type-safe compile-checked templates                                                                | Frontend                      |
 | Tenant             | An organizational boundary for multi-tenancy — contains members with roles                                                        | Identity model (ADR 0015)     |
 | TenantID           | A branded string uniquely identifying a tenant                                                                                    | Identity model                |
 | Tombstone          | A soft-delete marker event signaling an aggregate is logically deleted                                                            | Event sourcing                |
 | TOTP               | Time-based One-Time Password (RFC 6238) — a 6-digit second-factor code                                                            | Multi-factor auth             |
 | TOTPProvider       | Interface for TOTP secret generation + code validation; implemented by usermgmt/totp/v4                                           | Auth strategy (ADR 0035)      |
-| UserID             | A branded string type uniquely identifying a user                                                                                 | usermgmt module               |
+| UserID             | A branded string type uniquely identifying a user                                                                                 | identity-model (aliased in root/usermgmt) |
 | WebAuthn           | W3C standard for passwordless authentication using passkeys/FIDO2                                                                 | Authentication                |
 | WebAuthnProvider   | Interface for WebAuthn ceremony delegation via []byte JSON; implemented by usermgmt/webauthn/v4                                   | Auth strategy (ADR 0035)      |
 | WebAuthnSessionTTL | Configurable TTL for WebAuthn challenge sessions (ServiceConfig.WebAuthnSessionTTL)                                               | Authentication                |
@@ -84,7 +86,7 @@ Immutable objects defined by attributes.
 | ----------------- | --------------------------------------------------------- | -------------- |
 | UserID            | Branded string uniquely identifying a user                | Identity       |
 | Email             | Validated email address (`ParseEmail`/`MustParseEmail`)   | Identity       |
-| Session           | Token + expiry + user ID, immutable after creation        | Authentication |
+| Session            | Token + user + actor + origin + timestamps, immutable after creation                                                              | Authentication                |
 | Role              | Named permission group string (admin, user, viewer)       | RBAC           |
 | Policy            | An RBAC rule: subject + domain + object + action + effect | Authorization  |
 | GroupPolicy       | A role assignment: subject + role + domain                | Authorization  |
