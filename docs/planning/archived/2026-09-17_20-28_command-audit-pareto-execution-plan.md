@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** COMPLETE — the command-audit chain shipped 2026-09-18 (`commandAuditMiddleware` + repository enrichers wired in `NewService`, zero consumer code); the two-item tail (bench-spike, requestContextEnricher upstreaming) lives in TODO_LIST.
+
 # Command-Audit Pareto Execution Plan
 
 **Date:** 2026-09-17 20:28 CEST

@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** EXECUTED — the trust-gate ladder, the v4.11.0 family train (13 tags, 2026-09-19), and the zero-drift alignment sweeps all landed; evidence: CHANGELOG `[v4.11.0]`/`[v4.12.0]`, AGENTS.md gate rows, TODO_LIST round-6 header. Survivors routed to TODO_LIST (bench-spike idle re-run) and ROADMAP.
+
 # Pareto Plan Round 2 — Trust Gates, Green Train, Full Backlog (2026-09-09)
 
 **Prepared:** 2026-09-09 20:15 CEST

@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** COMPLETE — the httputil v0.11.0 consolidation swept the repo 2026-09-17 (CSRF/Server-Timing/rate-limit re-exports over httputil, direct `sse.*` usage); go-etag/go-sse rode their trains. Evidence: AGENTS.md httputil row, CHANGELOG.
+
 # Pareto Execution Plan — Sibling Library Adoption (httputil / go-etag / go-sse)
 
 **Created:** 2026-09-17 13:42 CEST

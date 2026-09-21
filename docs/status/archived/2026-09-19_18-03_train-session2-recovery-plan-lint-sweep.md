@@ -1,6 +1,6 @@
 # Status: v4.11.0 Train Session 2 — Corruption Recovery, Plan, Lint Sweep
 
-> **Freshness:** point-in-time, 2026-09-19 18:03 CEST. Companion docs: [Pareto plan 17:24](../../planning/2026-09-19_17-24_v4.11.0-release-train-pareto-plan.md) · [session-1 report 16:42](2026-09-19_16-42_v4.11.0-train-prep-session.md) (annotated with corrections).
+> **Freshness:** point-in-time, 2026-09-19 18:03 CEST. Companion docs: [Pareto plan 17:24](../../planning/archived/2026-09-19_17-24_v4.11.0-release-train-pareto-plan.md) · [session-1 report 16:42](2026-09-19_16-42_v4.11.0-train-prep-session.md) (annotated with corrections).
 > **Session scope:** execution start on the 17:24 plan — corruption recovery, plan authoring, and an unplanned-but-release-blocking Go 1.27 lint sweep.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the plan this report started (17:24 Pareto) executed fully — the v4.11.0 train shipped.

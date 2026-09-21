@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** EXECUTED 2026-09-14 (all 13 M-tasks; see the in-file EXECUTED note). Current canonical doc: `docs/guides/leveraging-go-cqrs-lite.md` §2.1–§2.6.
+
 # OTEL: From 64 → 90 — The End-to-End Tracing Sprint
 
 > **EXECUTED 2026-09-14 (annotate mode):** all 13 M-tasks complete. M1-M4 + M6/M7

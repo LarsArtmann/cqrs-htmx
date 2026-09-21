@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** COMPLETE — the routed-gaps bundle shipped (IP/UA/ClientID metadata, DecodePayload re-exports, DecodePaginationStrict, `Retry-After` on 503); evidence: TODO_LIST rounds-1–5 header, CHANGELOG.
+
 # Pareto Execution Plan — setup Composition-Root Gap Bundle
 
 **Generated:** 2026-09-17 13:46 CEST

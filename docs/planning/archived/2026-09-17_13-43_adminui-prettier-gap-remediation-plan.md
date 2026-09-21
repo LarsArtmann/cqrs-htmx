@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** COMPLETE — the adminui prettier-gap program finished 45/45 browser checks + 9/9 Playwright specs, followed by the core-shell migration (2026-09-17→09-19) and the v1.19 theme work; evidence: TODO_LIST round-6 header, CHANGELOG `[v4.12.0]`.
+
 # Adminui "Even Prettier" + Gap Remediation — Pareto Execution Plan
 
 **Date:** 2026-09-17 13:43 CEST

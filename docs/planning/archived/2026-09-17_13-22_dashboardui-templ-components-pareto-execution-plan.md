@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** COMPLETE — dashboardui templ-components adoption finished 2026-09-17→09-19 (15/22 capabilities, re-estimated ~85/100 vs 14/100) plus the N16/N17 hardening pass; evidence: AGENTS.md dashboardui section, `docs/benchmarks/dashboardui-render-2026-09-19.md`.
+
 # Pareto Execution Plan — dashboardui × templ-components Adoption Program
 
 **Generated:** 2026-09-17 13:22 CEST

@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** RESOLVED 2026-09-21 (owner decision, in-file) — Option B shipped as `setup.Config.SSEFilter` in v4.12.0. Archived; the guide recipe (`docs/guides/sse-and-datastar.md` §Scoped Feeds) is the living documentation.
+
 # Decision: /sse endpoint shape — session-gating vs stream filtering
 
 **Status:** RESOLVED 2026-09-21 (owner decision, design-tree interview): **Option B** — ship the

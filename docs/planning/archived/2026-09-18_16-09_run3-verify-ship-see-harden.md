@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health):** EXECUTED — the N16/N17 hardening pass landed 2026-09-19 (CSP-safe slider listeners, forms.Input filter bar, render benches); evidence: AGENTS.md dashboardui N16/N17 note, `docs/benchmarks/dashboardui-render-2026-09-19.md`.
+
 # Run-3 Execution Plan — Verify · Ship · See · Harden (dashboardui adoption aftermath)
 
 **Generated:** 2026-09-18 16:09 CEST
