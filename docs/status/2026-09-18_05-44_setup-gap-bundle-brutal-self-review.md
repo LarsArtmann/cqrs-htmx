@@ -24,12 +24,12 @@
 1. **M2.8 dropped:** `TestNew_AllConfigFields` was never extended with `AuthHandlerConfig` — the micro-task said "update setup_defaults_test zero-value expectations for the new field". The seam's parity is pinned elsewhere (per-field test), but the full-config wiring row is missing.
 2. **M4.6 dropped:** the benchmarks section of `setup/README.md` never got the "appkit-service sub-bench unchanged while Metrics nil (finding-7 noise suppression intact)" note — my commit message CLAIMS it, the docs don't carry it. Claim-without-doc.
 3. **M3.1 partial:** I read appkit v0.5.0's API surface (config/metrics/version/service) and ran the parity tests, but never produced the systematic v0.4.0→v0.5.0 diff the micro-task asked for. Risk actually covered (build+parity green), task honestly half-done.
-4. **FEATURES.md untouched:** ten new public `Config` fields shipped with zero feature-inventory rows. Every other doc surface was updated; the one file whose JOB is the feature inventory was forgotten.
+4. ~~**FEATURES.md untouched:** ten new public `Config` fields shipped with zero feature-inventory rows. Every other doc surface was updated; the one file whose JOB is the feature inventory was forgotten.~~ done (FEATURES.md now carries the setup Config rows)
 5. **`check-docs-freshness` never run** (only `check-docs-links`). My README/AGENTS/TODO edits contain version-ish claims (appkit v0.5.0, httputil v1.2.0, dep counts) — exactly the claim-class that gate exists to pin.
-6. **`nix fmt` never run by me.** Mitigated: gofmt clean on setup/, and my python-edited `scripts/check-dep-budgets.sh` verified clean under the repo's canonical `shfmt -i 2` this morning — but I edited a shell script via heredoc and never ran the canonical formatter on it at the time. (First shfmt check used default tabs and looked like a violation; the repo config is 2-space — my edit conforms.)
+6. ~~**`nix fmt` never run by me.** Mitigated: gofmt clean on setup/, and my python-edited `scripts/check-dep-budgets.sh` verified clean under the repo's canonical `shfmt -i 2` this morning — but I edited a shell script via heredoc and never ran the canonical formatter on it at the time. (First shfmt check used default tabs and looked like a violation; the repo config is 2-space — my edit conforms.)~~ done (09-19 N15 nix fmt zero diff)
 7. **`validatePathRoots` left as a boolean chain.** I table-drove `withDefaults` (normalizeRoutePaths) and `validateOptionalFeedPaths` when cyclop bit, but Mount's root check is still a 10-clause `||` chain — the exact place the M7 regression hatched (HealthPath dropped mid-rewrite). I fixed the symptom, not the shape. Third-path-field rule applies here too.
 8. **Weak negative assertions:** opt-out tests assert "response is not JSON / not JavaScript" instead of positively asserting the login-page catch-all. They pass and are honest, but they would not catch a future route that serves, say, plain text at the path.
-9. **M12 coverage-gate never completed a full run** (dashboardui's failing test aborts it). My 88.3% figure is from a direct `-cover` run — accurate, but the GATE app's all-green remains unproven this session.
+9. ~~**M12 coverage-gate never completed a full run** (dashboardui's failing test aborts it). My 88.3% figure is from a direct `-cover` run — accurate, but the GATE app's all-green remains unproven this session.~~ done (coverage-gate 15/15 green)
 10. **Plan file never annotated** with execution state (TODO_LIST was the sink and was handled; a one-line "executed" banner on the plan would save future readers a cross-reference).
 
 ## c) NOT STARTED (deliberate, still open)
@@ -60,26 +60,26 @@
 
 1. M2.8 leftover: extend `TestNew_AllConfigFields` with `AuthHandlerConfig` (+ the other new knobs).
 2. M4.6 leftover: bench-docs note (Metrics-nil ⇒ appkit-service sub-bench unchanged) in `setup/README.md#benchmarks`.
-3. FEATURES.md: rows for the 10 new setup `Config` fields (auth hardening, metrics/version, request logging, machine endpoints, liveness/health opt-out, sse.js, dialect probe).
+3. ~~FEATURES.md: rows for the 10 new setup `Config` fields (auth hardening, metrics/version, request logging, machine endpoints, liveness/health opt-out, sse.js, dialect probe).~~ done (FEATURES.md rows added)
 4. Run `nix run .#check-docs-freshness` (or the flake equivalent) over the new claims.
 5. Table-drive `validatePathRoots` (+ `validatePathShapes`) the way its siblings now are.
 6. M3.1 leftover: `git diff v0.4.0 v0.5.0` over go-appkit for the record; append anything behavioral to the CHANGELOG entry.
 7. M13: idle-machine bench retry (load 59 this morning; TODO owns it).
 8. Annotate the plan file with an executed-banner pointing at the CHANGELOG entry + both status reports.
 9. Strengthen opt-out assertions (positively assert the login-page catch-all served).
-10. When dashboardui settles: repo-wide lint/test/coverage-gate/check-modules all-green proof (their 10 findings + datastar 6/5 + dashboardui 18/16 budgets).
-11. Family train for setup's new API (verify-tag runbook; no raw tags).
-12. Post-train: strip `go-datastar/broadcast` temp replace when tagged.
+10. ~~When dashboardui settles: repo-wide lint/test/coverage-gate/check-modules all-green proof (their 10 findings + datastar 6/5 + dashboardui 18/16 budgets).~~ done (coverage-gate 15/15 + lint 0/15)
+11. ~~Family train for setup's new API (verify-tag runbook; no raw tags).~~ done (setup shipped in the v4.10.0/v4.11.0 trains)
+12. ~~Post-train: strip `go-datastar/broadcast` temp replace when tagged.~~ done (09-19 N1.5 broadcast replaces stripped)
 13. integration_test fullstack coverage for machine endpoints + sse.js (currently setup-module tests only).
 14. `examples/setup-demo`: wire AuthHandlerConfig rate limits + OAuth2 redirects for real.
 15. k8s probe recipe (liveness vs readiness) in `docs/guides/production-readiness.md`.
 16. Real-engine (pgtestcontainer) rejection test for the dialect probe.
-17. **Toolchain tug-of-war lasting fix** — third bump+revert cycle landed overnight (`d20d631e`→`19a37e9f`); pick `GOTOOLCHAIN=go1.26.7` pinning or the coordinated 1.27.1 bump (owner decision, see AGENTS gotcha).
-18. Templ-components v1.18.0 train-lag alignment (57 advisory entries).
+17. ~~**Toolchain tug-of-war lasting fix** — third bump+revert cycle landed overnight (`d20d631e`→`19a37e9f`); pick `GOTOOLCHAIN=go1.26.7` pinning or the coordinated 1.27.1 bump (owner decision, see AGENTS gotcha).~~ done (1.27.1 coordinated bump landed 2026-09-19)
+18. ~~Templ-components v1.18.0 train-lag alignment (57 advisory entries).~~ done (09-19 N3 v1.18.0 uniform repo-wide)
 19. Harvest TODOs from the concurrent session's `2026-09-17_go-cqrs-lite-command-deep-dive.html`.
-20. systemadapter first tag (blocked on upstream projectionadapter v4.5.0).
-21–36. dashboardui templ-components program (28 tasks, `2026-09-17_13-22_*` plan).
-37–39. httputil/go-etag/go-sse adoption plan tasks (`c5006ee5` sibling plan).
+20. ~~systemadapter first tag (blocked on upstream projectionadapter v4.5.0).~~ done (systemadapter/v4.11.0 tagged 2026-09-20)
+~~21–36. dashboardui templ-components program (28 tasks, `2026-09-17_13-22_*` plan).~~
+~~37–39. httputil/go-etag/go-sse adoption plan tasks (`c5006ee5` sibling plan).~~
 40. examples' minor bumps from the train-lag list (go-retry/go-health/go-atomic-write).
 
 ## g) Questions (cannot resolve myself)

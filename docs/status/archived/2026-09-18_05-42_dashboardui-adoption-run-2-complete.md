@@ -4,6 +4,13 @@
 **Scope:** Run 2 execution (resumed from `docs/status/2026-09-17_21-03_dashboardui-adoption-execution-run-2.md` halt mid-M8) through the entire remaining plan: M8 recovery → M28 re-score. This report supersedes the run-2 halt report.
 **Verified state at writing:** dashboardui build/vet/test green (2 packages ok), **0 golangci-lint issues**, 4 golden files, clean tree, integration_test green, CSS bundle 71,686 bytes with all canaries. HEAD = `19a37e9f` (sibling revert atop this program's work).
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): Run 2's trailing debt was closed by the 2026-09-19 run 3 (N1–N17) and the v4.11.0 train.
+> - **§a (fully done):** self-declared done with per-row evidence — left unstruck (already clear).
+> - **§b:** b1/b2/b4/b5/b6/b7/b8/b9 DONE; **b3 (M28 formal rubric recount)** still an estimate — open.
+> - **§c:** c2/c4/c5/c6/c7 DONE; **c1 (theme toggle)** + **c3 (upstream ask filing: ListNote range, Grid children)** remain open → `TODO_LIST.md`.
+> - **§d / §e / §g:** session-local retrospective + questions — historical record, no action.
+> - **§f:** struck rows are confirmed done (evidence = 09-19 run3 N-reports); unmarked rows remain open and are routed to `TODO_LIST.md` (print stylesheet check, SSE live-row injection test, goldens extension, canary manifest, combined filter/sort test, shared test helper, `statValueByHTMLID` guard, ETag stale-version test, golden CI note, ListNote revisit, upstream bench methodology, `zz_debug` retirement).
+
 ---
 
 ## a) FULLY DONE
@@ -35,25 +42,25 @@
 
 ## b) PARTIALLY DONE
 
-1. **M25 Playwright specs (M25.3a–c) — not written.** I delivered the in-process a11y/security contract tests but skipped the axe sweep and the three e2e specs (badges/stat cards, toasts/error pages, sortable tables). The e2e server exists and builds; the browser layer was out of this run's verified loop.
-2. **M24 benchmark breadth — one component, not per-family.** Plan wanted sub-benches per component family + benchstat analysis + per-component notes. I benched StatCard only (the highest-volume component) and recorded one run.
+1. ~~**M25 Playwright specs (M25.3a–c) — not written.** I delivered the in-process a11y/security contract tests but skipped the axe sweep and the three e2e specs (badges/stat cards, toasts/error pages, sortable tables). The e2e server exists and builds; the browser layer was out of this run's verified loop.~~ done (09-19 run3 N5-N8 browser e2e specs + screenshots)
+2. ~~**M24 benchmark breadth — one component, not per-family.** Plan wanted sub-benches per component family + benchstat analysis + per-component notes. I benched StatCard only (the highest-volume component) and recorded one run.~~ done (09-19 N16.1-4 four new bench families)
 3. **M28 formal recount — estimate, not rubric.** "~85/100" is my judgment against the 22-capability list, not a re-run of the audit's weighted checklist. The 4 exclusions are documented but unweighted.
-4. **M28.3 annotation incomplete.** Plan doc + CHANGELOG annotated, but the two PRIOR artifacts (`docs/status/2026-09-17_13-12_…audit-status.md`, `docs/status/2026-09-17_21-03_…run-2.md`, and the sibling's deep-dive HTML) were NOT annotated with outcomes — plan requires ANNOTATE, not rewrite.
-5. **M17.5b visual pager check — not done.** No browser/visual verification of any swapped page happened this run (string-level assertions only). This was user-question ② from the halt report — proceeded on the documented "string-verify only" assumption.
-6. **CHANGELOG heading.** Everything sits under `[Unreleased]` — correct until cut, but the release-train decision (see f) is unresolved.
-7. **M23.3** — `-update` flow documented in the golden file header comment but NOT in the module README (plan wanted README).
-8. **Cross-cutting gates.** `check-release-train` / `check-version-drift --strict` were planned "before M28" and were NOT run. No dashboardui go.mod changes happened this run (requires unchanged), so risk is low, but the gate was not executed.
-9. **`nix fmt` sweep** — planned cross-cutting item, not run (treefmt over the whole tree risks formatting the sibling session's dirty files).
+4. ~~**M28.3 annotation incomplete.** Plan doc + CHANGELOG annotated, but the two PRIOR artifacts (`docs/status/2026-09-17_13-12_…audit-status.md`, `docs/status/2026-09-17_21-03_…run-2.md`, and the sibling's deep-dive HTML) were NOT annotated with outcomes — plan requires ANNOTATE, not rewrite.~~ done (09-19 N13 outcome banners + this docs-health sweep)
+5. ~~**M17.5b visual pager check — not done.** No browser/visual verification of any swapped page happened this run (string-level assertions only). This was user-question ② from the halt report — proceeded on the documented "string-verify only" assumption.~~ done (09-19 N5 27 screenshots)
+6. ~~**CHANGELOG heading.** Everything sits under `[Unreleased]` — correct until cut, but the release-train decision (see f) is unresolved.~~ done (09-19 N2 dashboardui v4.10.0/v4.10.1 CHANGELOG cut)
+7. ~~**M23.3** — `-update` flow documented in the golden file header comment but NOT in the module README (plan wanted README).~~ done (09-19 N12 README -update flow)
+8. ~~**Cross-cutting gates.** `check-release-train` / `check-version-drift --strict` were planned "before M28" and were NOT run. No dashboardui go.mod changes happened this run (requires unchanged), so risk is low, but the gate was not executed.~~ done (09-19 N1 full gate ladder green)
+9. ~~**`nix fmt` sweep** — planned cross-cutting item, not run (treefmt over the whole tree risks formatting the sibling session's dirty files).~~ done (09-19 N15 nix fmt zero diff)
 
 ## c) NOT STARTED
 
 1. **M18 ThemeScript/ThemeToggle** — deliberately deferred: it is a NEW feature (dark-mode switcher), not an adoption swap; the dashboard follows OS `prefers-color-scheme` today. Routed here instead of TODO_LIST — needs a decision (see g).
-2. **M19 SidebarNav** — not attempted; excluded with the adminui precedent (custom dark theme + mobile drawer). Documented, but no TODO_LIST/upstream entry was filed.
+2. ~~**M19 SidebarNav** — not attempted; excluded with the adminui precedent (custom dark theme + mobile drawer). Documented, but no TODO_LIST/upstream entry was filed.~~ done (09-19 N14 SidebarNav revisit criteria recorded)
 3. **Upstream asks** — ListNote range variant; children-less Grid guidance. Neither filed into TODO_LIST or upstream.
-4. **Workspace-mode verification.** `nix run .#build` / `.#test` (GOWORK on) were never run this session — only hermetic GOWORK=off per-module. The sibling's go-directive churn (1.27.1 bump reverted at `19a37e9f`) means workspace mode was likely broken mid-session and I never proved it green.
-5. **Browser/visual pass** — zero eyes-on verification of the new UI (light, dark, mobile, print).
-6. **Release train** — dashboardui behavior changed materially (status semantics, table markup, CSP-safe handlers); no tag cut, no `verify-tag.sh` flow started.
-7. **Vacuous-assertion sweep** — `statValueByHTMLID` fixed 2 of an unknown population; adminui/setup/integration_test string-contains tests were never audited for the same class.
+4. ~~**Workspace-mode verification.** `nix run .#build` / `.#test` (GOWORK on) were never run this session — only hermetic GOWORK=off per-module. The sibling's go-directive churn (1.27.1 bump reverted at `19a37e9f`) means workspace mode was likely broken mid-session and I never proved it green.~~ done (09-19 N1 workspace-mode gates green)
+5. ~~**Browser/visual pass** — zero eyes-on verification of the new UI (light, dark, mobile, print).~~ done (09-19 N5 27 screenshots light/dark/mobile)
+6. ~~**Release train** — dashboardui behavior changed materially (status semantics, table markup, CSP-safe handlers); no tag cut, no `verify-tag.sh` flow started.~~ done (09-19 N2 dashboardui v4.10.0 + v4.10.1 pushed)
+7. ~~**Vacuous-assertion sweep** — `statValueByHTMLID` fixed 2 of an unknown population; adminui/setup/integration_test string-contains tests were never audited for the same class.~~ done (09-19 N11 vacuous-assertion triage verdict: no false-green class)
 
 ## d) TOTALLY FUCKED UP
 
@@ -81,67 +88,67 @@
 ## f) NEXT (up to 50, Pareto-ordered within tiers)
 
 **Correctness/verification debt (do first):**
-1. Annotate the two prior status reports + sibling deep-dive HTML with Run-2 outcomes (M28.3 leftover).
-2. Run `nix run .#check-release-train` and `nix run .#check-version-drift --strict`.
-3. Run workspace-mode `nix run .#build` + `.#test` (after sibling's go-directive revert, expect green; prove it).
-4. Run full `nix run .#lint` (all 15 modules) to prove no cross-module fallout from the dashboardui/e2e changes.
-5. Fix `TestCSP_UnsafeInlineNotRequired` to actually emit CSP (configure `NonceConfig.CSPBuilder`) so the unsafe-inline assertion executes.
-6. Rebuild benchmark hand-rolled baseline from `git show 81088b64:dashboardui/handler_overview.go` markup; drop `_ = ctx`; re-record artifact.
-7. coverage-gate re-run for dashboardui (new files: buttons.go, tables.go, definitions.go, csp/a11y/golden tests shifted coverage).
+1. ~~Annotate the two prior status reports + sibling deep-dive HTML with Run-2 outcomes (M28.3 leftover).~~ done (09-19 N13 outcome banners + this docs-health sweep)
+2. ~~Run `nix run .#check-release-train` and `nix run .#check-version-drift --strict`.~~ done (09-19 N1 gates green)
+3. ~~Run workspace-mode `nix run .#build` + `.#test` (after sibling's go-directive revert, expect green; prove it).~~ done (09-19 N1 workspace gates green)
+4. ~~Run full `nix run .#lint` (all 15 modules) to prove no cross-module fallout from the dashboardui/e2e changes.~~ done (09-19 N1 lint 0/15 modules)
+5. ~~Fix `TestCSP_UnsafeInlineNotRequired` to actually emit CSP (configure `NonceConfig.CSPBuilder`) so the unsafe-inline assertion executes.~~ done (09-19 N10 CSP test now asserts)
+6. ~~Rebuild benchmark hand-rolled baseline from `git show 81088b64:dashboardui/handler_overview.go` markup; drop `_ = ctx`; re-record artifact.~~ done (09-19 N10 baseline rebuilt from git history)
+7. ~~coverage-gate re-run for dashboardui (new files: buttons.go, tables.go, definitions.go, csp/a11y/golden tests shifted coverage).~~ done (09-19 N4 coverage-gate green)
 
 **Browser truth (the missing layer):**
-8. Playwright visual pass: all pages, light + dark + mobile viewport, screenshots archived under docs/.
-9. Playwright e2e spec: status badges + stat cards (ValueID presence + health semantics).
-10. Playwright e2e spec: toasts (write op → `dashboardui:toast` → visible toast) + error pages (404/500 family rendering).
-11. Playwright e2e spec: sortable tables (click header → aria-sort flip + order change).
-12. Axe sweep over the dashboard pages; fix findings.
+8. ~~Playwright visual pass: all pages, light + dark + mobile viewport, screenshots archived under docs/.~~ done (09-19 N5 27 screenshots)
+9. ~~Playwright e2e spec: status badges + stat cards (ValueID presence + health semantics).~~ done (09-19 N6 browser spec)
+10. ~~Playwright e2e spec: toasts (write op → `dashboardui:toast` → visible toast) + error pages (404/500 family rendering).~~ done (09-19 N6 browser spec)
+11. ~~Playwright e2e spec: sortable tables (click header → aria-sort flip + order change).~~ done (09-19 N6 browser spec)
+12. ~~Axe sweep over the dashboard pages; fix findings.~~ done (09-19 N9 axe 9/9 green)
 13. Print stylesheet check (toast/error-handling hidden, tables readable).
 14. SSE live-row injection test (`dashboard:event` appends into `#events-tbody`).
 
 **Test-debt hunt:**
-15. Repo-wide vacuous-assertion sweep: scope every page-level `strings.Contains` test to element IDs (adminui, setup, integration_test, dashboardui leftovers).
+15. ~~Repo-wide vacuous-assertion sweep: scope every page-level `strings.Contains` test to element IDs (adminui, setup, integration_test, dashboardui leftovers).~~ done (09-19 N11 triage: no remaining false-green class)
 16. Extend goldens: Badge error/warning/success variants, EmptyState without icon, Button all variants, DefinitionItem with DetailComponent, TableRow (data path).
 17. Link `assets_test.go` canaries to a per-component class manifest (programmatic, so new adoptions extend the list mechanically).
-18. DLQ/projection/snapshot detail pages under the CSP nonce test (currently only base listing pages).
+18. ~~DLQ/projection/snapshot detail pages under the CSP nonce test (currently only base listing pages).~~ done (09-19 N15 covered indirectly, documented decision)
 19. Combined filter+sort+pagination URL regression test for the events page.
 20. Move `statValueByHTMLID` (and future element-scoped helpers) into a shared test helper file with doc.
 
 **Documentation:**
-21. Module README: adoption surface table, `-update` golden flow (M23.3), benchmark pointer.
-22. Doc guide: "hybrid adoption pattern" (`Component.Render(ctx, &b)`) — the M8 Grid lesson, class-map scan, ctx threading contract, so the next consumer module repeats it safely.
-23. Document the daemon-shredded-commit reality in the release runbook (attribution archaeology note).
-24. AGENTS.md: add "nolint lines stay ≤120 chars incl. reason" to the gotchas.
+21. ~~Module README: adoption surface table, `-update` golden flow (M23.3), benchmark pointer.~~ done (09-19 N12 README adoption table)
+22. ~~Doc guide: "hybrid adoption pattern" (`Component.Render(ctx, &b)`) — the M8 Grid lesson, class-map scan, ctx threading contract, so the next consumer module repeats it safely.~~ done (09-19 N12 hybrid adoption guide)
+23. ~~Document the daemon-shredded-commit reality in the release runbook (attribution archaeology note).~~ done (09-19 N12 release playbook §6)
+24. ~~AGENTS.md: add "nolint lines stay ≤120 chars incl. reason" to the gotchas.~~ done (AGENTS.md nolint-line-length gotcha)
 
 **Release + trains:**
-25. Decide + cut dashboardui release (semantics + markup changed) via `scripts/verify-tag.sh`; CHANGELOG `[Unreleased]` → version.
-26. templ-components family v1.18.0 train decision (dashboardui pinned v1.17.0; integration_test indirects intentionally behind).
+25. ~~Decide + cut dashboardui release (semantics + markup changed) via `scripts/verify-tag.sh`; CHANGELOG `[Unreleased]` → version.~~ done (09-19 N2 dashboardui v4.10.0 cut + pushed)
+26. ~~templ-components family v1.18.0 train decision (dashboardui pinned v1.17.0; integration_test indirects intentionally behind).~~ done (09-19 N3 v1.18.0 uniform repo-wide)
 27. Upstream ask: ListNote range variant (Showing X–Y of Z).
 28. Upstream ask: document children-less/Grid standalone-render behavior.
-29. File dashboardui TODO_LIST entries for the exclusions (theme toggle decision, SidebarNav revisit criteria).
+29. ~~File dashboardui TODO_LIST entries for the exclusions (theme toggle decision, SidebarNav revisit criteria).~~ done (09-19 N14 dashboardui TODO entries recorded)
 
 **Feature follow-ups (post-adoption):**
 30. M18 theme toggle decision (implement vs TODO_LIST).
-31. Wire `htmx.PolledRegion` for the projection-health panel (last listed adoption opportunity).
+31. ~~Wire `htmx.PolledRegion` for the projection-health panel (last listed adoption opportunity).~~ **Won't implement — 09-19 N17.1 PolledRegion children render empty in the hybrid path.**
 32. SSE fan-out: consider replacing bespoke live-row JS with the library's loading/swap helpers.
-33. Filter bar inputs → `forms.Input`/`forms.Form` (unstarted leaf swap).
+33. ~~Filter bar inputs → `forms.Input`/`forms.Form` (unstarted leaf swap).~~ done (09-19 N17.3-4 forms.Input adopted)
 34. CSV/JSON export bar → library buttons (currently `formatLinks` uses buttonLink — verify visually).
-35. Time-travel slider a11y pass (aria-valuetext, keyboard focus ring) — untouched by adoption.
+35. ~~Time-travel slider a11y pass (aria-valuetext, keyboard focus ring) — untouched by adoption.~~ done (09-19 N17.5-6 slider CSP-safe + aria-valuetext)
 
 **Mechanical hygiene:**
-36. `nix fmt` treefmt sweep at a clean-tree boundary.
-37. `examples/middleware-showcase/vendor/` — trash if still present.
+36. ~~`nix fmt` treefmt sweep at a clean-tree boundary.~~ done (09-19 N15 nix fmt zero diff)
+37. ~~`examples/middleware-showcase/vendor/` — trash if still present.~~ done (09-19 N15 vendor dir gone)
 38. `go vet ./...` in workspace mode for e2e (excluded from lint loop).
-39. Review `.golangci.yml` exhaustruct deprecation warning (v2.13: migrate to exhaustruct_v5) — repo-wide, flagged by every run.
-40. Consider `ireturn` allowlist entry for `templ.Component` instead of per-func nolints.
-41. Benchmark additions: Button, EmptyState, DefinitionList, Table raw-body (completes the perf note).
+39. ~~Review `.golangci.yml` exhaustruct deprecation warning (v2.13: migrate to exhaustruct_v5) — repo-wide, flagged by every run.~~ done (exhaustruct_v5 migration documented in AGENTS.md)
+40. ~~Consider `ireturn` allowlist entry for `templ.Component` instead of per-func nolints.~~ done (09-19 N16.6 ireturn allow entry)
+41. ~~Benchmark additions: Button, EmptyState, DefinitionList, Table raw-body (completes the perf note).~~ done (09-19 N16.1-4 benches landed)
 42. `statValueByHTMLID` → assert-once-per-test lint? (optional guard against the vacuous class returning).
-43. Check `adminui/styles.css` parity didn't drift from the daemon commits in run 1 (class-set diff).
+43. ~~Check `adminui/styles.css` parity didn't drift from the daemon commits in run 1 (class-set diff).~~ done (09-19 N1 orphan styles.css finding documented)
 44. sync `dashboardVersion`/ETag constants unchanged — verify no stale-version test exists for the new JS bridge.
 45. Golden files: add CI-path verification note (`nix run .#test` includes them).
-46. Extract `renderStreamIndex` ctx-callback migration note into the composability guide.
+46. ~~Extract `renderStreamIndex` ctx-callback migration note into the composability guide.~~ done (09-19 N12 hybrid guide pitfall)
 47. Revisit `display.ListNote` exclusion if upstream ships a range variant (linked to #27).
 48. Consider upstreaming the hybrid-render benchmark methodology to templ-components docs.
-49. `csp_test.go`: cover DLQ detail + projection detail pages (needs fake stores, mirrors handlers_write_test).
+49. ~~`csp_test.go`: cover DLQ detail + projection detail pages (needs fake stores, mirrors handlers_write_test).~~ done (09-19 N15 documented decision (no separate test))
 50. Retire the ad-hoc `zz_debug`-style debugging pattern — keep a throwaway-test naming convention documented.
 
 ## g) QUESTIONS (cannot answer myself)
