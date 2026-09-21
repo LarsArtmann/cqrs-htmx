@@ -874,6 +874,7 @@
                         "docs-freshness:bash scripts/check-docs-freshness.sh"
                         "docs-links:bash scripts/check-docs-links.sh"
                         "status-annotations:bash scripts/check-status-annotations.sh"
+                        "status-annotations-self-test:bash scripts/test-check-status-annotations.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -904,6 +905,7 @@
                     bash scripts/check-docs-freshness.sh
                     bash scripts/check-docs-links.sh
                     bash scripts/check-status-annotations.sh
+                    bash scripts/test-check-status-annotations.sh
                     echo ""
                     echo "✓ All module architecture checks passed"
                   '';
@@ -958,6 +960,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/check-status-annotations.sh
+                  '';
+                }
+              );
+            };
+
+            check-status-rows = {
+              type = "app";
+              meta.description = "Row-integrity gate for archived status reports: PARTIAL rows (cells disagree within one row) fail; deliberately-mixed tables are counted, not failed";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-status-rows";
+                  runtimeInputs = [
+                    pkgs.python3
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    python3 scripts/check-status-rows.py
+                  '';
+                }
+              );
+            };
+
+            test-status-rows = {
+              type = "app";
+              meta.description = "Fixture self-test for check-status-rows.py (12 cases: partial/mixed/code-span/header-only/dir/missing)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-status-rows";
+                  runtimeInputs = [
+                    pkgs.python3
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-status-rows.sh
                   '';
                 }
               );

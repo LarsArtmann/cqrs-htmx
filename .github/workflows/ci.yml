@@ -672,6 +672,15 @@ jobs:
       - name: install-git-hooks self-test
         run: bash scripts/test-install-git-hooks.sh
 
+      # Presence gate for archived status-report annotations (inline
+      # strikethrough + dated blockquote since the 2026-09-09 epoch; older
+      # reports are LEGACY-EXEMPT) plus its fixture self-test.
+      - name: Status annotation gate
+        run: bash scripts/check-status-annotations.sh
+
+      - name: Status annotation gate self-test
+        run: bash scripts/test-check-status-annotations.sh
+
       - name: Markdown link check
         run: bash scripts/check-docs-links.sh
 
