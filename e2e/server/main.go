@@ -152,11 +152,11 @@ func main() {
 	}
 
 	dash, err := dashboardui.New(dashboardui.Config{
-		EventSource:     dstore,
-		Journal:         dstore,
-		CommandJournal:  emptyCommandJournal{},
-		QueryJournal:    emptyQueryJournal{},
-		SnapshotStore:   emptySnapshotStore{},
+		EventSource:    dstore,
+		Journal:        dstore,
+		CommandJournal: emptyCommandJournal{},
+		QueryJournal:   emptyQueryJournal{},
+		SnapshotStore:  emptySnapshotStore{},
 		//cqrs-lint:ignore(C017) ephemeral Playwright test server — in-memory DLQ is intentional, the process is disposable per test run
 		DeadLetterStore: projectionhost.NewMemoryDeadLetterStore(),
 		ProjectionHost:  host,

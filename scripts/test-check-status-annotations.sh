@@ -48,7 +48,7 @@ reset_fixtures() {
 # run_gate <extra-arg...>; sets RC and OUTPUT
 run_gate() {
   RC=0
-  OUTPUT="$( (cd "$TMPDIR" && bash scripts/check-status-annotations.sh "$@") 2>&1 )" || RC=$?
+  OUTPUT="$( (cd "$TMPDIR" && bash scripts/check-status-annotations.sh "$@") 2>&1)" || RC=$?
 }
 
 assert_rc() { # <label> <expected-rc>

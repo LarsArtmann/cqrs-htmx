@@ -1271,6 +1271,11 @@
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-cqrs-lint";
+                  # goPkg: cqrs-lint shells out to `go list` for package loading —
+                  # without the 1.27.1 toolchain in PATH it resolves the ambient
+                  # go 1.26.7 (GOTOOLCHAIN=local), which cannot load modules
+                  # requiring go >= 1.27.1, and EVERY module fails with load errors.
+                  runtimeInputs = [ goPkg ];
                   text = ''
                     set -euo pipefail
                     # GOWORK=off: load each module from its own go.mod (published tags
@@ -1279,6 +1284,7 @@
                     # sibling replaces point at in-flight go-cqrs-lite work.
                     export GOWORK=off
                     export GOEXPERIMENT=jsonv2
+                    export GOTOOLCHAIN=local
                     echo "=== cqrs-lint strict check ==="
                     fail=0
                     for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter health auditlog; do

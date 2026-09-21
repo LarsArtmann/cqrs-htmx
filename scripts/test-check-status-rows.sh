@@ -36,7 +36,8 @@ run_gate() {
 }
 
 assert_rc() { # <label> <expected-rc>
-  DETAIL="rc=$RC (expected $2)"; echo "$OUTPUT" | sed 's/^/        | /'
+  DETAIL="rc=$RC (expected $2)"
+  printf '        | %s\n' "${OUTPUT//$'\n'/$'\n'        | }"
   if [ "$RC" -eq "$2" ]; then report 0 "$1"; else report 1 "$1"; fi
 }
 
