@@ -12,6 +12,15 @@
 
 @import "tailwindcss";
 
+/* Dark mode is CLASS-driven (templ-components' toggle strategy): layout.ThemeToggle
+   flips .dark on <html> and layout.ThemeScript (in <head>, via headExtras) applies
+   the stored/system choice BEFORE first paint, so there is no flash. With the
+   custom variant, every dark: utility — adminui's own and the library
+   components' — follows the class instead of prefers-color-scheme. The token
+   block below still reads the system preference via the script; without JS
+   the panel degrades to light mode. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Tailwind v4 auto-scans the CSS file's directory (adminui/) for class
    names. No @source needed for local files — the 8 .templ files here
    are picked up automatically.
@@ -57,32 +66,30 @@
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.06);
 }
 
-/* ---------- Dark mode (system preference) ---------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b1120;
-    --surface: #131c31;
-    --surface-2: #0f1729;
-    --sidebar-bg: #0a1120;
-    --sidebar-fg: #94a3b8;
-    --sidebar-fg-strong: #f1f5f9;
-    --sidebar-hover: rgba(148, 163, 184, 0.1);
-    --text: #e6edf6;
-    --muted: #93a4bd;
-    --border: #233049;
-    --border-strong: #2c3a56;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+/* ---------- Dark mode (.dark class, set pre-paint by layout.ThemeScript) ---------- */
+html.dark {
+  --bg: #0b1120;
+  --surface: #131c31;
+  --surface-2: #0f1729;
+  --sidebar-bg: #0a1120;
+  --sidebar-fg: #94a3b8;
+  --sidebar-fg-strong: #f1f5f9;
+  --sidebar-hover: rgba(148, 163, 184, 0.1);
+  --text: #e6edf6;
+  --muted: #93a4bd;
+  --border: #233049;
+  --border-strong: #2c3a56;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
 
-    /* The @theme mapping below points gray-800/900 at --text, which flips
-       light in this mode — correct for text, but the library also uses
-       gray-800/900 as dark SURFACES via dark: variants (e.g. Table's
-       thead dark:bg-gray-800), which then painted as light bands. All
-       library text-gray-800/900 occurrences carry a dark: override, so
-       pinning these two tokens back to the literal dark palette in dark
-       mode loses nothing and restores the surfaces. */
-    --color-gray-800: #1f2937;
-    --color-gray-900: #111827;
-  }
+  /* The @theme mapping below points gray-800/900 at --text, which flips
+     light in this mode — correct for text, but the library also uses
+     gray-800/900 as dark SURFACES via dark: variants (e.g. Table's
+     thead dark:bg-gray-800), which then painted as light bands. All
+     library text-gray-800/900 occurrences carry a dark: override, so
+     pinning these two tokens back to the literal dark palette in dark
+     mode loses nothing and restores the surfaces. */
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
 }
 
 /* ---------- Tailwind @theme color mappings ---------- */

@@ -164,3 +164,25 @@ test("favicon answers 204 without a redirect (no session clobber)", async ({ pag
   expect(fav.status).toBe(204);
   expect(fav.redirected).toBe(false);
 });
+
+test("theme toggle: flips .dark on <html>, syncs aria, persists across reload", async ({ page }) => {
+  await page.goto(`${ADMIN}/admin/`, { waitUntil: "load" });
+  await page.waitForTimeout(400);
+  const toggle = page.locator("[data-theme-toggle]");
+  await expect(toggle).toHaveCount(1);
+  await expect(toggle).toHaveAttribute("role", "switch");
+
+  const before = await page.evaluate(() => document.documentElement.classList.contains("dark"));
+  await toggle.click();
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() => document.documentElement.classList.contains("dark"));
+  expect(after).toBe(!before);
+  // The switch's checked state follows the applied theme.
+  expect(await toggle.getAttribute("aria-checked")).toBe(String(after));
+
+  // The choice is stored (localStorage 'theme') and re-applied pre-paint on reload.
+  await page.reload({ waitUntil: "load" });
+  await page.waitForTimeout(300);
+  const persisted = await page.evaluate(() => document.documentElement.classList.contains("dark"));
+  expect(persisted).toBe(after);
+});

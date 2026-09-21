@@ -39,6 +39,10 @@ templ headExtras(p pageData) {
 	if p.CSRFMeta != "" {
 		@templ.Raw(p.CSRFMeta)
 	}
+	// Pre-paint theme resolution (see the @custom-variant dark note in
+	// tailwind.css): reads localStorage 'theme', falls back to the system
+	// preference, and applies .dark + color-scheme before first paint.
+	@layout.ThemeScript(p.Nonce)
 	@templ.Raw(accentStyleTag(p))
 }
 
@@ -84,6 +88,7 @@ templ topBar(p pageData) {
 			<div class="text-[17px]">{ p.Title }</div>
 		</div>
 		<div class="flex items-center gap-3.5">
+			@layout.ThemeToggle("Toggle theme", p.Nonce)
 			if p.SSEURL != "" {
 				<div class="sync-bar" data-sync-status="idle">
 					<span class="sync-dot"></span>
