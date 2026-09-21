@@ -51,6 +51,13 @@ export default defineConfig({
         // e2e/server is a workspace member on the go 1.27.1 floor; pin the
         // toolchain so the suite also runs outside the nix devShell.
         GOTOOLCHAIN: "go1.27.1",
+        // Pin workspace resolution explicitly (relative to this webServer's
+        // cwd): inside `nix develop` the devShell exports GOWORK=off, which
+        // would silently compile the demo against PUBLISHED module tags
+        // instead of the local workspace members (observed 2026-09-21: the
+        // adminui pagination gate failed with 65 rows because the published
+        // adminui predates pagination).
+        GOWORK: "../go.work",
       },
     },
     {
@@ -65,6 +72,10 @@ export default defineConfig({
       env: {
         GOEXPERIMENT: "jsonv2",
         GOTOOLCHAIN: "go1.27.1",
+        // See the first webServer: pin the workspace so a devShell-inherited
+        // GOWORK=off cannot silently resolve the demo against published tags
+        // (this cwd sits two levels below the repo root).
+        GOWORK: "../../go.work",
       },
     },
   ],

@@ -873,6 +873,7 @@
                         "replace-directives:bash scripts/check-replace-directives.sh"
                         "docs-freshness:bash scripts/check-docs-freshness.sh"
                         "docs-links:bash scripts/check-docs-links.sh"
+                        "status-annotations:bash scripts/check-status-annotations.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -902,6 +903,7 @@
                     bash scripts/check-replace-directives.sh
                     bash scripts/check-docs-freshness.sh
                     bash scripts/check-docs-links.sh
+                    bash scripts/check-status-annotations.sh
                     echo ""
                     echo "✓ All module architecture checks passed"
                   '';
@@ -937,6 +939,25 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/check-docs-links.sh
+                  '';
+                }
+              );
+            };
+
+            check-status-annotations = {
+              type = "app";
+              meta.description = "Presence gate for archived status-report annotations (inline strikethrough + dated blockquote since 2026-09-09; older reports LEGACY-EXEMPT)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-status-annotations";
+                  runtimeInputs = [
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-status-annotations.sh
                   '';
                 }
               );
