@@ -2,17 +2,11 @@ module github.com/larsartmann/cqrs-htmx/usermgmt/v4
 
 go 1.27.1
 
-// DEV-ONLY replace: audit_context.go's requestContextEnricher propagates
-// cqrshtmx.IPAddressFromContext/UserAgentFromContext (client IP + User-Agent
-// event metadata, routed gap #3). Published root v4.11.0 lacks those symbols.
-// REMOVE when the next family train tags a root version carrying them.
-replace github.com/larsartmann/cqrs-htmx/v4 => ../
-
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.3
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.11.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.11.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
