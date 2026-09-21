@@ -33,11 +33,11 @@ require (
 	github.com/larsartmann/go-sse v0.6.1 // indirect
 	github.com/larsartmann/httputil v1.2.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.18.1 // indirect
-	github.com/larsartmann/templ-components/datastar v1.18.1 // indirect
-	github.com/larsartmann/templ-components/htmx v1.18.1 // indirect
-	github.com/larsartmann/templ-components/icons v1.18.1 // indirect
-	github.com/larsartmann/templ-components/utils v1.18.1 // indirect
+	github.com/larsartmann/templ-components v1.19.0 // indirect
+	github.com/larsartmann/templ-components/datastar v1.19.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.19.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.19.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.19.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/samber/go-type-to-string v1.8.0 // indirect
