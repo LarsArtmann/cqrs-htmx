@@ -62,6 +62,16 @@ templ sidebarFooter() {
 	<span class="text-xs text-gray-400">cqrs-htmx admin</span>
 }
 
+// userMenuTrigger is the custom DropdownProps.Trigger content for the header
+// identity menu (templ-components v1.19.0): the functionally wired trigger
+// button keeps popovertarget/aria; this component owns the visuals.
+templ userMenuTrigger(email string) {
+	<span class="flex items-center gap-2 rounded-md px-1 py-1 font-medium text-gray-500 hover:text-gray-700">
+		@display.Avatar(display.AvatarProps{Initials: initials(email), Size: display.AvatarSizeSM})
+		<span class="hidden text-sm sm:inline">{ email }</span>
+	</span>
+}
+
 templ topBar(p pageData) {
 	<div class="flex items-center justify-between gap-3.5 px-6 py-3.5">
 		<div class="flex items-center gap-3.5">
@@ -82,19 +92,28 @@ templ topBar(p pageData) {
 			}
 			if p.User != nil {
 				// Desktop: library Dropdown (native Popover API — click-toggle,
-				// light-dismiss, Esc, top layer; the positioner + keyboard-nav
-				// scripts ship with the component, only the animation CSS is
-				// vendored in tailwind.css). The avatar rides as a static sibling:
-				// DropdownProps has no custom-trigger slot (Label is a string) —
-				// upstream candidate noted in the adoption table.
-				<div class="flex items-center gap-2 font-medium text-gray-500">
-					@display.Avatar(display.AvatarProps{Initials: initials(p.User.Email), Size: display.AvatarSizeSM})
-					if p.LogoutURL != "" {
+				// light-dismiss, Esc, top layer; positioner + keyboard-nav scripts
+				// ship with the component, only the animation CSS is vendored in
+				// tailwind.css). Since templ-components v1.19.0 the avatar + email
+				// identity cluster rides INSIDE the trigger via DropdownProps.Trigger
+				// (functionally wired button, consumer-owned visuals).
+				if p.LogoutURL != "" {
+					<div class="flex items-center gap-2 font-medium text-gray-500">
+						@display.Avatar(display.AvatarProps{
+							Initials: initials(p.User.Email),
+							Size:     display.AvatarSizeSM,
+							BaseProps: utils.BaseProps{
+								Class: "lg:hidden",
+							},
+						})
 						<div class="hidden lg:block">
 							@display.Dropdown(display.DropdownProps{
 								Label:    p.User.Email,
+								Trigger:  userMenuTrigger(p.User.Email),
 								Position: display.DropdownPositionRight,
-								BaseProps: utils.BaseProps{ID: "admin-user-menu"},
+								BaseProps: utils.BaseProps{
+									ID: "admin-user-menu",
+								},
 								Items: []display.DropdownItem{
 									{
 										Text: "Sign out",
@@ -112,10 +131,13 @@ templ topBar(p pageData) {
 							@icon("arrow-right-on-rectangle")
 							Sign out
 						</a>
-					} else {
+					</div>
+				} else {
+					<div class="flex items-center gap-2 font-medium text-gray-500">
+						@display.Avatar(display.AvatarProps{Initials: initials(p.User.Email), Size: display.AvatarSizeSM})
 						{ p.User.Email }
-					}
-				</div>
+					</div>
+				}
 			}
 		</div>
 	</div>
