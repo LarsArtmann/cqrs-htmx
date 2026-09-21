@@ -1,6 +1,11 @@
 # Decision: /sse endpoint shape — session-gating vs stream filtering
 
-**Status:** OPEN — awaiting the user's product/security call
+**Status:** RESOLVED 2026-09-21 (owner decision, design-tree interview): **Option B** — ship the
+session-gated full feed as the documented default contract (Option A's shape) AND wire the scoped
+filter as a first-class setup option: `setup.Config.SSEFilter func(sse.Event) bool` threads
+`transport.WithSSEFilter` into the SSEPath handler (live + replay, fail-closed; the DataStar feed
+stays a full hub mirror). Verified by `TestBundle_SSEHandlerFilterScopesReplay`. Option C
+(per-user streams) stays demand-gated; Option D rejected.
 **Raised:** 2026-08-30 (status report §g-2) · **Spike:** `transport/filtered_sse_spike_test.go`
 **Scope:** `setup.Config.SSEPath` (the shared, session-gated SSE feed) and the `transport.ServeDomainEvents` lifecycle it mounts
 

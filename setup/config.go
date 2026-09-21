@@ -16,6 +16,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-sse"
 	"github.com/larsartmann/httputil"
 )
 
@@ -154,6 +155,17 @@ type Config struct {
 	// default" (1000). Set to a positive int to bound the initial backfill
 	// window and prevent sending the entire journal history on first connect.
 	SSEMaxReplay int
+
+	// SSEFilter optionally scopes the shared SSEPath feed: only events for
+	// which the predicate returns true are streamed live AND replayed on
+	// reconnect (replay filters fail-closed — a filter that leaked backfill
+	// would be a security hole). Nil (the default) = every authenticated
+	// session receives the full feed, which stays the documented contract of
+	// the shared endpoint (single-tenant default; the 2026-08-30 endpoint
+	// shape decision). The predicate operates on the SSE wire event (see
+	// transport.DomainEventToSSE for the envelope). The DataStar feed is NOT
+	// filtered — it stays a full mirror of the hub.
+	SSEFilter func(sse.Event) bool
 
 	// SSEScriptPath controls where the HTMX SSE extension script
 	// (cqrshtmx.HTMXExtensionHandler(HTMXExtSSE)) is served when SSEPath is

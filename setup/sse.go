@@ -66,13 +66,21 @@ func (b *Bundle) attachSSE() error {
 
 // sseHandler serves the shared SSE endpoint: session-gated feed of every event
 // committed to the event bus, with journal replay for reconnects and initial
-// backfill when the event store supports it.
+// backfill when the event store supports it. A Config.SSEFilter predicate
+// scopes both the live stream and the replay (fail-closed).
 func (b *Bundle) sseHandler() http.Handler {
+	opts := []transport.ServeDomainEventsOption{
+		transport.WithSSELogPrefix("setup"),
+	}
+	if b.config.SSEFilter != nil {
+		opts = append(opts, transport.WithSSEFilter(b.config.SSEFilter))
+	}
+
 	return b.SessionMiddleware()(requireSession(transport.ServeDomainEvents(
 		b.Broadcaster.Hub(),
 		b.sseStore,
 		b.config.SSEHeartbeatInterval,
-		transport.WithSSELogPrefix("setup"),
+		opts...,
 	)))
 }
 

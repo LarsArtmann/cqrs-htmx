@@ -14,7 +14,79 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-sse"
 )
+
+func TestBundle_SSEHandlerFilterScopesReplay(t *testing.T) {
+	t.Parallel()
+
+	store := memorystorage.NewMemoryStore()
+	bus := eventtest.NewFakeBus()
+
+	aggID := id.NewStreamID()
+	ref := id.NewStreamRef("User", aggID)
+
+	evtKeep, err := event.New("user.created", aggID, "User", event.Version(1), struct{}{})
+	if err != nil {
+		t.Fatalf("create event 1: %v", err)
+	}
+
+	evtDrop, err := event.New("audit.noise", aggID, "User", event.Version(2), struct{}{})
+	if err != nil {
+		t.Fatalf("create event 2: %v", err)
+	}
+
+	if err := store.Save(context.Background(), ref, []event.Event{evtKeep, evtDrop}, event.Version(0)); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	bundle, err := New(Config{
+		Title:      "Filtered",
+		SSEPath:    "/sse",
+		EventStore: store,
+		EventBus:   bus,
+		SSEFilter: func(e sse.Event) bool {
+			// The domain event type rides inside the JSON envelope (see
+			// transport.DomainEventToSSE); consumers filter on whatever
+			// dimension they need. This test keeps only user-created events.
+			return strings.Contains(e.Data, `"type":"user.created"`)
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req := httptest.NewRequest(http.MethodGet, "/sse", nil)
+	req = req.WithContext(ctx)
+	req = req.WithContext(usermgmt.WithUser(req.Context(), &usermgmt.User{ID: usermgmt.GenerateUserID()}))
+
+	rec := httptest.NewRecorder()
+
+	done := make(chan struct{})
+	go func() {
+		bundle.sseHandler().ServeHTTP(rec, req)
+		close(done)
+	}()
+
+	time.Sleep(150 * time.Millisecond)
+	cancel()
+	<-done
+
+	body := rec.Body.String()
+
+	if !strings.Contains(body, evtKeep.ID().String()) {
+		t.Errorf("body should contain the matching event ID %q\nbody:\n%s", evtKeep.ID().String(), body)
+	}
+
+	if strings.Contains(body, evtDrop.ID().String()) {
+		t.Errorf("body should NOT contain the filtered-out event ID %q — replay must filter fail-closed\nbody:\n%s",
+			evtDrop.ID().String(), body)
+	}
+}
 
 func TestBundle_SSEHandlerReplay(t *testing.T) {
 	t.Parallel()

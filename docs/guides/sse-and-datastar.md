@@ -180,10 +180,27 @@ in production.
 `transport.ServeDomainEvents` accepts `transport.WithSSEFilter(pred)` to
 restrict BOTH stream paths — live delivery and journal replay — to events
 matching a predicate. This is the mechanism behind stream-type-scoped SSE
-endpoints (the open `/sse` authz-posture decision, see
+endpoints (the `/sse` authz-posture decision is RESOLVED — see
 `docs/planning/2026-08-30_sse-endpoint-shape-decision.md`): the domain
 envelope's stream type lives in the payload, so a predicate on it is all a
 scoped endpoint needs.
+
+**setup shortcut:** `setup.Config.SSEFilter func(sse.Event) bool` threads the
+predicate into the shared `SSEPath` handler (live + replay, fail-closed) —
+no custom handler needed. The default (nil) keeps the documented
+authenticated-full-feed contract, and the DataStar feed stays a full hub
+mirror:
+
+```go
+bundle, err := setup.New(setup.Config{
+    SSEPath: "/sse",
+    // Only membership events reach connected clients — live AND replay.
+    SSEFilter: func(e sse.Event) bool {
+        return strings.Contains(e.Data, `"streamType":"Membership"`)
+    },
+    // ...
+})
+```
 
 ```go
 userOnly := func(evt sse.Event) bool {
