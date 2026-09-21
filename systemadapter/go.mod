@@ -46,6 +46,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.11.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
+	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0 // indirect
