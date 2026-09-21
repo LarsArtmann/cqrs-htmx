@@ -8,15 +8,15 @@
 
 ## a) What is DONE (verified)
 
-1. **M11 — evidence proofs** (the audit report's three weak evidences):
-   - 20/20 bijection scripted: `scripts/check-command-bijection.sh` proves both directions (every `Cmd*` constant in `identity-model/constants.go` registered exactly once via `RegisterTyped`; every registration references a defined constant). Committed, exits 0.
-   - Middleware grep re-run at correct paths: **0 call sites** of `CommandActorContext|ActorEnricher|CommandCausationEnricher|CommandIdempotency|CommandValidation|...` in library code (only `doc.go` comments + `examples/middleware-demo` + `examples/observability-demo`). The audit's 0-call-site claim CONFIRMED.
-   - Snippet compile superseded by stronger evidence: every API the report's snippets use verified against the **published** module cache (middleware v4.6.0 `CommandActorContext`; event v4.11.0 `ActorEnricher`/`CommandCausalityEnricher`/`CompositeEnricher`; decider v4.6.0 `WithEnricher`; command v4.10.0 `ApplyOptions`), then the snippets became the actual M1/M2/M3 implementations which compile and pass tests. *Report annotation itself still open — see b.*
-2. **M2 — audit-trail chain wired in usermgmt** (design deviation, deliberate): instead of touching ~25 dispatch construction sites with an `enrichCmd` helper (footgun-prone — same class as the bug being fixed), the enrichment is **three dispatch middlewares** on the single dispatcher in `NewService` (`usermgmt/audit_context.go`: `auditContextEnrichment` + upstream `middleware.CommandActorContext()` + `commandCausalityContext`) plus `CompositeEnricher(ActorEnricher, requestContextEnricher, CommandCausalityEnricher)` on `repositoryOptions` (`usermgmt/snapshot.go`). Includes `bridgeSessionIdentity` — lifts the session `*User` into `cqrshtmx.WithActorID` when absent (the previously-missing bridge; consumer-set actors always win). Local `requestContextEnricher` fills the missing correlation/request-ID event enricher (go-cqrs-lite ships none). 5 tests in `usermgmt/audit_context_test.go` green (actor+causation on events, correlation propagation, consumer-actor-wins, unauthenticated-still-causated, optionApplier satisfied by domain commands). Full usermgmt suite green (23s, race).
-3. **M15 — causation enricher**: wired as part of the M2 chain (`event.WithCommandCausality` middleware + `CommandCausalityEnricher`); asserted in the actor test (event metadata carries command type + ID). Done.
-4. **M1 — root structural enrichment fix**: `handler.go` `enrichCommandFromContext`/`enrichQueryFromContext` now type-assert structural `ApplyOptions` interfaces instead of concrete `*BasicCommand`/`*BasicQuery` — every embedded-wrapper command (all 20 identity-model types) gets context metadata; query mirror fixed too. 5 regression tests in `enrichment_structural_test.go` (wrapper, plain, hand-rolled, query mirror, end-to-end through `App.Command`). Root suite + race green; root golangci 0 new issues (1 pre-existing `unconvert` in `projection_status_handler.go` NOT mine, untouched).
-5. **M3 — CommandMiddleware config hook**: `ServiceConfig.CommandMiddleware []command.Middleware` applied in `NewService` INSIDE the audit chain (consumer middleware sees enriched commands); `setup.Config.CommandMiddleware` threaded through the flattened path (temporary family dev-replace on usermgmt added to setup/go.mod with removal-condition comment — must be stripped before the next setup tag). **Deliberate deviation:** EventSourcedConfig NOT mirrored — `EventSourcedSetup` owns no dispatcher; the field lives where dispatch happens. 3 tests in `usermgmt/command_middleware_test.go` green (consumer middleware runs + sees enriched actor, nil-default backward-compat, upstream `CommandRecovery` composition). setup suite green (9.9s), setup + usermgmt lint 0 issues.
-6. **M13 — research complete, test not yet written** (see c): dashboardui `/events/{id}` detail view surfaces `meta.ActorID` (handlers_audit.go:498), usermgmt `AuditLog` entries carry `ActorID` (audit_log.go:70) — both views were already waiting for events to carry actors; M2 now feeds them. integration_test needs the same temporary usermgmt dev-replace as setup (it resolves published v4.10.0 hermetically).
+1. ~~**M11 — evidence proofs** (the audit report's three weak evidences):~~ done (scripts/check-command-bijection.sh committed)
+   ~~- 20/20 bijection scripted: `scripts/check-command-bijection.sh` proves both directions (every `Cmd*` constant in `identity-model/constants.go` registered exactly once via `RegisterTyped`; every registration references a defined constant). Committed, exits 0.~~
+   ~~- Middleware grep re-run at correct paths: **0 call sites** of `CommandActorContext|ActorEnricher|CommandCausationEnricher|CommandIdempotency|CommandValidation|...` in library code (only `doc.go` comments + `examples/middleware-demo` + `examples/observability-demo`). The audit's 0-call-site claim CONFIRMED.~~
+   ~~- Snippet compile superseded by stronger evidence: every API the report's snippets use verified against the **published** module cache (middleware v4.6.0 `CommandActorContext`; event v4.11.0 `ActorEnricher`/`CommandCausalityEnricher`/`CompositeEnricher`; decider v4.6.0 `WithEnricher`; command v4.10.0 `ApplyOptions`), then the snippets became the actual M1/M2/M3 implementations which compile and pass tests. *Report annotation itself still open — see b.*~~
+2. ~~**M2 — audit-trail chain wired in usermgmt** (design deviation, deliberate): instead of touching ~25 dispatch construction sites with an `enrichCmd` helper (footgun-prone — same class as the bug being fixed), the enrichment is **three dispatch middlewares** on the single dispatcher in `NewService` (`usermgmt/audit_context.go`: `auditContextEnrichment` + upstream `middleware.CommandActorContext()` + `commandCausalityContext`) plus `CompositeEnricher(ActorEnricher, requestContextEnricher, CommandCausalityEnricher)` on `repositoryOptions` (`usermgmt/snapshot.go`). Includes `bridgeSessionIdentity` — lifts the session `*User` into `cqrshtmx.WithActorID` when absent (the previously-missing bridge; consumer-set actors always win). Local `requestContextEnricher` fills the missing correlation/request-ID event enricher (go-cqrs-lite ships none). 5 tests in `usermgmt/audit_context_test.go` green (actor+causation on events, correlation propagation, consumer-actor-wins, unauthenticated-still-causated, optionApplier satisfied by domain commands). Full usermgmt suite green (23s, race).~~ done (audit chain now built-in in usermgmt)
+3. ~~**M15 — causation enricher**: wired as part of the M2 chain (`event.WithCommandCausality` middleware + `CommandCausalityEnricher`); asserted in the actor test (event metadata carries command type + ID). Done.~~ done (wired in the M2 chain)
+4. ~~**M1 — root structural enrichment fix**: `handler.go` `enrichCommandFromContext`/`enrichQueryFromContext` now type-assert structural `ApplyOptions` interfaces instead of concrete `*BasicCommand`/`*BasicQuery` — every embedded-wrapper command (all 20 identity-model types) gets context metadata; query mirror fixed too. 5 regression tests in `enrichment_structural_test.go` (wrapper, plain, hand-rolled, query mirror, end-to-end through `App.Command`). Root suite + race green; root golangci 0 new issues (1 pre-existing `unconvert` in `projection_status_handler.go` NOT mine, untouched).~~ done (structural enrichment fix in handler.go)
+5. ~~**M3 — CommandMiddleware config hook**: `ServiceConfig.CommandMiddleware []command.Middleware` applied in `NewService` INSIDE the audit chain (consumer middleware sees enriched commands); `setup.Config.CommandMiddleware` threaded through the flattened path (temporary family dev-replace on usermgmt added to setup/go.mod with removal-condition comment — must be stripped before the next setup tag). **Deliberate deviation:** EventSourcedConfig NOT mirrored — `EventSourcedSetup` owns no dispatcher; the field lives where dispatch happens. 3 tests in `usermgmt/command_middleware_test.go` green (consumer middleware runs + sees enriched actor, nil-default backward-compat, upstream `CommandRecovery` composition). setup suite green (9.9s), setup + usermgmt lint 0 issues.~~ done (ServiceConfig.CommandMiddleware landed)
+6. ~~**M13 — research complete, test not yet written** (see c): dashboardui `/events/{id}` detail view surfaces `meta.ActorID` (handlers_audit.go:498), usermgmt `AuditLog` entries carry `ActorID` (audit_log.go:70) — both views were already waiting for events to carry actors; M2 now feeds them. integration_test needs the same temporary usermgmt dev-replace as setup (it resolves published v4.10.0 hermetically).~~ done (integration_test/actor_attribution_test.go)
 
 ## b) What is PARTIALLY done
 
@@ -45,46 +45,46 @@ M10 (feature-audit cross-check), M12 (AGENTS.md gotcha + report pointer), M9 (TO
 
 ## f) The NEXT 40 things (prioritized)
 
-1. Write `integration_test/actor_attribution_test.go` (M13): own stack with kept `*AuditLog` + dashboardui; register via svc, ChangeDisplayName with `WithUser` ctx; assert audit entries carry actor; assert `/events/{id}` body contains `user:<ulid>`. Needs temporary usermgmt dev-replace in integration_test/go.mod (same removal condition as setup's).
-2. Annotate the deep-dive report (M11 tail): verification-note block (bijection 20/20 script, grep 0 confirmed, APIs published-tag-verified + implemented).
+1. ~~Write `integration_test/actor_attribution_test.go` (M13): own stack with kept `*AuditLog` + dashboardui; register via svc, ChangeDisplayName with `WithUser` ctx; assert audit entries carry actor; assert `/events/{id}` body contains `user:<ulid>`. Needs temporary usermgmt dev-replace in integration_test/go.mod (same removal condition as setup's).~~ done (integration_test/actor_attribution_test.go)
+2. ~~Annotate the deep-dive report (M11 tail): verification-note block (bijection 20/20 script, grep 0 confirmed, APIs published-tag-verified + implemented).~~ done (09-19 N13 + A2 annotation)
 3. M10: open `docs/research/go-cqrs-lite-feature-audit.html`, diff overlap/contradictions, cross-link both reports.
-4. M12: AGENTS.md gotcha entry (enrichment-skip fixed in this session — rewrite as "was; fixed 2026-09-18" posture) + pointer to the deep-dive report + the new audit-chain bullet (commandAuditMiddleware, CommandMiddleware field, bridge behavior). D005-safe phrasing.
-5. M9: TODO_LIST entries for remaining plan items (`[ ]`/`[~]` only) + CHANGELOG entry narrating M1/M2/M3/M15 (Unreleased section).
+4. ~~M12: AGENTS.md gotcha entry (enrichment-skip fixed in this session — rewrite as "was; fixed 2026-09-18" posture) + pointer to the deep-dive report + the new audit-chain bullet (commandAuditMiddleware, CommandMiddleware field, bridge behavior). D005-safe phrasing.~~ done (AGENTS.md enrichment-skip bullet now reads fixed 2026-09-18)
+5. ~~M9: TODO_LIST entries for remaining plan items (`[ ]`/`[~]` only) + CHANGELOG entry narrating M1/M2/M3/M15 (Unreleased section).~~ done (CHANGELOG + TODO_LIST landed)
 6. M5: "recommended production chain" section in `docs/guides/leveraging-go-cqrs-lite.md` (Recovery → Retry → CircuitBreaker → TypedMetrics) + cross-ref from dispatch-middleware-ordering.md; run `check-docs-freshness`.
-7. M4: wire `CommandIdempotency` via the new CommandMiddleware hook on register/verify/OAuth paths + store decision note (memory default, SQL option) + duplicate-command-ID short-circuit test.
+7. ~~M4: wire `CommandIdempotency` via the new CommandMiddleware hook on register/verify/OAuth paths + store decision note (memory default, SQL option) + duplicate-command-ID short-circuit test.~~ done (usermgmt/command_idempotency_test.go)
 8. M14: bench `*_bench_test.go` with `b.Loop()` dispatch with/without enricher chain; benchstat; record numbers.
-9. M8: `dispatcher.Close()` in `Service.Close` (errorfamily wrap) + post-close dispatch test (`ErrDispatcherClosed` already published).
+9. ~~M8: `dispatcher.Close()` in `Service.Close` (errorfamily wrap) + post-close dispatch test (`ErrDispatcherClosed` already published).~~ done (usermgmt/service_close_test.go)
 10. M7: survey handler-level validations, wire `CommandValidation` for syntactic checks, collapse duplicates.
 11. M21: examples sweep — `examples/basic/main.go:316` manual `CommandOptionsFromContext` now redundant; remove + example tests green.
 12. M22: capability matrix (12-row) into leveraging-go-cqrs-lite.md.
-13. M23: `Service.Dispatcher()` accessor decision note (recommend: stay private; CommandMiddleware is the seam) in AGENTS.md.
+13. ~~M23: `Service.Dispatcher()` accessor decision note (recommend: stay private; CommandMiddleware is the seam) in AGENTS.md.~~ done (AGENTS.md records the accessor decision)
 14. M24: cqrs-htmx skill per-module command posture note (SKILL.md update).
-15. M18: README stale version claim; `examples/middleware-showcase/vendor/` fate decision; gomod-check double-count upstream note; AGENTS.md "v4.10.0+" phrasing fix.
+15. ~~M18: README stale version claim; `examples/middleware-showcase/vendor/` fate decision; gomod-check double-count upstream note; AGENTS.md "v4.10.0+" phrasing fix.~~ done (README fixed, vendor dir gone, AGENTS phrasing fixed)
 16. M17: draft BuildFlow docs-only pre-commit fast-path issue (evidence: this session's hook timings).
 17. M27: check go-structure-linter suppression feature status (upstream repo) → findings-gate restoration condition.
 18. M20: samber-linter failure-rate repro, nix vendorHash refresh, dependabot cap note.
-19. M26: verify the sibling session's dirty files are settled/committed (they were at last check — working tree clean).
-20. M16 (❓ ask): pin `GOTOOLCHAIN=go1.26.7` vs coordinated 27-module bump to 1.27.1 — policy decision for Lars; document the ask.
+19. ~~M26: verify the sibling session's dirty files are settled/committed (they were at last check — working tree clean).~~ done (working tree clean)
+20. ~~M16 (❓ ask): pin `GOTOOLCHAIN=go1.26.7` vs coordinated 27-module bump to 1.27.1 — policy decision for Lars; document the ask.~~ done (1.27.1 coordinated bump landed 2026-09-19)
 21. M25 (❓ ask): setup-demo 27MB blob purge approval + runbook — document the ask.
-22. M19: templ-components v1.18.0 sweep — BLOCKED on sibling-session coordination (they are mid-adoption in dashboardui; a version sweep under them would conflict). Decide after their session lands.
-23. Strip the two temporary usermgmt dev-replaces (setup + integration_test) at the next family train — add to the train checklist.
-24. Re-run `check-release-train` + `check-modules` after all code lands.
+22. ~~M19: templ-components v1.18.0 sweep — BLOCKED on sibling-session coordination (they are mid-adoption in dashboardui; a version sweep under them would conflict). Decide after their session lands.~~ done (09-19 N3 v1.18.0 uniform repo-wide)
+23. ~~Strip the two temporary usermgmt dev-replaces (setup + integration_test) at the next family train — add to the train checklist.~~ done (all replaces stripped 2026-09-20)
+24. ~~Re-run `check-release-train` + `check-modules` after all code lands.~~ done (release-train + check-modules green)
 25. Root `unconvert` pre-existing finding (projection_status_handler.go:54) — report or fix in a hygiene pass (NOT this session's change).
 26. Update `docs/guides/fullstack-wiring.md` + skill with the new CommandMiddleware/audit-chain posture (pairs with M12/M24).
-27. E2E fullstack: assert actor visible through the `/auth/*` HTTP path (session middleware → bridge) once M13 lands, not just the direct WithUser ctx.
+27. ~~E2E fullstack: assert actor visible through the `/auth/*` HTTP path (session middleware → bridge) once M13 lands, not just the direct WithUser ctx.~~ done (actor_attribution_test.go)
 28. Consider upstreaming `requestContextEnricher` to go-cqrs-lite event/ (correlation/request enricher) so usermgmt's local copy can be dropped at the next train.
-29. Coverage gates re-run for root + usermgmt (thresholds 90/74) after all changes.
-30. `nix run .#lint` full 15-module pass at the end.
-31. `nix run .#test` full suite at the end.
-32. `nix run .#check-cqrs-lint` (library preset) at the end.
+29. ~~Coverage gates re-run for root + usermgmt (thresholds 90/74) after all changes.~~ done (coverage-gate 15/15 green)
+30. ~~`nix run .#lint` full 15-module pass at the end.~~ done (lint 0/15 modules)
+31. ~~`nix run .#test` full suite at the end.~~ done (test suite green)
+32. ~~`nix run .#check-cqrs-lint` (library preset) at the end.~~ done (check-cqrs-lint green)
 33. `nix run .#bench-spike` — re-pin baseline if handler work changed dispatch cost (the M2 middleware adds dispatch overhead; the policy demands a same-change re-pin if the gate trips).
-34. docs: add audit-chain section to `docs/guides/leveraging-go-cqrs-lite.md` §1 (new "it's now built-in" posture) — pairs with M5/M22.
-35. AGENTS.md templ-components adoption table: dashboardui rows are the sibling's; do not touch while their session is active.
-36. integration_test suite green after the dev-replace + M13.
+34. ~~docs: add audit-chain section to `docs/guides/leveraging-go-cqrs-lite.md` §1 (new "it's now built-in" posture) — pairs with M5/M22.~~ done (leveraging-go-cqrs-lite §2 audit-chain section)
+35. ~~AGENTS.md templ-components adoption table: dashboardui rows are the sibling's; do not touch while their session is active.~~ done (sibling adoption landed)
+36. ~~integration_test suite green after the dev-replace + M13.~~ done (integration_test suite green)
 37. examples/ all build after M21 sweep (build includes examples).
 38. `go.work` — no changes needed (workspace covers both replaced modules anyway).
 39. Session summary to user with the two ❓ asks surfaced.
-40. Post-train: tag usermgmt FIRST (carries CommandMiddleware + audit chain), then bump setup + integration_test requires and strip dev-replaces (family train order).
+40. ~~Post-train: tag usermgmt FIRST (carries CommandMiddleware + audit chain), then bump setup + integration_test requires and strip dev-replaces (family train order).~~ done (v4.11.0 train shipped)
 
 ## g) QUESTIONS for Lars (blocking decisions)
 

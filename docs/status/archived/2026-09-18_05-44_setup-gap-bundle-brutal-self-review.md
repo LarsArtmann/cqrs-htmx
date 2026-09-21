@@ -4,6 +4,13 @@
 **Predecessor:** `docs/status/2026-09-17_21-25_setup-gap-bundle-execution-status.md` (the execution report)
 **This file:** the honest second pass — what I forgot, what I did worse than I should have, what is still open. Written after re-verifying my own deliverables (git state, gofmt, shfmt `-i 2`, doc links — all clean; details below). Based ONLY on this session's work and observations.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): most of the trailing debt closed by later sessions.
+> - **§a (fully done):** bullet list, self-declared done with per-item evidence — left unstruck (already clear).
+> - **§b:** b4 (FEATURES rows), b6 (nix fmt), b9 (coverage-gate) DONE; b1 (TestNew_AllConfigFields extension), b2 (bench-docs note), b3 (appkit diff), b5 (check-docs-freshness), b7 (`validatePathRoots` still a boolean chain), b8 (weak negative assertions), b10 (plan annotation) remain open → `TODO_LIST.md`.
+> - **§c (bullets):** the toolchain tug-of-war is RESOLVED (coordinated 1.27.1, 2026-09-19); family train shipped (setup v4.10.0/v4.11.0); broadcast replace stripped (N1.5); **idle bench retry** still open → `TODO_LIST.md`.
+> - **§d / §e / §g:** session-local retrospective + questions — historical record, no action.
+> - **§f:** struck rows confirmed done; open rows (f1/f2/f4/f5/f6/f7/f8/f9/f13–f16/f19 + the f21–f40 program pointers) are routed to `TODO_LIST.md`/`ROADMAP.md`; the dashboardui program (f21–36), httputil/go-etag/go-sse plan (f37–39), and example bumps (f40) all landed.
+
 ---
 
 ## a) FULLY DONE (still true this morning, re-verified)

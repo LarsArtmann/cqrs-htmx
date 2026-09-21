@@ -6,6 +6,15 @@
 > [`2026-09-17_21-01_datastar-broadcaster-moved-upstream-to-go-datastar.md`](2026-09-17_21-01_datastar-broadcaster-moved-upstream-to-go-datastar.md).
 > Written from session memory per instruction; no fresh repo-wide research.
 
+> **ANNOTATED 2026-09-20** (docs-health sweep): the broadcast-move follow-up is fully absorbed.
+> - **§a (bullets):** self-declared done with evidence — left unstruck (already clear).
+> - **§b:** the AGENTS cqrs-lint split brain is fixed (now pins 4.11.2); the 5 stale suppressions and the dashboardui `assets.go` informational warning were resolved in later lint sweeps (lint 0/15).
+> - **§c:** tag & push DONE (broadcast/v0.6.0 + datastar/setup in the v4.11.0 train); replace strip + hermetic re-verify DONE (N1.5); e2e DONE (N5–N8); version-drift DONE (train-lag zero); **TODO_LIST harvest** is this sweep (§f → `TODO_LIST.md`).
+> - **§d:** three fabrication/churn lessons (wrong rule ID, wrong diagnosis, PIPESTATUS) — historical record, no action.
+> - **§e:** process lessons — capture in AGENTS, no per-item action.
+> - **§f:** struck rows confirmed done; open rows (f8/f9/f10/f11/f12/f13/f18/f19/f20/f21/f23/f24) are routed to `TODO_LIST.md`/`ROADMAP.md` (upstream cqrs-lint reports, vendor-skew gate, CI cqrs-lint parity, v5 dep-budget check, old-report triage).
+> - **§g:** questions — first two resolved by the train; the `Raw()`-removal call is recorded in the v5-removal inventory.
+
 ## a) FULLY DONE
 
 ### cqrs-htmx documentation (the "docs" todo, was PARTIALLY DONE)
@@ -185,23 +194,23 @@
 
 **Release train (blocked on owner):**
 
-1. Approve + cut/push go-datastar `broadcast/v0.6.0` (verify-tag equivalent; lockstep
-   root `v0.6.0` per ADR 002).
-2. Then cut/push cqrs-htmx `datastar/v4.9.1` + `setup/v4.9.1` (family train order:
-   datastar before setup).
-3. Strip the 3 `go-datastar/broadcast` sibling replaces + integration_test's family
-   dev-replace; hermetic re-verify per module (tidy + build + vet — vet is load-bearing
-   for tests).
-4. Re-run `check-release-train` + `check-version-drift --strict` post-strip (expect 0
-   unpublished / drift unchanged-by-me).
-5. Re-run docs-freshness / uniform-at checks after the train (old item 25).
+1. ~~Approve + cut/push go-datastar `broadcast/v0.6.0` (verify-tag equivalent; lockstep~~ done (broadcast/v0.6.0 published)
+   ~~root `v0.6.0` per ADR 002).~~
+2. ~~Then cut/push cqrs-htmx `datastar/v4.9.1` + `setup/v4.9.1` (family train order:~~ done (datastar + setup shipped in the v4.11.0 train)
+   ~~datastar before setup).~~
+3. ~~Strip the 3 `go-datastar/broadcast` sibling replaces + integration_test's family~~ done (09-19 N1.5 replaces stripped)
+   ~~dev-replace; hermetic re-verify per module (tidy + build + vet — vet is load-bearing~~
+   ~~for tests).~~
+4. ~~Re-run `check-release-train` + `check-version-drift --strict` post-strip (expect 0~~ done (release-train + drift green (0/0))
+   ~~unpublished / drift unchanged-by-me).~~
+5. ~~Re-run docs-freshness / uniform-at checks after the train (old item 25).~~ done (check-docs-freshness standing gate green)
 
 **Split brains & doc truth (small, mine to own):**
 
-6. Fix the AGENTS.md suppression-gotcha sentence still pinning cqrs-lint 4.6.0 (the
-   split brain from d.4).
-7. Re-verify + update the AGENTS coverage row (datastar 97.4% → 100%) at the next full
-   coverage run rather than a spot check.
+6. ~~Fix the AGENTS.md suppression-gotcha sentence still pinning cqrs-lint 4.6.0 (the~~ done (AGENTS.md now pins cqrs-lint 4.11.2)
+   ~~split brain from d.4).~~
+7. ~~Re-verify + update the AGENTS coverage row (datastar 97.4% → 100%) at the next full~~ done (AGENTS.md datastar row 100%/90)
+   ~~coverage run rather than a spot check.~~
 8. Delete the 5 stale suppressions flagged by 4.8.1 (`main.go:47` A032; setup
    `bundle.go:183`/`211`, `setup.go:284` C015) — coordinate with the concurrent
    session's setup work.
@@ -222,18 +231,18 @@
 
 **Concurrent-session coordination:**
 
-14. Version-drift alignment (templ-components ×4, go-health ×2, go-atomic-write,
-    go-retry) — complete the sweep once the sibling session is idle; drift gate is the
-    only red check-modules stage.
-15. setup's 3 golangci findings (exhaustruct_v5-deprecation era) — dedicated sweep or
-    wait for the golangci pin to move past 2.13.2.
-16. Decide exhaustruct → exhaustruct_v5 migration in `.golangci.yml` (kills the
-    deprecation-warning noise seen all session in LSP output).
+14. ~~Version-drift alignment (templ-components ×4, go-health ×2, go-atomic-write,~~ done (version-drift green, train-lag zero)
+    ~~go-retry) — complete the sweep once the sibling session is idle; drift gate is the~~
+    ~~only red check-modules stage.~~
+15. ~~setup's 3 golangci findings (exhaustruct_v5-deprecation era) — dedicated sweep or~~ done (lint 0/15 modules)
+    ~~wait for the golangci pin to move past 2.13.2.~~
+16. ~~Decide exhaustruct → exhaustruct_v5 migration in `.golangci.yml` (kills the~~ done (exhaustruct_v5 adopted + documented)
+    ~~deprecation-warning noise seen all session in LSP output).~~
 
 **Broadcast-move residuals:**
 
-17. Run `nix run .#e2e` with `PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers` after the
-    train (SSE/offline-sync paths touch the hub vocabulary; old item 23).
+17. ~~Run `nix run .#e2e` with `PLAYWRIGHT_BROWSERS_PATH=/tmp/pw-browsers` after the~~ done (09-19 N5-N8 e2e green)
+    ~~train (SSE/offline-sync paths touch the hub vocabulary; old item 23).~~
 18. go-datastar `example/domain-adapter`: point at broadcast or keep as the
     dependency-free miniature (decision; old item 18).
 19. Generic (go-cqrs-free) EventBridge upstream consideration — stays ROADMAP'd unless
@@ -246,8 +255,8 @@
 
 **Process:**
 
-22. Run docs-health HARVEST on this report's section f (TODO_LIST/ROADMAP routing with
-    the extra-rigor rule for over-25 lists).
+22. ~~Run docs-health HARVEST on this report's section f (TODO_LIST/ROADMAP routing with~~ done (this docs-health sweep)
+    ~~the extra-rigor rule for over-25 lists).~~
 23. Add "reproduce the gate's exact invocation before editing" + "never pipe exit
     codes" to the session-start checklist (they're in AGENTS; I still failed them).
 24. Consider `lsp_restart` as a standing first move when >20 phantom diagnostics
