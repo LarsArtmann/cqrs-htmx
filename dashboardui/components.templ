@@ -1,0 +1,217 @@
+package dashboardui
+
+import (
+	"strconv"
+
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
+)
+
+// Shared leaf components. Each wraps one templ-components library component
+// with the dashboard's pinned defaults so page templates stay readable. The
+// generated markup is identical to the former string-bridge helpers
+// (statCardHTML, badgeHTML, buttonLink, ...) that these replace.
+
+// statCard renders a library StatCard. valueID is the stable DOM hook
+// (stat-<name> scheme) for live-updating scripts.
+templ statCard(valueID, value, label string, tone display.StatTone) {
+	@display.StatCard(display.StatCardProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Value:     value,
+		Label:     label,
+		Tone:      tone,
+		ValueID:   valueID,
+	})
+}
+
+// emptyStatePanel renders the standard empty-state panel (library component,
+// page-specific icon for visual continuity).
+templ emptyStatePanel(icon icons.Name, title, message string) {
+	@display.EmptyState(display.EmptyStateProps{
+		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Title:       title,
+		TitleTag:    "h2",
+		Description: message,
+		Icon:        icon,
+	})
+}
+
+// statusBadge renders a projection status as a library badge. Unknown kinds
+// keep their raw status text styled as an explicitly neutral badge.
+templ statusBadge(kind, statusText string) {
+	if mapped := statusKindToStatus(kind); mapped != "" {
+		@display.StatusBadge(mapped)
+	} else {
+		@display.Badge(display.BadgeProps{
+			BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+			Text:      statusText,
+			Type:      display.BadgeNeutral,
+			Size:      display.BadgeSizeMD,
+			Pill:      false,
+			Dot:       true,
+		})
+	}
+}
+
+// badge renders a library Badge with an explicit type. Single mapping point
+// for every former hand-rolled badge span.
+templ badge(text string, badgeType display.BadgeType) {
+	@display.Badge(display.BadgeProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Text:      text,
+		Type:      badgeType,
+		Size:      display.BadgeSizeMD,
+		Pill:      false,
+		Dot:       true,
+	})
+}
+
+// encodingBadge renders an event encoding badge. JSON is neutral (default),
+// CBOR warns (may need a decoder), raw is neutral.
+templ encodingBadge(encoding string) {
+	@badge(encoding, encodingBadgeType(encoding))
+}
+
+// buttonLink renders a library Button as an anchor (navigation actions
+// styled as buttons: View, Previous, Next, Back). A non-empty ariaLabel is
+// attached; disabled renders the library's aria-disabled + tabindex=-1 +
+// pointer-events-none treatment.
+templ buttonLink(text, href, ariaLabel string, variant display.ButtonType, disabled bool) {
+	@display.Button(display.ButtonProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: ariaLabel, Nonce: ""},
+		Text:      text,
+		Type:      display.ButtonHTMLButton,
+		Href:      href,
+		Variant:   variant,
+		Size:      display.ButtonSizeMD,
+		Disabled:  disabled,
+	})
+}
+
+// buttonSubmit renders a library submit button for the data-confirm forms
+// (Delete, Reset, Purge, Replay). attrs carries the request-scoped extras.
+templ buttonSubmit(text, ariaLabel string, variant display.ButtonType, attrs templ.Attributes) {
+	@display.Button(display.ButtonProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: attrs, AriaLabel: ariaLabel, Nonce: ""},
+		Text:      text,
+		Type:      display.ButtonHTMLSubmit,
+		Variant:   variant,
+		Size:      display.ButtonSizeMD,
+	})
+}
+
+// copyButton renders a library CopyButton (data-tc-copy + the library's
+// singleton delegated clipboard script). The empty label falls back to the
+// library's "Copy"/"Copied!" pair.
+templ copyButton(text, label string) {
+	@display.CopyButton(display.CopyButtonProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Text:      text,
+		Label:     label,
+		Icon:      true,
+	})
+}
+
+// dataTable renders the library Table. TypedHeaders drive aria-sort +
+// server-side sort links; cells containing markup (links, badges, copy
+// buttons) pass through display.TableCell.Content (templ.Raw); plain text
+// cells are escaped by the library. LazyRows renders content-visibility rows,
+// so long tables skip off-screen row rendering.
+templ dataTable(headers []display.TableHeader, rows []display.TableRow, bodyID string) {
+	@display.Table(display.TableProps{
+		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		TypedHeaders: headers,
+		Rows:         rows,
+		Hover:        true,
+		CellPadding:  display.TableCellPaddingCompact,
+		LazyRows:     true,
+		BodyID:       bodyID,
+	})
+}
+
+// rawDataTable renders the library Table shell (wrapper, thead, tbody)
+// around pre-rendered <tr> markup for tables whose rows are built as
+// components by callers. Headers still go through the typed path.
+templ rawDataTable(headers []display.TableHeader, rows templ.Component) {
+	@display.Table(display.TableProps{
+		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		TypedHeaders: headers,
+		Hover:        true,
+		CellPadding:  display.TableCellPaddingCompact,
+		LazyRows:     true,
+		Body:         rows,
+	})
+}
+
+// definitionList renders the library DefinitionList. Terms/details are
+// escaped by the library; use defItemRaw for pre-rendered detail markup and
+// defItemCopy for copyable values.
+templ definitionList(items []display.DefinitionItem) {
+	@display.DefinitionList(display.DefinitionListProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Items:     items,
+	})
+}
+
+// listNoteCount renders the count-only ListNote variant ("Showing N items.")
+// for complete lists whose whole message is the count. AriaLabel carries the
+// domain noun the generic visible text lacks.
+templ listNoteCount(shown int, ariaLabel string) {
+	@display.ListNote(display.ListNoteProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: ariaLabel, Nonce: ""},
+		Shown:     shown,
+		Variant:   display.ListNoteCount,
+	})
+}
+
+// filterInput renders a library forms.Input field for filter bars. The
+// explicit ID keeps the historical DOM ids (filter-type, filter-stream-type,
+// filter-stream-id) so CSS, e2e probes, and hx-get serialization stay stable.
+templ filterInput(id, label, name, value, placeholder string) {
+	@forms.Input(forms.InputProps{
+		BaseProps:   utils.BaseProps{ID: id, Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Type:        forms.InputText,
+		Name:        name,
+		Value:       value,
+		Placeholder: placeholder,
+		Label:       label,
+	})
+}
+
+// paginationNav renders Prev/Next links with cursor-history tracking plus
+// the page-size selector. basePath is the dashboard base path, path is the
+// page path (e.g., "/events"). Extra query params (filters, sort) are
+// preserved across pagination links.
+templ paginationNav(basePath, path string, state paginationState, extraParams string) {
+	if state.HasNext || state.HasPrev {
+		<div class="pagination">
+			if state.HasPrev {
+				@buttonLink(
+					"← Previous",
+					paginationHref(basePath, path, popCursor(state.PrevHistory), state.PageSize, extraParams),
+					"",
+					display.ButtonSecondary,
+					false,
+				)
+			} else {
+				<span class="pagination disabled">← Previous</span>
+			}
+			@paginationInfo(state)
+			@pageSizeSelector(basePath, path, state, extraParams)
+			if state.HasNext {
+				@buttonLink(
+					"Next →",
+					paginationHref(basePath, path, paginationQueryParts(state, extraParams)),
+					"",
+					display.ButtonOutlineInfo,
+					false,
+				)
+			}
+		</div>
+	}
+}
+
+// paginationHref joins a path and query for a pagination link.
+templ helper? — no, plain Go below.

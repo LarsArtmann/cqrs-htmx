@@ -1,7 +1,6 @@
 package dashboardui
 
 import (
-	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
@@ -27,7 +26,7 @@ templ layout(p pageData, content templ.Component) {
 				<meta name="color-scheme" content="light dark"/>
 				<meta name="robots" content="noindex"/>
 				<title>{ p.Title } · { p.Brand }</title>
-				@templ.Raw(accentStyle(p))
+				@accentStyle(p)
 				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard.css" }/>
 				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard-tw.css" }/>
 				<script src={ p.BasePath + "/-/htmx.js" } defer></script>
