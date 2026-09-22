@@ -92,7 +92,9 @@ test.describe("dashboard sortable tables (N8)", () => {
 });
 
 test.describe("dashboard DLQ count notice (ListNoteCount)", () => {
-  test("dead-letters detail page renders the seeded rows plus the count notice", async ({ page }) => {
+  test("dead-letters detail page renders the seeded rows plus the count notice", async ({
+    page,
+  }) => {
     await page.goto("/dashboard/dead-letters/demo-projection");
 
     // Two deterministically seeded poison entries (e2e server seeds the

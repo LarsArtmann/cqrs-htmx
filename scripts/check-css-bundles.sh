@@ -55,7 +55,7 @@ for rel in "${BUNDLES[@]}"; do
     continue
   fi
 
-  lines=$(wc -l < "$path")
+  lines=$(wc -l <"$path")
   if [ "$lines" -ne 1 ]; then
     echo "✗ $rel: $lines lines — not the canonical minified form (1 line)."
     echo "       A hook probably rewrote it without --minify."
@@ -69,7 +69,7 @@ for rel in "${BUNDLES[@]}"; do
     continue
   fi
 
-  bytes=$(wc -c < "$path")
+  bytes=$(wc -c <"$path")
   if [ "$bytes" -lt "$MIN_BYTES" ]; then
     echo "✗ $rel: $bytes bytes < floor $MIN_BYTES — near-empty bundle (empty content scan class)."
     failures=$((failures + 1))

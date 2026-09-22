@@ -75,7 +75,7 @@ rm -rf "$F3"
 # --- F4: near-empty truncation fails (the 2026-09-22 incident class) ----------
 F4="$(mktemp -d)"
 make_fixture "$F4"
-head -c 8192 "$REPO/adminui/assets/admin-tw.css" > "$F4/adminui/assets/admin-tw.css"
+head -c 8192 "$REPO/adminui/assets/admin-tw.css" >"$F4/adminui/assets/admin-tw.css"
 OUT="$(CHECK_CSS_BUNDLES_ROOT="$F4" bash "$CHECKER" 2>&1)"
 rc=$?
 report "$([ "$rc" -eq 1 ] && echo 0 || echo 1)" "F4 8KB truncation exits 1 (got $rc)"
@@ -86,7 +86,7 @@ rm -rf "$F4"
 F5="$(mktemp -d)"
 make_fixture "$F5"
 sed 's/--tc-sidebar[^;]*;//g; s/\.bg-green-100[^}]*}//g' \
-  "$REPO/dashboardui/assets/dashboard-tw.css" > "$F5/dashboardui/assets/dashboard-tw.css"
+  "$REPO/dashboardui/assets/dashboard-tw.css" >"$F5/dashboardui/assets/dashboard-tw.css"
 OUT="$(CHECK_CSS_BUNDLES_ROOT="$F5" bash "$CHECKER" 2>&1)"
 rc=$?
 report "$([ "$rc" -eq 1 ] && echo 0 || echo 1)" "F5 canary-stripped exits 1 (got $rc)"
@@ -96,7 +96,7 @@ rm -rf "$F5"
 # --- F6: empty file fails ------------------------------------------------------
 F6="$(mktemp -d)"
 make_fixture "$F6"
-: > "$F6/adminui/assets/admin-tw.css"
+: >"$F6/adminui/assets/admin-tw.css"
 OUT="$(CHECK_CSS_BUNDLES_ROOT="$F6" bash "$CHECKER" 2>&1)"
 rc=$?
 report "$([ "$rc" -eq 1 ] && echo 0 || echo 1)" "F6 empty bundle exits 1 (got $rc)"
