@@ -1,7 +1,6 @@
 package dashboardui
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/larsartmann/templ-components/display"
@@ -69,8 +68,8 @@ templ projectionHealthRows(projs []projectionStat) {
 			<td>{ pr.Name }</td>
 			<td>@statusBadge(pr.StatusKind, pr.Status)</td>
 			<td class="mono">{ pr.Lag }</td>
-			<td>{ strconv.Itoa(pr.Processed) }</td>
-			<td>{ strconv.Itoa(pr.Errors) }</td>
+			<td>{ strconv.FormatInt(pr.Processed, 10) }</td>
+			<td>{ strconv.FormatInt(pr.Errors, 10) }</td>
 		</tr>
 	}
 }

@@ -44,8 +44,8 @@ templ projectionRows(p pageData, projs []projectionStat) {
 			<td class="cell-emph"><a href={ p.BasePath + "/projections/" + proj.Name }>{ proj.Name }</a></td>
 			<td>@badge(proj.Status, statusKindToBadgeType(proj.StatusKind))</td>
 			<td class="mono">{ proj.Lag }</td>
-			<td>{ strconv.Itoa(proj.Processed) }</td>
-			<td>{ strconv.Itoa(proj.Errors) }</td>
+			<td>{ strconv.FormatInt(proj.Processed, 10) }</td>
+			<td>{ strconv.FormatInt(proj.Errors, 10) }</td>
 			<td>{ strconv.Itoa(proj.Restarts) }</td>
 			<td class="mono" title={ proj.Checkpoint }>{ truncate(proj.Checkpoint, listIDWidth) }</td>
 			if proj.LastError != "" {

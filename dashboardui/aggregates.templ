@@ -36,7 +36,7 @@ templ aggregateRows(listings []listing.StreamListing) {
 			<td class="mono">{ truncate(l.ID.String(), listIDWidth) }</td>
 			<td>{ string(l.Type) }</td>
 			<td>{ l.Version.String() }</td>
-			<td>{ strconv.Itoa(l.EventCount) }</td>
+			<td>{ strconv.FormatUint(uint64(l.EventCount), 10) }</td>
 			<td class="mono">{ l.LastEventAt.Format("2006-01-02 15:04:05") }</td>
 		</tr>
 	}

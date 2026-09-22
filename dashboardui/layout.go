@@ -1,7 +1,6 @@
 package dashboardui
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -10,6 +9,41 @@ import (
 
 // brandInitialsLen is the number of characters used for the sidebar brand initials.
 const brandInitialsLen = 2
+
+// Retry/announcer settings for the library's htmx.GlobalErrorHandling (the
+// library's own defaults, pinned here to keep the dashboard contract explicit).
+const (
+	errorHandlingMaxHistory = 10
+	errorHandlingMaxRetries = 2
+	errorHandlingRetryMS    = 1000
+)
+
+// mapNavIconName translates dashboardui internal icon names to the
+// templ-components icons.Name constants.
+func mapNavIconName(name string) icons.Name {
+	switch name {
+	case "chart":
+		return icons.Chart
+	case "queue":
+		return icons.QueueList
+	case "cube":
+		return icons.Cube
+	case "arrow-path":
+		return icons.ArrowPath
+	case "bug":
+		return icons.BugAnt
+	case "clipboard":
+		return icons.Clipboard
+	case "magnifying-glass":
+		return icons.Search
+	case "clock":
+		return icons.Clock
+	case "archive":
+		return icons.ArchiveBox
+	default:
+		return icons.Question
+	}
+}
 
 func initials(brand string) string {
 	words := strings.Fields(brand)

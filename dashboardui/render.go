@@ -217,16 +217,16 @@ func redirect(w http.ResponseWriter, r *http.Request, path string) {
 // renderStreamIndex renders one of the dashboard's stream-listing pages
 // (aggregates, snapshots, time-travel). It binds the page title and base path,
 // looks up streams via the configured reader with cursor-based pagination,
-// runs the per-page renderer, and writes the result. Shared across the three
+// renders the per-page component, and writes the result. Shared across the
 // stream-index handlers so the common prelude doesn't drift.
 func (d *Dashboard) renderStreamIndex(
 	w http.ResponseWriter,
 	r *http.Request,
 	title, basePath string,
-	render func(context.Context, pageData, []listing.StreamListing, paginationState) string,
+	page func(pageData, []listing.StreamListing, paginationState) templ.Component,
 ) {
 	p := d.page(title, basePath, r)
-	listings, page := d.listStreamsPaged(r)
-	page = page.WithCountInfo(len(listings))
-	renderPage(w, r, render(r.Context(), p, listings, page))
+	listings, pageState := d.listStreamsPaged(r)
+	pageState = pageState.WithCountInfo(len(listings))
+	renderPage(w, r, page(p, listings, pageState))
 }

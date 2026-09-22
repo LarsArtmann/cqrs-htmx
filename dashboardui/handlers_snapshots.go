@@ -4,8 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Snapshots =====

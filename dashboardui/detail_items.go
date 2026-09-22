@@ -260,3 +260,13 @@ func eventMetaItems(evt event.Event, meta event.Metadata) []display.DefinitionIt
 
 	return items
 }
+
+// recentEventTime picks the overview recent-events row time display: the
+// relative time when the timestamp is known, the raw display otherwise.
+func recentEventTime(e RecentEvent) string {
+	if !e.OccurredAt.IsZero() {
+		return relativeTime(e.OccurredAt)
+	}
+
+	return e.Time
+}
