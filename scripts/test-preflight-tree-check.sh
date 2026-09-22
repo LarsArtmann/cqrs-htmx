@@ -53,7 +53,7 @@ r="$tmp/f1"
 new_repo "$r" && old_commit "$r" "initial"
 (cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER") >"$tmp/f1.out" 2>&1
 rc=$?
-report $([ $rc -eq 0 ] && echo 0 || echo 1) "F1 clean/old exits 0 (got $rc)"
+report "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "F1 clean/old exits 0 (got $rc)"
 
 # F2 dirty
 r="$tmp/f2"
@@ -80,7 +80,7 @@ r="$tmp/f4"
 new_repo "$r" && old_commit "$r" "initial" && git -C "$r" commit -q --allow-empty -m "chore: auto-commit 2 changed file(s) (heuristic)"
 (cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER") >"$tmp/f4.out" 2>&1
 rc=$?
-report $([ $rc -eq 0 ] && echo 0 || echo 1) "F4 fresh daemon commit alone exits 0 (got $rc)"
+report "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "F4 fresh daemon commit alone exits 0 (got $rc)"
 
 # F5 daemon burst
 r="$tmp/f5"
@@ -99,7 +99,7 @@ report $ok "F5 daemon burst exceeds velocity exits 1 (got $rc)"
 mkdir -p "$tmp/f6" && cd "$tmp/f6" || exit 1
 bash "$CHECKER" >"$tmp/f6.out" 2>&1
 rc=$?
-report $([ $rc -eq 2 ] && echo 0 || echo 1) "F6 outside repo exits 2 (got $rc)"
+report "$([ "$rc" -eq 2 ] && echo 0 || echo 1)" "F6 outside repo exits 2 (got $rc)"
 cd "$SCRIPT_DIR/.." || exit 1
 
 echo "== $pass passed, $fail failed"

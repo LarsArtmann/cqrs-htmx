@@ -47,7 +47,7 @@ r="$tmp/f1"
 new_repo "$r"
 (cd "$r" && bash "$CHECKER" --quiet 2 --poll 1 --max-wait 15) >"$tmp/f1.out" 2>&1
 rc=$?
-report $([ $rc -eq 0 ] && echo 0 || echo 1) "F1 quiet repo exits 0 (got $rc)"
+report "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "F1 quiet repo exits 0 (got $rc)"
 
 # F2 dirty whole time -> timeout
 r="$tmp/f2"
@@ -68,14 +68,14 @@ new_repo "$r"
 ) &
 (cd "$r" && bash "$CHECKER" --quiet 3 --poll 1 --max-wait 20) >"$tmp/f3.out" 2>&1
 rc=$?
-report $([ $rc -eq 0 ] && echo 0 || echo 1) "F3 mid-window commit still exits 0 (got $rc)"
+report "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "F3 mid-window commit still exits 0 (got $rc)"
 wait
 
 # F4 outside a repo
 mkdir -p "$tmp/f4" && cd "$tmp/f4" || exit 1
 bash "$CHECKER" >"$tmp/f4.out" 2>&1
 rc=$?
-report $([ $rc -eq 2 ] && echo 0 || echo 1) "F4 outside repo exits 2 (got $rc)"
+report "$([ "$rc" -eq 2 ] && echo 0 || echo 1)" "F4 outside repo exits 2 (got $rc)"
 cd "$SCRIPT_DIR/.." || exit 1
 
 echo "== $pass passed, $fail failed"
