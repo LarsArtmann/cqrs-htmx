@@ -1117,8 +1117,10 @@
                 fail=0
                 check_cov() {
                   local mod="$1" threshold="$2"
-                  local cov
-                  cov=$(cd "$mod" && go test ./... -count=1 -coverprofile=/tmp/cov >/dev/null 2>&1 && go tool cover -func=/tmp/cov | tail -1 | grep -oP '\d+\.\d+(?=%)')
+                  local cov profile
+                  profile=$(mktemp /tmp/cov.XXXXXX)
+                  cov=$(cd "$mod" && go test ./... -count=1 -coverprofile="$profile" >/dev/null 2>&1 && go tool cover -func="$profile" | tail -1 | grep -oP '\d+\.\d+(?=%)')
+                  rm -f "$profile"
                   echo "$mod coverage: ''${cov}% (threshold: ''${threshold}%)"
                   if (( $(echo "$cov < $threshold" | bc -l) )); then
                     echo "FAIL: $mod coverage ''${cov}% < ''${threshold}%"
@@ -1140,7 +1142,9 @@
                 check_cov health 90
                 check_cov auditlog 90
                 # Per-package gate: dashboardui/core is the pure data layer.
-                core_cov=$(cd dashboardui && go test ./core/... -count=1 -coverprofile=/tmp/corecov >/dev/null 2>&1 && go tool cover -func=/tmp/corecov | tail -1 | grep -oP '\d+\.\d+(?=%)')
+                core_profile=$(mktemp /tmp/corecov.XXXXXX)
+                core_cov=$(cd dashboardui && go test ./core/... -count=1 -coverprofile="$core_profile" >/dev/null 2>&1 && go tool cover -func="$core_profile" | tail -1 | grep -oP '\d+\.\d+(?=%)')
+                rm -f "$core_profile"
                 echo "dashboardui/core coverage: ''${core_cov}% (threshold: 80%)"
                 if (( $(echo "$core_cov < 80" | bc -l) )); then
                   echo "FAIL: dashboardui/core coverage ''${core_cov}% < 80%"

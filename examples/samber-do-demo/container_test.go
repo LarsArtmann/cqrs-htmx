@@ -59,6 +59,30 @@ func TestContainerResolvesService(t *testing.T) {
 	}
 }
 
+// TestSmoke_AuditViewerServes verifies the live audit-viewer http.Handler
+// (the auditlog bridge's SSE-backed dashboard) serves its page — the demo's
+// real-time surface.
+func TestSmoke_AuditViewerServes(t *testing.T) {
+	container, cleanup := newTestContainer(t)
+	defer cleanup()
+
+	if container.AuditViewer == nil {
+		t.Fatal("AuditViewer is nil — the auditlog bridge did not wire the live viewer")
+	}
+
+	rec := httptest.NewRecorder()
+	container.AuditViewer.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/audit/", nil))
+	if rec.Code == http.StatusTemporaryRedirect || rec.Code == http.StatusMovedPermanently {
+		t.Fatalf("audit viewer GET /audit/: unexpected redirect %d (Location: %s)", rec.Code, rec.Header().Get("Location"))
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("audit viewer GET /audit/: status %d, want 200", rec.Code)
+	}
+	if body := rec.Body.String(); !strings.Contains(body, "<") {
+		t.Fatalf("audit viewer GET /audit: body does not look like HTML (%q)", body[:min(80, len(body))])
+	}
+}
+
 // TestContainerResolvesApp verifies that the cqrshtmx.App resolves correctly.
 func TestContainerResolvesApp(t *testing.T) {
 	container, cleanup := newTestContainer(t)

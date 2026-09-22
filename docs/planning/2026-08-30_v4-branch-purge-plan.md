@@ -1,6 +1,6 @@
 # Plan: Purge `origin/v4` branch history (3 binary blobs, ~27.7 MB)
 
-**Status:** PREPARED, awaiting user approval (force-push class).
+**Status:** PREPARED, awaiting user approval (force-push class). **Data re-verified 2026-09-22 (docs-health D4):** `origin/v4` still exists at `339ce82b`; fresh census confirms exactly 3 blobs >1 MB: `examples/basic/basic` (10,320,945 B) + `examples/datastar-demo/datastar-demo` ×2 (9,342,976 B + 9,336,936 B) = **28,900,857 B ≈ 27.56 MiB**. Nothing pushed.
 **Prepared:** 2026-08-30 · Source: TODO_LIST P-gated item.
 
 ## Current state
