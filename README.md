@@ -1239,6 +1239,8 @@ version trains, so exact versions are intentionally not repeated here.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for build/test/lint commands, code style, and PR checklist.
 
+A pre-push hook enforces CI parity at the push boundary (release-train strict + version-drift strict). Install it once per clone: `bash scripts/install-git-hooks.sh`. If a push is blocked, the hook output names the gate and its fix — resolve it rather than pushing with `--no-verify`.
+
 ## License
 
 MIT
