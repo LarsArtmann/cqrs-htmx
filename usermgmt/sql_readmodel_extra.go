@@ -312,7 +312,9 @@ func queryViewByName[T any](
 // caller's error code and human-readable message. It reports whether evt was
 // the tombstone; when true the Handle caller returns immediately. Shared by
 // the per-aggregate Handle methods whose only differences are the tombstone
-// event, the view key, and the error tags.
+// event, the view key, and the error tags. The per-type find/marshal calls
+// keep their inline guard clauses on purpose; only the store/error contract
+// is shared.
 func deleteViewOnTombstone[V any, K fmt.Stringer](
 	ctx context.Context,
 	store *storage.SQLViewStore[V, K], //nolint:staticcheck // ADR-0123 v5
