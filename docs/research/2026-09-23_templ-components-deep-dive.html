@@ -927,10 +927,12 @@
           <p>
             This audit answers a narrow question: does <code>dashboardui/</code> use
             <code>github.com/larsartmann/templ-components</code> superbly? The evidence says
-            it is close to a model consumer. All five imported subpackages
-            (<code>display</code>, <code>forms</code>, <code>feedback</code>, <code>htmx</code>,
+            it is close to a model consumer. All five required module paths
+            (core, errorpage, htmx, icons, utils — spanning the seven import
+            packages <code>display</code>, <code>forms</code>, <code>feedback</code>, <code>htmx</code>,
             <code>errorpage</code>, <code>icons</code>, <code>utils</code>) sit at the newest
-            released tag; ~90 distinct library identifiers appear across 17 non-test files;
+            released tag; ~90 distinct library identifiers appear across 12
+            handwritten Go files plus 10 generated <code>*_templ.go</code> files;
             table sorting, polling regions, toasts, global HTMX error handling, and
             family-aware error pages all route through library components rather than
             hand-rolled equivalents; and the compiled Tailwind bundle gate is green
@@ -942,6 +944,19 @@
             and a set of <em>deliberate</em> divergences (page shell, cursor pagination)
             that are justified by the dashboard's HTMX-boost navigation model — not
             oversights. No misuses were found.
+          </p>
+          <p>
+            <em>Series context (added same day, on review):</em> this is a follow-up, not a
+            first episode. The predecessor
+            <a href="2026-09-17_templ-components-dashboardui-deep-dive.html">2026-09-17 dashboardui audit</a>
+            scored this module <strong>14/100</strong> — one component imported,
+            everything hand-rolled in strings.Builder — six days before the full-templ
+            migration that this audit's 85/100 measures the result of. The companion
+            <a href="2026-09-17_templ-components-deep-dive.html">adminui audit (68/100)</a>
+            covers the sibling consumer. The 2026-09-20
+            <a href="2026-09-20_theme-toggle-strategy-spike.md">theme-toggle strategy spike</a>
+            predates this report's ThemeToggle finding. The score trajectory 14 → 85 is the
+            headline this report originally buried.
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
@@ -1212,10 +1227,8 @@
           </p>
           <div class="callout callout-teal">
             <strong>On the latest release</strong>
-            Every recently shipped library feature (charts, <code>FilterInput</code>,
-            <code>Scrollback</code>, kanban, wire helpers) was available at upgrade time; the
-            library's unreleased changes (scaffolder mirror, duplication baseline) are
-            library-internal and do not affect this consumer.
+            dashboardui pins the newest tag at audit time — no version gap. Feature-level
+            upgrade timing was not reconstructed in this pass.
           </div>
           <table class="compare">
             <thead>
@@ -1345,7 +1358,7 @@
             <tbody>
               <tr>
                 <td>~90 distinct library identifiers in use</td>
-                <td>Symbol census, 7 packages, 17 non-test files</td>
+                <td>Symbol census, 7 import packages, 12 handwritten + 10 generated files</td>
                 <td class="yes">grep -c, 2026-09-23</td>
               </tr>
               <tr>
