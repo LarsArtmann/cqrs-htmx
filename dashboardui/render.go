@@ -188,6 +188,26 @@ func emptyStateIcon(ctx context.Context, icon icons.Name, title, message string)
 	return b.String()
 }
 
+// listNoteCountHTML renders the count-only ListNote variant ("Showing N
+// items.") for complete lists whose whole message is the count — the DLQ
+// table being the canonical case, where the count is the Replay All /
+// Purge All blast radius. AriaLabel carries the domain noun the generic
+// visible text lacks ("Dead letter count").
+func listNoteCountHTML(ctx context.Context, shown int, ariaLabel string) string {
+	var b strings.Builder
+
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
+	props := display.ListNoteProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: ariaLabel, Nonce: ""},
+		Shown:     shown,
+		Total:     0,
+		Variant:   display.ListNoteCount,
+	}
+	_ = display.ListNote(props).Render(ctx, &b)
+
+	return b.String()
+}
+
 // isHTMXRequest returns true when the request came from an HTMX-boosted
 // link or explicit hx-get/hx-post. When true, handlers render only the main
 // content (no full HTML shell) for smaller payloads and faster swaps.
