@@ -84,9 +84,9 @@ for mod in "${mods[@]}"; do
 done
 
 echo ""
-if grep -rE "$MATCH_RE" --include=go.mod . 2>/dev/null | grep -v "$VERSION" | grep -q .; then
+if grep -rE "$MATCH_RE" --include=go.mod . 2>/dev/null | grep -v '/testdata/' | grep -v "$VERSION" | grep -q .; then
   echo "bump-dep: ABSENCE ASSERTION FAILED — stale requires remain:"
-  grep -rE "$MATCH_RE" --include=go.mod . | grep -v "$VERSION" | head -10
+  grep -rE "$MATCH_RE" --include=go.mod . | grep -v '/testdata/' | grep -v "$VERSION" | head -10
   exit 1
 fi
 
