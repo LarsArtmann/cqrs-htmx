@@ -1,7 +1,6 @@
 package dashboardui
 
 import (
-	"context"
 	"strings"
 	"testing"
 )
