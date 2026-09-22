@@ -4,24 +4,44 @@ import (
 	"context"
 	"fmt"
 	"html"
+	"io"
 	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
+	"github.com/larsartmann/templ-components/icons"
 )
 
-// Benchmarks comparing the hand-rolled string-building renderers against the
-// templ-components hybrid render path (component .Render into a
-// strings.Builder). Run with:
+// Benchmarks comparing the pre-adoption hand-rolled string-building renderers
+// against the production templ component path (the same components the pages
+// render). Run with:
 //
 //	go test -bench BenchmarkRender -benchmem -count=5 > bench.txt && benchstat bench.txt
 //
-// These quantify the adoption cost the program accepted per component family;
-// see docs/benchmarks/dashboardui-render-2026-09-19.md for the recorded run
-// (the 2026-09-17 artifact predates the honest statCard baseline and is kept
-// as history only).
+// The 2026-09-19 artifact (docs/benchmarks/dashboardui-render-2026-09-19.md)
+// measured the strings.Builder hybrid bridge; the "templ" arms here measure
+// the full-templ migration path (2026-09-22) and are not directly comparable
+// to the recorded hybrid numbers.
+
+// benchRender renders a component into a reused builder per iteration — the
+// same call shape production HTMX responses use.
+func benchRender(b *testing.B, c templ.Component) {
+	b.Helper()
+
+	ctx := context.Background()
+
+	for b.Loop() {
+		var out strings.Builder
+
+		if err := c.Render(ctx, &out); err != nil {
+			b.Fatal(err)
+		}
+
+		_ = out.String()
+	}
+}
 
 // benchHandRolledStatCard reproduces the pre-adoption statCard helper
 // verbatim (git show 81088b64:dashboardui/handler_overview.go), including the
@@ -43,37 +63,17 @@ func benchHandRolledStatCard(b *testing.B) {
 	}
 }
 
-func benchHybridStatCard(b *testing.B) {
+func benchTemplStatCard(b *testing.B) {
 	b.Helper()
 
-	ctx := context.Background()
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
-	props := display.StatCardProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Value:     "1234",
-		Label:     "Events",
-		Change:    "",
-		Trend:     display.TrendNone,
-		Tone:      display.StatToneBlue,
-		Icon:      "",
-		Href:      "",
-		HxGet:     "",
-		HxTarget:  "",
-		HxSwap:    "",
-		ValueID:   "stat-total-events",
-	}
+	statCard := statCard("stat-total-events", "1234", "Events", display.StatToneBlue)
 
-	for b.Loop() {
-		var out strings.Builder
-
-		_ = display.StatCard(props).Render(ctx, &out)
-		_ = out.String()
-	}
+	benchRender(b, statCard)
 }
 
 func BenchmarkRenderStatCard(b *testing.B) {
 	b.Run("hand-rolled", benchHandRolledStatCard)
-	b.Run("hybrid-library", benchHybridStatCard)
+	b.Run("templ", benchTemplStatCard)
 }
 
 // benchHandRolledButtonLink reproduces the pre-adoption anchor-button markup
@@ -97,67 +97,21 @@ func benchHandRolledButtonLink(b *testing.B) {
 	}
 }
 
-func benchHybridButtonLink(b *testing.B) {
+func benchTemplButtonLink(b *testing.B) {
 	b.Helper()
 
-	ctx := context.Background()
-
-	for b.Loop() {
-		var out strings.Builder
-
-		link := buttonLink(
-			ctx,
-			"View",
-			"/dashboard/events/e_01HXYZ",
-			"View event",
-			display.ButtonSecondary,
-			false,
-		)
-		_, _ = out.WriteString(link)
-		_ = out.String()
-	}
+	benchRender(b, buttonLink(
+		"View",
+		"/dashboard/events/e_01HXYZ",
+		"View event",
+		display.ButtonSecondary,
+		false,
+	))
 }
 
-// benchHandRolledButtonSubmit reproduces the pre-adoption danger submit
-// button (git 6294d73e~1 dashboardui/handlers_dlq.go delete form).
-func benchHandRolledButtonSubmit(b *testing.B) {
-	b.Helper()
-
-	esc := html.EscapeString
-
-	for b.Loop() {
-		var out strings.Builder
-
-		fmt.Fprintf(
-			&out,
-			`<button type="submit" class="btn btn-danger" aria-label="%s">%s</button>`,
-			esc("Delete dead letter"),
-			esc("Delete"),
-		)
-		_ = out.String()
-	}
-}
-
-func benchHybridButtonSubmit(b *testing.B) {
-	b.Helper()
-
-	ctx := context.Background()
-
-	for b.Loop() {
-		var out strings.Builder
-
-		_, _ = out.WriteString(
-			buttonSubmit(ctx, "Delete", "Delete dead letter", display.ButtonOutlineDanger, nil),
-		)
-		_ = out.String()
-	}
-}
-
-func BenchmarkRenderButton(b *testing.B) {
-	b.Run("link-hand-rolled", benchHandRolledButtonLink)
-	b.Run("link-hybrid", benchHybridButtonLink)
-	b.Run("submit-hand-rolled", benchHandRolledButtonSubmit)
-	b.Run("submit-hybrid", benchHybridButtonSubmit)
+func BenchmarkRenderButtonLink(b *testing.B) {
+	b.Run("hand-rolled", benchHandRolledButtonLink)
+	b.Run("templ", benchTemplButtonLink)
 }
 
 // benchHandRolledEmptyState reproduces the pre-adoption empty-state panel
@@ -180,22 +134,15 @@ func benchHandRolledEmptyState(b *testing.B) {
 	}
 }
 
-func benchHybridEmptyState(b *testing.B) {
+func benchTemplEmptyState(b *testing.B) {
 	b.Helper()
 
-	ctx := context.Background()
-
-	for b.Loop() {
-		var out strings.Builder
-
-		_, _ = out.WriteString(emptyState(ctx, "No events", "Adjust the filters"))
-		_ = out.String()
-	}
+	benchRender(b, emptyStatePanel(icons.Inbox, "No events", "Adjust the filters"))
 }
 
 func BenchmarkRenderEmptyState(b *testing.B) {
 	b.Run("hand-rolled", benchHandRolledEmptyState)
-	b.Run("hybrid-library", benchHybridEmptyState)
+	b.Run("templ", benchTemplEmptyState)
 }
 
 // The pre-M20 metadata markup (git 21c13e22 dashboardui/handler_overview.go
@@ -208,73 +155,59 @@ func benchMetaRow(b *strings.Builder, key, value string) {
 	fmt.Fprintf(b, `<tr><td class="meta-key">%s</td><td class="meta-val">%s</td></tr>`, key, value)
 }
 
-func benchMetaRowCopyable(
-	b *strings.Builder,
-	ctx context.Context,
-	key, displayValue, rawValue string,
-) {
+func benchMetaRowCopyable(b *strings.Builder, key, displayValue, rawValue string) {
 	fmt.Fprintf(
 		b,
-		`<tr><td class="meta-key">%s</td><td class="meta-val">%s %s</td></tr>`,
+		`<tr><td class="meta-key">%s</td><td class="meta-val">%s @copy(%s)</td></tr>`,
 		key,
 		displayValue,
-		copyButtonHTML(ctx, rawValue, ""),
+		rawValue,
 	)
 }
 
 func benchHandRolledDefinitionList(b *testing.B) {
 	b.Helper()
 
-	ctx := context.Background()
-
 	for b.Loop() {
 		var out strings.Builder
 
 		out.WriteString(`<div><h3>Metadata</h3><table class="meta-table">`)
 		benchMetaRow(&out, "Stream Type", esc("user"))
-		benchMetaRowCopyable(&out, ctx, "Stream ID", esc("01HXYZ"), "01HXYZ")
+		benchMetaRowCopyable(&out, "Stream ID", esc("01HXYZ"), "01HXYZ")
 		benchMetaRow(&out, "Version", esc("42"))
 		benchMetaRow(&out, "Schema Version", esc("1"))
 		benchMetaRow(&out, "Encoding", esc("json"))
 		benchMetaRow(&out, "Occurred At", esc("2026-09-19T10:00:00Z"))
-		benchMetaRowCopyable(&out, ctx, "Correlation ID", esc("01HCORR"), "01HCORR")
+		benchMetaRowCopyable(&out, "Correlation ID", esc("01HCORR"), "01HCORR")
 		out.WriteString(`</table></div>`)
 		_ = out.String()
 	}
 }
 
-func benchHybridDefinitionList(b *testing.B) {
+func benchTemplDefinitionList(b *testing.B) {
 	b.Helper()
 
-	ctx := context.Background()
-
-	for b.Loop() {
-		var out strings.Builder
-
-		_, _ = out.WriteString(definitionListHTML(ctx, []display.DefinitionItem{
-			defItem("Stream Type", "user"),
-			defItemCopy("Stream ID", "01HXYZ", "01HXYZ"),
-			defItem("Version", "42"),
-			defItem("Schema Version", "1"),
-			defItem("Encoding", "json"),
-			defItem("Occurred At", "2026-09-19T10:00:00Z"),
-			defItemCopy("Correlation ID", "01HCORR", "01HCORR"),
-		}))
-		_ = out.String()
-	}
+	benchRender(b, definitionList([]display.DefinitionItem{
+		defItem("Stream Type", "user"),
+		defItemCopy("Stream ID", "01HXYZ", "01HXYZ"),
+		defItem("Version", "42"),
+		defItem("Schema Version", "1"),
+		defItem("Encoding", "json"),
+		defItem("Occurred At", "2026-09-19T10:00:00Z"),
+		defItemCopy("Correlation ID", "01HCORR", "01HCORR"),
+	}))
 }
 
 func BenchmarkRenderDefinitionList(b *testing.B) {
 	b.Run("hand-rolled", benchHandRolledDefinitionList)
-	b.Run("hybrid-library", benchHybridDefinitionList)
+	b.Run("templ", benchTemplDefinitionList)
 }
 
-// benchTableDataRows measures the typed data-row Table path (tableHTML +
-// TableCell values): 10 rows mixing escaped text and pre-rendered cells.
+// benchTableDataRows measures the typed data-row Table path (display.Table
+// with TableCell values): 10 rows mixing escaped text and pre-rendered cells.
 func benchTableDataRows(b *testing.B) {
 	b.Helper()
 
-	ctx := context.Background()
 	headers := plainHeaders("ID", "Type", "Version", "")
 
 	for b.Loop() {
@@ -284,48 +217,47 @@ func benchTableDataRows(b *testing.B) {
 			rowID := fmt.Sprintf("01HXYZ%02d", j)
 			rows = append(rows, display.TableRow{
 				Cells: []display.TableCell{
-					textCell(rowID),
-					textCell("user.created"),
-					textCell(strconv.Itoa(j)),
-					rawCell(`<a href="/dashboard/events/e` + rowID + `" class="btn">View</a>`),
+					{Text: rowID, Content: nil},
+					{Text: "user.created", Content: nil},
+					{Text: strconv.Itoa(j), Content: nil},
+					{Text: "", Content: templ.Raw(`<a href="/dashboard/events/e` + rowID + `" class="btn">View</a>`)},
 				},
 			})
 		}
 
-		var out strings.Builder
-
-		_, _ = out.WriteString(tableHTML(ctx, headers, rows, "bench-tbody"))
-		_ = out.String()
+		benchRender(b, dataTable(headers, rows, "bench-tbody"))
 	}
 }
 
-// benchTableRawBody measures the raw-body Table path (tableHTMLRaw): the same
-// 10 rows pre-rendered as <tr> markup around the library shell.
+// benchTableRawBody measures the raw-body Table path (rawDataTable): the same
+// 10 rows as a component of <tr> markup around the library shell.
 func benchTableRawBody(b *testing.B) {
 	b.Helper()
 
-	ctx := context.Background()
 	headers := plainHeaders("ID", "Type", "Version", "")
 
 	for b.Loop() {
-		var rows strings.Builder
+		benchRender(b, rawDataTable(headers, "bench-tbody", benchRowsComponent(10)))
+	}
+}
 
-		for j := range 10 {
-			fmt.Fprintf(
-				&rows,
+func benchRowsComponent(n int) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		for j := range n {
+			if _, err := fmt.Fprintf(
+				w,
 				`<tr><td class="mono">%s</td><td>%s</td><td>%d</td><td><a href="/dashboard/events/e%02d" class="btn">View</a></td></tr>`,
 				fmt.Sprintf("01HXYZ%02d", j),
 				"user.created",
 				j,
 				j,
-			)
+			); err != nil {
+				return err
+			}
 		}
 
-		var out strings.Builder
-
-		_, _ = out.WriteString(tableHTMLRaw(ctx, headers, rows.String()))
-		_ = out.String()
-	}
+		return nil
+	})
 }
 
 func BenchmarkRenderTablePaths(b *testing.B) {

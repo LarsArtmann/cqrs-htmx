@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // a11yOverview renders the overview page for accessibility assertions.
@@ -186,8 +187,7 @@ func TestA11y_FilterInputsKeepLabelPairing(t *testing.T) {
 		`hx-push-url="true"`,
 	} {
 		if !strings.Contains(body, want) {
-			t.Errorf("filter form wiring %q missing", want	"github.com/larsartmann/templ-components/icons"
-)
+			t.Errorf("filter form wiring %q missing", want)
 		}
 	}
 }
