@@ -870,9 +870,12 @@
                       stages=(
                         "module-isolation:bash scripts/check-module-isolation.sh"
                         "dep-budgets:bash scripts/check-dep-budgets.sh"
+                        "dep-budgets-self-test:bash scripts/test-check-dep-budgets.sh"
                         "go-toolchain:bash scripts/check-go-toolchain.sh"
                         "version-drift:bash scripts/check-version-drift.sh --strict"
                         "release-train:bash scripts/check-release-train.sh"
+                        "vcs-cache:bash scripts/check-vcs-cache.sh"
+                        "vcs-cache-self-test:bash scripts/test-check-vcs-cache.sh"
                         "replace-directives:bash scripts/check-replace-directives.sh"
                         "docs-freshness:bash scripts/check-docs-freshness.sh"
                         "docs-freshness-self-test:bash scripts/test-check-docs-freshness.sh"
@@ -904,9 +907,12 @@
                     fi
                     bash scripts/check-module-isolation.sh
                     bash scripts/check-dep-budgets.sh
+                    bash scripts/test-check-dep-budgets.sh
                     bash scripts/check-go-toolchain.sh
                     bash scripts/check-version-drift.sh --strict
                     bash scripts/check-release-train.sh
+                    bash scripts/check-vcs-cache.sh
+                    bash scripts/test-check-vcs-cache.sh
                     bash scripts/check-replace-directives.sh
                     bash scripts/check-docs-freshness.sh
                     bash scripts/test-check-docs-freshness.sh
@@ -1027,6 +1033,64 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/test-check-status-annotations.sh
+                  '';
+                }
+              );
+            };
+
+            test-dep-budgets = {
+              type = "app";
+              meta.description = "Fixture self-test for check-dep-budgets.sh (pins the comment-line/indirect exclusion in the dep-counting awk; 2026-09-22 regression class)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-dep-budgets";
+                  runtimeInputs = [
+                    pkgs.gawk
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-dep-budgets.sh
+                  '';
+                }
+              );
+            };
+
+            check-vcs-cache = {
+              type = "app";
+              meta.description = "GOPRIVATE VCS-cache health: every bare repo under GOMODCACHE/cache/vcs must carry remote.origin.url (the broken-origin class masquerades as code bugs)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-vcs-cache";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-vcs-cache.sh
+                  '';
+                }
+              );
+            };
+
+            test-vcs-cache = {
+              type = "app";
+              meta.description = "Fixture self-test for check-vcs-cache.sh (healthy bare repo / origin-less corruption / missing cache dir)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-vcs-cache";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-vcs-cache.sh
                   '';
                 }
               );

@@ -63,6 +63,28 @@ copy-pasteable train script. Shape:
    proxy at every step.
 4. `nix run .#check-release-train` must read `0 unpublished / 0 lag` after.
 
+### 3a. Wave-ordered choreography (the `--no-verify` killer)
+
+The v4.12.0 train (2026-09-22, 14 tags) proved the refinement: sequence the
+tags so that **every commit's `require` lines point at ALREADY-PUBLISHED
+tags** — never at a tag you are ABOUT to cut. Concretely:
+
+- Each tagging commit bumps its module's dependents' requires in the SAME
+  commit only when those tags are already pushed; otherwise the bump waits
+  for the dependent's own commit.
+- Wave order: (1) leaves with no family dependents, (2) identity-model,
+  (3) root + usermgmt + strategies, (4) adminui/dashboardui/loginpage/
+  datastar/health/auditlog/systemadapter, (5) setup, (6) examples last.
+- Verify per wave: `scripts/verify-tag.sh` (committed-tree + no-phantom-
+  require checks) + `bash scripts/check-release-train.sh` (strict default =
+  CI flags since 2026-09-22) after each wave, BEFORE the next.
+
+Why: the pre-commit release-train gate fails a commit whose requires point
+at unpublished tags — that is the design. A wave-ordered train never trips
+it, so tag day needs NO `git commit --no-verify` (v4.12.0: zero skips).
+Out-of-order trains are the ones that need the documented
+`--no-verify`-with-justification fallback (AGENTS.md gotcha 6).
+
 ## 4. Poisoned-tag recovery ladder
 
 Published tags cannot be repaired in place (the proxy caches the name

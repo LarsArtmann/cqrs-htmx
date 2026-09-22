@@ -605,6 +605,11 @@ jobs:
       - name: Dependency budget check
         run: bash scripts/check-dep-budgets.sh
 
+      # Fixture self-test pinning the dep-counting awk (standalone comment
+      # lines + // indirect must NOT count — the 2026-09-22 regression class).
+      - name: Dependency budget self-test
+        run: bash scripts/test-check-dep-budgets.sh
+
       - name: Go toolchain vs go.work directive check
         run: bash scripts/check-go-toolchain.sh
 
@@ -617,6 +622,18 @@ jobs:
       # spuriously red-master. Public repos confirmed 2026-08-31.
       - name: Release train check (blocking)
         run: bash scripts/check-release-train.sh --strict-lag 0
+
+      # GOPRIVATE VCS-cache health (local-machine corruption class: a bare
+      # repo under GOMODCACHE/cache/vcs losing its origin breaks hermetic
+      # builds with load-error-shaped failures). CI runners resolve via the
+      # proxy and have no VCS entries — this passes trivially there and
+      # catches nothing, but keeps CI wired to the same gate the fleet runs
+      # (atomic-gates rule). The fixture self-test is the real coverage.
+      - name: VCS cache health check
+        run: bash scripts/check-vcs-cache.sh
+
+      - name: VCS cache health self-test
+        run: bash scripts/test-check-vcs-cache.sh
 
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence
