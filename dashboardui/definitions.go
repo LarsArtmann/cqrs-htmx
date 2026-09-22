@@ -35,6 +35,7 @@ func rawComponent(html string) templ.Component {
 // copyButtonComponent builds an unrendered library CopyButton component for
 // embedding inside other components (definition list details).
 func copyButtonComponent(text string) templ.Component {
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
 	return display.CopyButton(display.CopyButtonProps{
 		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		Text:        text,

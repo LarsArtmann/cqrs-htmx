@@ -1,8 +1,11 @@
 package dashboardui
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
+
+	"github.com/a-h/templ"
 
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/templ-components/errorpage"
@@ -173,5 +176,7 @@ func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, _ = w.Write([]byte(d.renderErrorShell(props.Title, b.String())))
+	if err := errorShell(props.Title, d.config.BasePath, templ.Raw(b.String())).Render(r.Context(), w); err != nil {
+		slog.ErrorContext(r.Context(), "dashboardui: render 404 shell", "error", err)
+	}
 }

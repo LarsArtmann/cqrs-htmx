@@ -131,3 +131,25 @@ templ navIcon(name string) {
 		}
 	</svg>
 }
+
+// errorShell wraps library error-page markup in a minimal HTML document that
+// loads the dashboard stylesheets. It bridges the library's bare component
+// output and the full layout shell (which needs pageData); the CSS keeps the
+// card centered without duplicating the layout.
+templ errorShell(title, basePath string, inner templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href={ basePath + "/-/dashboard.css" }/>
+			<link rel="stylesheet" href={ basePath + "/-/dashboard-tw.css" }/>
+		</head>
+		<body>
+			<div class="error-shell">
+				@inner
+			</div>
+		</body>
+	</html>
+}

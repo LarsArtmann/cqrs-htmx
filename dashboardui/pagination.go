@@ -33,15 +33,8 @@ func paginationInfoText(state paginationState) string {
 		return ""
 	}
 
-	start := state.PageStart
-	if start < 1 {
-		start = 1
-	}
-
-	end := start + state.PageLen - 1
-	if end < start {
-		end = start
-	}
+	start := max(state.PageStart, 1)
+	end := max(start+state.PageLen-1, start)
 
 	label := "Showing " + strconv.Itoa(start) + "–" + strconv.Itoa(end)
 	if state.TotalCount != "" {

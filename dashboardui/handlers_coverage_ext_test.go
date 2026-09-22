@@ -3,8 +3,8 @@ package dashboardui
 import (
 	"context"
 
-	"github.com/a-h/templ"
 	"errors"
+	"github.com/a-h/templ"
 	"net/http"
 	"net/http/httptest"
 	"strconv"

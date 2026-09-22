@@ -13,7 +13,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 	filters := parseEventFilter(r)
 	sortBy := parseSort(r)
 
-	if f := parseFormat(r); f != formatHTML {
+	if format := parseFormat(r); format != formatHTML {
 		events, err := d.loadFilteredEvents(r.Context(), id.EventID{}, filters, exportLimit)
 		if err != nil {
 			d.renderError(w, r, http.StatusInternalServerError, "failed to load events for export")
@@ -23,7 +23,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 
 		sortEvents(events, sortBy)
 
-		switch f {
+		switch format {
 		case formatCSV:
 			exportEventsCSV(w, events)
 		case formatJSON:

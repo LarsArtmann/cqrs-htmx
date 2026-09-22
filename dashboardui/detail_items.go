@@ -1,7 +1,7 @@
 package dashboardui
 
 import (
-	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/a-h/templ"
@@ -70,7 +70,7 @@ func timelinePageState(
 		timeline.PageStart = int(pagedEvents[0].Version().UInt64())
 	}
 
-	timeline.TotalCount = fmt.Sprintf("%d", len(events))
+	timeline.TotalCount = strconv.Itoa(len(events))
 
 	return timeline
 }
@@ -232,7 +232,7 @@ func eventMetaItems(evt event.Event, meta event.Metadata) []display.DefinitionIt
 		defItem("Stream Type", string(evt.StreamType())),
 		defItemCopy("Stream ID", monoSpan(esc(evt.StreamID().String())), evt.StreamID().String()),
 		defItem("Version", evt.Version().String()),
-		defItem("Schema Version", fmt.Sprintf("%d", evt.SchemaVersion())),
+		defItem("Schema Version", strconv.FormatInt(int64(evt.SchemaVersion()), 10)),
 		defItem("Encoding", string(evt.Encoding())),
 		defItem("Occurred At", evt.OccurredAt().Format(time.RFC3339)),
 	}

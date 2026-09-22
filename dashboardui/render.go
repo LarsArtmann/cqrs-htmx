@@ -12,10 +12,7 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/httputil"
-	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/errorpage"
-	"github.com/larsartmann/templ-components/icons"
-	"github.com/larsartmann/templ-components/utils"
 
 	"github.com/a-h/templ"
 )
@@ -114,32 +111,9 @@ func (d *Dashboard) renderError(
 		return
 	}
 
-	_, _ = w.Write([]byte(d.renderErrorShell(props.Title, b.String())))
-}
-
-// renderErrorShell wraps pre-rendered error markup in a minimal HTML document
-// that loads the dashboard stylesheets. It bridges the library's bare
-// component output and the full renderLayout shell (which needs pageData);
-// the CSS keeps the card centered without duplicating the layout.
-func (d *Dashboard) renderErrorShell(title, inner string) string {
-	var b strings.Builder
-
-	b.WriteString("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n")
-	b.WriteString(
-		"<meta charset=\"utf-8\"/>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n",
-	)
-	fmt.Fprintf(&b, "<title>%s</title>\n", esc(title))
-	fmt.Fprintf(&b, "<link rel=\"stylesheet\" href=\"%s/-/dashboard.css\"/>\n", d.config.BasePath)
-	fmt.Fprintf(
-		&b,
-		"<link rel=\"stylesheet\" href=\"%s/-/dashboard-tw.css\"/>\n",
-		d.config.BasePath,
-	)
-	b.WriteString("</head>\n<body>\n<div class=\"error-shell\">\n")
-	b.WriteString(inner)
-	b.WriteString("\n</div>\n</body>\n</html>")
-
-	return b.String()
+	if err := errorShell(props.Title, d.config.BasePath, templ.Raw(b.String())).Render(ctx, w); err != nil {
+		slog.ErrorContext(ctx, "dashboardui: render error shell", "error", err)
+	}
 }
 
 // statusToFamily maps an HTTP status code to the error-page family the
@@ -159,55 +133,6 @@ func statusToFamily(statusCode int) errorpage.Family {
 	default:
 		return errorpage.FamilyInfrastructure
 	}
-}
-
-// emptyState renders the standard empty-state panel (library component,
-// default inbox icon).
-func emptyState(ctx context.Context, title, message string) string {
-	return emptyStateIcon(ctx, icons.Inbox, title, message)
-}
-
-// emptyStateIcon renders the library's EmptyState with a page-specific icon
-// (callers pass their nav icon for visual continuity). The ctx threads the
-// request scope through to the templ render, matching the other library
-// component helpers (badgeHTML, statCardHTML).
-func emptyStateIcon(ctx context.Context, icon icons.Name, title, message string) string {
-	var b strings.Builder
-
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
-	props := display.EmptyStateProps{
-		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Title:       title,
-		TitleTag:    "h2",
-		Description: message,
-		Icon:        icon,
-		ActionText:  "",
-		ActionHref:  "",
-		ActionAttrs: nil,
-	}
-	_ = display.EmptyState(props).Render(ctx, &b)
-
-	return b.String()
-}
-
-// listNoteCountHTML renders the count-only ListNote variant ("Showing N
-// items.") for complete lists whose whole message is the count — the DLQ
-// table being the canonical case, where the count is the Replay All /
-// Purge All blast radius. AriaLabel carries the domain noun the generic
-// visible text lacks ("Dead letter count").
-func listNoteCountHTML(ctx context.Context, shown int, ariaLabel string) string {
-	var b strings.Builder
-
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
-	props := display.ListNoteProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: ariaLabel, Nonce: ""},
-		Shown:     shown,
-		Total:     0,
-		Variant:   display.ListNoteCount,
-	}
-	_ = display.ListNote(props).Render(ctx, &b)
-
-	return b.String()
 }
 
 func redirect(w http.ResponseWriter, r *http.Request, path string) {

@@ -3,7 +3,6 @@ package dashboardui
 import (
 	"log/slog"
 	"net/http"
-
 )
 
 // ===== Snapshots =====

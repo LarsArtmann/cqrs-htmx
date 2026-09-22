@@ -189,4 +189,3 @@ func exportQueriesJSON(w http.ResponseWriter, queries []*query.PersistedQuery) {
 
 	writeJSONResponse(w, rows)
 }
-

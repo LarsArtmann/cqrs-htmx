@@ -21,7 +21,7 @@ func (d *Dashboard) commandsIndexHandler(
 ) {
 	p := d.page("Commands", "/commands", r)
 
-	if f := parseFormat(r); f != formatHTML {
+	if format := parseFormat(r); format != formatHTML {
 		var cmds []*command.PersistedCommand
 
 		if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
@@ -30,7 +30,7 @@ func (d *Dashboard) commandsIndexHandler(
 			cmds, _ = d.config.CommandJournal.ReadAll(r.Context())
 		}
 
-		switch f {
+		switch format {
 		case formatCSV:
 			exportCommandsCSV(w, cmds)
 		case formatJSON:
@@ -94,7 +94,7 @@ func (d *Dashboard) queriesIndexHandler(
 ) {
 	p := d.page("Queries", "/queries", r)
 
-	if f := parseFormat(r); f != formatHTML {
+	if format := parseFormat(r); format != formatHTML {
 		var queries []*query.PersistedQuery
 
 		if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
@@ -103,7 +103,7 @@ func (d *Dashboard) queriesIndexHandler(
 			queries, _ = d.config.QueryJournal.ReadAllQueries(r.Context())
 		}
 
-		switch f {
+		switch format {
 		case formatCSV:
 			exportQueriesCSV(w, queries)
 		case formatJSON:
