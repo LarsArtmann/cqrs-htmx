@@ -17,8 +17,8 @@ Each report in this tree captures what someone knew at the end of a work session
 
 | Path                               | Contents                                                                     |
 | ---------------------------------- | ---------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 8)          |
-| `docs/status/archived/`            | 405 archived session reports (2026-05-03 → 2026-09-20)                       |
+| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 1)          |
+| `docs/status/archived/`            | 413 archived session reports (2026-05-03 → 2026-09-22)                       |
 | `docs/status/*.html`               | 12 generated HTML report artifacts (see "HTML corpus" below)                 |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`              |
 | `docs/reviews/archived/`           | Archived review documents                                                    |
@@ -88,9 +88,9 @@ The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60
 
 ## File counts
 
-- `docs/status/`: **8 unarchived reports** + README + 12 HTML artifacts.
-- `docs/status/archived/`: **405 archived reports** (2026-05-03 → 2026-09-20).
-- The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), and 2026-09-21 (the 34-report tail). Of the 405 archived reports, **40 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and 268 predate annotation entirely (legacy-exempt; plus 25 pre-convention files that happen to contain `~~`). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
+- `docs/status/`: **1 unarchived report** (the closing 2026-09-22 session report) + README + 12 HTML artifacts.
+- `docs/status/archived/`: **413 archived reports** (2026-05-03 → 2026-09-22).
+- The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), and 2026-09-21 (the 34-report tail). Of the 413 archived reports, **48 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and 268 predate annotation entirely (legacy-exempt; plus 25 pre-convention files that happen to contain `~~`). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
 
 ## Why not "update them all" ad hoc?
 
