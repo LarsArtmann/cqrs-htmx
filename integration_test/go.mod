@@ -101,18 +101,18 @@ require (
 	github.com/larsartmann/go-health-dashboard v0.9.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output v0.38.0 // indirect
-	github.com/larsartmann/go-output/d2 v0.38.0 // indirect
-	github.com/larsartmann/go-output/daghtml v0.38.0 // indirect
-	github.com/larsartmann/go-output/delimited v0.38.0 // indirect
-	github.com/larsartmann/go-output/escape v0.38.0 // indirect
-	github.com/larsartmann/go-output/graph v0.38.0 // indirect
-	github.com/larsartmann/go-output/markdown v0.38.0 // indirect
-	github.com/larsartmann/go-output/markup v0.38.0 // indirect
-	github.com/larsartmann/go-output/plantuml v0.38.0 // indirect
-	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
-	github.com/larsartmann/go-output/table v0.38.0 // indirect
-	github.com/larsartmann/go-output/tree v0.38.0 // indirect
+	github.com/larsartmann/go-output v0.38.2 // indirect
+	github.com/larsartmann/go-output/d2 v0.38.2 // indirect
+	github.com/larsartmann/go-output/daghtml v0.38.2 // indirect
+	github.com/larsartmann/go-output/delimited v0.38.2 // indirect
+	github.com/larsartmann/go-output/escape v0.38.2 // indirect
+	github.com/larsartmann/go-output/graph v0.38.2 // indirect
+	github.com/larsartmann/go-output/markdown v0.38.2 // indirect
+	github.com/larsartmann/go-output/markup v0.38.2 // indirect
+	github.com/larsartmann/go-output/plantuml v0.38.2 // indirect
+	github.com/larsartmann/go-output/serialization v0.38.2 // indirect
+	github.com/larsartmann/go-output/table v0.38.2 // indirect
+	github.com/larsartmann/go-output/tree v0.38.2 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
