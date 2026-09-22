@@ -167,7 +167,7 @@ func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusNotFound)
 
-	if isHTMXRequest(r) {
+	if cqrshtmx.IsHTMXRequest(r) {
 		_, _ = w.Write([]byte(b.String()))
 
 		return

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/templ-components/errorpage"
 )
@@ -121,13 +122,6 @@ func (h *Handler) writeActionError(w http.ResponseWriter, r *http.Request, actio
 	h.writeErrorPage(w, r, actionErrorStatus(family), action+" failed", message)
 }
 
-// isHTMXRequest reports whether the request comes from an HTMX swap (in which
-// case error responses render as bare cards fitting the swap target, not as
-// full documents).
-func isHTMXRequest(r *http.Request) bool {
-	return r.Header.Get("Hx-Request") == "true"
-}
-
 // writeErrorPage writes a templ-components error page instead of a bare
 // text/plain http.Error body: the ErrorPage card for HTMX swaps, the card
 // inside the panel Layout for navigations. The HTTP status is preserved.
@@ -148,7 +142,7 @@ func (h *Handler) writeErrorPage(w http.ResponseWriter, r *http.Request, status 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
-	if isHTMXRequest(r) {
+	if cqrshtmx.IsHTMXRequest(r) {
 		_, _ = w.Write([]byte(b.String()))
 		return
 	}
@@ -173,7 +167,7 @@ func (h *Handler) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusNotFound)
-	if isHTMXRequest(r) {
+	if cqrshtmx.IsHTMXRequest(r) {
 		_, _ = w.Write([]byte(b.String()))
 		return
 	}

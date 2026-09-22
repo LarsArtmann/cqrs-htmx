@@ -111,7 +111,7 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 		Nonce:     httputil.NonceFromRequest(r),
 		ReadOnly:  d.config.ReadOnly,
 		Caps:      d.caps,
-		HTMX:      isHTMXRequest(r),
+		HTMX:      cqrshtmx.IsHTMXRequest(r),
 	}
 }
 

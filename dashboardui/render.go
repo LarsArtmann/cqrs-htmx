@@ -106,7 +106,7 @@ func (d *Dashboard) renderError(
 	w.Header().Set("Content-Type", contentTypeHTML)
 	w.WriteHeader(statusCode)
 
-	if isHTMXRequest(r) {
+	if cqrshtmx.IsHTMXRequest(r) {
 		_, _ = w.Write([]byte(b.String()))
 
 		return
@@ -206,13 +206,6 @@ func listNoteCountHTML(ctx context.Context, shown int, ariaLabel string) string 
 	_ = display.ListNote(props).Render(ctx, &b)
 
 	return b.String()
-}
-
-// isHTMXRequest returns true when the request came from an HTMX-boosted
-// link or explicit hx-get/hx-post. When true, handlers render only the main
-// content (no full HTML shell) for smaller payloads and faster swaps.
-func isHTMXRequest(r *http.Request) bool {
-	return r != nil && r.Header.Get("Hx-Request") == "true"
 }
 
 func redirect(w http.ResponseWriter, r *http.Request, path string) {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -167,14 +168,21 @@ func (s *Service) revokeSessionsBestEffort(ctx context.Context, userID UserID, f
 	}
 }
 
-// createSession creates a new session for the user and persists it to the store.
-func (s *Service) createSession(ctx context.Context, userID UserID) (*Session, error) {
-	session, err := NewSession(userID, s.sessionTTL)
+// createAndStoreSession creates a session for the user and persists it to
+// the store. Shared by the Service and OAuth2Service login paths so both
+// wrap failures identically.
+func createAndStoreSession(ctx context.Context, sessions SessionStore, sessionTTL time.Duration, userID UserID) (*Session, error) {
+	session, err := NewSession(userID, sessionTTL)
 	if err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.session.create", "create session").WithCause(err)
 	}
-	if err := s.sessions.Create(ctx, session); err != nil {
+	if err := sessions.Create(ctx, session); err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.session.store", "store session").WithCause(err)
 	}
 	return session, nil
+}
+
+// createSession creates a new session for the user and persists it to the store.
+func (s *Service) createSession(ctx context.Context, userID UserID) (*Session, error) {
+	return createAndStoreSession(ctx, s.sessions, s.sessionTTL, userID)
 }

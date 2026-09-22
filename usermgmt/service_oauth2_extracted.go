@@ -347,14 +347,7 @@ func (o *OAuth2Service) readUserExternalAccounts(userID UserID) []ExternalAccoun
 }
 
 func (o *OAuth2Service) createSession(ctx context.Context, userID UserID) (*Session, error) {
-	session, err := NewSession(userID, o.sessionTTL)
-	if err != nil {
-		return nil, errorfamily.NewTransient("usermgmt.session.create", "create session").WithCause(err)
-	}
-	if err := o.sessions.Create(ctx, session); err != nil {
-		return nil, errorfamily.NewTransient("usermgmt.session.store", "store session").WithCause(err)
-	}
-	return session, nil
+	return createAndStoreSession(ctx, o.sessions, o.sessionTTL, userID)
 }
 
 func (o *OAuth2Service) logAuth(event string, userID UserID, attrs ...any) {
