@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Pre-Push Gate Hook — CI parity at the push boundary (added 2026-09-22).
+# TEMPLATE OF TRUTH installed by scripts/install-git-hooks.sh (same protocol
+# as pre-commit.template; restore after any regeneration with:
+#   scripts/install-git-hooks.sh --force).
+#
+# Runs the two BLOCKING CI gates — ci.yml "Release train check (blocking)"
+# (`check-release-train.sh --strict-lag 0`) and "Version drift check
+# (blocking)" (`check-version-drift.sh --strict`) — so a push can never be
+# greener locally than what CI will say about it. Kills the 2026-09-22
+# split brain where local advisory mode read green and CI went red on train
+# lag (docs/status/2026-09-22_01-18 §d1).
+#
+# Division of labor with pre-commit: pre-commit runs release-train
+# --advisory (UNPUBLISHED requires block COMMITS — they break every
+# hermetic GOWORK=off build — while train lag does not, so it must not
+# brick intra-train development or the auto-commit daemon). THIS hook
+# enforces the strict flags at PUSH time, exactly where CI checks them.
+#
+# Offline policy: release-train exit 4 (cannot reach github.com) only
+# warns — do not brick offline pushes; the 15-min tag cache makes even
+# that rare. check-version-drift has no offline exit, so its failures are
+# disambiguated by an explicit ls-remote probe: unreachable network warns
+# and proceeds, a reachable network with drift/missing tags BLOCKS.
+#
+# Escape hatch: git push --no-verify (mid-train bump commits etc. —
+# document the justification, same policy as the pre-commit fallback).
+
+set -u
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+train_rc=0
+bash "$ROOT/scripts/check-release-train.sh" || train_rc=$?
+if [ "$train_rc" -eq 4 ]; then
+  echo "pre-push: WARNING release-train gate offline (cannot reach github.com) — push proceeds"
+elif [ "$train_rc" -ne 0 ]; then
+  echo "pre-push: release-train gate FAILED (rc=$train_rc) — CI runs this exact check blocking; push blocked." >&2
+  echo "  (advisory planning mode: scripts/check-release-train.sh --advisory)" >&2
+  exit "$train_rc"
+fi
+
+drift_rc=0
+bash "$ROOT/scripts/check-version-drift.sh" --strict || drift_rc=$?
+if [ "$drift_rc" -ne 0 ]; then
+  if ! git ls-remote https://github.com/larsartmann/cqrs-htmx.git HEAD >/dev/null 2>&1; then
+    echo "pre-push: WARNING version-drift gate could not reach github.com — push proceeds, re-check when online" >&2
+  else
+    echo "pre-push: version-drift gate FAILED (rc=$drift_rc) — CI runs this exact check blocking; push blocked." >&2
+    exit "$drift_rc"
+  fi
+fi
+
+echo "pre-push: CI-parity gates green (release-train strict + version-drift --strict)."

@@ -7,10 +7,16 @@
 # `buildflow precommit install` regeneration silently deletes them —
 # that is how gates stop gating. This script restores them.
 #
-# The template of truth is scripts/hooks/pre-commit.template. The
-# installed hook must byte-match it; anything else is refuse-and-diff
-# (buildflow's own baseline is recoverable via `buildflow precommit
-# install`, so overwriting from the template is always safe).
+# The pre-push hook (added 2026-09-22) is fully manual: it runs the two
+# BLOCKING CI gates (check-release-train.sh strict + check-version-drift.sh
+# --strict) at push time so local green can never diverge from CI green
+# (the 2026-09-22 split brain, docs/status/2026-09-22_01-18 §d1).
+#
+# The templates of truth are scripts/hooks/pre-commit.template and
+# scripts/hooks/pre-push.template. The installed hooks must byte-match
+# them; anything else is refuse-and-diff (buildflow's own baseline is
+# recoverable via `buildflow precommit install`, so overwriting from the
+# template is always safe).
 #
 # Discovered 2026-08-30: the global gitconfig sets core.hooksPath=.githooks
 # and .githooks/ did not exist — the repo's manual gates were silently
@@ -19,18 +25,19 @@
 # against the repo root.
 #
 # Usage:
-#   scripts/install-git-hooks.sh            install template if the hook
-#                                           is missing; refuse with a diff
-#                                           if it exists but differs
-#   scripts/install-git-hooks.sh --force    overwrite the hook with the
-#                                           template wholesale
-#   scripts/install-git-hooks.sh --verify   exit 0 if byte-match, 1 with a
-#                                           diff if not, 2 if missing
+#   scripts/install-git-hooks.sh            install each template if the
+#                                           hook is missing; refuse with a
+#                                           diff if it exists but differs
+#   scripts/install-git-hooks.sh --force    overwrite the hooks with the
+#                                           templates wholesale
+#   scripts/install-git-hooks.sh --verify   exit 0 if all byte-match, 1
+#                                           with a diff if not, 2 if
+#                                           missing
 
-set -euo pipefail
+set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE="$SCRIPT_DIR/hooks/pre-commit.template"
+HOOKS=(pre-commit pre-push)
 
 ROOT="$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)"
 HOOKPATH="$(git -C "$ROOT" config core.hooksPath || true)"
@@ -42,7 +49,6 @@ if [ -n "$HOOKPATH" ]; then
 else
   HOOKPATH="$(git -C "$ROOT" rev-parse --git-path hooks)"
 fi
-HOOK="$HOOKPATH/pre-commit"
 
 usage() {
   echo "usage: $0 [--force|--verify]" >&2
@@ -58,49 +64,52 @@ for arg in "$@"; do
   esac
 done
 
-[ -f "$TEMPLATE" ] || {
-  echo "install-git-hooks: template missing: $TEMPLATE" >&2
-  exit 1
-}
+for hook in "${HOOKS[@]}"; do
+  TEMPLATE="$SCRIPT_DIR/hooks/$hook.template"
+  HOOK="$HOOKPATH/$hook"
 
-case "$MODE" in
-verify)
-  if [ ! -f "$HOOK" ]; then
-    echo "install-git-hooks: VERIFY FAIL — $HOOK does not exist (run: $0)" >&2
-    exit 2
-  fi
-  if cmp -s "$TEMPLATE" "$HOOK"; then
+  [ -f "$TEMPLATE" ] || {
+    echo "install-git-hooks: template missing: $TEMPLATE" >&2
+    exit 1
+  }
+
+  case "$MODE" in
+  verify)
+    if [ ! -f "$HOOK" ]; then
+      echo "install-git-hooks: VERIFY FAIL — $HOOK does not exist (run: $0)" >&2
+      exit 2
+    fi
+    if ! cmp -s "$TEMPLATE" "$HOOK"; then
+      echo "install-git-hooks: VERIFY FAIL — $HOOK differs from template:" >&2
+      diff "$TEMPLATE" "$HOOK" >&2 || true
+      echo "install-git-hooks: re-run with --force to restore the manual gate blocks" >&2
+      exit 1
+    fi
     echo "install-git-hooks: VERIFY OK — $HOOK byte-matches the template"
-    exit 0
-  fi
-  echo "install-git-hooks: VERIFY FAIL — $HOOK differs from template:" >&2
-  diff "$TEMPLATE" "$HOOK" >&2 || true
-  echo "install-git-hooks: re-run with --force to restore the manual gate blocks" >&2
-  exit 1
-  ;;
-force)
-  mkdir -p "$HOOKPATH"
-  cp "$TEMPLATE" "$HOOK"
-  chmod +x "$HOOK"
-  echo "install-git-hooks: $HOOK overwritten with template"
-  cmp -s "$TEMPLATE" "$HOOK" # sanity; cp cannot diverge
-  echo "install-git-hooks: VERIFY OK — byte-match confirmed"
-  ;;
-default)
-  if [ ! -f "$HOOK" ]; then
+    ;;
+  force)
     mkdir -p "$HOOKPATH"
     cp "$TEMPLATE" "$HOOK"
     chmod +x "$HOOK"
-    echo "install-git-hooks: no hook existed — installed template at $HOOK"
-    exit 0
-  fi
-  if cmp -s "$TEMPLATE" "$HOOK"; then
-    echo "install-git-hooks: hook already byte-matches template — nothing to do"
-    exit 0
-  fi
-  echo "install-git-hooks: $HOOK differs from the template — refusing to guess:" >&2
-  diff "$TEMPLATE" "$HOOK" >&2 || true
-  echo "install-git-hooks: if the diff is only a buildflow regeneration (manual gate blocks missing), run with --force to restore them" >&2
-  exit 1
-  ;;
-esac
+    cmp -s "$TEMPLATE" "$HOOK" # sanity; cp cannot diverge
+    echo "install-git-hooks: $HOOK overwritten with template — byte-match confirmed"
+    ;;
+  default)
+    if [ ! -f "$HOOK" ]; then
+      mkdir -p "$HOOKPATH"
+      cp "$TEMPLATE" "$HOOK"
+      chmod +x "$HOOK"
+      echo "install-git-hooks: no hook existed — installed template at $HOOK"
+      continue
+    fi
+    if cmp -s "$TEMPLATE" "$HOOK"; then
+      echo "install-git-hooks: $hook already byte-matches template — nothing to do"
+      continue
+    fi
+    echo "install-git-hooks: $HOOK differs from the template — refusing to guess:" >&2
+    diff "$TEMPLATE" "$HOOK" >&2 || true
+    echo "install-git-hooks: if the diff is only a buildflow regeneration (manual gate blocks missing), run with --force to restore them" >&2
+    exit 1
+    ;;
+  esac
+done

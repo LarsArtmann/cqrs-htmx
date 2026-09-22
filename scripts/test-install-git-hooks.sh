@@ -80,9 +80,10 @@ new_scratch() { # echoes scratch dir; repo-local hooksPath keeps the suite
   git -C "$scratch" config commit.gpgsign false
   git -C "$scratch" config core.hooksPath .githooks
   mkdir -p "$scratch/scripts/hooks" "$scratch/scripts/lib"
-  cp "$TEMPLATE" "$scratch/scripts/hooks/"
+  cp "$TEMPLATE" "$SCRIPT_DIR/hooks/pre-push.template" "$scratch/scripts/hooks/"
   cp "$INSTALLER" "$scratch/scripts/"
   cp "$SCRIPT_DIR/check-large-files.sh" "$SCRIPT_DIR/check-release-train.sh" \
+    "$SCRIPT_DIR/check-version-drift.sh" \
     "$SCRIPT_DIR/prewarm-gocache.sh" "$scratch/scripts/"
   cp "$SCRIPT_DIR/lib/go-cache-env.sh" "$SCRIPT_DIR/lib/replace-exemption.sh" \
     "$scratch/scripts/lib/" 2>/dev/null || true
@@ -167,25 +168,75 @@ set +e
 bash "$S/scripts/install-git-hooks.sh" >/dev/null 2>&1
 rc=$?
 set -e
-report "$([ "$rc" -eq 0 ] && [ -f "$S/.myhooks/pre-commit" ] && echo 0 || echo 1)" "T8 default installs into .myhooks/"
+report "$([ "$rc" -eq 0 ] && [ -f "$S/.myhooks/pre-commit" ] && [ -f "$S/.myhooks/pre-push" ] && echo 0 || echo 1)" "T8 default installs BOTH hooks into .myhooks/"
 rm -rf "$S"
 
 # --- T9: go-cache-env.sh aligns GOTOOLCHAIN with the go.work floor ----------
 S="$(new_scratch)"
-mkdir -p "$S/bin"
+mkdir -p "$S/bin" "$S/caches"
 printf '#!/usr/bin/env bash\necho "go version go1.26.7 linux/amd64"\n' >"$S/bin/go"
 chmod +x "$S/bin/go"
 printf 'go 1.27.1\n' >"$S/go.work"
 set +e
-OUT="$(cd "$S" && PATH="$S/bin:$PATH" GOTOOLCHAIN=local bash -c 'source scripts/lib/go-cache-env.sh >/dev/null 2>&1; echo "$GOTOOLCHAIN"')"
+OUT="$(cd "$S" && PATH="$S/bin:$PATH" GOCACHE="$S/caches" GOMODCACHE="$S/caches/mod" GOLANGCI_LINT_CACHE="$S/caches/lint" GOTOOLCHAIN=local bash -c 'source scripts/lib/go-cache-env.sh >/dev/null 2>&1; echo "$GOTOOLCHAIN"')"
 set -e
 report "$([ "$OUT" = "go1.27.1" ] && echo 0 || echo 1)" "T9 GOTOOLCHAIN raised to go.work floor (got '$OUT')"
 printf 'go 1.20.0\n' >"$S/go.work"
 set +e
-OUT="$(cd "$S" && PATH="$S/bin:$PATH" GOTOOLCHAIN=local bash -c 'source scripts/lib/go-cache-env.sh >/dev/null 2>&1; echo "${GOTOOLCHAIN:-UNSET}"')"
+OUT="$(cd "$S" && PATH="$S/bin:$PATH" GOCACHE="$S/caches" GOMODCACHE="$S/caches/mod" GOLANGCI_LINT_CACHE="$S/caches/lint" GOTOOLCHAIN=local bash -c 'source scripts/lib/go-cache-env.sh >/dev/null 2>&1; echo "${GOTOOLCHAIN:-UNSET}"')"
 set -e
 report "$([ "$OUT" = "local" ] && echo 0 || echo 1)" "T9 newer ambient toolchain never downgraded (got '$OUT')"
 rm -rf "$S"
+
+# --- T10: default mode installs BOTH hooks when missing ---------------------
+S="$(new_scratch)"
+set +e
+bash "$S/scripts/install-git-hooks.sh" >/dev/null 2>&1
+rc=$?
+set -e
+report "$([ "$rc" -eq 0 ] && [ -x "$S/.githooks/pre-commit" ] && [ -x "$S/.githooks/pre-push" ] && echo 0 || echo 1)" "T10 default installs pre-commit AND pre-push (executable)"
+rm -rf "$S"
+
+# --- T11: --verify exits 2 when pre-push is missing (partial state) --------
+S="$(new_scratch)"
+HD="$S/.githooks"
+mkdir -p "$HD"
+cp "$TEMPLATE" "$HD/pre-commit"
+chmod +x "$HD/pre-commit"
+set +e
+bash "$S/scripts/install-git-hooks.sh" --verify >/dev/null 2>&1
+rc=$?
+set -e
+report "$([ "$rc" -eq 2 ] && echo 0 || echo 1)" "T11 --verify exits 2 with pre-push missing (got $rc)"
+rm -rf "$S"
+
+# --- T12: pre-push BEHAVIOR — CI-parity gates fire green on push -------------
+# Zero go.mod files in the scratch tree = both gates trivially green (they
+# discover modules via `find . -name go.mod`), so a push to a local bare
+# remote must pass THROUGH the installed pre-push hook.
+S="$(new_scratch)"
+bash "$S/scripts/install-git-hooks.sh" >/dev/null 2>&1
+mkdir -p "$S/bin"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$S/bin/buildflow"
+chmod +x "$S/bin/buildflow"
+git -C "$S" add scripts
+echo hello >"$S/README.md"
+git -C "$S" add README.md
+set +e
+OUT="$(cd "$S" && PATH="$S/bin:$PATH" git commit -q -m t12 2>&1)"
+rc=$?
+set -e
+report "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "T12 scratch commit for push (got $rc: $(echo "$OUT" | tail -1))"
+BARE="$(mktemp -d)"
+git -C "$BARE" init -q --bare
+git -C "$S" remote add origin "$BARE"
+set +e
+OUT="$(cd "$S" && PATH="$S/bin:$PATH" git push -q origin master 2>&1)"
+rc=$?
+set -e
+report "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "T12 push passes installed pre-push gates (got $rc: $(echo "$OUT" | tail -1))"
+report "$(echo "$OUT" | grep -q "CI-parity gates green" && echo 0 || echo 1)" "T12 pre-push announces CI-parity green"
+rm -rf "$S" "$BARE"
 
 echo ""
 echo "Results: $pass passed, $fail failed"
