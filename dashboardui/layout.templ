@@ -1,0 +1,134 @@
+package dashboardui
+
+import (
+	"github.com/a-h/templ"
+	"github.com/larsartmann/templ-components/feedback"
+	"github.com/larsartmann/templ-components/htmx"
+	"github.com/larsartmann/templ-components/icons"
+)
+
+// layout wraps content in the dashboard HTML shell: sidebar, header, content
+// area. HTMX partial mode (p.HTMX) emits only the <title> + <main> fragment —
+// HTMX boost extracts the title for the browser tab and swaps #main-content.
+// The layout uses semantic HTML5 landmarks for accessibility (aside, nav,
+// main, header) and CSS classes instead of inline styles.
+templ layout(p pageData, content templ.Component) {
+	if p.HTMX {
+		<title>{ p.Title } · { p.Brand }</title>
+		<main id="main-content" class="content-area">
+			@content
+		</main>
+	} else {
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<meta charset="utf-8"/>
+				<meta name="viewport" content="width=device-width, initial-scale=1"/>
+				<meta name="color-scheme" content="light dark"/>
+				<meta name="robots" content="noindex"/>
+				<title>{ p.Title } · { p.Brand }</title>
+				@templ.Raw(accentStyle(p))
+				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard.css" }/>
+				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard-tw.css" }/>
+				<script src={ p.BasePath + "/-/htmx.js" } defer></script>
+				<script src={ p.BasePath + "/-/dashboard.js" } defer></script>
+			</head>
+			<body>
+				<a href="#main-content" class="skip-link">Skip to content</a>
+				<div
+					class="app-layout"
+					data-hx-boost="true"
+					data-hx-target="#main-content"
+					data-hx-select="#main-content"
+					data-hx-swap="outerHTML"
+				>
+					@sidebar(p)
+					<div class="sidebar-backdrop" data-sidebar-backdrop></div>
+					<div class="app-main">
+						@header(p)
+						<main id="main-content" class="content-area">
+							@content
+						</main>
+					</div>
+				</div>
+				@feedback.ToastContainer(p.Nonce)
+				@htmx.GlobalErrorHandling(htmx.ErrorHandlingConfig{
+					Nonce:           p.Nonce,
+					MaxErrorHistory: errorHandlingMaxHistory,
+					MaxRetries:      errorHandlingMaxRetries,
+					RetryDelayMS:    errorHandlingRetryMS,
+				})
+			</body>
+		</html>
+	}
+}
+
+// accentStyle renders the per-instance accent color as a tiny inline style
+// tag (the one intentional inline style exception; templ treats <style>
+// content as raw text, so the value is escaped in Go first).
+templ accentStyle(p pageData) {
+	@templ.Raw("<style>:root{--accent:" + esc(p.Accent) + ";}</style>\n")
+}
+
+// sidebar renders the dashboard navigation rail.
+templ sidebar(p pageData) {
+	<aside class="sidebar">
+		<div class="sidebar-brand">
+			<span class="sidebar-badge">{ initials(p.Brand) }</span>
+			<span class="sidebar-name">{ p.Brand }</span>
+		</div>
+		<nav class="sidebar-nav" aria-label="Dashboard navigation">
+			for _, item := range p.Nav {
+				<a
+					href={ p.BasePath + item.Href }
+					class={ templ.KV("nav-link", true), templ.KV("nav-link-active", item.Active) }
+				>
+					<span class="nav-icon" aria-hidden="true">
+						@navIcon(item.Icon)
+					</span>
+					<span>{ item.Label }</span>
+				</a>
+			}
+		</nav>
+		if p.LogoutURL != "" {
+			<a href={ p.LogoutURL } class="nav-link nav-link-logout">Logout</a>
+		}
+		<div class="sidebar-footer">dashboardui</div>
+	</aside>
+}
+
+// header renders the sticky top bar: hamburger (mobile), page title, and the
+// SSE live indicator cluster when the event bus is configured.
+templ header(p pageData) {
+	<header class="app-header">
+		<button
+			class="hamburger"
+			aria-label="Toggle navigation menu"
+			data-hamburger
+			aria-expanded="false"
+		>
+			<span></span>
+			<span></span>
+			<span></span>
+		</button>
+		<div class="header-title">
+			{ p.Title }
+			if p.Caps.EventBus {
+				<span class="live-indicator" data-live-indicator aria-label="Live updates status"></span>
+				<span class="sse-status" data-sse-status aria-live="polite">Connecting</span>
+				<span class="sse-count" data-sse-count aria-live="polite"></span>
+			}
+		</div>
+	</header>
+}
+
+// navIcon renders an inline SVG icon for the given icon name using the
+// templ-components Heroicons path data. Unknown names fall back to the
+// Question icon (a "?" symbol) via the library's built-in fallback.
+templ navIcon(name string) {
+	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">
+		for _, path := range icons.IconPathData(mapNavIconName(name)) {
+			<path stroke-linecap="round" stroke-linejoin="round" d={ path }/>
+		}
+	</svg>
+}
