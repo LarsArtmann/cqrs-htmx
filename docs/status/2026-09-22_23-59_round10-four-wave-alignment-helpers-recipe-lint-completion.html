@@ -353,14 +353,14 @@
         <table>
           <thead><tr><th>#</th><th>Priority</th><th>Task</th><th>Status</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td><span class="badge badge-critical">P1</span></td><td>Witness CI for 84085c35 to a terminal condition</td><td><span class="badge badge-low">Open</span></td></tr>
-            <tr><td>2</td><td><span class="badge badge-critical">P1</span></td><td>HARVEST this report → TODO_LIST + CHANGELOG</td><td><span class="badge badge-low">Open</span></td></tr>
-            <tr><td>3</td><td><span class="badge badge-high">P2</span></td><td>agents-notes: 4-wave evening + daemon races narrative</td><td><span class="badge badge-low">Open</span></td></tr>
-            <tr><td>4</td><td><span class="badge badge-high">P2</span></td><td>e2e DLQ count-notice assertion + Playwright run</td><td><span class="badge badge-low">Open</span></td></tr>
-            <tr><td>5</td><td><span class="badge badge-high">P2</span></td><td>CSS-bundle sanity guard (checker + self-test + flake + stages + CI + README)</td><td><span class="badge badge-low">Open</span></td></tr>
-            <tr><td>6</td><td><span class="badge badge-high">P2</span></td><td>Runbook: HEAD-lock daemon races — merge into helpers' docs or separate?</td><td><span class="badge badge-low">Open</span></td></tr>
-            <tr><td>7</td><td><span class="badge badge-high">P2</span></td><td>Consumer-eye throwaway module against templ-components v1.19.2</td><td><span class="badge badge-low">Open</span></td></tr>
-            <tr><td>8</td><td><span class="badge badge-high">P2</span></td><td>loginpage templ-components adoption pass</td><td><span class="badge badge-low">Open</span></td></tr>
+            <tr><td>1</td><td><span class="badge badge-critical">P1</span></td><td>Witness CI for 84085c35 to a terminal condition</td><td><s>Open</s> — done (84085c35 red = gitignore-negation gap, fixed a1cfa41f; CI green run 35792905362 at ed7b01f8)</td></tr>
+            <tr><td>2</td><td><span class="badge badge-critical">P1</span></td><td>HARVEST this report → TODO_LIST + CHANGELOG</td><td><s>Open</s> — done at c3d9f962/a2001079 (TODO_LIST + CHANGELOG + ROADMAP OQ20)</td></tr>
+            <tr><td>3</td><td><span class="badge badge-high">P2</span></td><td>agents-notes: 4-wave evening + daemon races narrative</td><td><s>Open</s> — done at 0c0b6ae4 (agents-notes five-wave-evening section)</td></tr>
+            <tr><td>4</td><td><span class="badge badge-high">P2</span></td><td>e2e DLQ count-notice assertion + Playwright run</td><td><s>Open</s> — done at 4dc205c7 (deterministic DLQ seed; full suite 60/60)</td></tr>
+            <tr><td>5</td><td><span class="badge badge-high">P2</span></td><td>CSS-bundle sanity guard (checker + self-test + flake + stages + CI + README)</td><td><s>Open</s> — done at 9fd6400d+9644e7ca (atomic 6-piece; 11/11 self-test)</td></tr>
+            <tr><td>6</td><td><span class="badge badge-high">P2</span></td><td>Runbook: HEAD-lock daemon races — merge into helpers' docs or separate?</td><td><s>Open</s> — done at 20e2b518 (separate runbook, docs/runbooks/daemon-commit-races.md)</td></tr>
+            <tr><td>7</td><td><span class="badge badge-high">P2</span></td><td>Consumer-eye throwaway module against templ-components v1.19.2</td><td><s>Open</s> — done at 456d85a3 (throwaway go-get + render green)</td></tr>
+            <tr><td>8</td><td><span class="badge badge-high">P2</span></td><td>loginpage templ-components adoption pass</td><td><s>Open</s> — done at f5112e89 (survey complete; routed to ROADMAP OQ21 — owner call)</td></tr>
             <tr><td>9</td><td><span class="badge badge-low">P3</span></td><td>dependabot grouping config (stop solo actions-bump reds mid-train)</td><td><span class="badge badge-low">Open</span></td></tr>
             <tr><td>10</td><td><span class="badge badge-low">P3</span></td><td>bench-spike policy decision (OQ16; refusals now >10)</td><td><span class="badge badge-low">Open</span></td></tr>
             <tr><td>11</td><td><span class="badge badge-low">P3</span></td><td>Codegen guard: verify it catches the fixer class, not just manual edits</td><td><span class="badge badge-low">Open</span></td></tr>
@@ -396,6 +396,7 @@
         </div>
 
         <footer class="footer">
+          <blockquote><strong>ANNOTATED 2026-09-23</strong> — §f rows 1–8 resolved by the round-11 session (witnesses inline per row); rows 9–25 were routed into TODO_LIST/ROADMAP by the HARVEST (row 2).</blockquote>
           Generated 2026-09-22 23:59 CEST &middot; Evidence: CI runs 35774347732 / 35789194193 (green),
           commits d1adb853 28cbbabf eccdcf92 a05abdae afb9519b 80be93b2 23caf8a5 37f4cc12 aa9d1c38 84085c35
           &middot; Point-in-time snapshot, append-only per docs/status convention
