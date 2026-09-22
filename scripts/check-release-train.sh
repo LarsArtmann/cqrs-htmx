@@ -289,7 +289,7 @@ if [ "$STRICT_LAG" -ge 0 ] && [ "$lags" -gt "$STRICT_LAG" ]; then
     echo "✗ Train lag $lags exceeds --strict-lag $STRICT_LAG — run the family alignment pass."
     if [ ${#LAG_ENTRIES[@]} -gt 0 ]; then
       echo ""
-      echo "FIX RECIPE — one exact-anchor sweep per lagging module (the trailing \$"
+      echo 'FIX RECIPE — one exact-anchor sweep per lagging module (the trailing $'
       echo "pins the module path so sibling submodules on their own trains are"
       echo "never swept onto a foreign version):"
       printf '%s\n' "${LAG_ENTRIES[@]}" |

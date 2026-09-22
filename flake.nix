@@ -874,6 +874,7 @@
                         "go-toolchain:bash scripts/check-go-toolchain.sh"
                         "version-drift:bash scripts/check-version-drift.sh --strict"
                         "release-train:bash scripts/check-release-train.sh"
+                        "release-train-self-test:bash scripts/test-check-release-train.sh"
                         "vcs-cache:bash scripts/check-vcs-cache.sh"
                         "vcs-cache-self-test:bash scripts/test-check-vcs-cache.sh"
                         "preflight-self-test:bash scripts/test-preflight-tree-check.sh"

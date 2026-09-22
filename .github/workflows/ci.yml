@@ -623,6 +623,9 @@ jobs:
       - name: Release train check (blocking)
         run: bash scripts/check-release-train.sh --strict-lag 0
 
+      - name: Release train self-test
+        run: bash scripts/test-check-release-train.sh
+
       # GOPRIVATE VCS-cache health (local-machine corruption class: a bare
       # repo under GOMODCACHE/cache/vcs losing its origin breaks hermetic
       # builds with load-error-shaped failures). CI runners resolve via the
