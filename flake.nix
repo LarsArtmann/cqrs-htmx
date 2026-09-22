@@ -700,14 +700,15 @@
                     TMP_CSS=$(mktemp --suffix=.css)
                     cp tailwind.css "$TMP_CSS"
 
-                    # dashboardui has NO .templ files (strings.Builder renderers)
-                    # and its adopted components emit Tailwind utilities at
-                    # RUNTIME — class names that appear in no repo source. The
-                    # library's .templ files are therefore the ONLY scan source:
-                    # copy them (NOT the 3x-larger _templ.go mirrors) to a temp
-                    # dir and inject @source for it. errorpage is a separate
-                    # family module — include it once dashboardui requires it.
+                    # Since the 2026-09-22 full-templ migration dashboardui has
+                    # its own .templ files; the library's components still emit
+                    # Tailwind utilities at RUNTIME (class strings in library
+                    # sources only), so scan BOTH the module's .templ files and
+                    # the library's .templ + *_go.go class-map sources (NOT the
+                    # 3x-larger _templ.go mirrors). errorpage is a separate
+                    # family module — included below for the amber family.
                     SCAN_DIR=$(mktemp -d)
+                    cp ./*.templ "$SCAN_DIR/" 2>/dev/null || true
                     for pkg in display feedback forms htmx icons layout navigation utils recipes; do
                       if [ -d "$TC_DIR/$pkg" ]; then
                         cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
@@ -763,7 +764,7 @@
 
             gen = {
               type = "app";
-              meta.description = "Regenerate adminui + loginpage templ components (module-dir generation is canonical) and normalize formatting";
+              meta.description = "Regenerate adminui + loginpage + dashboardui templ components (module-dir generation is canonical) and normalize formatting";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "templ-generate";
@@ -774,7 +775,8 @@
                   text = ''
                     (cd adminui && templ generate && gofmt -w ./*_templ.go)
                     (cd loginpage && templ generate && gofmt -w ./*_templ.go)
-                    echo "Done: adminui + loginpage templ components regenerated (module-dir, bare FileName) and formatted"
+                    (cd dashboardui && templ generate && gofmt -w ./*_templ.go)
+                    echo "Done: adminui + loginpage + dashboardui templ components regenerated (module-dir, bare FileName) and formatted"
                   '';
                 }
               );
@@ -1174,7 +1176,7 @@
 
             check-codegen = {
               type = "app";
-              meta.description = "Verify adminui + loginpage _templ.go files match .templ sources (no codegen drift; module-dir generation is canonical)";
+              meta.description = "Verify adminui + loginpage + dashboardui _templ.go files match .templ sources (no codegen drift; module-dir generation is canonical)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-codegen";
@@ -1183,7 +1185,7 @@
                     pkgs.templ
                   ];
                   text = ''
-                    for mod in adminui loginpage; do
+                    for mod in adminui loginpage dashboardui; do
                       echo "==> $mod"
                       (cd "$mod" && templ generate && gofmt -w ./*_templ.go)
                       if ! git diff --exit-code -- "$mod"/*_templ.go; then
