@@ -110,8 +110,13 @@ func HTMXFromContext(ctx context.Context) *HTMXRequest {
 }
 
 // htmxBoolField returns a boolean HTMX header value, preferring the parsed
-// context from HTMXMiddleware and falling back to the raw header.
+// context from HTMXMiddleware and falling back to the raw header. A nil
+// request is never an HTMX request.
 func htmxBoolField(r *http.Request, extract func(*HTMXRequest) bool, header string) bool {
+	if r == nil {
+		return false
+	}
+
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return extract(h)
 	}
@@ -120,8 +125,13 @@ func htmxBoolField(r *http.Request, extract func(*HTMXRequest) bool, header stri
 }
 
 // htmxStringField returns a string HTMX header value, preferring the parsed
-// context from HTMXMiddleware and falling back to the raw header.
+// context from HTMXMiddleware and falling back to the raw header. A nil
+// request yields the empty string.
 func htmxStringField(r *http.Request, extract func(*HTMXRequest) string, header string) string {
+	if r == nil {
+		return ""
+	}
+
 	if h := HTMXFromContext(r.Context()); h != nil {
 		return extract(h)
 	}

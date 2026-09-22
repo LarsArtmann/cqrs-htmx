@@ -61,4 +61,10 @@ var _ = Describe("HTMX Core", func() {
 		r.Header.Set("Hx-Request", "false")
 		Expect(cqrshtmx.IsHTMXRequest(r)).To(BeFalse())
 	})
+
+	It("classifies a nil request as non-HTMX instead of panicking", func() {
+		Expect(cqrshtmx.IsHTMXRequest(nil)).To(BeFalse())
+		Expect(cqrshtmx.IsBoosted(nil)).To(BeFalse())
+		Expect(cqrshtmx.HTMXTarget(nil)).To(BeEmpty())
+	})
 })

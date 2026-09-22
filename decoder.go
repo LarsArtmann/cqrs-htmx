@@ -103,6 +103,8 @@ func decodeRequest[T, R any](
 
 // decodeFormBody parses form data and decodes into type T.
 // If maxBodySize > 0, bodies larger than maxBodySize are rejected with ErrRequestTooLarge.
+// The zero-value preamble deliberately mirrors decodeJSONBody instead of
+// sharing a helper: two call sites do not justify the extra indirection.
 func decodeFormBody[T any](r *http.Request, maxBodySize int64) (T, error) {
 	var out T
 
