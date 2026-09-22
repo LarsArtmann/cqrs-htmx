@@ -285,7 +285,24 @@ if [[ $unpublished -gt 0 ]]; then
 fi
 
 if [ "$STRICT_LAG" -ge 0 ] && [ "$lags" -gt "$STRICT_LAG" ]; then
-  [ "$JSON" = 0 ] && echo "✗ Train lag $lags exceeds --strict-lag $STRICT_LAG — run the family alignment pass."
+  [ "$JSON" = 0 ] && {
+    echo "✗ Train lag $lags exceeds --strict-lag $STRICT_LAG — run the family alignment pass."
+    if [ ${#LAG_ENTRIES[@]} -gt 0 ]; then
+      echo ""
+      echo "FIX RECIPE — one exact-anchor sweep per lagging module (the trailing \$"
+      echo "pins the module path so sibling submodules on their own trains are"
+      echo "never swept onto a foreign version):"
+      printf '%s\n' "${LAG_ENTRIES[@]}" |
+        sed 's/^{"module":"\([^"]*\)","required":"[^"]*","latest":"\([^"]*\)".*/\1 \2/' |
+        sort -u |
+        while read -r lagmod lagver; do
+          echo "  scripts/bump-dep.sh 'larsartmann/${lagmod#github.com/larsartmann/}\$' $lagver"
+        done
+      echo "Same-version families (root + submodules at one version) may merge into"
+      echo "one prefix sweep. Verify each sweep's PASS table, commit per sweep, then"
+      echo "re-run: nix run .#check-release-train -- --refresh-cache --strict-lag 0"
+    fi
+  }
   exit 3
 fi
 
