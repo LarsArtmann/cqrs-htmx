@@ -113,6 +113,29 @@ The remaining glue differs per module (templ `Layout` vs `renderErrorShell`
 full-page fallback, content-type constant, link props). Unifying would couple
 the two UIs' page shells through the root module for ~6 lines each.
 
+## Cross-module idioms (below the abstraction threshold)
+
+- `systemadapter/declarations.go` `rolesToStrings`, `usermgmt/webauthn/provider.go` `fromProtocolTransports` — 5-line `[]T` → `[]string` loops
+
+**Reason:** Different modules (systemadapter vs usermgmt/webauthn) with
+different element types and different nil semantics (`rolesToStrings(nil)`
+returns an empty slice, `fromProtocolTransports(nil)` preserves nil). A
+shared generic helper would need new cross-module dependency edges or public
+API surface for an idiom Go developers write inline.
+
+- `app.go` `MustNew`, `setup/setup.go` `MustNew` — `New` + `panic` wrapper
+
+**Reason:** The same 6-line idiom in different modules over different types.
+A shared generic `Must[T]` would add public API to two libraries to save
+five lines each; `MustNew` is the idiomatic name consumers already know.
+
+- `usermgmt/email_verification.go` `Consume`, `usermgmt/service_store_hatches_contract_test.go` `Consume` — mutex + map lookup + delete
+
+**Reason:** Production token store (expiry + sentinel error) versus test
+double (counting fake, different error type). The shared shape is the
+mutex-guarded map idiom, not shared logic; coupling the test double to
+production internals would defeat its purpose.
+
 ## Refactors applied 2026-09-22 (dedup-to-zero sweep, `-t 3`)
 
 - `datastar`: extracted `newTestResponse` (recorder+Response fixture, 9
