@@ -86,11 +86,11 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.19.1 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.19.1 // indirect
-	github.com/larsartmann/templ-components/htmx v1.19.1 // indirect
-	github.com/larsartmann/templ-components/icons v1.19.1 // indirect
-	github.com/larsartmann/templ-components/utils v1.19.1 // indirect
+	github.com/larsartmann/templ-components v1.19.2 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.19.2 // indirect
+	github.com/larsartmann/templ-components/htmx v1.19.2 // indirect
+	github.com/larsartmann/templ-components/icons v1.19.2 // indirect
+	github.com/larsartmann/templ-components/utils v1.19.2 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
