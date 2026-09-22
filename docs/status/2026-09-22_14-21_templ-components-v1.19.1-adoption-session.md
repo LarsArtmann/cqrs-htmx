@@ -3,7 +3,9 @@
 **2026-09-22 14:21 CEST** · session-scoped: what THIS session (≈13:05–14:20 CEST) did, noticed, broke, and missed.
 Inputs: TODO_LIST line 32 (the round-8-created adoption TODO), executed end-to-end. Machine context: `/mnt/buildcache` still ~full (go-cache-env accepted it; no /tmp fallback needed this session); LSP red all session (bare-shell go1.26.7 vs go.work 1.27.1 floor — known gotcha 14 noise, ignored per policy).
 
-> Verdict in one line: the adoption TODO is fully executed and locally verified (12-module bump + both CSS bundles + ListNoteCount adoption in dashboardui + docs), all gates green, 5 commits landed (all daemon-heuristic — the daemon outran every manual commit attempt), **nothing is pushed**, and real CI has not seen any of it.
+> **ANNOTATED 2026-09-22 (follow-up session):** the open tail of this report is now closed — the push happened (via the 13:25 release-train session's sync completion, tags verified on origin), the full heavy-gate sweep ran green (check-modules 17/17, coverage-gate, e2e, lint), the round-8 report is annotated, the golden-update quirk is fixed, and HARVEST routed section (f) into TODO_LIST/ROADMAP (`3a6a04ee`). Real-CI observation on the pushed range stays open (TODO_LIST P1). Unmarked items below are still open.
+
+> Verdict in one line: the adoption TODO is fully executed and locally verified (12-module bump + both CSS bundles + ListNoteCount adoption in dashboardui + docs), all gates green, 5 commits landed (all daemon-heuristic — the daemon outran every manual commit attempt), ~~**nothing is pushed**, and real CI has not seen any of it.~~ pushed the same day by the release-train session (sync `cbf3fdfb..5f1d1bca`); real-CI observation remains open (TODO_LIST P1).
 
 Commit chain this session (all `chore: auto-commit` heuristic per gotcha 4):
 `eb6dfc7a` (24 files: 12× go.mod/go.sum pin bump) → `2f59832e` (both CSS bundles, minified canonical) → `14e386e3` (render.go ListNote helper) → `650404e1` (DLQ note + golden + test assertions + dashboardui docs) → `5f1d1bca` (root CHANGELOG + TODO_LIST closure + a concurrent session's AGENTS.md shell-trap lesson).
@@ -29,20 +31,20 @@ Commit chain this session (all `chore: auto-commit` heuristic per gotcha 4):
 
 ## b) PARTIALLY DONE
 
-1. **Push + real-CI confirmation.** All 5 session commits are local on master. Nothing pushed (house rule: never push without explicit ask). Real CI has not executed the bump or the adoption. Same gap class round-8 flagged for the whole repo; still open.
+1. **Push + real-CI confirmation.** ~~All 5 session commits are local on master. Nothing pushed (house rule: never push without explicit ask).~~ pushed 2026-09-22 by the release-train session (sync `cbf3fdfb..5f1d1bca` + later daemon commits; `master` was in parity with origin at sweep time). Real CI has not executed the bump or the adoption — watching the pushed range is TODO_LIST P1.
 2. **templ-components upstream CI status.** I proved the v1.19.1 tags are PUSHED (ls-remote), but did not verify their CI went green post-push (their red-master fixes were "unproven in real CI until pushed" at round-8 time). Out of this repo's scope; tracked upstream — noted here because the adoption depends on that release being healthy.
-3. **Delivering-layer verification is test-grade, not human-grade.** The DLQ note is proven by golden + handler assertions + a11y/CSP suite sweeps, but no human/browser render pass happened, and the Playwright e2e suite was NOT run for this change (see c2/c3).
+3. **Delivering-layer verification is test-grade, not human-grade.** The DLQ note is proven by golden + handler assertions + a11y/CSP suite sweeps, but no human/browser render pass happened, and ~~the Playwright e2e suite was NOT run for this change (see c2/c3)~~ the full Playwright suite ran green post-adoption in the same-day sweep; the human look and a dedicated count-notice e2e assertion stay open (TODO_LIST P2).
 4. **HARVEST not run.** This report's section (f) is brainstorm-grade; per the status-report contract it belongs in TODO_LIST/ROADMAP via docs-health HARVEST — not yet done (the user asked me to wait for instructions).
 
 ## c) NOT STARTED (noticed this session, deliberately untouched)
 
-1. **Round-8 report annotation.** `docs/status/2026-09-22_12-04_round8-full-todo-execution-self-review.md` item (b)(5) says the adoption "not executed (owner scheduling)" — now FALSE. The docs-health ANNOTATE pass on that report was not done this session → split-brain risk for the next reader (TODO_LIST is closed but the report still says open).
-2. **e2e (Playwright) run.** The dashboard e2e suite (57/57 precedent) was not executed after the DLQ HTML change; no e2e assertion covers the count notice.
-3. **Heavy gates not re-run post-adoption:** `nix run .#check-modules` (16 stages), `.#coverage-gate` (15 modules), and the full e2e lane. Targeted equivalents passed; the full fleet sweep is the next confidence step.
-4. **FEATURES.md not updated.** The DLQ count notice is a small user-visible feature; FEATURES = honest inventory. I judged CHANGELOG sufficient and did not touch FEATURES — flagged as a possible miss (see d5).
+1. ~~**Round-8 report annotation.** `docs/status/2026-09-22_12-04_round8-full-todo-execution-self-review.md` item (b)(5) says the adoption "not executed (owner scheduling)" — now FALSE. The docs-health ANNOTATE pass on that report was not done this session → split-brain risk for the next reader (TODO_LIST is closed but the report still says open).~~ done `b171f3b3` (follow-up session, 2026-09-22).
+2. ~~**e2e (Playwright) run.** The dashboard e2e suite (57/57 precedent) was not executed after the DLQ HTML change; no e2e assertion covers the count notice.~~ suite ran green post-adoption (`nix run .#e2e`, same-day sweep); the count-notice assertion spec stays open (TODO_LIST P2).
+3. ~~**Heavy gates not re-run post-adoption:** `nix run .#check-modules` (16 stages), `.#coverage-gate` (15 modules), and the full e2e lane.~~ all green same day (check-modules 17/17 — it caught the agents-notes v1.19.0 staleness, fixed `c344da5d` — coverage-gate, e2e, lint; CHANGELOG [Unreleased] Verified).
+4. ~~**FEATURES.md not updated.** The DLQ count notice is a small user-visible feature; FEATURES = honest inventory. I judged CHANGELOG sufficient and did not touch FEATURES — flagged as a possible miss (see d5).~~ Won't implement — FEATURES rows are handler/panel-granular; the README adoption list + CHANGELOG are the right altitude for a footer count notice. The "possible miss" was a correct call.
 5. **`templ.WithChildren` dashboardui spike** (round-8 (b)(6), SidebarNav criterion) — untouched, as before.
 6. **`render_bench_test.go` ListNote case** (N16 pattern: bench per adopted family) — not added.
-7. **`go test ./... -run TestGolden -update` core-package quirk.** The README-documented golden-update command FAILS `dashboardui/v4/core` ("flag provided but not defined: -update" — core's test binary doesn't define it). Pre-existing, noticed, root-caused this session; not fixed (scoping the command to `go test .` or defining the flag in core are both one-liners).
+7. ~~**`go test ./... -run TestGolden -update` core-package quirk.** The README-documented golden-update command FAILS `dashboardui/v4/core` ("flag provided but not defined: -update" — core's test binary doesn't define it). Pre-existing, noticed, root-caused this session; not fixed (scoping the command to `go test .` or defining the flag in core are both one-liners).~~ fixed `c47460fd` (no-op `-update` flag shim in core; the documented `./...` command now exits 0 module-wide).
 
 ## d) TOTALLY FUCKED UP (honest ledger)
 
