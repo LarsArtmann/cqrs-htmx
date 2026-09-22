@@ -72,7 +72,7 @@ func TestA11y_LiveRegions(t *testing.T) {
 // TestA11y_EmptyStateRoleStatus verifies library empty states expose
 // role="status" so assistive tech announces them when swaps insert them.
 func TestA11y_EmptyStateRoleStatus(t *testing.T) {
-	html := emptyState(context.Background(), "No events yet", "coming soon")
+	html := goldenRender(t, emptyStatePanel(icons.Inbox, "No events yet", "coming soon"))
 
 	if !strings.Contains(html, `role="status"`) {
 		t.Error("empty state missing role=status")

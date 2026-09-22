@@ -183,10 +183,10 @@ func TestRenderProjectionRow_AllStatusKinds(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		html := renderProjectionRow(context.Background(), projectionStat{
+		html := goldenRender(t, projectionHealthRows([]projectionStat{{
 			Name: tc.name, Status: "active", StatusKind: tc.statusKind,
 			Processed: 100, Errors: 2,
-		})
+		}}))
 		if !strings.Contains(html, tc.wantClass) {
 			t.Errorf(
 				"renderProjectionRow(%s): expected class %q, got: %s",
@@ -205,7 +205,7 @@ func TestRenderProjectionRow_AllStatusKinds(t *testing.T) {
 // ===== Projection Health Panel Rendering =====
 
 func TestRenderProjectionHealthPanel_Empty(t *testing.T) {
-	html := renderProjectionHealthPanel(context.Background(), "/dashboard", nil)
+	html := goldenRender(t, projectionHealthPanel("/dashboard", nil))
 
 	if !strings.Contains(html, "projection-health") {
 		t.Fatalf("expected panel div id")
@@ -232,7 +232,7 @@ func TestRenderProjectionHealthPanel_WithProjections(t *testing.T) {
 		},
 	}
 
-	html := renderProjectionHealthPanel(context.Background(), "/dashboard", projs)
+	html := goldenRender(t, projectionHealthPanel("/dashboard", projs))
 
 	for _, want := range []string{"user-read-model", "casbin-projection", "bg-green-100", "bg-red-100", "500", "3"} {
 		if !strings.Contains(html, want) {
@@ -539,14 +539,14 @@ func TestParsePageSize(t *testing.T) {
 // ===== renderPagination =====
 
 func TestRenderPagination_NoPagination(t *testing.T) {
-	html := renderPagination(context.Background(), "/d", "/events", paginationState{}, "")
+	html := goldenRender(t, paginationNav("/d", "/events", paginationState{}, ""))
 	if html != "" {
 		t.Fatalf("expected empty string for no pagination, got: %s", html)
 	}
 }
 
 func TestRenderPagination_HasNextOnly(t *testing.T) {
-	html := renderPagination(context.Background(), "/d", "/events", paginationState{
+	html := goldenRender(t, paginationNav("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "abc", PageSize: 10,
 	}, "")
 
@@ -564,7 +564,7 @@ func TestRenderPagination_HasNextOnly(t *testing.T) {
 }
 
 func TestRenderPagination_HasPrevOnly(t *testing.T) {
-	html := renderPagination(context.Background(), "/d", "/events", paginationState{
+	html := goldenRender(t, paginationNav("/d", "/events", paginationState{
 		HasPrev: true,
 	}, "")
 
@@ -578,7 +578,7 @@ func TestRenderPagination_HasPrevOnly(t *testing.T) {
 }
 
 func TestRenderPagination_Both(t *testing.T) {
-	html := renderPagination(context.Background(), "/d", "/events", paginationState{
+	html := goldenRender(t, paginationNav("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "xyz", PageSize: 20, HasPrev: true,
 	}, "")
 
@@ -592,7 +592,7 @@ func TestRenderPagination_Both(t *testing.T) {
 }
 
 func TestRenderPagination_WithExtraParams(t *testing.T) {
-	html := renderPagination(context.Background(), "/d", "/events", paginationState{
+	html := goldenRender(t, paginationNav("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "cur", PageSize: 10,
 	}, "type=user.created")
 
@@ -669,7 +669,7 @@ func TestDefItemCopy(t *testing.T) {
 
 func TestDefinitionListHTML(t *testing.T) {
 	items := []display.DefinitionItem{defItem("Type", "user.created"), defItem("Version", "7")}
-	html := definitionListHTML(context.Background(), items)
+	html := goldenRender(t, definitionList(items))
 
 	for _, want := range []string{"<dl", "Type", "user.created", "Version"} {
 		if !strings.Contains(html, want) {
@@ -699,7 +699,7 @@ func TestEsc(t *testing.T) {
 // ===== Empty State =====
 
 func TestEmptyState_NoMessage(t *testing.T) {
-	html := emptyState(context.Background(), "Nothing Here", "")
+	html := goldenRender(t, emptyStatePanel(icons.Inbox, "Nothing Here", ""))
 	if !strings.Contains(html, "Nothing Here") {
 		t.Errorf("expected title in output")
 	}
@@ -714,7 +714,7 @@ func TestEmptyState_NoMessage(t *testing.T) {
 // h2 title tag requested via TitleTag — replacing the old hand-rolled
 // .empty-state div.
 func TestEmptyState_LibraryShape(t *testing.T) {
-	html := emptyState(context.Background(), "Nothing Here", "Try again later")
+	html := goldenRender(t, emptyStatePanel(icons.Inbox, "Nothing Here", "Try again later"))
 
 	for _, want := range []string{
 		`role="status"`,
@@ -733,14 +733,14 @@ func TestEmptyState_LibraryShape(t *testing.T) {
 }
 
 func TestEmptyState_WithMessage(t *testing.T) {
-	html := emptyState(context.Background(), "Nothing Here", "Try again later")
+	html := goldenRender(t, emptyStatePanel(icons.Inbox, "Nothing Here", "Try again later"))
 	if !strings.Contains(html, "Try again later") {
 		t.Errorf("expected message in output")
 	}
 }
 
 func TestEmptyStateIcon_PerPage(t *testing.T) {
-	html := emptyStateIcon(context.Background(), icons.Cube, "No aggregates", "")
+	html := goldenRender(t, emptyStatePanel(icons.Cube, "No aggregates", ""))
 	if !strings.Contains(html, "No aggregates") {
 		t.Errorf("expected title in output")
 	}

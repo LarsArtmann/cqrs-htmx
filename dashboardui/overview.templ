@@ -59,7 +59,7 @@ templ projectionHealthPanel(basePath string, projs []projectionStat) {
 		hx-swap="outerHTML"
 	>
 		<div class="panel-title">Projection Health</div>
-		@rawDataTable(plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), projectionHealthRows(projs))
+		@rawDataTable(plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), "", projectionHealthRows(projs))
 	</div>
 }
 
@@ -78,7 +78,7 @@ templ projectionHealthRows(projs []projectionStat) {
 // recentEventsTable builds the recent-events table for the overview page.
 templ recentEventsTable(basePath string, events []RecentEvent) {
 	<h2>Recent Events</h2>
-	@rawDataTable(plainHeaders("Time", "Type", "Stream", "Version"), recentEventRows(basePath, events))
+	@rawDataTable(plainHeaders("Time", "Type", "Stream", "Version"), "", recentEventRows(basePath, events))
 }
 
 templ recentEventRows(basePath string, events []RecentEvent) {

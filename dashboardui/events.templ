@@ -1,0 +1,126 @@
+package dashboardui
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
+)
+
+// ===== Event Stream Browser =====
+
+templ eventsPage(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) {
+	@layout(p, eventsContent(p, events, page, filter, sortBy))
+}
+
+templ eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) {
+	<div class="page-header"><h2>Event Stream</h2></div>
+	@eventFilterBar(p.BasePath, filter)
+	if len(events) == 0 {
+		if filter.Active() {
+			@emptyStatePanel(
+				icons.Search,
+				"No matching events",
+				"No events match the current filters. Try adjusting or clearing them.",
+			)
+		} else {
+			@emptyStatePanel(
+				icons.QueueList,
+				"No events yet",
+				"Events will appear here as they are committed to the store.",
+			)
+		}
+	} else {
+		@rawDataTable(
+			[]display.TableHeader{
+				eventSortHeader(p.BasePath, "Time", "time", sortBy, filter.ExtraParams()),
+				eventSortHeader(p.BasePath, "Type", "type", sortBy, filter.ExtraParams()),
+				{Label: "Stream ID", Sortable: false, SortDirection: "", Href: ""},
+				eventSortHeader(p.BasePath, "Stream Type", "streamType", sortBy, filter.ExtraParams()),
+				eventSortHeader(p.BasePath, "Version", "version", sortBy, filter.ExtraParams()),
+			},
+			"events-tbody",
+			eventsTableRows(p.BasePath, events),
+		)
+		@paginationNav(p.BasePath, "/events", page, combinedFilterSortParams(filter, sortBy))
+		@formatLinksNav(p.BasePath, "/events")
+	}
+}
+
+templ eventsTableRows(basePath string, events []event.Event) {
+	for _, evt := range events {
+		<tr>
+			<td>{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
+			<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
+			<td><span class="mono">{ truncate(evt.StreamID().String(), listIDWidth) }</span> @copyButton(evt.StreamID().String(), "")</td>
+			<td>{ string(evt.StreamType()) }</td>
+			<td>{ evt.Version().String() }</td>
+		</tr>
+	}
+}
+
+// eventFilterBar renders the filter form with current values pre-filled.
+// The form uses hx-get for partial content swapping (no full page reload).
+// The explicit input IDs keep the historical DOM ids (filter-type,
+// filter-stream-type, filter-stream-id) so CSS, e2e probes, and hx-get
+// serialization stay stable.
+templ eventFilterBar(basePath string, filter eventFilter) {
+	<form
+		class="filter-bar"
+		hx-get={ basePath + "/events" }
+		hx-target="#main-content"
+		hx-select="#main-content"
+		hx-swap="outerHTML"
+		hx-push-url="true"
+	>
+		@filterInput("filter-type", "Type", "type", filter.Type, "event.type")
+		@filterInput("filter-stream-type", "Stream Type", "streamType", filter.StreamType, "User")
+		@filterInput("filter-stream-id", "Stream ID", "streamID", filter.StreamID, "01H...")
+		@buttonSubmit("Filter", "", display.ButtonOutlineInfo, nil)
+		@buttonLink("Clear", basePath+"/events", "", display.ButtonSecondary, false)
+	</form>
+}
+
+// ===== Event Detail =====
+
+templ eventDetailPage(p pageData, evt event.Event, prevID, nextID string) {
+	@layout(p, eventDetailContent(p, evt, prevID, nextID))
+}
+
+templ eventDetailContent(p pageData, evt event.Event, prevID, nextID string) {
+	<div class="page-header">
+		<h2><code>{ string(evt.Type()) }</code> @badge(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral) @encodingBadge(string(evt.Encoding()))</h2>
+		<div class="page-subtitle mono">{ evt.ID().String() } @copyButton(evt.ID().String(), "")</div>
+		if prevID != "" || nextID != "" {
+			<div class="filter-bar section-gap">
+				if prevID != "" {
+					@buttonLink("← Previous", p.BasePath+"/events/"+prevID, "", display.ButtonSecondary, false)
+				} else {
+					@buttonLink("← Previous", "#", "Previous event (disabled)", display.ButtonSecondary, true)
+				}
+				if nextID != "" {
+					@buttonLink("Next →", p.BasePath+"/events/"+nextID, "", display.ButtonOutlineInfo, false)
+				} else {
+					@buttonLink("Next →", "#", "Next event (disabled)", display.ButtonOutlineInfo, true)
+				}
+			</div>
+		}
+	</div>
+	<div class="two-col-grid">
+		<div>
+			<h3>Metadata</h3>
+			@definitionList(eventMetaItems(evt, evt.Metadata()))
+			if len(evt.Metadata().Custom) > 0 {
+				<h3>Custom Metadata</h3>
+				@definitionList(eventCustomMetaItems(evt.Metadata().Custom))
+			}
+		</div>
+		<div>
+			<h3>Payload</h3>
+			<div class="filter-bar">
+				@copyButton(string(payloadBytes(d.config.PayloadRenderer, evt)), "Copy Payload")
+				@buttonSubmit("Download JSON", "", display.ButtonSecondary, templ.Attributes{"data-download-payload": evt.ID().String()})
+			</div>
+			<pre class="code-block" id="event-payload"><code>{ string(payloadBytes(d.config.PayloadRenderer, evt)) }</code></pre>
+		</div>
+	</div>
+}

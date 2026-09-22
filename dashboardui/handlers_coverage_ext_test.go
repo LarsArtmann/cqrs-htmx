@@ -2,6 +2,8 @@ package dashboardui
 
 import (
 	"context"
+
+	"github.com/a-h/templ"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -470,7 +472,7 @@ func TestRenderLayout_HTMXPartial(t *testing.T) {
 	r.Header.Set("Hx-Request", "true")
 
 	p := d.page("Events", "/events", r)
-	html := d.renderLayout(context.Background(), p, func() string { return "<p>test content</p>" })
+	html := goldenRender(t, layout(p, templ.Raw("<p>test content</p>")))
 
 	if !strings.Contains(html, "<main id=\"main-content\"") {
 		t.Errorf("expected <main> in HTMX partial, got: %s", html)
@@ -480,7 +482,7 @@ func TestRenderLayout_HTMXPartial(t *testing.T) {
 		t.Errorf("expected <title> in HTMX partial for tab update")
 	}
 
-	if strings.Contains(html, "<!DOCTYPE html>") {
+	if strings.Contains(html, "<!doctype html>") {
 		t.Errorf("expected no DOCTYPE in HTMX partial")
 	}
 
@@ -494,9 +496,9 @@ func TestRenderLayout_FullPage(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/events", nil)
 
 	p := d.page("Events", "/events", r)
-	html := d.renderLayout(context.Background(), p, func() string { return "<p>test content</p>" })
+	html := goldenRender(t, layout(p, templ.Raw("<p>test content</p>")))
 
-	if !strings.Contains(html, "<!DOCTYPE html>") {
+	if !strings.Contains(html, "<!doctype html>") {
 		t.Errorf("expected DOCTYPE in full page")
 	}
 
@@ -890,7 +892,7 @@ func TestOverviewHandler_HTMXReturnsPartial(t *testing.T) {
 	d.overviewHandler(w, r)
 
 	body := w.Body.String()
-	if strings.Contains(body, "<!DOCTYPE html>") {
+	if strings.Contains(body, "<!doctype html>") {
 		t.Errorf("expected no DOCTYPE in HTMX response")
 	}
 

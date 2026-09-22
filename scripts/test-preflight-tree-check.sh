@@ -60,9 +60,9 @@ r="$tmp/f2"
 new_repo "$r" && old_commit "$r" "initial" && echo x >"$r/uncommitted.txt"
 ( cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER" ) >"$tmp/f2.out" 2>&1
 rc=$?
-ok=1
-[ $rc -eq 1 ] || ok=0
-grep -q "dirty" "$tmp/f2.out" || ok=0
+ok=0
+[ $rc -eq 1 ] || ok=1
+grep -q "dirty" "$tmp/f2.out" || ok=1
 report $ok "F2 dirty tree exits 1 naming dirty (got $rc)"
 
 # F3 fresh non-daemon commit

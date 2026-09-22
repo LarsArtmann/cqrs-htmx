@@ -876,6 +876,8 @@
                         "release-train:bash scripts/check-release-train.sh"
                         "vcs-cache:bash scripts/check-vcs-cache.sh"
                         "vcs-cache-self-test:bash scripts/test-check-vcs-cache.sh"
+                        "preflight-self-test:bash scripts/test-preflight-tree-check.sh"
+                        "wait-tree-quiet-self-test:bash scripts/test-wait-tree-quiet.sh"
                         "replace-directives:bash scripts/check-replace-directives.sh"
                         "docs-freshness:bash scripts/check-docs-freshness.sh"
                         "docs-freshness-self-test:bash scripts/test-check-docs-freshness.sh"
@@ -1091,6 +1093,43 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/test-check-vcs-cache.sh
+                  '';
+                }
+              );
+            };
+
+            preflight-tree-check = {
+              type = "app";
+              meta.description = "Abort-on-surprise gate before tree-mutating batch steps in the shared tree (dirty tree / fresh non-daemon commit / commit-velocity burst)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "preflight-tree-check";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/preflight-tree-check.sh
+                  '';
+                }
+              );
+            };
+
+            wait-tree-quiet = {
+              type = "app";
+              meta.description = "Block until the shared tree is quiet: clean tree + stable HEAD for a full window (quiescence gate before push retries / release trains)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "wait-tree-quiet";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/wait-tree-quiet.sh "$@"
                   '';
                 }
               );

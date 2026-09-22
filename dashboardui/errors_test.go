@@ -54,7 +54,7 @@ func TestRenderError_StyledFamilyPage(t *testing.T) {
 
 	body := rec.Body.String()
 	for _, want := range []string{
-		"<!DOCTYPE html>",
+		"<!doctype html>",
 		"/-/dashboard-tw.css",
 		"error-shell",
 		"failed to load events",
@@ -90,7 +90,7 @@ func TestRenderError_HTMXGetsBareCard(t *testing.T) {
 	}
 
 	body := rec.Body.String()
-	if strings.Contains(body, "<!DOCTYPE") {
+	if strings.Contains(body, "<!doctype") {
 		t.Error("HTMX error response must not contain the full shell")
 	}
 

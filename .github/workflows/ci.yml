@@ -635,6 +635,15 @@ jobs:
       - name: VCS cache health self-test
         run: bash scripts/test-check-vcs-cache.sh
 
+      # Concurrency-safety helpers for the shared tree (auto-commit daemon +
+      # concurrent sessions, gotcha 4). The self-tests are the coverage; the
+      # helpers themselves are session tools, not repo-state checks.
+      - name: Preflight tree-check self-test
+        run: bash scripts/test-preflight-tree-check.sh
+
+      - name: Wait-tree-quiet self-test
+        run: bash scripts/test-wait-tree-quiet.sh
+
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence
       # uses anonymous `git ls-remote`; the larsartmann repos are public

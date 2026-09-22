@@ -132,9 +132,10 @@ templ dataTable(headers []display.TableHeader, rows []display.TableRow, bodyID s
 }
 
 // rawDataTable renders the library Table shell (wrapper, thead, tbody)
-// around pre-rendered <tr> markup for tables whose rows are built as
-// components by callers. Headers still go through the typed path.
-templ rawDataTable(headers []display.TableHeader, rows templ.Component) {
+// around row components built by callers. Headers still go through the
+// typed path. bodyID is the tbody DOM hook (e.g. "events-tbody" for SSE
+// live-row insertion); empty renders no id.
+templ rawDataTable(headers []display.TableHeader, bodyID string, rows templ.Component) {
 	@display.Table(display.TableProps{
 		BaseProps:    utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
 		TypedHeaders: headers,
@@ -142,6 +143,7 @@ templ rawDataTable(headers []display.TableHeader, rows templ.Component) {
 		CellPadding:  display.TableCellPaddingCompact,
 		LazyRows:     true,
 		Body:         rows,
+		BodyID:       bodyID,
 	})
 }
 

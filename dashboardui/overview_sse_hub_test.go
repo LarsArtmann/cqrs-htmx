@@ -50,7 +50,7 @@ func TestOverview_SSEHubCardReflectsSubscribers(t *testing.T) {
 		t.Errorf("Subscribers: got %d, want 1", stats.SSEHub.Subscribers)
 	}
 
-	grid := renderStatGrid(context.Background(), stats)
+	grid := goldenRender(t, overviewStatGrid(stats))
 
 	if !strings.Contains(grid, `id="stat-sse-hub"`) {
 		t.Errorf("overview grid missing the SSE hub card\nrendered grid:\n%s", grid)
@@ -76,7 +76,7 @@ func TestOverview_SSEHubCardClosedAfterShutdown(t *testing.T) {
 		t.Error("expected SSEHub.Closed=true after Close")
 	}
 
-	grid := renderStatGrid(context.Background(), stats)
+	grid := goldenRender(t, overviewStatGrid(stats))
 
 	if !strings.Contains(grid, ">closed <") {
 		t.Errorf("SSE hub card should show closed state\ncard grid:\n%s", grid)
@@ -93,7 +93,7 @@ func TestOverview_NoSSEHubCardWithoutEventBus(t *testing.T) {
 		t.Fatal("expected SSEHub nil without EventBus")
 	}
 
-	grid := renderStatGrid(context.Background(), stats)
+	grid := goldenRender(t, overviewStatGrid(stats))
 
 	if strings.Contains(grid, `id="stat-sse-hub"`) {
 		t.Errorf("SSE hub card must not render without a broadcaster\ncard grid:\n%s", grid)
