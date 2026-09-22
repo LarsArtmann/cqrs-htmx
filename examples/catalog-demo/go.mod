@@ -14,7 +14,7 @@ require (
 	github.com/go-faster/jx v1.2.0 // indirect
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/larsartmann/go-error-family v0.10.1 // indirect
+	github.com/larsartmann/go-error-family v0.10.2 // indirect
 	github.com/larsartmann/go-etag v0.4.0 // indirect
 	github.com/larsartmann/templ-components v1.19.2 // indirect
 	github.com/larsartmann/templ-components/htmx v1.19.2 // indirect

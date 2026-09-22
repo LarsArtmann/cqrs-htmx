@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/go-etag v0.4.0
 	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/larsartmann/go-sse v0.6.1

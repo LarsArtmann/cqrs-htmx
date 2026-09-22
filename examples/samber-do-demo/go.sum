@@ -246,8 +246,8 @@ github.com/larsartmann/go-datastar v0.6.0 h1:uarWePxwR7zyv7jNO9GxVTwd0+Vsv7mcaNM
 github.com/larsartmann/go-datastar v0.6.0/go.mod h1:80UFZptPtlwKK93e0agJG1f3Z2C6OMRvU5gDL2abVMc=
 github.com/larsartmann/go-datastar/static v0.6.0 h1:tiBq1J+QE8jN2UW15AvckBBdT2b2z7AsGqaes+tz5lk=
 github.com/larsartmann/go-datastar/static v0.6.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
-github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
-github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
+github.com/larsartmann/go-error-family v0.10.2 h1:WXrBI60IZBli5bvjOr/XOZbqzPtGAPFerdumzy8CnTU=
+github.com/larsartmann/go-error-family v0.10.2/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
 github.com/larsartmann/go-etag v0.4.0 h1:QsMgYKOgsE//KVXRW42KuVfKAlpYMek8OZVBfMKvt7M=
 github.com/larsartmann/go-etag v0.4.0/go.mod h1:CzORLh9Ws2B8MWq5HLfdwqq7xUh9TLTG268sE/YwDcg=
 github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=

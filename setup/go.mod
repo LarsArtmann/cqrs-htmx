@@ -24,7 +24,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-datastar/broadcast v0.6.0
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/go-sse v0.6.1
 	github.com/larsartmann/httputil v1.3.0
 	modernc.org/sqlite v1.59.0

@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/auditlog/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1

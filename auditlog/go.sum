@@ -38,8 +38,8 @@ github.com/larsartmann/go-atomic-write v0.5.2 h1:E9aU+hQ6gzqyeo5RShJMeaSl8/e1b/G
 github.com/larsartmann/go-atomic-write v0.5.2/go.mod h1:E6ZlF3IrO7FtKJKEfcnCtsyg0em2iP7TajLzSE/6CtQ=
 github.com/larsartmann/go-branded-id v0.6.0 h1:bqvJcozqtr8CP7/GWbWqHdYWt2YaIaWZdNvPSbqdZXU=
 github.com/larsartmann/go-branded-id v0.6.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
-github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
-github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
+github.com/larsartmann/go-error-family v0.10.2 h1:WXrBI60IZBli5bvjOr/XOZbqzPtGAPFerdumzy8CnTU=
+github.com/larsartmann/go-error-family v0.10.2/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=
 github.com/larsartmann/go-ndjson v0.0.1/go.mod h1:ueEJJ39Jei+zfPCEx455kpunYWZf/pkwn7HqETHrQkU=
 github.com/larsartmann/go-output v0.38.0 h1:Ng8TWCQndPvM3qyNqz2Y5sGdKqiAGsq5CL2xEA0IOxs=
