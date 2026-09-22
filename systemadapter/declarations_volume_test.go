@@ -18,16 +18,16 @@ func TestDeclarativeProjections_CarryVolumeHints(t *testing.T) {
 	}{
 		{"tenantLookup", "tenant_by_id", tenantLookup().Config.Volume, 100},
 		{"tenantScan", "tenants", tenantScan().Config.Volume, 100},
-		{"botLookup", "bot_by_id", botLookup().Config.Volume, 100},
-		{"botScan", "bots", botScan().Config.Volume, 100},
-		{"botTokenScan", "bots_by_token", botTokenScan().Config.Volume, 100},
-		{"membershipLookup", "membership_by_id", membershipLookup().Config.Volume, 1_000},
-		{"membershipScan", "memberships", membershipScan().Config.Volume, 1_000},
-		{"userLookup", "user_by_id", userLookup().Config.Volume, 1_000},
-		{"userScan", "users", userScan().Config.Volume, 10_000},
-		{"authzPolicyLookup", "authz_policy_by_id", authzPolicyLookup().Config.Volume, 100_000},
-		{"authzPolicyScan", "authz_policies", authzPolicyScan().Config.Volume, 100_000},
-		{"auditLogScan", "audit_log", auditLogScan().Config.Volume, 100_000},
+		{"botLookup", "bot_by_id", botLookup().Config.Volume, 1_000},
+		{"botScan", "bots", botScan().Config.Volume, 1_000},
+		{"botTokenScan", "bot_tokens", botTokenScan().Config.Volume, 1_000},
+		{"membershipLookup", "membership_by_id", membershipLookup().Config.Volume, 10_000},
+		{"membershipScan", "memberships", membershipScan().Config.Volume, 10_000},
+		{"userLookup", "user_by_id", userLookup().Config.Volume, 100_000},
+		{"userScan", "users", userScan().Config.Volume, 100_000},
+		{"authzPolicyLookup", "authz_policy_by_id", authzPolicyLookup().Config.Volume, 10_000},
+		{"authzPolicyScan", "authz_policies", authzPolicyScan().Config.Volume, 10_000},
+		{"auditLogScan", "audit_log", auditLogScan().Config.Volume, 1_000_000},
 	} {
 		if tc.volume != tc.want {
 			t.Errorf("%s (%s): Volume = %d, want %d", tc.name, tc.queryName, tc.volume, tc.want)

@@ -164,6 +164,12 @@ fi
 
 git tag -s "$TAGNAME" -m "$MOD $VER" || fail "git tag -s failed (signing key unavailable?); NOT tagging unsigned"
 
+# Tag-message guard: annotated object + "<mod> <ver>" subject (lib is
+# fixture-tested in scripts/test-verify-tag.sh).
+# shellcheck disable=SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/lib/tag-message-guard.sh"
+verify_tag_message "$TAGNAME" "$MOD" "$VER" || fail "tag-message guard rejected $TAGNAME — delete it (git tag -d) and investigate"
+
 if [ "$PUSH" = 1 ]; then
   git push origin "$TAGNAME" || fail "push failed"
   if ! git ls-remote --exit-code origin "refs/tags/$TAGNAME" >/dev/null 2>&1; then

@@ -152,6 +152,33 @@ else
   fail=$((fail + 1))
 fi
 
+# --- Tag-message guard (lib/tag-message-guard.sh) ---------------------------
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/lib/tag-message-guard.sh"
+git tag -a guard-ok -m "github.com/larsartmann/cqrs-htmx/v4 v4.8.0" HEAD
+if verify_tag_message guard-ok "github.com/larsartmann/cqrs-htmx/v4" "v4.8.0" >/dev/null 2>&1; then
+  echo "  PASS: annotated tag with correct subject passes"
+  pass=$((pass + 1))
+else
+  echo "  FAIL: annotated tag with correct subject should pass"
+  fail=$((fail + 1))
+fi
+if verify_tag_message guard-ok "github.com/larsartmann/cqrs-htmx/v4" "v4.9.0" >/dev/null 2>&1; then
+  echo "  FAIL: wrong-version subject should be rejected"
+  fail=$((fail + 1))
+else
+  echo "  PASS: wrong-version subject rejected"
+  pass=$((pass + 1))
+fi
+git tag guard-lightweight HEAD
+if verify_tag_message guard-lightweight "x" "y" >/dev/null 2>&1; then
+  echo "  FAIL: lightweight tag should be rejected"
+  fail=$((fail + 1))
+else
+  echo "  PASS: lightweight tag rejected (not an annotated object)"
+  pass=$((pass + 1))
+fi
+
 echo ""
 echo "Results: $pass passed, $fail failed"
 echo ""
