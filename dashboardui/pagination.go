@@ -1,108 +1,60 @@
 package dashboardui
 
 import (
-	"context"
-	"fmt"
 	"strconv"
-	"strings"
 
-	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
-	"github.com/larsartmann/templ-components/utils"
 )
 
-// renderPagination renders Prev/Next links with cursor-history tracking.
-// basePath is the dashboard base path, path is the page path (e.g., "/events").
-// Extra query params (filters, sort) are preserved across pagination links.
-func renderPagination(
-	ctx context.Context,
-	basePath, path string,
-	state paginationState,
-	extraParams string,
-) string {
-	if !state.HasNext && !state.HasPrev {
-		return ""
-	}
+var pageSizeOptions = []int{25, 50, 100, 200}
 
-	var b strings.Builder
+// prevPaginationHref builds the Previous link target, popping the most
+// recent cursor off the history stack.
+func prevPaginationHref(basePath, path string, state paginationState, extraParams string) string {
+	prevAfter, prevHistory := popCursor(state.PrevHistory)
+	query := paginationQuery(prevAfter, prevHistory, state.PageSize, extraParams)
 
-	b.WriteString(`<div class="pagination">`)
-
-	if state.HasPrev {
-		prevAfter, prevHistory := popCursor(state.PrevHistory)
-		query := paginationQuery(prevAfter, prevHistory, state.PageSize, extraParams)
-		b.WriteString(
-			buttonLink(
-				ctx,
-				"← Previous",
-				fmt.Sprintf("%s%s?%s", basePath, path, query),
-				"",
-				display.ButtonSecondary,
-				false,
-			),
-		)
-	} else {
-		b.WriteString(`<span class="pagination disabled">← Previous</span>`)
-	}
-
-	b.WriteString(renderPaginationInfo(state))
-	b.WriteString(renderPageSizeSelector(ctx, basePath, path, state, extraParams))
-
-	if state.HasNext {
-		nextHistory := pushCursor(state.PrevHistory, state.After)
-		query := paginationQuery(state.NextCursor, nextHistory, state.PageSize, extraParams)
-		b.WriteString(
-			buttonLink(
-				ctx,
-				"Next →",
-				fmt.Sprintf("%s%s?%s", basePath, path, query),
-				"",
-				display.ButtonOutlineInfo,
-				false,
-			),
-		)
-	}
-
-	b.WriteString(`</div>`)
-
-	return b.String()
+	return basePath + path + "?" + query
 }
 
-// renderPaginationInfo renders the "Showing X–Y of Z" label when available.
-func renderPaginationInfo(state paginationState) string {
+// nextPaginationHref builds the Next link target, pushing the current
+// cursor onto the history stack.
+func nextPaginationHref(basePath, path string, state paginationState, extraParams string) string {
+	nextHistory := pushCursor(state.PrevHistory, state.After)
+	query := paginationQuery(state.NextCursor, nextHistory, state.PageSize, extraParams)
+
+	return basePath + path + "?" + query
+}
+
+// paginationInfoText renders the "Showing X–Y of Z" label text when a page
+// was cut. Empty when the whole result set fits (no pagination bar info).
+func paginationInfoText(state paginationState) string {
 	if state.PageLen == 0 {
 		return ""
 	}
 
-	end := state.PageStart + state.PageLen - 1
-	if state.PageStart < 1 {
-		state.PageStart = 1
+	start := state.PageStart
+	if start < 1 {
+		start = 1
 	}
 
-	if end < state.PageStart {
-		end = state.PageStart
+	end := start + state.PageLen - 1
+	if end < start {
+		end = start
 	}
 
+	label := "Showing " + strconv.Itoa(start) + "–" + strconv.Itoa(end)
 	if state.TotalCount != "" {
-		return fmt.Sprintf(`<span class="pagination-info" role="status">Showing %d–%d of %s</span>`,
-			state.PageStart, end, esc(state.TotalCount))
+		label += " of " + state.TotalCount
 	}
 
-	return fmt.Sprintf(`<span class="pagination-info" role="status">Showing %d–%d</span>`,
-		state.PageStart, end)
+	return label
 }
 
-var pageSizeOptions = []int{25, 50, 100, 200}
-
-// renderPageSizeSelector renders a dropdown for choosing items per page.
-// Changing the selection navigates to the same path with the new limit,
-// preserving active filters but resetting cursor position.
-func renderPageSizeSelector(
-	ctx context.Context,
-	basePath, path string,
-	state paginationState,
-	extraParams string,
-) string {
+// pageSizeOptionsFor builds the library select options. Each option
+// navigates to the same path with the new limit, preserving active filters
+// but resetting cursor position.
+func pageSizeOptionsFor(basePath, path string, state paginationState, extraParams string) []forms.SelectOption {
 	current := state.PageSize
 	if current == 0 {
 		current = defaultPageSize
@@ -124,28 +76,5 @@ func renderPageSizeSelector(
 		})
 	}
 
-	var b strings.Builder
-
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
-	props := forms.SelectProps{
-		BaseProps: utils.BaseProps{
-			ID:        "",
-			Class:     "",
-			Attrs:     nil,
-			AriaLabel: "",
-			Nonce:     "",
-		},
-		Name:     "limit",
-		Label:    "Per page:",
-		Options:  options,
-		Groups:   nil,
-		Required: false,
-		Disabled: false,
-		Stylable: false,
-		Error:    "",
-		HelpText: "",
-	}
-	_ = forms.Select(props).Render(ctx, &b)
-
-	return b.String()
+	return options
 }

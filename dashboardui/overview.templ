@@ -1,0 +1,101 @@
+package dashboardui
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/larsartmann/templ-components/display"
+)
+
+// overviewPage renders the dashboard landing page: stat cards, projection
+// health, and the recent-events table.
+templ overviewPage(p pageData, stats overviewStats) {
+	@layout(p, overviewContent(p, stats))
+}
+
+templ overviewContent(p pageData, stats overviewStats) {
+	@overviewStatGrid(stats)
+	if len(stats.Projections) > 0 {
+		@projectionHealthPanel(p.BasePath, stats.Projections)
+	}
+	if len(stats.RecentEvents) > 0 {
+		@recentEventsTable(p.BasePath, stats.RecentEvents)
+	}
+}
+
+// overviewStatGrid builds the overview stat cards (events, aggregates,
+// projections-active, system health, DLQ, SSE clients) into the stat-grid
+// container.
+templ overviewStatGrid(stats overviewStats) {
+	<div class="stat-grid">
+		@statCard("stat-total-events", stats.TotalEvents, "Events", display.StatToneBlue)
+		@statCard("stat-total-aggregates", stats.TotalAggregates, "Aggregates", display.StatToneBlue)
+		if len(stats.Projections) > 0 {
+			@statCard("stat-projections-active", projectionsActiveText(stats), "Projections", display.StatToneGreen)
+		}
+		if stats.HealthStatus != "" {
+			@statCard("stat-system-health", stats.HealthStatus, "System Health", healthKindToTone(stats.HealthKind))
+		}
+		if stats.DLQCount != "" {
+			@statCard("stat-dlq-count", stats.DLQCount, "Dead Letters", display.StatToneRed)
+		}
+		if stats.SSEHub != nil {
+			@statCard("stat-sse-hub", sseHubValue(stats), "SSE Clients", sseHubTone(stats))
+		}
+	</div>
+}
+
+// projectionHealthPanel renders the projection health panel div with HTMX
+// polling attributes and the table inside. Used by both the overview page
+// and the projection-health partial endpoint (outerHTML swap — the partial
+// response must re-render the REGION itself or polling stops after one
+// refresh).
+templ projectionHealthPanel(basePath string, projs []projectionStat) {
+	<div
+		class="panel"
+		id="projection-health"
+		hx-get={ basePath + "/-/partials/projection-health" }
+		hx-trigger="every 10s, refresh"
+		hx-swap="outerHTML"
+	>
+		<div class="panel-title">Projection Health</div>
+		@rawDataTable(plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), projectionHealthRows(projs))
+	</div>
+}
+
+templ projectionHealthRows(projs []projectionStat) {
+	for _, pr := range projs {
+		<tr>
+			<td>{ pr.Name }</td>
+			<td>@statusBadge(pr.StatusKind, pr.Status)</td>
+			<td class="mono">{ pr.Lag }</td>
+			<td>{ strconv.Itoa(pr.Processed) }</td>
+			<td>{ strconv.Itoa(pr.Errors) }</td>
+		</tr>
+	}
+}
+
+// recentEventsTable builds the recent-events table for the overview page.
+templ recentEventsTable(basePath string, events []RecentEvent) {
+	<h2>Recent Events</h2>
+	@rawDataTable(plainHeaders("Time", "Type", "Stream", "Version"), recentEventRows(basePath, events))
+}
+
+templ recentEventRows(basePath string, events []RecentEvent) {
+	for _, e := range events {
+		<tr>
+			<td class="mono" title={ e.Time }>{ recentEventTime(e) }</td>
+			<td><a href={ basePath + "/events/" + e.EventID }><code>{ e.Type }</code></a></td>
+			<td>@recentEventStreamCell(basePath, e)</td>
+			<td>{ e.Version }</td>
+		</tr>
+	}
+}
+
+templ recentEventStreamCell(basePath string, e RecentEvent) {
+	if e.StreamType != "" {
+		<a href={ basePath + "/aggregates/" + e.StreamType + "/" + e.StreamID } class="mono">{ truncate(e.StreamID, eventIDWidth) }</a>
+	} else {
+		{ truncate(e.StreamID, eventIDWidth) }
+	}
+}

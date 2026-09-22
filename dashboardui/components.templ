@@ -188,30 +188,44 @@ templ paginationNav(basePath, path string, state paginationState, extraParams st
 	if state.HasNext || state.HasPrev {
 		<div class="pagination">
 			if state.HasPrev {
-				@buttonLink(
-					"← Previous",
-					paginationHref(basePath, path, popCursor(state.PrevHistory), state.PageSize, extraParams),
-					"",
-					display.ButtonSecondary,
-					false,
-				)
+				@buttonLink("← Previous", prevPaginationHref(basePath, path, state, extraParams), "", display.ButtonSecondary, false)
 			} else {
 				<span class="pagination disabled">← Previous</span>
 			}
 			@paginationInfo(state)
 			@pageSizeSelector(basePath, path, state, extraParams)
 			if state.HasNext {
-				@buttonLink(
-					"Next →",
-					paginationHref(basePath, path, paginationQueryParts(state, extraParams)),
-					"",
-					display.ButtonOutlineInfo,
-					false,
-				)
+				@buttonLink("Next →", nextPaginationHref(basePath, path, state, extraParams), "", display.ButtonOutlineInfo, false)
 			}
 		</div>
 	}
 }
 
-// paginationHref joins a path and query for a pagination link.
-templ helper? — no, plain Go below.
+// paginationInfo renders the "Showing X–Y of Z" label when a page was cut.
+templ paginationInfo(state paginationState) {
+	if state.PageLen != 0 {
+		<span class="pagination-info" role="status">{ paginationInfoText(state) }</span>
+	}
+}
+
+// pageSizeSelector renders a dropdown for choosing items per page. Changing
+// the selection navigates to the same path with the new limit, preserving
+// active filters but resetting cursor position (dashboardJS navigates on
+// change).
+templ pageSizeSelector(basePath, path string, state paginationState, extraParams string) {
+	@forms.Select(forms.SelectProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Name:      "limit",
+		Label:     "Per page:",
+		Options:   pageSizeOptionsFor(basePath, path, state, extraParams),
+	})
+}
+
+// formatLinksNav renders CSV and JSON export links for the given page path.
+templ formatLinksNav(basePath, path string) {
+	<div class="filter-bar">
+			<span class="muted">Export:</span>
+			@buttonLink("CSV", basePath+path+"?format=csv", "", display.ButtonSecondary, false)
+			@buttonLink("JSON", basePath+path+"?format=json", "", display.ButtonSecondary, false)
+	</div>
+}

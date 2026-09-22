@@ -44,7 +44,7 @@ old_commit() { # <dir> <msg> — commit dated far in the past
 }
 
 tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' EXIT
+if [ "${KEEP_TMP:-0}" != "1" ]; then trap 'rm -rf "$tmp"' EXIT; else echo "keep: $tmp"; fi
 
 echo "== test-preflight-tree-check.sh"
 
@@ -70,9 +70,9 @@ r="$tmp/f3"
 new_repo "$r" && old_commit "$r" "initial" && git -C "$r" commit -q --allow-empty -m "feat: foreign in-flight work"
 ( cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER" ) >"$tmp/f3.out" 2>&1
 rc=$?
-ok=1
-[ $rc -eq 1 ] || ok=0
-grep -q "non-daemon" "$tmp/f3.out" || ok=0
+ok=0
+[ $rc -eq 1 ] || ok=1
+grep -q "non-daemon" "$tmp/f3.out" || ok=1
 report $ok "F3 fresh foreign commit exits 1 (got $rc)"
 
 # F4 fresh daemon commit only
@@ -90,9 +90,9 @@ for i in 1 2 3 4 5; do
 done
 ( cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 PREFLIGHT_MAX_RECENT_COMMITS=3 bash "$CHECKER" ) >"$tmp/f5.out" 2>&1
 rc=$?
-ok=1
-[ $rc -eq 1 ] || ok=0
-grep -q "commits within" "$tmp/f5.out" || ok=0
+ok=0
+[ $rc -eq 1 ] || ok=1
+grep -q "commits within" "$tmp/f5.out" || ok=1
 report $ok "F5 daemon burst exceeds velocity exits 1 (got $rc)"
 
 # F6 outside a repo

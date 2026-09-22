@@ -40,6 +40,12 @@ started=$(date +%s)
 quiet_since=""
 head_sha=""
 
+# Uncommitted = staged + unstaged + untracked (ignored files excluded).
+tree_dirty() {
+  ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null \
+    || [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]
+}
+
 while :; do
   now=$(date +%s)
   elapsed=$((now - started))
@@ -48,10 +54,10 @@ while :; do
     exit 1
   fi
 
-  if git diff --quiet 2>/dev/null && git diff --cached --quiet 2>/dev/null; then
-    dirty=0
-  else
+  if tree_dirty; then
     dirty=1
+  else
+    dirty=0
   fi
 
   new_sha=$(git rev-parse HEAD 2>/dev/null || echo "")

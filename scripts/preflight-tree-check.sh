@@ -34,10 +34,16 @@ cd "$REPO_ROOT" || exit 2
 RECENCY="${PREFLIGHT_RECENCY_SECONDS:-300}"
 MAX_RECENT="${PREFLIGHT_MAX_RECENT_COMMITS:-3}"
 
+# Uncommitted = staged + unstaged + untracked (ignored files excluded).
+tree_dirty() {
+  ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null \
+    || [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]
+}
+
 abort=0
 
 # D: dirty tree?
-if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
+if tree_dirty; then
   echo "preflight: ABORT — dirty tree; uncommitted changes present:" >&2
   git status --short | head -10 | sed 's/^/    /' >&2
   abort=1
