@@ -98,7 +98,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.2 // indirect
 	github.com/larsartmann/go-etag v0.4.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-health-dashboard v0.10.0 // indirect
+	github.com/larsartmann/go-health-dashboard v0.10.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output v0.38.2 // indirect
