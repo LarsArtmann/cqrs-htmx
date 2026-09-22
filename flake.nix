@@ -860,7 +860,10 @@
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-modules";
-                  runtimeInputs = [ goPkg pkgs.python3 ];
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.python3
+                  ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     if [ "''${1:-}" = "--report" ]; then
