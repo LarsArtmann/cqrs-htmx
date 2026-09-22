@@ -186,7 +186,8 @@ func TestA11y_FilterInputsKeepLabelPairing(t *testing.T) {
 		`hx-push-url="true"`,
 	} {
 		if !strings.Contains(body, want) {
-			t.Errorf("filter form wiring %q missing", want)
+			t.Errorf("filter form wiring %q missing", want	"github.com/larsartmann/templ-components/icons"
+)
 		}
 	}
 }

@@ -548,7 +548,7 @@ func TestRenderPagination_NoPagination(t *testing.T) {
 func TestRenderPagination_HasNextOnly(t *testing.T) {
 	html := goldenRender(t, paginationNav("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "abc", PageSize: 10,
-	}, "")
+	}, ""))
 
 	if !strings.Contains(html, "Next") {
 		t.Errorf("expected Next link")
@@ -566,7 +566,7 @@ func TestRenderPagination_HasNextOnly(t *testing.T) {
 func TestRenderPagination_HasPrevOnly(t *testing.T) {
 	html := goldenRender(t, paginationNav("/d", "/events", paginationState{
 		HasPrev: true,
-	}, "")
+	}, ""))
 
 	if !strings.Contains(html, "Previous") {
 		t.Errorf("expected Previous link")
@@ -580,7 +580,7 @@ func TestRenderPagination_HasPrevOnly(t *testing.T) {
 func TestRenderPagination_Both(t *testing.T) {
 	html := goldenRender(t, paginationNav("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "xyz", PageSize: 20, HasPrev: true,
-	}, "")
+	}, ""))
 
 	if !strings.Contains(html, "Previous") {
 		t.Errorf("expected Previous link")
@@ -594,7 +594,7 @@ func TestRenderPagination_Both(t *testing.T) {
 func TestRenderPagination_WithExtraParams(t *testing.T) {
 	html := goldenRender(t, paginationNav("/d", "/events", paginationState{
 		HasNext: true, NextCursor: "cur", PageSize: 10,
-	}, "type=user.created")
+	}, "type=user.created"))
 
 	if !strings.Contains(html, "type=user.created") {
 		t.Errorf("expected extra params preserved in pagination link")

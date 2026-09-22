@@ -67,7 +67,7 @@ func TestRenderPagination_PreviousUsesCursorHistory(t *testing.T) {
 		HasPrev:     true,
 		After:       "cursor2",
 		PrevHistory: "cursor1",
-	}, "")
+	}, ""))
 
 	// Previous should pop cursor1 from history and use it as the new after.
 	if !strings.Contains(html, "after=cursor1") {
@@ -95,7 +95,7 @@ func TestRenderPagination_NextPushesCursor(t *testing.T) {
 		HasPrev:     true,
 		After:       "cursor1",
 		PrevHistory: "",
-	}, "")
+	}, ""))
 
 	// Next should use cursor2 as after and push cursor1 into prev.
 	if !strings.Contains(html, "after=cursor2") {
@@ -117,7 +117,7 @@ func TestRenderPagination_PreviousToFirstPage(t *testing.T) {
 		HasPrev:     true,
 		After:       "cursor1",
 		PrevHistory: "",
-	}, "")
+	}, ""))
 
 	// Previous should go to page 1: after should be absent (empty).
 	prevSection := html
@@ -144,7 +144,7 @@ func TestRenderPagination_FiltersPreserved(t *testing.T) {
 		HasPrev:     true,
 		After:       "c1",
 		PrevHistory: "",
-	}, "type=user.created")
+	}, "type=user.created"))
 
 	if !strings.Contains(html, "type=user.created") {
 		t.Errorf("filter params should be preserved, got: %s", html)
