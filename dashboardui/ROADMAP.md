@@ -4,9 +4,16 @@
 
 ## Templ + Tailwind v4 Migration
 
-**Status:** Future — not started
+**Status:** DONE (2026-09-22) — all rendering converted to templ
+(`a-h/templ`); the strings.Builder layer is gone. The Tailwind half of this
+roadmap had already landed 2026-09-17 with the templ-components adoption
+(compiled `assets/dashboard-tw.css`). Markup was transcribed faithfully;
+`templ.EscapeString` is `html.EscapeString`, so escaped output is
+byte-identical. Cosmetic deltas (lowercase `<!doctype html>`, void elements
+without the self-closing slash, inter-element whitespace) are HTML5-equivalent
+and covered by the updated test assertions.
 
-> **Update 2026-09-17 (verified):** adoption does NOT require converting the ~5,500
+> **Update 2026-09-17 (verified, historical):** adoption does NOT require converting the ~5,500
 > lines to templ first. Components render into the existing `strings.Builder` via
 > `Component.Render(ctx, &b)`. The real gate is a Tailwind v4 build (components emit
 > Tailwind utilities) — the adminui BuildFlow `tailwind-build` pattern. 12-step

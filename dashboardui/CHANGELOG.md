@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Full templ rendering migration (2026-09-22):** every page now renders
+  through `a-h/templ` — `layout.templ`, `components.templ`, and one
+  page template per panel (overview, events, aggregates, projections,
+  commands/queries audit, DLQ, snapshots, time-travel). The former
+  `strings.Builder` + `fmt.Fprintf` HTML layer (49 render functions, 155
+  manual `esc()` calls) is deleted; templ auto-escapes every interpolation
+  (`templ.EscapeString` is `html.EscapeString`, so escaped content is
+  byte-identical) and `href`-class attributes gain URL scheme sanitization
+  (`javascript:`-style values render as inert `about:blank#blocked` links
+  instead of raw anchors). Markup was transcribed faithfully — same elements,
+  classes, and attributes — with three HTML5-equivalent cosmetic deltas:
+  lowercase `<!doctype html>`, void elements without the self-closing slash,
+  and inter-element whitespace. Handlers render components straight to the
+  `http.ResponseWriter` (`renderPage`/`writeHTML` now take a
+  `templ.Component`); generated `_templ.go` files are committed (consumers
+  run no codegen) and `nix run .#gen` / `.#check-codegen` /
+  `.#build-dashboardui-css` now cover dashboardui.
+
 ### Added
 
 - **DLQ table gained a count notice (`display.ListNote` `ListNoteCount`, templ-components v1.19.1):** the dead-letter table for a projection now ends with "Showing N items." (pluralized, `aria-label="Dead letter count"`) — the DLQ page's key question is HOW MANY letters exist, and the count is the blast radius for the Replay All / Purge All confirmations. The hand-rolled `Showing X–Y of Z` pagination info stays (ListNote speaks N-of-M/N-items, not X–Y ranges); the old wholesale `display.ListNote` exclusion is lifted. Markup pinned by `list_note_count.golden` + DLQ handler assertions.

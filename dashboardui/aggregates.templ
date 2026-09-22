@@ -11,7 +11,6 @@ import (
 )
 
 // ===== Aggregate Browser =====
-
 templ aggregatesPage(p pageData, listings []listing.StreamListing, page paginationState) {
 	@layout(p, aggregatesContent(p, listings, page))
 }
@@ -60,7 +59,8 @@ templ aggregateDetailContent(
 	timeline paginationState,
 ) {
 	<div class="page-header">
-		<h2>{ string(ref.Type) }: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "")</h2>
+		<h2>{ string(ref.Type) }: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "")
+</h2>
 		<div class="page-subtitle">{ strconv.Itoa(len(events)) } events · current version { latestVersion(events) }</div>
 	</div>
 	if p.Caps.EventSource && len(events) > 0 {
@@ -98,7 +98,8 @@ templ aggregateTimelineRows(basePath string, pagedEvents []event.Event) {
 			<td class="cell-emph">{ evt.Version().String() }</td>
 			<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
 			<td class="mono">{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
-			<td><code class="mono">{ truncate(evt.ID().String(), eventIDWidth) }</code> @copyButton(evt.ID().String(), "")</td>
+			<td><code class="mono">{ truncate(evt.ID().String(), eventIDWidth) }</code> @copyButton(evt.ID().String(), "")
+</td>
 		</tr>
 	}
 }

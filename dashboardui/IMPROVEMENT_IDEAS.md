@@ -8,7 +8,7 @@
 
 ### Architecture
 
-- **Templ migration evaluation** — The rendering layer is raw `strings.Builder` HTML. A migration to templ would improve type safety and maintainability. Write a decision document (pros/cons/risk) before starting. See Pareto plan T23.
+- ~~**Templ migration evaluation**~~ **DONE 2026-09-22** — the decision document (`docs/planning/templ-migration-evaluation.md`) deferred it with a ~5,000-line revisit threshold; the threshold was hit and the full templ migration executed (9 `.templ` files, zero strings.Builder HTML left, all tests/gates green).
 - **Separate data loading from rendering** — Handlers mix data loading (journal/store calls) with HTML rendering. Splitting into `loadX(ctx) (data, error)` + `renderX(data) string` would improve testability.
 
 ### UX Polish

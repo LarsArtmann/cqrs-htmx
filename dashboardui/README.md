@@ -308,11 +308,16 @@ GOEXPERIMENT=jsonv2 go test ./dashboardui/...
 
 ## Styling and templ-components Adoption
 
-The dashboard renders through the **hybrid path**: Go-string-builder HTML into
-which [templ-components](https://github.com/larsartmann/templ-components)
-components render via `Component.Render(ctx, &b)` — no templ conversion, no
-build step for consumers. Styling ships as a compiled Tailwind bundle
-(`assets/dashboard-tw.css`, served at `/-/dashboard-tw.css` with ETag/304).
+The dashboard renders through **templ** (`a-h/templ`) — nine `.templ` files
+(`layout`, `components`, `overview`, `events`, `aggregates`, `projections`,
+`audit`, `dlq`, `timetravel`, `snapshots`) with the generated `_templ.go`
+committed, so consumers run no codegen. Library components from
+[templ-components](https://github.com/larsartmann/templ-components) render
+directly inside the page templates (`@display.Table(...)`, `@forms.Input`,
+...); templ auto-escapes every interpolation (`templ.EscapeString` is
+`html.EscapeString`, matching the former manual `esc()` byte-for-byte).
+Styling ships as a compiled Tailwind bundle (`assets/dashboard-tw.css`,
+served at `/-/dashboard-tw.css` with ETag/304).
 
 Adopted capabilities: `display.StatusBadge`/`Badge` (all status/encoding
 badges), `display.StatCard` with `ValueID` DOM hooks, `display.Table` with
@@ -331,17 +336,14 @@ append-only journals — numbered pages are meaningless), `navigation.SidebarNav
 as adminui), the hand-rolled `Showing X–Y of Z` pagination info (ListNote
 speaks N-of-M truncation or N-items counts, not X–Y ranges —
 templ-components v1.19.1 lifted the count-only half of the old
-`display.ListNote` exclusion), `display.Grid` and `htmx.PolledRegion` (templ
-`{children...}` renders empty in the hybrid standalone path — the
-projection-health polling therefore stays hand-rolled; see
-docs/guides/hybrid-templ-components-adoption.md. UPDATE 2026-09-22:
-templ-components v1.19.1 documents the escape hatch —
-`templ.WithChildren(ctx, child)` populates children slots in
-strings.Builder rendering (recipe + tests upstream) — so criterion (1) of
-the SidebarNav revisit list is satisfiable in principle; the spike to
-validate it on the polling region is tracked in TODO_LIST). Adopted in
-the N16/N17 pass: `forms.Input` (event filter bar), library Button
-link/submit, EmptyState, and DefinitionList render benchmarks.
+`display.ListNote` exclusion), `display.Grid` and `htmx.PolledRegion` — the old "children render empty in
+the hybrid path" blocker died with the full-templ migration, and the
+projection-health polling region is now a candidate for `htmx.PolledRegion`
+adoption; the 2026-09-22 migration deliberately kept the hand-rolled region
+(`hx-get`/`hx-trigger` attributes in `overview.templ`) to stay
+markup-faithful, so this is now a small follow-up, not an exclusion.
+Adopted in the N16/N17 pass: `forms.Input` (event filter bar), library
+Button link/submit, EmptyState, and DefinitionList render benchmarks.
 
 ### Rebuilding the CSS bundle
 
@@ -367,10 +369,13 @@ Review the diff before committing - goldens are the rendered-HTML contract.
 
 ### Benchmarks
 
-`render_bench_test.go` compares the hand-rolled render path against the hybrid
-library path; interpretation and recorded artifacts live in
+`render_bench_test.go` compares the pre-adoption hand-rolled renderers against
+the production templ component path; interpretation and recorded artifacts
+live in
 [`docs/benchmarks/dashboardui-render-2026-09-19.md`](../docs/benchmarks/dashboardui-render-2026-09-19.md)
-(single-digit microseconds per card - noise behind network I/O).
+(single-digit microseconds per card - noise behind network I/O; the 2026-09-19
+numbers measured the strings.Builder hybrid bridge and are not directly
+comparable to the templ arms).
 
 ## Architecture
 
@@ -379,13 +384,18 @@ The dashboard follows the same pattern as `adminui/`:
 - `config.go` — Config struct, Capabilities detection, nav building
 - `dashboard.go` — Dashboard struct, New(), MustNew(), page shell
 - `handler.go` — Route registration and mounting
-- `handlers.go` — All panel handlers (events, aggregates, projections, DLQ, etc.)
-- `handler_overview.go` — Overview page + shared rendering helpers
-- `render.go` — Response writing, partial detection, toast triggers
-- `layout.go` — HTML shell: sidebar, header, embedded CSS/JS
+- `handlers*.go` — Panel handlers (events, aggregates, projections, DLQ,
+  snapshots, time-travel, commands/queries) — data loading + `renderPage`
+- `handler_overview.go` — Overview handler + stat-card helpers
+- `render.go` — Response writing, error pages, partial detection, toast triggers
+- `*.templ` + `*_templ.go` — Page/layout/component templates and their
+  generated Go (committed; regenerate from the module dir via
+  `nix run .#gen`)
+- `detail_items.go` — Definition-item and small data builders shared by the
+  templates
+- `layout.go` — Embedded CSS/JS assets, icon-name mapping
 - `payload.go` — PayloadRenderer interface and default implementation
 - `sse.go` — SSE event bridge (event bus to broadcaster)
 
-Rendering uses the hybrid string-builder + templ-components path described
-above; see `docs/guides/hybrid-templ-components-adoption.md` for the pattern,
-its pitfalls, and the context-threading contract.
+Rendering is full templ (see the Styling section above); every handler threads
+the request context implicitly through `renderPage` → `Component.Render`.
