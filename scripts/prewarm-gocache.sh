@@ -42,3 +42,13 @@ for mod in "${modules[@]}"; do
     echo "prewarm-gocache: build failed in $mod (buildflow will report the real error)" >&2
   }
 done
+
+# VCS-cache health (the GOPRIVATE bare-repo corruption class masquerades as
+# build failures — catch it here so the build error above is not misread).
+# Advisory in this context: check-vcs-cache.sh is the gated, blocking home.
+VCS_CHECK="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/check-vcs-cache.sh"
+if [ -x "$VCS_CHECK" ]; then
+  if ! "$VCS_CHECK" >&2; then
+    echo "prewarm-gocache: VCS-cache corruption detected — run the repair command above before trusting any build failure" >&2
+  fi
+fi
