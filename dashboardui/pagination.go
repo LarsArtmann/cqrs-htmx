@@ -84,11 +84,11 @@ func renderPaginationInfo(state paginationState) string {
 	}
 
 	if state.TotalCount != "" {
-		return fmt.Sprintf(`<span class="pagination-info">Showing %d–%d of %s</span>`,
+		return fmt.Sprintf(`<span class="pagination-info" role="status">Showing %d–%d of %s</span>`,
 			state.PageStart, end, esc(state.TotalCount))
 	}
 
-	return fmt.Sprintf(`<span class="pagination-info">Showing %d–%d</span>`,
+	return fmt.Sprintf(`<span class="pagination-info" role="status">Showing %d–%d</span>`,
 		state.PageStart, end)
 }
 

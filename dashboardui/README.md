@@ -334,7 +334,12 @@ templ-components v1.19.1 lifted the count-only half of the old
 `display.ListNote` exclusion), `display.Grid` and `htmx.PolledRegion` (templ
 `{children...}` renders empty in the hybrid standalone path — the
 projection-health polling therefore stays hand-rolled; see
-docs/guides/hybrid-templ-components-adoption.md). Adopted in
+docs/guides/hybrid-templ-components-adoption.md. UPDATE 2026-09-22:
+templ-components v1.19.1 documents the escape hatch —
+`templ.WithChildren(ctx, child)` populates children slots in
+strings.Builder rendering (recipe + tests upstream) — so criterion (1) of
+the SidebarNav revisit list is satisfiable in principle; the spike to
+validate it on the polling region is tracked in TODO_LIST). Adopted in
 the N16/N17 pass: `forms.Input` (event filter bar), library Button
 link/submit, EmptyState, and DefinitionList render benchmarks.
 
