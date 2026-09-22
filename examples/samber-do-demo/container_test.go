@@ -73,7 +73,11 @@ func TestSmoke_AuditViewerServes(t *testing.T) {
 	rec := httptest.NewRecorder()
 	container.AuditViewer.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/audit/", nil))
 	if rec.Code == http.StatusTemporaryRedirect || rec.Code == http.StatusMovedPermanently {
-		t.Fatalf("audit viewer GET /audit/: unexpected redirect %d (Location: %s)", rec.Code, rec.Header().Get("Location"))
+		t.Fatalf(
+			"audit viewer GET /audit/: unexpected redirect %d (Location: %s)",
+			rec.Code,
+			rec.Header().Get("Location"),
+		)
 	}
 	if rec.Code != http.StatusOK {
 		t.Fatalf("audit viewer GET /audit/: status %d, want 200", rec.Code)

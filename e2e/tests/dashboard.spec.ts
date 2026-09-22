@@ -10,9 +10,7 @@ import { test, expect } from "@playwright/test";
  */
 
 test.describe("dashboard badges + stat cards (N6)", () => {
-  test("overview stat cards expose stable ValueIDs with real values", async ({
-    page,
-  }) => {
+  test("overview stat cards expose stable ValueIDs with real values", async ({ page }) => {
     await page.goto("/dashboard/");
     await expect(page.locator("#stat-total-events")).toHaveText("4");
 
@@ -21,20 +19,18 @@ test.describe("dashboard badges + stat cards (N6)", () => {
     await expect(health).toContainText(/healthy/i);
   });
 
-  test("events table renders mapped type badges and seeded rows", async ({
-    page,
-  }) => {
+  test("events table renders mapped type badges and seeded rows", async ({ page }) => {
     await page.goto("/dashboard/events");
     await expect(page.locator("#events-tbody tr")).toHaveCount(4);
-    await expect(
-      page.locator("#events-tbody").getByText("User.registered").first(),
-    ).toBeVisible();
+    await expect(page.locator("#events-tbody").getByText("User.registered").first()).toBeVisible();
     await expect(
       page.locator("#events-tbody").getByText("Tenant.registered").first(),
     ).toBeVisible();
   });
 
-  test("projections page shows the drained worker as healthy-classed stopped badge", async ({ page }) => {
+  test("projections page shows the drained worker as healthy-classed stopped badge", async ({
+    page,
+  }) => {
     await page.goto("/dashboard/projections");
     await expect(page.getByText("demo-projection").first()).toBeVisible();
 
@@ -48,9 +44,7 @@ test.describe("dashboard badges + stat cards (N6)", () => {
 });
 
 test.describe("dashboard toasts + error pages (N7)", () => {
-  test("dashboardui:toast events surface in the toast container", async ({
-    page,
-  }) => {
+  test("dashboardui:toast events surface in the toast container", async ({ page }) => {
     await page.goto("/dashboard/");
     await page.evaluate(() => {
       document.dispatchEvent(
@@ -69,9 +63,7 @@ test.describe("dashboard toasts + error pages (N7)", () => {
     await expect(page.locator("h1, h2").first()).toBeVisible();
   });
 
-  test("HTMX requests get the bare error card, not the shell", async ({
-    page,
-  }) => {
+  test("HTMX requests get the bare error card, not the shell", async ({ page }) => {
     const resp = await page.request.get("/dashboard/definitely-not-a-page", {
       headers: { "HX-Request": "true" },
     });
@@ -83,9 +75,7 @@ test.describe("dashboard toasts + error pages (N7)", () => {
 });
 
 test.describe("dashboard sortable tables (N8)", () => {
-  test("clicking the Time header sorts and flips aria-sort", async ({
-    page,
-  }) => {
+  test("clicking the Time header sorts and flips aria-sort", async ({ page }) => {
     await page.goto("/dashboard/events");
     const timeHeader = page.locator("th", { hasText: "Time" });
 

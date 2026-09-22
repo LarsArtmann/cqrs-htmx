@@ -90,7 +90,11 @@
     if (dlg) dlg.close();
     issue();
   });
-  document.addEventListener("close", function () {
-    confirmIssue = null; // cancelled (button, backdrop, or Escape)
-  }, true);
+  document.addEventListener(
+    "close",
+    function () {
+      confirmIssue = null; // cancelled (button, backdrop, or Escape)
+    },
+    true,
+  );
 })();

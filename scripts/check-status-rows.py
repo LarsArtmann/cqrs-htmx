@@ -143,12 +143,9 @@ def main() -> int:
         partial_rows += file_partials
         mixed += file_mixed
 
-    print("")
+    print()
     if partial_rows:
-        print(
-            f"✗ row gate: {partial_rows} PARTIAL row(s) across "
-            f"{len(files)} file(s)"
-        )
+        print(f"✗ row gate: {partial_rows} PARTIAL row(s) across {len(files)} file(s)")
 
         return 1
 

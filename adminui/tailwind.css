@@ -174,7 +174,9 @@ body {
   border-radius: 0.375rem;
   color: var(--muted);
   cursor: pointer;
-  transition: background-color 0.15s ease-out, color 0.15s ease-out;
+  transition:
+    background-color 0.15s ease-out,
+    color 0.15s ease-out;
 }
 /* display lives in a max-lg media query (not on the base rule): unlayered
    CSS beats Tailwind's layered utilities, so a base display:inline-flex

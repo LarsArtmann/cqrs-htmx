@@ -53,7 +53,7 @@ for dir in "$VCS_DIR"/*/; do
   if [ -z "$url" ]; then
     echo "✗ VCS cache entry $dir has NO remote.origin.url" >&2
     echo "  Every GOPRIVATE resolution of this repo will fail with" >&2
-    echo "  load-error-shaped failures (invalid package name: \"\")." >&2
+    echo '  load-error-shaped failures (invalid package name: "").' >&2
     echo "  Repair: git -C $dir remote add origin https://github.com/larsartmann/<repo>.git" >&2
     broken=$((broken + 1))
   fi

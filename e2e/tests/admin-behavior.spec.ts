@@ -72,7 +72,10 @@ test("search spinner wired via hx-indicator", async ({ page }) => {
 test("confirm modal: open, fill, Esc/Cancel/backdrop close, Confirm deletes", async ({ page }) => {
   await page.goto(`${ADMIN}/admin/users?q=team60`, { waitUntil: "load" });
   await page.waitForTimeout(400);
-  const href = await page.locator('#users-table a[href*="/admin/users/"]').first().getAttribute("href");
+  const href = await page
+    .locator('#users-table a[href*="/admin/users/"]')
+    .first()
+    .getAttribute("href");
   expect(href).toBeTruthy();
   await page.goto(`${ADMIN}${href}`, { waitUntil: "load" });
   await page.waitForTimeout(400);
@@ -165,7 +168,9 @@ test("favicon answers 204 without a redirect (no session clobber)", async ({ pag
   expect(fav.redirected).toBe(false);
 });
 
-test("theme toggle: flips .dark on <html>, syncs aria, persists across reload", async ({ page }) => {
+test("theme toggle: flips .dark on <html>, syncs aria, persists across reload", async ({
+  page,
+}) => {
   await page.goto(`${ADMIN}/admin/`, { waitUntil: "load" });
   await page.waitForTimeout(400);
   const toggle = page.locator("[data-theme-toggle]");

@@ -53,10 +53,7 @@ for (const pageName of PAGES) {
       });
     }
 
-    expect(
-      unexpected,
-      `axe critical/serious violations on ${pageName}`,
-    ).toEqual([]);
+    expect(unexpected, `axe critical/serious violations on ${pageName}`).toEqual([]);
     void ACCEPTED; // keep the set referenced for future entries
   });
 }
