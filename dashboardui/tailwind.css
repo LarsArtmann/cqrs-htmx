@@ -50,6 +50,21 @@
   --color-amber-600: var(--warn);
 }
 
+/* ---------- Dark-mode literal re-pin for gray-800/900 ---------- */
+/* The @theme mapping points gray-800/900 at --text, which flips light in
+   dark mode — correct for text, but adopted library components also use
+   gray-800 as a dark SURFACE via dark: variants (BadgeNeutral's
+   dark:bg-gray-800 painted a near-white chip with muted text). All library
+   text-gray-800/900 occurrences carry a dark: override, so pinning these
+   two tokens back to the literal dark palette in dark mode loses nothing
+   and restores the surfaces (adminui pattern, media-query form). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-gray-800: #1f2937;
+    --color-gray-900: #111827;
+  }
+}
+
 /* ---------- templ-components CSS bridge ---------- */
 /* Library components emit bg-white with dark: variants in some places and
    bare bg-white in others; resolve it to the dashboard's surface token so

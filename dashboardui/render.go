@@ -106,7 +106,7 @@ func (d *Dashboard) renderError(
 	w.Header().Set("Content-Type", contentTypeHTML)
 	w.WriteHeader(statusCode)
 
-	if cqrshtmx.IsHTMXRequest(r) {
+	if r != nil && cqrshtmx.IsHTMXRequest(r) {
 		_, _ = w.Write([]byte(b.String()))
 
 		return
