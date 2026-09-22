@@ -1,0 +1,104 @@
+package dashboardui
+
+import (
+	"strconv"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
+)
+
+// ===== Aggregate Browser =====
+
+templ aggregatesPage(p pageData, listings []listing.StreamListing, page paginationState) {
+	@layout(p, aggregatesContent(p, listings, page))
+}
+
+templ aggregatesContent(p pageData, listings []listing.StreamListing, page paginationState) {
+	if len(listings) == 0 {
+		@emptyStatePanel(icons.Cube, "No aggregates found", "")
+	} else {
+		<h2>Aggregates</h2>
+		@rawDataTable(
+			plainHeaders("ID", "Type", "Version", "Events", "Last Event"),
+			"",
+			aggregateRows(listings),
+		)
+		@paginationNav(p.BasePath, "/aggregates", page, "")
+	}
+}
+
+templ aggregateRows(listings []listing.StreamListing) {
+	for _, l := range listings {
+		<tr>
+			<td class="mono">{ truncate(l.ID.String(), listIDWidth) }</td>
+			<td>{ string(l.Type) }</td>
+			<td>{ l.Version.String() }</td>
+			<td>{ strconv.Itoa(l.EventCount) }</td>
+			<td class="mono">{ l.LastEventAt.Format("2006-01-02 15:04:05") }</td>
+		</tr>
+	}
+}
+
+templ aggregateDetailPage(
+	p pageData,
+	ref id.StreamRef,
+	events []event.Event,
+	pagedEvents []event.Event,
+	timeline paginationState,
+) {
+	@layout(p, aggregateDetailContent(p, ref, events, pagedEvents, timeline))
+}
+
+templ aggregateDetailContent(
+	p pageData,
+	ref id.StreamRef,
+	events []event.Event,
+	pagedEvents []event.Event,
+	timeline paginationState,
+) {
+	<div class="page-header">
+		<h2>{ string(ref.Type) }: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "")</h2>
+		<div class="page-subtitle">{ strconv.Itoa(len(events)) } events · current version { latestVersion(events) }</div>
+	</div>
+	if p.Caps.EventSource && len(events) > 0 {
+		<div class="section-gap">
+			@buttonLink(
+				"Inspect time-travel for this aggregate",
+				p.BasePath+"/time-travel/"+string(ref.Type)+"/"+ref.ID.String(),
+				"",
+				display.ButtonOutlineInfo,
+				false,
+			)
+		</div>
+	}
+	if len(events) == 0 {
+		@emptyStatePanel(icons.Cube, "No events", "This aggregate has no recorded events.")
+	} else {
+		<h3>Event Timeline</h3>
+		@rawDataTable(
+			plainHeaders("Version", "Type", "Occurred At", "Event ID"),
+			"",
+			aggregateTimelineRows(p.BasePath, pagedEvents),
+		)
+		@paginationNav(
+			p.BasePath,
+			"/aggregates/"+string(ref.Type)+"/"+ref.ID.String(),
+			timeline,
+			"",
+		)
+	}
+}
+
+templ aggregateTimelineRows(basePath string, pagedEvents []event.Event) {
+	for _, evt := range pagedEvents {
+		<tr>
+			<td class="cell-emph">{ evt.Version().String() }</td>
+			<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
+			<td class="mono">{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
+			<td><code class="mono">{ truncate(evt.ID().String(), eventIDWidth) }</code> @copyButton(evt.ID().String(), "")</td>
+		</tr>
+	}
+}

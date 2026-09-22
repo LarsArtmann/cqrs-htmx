@@ -1,0 +1,134 @@
+package dashboardui
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
+)
+
+// ===== Command/Query Audit =====
+
+templ commandsPage(p pageData, cmds []*command.PersistedCommand, page paginationState) {
+	@layout(p, commandsContent(p, cmds, page))
+}
+
+templ commandsContent(p pageData, cmds []*command.PersistedCommand, page paginationState) {
+	if len(cmds) == 0 {
+		@emptyStatePanel(
+			icons.Clipboard,
+			"No commands recorded",
+			"Commands will appear here as they are dispatched.",
+		)
+	} else {
+		<h2>Command Audit</h2>
+		@rawDataTable(
+			plainHeaders("Received At", "Type", "Stream Type", "Stream ID", "Command ID", ""),
+			"",
+			commandRows(p.BasePath, cmds),
+		)
+		@paginationNav(p.BasePath, "/commands", page, "")
+		@formatLinksNav(p.BasePath, "/commands")
+	}
+}
+
+templ commandRows(basePath string, cmds []*command.PersistedCommand) {
+	for _, cmd := range cmds {
+		<tr>
+			<td>{ cmd.ReceivedAt().Format("2006-01-02 15:04:05") }</td>
+			<td><code>{ string(cmd.Type()) }</code></td>
+			<td>{ string(cmd.StreamType()) }</td>
+			<td><span class="mono">{ truncate(cmd.StreamID().String(), listIDWidth) }</span> @copyButton(cmd.StreamID().String(), "")</td>
+			<td><span class="mono">{ truncate(cmd.ID().String(), eventIDWidth) }</span> @copyButton(cmd.ID().String(), "")</td>
+			<td>@buttonLink("View", basePath+"/commands/"+cmd.ID().String(), "", display.ButtonSecondary, false)</td>
+		</tr>
+	}
+}
+
+templ queriesPage(p pageData, queries []*query.PersistedQuery, page paginationState) {
+	@layout(p, queriesContent(p, queries, page))
+}
+
+templ queriesContent(p pageData, queries []*query.PersistedQuery, page paginationState) {
+	if len(queries) == 0 {
+		@emptyStatePanel(
+			icons.Search,
+			"No queries recorded",
+			"Queries will appear here as they are executed.",
+		)
+	} else {
+		<h2>Query Audit</h2>
+		@rawDataTable(
+			plainHeaders("Received At", "Type", "Request ID", ""),
+			"",
+			queryRows(p.BasePath, queries),
+		)
+		@paginationNav(p.BasePath, "/queries", page, "")
+		@formatLinksNav(p.BasePath, "/queries")
+	}
+}
+
+templ queryRows(basePath string, queries []*query.PersistedQuery) {
+	for _, q := range queries {
+		<tr>
+			<td>{ q.ReceivedAt().Format("2006-01-02 15:04:05") }</td>
+			<td><code>{ string(q.Type()) }</code></td>
+			<td><span class="mono">{ truncate(q.ID().String(), eventIDWidth) }</span> @copyButton(q.ID().String(), "")</td>
+			<td>@buttonLink("View", basePath+"/queries/"+q.ID().String(), "", display.ButtonSecondary, false)</td>
+		</tr>
+	}
+}
+
+// ===== Command Detail =====
+
+templ commandDetailPage(p pageData, cmd *command.PersistedCommand) {
+	@layout(p, commandDetailContent(p, cmd))
+}
+
+templ commandDetailContent(p pageData, cmd *command.PersistedCommand) {
+	<div class="page-header">
+		<h2><code>{ string(cmd.Type()) }</code></h2>
+		<div class="page-subtitle mono">{ cmd.ID().String() } @copyButton(cmd.ID().String(), "")</div>
+	</div>
+	<div class="two-col-grid">
+		<div>
+			<h3>Metadata</h3>
+			@definitionList(commandMetaItems(cmd))
+		</div>
+		<div>
+			<h3>Payload</h3>
+			if len(cmd.Payload()) > 0 {
+				<pre class="code-block"><code>{ prettyJSON(cmd.Payload()) }</code></pre>
+			} else {
+				<p class="muted">No payload</p>
+			}
+		</div>
+	</div>
+}
+
+// ===== Query Detail =====
+
+templ queryDetailPage(p pageData, q *query.PersistedQuery) {
+	@layout(p, queryDetailContent(p, q))
+}
+
+templ queryDetailContent(p pageData, q *query.PersistedQuery) {
+	<div class="page-header">
+		<h2><code>{ string(q.Type()) }</code></h2>
+		<div class="page-subtitle mono">{ q.ID().String() } @copyButton(q.ID().String(), "")</div>
+	</div>
+	<div class="two-col-grid">
+		<div>
+			<h3>Metadata</h3>
+			@definitionList(queryMetaItems(q))
+		</div>
+		<div>
+			<h3>Payload</h3>
+			if len(q.Payload()) > 0 {
+				<pre class="code-block"><code>{ prettyJSON(q.Payload()) }</code></pre>
+			} else {
+				<p class="muted">No payload</p>
+			}
+		</div>
+	</div>
+}

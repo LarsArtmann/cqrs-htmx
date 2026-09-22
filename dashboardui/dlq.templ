@@ -1,0 +1,156 @@
+package dashboardui
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
+)
+
+// ===== Dead-Letter Queue =====
+
+templ dlqIndexPage(p pageData, links []dlqProjectionLink) {
+	@layout(p, dlqIndexContent(p, links))
+}
+
+templ dlqIndexContent(p pageData, links []dlqProjectionLink) {
+	if len(links) == 0 {
+		@emptyStatePanel(
+			icons.BugAnt,
+			"Dead-Letter Queue",
+			"No projections registered. Dead letters will appear here when projection errors occur.",
+		)
+	} else {
+		<div class="page-header">
+			<h2>Dead-Letter Queue</h2>
+			<p class="page-subtitle">Select a projection to view its dead letters.</p>
+		</div>
+		@rawDataTable(plainHeaders("Projection", "Dead Letters", ""), "", dlqIndexRows(p, links))
+	}
+}
+
+templ dlqIndexRows(p pageData, links []dlqProjectionLink) {
+	for _, link := range links {
+		<tr>
+			<td class="cell-emph"><a href={ p.BasePath + "/dead-letters/" + link.Name }>{ link.Name }</a></td>
+			<td>@badge(strconv.Itoa(link.Count), countBadgeType(link.Count))</td>
+			<td>@buttonLink("View", p.BasePath+"/dead-letters/"+link.Name, "", display.ButtonSecondary, false)</td>
+		</tr>
+	}
+}
+
+templ dlqPage(p pageData, proj string, entries []projectionhost.DeadLetterEntry) {
+	@layout(p, dlqContent(p, proj, entries))
+}
+
+templ dlqContent(p pageData, proj string, entries []projectionhost.DeadLetterEntry) {
+	<div class="page-header">
+		<h2>Dead Letters: { proj }</h2>
+	</div>
+	if !p.ReadOnly {
+		<div class="filter-bar">
+			if p.Caps.ProjectionHost {
+				<form
+					method="POST"
+					action={ p.BasePath + "/dead-letters/" + proj + "/replay" }
+					class="inline-form"
+					data-confirm={ fmt.Sprintf("Replay all dead letters for %s?", proj) }
+					aria-label={ fmt.Sprintf("Replay all dead letters for %s", proj) }
+				>
+					<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+					@buttonSubmit("Replay All", "Replay all dead letters", display.ButtonOutlineInfo, nil)
+				</form>
+			}
+			if p.Caps.DeadLetterStore {
+				<form
+					method="POST"
+					action={ p.BasePath + "/dead-letters/" + proj + "/purge" }
+					class="inline-form"
+					data-confirm={ fmt.Sprintf("Purge ALL dead letters for %s? This cannot be undone.", proj) }
+					aria-label={ fmt.Sprintf("Purge all dead letters for %s", proj) }
+				>
+					<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+					@buttonSubmit("Purge All", "Purge all dead letters", display.ButtonOutlineDanger, nil)
+				</form>
+			}
+		</div>
+	}
+	if len(entries) == 0 {
+		@emptyStatePanel(icons.BugAnt, "No dead letters for "+proj, "")
+	} else {
+		@rawDataTable(
+			plainHeaders("Failed At", "Event Type", "Error", "Family", "Actions"),
+			"",
+			dlqRows(p, proj, entries),
+		)
+		@listNoteCount(len(entries), "Dead letter count")
+	}
+}
+
+templ dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry) {
+	for _, e := range entries {
+		<tr>
+			<td class="mono" title={ e.FailedAt.Format("2006-01-02 15:04:05") }>{ relativeTime(e.FailedAt) }</td>
+			<td><a href={ p.BasePath + "/dead-letters/" + proj + "/" + e.EventID }><code>{ e.EventType }</code></a></td>
+			<td>{ truncate(e.Error, errorDisplayWidth) }</td>
+			<td>@badge(e.ErrorFamily, display.BadgeError)</td>
+			<td>
+				@buttonLink("View", p.BasePath+"/dead-letters/"+proj+"/"+e.EventID, "", display.ButtonSecondary, false)
+				if !p.ReadOnly && p.Caps.DeadLetterStore {
+					<form
+						method="POST"
+						action={ p.BasePath + "/dead-letters/" + proj + "/" + e.EventID + "/delete" }
+						class="inline-form"
+						data-confirm="Delete this dead letter?"
+						aria-label={ fmt.Sprintf("Delete dead letter %s", e.EventID) }
+					>
+						<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+						@buttonSubmit("Delete", "Delete dead letter "+e.EventID, display.ButtonOutlineDanger, nil)
+					</form>
+				}
+			</td>
+		</tr>
+	}
+}
+
+templ dlqEntryDetailPage(p pageData, proj string, entry projectionhost.DeadLetterEntry) {
+	@layout(p, dlqEntryDetailContent(p, proj, entry))
+}
+
+templ dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLetterEntry) {
+	<div class="page-header">
+		<h2>Dead Letter: <code>{ truncate(entry.EventID, eventIDWidth) }</code></h2>
+		<div class="page-subtitle">Projection: <a href={ p.BasePath + "/dead-letters/" + proj }>{ proj }</a></div>
+	</div>
+	<div class="two-col-grid">
+		<div>
+			<h3>Error Details</h3>
+			@definitionList(dlqEntryErrorItems(entry))
+			<h3>Error Message</h3>
+			<pre class="code-block"><code>{ entry.Error }</code></pre>
+		</div>
+		<div>
+			<h3>Event Payload</h3>
+			if entry.Event != nil {
+				<pre class="code-block"><code>{ string(payloadBytes(d.config.PayloadRenderer, entry.Event)) }</code></pre>
+			} else {
+				<p class="muted">Original event not available</p>
+			}
+		</div>
+	</div>
+	if !p.ReadOnly && p.Caps.DeadLetterStore {
+		<div class="filter-bar section-gap">
+			<form
+				method="POST"
+				action={ p.BasePath + "/dead-letters/" + proj + "/" + entry.EventID + "/delete" }
+				class="inline-form"
+				data-confirm="Delete this dead letter?"
+			>
+				<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+				@buttonSubmit("Delete", "Delete dead letter", display.ButtonOutlineDanger, nil)
+			</form>
+		</div>
+	}
+}
