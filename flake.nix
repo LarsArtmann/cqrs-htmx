@@ -879,6 +879,8 @@
                         "release-train-self-test:bash scripts/test-check-release-train.sh"
                         "vcs-cache:bash scripts/check-vcs-cache.sh"
                         "vcs-cache-self-test:bash scripts/test-check-vcs-cache.sh"
+                        "css-bundles:bash scripts/check-css-bundles.sh"
+                        "css-bundles-self-test:bash scripts/test-check-css-bundles.sh"
                         "preflight-self-test:bash scripts/test-preflight-tree-check.sh"
                         "wait-tree-quiet-self-test:bash scripts/test-wait-tree-quiet.sh"
                         "replace-directives:bash scripts/check-replace-directives.sh"
@@ -918,6 +920,8 @@
                     bash scripts/check-release-train.sh
                     bash scripts/check-vcs-cache.sh
                     bash scripts/test-check-vcs-cache.sh
+                    bash scripts/check-css-bundles.sh
+                    bash scripts/test-check-css-bundles.sh
                     bash scripts/check-replace-directives.sh
                     bash scripts/check-docs-freshness.sh
                     bash scripts/test-check-docs-freshness.sh
@@ -1096,6 +1100,43 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/test-check-vcs-cache.sh
+                  '';
+                }
+              );
+            };
+
+            check-css-bundles = {
+              type = "app";
+              meta.description = "Sanity gate for the committed Tailwind bundles: minified 1-line form, banner header, byte floor, canary utilities (catches the hook-rewrite and empty-scan corruption classes)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-css-bundles";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-css-bundles.sh
+                  '';
+                }
+              );
+            };
+
+            test-css-bundles = {
+              type = "app";
+              meta.description = "Fixture self-test for check-css-bundles.sh (pristine / missing / pretty rewrite / near-empty truncation / canary-stripped / empty)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-css-bundles";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.python3
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-css-bundles.sh
                   '';
                 }
               );

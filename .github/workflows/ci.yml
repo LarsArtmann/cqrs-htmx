@@ -638,6 +638,15 @@ jobs:
       - name: VCS cache health self-test
         run: bash scripts/test-check-vcs-cache.sh
 
+      # Committed Tailwind bundles must be the canonical minified builder
+      # output (catches the buildflow hook's non-minified rewrite and the
+      # 2026-09-22 near-empty staged-bundle incident class).
+      - name: CSS bundle sanity check
+        run: bash scripts/check-css-bundles.sh
+
+      - name: CSS bundle sanity self-test
+        run: bash scripts/test-check-css-bundles.sh
+
       # Concurrency-safety helpers for the shared tree (auto-commit daemon +
       # concurrent sessions, gotcha 4). The self-tests are the coverage; the
       # helpers themselves are session tools, not repo-state checks.
