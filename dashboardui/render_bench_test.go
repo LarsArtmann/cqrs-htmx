@@ -264,3 +264,35 @@ func BenchmarkRenderTablePaths(b *testing.B) {
 	b.Run("data-row", benchTableDataRows)
 	b.Run("raw-body", benchTableRawBody)
 }
+
+// benchHandRolledListNoteCount reproduces the pre-adoption count-notice span
+// (git d5a55b6e~1 dashboardui/pagination.go: a single role="status" span with
+// the count text), the markup listNoteCount replaced.
+func benchHandRolledListNoteCount(b *testing.B) {
+	b.Helper()
+
+	esc := html.EscapeString
+
+	for b.Loop() {
+		var out strings.Builder
+
+		fmt.Fprintf(
+			&out,
+			`<span class="list-note" role="status" aria-label="%s">Showing %d items.</span>`,
+			esc("dead letters"),
+			42,
+		)
+		_ = out.String()
+	}
+}
+
+func benchTemplListNoteCount(b *testing.B) {
+	b.Helper()
+
+	benchRender(b, listNoteCount(42, "dead letters"))
+}
+
+func BenchmarkRenderListNoteCount(b *testing.B) {
+	b.Run("hand-rolled", benchHandRolledListNoteCount)
+	b.Run("templ", benchTemplListNoteCount)
+}
