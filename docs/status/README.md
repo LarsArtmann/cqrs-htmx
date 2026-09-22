@@ -88,7 +88,7 @@ The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60
 
 ## File counts
 
-- `docs/status/`: **3 unarchived reports** (the 2026-09-22 closing + status reports, incl. the 12-04 round-8 self-review) + README + 12 HTML artifacts.
+- `docs/status/`: **4 unarchived reports** (the 2026-09-22 closing + status reports, incl. the 12-04 round-8 self-review and the 13-25 release-train alignment report) + README + 1 stray `.new` leftover (round-6, unarchived) + 12 HTML artifacts.
 - `docs/status/archived/`: **413 archived reports** (2026-05-03 → 2026-09-22).
 - The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), 2026-09-21 (the 34-report tail), and 2026-09-22 (the 8-report superb-plan tail + the plan itself). Of the 413 archived reports, **48 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and 268 predate annotation entirely (legacy-exempt; plus 25 pre-convention files that happen to contain `~~`). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
 
