@@ -27,6 +27,19 @@ func setupDeclarativeSystem(t *testing.T) *system.System {
 	})
 }
 
+// startDeclarativeSystem boots the memory-backed declarative system for a
+// test and registers its close via t.Cleanup, returning the context the
+// system runs under.
+func startDeclarativeSystem(t *testing.T) (context.Context, *system.System) {
+	t.Helper()
+
+	ctx := context.Background()
+	sys := setupDeclarativeSystem(t)
+	t.Cleanup(func() { _ = sys.Close() })
+
+	return ctx, sys
+}
+
 // setupDeclarativeSystemSQLite runs the same declarative wiring against a
 // SQLite-backed engine (in-memory shared-cache DSN, WAL). The memory driver
 // never exercises the metaengine's SQL layout planning, type mapping, or scan
@@ -124,9 +137,7 @@ func must(t *testing.T, err error) {
 // ---------------------------------------------------------------------------
 
 func TestDeclarative_TenantRoundTrip(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	tenantID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
@@ -198,9 +209,7 @@ func TestDeclarative_TenantRoundTrip(t *testing.T) {
 }
 
 func TestDeclarative_TenantDelete(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	tenantID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewCreateTenantCmd(
@@ -233,9 +242,7 @@ func TestDeclarative_TenantDelete(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestDeclarative_BotRoundTrip(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	ownerID := identitymodel.GenerateUserID()
 	botID := id.NewStreamID()
@@ -277,9 +284,7 @@ func TestDeclarative_BotRoundTrip(t *testing.T) {
 }
 
 func TestDeclarative_BotDelete(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	ownerID := identitymodel.GenerateUserID()
 	botID := id.NewStreamID()
@@ -315,9 +320,7 @@ func TestDeclarative_BotDelete(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestDeclarative_MembershipRoundTrip(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
@@ -371,9 +374,7 @@ func TestDeclarative_MembershipRoundTrip(t *testing.T) {
 }
 
 func TestDeclarative_MembershipRolesUpdate(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
@@ -416,9 +417,7 @@ func TestDeclarative_MembershipRolesUpdate(t *testing.T) {
 }
 
 func TestDeclarative_MembershipRemove(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	actorID := identitymodel.NewActorID(identitymodel.ActorUser, userStreamID.String())
@@ -458,9 +457,7 @@ func TestDeclarative_MembershipRemove(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestDeclarative_UserRoundTrip(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
@@ -526,9 +523,7 @@ func TestDeclarative_UserRoundTrip(t *testing.T) {
 }
 
 func TestDeclarative_UserDisplayNameChange(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
@@ -552,9 +547,7 @@ func TestDeclarative_UserDisplayNameChange(t *testing.T) {
 }
 
 func TestDeclarative_UserCredentials(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
@@ -607,9 +600,7 @@ func TestDeclarative_UserCredentials(t *testing.T) {
 }
 
 func TestDeclarative_UserTOTP(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
@@ -647,9 +638,7 @@ func TestDeclarative_UserTOTP(t *testing.T) {
 }
 
 func TestDeclarative_UserExternalAccounts(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
@@ -748,9 +737,7 @@ func TestDeclarative_UserExternalAccounts(t *testing.T) {
 }
 
 func TestDeclarative_UserDelete(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
@@ -780,9 +767,7 @@ func TestDeclarative_UserDelete(t *testing.T) {
 }
 
 func TestDeclarative_AllUsers(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	for range 3 {
 		uid := id.NewStreamID()
@@ -809,9 +794,7 @@ func TestDeclarative_AllUsers(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestDeclarative_AuthzEnforce(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	tenantID := identitymodel.NewTenantID("tenant-authz")
@@ -903,9 +886,7 @@ func TestDeclarative_AuthzEnforce(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestDeclarative_AuditLog(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	userStreamID := id.NewStreamID()
 	must(t, sys.CommandDispatcher().Dispatch(ctx, identitymodel.NewRegisterUserCmd(
@@ -1224,9 +1205,7 @@ func TestDeclarative_SQLite_AuthzPolicies(t *testing.T) {
 // Missing-key lookups must report system.ErrNotFound, and scan-style lookups
 // must return an empty result with a nil error — never a zero-value row.
 func TestDeclarative_MissingLookups(t *testing.T) {
-	ctx := context.Background()
-	sys := setupDeclarativeSystem(t)
-	defer func() { _ = sys.Close() }()
+	ctx, sys := startDeclarativeSystem(t)
 
 	missing := id.NewStreamID().String()
 

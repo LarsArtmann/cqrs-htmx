@@ -10,22 +10,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewResponse(t *testing.T) {
-	t.Parallel()
+// newTestResponse builds a recorder-backed Response for GET /events, the
+// fixture every response test writes through.
+func newTestResponse(t *testing.T) (*httptest.ResponseRecorder, *ds.Response) {
+	t.Helper()
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/events", nil)
 
-	resp := ds.NewResponse(w, req)
+	return w, ds.NewResponse(w, req)
+}
+
+func TestNewResponse(t *testing.T) {
+	t.Parallel()
+
+	_, resp := newTestResponse(t)
 	require.NotNil(t, resp)
 }
 
 func TestResponsePatchElements(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
-	resp := ds.NewResponse(w, req)
+	w, resp := newTestResponse(t)
 
 	err := resp.PatchElements("<div>hello</div>", ds.WithSelectorID("feed"))
 	require.NoError(t, err)
@@ -38,9 +44,7 @@ func TestResponsePatchElements(t *testing.T) {
 func TestResponsePatchSignals(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
-	resp := ds.NewResponse(w, req)
+	w, resp := newTestResponse(t)
 
 	err := resp.PatchSignals([]byte(`{"count":1}`))
 	require.NoError(t, err)
@@ -53,9 +57,7 @@ func TestResponsePatchSignals(t *testing.T) {
 func TestResponseMarshalAndPatchSignals(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
-	resp := ds.NewResponse(w, req)
+	w, resp := newTestResponse(t)
 
 	err := resp.MarshalAndPatchSignals(map[string]any{"total": 5, "label": "items"})
 	require.NoError(t, err)
@@ -69,9 +71,7 @@ func TestResponseMarshalAndPatchSignals(t *testing.T) {
 func TestResponseExecuteScript(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
-	resp := ds.NewResponse(w, req)
+	w, resp := newTestResponse(t)
 
 	err := resp.ExecuteScript("alert('done')")
 	require.NoError(t, err)
@@ -84,9 +84,7 @@ func TestResponseExecuteScript(t *testing.T) {
 func TestResponseRemoveElement(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
-	resp := ds.NewResponse(w, req)
+	w, resp := newTestResponse(t)
 
 	err := resp.RemoveElement("#stale")
 	require.NoError(t, err)
@@ -99,9 +97,7 @@ func TestResponseRemoveElement(t *testing.T) {
 func TestResponseRemoveElementByID(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
-	resp := ds.NewResponse(w, req)
+	w, resp := newTestResponse(t)
 
 	err := resp.RemoveElementByID("item-3")
 	require.NoError(t, err)
@@ -114,9 +110,7 @@ func TestResponseRemoveElementByID(t *testing.T) {
 func TestResponseRedirect(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
-	resp := ds.NewResponse(w, req)
+	w, resp := newTestResponse(t)
 
 	err := resp.Redirect("/home")
 	require.NoError(t, err)
@@ -129,9 +123,7 @@ func TestResponseRedirect(t *testing.T) {
 func TestResponseMultiplePatches(t *testing.T) {
 	t.Parallel()
 
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/events", nil)
-	resp := ds.NewResponse(w, req)
+	w, resp := newTestResponse(t)
 
 	require.NoError(t, resp.PatchElements("<div>first</div>"))
 	require.NoError(t, resp.PatchSignals([]byte(`{"step":1}`)))
