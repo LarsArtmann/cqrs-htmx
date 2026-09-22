@@ -66,7 +66,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-datastar v0.6.0 // indirect
 	github.com/larsartmann/go-datastar/broadcast v0.6.0 // indirect
@@ -76,6 +76,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
+	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/httputil v1.3.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.19.2 // indirect
@@ -89,9 +90,11 @@ require (
 	github.com/mattn/go-runewidth v0.0.30 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
+	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
@@ -109,4 +112,8 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
+	modernc.org/libc v1.76.0 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
+	modernc.org/memory v1.12.1 // indirect
+	modernc.org/sqlite v1.59.0 // indirect
 )

@@ -21,7 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-datastar/broadcast v0.6.0
 	github.com/larsartmann/go-error-family v0.10.1
@@ -85,6 +85,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
+	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.19.2 // indirect
 	github.com/larsartmann/templ-components/errorpage v1.19.2 // indirect
