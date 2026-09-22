@@ -129,7 +129,7 @@ func aggregateRows(listings []listing.StreamListing) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(truncate(l.ID.String(), listIDWidth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 36, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 35, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -142,7 +142,7 @@ func aggregateRows(listings []listing.StreamListing) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(string(l.Type))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 37, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 36, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -155,7 +155,7 @@ func aggregateRows(listings []listing.StreamListing) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(l.Version.String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 38, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 37, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -168,7 +168,7 @@ func aggregateRows(listings []listing.StreamListing) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatUint(uint64(l.EventCount), 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 39, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 38, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -181,7 +181,7 @@ func aggregateRows(listings []listing.StreamListing) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(l.LastEventAt.Format("2006-01-02 15:04:05"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 40, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 39, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -265,7 +265,7 @@ func aggregateDetailContent(
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(string(ref.Type))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 63, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 62, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -278,7 +278,7 @@ func aggregateDetailContent(
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(ref.ID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 63, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `aggregates.templ`, Line: 62, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
