@@ -329,6 +329,14 @@ func TestRenderDLQ_WithEntries(t *testing.T) {
 	if !strings.Contains(w.Body.String(), "evt-1") {
 		t.Error("expected body to contain event ID")
 	}
+
+	if !strings.Contains(w.Body.String(), "Showing 1 item.") {
+		t.Error("expected DLQ page to carry the ListNoteCount notice (singular)")
+	}
+
+	if !strings.Contains(w.Body.String(), `aria-label="Dead letter count"`) {
+		t.Error("expected count notice to carry the domain-noun aria label")
+	}
 }
 
 // --- T17: snapshotDetailHandler ---

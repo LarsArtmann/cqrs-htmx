@@ -76,12 +76,20 @@ func TestGolden_ComponentMarkup(t *testing.T) {
 		ActionHref:  "",
 		ActionAttrs: nil,
 	})
+	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
+	listNoteCount := display.ListNote(display.ListNoteProps{
+		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "Dead letter count", Nonce: ""},
+		Shown:     3,
+		Total:     0,
+		Variant:   display.ListNoteCount,
+	})
 
 	cases := map[string]string{
 		"status_badge_healthy.golden": goldenRender(t, statusBadge),
 		"badge_neutral_dot.golden":    goldenRender(t, badge),
 		"stat_card_value_id.golden":   goldenRender(t, statCard),
 		"empty_state_h2.golden":       goldenRender(t, emptyState),
+		"list_note_count.golden":      goldenRender(t, listNoteCount),
 	}
 
 	for name, got := range cases {

@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Added
+
+- **DLQ table gained a count notice (`display.ListNote` `ListNoteCount`, templ-components v1.19.1):** the dead-letter table for a projection now ends with "Showing N items." (pluralized, `aria-label="Dead letter count"`) — the DLQ page's key question is HOW MANY letters exist, and the count is the blast radius for the Replay All / Purge All confirmations. The hand-rolled `Showing X–Y of Z` pagination info stays (ListNote speaks N-of-M/N-items, not X–Y ranges); the old wholesale `display.ListNote` exclusion is lifted. Markup pinned by `list_note_count.golden` + DLQ handler assertions.
 
 ## [v4.11.0] - 2026-09-19
 

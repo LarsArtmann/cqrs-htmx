@@ -317,17 +317,22 @@ build step for consumers. Styling ships as a compiled Tailwind bundle
 Adopted capabilities: `display.StatusBadge`/`Badge` (all status/encoding
 badges), `display.StatCard` with `ValueID` DOM hooks, `display.Table` with
 typed sort headers + `LazyRows`, `display.EmptyState`, `display.Button`,
-`display.CopyButton`, `display.DefinitionList`, `feedback.ToastContainer`,
+`display.CopyButton`, `display.DefinitionList`, `display.ListNote`
+(count-only `ListNoteCount` variant under the DLQ table — the count is the
+Replay All / Purge All blast radius), `feedback.ToastContainer`,
 `htmx.GlobalErrorHandling`, `forms.Select` (page size), `errorpage.ErrorPage`
 /`NotFound404`, and `icons`.
 
 Deliberate exclusions: `navigation.Pagination` (cursor + history pagination of
 append-only journals — numbered pages are meaningless), `navigation.SidebarNav`
 /`layout.AppShell` (custom dark-sidebar theme + mobile drawer, same precedent
-as adminui), `display.ListNote` (range semantics vs count-only),
-`display.Grid` and `htmx.PolledRegion` (templ `{children...}` renders empty in
-the hybrid standalone path — the projection-health polling therefore stays
-hand-rolled; see docs/guides/hybrid-templ-components-adoption.md). Adopted in
+as adminui), the hand-rolled `Showing X–Y of Z` pagination info (ListNote
+speaks N-of-M truncation or N-items counts, not X–Y ranges —
+templ-components v1.19.1 lifted the count-only half of the old
+`display.ListNote` exclusion), `display.Grid` and `htmx.PolledRegion` (templ
+`{children...}` renders empty in the hybrid standalone path — the
+projection-health polling therefore stays hand-rolled; see
+docs/guides/hybrid-templ-components-adoption.md). Adopted in
 the N16/N17 pass: `forms.Input` (event filter bar), library Button
 link/submit, EmptyState, and DefinitionList render benchmarks.
 

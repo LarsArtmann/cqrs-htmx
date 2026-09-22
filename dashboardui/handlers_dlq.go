@@ -462,6 +462,7 @@ func (d *Dashboard) renderDLQ(
 			ctx,
 			plainHeaders("Failed At", "Event Type", "Error", "Family", "Actions"),
 			rows.String()))
+		b.WriteString(listNoteCountHTML(ctx, len(entries), "Dead letter count"))
 
 		return b.String()
 	})
