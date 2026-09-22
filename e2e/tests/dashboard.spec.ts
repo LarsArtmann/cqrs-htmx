@@ -90,3 +90,25 @@ test.describe("dashboard sortable tables (N8)", () => {
     await expect(timeHeaderAfterDesc).toHaveAttribute("aria-sort", "descending");
   });
 });
+
+test.describe("dashboard DLQ count notice (ListNoteCount)", () => {
+  test("dead-letters detail page renders the seeded rows plus the count notice", async ({ page }) => {
+    await page.goto("/dashboard/dead-letters/demo-projection");
+
+    // Two deterministically seeded poison entries (e2e server seeds the
+    // in-memory DeadLetterStore directly — a failing handler would race).
+    await expect(page.locator("table tbody tr")).toHaveCount(2);
+    await expect(page.getByText("synthetic e2e poison event").first()).toBeVisible();
+
+    // The count notice is the destructive blast-radius signal under the
+    // table: role=status + named aria-label + exact pluralized text.
+    const note = page.getByRole("status", { name: "Dead letter count" });
+    await expect(note).toBeVisible();
+    await expect(note).toHaveText("Showing 2 items.");
+  });
+
+  test("dead-letters index page links the seeded projection", async ({ page }) => {
+    await page.goto("/dashboard/dead-letters");
+    await expect(page.getByRole("link", { name: /demo-projection/ }).first()).toBeVisible();
+  });
+});

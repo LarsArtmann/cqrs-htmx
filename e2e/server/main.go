@@ -77,11 +77,18 @@ func (demoProjection) Name() string                                  { return "d
 func (demoProjection) Handle(_ context.Context, _ event.Event) error { return nil }
 func (demoProjection) EventTypes() []event.Type                      { return nil }
 
-// seedDashboard appends a few generic events across two streams and starts
-// the projection host, so the browser-truth specs assert real tables, badges,
-// and worker states instead of empty states.
-func seedDashboard(store *memorystorage.MemoryStore, host *projectionhost.Host) {
+// seedDashboard appends a few generic events across two streams, starts
+// the projection host, and seeds two dead-letter entries so the browser-truth
+// specs assert real tables, badges, worker states, and the DLQ count notice
+// instead of empty states.
+func seedDashboard(
+	store *memorystorage.MemoryStore,
+	host *projectionhost.Host,
+	deadStore projectionhost.DeadLetterStore,
+) {
 	ctx := context.Background()
+
+	var lastEvent event.Event
 
 	for _, streamType := range []string{"User", "Tenant"} {
 		aggID := id.NewStreamID()
@@ -102,6 +109,8 @@ func seedDashboard(store *memorystorage.MemoryStore, host *projectionhost.Host) 
 			if aErr := store.AppendBatch(ctx, ref, []event.Event{evt}); aErr != nil {
 				log.Fatalf("AppendBatch: %v", aErr)
 			}
+
+			lastEvent = evt
 		}
 	}
 
@@ -115,6 +124,26 @@ func seedDashboard(store *memorystorage.MemoryStore, host *projectionhost.Host) 
 
 	if sErr := host.Start(ctx); sErr != nil {
 		log.Fatalf("host.Start: %v", sErr)
+	}
+
+	// Deterministic DLQ seed: two poison entries for the demo projection (a
+	// failing handler + retry exhaustion would be timing-dependent; direct
+	// Store calls make the count notice assertable: "Showing 2 items.").
+	for i := 1; i <= 2; i++ {
+		entry := projectionhost.DeadLetterEntry{
+			ProjectionName: demoProjection{}.Name(),
+			EventID:        fmt.Sprintf("e2e-dlq-%d", i),
+			EventType:      lastEvent.Type().String(),
+			StreamID:       lastEvent.AggregateID().String(),
+			Event:          lastEvent,
+			Error:          "synthetic e2e poison event",
+			ErrorFamily:    "corruption",
+			FailedAt:       time.Now().Add(-time.Duration(i) * time.Minute),
+		}
+
+		if dErr := deadStore.Store(ctx, entry); dErr != nil {
+			log.Fatalf("deadStore.Store: %v", dErr)
+		}
 	}
 }
 
@@ -140,6 +169,8 @@ func main() {
 	// panels so all nine pages render without a full event-sourced stack. ---
 	dstore := memorystorage.NewMemoryStore()
 
+	deadStore := projectionhost.NewMemoryDeadLetterStore()
+
 	var host *projectionhost.Host
 
 	if seekable, ok := any(dstore).(event.SeekableJournal); ok {
@@ -158,14 +189,14 @@ func main() {
 		QueryJournal:   emptyQueryJournal{},
 		SnapshotStore:  emptySnapshotStore{},
 		//cqrs-lint:ignore(C017) ephemeral Playwright test server — in-memory DLQ is intentional, the process is disposable per test run
-		DeadLetterStore: projectionhost.NewMemoryDeadLetterStore(),
+		DeadLetterStore: deadStore,
 		ProjectionHost:  host,
 	})
 	if err != nil {
 		log.Fatalf("dashboardui.New: %v", err)
 	}
 
-	seedDashboard(dstore, host)
+	seedDashboard(dstore, host, deadStore)
 	dash.Mount(mux, "/dashboard/")
 
 	// --- HTML page --- ({$}: exact root only, else it conflicts with the
