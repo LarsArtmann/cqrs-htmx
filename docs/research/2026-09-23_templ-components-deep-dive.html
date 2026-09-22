@@ -847,24 +847,25 @@
       }
     </style>
   </head>
-  <body>
-    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <!-- Full-bleed top bar -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>LIBRARY DEEP DIVE</span>
+      <span>2026-09-23</span>
+      <span>cqrs-htmx / dashboardui</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
+      <!-- Sidebar TOC -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
           <a href="#scorecard">Scorecard</a>
-          <a href="#strengths">Strengths</a>
+          <a href="#strengths">Current Usage</a>
           <a href="#findings">Findings</a>
-          <a href="#proposal">Proposal</a>
+          <a href="#version">Version Currency</a>
+          <a href="#opportunities">Top Opportunities</a>
+          <a href="#conclusion">Conclusion</a>
           <a href="#appendix">Appendix</a>
         </nav>
       </aside>
@@ -873,43 +874,50 @@
       <main class="main">
         <!-- Hero -->
         <header class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="bar"></div>
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="eyebrow">REPORT TYPE &middot; YYYY-MM-DD</div>
-          <h1>Report Title</h1>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-09-23</div>
+          <h1>templ-components in dashboardui — Adoption &amp; Utilization Audit</h1>
           <p class="subtitle">
-            One or two sentences that set the frame: who this is for, what was
-            reviewed, and what the reader will take away.
+            Is the ready-made CQRS observability dashboard getting the most out of the
+            component library it depends on? Verdict: yes, to an unusual degree —
+            latest version everywhere, a thin pinning layer instead of a parallel UI
+            system, and zero anti-patterns. What remains is a handful of small,
+            well-documented gaps.
           </p>
           <div class="meta">
-            <span class="tag amber">Scope: example</span>
-            <span class="tag">Version: 1.0.0</span>
-            <span class="tag teal">Status: draft</span>
+            <span class="tag amber">Consumer: dashboardui (cqrs-htmx)</span>
+            <span class="tag">Pinned: v1.19.2</span>
+            <span class="tag">Latest: v1.19.2</span>
+            <span class="tag teal">Adoption Score: 85/100</span>
           </div>
         </header>
 
         <!-- Scorecard -->
         <section id="scorecard" class="scorecard">
           <div class="score-card score-good">
-            <div class="score">8</div>
-            <div class="label">Items passing</div>
+            <div class="score">85</div>
+            <div class="label">Adoption score / 100</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">90</div>
+            <div class="label">Distinct library identifiers in use</div>
           </div>
           <div class="score-card score-warn">
             <div class="score">3</div>
-            <div class="label">Warnings</div>
+            <div class="label">Partially-used capabilities</div>
           </div>
-          <div class="score-card score-bad">
-            <div class="score">1</div>
-            <div class="label">Blockers</div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Anti-patterns / misuse</div>
           </div>
-          <div class="score-card">
-            <div class="score">12</div>
-            <div class="label">Total reviewed</div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Versions behind latest</div>
           </div>
         </section>
 
@@ -917,39 +925,122 @@
         <section id="summary">
           <h2><span class="num">00</span>Summary</h2>
           <p>
-            Replace this with the bottom-line verdict. A good summary tells the
-            reader whether the subject is ready, what the biggest risk is, and
-            what one action would unlock the most value.
+            This audit answers a narrow question: does <code>dashboardui/</code> use
+            <code>github.com/larsartmann/templ-components</code> superbly? The evidence says
+            it is close to a model consumer. All five imported subpackages
+            (<code>display</code>, <code>forms</code>, <code>feedback</code>, <code>htmx</code>,
+            <code>errorpage</code>, <code>icons</code>, <code>utils</code>) sit at the newest
+            released tag; ~90 distinct library identifiers appear across 17 non-test files;
+            table sorting, polling regions, toasts, global HTMX error handling, and
+            family-aware error pages all route through library components rather than
+            hand-rolled equivalents; and the compiled Tailwind bundle gate is green
+            (76,984 bytes, minified, canary utilities present).
+          </p>
+          <p>
+            The remaining surface divides into three small partial adoptions (hidden CSRF
+            inputs, dark-mode toggle, version slider), one optional candidate (sidebar),
+            and a set of <em>deliberate</em> divergences (page shell, cursor pagination)
+            that are justified by the dashboard's HTMX-boost navigation model — not
+            oversights. No misuses were found.
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
-            State the verdict plainly. If the report is blocking, say so. If
-            it's mostly positive, lead with that.
+            This is superb usage with a short tail. Two cheap moves — swapping 7 hand-rolled
+            hidden CSRF inputs for <code>htmx.CSRFToken</code>, and landing the already-planned
+            <code>ThemeScript</code>/<code>ThemeToggle</code> adoption — would lift the score to
+            roughly 95 and leave only defensible divergences behind.
           </div>
         </section>
 
-        <!-- Strengths -->
+        <!-- Current usage -->
         <section id="strengths">
           <h2><span class="num">&#9670;</span>What's already excellent</h2>
           <p>
-            Before the criticism: acknowledge what works. This builds trust and
-            keeps the report from reading like a pure complaint list.
+            The baseline: how the library is actually used today. Every claim below was
+            verified against the codebase on 2026-09-23.
           </p>
 
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength one</strong>
-                <span>Explain why it matters and what it enables.</span>
+                <strong>Perfect version currency, all five subpackages</strong>
+                <span
+                  ><code>go.mod:23-27</code> pins core, errorpage, htmx, icons, and utils —
+                  all at v1.19.2, which is the newest tag in the library repo. No lag, no
+                  mixed-version drift.</span
+                >
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Specific strength two</strong>
+                <strong>A thin pinning layer, not a parallel UI system</strong>
                 <span
-                  >Reference files, metrics, or patterns where possible.</span
+                  ><code>components.templ</code> wraps library components with dashboard
+                  defaults (<code>statCard</code>, <code>emptyStatePanel</code>,
+                  <code>statusBadge</code>, <code>buttonSubmit</code>,
+                  <code>buttonLink</code>, <code>copyButton</code>) and documents 1:1 markup
+                  parity with the former string-bridge helpers it replaced during the
+                  2026-09-22 full-templ migration. Page templates stay readable; the library
+                  stays the single source of markup.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The table system is adopted end-to-end</strong>
+                <span
+                  ><code>display.Table</code> with the <code>Body</code> slot for custom rows
+                  (the 58 raw <code>&lt;td&gt;</code> elements live inside the supported slot
+                  contract, not beside it), <code>TableCellPaddingCompact</code>, and sortable
+                  headers wired through <code>sort.go:118</code>
+                  (<code>Sortable</code> + <code>SortDirection</code> + <code>Href</code> driven
+                  by parsed query state). <code>display.ListNote</code>/<code>ListNoteCount</code>
+                  carry the "showing N" notices.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The HTMX layer is adopted wholesale, and tuned</strong>
+                <span
+                  ><code>htmx.PolledRegion</code> for live regions, <code>GlobalErrorHandling</code>
+                  with an explicit <code>ErrorHandlingConfig</code> (history, retries, retry
+                  delay), <code>htmx.Broadcaster</code> for the SSE hub,
+                  <code>IsHTMXRequest</code> for partial-vs-full rendering, <code>HTMXRedirect</code>,
+                  and self-hosted htmx served via <code>HTMXScriptHandler</code>.
+                  <code>htmx.RecommendedSecurityMiddleware</code> is wired in
+                  <code>handler.go</code>.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Error pages ride the library's error-family integration</strong>
+                <span
+                  ><code>errorpage.ErrorPage</code>, <code>NotFound</code>/<code>DefaultNotFound</code>,
+                  and the family constants (<code>FamilyRejection</code>,
+                  <code>FamilyConflict</code>, <code>FamilyTransient</code>,
+                  <code>FamilyInfrastructure</code>) render both full pages and HTMX-swap
+                  fragments (<code>handler.go:149</code>, <code>render.go:63</code>).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>DOM hooks and bundle health follow the library's own gotchas</strong>
+                <span
+                  ><code>utils.BaseProps</code> appears 18 times with explicit (exhaustruct-safe)
+                  zero-value literals; live-updated stats pin stable IDs via the
+                  <code>ValueID</code> <code>stat-&lt;name&gt;</code> scheme instead of gambling on
+                  <code>EnsureID</code> randomization. The compiled <code>dashboard-tw.css</code>
+                  bundle passes the repo's canonical-form gate — the stale-bundle failure mode
+                  is currently impossible.</span
                 >
               </div>
             </div>
@@ -959,111 +1050,346 @@
         <!-- Findings -->
         <section id="findings">
           <h2><span class="num">01</span>Findings</h2>
-          <p>These are the issues that need attention, ordered by impact.</p>
+          <p>
+            Ordered by impact. Two partial adoptions, two optional candidates, and one
+            fully-leveraged confirmation. Deliberate divergences (page shell, cursor
+            pagination, raw GET filter form) are documented at the end.
+          </p>
 
-          <!-- Issue 1 -->
-          <div class="issue issue-critical" id="issue-1">
-            <span class="severity severity-critical"
-              >Blocking &middot; High impact</span
-            >
-            <h3>Critical issue title</h3>
-            <div class="where">
-              path/to/file.go:42-58 &middot; short context
-            </div>
-            <p>
-              Describe the problem, cite the code or behavior, and explain why
-              it matters to the reader's goals.
-            </p>
-            <pre><code>// Example of the problematic pattern
-func BadExample() {}</code></pre>
-            <div class="callout callout-teal">
-              <strong>Fix: recommended action</strong>
-              State the concrete fix, including file names, function names, or
-              configuration changes.
-            </div>
-          </div>
-
-          <!-- Issue 2 -->
-          <div class="issue issue-important" id="issue-2">
+          <!-- Finding 1 -->
+          <div class="issue issue-important" id="csrf-inputs">
             <span class="severity severity-important"
-              >Important &middot; Medium impact</span
+              >Partially used &middot; trivial to fix</span
             >
-            <h3>Important issue title</h3>
-            <div class="where">path/to/another.go:12-19</div>
+            <h3>7 hand-rolled hidden CSRF inputs — <code>htmx.CSRFToken</code> exists for exactly this</h3>
+            <div class="where">
+              dlq.templ:62,74,109,151 &middot; projections.templ:78,115 &middot;
+              snapshots.templ:56
+            </div>
             <p>
-              Explain the risk. Important issues are not blockers but would make
-              a careful reviewer hesitate before shipping.
+              Every mutating inline form re-implements the same line:
+              <code>&lt;input type="hidden" name="_csrf" value={ p.CSRFToken }/&gt;</code>. The
+              library ships <code>htmx.CSRFToken(token string)</code> — a hidden CSRF input
+              component — as the canonical spelling. The raw <code>&lt;form&gt;</code> elements
+              themselves are fine to keep: these are bare inline action forms with
+              <code>data-confirm</code>, and <code>forms.Form</code>'s labeled field-group
+              wrapper does not fit an inline form. The hidden input, however, is a 1:1 swap
+              that centralizes the attribute spelling in the library.
             </p>
+            <pre><code>// Before (×7)
+&lt;input type="hidden" name="_csrf" value={ p.CSRFToken }/&gt;
+
+// After
+@htmx.CSRFToken(p.CSRFToken)</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Mechanical replacement across the four files; zero behavior change; future
+              CSRF attribute changes then flow from one library upgrade instead of seven
+              edits. (The events filter form is a GET with <code>hx-get</code> and correctly
+              needs no token — leave it alone.)
+            </div>
           </div>
 
-          <!-- Issue 3 -->
-          <div class="issue issue-nice" id="issue-3">
+          <!-- Finding 2 -->
+          <div class="issue issue-important" id="theme-toggle">
+            <span class="severity severity-important"
+              >Partially used &middot; already planned</span
+            >
+            <h3>Dark mode is OS-follow only — <code>ThemeScript</code> + <code>ThemeToggle</code> not adopted</h3>
+            <div class="where">
+              tailwind.css:18-21 &middot; layout.templ (head) &middot; library:
+              <code>layout.ThemeScript</code>, <code>layout.ThemeToggle</code>
+            </div>
+            <p>
+              The dashboard respects <code>prefers-color-scheme</code> through its CSS token
+              layer, but users cannot override it. The stylesheet's own comment declares the
+              intent: <em>"class-based strategy (@custom-variant) lands with the ThemeToggle
+              adoption."</em> The library provides the complete pair —
+              <code>ThemeScript(nonce)</code> (FOUC-preventing head script) and
+              <code>ThemeToggle(ariaLabel, nonce)</code> (sun/moon button) — and sibling module
+              adminui already ships a user-controllable theme toggle, so the pattern is
+              proven in this repo. Because all library components carry <code>dark:</code>
+              variants, adopting the class strategy also future-proofs any newly adopted
+              component's dark surfaces.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Add <code>@custom-variant dark (&amp;:where(.dark, .dark *))</code> to
+              <code>tailwind.css</code>, drop <code>@layout.ThemeScript(p.Nonce)</code> into the
+              hand-rolled <code>&lt;head&gt;</code>, and place
+              <code>@layout.ThemeToggle("Toggle theme", p.Nonce)</code> in the header. Rebuild
+              the CSS bundle in the same change (repo rule).
+            </div>
+          </div>
+
+          <!-- Finding 3 -->
+          <div class="issue issue-nice" id="slider">
             <span class="severity severity-nice"
-              >Nice to have &middot; Low impact</span
+              >Partially used &middot; verify visual fit first</span
             >
-            <h3>Nice-to-have improvement</h3>
-            <div class="where">docs/ or config</div>
+            <h3>Time-travel version slider is hand-rolled — <code>forms.Slider</code> covers most of it</h3>
+            <div class="where">
+              timetravel.templ:84-95 &middot; library: <code>forms.Slider</code>
+              (<code>Min/Max/Value/Step/ShowValue</code>, <code>BaseProps.Attrs</code>)
+            </div>
             <p>
-              Minor polish, documentation gaps, or future-proofing suggestions
-              go here.
+              The version scrubber is a raw <code>&lt;input type="range"&gt;</code> with custom
+              <code>data-nav-base</code>/<code>data-slider-display</code> hooks and dynamic
+              <code>aria-valuetext</code>. The library's <code>forms.Slider</code> supports
+              min/max/value/step, a value display, and arbitrary <code>data-*</code> attributes
+              through <code>BaseProps.Attrs</code> — so the wiring ports. The honest caveat:
+              <code>forms.Slider</code> renders a labeled field-group wrapper, while the
+              dashboard wants an unlabeled, compact control, and the custom
+              <code>aria-valuetext</code> needs the <code>Attrs</code> escape hatch. This is an
+              evaluation candidate, not a clear win.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Prototype <code>forms.Slider</code> with <code>BaseProps{Attrs: templ.Attributes{...}}</code>
+              carrying the two data hooks; adopt only if the rendered wrapper fits the panel
+              layout. Otherwise keep the raw input — it is a legitimate custom control.
+            </div>
+          </div>
+
+          <!-- Finding 4 -->
+          <div class="issue issue-nice" id="sidebar">
+            <span class="severity severity-nice"
+              >Optional candidate &middot; visual continuity caveat</span
+            >
+            <h3>Sidebar is hand-rolled — <code>navigation.SidebarNav</code> covers its anatomy</h3>
+            <div class="where">
+              layout.templ (<code>templ sidebar</code>) &middot; library:
+              <code>navigation.SidebarNav</code> (brand, icon+label items, footer slot)
+            </div>
+            <p>
+              The aside implements brand (initials badge + name), icon+label nav items with
+              active-state classes, a logout link, and a footer — exactly the surface
+              <code>SidebarNav</code> models. Adoption would delete the bespoke
+              <code>nav-link</code> CSS in favor of library Tailwind classes (already present in
+              the scanned bundle). The caveat is real, though: the current sidebar is styled
+              by the dashboard's own token stylesheet for visual continuity with the
+              accent-color theming, and the library's AppShell cannot host the boost-based
+              navigation model (see below). Treat as optional polish.
+            </p>
+          </div>
+
+          <!-- Finding 5 -->
+          <div class="issue issue-nice" id="shell-justified">
+            <span class="severity severity-nice"
+              >Fully leveraged where it counts &middot; divergence is deliberate</span
+            >
+            <h3>The hand-rolled page shell is justified — <code>layout.AppShell</code> cannot express it</h3>
+            <div class="where">
+              layout.templ (<code>templ layout</code>) &middot; library:
+              <code>layout.AppShell</code> (sidebar + header + main grid)
+            </div>
+            <p>
+              The dashboard shell needs four things <code>AppShell</code>'s props surface does
+              not offer: an <code>hx-boost</code> wrapper targeting
+              <code>#main-content</code> with <code>hx-select</code> title extraction, an HTMX
+              partial mode that emits only <code>&lt;title&gt;</code> + <code>&lt;main&gt;</code>,
+              a skip-link, and a per-instance accent CSS variable. Forcing the shell into
+              <code>AppShell</code> would mean restructuring the dashboard's entire navigation
+              model for zero user-visible gain. Likewise, self-hosted assets
+              (<code>/-/dashboard.css</code>, <code>/-/dashboard-tw.css</code>,
+              <code>/-/htmx.js</code>) and <code>noindex</code> make <code>layout.Base</code>'s
+              CDN/SEO surface a non-fit for an embedded admin dashboard. Cursor-based
+              prev/next pagination with a history stack
+              (<code>pagination.go</code>) has no page-number equivalent in the library —
+              <code>Pagination</code> is page-number-based and <code>LoadMore</code> is a
+              different UX. All three divergences are correct calls, and the library is used
+              everywhere they are not required.
             </p>
           </div>
         </section>
 
-        <!-- Proposal -->
-        <section id="proposal">
-          <h2><span class="num">02</span>What the solution could look like</h2>
+        <!-- Version currency -->
+        <section id="version">
+          <h2><span class="num">02</span>Version currency</h2>
           <p>
-            If the findings were fixed, what would the new state be? Show the
-            target API, structure, or workflow.
+            dashboardui pins v1.19.2 — the newest tag in the templ-components repository —
+            across all five imported subpackages. There is no version gap to report.
           </p>
-          <pre><code>// Target state after the recommended changes
-type BetterAPI struct {
-    Field string
-}</code></pre>
           <div class="callout callout-teal">
-            <strong>This is the target</strong>
-            Summarize why this state is better and what it unlocks.
+            <strong>On the latest release</strong>
+            Every recently shipped library feature (charts, <code>FilterInput</code>,
+            <code>Scrollback</code>, kanban, wire helpers) was available at upgrade time; the
+            library's unreleased changes (scaffolder mirror, duplication baseline) are
+            library-internal and do not affect this consumer.
           </div>
-        </section>
-
-        <!-- Appendix -->
-        <section id="appendix">
-          <h2><span class="num">03</span>Appendix</h2>
-          <p>
-            Methodology, links to related files, or a priority matrix can live
-            here.
-          </p>
           <table class="compare">
             <thead>
               <tr>
-                <th>Issue</th>
-                <th>Severity</th>
-                <th>Effort</th>
+                <th>Package</th>
+                <th>Pinned</th>
+                <th>Latest tag</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Issue one</td>
-                <td class="no">Critical</td>
-                <td>Low</td>
-                <td class="no">Open</td>
+                <td><code>templ-components</code></td>
+                <td>v1.19.2</td>
+                <td>v1.19.2</td>
+                <td class="yes">Current</td>
               </tr>
               <tr>
-                <td>Issue two</td>
-                <td class="no">Important</td>
-                <td>Medium</td>
-                <td class="yes">In progress</td>
+                <td><code>.../errorpage</code></td>
+                <td>v1.19.2</td>
+                <td>v1.19.2</td>
+                <td class="yes">Current</td>
+              </tr>
+              <tr>
+                <td><code>.../htmx</code></td>
+                <td>v1.19.2</td>
+                <td>v1.19.2</td>
+                <td class="yes">Current</td>
+              </tr>
+              <tr>
+                <td><code>.../icons</code></td>
+                <td>v1.19.2</td>
+                <td>v1.19.2</td>
+                <td class="yes">Current</td>
+              </tr>
+              <tr>
+                <td><code>.../utils</code></td>
+                <td>v1.19.2</td>
+                <td>v1.19.2</td>
+                <td class="yes">Current</td>
               </tr>
             </tbody>
           </table>
         </section>
 
+        <!-- Top opportunities -->
+        <section id="opportunities">
+          <h2><span class="num">03</span>Top opportunities</h2>
+          <p>Priority = impact × ease. This is the whole Pareto set — nothing else cleared the bar.</p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Opportunity</th>
+                <th>Impact</th>
+                <th>Ease</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Swap 7 hidden CSRF inputs for <code>htmx.CSRFToken</code></td>
+                <td class="yes">3</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">15</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Adopt <code>ThemeScript</code> + <code>ThemeToggle</code> with the class-based dark strategy (already planned in-tree)</td>
+                <td class="yes">4</td>
+                <td class="yes">3</td>
+                <td><span class="highlight">12</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Evaluate <code>forms.Slider</code> for the time-travel scrubber</td>
+                <td>2</td>
+                <td>2</td>
+                <td><span class="highlight">4</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Evaluate <code>navigation.SidebarNav</code> inside the existing aside</td>
+                <td>2</td>
+                <td>2</td>
+                <td><span class="highlight">4</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Conclusion -->
+        <section id="conclusion">
+          <h2><span class="num">04</span>Conclusion</h2>
+          <p>
+            dashboardui's relationship to templ-components is what the library's own
+            consumer guide asks for: check the catalogue before hand-rolling, wrap with
+            pinned defaults, keep DOM hooks stable, rebuild the bundle with every bump.
+            The audit found ~90 library identifiers in active use, zero anti-patterns, and
+            a zero-version gap. The two findings worth acting on are small and cheap; the
+            divergences that remain are load-bearing (HTMX-boost shell, cursor pagination)
+            or cosmetic (slider, sidebar). Answer to the opening question: yes — this is
+            superb usage, one theme toggle and seven hidden inputs away from textbook.
+          </p>
+        </section>
+
+        <!-- Appendix -->
+        <section id="appendix">
+          <h2><span class="num">05</span>Appendix — method &amp; evidence</h2>
+          <p>
+            Scope: <code>dashboardui/</code> only (adminui and loginpage are separate
+            consumers with separate adoption stories). Method: import census across all
+            non-test Go and templ files; per-symbol usage counts; raw-HTML-element census in
+            <code>*.templ</code>; library capability cross-check against the local
+            templ-components repo (component catalogue + props sources); version comparison
+            against repo tags; CSS bundle gate executed locally.
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Claim</th>
+                <th>Evidence</th>
+                <th>Verified</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>~90 distinct library identifiers in use</td>
+                <td>Symbol census, 7 packages, 17 non-test files</td>
+                <td class="yes">grep -c, 2026-09-23</td>
+              </tr>
+              <tr>
+                <td>7 hand-rolled CSRF inputs</td>
+                <td><code>name="_csrf"</code> count: dlq 4, projections 2, snapshots 1</td>
+                <td class="yes">grep, 2026-09-23</td>
+              </tr>
+              <tr>
+                <td>Sortable table headers adopted</td>
+                <td><code>sort.go:118</code> builds <code>Sortable: true</code> headers</td>
+                <td class="yes">read, 2026-09-23</td>
+              </tr>
+              <tr>
+                <td>CSS bundle healthy</td>
+                <td><code>check-css-bundles</code> exit 0; 76,984 bytes, canaries present</td>
+                <td class="yes">gate run, 2026-09-23</td>
+              </tr>
+              <tr>
+                <td>Version = latest</td>
+                <td><code>git tag --sort=-v:refname</code> head = v1.19.2</td>
+                <td class="yes">tags, 2026-09-23</td>
+              </tr>
+              <tr>
+                <td>ThemeToggle adoption is planned, not overlooked</td>
+                <td><code>tailwind.css:18-21</code> in-tree comment</td>
+                <td class="yes">read, 2026-09-23</td>
+              </tr>
+              <tr>
+                <td>AppShell lacks boost/partial-mode support</td>
+                <td><code>AppShellProps</code> surface (sidebar/header/content/container only)</td>
+                <td class="yes">read, 2026-09-23</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="muted">
+            Related skills for follow-up: deduplicate-code (if CSRF cleanup cascades),
+            frontend-design (theme toggle placement).
+          </p>
+        </section>
+
         <!-- Footer -->
         <footer class="footer">
           <p>
-            Generated YYYY-MM-DD &middot; Reviewed against version X.Y.Z
+            Generated 2026-09-23 &middot; Reviewed against templ-components v1.19.2
             &middot; All claims verified against source code where noted
           </p>
         </footer>
