@@ -36,8 +36,8 @@ MAX_RECENT="${PREFLIGHT_MAX_RECENT_COMMITS:-3}"
 
 # Uncommitted = staged + unstaged + untracked (ignored files excluded).
 tree_dirty() {
-  ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null \
-    || [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]
+  ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null ||
+    [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]
 }
 
 abort=0
@@ -59,8 +59,8 @@ if [ "$RECENCY" -gt 0 ]; then
     [ "$age" -gt "$RECENCY" ] && continue
     recent_total=$((recent_total + 1))
     case "$subject" in
-      "chore: auto-commit"*) : ;;
-      *) foreign+="${subject}"$'\n' ;;
+    "chore: auto-commit"*) : ;;
+    *) foreign+="${subject}"$'\n' ;;
     esac
   done < <(git log --since="@-${RECENCY} seconds" --format='%ct%x09%s' 2>/dev/null)
 

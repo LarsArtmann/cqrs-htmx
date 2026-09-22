@@ -51,14 +51,14 @@ echo "== test-preflight-tree-check.sh"
 # F1 clean + old
 r="$tmp/f1"
 new_repo "$r" && old_commit "$r" "initial"
-( cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER" ) >"$tmp/f1.out" 2>&1
+(cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER") >"$tmp/f1.out" 2>&1
 rc=$?
 report $([ $rc -eq 0 ] && echo 0 || echo 1) "F1 clean/old exits 0 (got $rc)"
 
 # F2 dirty
 r="$tmp/f2"
 new_repo "$r" && old_commit "$r" "initial" && echo x >"$r/uncommitted.txt"
-( cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER" ) >"$tmp/f2.out" 2>&1
+(cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER") >"$tmp/f2.out" 2>&1
 rc=$?
 ok=0
 [ $rc -eq 1 ] || ok=1
@@ -68,7 +68,7 @@ report $ok "F2 dirty tree exits 1 naming dirty (got $rc)"
 # F3 fresh non-daemon commit
 r="$tmp/f3"
 new_repo "$r" && old_commit "$r" "initial" && git -C "$r" commit -q --allow-empty -m "feat: foreign in-flight work"
-( cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER" ) >"$tmp/f3.out" 2>&1
+(cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER") >"$tmp/f3.out" 2>&1
 rc=$?
 ok=0
 [ $rc -eq 1 ] || ok=1
@@ -78,7 +78,7 @@ report $ok "F3 fresh foreign commit exits 1 (got $rc)"
 # F4 fresh daemon commit only
 r="$tmp/f4"
 new_repo "$r" && old_commit "$r" "initial" && git -C "$r" commit -q --allow-empty -m "chore: auto-commit 2 changed file(s) (heuristic)"
-( cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER" ) >"$tmp/f4.out" 2>&1
+(cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 bash "$CHECKER") >"$tmp/f4.out" 2>&1
 rc=$?
 report $([ $rc -eq 0 ] && echo 0 || echo 1) "F4 fresh daemon commit alone exits 0 (got $rc)"
 
@@ -88,7 +88,7 @@ new_repo "$r" && old_commit "$r" "initial"
 for i in 1 2 3 4 5; do
   git -C "$r" commit -q --allow-empty -m "chore: auto-commit $i changed file(s) (heuristic)"
 done
-( cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 PREFLIGHT_MAX_RECENT_COMMITS=3 bash "$CHECKER" ) >"$tmp/f5.out" 2>&1
+(cd "$r" && PREFLIGHT_RECENCY_SECONDS=300 PREFLIGHT_MAX_RECENT_COMMITS=3 bash "$CHECKER") >"$tmp/f5.out" 2>&1
 rc=$?
 ok=0
 [ $rc -eq 1 ] || ok=1

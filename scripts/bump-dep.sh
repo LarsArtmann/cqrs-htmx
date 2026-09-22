@@ -49,10 +49,10 @@ fi
 # prefix patterns like 'httputil' cannot also match 'httputil/server_timing'.
 TAIL_CLASS='[A-Za-z0-9/._-]*'
 case "$PATTERN" in
-  *'$')
-    TAIL_CLASS=''
-    PATTERN="${PATTERN%$}"
-    ;;
+*'$')
+  TAIL_CLASS=''
+  PATTERN="${PATTERN%$}"
+  ;;
 esac
 MATCH_RE="^[[:space:]]*github\.com/${PATTERN}${TAIL_CLASS}[[:space:]]+v[0-9][^[:space:]]*"
 

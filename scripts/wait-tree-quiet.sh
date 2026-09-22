@@ -29,10 +29,22 @@ MAX_WAIT="${WAIT_TREE_QUIET_MAX_WAIT:-600}"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --quiet) QUIET="${2:?}"; shift 2 ;;
-    --poll) POLL="${2:?}"; shift 2 ;;
-    --max-wait) MAX_WAIT="${2:?}"; shift 2 ;;
-    *) echo "wait-tree-quiet: unknown argument: $1" >&2; exit 2 ;;
+  --quiet)
+    QUIET="${2:?}"
+    shift 2
+    ;;
+  --poll)
+    POLL="${2:?}"
+    shift 2
+    ;;
+  --max-wait)
+    MAX_WAIT="${2:?}"
+    shift 2
+    ;;
+  *)
+    echo "wait-tree-quiet: unknown argument: $1" >&2
+    exit 2
+    ;;
   esac
 done
 
@@ -42,8 +54,8 @@ head_sha=""
 
 # Uncommitted = staged + unstaged + untracked (ignored files excluded).
 tree_dirty() {
-  ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null \
-    || [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]
+  ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null ||
+    [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]
 }
 
 while :; do
