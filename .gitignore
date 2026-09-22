@@ -64,12 +64,13 @@ examples/setup-demo/setup-demo
 /.buildflow-resume.json
 # Build artifacts
 /v3
-# Templ generated files are gitignored EXCEPT in modules that commit them.
-# adminui commits its _templ.go so consumers import them directly without
-# running the templ code generator.
+# Templ generated files are gitignored EXCEPT in modules that commit them
+# (adminui, loginpage, dashboardui) so consumers import them directly
+# without running the templ code generator.
 *_templ.go
 !adminui/*_templ.go
 !loginpage/*_templ.go
+!dashboardui/*_templ.go
 
 # >>> buildflow-managed (.gitignore) >>>
 # Auto-managed by buildflow. Edit outside these markers; this block is regenerated on `buildflow --fix`.
