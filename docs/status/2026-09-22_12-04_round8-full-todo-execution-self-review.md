@@ -4,7 +4,9 @@
 Inputs: the round-7 [TODO_LIST](../../TODO_LIST.md) as found at session start (02:2x), executed end-to-end; cross-repo work in `~/projects/templ-components`.
 Machine context: load 614 → 36 → 889 across the session (external workloads, 32 cores); `/mnt/buildcache` 100% FULL (1.8G free; rust 155G + sccache 20G dominate) — all Go work ran on `/tmp` fallback caches.
 
-> Verdict in one line: every actionable TODO item is executed and locally verified (check-modules 16/16, both repos' test/lint suites green), **but NOTHING is pushed** — templ-components `v1.19.1` + CI-red fixes and cqrs-htmx master are local-only, so real CI has not confirmed any of it.
+> **ANNOTATED 2026-09-22 (follow-up session):** both release/adoption items in (b) resolved the same day — templ-components v1.19.1 (+ 6 sub-module tags + the CI fixes on master) is pushed and verified on origin via `git ls-remote` (root tag `f917cb89`), and the cqrs-htmx adoption was executed end-to-end (`eb6dfc7a` → `5f1d1bca`, verified by the 14:21 adoption session, sync completed by the 13:25 release-train session). pkg.go.dev propagation + real-CI observation on both pushed ranges remain open (routed to TODO_LIST). Unmarked items below are still open.
+
+> Verdict in one line: every actionable TODO item is executed and locally verified (check-modules 16/16, both repos' test/lint suites green), ~~**but NOTHING is pushed** — templ-components `v1.19.1` + CI-red fixes and cqrs-htmx master are local-only, so real CI has not confirmed any of it.~~ both repos were pushed later the same day (tags verified on origin); real-CI observation on the pushed ranges is the remaining open tail (TODO_LIST).
 
 ---
 
@@ -43,11 +45,11 @@ Machine context: load 614 → 36 → 889 across the session (external workloads,
 
 ## b) PARTIALLY DONE (started, verification incomplete)
 
-1. **templ-components v1.19.1 release** — cut + tagged **locally only**; push pending owner (house rule: never push unconfirmed). pkg.go.dev propagation, release-smoke, and real-CI confirmation all await the push.
+1. **templ-components v1.19.1 release** — ~~cut + tagged **locally only**; push pending owner (house rule: never push unconfirmed).~~ pushed 2026-09-22 by the release-train-alignment session — all 7 v1.19.1 tags verified on origin via `git ls-remote` (root `f917cb89`). pkg.go.dev propagation, release-smoke, and real-CI confirmation are still unverified (routed to TODO_LIST consumer-eye/CI-watch).
 2. **templ-components CI repair** — all three fixes implemented and locally verified, but their AGENTS push ritual (`scripts/ci-repro.sh --lint --website` green-on-tip) was **NOT run**; real CI has not executed any of it.
 3. **templ-components visual pixel suite** — locally ran with a non-pinned Chromium: **PASS-count 0** (all pixel tests failed). Attributed to documented renderer/font drift ("a non-Nix Chromium false-fails pixel comparison" — their AGENTS), consistent with the failing set (pure pixel tests), but the claim is asserted, not proven; only `TestSiteSalesCopyButton` was verified green selectively. The pinned-Chromium run is outstanding.
 4. **bench-spike (P1)** — refused under load for the 9th documented time (614→36→889 vs limit 8). Mechanically correct per the guard; the item stays open. OQ16 (automate-or-retire) updated with refusal #9.
-5. **templ-components v1.19.1 adoption into cqrs-htmx** — new TODO item created with the full recipe (pins + both CSS bundle rebuilds); not executed (family-train-scale change, owner scheduling).
+5. ~~**templ-components v1.19.1 adoption into cqrs-htmx** — new TODO item created with the full recipe (pins + both CSS bundle rebuilds); not executed (family-train-scale change, owner scheduling).~~ done at `eb6dfc7a`, `650404e1`, `5f1d1bca`
 6. **`templ.WithChildren` exploitation** — discovery documented + pinned upstream; no dashboardui spike yet (SidebarNav criterion (1) noted as now-satisfiable).
 
 ## c) NOT STARTED (this session's sweep — legitimately blocked/owner/wait-gated)

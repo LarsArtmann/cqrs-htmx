@@ -319,7 +319,9 @@ badges), `display.StatCard` with `ValueID` DOM hooks, `display.Table` with
 typed sort headers + `LazyRows`, `display.EmptyState`, `display.Button`,
 `display.CopyButton`, `display.DefinitionList`, `display.ListNote`
 (count-only `ListNoteCount` variant under the DLQ table — the count is the
-Replay All / Purge All blast radius), `feedback.ToastContainer`,
+Replay All / Purge All blast radius; an empty DLQ renders `EmptyState`
+instead, so the variant's always-render "Showing 0 items." never appears on
+this page — deliberate), `feedback.ToastContainer`,
 `htmx.GlobalErrorHandling`, `forms.Select` (page size), `errorpage.ErrorPage`
 /`NotFound404`, and `icons`.
 
