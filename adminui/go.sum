@@ -199,8 +199,8 @@ github.com/larsartmann/go-sse v0.6.1 h1:GSc2ueXIjNAsYlZjOR8kfOlm/UwiOh5eNwVmnrqy
 github.com/larsartmann/go-sse v0.6.1/go.mod h1:yN/gsqxOYwt9aqfcsfnIAzENNk+libcm2t3M4ByW1KU=
 github.com/larsartmann/go-sse/ssetest v0.3.0 h1:HEP3nFUsaWAz6fz8WmbeR2nUj6jv/cAHf+7HVeMeRRY=
 github.com/larsartmann/go-sse/ssetest v0.3.0/go.mod h1:VNpjSMfzdCeIT5YKAmJPB6jGN4PBjJF0/aXc/YM/OVQ=
-github.com/larsartmann/httputil v1.2.0 h1:EVU5GS4iUFGu+iuO1tbDt8zRJ56zjsn8cXZuISPhkjQ=
-github.com/larsartmann/httputil v1.2.0/go.mod h1:7tPYJfS0PcoSlmzMUUB5MXbLgHqLPLgf2nKolA8g7Fc=
+github.com/larsartmann/httputil v1.3.0 h1:ptCDjCL1EsZMELXBgmL/VC6wi7pjGkrZw5TuIaiUNkE=
+github.com/larsartmann/httputil v1.3.0/go.mod h1:AS4TShODePILCrzpkIEmi7J5caZYqhrEta0pf8w7nFU=
 github.com/larsartmann/httputil/server_timing v1.0.1 h1:9T2YwZfrj71F1NFblFwIDsJZ7rnLU8K1BYlxBmrwfn8=
 github.com/larsartmann/httputil/server_timing v1.0.1/go.mod h1:QumWlp/L8NhkwNXZkN/IeLjtE5Y97axZ9LCK9NzSVck=
 github.com/larsartmann/templ-components v1.19.2 h1:pW/RuPLZfT8fDi2LBKcEfZB1J+/frammBX2tof8O/SQ=
