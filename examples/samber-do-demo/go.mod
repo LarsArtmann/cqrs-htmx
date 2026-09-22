@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/go-health v0.4.0
-	github.com/larsartmann/go-health-dashboard v0.9.0
+	github.com/larsartmann/go-health-dashboard v0.10.0
 	github.com/larsartmann/httputil v1.3.0
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/samber/do/v2 v2.1.0

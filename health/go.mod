@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
 	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/go-health v0.4.0
-	github.com/larsartmann/go-health-dashboard v0.9.0
+	github.com/larsartmann/go-health-dashboard v0.10.0
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
 )
@@ -39,7 +39,6 @@ require (
 	github.com/larsartmann/templ-components/icons v1.19.2 // indirect
 	github.com/larsartmann/templ-components/utils v1.19.2 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
