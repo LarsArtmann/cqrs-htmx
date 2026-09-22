@@ -1,0 +1,128 @@
+# Session Status & Self-Review — templ-components v1.19.1 Family Adoption
+
+**2026-09-22 14:21 CEST** · session-scoped: what THIS session (≈13:05–14:20 CEST) did, noticed, broke, and missed.
+Inputs: TODO_LIST line 32 (the round-8-created adoption TODO), executed end-to-end. Machine context: `/mnt/buildcache` still ~full (go-cache-env accepted it; no /tmp fallback needed this session); LSP red all session (bare-shell go1.26.7 vs go.work 1.27.1 floor — known gotcha 14 noise, ignored per policy).
+
+> Verdict in one line: the adoption TODO is fully executed and locally verified (12-module bump + both CSS bundles + ListNoteCount adoption in dashboardui + docs), all gates green, 5 commits landed (all daemon-heuristic — the daemon outran every manual commit attempt), **nothing is pushed**, and real CI has not seen any of it.
+
+Commit chain this session (all `chore: auto-commit` heuristic per gotcha 4):
+`eb6dfc7a` (24 files: 12× go.mod/go.sum pin bump) → `2f59832e` (both CSS bundles, minified canonical) → `14e386e3` (render.go ListNote helper) → `650404e1` (DLQ note + golden + test assertions + dashboardui docs) → `5f1d1bca` (root CHANGELOG + TODO_LIST closure + a concurrent session's AGENTS.md shell-trap lesson).
+
+---
+
+## a) FULLY DONE (verified this session)
+
+1. **All 12 consuming modules bumped templ-components v1.19.0 → v1.19.1.** adminui + dashboardui (direct), setup, health, integration_test, e2e/server, examples/{admin,dashboard,setup,async-startup,catalog,samber-do}-demo (indirect). Hermetic `GOWORK=off go get` + `go mod tidy` per module with `GOEXPERIMENT=jsonv2` + `go-cache-env.sh` (GOTOOLCHAIN floor aligned). Verified: zero v1.19.0 references remain in any go.mod (absence-asserted, not sampled), diffs touch templ-components lines ONLY, `go mod verify` clean in both UI modules.
+2. **Upstream release proven reachable before bumping.** `git ls-remote` showed all 7 v1.19.1 tags (root + 6 sub-modules incl. `datastar/` and `charts/echarts/`) pushed to origin at commit `400a7830`; CHANGELOG read: purely additive (Added/Documented/Fixed; zero-value compatible). The round-8 "PUSH PENDING" caveat is resolved upstream — tags are on the public remote.
+3. **Both CSS bundles rebuilt in the same change** (`nix run .#build-adminui-css` / `.#build-dashboardui-css`, dashboardui canaries OK). Class-set comparison (sorted selector sets old vs new) proved the delta is formatting-only: the previously committed artifacts were UNMINIFIED buildflow-hook rewrites; the flake builders emit the canonical minified form. CopyButton's new `text-gray-700 dark:text-gray-200` utilities were already present in both bundles.
+4. **`display.ListNote` `ListNoteCount` adopted in dashboardui.** New hybrid helper `listNoteCountHTML` (dashboardui/render.go:191, full nested-BaseProps form behind `//nolint:modernize` per the exhaustruct_v5 panic gotcha); DLQ page (dashboardui/handlers_dlq.go:465) now ends the table with "Showing N items." + `aria-label="Dead letter count"` — the count is the Replay All / Purge All blast radius. Existing goldens byte-identical; only the NEW `list_note_count.golden` was created.
+5. **Adoption pinned by tests.** `TestGolden_ComponentMarkup` grew the `list_note_count.golden` case; `TestRenderDLQ_WithEntries` asserts the notice (incl. singular "Showing 1 item." pluralization) and the aria label render through the real handler. Both green.
+6. **Stale exclusion note fixed (docs drift).** dashboardui/README.md no longer lists `display.ListNote` as wholesale-excluded: adopted-capabilities list gained the count variant, and the exclusion line now names the REAL remaining boundary (ListNote speaks N-of-M/N-items, not X–Y ranges — so the hand-rolled "Showing X–Y of Z" pagination info stays). dashboardui/CHANGELOG [Unreleased] documents the feature.
+7. **Root docs closure.** Root CHANGELOG [Unreleased] gained a full adoption entry (mirrors the v4.12.0 train-entry precedent); TODO_LIST item 32 REMOVED per the completed-work convention (completed → CHANGELOG, never `[x]`).
+8. **Full verification sweep, all green:**
+   - Baselines BEFORE any change: adminui + dashboardui build + vet + `go test -race` green (recorded first — failure mode F11).
+   - Post-change: both UI modules green again; full workspace `nix run .#test` green (all 17 module groups, `-race`).
+   - `golangci-lint run` on dashboardui (devShell): 0 issues. `nix fmt` (treefmt, 692 files): 0 changed.
+   - Push-time gates locally: `check-version-drift.sh --strict` green (all 805 larsartmann requires at consistent, published versions) and `check-release-train.sh` (CI-default strict flags) green — 0 unpublished, 0 lag.
+   - Docs gates smoke: `check-status-annotations.sh` + `check-status-rows.py` both green.
+9. **Concurrent-session safety held.** A foreign AGENTS.md edit (new shell-trap lesson: process substitution `<(...)` false-EQUAL under mvdan/sh) appeared mid-session — investigated, correctly left unattributed, and the daemon committed it alongside my docs in `5f1d1bca`. A stray `dashboardui/styles.css` minification caused by MY buildflow pre-commit run was identified as the documented orphan output (gotcha 9: never served, never consumed) and restored to keep the tree clean. Working tree clean at report time.
+
+## b) PARTIALLY DONE
+
+1. **Push + real-CI confirmation.** All 5 session commits are local on master. Nothing pushed (house rule: never push without explicit ask). Real CI has not executed the bump or the adoption. Same gap class round-8 flagged for the whole repo; still open.
+2. **templ-components upstream CI status.** I proved the v1.19.1 tags are PUSHED (ls-remote), but did not verify their CI went green post-push (their red-master fixes were "unproven in real CI until pushed" at round-8 time). Out of this repo's scope; tracked upstream — noted here because the adoption depends on that release being healthy.
+3. **Delivering-layer verification is test-grade, not human-grade.** The DLQ note is proven by golden + handler assertions + a11y/CSP suite sweeps, but no human/browser render pass happened, and the Playwright e2e suite was NOT run for this change (see c2/c3).
+4. **HARVEST not run.** This report's section (f) is brainstorm-grade; per the status-report contract it belongs in TODO_LIST/ROADMAP via docs-health HARVEST — not yet done (the user asked me to wait for instructions).
+
+## c) NOT STARTED (noticed this session, deliberately untouched)
+
+1. **Round-8 report annotation.** `docs/status/2026-09-22_12-04_round8-full-todo-execution-self-review.md` item (b)(5) says the adoption "not executed (owner scheduling)" — now FALSE. The docs-health ANNOTATE pass on that report was not done this session → split-brain risk for the next reader (TODO_LIST is closed but the report still says open).
+2. **e2e (Playwright) run.** The dashboard e2e suite (57/57 precedent) was not executed after the DLQ HTML change; no e2e assertion covers the count notice.
+3. **Heavy gates not re-run post-adoption:** `nix run .#check-modules` (16 stages), `.#coverage-gate` (15 modules), and the full e2e lane. Targeted equivalents passed; the full fleet sweep is the next confidence step.
+4. **FEATURES.md not updated.** The DLQ count notice is a small user-visible feature; FEATURES = honest inventory. I judged CHANGELOG sufficient and did not touch FEATURES — flagged as a possible miss (see d5).
+5. **`templ.WithChildren` dashboardui spike** (round-8 (b)(6), SidebarNav criterion) — untouched, as before.
+6. **`render_bench_test.go` ListNote case** (N16 pattern: bench per adopted family) — not added.
+7. **`go test ./... -run TestGolden -update` core-package quirk.** The README-documented golden-update command FAILS `dashboardui/v4/core` ("flag provided but not defined: -update" — core's test binary doesn't define it). Pre-existing, noticed, root-caused this session; not fixed (scoping the command to `go test .` or defining the flag in core are both one-liners).
+
+## d) TOTALLY FUCKED UP (honest ledger)
+
+1. **The auto-commit daemon outran 5 out of 5 commits.** Every artifact landed as a `chore: auto-commit N file(s) (heuristic)` commit; my only manual commit attempt (the docs commit) raced the daemon and died on `fatal: cannot lock ref 'HEAD'` — I had watched the daemon commit twice minutes earlier and still didn't check `git log` immediately before `git commit`. Content was verified before each daemon pickup, but phase-boundary attribution (gotcha 4's whole point) was lost. A real `git commit` with the message I wrote never made it into history.
+2. **Self-inflicted false alarm on the CSS class check.** My first class-presence grep used regex-escaped patterns (`dark\:border-gray-700`, `py-2\\.5`) that CANNOT match minified CSS, reporting 3 classes "MISSING" that were present. Resolved with fixed-string search (`rg -F`) + the byte-identical rebuild size, but the initial check wasted a cycle and briefly suggested a broken bundle. Should have used `grep -F` from the start (and mvdan/sh escaping is exactly the gotcha-3 trap class).
+3. **Wandered on the ListNote target before pinning semantics.** I initially read the TODO's "for its range/count semantics" as possibly "replace renderPaginationInfo" — which would have been a semantic REGRESSION ("Showing X–Y of Z" is an X–Y range; ListNote cannot express it). Several research rounds were spent before the correct target (DLQ complete-list count) was settled. The TODO's phrasing invited the wrong reading; I should have pinned the component's exact render contract FIRST (I did read it early, but didn't stop to reconcile it against the pagination-info shape until later).
+4. **`-run TestGolden -update` core FAIL confused me twice.** Ran the update command twice with the same failure before reading the flag error properly. Minor, but the "shell traps: read the actual error" discipline slipped.
+5. **FEATURES.md/FEATURES-adjacent inventory possibly under-updated** (see c4) — judgment call, owned here as a potential miss rather than a certainty.
+
+Nothing data-destroying: no reverts of others' work, no force operations, no `--no-verify` needed (the buildflow hook passed on its second real run), no secrets, no proxy/tag operations in this repo.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Commit BEFORE the verification tail, not after.** The daemon polls faster than any 30s+ gate. The winning pattern is: verify → IMMEDIATELY `git add <files> && git commit` in one tight command — or deliberately accept daemon pickup and spend zero effort fighting it. Half-doing both (as I did) is the worst of the two.
+2. **Golden-update command ergonomics.** Either scope the documented command (`go test . -run TestGolden -update`) or teach `core` the flag. A documented command that fails part of the workspace is a trap for every future session.
+3. **Exact-class-set CSS drift gate.** The bundle builders canary utility FAMILIES; my session needed a hand-rolled sorted-selector diff to prove formatting-only drift. A flake app that diffs the sorted class set of the committed bundle vs a fresh build (exit 1 on delta) would mechanize what I did manually — ships atomic per the gate checklist (checker + fixture self-test + flake app + check-modules stage + CI + README).
+4. **Consumer-eye verification for v1.19.1 from THIS repo** (round-8 item 7 did this for v4.12.0): throwaway module outside the workspace `go get`s the published v1.19.1 tags and compiles a minimal consumer; pkg.go.dev render check. Proxy propagation is currently assumed, not proven, from the consumer side.
+5. **E2E coverage for new UI surface.** Every adopted component so far got golden + handler assertions; the DLQ count notice (and future adoptions) should get a Playwright assertion in the same change so the delivering layer is pinned end-to-end.
+6. **Placement of the count note is a solo design call.** I placed it under the table (the component's `border-t` design language). The alternative — above the table, next to Replay All / Purge All — puts the blast radius BEFORE the destructive buttons. Both defensible; the owner should see it once (see g2).
+7. **LSP noise.** gopls/golangci-lint_ls were red ALL session (bare-shell toolchain vs go.work floor). Gotcha 14 says ignore, and I did — but a session-bootstrap fix (point the editor LSP at the devShell toolchain) would remove permanent phantom-diagnostics noise for humans too.
+
+## f) Top 50 things we should get done next
+
+_Brainstorm per the status-report contract — most items below #10 are ROADMAP fuel; docs-health HARVEST must route them (TODO_LIST only gets actionable, bounded, short/mid-term items)._
+
+| #  | Item                                                                                                                                            | Why now / source                                        |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 1  | Push cqrs-htmx master (5 local commits: bump + bundles + adoption + docs)                                                                       | Real CI has seen none of it; owner push ritual          |
+| 2  | Verify templ-components v1.19.1 real-CI green post-push (their red-master fixes)                                                                | Upstream gate the adoption rides on                     |
+| 3  | ANNOTATE round-8 report (b)(5) as done (`> ANNOTATED` blockquote)                                                                               | Kills the report-vs-TODO_LIST split brain               |
+| 4  | HARVEST this report's (f) into TODO_LIST / ROADMAP (docs-health)                                                                                | Section (f) must not be entombed here                   |
+| 5  | Run full `nix run .#check-modules` (16 stages) post-adoption                                                                                    | Whole-fleet confidence beyond targeted gates            |
+| 6  | Run full e2e (Playwright) suite; add a DLQ count-notice assertion to the dashboard spec                                                         | Delivering layer end-to-end                             |
+| 7  | Human/browser smoke of the DLQ page (note placement + contrast, dark mode)                                                                      | Test-grade ≠ human-grade                                |
+| 8  | Consumer-eye verification for v1.19.1 (throwaway module `go get` + compile + pkg.go.dev render)                                                 | Prove proxy propagation from the consumer side          |
+| 9  | Run `nix run .#coverage-gate` (15 modules)                                                                                                      | Coverage floors after new code                          |
+| 10 | Fix the `go test ./... -run TestGolden -update` core-package flag failure (scope command or define flag)                                        | Documented command fails part of the workspace          |
+| 11 | Update FEATURES.md for the DLQ count notice (if inventory-material)                                                                             | Honest-inventory discipline; possible session miss      |
+| 12 | Add ListNote render bench to `render_bench_test.go` (N16 pattern)                                                                               | Bench per adopted family                                |
+| 13 | Exact-class-set CSS bundle drift gate (flake app + self-test + CI, atomic)                                                                      | Mechanize the manual class-set diff I ran               |
+| 14 | adminui CopyButton contrast-fix visual check (tables re-coloring ancestors were the bug class)                                                  | The fix's actual target scenario                        |
+| 15 | UX scan: should audit commands/queries pages carry count notices too?                                                                           | Consistency sweep across list pages                     |
+| 16 | Decide DLQ note placement (under table as shipped vs above near destructive buttons)                                                            | Owner design call (see g2)                              |
+| 17 | `templ.WithChildren` dashboardui spike (SidebarNav criterion (1) now satisfiable)                                                               | Round-8 (b)(6), discovery idle since                    |
+| 18 | bench-spike P1 on an idle machine (refused 9× under load); or OQ16 automate-or-retire                                                           | Round-8 owner-gated item                                |
+| 19 | DataStar Tier 4 M11: dashboardui signal-patch spike + go/no-go (demand-gated)                                                                   | ADR-0050 remaining tier                                 |
+| 20 | M16: release train for changed modules (setup API) — next family train scheduling                                                               | Round-8 remaining                                       |
+| 21 | V007 cluster (1): 68 SQLViewStore findings → metaengine layout planning (ADR-0126)                                                              | Largest known debt cluster                              |
+| 22 | Owner calls queue: OQ14 `setup.NewFromSystem()`, OQ15 GitHub-Releases posture, datastar-demo keep/remove execution                              | Evidence delivered, decisions pending                   |
+| 23 | cqrs-lint Go-installable distribution → CI wiring + blocking stale-suppressions                                                                 | Upstream-blocked, re-verify green-state norm            |
+| 24 | BuildFlow `go-version-auto-configure` re-enable (2 upstream fixes)                                                                              | Round-8 upstream-blocked item                           |
+| 25 | `docs/status/README.md` unarchived-count refresh + archive policy sweep (this + the 12-04 report are today's two)                               | Report hygiene                                          |
+| 26 | docs drift sweep: re-verify all "deliberate exclusions" claims in adminui/loginpage/dashboardui READMEs against the current library (v1.19.1)   | Exclusion reasons rot as the library grows (proven twice) |
+| 27 | loginpage adoption pass: `recipes.AuthLayout`, `forms.Input/Form`, `feedback.Alert` (AGENTS-named opportunities)                                | Family consistency                                      |
+| 28 | Verify dashboards' dark-mode surface pins still correct post-bump (gray-800/900 re-pin class)                                                   | AGENTS templ-components gotcha                          |
+| 29 | Document "Showing 0 items. never renders on DLQ (empty → EmptyState)" — deliberate call-site behavior vs the variant's always-render design     | Tiny semantic note before someone "fixes" it            |
+| 30 | Runbook entry: recovering from `fatal: cannot lock ref 'HEAD'` daemon races (check git log, re-stage, retry or accept)                           | Hit live this session; next session will too            |
+| 31 | v5-window prep: SSE re-export/deprecated-alias removal checklist (ADR 0046 bundle)                                                              | v5 planning                                             |
+| 32 | v5-window: ProjectionLayer removal prep (ADR-0051) + appkit ADR-0052 revisit condition                                                          | v5 planning                                             |
+| 33 | Confirm screen-reader behavior of the DLQ note (`role="status"` announce-on-load semantics)                                                     | a11y due diligence                                      |
+| 34 | dashboardui guide/README screenshot refresh once the note ships in a release                                                                    | Docs currency                                           |
+| 35 | Smoke-run examples (catalog-demo, dashboard-demo, admin-demo) against v1.19.1                                                                   | Example rot check                                       |
+| 36 | Consider `BaseProps.ID` pinning policy for the DLQ note if JS/e2e ever targets it (`EnsureID` randomization gotcha)                             | Pre-empt the DOM-hook gotcha                            |
+| 37 | Verify templ-components SKILL.md catalogue counts still true post-v1.19.1 (upstream docs drift)                                                 | Upstream hygiene                                        |
+| 38 | ROADMAP raw-idea: per-page "count chip" in headers fed by the same count info (design sketch only)                                              | Idea parking                                            |
+| 39 | ROADMAP raw-idea: ListNote `Message` override prop upstream (if "Showing N items." proves too generic for domain lists like DLQ)                | Upstream ask candidate                                  |
+| 40 | Check whether any other repo spot needs count-only semantics (repo-wide ListNote adoption sweep)                                                | Completeness                                            |
+| 41 | Post-push: confirm GitHub attribution of the 5 heuristic commits looks acceptable in history                                                    | Attribution visibility (history must not be rewritten)  |
+| 42 | Re-pin bench baselines ONLY if render benches shifted materially after the bump (idle machine, same-change rule)                                | Bench-gate hygiene                                      |
+| 43 | AGENTS.md templ-components section: bump "110+ components" count if the family grew again                                                       | Trivial doc freshness                                   |
+| 44 | Sweep for OTHER TODO_LIST items made stale by upstream pushes today (both repos pushed)                                                         | Staleness class                                         |
+| 45 | Consider `go.work.sum`-regeneration check after multi-module bumps (untracked file; ensure no committed-state expectation lurks in gates)        | Hermetic-build paranoia                                 |
+| 46 | Verify the drift gate EXCLUDES nothing it shouldn't (it scans testdata-exempted go.mods; confirm fixture go.mods stay exempt)                    | Gate-integrity spot check                               |
+| 47 | e2e webServers `GOWORK` pin (round-8 item) — confirm still pinned post today's config state                                                     | Regression watch                                        |
+| 48 | Evaluate pre-push hook behavior when BOTH repos have pending pushes (templ-components + cqrs-htmx interleaved)                                  | Push-ritual edge case                                   |
+| 49 | ROADMAP raw-idea: expose DLQ count via the projection-health JSON API for external monitors                                                     | Idea parking                                            |
+| 50 | Defer-list triage: re-read ROADMAP "Not Planned" entries for anything the v1.19.1 variant surface un-blocks                                     | Un-block sweep                                          |
+
+## g) Questions I can NOT figure out myself
+
+1. **Push now or batch later?** The 5 local commits (bump + bundles + adoption + docs) sit on master, locally green. Do you want `git push` executed NOW so real CI confirms the adoption today, or do you batch it with other pending work? (I never push without your explicit go.)
+2. **DLQ count-note placement — ship as-is or move?** I placed it UNDER the table (the component's `border-t` footer design language). The alternative is ABOVE the table next to Replay All / Purge All, so the blast radius is visible BEFORE the destructive confirmations. Look at `docs/status` commit `650404e1`'s rendering (or run any dashboard with dead letters) — keep as shipped, or should I move it up / extend it to the page header?
+3. **Heavy-gate policy for adoptions: local-first or CI-first?** Targeted gates passed, but `check-modules` (16 stages) + full e2e + coverage-gate were NOT re-run post-adoption (~10–20 min of machine time). Do you want the full local fleet sweep as standard practice after family-scale adoptions, or is targeted-per-module + CI-on-push your intended bar? (This defines what "verified" means for the next adoption.)
