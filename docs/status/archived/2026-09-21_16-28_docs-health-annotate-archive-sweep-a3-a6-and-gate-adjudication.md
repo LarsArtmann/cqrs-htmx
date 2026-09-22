@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health Z):** the gate adjudication recorded here is now ENFORCED — ~~Gate 1~~ (scripts/check-status-annotations.sh + 16-case self-test, CI-wired), ~~Gate 2~~ (scripts/check-status-rows.py + 17-case self-test, CI-wired; mixed tables first-class; the 19 adjudicated tables are the tracked baseline). A7 AUDIT printed (Accuracy 8.0 / Fitness 7.75, both Medium/MH findings since fixed by their owning phases).
+
 # Status Report — Docs-Health ANNOTATE + ARCHIVE Sweep (A3–A6) and Completeness-Gate Adjudication
 
 **Date:** 2026-09-21 16:28 CEST

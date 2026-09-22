@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health Z):** superseded by the completed sweep — ~~A1/A2~~ done (all 37 target reports annotated+archived; the archive-consolidation held). The §f tail (gates, harvest, README) was executed by the 09-21/09-22 sessions: Gate 1 + Gate 2 repo-owned and CI-wired, B4 harvest done, ROADMAP/TODO v4.12.0-current. Evidence: CHANGELOG [Unreleased] 2026-09-22, docs/status/README.md.
+
 # Status Report — Docs-Health Annotate+Archive Sweep (A1 + A2 complete)
 
 **Date:** 2026-09-21 10:34 CEST

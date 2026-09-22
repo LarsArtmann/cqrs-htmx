@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health Z):** all executed decisions verified standing — templ-components v1.19.0 adopted repo-wide, adminui theme toggle shipped (e2e 10/10), SSEFilter in v4.12.0, ADR-0051 deprecations tagged, V007 clusters 2+3 done; C9/D7 stayed unauthorized as recorded. The v4.12.0 train this report prepared was CUT AND PUSHED (14 tags). Residuals live in TODO_LIST (strict-lag split brain, post-train consumer smoke, self-tests for dep-budget/VCS-cache, cqrs-lint snapshot, X-Client-Id sweep).
+
 # Round-6 Status — Design-Tree Interview Executed: templ-components v1.19.0 Cut, Theme B, /sse Option B, V007 ADR; Gate Tail In Flight
 
 **Session:** 2026-09-21 ~15:50–18:20 CEST (single session, resumed from the 14:03 docs-health sweep)

@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health Z):** the honest gaps this self-review named are closed — ~~coverage-gate~~ and ~~lint~~ re-run green 2026-09-22; ~~§c1/c2~~ done; §c3 (GitHub Releases) routed to ROADMAP OQ15; §c4 consumer-eye smoke routed to TODO_LIST; §c5/§c6 routed (TODO/ROADMAP); §c7 verified surviving. §f harvest executed into TODO_LIST/ROADMAP (strict-lag mirror, dep-budget self-test, VCS-cache sweep, wave-ordered choreography runbook, X-Client-Id sweep); go-cqrs-lite ROADMAP stack-removal entry verified surviving.
+
 # Round 6 Tail — Brutal Self-Review + Status Report
 
 **Date:** 2026-09-22 01:18 · **Scope:** THIS session only (gate ladder → v4.12.0 train → cleanup). No new codebase research; everything below is from what this session did and noticed. **Predecessor reports:** `2026-09-21_18-20_round6-decisions-executed-tc-v1.19-theme-sse-v007-gates.md`, `2026-09-22_00-23_v4.12.0-family-train-cut-all-gates-green.md`.

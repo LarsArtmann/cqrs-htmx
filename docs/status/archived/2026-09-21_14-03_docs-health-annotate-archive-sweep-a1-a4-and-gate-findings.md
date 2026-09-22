@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health Z):** ~~A1–A4~~ complete (13 + 5 files archived; corpus at 405); the gate findings this report surfaced were adjudicated and encoded — Gate 1 epoch 2026-09-09 with LEGACY-EXEMPT eras, Gate 2 PARTIAL-rows-only policy (repo-owned scripts/check-status-rows.py, scope-identity vs the skill asset proven 19=19). §f items routed: A5–A10/B1–B4 all done 2026-09-22 (see the closing report).
+
 # Status Report — docs-health ANNOTATE + ARCHIVE Sweep A1–A4 Complete + Completeness-Gate Findings
 
 **Date:** 2026-09-21 14:03 CEST

@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health Z):** the questions this report asked are answered — ~~Q1~~ hook toolchain FIXED (go-cache-env.sh GOTOOLCHAIN floor alignment, proven live by a full bare-shell hook run; T9 self-test 12/12); ~~Q2~~ python3: ambient is the contract, flake apps pin pkgs.python3 (README documents); ~~Q3~~ finish-wiring-first was executed: Gate 2 in check-modules + CI, README rewritten, scope-identity diffed 19=19, self-test strengthened to exact counts (17 cases).
+
 # Status Report — Docs-Health A6 Gate Closure + Annotation-Gate Wiring (session 2026-09-21 22:23)
 
 **Date:** 2026-09-21 22:23 CEST

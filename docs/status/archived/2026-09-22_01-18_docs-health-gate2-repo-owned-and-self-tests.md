@@ -1,3 +1,5 @@
+> **ANNOTATED 2026-09-22 (docs-health Z, same day):** §b1–b5 all closed — ~~half-wired Gate 2~~ finished (check-modules stages + sequential path + CI steps + apps run for real); ~~README Gate 2~~ rewritten (repo-owned command, skill asset as authoring aid, python3 ownership decided); ~~scope-identity~~ proven per-file+per-line; ~~weak self-test~~ strengthened (exact counts, 17 cases); ~~hook fix~~ shipped + proven. §f Tier-0 items 1–8 all DONE this session; Tier-1 hook items 9–13 DONE (buildflow's own step failures are deterministic env-class: tsc-without-tsconfig, go-licenses-outside-devShell — recorded in AGENTS gotcha 8); Tier-2/3 executed per the closing report.
+
 # Status Report — Docs-Health Gate 2 Made Repo-Owned + Self-Tests for Both Gates (session 2026-09-22 01:18)
 
 **Date:** 2026-09-22 01:18 CEST
