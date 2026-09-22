@@ -20,9 +20,12 @@
 # DEV-ONLY usermgmt replace); TRAIN LAG is still reported for planning.
 #
 # Usage: ./scripts/check-release-train.sh [--json] [--strict-lag N]
-#                                         [--no-cache] [--refresh-cache]
+#                                         [--advisory] [--no-cache] [--refresh-cache]
 #   --json           machine-readable summary (stable shape, for tooling)
-#   --strict-lag N   exit 3 when train lag exceeds N (default: lag advisory)
+#   --strict-lag N   exit 3 when train lag exceeds N (default: 0 — CI parity;
+#                    see "SPLIT-BRAIN FIX" below)
+#   --advisory       never fail on train lag (planning mode; the pre-commit
+#                    hook uses this — lag is enforced at PUSH time instead)
 #   --no-cache       bypass the persistent ls-remote tag cache entirely
 #   --refresh-cache  force re-fetch every repo's tags, then rewrite cache
 #
@@ -40,6 +43,14 @@
 #       4 = ls-remote failure outside CI (cannot check, not a verdict)
 # Requires: network access to github.com (git ls-remote) on cache miss.
 # CI=true downgrades ls-remote failures to warnings (advisory mode there).
+#
+# SPLIT-BRAIN FIX (2026-09-22): the default used to be advisory lag
+# (STRICT_LAG=-1) while CI enforces --strict-lag 0 — a session read the
+# local green, pushed, and CI went red on lagging entries
+# (docs/status/2026-09-22_01-18 §d1). The local default is now CI's exact
+# flags (strict-lag 0); pass --advisory when planning the next train. The
+# pre-commit hook deliberately runs --advisory (commit-time), while the
+# pre-push hook enforces the strict default (push-time — where CI checks).
 
 set -euo pipefail
 
@@ -51,7 +62,9 @@ cd "$REPO_ROOT"
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/replace-exemption.sh"
 
 JSON=0
-STRICT_LAG=-1
+# Default 0 = CI parity (see SPLIT-BRAIN FIX above). --advisory restores the
+# pre-2026-09-22 planning behavior; --strict-lag N sets an explicit budget.
+STRICT_LAG=0
 NO_CACHE=0
 REFRESH=0
 while [ $# -gt 0 ]; do
@@ -67,6 +80,7 @@ while [ $# -gt 0 ]; do
     ;;
   --no-cache) NO_CACHE=1 ;;
   --refresh-cache) REFRESH=1 ;;
+  --advisory) STRICT_LAG=-1 ;;
   *)
     echo "check-release-train: unknown option '$1'" >&2
     exit 2

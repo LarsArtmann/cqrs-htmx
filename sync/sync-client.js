@@ -88,6 +88,11 @@
   // "client.id"). ULID format: 26-char Crockford Base32 (timestamp + random),
   // parseable by the server's id.ParseClientID — a crypto.randomUUID UUID
   // would be rejected.
+  // Must match the Go constants cqrshtmx.HeaderClientID ("X-Client-Id") and
+  // cqrshtmx.CommandIDHeader ("X-Command-Id") — keep them in sync manually
+  // (no codegen link across languages).
+  const CLIENT_ID_HEADER = "X-Client-Id";
+  const COMMAND_ID_HEADER = "X-Command-Id";
   const CLIENT_ID_KEY = "cqrs-htmx-client-id";
 
   /**
@@ -416,14 +421,14 @@
     if (!isMutation) return;
 
     e.detail.requestConfig.headers = e.detail.requestConfig.headers || {};
-    let cmdID = e.detail.requestConfig.headers["X-Command-Id"];
+    let cmdID = e.detail.requestConfig.headers[COMMAND_ID_HEADER];
     if (!cmdID && typeof crypto !== "undefined" && crypto.randomUUID) {
       cmdID = crypto.randomUUID();
-      e.detail.requestConfig.headers["X-Command-Id"] = cmdID;
+      e.detail.requestConfig.headers[COMMAND_ID_HEADER] = cmdID;
     }
     // Stamp the persistent client ID for offline-first attribution. Persists
     // into queued envelopes (headers are captured) so retries carry it too.
-    e.detail.requestConfig.headers["X-Client-Id"] = getClientID();
+    e.detail.requestConfig.headers[CLIENT_ID_HEADER] = getClientID();
     if (!cmdID) return;
 
     const target = e.detail.elt;
