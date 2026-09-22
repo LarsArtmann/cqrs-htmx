@@ -171,7 +171,12 @@ func (s *Service) revokeSessionsBestEffort(ctx context.Context, userID UserID, f
 // createAndStoreSession creates a session for the user and persists it to
 // the store. Shared by the Service and OAuth2Service login paths so both
 // wrap failures identically.
-func createAndStoreSession(ctx context.Context, sessions SessionStore, sessionTTL time.Duration, userID UserID) (*Session, error) {
+func createAndStoreSession(
+	ctx context.Context,
+	sessions SessionStore,
+	sessionTTL time.Duration,
+	userID UserID,
+) (*Session, error) {
 	session, err := NewSession(userID, sessionTTL)
 	if err != nil {
 		return nil, errorfamily.NewTransient("usermgmt.session.create", "create session").WithCause(err)

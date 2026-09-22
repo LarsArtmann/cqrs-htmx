@@ -1,11 +1,12 @@
 # Dedup Acceptance Log
 
-Accepted clone groups from `art-dupl --type-aware -t 1` that are intentional
+Accepted clone groups from `art-dupl --type-aware` that are intentional
 boilerplate, not harmful duplication. Each entry lists the clone group
 location and a one-line reason for accepting it.
 
 The current state at `-t 5` (the default meaningful threshold) is **0 clone
-groups**; the report at `-t 1` lists only short, idiomatic fragments.
+groups**; at `-t 3` only the accepted groups below remain; `-t 1` lists only
+short, idiomatic fragments.
 
 ## Context-with-cancel boilerplate
 
@@ -20,7 +21,7 @@ resource-cleanup boilerplate, not semantic duplication.
 
 ## Generic zero-value returns
 
-- `decoder.go:24,90` — `var out T` in `decodeJSONBody[T]` and `decodeFormBody[T]`
+- `decoder.go:36,109` — `var out T` in `decodeJSONBody[T]` and `decodeFormBody[T]`
 
 **Reason:** Go generics require each generic function to declare its own zero
 `T` for the failure path. Language constraint, not duplication.
@@ -101,8 +102,38 @@ kindElse)` shared by `verifiedBadge` and `totpBadge`.
   in `ChangeEmail`, `ChangeDisplayName`, `DeleteUser`, `AddCredential`,
   `RemoveCredential`.
 
+## 404 error-page flow across the ready-made UIs
+
+- `adminui/errorpage.go` `notFoundHandler`, `dashboardui/handler.go` `notFoundHandler` —
+  `errorpage.NotFound404` render + no-store headers + HTMX-fragment-or-full-page branch
+
+**Reason:** adminui and dashboardui are deliberately independent ready-made
+UIs; the reusable 404 view already lives in templ-components (`errorpage`).
+The remaining glue differs per module (templ `Layout` vs `renderErrorShell`
+full-page fallback, content-type constant, link props). Unifying would couple
+the two UIs' page shells through the root module for ~6 lines each.
+
+## Refactors applied 2026-09-22 (dedup-to-zero sweep, `-t 3`)
+
+- `datastar`: extracted `newTestResponse` (recorder+Response fixture, 9
+  sites) and `requireBodyContains` (SSE-body assertions, 9 sites across
+  `response_test.go` + `coverage_test.go`).
+- `systemadapter`: extracted `startDeclarativeSystem` (context + system boot
+  + `t.Cleanup` close, 7 sites in `declarative_test.go`).
+- `transport`: deleted `filtered_sse_spike_test.go` — the /sse posture spike
+  it documented shipped in v4.12.0 as `WithSSEFilter`;
+  `serve_test.go` `TestServeDomainEvents_FilteredLive`/`FilteredReplay` now
+  prove the mechanism through the production API.
+- `usermgmt`: extracted `createAndStoreSession` shared by
+  `Service.createSession` and `OAuth2Service.createSession`.
+- root/adminui/dashboardui: `htmxBoolField`/`htmxStringField` are nil-request
+  safe, and both UI modules dropped their private `isHTMXRequest` copies in
+  favor of `cqrshtmx.IsHTMXRequest` (dogfood; raw-header copies were flagged
+  by past reviews).
+
 ## Verification
 
-- `art-dupl --type-aware -t 5` → 0 clone groups.
+- 2026-09-22: `art-dupl --type-aware -t 5` → 0 clone groups; `-t 3` → 2
+  accepted groups (generic zero-value returns, 404 error-page flow).
 - `GOEXPERIMENT=jsonv2 go test ./... -count=1 -race` → all 7+ tested modules pass
   (root, openapi, usermgmt, dashboardui, adminui, webauthn, totp, oauth2).

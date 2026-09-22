@@ -144,10 +144,7 @@ func TestErrorResponse(t *testing.T) {
 
 	err := ds.ErrorResponse(stream, "something broke", "ERR_500")
 	require.NoError(t, err)
-
-	body := w.Body.String()
-	require.Contains(t, body, "datastar-patch-signals")
-	require.Contains(t, body, "something broke")
+	requireBodyContains(t, w, "datastar-patch-signals", "something broke")
 }
 
 func TestBroadcastWithReplayStore(t *testing.T) {

@@ -21,6 +21,16 @@ func newTestResponse(t *testing.T) (*httptest.ResponseRecorder, *ds.Response) {
 	return w, ds.NewResponse(w, req)
 }
 
+// requireBodyContains asserts the recorder's SSE body contains each fragment.
+func requireBodyContains(t *testing.T, w *httptest.ResponseRecorder, want ...string) {
+	t.Helper()
+
+	body := w.Body.String()
+	for _, fragment := range want {
+		require.Contains(t, body, fragment)
+	}
+}
+
 func TestNewResponse(t *testing.T) {
 	t.Parallel()
 
@@ -35,10 +45,7 @@ func TestResponsePatchElements(t *testing.T) {
 
 	err := resp.PatchElements("<div>hello</div>", ds.WithSelectorID("feed"))
 	require.NoError(t, err)
-
-	body := w.Body.String()
-	require.Contains(t, body, "event: datastar-patch-elements")
-	require.Contains(t, body, "elements <div>hello</div>")
+	requireBodyContains(t, w, "event: datastar-patch-elements", "elements <div>hello</div>")
 }
 
 func TestResponsePatchSignals(t *testing.T) {
@@ -48,10 +55,7 @@ func TestResponsePatchSignals(t *testing.T) {
 
 	err := resp.PatchSignals([]byte(`{"count":1}`))
 	require.NoError(t, err)
-
-	body := w.Body.String()
-	require.Contains(t, body, "event: datastar-patch-signals")
-	require.Contains(t, body, "count")
+	requireBodyContains(t, w, "event: datastar-patch-signals", "count")
 }
 
 func TestResponseMarshalAndPatchSignals(t *testing.T) {
@@ -61,11 +65,7 @@ func TestResponseMarshalAndPatchSignals(t *testing.T) {
 
 	err := resp.MarshalAndPatchSignals(map[string]any{"total": 5, "label": "items"})
 	require.NoError(t, err)
-
-	body := w.Body.String()
-	require.Contains(t, body, "event: datastar-patch-signals")
-	require.Contains(t, body, "total")
-	require.Contains(t, body, "5")
+	requireBodyContains(t, w, "event: datastar-patch-signals", "total", "5")
 }
 
 func TestResponseExecuteScript(t *testing.T) {
@@ -75,10 +75,7 @@ func TestResponseExecuteScript(t *testing.T) {
 
 	err := resp.ExecuteScript("alert('done')")
 	require.NoError(t, err)
-
-	body := w.Body.String()
-	require.Contains(t, body, "event: datastar-patch-elements")
-	require.Contains(t, body, "alert('done')")
+	requireBodyContains(t, w, "event: datastar-patch-elements", "alert('done')")
 }
 
 func TestResponseRemoveElement(t *testing.T) {
@@ -88,10 +85,7 @@ func TestResponseRemoveElement(t *testing.T) {
 
 	err := resp.RemoveElement("#stale")
 	require.NoError(t, err)
-
-	body := w.Body.String()
-	require.Contains(t, body, "selector #stale")
-	require.Contains(t, body, "mode remove")
+	requireBodyContains(t, w, "selector #stale", "mode remove")
 }
 
 func TestResponseRemoveElementByID(t *testing.T) {
@@ -101,10 +95,7 @@ func TestResponseRemoveElementByID(t *testing.T) {
 
 	err := resp.RemoveElementByID("item-3")
 	require.NoError(t, err)
-
-	body := w.Body.String()
-	require.Contains(t, body, "selector #item-3")
-	require.Contains(t, body, "mode remove")
+	requireBodyContains(t, w, "selector #item-3", "mode remove")
 }
 
 func TestResponseRedirect(t *testing.T) {
@@ -114,10 +105,7 @@ func TestResponseRedirect(t *testing.T) {
 
 	err := resp.Redirect("/home")
 	require.NoError(t, err)
-
-	body := w.Body.String()
-	require.Contains(t, body, "window.location.href")
-	require.Contains(t, body, "/home")
+	requireBodyContains(t, w, "window.location.href", "/home")
 }
 
 func TestResponseMultiplePatches(t *testing.T) {
