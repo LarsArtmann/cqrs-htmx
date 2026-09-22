@@ -1,17 +1,12 @@
 package dashboardui
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
-	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Aggregate Browser =====
@@ -53,15 +48,14 @@ func (d *Dashboard) aggregatesIndexHandler(w http.ResponseWriter, r *http.Reques
 		nextCursor = listings[len(listings)-1].ID.String()
 	}
 
-	html := d.renderAggregates(r.Context(), p, listings, paginationState{
+	renderPage(w, r, aggregatesPage(p, listings, paginationState{
 		HasNext:     hasMore,
 		NextCursor:  nextCursor,
 		PageSize:    pageSize,
 		HasPrev:     hasPrev,
 		After:       afterCursor,
 		PrevHistory: prevHistory,
-	}.WithCountInfo(len(listings)))
-	renderPage(w, r, html)
+	}.WithCountInfo(len(listings))))
 }
 
 func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -71,8 +65,17 @@ func (d *Dashboard) aggregateDetailHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	p := d.page("Aggregate: "+streamTitlePath(ref), "/aggregates", r)
-	html := d.renderAggregateDetail(r.Context(), p, ref, events, d.aggregateTimelinePagination(r))
-	renderPage(w, r, html)
+
+	page := d.aggregateTimelinePagination(r)
+	pagedEvents, hasNext := paginateEventsByVersion(events, page)
+
+	renderPage(w, r, aggregateDetailPage(
+		p,
+		ref,
+		events,
+		pagedEvents,
+		timelinePageState(events, pagedEvents, page, hasNext),
+	))
 }
 
 // aggregateTimelinePagination computes the pagination state for the event
@@ -94,102 +97,6 @@ func (d *Dashboard) aggregateTimelinePagination(r *http.Request) paginationState
 		PrevHistory: prevHistory,
 		HasPrev:     afterVersion > 0,
 	}
-}
-
-func (d *Dashboard) renderAggregateDetail(
-	ctx context.Context,
-	p pageData,
-	ref id.StreamRef,
-	events []event.Event,
-	page paginationState,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		var b strings.Builder
-
-		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(
-			&b,
-			`<h2>%s: <code>%s</code> %s</h2>`,
-			esc(string(ref.Type)),
-			esc(ref.ID.String()),
-			copyButtonHTML(ctx, ref.ID.String(), ""),
-		)
-		fmt.Fprintf(
-			&b,
-			`<div class="page-subtitle">%d events · current version %s</div>`,
-			len(events),
-			latestVersion(events),
-		)
-		b.WriteString(`</div>`)
-
-		if d.caps.EventSource && len(events) > 0 {
-			b.WriteString(`<div class="section-gap">`)
-			b.WriteString(buttonLink(
-				ctx,
-				"Inspect time-travel for this aggregate",
-				p.BasePath+"/time-travel/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
-				"",
-				display.ButtonOutlineInfo,
-				false,
-			))
-			b.WriteString(`</div>`)
-		}
-
-		if len(events) == 0 {
-			return emptyStateIcon(
-				ctx,
-				icons.Cube,
-				"No events",
-				"This aggregate has no recorded events.",
-			)
-		}
-
-		// In-memory pagination using version numbers as cursors.
-		pagedEvents, hasNext := paginateEventsByVersion(events, page)
-
-		var rows strings.Builder
-
-		for _, evt := range pagedEvents {
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td><td><code class="mono">%s</code> %s</td></tr>`,
-				esc(evt.Version().String()),
-				p.BasePath,
-				esc(evt.ID().String()),
-				esc(string(evt.Type())),
-				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
-				truncate(evt.ID().String(), eventIDWidth),
-				copyButtonHTML(ctx, evt.ID().String(), ""),
-			)
-		}
-
-		b.WriteString(`<h3>Event Timeline</h3>`)
-		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Version", "Type", "Occurred At", "Event ID"), rows.String()))
-
-		timelinePage := page
-
-		timelinePage.HasNext = hasNext
-		if hasNext && len(pagedEvents) > 0 {
-			timelinePage.NextCursor = pagedEvents[len(pagedEvents)-1].Version().String()
-		}
-
-		timelinePage.PageLen = len(pagedEvents)
-		if len(pagedEvents) > 0 {
-			timelinePage.PageStart = int(pagedEvents[0].Version().UInt64())
-		}
-
-		timelinePage.TotalCount = strconv.Itoa(len(events))
-
-		b.WriteString(renderPagination(
-			ctx,
-			p.BasePath,
-			"/aggregates/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
-			timelinePage,
-			"",
-		))
-
-		return b.String()
-	})
 }
 
 // paginateEventsByVersion slices the events array for in-memory pagination.
@@ -228,40 +135,4 @@ func paginateEventsByVersion(events []event.Event, page paginationState) ([]even
 	}
 
 	return paged, hasMore
-}
-
-func (d *Dashboard) renderAggregates(
-	ctx context.Context,
-	p pageData,
-	listings []listing.StreamListing,
-	page paginationState,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		if len(listings) == 0 {
-			return emptyStateIcon(ctx, icons.Cube, "No aggregates found", "")
-		}
-
-		var rows strings.Builder
-
-		for _, l := range listings {
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="mono">%s</td><td>%s</td><td>%s</td><td>%d</td><td class="mono">%s</td></tr>`,
-				esc(truncate(l.ID.String(), listIDWidth)),
-				esc(string(l.Type)),
-				esc(l.Version.String()),
-				l.EventCount,
-				esc(l.LastEventAt.Format("2006-01-02 15:04:05")),
-			)
-		}
-
-		var b strings.Builder
-		b.WriteString(`<h2>Aggregates</h2>`)
-		b.WriteString(
-			tableHTMLRaw(ctx, plainHeaders("ID", "Type", "Version", "Events", "Last Event"), rows.String()),
-		)
-		b.WriteString(renderPagination(ctx, p.BasePath, "/aggregates", page, ""))
-
-		return b.String()
-	})
 }

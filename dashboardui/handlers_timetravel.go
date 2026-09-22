@@ -1,26 +1,19 @@
 package dashboardui
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
-	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Time-Travel =====
 
 const maxVersionLinks = 20 // show individual version links up to this threshold
-
-func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Request) {
-	d.renderStreamIndex(w, r, "Time Travel", "/time-travel", d.renderTimeTravelIndex)
-}
 
 // streamListPageConfig holds the display parameters for a stream-listing index
 // page (time-travel and snapshots share the same table layout). Extracting
@@ -34,68 +27,8 @@ type streamListPageConfig struct {
 	linkText   string // link label (e.g., "Inspect")
 }
 
-// renderStreamListingPage renders a table of stream listings with pagination
-// controls. Shared by time-travel and snapshots index pages.
-func (d *Dashboard) renderStreamListingPage(
-	ctx context.Context,
-	p pageData,
-	listings []listing.StreamListing,
-	page paginationState,
-	config streamListPageConfig,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		var b strings.Builder
-
-		if config.subtitle != "" {
-			fmt.Fprintf(&b, `<p class="page-subtitle section-gap">%s</p>`, esc(config.subtitle))
-		}
-
-		if len(listings) == 0 {
-			return emptyStateIcon(ctx, icons.Clock, config.emptyTitle, config.emptyMsg)
-		}
-
-		var rows strings.Builder
-
-		for _, l := range listings {
-			fmt.Fprintf(
-				&rows,
-				`<tr><td>%s</td><td class="mono">%s</td><td>%s</td><td>%s</td></tr>`,
-				esc(string(l.Type)),
-				esc(truncate(l.ID.String(), listIDWidth)),
-				esc(l.Version.String()),
-				buttonLink(
-					ctx,
-					esc(config.linkText),
-					p.BasePath+config.linkPath+"/"+esc(string(l.Type))+"/"+esc(l.ID.String()),
-					"",
-					display.ButtonSecondary,
-					false,
-				),
-			)
-		}
-
-		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Type", "ID", "Current Version", ""), rows.String()))
-
-		b.WriteString(renderPagination(ctx, p.BasePath, config.pagePath, page, ""))
-
-		return b.String()
-	})
-}
-
-func (d *Dashboard) renderTimeTravelIndex(
-	ctx context.Context,
-	p pageData,
-	listings []listing.StreamListing,
-	page paginationState,
-) string {
-	return d.renderStreamListingPage(ctx, p, listings, page, streamListPageConfig{
-		subtitle:   "Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.",
-		emptyTitle: "No aggregates found",
-		emptyMsg:   "Configure a StreamReader to list aggregates for time-travel inspection.",
-		pagePath:   "/time-travel",
-		linkPath:   "/time-travel",
-		linkText:   "Inspect",
-	})
+func (d *Dashboard) timeTravelIndexHandler(w http.ResponseWriter, r *http.Request) {
+	d.renderStreamIndex(w, r, "Time Travel", "/time-travel", timeTravelIndexPage)
 }
 
 func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -105,11 +38,8 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if len(allEvents) == 0 {
-		ctx := r.Context()
 		p := d.page("Time Travel: "+string(ref.Type), "/time-travel", r)
-		renderPage(w, r, d.renderLayout(ctx, p, func() string {
-			return emptyState(ctx, "No events", "")
-		}))
+		renderPage(w, r, layout(p, emptyStatePanel(icons.Inbox, "No events", "")))
 
 		return
 	}
@@ -136,136 +66,11 @@ func (d *Dashboard) timeTravelDetailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	p := d.page("Time Travel: "+streamTitlePath(ref), "/time-travel", r)
-	html := d.renderTimeTravelDetail(
-		r.Context(),
+	renderPage(w, r, timeTravelDetailPage(
 		p,
 		ref,
 		eventsToVersion,
 		requestedVersion,
 		maxVersion,
-	)
-	renderPage(w, r, html)
-}
-
-func (d *Dashboard) renderTimeTravelDetail(
-	ctx context.Context,
-	p pageData,
-	ref id.StreamRef,
-	events []event.Event,
-	currentVersion event.Version,
-	maxVersion event.Version,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		var b strings.Builder
-
-		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(
-			&b,
-			`<h2>Time Travel: <code>%s</code> %s</h2>`,
-			esc(ref.ID.String()),
-			copyButtonHTML(ctx, ref.ID.String(), ""),
-		)
-		fmt.Fprintf(
-			&b,
-			`<div class="page-subtitle">Viewing version %d of %d</div>`,
-			currentVersion.Int(),
-			maxVersion.Int(),
-		)
-		b.WriteString(`</div>`)
-
-		b.WriteString(`<div class="panel">`)
-		b.WriteString(`<div class="panel-title">Version</div>`)
-
-		fmt.Fprintf(
-			&b,
-			`<input type="range" min="1" max="%d" value="%d" class="version-slider" id="version-slider" aria-label="Select version" aria-valuetext="Version %d of %d" data-nav-base="%s/time-travel/%s/%s?v=" data-slider-display="slider-version-display"/>`,
-			maxVersion.Int(),
-			currentVersion.Int(),
-			currentVersion.Int(),
-			maxVersion.Int(),
-			p.BasePath,
-			esc(string(ref.Type)),
-			esc(ref.ID.String()),
-		)
-
-		fmt.Fprintf(
-			&b,
-			`<div class="version-display section-gap">Viewing version <strong id="slider-version-display">%d</strong> of <strong>%d</strong> <span class="muted">(use ← → arrow keys)</span></div>`,
-			currentVersion.Int(),
-			maxVersion.Int(),
-		)
-
-		b.WriteString(`<div class="filter-bar">`)
-
-		if currentVersion > event.Version(1) {
-			b.WriteString(buttonLink(
-				ctx,
-				"First",
-				p.BasePath+"/time-travel/"+esc(string(ref.Type))+"/"+esc(ref.ID.String()),
-				"",
-				display.ButtonSecondary,
-				false,
-			))
-		}
-
-		if currentVersion < maxVersion {
-			b.WriteString(buttonLink(
-				ctx,
-				fmt.Sprintf("Latest (v%d)", maxVersion.Int()),
-				fmt.Sprintf(
-					"%s/time-travel/%s/%s?v=%d",
-					p.BasePath,
-					esc(string(ref.Type)),
-					esc(ref.ID.String()),
-					maxVersion.Int(),
-				),
-				"",
-				display.ButtonOutlineInfo,
-				false,
-			))
-		}
-
-		b.WriteString(`</div>`)
-
-		if maxVersion.Int() <= maxVersionLinks {
-			b.WriteString(`<div class="version-links section-gap">`)
-
-			for v := event.Version(1); v <= maxVersion; v++ {
-				if v == currentVersion {
-					fmt.Fprintf(
-						&b,
-						`<span class="pagination"><span class="current">%d</span></span>`,
-						v.Int(),
-					)
-				} else {
-					fmt.Fprintf(&b, `<a href="%s/time-travel/%s/%s?v=%d">%d</a>`,
-						p.BasePath, esc(string(ref.Type)), esc(ref.ID.String()), v.Int(), v.Int())
-				}
-			}
-
-			b.WriteString(`</div>`)
-		}
-
-		b.WriteString(`</div>`)
-
-		fmt.Fprintf(&b, `<h3>Events Through Version %d</h3>`, currentVersion.Int())
-
-		var rows strings.Builder
-
-		for _, evt := range events {
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="cell-emph">%s</td><td><a href="%s/events/%s"><code>%s</code></a></td><td class="mono">%s</td></tr>`,
-				esc(evt.Version().String()),
-				p.BasePath,
-				esc(evt.ID().String()),
-				esc(string(evt.Type())),
-				esc(evt.OccurredAt().Format("2006-01-02 15:04:05")),
-			)
-		}
-
-		b.WriteString(tableHTMLRaw(ctx, plainHeaders("Version", "Type", "Occurred At"), rows.String()))
-
-		return b.String()
-	})
+	))
 }

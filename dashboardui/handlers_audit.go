@@ -4,14 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
-	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Command/Query Audit =====
@@ -24,7 +21,7 @@ func (d *Dashboard) commandsIndexHandler(
 ) {
 	p := d.page("Commands", "/commands", r)
 
-	if fmt := parseFormat(r); fmt != formatHTML {
+	if f := parseFormat(r); f != formatHTML {
 		var cmds []*command.PersistedCommand
 
 		if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
@@ -33,7 +30,7 @@ func (d *Dashboard) commandsIndexHandler(
 			cmds, _ = d.config.CommandJournal.ReadAll(r.Context())
 		}
 
-		switch fmt {
+		switch f {
 		case formatCSV:
 			exportCommandsCSV(w, cmds)
 		case formatJSON:
@@ -83,80 +80,10 @@ func (d *Dashboard) commandsIndexHandler(
 		nextCursor = cmds[len(cmds)-1].ID().String()
 	}
 
-	html := d.renderCommands(
-		r.Context(),
-		p,
-		cmds,
-		paginationState{
-			HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev,
-			After: afterCursor, PrevHistory: prevHistory,
-		}.WithCountInfo(len(cmds)),
-	)
-	renderPage(w, r, html)
-}
-
-func (d *Dashboard) renderCommands(
-	ctx context.Context,
-	p pageData,
-	cmds []*command.PersistedCommand,
-	page paginationState,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		if len(cmds) == 0 {
-			return emptyStateIcon(
-				ctx,
-				icons.Clipboard,
-				"No commands recorded",
-				"Commands will appear here as they are dispatched.",
-			)
-		}
-
-		headers := plainHeaders("Received At", "Type", "Stream Type", "Stream ID", "Command ID", "")
-
-		rows := make([]display.TableRow, 0, len(cmds))
-
-		for _, cmd := range cmds {
-			streamCell := fmt.Sprintf(
-				`<span class="mono">%s</span> %s`,
-				esc(truncate(cmd.StreamID().String(), listIDWidth)),
-				copyButtonHTML(ctx, cmd.StreamID().String(), ""),
-			)
-			idCell := fmt.Sprintf(
-				`<span class="mono">%s</span> %s`,
-				esc(truncate(cmd.ID().String(), eventIDWidth)),
-				copyButtonHTML(ctx, cmd.ID().String(), ""),
-			)
-			typeCell := fmt.Sprintf(`<code>%s</code>`, esc(string(cmd.Type())))
-			viewCell := buttonLink(
-				ctx,
-				"View",
-				p.BasePath+"/commands/"+esc(cmd.ID().String()),
-				"",
-				display.ButtonSecondary,
-				false,
-			)
-
-			rows = append(rows, display.TableRow{
-				Cells: []display.TableCell{
-					textCell(cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
-					rawCell(typeCell),
-					textCell(string(cmd.StreamType())),
-					rawCell(streamCell),
-					rawCell(idCell),
-					rawCell(viewCell),
-				},
-				Href: "",
-			})
-		}
-
-		var b strings.Builder
-		b.WriteString(`<h2>Command Audit</h2>`)
-		b.WriteString(tableHTML(ctx, headers, rows, ""))
-		b.WriteString(renderPagination(ctx, p.BasePath, "/commands", page, ""))
-		b.WriteString(formatLinks(ctx, p.BasePath, "/commands"))
-
-		return b.String()
-	})
+	renderPage(w, r, commandsPage(p, cmds, paginationState{
+		HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev,
+		After: afterCursor, PrevHistory: prevHistory,
+	}.WithCountInfo(len(cmds))))
 }
 
 //
@@ -167,7 +94,7 @@ func (d *Dashboard) queriesIndexHandler(
 ) {
 	p := d.page("Queries", "/queries", r)
 
-	if fmt := parseFormat(r); fmt != formatHTML {
+	if f := parseFormat(r); f != formatHTML {
 		var queries []*query.PersistedQuery
 
 		if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
@@ -176,7 +103,7 @@ func (d *Dashboard) queriesIndexHandler(
 			queries, _ = d.config.QueryJournal.ReadAllQueries(r.Context())
 		}
 
-		switch fmt {
+		switch f {
 		case formatCSV:
 			exportQueriesCSV(w, queries)
 		case formatJSON:
@@ -226,73 +153,10 @@ func (d *Dashboard) queriesIndexHandler(
 		nextCursor = queries[len(queries)-1].ID().String()
 	}
 
-	html := d.renderQueries(
-		r.Context(),
-		p,
-		queries,
-		paginationState{
-			HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev,
-			After: afterCursor, PrevHistory: prevHistory,
-		}.WithCountInfo(len(queries)),
-	)
-	renderPage(w, r, html)
-}
-
-func (d *Dashboard) renderQueries(
-	ctx context.Context,
-	p pageData,
-	queries []*query.PersistedQuery,
-	page paginationState,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		if len(queries) == 0 {
-			return emptyStateIcon(
-				ctx,
-				icons.Search,
-				"No queries recorded",
-				"Queries will appear here as they are executed.",
-			)
-		}
-
-		headers := plainHeaders("Received At", "Type", "Request ID", "")
-
-		rows := make([]display.TableRow, 0, len(queries))
-
-		for _, q := range queries {
-			idCell := fmt.Sprintf(
-				`<span class="mono">%s</span> %s`,
-				esc(truncate(q.ID().String(), eventIDWidth)),
-				copyButtonHTML(ctx, q.ID().String(), ""),
-			)
-			typeCell := fmt.Sprintf(`<code>%s</code>`, esc(string(q.Type())))
-			viewCell := buttonLink(
-				ctx,
-				"View",
-				p.BasePath+"/queries/"+esc(q.ID().String()),
-				"",
-				display.ButtonSecondary,
-				false,
-			)
-
-			rows = append(rows, display.TableRow{
-				Cells: []display.TableCell{
-					textCell(q.ReceivedAt().Format("2006-01-02 15:04:05")),
-					rawCell(typeCell),
-					rawCell(idCell),
-					rawCell(viewCell),
-				},
-				Href: "",
-			})
-		}
-
-		var b strings.Builder
-		b.WriteString(`<h2>Query Audit</h2>`)
-		b.WriteString(tableHTML(ctx, headers, rows, ""))
-		b.WriteString(renderPagination(ctx, p.BasePath, "/queries", page, ""))
-		b.WriteString(formatLinks(ctx, p.BasePath, "/queries"))
-
-		return b.String()
-	})
+	renderPage(w, r, queriesPage(p, queries, paginationState{
+		HasNext: hasNext, NextCursor: nextCursor, PageSize: pageSize, HasPrev: hasPrev,
+		After: afterCursor, PrevHistory: prevHistory,
+	}.WithCountInfo(len(queries))))
 }
 
 // ===== Command Detail =====
@@ -315,8 +179,7 @@ func (d *Dashboard) commandDetailHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	p := d.page("Command: "+truncate(string(cmd.Type()), eventTypeWidth), "/commands", r)
-	html := d.renderCommandDetail(r.Context(), p, cmd)
-	renderPage(w, r, html)
+	renderPage(w, r, commandDetailPage(p, cmd))
 }
 
 // loadCommandByID scans the command journal for a specific command.
@@ -349,65 +212,6 @@ func (d *Dashboard) loadCommandByID(
 	)
 }
 
-func (d *Dashboard) renderCommandDetail(ctx context.Context, p pageData, cmd *command.PersistedCommand) string {
-	return d.renderLayout(ctx, p, func() string {
-		var b strings.Builder
-
-		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2><code>%s</code></h2>`, esc(string(cmd.Type())))
-		fmt.Fprintf(
-			&b,
-			`<div class="page-subtitle mono">%s %s</div>`,
-			esc(cmd.ID().String()),
-			copyButtonHTML(ctx, cmd.ID().String(), ""),
-		)
-		b.WriteString(`</div>`)
-
-		b.WriteString(`<div class="two-col-grid">`)
-
-		mono := func(s string) string { return "<span class=\"mono\">" + s + "</span>" }
-
-		items := []display.DefinitionItem{
-			defItem("Command Type", string(cmd.Type())),
-			defItem("Stream Type", string(cmd.StreamType())),
-			defItemCopy("Stream ID", mono(esc(cmd.StreamID().String())), cmd.StreamID().String()),
-			defItem("Received At", cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
-			defItemCopy("Command ID", mono(esc(cmd.ID().String())), cmd.ID().String()),
-		}
-
-		meta := cmd.Metadata()
-		if corrID := meta.CorrelationID.String(); corrID != "" {
-			items = append(items, defItemCopy("Correlation ID", mono(esc(corrID)), corrID))
-		}
-
-		if causID := meta.CausationID.String(); causID != "" {
-			items = append(items, defItemCopy("Causation ID", mono(esc(causID)), causID))
-		}
-
-		if actorID := meta.ActorID; !actorID.IsZero() {
-			actorPrefixed := actorID.PrefixedString()
-			items = append(items, defItemCopy("Actor ID", mono(esc(actorPrefixed)), actorPrefixed))
-		}
-
-		b.WriteString(`<div><h3>Metadata</h3>`)
-		b.WriteString(definitionListHTML(ctx, items))
-
-		b.WriteString(`<div><h3>Payload</h3>`)
-
-		payload := cmd.Payload()
-		if len(payload) > 0 {
-			pretty := prettyJSON(payload)
-			fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, esc(pretty))
-		} else {
-			b.WriteString(`<p class="muted">No payload</p>`)
-		}
-
-		b.WriteString(`</div></div>`)
-
-		return b.String()
-	})
-}
-
 // ===== Query Detail =====
 
 func (d *Dashboard) queryDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -428,8 +232,7 @@ func (d *Dashboard) queryDetailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p := d.page("Query: "+truncate(string(q.Type()), eventTypeWidth), "/queries", r)
-	html := d.renderQueryDetail(r.Context(), p, q)
-	renderPage(w, r, html)
+	renderPage(w, r, queryDetailPage(p, q))
 }
 
 // loadQueryByID scans the query journal for a specific query.
@@ -460,63 +263,6 @@ func (d *Dashboard) loadQueryByID(
 		fmt.Sprintf("query %s not found", queryID),
 		"dashboardui.query_detail.read_failed", "read query journal",
 	)
-}
-
-func (d *Dashboard) renderQueryDetail(ctx context.Context, p pageData, q *query.PersistedQuery) string {
-	return d.renderLayout(ctx, p, func() string {
-		var b strings.Builder
-
-		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(&b, `<h2><code>%s</code></h2>`, esc(string(q.Type())))
-		fmt.Fprintf(
-			&b,
-			`<div class="page-subtitle mono">%s %s</div>`,
-			esc(q.ID().String()),
-			copyButtonHTML(ctx, q.ID().String(), ""),
-		)
-		b.WriteString(`</div>`)
-
-		b.WriteString(`<div class="two-col-grid">`)
-
-		mono := func(s string) string { return "<span class=\"mono\">" + s + "</span>" }
-
-		items := []display.DefinitionItem{
-			defItem("Query Type", string(q.Type())),
-			defItem("Received At", q.ReceivedAt().Format("2006-01-02 15:04:05")),
-			defItemCopy("Request ID", mono(esc(q.ID().String())), q.ID().String()),
-		}
-
-		meta := q.Metadata()
-		if corrID := meta.CorrelationID.String(); corrID != "" {
-			items = append(items, defItemCopy("Correlation ID", mono(esc(corrID)), corrID))
-		}
-
-		if causID := meta.CausationID.String(); causID != "" {
-			items = append(items, defItemCopy("Causation ID", mono(esc(causID)), causID))
-		}
-
-		if actorID := meta.ActorID; !actorID.IsZero() {
-			actorPrefixed := actorID.PrefixedString()
-			items = append(items, defItemCopy("Actor ID", mono(esc(actorPrefixed)), actorPrefixed))
-		}
-
-		b.WriteString(`<div><h3>Metadata</h3>`)
-		b.WriteString(definitionListHTML(ctx, items))
-
-		b.WriteString(`<div><h3>Payload</h3>`)
-
-		payload := q.Payload()
-		if len(payload) > 0 {
-			pretty := prettyJSON(payload)
-			fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, esc(pretty))
-		} else {
-			b.WriteString(`<p class="muted">No payload</p>`)
-		}
-
-		b.WriteString(`</div></div>`)
-
-		return b.String()
-	})
 }
 
 // scanJournalByID scans a seekable journal in batches looking for an entry

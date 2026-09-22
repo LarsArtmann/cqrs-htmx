@@ -223,3 +223,40 @@ func (d *Dashboard) snapshotStateText(state []byte) string {
 
 	return string(state)
 }
+
+// eventMetaItems builds the metadata definition items for an event detail
+// page: stream/version/encoding facts plus correlation, causation, actor,
+// and request IDs when present.
+func eventMetaItems(evt event.Event, meta event.Metadata) []display.DefinitionItem {
+	items := []display.DefinitionItem{
+		defItem("Stream Type", string(evt.StreamType())),
+		defItemCopy("Stream ID", monoSpan(esc(evt.StreamID().String())), evt.StreamID().String()),
+		defItem("Version", evt.Version().String()),
+		defItem("Schema Version", fmt.Sprintf("%d", evt.SchemaVersion())),
+		defItem("Encoding", string(evt.Encoding())),
+		defItem("Occurred At", evt.OccurredAt().Format(time.RFC3339)),
+	}
+
+	if corrID := meta.CorrelationID.String(); corrID != "" {
+		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID))
+	}
+
+	if causID := meta.CausationID.String(); causID != "" {
+		items = append(items, defItemCopy("Causation ID", monoSpan(esc(causID)), causID))
+	}
+
+	if actorID := meta.ActorID; !actorID.IsZero() {
+		actorPrefixed := actorID.PrefixedString()
+		items = append(items, defItemCopy("Actor ID", monoSpan(esc(actorPrefixed)), actorPrefixed))
+	}
+
+	if reqID := meta.RequestID.String(); reqID != "" {
+		items = append(items, defItemCopy("Request ID", monoSpan(esc(reqID)), reqID))
+	}
+
+	if deadline, ok := evt.Deadline(); ok {
+		items = append(items, defItem("Deadline", deadline.Format(time.RFC3339)))
+	}
+
+	return items
+}

@@ -1,16 +1,10 @@
 package dashboardui
 
 import (
-	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Projection Dashboard =====
@@ -19,8 +13,7 @@ func (d *Dashboard) projectionsIndexHandler(w http.ResponseWriter, r *http.Reque
 	p := d.page("Projections", "/projections", r)
 	projs := buildProjectionStats(d.config.ProjectionHost)
 
-	html := d.renderProjections(r.Context(), p, projs)
-	renderPage(w, r, html)
+	renderPage(w, r, projectionsPage(p, projs))
 }
 
 func (d *Dashboard) projectionDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,8 +37,7 @@ func (d *Dashboard) projectionDetailHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	p := d.page("Projection: "+truncate(name, eventTypeWidth), "/projections", r)
-	html := d.renderProjectionDetail(r.Context(), p, *found)
-	renderPage(w, r, html)
+	renderPage(w, r, projectionDetailPage(p, *found))
 }
 
 func (d *Dashboard) withProjectionHost(w http.ResponseWriter, fn func(host *projectionhost.Host)) {
@@ -107,198 +99,4 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 			redirect(w, r, d.config.BasePath+"/projections")
 		},
 	)
-}
-
-func (d *Dashboard) renderProjections(
-	ctx context.Context,
-	p pageData,
-	projs []projectionStat,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		if len(projs) == 0 {
-			return emptyStateIcon(ctx, icons.ArrowPath, "No projections registered", "")
-		}
-
-		var b strings.Builder
-		b.WriteString(`<h2>Projections</h2>`)
-
-		var rows strings.Builder
-
-		for _, proj := range projs {
-			var actions string
-			if !p.ReadOnly {
-				actions = fmt.Sprintf(
-					`<form method="POST" action="%s/projections/%s/reset" class="inline-form" data-confirm="Reset projection %s? This will re-process all events from the beginning." aria-label="Reset projection %s"><input type="hidden" name="_csrf" value="%s"/>%s</form>`,
-					p.BasePath,
-					esc(proj.Name),
-					esc(proj.Name),
-					esc(proj.Name),
-					esc(p.CSRFToken),
-					buttonSubmit(
-						ctx,
-						"Reset",
-						"Reset projection "+esc(proj.Name),
-						display.ButtonOutlineDanger,
-						nil,
-					),
-				)
-			}
-
-			dlqLink := ""
-			if proj.Errors > 0 || d.caps.DeadLetterStore || d.caps.ProjectionHost {
-				dlqLink = buttonLink(
-					ctx,
-					fmt.Sprintf("DLQ (%d)", proj.Errors),
-					p.BasePath+"/dead-letters/"+esc(proj.Name),
-					"View dead letters for "+esc(proj.Name),
-					display.ButtonSecondary,
-					false,
-				)
-			}
-
-			lastErr := "—"
-			if proj.LastError != "" {
-				lastErr = esc(truncate(proj.LastError, errorDisplayWidth))
-			}
-
-			fmt.Fprintf(
-				&rows,
-				`<tr><td class="cell-emph"><a href="%s/projections/%s">%s</a></td><td>%s</td><td class="mono">%s</td><td>%d</td><td>%d</td><td>%d</td><td class="mono" title="%s">%s</td><td>%s</td><td>%s %s</td></tr>`,
-				p.BasePath,
-				esc(proj.Name),
-				esc(proj.Name),
-				badgeHTML(ctx, proj.Status, statusKindToBadgeType(proj.StatusKind)),
-				esc(proj.Lag),
-				proj.Processed,
-				proj.Errors,
-				proj.Restarts,
-				esc(proj.Checkpoint),
-				esc(truncate(proj.Checkpoint, listIDWidth)),
-				lastErr,
-				dlqLink,
-				actions,
-			)
-		}
-
-		b.WriteString(tableHTMLRaw(
-			ctx,
-			plainHeaders(
-				"Name",
-				"Status",
-				"Lag",
-				"Processed",
-				"Errors",
-				"Restarts",
-				"Checkpoint",
-				"Last Error",
-				"Actions",
-			),
-			rows.String()))
-
-		return b.String()
-	})
-}
-
-func (d *Dashboard) renderProjectionDetail(
-	ctx context.Context,
-	p pageData,
-	proj projectionStat,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		var b strings.Builder
-
-		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(
-			&b,
-			`<h2>%s %s</h2>`,
-			esc(proj.Name),
-			badgeHTML(ctx, proj.Status, statusKindToBadgeType(proj.StatusKind)),
-		)
-		b.WriteString(`</div>`)
-
-		slug := strings.ReplaceAll(strings.ToLower(proj.Name), " ", "-")
-		b.WriteString(
-			statCardHTML(
-				ctx,
-				"stat-processed-"+slug,
-				strconv.FormatInt(proj.Processed, 10),
-				"Processed",
-				display.StatToneBlue,
-			),
-		)
-		b.WriteString(
-			statCardHTML(
-				ctx,
-				"stat-errors-"+slug,
-				strconv.FormatInt(proj.Errors, 10),
-				"Errors",
-				display.StatToneRed,
-			),
-		)
-		b.WriteString(
-			statCardHTML(
-				ctx,
-				"stat-restarts-"+slug,
-				strconv.Itoa(proj.Restarts),
-				"Restarts",
-				display.StatToneYellow,
-			),
-		)
-		b.WriteString(statCardHTML(ctx, "stat-lag-"+slug, proj.Lag, "Lag", display.StatToneBlue))
-		b.WriteString(`</div>`)
-
-		detailItems := []display.DefinitionItem{
-			defItemCopy(
-				"Checkpoint",
-				"<span class=\"mono\">"+esc(truncate(proj.Checkpoint, listIDWidth))+"</span>",
-				proj.Checkpoint,
-			),
-			defItem("Status", proj.Status),
-		}
-
-		if proj.LastError != "" {
-			detailItems = append(detailItems, defItem("Last Error", proj.LastError))
-		} else {
-			detailItems = append(detailItems, defItemRaw("Last Error", `<span class="muted">none</span>`))
-		}
-
-		b.WriteString(`<h3>Details</h3>`)
-		b.WriteString(definitionListHTML(ctx, detailItems))
-
-		b.WriteString(`<div class="filter-bar">`)
-		b.WriteString(buttonLink(
-			ctx,
-			fmt.Sprintf("View Dead Letters (%d)", proj.Errors),
-			p.BasePath+"/dead-letters/"+esc(proj.Name),
-			"",
-			display.ButtonSecondary,
-			false,
-		))
-
-		if !p.ReadOnly {
-			fmt.Fprintf(
-				&b,
-				`<form method="POST" action="%s/projections/%s/reset" class="inline-form" data-confirm="Reset projection %s? This will re-process all events from the beginning."><input type="hidden" name="_csrf" value="%s"/>%s</form>`,
-				p.BasePath,
-				esc(proj.Name),
-				esc(proj.Name),
-				esc(p.CSRFToken),
-				buttonSubmit(ctx, "Reset Projection", "", display.ButtonOutlineDanger, nil),
-			)
-		}
-
-		b.WriteString(
-			buttonLink(
-				ctx,
-				"Back to Projections",
-				p.BasePath+"/projections",
-				"",
-				display.ButtonSecondary,
-				false,
-			),
-		)
-		b.WriteString(`</div>`)
-
-		return b.String()
-	})
 }

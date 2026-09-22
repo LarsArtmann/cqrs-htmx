@@ -1,41 +1,17 @@
 package dashboardui
 
 import (
-	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
-	"time"
 
-	"github.com/larsartmann/go-codec"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/icons"
 )
 
 // ===== Snapshots =====
 
 func (d *Dashboard) snapshotsIndexHandler(w http.ResponseWriter, r *http.Request) {
-	d.renderStreamIndex(w, r, "Snapshots", "/snapshots", d.renderSnapshotsIndex)
-}
-
-func (d *Dashboard) renderSnapshotsIndex(
-	ctx context.Context,
-	p pageData,
-	listings []listing.StreamListing,
-	page paginationState,
-) string {
-	return d.renderStreamListingPage(ctx, p, listings, page, streamListPageConfig{
-		subtitle:   "Inspect snapshot state for any aggregate. Snapshots store a point-in-time cache of aggregate state to accelerate loading.",
-		emptyTitle: "No aggregates found",
-		emptyMsg:   "Configure a StreamReader to browse snapshots by aggregate.",
-		pagePath:   "/snapshots",
-		linkPath:   "/snapshots",
-		linkText:   "View",
-	})
+	d.renderStreamIndex(w, r, "Snapshots", "/snapshots", snapshotsIndexPage)
 }
 
 func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,114 +27,21 @@ func (d *Dashboard) snapshotDetailHandler(w http.ResponseWriter, r *http.Request
 
 	snap, err := d.config.SnapshotStore.Load(r.Context(), ref)
 	if err != nil {
-		ctx := r.Context()
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
-		renderPage(w, r, d.renderLayout(ctx, p, func() string {
-			return emptyStateIcon(
-				ctx,
-				icons.ArchiveBox,
-				"No snapshot found",
-				"No snapshot exists for "+streamType+"/"+truncate(streamID, snapshotIDWidth)+".",
-			)
-		}))
+		renderPage(w, r, snapshotMissingPage(p, streamType, streamID))
 
 		return
 	}
 
 	if snap == nil {
-		ctx := r.Context()
 		p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
-		renderPage(w, r, d.renderLayout(ctx, p, func() string {
-			return emptyStateIcon(ctx, icons.ArchiveBox, "No snapshot", "")
-		}))
+		renderPage(w, r, snapshotEmptyPage(p))
 
 		return
 	}
 
 	p := d.page("Snapshot: "+streamType+"/"+truncate(streamID, titleIDWidth), "/snapshots", r)
-	html := d.renderSnapshotDetail(r.Context(), p, ref, snap)
-	renderPage(w, r, html)
-}
-
-func (d *Dashboard) renderSnapshotDetail(
-	ctx context.Context,
-	p pageData,
-	ref id.StreamRef,
-	snap *snapshot.Snapshot,
-) string {
-	return d.renderLayout(ctx, p, func() string {
-		var b strings.Builder
-
-		b.WriteString(`<div class="page-header">`)
-		fmt.Fprintf(
-			&b,
-			`<h2>Snapshot: <code>%s</code> %s</h2>`,
-			esc(ref.ID.String()),
-			copyButtonHTML(ctx, ref.ID.String(), ""),
-		)
-		fmt.Fprintf(
-			&b,
-			`<div class="page-subtitle">Version %s · Created %s (%s)</div>`,
-			esc(snap.Version.String()),
-			esc(snap.CreatedAt.Format(time.RFC3339)),
-			esc(relativeTime(snap.CreatedAt)),
-		)
-		b.WriteString(`</div>`)
-
-		if !p.ReadOnly {
-			fmt.Fprintf(
-				&b,
-				`<form method="POST" action="%s/snapshots/%s/%s/delete" class="section-gap-lg" data-confirm="Delete this snapshot? This cannot be undone.">`,
-				p.BasePath,
-				esc(string(ref.Type)),
-				esc(ref.ID.String()),
-			)
-			fmt.Fprintf(&b, `<input type="hidden" name="_csrf" value="%s"/>`, esc(p.CSRFToken))
-			b.WriteString(buttonSubmit(
-				ctx,
-				"Delete Snapshot",
-				"Delete snapshot for "+esc(ref.ID.String()),
-				display.ButtonOutlineDanger,
-				nil,
-			))
-			b.WriteString(`</form>`)
-		}
-
-		metaItems := []display.DefinitionItem{
-			defItem("Stream Type", string(snap.StreamType)),
-			defItemCopy(
-				"Stream ID",
-				"<span class=\"mono\">"+esc(snap.StreamID.String())+"</span>",
-				snap.StreamID.String(),
-			),
-			defItem("Version", snap.Version.String()),
-			defItem("Created At", snap.CreatedAt.Format(time.RFC3339)),
-			defItem("State Size", humanByteSize(len(snap.State))),
-		}
-
-		b.WriteString(`<h3>Metadata</h3>`)
-		b.WriteString(definitionListHTML(ctx, metaItems))
-
-		b.WriteString(`<h3>State</h3>`)
-
-		stateDisplay := d.renderSnapshotState(snap.State)
-		fmt.Fprintf(&b, `<pre class="code-block"><code>%s</code></pre>`, stateDisplay)
-
-		return b.String()
-	})
-}
-
-func (d *Dashboard) renderSnapshotState(state []byte) string {
-	if len(state) == 0 {
-		return esc("(empty)")
-	}
-
-	out, err := d.config.PayloadRenderer.Render(state, codec.EncodingJSON)
-	if err == nil && len(out) > 0 {
-		return esc(string(out))
-	}
-
-	return esc(string(state))
+	renderPage(w, r, snapshotDetailPage(p, ref, snap, d.snapshotStateText(snap.State)))
 }
 
 func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request) {
