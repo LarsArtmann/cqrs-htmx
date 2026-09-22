@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -75,11 +76,10 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 		return err
 	}
 	aggID := evt.StreamID()
-	if evt.Type() == eventMemberRemoved {
-		if err := m.store.Delete(ctx, aggID); err != nil {
-			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.membership_delete", "delete membership view")
-		}
-		return nil
+	deleted, err := deleteViewOnTombstone(ctx, m.store, evt, eventMemberRemoved, aggID,
+		"usermgmt.sql_readmodel.membership_delete", "delete membership view")
+	if deleted {
+		return err
 	}
 	mem, ok := m.FindByAggregateID(aggID)
 	if !ok {
@@ -90,10 +90,8 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 		return err
 	}
 	view := MembershipView{ActorID: mem.ActorID.String(), TenantID: mem.TenantID.Get(), Data: data}
-	if err := m.store.Set(ctx, aggID, &view); err != nil {
-		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.membership_upsert", "upsert membership view")
-	}
-	return nil
+	return upsertView(ctx, m.store, aggID, view,
+		"usermgmt.sql_readmodel.membership_upsert", "upsert membership view")
 }
 
 func (m *SQLMembershipReadModel) FindByActorSQL(ctx context.Context, actorID string) ([]*MembershipView, error) {
@@ -174,11 +172,10 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 	}
 	aggID := evt.StreamID()
 	tid := NewTenantID(aggID.String())
-	if evt.Type() == eventTenantDeleted {
-		if err := m.store.Delete(ctx, tid); err != nil {
-			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.tenant_delete", "delete tenant view")
-		}
-		return nil
+	deleted, err := deleteViewOnTombstone(ctx, m.store, evt, eventTenantDeleted, tid,
+		"usermgmt.sql_readmodel.tenant_delete", "delete tenant view")
+	if deleted {
+		return err
 	}
 	tenant, ok := m.FindByID(aggID)
 	if !ok {
@@ -192,10 +189,8 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 		Name: tenant.Name, DisplayName: tenant.DisplayName,
 		Suspended: tenant.Suspended, Deleted: tenant.Deleted, Data: data,
 	}
-	if err := m.store.Set(ctx, tid, &view); err != nil {
-		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.tenant_upsert", "upsert tenant view")
-	}
-	return nil
+	return upsertView(ctx, m.store, tid, view,
+		"usermgmt.sql_readmodel.tenant_upsert", "upsert tenant view")
 }
 
 func (m *SQLTenantReadModel) FindByNameSQL(ctx context.Context, name string) ([]*TenantView, error) {
@@ -267,11 +262,10 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 	}
 	aggID := evt.StreamID()
 	bid := NewBotID(aggID.String())
-	if evt.Type() == eventBotDeleted {
-		if err := m.store.Delete(ctx, bid); err != nil {
-			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.bot_delete", "delete bot view")
-		}
-		return nil
+	deleted, err := deleteViewOnTombstone(ctx, m.store, evt, eventBotDeleted, bid,
+		"usermgmt.sql_readmodel.bot_delete", "delete bot view")
+	if deleted {
+		return err
 	}
 	bot, ok := m.FindByID(aggID)
 	if !ok {
@@ -285,10 +279,8 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 		Name: bot.Name, OwnerID: bot.OwnerID.Get().String(),
 		TokenHash: string(bot.TokenHash), Deleted: bot.Deleted, Data: data,
 	}
-	if err := m.store.Set(ctx, bid, &view); err != nil {
-		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.bot_upsert", "upsert bot view")
-	}
-	return nil
+	return upsertView(ctx, m.store, bid, view,
+		"usermgmt.sql_readmodel.bot_upsert", "upsert bot view")
 }
 
 func (m *SQLBotReadModel) FindByNameSQL(ctx context.Context, name string) ([]*BotView, error) {
@@ -313,4 +305,44 @@ func queryViewByName[T any](
 		return nil, errorfamily.WrapTransient(err, errCode, errMsg)
 	}
 	return views, nil
+}
+
+// deleteViewOnTombstone removes a view row when evt carries the aggregate's
+// tombstone event, wrapping any store failure as a Transient error with the
+// caller's error code and human-readable message. It reports whether evt was
+// the tombstone; when true the Handle caller returns immediately. Shared by
+// the per-aggregate Handle methods whose only differences are the tombstone
+// event, the view key, and the error tags.
+func deleteViewOnTombstone[V any, K fmt.Stringer](
+	ctx context.Context,
+	store *storage.SQLViewStore[V, K], //nolint:staticcheck // ADR-0123 v5
+	evt event.Event,
+	tombstone event.Type,
+	key K,
+	errCode, errMsg string,
+) (bool, error) {
+	if evt.Type() != tombstone {
+		return false, nil
+	}
+	if err := store.Delete(ctx, key); err != nil {
+		return true, errorfamily.WrapTransient(err, errCode, errMsg)
+	}
+	return true, nil
+}
+
+// upsertView persists a view row, wrapping any store failure as a Transient
+// error with the caller's error code and human-readable message. Shared by
+// the per-aggregate Handle methods whose only differences are the view type
+// and the error tags.
+func upsertView[V any, K fmt.Stringer](
+	ctx context.Context,
+	store *storage.SQLViewStore[V, K], //nolint:staticcheck // ADR-0123 v5
+	key K,
+	view V,
+	errCode, errMsg string,
+) error {
+	if err := store.Set(ctx, key, &view); err != nil {
+		return errorfamily.WrapTransient(err, errCode, errMsg)
+	}
+	return nil
 }

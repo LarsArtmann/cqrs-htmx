@@ -107,6 +107,39 @@ func projectionDetailItems(proj projectionStat) []display.DefinitionItem {
 	return items
 }
 
+// prefixedActorID is the structural surface the dashboard needs from the
+// distinct command, query, and event metadata actor-ID types.
+type prefixedActorID interface {
+	IsZero() bool
+	PrefixedString() string
+}
+
+// metadataItems builds the correlation, causation, actor, and request
+// definition items shared by the command, query, and event detail pages.
+// Blank IDs and zero actors are omitted.
+func metadataItems(corrID, causID, reqID string, actorID prefixedActorID) []display.DefinitionItem {
+	items := make([]display.DefinitionItem, 0, 4)
+
+	if corrID != "" {
+		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID))
+	}
+
+	if causID != "" {
+		items = append(items, defItemCopy("Causation ID", monoSpan(esc(causID)), causID))
+	}
+
+	if !actorID.IsZero() {
+		actorPrefixed := actorID.PrefixedString()
+		items = append(items, defItemCopy("Actor ID", monoSpan(esc(actorPrefixed)), actorPrefixed))
+	}
+
+	if reqID != "" {
+		items = append(items, defItemCopy("Request ID", monoSpan(esc(reqID)), reqID))
+	}
+
+	return items
+}
+
 // commandMetaItems builds the command detail metadata items: stream facts
 // plus correlation, causation, and actor IDs when present.
 func commandMetaItems(cmd *command.PersistedCommand) []display.DefinitionItem {
@@ -120,22 +153,10 @@ func commandMetaItems(cmd *command.PersistedCommand) []display.DefinitionItem {
 		defItemCopy("Command ID", monoSpan(esc(cmd.ID().String())), cmd.ID().String()),
 	}
 
-	if corrID := meta.CorrelationID.String(); corrID != "" {
-		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID))
-	}
-
-	if causID := meta.CausationID.String(); causID != "" {
-		items = append(items, defItemCopy("Causation ID", monoSpan(esc(causID)), causID))
-	}
-
-	if actorID := meta.ActorID; !actorID.IsZero() {
-		actorPrefixed := actorID.PrefixedString()
-		items = append(items, defItemCopy("Actor ID", monoSpan(esc(actorPrefixed)), actorPrefixed))
-	}
-
-	if reqID := meta.RequestID.String(); reqID != "" {
-		items = append(items, defItemCopy("Request ID", monoSpan(esc(reqID)), reqID))
-	}
+	items = append(items, metadataItems(
+		meta.CorrelationID.String(), meta.CausationID.String(),
+		meta.RequestID.String(), meta.ActorID,
+	)...)
 
 	return items
 }
@@ -150,22 +171,10 @@ func queryMetaItems(q *query.PersistedQuery) []display.DefinitionItem {
 		defItemCopy("Request ID", monoSpan(esc(q.ID().String())), q.ID().String()),
 	}
 
-	if corrID := meta.CorrelationID.String(); corrID != "" {
-		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID))
-	}
-
-	if causID := meta.CausationID.String(); causID != "" {
-		items = append(items, defItemCopy("Causation ID", monoSpan(esc(causID)), causID))
-	}
-
-	if actorID := meta.ActorID; !actorID.IsZero() {
-		actorPrefixed := actorID.PrefixedString()
-		items = append(items, defItemCopy("Actor ID", monoSpan(esc(actorPrefixed)), actorPrefixed))
-	}
-
-	if reqID := meta.RequestID.String(); reqID != "" {
-		items = append(items, defItemCopy("Request ID", monoSpan(esc(reqID)), reqID))
-	}
+	items = append(items, metadataItems(
+		meta.CorrelationID.String(), meta.CausationID.String(),
+		meta.RequestID.String(), meta.ActorID,
+	)...)
 
 	return items
 }
@@ -237,22 +246,10 @@ func eventMetaItems(evt event.Event, meta event.Metadata) []display.DefinitionIt
 		defItem("Occurred At", evt.OccurredAt().Format(time.RFC3339)),
 	}
 
-	if corrID := meta.CorrelationID.String(); corrID != "" {
-		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID))
-	}
-
-	if causID := meta.CausationID.String(); causID != "" {
-		items = append(items, defItemCopy("Causation ID", monoSpan(esc(causID)), causID))
-	}
-
-	if actorID := meta.ActorID; !actorID.IsZero() {
-		actorPrefixed := actorID.PrefixedString()
-		items = append(items, defItemCopy("Actor ID", monoSpan(esc(actorPrefixed)), actorPrefixed))
-	}
-
-	if reqID := meta.RequestID.String(); reqID != "" {
-		items = append(items, defItemCopy("Request ID", monoSpan(esc(reqID)), reqID))
-	}
+	items = append(items, metadataItems(
+		meta.CorrelationID.String(), meta.CausationID.String(),
+		meta.RequestID.String(), meta.ActorID,
+	)...)
 
 	if deadline, ok := evt.Deadline(); ok {
 		items = append(items, defItem("Deadline", deadline.Format(time.RFC3339)))
