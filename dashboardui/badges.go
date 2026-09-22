@@ -1,32 +1,8 @@
 package dashboardui
 
 import (
-	"context"
-	"strings"
-
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 )
-
-// badgeHTML renders a library Badge with an explicit type into a string.
-// Single mapping point for every former hand-rolled badge span (M7).
-func badgeHTML(ctx context.Context, text string, badgeType display.BadgeType) string {
-	var b strings.Builder
-
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
-	props := display.BadgeProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Text:      text,
-		Type:      badgeType,
-		Size:      display.BadgeSizeMD,
-		Pill:      false,
-		Dot:       true,
-		Href:      "",
-	}
-	_ = display.Badge(props).Render(ctx, &b)
-
-	return b.String()
-}
 
 // statusKindToBadgeType maps an internal health kind to a badge type.
 // Unknown kinds fall back to neutral, matching the pre-adoption default.

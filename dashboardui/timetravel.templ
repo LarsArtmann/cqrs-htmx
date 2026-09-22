@@ -1,0 +1,147 @@
+package dashboardui
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
+)
+
+// ===== Time-Travel =====
+
+// streamListingPage renders a table of stream listings with pagination
+// controls. Shared by the time-travel and snapshots index pages, which only
+// differ in subtitle, empty state, and link labels (streamListPageConfig).
+templ streamListingPage(p pageData, listings []listing.StreamListing, page paginationState, config streamListPageConfig) {
+	@layout(p, streamListingContent(p, listings, page, config))
+}
+
+templ streamListingContent(p pageData, listings []listing.StreamListing, page paginationState, config streamListPageConfig) {
+	if config.subtitle != "" {
+		<p class="page-subtitle section-gap">{ config.subtitle }</p>
+	}
+	if len(listings) == 0 {
+		@emptyStatePanel(icons.Clock, config.emptyTitle, config.emptyMsg)
+	} else {
+		@rawDataTable(
+			plainHeaders("Type", "ID", "Current Version", ""),
+			"",
+			streamListingRows(p.BasePath, listings, config),
+		)
+		@paginationNav(p.BasePath, config.pagePath, page, "")
+	}
+}
+
+templ streamListingRows(basePath string, listings []listing.StreamListing, config streamListPageConfig) {
+	for _, l := range listings {
+		<tr>
+			<td>{ string(l.Type) }</td>
+			<td class="mono">{ truncate(l.ID.String(), listIDWidth) }</td>
+			<td>{ l.Version.String() }</td>
+			<td>@buttonLink(config.linkText, basePath+config.linkPath+"/"+string(l.Type)+"/"+l.ID.String(), "", display.ButtonSecondary, false)</td>
+		</tr>
+	}
+}
+
+templ timeTravelIndexPage(p pageData, listings []listing.StreamListing, page paginationState) {
+	@streamListingPage(p, listings, page, streamListPageConfig{
+		subtitle:   "Inspect an aggregate at any point in its history. Slide through versions to see the state at each step.",
+		emptyTitle: "No aggregates found",
+		emptyMsg:   "Configure a StreamReader to list aggregates for time-travel inspection.",
+		pagePath:   "/time-travel",
+		linkPath:   "/time-travel",
+		linkText:   "Inspect",
+	})
+}
+
+templ timeTravelDetailPage(
+	p pageData,
+	ref id.StreamRef,
+	events []event.Event,
+	currentVersion event.Version,
+	maxVersion event.Version,
+) {
+	@layout(p, timeTravelDetailContent(p, ref, events, currentVersion, maxVersion))
+}
+
+templ timeTravelDetailContent(
+	p pageData,
+	ref id.StreamRef,
+	events []event.Event,
+	currentVersion event.Version,
+	maxVersion event.Version,
+) {
+	<div class="page-header">
+		<h2>Time Travel: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "")</h2>
+		<div class="page-subtitle">Viewing version { strconv.Itoa(currentVersion.Int()) } of { strconv.Itoa(maxVersion.Int()) }</div>
+	</div>
+	<div class="panel">
+		<div class="panel-title">Version</div>
+		<input
+			type="range"
+			min="1"
+			max={ strconv.Itoa(maxVersion.Int()) }
+			value={ strconv.Itoa(currentVersion.Int()) }
+			class="version-slider"
+			id="version-slider"
+			aria-label="Select version"
+			aria-valuetext={ fmt.Sprintf("Version %d of %d", currentVersion.Int(), maxVersion.Int()) }
+			data-nav-base={ p.BasePath + "/time-travel/" + string(ref.Type) + "/" + ref.ID.String() + "?v=" }
+			data-slider-display="slider-version-display"
+		/>
+		<div class="version-display section-gap">
+			Viewing version <strong id="slider-version-display">{ strconv.Itoa(currentVersion.Int()) }</strong> of <strong>{ strconv.Itoa(maxVersion.Int()) }</strong> <span class="muted">(use ← → arrow keys)</span>
+		</div>
+		<div class="filter-bar">
+			if currentVersion > event.Version(1) {
+				@buttonLink(
+					"First",
+					p.BasePath+"/time-travel/"+string(ref.Type)+"/"+ref.ID.String(),
+					"",
+					display.ButtonSecondary,
+					false,
+				)
+			}
+			if currentVersion < maxVersion {
+				@buttonLink(
+					fmt.Sprintf("Latest (v%d)", maxVersion.Int()),
+					fmt.Sprintf("%s/time-travel/%s/%s?v=%d", p.BasePath, string(ref.Type), ref.ID.String(), maxVersion.Int()),
+					"",
+					display.ButtonOutlineInfo,
+					false,
+				)
+			}
+		</div>
+		if maxVersion.Int() <= maxVersionLinks {
+			<div class="version-links section-gap">
+				for v := event.Version(1); v <= maxVersion; v++ {
+					if v == currentVersion {
+						<span class="pagination"><span class="current">{ strconv.Itoa(v.Int()) }</span></span>
+					} else {
+						<a href={ fmt.Sprintf("%s/time-travel/%s/%s?v=%d", p.BasePath, string(ref.Type), ref.ID.String(), v.Int()) }>{ strconv.Itoa(v.Int()) }</a>
+					}
+				}
+			</div>
+		}
+	</div>
+	<h3>Events Through Version { strconv.Itoa(currentVersion.Int()) }</h3>
+	@rawDataTable(
+		plainHeaders("Version", "Type", "Occurred At"),
+		"",
+		timeTravelRows(p.BasePath, events),
+	)
+}
+
+templ timeTravelRows(basePath string, events []event.Event) {
+	for _, evt := range events {
+		<tr>
+			<td class="cell-emph">{ evt.Version().String() }</td>
+			<td><a href={ basePath + "/events/" + evt.ID().String() }><code>{ string(evt.Type()) }</code></a></td>
+			<td class="mono">{ evt.OccurredAt().Format("2006-01-02 15:04:05") }</td>
+		</tr>
+	}
+}

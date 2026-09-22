@@ -115,11 +115,11 @@ templ dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry)
 	}
 }
 
-templ dlqEntryDetailPage(p pageData, proj string, entry projectionhost.DeadLetterEntry) {
-	@layout(p, dlqEntryDetailContent(p, proj, entry))
+templ dlqEntryDetailPage(p pageData, proj string, entry projectionhost.DeadLetterEntry, payload []byte) {
+	@layout(p, dlqEntryDetailContent(p, proj, entry, payload))
 }
 
-templ dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLetterEntry) {
+templ dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLetterEntry, payload []byte) {
 	<div class="page-header">
 		<h2>Dead Letter: <code>{ truncate(entry.EventID, eventIDWidth) }</code></h2>
 		<div class="page-subtitle">Projection: <a href={ p.BasePath + "/dead-letters/" + proj }>{ proj }</a></div>
@@ -134,7 +134,7 @@ templ dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLe
 		<div>
 			<h3>Event Payload</h3>
 			if entry.Event != nil {
-				<pre class="code-block"><code>{ string(payloadBytes(d.config.PayloadRenderer, entry.Event)) }</code></pre>
+				<pre class="code-block"><code>{ string(payload) }</code></pre>
 			} else {
 				<p class="muted">Original event not available</p>
 			}

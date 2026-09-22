@@ -1,29 +1,10 @@
 package dashboardui
 
 import (
-	"context"
-	"strings"
-
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/utils"
 )
-
-// definitionListHTML renders the library DefinitionList into a string (hybrid
-// adoption path). Terms/details are escaped by the library; use defItemRaw
-// for pre-rendered detail markup and defItemCopy for copyable values.
-func definitionListHTML(ctx context.Context, items []display.DefinitionItem) string {
-	var b strings.Builder
-
-	//nolint:modernize // nested BaseProps is deliberate: promoted keys crash exhaustruct_v5 v5.0.3 (makeslice panic)
-	props := display.DefinitionListProps{
-		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
-		Items:     items,
-	}
-	_ = display.DefinitionList(props).Render(ctx, &b)
-
-	return b.String()
-}
 
 // defItem builds a definition item with plain-text detail.
 func defItem(term, detail string) display.DefinitionItem {
@@ -44,4 +25,22 @@ func defItemCopy(term, displayHTML, rawValue string) display.DefinitionItem {
 		Detail:          "",
 		DetailComponent: templ.Join(rawComponent(displayHTML), copyButtonComponent(rawValue)),
 	}
+}
+
+// rawComponent wraps pre-rendered HTML as a templ component.
+func rawComponent(html string) templ.Component {
+	return templ.Raw(html)
+}
+
+// copyButtonComponent builds an unrendered library CopyButton component for
+// embedding inside other components (definition list details).
+func copyButtonComponent(text string) templ.Component {
+	return display.CopyButton(display.CopyButtonProps{
+		BaseProps:   utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},
+		Text:        text,
+		Label:       "",
+		CopiedLabel: "",
+		Icon:        true,
+		Href:        "",
+	})
 }

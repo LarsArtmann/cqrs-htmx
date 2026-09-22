@@ -84,11 +84,11 @@ templ eventFilterBar(basePath string, filter eventFilter) {
 
 // ===== Event Detail =====
 
-templ eventDetailPage(p pageData, evt event.Event, prevID, nextID string) {
-	@layout(p, eventDetailContent(p, evt, prevID, nextID))
+templ eventDetailPage(p pageData, evt event.Event, prevID, nextID string, payload []byte) {
+	@layout(p, eventDetailContent(p, evt, prevID, nextID, payload))
 }
 
-templ eventDetailContent(p pageData, evt event.Event, prevID, nextID string) {
+templ eventDetailContent(p pageData, evt event.Event, prevID, nextID string, payload []byte) {
 	<div class="page-header">
 		<h2><code>{ string(evt.Type()) }</code> @badge(fmt.Sprintf("schema v%d", evt.SchemaVersion()), display.BadgeNeutral) @encodingBadge(string(evt.Encoding()))</h2>
 		<div class="page-subtitle mono">{ evt.ID().String() } @copyButton(evt.ID().String(), "")</div>
@@ -119,10 +119,10 @@ templ eventDetailContent(p pageData, evt event.Event, prevID, nextID string) {
 		<div>
 			<h3>Payload</h3>
 			<div class="filter-bar">
-				@copyButton(string(payloadBytes(d.config.PayloadRenderer, evt)), "Copy Payload")
+				@copyButton(string(payload), "Copy Payload")
 				@buttonSubmit("Download JSON", "", display.ButtonSecondary, templ.Attributes{"data-download-payload": evt.ID().String()})
 			</div>
-			<pre class="code-block" id="event-payload"><code>{ string(payloadBytes(d.config.PayloadRenderer, evt)) }</code></pre>
+			<pre class="code-block" id="event-payload"><code>{ string(payload) }</code></pre>
 		</div>
 	</div>
 }
