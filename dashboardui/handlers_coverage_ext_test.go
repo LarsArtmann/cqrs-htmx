@@ -2,9 +2,7 @@ package dashboardui
 
 import (
 	"context"
-
 	"errors"
-	"github.com/a-h/templ"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -12,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"

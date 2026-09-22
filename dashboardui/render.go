@@ -9,12 +9,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/httputil"
 	"github.com/larsartmann/templ-components/errorpage"
-
-	"github.com/a-h/templ"
 )
 
 const contentTypeHTML = "text/html; charset=utf-8"
