@@ -34,7 +34,7 @@ Commit chain this session (all `chore: auto-commit` heuristic per gotcha 4):
 1. **Push + real-CI confirmation.** ~~All 5 session commits are local on master. Nothing pushed (house rule: never push without explicit ask).~~ pushed 2026-09-22 by the release-train session (sync `cbf3fdfb..5f1d1bca` + later daemon commits; `master` was in parity with origin at sweep time). Real CI has not executed the bump or the adoption — watching the pushed range is TODO_LIST P1.
 2. **templ-components upstream CI status.** I proved the v1.19.1 tags are PUSHED (ls-remote), but did not verify their CI went green post-push (their red-master fixes were "unproven in real CI until pushed" at round-8 time). Out of this repo's scope; tracked upstream — noted here because the adoption depends on that release being healthy.
 3. **Delivering-layer verification is test-grade, not human-grade.** The DLQ note is proven by golden + handler assertions + a11y/CSP suite sweeps, but no human/browser render pass happened, and ~~the Playwright e2e suite was NOT run for this change (see c2/c3)~~ the full Playwright suite ran green post-adoption in the same-day sweep; the human look and a dedicated count-notice e2e assertion stay open (TODO_LIST P2).
-4. **HARVEST not run.** This report's section (f) is brainstorm-grade; per the status-report contract it belongs in TODO_LIST/ROADMAP via docs-health HARVEST — not yet done (the user asked me to wait for instructions).
+4. ~~**HARVEST not run.** This report's section (f) is brainstorm-grade; per the status-report contract it belongs in TODO_LIST/ROADMAP via docs-health HARVEST — not yet done (the user asked me to wait for instructions).~~ done at `3a6a04ee`
 
 ## c) NOT STARTED (noticed this session, deliberately untouched)
 

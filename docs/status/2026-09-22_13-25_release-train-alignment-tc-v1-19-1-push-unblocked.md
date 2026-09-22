@@ -6,6 +6,8 @@ Exit state: master == origin/master at `5f1d1bca`, release-train **0 unpublished
 
 Machine context: `/mnt/buildcache` went from **100% FULL / 1.8G free** (the 12:04 round-8 report) to **164–169G free (19–22% used)** during 13:04–13:06 — I did NOT reclaim it; a concurrent session did. All caches worked normally this session; gotcha 12's fullness note is stale as of now (annotated in AGENTS.md this session).
 
+> **ANNOTATED 2026-09-22 (follow-up session):** the NOT-STARTED heavy-gate items below ran green the same day (check-modules 17/17 — which caught the agents-notes v1.19.0→v1.19.1 staleness — coverage-gate, full e2e, lint), HARVEST routed (f) into TODO_LIST/ROADMAP, and the examples-test-story question was answered by the already-tracked ROADMAP micro-ideas. CI watch (c4) and the agents-notes narrative (c6) stay open as TODO_LIST items. Unmarked items below are still open.
+
 > Verdict in one line: the blocked push is unblocked, the v1.19.1 family alignment is verified end-to-end (not by me executing it — a concurrent session beat me to the go.mod edits, and I switched to rigorous verification instead of duplicating), the interrupted sync is completed — **but the session's own execution had four real mistakes** (blind mutation loop, a false-alarm diagnosis broadcast as a "critical find", a town-continue race risk, and deferred doc-staleness fixes), all itemized in (d).
 
 Context: the sibling session (the 12:04 round-8 work continued) cut templ-components `v1.19.1` upstream, bumped this repo's 12 consumer go.mods (daemon-committed as `eb6dfc7a` 13:05:51), and adopted the new `ListNoteCount` variant in dashboardui mid-session (`14e386e3` 13:11:40 render.go helper → `650404e1` 13:16:40 golden + tests + docs). I was tasked with fixing the blocked push and walked into that work in flight.
@@ -37,14 +39,14 @@ Context: the sibling session (the 12:04 round-8 work continued) cut templ-compon
 
 ## c) NOT STARTED
 
-1. `nix run .#check-modules` (full bundle: VCS-cache health, module isolation self-tests, dep budgets, docs freshness, both status gates) — only the two pre-push components ran this session.
-2. golangci-lint via buildflow across modules at the pushed HEAD — the pushed range includes the sibling's `ListNoteCount` feature code never lint-verified by me.
-3. `nix run .#coverage-gate` at the pushed HEAD.
-4. Watching CI on `cbf3fdfb..5f1d1bca`.
-5. docs-health HARVEST of this report's (f) list into `TODO_LIST.md`/`ROADMAP.md` (per the status-report skill, the loop isn't closed until harvested — awaiting instructions).
-6. `docs/agents-notes.md` narrative for today's concurrent-session near-double-bump + false-alarm incident (dated histories belong there; only the distilled gotcha went into AGENTS.md).
-7. v1.19.1 adoption asks b (hybrid-rendering `templ.WithChildren` escape hatch) and c (CopyButton contrast fix relevance to this fleet) — not investigated; out of session scope.
-8. e2e/examples test coverage question: the flake test app covers 17 core modules only; examples got build+vet from me, never tests. Whether examples have ANY automated test story is unverified.
+1. ~~`nix run .#check-modules` (full bundle: VCS-cache health, module isolation self-tests, dep budgets, docs freshness, both status gates) — only the two pre-push components ran this session.~~ done 2026-09-22 follow-up: 17/17 stages green; it caught the `docs/agents-notes.md` "uniform at v1.19.0" staleness, fixed `c344da5d`.
+2. ~~golangci-lint via buildflow across modules at the pushed HEAD — the pushed range includes the sibling's `ListNoteCount` feature code never lint-verified by me.~~ done: `nix run .#lint` green (15 modules) + the buildflow pre-commit run reported 0 issues on every core module; the remaining buildflow findings live only in e2e/examples modules the canonical lint excludes by design.
+3. ~~`nix run .#coverage-gate` at the pushed HEAD.~~ done: green (15 gates).
+4. Watching CI on `cbf3fdfb..5f1d1bca`. ← still open (TODO_LIST P1, extended to both repos' pushed ranges).
+5. ~~docs-health HARVEST of this report's (f) list into `TODO_LIST.md`/`ROADMAP.md` (per the status-report skill, the loop isn't closed until harvested — awaiting instructions).~~ done `3a6a04ee` — routed into TODO_LIST (P1 CI-watch, P2 CSS-guard + e2e assertion, P3 chores) and ROADMAP (OQ 17–19, tooling ideas, micro-ideas); still-open (f) items were carried as tasks, not dropped.
+6. `docs/agents-notes.md` narrative for today's concurrent-session near-double-bump + false-alarm incident (dated histories belong there; only the distilled gotcha went into AGENTS.md). ← still open (TODO_LIST P3).
+7. v1.19.1 adoption asks b (hybrid-rendering `templ.WithChildren` escape hatch) and c (CopyButton contrast fix relevance to this fleet) — not investigated; out of session scope. ← still open (TODO_LIST P3).
+8. ~~e2e/examples test coverage question: the flake test app covers 17 core modules only; examples got build+vet from me, never tests. Whether examples have ANY automated test story is unverified.~~ answered by the existing ROADMAP micro-ideas line: `examples/basic` + `examples/datastar-demo` smoke tests exist and ran green 2026-09-22; the `async-startup-demo` + `middleware-showcase` test gaps were already tracked there. The flake test app excluding examples remains deliberate.
 
 ## d) TOTALLY FUCKED UP (brutally honest)
 
