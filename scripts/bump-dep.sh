@@ -11,6 +11,12 @@
 #   scripts/bump-dep.sh <module-substring-or-regex> <version> [--dry-run]
 # Example:
 #   scripts/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0
+#   scripts/bump-dep.sh 'larsartmann/httputil$' v1.3.0   # $ = exact module only
+# A trailing $ anchors the END of the module path — without it the pattern
+# is a prefix and also sweeps sibling submodules with their own trains
+# (httputil/server_timing and go-cqrs-lite/storage/memory both bit this way:
+# each publishes tags on its own schedule, and bumping them to a sibling's
+# version produces "unknown revision" download failures).
 # Exit: 0 = all touched modules green; 1 = any failure (names the module)
 #
 # shellcheck disable=SC2317
@@ -39,7 +45,16 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 fi
 
 # Digit-safe: match the full module path up to whitespace, no [a-z/-] traps.
-MATCH_RE="^[[:space:]]*github\.com/${PATTERN}[A-Za-z0-9/._-]*[[:space:]]+v[0-9][^[:space:]]*"
+# A trailing $ in PATTERN means exact-module: drop the subpath class so
+# prefix patterns like 'httputil' cannot also match 'httputil/server_timing'.
+TAIL_CLASS='[A-Za-z0-9/._-]*'
+case "$PATTERN" in
+  *'$')
+    TAIL_CLASS=''
+    PATTERN="${PATTERN%$}"
+    ;;
+esac
+MATCH_RE="^[[:space:]]*github\.com/${PATTERN}${TAIL_CLASS}[[:space:]]+v[0-9][^[:space:]]*"
 
 mods=()
 while IFS= read -r modfile; do
