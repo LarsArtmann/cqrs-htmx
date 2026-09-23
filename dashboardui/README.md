@@ -256,6 +256,17 @@ Identifiers (event IDs, stream IDs, correlation IDs, etc.) are click-to-copy:
 - **Reduced motion**: Animations disabled when `prefers-reduced-motion: reduce`
 - **Live regions**: SSE status updates use `aria-live="polite"`
 
+## Theming
+
+The dashboard ships with a user-controllable dark/light theme toggle in the header (templ-components `ThemeToggle`):
+
+- **First visit**: follows the operating system's `prefers-color-scheme`
+- **Toggle**: clicking the sun/moon button switches theme and persists the choice in `localStorage`
+- **Flash-free**: an inline pre-paint script (CSP-nonce'd) applies the stored choice before first render
+- **Per-instance accent**: pass `Accent` in the `Config` to brand both modes (CSS custom property)
+
+Without JavaScript the dashboard renders in light mode.
+
 ## Mounting
 
 ```go
