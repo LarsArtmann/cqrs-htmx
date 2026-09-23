@@ -1523,6 +1523,77 @@
           </table>
         </section>
 
+        <!-- 07: component evaluations (adoption-plan T8, T11–T16, T23) -->
+        <section id="evaluations">
+          <h2><span class="num">07</span>Component evaluations (same-day batch)</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Library component</th>
+                <th>Verdict</th>
+                <th>Reasoning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>forms.FilterInput</code>/<code>FilterDropdown</code></td>
+                <td><strong>Reject</strong> for the events bar</td>
+                <td>The events filter is a 3-field AND query (type + streamType + streamID) submitted together via one GET form. Both library components are single-field <code>&lt;search&gt;</code> forms with per-field auto-submit/debounce; composing three would split one query across three forms (cross-form <code>hx-include</code> plumbing fights htmx form semantics). The bar is already library-composed (<code>forms.Input</code>). FilterDropdown remains viable for a future single-select filter.</td>
+              </tr>
+              <tr>
+                <td><code>forms.Slider</code> (time-travel scrubber)</td>
+                <td><strong>Reject</strong></td>
+                <td><code>SliderProps</code> renders a labeled wrapper (label + value bubble + help text); the scrubber lives in a compact row with <code>.version-links</code> and an adjacent version display, so the wrapper is redundant chrome. The two data hooks ride <code>BaseProps.Attrs</code>, but the form-factor mismatch buys nothing for a 3-line input.</td>
+              </tr>
+              <tr>
+                <td><code>navigation.SidebarNav</code></td>
+                <td><strong>Keep custom</strong> (standing criteria)</td>
+                <td>Structure fits (brand/icon items/footer), but adoption needs the adminui-class theming work: <code>@theme</code> gray remap + CSP-dropped <code>--tc-sidebar-w</code> inline style require scope pin-backs, and the library has no dark-token shell matching the custom sidebar variables. The TODO_LIST P2 revisit criteria (dark-token shell, zero-JS drawer, adminui production proof) are unchanged and still unmet.</td>
+              </tr>
+              <tr>
+                <td><code>display.Card</code>/<code>Grid</code> vs <code>.panel</code></td>
+                <td><strong>Keep <code>.panel</code></strong></td>
+                <td>4 usages across 2 files, styled by dashboardCSS tokens (border/radius/padding vars) that resolve correctly in both themes. A swap trades zero user-visible gain for a re-verification pass over every dark surface plus a CSS bundle rebuild — regression surface without capability gain. Revisit only if panels need component features (header actions, footers).</td>
+              </tr>
+              <tr>
+                <td><code>display.DataTable</code></td>
+                <td><strong>Reject</strong></td>
+                <td>DataTable is data-driven (<code>Columns []DataTableColumn</code>/<code>Rows []TableRow</code>, URL-appended sort params). dashboardui tables embed inline templ cells — copy buttons, badges, per-row action forms — that would need re-expression as data, losing templ's escape guarantees, for zero capability gain: sortable headers already shipped via <code>Table</code>+<code>TypedHeaders</code>+<code>sortState</code>.</td>
+              </tr>
+              <tr>
+                <td><code>display.RelativeTime</code></td>
+                <td><strong>Adopt-candidate (narrow)</strong></td>
+                <td>Strictly better semantics than the <code>relativeTime()</code> string helper (<code>&lt;time datetime&gt;</code> + hover title + AutoRefresh + htmx:afterSettle). Fits server-rendered timestamps (snapshot detail "Created"); does NOT fit the live SSE rows (JS-injected via <code>dashboard.js</code>). Narrow swap queued as follow-up, not emergency.</td>
+              </tr>
+              <tr>
+                <td>Bare empty-state sweep</td>
+                <td><strong>Clean</strong></td>
+                <td>All "No X" surfaces route through <code>emptyStatePanel</code> (<code>display.EmptyState</code>) including the stream-listing <code>emptyTitle</code> params; zero bare text blocks remain.</td>
+              </tr>
+              <tr>
+                <td><code>htmx.ConfirmDelete</code></td>
+                <td><strong>Reject</strong></td>
+                <td>dashboardui's CSP-safe pattern is one delegated submit listener (<code>layout.go</code> dashboardJS) + <code>data-confirm</code> attributes on N forms with native <code>confirm()</code>. ConfirmDelete components pair per-form; adopting means touching every destructive form to gain nothing over the existing listener.</td>
+              </tr>
+              <tr>
+                <td><code>display.ListNote</code> for "Showing X&ndash;Y of Z"</td>
+                <td><strong>Blocked on upstream</strong></td>
+                <td>ListNote speaks N-of-M truncation or N-items counts, not X&ndash;Y ranges; the range-variant upstream ask is already filed (TODO_LIST P3). Hand-roll stays until the variant ships.</td>
+              </tr>
+              <tr>
+                <td><code>errorpage.ErrorDetail</code></td>
+                <td><strong>No fit</strong></td>
+                <td>The HTMX swap path renders the bare family-aware <code>ErrorPage</code> fragment — already styled and correct for a swapped region. ErrorDetail targets inline error slots inside page content, which dashboard pages don't have.</td>
+              </tr>
+              <tr>
+                <td><code>display.Scrollback</code></td>
+                <td><strong>No current fit</strong></td>
+                <td>Scrollback is a terminal-style LOG stream (timestamp + tone tags per line). The payload viewer is a single JSON blob (<code>&lt;pre class="code-block"&gt;</code> + download); the live feed renders as a table. Revisit if a raw-log viewer page ships.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
         <!-- Footer -->
         <footer class="footer">
           <p>

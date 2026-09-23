@@ -378,8 +378,9 @@ Button link/submit, EmptyState, and DefinitionList render benchmarks.
 | `layout.ThemeScript`/`ThemeToggle`        | adopted 2026-09-23                       | `layout.templ`, class-driven dark mode |
 | `htmx.PolledRegion`                       | candidate (small follow-up)              | `overview.templ` hand-rolled region    |
 | `display.PageHeader`                      | hand-rolled (open gap)                   | `.page-header` markup                  |
-| `forms.Slider`                            | unevaluated (plan T11)                   | `timetravel.templ` version slider      |
-| `display.DataTable`                       | unevaluated (plan T14)                   | `sort.go` Table+sortState composition  |
+| `forms.Slider`                            | rejected: labeled wrapper mismatches scrubber row | `timetravel.templ` version slider      |
+| `display.DataTable`                       | rejected: data-driven shape fights inline templ cells | `sort.go` Table+sortState composition  |
+| `display.RelativeTime`                    | adopt-candidate (server-rendered stamps) | `relativeTime()` helper call sites     |
 | `navigation.Pagination`                   | divergence: cursor paging (no lib equiv) | `pagination.go`                        |
 | `navigation.SidebarNav`/`layout.AppShell` | divergence: custom shell (boost/drawer)  | `layout.templ`                         |
 | `layout.Base`                             | divergence: self-hosted/noindex needs    | `layout.templ`                         |
