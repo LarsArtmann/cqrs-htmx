@@ -7,6 +7,19 @@ the hybrid path SCALED beyond leaf components (tables, definition lists,
 error pages all render through it); the Grid/"children" limitation was
 confirmed and is documented as a deliberate exclusion; adminui's parallel
 adoption (separate audit, 68/100) also landed via its own program.
+
+ANNOTATED 2026-09-23 (Run 4 reconciliation — see
+2026-09-23_templ-components-deep-dive.html, same series): all 8 tagged
+missed-opportunity findings re-verified against current code. RESOLVED:
+StatCard (components.templ:18), StatusBadge/Badge (:43,45), error pages
+(render.go/handler.go errorpage + errorShell), sortable Table headers
+(components.templ TypedHeaders + sort.go), GlobalErrorHandling
+(layout.templ tuned config), EmptyState/Button/DefinitionList leaves.
+RESOLVED 2026-09-23: ThemeScript/ThemeToggle (class-driven dark mode,
+adminui pattern). PARTIAL (deliberate, tracked): numbered pager +
+"X-Y of Z" label + page-size select remain hand-rolled (upstream ask for a
+ListNote X-Y range variant already filed); PageHeader hand-rolled;
+display.DataTable composition verdict pending (adoption-plan task T14).
 -->
 <!doctype html>
 <html lang="en">
