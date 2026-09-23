@@ -5,6 +5,8 @@
 > **Deliverable produced:** [`docs/research/2026-09-23_templ-components-deep-dive.html`](../research/2026-09-23_templ-components-deep-dive.html) (corrected same session, see §d)
 > **Format note:** user explicitly requested `.md`; skill default is HTML — override honored, not propagated.
 
+> ANNOTATED 2026-09-23 (same-day execution session): the §f plan (24 tasks / 66 micro-tasks) was executed end-to-end after the owner's go. Resolved: #1 (`4b1e82aa`), #2 (`ee14dba9`/`e722ddcb`), #3–#18, #20–#22, #24–#26, #28–#34 (each struck inline below; evidence in the audit report §06/§07, ADR-0053, `docs/research/README.md`, loginpage mini-report). Open: #19 (axe pass), #27 (dark-token audit) — routed to TODO_LIST P3; #23 — options memo drafted, owner decision pending. §g answers: Q2 answered by events (toggle shipped, adminui pattern); Q3 remains owner policy (verdicts documented as divergences in ADR-0053 with reopen triggers).
+
 ---
 
 ## Self-Review (brutal, first — because it reshapes the sections below)
@@ -80,41 +82,41 @@ Impact: C=Critical, H=High, M=Medium, L=Low. Effort: S<30min, M=30m–2h, L>2h. 
 
 | # | Task | Impact | Effort | Cat | Route |
 |---|---|---|---|---|---|
-| 1 | Swap 7 hidden CSRF inputs → `htmx.CSRFToken` (dlq/projections/snapshots) | M | S | Quality | T |
-| 2 | Reconcile ThemeToggle finding with `2026-09-20_theme-toggle-strategy-spike.md`; then land ThemeScript+Toggle+`@custom-variant dark` + CSS rebuild | H | M | Feature | T |
-| 3 | Harvest this §f into TODO_LIST/ROADMAP (docs-health) | H | S | Docs | T |
-| 4 | Add adoption table (adopted/custom/hand-rolled) to dashboardui docs | M | S | Docs | T |
-| 5 | Re-verify the 2026-09-17 report's 17 missed opportunities; strike resolved, carry open | M | M | Docs | T |
-| 6 | Define shared adoption-score rubric from the 2026-09-17 capability ladder; re-score 14/68/85 on it | M | M | Quality | T |
-| 7 | Run dashboardui build+tests as audit evidence; attach to report appendix | M | S | Quality | T |
-| 8 | Prototype `forms.Slider` for time-travel scrubber; adopt or document rejection | L | S | Feature | T |
-| 9 | Prototype `navigation.SidebarNav` in aside; adopt or document rejection | L | M | Feature | R |
-| 10 | Evaluate `forms.FilterInput`/`FilterDropdown` vs hand-rolled `filterInput` (events.templ) | M | S | Feature | T |
-| 11 | Evaluate `display.RelativeTime` vs Go `relativeTime()` helper in table rows | L | S | Cleanup | T |
-| 12 | Evaluate `display.Grid` for overview stat-card row (currently custom CSS grid) | L | S | Cleanup | R |
-| 13 | Evaluate `display.Card`/`SimpleCard` vs `.panel`/`.panel-title` CSS | M | M | Cleanup | R |
-| 14 | Evaluate `htmx.ConfirmDelete` vs raw `data-confirm` forms | L | S | Feature | T |
-| 15 | Check `paginationInfoText` renders via `ListNote`/`ListNoteCount` where applicable | L | S | Quality | T |
-| 16 | Consider `errorpage.ErrorDetail` for the HTMX-swap bare error card (render.go) | L | S | Feature | R |
-| 17 | Sweep for bare "No X" text blocks not using `emptyStatePanel` | L | S | Quality | T |
-| 18 | Add goldens for any newly adopted components after #1/#2 | M | S | Quality | T |
+| 1 | ~~Swap 7 hidden CSRF inputs → `htmx.CSRFToken` (dlq/projections/snapshots)~~ done at `4b1e82aa` (also fixed the `_csrf` vs `csrf_token` field-name mismatch) | M | S | Quality | T |
+| 2 | ~~Reconcile ThemeToggle finding with `2026-09-20_theme-toggle-strategy-spike.md`; then land ThemeScript+Toggle+`@custom-variant dark` + CSS rebuild~~ done at `ee14dba9`/`e722ddcb` (shipped adminui class-driven pattern; spike folded in report §06) | H | M | Feature | T |
+| 3 | ~~Harvest this §f into TODO_LIST/ROADMAP (docs-health)~~ done (survivors only: #19/#27 + RelativeTime swap + PageHeader gap; OQ22 added) | H | S | Docs | T |
+| 4 | ~~Add adoption table (adopted/custom/hand-rolled) to dashboardui docs~~ done (README table + AGENTS.md pointer) | M | S | Docs | T |
+| 5 | ~~Re-verify the 2026-09-17 report's 17 missed opportunities; strike resolved, carry open~~ done (inline ANNOTATED outcome note; 6 resolved + theme same-day, 3 partial/deliberate) | M | M | Docs | T |
+| 6 | ~~Define shared adoption-score rubric from the 2026-09-17 capability ladder; re-score 14/68/85 on it~~ done (rubric v1 + series re-score 14→79→83→94, report §06; provenance correction: "85" was never computed) | M | M | Quality | T |
+| 7 | ~~Run dashboardui build+tests as audit evidence; attach to report appendix~~ done (report §06 evidence table) | M | S | Quality | T |
+| 8 | ~~Prototype `forms.Slider` for time-travel scrubber; adopt or document rejection~~ done (rejected: labeled wrapper vs compact scrubber row, §07) | L | S | Feature | T |
+| 9 | ~~Prototype `navigation.SidebarNav` in aside; adopt or document rejection~~ done (kept per standing TODO_LIST P2 criteria; divergence documented in ADR-0053 + §07) | L | M | Feature | R |
+| 10 | ~~Evaluate `forms.FilterInput`/`FilterDropdown` vs hand-rolled `filterInput` (events.templ)~~ done (rejected: single-field form semantics vs 3-field AND bar, §07) | M | S | Feature | T |
+| 11 | ~~Evaluate `display.RelativeTime` vs Go `relativeTime()` helper in table rows~~ done (adopt-candidate, narrow server-rendered swap queued to TODO_LIST; live JS rows excluded) | L | S | Cleanup | T |
+| 12 | ~~Evaluate `display.Grid` for overview stat-card row (currently custom CSS grid)~~ done (kept `.panel`/stat-grid token styling, §07 Card/Grid verdict) | L | S | Cleanup | R |
+| 13 | ~~Evaluate `display.Card`/`SimpleCard` vs `.panel`/`.panel-title` CSS~~ done (keep `.panel` — 4 usages, token-driven, zero-gain swap risk, §07) | M | M | Cleanup | R |
+| 14 | ~~Evaluate `htmx.ConfirmDelete` vs raw `data-confirm` forms~~ done (rejected: one delegated listener beats per-form pairing, §07) | L | S | Feature | T |
+| 15 | ~~Check `paginationInfoText` renders via `ListNote`/`ListNoteCount` where applicable~~ done (blocked on upstream X–Y range variant; ask already filed, §07) | L | S | Quality | T |
+| 16 | ~~Consider `errorpage.ErrorDetail` for the HTMX-swap bare error card (render.go)~~ done (no fit — bare ErrorPage fragment is correct for swaps, §07) | L | S | Feature | R |
+| 17 | ~~Sweep for bare "No X" text blocks not using `emptyStatePanel`~~ done (clean — all surfaces route through emptyStatePanel) | L | S | Quality | T |
+| 18 | ~~Add goldens for any newly adopted components after #1/#2~~ done (no new consumer goldens required — both components' markup pinned upstream; module goldens + a11y suite green) | M | S | Quality | T |
 | 19 | axe/a11y smoke pass once theme toggle lands | M | M | Quality | R |
-| 20 | Link the deep-dive report from `dashboardui/README.md` (docs section) | L | S | Docs | T |
-| 21 | Run loginpage templ-components audit (AGENTS.md lists 4 adoption opportunities) | M | M | Docs | T |
-| 22 | Re-run dashboardui audit post-#1/#2; ANNOTATE this report (docs-health) | M | S | Docs | T |
-| 23 | Decide publish-vs-internal for audit verdicts on the public repo README | M | S | Docs | — (needs §g) |
-| 24 | Add `ls docs/research/ first` step to session protocol / AGENTS.md note | M | S | Process | T |
-| 25 | Check `icons.Name` constants vs string literals drift in navIcon (layout.go:22 comment) | L | S | Quality | T |
-| 26 | Verify `check-templates` still green after any templ edits from #1 | M | S | Quality | T |
+| 20 | ~~Link the deep-dive report from `dashboardui/README.md` (docs section)~~ done (README links ADR-0053 + audit series; `docs/research/README.md` indexes the series) | L | S | Docs | T |
+| 21 | ~~Run loginpage templ-components audit (AGENTS.md lists 4 adoption opportunities)~~ done (`docs/research/2026-09-23_loginpage-templ-components-audit.md` — keep zero-dep; OQ21 triggers unchanged) | M | M | Docs | T |
+| 22 | ~~Re-run dashboardui audit post-#1/#2; ANNOTATE this report (docs-health)~~ done (census re-run + this annotation block) | M | S | Docs | T |
+| 23 | Decide publish-vs-internal for audit verdicts on the public repo README — options memo drafted (`docs/planning/2026-09-23_audit-verdict-publishing-memo.md`, recommends A-with-exceptions); OWNER DECISION PENDING | M | S | Docs | — (needs §g) |
+| 24 | ~~Add `ls docs/research/ first` step to session protocol / AGENTS.md note~~ done (AGENTS.md gotcha 21) | M | S | Process | T |
+| 25 | ~~Check `icons.Name` constants vs string literals drift in navIcon (layout.go:22 comment)~~ done (no drift — all names flow through mapNavIconName → typed constants with Question fallback) | L | S | Quality | T |
+| 26 | ~~Verify `check-templates` still green after any templ edits from #1~~ done (green post-swap) | M | S | Quality | T |
 | 27 | Dark-mode audit of dashboardCSS tokens once class strategy lands (#2) | M | M | Quality | R |
-| 28 | Consider vendoring `.tc-*` utilities need-assessment for dashboard (library custom.css) | L | S | Quality | R |
-| 29 | Confirm `RecommendedSecurityMiddleware` coverage is complete for all dashboard handlers | M | S | Quality | T |
-| 30 | Add Scrollback component evaluation for event/payload viewers (fit?) | L | S | Feature | R |
-| 31 | Consider `display.DataTable` (integrated sort+pagination) vs current Table+sortState composition | M | M | Feature | R |
-| 32 | Document the 3 justified divergences (shell/pagination/error-card) as ADR or README note | M | S | Docs | T |
-| 33 | Annotate the 2026-09-17 dashboardui report: superseded-by link to today's 85/100 | M | S | Docs | T |
-| 34 | Update repo CHANGELOG/docs index if reports are meant to be discoverable (status README lists them?) | L | S | Docs | T |
-| 35 | Decide whether audits of all UI consumers become a recurring gate (post-migration regression check) | L | S | Process | R |
+| 28 | ~~Consider vendoring `.tc-*` utilities need-assessment for dashboard (library custom.css)~~ done (no vendoring needed — no Modal/Drawer/Dropdown/Combobox/Textarea adopted; tc-copy/toast hooks styled by utilities + dashboardCSS bridge) | L | S | Quality | R |
+| 29 | ~~Confirm `RecommendedSecurityMiddleware` coverage is complete for all dashboard handlers~~ done (`Dashboard.Middleware()` delegates to it; opt-in by library principle; setup + demo wire it; README documents the consumer Chain) | M | S | Quality | T |
+| 30 | ~~Add Scrollback component evaluation for event/payload viewers (fit?)~~ done (no current fit — payload is a blob, live feed is a table; revisit on a raw-log page, §07) | L | S | Feature | R |
+| 31 | ~~Consider `display.DataTable` (integrated sort+pagination) vs current Table+sortState composition~~ done (rejected: data-driven shape fights inline templ cells; sortable headers already shipped, §07) | M | M | Feature | R |
+| 32 | ~~Document the 3 justified divergences (shell/pagination/error-card) as ADR or README note~~ done (ADR-0053 + INDEX + README link) | M | S | Docs | T |
+| 33 | ~~Annotate the 2026-09-17 dashboardui report: superseded-by link to today's 85/100~~ done (inline ANNOTATED outcome note) | M | S | Docs | T |
+| 34 | ~~Update repo CHANGELOG/docs index if reports are meant to be discoverable (status README lists them?)~~ done (`docs/research/README.md` convention + load-bearing series index; CHANGELOG entries this train) | L | S | Docs | T |
+| 35 | ~~Decide whether audits of all UI consumers become a recurring gate (post-migration regression check)~~ done (proposed as ROADMAP OQ22 — lightweight post-wave ritual, not a CI gate; owner call) | L | S | Process | R |
 
 (Honest cut: items 36–50 would be filler — the real backlog from this session is the 35 above; #23 and §g gate a few.)
 
@@ -126,4 +128,4 @@ Impact: C=Critical, H=High, M=Medium, L=Low. Effort: S<30min, M=30m–2h, L>2h. 
 
 ---
 
-*Point-in-time snapshot. Report uncommitted (harness rule: no commit without explicit request — auto-commit daemon will pick it up). §f is HARVEST-ready; not yet harvested per "wait for instructions".*
+*Point-in-time snapshot. §f executed same day (see the ANNOTATED block); survivors harvested to TODO_LIST/ROADMAP.*
