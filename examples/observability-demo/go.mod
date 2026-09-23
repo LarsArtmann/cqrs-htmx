@@ -36,7 +36,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.2 // indirect
-	github.com/larsartmann/go-etag v0.4.0 // indirect
+	github.com/larsartmann/go-etag v0.5.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect

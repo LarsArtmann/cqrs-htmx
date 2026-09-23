@@ -77,7 +77,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-datastar v0.6.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
-	github.com/larsartmann/go-etag v0.4.0 // indirect
+	github.com/larsartmann/go-etag v0.5.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
