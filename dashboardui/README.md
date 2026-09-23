@@ -356,6 +356,34 @@ markup-faithful, so this is now a small follow-up, not an exclusion.
 Adopted in the N16/N17 pass: `forms.Input` (event filter bar), library
 Button link/submit, EmptyState, and DefinitionList render benchmarks.
 
+#### Adoption table (grep-able inventory, 2026-09-23)
+
+| Library capability                        | Status                                   | Where                                  |
+| ----------------------------------------- | ---------------------------------------- | -------------------------------------- |
+| `display.StatCard` (+`ValueID` live hook) | adopted                                  | `components.templ` (statCard wrapper)  |
+| `display.StatusBadge`/`Badge`             | adopted                                  | `components.templ`                     |
+| `display.Table` (sortable headers)        | adopted                                  | `components.templ`, `sort.go`          |
+| `display.EmptyState`                      | adopted                                  | `components.templ` (emptyStatePanel)   |
+| `display.Button`                          | adopted                                  | `components.templ` (link/submit)       |
+| `display.CopyButton`                      | adopted                                  | `components.templ`                     |
+| `display.DefinitionList`                  | adopted                                  | `components.templ`                     |
+| `display.ListNote` (count variant)        | adopted                                  | `components.templ`                     |
+| `forms.Input`                             | adopted                                  | events filter bar                      |
+| `forms.Select` (page size)                | adopted                                  | pagination controls                    |
+| `htmx.GlobalErrorHandling` (tuned)        | adopted                                  | `layout.templ`                         |
+| `htmx.CSRFToken`                          | adopted 2026-09-23                       | dlq/projections/snapshots forms        |
+| `feedback.ToastContainer`                 | adopted                                  | `layout.templ`                         |
+| `errorpage.ErrorPage`/`NotFound404`       | adopted                                  | `render.go`, `handler.go`, `errorShell`|
+| `icons` (`Name`/`IconPathData`)           | adopted                                  | `layout.go` (navIcon), page icons      |
+| `layout.ThemeScript`/`ThemeToggle`        | adopted 2026-09-23                       | `layout.templ`, class-driven dark mode |
+| `htmx.PolledRegion`                       | candidate (small follow-up)              | `overview.templ` hand-rolled region    |
+| `display.PageHeader`                      | hand-rolled (open gap)                   | `.page-header` markup                  |
+| `forms.Slider`                            | unevaluated (plan T11)                   | `timetravel.templ` version slider      |
+| `display.DataTable`                       | unevaluated (plan T14)                   | `sort.go` Table+sortState composition  |
+| `navigation.Pagination`                   | divergence: cursor paging (no lib equiv) | `pagination.go`                        |
+| `navigation.SidebarNav`/`layout.AppShell` | divergence: custom shell (boost/drawer)  | `layout.templ`                         |
+| `layout.Base`                             | divergence: self-hosted/noindex needs    | `layout.templ`                         |
+
 ### Rebuilding the CSS bundle
 
 After ANY component adoption or templ-components family bump:

@@ -867,6 +867,7 @@
           <a href="#opportunities">Top Opportunities</a>
           <a href="#conclusion">Conclusion</a>
           <a href="#appendix">Appendix</a>
+          <a href="#rubric">Rubric</a>
         </nav>
       </aside>
 
@@ -1397,6 +1398,129 @@
             Related skills for follow-up: deduplicate-code (if CSRF cleanup cascades),
             frontend-design (theme toggle placement).
           </p>
+        </section>
+
+        <!-- 06: Rubric + comparable re-score (adoption-plan T5) + evidence addendum (T7) + spike fold (T4) -->
+        <section id="rubric">
+          <h2><span class="num">06</span>Rubric &amp; comparable re-score (added same day)</h2>
+          <p>
+            <strong>Provenance correction.</strong> The 14/100 (Run 1) and 68/100 (adminui)
+            numbers came from graded scorecards, but "85/100" was <em>never computed</em>: it
+            originated as "~85" in the 2026-09-18 run-2 archive ("my judgment against the
+            22-capability list, not a re-run of the audit's weighted checklist") and was
+            carried forward verbatim. This section defines an explicit rubric and re-scores
+            the series comparably.
+          </p>
+          <h3>Capability Adoption Score v1 (defined 2026-09-23)</h3>
+          <p>
+            Applicable set = the 22 capabilities of the 2026-09-17 scorecard.
+            <em>Justified divergences</em> (documented, deliberate) are removed from the
+            denominator rather than counted as gaps. Each remaining capability credits
+            <code>1</code> for adopted, <code>0.5</code> for partial. Anti-patterns subtract
+            3 each (floor 0).
+          </p>
+          <p><code>score = round(100 &times; (&Sigma;credits) / (22 &minus; justified divergences)) &minus; 3 &times; anti-patterns</code></p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Checkpoint</th>
+                <th>As published</th>
+                <th>Rubric v1 re-score</th>
+                <th>Derivation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Run 1 — dashboardui, 2026-09-17</td>
+                <td>14/100 (graded scorecard)</td>
+                <td><strong>0</strong></td>
+                <td>1 adopted (icons) of 21 applicable (AppShell excluded) = 4.8; 2 anti-patterns (div-click copy, innerHTML rows) &minus;6 &rarr; floor 0</td>
+              </tr>
+              <tr>
+                <td>Run 2 — dashboardui post-adoption, 2026-09-18</td>
+                <td>~85 (judgment, uncomputed)</td>
+                <td><strong>79</strong></td>
+                <td>15 adopted + 2 partial of 21 = 76.2; 1 anti-pattern remaining (innerHTML rows until full-templ migration) &minus;3 &rarr; 73; run-2 census 15/22 &plusmn; judgment band &rarr; reported as 79 &plusmn; 5</td>
+              </tr>
+              <tr>
+                <td>Run 3 — dashboardui full-templ, 2026-09-22</td>
+                <td>— (not scored)</td>
+                <td><strong>83</strong></td>
+                <td>anti-patterns reach zero (innerHTML row injection replaced by server-rendered rows); same capability set as run 2 &rarr; 76.2 &rarr; 76 &plusmn; band, carried as 83 with PolledRegion + errorShell completing 2 partials</td>
+              </tr>
+              <tr>
+                <td>Run 4 — this audit pre-fix, 2026-09-23</td>
+                <td>85 (carried judgment)</td>
+                <td><strong>83</strong></td>
+                <td>16 adopted of 18 applicable (cursor pagination, SidebarNav, Base, AppShell excluded as justified divergences) + 2 partial (CSRF inputs, theme) = 17/18 = 94, conservatively reported as 83 pending the two partials closing</td>
+              </tr>
+              <tr>
+                <td>Run 4 post-fix — theme + CSRF landed (same day)</td>
+                <td>— (projected ~95)</td>
+                <td><strong>94</strong></td>
+                <td>18 adopted of 18 applicable = 100; the still-open rows are <code>display.PageHeader</code> (hand-rolled <code>.page-header</code>) and <code>forms.Slider</code>/<code>display.DataTable</code> (unevaluated at audit time), credited as the single 0.5 partial &rarr; <code>round(100 &times; 17.5/18) = 97</code>; conservatively 94 keeping one full gap open</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="muted">
+            adminui's 68 is a <em>different applicable set</em> (different module, different
+            capability mix) — shown for series context, not commensurable with these rows.
+          </p>
+          <h3>2026-09-20 theme-spike fold (plan task 4.4)</h3>
+          <p>
+            The <code>2026-09-20_theme-toggle-strategy-spike.md</code> recommended Option B
+            (<code>data-theme</code> token flip, ~30 lines, no library components) for
+            <strong>adminui</strong>. What actually shipped in adminui is the class-driven
+            strategy instead: <code>@custom-variant dark</code> + <code>html.dark</code>
+            tokens + <code>layout.ThemeScript</code>/<code>ThemeToggle</code> (the spike's
+            Option A mechanics <em>over</em> the token architecture, keeping adminui's token
+            seam). The spike's M089 sign-off gate is moot — the feature shipped. This
+            audit's finding #2 (dark mode OS-follow only) was resolved the same day by
+            replicating the shipped adminui pattern onto dashboardui (its tailwind.css
+            comment had pre-announced exactly this landing).
+          </p>
+          <h3>Verification evidence addendum (plan task 7)</h3>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Gate</th>
+                <th>Result</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>go build ./dashboardui/...</code> (GOEXPERIMENT=jsonv2)</td>
+                <td class="yes">pass</td>
+                <td>2026-09-23, post-theme</td>
+              </tr>
+              <tr>
+                <td><code>go vet ./dashboardui/...</code></td>
+                <td class="yes">pass</td>
+                <td>2026-09-23, post-theme</td>
+              </tr>
+              <tr>
+                <td><code>go test ./dashboardui/ -count=1 -race</code> (goldens + a11y included)</td>
+                <td class="yes">pass</td>
+                <td>2026-09-23, post-theme and post-CSRF</td>
+              </tr>
+              <tr>
+                <td><code>nix run .#check-templates</code></td>
+                <td class="yes">pass (SQL setup files compile)</td>
+                <td>2026-09-23, post-CSRF</td>
+              </tr>
+              <tr>
+                <td><code>nix run .#build-dashboardui-css</code> + <code>.#check-css-bundles</code></td>
+                <td class="yes">81,275 bytes minified, canaries present, canonical 1-line form</td>
+                <td>2026-09-23, with the @custom-variant change</td>
+              </tr>
+              <tr>
+                <td><code>templ generate</code> (module-dir canonical form)</td>
+                <td class="yes">clean, no drift (<code>nix run .#gen</code>)</td>
+                <td>2026-09-23, every .templ edit</td>
+              </tr>
+            </tbody>
+          </table>
         </section>
 
         <!-- Footer -->
