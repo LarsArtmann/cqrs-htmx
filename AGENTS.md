@@ -69,9 +69,10 @@ adminui + dashboardui depend on it; loginpage does not. Before hand-rolling any 
 - **Set `BaseProps.ID` on every library component the JS/tests target** — `EnsureID` randomizes un-pinned IDs (keep DOM hooks stable across regenerations).
 - **Table-fragment contract:** partials for `hx-swap=innerHTML` targets contain rows but NOT the wrapper; polled-region partials re-render the REGION itself (outerHTML contract — bare children would kill polling after one refresh).
 - **CSP:** inline `--tc-sidebar-w` style attributes are dropped by nonce CSP — redefine in consumer CSS; the library's popover/dialog CSS and dark-surface classes may need vendoring into the consumer's compiled CSS (the library's own bundle never loads in these modules).
-- **Dark-mode surfaces:** if the consumer's `@theme` remaps gray-800/900 (e.g. to `--text`), pin them back to literal darks inside `prefers-color-scheme: dark` — library `dark:` variants assume literal darks (all library `text-gray-800/900` occurrences carry `dark:` overrides, so the pin is safe).
+- **Dark-mode surfaces:** if the consumer's `@theme` remaps gray-800/900 (e.g. to `--text`), pin them back to literal darks in dark mode — library `dark:` variants assume literal darks (all library `text-gray-800/900` occurrences carry `dark:` overrides, so the pin is safe). Dark mode itself is CLASS-driven in both UI modules (adminui + dashboardui, 2026-09-23): `@custom-variant dark` + `html.dark` tokens + `layout.ThemeScript`/`ThemeToggle`; the old media-query token flip is gone (no-JS degrades to light).
 - **Hybrid (strings.Builder) rendering:** templ `{children...}` renders EMPTY in the hybrid path — use props-based components or the `templ.WithChildren(ctx, child)` escape hatch (v1.19.1); `display.Grid`/`htmx.PolledRegion` need a real templ path. Ends here: dashboardui converted to full templ (2026-09-22); no remaining repo consumer renders library components through strings.Builder.
 - **loginpage adoption opportunities:** `recipes.AuthLayout`, `forms.Input`/`forms.Form`, `feedback.Alert`, `display.Button`.
+- **Adoption inventory:** the grep-able adopted/custom/divergent table lives in `dashboardui/README.md` (§ Styling and templ-components Adoption); audit series in `docs/research/2026-09-{17,23}_templ-components-deep-dive.html` with the comparable rubric in the 09-23 report §06.
 
 ## Benchmarks
 
