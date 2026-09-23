@@ -86,8 +86,10 @@ github.com/larsartmann/go-datastar/static v0.6.0 h1:tiBq1J+QE8jN2UW15AvckBBdT2b2
 github.com/larsartmann/go-datastar/static v0.6.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
 github.com/larsartmann/go-error-family v0.10.2 h1:WXrBI60IZBli5bvjOr/XOZbqzPtGAPFerdumzy8CnTU=
 github.com/larsartmann/go-error-family v0.10.2/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
-github.com/larsartmann/go-etag v0.5.0 h1:WivCcFzzLa/RmhR7ySuD/QN4CHi35lpD1Z1PlkuKiW8=
-github.com/larsartmann/go-etag v0.5.0/go.mod h1:CzORLh9Ws2B8MWq5HLfdwqq7xUh9TLTG268sE/YwDcg=
+github.com/larsartmann/go-etag/entitytag v0.6.0 h1:YM7Jl93ibYjBClycH/+hcLgna+KaZicyD2lWIRsbiyg=
+github.com/larsartmann/go-etag/entitytag v0.6.0/go.mod h1:g9FENLhssbRTfvSJ2WfKKToNMYngm+W9k6C3NutO9Ok=
+github.com/larsartmann/go-etag/server v0.6.0 h1:ohPi9d1AtSy4ByonsQc+bOl6uih8y3rBG1hmJ1QgI2I=
+github.com/larsartmann/go-etag/server v0.6.0/go.mod h1:Pu6KzmjZuF3kVUkAfVUfpIOVfgT61oPt3XHgAIQ99ls=
 github.com/larsartmann/go-health v0.4.0 h1:67IYgxFIAAOqbrj5szeIcq4Z8eaMqEZclTtc97AsI5M=
 github.com/larsartmann/go-health v0.4.0/go.mod h1:Mud5voytlhllNYPsKeXUFA833dqlyy9liW3jApR/X18=
 github.com/larsartmann/go-health-dashboard v0.10.1 h1:gJg88GPNDW5zW7KkufhqbcWXwPUd/iurQWLpLrWrzQg=

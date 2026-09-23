@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
-	github.com/larsartmann/go-etag v0.5.0
+	github.com/larsartmann/go-etag/server v0.6.0
 	github.com/larsartmann/httputil v1.3.0
 )
 
@@ -22,6 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.2 // indirect
+	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-sse v0.6.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
