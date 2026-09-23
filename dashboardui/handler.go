@@ -176,7 +176,12 @@ func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := errorShell(props.Title, d.config.BasePath, httputil.NonceFromRequest(r), templ.Raw(b.String())).Render(r.Context(), w); err != nil {
+	if err := errorShell(
+		props.Title,
+		d.config.BasePath,
+		httputil.NonceFromRequest(r),
+		templ.Raw(b.String()),
+	).Render(r.Context(), w); err != nil {
 		slog.ErrorContext(r.Context(), "dashboardui: render 404 shell", "error", err)
 	}
 }

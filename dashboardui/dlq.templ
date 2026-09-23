@@ -11,7 +11,6 @@ import (
 )
 
 // ===== Dead-Letter Queue =====
-
 templ dlqIndexPage(p pageData, links []dlqProjectionLink) {
 	@layout(p, dlqIndexContent(p, links))
 }
@@ -36,8 +35,10 @@ templ dlqIndexRows(p pageData, links []dlqProjectionLink) {
 	for _, link := range links {
 		<tr>
 			<td class="cell-emph"><a href={ p.BasePath + "/dead-letters/" + link.Name }>{ link.Name }</a></td>
-			<td>@badge(strconv.Itoa(link.Count), countBadgeType(link.Count))</td>
-			<td>@buttonLink("View", p.BasePath+"/dead-letters/"+link.Name, "", display.ButtonSecondary, false)</td>
+			<td>@badge(strconv.Itoa(link.Count), countBadgeType(link.Count))
+</td>
+			<td>@buttonLink("View", p.BasePath+"/dead-letters/"+link.Name, "", display.ButtonSecondary, false)
+</td>
 		</tr>
 	}
 }
@@ -96,7 +97,8 @@ templ dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry)
 			<td class="mono" title={ e.FailedAt.Format("2006-01-02 15:04:05") }>{ relativeTime(e.FailedAt) }</td>
 			<td><a href={ p.BasePath + "/dead-letters/" + proj + "/" + e.EventID }><code>{ e.EventType }</code></a></td>
 			<td>{ truncate(e.Error, errorDisplayWidth) }</td>
-			<td>@badge(e.ErrorFamily, display.BadgeError)</td>
+			<td>@badge(e.ErrorFamily, display.BadgeError)
+</td>
 			<td>
 				@buttonLink("View", p.BasePath+"/dead-letters/"+proj+"/"+e.EventID, "", display.ButtonSecondary, false)
 				if !p.ReadOnly && p.Caps.DeadLetterStore {
