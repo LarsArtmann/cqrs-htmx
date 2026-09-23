@@ -11,6 +11,9 @@
 //
 // It also writes an EventCatalog MDX file tree to ./eventcatalog on startup,
 // demonstrating build-time doc generation.
+//
+// In CI (the eventcatalog-hub federation) the server part is unwanted:
+// run with -export-only to write the EventCatalog tree and exit 0.
 package main
 
 import (
@@ -106,6 +109,11 @@ func main() {
 		"./eventcatalog",
 		"directory for generated EventCatalog MDX files (empty to skip)",
 	)
+	exportOnly := flag.Bool(
+		"export-only",
+		false,
+		"write the EventCatalog tree and exit (headless CI mode; no server)",
+	)
 	flag.Parse()
 
 	cat := buildCatalog()
@@ -116,6 +124,10 @@ func main() {
 			log.Fatalf("generate event catalog: %v", err)
 		}
 		log.Printf("wrote EventCatalog files to %s", *eventCatalogDir)
+	}
+
+	if *exportOnly {
+		return
 	}
 
 	// DocsServer serves OpenAPI/AsyncAPI specs (JSON) + HTML UIs.
