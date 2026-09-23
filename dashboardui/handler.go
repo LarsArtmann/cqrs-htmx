@@ -7,6 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
+	"github.com/larsartmann/httputil"
 	"github.com/larsartmann/templ-components/errorpage"
 	"github.com/larsartmann/templ-components/icons"
 )
@@ -175,7 +176,7 @@ func (d *Dashboard) notFoundHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := errorShell(props.Title, d.config.BasePath, templ.Raw(b.String())).Render(r.Context(), w); err != nil {
+	if err := errorShell(props.Title, d.config.BasePath, httputil.NonceFromRequest(r), templ.Raw(b.String())).Render(r.Context(), w); err != nil {
 		slog.ErrorContext(r.Context(), "dashboardui: render 404 shell", "error", err)
 	}
 }

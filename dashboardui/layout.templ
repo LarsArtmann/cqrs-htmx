@@ -4,6 +4,7 @@ import (
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/layout"
 )
 
 // layout wraps content in the dashboard HTML shell: sidebar, header, content
@@ -27,6 +28,11 @@ templ layout(p pageData, content templ.Component) {
 				<meta name="robots" content="noindex"/>
 				<title>{ p.Title } · { p.Brand }</title>
 				@accentStyle(p)
+				// Pre-paint theme resolution (adminui pattern, see the
+				// @custom-variant dark note in tailwind.css): reads
+				// localStorage['theme'], falls back to the system preference,
+				// and applies .dark + color-scheme before first paint.
+				@layout.ThemeScript(p.Nonce)
 				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard.css" }/>
 				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard-tw.css" }/>
 				<script src={ p.BasePath + "/-/htmx.js" } defer></script>
@@ -110,13 +116,18 @@ templ header(p pageData) {
 			<span></span>
 			<span></span>
 		</button>
-		<div class="header-title">
-			{ p.Title }
-			if p.Caps.EventBus {
-				<span class="live-indicator" data-live-indicator aria-label="Live updates status"></span>
-				<span class="sse-status" data-sse-status aria-live="polite">Connecting</span>
-				<span class="sse-count" data-sse-count aria-live="polite"></span>
-			}
+		<div class="header-cluster">
+			<div class="header-title">
+				{ p.Title }
+				if p.Caps.EventBus {
+					<span class="live-indicator" data-live-indicator aria-label="Live updates status"></span>
+					<span class="sse-status" data-sse-status aria-live="polite">Connecting</span>
+					<span class="sse-count" data-sse-count aria-live="polite"></span>
+				}
+			</div>
+			<div class="header-actions">
+				@layout.ThemeToggle("Toggle theme", p.Nonce)
+			</div>
 		</div>
 	</header>
 }
@@ -136,13 +147,14 @@ templ navIcon(name string) {
 // loads the dashboard stylesheets. It bridges the library's bare component
 // output and the full layout shell (which needs pageData); the CSS keeps the
 // card centered without duplicating the layout.
-templ errorShell(title, basePath string, inner templ.Component) {
+templ errorShell(title, basePath, nonce string, inner templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ title }</title>
+			@layout.ThemeScript(nonce)
 			<link rel="stylesheet" href={ basePath + "/-/dashboard.css" }/>
 			<link rel="stylesheet" href={ basePath + "/-/dashboard-tw.css" }/>
 		</head>

@@ -110,7 +110,7 @@ func (d *Dashboard) renderError(
 		return
 	}
 
-	if err := errorShell(props.Title, d.config.BasePath, templ.Raw(b.String())).Render(ctx, w); err != nil {
+	if err := errorShell(props.Title, d.config.BasePath, nonce, templ.Raw(b.String())).Render(ctx, w); err != nil {
 		slog.ErrorContext(ctx, "dashboardui: render error shell", "error", err)
 	}
 }

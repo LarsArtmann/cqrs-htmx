@@ -98,18 +98,20 @@ const dashboardCSS = `
 	--gap: 16px;
 	--transition: 0.2s ease;
 }
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg: #0b1120;
-		--surface: #131c31;
-		--surface-hover: #1a2740;
-		--text: #e6edf6;
-		--muted: #93a4bd;
-		--border: #233049;
-		--sidebar-bg: #060d1c;
-		--sidebar-text: #64748b;
-		--sidebar-active: #e6edf6;
-	}
+/* Dark mode is CLASS-driven (adminui pattern, templ-components toggle
+   strategy): layout.ThemeScript applies the stored/system choice as .dark on
+   <html> BEFORE first paint (no flash) and layout.ThemeToggle flips it.
+   Without JS the dashboard degrades to light mode. */
+html.dark {
+	--bg: #0b1120;
+	--surface: #131c31;
+	--surface-hover: #1a2740;
+	--text: #e6edf6;
+	--muted: #93a4bd;
+	--border: #233049;
+	--sidebar-bg: #060d1c;
+	--sidebar-text: #64748b;
+	--sidebar-active: #e6edf6;
 }
 
 /* ===== Base ===== */
@@ -149,6 +151,7 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 
 /* ===== Header ===== */
 .app-header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 86%, transparent); backdrop-filter: blur(8px); }
+.header-cluster { display: flex; align-items: center; gap: 12px; }
 .header-title { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
 
 /* ===== Live indicator ===== */
