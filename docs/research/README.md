@@ -13,4 +13,5 @@ cross-link via "superseded-by" annotations in the older report's outcome note
 | Series | Runs | Entry point |
 | ------ | ---- | ----------- |
 | templ-components in dashboardui (adoption audits) | 2026-09-17 (14/100) → 2026-09-23 (85→94, rubric §06) | [`2026-09-23_templ-components-deep-dive.html`](2026-09-23_templ-components-deep-dive.html); linked from [`dashboardui/README.md`](../../dashboardui/README.md) |
+| templ-components in loginpage (adoption audit) | 2026-09-23 (verdict: keep zero-dep; triggers in ROADMAP OQ21) | [`2026-09-23_loginpage-templ-components-audit.md`](2026-09-23_loginpage-templ-components-audit.md) |
 | Theme toggle strategy (adminui spike) | 2026-09-20 spike (recommended `data-theme`) → superseded by the shipped class-driven pattern (adminui 2026-09-21, commit `82a5e878`; dashboardui 2026-09-23) | [`2026-09-20_theme-toggle-strategy-spike.md`](2026-09-20_theme-toggle-strategy-spike.md) (outcome recorded in the 09-23 audit §06) |
