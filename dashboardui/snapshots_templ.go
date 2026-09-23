@@ -15,6 +15,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
 )
 
@@ -174,7 +175,7 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ref.ID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 44, Col: 39}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 45, Col: 39}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -195,7 +196,7 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(snap.Version.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 46, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 47, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -208,7 +209,7 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(snap.CreatedAt.Format(time.RFC3339))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 46, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 47, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -221,7 +222,7 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(relativeTime(snap.CreatedAt))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 46, Col: 119}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 47, Col: 119}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -239,26 +240,17 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 			var templ_7745c5c3_Var10 templ.SafeURL
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(p.BasePath + "/snapshots/" + string(ref.Type) + "/" + ref.ID.String() + "/delete")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 52, Col: 93}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 53, Col: 93}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"section-gap-lg\" data-confirm=\"Delete this snapshot? This cannot be undone.\"><input type=\"hidden\" name=\"_csrf\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"section-gap-lg\" data-confirm=\"Delete this snapshot? This cannot be undone.\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var11 string
-			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.CSRFToken)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 56, Col: 56}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\">")
+			templ_7745c5c3_Err = htmx.CSRFToken(p.CSRFToken).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -266,12 +258,12 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<h3>Metadata</h3>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<h3>Metadata</h3>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -279,20 +271,20 @@ func snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapshot
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<h3>State</h3><pre class=\"code-block\"><code>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<h3>State</h3><pre class=\"code-block\"><code>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var12 string
-		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(stateText)
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(stateText)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 63, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `snapshots.templ`, Line: 64, Col: 42}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</code></pre>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</code></pre>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
