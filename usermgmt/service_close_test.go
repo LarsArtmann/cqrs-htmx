@@ -32,8 +32,8 @@ func TestClose_PostCloseDispatchReturnsClosedError(t *testing.T) {
 		t.Errorf("post-close dispatch error = %v, want one wrapping command.ErrDispatcherClosed", err)
 	}
 
-	var famErr *errorfamily.Error
-	if !errors.As(err, &famErr) {
+	famErr, ok := errors.AsType[*errorfamily.Error](err)
+	if !ok {
 		t.Fatalf("post-close dispatch error is not an errorfamily.Error: %v", err)
 	}
 	// classifyDispatchError deliberately re-families dispatch-path failures as
