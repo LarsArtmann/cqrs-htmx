@@ -73,15 +73,17 @@ func buildCatalog() *catalog.Catalog {
 	b := simple.New(
 		"Order Service", "1.0.0",
 		simple.WithServiceSummary("Example service demonstrating the catalog module"),
-		simple.WithServiceOwners("lars"),
 	)
-	// The owner referenced above must exist as a catalog user — the
-	// federation hub renders owner links from these registrations.
+	// Owner-of-record for the federation hub (catalog.home.lan): the service
+	// page links to this user, and the hub renders owner cards from it. Uses
+	// the inner builder (published-catalog API — simple.WithServiceOwners
+	// ships with the next catalog release).
 	b.InnerBuilder().AddUser(catalog.User{
 		ID:    "lars",
 		Name:  "Lars Artmann",
 		Email: "git@lars.software",
 	})
+	b.InnerBuilder().ConfigureService("order-service", catalog.ServiceOwners("lars"))
 
 	// Commands — describe the HTTP request shapes.
 	simple.Command[CreateOrderCommand](
