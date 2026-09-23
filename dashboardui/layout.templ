@@ -4,7 +4,7 @@ import (
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
-	"github.com/larsartmann/templ-components/layout"
+	tclayout "github.com/larsartmann/templ-components/layout"
 )
 
 // layout wraps content in the dashboard HTML shell: sidebar, header, content
@@ -32,7 +32,7 @@ templ layout(p pageData, content templ.Component) {
 				// @custom-variant dark note in tailwind.css): reads
 				// localStorage['theme'], falls back to the system preference,
 				// and applies .dark + color-scheme before first paint.
-				@layout.ThemeScript(p.Nonce)
+				@tclayout.ThemeScript(p.Nonce)
 				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard.css" }/>
 				<link rel="stylesheet" href={ p.BasePath + "/-/dashboard-tw.css" }/>
 				<script src={ p.BasePath + "/-/htmx.js" } defer></script>
@@ -126,7 +126,7 @@ templ header(p pageData) {
 				}
 			</div>
 			<div class="header-actions">
-				@layout.ThemeToggle("Toggle theme", p.Nonce)
+				@tclayout.ThemeToggle("Toggle theme", p.Nonce)
 			</div>
 		</div>
 	</header>
@@ -154,7 +154,7 @@ templ errorShell(title, basePath, nonce string, inner templ.Component) {
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ title }</title>
-			@layout.ThemeScript(nonce)
+			@tclayout.ThemeScript(nonce)
 			<link rel="stylesheet" href={ basePath + "/-/dashboard.css" }/>
 			<link rel="stylesheet" href={ basePath + "/-/dashboard-tw.css" }/>
 		</head>
