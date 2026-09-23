@@ -385,6 +385,12 @@ Button link/submit, EmptyState, and DefinitionList render benchmarks.
 | `navigation.SidebarNav`/`layout.AppShell` | divergence: custom shell (boost/drawer)  | `layout.templ`                         |
 | `layout.Base`                             | divergence: self-hosted/noindex needs    | `layout.templ`                         |
 
+Design rationale for the divergences lives in
+[ADR-0053](../docs/adr/0053-dashboardui-templ-components-divergences.md) and the
+adoption-audit series
+([2026-09-23 report](../docs/research/2026-09-23_templ-components-deep-dive.html);
+series index: [docs/research/README.md](../docs/research/README.md)).
+
 ### Rebuilding the CSS bundle
 
 After ANY component adoption or templ-components family bump:

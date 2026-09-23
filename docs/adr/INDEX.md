@@ -55,3 +55,4 @@
 | [0049](0049-datastar-go-sse-layer-split.md)       | datastar/go-sse Layer Split — SDK Owns the Wire, go-sse Owns the Fan-out        | Accepted                                                             |
 | [0050](0050-dual-frontend-protocol-strategy.md)   | Dual Frontend Protocol Strategy (HTMX + DataStar) — Route-Split, Opt-in Setup   | Accepted                                                             |
 | [0051](0051-v007-stack-surface-disposition.md)        | V007 Stack-Surface Disposition — Deprecate Now, Delete in v5, Gate Cluster 1 on Metaengine Maturity   | Proposed                                                             |
+| [0053](0053-dashboardui-templ-components-divergences.md) | dashboardui's Justified Divergences from templ-components Defaults (shell, cursor pagination, sidebar) | Accepted                                                             |
