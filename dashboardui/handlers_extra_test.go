@@ -84,6 +84,17 @@ func TestCSRFToken(t *testing.T) {
 	}
 }
 
+func TestCSRFTokenDefaultFieldName(t *testing.T) {
+	r := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString("csrf_token=tok456"))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	_ = r.ParseForm()
+	r.Form.Set("csrf_token", "tok456")
+
+	if got := csrfToken(r); got != "tok456" {
+		t.Fatalf("csrfToken (csrf_token field): got %q", got)
+	}
+}
+
 func TestDLOIndexHandler_Renders(t *testing.T) {
 	d := mustTestDashboard(t)
 	w := httptest.NewRecorder()

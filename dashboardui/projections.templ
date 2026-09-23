@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
 )
 
@@ -75,7 +76,7 @@ templ projectionResetForm(p pageData, name string) {
 		data-confirm={ fmt.Sprintf("Reset projection %s? This will re-process all events from the beginning.", name) }
 		aria-label={ fmt.Sprintf("Reset projection %s", name) }
 	>
-		<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+		@htmx.CSRFToken(p.CSRFToken)
 		@buttonSubmit("Reset", "Reset projection "+name, display.ButtonOutlineDanger, nil)
 	</form>
 }
@@ -112,7 +113,7 @@ templ projectionDetailContent(p pageData, proj projectionStat) {
 				class="inline-form"
 				data-confirm={ fmt.Sprintf("Reset projection %s? This will re-process all events from the beginning.", proj.Name) }
 			>
-				<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+				@htmx.CSRFToken(p.CSRFToken)
 				@buttonSubmit("Reset Projection", "", display.ButtonOutlineDanger, nil)
 			</form>
 		}

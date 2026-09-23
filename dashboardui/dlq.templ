@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
 )
 
@@ -59,7 +60,7 @@ templ dlqContent(p pageData, proj string, entries []projectionhost.DeadLetterEnt
 					data-confirm={ fmt.Sprintf("Replay all dead letters for %s?", proj) }
 					aria-label={ fmt.Sprintf("Replay all dead letters for %s", proj) }
 				>
-					<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+					@htmx.CSRFToken(p.CSRFToken)
 					@buttonSubmit("Replay All", "Replay all dead letters", display.ButtonOutlineInfo, nil)
 				</form>
 			}
@@ -71,7 +72,7 @@ templ dlqContent(p pageData, proj string, entries []projectionhost.DeadLetterEnt
 					data-confirm={ fmt.Sprintf("Purge ALL dead letters for %s? This cannot be undone.", proj) }
 					aria-label={ fmt.Sprintf("Purge all dead letters for %s", proj) }
 				>
-					<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+					@htmx.CSRFToken(p.CSRFToken)
 					@buttonSubmit("Purge All", "Purge all dead letters", display.ButtonOutlineDanger, nil)
 				</form>
 			}
@@ -106,7 +107,7 @@ templ dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry)
 						data-confirm="Delete this dead letter?"
 						aria-label={ fmt.Sprintf("Delete dead letter %s", e.EventID) }
 					>
-						<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+						@htmx.CSRFToken(p.CSRFToken)
 						@buttonSubmit("Delete", "Delete dead letter "+e.EventID, display.ButtonOutlineDanger, nil)
 					</form>
 				}
@@ -148,7 +149,7 @@ templ dlqEntryDetailContent(p pageData, proj string, entry projectionhost.DeadLe
 				class="inline-form"
 				data-confirm="Delete this dead letter?"
 			>
-				<input type="hidden" name="_csrf" value={ p.CSRFToken }/>
+				@htmx.CSRFToken(p.CSRFToken)
 				@buttonSubmit("Delete", "Delete dead letter", display.ButtonOutlineDanger, nil)
 			</form>
 		</div>
