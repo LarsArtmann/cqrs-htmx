@@ -61,6 +61,8 @@
 - [ ] **Upstream asks (templ-components).** (a) `CopyButton` `var(--text)` override hook (round-10 §f13; pairs with the existing contrast visual-check TODO); (b) `ListNote` X–Y range variant ("Showing X–Y of Z" — dashboardui hand-rolls it; round-10 §f14). Record in that repo's TODO_LIST like the go-cqrs-lite asks (D1 precedent).
 - [ ] **Compact checks from round-10 tail.** (a) orphan `dashboardui/styles.css` churn rule still holds post-migration (AGENTS gotcha 9 — verify the file is still never consumed); (b) `docs/status/README.md` link check post-rename (the round-6 `.md.new` → `.md` finisher). (Source: round-10 report §f21/§f24.)
 
+- [ ] **templ-components v1.19.4 bump train (scheduled 2026-09-25, M18 sweep).** All 12 module go.mods sit on v1.19.2 (direct: adminui, dashboardui; indirect: e2e/server, examples/*, health, integration_test, setup). v1.19.4 content that matters: nix `result*` symlink hygiene (unblocks prepared-source consumers), `htmx.PolledRegion` hour-interval normalization (1h → 3600s — audit for h-suffix `Every:` usages first), and the v1.18.1→v1.19.x eager-contract rework consumers must adapt to (no `load` in `hx-trigger` for eager PolledRegions — the dnsblockd migration is the worked example). Bump order: direct modules first, then `go work sync` + indirect ride-along; re-golden after.
+
 ---
 
 _For completed work, see [CHANGELOG.md](CHANGELOG.md) and [git log](https://github.com/larsartmann/cqrs-htmx/commits/master). For long-term vision, v5 plans, and rejected ideas, see [ROADMAP.md](ROADMAP.md)._
