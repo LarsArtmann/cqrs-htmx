@@ -1,6 +1,8 @@
 package dashboardui
 
 import (
+	"time"
+
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/forms"
 	"github.com/larsartmann/templ-components/icons"
@@ -228,4 +230,12 @@ templ formatLinksNav(basePath, path string) {
 			@buttonLink("CSV", basePath+path+"?format=csv", "", display.ButtonSecondary, false)
 			@buttonLink("JSON", basePath+path+"?format=json", "", display.ButtonSecondary, false)
 	</div>
+}
+
+// snapshotRelativeTime renders the library RelativeTime component (title =
+// absolute timestamp on hover, live-updating text via the singleton script)
+// for the snapshot detail "Created" line. Live SSE-injected rows keep the
+// plain relativeTime() helper — out of scope per the adoption plan.
+templ snapshotRelativeTime(nonce string, t time.Time) {
+	@display.RelativeTime(display.RelativeTimeProps{Time: t, Nonce: nonce})
 }
