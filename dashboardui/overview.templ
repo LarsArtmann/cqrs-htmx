@@ -4,6 +4,8 @@ import (
 	"strconv"
 
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/htmx"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // overviewPage renders the dashboard landing page: stat cards, projection
@@ -23,10 +25,18 @@ templ overviewContent(p pageData, stats overviewStats) {
 }
 
 // overviewStatGrid builds the overview stat cards (events, aggregates,
-// projections-active, system health, DLQ, SSE clients) into the stat-grid
-// container.
+// projections-active, system health, DLQ, SSE clients) into a library
+// display.Grid. MinColWidth stays "190px" — that exact arbitrary-value
+// utility is the one the bundle scan covers (via the library's grid.templ
+// source); other widths would silently drop the template-columns rule.
+// The check-css-bundle-classes gate fires if a library bump ever drops it.
 templ overviewStatGrid(stats overviewStats) {
-	<div class="stat-grid">
+	@display.Grid(display.GridProps{
+		BaseProps:   utils.BaseProps{Class: "mb-6"},
+		Cols:        display.GridColsAutoFit,
+		MinColWidth: "190px",
+		Gap:         display.GridGapMD,
+	}) {
 		@statCard("stat-total-events", stats.TotalEvents, "Events", display.StatToneBlue)
 		@statCard("stat-total-aggregates", stats.TotalAggregates, "Aggregates", display.StatToneBlue)
 		if len(stats.Projections) > 0 {
@@ -41,25 +51,26 @@ templ overviewStatGrid(stats overviewStats) {
 		if stats.SSEHub != nil {
 			@statCard("stat-sse-hub", sseHubValue(stats), "SSE Clients", sseHubTone(stats))
 		}
-	</div>
+	}
 }
 
-// projectionHealthPanel renders the projection health panel div with HTMX
-// polling attributes and the table inside. Used by both the overview page
-// and the projection-health partial endpoint (outerHTML swap — the partial
-// response must re-render the REGION itself or polling stops after one
-// refresh).
+// projectionHealthPanel renders the projection health panel via the
+// library PolledRegion (aria-live=polite). The explicit Trigger keeps the
+// custom `refresh` event (fired after write actions) alongside the 10s
+// poll — every/Eager are ignored when Trigger is set, matching the former
+// hand-rolled hx-trigger="every 10s, refresh" exactly. Used by both the
+// overview page and the projection-health partial endpoint (outerHTML
+// swap — the partial response must re-render the REGION itself or polling
+// stops after one refresh).
 templ projectionHealthPanel(basePath string, projs []projectionStat) {
-	<div
-		class="panel"
-		id="projection-health"
-		hx-get={ basePath + "/-/partials/projection-health" }
-		hx-trigger="every 10s, refresh"
-		hx-swap="outerHTML"
-	>
+	@htmx.PolledRegion(htmx.PolledRegionProps{
+		BaseProps: utils.BaseProps{ID: "projection-health", Class: "panel"},
+		URL:       basePath + "/-/partials/projection-health",
+		Trigger:   "every 10s, refresh",
+	}) {
 		<div class="panel-title">Projection Health</div>
 		@rawDataTable(plainHeaders("Name", "Status", "Lag", "Processed", "Errors"), "", projectionHealthRows(projs))
-	</div>
+	}
 }
 
 templ projectionHealthRows(projs []projectionStat) {

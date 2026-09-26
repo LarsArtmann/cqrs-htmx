@@ -44,7 +44,7 @@ templ snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapsho
 	<div class="page-header">
 		<h2>Snapshot: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "")</h2>
 		<div class="page-subtitle">
-			Version { snap.Version.String() } · Created { snap.CreatedAt.Format(time.RFC3339) } ({ relativeTime(snap.CreatedAt) })
+			Version { snap.Version.String() } · Created { snap.CreatedAt.Format(time.RFC3339) } (@display.RelativeTime(display.RelativeTimeProps{Time: snap.CreatedAt, Nonce: p.Nonce}))
 		</div>
 	</div>
 	if !p.ReadOnly {

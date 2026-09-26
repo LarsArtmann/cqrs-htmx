@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/htmx"
 	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // ===== Projection Dashboard =====
@@ -90,12 +91,17 @@ templ projectionDetailContent(p pageData, proj projectionStat) {
 		<h2>{ proj.Name } @badge(proj.Status, statusKindToBadgeType(proj.StatusKind))</h2>
 	</div>
 	{{ slug := strings.ReplaceAll(strings.ToLower(proj.Name), " ", "-") }}
-	<div class="stat-grid">
+	@display.Grid(display.GridProps{
+		BaseProps:   utils.BaseProps{Class: "mb-6"},
+		Cols:        display.GridColsAutoFit,
+		MinColWidth: "190px",
+		Gap:         display.GridGapMD,
+	}) {
 		@statCard("stat-processed-"+slug, strconv.FormatInt(proj.Processed, 10), "Processed", display.StatToneBlue)
 		@statCard("stat-errors-"+slug, strconv.FormatInt(proj.Errors, 10), "Errors", display.StatToneRed)
 		@statCard("stat-restarts-"+slug, strconv.Itoa(proj.Restarts), "Restarts", display.StatToneYellow)
 		@statCard("stat-lag-"+slug, proj.Lag, "Lag", display.StatToneBlue)
-	</div>
+	}
 	<h3>Details</h3>
 	@definitionList(projectionDetailItems(proj))
 	<div class="filter-bar">
