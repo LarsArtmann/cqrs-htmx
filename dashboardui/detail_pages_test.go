@@ -18,12 +18,16 @@ import (
 func detailEvent() event.Event {
 	streamID, err := id.ParseStreamID("01HW8STREAMID000000000000000")
 	Expect(err).NotTo(HaveOccurred())
+	eventID, err := id.ParseEventID("01HWEVENT1D000000000000000")
+	Expect(err).NotTo(HaveOccurred())
 	evt, err := event.NewEvent(
 		event.Type("UserRegistered"),
 		streamID,
 		id.StreamType("user"),
 		event.Version(3),
 		[]byte(`{"email":"user@example.com"}`),
+		event.WithEventID(eventID),
+		event.WithOccurredAt(time.Date(2026, 9, 26, 12, 0, 0, 0, time.UTC)),
 	)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -35,7 +39,7 @@ var _ = Describe("the event detail page", func() {
 
 	BeforeEach(func() {
 		p := pageData{Title: "Event", BasePath: "/dashboard", Nonce: "test-nonce"}
-		html = renderComponentString(eventDetailContent(p, detailEvent(), "01HWPREV0001", "01HWNEXT0001", []byte(`{"email":"user@example.com"}`)))
+		html = renderComponentString(eventDetailContent(p, detailEvent(), "01HWPREV000000000000000000", "01HWNEXT000000000000000000", []byte(`{"email":"user@example.com"}`)))
 	})
 
 	It("pins the full page baseline in a golden", func() {
@@ -48,8 +52,8 @@ var _ = Describe("the event detail page", func() {
 	})
 
 	It("links to the previous and next events when neighbors exist", func() {
-		Expect(html).To(ContainSubstring(`href="/dashboard/events/01HWPREV0001"`))
-		Expect(html).To(ContainSubstring(`href="/dashboard/events/01HWNEXT0001"`))
+		Expect(html).To(ContainSubstring(`href="/dashboard/events/01HWPREV000000000000000000"`))
+		Expect(html).To(ContainSubstring(`href="/dashboard/events/01HWNEXT000000000000000000"`))
 	})
 })
 
