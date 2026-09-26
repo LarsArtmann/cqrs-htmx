@@ -649,7 +649,10 @@ jobs:
 
       # Exact-class-set drift gate: the committed bundles' sorted class
       # tokens must equal a fresh canonical build's (mechanizes the
-      # formatting-only proof family bumps need; 2026-09-26).
+      # formatting-only proof family bumps need; 2026-09-26). The runner
+      # has no nix, so the comparison self-skips there — the fixture
+      # self-test below is the coverage; the real check runs locally via
+      # nix run .#check-css-bundle-classes and in check-modules.
       - name: CSS bundle class-set drift check
         run: bash scripts/check-css-bundle-classes.sh
 

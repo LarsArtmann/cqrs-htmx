@@ -68,6 +68,14 @@ for entry in "${BUNDLES[@]}"; do
     extract_classes "$path" >"$committed"
     extract_classes "$path.fresh" >"$fresh"
   else
+    if ! command -v nix >/dev/null 2>&1; then
+      # CI runner class: no nix, so the canonical builders cannot run here.
+      # Same wiring pattern as check-vcs-cache in CI — the fixture self-test
+      # is the coverage; the real comparison runs wherever nix exists.
+      echo "⊘ nix not available — class-set comparison needs the canonical flake"
+      echo "  builders. Run locally: nix run .#check-css-bundle-classes"
+      exit 0
+    fi
     if ! git -C "$REPO_ROOT" diff --quiet -- "$rel" 2>/dev/null; then
       echo "✗ $rel: bundle has UNCOMMITTED changes — restoring after rebuild"
       echo "       would destroy them. Commit (or rebuild) first, then re-run."
