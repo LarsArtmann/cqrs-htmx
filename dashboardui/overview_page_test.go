@@ -50,7 +50,9 @@ func expectGoldenFile(name, got string) {
 
 	want, err := os.ReadFile(path)
 	Expect(err).NotTo(HaveOccurred(), "golden file missing — run go test ./... -run TestDashboardUISuite -update")
-	Expect(got).To(Equal(string(want)), "page markup drifted from the pinned baseline (regenerate with -update after an INTENTIONAL change)")
+	Expect(
+		got,
+	).To(Equal(string(want)), "page markup drifted from the pinned baseline (regenerate with -update after an INTENTIONAL change)")
 }
 
 func overviewFixtures() (pageData, overviewStats) {

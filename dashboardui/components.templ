@@ -226,9 +226,9 @@ templ pageSizeSelector(basePath, path string, state paginationState, extraParams
 // formatLinksNav renders CSV and JSON export links for the given page path.
 templ formatLinksNav(basePath, path string) {
 	<div class="filter-bar">
-			<span class="muted">Export:</span>
-			@buttonLink("CSV", basePath+path+"?format=csv", "", display.ButtonSecondary, false)
-			@buttonLink("JSON", basePath+path+"?format=json", "", display.ButtonSecondary, false)
+		<span class="muted">Export:</span>
+		@buttonLink("CSV", basePath+path+"?format=csv", "", display.ButtonSecondary, false)
+		@buttonLink("JSON", basePath+path+"?format=json", "", display.ButtonSecondary, false)
 	</div>
 }
 

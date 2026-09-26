@@ -39,7 +39,15 @@ var _ = Describe("the event detail page", func() {
 
 	BeforeEach(func() {
 		p := pageData{Title: "Event", BasePath: "/dashboard", Nonce: "test-nonce"}
-		html = renderComponentString(eventDetailContent(p, detailEvent(), "01HWPREV000000000000000000", "01HWNEXT000000000000000000", []byte(`{"email":"user@example.com"}`)))
+		html = renderComponentString(
+			eventDetailContent(
+				p,
+				detailEvent(),
+				"01HWPREV000000000000000000",
+				"01HWNEXT000000000000000000",
+				[]byte(`{"email":"user@example.com"}`),
+			),
+		)
 	})
 
 	It("pins the full page baseline in a golden", func() {

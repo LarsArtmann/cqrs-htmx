@@ -237,7 +237,7 @@ The dashboard is fully responsive:
 - **Touch targets**: All buttons have minimum 44px height on mobile (WCAG 2.5.5)
 - **Table scroll**: Data tables scroll horizontally within a wrapper on narrow screens
 - **Filter bar stacking**: Filter controls stack vertically on mobile
-- **Stat cards**: Grid collapses to 2 columns on mobile
+- **Stat cards**: `display.Grid` auto-fit (`minmax(190px, 1fr)`) — cards reflow to the container width (roughly 2 columns on phones, 4+ on desktop)
 
 ## Copy-to-Clipboard
 
@@ -376,11 +376,12 @@ Button link/submit, EmptyState, and DefinitionList render benchmarks.
 | `errorpage.ErrorPage`/`NotFound404`       | adopted                                  | `render.go`, `handler.go`, `errorShell`|
 | `icons` (`Name`/`IconPathData`)           | adopted                                  | `layout.go` (navIcon), page icons      |
 | `layout.ThemeScript`/`ThemeToggle`        | adopted 2026-09-23                       | `layout.templ`, class-driven dark mode |
-| `htmx.PolledRegion`                       | candidate (small follow-up)              | `overview.templ` hand-rolled region    |
-| `display.PageHeader`                      | hand-rolled (open gap)                   | `.page-header` markup                  |
+| `htmx.PolledRegion`                       | adopted 2026-09-26 (Trigger=`every 10s, refresh`) | `overview.templ` projection-health region |
+| `display.Grid` (auto-fit)                 | adopted 2026-09-26 (`MinColWidth: 190px`) | `overview.templ`, `projections.templ` stat grids |
+| `display.PageHeader`                      | divergence: 8/11 headers need rich titles (code+badges+copy inside the h2) that string Title cannot express — upstream ask recorded for Title-as-Component; the 3 plain sites stay hand-rolled for visual consistency | `.page-header` markup |
 | `forms.Slider`                            | rejected: labeled wrapper mismatches scrubber row | `timetravel.templ` version slider      |
 | `display.DataTable`                       | rejected: data-driven shape fights inline templ cells | `sort.go` Table+sortState composition  |
-| `display.RelativeTime`                    | adopt-candidate (server-rendered stamps) | `relativeTime()` helper call sites     |
+| `display.RelativeTime`                    | adopted 2026-09-26 — snapshot detail `Created` line via the nonce-carrying `snapshotRelativeTime` wrapper; live SSE rows keep `relativeTime()` (JS-injected, out of scope) | `snapshots.templ`, `components.templ` |
 | `navigation.Pagination`                   | divergence: cursor paging (no lib equiv) | `pagination.go`                        |
 | `navigation.SidebarNav`/`layout.AppShell` | divergence: custom shell (boost/drawer)  | `layout.templ`                         |
 | `layout.Base`                             | divergence: self-hosted/noindex needs    | `layout.templ`                         |
