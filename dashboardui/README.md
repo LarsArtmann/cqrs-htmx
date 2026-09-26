@@ -344,15 +344,15 @@ this page — deliberate), `feedback.ToastContainer`,
 Deliberate exclusions: `navigation.Pagination` (cursor + history pagination of
 append-only journals — numbered pages are meaningless), `navigation.SidebarNav`
 /`layout.AppShell` (custom dark-sidebar theme + mobile drawer, same precedent
-as adminui), the hand-rolled `Showing X–Y of Z` pagination info (ListNote
+as adminui), and the hand-rolled `Showing X–Y of Z` pagination info (ListNote
 speaks N-of-M truncation or N-items counts, not X–Y ranges —
 templ-components v1.19.1 lifted the count-only half of the old
-`display.ListNote` exclusion), `display.Grid` and `htmx.PolledRegion` — the old "children render empty in
-the hybrid path" blocker died with the full-templ migration, and the
-projection-health polling region is now a candidate for `htmx.PolledRegion`
-adoption; the 2026-09-22 migration deliberately kept the hand-rolled region
-(`hx-get`/`hx-trigger` attributes in `overview.templ`) to stay
-markup-faithful, so this is now a small follow-up, not an exclusion.
+`display.ListNote` exclusion; the X–Y range variant is a recorded upstream
+ask). `display.Grid` and `htmx.PolledRegion` were adopted 2026-09-26 (the
+old "children render empty in the hybrid path" blocker died with the
+full-templ migration); `display.RelativeTime` joined them on the snapshot
+detail page the same day, and `display.PageHeader` is a documented
+divergence (see the adoption table).
 Adopted in the N16/N17 pass: `forms.Input` (event filter bar), library
 Button link/submit, EmptyState, and DefinitionList render benchmarks.
 
