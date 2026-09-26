@@ -25,6 +25,8 @@ require (
 	github.com/larsartmann/templ-components/htmx v1.19.2
 	github.com/larsartmann/templ-components/icons v1.19.2
 	github.com/larsartmann/templ-components/utils v1.19.2
+	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/gomega v1.43.1
 )
 
 require (
@@ -60,8 +62,6 @@ require (
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.32.2 // indirect
-	github.com/onsi/gomega v1.43.0 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
