@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"regexp"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -96,7 +97,10 @@ var _ = Describe("the snapshot detail page", func() {
 	})
 
 	It("pins the full page baseline in a golden", func() {
-		expectGoldenFile("snapshot_detail_page", html)
+		// The RelativeTime label ("3 hours ago") is wall-clock dependent —
+		// normalize its text so the golden pins structure, not the hour.
+		normalized := regexp.MustCompile(`(<time[^>]*>)[^<]*(</time>)`).ReplaceAllString(html, "$1REL$2")
+		expectGoldenFile("snapshot_detail_page", normalized)
 	})
 
 	It("renders the Created line through display.RelativeTime (time element with machine datetime)", func() {
