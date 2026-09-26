@@ -177,3 +177,14 @@ replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempote
 // of httputil with its own go.mod). Now published (server_timing/v0.10.0) but kept
 // for workspace consistency with local httputil development.
 replace github.com/larsartmann/httputil/server_timing => /home/lars/projects/httputil/server_timing
+
+// Version-to-version replace (2026-09-26): go-etag split into server/entitytag
+// modules at v0.6.0 while the old monolith tags (<= v0.5.0) still contain a
+// server/ package. Modules that still require the monolith transitively
+// (go-appkit v0.5.1 via setup/examples; the published cqrs-htmx v4.12.0 UI
+// tags) put BOTH shapes in the build list, making the go-etag/server import
+// ambiguous and breaking every workspace build. Replacing the monolith with
+// the v0.6.0 stub (same module path, packages removed) restores a single
+// shape. REMOVAL CONDITION: drop this replace when go-appkit > v0.5.1
+// publishes its split-module go.mod (fix already on appkit master).
+replace github.com/larsartmann/go-etag => github.com/larsartmann/go-etag v0.6.0
