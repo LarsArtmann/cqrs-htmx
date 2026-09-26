@@ -119,7 +119,9 @@ html.dark {
 	/* #64748b on #060d1c was 4.08:1 — below WCAG AA for nav text. */
 	--sidebar-text: #94a3b8;
 	--sidebar-active: #e6edf6;
-	--link: #818cf8;
+	/* indigo-300: indigo-400 failed 4.42:1 on code chips (bg var(--border));
+	   #a5b4fc clears every surface 6.6:1+ and matches .nav-link-active. */
+	--link: #a5b4fc;
 }
 
 /* ===== Base ===== */
