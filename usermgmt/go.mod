@@ -26,7 +26,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/go-idempotency v0.3.0
-	github.com/larsartmann/httputil v1.3.0
+	github.com/larsartmann/httputil v1.4.0
 	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0
 	modernc.org/sqlite v1.59.0
 	pgregory.net/rapid v1.3.0
@@ -69,6 +69,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect

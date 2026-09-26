@@ -21,7 +21,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
+	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 )

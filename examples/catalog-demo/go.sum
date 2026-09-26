@@ -38,8 +38,8 @@ github.com/larsartmann/go-etag/entitytag v0.6.0 h1:YM7Jl93ibYjBClycH/+hcLgna+KaZ
 github.com/larsartmann/go-etag/entitytag v0.6.0/go.mod h1:g9FENLhssbRTfvSJ2WfKKToNMYngm+W9k6C3NutO9Ok=
 github.com/larsartmann/go-etag/server v0.6.0 h1:ohPi9d1AtSy4ByonsQc+bOl6uih8y3rBG1hmJ1QgI2I=
 github.com/larsartmann/go-etag/server v0.6.0/go.mod h1:Pu6KzmjZuF3kVUkAfVUfpIOVfgT61oPt3XHgAIQ99ls=
-github.com/larsartmann/httputil v1.3.0 h1:ptCDjCL1EsZMELXBgmL/VC6wi7pjGkrZw5TuIaiUNkE=
-github.com/larsartmann/httputil v1.3.0/go.mod h1:AS4TShODePILCrzpkIEmi7J5caZYqhrEta0pf8w7nFU=
+github.com/larsartmann/httputil v1.4.0 h1:LyQl8PQFgIQU70LJ91A9rDBlx/xssMra+HbvKcRng3w=
+github.com/larsartmann/httputil v1.4.0/go.mod h1:wjSciE4apTkXRTrbmqiQ+UegdlslOsMJP317+0IdKA4=
 github.com/larsartmann/httputil/server_timing v1.0.1 h1:9T2YwZfrj71F1NFblFwIDsJZ7rnLU8K1BYlxBmrwfn8=
 github.com/larsartmann/httputil/server_timing v1.0.1/go.mod h1:QumWlp/L8NhkwNXZkN/IeLjtE5Y97axZ9LCK9NzSVck=
 github.com/larsartmann/templ-components v1.19.2 h1:pW/RuPLZfT8fDi2LBKcEfZB1J+/frammBX2tof8O/SQ=
@@ -52,10 +52,8 @@ github.com/larsartmann/templ-components/utils v1.19.2 h1:cZs6AWscaxiCwmkzRy/2m69
 github.com/larsartmann/templ-components/utils v1.19.2/go.mod h1:LAAnuKcKtPSEgeI9AeGG/j+IEgYAzp8CMVNGqTsqD8M=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
 github.com/maruel/natural v1.3.0/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
-github.com/onsi/ginkgo/v2 v2.32.1 h1:6tlvcDm/3sE8lGJbZ4+d4mO3RLy24/tQWOFzVSQNIfw=
-github.com/onsi/ginkgo/v2 v2.32.1/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
-github.com/onsi/gomega v1.43.0 h1:VlG/1FxqNxhSO+lq/OHBNaaqwiBK/mO8JbVkX9Y+FeU=
-github.com/onsi/gomega v1.43.0/go.mod h1:REff/hsDsodHoKlWsP2mAPhu1+5/6hVYNf9rIEBpeSg=
+github.com/onsi/ginkgo/v2 v2.33.0 h1:C8gBA6Uc2ZEubiV+SXiu5tZnMTwEmXHgkJwGozKtZf8=
+github.com/onsi/gomega v1.43.1 h1:vGIPFuYrIO6/0Z09s0I0QQQgFchiX4+tb1re3MScJYo=
 github.com/rogpeppe/go-internal v1.16.0 h1:O9DK+vNMDVGLr2BeZqmpLeMjiMNkuXfcqntWbZV6S5g=
 github.com/rogpeppe/go-internal v1.16.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
 github.com/segmentio/asm v1.2.1 h1:DTNbBqs57ioxAD4PrArqftgypG4/qNpXoJx8TVXxPR0=

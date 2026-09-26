@@ -26,13 +26,14 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-datastar v0.6.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-sse v0.6.1 // indirect
-	github.com/larsartmann/httputil v1.3.0 // indirect
+	github.com/larsartmann/httputil v1.4.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.19.2 // indirect
 	github.com/larsartmann/templ-components/datastar v1.19.2 // indirect
@@ -40,6 +41,8 @@ require (
 	github.com/larsartmann/templ-components/icons v1.19.2 // indirect
 	github.com/larsartmann/templ-components/utils v1.19.2 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
+	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect

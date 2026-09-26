@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/go-health v0.4.0
 	github.com/larsartmann/go-health-dashboard v0.10.1
-	github.com/larsartmann/httputil v1.3.0
+	github.com/larsartmann/httputil v1.4.0
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/samber/do/v2 v2.1.0
 )
@@ -77,7 +77,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-datastar v0.6.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
-	github.com/larsartmann/go-etag v0.6.0
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
