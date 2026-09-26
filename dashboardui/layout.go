@@ -79,6 +79,12 @@ func (d *Dashboard) serveJS() http.HandlerFunc {
 const dashboardCSS = `
 :root {
 	--accent: #4f46e5;
+	/* --link is the TEXT-safe accent (links, focus outlines). Kept separate
+	   from --accent because --accent also feeds @theme --color-blue-600
+	   (button/badge BACKGROUNDS whose white text needs the deep value):
+	   #4f46e5 on dark surfaces is 2.70:1 — WCAG-fail for text — while
+	   #818cf8 passes 5.69:1 and keeps white-on-accent backgrounds ≥ 4.5:1. */
+	--link: #4f46e5;
 	--bg: #f6f7f9;
 	--surface: #ffffff;
 	--surface-hover: #f0f1f4;
@@ -110,8 +116,10 @@ html.dark {
 	--muted: #93a4bd;
 	--border: #233049;
 	--sidebar-bg: #060d1c;
-	--sidebar-text: #64748b;
+	/* #64748b on #060d1c was 4.08:1 — below WCAG AA for nav text. */
+	--sidebar-text: #94a3b8;
 	--sidebar-active: #e6edf6;
+	--link: #818cf8;
 }
 
 /* ===== Base ===== */
@@ -120,11 +128,11 @@ body { background: var(--bg); color: var(--text); font-family: ui-sans-serif, sy
    because the inherited muted table color fails WCAG 4.5:1 on it. */
 [data-tc-copy] span[data-tc-copy-text] { color: var(--text); }
 * { box-sizing: border-box; }
-a { color: var(--accent); text-decoration: none; transition: opacity var(--transition); }
+a { color: var(--link); text-decoration: none; transition: opacity var(--transition); }
 a:hover { opacity: 0.8; }
 
 /* ===== Focus styles (accessibility) ===== */
-*:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-sm); }
+*:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: var(--radius-sm); }
 
 /* ===== Code ===== */
 code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(--border); padding: 0.1rem 0.35rem; border-radius: var(--radius-sm); }
@@ -198,7 +206,7 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 /* ===== Version slider (time-travel) ===== */
 .version-links { display: flex; flex-wrap: wrap; gap: 4px; }
 .version-slider { width: 100%; max-width: 400px; accent-color: var(--accent); cursor: pointer; }
-.version-slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.version-slider:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
 .version-display { font-size: 0.9rem; color: var(--muted); }
 
 /* ===== Filter bar ===== */

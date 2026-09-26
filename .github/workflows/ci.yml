@@ -744,6 +744,11 @@ jobs:
       - name: Docs freshness self-test
         run: bash scripts/test-check-docs-freshness.sh
 
+      # The checker itself (was self-test-only — a CI parity gap found in
+      # the 2026-09-26 wiring sweep; the gate is offline-capable).
+      - name: Docs freshness check
+        run: bash scripts/check-docs-freshness.sh
+
       - name: Markdown link check
         run: bash scripts/check-docs-links.sh
 
@@ -752,7 +757,7 @@ jobs:
           GOEXPERIMENT: jsonv2
         run: |
           go install github.com/a-h/templ/cmd/templ@v0.3.1020
-          for mod in adminui loginpage; do
+          for mod in adminui loginpage dashboardui; do
             echo "==> $mod"
             (cd "$mod" && templ generate && gofmt -w ./*_templ.go)
             if ! git diff --exit-code -- "$mod"/*_templ.go; then
