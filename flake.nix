@@ -881,6 +881,8 @@
                         "vcs-cache-self-test:bash scripts/test-check-vcs-cache.sh"
                         "css-bundles:bash scripts/check-css-bundles.sh"
                         "css-bundles-self-test:bash scripts/test-check-css-bundles.sh"
+                        "css-bundle-classes:bash scripts/check-css-bundle-classes.sh"
+                        "css-bundle-classes-self-test:bash scripts/test-check-css-bundle-classes.sh"
                         "preflight-self-test:bash scripts/test-preflight-tree-check.sh"
                         "wait-tree-quiet-self-test:bash scripts/test-wait-tree-quiet.sh"
                         "replace-directives:bash scripts/check-replace-directives.sh"
@@ -922,6 +924,8 @@
                     bash scripts/test-check-vcs-cache.sh
                     bash scripts/check-css-bundles.sh
                     bash scripts/test-check-css-bundles.sh
+                    bash scripts/check-css-bundle-classes.sh
+                    bash scripts/test-check-css-bundle-classes.sh
                     bash scripts/check-replace-directives.sh
                     bash scripts/check-docs-freshness.sh
                     bash scripts/test-check-docs-freshness.sh
@@ -1137,6 +1141,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/test-check-css-bundles.sh
+                  '';
+                }
+              );
+            };
+
+            check-css-bundle-classes = {
+              type = "app";
+              meta.description = "Exact-class-set drift gate: sorted class tokens of the committed Tailwind bundles must equal a fresh canonical build (mechanizes the formatting-only proof family bumps need)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-css-bundle-classes";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                    pkgs.gnused
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-css-bundle-classes.sh
+                  '';
+                }
+              );
+            };
+
+            test-css-bundle-classes = {
+              type = "app";
+              meta.description = "Fixture self-test for check-css-bundle-classes.sh (identical / missing class / extra class / missing fixture / formatting-only)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-css-bundle-classes";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-css-bundle-classes.sh
                   '';
                 }
               );

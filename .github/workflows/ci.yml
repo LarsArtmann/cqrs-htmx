@@ -647,6 +647,15 @@ jobs:
       - name: CSS bundle sanity self-test
         run: bash scripts/test-check-css-bundles.sh
 
+      # Exact-class-set drift gate: the committed bundles' sorted class
+      # tokens must equal a fresh canonical build's (mechanizes the
+      # formatting-only proof family bumps need; 2026-09-26).
+      - name: CSS bundle class-set drift check
+        run: bash scripts/check-css-bundle-classes.sh
+
+      - name: CSS bundle class-set self-test
+        run: bash scripts/test-check-css-bundle-classes.sh
+
       # Concurrency-safety helpers for the shared tree (auto-commit daemon +
       # concurrent sessions, gotcha 4). The self-tests are the coverage; the
       # helpers themselves are session tools, not repo-state checks.
