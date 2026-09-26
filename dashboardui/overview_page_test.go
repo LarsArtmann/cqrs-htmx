@@ -60,28 +60,26 @@ func overviewFixtures() (pageData, overviewStats) {
 		Nav:      []navItem{{Label: "Overview", Href: "/dashboard/", Active: true}},
 		Nonce:    "test-nonce",
 	}
-	stats := overviewStats{
-		core.Overview{
-			TotalEvents:     "1,234",
-			TotalAggregates: "42",
-			HealthStatus:    "healthy",
-			HealthKind:      core.StatusGood,
-			DLQCount:        "2",
-			Projections: []core.ProjectionStat{
-				{
-					Name: "user-read-model", Status: "running", StatusKind: core.StatusGood,
-					Lag: "0s", Processed: 500, Errors: 0,
-				},
-			},
-			RecentEvents: []core.RecentEvent{
-				{
-					Time: "2026-09-26 12:00:00", Type: "UserRegistered",
-					StreamID: "01HW8EXAMPLE", StreamType: "user", Version: "1",
-					EventID: "01HWEVENTID01",
-				},
+	stats := overviewStats(core.Overview{
+		TotalEvents:     "1,234",
+		TotalAggregates: "42",
+		HealthStatus:    "healthy",
+		HealthKind:      core.StatusGood,
+		DLQCount:        "2",
+		Projections: []core.ProjectionStat{
+			{
+				Name: "user-read-model", Status: "running", StatusKind: core.StatusGood,
+				Lag: "0s", Processed: 500, Errors: 0,
 			},
 		},
-	}
+		RecentEvents: []core.RecentEvent{
+			{
+				Time: "2026-09-26 12:00:00", Type: "UserRegistered",
+				StreamID: "01HW8EXAMPLE", StreamType: "user", Version: "1",
+				EventID: "01HWEVENTID01",
+			},
+		},
+	})
 
 	return p, stats
 }

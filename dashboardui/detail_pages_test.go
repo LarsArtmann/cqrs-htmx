@@ -69,16 +69,16 @@ var _ = Describe("the snapshot detail page", func() {
 
 	BeforeEach(func() {
 		p := pageData{Title: "Snapshot", BasePath: "/dashboard", Nonce: "test-nonce"}
+		streamID, err := id.ParseStreamID("01HW8STREAMID000000000000000")
+		Expect(err).NotTo(HaveOccurred())
 		created := time.Date(2026, 9, 26, 12, 0, 0, 0, time.UTC)
 		snap := &snapshot.Snapshot{
-			StreamID:   "01HW8STREAMID000000000000000",
-			StreamType: "user",
+			StreamID:   streamID,
+			StreamType: id.StreamType("user"),
 			Version:    event.Version(7),
 			State:      []byte(`{"email":"user@example.com"}`),
 			CreatedAt:  created,
 		}
-		streamID, err := id.ParseStreamID("01HW8STREAMID000000000000000")
-		Expect(err).NotTo(HaveOccurred())
 		html = renderComponentString(snapshotDetailContent(
 			p, id.NewStreamRef(id.StreamType("user"), streamID), snap, "{\n  \"email\": \"user@example.com\"\n}"))
 	})
