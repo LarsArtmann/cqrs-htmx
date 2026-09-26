@@ -44,7 +44,7 @@ templ snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapsho
 	<div class="page-header">
 		<h2>Snapshot: <code>{ ref.ID.String() }</code> @copyButton(ref.ID.String(), "")</h2>
 		<div class="page-subtitle">
-			Version { snap.Version.String() } · Created { snap.CreatedAt.Format(time.RFC3339) } (@display.RelativeTime(display.RelativeTimeProps{Time: snap.CreatedAt, Nonce: p.Nonce}))
+			Version { snap.Version.String() } · Created { snap.CreatedAt.Format(time.RFC3339) } (@snapshotRelativeTime(p.Nonce, snap.CreatedAt))
 		</div>
 	</div>
 	if !p.ReadOnly {
@@ -62,4 +62,12 @@ templ snapshotDetailContent(p pageData, ref id.StreamRef, snap *snapshot.Snapsho
 	@definitionList(snapshotMetaItems(snap))
 	<h3>State</h3>
 	<pre class="code-block"><code>{ stateText }</code></pre>
+}
+
+// snapshotRelativeTime renders the library RelativeTime component (title =
+// absolute timestamp on hover, live-updating text via the singleton script)
+// for the snapshot detail "Created" line. Live SSE-injected rows keep the
+// plain relativeTime() helper — out of scope per the adoption plan.
+templ snapshotRelativeTime(nonce string, t time.Time) {
+	@display.RelativeTime(display.RelativeTimeProps{Time: t, Nonce: nonce})
 }

@@ -167,8 +167,7 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 .page-header h2 { margin: 0 0 4px; }
 .page-header .page-subtitle { color: var(--muted); font-size: 0.88em; }
 
-/* ===== Stat cards ===== */
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--gap); margin-bottom: 24px; }
+/* ===== Stat cards ===== (grid container is display.Grid — bundled utilities) */
 /* ===== Error/404 shell (errorpage adoption) ===== */
 .error-shell { max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
 
@@ -245,7 +244,6 @@ code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(
 	.filter-bar { flex-direction: column; align-items: stretch; }
 	.filter-bar input, .filter-bar select { width: 100%; }
 	.nav-link { padding: 12px 10px; font-size: 1rem; }
-	.stat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
 
 /* ===== Print styles ===== */
