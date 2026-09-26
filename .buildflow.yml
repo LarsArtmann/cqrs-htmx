@@ -74,6 +74,15 @@ exclude:
   - "*.html"
   - "*.min.js"
   - "*.sh"
+  # Committed Tailwind bundles + buildflow's orphan styles.css outputs are
+  # NEVER buildflow's business: the canonical minified bundles are built by
+  # the flake apps (nix run .#build-adminui-css / .#build-dashboardui-css)
+  # and verified by check-css-bundles (+ class-set gate). The 2026-09-23
+  # incident (commit 1b3c0cf9) had buildflow's tailwind step rewrite the
+  # bundles without --minify — these patterns make that impossible for any
+  # css-touching step, current or future.
+  - "*-tw.css"
+  - "styles.css"
 
 # Skip templ-generate: BuildFlow's bundled templ binary regenerates _templ.go
 # files with directory-prefixed FileName: fields, conflicting with the
@@ -101,8 +110,16 @@ exclude:
 # Re-enable only when BOTH are fixed upstream: testdata (and other fixture
 # trees) pruned from the walk, AND either a policy knob or repo alignment to
 # major.minor go directives. See the AGENTS.md gotcha + TODO_LIST item.
+# tailwind-build: skipped — its only output here is the gitignored orphan
+# adminui/styles.css + dashboardui/styles.css (never served, never consumed —
+# AGENTS gotcha 9), and the step class was the 2026-09-23 pretty-bundle
+# producer (TODO P2). Canonical minified bundles come from the flake apps
+# (nix run .#build-adminui-css / .#build-dashboardui-css) and are gated by
+# scripts/check-css-bundles.sh. Re-enable only if a buildflow-native build
+# can target per-module outputs with --minify AND honor the exclude list.
 skip_steps:
   - templ-generate
+  - tailwind-build
   - jest-test
   - vitest-test
   - pnpm-audit
