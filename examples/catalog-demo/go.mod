@@ -15,6 +15,7 @@ require (
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.2 // indirect
+	github.com/larsartmann/go-etag v0.6.0
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
 	github.com/larsartmann/templ-components v1.19.2 // indirect
