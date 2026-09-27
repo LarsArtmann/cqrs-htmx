@@ -43,11 +43,11 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/httputil v1.4.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.19.2 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.19.2 // indirect
-	github.com/larsartmann/templ-components/htmx v1.19.2 // indirect
-	github.com/larsartmann/templ-components/icons v1.19.2 // indirect
-	github.com/larsartmann/templ-components/utils v1.19.2 // indirect
+	github.com/larsartmann/templ-components v1.19.4 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.19.4 // indirect
+	github.com/larsartmann/templ-components/htmx v1.19.4 // indirect
+	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
+	github.com/larsartmann/templ-components/utils v1.19.4 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
 	github.com/onsi/gomega v1.43.1 // indirect
