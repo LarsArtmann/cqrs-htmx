@@ -75,6 +75,7 @@ github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1/go.mod h1:Xw+c7A6E2Vj2mzft1h
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 h1:pWXdzbzleiHESLtgE7fbOvxyDO1sCtT7m/tN5G+eKwc=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0/go.mod h1:9oD9oVY1tu9E2g9D/jMXoiALrv9jI6CJBqj9oWmAKIs=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1 h1:7FLK3fKVfhhwqqMNTFJ4yl01qOCr6DSvKh7wkLmKKFg=
+github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1/go.mod h1:U2Mtj6JeGiGoaBjlwaSyh7p70qFXyrajyVOza+NKozM=
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 h1:hY3ROnoTs7KZdz0eCa9V4M714bYICirqq+ox4rmoUzw=
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1/go.mod h1:dYEMrEHsuREOwTeVHPjBMQeBugZc/km4oD7mEpBr1A0=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2 h1:fViHIT2sakt1E6nfWZ+MRJGFN9Hjt8iD5YYkRkyXHHs=
@@ -89,8 +90,8 @@ github.com/larsartmann/go-etag/entitytag v0.6.0 h1:YM7Jl93ibYjBClycH/+hcLgna+KaZ
 github.com/larsartmann/go-etag/entitytag v0.6.0/go.mod h1:g9FENLhssbRTfvSJ2WfKKToNMYngm+W9k6C3NutO9Ok=
 github.com/larsartmann/go-etag/server v0.6.0 h1:ohPi9d1AtSy4ByonsQc+bOl6uih8y3rBG1hmJ1QgI2I=
 github.com/larsartmann/go-etag/server v0.6.0/go.mod h1:Pu6KzmjZuF3kVUkAfVUfpIOVfgT61oPt3XHgAIQ99ls=
-github.com/larsartmann/go-health v0.4.0 h1:67IYgxFIAAOqbrj5szeIcq4Z8eaMqEZclTtc97AsI5M=
-github.com/larsartmann/go-health v0.4.0/go.mod h1:Mud5voytlhllNYPsKeXUFA833dqlyy9liW3jApR/X18=
+github.com/larsartmann/go-health v0.4.1 h1:l0Ta2Dcw0XFnZCKamfYs55DyQgKLOb6naPTpNYgGGLo=
+github.com/larsartmann/go-health v0.4.1/go.mod h1:r0Lh5t786Za1uh/7XqdDIZH+b3GiJU4c9e5SVfxUYAo=
 github.com/larsartmann/go-health-dashboard v0.10.1 h1:gJg88GPNDW5zW7KkufhqbcWXwPUd/iurQWLpLrWrzQg=
 github.com/larsartmann/go-health-dashboard v0.10.1/go.mod h1:gZgiDAwnFzGyBDLABIm+bWDsa+WX1GRZloc33P7b/U4=
 github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
@@ -120,7 +121,9 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8m
 github.com/oklog/ulid/v2 v2.1.2 h1:IEclFb9JNvzYA6MW2SCxbLzcHTVsfqm3PrqGQJH5zec=
 github.com/oklog/ulid/v2 v2.1.2/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
 github.com/onsi/ginkgo/v2 v2.33.0 h1:C8gBA6Uc2ZEubiV+SXiu5tZnMTwEmXHgkJwGozKtZf8=
+github.com/onsi/ginkgo/v2 v2.33.0/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.43.1 h1:vGIPFuYrIO6/0Z09s0I0QQQgFchiX4+tb1re3MScJYo=
+github.com/onsi/gomega v1.43.1/go.mod h1:e/C2HwaZ1DhvjzXXuFhcR7hY7Sh9pl7MmoWKEjzwcdA=
 github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
 github.com/prometheus/client_model v0.6.3 h1:O0jaTVAYNxTHYInEPFJt5I3+sN8zqBtVMPTB1qyxiEo=
 github.com/prometheus/client_model v0.6.3/go.mod h1:gpN5P9S7Rr6Yr92PiQ+Ixvhf6JZEkF1dnxsYL2aPBEM=
