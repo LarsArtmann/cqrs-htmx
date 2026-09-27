@@ -4,12 +4,11 @@ import (
 	"regexp"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 // Page-level specs for the event detail and snapshot detail pages: the
@@ -84,6 +83,7 @@ var _ = Describe("the snapshot detail page", func() {
 		p := pageData{Title: "Snapshot", BasePath: "/dashboard", Nonce: "test-nonce"}
 		streamID, err := id.ParseStreamID("01HW8STREAMID000000000000000")
 		Expect(err).NotTo(HaveOccurred())
+
 		created := time.Date(2026, 9, 26, 12, 0, 0, 0, time.UTC)
 		snap := &snapshot.Snapshot{
 			StreamID:   streamID,

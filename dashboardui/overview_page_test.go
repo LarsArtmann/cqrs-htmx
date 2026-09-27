@@ -6,11 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/a-h/templ"
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 // Page-level golden + behavior specs for the overview page. The component
