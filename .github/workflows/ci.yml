@@ -810,7 +810,7 @@ jobs:
           GOEXPERIMENT: jsonv2
 
       - name: gosec
-        uses: securego/gosec@681347199262bc33b9b5119ae2b448dec5718240 # master
+        uses: securego/gosec@8c77519419e934a3e158dbf1a3fbbc0871b8c691 # master
         with:
           args: "-no-fail -fmt sarif -out results.sarif ./..."
         env:
@@ -828,7 +828,7 @@ jobs:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         if: always()
         with:
           sarif_file: results.sarif
