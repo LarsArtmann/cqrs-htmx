@@ -8,10 +8,10 @@ require (
 	github.com/go-playground/form/v4 v4.3.1
 	github.com/larsartmann/go-codec v0.3.0
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (record/v4 trails event/command; detector compares one module's max — cqrs-lint 4.8.1 anchors the finding on the block's first family require)
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
 	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/go-etag/server v0.6.0
@@ -38,10 +38,9 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (dispatcher/v4 trails; cqrs-lint >=4.11 anchors the finding here, 4.8.x anchored at the block head — both suppressions kept)
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect

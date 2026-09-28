@@ -5,13 +5,13 @@ go 1.27.1
 require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
 	github.com/larsartmann/httputil v1.4.0
@@ -36,7 +36,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
