@@ -16,7 +16,6 @@
 
 ## P1 — High impact (next train follow-through)
 
-
 - [ ] **templ-components v1.19.4 bump train (scheduled 2026-09-25, M18 sweep).** All 12 module go.mods sit on v1.19.2 (direct: adminui, dashboardui; indirect: e2e/server, examples/*, health, integration_test, setup). v1.19.4 content that matters: nix `result*` symlink hygiene (unblocks prepared-source consumers), `htmx.PolledRegion` hour-interval normalization (1h → 3600s — audit for h-suffix `Every:` usages first; NOTE 2026-09-26: dashboardui's adopted region uses an explicit `Trigger`, unaffected), and the v1.18.1→v1.19.x eager-contract rework consumers must adapt to (no `load` in `hx-trigger` for eager PolledRegions — the dnsblockd migration is the worked example; dashboardui's region is non-eager, unaffected). Bump order: direct modules first, then `go work sync` + indirect ride-along; re-golden after. RIDES WITH: httputil v1.4.0 (already required in all 22 module go.mods since 2026-09-26).
 
 ---
