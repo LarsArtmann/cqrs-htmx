@@ -61,7 +61,7 @@ func overviewFixtures() (pageData, overviewStats) {
 		Nav:      []navItem{{Label: "Overview", Href: "/dashboard/", Active: true}},
 		Nonce:    "test-nonce",
 	}
-	stats := overviewStats(core.Overview{
+	stats := overviewStats{
 		TotalEvents:     "1,234",
 		TotalAggregates: "42",
 		HealthStatus:    "healthy",
@@ -80,7 +80,7 @@ func overviewFixtures() (pageData, overviewStats) {
 				EventID: "01HWEVENTID01",
 			},
 		},
-	})
+	}
 
 	return p, stats
 }

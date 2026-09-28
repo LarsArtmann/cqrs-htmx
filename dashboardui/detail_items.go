@@ -18,6 +18,17 @@ import (
 // builders return plain data (the library escapes terms/details); the markup
 // passed to defItemCopy/defItemRaw is trusted display HTML.
 
+// maxMetadataItems is the largest metadataItems can emit: correlation,
+// causation, request, and actor.
+const maxMetadataItems = 4
+
+// Fixed-item counts of commandMetaItems and queryMetaItems before the
+// variable metadata tail.
+const (
+	baseCommandMetaItems = 5
+	baseQueryMetaItems   = 3
+)
+
 // defItemComponent builds a definition item whose detail is a templ
 // component (library badges, copy buttons).
 func defItemComponent(term string, component templ.Component) display.DefinitionItem {
@@ -118,7 +129,7 @@ type prefixedActorID interface {
 // definition items shared by the command, query, and event detail pages.
 // Blank IDs and zero actors are omitted.
 func metadataItems(corrID, causID, reqID string, actorID prefixedActorID) []display.DefinitionItem {
-	items := make([]display.DefinitionItem, 0, 4)
+	items := make([]display.DefinitionItem, 0, maxMetadataItems)
 
 	if corrID != "" {
 		items = append(items, defItemCopy("Correlation ID", monoSpan(esc(corrID)), corrID))
@@ -145,18 +156,19 @@ func metadataItems(corrID, causID, reqID string, actorID prefixedActorID) []disp
 func commandMetaItems(cmd *command.PersistedCommand) []display.DefinitionItem {
 	meta := cmd.Metadata()
 
-	items := []display.DefinitionItem{
+	metaItems := metadataItems(
+		meta.CorrelationID.String(), meta.CausationID.String(),
+		meta.RequestID.String(), meta.ActorID,
+	)
+	items := make([]display.DefinitionItem, 0, baseCommandMetaItems+len(metaItems))
+	items = append(items,
 		defItem("Command Type", string(cmd.Type())),
 		defItem("Stream Type", string(cmd.StreamType())),
 		defItemCopy("Stream ID", monoSpan(esc(cmd.StreamID().String())), cmd.StreamID().String()),
 		defItem("Received At", cmd.ReceivedAt().Format("2006-01-02 15:04:05")),
 		defItemCopy("Command ID", monoSpan(esc(cmd.ID().String())), cmd.ID().String()),
-	}
-
-	items = append(items, metadataItems(
-		meta.CorrelationID.String(), meta.CausationID.String(),
-		meta.RequestID.String(), meta.ActorID,
-	)...)
+	)
+	items = append(items, metaItems...)
 
 	return items
 }
@@ -165,16 +177,17 @@ func commandMetaItems(cmd *command.PersistedCommand) []display.DefinitionItem {
 func queryMetaItems(q *query.PersistedQuery) []display.DefinitionItem {
 	meta := q.Metadata()
 
-	items := []display.DefinitionItem{
+	metaItems := metadataItems(
+		meta.CorrelationID.String(), meta.CausationID.String(),
+		meta.RequestID.String(), meta.ActorID,
+	)
+	items := make([]display.DefinitionItem, 0, baseQueryMetaItems+len(metaItems))
+	items = append(items,
 		defItem("Query Type", string(q.Type())),
 		defItem("Received At", q.ReceivedAt().Format("2006-01-02 15:04:05")),
 		defItemCopy("Request ID", monoSpan(esc(q.ID().String())), q.ID().String()),
-	}
-
-	items = append(items, metadataItems(
-		meta.CorrelationID.String(), meta.CausationID.String(),
-		meta.RequestID.String(), meta.ActorID,
-	)...)
+	)
+	items = append(items, metaItems...)
 
 	return items
 }
