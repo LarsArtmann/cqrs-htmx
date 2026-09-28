@@ -5,6 +5,10 @@
 - **Scope:** `go-cqrs-lite` @ `3dfa303e3` (pushed, clean tree) + `cqrs-htmx` @ master
 - **Origin:** session task "update everything to go-cqrs-lite/system and metaengine"; upstream releasability verified first (user decision, 2026-09-27)
 
+> ANNOTATED 2026-09-28 — EXECUTED TO DONE (T01–T11 + T13 same/next day; T12/T14 recorded here + TODO_LIST/ROADMAP).
+> Shipped tags: dispatcher/v4.5.0 `2d1669f78`, event/v4.12.0 + command/v4.12.0 + query/v4.9.0 + middleware/v4.7.0 `fc55b7eae`, metaengine/v4.15.0 `ef89991c5`, system/v4.10.0 `1918a57f2` — all proxy-served same day (per-tag smoke, attempt 1 each). T07 scratch probe compiled `NewEngineCheckpointStore` from the live proxy.
+> Deviations: (a) a parallel publish-integrity session was active in go-cqrs-lite throughout — its metaengine additions (`QueryPlacements`, `SanitizeIdent`) folded into v4.15.0 and its watermill payload-encoding migration resolved the `NewEvent`/`New` oscillation at root (explicit `WithEncoding` fallback); (b) system/systemtest/system-integration needed metaengine v4.15.0 pins (system's `introspection.go` uses `QueryPlacements`) — caught by the tagger's standalone guard at dry-run, exactly the designed tripwire; (c) `batch-release --smoke-all` self-locks (nested `--smoke` verify-lock refusal) — smoked per-tag instead; (d) cqrs-htmx gates needed 4 standing dashboardui lint fixes + a stale templ-components doc-freshness claim, both fixed in-wave. T12's remaining ~30 drifted modules stay open in go-cqrs-lite TODO_LIST (pin-sweep alignment list regenerated per wave); its tursoengine v4.2.1 timing stays owner-gated there.
+
 ---
 
 ## 1. Verified Current State (evidence from 2026-09-27 session)

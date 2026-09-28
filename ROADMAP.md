@@ -256,3 +256,11 @@ These are explicitly out of scope for this library:
 - **Configurable state cache capacity** — Evaluated 2026-07-31. Currently unbounded (`NewStateCache(0)`). For <100k users, memory is negligible. A bounded LRU adds complexity for a premature optimization. **Decision: keep unbounded. Re-open if memory pressure is reported.**
 - **MySQLDialect real UPSERT** — Evaluated 2026-07-31. Current `ON DUPLICATE KEY UPDATE col = col` (no-op) suffices for checkpoint stores. Event store uses append-only inserts with version constraints, not UPSERT. **Decision: keep no-op. Re-open if an idempotency store needs MySQL UPSERT.**
 - **Cascade cleanup shared helper (DeleteTenant + DeleteUser)** — Evaluated 2026-07-31. Cascades are structurally similar but semantically different (different read models, different cleanup commands). Extracting a generic helper would lose type safety. Duplication is minimal (3-4 lines per cascade). **Decision: don't extract. Re-open if 3+ cascades share the exact same pattern.**
+
+## Upstream Capability Exploitation (opened 2026-09-28 — raw ideas from the go-cqrs-lite wave)
+
+Raw ideas enabled by consuming dispatcher v4.5.0 / metaengine v4.15.0 / system v4.10.0. Not yet refined into tasks.
+
+- **Vector-search-backed adminui/dashboardui views** — metaengine v4.15.0 promotes vector insert/scan into the engine contract (`vector_insert`/`vector_scan`, shared `scan.go`). Raw idea: similarity-ranked event/audit views ("find events like this one") behind a feature flag; needs an engine with real embedding support + a UX pass on ranking display.
+- **`system` query builders adoption** — system v4.10.0's `query_builders.go` (CRUD query declaration from named event samples + FilterOnField/SortOnField options). Raw idea: offer consumer-facing read-model query helpers in systemadapter's domain decider wiring where hand-built `metaengine` query declarations repeat.
+- **Durable checkpoints via `NewEngineCheckpointStore`** — system v4.10.0 turns a `metaengine.MapBackend` into an `event.CheckpointStore` (persisted on the deployment engine; ADR-0149 semantics). Raw idea: expose as an opt-in `setup.Config` knob for SQLite/Postgres deployments so projection checkpoints survive restarts without custom wiring; evaluate default-off (library principle: no enforced defaults).
