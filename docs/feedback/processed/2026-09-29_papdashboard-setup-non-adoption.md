@@ -1,5 +1,7 @@
 # Consumer Feedback — Why PapDashboard Does NOT Use `setup` (and What Would Change That)
 
+> **PROCESSED** (2026-09-29): All 7 items triaged, every claim verified against source first. **Shipped:** #2 `Config.ExtraMiddleware` + `Config.DisableSecurityMiddleware` and #3 `Config.HealthChecks` (commit `a3699cd8`, 9 tests, zero-value = legacy chain); #6 codec/v4→go-codec migration in usermgmt (commit `d8684d5c`; setup's transitive indirect drops at the next usermgmt tag). **Documented:** #5 capability-floor table in `setup/README.md`; #7 decision doc `docs/guides/setup-vs-hand-wiring.md` (commit `4ef0f03e`). **ROADMAP:** #1 setup/core split (OQ 23, acceptance criteria recorded verbatim) and #4 pluggable SSE envelope (OQ 24). One unresolved reference: the cited upstream #67/#68 issue numbers resolve in neither go-cqrs-lite nor cqrs-htmx; the underlying codec work was confirmed real via go-cqrs-lite ADR-0128. Open owner calls surfaced: train policy for the usermgmt re-tag, and whether to build OQ 23/24 now or hold for a second consumer.
+
 **From:** PapDashboard project (github.com/larsartmann/papdashboard — private, event-sourced notification hub)
 **Date:** 2026-09-29
 **Version evaluated:** cqrs-htmx/v4 v4.12.0 family train (2026-09-22); `setup/v4` read at local checkout HEAD
