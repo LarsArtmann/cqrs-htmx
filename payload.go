@@ -17,7 +17,7 @@ import (
 // Returns a corruption error if the event's encoding has no built-in codec
 // (e.g. "raw", "encrypted") — such payloads must be decoded manually.
 func DecodePayloadAuto[T any](evt event.Event) (T, error) {
-	return event.DecodePayloadAuto[T](evt)
+	return event.DecodePayloadAuto[T](evt) //cqrs-lint:ignore(D008) dual-API surface is deliberate
 }
 
 // DecodePayload decodes an event's payload bytes into a typed value using
@@ -28,7 +28,7 @@ func DecodePayloadAuto[T any](evt event.Event) (T, error) {
 // event's declared encoding. For mixed JSON+CBOR streams, prefer
 // [DecodePayloadAuto].
 func DecodePayload[T any](evt event.Event, c codec.Codec) (T, error) {
-	return event.DecodePayload[T](evt, c)
+	return event.DecodePayload[T](evt, c) //cqrs-lint:ignore(A003) explicit codec is deliberate public API
 }
 
 // DecodePayloads decodes the payloads of a batch of events into a typed

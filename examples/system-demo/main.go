@@ -130,7 +130,7 @@ func waitForView[V any](read func() (V, error)) (V, bool) {
 		if err == nil {
 			return view, true
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond) //cqrs-lint:ignore(P006) demo poll helper, bounded 5s deadline
 	}
 	return zero, false
 }

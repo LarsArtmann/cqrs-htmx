@@ -57,6 +57,7 @@ func (emptyQueryJournal) ReadAllQueries(context.Context) ([]*query.PersistedQuer
 	return nil, nil
 }
 
+//cqrs-lint:ignore-start(A023,F001) no-op store by design: dashboard empty-state snapshot panel for e2e specs
 type emptySnapshotStore struct{}
 
 func (emptySnapshotStore) Save(context.Context, snapshot.Snapshot) error { return nil }
@@ -68,6 +69,8 @@ func (emptySnapshotStore) Load(context.Context, id.StreamRef) (*snapshot.Snapsho
 func (emptySnapshotStore) LoadAtVersion(context.Context, id.StreamRef, event.Version) (*snapshot.Snapshot, error) {
 	return nil, nil
 }
+
+//cqrs-lint:ignore-end
 
 // demoProjection is a minimal projection.Projection: it processes every
 // event without error so the worker stays healthy for badge assertions.
@@ -169,6 +172,7 @@ func main() {
 	// panels so all nine pages render without a full event-sourced stack. ---
 	dstore := memorystorage.NewMemoryStore()
 
+	//cqrs-lint:ignore(C017) ephemeral Playwright test server — in-memory DLQ is intentional, the process is disposable per test run
 	deadStore := projectionhost.NewMemoryDeadLetterStore()
 
 	var host *projectionhost.Host
@@ -188,7 +192,6 @@ func main() {
 		CommandJournal: emptyCommandJournal{},
 		QueryJournal:   emptyQueryJournal{},
 		SnapshotStore:  emptySnapshotStore{},
-		//cqrs-lint:ignore(C017) ephemeral Playwright test server — in-memory DLQ is intentional, the process is disposable per test run
 		DeadLetterStore: deadStore,
 		ProjectionHost:  host,
 	})

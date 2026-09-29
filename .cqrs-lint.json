@@ -1,6 +1,12 @@
 {
   "preset": "library",
   "rules": {
-    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007"]
+    // C040 (dead fold case) cannot trace event.New emissions across module
+    // boundaries: identity-model declares the 21 fold cases and usermgmt's
+    // decide layer emits them, so every possible hit in this repo is
+    // cross-module by design. The rule only mis-fires in recursive root walks
+    // (per-module runs are silent). Re-enable when cqrs-lint gains
+    // cross-module emission tracing.
+    "disable": ["F002", "F006", "F009", "F010", "F011", "S002", "S003", "S007", "C040"]
   }
 }

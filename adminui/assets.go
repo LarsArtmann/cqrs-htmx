@@ -20,7 +20,7 @@ func assetHandler(name, contentType string) http.Handler {
 	data, err := fs.ReadFile(sub, name)
 	if err != nil {
 		// Guarded by go:embed at compile time; unreachable.
-		panic("adminui: missing embedded asset " + name)
+		panic("adminui: missing embedded asset " + name) //cqrs-lint:ignore(C009) go:embed makes this unreachable at compile time
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", contentType)
