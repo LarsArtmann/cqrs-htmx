@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
-	github.com/larsartmann/go-error-family v0.10.2
+	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-health v0.4.1
 	github.com/larsartmann/go-health-dashboard v0.10.1
 	github.com/larsartmann/httputil v1.4.0
@@ -25,14 +25,14 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260910203606-6c9e17dc7a16 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260929091141-666ce5eec9fc // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
@@ -47,12 +47,12 @@ require (
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-playground/form/v4 v4.3.1 // indirect
+	github.com/go-playground/form/v4 v4.5.0 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.0 // indirect
-	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0 // indirect
@@ -74,9 +74,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-datastar v0.6.0 // indirect
-	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-datastar v0.6.1 // indirect
+	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
@@ -109,7 +109,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.30 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
-	github.com/ncruces/go-strftime v1.0.0 // indirect
+	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
@@ -136,8 +136,8 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/libc v1.76.0 // indirect
+	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.59.0 // indirect
+	modernc.org/sqlite v1.60.1 // indirect
 )

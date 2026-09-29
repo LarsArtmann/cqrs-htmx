@@ -3,8 +3,8 @@ module github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4
 go 1.27.1
 
 require (
-	github.com/go-webauthn/webauthn v0.18.1
-	github.com/larsartmann/go-error-family v0.10.2
+	github.com/go-webauthn/webauthn v0.18.2
+	github.com/larsartmann/go-error-family v0.11.0
 )
 
 require (

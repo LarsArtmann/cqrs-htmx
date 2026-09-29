@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/auditlog/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-error-family v0.10.2
+	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/samber-do-auditlog v0.10.0
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
@@ -14,7 +14,7 @@ require (
 	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260910203606-6c9e17dc7a16 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260929091141-666ce5eec9fc // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
@@ -26,7 +26,7 @@ require (
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.0 // indirect
-	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output v0.38.2 // indirect
 	github.com/larsartmann/go-output/d2 v0.38.2 // indirect
