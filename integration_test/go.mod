@@ -24,7 +24,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2
-	github.com/larsartmann/go-datastar/broadcast v0.6.0
+	github.com/larsartmann/go-datastar/broadcast v0.6.1
 	github.com/larsartmann/go-health v0.4.1
 	github.com/larsartmann/go-sse v0.6.1
 	github.com/larsartmann/httputil v1.4.0
@@ -93,8 +93,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.2 // indirect
-	github.com/larsartmann/go-datastar v0.6.0 // indirect
-	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
+	github.com/larsartmann/go-datastar v0.6.1 // indirect
+	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
