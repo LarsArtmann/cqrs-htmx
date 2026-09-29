@@ -159,7 +159,7 @@ func (b *Bundle) CSRFMiddleware() func(http.Handler) http.Handler {
 func (b *Bundle) Middleware() func(http.Handler) http.Handler {
 	inner := b.composeExtraMiddleware()
 
-	var outer func(http.Handler) http.Handler = inner
+	outer := inner
 	if !b.config.DisableSecurityMiddleware {
 		security := cqrshtmx.RecommendedSecurityMiddleware()
 		outer = func(next http.Handler) http.Handler {

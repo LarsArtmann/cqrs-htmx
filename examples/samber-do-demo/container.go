@@ -262,8 +262,10 @@ type serviceLifecycle struct {
 }
 
 // Compile-time guards — catch missing interface methods at build time.
-var _ do.ShutdownerWithContextAndError = (*serviceLifecycle)(nil)
-var _ do.HealthcheckerWithContext = (*serviceLifecycle)(nil)
+var (
+	_ do.ShutdownerWithContextAndError = (*serviceLifecycle)(nil)
+	_ do.HealthcheckerWithContext      = (*serviceLifecycle)(nil)
+)
 
 func (l *serviceLifecycle) Shutdown(_ context.Context) error {
 	return l.svc.Close()
