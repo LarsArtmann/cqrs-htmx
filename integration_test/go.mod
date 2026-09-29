@@ -92,10 +92,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.2 // indirect
 	github.com/larsartmann/go-datastar v0.6.0 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.0 // indirect
-	github.com/larsartmann/go-error-family v0.10.2 // indirect
+	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
@@ -158,8 +158,8 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/libc v1.76.0 // indirect
+	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.59.0 // indirect
+	modernc.org/sqlite v1.60.0 // indirect
 )

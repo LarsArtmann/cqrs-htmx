@@ -41,7 +41,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.2 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
@@ -74,4 +74,5 @@ require (
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
+	modernc.org/sqlite v1.60.0 // indirect
 )
