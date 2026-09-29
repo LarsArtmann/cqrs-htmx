@@ -1,5 +1,7 @@
 # Status Report — PapDashboard Feedback Processing (setup non-adoption)
 
+> ANNOTATED 2026-09-29 (evening session): **ALL items a–f executed and verified.** Phase-2 commit landed (`a3699cd8` + ST1023 follow-up), docs phase landed (`4ef0f03e`), feedback moved to processed/ with outcome blockquote (`efef0ff9`), CHANGELOG/ROADMAP (OQ 23/24)/AGENTS gotcha 20 updated, full battery green (build/test/lint 15×0-issues/coverage-gate/toolchain/docs-links 310/status gates/vcs-cache). Two pre-existing repo gates red, both OUTSIDE this session's changes and tracked: release-train 91-lag (upstream publishes; g1 train-policy question) and cqrs-lint root-run (binary rebuilt 2026-09-29 05:53, new rules — TODO_LIST P2 triage item). Items f20–f26 remain open (re-tag train mechanics, owner questions g1–g3).
+
 **Date:** 2026-09-29 11:46 (session started ~10:15)
 **Session task:** Process `docs/feedback/new/2026-09-29_papdashboard-setup-non-adoption.md` — PapDashboard's ranked explanation of why it does NOT use the `setup` module (7 improvement asks), following the repo's feedback convention (new/ → act → annotate → processed/).
 **Scope of this report:** this session's run only, as instructed.
@@ -47,6 +49,8 @@ One reference could NOT be resolved: the feedback cites "upstream #67/#68" for t
 
 ## b) PARTIALLY DONE
 
+> ANNOTATED 2026-09-29: all three resolved — b1 committed as `a3699cd8` (daemon commits rewritten into proper messages; tests included); b2 killed job 02C, formatting done scoped via `golangci-lint fmt` (treefmt's config lives in the flake eval, not a findable toml — documented lesson); b3 shipped in `4ef0f03e`.
+
 1. **Phase-2 commit** — the code is complete and tested but NOT properly committed:
    - Daemon committed the 3 source files as heuristic `chore: auto-commit 3 changed file(s)` (`243fd944`) while `nix fmt` was still running.
    - The 2 new test files are still **untracked** (`??`), so the heuristic commit contains seams WITHOUT their tests.
@@ -57,6 +61,8 @@ One reference could NOT be resolved: the feedback cites "upstream #67/#68" for t
 ---
 
 ## c) NOT STARTED
+
+> ANNOTATED 2026-09-29: c1–c8 all done (`4ef0f03e`, `efef0ff9`); c9 remains open by design — see g1 (train policy).
 
 1. **Feedback item 5 — capability-floor table** (which features degrade gracefully vs. stay dark per interface: `event.Store` vs `Journal` vs `SeekableJournal` vs `StreamReader` vs `ProjectionHost`; SSE replay floor; dashboard panels per-interface). Target: setup/README.md section, cross-linked from fullstack-wiring guide. All facts already gathered and verified this session.
 2. **Feedback item 7 — `docs/guides/setup-vs-hand-wiring.md`** decision doc: the honest decision tree (Paths 0/A/B/C vs setup), including "if you use one symbol, vendor the embed and skip us" and the identity-service-is-unconditional truth + flip triggers PapDashboard recorded.
@@ -131,3 +137,5 @@ Also noted, not mine but observed: BuildFlow pre-commit fails deterministically 
 ---
 
 *Point-in-time snapshot; annotate, never rewrite. Session continues on instruction.*
+
+> ANNOTATED 2026-09-29: closed out same day — see the top blockquote. f22 (RunWithAppkit seam e2e pin) and f23 (feedback-inbox checker) remain the two unexecuted session-derived candidates, both non-blocking.
