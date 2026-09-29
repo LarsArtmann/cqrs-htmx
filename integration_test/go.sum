@@ -272,8 +272,8 @@ github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1 h1:GR/+dc
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1/go.mod h1:Wdh1Uu5QM/9NBdt7ds/7iUfLX2bvI/kawLT8di8fJcs=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1 h1:uzk5GupxNvWDFD1kTVV5UbIZTH98oyXEylRH4nKnWOo=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1/go.mod h1:kagbYtWmFZlkelwKzKQWzBz7bQy4Vvbbnm3UQOYdiVk=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 h1:gnXM/21tPWUKf0qd01CbRrvWryXs/iGCfnlgDO84y2E=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1/go.mod h1:G8H+ScY5BNvAs8F3Gp9e7uVXFaXgx5jIfv8dy4jICOQ=
+github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2 h1:mZ21VsNdtGLjhbfIOYyH3SKOhlH80qaDo0YRrWIZC18=
+github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2/go.mod h1:6TYWCw0LCkwBWrS0IVzvY24JVq+l7iN93pssTHdw2X4=
 github.com/larsartmann/go-datastar v0.6.0 h1:uarWePxwR7zyv7jNO9GxVTwd0+Vsv7mcaNM1Ip8sJ2I=
 github.com/larsartmann/go-datastar v0.6.0/go.mod h1:80UFZptPtlwKK93e0agJG1f3Z2C6OMRvU5gDL2abVMc=
 github.com/larsartmann/go-datastar/broadcast v0.6.0 h1:rIsOTBbuM7DlsVjXO0RU6GNOkrV4zZPK7riTPXMhTfc=
