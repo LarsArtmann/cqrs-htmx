@@ -57,7 +57,7 @@ func (emptyQueryJournal) ReadAllQueries(context.Context) ([]*query.PersistedQuer
 	return nil, nil
 }
 
-//cqrs-lint:ignore-start(A023,F001) no-op store by design: dashboard empty-state snapshot panel for e2e specs
+// cqrs-lint:ignore-start(A023,F001) no-op store by design: dashboard empty-state snapshot panel for e2e specs
 type emptySnapshotStore struct{}
 
 func (emptySnapshotStore) Save(context.Context, snapshot.Snapshot) error { return nil }
@@ -187,11 +187,11 @@ func main() {
 	}
 
 	dash, err := dashboardui.New(dashboardui.Config{
-		EventSource:    dstore,
-		Journal:        dstore,
-		CommandJournal: emptyCommandJournal{},
-		QueryJournal:   emptyQueryJournal{},
-		SnapshotStore:  emptySnapshotStore{},
+		EventSource:     dstore,
+		Journal:         dstore,
+		CommandJournal:  emptyCommandJournal{},
+		QueryJournal:    emptyQueryJournal{},
+		SnapshotStore:   emptySnapshotStore{},
 		DeadLetterStore: deadStore,
 		ProjectionHost:  host,
 	})
