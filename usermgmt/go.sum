@@ -126,8 +126,6 @@ github.com/larsartmann/go-codec v0.3.0 h1:KqwarePns8Xcxg0YEf4NjLnPXIl9i1nvFp2Jax
 github.com/larsartmann/go-codec v0.3.0/go.mod h1:zUkKQzRqGltYF0kBwzrETezAKJDErcs0H2cc1/cY9x0=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 h1:SCI5XMG6TM+H206iCyPbzgmiDEa8ZHBGFO2evxQoZ6k=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0/go.mod h1:OnWKCtO8EnVtYlwsci7UW+FVYxNX9mzJc7E4I2qrZWY=
-github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 h1:PnUN4VdglHJpPJQEhg/seGAw5v7hoPcxFUDjEiu6fKU=
-github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0/go.mod h1:V3O2zg2zp+X831dyEbJByDJU0kVSvMEk3oWsoihHo30=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0 h1:A4apnTeKRBiRRnyPWxf17fT+dpOOoCasWQCj/jvPWpk=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0/go.mod h1:xY7xBfTjFUTIMJjPNb+LRd4qdJ6duBQUGR2KWcbk7mw=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0 h1:OTDCHJ0oG+NTvYl8ZIiYg9o/Ub1ccAyyVreLVJf4+yc=
