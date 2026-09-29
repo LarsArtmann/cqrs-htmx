@@ -40,13 +40,12 @@ func PopCursor(history string) (string, string) {
 		return "", ""
 	}
 
-	idx := strings.LastIndex(history, ",")
-
-	if idx == -1 {
+	before, after, found := strings.CutLast(history, ",")
+	if !found {
 		return history, ""
 	}
 
-	return history[idx+1:], history[:idx]
+	return after, before
 }
 
 // PaginationQuery builds the query string for a pagination link from the
