@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-error-family v0.10.2
+	github.com/larsartmann/go-error-family v0.11.0
 	github.com/pquerna/otp v1.5.0
 )
 
