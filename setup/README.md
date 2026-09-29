@@ -114,10 +114,50 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `DashboardPageSize`                                       | `int`                        | 50                                      | Rows per dashboard table page (max 200)                                                                                                                                                                                             |
 | `LoginNoRegistration`                                     | `bool`                       | `false`                                 | Hide the registration section                                                                                                                                                                                                       |
 | `DisableAdmin` / `DisableDashboard` / `DisableLogin`      | `bool`                       | `false`                                 | Feature flags to shrink the route surface                                                                                                                                                                                           |
+| `ExtraMiddleware`                                         | `[]func(http.Handler) http.Handler` | nil                            | Your HTTP middleware, composed INSIDE the built-in security stack (first entry outermost of the extras); applies to every serve path (`Handler`, `Run`, `RunHandler`, `RunWithAppkit`)                                                  |
+| `DisableSecurityMiddleware`                               | `bool`                       | `false`                                 | Remove the built-in security layer entirely — you own the whole outer chain; rebuild it in `ExtraMiddleware` (e.g. `cqrshtmx.RecommendedSecurityMiddleware()` plus your CORS) if you still want it                                 |
+| `HealthChecks`                                            | `[]cqrshtmx.NamedCheck`      | nil                                     | Your readiness checks appended to the built-ins (`projections`, `sse-hub`) on the mounted `/health` — one probe surface instead of a second port; names validated for uniqueness/collisions at `New`; ignored when `HealthPath` is `-` |
 
 Invalid configs fail fast at `New` with descriptive errors: paths must start
 with `/`, must not be `/` (reserved for the login page), and must be pairwise
 distinct — misconfiguration surfaces before `Mount` can panic.
+
+### Owning the middleware chain and health surface
+
+The bundle's chain is `request-logging (if set) → security → routes`.
+Two seams change who owns it (both apply to every serve path — `Handler`,
+`Run`, `RunHandler`, `RunWithAppkit`):
+
+```go
+bundle, _ := setup.New(setup.Config{
+    Title: "My App",
+    // Your middleware, INSIDE the built-in security stack (so CSP nonces,
+    // HSTS, etc. still wrap your layer). First entry is outermost.
+    ExtraMiddleware: []func(http.Handler) http.Handler{
+        myCORSMiddleware, myRequestIDMiddleware,
+    },
+    // ...or take the whole outer chain: the built-in security layer is
+    // removed and you rebuild it (if you want it) in ExtraMiddleware.
+    // DisableSecurityMiddleware: true,
+})
+```
+
+Zero values keep the historical behavior: no extras, built-in security on,
+chain byte-identical to pre-seam releases.
+
+The same one-surface idea applies to readiness: `HealthChecks` appends your
+`cqrshtmx.NamedCheck` entries to the built-ins (`projections`, `sse-hub`) on
+the mounted `/health`, so a database or downstream dependency shares the
+bundle's 503-while-draining contract instead of needing its own probe:
+
+```go
+HealthChecks: []cqrshtmx.NamedCheck{
+    cqrshtmx.NewNamedCheck("postgres", db.PingContext), // names must be unique
+},
+```
+
+Names are validated at `New` (non-empty, non-nil checks, no collisions with
+each other or the built-ins); the field is ignored when `HealthPath` is `-`.
 
 ### Bringing your own service
 
@@ -197,6 +237,34 @@ bundle, err := setup.New(setup.Config{
 })
 ```
 
+## Capability floor: what your dependencies unlock
+
+`setup.New` hard-requires `event.SeekableJournal` from a custom `EventStore`
+(the default in-memory store implements it) — that single interface is what
+projectionhost checkpoints and SSE replay are built on. Everything else
+degrades per-interface. When you bring your own store, panels and features
+light up according to what it implements:
+
+| Your `EventStore` implements            | Unlocks                                                                                                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `event.SeekableJournal` (required)      | Projection checkpoints + restart resume; efficient position-based SSE replay (`ReadFrom` cursors); dashboard event log with pagination                                                                       |
+| `event.Journal` (implied by the above)  | Global event log panel; SSE first-connect backfill via `ReadAll` + filter (the fallback when a cursor-efficient path is absent); aggregate browser via auto-created in-memory `StreamReader`                  |
+| `event.EventSource` (implied by `Store`)| Aggregate detail view + time-travel in the dashboard                                                                                                                         |
+| also `projectionhost.Host` (wired by `New`) | Projection health panel + DLQ view                                                                                                                                      |
+
+The machine endpoints (`EventCatalogPath`, `ProjectionStatusPath`, `DebugPath`)
+have no store requirements: the catalog comes from
+`usermgmt.DefaultEventCatalog()` (the 21 identity events), projection statuses
+from the service, and debug metadata from the build.
+
+Practical consequence: a minimal live-only store that cannot replay history
+still boots the bundle but silently loses the replay-backed surfaces above —
+which is exactly why `New` refuses non-`SeekableJournal` stores rather than
+shipping a half-working dashboard. Wiring `dashboardui` by hand lights the
+same per-interface surfaces, plus two more the bundle does not wire:
+`CommandJournal`/`QueryJournal` (command/query audit panels) and a custom
+`StreamReader`; see `dashboardui/README.md`.
+
 ## Troubleshooting
 
 | Symptom                                                | Cause and fix                                                                                                                                                                                                                              |
@@ -253,6 +321,7 @@ instead of using `Bundle.Mount` for those routes.
 ## See also
 
 - `docs/guides/fullstack-wiring.md` — full wiring guide (SDK vs manual)
+- `docs/guides/setup-vs-hand-wiring.md` — the decision tree: when setup is the wrong answer
 - `examples/setup-demo/` — runnable demo of the whole bundle
 - `docs/guides/async-projection-startup.md` — the readiness model behind `/health`
 

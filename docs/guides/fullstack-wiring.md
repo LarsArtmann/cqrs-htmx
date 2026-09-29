@@ -3,6 +3,10 @@
 > How to compose all cqrs-htmx sub-modules into a single application using the `setup/v4` SDK module,
 > and optionally integrate go-health-dashboard and samber-do-auditlog.
 
+> Not sure the SDK is right for your app at all? Start with
+> [setup vs hand-wiring](setup-vs-hand-wiring.md) — the honest decision tree
+> (including when to skip the library entirely), then come back here.
+
 ## The One-Call SDK
 
 The `setup/v4` module eliminates all wiring boilerplate. It creates shared stores, constructs the
@@ -357,6 +361,7 @@ mux.Handle("/auditlog/", setup.Viewer) // live dashboard + JSON/SSE API
 ## See Also
 
 - [Architecture review: module integration & composability](../architecture-understanding/2026-08-09_05-36_module-integration-composability.html)
+- [setup vs hand-wiring: the decision tree](setup-vs-hand-wiring.md)
 - [Production readiness checklist](production-readiness.md)
 - [Middleware ordering rules](dispatch-middleware-ordering.md)
 - [samber/do integration guide](leveraging-samber-do.md)

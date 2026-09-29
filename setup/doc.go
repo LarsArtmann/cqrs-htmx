@@ -36,6 +36,12 @@
 //	bundle.Mount(mux)
 //	http.ListenAndServe(":8080", bundle.Middleware()(mux))
 //
+// The chain [Bundle.Middleware] builds is request-logging (if set) →
+// security → [Config.ExtraMiddleware] → routes; setting
+// [Config.DisableSecurityMiddleware] drops the security layer so you can
+// rebuild it in [Config.ExtraMiddleware]. Deciding between this bundle and
+// hand-wiring the modules? Read docs/guides/setup-vs-hand-wiring.md.
+//
 // # Customization
 //
 // Every sub-component is exposed on the [Bundle] struct. Override panels, add custom
@@ -59,7 +65,9 @@
 //     [Config.DebugPath] — opt-in session-gated JSON machine endpoints
 //     (event catalog, live projection statuses, build metadata)
 //   - [Config.LivePath] — opt-in public liveness probe (always-200);
-//     [Config.HealthPath] "-" opts the readiness endpoint out entirely
+//     [Config.HealthPath] "-" opts the readiness endpoint out entirely;
+//     [Config.HealthChecks] appends consumer checks to the built-ins on
+//     that endpoint (one probe surface for dependencies too)
 //   - [Config.SSEScriptPath] — HTMX SSE extension served at "/sse.js" when
 //     SSEPath is set ("-" opts out)
 //   - [Config.Logger] — structured auth event logging (default: slog.Default())
@@ -83,6 +91,10 @@
 //     SecurityHooks, ...); mutually exclusive with [Config.Service]
 //   - [Config.AdminMode] / [Config.TenantID] — tenant-scoped admin panel
 //   - [Config.AdminAuthorizer] / [Config.DashboardAuthorizer] — custom access control
+//   - [Config.ExtraMiddleware] — consumer HTTP middleware composed inside
+//     the built-in security stack (first entry outermost of the extras);
+//     [Config.DisableSecurityMiddleware] removes that layer for consumers
+//     who own the whole chain
 //
 // Paths are normalized and validated at [New]: panel mount paths gain a
 // trailing slash (so the standard mux registers them as subtrees), "/" is
