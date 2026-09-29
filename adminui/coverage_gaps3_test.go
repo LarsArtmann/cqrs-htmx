@@ -248,14 +248,17 @@ func TestTriggerToast_MergeExisting(t *testing.T) {
 
 func TestAssetHandler_NotFound(t *testing.T) {
 	t.Parallel()
-	h := assetHandler("admin.js", "application/javascript")
+	h, err := newAssetHandler(assetsFS, "admin.js", "application/javascript")
+	if err != nil {
+		t.Fatalf("newAssetHandler: %v", err)
+	}
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
-	// assetHandler embeds the file — it should serve it successfully
+	// newAssetHandler embeds the file — it should serve it successfully
 	if rec.Code != http.StatusOK {
-		t.Errorf("assetHandler: status = %d, want %d", rec.Code, http.StatusOK)
+		t.Errorf("newAssetHandler: status = %d, want %d", rec.Code, http.StatusOK)
 	}
 	if rec.Header().Get("Content-Type") != "application/javascript" {
-		t.Errorf("assetHandler Content-Type = %q, want application/javascript", rec.Header().Get("Content-Type"))
+		t.Errorf("newAssetHandler Content-Type = %q, want application/javascript", rec.Header().Get("Content-Type"))
 	}
 }

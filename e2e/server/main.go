@@ -137,7 +137,7 @@ func seedDashboard(
 			ProjectionName: demoProjection{}.Name(),
 			EventID:        fmt.Sprintf("e2e-dlq-%d", i),
 			EventType:      lastEvent.Type().String(),
-			StreamID:       lastEvent.AggregateID().String(),
+			StreamID:       lastEvent.StreamID().String(),
 			Event:          lastEvent,
 			Error:          "synthetic e2e poison event",
 			ErrorFamily:    "corruption",

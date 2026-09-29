@@ -145,7 +145,7 @@ func seedDemoData(
 			event.Version(1),
 			jsontext.Value(payload),
 		)
-		//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
+		//cqrs-lint:ignore(C028,C042) demo seed data: errors are non-critical; fresh stream — version 0 is the correct first write
 		_ = store.Save(ctx, ref, []event.Event{created}, event.Version(0))
 
 		//cqrs-lint:ignore(E006,E004) demo data: no catalog and no projection in this dashboard demo
@@ -196,7 +196,7 @@ func seedDemoData(
 				"items":      i,
 			},
 		)
-		//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
+		//cqrs-lint:ignore(C028,C042) demo seed data: errors are non-critical; fresh stream — version 0 is the correct first write
 		_ = store.Save(ctx, ref, []event.Event{placed}, event.Version(0))
 
 		//cqrs-lint:ignore(E006,E004) demo data: no catalog and no projection in this dashboard demo
@@ -257,7 +257,7 @@ func startLiveEvents(store *memorystorage.MemoryStore, bus *eventtest.FakeBus) {
 			event.Version(1),
 			jsontext.Value(payload),
 		)
-		//cqrs-lint:ignore(C028) demo seed data: errors non-critical
+		//cqrs-lint:ignore(C028,C042) demo seed data: errors non-critical; fresh stream — version 0 is the correct first write
 		_ = store.Save(
 			ctx,
 			ref,
