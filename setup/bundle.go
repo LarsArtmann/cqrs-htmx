@@ -150,11 +150,25 @@ func (b *Bundle) CSRFMiddleware() func(http.Handler) http.Handler {
 // Wrap your mux with this:
 //
 //	http.ListenAndServe(":8080", bundle.Middleware()(mux))
+//
+// [Config.ExtraMiddleware] entries compose INSIDE the security layer,
+// innermost before the routes (first entry outermost of the extras).
+// [Config.DisableSecurityMiddleware] removes the built-in security layer
+// entirely for consumers who own the full chain — the composition then is
+// request-logging (if set) → extras → routes.
 func (b *Bundle) Middleware() func(http.Handler) http.Handler {
-	security := cqrshtmx.RecommendedSecurityMiddleware()
+	inner := b.composeExtraMiddleware()
+
+	var outer func(http.Handler) http.Handler = inner
+	if !b.config.DisableSecurityMiddleware {
+		security := cqrshtmx.RecommendedSecurityMiddleware()
+		outer = func(next http.Handler) http.Handler {
+			return security(inner(next))
+		}
+	}
 
 	if b.config.RequestLogging == nil {
-		return security
+		return outer
 	}
 
 	// Logging runs outermost so the access line records the status the
@@ -162,8 +176,20 @@ func (b *Bundle) Middleware() func(http.Handler) http.Handler {
 	logging := cqrshtmx.RequestLoggingSlog(b.config.RequestLogging)
 
 	return func(next http.Handler) http.Handler {
-		return logging(security(next))
+		return logging(outer(next))
 	}
+}
+
+// composeExtraMiddleware folds [Config.ExtraMiddleware] into one chain in
+// listed order (first entry outermost of the extras). An empty or nil slice
+// returns the identity middleware so the composed chain stays byte-identical
+// to the pre-seam behavior.
+func (b *Bundle) composeExtraMiddleware() func(http.Handler) http.Handler {
+	if len(b.config.ExtraMiddleware) == 0 {
+		return func(next http.Handler) http.Handler { return next }
+	}
+
+	return cqrshtmx.Chain(b.config.ExtraMiddleware...)
 }
 
 // Handler is a convenience method that mounts all routes and wraps the mux with

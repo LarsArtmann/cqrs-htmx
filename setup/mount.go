@@ -150,8 +150,12 @@ func requireSession(next http.Handler) http.Handler {
 // async startup — see Config.AsyncStartup), and 200 once every worker reaches
 // "live" state. If the service is nil (should not happen in normal usage), it
 // returns a simple 200 OK.
+//
+// [Config.HealthChecks] entries append AFTER the built-ins, so consumers keep
+// ONE probe surface: their own checks (with per-check Timeout) report in the
+// same response body and can flip it to 503 exactly like the built-ins.
 func (b *Bundle) healthHandler() http.HandlerFunc {
-	checks := make([]cqrshtmx.NamedCheck, 0, 2)
+	checks := make([]cqrshtmx.NamedCheck, 0, 2+len(b.config.HealthChecks))
 
 	if b.Service != nil {
 		checks = append(checks, cqrshtmx.ProjectionReadinessCheck(b.Service))
@@ -160,6 +164,8 @@ func (b *Bundle) healthHandler() http.HandlerFunc {
 	if b.Broadcaster != nil {
 		checks = append(checks, cqrshtmx.HubReadinessCheck(b.Broadcaster))
 	}
+
+	checks = append(checks, b.config.HealthChecks...)
 
 	if len(checks) == 0 {
 		return cqrshtmx.ReadinessHandler()

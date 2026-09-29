@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	appkit "github.com/larsartmann/go-appkit"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -215,6 +216,17 @@ type Config struct {
 	// "/health"; "-" is the explicit opt-out.
 	HealthPath string
 
+	// HealthChecks adds consumer-owned checks to the mounted readiness
+	// endpoint (see [Config.HealthPath]), appended to the built-ins
+	// ("projections", "sse-hub") and reported in the same response body —
+	// one health surface, one probe, instead of choosing between the
+	// bundle's 503-while-draining contract and your own endpoint on the same
+	// port. Use cqrshtmx.NewNamedCheck (and NamedCheck.Timeout to bound a
+	// hanging check). Names must be unique and must not collide with the
+	// built-ins — New rejects duplicates fail-fast. Ignored when HealthPath
+	// is "-".
+	HealthChecks []cqrshtmx.NamedCheck
+
 	// LivePath mounts a liveness endpoint (default: "" = not mounted —
 	// opt-in, no surprise routes). Unlike HealthPath (readiness: 503 while
 	// projections catch up), liveness answers 200 whenever the process is
@@ -321,6 +333,32 @@ type Config struct {
 	// /version route (rendered as "dev" in the build-info metric only, when
 	// Metrics is also set).
 	Version string
+
+	// ExtraMiddleware composes consumer-owned middleware into the chain
+	// [Bundle.Middleware] assembles, INSIDE the built-in security stack and
+	// innermost before the routes: request-logging (see [Config.RequestLogging])
+	// stays outermost, then security headers + CSP nonce + panic recovery (see
+	// [Config.DisableSecurityMiddleware] to replace that layer), then these —
+	// first entry outermost of the extras, matching cqrshtmx.Chain order.
+	// Apply auth (API keys, CORS, body limits, rate limiting), metrics, or
+	// tracing middleware here without giving up the bundle's serving path.
+	//
+	// Apps with an ordered security chain that must own the WHOLE outer stack
+	// (e.g. CORS outside CSP) set DisableSecurityMiddleware and rebuild their
+	// chain in ExtraMiddleware — including cqrshtmx.RecommendedSecurityMiddleware()
+	// themselves if they still want parts of it. Nil (the default) = no extras,
+	// byte-identical to before this field existed.
+	ExtraMiddleware []func(http.Handler) http.Handler
+
+	// DisableSecurityMiddleware removes the built-in outer security layer
+	// (cqrshtmx.RecommendedSecurityMiddleware: security headers, per-request
+	// CSP nonce, panic recovery) from [Bundle.Middleware]. The chain becomes
+	// request-logging (if configured) → [Config.ExtraMiddleware] → routes.
+	// The consumer then owns security posture entirely — compose your own
+	// chain in ExtraMiddleware, including RecommendedSecurityMiddleware()
+	// itself if only the ORDER needs to change. Panels' internal security
+	// headers are unaffected; this only unwraps the bundle-level layer.
+	DisableSecurityMiddleware bool
 
 	// RequestLogging, when set, composes cqrshtmx.RequestLoggingSlog OUTERMOST
 	// in [Bundle.Middleware] — one structured access-log line per request
@@ -538,6 +576,10 @@ func (c Config) validate() error {
 		return err
 	}
 
+	if err := c.validateHealthChecks(); err != nil {
+		return err
+	}
+
 	return requireDistinctPaths(c)
 }
 
@@ -685,6 +727,50 @@ func (c Config) serviceConstructionConflicts() []string {
 	}
 
 	return conflicts
+}
+
+// validateHealthChecks rejects consumer checks whose names collide with each
+// other or with the built-ins ("projections", "sse-hub"). The readiness
+// response keys results by name — a collision would silently drop one check's
+// result, and a name squatting on a built-in would mask the real projection
+// or hub state. Duplicate rejection is the fail-fast counterpart (mirrors the
+// path-collision posture).
+func (c Config) validateHealthChecks() error {
+	const (
+		builtinProjections = "projections"
+		builtinHub         = "sse-hub"
+	)
+
+	seen := make(map[string]struct{}, len(c.HealthChecks)+2)
+	seen[builtinProjections] = struct{}{}
+	seen[builtinHub] = struct{}{}
+
+	for _, check := range c.HealthChecks {
+		if check.Name == "" {
+			return errorfamily.NewRejection("setup.invalid_config",
+				"HealthChecks entries must have a non-empty Name")
+		}
+
+		if check.Check == nil {
+			return errorfamily.Newf(errorfamily.Rejection,
+				"setup.invalid_config",
+				"HealthChecks entry %q must have a non-nil Check", check.Name,
+			)
+		}
+
+		if _, dup := seen[check.Name]; dup {
+			return errorfamily.Newf(
+				errorfamily.Rejection,
+				"setup.invalid_config",
+				"HealthChecks name %q collides with another check or a built-in (projections, sse-hub) — names must be unique",
+				check.Name,
+			)
+		}
+
+		seen[check.Name] = struct{}{}
+	}
+
+	return nil
 }
 
 // validatePathShapes rejects paths that do not start with a slash (or, for
