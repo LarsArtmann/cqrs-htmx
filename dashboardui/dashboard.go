@@ -25,6 +25,7 @@ type Dashboard struct {
 	config      Config
 	caps        Capabilities
 	nav         []navItem
+	twCSS       http.Handler
 	broadcaster *cqrshtmx.Broadcaster
 	sseStore    sse.EventStore
 	done        chan struct{}
@@ -36,6 +37,11 @@ type Dashboard struct {
 // event interfaces provided).
 func New(config Config) (*Dashboard, error) {
 	config, err := config.withDefaults()
+	if err != nil {
+		return nil, err
+	}
+
+	twCSS, err := newAssetHandler(assetsFS, "dashboard-tw.css", "text/css; charset=utf-8")
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +60,7 @@ func New(config Config) (*Dashboard, error) {
 		config: config,
 		caps:   caps,
 		nav:    buildNav(caps),
+		twCSS:  twCSS,
 		done:   make(chan struct{}),
 	}
 

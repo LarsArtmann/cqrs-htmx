@@ -3,6 +3,7 @@ package adminui
 import (
 	"bytes"
 	"embed"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"time"
@@ -13,17 +14,21 @@ import (
 //go:embed assets/admin-tw.css assets/admin.js
 var assetsFS embed.FS
 
-// assetHandler serves a single embedded file with long-lived caching and a
-// content-security-policy-friendly content type.
-func assetHandler(name, contentType string) http.Handler {
-	sub, _ := fs.Sub(assetsFS, "assets")
+// newAssetHandler reads an embedded asset once and returns a handler serving
+// it with long-lived caching and a content-security-policy-friendly content
+// type. The read happens at construction time so a missing asset surfaces as
+// an error from [New] instead of a panic at first request.
+func newAssetHandler(fsys fs.FS, name, contentType string) (http.Handler, error) {
+	sub, err := fs.Sub(fsys, "assets")
+	if err != nil {
+		return nil, errConfig(fmt.Sprintf("asset subtree %q: %v", "assets", err))
+	}
+
 	data, err := fs.ReadFile(sub, name)
 	if err != nil {
-		// Guarded by go:embed at compile time; unreachable.
-		panic(
-			"adminui: missing embedded asset " + name,
-		) //cqrs-lint:ignore(C009) go:embed makes this unreachable at compile time
+		return nil, errConfig(fmt.Sprintf("missing embedded asset %q: %v", name, err))
 	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", contentType)
 		w.Header().Set("Cache-Control", "public, max-age=86400")
@@ -31,7 +36,7 @@ func assetHandler(name, contentType string) http.Handler {
 		w.Header().Set("ETag", assetETag)
 		// Zero modtime disables Last-Modified; ETag still drives 304 responses.
 		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(data))
-	})
+	}), nil
 }
 
 // assetETag lets ServeContent answer If-None-Match with a 304. Quoted per

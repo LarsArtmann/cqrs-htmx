@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
@@ -115,5 +116,13 @@ func TestDashboard_LayoutLinksTailwindCSS(t *testing.T) {
 
 	if body := rec.Body.String(); !strings.Contains(body, "/-/dashboard-tw.css") {
 		t.Error("layout head missing dashboard-tw.css link")
+	}
+}
+
+func TestNewAssetHandlerMissingAssetReturnsError(t *testing.T) {
+	t.Parallel()
+
+	if _, err := newAssetHandler(fstest.MapFS{}, "nope.css", "text/css"); err == nil {
+		t.Fatal("expected an error for a missing embedded asset, got nil")
 	}
 }

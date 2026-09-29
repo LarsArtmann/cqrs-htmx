@@ -17,8 +17,10 @@ import (
 // [usermgmt.NewSessionMiddleware]). Requests without an authenticated user, or
 // users that fail [Config.Authorizer], receive 401/403.
 type Handler struct {
-	config Config
-	nav    []navItem
+	config   Config
+	nav      []navItem
+	adminCSS http.Handler
+	adminJS  http.Handler
 }
 
 // New builds an admin panel from config, applying defaults to empty fields and
@@ -32,7 +34,18 @@ func New(config Config) (*Handler, error) {
 	if config.Authorizer == nil {
 		config.Authorizer = defaultAuthorizer(config)
 	}
-	return &Handler{config: config, nav: buildNav(config.Mode)}, nil
+
+	adminCSS, err := newAssetHandler(assetsFS, "admin-tw.css", "text/css; charset=utf-8")
+	if err != nil {
+		return nil, err
+	}
+
+	adminJS, err := newAssetHandler(assetsFS, "admin.js", "text/javascript; charset=utf-8")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Handler{config: config, nav: buildNav(config.Mode), adminCSS: adminCSS, adminJS: adminJS}, nil
 }
 
 // buildNav returns the sidebar entries for the given mode.
@@ -119,8 +132,8 @@ func (h *Handler) routes() http.Handler {
 	mux := http.NewServeMux()
 
 	// --- Static assets ---
-	mux.Handle("GET /-/admin-tw.css", assetHandler("admin-tw.css", "text/css; charset=utf-8"))
-	mux.Handle("GET /-/admin.js", assetHandler("admin.js", "text/javascript; charset=utf-8"))
+	mux.Handle("GET /-/admin-tw.css", h.adminCSS)
+	mux.Handle("GET /-/admin.js", h.adminJS)
 	mux.Handle("GET /-/htmx.js", htmxScriptHandler())
 	mux.Handle("GET /-/sync-worker.js", syncWorkerHandler())
 	mux.Handle("GET /-/sync-client.js", syncClientHandler())
