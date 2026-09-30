@@ -107,7 +107,6 @@ README. v5 is the only breaking window for module-path renames:
 - **Decision needed:** final name choice per module. If rejected, the docs
   mitigation becomes the permanent fix.
 
-
 ### 5b. V007 stack surface (ADR-0051, dispositioned 2026-09-21)
 
 - **usermgmt stack surface** — `es_materialize_adapter.go`

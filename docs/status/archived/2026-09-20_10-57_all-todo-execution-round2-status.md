@@ -4,6 +4,7 @@
 **Session context:** Continuation of the "execute the ENTIRE TODO_LIST" directive (round 1 = 2026-09-20 09:05 Pareto plan + Tier-1 items). This round executed: the routed-gaps code bundle (IP/User-Agent, ClientID, API exposure), the samber-linter repro, the full SSE hardening backlog, five upstream issue filings, and adminui program P0 + Phase 1. Load average 13.8→57 the whole session (bench-spike correctly refused; 5th documented refusal).
 
 > **ANNOTATED 2026-09-20** (docs-health sweep, same day): the later rounds (3/4/5) executed the adminui program to completion.
+>
 > - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
 > - **§b:** b1 (adminui lint) DONE; b2 (members visual gap), b3 (icon stroke parity), b4 (V007/appkit re-assess) remain open → `TODO_LIST.md`.
 > - **§c (bullets):** adminui Phases 2–4 landed in rounds 4/5; the docs hygiene pass done; `/sse` posture, datastar-demo rebrand, theme toggle, force-push purges, DataStar Tier 4, cqrs-lint CI remain open → `TODO_LIST.md`/`ROADMAP.md`.

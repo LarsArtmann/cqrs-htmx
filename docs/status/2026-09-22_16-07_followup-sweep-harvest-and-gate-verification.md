@@ -116,4 +116,4 @@ _Grounded ONLY in this session's observations. Items already harvested into TODO
 
 ---
 
-*Point-in-time snapshot. Format note: the status-report skill's canonical output is styled HTML; the owner's instruction explicitly requested `.md` — honored (matches the repo's existing report convention). Anything still-open here routes into TODO_LIST.md/ROADMAP.md via docs-health HARVEST — this file is history, not a queue.*
+_Point-in-time snapshot. Format note: the status-report skill's canonical output is styled HTML; the owner's instruction explicitly requested `.md` — honored (matches the repo's existing report convention). Anything still-open here routes into TODO_LIST.md/ROADMAP.md via docs-health HARVEST — this file is history, not a queue._

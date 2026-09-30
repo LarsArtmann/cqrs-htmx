@@ -2,13 +2,14 @@
 
 **Session scope:** execute the `docs-health` SKILL in AUDIT mode (BUILD + HARVEST + VERIFY + ANNOTATE) over all `**/2026-0*` docs, make the six living docs (TODO_LIST / CHANGELOG / AGENTS / README / ROADMAP / FEATURES) "superb", and archive fully-done historical `.md` files with inline strikethrough.
 
-**Standing order:** "View ALL **/2026-0* files! Execute the docs-health SKILL! PROPERLY! FUCKING SUPERBLY!!! … DO NOT FUCKING BE LAZY! Archive FULLY done and UPDATED (inline strikethrough) .md files!"
+**Standing order:** "View ALL *_/2026-0_ files! Execute the docs-health SKILL! PROPERLY! FUCKING SUPERBLY!!! … DO NOT FUCKING BE LAZY! Archive FULLY done and UPDATED (inline strikethrough) .md files!"
 
 **Outcome in one line:** the six living docs were materially repaired and re-verified (including two REAL correctness bugs), but the ANNOTATE + ARCHIVE half of the standing order was NOT finished — that is the honest headline. See §b/§c/§d.
 
 **Session facts:** started on a clean tree at v4.11.0; fresh `nix run .#coverage-gate` ran (all 15 gates green); no commits made by me (daemon may absorb). Report written at user request.
 
 > **ANNOTATED 2026-09-21** (docs-health sweep A1–A6): the living-doc repairs shipped and held (the `/v4` import-path fix is still present in `README.md`); the ANNOTATE + ARCHIVE half it left open landed in the 2026-09-20/21 sweep.
+>
 > - **§a:** items 1–9 DONE — living docs repaired, import-path bug fixed, paths verified.
 > - **§b:** b1 HARVEST → completed (A6/B4); b2 FEATURES row audit → B3; b3 CHANGELOG → B1; b4 AGENTS.md size → A10.
 > - **§c:** c1 ANNOTATE → DONE (A1–A4, 34 reports); c2 ARCHIVE → DONE; c3 `archive/` split brain → DONE (A5); c4 AUDIT health report → A7 (this session); c5 DOMAIN_LANGUAGE → A9; c6 completeness gates → DONE and made runnable (`scripts/check-status-annotations.sh`, A6).
@@ -58,7 +59,7 @@
 2. **Four of five parallel sub-agents timed out** ("LLM stream received no data for 1m0s"). I dispatched 8-file batches with unbounded output; only the 5-file batch returned. That burned wall-clock and returned nothing for 32 reports — which is the direct cause of ANNOTATE not starting. Fix: 3-file batches, hard output caps, run 2 at a time.
 3. **I front-loaded reading and back-loaded writing.** By the time I understood the annotation tooling and had the item lists, the session budget was spent on living docs. The user's explicit priority ("Archive FULLY done … inline strikethrough") got the **least** effort. This is a sequencing failure.
 4. **I did not pin down the annotation method before starting.** I oscillated (full agent reads → digest extraction → script classification → manual specs) instead of choosing the `annotate-prose.py` + explicit per-item-spec path up front. That decision churn cost real budget.
-5. **AGENTS.md is still 120 KB.** I know the skill calls >100 KB "Broken" and I fixed facts inside it rather than pruning it. Defensible (avoiding a Verschlimmbesserung on hard-won multi-module knowledge), but it means one of the six named docs is *not* "superb" by the skill's own rubric.
+5. **AGENTS.md is still 120 KB.** I know the skill calls >100 KB "Broken" and I fixed facts inside it rather than pruning it. Defensible (avoiding a Verschlimmbesserung on hard-won multi-module knowledge), but it means one of the six named docs is _not_ "superb" by the skill's own rubric.
 
 ---
 
@@ -77,6 +78,7 @@
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT
 
 **Annotation + archiving (the unfinished standing order — do first):**
+
 1. ANNOTATE the 37 unannotated unarchived reports with a dated `> ANNOTATED 2026-09-20` block.
 2. Inline-strike every resolved numbered item (`~~…~~ done at <hash>` / `done (v4.11.0 train)`) in those reports' §b/§c/§f/§g lists — never strike a still-open item.
 3. Route the surviving open items (notably: bench-spike idle re-run, V007 clusters, `/sse` posture, DataStar Tier 4, `setup.NewFromSystem`, theme-toggle M089, v4-branch + setup-demo blob purge) to TODO_LIST/ROADMAP with source citations.
@@ -142,4 +144,4 @@
 
 ---
 
-*End of report. Nothing pushed; no commits authored by me this session (the auto-commit daemon may absorb changes). Awaiting instructions.*
+_End of report. Nothing pushed; no commits authored by me this session (the auto-commit daemon may absorb changes). Awaiting instructions._

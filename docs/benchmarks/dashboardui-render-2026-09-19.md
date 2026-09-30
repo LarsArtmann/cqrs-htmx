@@ -38,14 +38,14 @@ Added Button (link/submit), EmptyState, DefinitionList, and Table
 raw-body-vs-data-row benches. Raw output (5x, -benchmem):
 `dashboardui-render-2026-09-19-sweep.txt`. Medians:
 
-| Bench                                   | hand-rolled / alt path | hybrid / other path | ratio |
-| --------------------------------------- | ---------------------: | ------------------: | ----: |
-| StatCard   hand-rolled vs hybrid        |          1,563 ns/op |     12,732 ns/op |  8.1x |
-| Button link (hand vs hybrid)            |              748     |     23,361       | 31.2x |
-| Button submit (hand vs hybrid)          |              934     |     19,297       | 20.7x |
-| EmptyState (hand vs hybrid)             |              817     |     16,402       | 20.1x |
-| DefinitionList (meta-table vs library)  |           65,359     |     87,279       |  1.3x |
-| Table data-row vs raw-body (library)    |          442,440     |    103,713       |  4.3x |
+| Bench                                  | hand-rolled / alt path | hybrid / other path | ratio |
+| -------------------------------------- | ---------------------: | ------------------: | ----: |
+| StatCard hand-rolled vs hybrid         |            1,563 ns/op |        12,732 ns/op |  8.1x |
+| Button link (hand vs hybrid)           |                    748 |              23,361 | 31.2x |
+| Button submit (hand vs hybrid)         |                    934 |              19,297 | 20.7x |
+| EmptyState (hand vs hybrid)            |                    817 |              16,402 | 20.1x |
+| DefinitionList (meta-table vs library) |                 65,359 |              87,279 |  1.3x |
+| Table data-row vs raw-body (library)   |                442,440 |             103,713 |  4.3x |
 
 (Definitions: for the first five rows the left column is the pre-adoption
 hand-rolled baseline; for the Table row both paths are current library

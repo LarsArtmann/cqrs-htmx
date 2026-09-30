@@ -6,6 +6,7 @@
 - **Verdict:** The user was right. The old skip justification was **factually wrong** (documented a root cause that does not exist), and both steps are now enabled, root-caused, and verified green.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): read this report WITH its addendum — the `templ-generate` enablement **regressed within minutes** (the hook's adminui-scoped generator flipped the 7 adminui `_templ.go` files back to bare `FileName:`; daemon `cbfb93ae`). Net outcome stands: `deadnix` enabled (real win), `templ-generate` correctly skipped again with a TRUE root cause.
+>
 > - **§f:** struck rows confirmed done; unmarked rows remain open, routed to `TODO_LIST.md` (markdown-format normalization; BuildFlow per-module templ provider + a-h/templ `FileName` base-dir asks = D1; exit-code-safe gate helper; upstream follows).
 > - **§g:** the standing-commit-authorization question is unresolved (daemon race recurred through 2026-09-20, documented in AGENTS.md); the FileName-flip release question is moot (flip rolled back; module-dir canonical).
 

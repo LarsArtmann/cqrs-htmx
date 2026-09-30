@@ -5,6 +5,7 @@
 **Verdict in one line:** Phases 0–3 are executed and verified; the 1% and 4% tiers (trust gates + train proof) are DONE; the session ends mid-P30 with P08/P16/P27/P29/P31/P32/M100 open, and the bench gate is failing on machine contention, not code.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the Pareto round-2 plan is fully executed — the trailing addendum below closed P08/P16/P27/P29/P30/P31/P32/P11/M100, and later sessions closed the rest.
+>
 > - **§b (partially done):** b2/b3 DONE (`19f57fc0`, train cut+pushed); b1 (bench-spike idle re-run) STILL OPEN → `TODO_LIST.md` P1.
 > - **§c (not started):** ALL DONE — P16 `43cdd1a1`/`fa891b1a`, P27 `4caad514`, P29 `2b8d3dd4`, P31/P32 `384ab57e`, M100 + CHANGELOG `efd50425`.
 > - **§f:** struck rows are confirmed done; unmarked rows remain open and are routed to `TODO_LIST.md` (bench P1, V007 P3, templ-components v1.19 P2, cqrs-lint CI P3, `/sse` posture P2, blob purge P3, DataStar Tier 4 P2, DOMAIN_LANGUAGE A9). Upstream Drafts 1–4 were filed as go-cqrs-lite issues #25–#28 (`10becbf9`); the setup-demo dev-replace was stripped 2026-08-30; `systemadapter/v4.11.0` was tagged 2026-09-20.

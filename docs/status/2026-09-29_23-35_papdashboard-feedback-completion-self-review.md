@@ -87,4 +87,4 @@ Nothing content-wise is broken — every test/lint/coverage gate that can be gre
 
 ---
 
-*Point-in-time snapshot; annotate, never rewrite. Session WAITING for instructions per directive.*
+_Point-in-time snapshot; annotate, never rewrite. Session WAITING for instructions per directive._

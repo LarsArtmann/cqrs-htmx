@@ -4,6 +4,7 @@
 > **Session scope:** execution start on the 17:24 plan — corruption recovery, plan authoring, and an unplanned-but-release-blocking Go 1.27 lint sweep.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the plan this report started (17:24 Pareto) executed fully — the v4.11.0 train shipped.
+>
 > - **§(a) (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
 > - **§(b):** ALL DONE (Phase B require bump, the plan/annotated-report commit, the CHANGELOG cuts).
 > - **§(c):** the whole Phase C–F battery + tags + strips completed; **examples/basic cleanup** and **bench-spike** remain open → `TODO_LIST.md`.
@@ -41,7 +42,7 @@ Verification battery (`.#build/#test/#lint`, coverage-gate, cqrs-lint, bijection
 
 ## (d) TOTALLY FUCKED UP (honest)
 
-1. **PIPESTATUS trap, repeated.** The first docs-commit attempt printed `COMMIT_EXIT=0` — but that was `tail`'s exit from the `| tail -3` pipeline; git had FAILED. This is the *exact* documented mvdan/sh gotcha in AGENTS.md, and I walked into it anyway. Only the follow-up `git log` exposed the lie. (Fixed for the retry: `cmd > /tmp/f 2>&1; echo $?`.)
+1. **PIPESTATUS trap, repeated.** The first docs-commit attempt printed `COMMIT_EXIT=0` — but that was `tail`'s exit from the `| tail -3` pipeline; git had FAILED. This is the _exact_ documented mvdan/sh gotcha in AGENTS.md, and I walked into it anyway. Only the follow-up `git log` exposed the lie. (Fixed for the retry: `cmd > /tmp/f 2>&1; echo $?`.)
 2. **Wrong nolint token.** My suppression used `//nolint:exhaustruct` while the finding reports `exhaustruct_v5` — the directive no-op'd silently and cost a verification roundtrip. Nolint tokens must match the REPORTED name verbatim.
 3. **Two wasted git calls under the lock** — `git commit -- <untracked paths>` (pathspec error: files not added yet) and an `add` while the lock was held, before properly checking process/lock state.
 4. **Garbage sat staged for ~40 minutes** during diagnosis, exposed to the auto-commit daemon (which has shredded work before). Luck, not process, kept it out of history — the concurrent `git commit` seen in `ps` turned out to belong to a different repo.
@@ -79,10 +80,10 @@ Verification battery (`.#build/#test/#lint`, coverage-gate, cqrs-lint, bijection
 
 ## (g) Questions I cannot answer myself
 
-1. **Who bumped the devShell tooling to golangci 2.13.2/go1.27.1 mid-session, and is a conflicting lint posture in flight?** I chose *fix the findings* over *config-demote `modernize`* — if another session plans the config route, we'll collide; please confirm fix-the-findings is the house style.
+1. **Who bumped the devShell tooling to golangci 2.13.2/go1.27.1 mid-session, and is a conflicting lint posture in flight?** I chose _fix the findings_ over _config-demote `modernize`_ — if another session plans the config route, we'll collide; please confirm fix-the-findings is the house style.
 2. **Commit shape:** land the lint sweep as its own commit (`fix: adopt Go 1.27 modernize idioms (golangci 2.13.2)`) separate from the plan/docs commit — my recommendation — or bundled?
 3. **Should I pre-sweep the not-hook-linted modules (item f.1) before the next push (my strong recommendation — otherwise CI's lint job reds on the same class), or do you want CI to be the detector?**
 
 ---
 
-*Evidence: `/tmp/staged.txt` (27-file recovery list), grep post-conditions (0 garbage), `/tmp/rl2.log` (root lint 0 issues), dashboardui build/vet/test rc=0, examples verify rc=0 ×5, push output `22c819fe..e425d980`, hook logs `/tmp/commit2.log` (11 failures enumerated), lock forensics (stat 16:42:37, ps empty).*
+_Evidence: `/tmp/staged.txt` (27-file recovery list), grep post-conditions (0 garbage), `/tmp/rl2.log` (root lint 0 issues), dashboardui build/vet/test rc=0, examples verify rc=0 ×5, push output `22c819fe..e425d980`, hook logs `/tmp/commit2.log` (11 failures enumerated), lock forensics (stat 16:42:37, ps empty)._

@@ -122,10 +122,10 @@ decision is reversible in the direction that matters.
 
 ## Quick reference
 
-| Lane            | Import                            | Identity stack | You own                          |
-| --------------- | --------------------------------- | -------------- | -------------------------------- |
-| Vendor-only     | (none — embed htmx.js yourself)   | no             | everything                       |
-| Path 0          | root                              | no             | routes, chain, SSE handlers      |
-| Path A          | root                              | no             | routes, chain, dispatchers       |
-| Path B          | root + usermgmt (+ strategy mods) | yes, yours     | routes, chain, serving           |
-| setup           | setup (+ strategy mods)           | yes, bundle's  | business routes; chain & health via seams |
+| Lane        | Import                            | Identity stack | You own                                   |
+| ----------- | --------------------------------- | -------------- | ----------------------------------------- |
+| Vendor-only | (none — embed htmx.js yourself)   | no             | everything                                |
+| Path 0      | root                              | no             | routes, chain, SSE handlers               |
+| Path A      | root                              | no             | routes, chain, dispatchers                |
+| Path B      | root + usermgmt (+ strategy mods) | yes, yours     | routes, chain, serving                    |
+| setup       | setup (+ strategy mods)           | yes, bundle's  | business routes; chain & health via seams |

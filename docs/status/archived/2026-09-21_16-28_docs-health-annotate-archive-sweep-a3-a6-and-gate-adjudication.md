@@ -34,18 +34,18 @@
 
 ### Corpus census (measured this run — previously only estimated)
 
-| Shape | Count | Date range |
-| --- | --- | --- |
-| Have inline `~~` (current convention) | 62 | 2026-07 (9), 2026-08 (16), 2026-09 (37) |
-| Have an `ANNOTATED` blockquote | 82 | 2026-06 (3), 2026-07 (21), 2026-08 (55), 2026-09 (40) |
-| Blockquote-only (annotated dialect, no strikes) | **42** | 2026-07-28 → 2026-09-07 |
-| No annotation at all (`LEGACY`) | **268** | 2026-05 (72), 2026-06 (63), 2026-07 (88), 2026-08 (45) |
+| Shape                                           | Count   | Date range                                             |
+| ----------------------------------------------- | ------- | ------------------------------------------------------ |
+| Have inline `~~` (current convention)           | 62      | 2026-07 (9), 2026-08 (16), 2026-09 (37)                |
+| Have an `ANNOTATED` blockquote                  | 82      | 2026-06 (3), 2026-07 (21), 2026-08 (55), 2026-09 (40)  |
+| Blockquote-only (annotated dialect, no strikes) | **42**  | 2026-07-28 → 2026-09-07                                |
+| No annotation at all (`LEGACY`)                 | **268** | 2026-05 (72), 2026-06 (63), 2026-07 (88), 2026-08 (45) |
 
 ---
 
 ## b) PARTIALLY DONE
 
-- **A6 row-gate closure.** The row gate is *run and judged*, not *green*. Seven files will keep failing a naive `check-rows.py` run because their tables are intentionally mixed. The decision needed is whether to (a) declare mixed tables a first-class, documented convention (my recommendation) and teach the gate/README to accept them, or (b) force table uniformity by un-striking confirmed-done rows — which would destroy information and is the Verschlimmbesserung the skill warns about. Until that call is made, A6 cannot be declared “both gates clean.”
+- **A6 row-gate closure.** The row gate is _run and judged_, not _green_. Seven files will keep failing a naive `check-rows.py` run because their tables are intentionally mixed. The decision needed is whether to (a) declare mixed tables a first-class, documented convention (my recommendation) and teach the gate/README to accept them, or (b) force table uniformity by un-striking confirmed-done rows — which would destroy information and is the Verschlimmbesserung the skill warns about. Until that call is made, A6 cannot be declared “both gates clean.”
 - **The one real format fix** (`2026-08-05_11-46`) is identified but **not yet applied**.
 - **A5’s README** documents the strikethrough convention but does **not yet** document the mixed-table convention or the LEGACY exemption boundary (see §d).
 
@@ -82,8 +82,8 @@
 
 ## d) TOTALLY FUCKED UP
 
-1. **The auto-commit daemon destroyed every narrative commit for this workstream — again.** Every rename and edit landed as `chore: auto-commit N changed file(s) (heuristic)`. This is the 5th+ documented recurrence of the exact failure AGENTS.md warns about (“commit at phase boundaries, never at the end”). The content is verifiably intact in HEAD, but `git log` carries zero human-readable history for a 35-file documentation sweep. Mitigation was *known* and *not applied*: I should have committed after each phase (A3, then A4, then A5) with the GOCACHE env prefix, rather than letting the daemon sweep the tail.
-2. **The plan’s Pareto framing was optimistic about effort, not ambition.** The plan budgets A6 at 30 minutes and says “both gates clean.” Reality: the corpus is three annotation dialects deep and a naive clean is impossible without either ~200h of retro-annotation or a documented exemption policy. The plan treated “run the gates” as a verification step when it is actually an *adjudication* step. The plan should have surfaced this.
+1. **The auto-commit daemon destroyed every narrative commit for this workstream — again.** Every rename and edit landed as `chore: auto-commit N changed file(s) (heuristic)`. This is the 5th+ documented recurrence of the exact failure AGENTS.md warns about (“commit at phase boundaries, never at the end”). The content is verifiably intact in HEAD, but `git log` carries zero human-readable history for a 35-file documentation sweep. Mitigation was _known_ and _not applied_: I should have committed after each phase (A3, then A4, then A5) with the GOCACHE env prefix, rather than letting the daemon sweep the tail.
+2. **The plan’s Pareto framing was optimistic about effort, not ambition.** The plan budgets A6 at 30 minutes and says “both gates clean.” Reality: the corpus is three annotation dialects deep and a naive clean is impossible without either ~200h of retro-annotation or a documented exemption policy. The plan treated “run the gates” as a verification step when it is actually an _adjudication_ step. The plan should have surfaced this.
 3. **A6’s first report under-scoped the row gate** (reported 5 offenders when the corpus-wide run yields 8) because the gate was run over the 35 newly-annotated files rather than the whole struck corpus. Gate-first-per-file, not gate-once-at-the-end, was the stated lesson from the prior run and it was not followed.
 4. **The docs-health skill’s completeness premise is false for this repo.** The skill asserts `grep -rLn '~~' <archived-dir>/` “must print NOTHING.” Here it prints 340 lines. The premise assumes a repo where the current convention has always applied; this repo has a 5-month legacy tail. Nothing in the session caused this, but the session is where it became undeniable.
 
@@ -97,7 +97,7 @@
 4. **Commit per phase, verbatim.** After A3 → commit; after A4 → commit; after A5 → commit. Prefix with the GOCACHE env. If the hook is red on unrelated modules, `--no-verify` with justification. Do not batch a documentation sweep behind a long adjudication tail.
 5. **Run both gates per file as it lands**, not once over an assembled set — this is the second consecutive run where the end-of-sweep gate reported a different count than the per-file picture.
 6. **Bound scope explicitly when a skill’s global rule meets a repo’s history.** The right move is to state the exemption and its rationale up front, get the (already-asked) decision, and only then annotate. Annotating 268 legacy files would be busywork; declaring them exempt is engineering judgement.
-7. **Stop calling `check-rows.py` “the completeness gate” in planning docs** until its heuristic-vs-convention tension is resolved; it is a *linter*, and lint findings need triage, not automatic “clean.”
+7. **Stop calling `check-rows.py` “the completeness gate” in planning docs** until its heuristic-vs-convention tension is resolved; it is a _linter_, and lint findings need triage, not automatic “clean.”
 
 ---
 
@@ -173,20 +173,20 @@
 
 **Q1 — Legacy-corpus policy (blocking A6).**
 The archive holds **268 reports (2026-05 → 2026-08) with no annotation at all** and **42 (2026-07-28 → 2026-09-07) with a prose `ANNOTATED` blockquote but no inline strikes**. The skill’s presence gate demands `~~` in every archived file; satisfying it literally means retro-annotating 310 files (~200h, near-zero information value — their open items were harvested by the 2026-09-09 and 2026-09-20 docs-health sweeps). Which do you want?
-**(A)** Date-based **LEGACY-EXEMPT** policy documented in `docs/status/README.md`, gate scoped to the convention era (from 2026-09-18) — *my recommendation*.
+**(A)** Date-based **LEGACY-EXEMPT** policy documented in `docs/status/README.md`, gate scoped to the convention era (from 2026-09-18) — _my recommendation_.
 **(B)** Stamp a `> LEGACY-EXEMPT (pre-2026-09-18)` header on every unannotated file (~310 cheap scripted edits) so the gate can stay literal.
 **(C)** Full retro-annotation of all 310 files (~200h).
 
-*(I cannot choose for you because the tradeoff is your appetite for historical polish vs engineering time, and the skill text currently argues for C while the value argues for A.)*
+_(I cannot choose for you because the tradeoff is your appetite for historical polish vs engineering time, and the skill text currently argues for C while the value argues for A.)_
 
 **Q2 — Are deliberately-mixed tables acceptable?**
 Seven archived reports have tables where confirmed-done rows are struck and genuinely-open rows are left unstruck (struck = done, absence = open). This is precisely the convention the skill’s own example defines, but it makes `check-rows.py` fail (“PARTIAL / mixed table”). Options: **(A)** declare mixed tables first-class and document/teach the gate; **(B)** force uniformity (un-strike done rows / strike nothing) — loses information; **(C)** keep the gate noisy and re-adjudicate each audit.
-*(I recommend A; I cannot decide the convention for the repo without you because it changes what “gate clean” means forever.)*
+_(I recommend A; I cannot decide the convention for the repo without you because it changes what “gate clean” means forever.)_
 
 **Q3 — Release-notes packaging (carried from three prior sessions).**
 The v4.11.0 family train is tagged + pushed, and `CHANGELOG.md` carries the entries, but **no `gh release create` was run** for any of the 13 tags. Do you want GitHub Releases created for the train, or are tags + CHANGELOG the intended record?
-*(I cannot infer this: it depends on whether you treat GitHub Releases as part of your release contract for a library consumed via the Go module proxy.)*
+_(I cannot infer this: it depends on whether you treat GitHub Releases as part of your release contract for a library consumed via the Go module proxy.)_
 
 ---
 
-*Session paused pending Q1–Q3. Nothing in this workstream is blocked by anything other than these decisions: A7/B1/B4/A8/A9/A10/B2/B3 and the entire C/D tier are all executable now.*
+_Session paused pending Q1–Q3. Nothing in this workstream is blocked by anything other than these decisions: A7/B1/B4/A8/A9/A10/B2/B3 and the entire C/D tier are all executable now._

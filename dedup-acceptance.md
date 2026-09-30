@@ -142,7 +142,7 @@ production internals would defeat its purpose.
   sites) and `requireBodyContains` (SSE-body assertions, 9 sites across
   `response_test.go` + `coverage_test.go`).
 - `systemadapter`: extracted `startDeclarativeSystem` (context + system boot
-  + `t.Cleanup` close, 7 sites in `declarative_test.go`).
+  - `t.Cleanup` close, 7 sites in `declarative_test.go`).
 - `transport`: deleted `filtered_sse_spike_test.go` — the /sse posture spike
   it documented shipped in v4.12.0 as `WithSSEFilter`;
   `serve_test.go` `TestServeDomainEvents_FilteredLive`/`FilteredReplay` now

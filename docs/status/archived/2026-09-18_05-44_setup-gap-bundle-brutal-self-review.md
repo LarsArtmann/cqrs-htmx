@@ -5,6 +5,7 @@
 **This file:** the honest second pass — what I forgot, what I did worse than I should have, what is still open. Written after re-verifying my own deliverables (git state, gofmt, shfmt `-i 2`, doc links — all clean; details below). Based ONLY on this session's work and observations.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): most of the trailing debt closed by later sessions.
+>
 > - **§a (fully done):** bullet list, self-declared done with per-item evidence — left unstruck (already clear).
 > - **§b:** b4 (FEATURES rows), b6 (nix fmt), b9 (coverage-gate) DONE; b1 (TestNew_AllConfigFields extension), b2 (bench-docs note), b3 (appkit diff), b5 (check-docs-freshness), b7 (`validatePathRoots` still a boolean chain), b8 (weak negative assertions), b10 (plan annotation) remain open → `TODO_LIST.md`.
 > - **§c (bullets):** the toolchain tug-of-war is RESOLVED (coordinated 1.27.1, 2026-09-19); family train shipped (setup v4.10.0/v4.11.0); broadcast replace stripped (N1.5); **idle bench retry** still open → `TODO_LIST.md`.
@@ -85,9 +86,9 @@
 18. ~~Templ-components v1.18.0 train-lag alignment (57 advisory entries).~~ done (09-19 N3 v1.18.0 uniform repo-wide)
 19. Harvest TODOs from the concurrent session's `2026-09-17_go-cqrs-lite-command-deep-dive.html`.
 20. ~~systemadapter first tag (blocked on upstream projectionadapter v4.5.0).~~ done (systemadapter/v4.11.0 tagged 2026-09-20)
-~~21–36. dashboardui templ-components program (28 tasks, `2026-09-17_13-22_*` plan).~~
-~~37–39. httputil/go-etag/go-sse adoption plan tasks (`c5006ee5` sibling plan).~~
-40. examples' minor bumps from the train-lag list (go-retry/go-health/go-atomic-write).
+    ~~21–36. dashboardui templ-components program (28 tasks, `2026-09-17_13-22_*` plan).~~
+    ~~37–39. httputil/go-etag/go-sse adoption plan tasks (`c5006ee5` sibling plan).~~
+21. examples' minor bumps from the train-lag list (go-retry/go-health/go-atomic-write).
 
 ## g) Questions (cannot resolve myself)
 

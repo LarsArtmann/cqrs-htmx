@@ -67,6 +67,7 @@ Nothing shipped broken. The session's real stumbles, in descending severity:
 **Resolved from the earlier list this session:** upstream C040 report (fixed at source instead), re-enable C040 + drop exemption (done — none exists), P009 routing (ROADMAP OQ 25), locate cqrs-lint source (found), C042 verification, AggregateID verification, module test runs.
 
 **New/renewed top items:**
+
 1. System rebuild → verify `cqrs-lint --strict --verbose .` shows zero C040 on a root walk (TODO_LIST item, exact step recorded).
 2. Triage identity-model 16× E005 (likely a missing cross-module fail-open for pure-domain command modules — candidate linter improvement in `~/projects/go-cqrs-lite`).
 3. Triage usermgmt 41× V007 against ADR-0051's migration posture (suppress-with-reason vs batch-migrate `stack.Materialize`).
@@ -95,17 +96,17 @@ Nothing shipped broken. The session's real stumbles, in descending severity:
 
 ## Verification evidence appendix
 
-| Claim | Evidence |
-| --- | --- |
+| Claim                                    | Evidence                                                                                                                                                                                                                                   |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | C040 root cause: literal-only collectors | `scanner_calls.go` pre-fix used `StringLit(call.Args[0])` for event.New/NewEvent/catalog.Event; `es_constants.go` declares emission aliases as `var` (gotcha-15 pattern); `catalog` registrations use `EventMetadata{Type: string(const)}` |
-| Fix works with rule ENABLED | Fixed binary root walk: `C040=0 C038=0 WARN=0 ERR=0 RC=0`; all 13 per-module runs RC=0, C040=0 |
-| Fix adds zero new warnings | Pre-fix commit `ad1dcd46a` worktree build vs fixed binary: identical E005=16 (identity-model), V007=41 + A016=1 (usermgmt) |
-| Linter suite | `cmd/cqrs-lint`: BUILD RC=0, TEST RC=0 (9 new regression tests included) |
-| C009 refactor | `newAssetHandler` error propagation in both modules; dashboardui suite RC=0, adminui suite RC=0; missing-asset unit tests (fstest.MapFS) |
-| C042 verified | `examples/dashboard-demo` seeds: `aggID := id.NewStreamID()` per item, first write `Version(1)`/expected `Version(0)` — correct new-stream contract |
-| AggregateID deprecated | go-cqrs-lite `event/v3_compat_aliases.go:17` "Deprecated: use id.StreamID" |
-| Builds | Workspace `go build ./...` RC=0; standalone e2e/server build RC=0 |
-| Gate green (handoff window) | `nix run .#check-cqrs-lint` (system binary): all 14 modules pass |
-| Severity semantics | `run.go`: exit on ERROR findings; `--strict`→`isStrictMode` gates LoadErrors; `resolveMinSeverity` = display floor; empirically RC=0 with 21 warnings |
-| Status gates | `check-status-annotations.sh` RC=0; `check-status-rows.py` RC=0 |
-| Code commits | cqrs-htmx: daemon commits through the session (`436e821b`, `fef0da50`, later sweeps); go-cqrs-lite: daemon commits `775091d1e`/`b2583c334`/`a94aaccf6`/`b63fd8ad2` carry the linter fix |
+| Fix works with rule ENABLED              | Fixed binary root walk: `C040=0 C038=0 WARN=0 ERR=0 RC=0`; all 13 per-module runs RC=0, C040=0                                                                                                                                             |
+| Fix adds zero new warnings               | Pre-fix commit `ad1dcd46a` worktree build vs fixed binary: identical E005=16 (identity-model), V007=41 + A016=1 (usermgmt)                                                                                                                 |
+| Linter suite                             | `cmd/cqrs-lint`: BUILD RC=0, TEST RC=0 (9 new regression tests included)                                                                                                                                                                   |
+| C009 refactor                            | `newAssetHandler` error propagation in both modules; dashboardui suite RC=0, adminui suite RC=0; missing-asset unit tests (fstest.MapFS)                                                                                                   |
+| C042 verified                            | `examples/dashboard-demo` seeds: `aggID := id.NewStreamID()` per item, first write `Version(1)`/expected `Version(0)` — correct new-stream contract                                                                                        |
+| AggregateID deprecated                   | go-cqrs-lite `event/v3_compat_aliases.go:17` "Deprecated: use id.StreamID"                                                                                                                                                                 |
+| Builds                                   | Workspace `go build ./...` RC=0; standalone e2e/server build RC=0                                                                                                                                                                          |
+| Gate green (handoff window)              | `nix run .#check-cqrs-lint` (system binary): all 14 modules pass                                                                                                                                                                           |
+| Severity semantics                       | `run.go`: exit on ERROR findings; `--strict`→`isStrictMode` gates LoadErrors; `resolveMinSeverity` = display floor; empirically RC=0 with 21 warnings                                                                                      |
+| Status gates                             | `check-status-annotations.sh` RC=0; `check-status-rows.py` RC=0                                                                                                                                                                            |
+| Code commits                             | cqrs-htmx: daemon commits through the session (`436e821b`, `fef0da50`, later sweeps); go-cqrs-lite: daemon commits `775091d1e`/`b2583c334`/`a94aaccf6`/`b63fd8ad2` carry the linter fix                                                    |

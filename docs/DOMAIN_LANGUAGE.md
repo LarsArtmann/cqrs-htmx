@@ -7,64 +7,64 @@ Every term below should mean the **same thing** to everyone who reads it.
 
 ## Glossary
 
-| Term               | Definition                                                                                                                        | Context                       |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| AccountLockout     | Brute-force protection that blocks authentication after N failed attempts                                                         | Authentication                |
-| Actor              | A kind-discriminated identity: User, Bot, System, Service, or Unknown (used in authorization + audit)                             | Identity model (ADR-0111)     |
-| ActorID            | A value identifying an Actor — carries kind (user/bot/system/service/unknown) + raw ID string                                    | Identity model (ADR-0111)     |
-| Aggregate          | A cluster of domain objects treated as a single unit for data consistency                                                         | Event-sourced CQRS            |
-| AuditLog           | A projection that records all user events as queryable audit entries                                                              | Compliance / Security         |
-| Authz              | Authorization engine wrapping Casbin RBAC with domains                                                                            | usermgmt module               |
-| Bot                | A non-human actor with an API token, registered to an owner for automated access                                                  | Identity model (ADR 0015)     |
-| BotID              | A branded string uniquely identifying a bot                                                                                       | Identity model                |
-| Broadcaster        | The SSE fan-out hub (`*sse.Broadcaster[sse.Event]`); adapters for CQRS dispatch hooks and DataStar embed it — `Hub()` is the canonical shareable object | cqrs-htmx root + datastar     |
-| Casbin             | External authorization library providing RBAC with domain support                                                                 | Authorization                 |
-| CasbinProjection   | A projection that derives all Casbin policies from user events                                                                    | Event sourcing                |
-| Ceremony           | A WebAuthn protocol flow (registration or login) split into a begin + finish exchange                                             | Authentication                |
-| Command            | An intent to change state, dispatched to a handler that produces events                                                           | CQRS write side               |
-| Credential         | A WebAuthn passkey registered to a user for passwordless authentication                                                           | Authentication                |
-| CQRS               | Command Query Responsibility Segregation — separate write and read models                                                         | Architecture pattern          |
-| Decider            | Pure function that validates a command against current state and emits events                                                     | Event sourcing                |
-| DashboardUI        | Ready-made CQRS/ES observability dashboard module — event browser, projection health, time-travel inspector, SSE live updates     | dashboardui module            |
-| EmailVerification  | Token-based confirmation that a user controls an email address (single-use, TTL)                                                  | Authentication                |
-| Enforcer           | Interface satisfied by Casbin; the authorization decision point                                                                   | Authorization                 |
-| Event              | An immutable record of something that happened in the past                                                                        | Event sourcing                |
-| Event Store        | Append-only persistence for events on an aggregate stream                                                                         | Event sourcing                |
-| EventCatalog       | Immutable JSON catalog of event schemas (type, description, payload fields); served as Published Language for projection builders | cqrs-htmx root module         |
-| ExternalAccount    | An OAuth2/OIDC provider account (provider + subject) linked to a User                                                             | OAuth2 integration (ADR 0014) |
-| Fold               | Pure function that reconstructs aggregate state by replaying events                                                               | Event sourcing                |
-| foldUser           | The concrete fold function that reconstructs `UserState` from the User event stream                                               | Event sourcing                |
-| HandlerOption      | Functional option pattern for configuring CQRS HTTP handlers                                                                      | cqrs-htmx root module         |
-| HTMX               | HTML-over-the-wire library for dynamic web pages without writing JavaScript                                                       | Frontend                      |
-| HTMXRedirect       | Helper that emits an HTMX-aware redirect (`HX-Redirect` for HTMX clients, standard `http.Redirect` otherwise)                     | cqrs-htmx root module         |
-| Impersonation      | A SuperAdmin acting on behalf of another user with an auditable session origin                                                    | Identity model (ADR 0015)     |
-| EventBus           | In-memory event bus (`watermill.EventBus`) that blocks publishers until handlers complete (read-your-writes)                      | Event sourcing                |
-| JournalSSEStore    | SSE replay store that reads missed events from a journal on reconnect, using `Last-Event-ID` as a cursor                          | cqrs-htmx root module         |
-| Membership         | A grant of roles to an Actor within a Tenant — the RBAC link between actor and tenant                                             | Identity model (ADR 0015)     |
-| Passkey            | A WebAuthn credential (FIDO2) bound to a device, enabling passwordless login                                                      | Authentication                |
-| Projection         | A read model built by subscribing to events and updating a materialized view                                                      | CQRS read side                |
-| ProjectionStatus   | Live health snapshot of a projection (name, state, lag, last-event, error); served as JSON via `ProjectionStatusHandler`          | cqrs-htmx root module         |
-| Read Model         | A query-optimized view of current state, derived from the event stream                                                            | CQRS read side                |
-| Role               | A named permission group (SuperAdmin, Admin, User, Viewer, Owner) assigned within a domain                                        | RBAC authorization            |
-| SafeRedirectPath   | Normalizes untrusted redirect paths to site-relative URLs as an open-redirect guard                                               | cqrs-htmx root module         |
-| SSE Reconnect      | Browser reconnects to the SSE endpoint; the server replays missed events from the journal using `Last-Event-ID`                   | dashboardui module            |
-| Service            | The application service orchestrating commands, queries, and session management                                                   | usermgmt module               |
-| Session            | An ephemeral authentication artifact (token + expiry) created after login                                                         | Authentication                |
-| SessionOrigin      | The cause of a session: DirectLogin, Impersonation, or OAuth2                                                                     | Authentication                |
-| SnapshotConfig     | Opt-in configuration for aggregate snapshotting (Store + Codec + Strategy); zero-value = full-replay mode                         | Event sourcing (ADR 0041)     |
-| SQLEventStore      | Persistent `event.Store` for PostgreSQL, SQLite, and MySQL with optimistic concurrency                                            | Persistence                   |
-| Scoped Feed        | A shared `/sse` stream filtered by a predicate (`setup.Config.SSEFilter`) — scopes live events AND journal replay, fail-closed      | setup / transport (v4.12.0)    |
-| Templ              | Go HTML templating engine with type-safe compile-checked templates                                                                | Frontend                      |
-| Tenant             | An organizational boundary for multi-tenancy — contains members with roles                                                        | Identity model (ADR 0015)     |
-| TenantID           | A branded string uniquely identifying a tenant                                                                                    | Identity model                |
-| Tombstone          | A soft-delete marker event signaling an aggregate is logically deleted                                                            | Event sourcing                |
-| TOTP               | Time-based One-Time Password (RFC 6238) — a 6-digit second-factor code                                                            | Multi-factor auth             |
-| TOTPProvider       | Interface for TOTP secret generation + code validation; implemented by usermgmt/totp/v4                                           | Auth strategy (ADR 0035)      |
-| UserID             | A branded string type uniquely identifying a user                                                                                 | identity-model (aliased in root/usermgmt) |
-| WebAuthn           | W3C standard for passwordless authentication using passkeys/FIDO2                                                                 | Authentication                |
-| WebAuthnProvider   | Interface for WebAuthn ceremony delegation via []byte JSON; implemented by usermgmt/webauthn/v4                                   | Auth strategy (ADR 0035)      |
-| WebAuthnSessionTTL | Configurable TTL for WebAuthn challenge sessions (ServiceConfig.WebAuthnSessionTTL)                                               | Authentication                |
-| OAuth2Provider     | Interface for OAuth2/OIDC login flow (PKCE + token exchange); implemented by usermgmt/oauth2/v4                                   | Auth strategy (ADR 0035)      |
+| Term               | Definition                                                                                                                                              | Context                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| AccountLockout     | Brute-force protection that blocks authentication after N failed attempts                                                                               | Authentication                            |
+| Actor              | A kind-discriminated identity: User, Bot, System, Service, or Unknown (used in authorization + audit)                                                   | Identity model (ADR-0111)                 |
+| ActorID            | A value identifying an Actor — carries kind (user/bot/system/service/unknown) + raw ID string                                                           | Identity model (ADR-0111)                 |
+| Aggregate          | A cluster of domain objects treated as a single unit for data consistency                                                                               | Event-sourced CQRS                        |
+| AuditLog           | A projection that records all user events as queryable audit entries                                                                                    | Compliance / Security                     |
+| Authz              | Authorization engine wrapping Casbin RBAC with domains                                                                                                  | usermgmt module                           |
+| Bot                | A non-human actor with an API token, registered to an owner for automated access                                                                        | Identity model (ADR 0015)                 |
+| BotID              | A branded string uniquely identifying a bot                                                                                                             | Identity model                            |
+| Broadcaster        | The SSE fan-out hub (`*sse.Broadcaster[sse.Event]`); adapters for CQRS dispatch hooks and DataStar embed it — `Hub()` is the canonical shareable object | cqrs-htmx root + datastar                 |
+| Casbin             | External authorization library providing RBAC with domain support                                                                                       | Authorization                             |
+| CasbinProjection   | A projection that derives all Casbin policies from user events                                                                                          | Event sourcing                            |
+| Ceremony           | A WebAuthn protocol flow (registration or login) split into a begin + finish exchange                                                                   | Authentication                            |
+| Command            | An intent to change state, dispatched to a handler that produces events                                                                                 | CQRS write side                           |
+| Credential         | A WebAuthn passkey registered to a user for passwordless authentication                                                                                 | Authentication                            |
+| CQRS               | Command Query Responsibility Segregation — separate write and read models                                                                               | Architecture pattern                      |
+| Decider            | Pure function that validates a command against current state and emits events                                                                           | Event sourcing                            |
+| DashboardUI        | Ready-made CQRS/ES observability dashboard module — event browser, projection health, time-travel inspector, SSE live updates                           | dashboardui module                        |
+| EmailVerification  | Token-based confirmation that a user controls an email address (single-use, TTL)                                                                        | Authentication                            |
+| Enforcer           | Interface satisfied by Casbin; the authorization decision point                                                                                         | Authorization                             |
+| Event              | An immutable record of something that happened in the past                                                                                              | Event sourcing                            |
+| Event Store        | Append-only persistence for events on an aggregate stream                                                                                               | Event sourcing                            |
+| EventCatalog       | Immutable JSON catalog of event schemas (type, description, payload fields); served as Published Language for projection builders                       | cqrs-htmx root module                     |
+| ExternalAccount    | An OAuth2/OIDC provider account (provider + subject) linked to a User                                                                                   | OAuth2 integration (ADR 0014)             |
+| Fold               | Pure function that reconstructs aggregate state by replaying events                                                                                     | Event sourcing                            |
+| foldUser           | The concrete fold function that reconstructs `UserState` from the User event stream                                                                     | Event sourcing                            |
+| HandlerOption      | Functional option pattern for configuring CQRS HTTP handlers                                                                                            | cqrs-htmx root module                     |
+| HTMX               | HTML-over-the-wire library for dynamic web pages without writing JavaScript                                                                             | Frontend                                  |
+| HTMXRedirect       | Helper that emits an HTMX-aware redirect (`HX-Redirect` for HTMX clients, standard `http.Redirect` otherwise)                                           | cqrs-htmx root module                     |
+| Impersonation      | A SuperAdmin acting on behalf of another user with an auditable session origin                                                                          | Identity model (ADR 0015)                 |
+| EventBus           | In-memory event bus (`watermill.EventBus`) that blocks publishers until handlers complete (read-your-writes)                                            | Event sourcing                            |
+| JournalSSEStore    | SSE replay store that reads missed events from a journal on reconnect, using `Last-Event-ID` as a cursor                                                | cqrs-htmx root module                     |
+| Membership         | A grant of roles to an Actor within a Tenant — the RBAC link between actor and tenant                                                                   | Identity model (ADR 0015)                 |
+| Passkey            | A WebAuthn credential (FIDO2) bound to a device, enabling passwordless login                                                                            | Authentication                            |
+| Projection         | A read model built by subscribing to events and updating a materialized view                                                                            | CQRS read side                            |
+| ProjectionStatus   | Live health snapshot of a projection (name, state, lag, last-event, error); served as JSON via `ProjectionStatusHandler`                                | cqrs-htmx root module                     |
+| Read Model         | A query-optimized view of current state, derived from the event stream                                                                                  | CQRS read side                            |
+| Role               | A named permission group (SuperAdmin, Admin, User, Viewer, Owner) assigned within a domain                                                              | RBAC authorization                        |
+| SafeRedirectPath   | Normalizes untrusted redirect paths to site-relative URLs as an open-redirect guard                                                                     | cqrs-htmx root module                     |
+| SSE Reconnect      | Browser reconnects to the SSE endpoint; the server replays missed events from the journal using `Last-Event-ID`                                         | dashboardui module                        |
+| Service            | The application service orchestrating commands, queries, and session management                                                                         | usermgmt module                           |
+| Session            | An ephemeral authentication artifact (token + expiry) created after login                                                                               | Authentication                            |
+| SessionOrigin      | The cause of a session: DirectLogin, Impersonation, or OAuth2                                                                                           | Authentication                            |
+| SnapshotConfig     | Opt-in configuration for aggregate snapshotting (Store + Codec + Strategy); zero-value = full-replay mode                                               | Event sourcing (ADR 0041)                 |
+| SQLEventStore      | Persistent `event.Store` for PostgreSQL, SQLite, and MySQL with optimistic concurrency                                                                  | Persistence                               |
+| Scoped Feed        | A shared `/sse` stream filtered by a predicate (`setup.Config.SSEFilter`) — scopes live events AND journal replay, fail-closed                          | setup / transport (v4.12.0)               |
+| Templ              | Go HTML templating engine with type-safe compile-checked templates                                                                                      | Frontend                                  |
+| Tenant             | An organizational boundary for multi-tenancy — contains members with roles                                                                              | Identity model (ADR 0015)                 |
+| TenantID           | A branded string uniquely identifying a tenant                                                                                                          | Identity model                            |
+| Tombstone          | A soft-delete marker event signaling an aggregate is logically deleted                                                                                  | Event sourcing                            |
+| TOTP               | Time-based One-Time Password (RFC 6238) — a 6-digit second-factor code                                                                                  | Multi-factor auth                         |
+| TOTPProvider       | Interface for TOTP secret generation + code validation; implemented by usermgmt/totp/v4                                                                 | Auth strategy (ADR 0035)                  |
+| UserID             | A branded string type uniquely identifying a user                                                                                                       | identity-model (aliased in root/usermgmt) |
+| WebAuthn           | W3C standard for passwordless authentication using passkeys/FIDO2                                                                                       | Authentication                            |
+| WebAuthnProvider   | Interface for WebAuthn ceremony delegation via []byte JSON; implemented by usermgmt/webauthn/v4                                                         | Auth strategy (ADR 0035)                  |
+| WebAuthnSessionTTL | Configurable TTL for WebAuthn challenge sessions (ServiceConfig.WebAuthnSessionTTL)                                                                     | Authentication                            |
+| OAuth2Provider     | Interface for OAuth2/OIDC login flow (PKCE + token exchange); implemented by usermgmt/oauth2/v4                                                         | Auth strategy (ADR 0035)                  |
 
 ## Entities
 
@@ -82,15 +82,15 @@ Objects with identity and lifecycle.
 
 Immutable objects defined by attributes.
 
-| Term              | Definition                                                | Context        |
-| ----------------- | --------------------------------------------------------- | -------------- |
-| UserID            | Branded string uniquely identifying a user                | Identity       |
-| Email             | Validated email address (`ParseEmail`/`MustParseEmail`)   | Identity       |
-| Session            | Token + user + actor + origin + timestamps, immutable after creation                                                              | Authentication                |
-| Role              | Named permission group string (admin, user, viewer)       | RBAC           |
-| Policy            | An RBAC rule: subject + domain + object + action + effect | Authorization  |
-| GroupPolicy       | A role assignment: subject + role + domain                | Authorization  |
-| VerificationToken | Single-use secret proving email ownership, with a TTL     | Authentication |
+| Term              | Definition                                                           | Context        |
+| ----------------- | -------------------------------------------------------------------- | -------------- |
+| UserID            | Branded string uniquely identifying a user                           | Identity       |
+| Email             | Validated email address (`ParseEmail`/`MustParseEmail`)              | Identity       |
+| Session           | Token + user + actor + origin + timestamps, immutable after creation | Authentication |
+| Role              | Named permission group string (admin, user, viewer)                  | RBAC           |
+| Policy            | An RBAC rule: subject + domain + object + action + effect            | Authorization  |
+| GroupPolicy       | A role assignment: subject + role + domain                           | Authorization  |
+| VerificationToken | Single-use secret proving email ownership, with a TTL                | Authentication |
 
 ## Events
 

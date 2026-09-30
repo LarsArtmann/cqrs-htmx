@@ -6,6 +6,7 @@
 **Session scope:** library-deep-dive audit of templ-components adoption in `dashboardui/`, plus planning-doc corrections. **No other work touched.** This report covers ONLY this session's work and what it noticed along the way.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the audit's adoption ladder was executed (see the OUTCOME banner above).
+>
 > - **§b:** b3/b4/b6 DONE; b5 (cross-session reconciliation) remains open.
 > - **§c:** rungs 1–13, 15, 17 DONE (all adopted; findings gate demoted); c11 theme toggle + c14 broken-link fix + c16 reconciliation remain open.
 > - **§f:** struck rows confirmed done (adoption ladder, benches, a11y/e2e, train-lag zero, score re-measured); unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (theme toggle M089; docs-hygiene; complexity refactors; e2e G114).
@@ -13,12 +14,12 @@
 
 **Deliverables produced this session:**
 
-| Artifact | Location | Status |
-| --- | --- | --- |
-| Deep-dive HTML report (60 KB, 13 findings, 12-step ladder) | `docs/research/2026-09-17_templ-components-dashboardui-deep-dive.html` | Committed (in daemon commit `21d4bf45`) |
-| Planning-doc correction (false assumption fixed at source) | `dashboardui/docs/planning/templ-migration-evaluation.md` | Committed `f4a3425f` |
-| ROADMAP correction (same) | `dashboardui/ROADMAP.md` | Committed `f4a3425f` |
-| This status/self-review | `docs/status/2026-09-17_13-12_dashboardui-templ-components-audit-status.md` | Just written |
+| Artifact                                                   | Location                                                                    | Status                                  |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------- |
+| Deep-dive HTML report (60 KB, 13 findings, 12-step ladder) | `docs/research/2026-09-17_templ-components-dashboardui-deep-dive.html`      | Committed (in daemon commit `21d4bf45`) |
+| Planning-doc correction (false assumption fixed at source) | `dashboardui/docs/planning/templ-migration-evaluation.md`                   | Committed `f4a3425f`                    |
+| ROADMAP correction (same)                                  | `dashboardui/ROADMAP.md`                                                    | Committed `f4a3425f`                    |
+| This status/self-review                                    | `docs/status/2026-09-17_13-12_dashboardui-templ-components-audit-status.md` | Just written                            |
 
 ---
 
@@ -60,7 +61,7 @@
 15. ~~Triage of the 103 pre-existing findings-gate errors (go-structure-linter 51, gomod-check 26, go-mod-ignore-check 26) so commits stop needing `--no-verify`.~~ done (findings gate demoted to fail_on:none (M3 triage))
 16. Reconciliation/adjudication of the two same-day templ-components reports.
 17. ~~AGENTS.md gotcha entry for the findings-gate behavior.~~ done (AGENTS.md gotcha recorded)
-18. *(Noticed, out of scope, untouched — listed for completeness)*: complexity refactors (`renderOverview` 28, `LoadEventByID` 27, `renderEventDetail` 26, `FetchOverview` 22), `e2e/server` G114 + exhaustruct + param-name warnings, 118-entry train-lag advisory list, integration_test's templ-components indirects still at v1.16.0.
+18. _(Noticed, out of scope, untouched — listed for completeness)_: complexity refactors (`renderOverview` 28, `LoadEventByID` 27, `renderEventDetail` 26, `FetchOverview` 22), `e2e/server` G114 + exhaustruct + param-name warnings, 118-entry train-lag advisory list, integration_test's templ-components indirects still at v1.16.0.
 
 ## d) TOTALLY FUCKED UP
 
@@ -86,9 +87,10 @@ Honest verdict: **my work product itself is sound; the fuckups are process, hist
 
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT
 
-*Brainstorm, not commitment list — Pareto-fuel for TODO_LIST/ROADMAP triage. Ordered roughly by (impact × session-continuity).*
+_Brainstorm, not commitment list — Pareto-fuel for TODO_LIST/ROADMAP triage. Ordered roughly by (impact × session-continuity)._
 
 **Immediate cleanup of this session's output (1-6):**
+
 1. Fix the two broken report references in `dashboardui/ROADMAP.md` + `templ-migration-evaluation.md`.
 2. Reconcile the two same-day templ-components reports (adjudicate, mark one canonical, annotate the other).
 3. Read + summarize the concurrent session's 4-line AGENTS.md edit that landed in `21d4bf45` (I still don't know what it changed).

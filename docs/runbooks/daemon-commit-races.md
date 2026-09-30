@@ -36,8 +36,8 @@ messages. This is expected behavior, not corruption.
   1. the commit is the current tip,
   2. it contains ONLY your files (no foreign in-flight work mixed in),
   3. it is local-only (not on origin).
-  Otherwise leave the heuristic message standing — rewriting interleaved
-  history is sabotage of the other session's work.
+     Otherwise leave the heuristic message standing — rewriting interleaved
+     history is sabotage of the other session's work.
 - **The amend dance is theater at scale**: the daemon re-races within
   seconds (six shredded commits in one evening despite phase-boundary
   discipline; two more the next round). Amend opportunistically; do not
@@ -51,12 +51,12 @@ together contain the full set, then continue — the split is cosmetic.
 
 ## Prevention (the mechanical protocol)
 
-| When | Tool |
-| ---- | --- |
-| Before ANY batch-mutating loop | `nix run .#preflight-tree-check` (abort on surprise: dirty tree, fresh foreign commit, velocity burst) |
-| Before push retries / acting on possibly-orphaned state | `nix run .#wait-tree-quiet` (clean tree + stable HEAD for a full window) |
-| Always | commit at phase boundaries; verify → commit → next phase |
-| Never | `reset --hard`, `checkout`, `clean`, force push, reverting diffs you did not author |
+| When                                                    | Tool                                                                                                   |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Before ANY batch-mutating loop                          | `nix run .#preflight-tree-check` (abort on surprise: dirty tree, fresh foreign commit, velocity burst) |
+| Before push retries / acting on possibly-orphaned state | `nix run .#wait-tree-quiet` (clean tree + stable HEAD for a full window)                               |
+| Always                                                  | commit at phase boundaries; verify → commit → next phase                                               |
+| Never                                                   | `reset --hard`, `checkout`, `clean`, force push, reverting diffs you did not author                    |
 
 ## Related
 

@@ -6,6 +6,7 @@
 **Format note:** skill default is a styled HTML dashboard; user explicitly requested `.md` — override honored (same as the 2026-09-17 report).
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the adminui errorpage slice shipped in the v4.11.0 train.
+>
 > - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
 > - **§b:** b4 (release) and b5 (toolchain) DONE; b1/b2/b3/b6/b7 (dark-mode verify of 5 unviewed shots + error pages, adminui prettier program, 403, toast interplay) remain open → `TODO_LIST.md`.
 > - **§c (bullets):** mostly open → `TODO_LIST.md` (Playwright against new shell, CSP `style=""` tests, loginpage adoption, upstream filings, visual-regression harness, offline-sync QA, 8097 squatter, cqrs-lint drift, README consumer note); dashboardui tiers are in the sibling lane.
@@ -25,7 +26,7 @@ The pending tail of the adminui × templ-components migration was **finished and
 
 ## Environment notes noticed this session (affect everything below)
 
-- **The machine was rebooted since the last session.** All `/tmp` artifacts were gone: the throwaway demo, the nix chromium, every screenshot, every probe script. Everything was recreated from scratch. Consequence: *no runtime evidence from the 2026-09-17 session survives*; the new screenshots live in `/tmp` again and will die on the next reboot too.
+- **The machine was rebooted since the last session.** All `/tmp` artifacts were gone: the throwaway demo, the nix chromium, every screenshot, every probe script. Everything was recreated from scratch. Consequence: _no runtime evidence from the 2026-09-17 session survives_; the new screenshots live in `/tmp` again and will die on the next reboot too.
 - **A sibling/concurrent session is actively working in this tree.** During this session it: bumped templ-components to v1.18.0 (this is what silently broke the sidebar — see d1), re-bumped root `go.mod` to `go 1.27.1` (restored to the documented 1.26.7 posture per AGENTS.md precedent), produced unrelated dirty edits (`readiness.go` variable rename, root `.golangci.yml` exhaustruct_v5 additions — left untouched per the never-revert-others'-work rule), and cut dashboardui v4.10.0 + v4.10.1 release commits.
 - **Root `go.mod` toolchain fight continues.** Workspace-mode builds stay broken-by-drift; all verification this session was hermetic (`GOEXPERIMENT=jsonv2 GOWORK=off`). LSP diagnostics repo-wide remain phantom (systemadapter/claiming revision noise) — CLI trusted over LSP throughout.
 - **All work landed in heuristic auto-daemon commits** (`cb2d0033` "12 changed file(s)" etc.), mixed with the sibling's files. No deliberate commit was made (harness rule: never commit without explicit request). Attribution is once again muddied in `git log`.
@@ -55,7 +56,7 @@ The pending tail of the adminui × templ-components migration was **finished and
 4. ~~**Release readiness for the adminui work.** Everything is committed but untagged — consumers only get it after the next adminui tag, and the tagging decision interacts with the pending templ-components v1.18.0 family sweep (M19, blocked on the sibling session). Also: three gates that touch this change class were NOT re-run (see e4).~~ done (adminui shipped in the v4.11.0 train)
 5. ~~**Root go.mod toolchain posture.** Restored to 1.26.7 (documented state-restoration), but the durable policy decision (pin `GOTOOLCHAIN=go1.26.7` fleet-wide OR coordinated 27-module bump) is still open and the sibling can re-bump at any minute.~~ done (1.27.1 coordinated bump landed 2026-09-19)
 6. **403 forbidden path.** Code-swapped to `writeErrorPage`, covered by existing status-only tests, but never rendered/inspected (no fixture produces a 403 in the demo).
-7. **Toast + styled-error interplay.** The tenant error paths fire `triggerToast` (HX-Trigger header) *and* now return an HTML card; header preservation is by construction (writeErrorPage doesn't touch headers) but was verified by code-reading only, not by a test.
+7. **Toast + styled-error interplay.** The tenant error paths fire `triggerToast` (HX-Trigger header) _and_ now return an HTML card; header preservation is by construction (writeErrorPage doesn't touch headers) but was verified by code-reading only, not by a test.
 
 ## c) NOT STARTED (relevant, unchanged from the previous status report)
 
@@ -72,13 +73,13 @@ The pending tail of the adminui × templ-components migration was **finished and
 
 ## d) TOTALLY FUCKED UP
 
-1. **The previous session's "visually verified on 4 pages" claim was false.** The sidebar — the single most prominent element of the new shell — was transparent with invisible labels, presumably since the templ-components v1.18.0 bump changed SidebarNav from `bg-gray-900` to var-driven theming. A glaring, whole-page defect shipped through a session that claimed screenshot verification. This session only caught it because it actually opened the PNG instead of trusting "ALL_DONE" script output. Lesson (now proven twice in this repo): *declared verification without opened evidence is worse than no verification* — it launders bugs into "done".
+1. **The previous session's "visually verified on 4 pages" claim was false.** The sidebar — the single most prominent element of the new shell — was transparent with invisible labels, presumably since the templ-components v1.18.0 bump changed SidebarNav from `bg-gray-900` to var-driven theming. A glaring, whole-page defect shipped through a session that claimed screenshot verification. This session only caught it because it actually opened the PNG instead of trusting "ALL_DONE" script output. Lesson (now proven twice in this repo): _declared verification without opened evidence is worse than no verification_ — it launders bugs into "done".
 2. **The v1.17→v1.18 dependency drift had zero render-level protection.** A library minor bump silently swapped the sidebar's theming mechanism, killed the `.admin-sidebar-scope .bg-gray-900` pin (dead CSS since then), and nothing in CI could see it: no assets canary test in adminui (dashboardui has one), no canary step in `build-adminui-css` (dashboardui's has one), no screenshot baselines. The same hole remains open for every other hand-written CSS pin in the repo.
 3. **I ran gates selectively instead of running the full gate set for the change class.** After adding a new module require + docs claims + tests, I did not run `check-release-train` (require is published, but unproven), `coverage-gate` (adminui coverage shifted with +4 tests, unmeasured), or `check-docs-freshness` (version claims edited). All three are cheap, all three exist precisely for this.
 4. **Verification evidence is ephemeral-by-accident.** The reboot destroyed the previous session's runtime evidence; this session's 12 screenshots + probes live in `/tmp` and will die the same way. The repo's status reports cite evidence that no longer exists anywhere.
 5. **Attribution of this session's work is muddied again.** Everything was swept into heuristic daemon commits mixed with the sibling session's dashboardui release files (the known daemon race, third+ occurrence). The deliberate documentation edits (AGENTS.md/CHANGELOG/TODO_LIST) were still uncommitted at report time.
 6. **Sloppy first-pass checks that almost lied to me:** (a) the `AUDIT_WHO: EMAIL_FOUND` probe would have "passed" on the header user-chip alone — caught it, but the check should have been table-scoped from the start; (b) `shoot-errors.ts` shipped with a double-await bug and cost a rerun; (c) I briefly hit a 401 with the fetch tool before recalling the login flow is a cookie redirect chain. Small, but each is the same "didn't think before measuring" family.
-7. **False-alarm detour that was avoidable:** I flagged a "latent demo link bug" (absolute hrefs vs `/admin/` mount) and only after reading `config.go` found `New()` normalizes the default BasePath — the bug never existed. Reading the config contract *before* raising the alarm would have saved a paragraph of panic in the working notes.
+7. **False-alarm detour that was avoidable:** I flagged a "latent demo link bug" (absolute hrefs vs `/admin/` mount) and only after reading `config.go` found `New()` normalizes the default BasePath — the bug never existed. Reading the config contract _before_ raising the alarm would have saved a paragraph of panic in the working notes.
 
 ## e) WHAT WE SHOULD IMPROVE
 
@@ -96,6 +97,7 @@ The pending tail of the adminui × templ-components migration was **finished and
 ## f) NEXT: 50 candidate tasks (brainstorm, sorted by impact; ROUTE via docs-health HARVEST — most belong in TODO_LIST/ROADMAP, not just this file)
 
 **Verify / close the current change (high impact, cheap)**
+
 1. Visually inspect the 5 captured-but-unviewed screenshots (users, tenants, members, audit-dark, audit-mobile390).
 2. Visually verify the 400/404 error pages in dark mode (same `dark:`-variant class that broke the thead).
 3. Render + inspect the styled 403 (needs a deny-authorizer fixture in the demo or a test).
@@ -163,4 +165,4 @@ The pending tail of the adminui × templ-components migration was **finished and
 
 ---
 
-*Point-in-time snapshot; goes stale. Section (f) is HARVEST input for `TODO_LIST.md`/`ROADMAP.md` per docs-health. Wait for instructions.*
+_Point-in-time snapshot; goes stale. Section (f) is HARVEST input for `TODO_LIST.md`/`ROADMAP.md` per docs-health. Wait for instructions._

@@ -9,7 +9,7 @@
 
 - One token set (`--bg`, `--surface`, `--text`, `--muted`, `--border`, `--sidebar-*`, …) with light defaults on `:root`, dark values inside `@media (prefers-color-scheme: dark)`.
 - A Tailwind v4 `@theme` block maps the gray scale onto the tokens (`--color-gray-500: var(--muted)` … `--color-gray-900: var(--text)`), so library components written as `text-gray-700` automatically follow adminui's palette.
-- Two bridge rules patch library expectations: `.bg-white { background-color: var(--surface) }` and the dark-mode `--color-gray-800/900` re-pin (library uses those grays as dark *surfaces* via `dark:` variants; the `@theme` mapping would otherwise paint them light).
+- Two bridge rules patch library expectations: `.bg-white { background-color: var(--surface) }` and the dark-mode `--color-gray-800/900` re-pin (library uses those grays as dark _surfaces_ via `dark:` variants; the `@theme` mapping would otherwise paint them light).
 - adminui's own templates use **zero** `dark:` variants in audit/dashboard/layout/tenants/users (5 total in components/members) — the tokens do all the work.
 
 Consequence: **no user toggle is possible today.** The theme strictly follows the OS preference; a user on a light OS stuck in a bright room cannot darken the panel, and vice versa.
@@ -32,7 +32,7 @@ Mechanism: duplicate the dark token block under `:root[data-theme="dark"]`, keep
 
 1. A small header `display.Button` (ghost variant) with sun/moon icon.
 2. ~15 lines of CSP-safe JS in admin.js: toggle `data-theme` on `<html>`, persist to `localStorage`, three-state logic (`auto | light | dark`, unset = follow system).
-3. A ~5-line nonce'd inline script in `layout.Base`'s head (or ` templ.Raw` in the layout pre-body) applying the stored choice before first paint — the ONLY inline-script addition, same nonce mechanism the modal/toast scripts already use, so no CSP posture change.
+3. A ~5-line nonce'd inline script in `layout.Base`'s head (or `templ.Raw` in the layout pre-body) applying the stored choice before first paint — the ONLY inline-script addition, same nonce mechanism the modal/toast scripts already use, so no CSP posture change.
 
 - ✅ **~30 lines total**, zero changes to any templ component class, zero churn of the 20-shot visual baselines (auto mode renders byte-identically to today).
 - ✅ Achieves the actual goal of M089: a user-controllable theme.

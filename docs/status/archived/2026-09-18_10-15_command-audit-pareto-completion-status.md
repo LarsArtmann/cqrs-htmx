@@ -5,6 +5,7 @@
 **Environment:** unchanged — auto-commit daemon racing every commit (ate 4+ more narrative commits this session), workspace mode broken by the root `go 1.27.1` vs go.work `1.26.7` tug-of-war (sibling session), all verification hermetic per module (GOWORK=off; root module verifiable with `GOTOOLCHAIN=go1.27.1` — discovered this session).
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the command-audit Pareto plan is fully executed (26/26).
+>
 > - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
 > - **§b:** M26 + the final battery DONE (§h addendum: lint 15/15, test 18/18, coverage 15/15, cqrs-lint strict, bijection 20/20); **M21 examples tail** (drop `examples/basic` manual option line — root now tagged) remains open → `TODO_LIST.md`.
 > - **§c:** M6 skipped by user decision; the `/auth/*` E2E actor assertion is DONE (`integration_test/actor_attribution_test.go`); routed gaps remain `TODO_LIST.md` entries.
@@ -136,13 +137,13 @@
 
 The queued battery (§f items 1–5) ran; **all five gates are GREEN** after four gate-blocking fixes:
 
-| Gate                                   | Result                                                       |
-| -------------------------------------- | ------------------------------------------------------------ |
-| `nix run .#lint`                       | ✅ 15/15 modules, 0 issues                                   |
-| `nix run .#test`                       | ✅ 18/18 package suites                                      |
-| `nix run .#coverage-gate`              | ✅ 15/15 — root 93.7%/90, usermgmt 82.1%/74 (watch values hold, usermgmt UP from 81.9%) |
-| `nix run .#check-cqrs-lint`            | ✅ strict, all modules                                       |
-| `scripts/check-command-bijection.sh`   | ✅ 20/20 both directions                                     |
+| Gate                                 | Result                                                                                  |
+| ------------------------------------ | --------------------------------------------------------------------------------------- |
+| `nix run .#lint`                     | ✅ 15/15 modules, 0 issues                                                              |
+| `nix run .#test`                     | ✅ 18/18 package suites                                                                 |
+| `nix run .#coverage-gate`            | ✅ 15/15 — root 93.7%/90, usermgmt 82.1%/74 (watch values hold, usermgmt UP from 81.9%) |
+| `nix run .#check-cqrs-lint`          | ✅ strict, all modules                                                                  |
+| `scripts/check-command-bijection.sh` | ✅ 20/20 both directions                                                                |
 
 Fixes made to get there (each committed; daemon absorbed several mid-flight, content verified in HEAD):
 

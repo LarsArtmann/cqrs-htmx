@@ -24,10 +24,10 @@
    - `2026-09-19_16-42_v4.11.0-train-prep-session.md`
    - `2026-09-19_18-03_train-session2-recovery-plan-lint-sweep.md`
    - `2026-09-19_23-55_v4.11.0-train-executed-13-tags-pushed.md`
-   **584 `~~` markers**; done items cited to the closing sessions (09-19 run-3 N1–N17, the v4.11.0 train, the 2026-09-20 systemadapter tag), open items left unstruck + routed to `TODO_LIST.md`/`ROADMAP.md`.
+     **584 `~~` markers**; done items cited to the closing sessions (09-19 run-3 N1–N17, the v4.11.0 train, the 2026-09-20 systemadapter tag), open items left unstruck + routed to `TODO_LIST.md`/`ROADMAP.md`.
 2. **A4 — 5 older 2026-09-20 reports annotated + archived** (kept the 3 most recent unarchived per the README convention): `00-25` (v4.11.0 shipped / first-honest CI), `08-40` (post-train sweep / first systemadapter tag), `10-57` (round 2), `11-58` (round 3), `13-22` (round 4). **220 markers**; the round 2–4 adminui program (Phases 1–4) was confirmed shipped by round 5 and struck accordingly.
 3. **All 3 `NOTE`-convention-consistent blockquotes written**, including a **relative-link fix** for two archived files whose `../planning/…` links would have broken one directory deeper (`2026-09-19_16-42`, `2026-09-19_18-03` → `../../planning/…`).
-4. **A5 — `docs/status/README.md` rewritten to reality:** counts corrected (**402 archived**, spanning **2026-05-03 → 2026-09-20**; **4 unarchived reports** + README + 12 HTML artifacts), the duplicate `archive/` split-brain removal documented (`archived/` is the single archive dir), the annotation convention updated to the **literal-strikethrough** form (`~~item~~ done at \`hash\`` / `done (evidence)` / `done (docs-health pass YYYY-MM-DD)` / `**Won't implement — reason.**`) with "unmarked = open", and the two completeness gates documented verbatim (`grep -rLn '~~'`, `check-rows.py`).
+4. **A5 — `docs/status/README.md` rewritten to reality:** counts corrected (**402 archived**, spanning **2026-05-03 → 2026-09-20**; **4 unarchived reports** + README + 12 HTML artifacts), the duplicate `archive/` split-brain removal documented (`archived/` is the single archive dir), the annotation convention updated to the **literal-strikethrough** form (`~~item~~ done at \`hash\``/`done (evidence)`/`done (docs-health pass YYYY-MM-DD)`/` **Won't implement — reason.** `) with "unmarked = open", and the two completeness gates documented verbatim (`grep -rLn '~~'`,`check-rows.py`).
 5. **A6 partial — this sweep's own completeness verified clean on the presence gate:** all **35** A1–A4 files exist at `docs/status/archived/` and **every one carries ≥1 `~~`** (0 missing, 0 strike-less).
 6. **On-sight doc fixes (from the prior continuation, confirmed still in place):** `dashboardui/README.md:290` stale demo note corrected (published since `dashboardui/v4.8.2`); `.agents/skills/cqrs-htmx/SKILL.md` module table now carries `dashboardui`, `loginpage`, `setup` rows.
 7. **Archive-tree consolidation confirmed:** `docs/status/archive/` (the 92-file duplicate) is gone; `docs/status/archived/` is the only archive directory.
@@ -44,7 +44,7 @@
    - `2026-09-17_13-23_library-deep-dive-audit-status.md` (tables @35: 2/6, @48: 5/10)
    - `2026-09-17_18-31_stability-and-extraction-analysis.md` (tables @36: 1/7, @48: 1/8)
    - `2026-09-17_21-04_adminui-templ-components-migration-and-lan-demo.md` (tables @50: 6/7, @64: 5/10)
-   **Judgment:** the CLEAN rows are **genuinely-open items** deliberately left unstruck (e.g. "Commit hygiene", "Score 68/100 rubric recount", "Verification protocol never exercised", upstream filings, the 8097 listener) — this is the tool's documented "judge and report, don't hide" case, not a missed-done class. Still formally a gate failure.
+     **Judgment:** the CLEAN rows are **genuinely-open items** deliberately left unstruck (e.g. "Commit hygiene", "Score 68/100 rubric recount", "Verification protocol never exercised", upstream filings, the 8097 listener) — this is the tool's documented "judge and report, don't hide" case, not a missed-done class. Still formally a gate failure.
 2. **A6 completeness — the corpus-wide presence gate fails for 340 archived files**, and this is the session's biggest finding (see d1/d2):
    - **294 files have NO annotation marker of any kind** (all 2026-05 → 2026-08 legacy archive).
    - **~42 files carry an `ANNOTATED` blockquote but no inline markers** (blockquote-only convention — the skill's "#1 failure mode" shape, predating the strikethrough convention).
@@ -70,7 +70,7 @@
 
 ## d) TOTALLY FUCKED UP
 
-1. **I inherited a false premise about the corpus and did not test it before working.** The plan estimated "38 unarchived status reports, 37 without any annotation" and A1–A4 were scoped to the *unarchived tail*. Only at the A6 gate did I discover that **294 files already sitting in `archived/` have never been annotated at all** (2026-05 → 2026-08). I should have run `grep -rLn '~~'` / the marker-density check at the START of the sweep, not at the gate. Net cost: the "finish the standing order" claim is weaker than the counts suggested.
+1. **I inherited a false premise about the corpus and did not test it before working.** The plan estimated "38 unarchived status reports, 37 without any annotation" and A1–A4 were scoped to the _unarchived tail_. Only at the A6 gate did I discover that **294 files already sitting in `archived/` have never been annotated at all** (2026-05 → 2026-08). I should have run `grep -rLn '~~'` / the marker-density check at the START of the sweep, not at the gate. Net cost: the "finish the standing order" claim is weaker than the counts suggested.
 2. **`check-rows.py` was never run per-file as I annotated** — I ran it once, at the end, over the whole corpus. That is exactly the "run it over every annotated file before declaring a pass done" rule, inverted. Result: 5 of my own files carry mixed tables I would have judged deliberately as I went.
 3. **The daemon shredded 100% of this session's narrative commits** — every `git mv` and every annotation landed inside `chore: auto-commit` heuristic commits (the documented unwinnable race, 5th+ recurrence). No narrative commit exists for A3/A4/A5; `git log` shows only heuristic messages for ~35 renames + edits. The mitigation (content verified intact) held, but attribution is archaeology again.
 4. **Annotate-tool shape gaps cost hand-edits and a retry:** `annotate-prose.py` cannot reach inline-numbered paragraphs, and `annotate-rows.py` cannot handle ID-less or descriptive-first-cell tables — so section-`a` evidence tables were left unstruck and several bullet sections were annotated only via the blockquote. One command (`b)`/`c)` on `2026-09-19_10-34`) failed atomically ("expected 1 match, found 0") because those sections are bullets, not numbered — no damage, one wasted call.
@@ -94,6 +94,7 @@
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT
 
 **Finish this sweep (do first):**
+
 1. Decide the legacy corpus: annotate / `LEGACY-EXEMPT` header / README exemption (Q1).
 2. Run `check-rows.py` per annotated file and adjudicate the 5 mixed tables (strike, un-strike, or document as deliberately-open inline).
 3. Normalize the ~42 blockquote-only files (inline markers or an explicit "nothing to resolve" note).
@@ -161,4 +162,4 @@
 
 ---
 
-*Report only — no research beyond this session's own trail. Per the harness contract, no manual commit: the auto-commit daemon has already absorbed the sweep; this file will be picked up the same way. Awaiting instructions.*
+_Report only — no research beyond this session's own trail. Per the harness contract, no manual commit: the auto-commit daemon has already absorbed the sweep; this file will be picked up the same way. Awaiting instructions._

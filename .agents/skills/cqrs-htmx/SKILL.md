@@ -43,15 +43,15 @@ An app typically composes some subset of these. They are **independent Go module
 
 | Module                | Import path                                              | Provides                                                                                                                                                                                               |
 | --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error->HTTP mapping, SSE (WebSocket removed in v5 — ADR 0046), embedded HTMX JS                                          |
+| **root**              | `github.com/larsartmann/cqrs-htmx/v4` (alias `cqrshtmx`) | The `App` builder, `HandlerOption`s, middleware (CSRF/HTMX/recovery/security/rate-limit), context IDs, error->HTTP mapping, SSE (WebSocket removed in v5 — ADR 0046), embedded HTMX JS                 |
 | **usermgmt**          | `github.com/larsartmann/cqrs-htmx/usermgmt/v4`           | Event-sourced `Service` (register/login/logout/me), roles/tenants/bots, authz via Casbin, session middleware, SQL + in-memory stores. Auth strategies (WebAuthn/OAuth2/TOTP) are optional sub-modules. |
 | **usermgmt/totp**     | `github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4`      | TOTP MFA (pquerna/otp). Inject `totp.New(...)` as `ServiceConfig.TOTP`.                                                                                                                                |
 | **usermgmt/webauthn** | `github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4`  | WebAuthn passkeys (go-webauthn). Inject `webauthn.New(...)` as `ServiceConfig.WebAuthn`.                                                                                                               |
 | **usermgmt/oauth2**   | `github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4`    | OAuth2/OIDC login (oauth2+oidc). Inject `oauth2.New(...)` as `ServiceConfig.OAuth2`.                                                                                                                   |
-| **adminui**           | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | Ready-made admin dashboard (templ + HTMX): **identity operations** (users/tenants/members/audit over a `*usermgmt.Service`; write actions, role-gated). Depends on root + usermgmt                                |
-| **dashboardui**       | `github.com/larsartmann/cqrs-htmx/dashboardui/v4`        | Ready-made **event-store observability** dashboard (projection health, event catalog, live SSE; read-only by default). NOT user administration — see adminui. Depends on root + usermgmt                                |
-| **loginpage**         | `github.com/larsartmann/cqrs-htmx/loginpage/v4`          | Ready-made passwordless login page (hand-rolled templ + `lp-*` CSS). Third sibling UI panel.                                                   |
-| **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering. |
+| **adminui**           | `github.com/larsartmann/cqrs-htmx/adminui/v4`            | Ready-made admin dashboard (templ + HTMX): **identity operations** (users/tenants/members/audit over a `*usermgmt.Service`; write actions, role-gated). Depends on root + usermgmt                     |
+| **dashboardui**       | `github.com/larsartmann/cqrs-htmx/dashboardui/v4`        | Ready-made **event-store observability** dashboard (projection health, event catalog, live SSE; read-only by default). NOT user administration — see adminui. Depends on root + usermgmt               |
+| **loginpage**         | `github.com/larsartmann/cqrs-htmx/loginpage/v4`          | Ready-made passwordless login page (hand-rolled templ + `lp-*` CSS). Third sibling UI panel.                                                                                                           |
+| **setup**             | `github.com/larsartmann/cqrs-htmx/setup/v4`              | One-call composition root: builds shared stores + `usermgmt.Service` + all three UI panels; mounts all routes with correct middleware ordering.                                                        |
 
 The core CQRS building blocks come from **go-cqrs-lite**, imported per-package:
 
@@ -354,10 +354,11 @@ http.ListenAndServe(":8080", cqrshtmx.Chain(
 Read `references/usermgmt.md` for: the full setup matrix (in-memory / SQLite / Postgres / event signing), enabling WebAuthn/OAuth2/TOTP/email-verification, role & tenant management, and the `Service` write/read API.
 
 **Per-module command posture (who owns the dispatcher?):**
+
 - **root**: YOU build the dispatcher and hand it to `Config.Commands` — `dispatcher.Use(...)` your middleware before `MustNew` (ordering: `docs/guides/dispatch-middleware-ordering.md`).
 - **usermgmt**: `NewService` owns the dispatcher and ALREADY wires the audit chain (actor + causation + correlation on every event, zero config). Your seam is `ServiceConfig.CommandMiddleware` (retry, breaker, idempotency, validation via the shipped `usermgmt.ValidateCommand`, metrics). Do NOT reach for the dispatcher — it is deliberately not exposed.
 - **setup**: same seam via `setup.Config.CommandMiddleware` (flattens to the service).
-Full recipes + measured chain cost: `docs/guides/leveraging-go-cqrs-lite.md` §1.
+  Full recipes + measured chain cost: `docs/guides/leveraging-go-cqrs-lite.md` §1.
 
 ## Path C -- add the ready-made admin dashboard (adminui)
 

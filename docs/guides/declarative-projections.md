@@ -44,19 +44,19 @@ entries, err := systemadapter.AuditEntriesFor(ctx, sys, aggregateID)
 
 ## API mapping
 
-| ProjectionLayer                              | Declarative replacement                                                        |
-| -------------------------------------------- | ------------------------------------------------------------------------------ |
-| `NewProjectionLayer(sys)` + `Start`/`Stop`   | `sys.Start(ctx)` / `sys.Close()` (host is owned by the system)                 |
-| `pl.WaitForDrain(5 * time.Second)`           | poll the query until it succeeds (see below)                                   |
-| `pl.User.FindByID(id)`                       | `systemadapter.FindUserByID(ctx, sys, id.String())` → `(UserView, error)`      |
-| `pl.User.FindByEmail(email)`                 | `systemadapter.FindUserByEmail(ctx, sys, email)`                               |
-| `pl.Tenant.FindByID(id)`                     | `systemadapter.FindTenantByID(ctx, sys, id.String())`                          |
-| `pl.Membership.FindByAggregateID(id)`        | `systemadapter.FindMembershipByID(ctx, sys, id.String())`                      |
-| `pl.Membership.FindByTenant(tenantID)`       | `systemadapter.FindMembershipsByTenant(ctx, sys, tenantID.String())`           |
-| `pl.Bot.*`                                   | `systemadapter.FindBotByID` / `FindBotsByOwner` / `FindBotByTokenHash`         |
-| Casbin enforcer from the layer               | `systemadapter.Enforce(ctx, sys, subject, domain, action)` / `FindPolicies`    |
-| `pl.AuditLog.Entries()`                      | `systemadapter.AuditEntries(ctx, sys)` / `AuditEntriesFor(ctx, sys, aggID)`    |
-| `(view, bool)` return                        | `(View, error)` — missing keys return `system.ErrNotFound`, never zero-values  |
+| ProjectionLayer                            | Declarative replacement                                                       |
+| ------------------------------------------ | ----------------------------------------------------------------------------- |
+| `NewProjectionLayer(sys)` + `Start`/`Stop` | `sys.Start(ctx)` / `sys.Close()` (host is owned by the system)                |
+| `pl.WaitForDrain(5 * time.Second)`         | poll the query until it succeeds (see below)                                  |
+| `pl.User.FindByID(id)`                     | `systemadapter.FindUserByID(ctx, sys, id.String())` → `(UserView, error)`     |
+| `pl.User.FindByEmail(email)`               | `systemadapter.FindUserByEmail(ctx, sys, email)`                              |
+| `pl.Tenant.FindByID(id)`                   | `systemadapter.FindTenantByID(ctx, sys, id.String())`                         |
+| `pl.Membership.FindByAggregateID(id)`      | `systemadapter.FindMembershipByID(ctx, sys, id.String())`                     |
+| `pl.Membership.FindByTenant(tenantID)`     | `systemadapter.FindMembershipsByTenant(ctx, sys, tenantID.String())`          |
+| `pl.Bot.*`                                 | `systemadapter.FindBotByID` / `FindBotsByOwner` / `FindBotByTokenHash`        |
+| Casbin enforcer from the layer             | `systemadapter.Enforce(ctx, sys, subject, domain, action)` / `FindPolicies`   |
+| `pl.AuditLog.Entries()`                    | `systemadapter.AuditEntries(ctx, sys)` / `AuditEntriesFor(ctx, sys, aggID)`   |
+| `(view, bool)` return                      | `(View, error)` — missing keys return `system.ErrNotFound`, never zero-values |
 
 The full query surface lives in `systemadapter/queries.go`.
 

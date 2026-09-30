@@ -11,7 +11,7 @@ ACCEPTED — 2026-09-30
 routes mount unconditionally. A class of consumers does not want an
 identity domain at all — apps that authenticate against an external
 authority (a PBX directory, an OIDC provider with their own session
-store, a corporate SSO) and still want the bundle's *runtime shell*:
+store, a corporate SSO) and still want the bundle's _runtime shell_:
 the serve/drain/close lifecycle (`Run`/`RunHandler`), the one-surface
 readiness composition (`HealthPath` + consumer `HealthChecks`), the
 opt-in `LivePath`, and the shared `Stores` for their own event

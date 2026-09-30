@@ -5,6 +5,7 @@ Continuation of the "WHOLE TODO LIST" execution. Round 1 shipped Retry-After + d
 Scope of this report: only this session's work. Plan: `docs/planning/2026-09-20_09-05_all-todos-pareto-comprehensive-execution-plan.html`; adminui micro-task plan: `docs/planning/2026-09-17_13-43_adminui-prettier-gap-remediation-plan.md`.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep, same day): rounds 4/5 closed the Phase-3 gate and shipped Phase 4.
+>
 > - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
 > - **§b:** b1 (Phase-3 gate) DONE; b2 (checked-in `admin-screenshots.spec.ts`) and b3 (durable baseline assets) remain open → `TODO_LIST.md`.
 > - **§c (bullets):** Phase 4 landed (Modal/Dropdown/PolledRegion adopted, theme toggle decision recorded); docs hygiene done; V007 + appkit ADR-001 still open → `TODO_LIST.md`.

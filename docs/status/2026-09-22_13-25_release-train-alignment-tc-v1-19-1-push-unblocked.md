@@ -108,7 +108,7 @@ Context: the sibling session (the 12:04 round-8 work continued) cut templ-compon
 29. Annotating older status reports — Gate 1 era rules; nothing older was touched.
 30. Fixing the `awk`-extraction loop that no-op'd — the loop was correct (awk handles block-form requires; the files had already changed). If archived for reuse, add the preflight check from (f)8 first.
 
-*(Stopped at 30 honest items rather than padding to 50 — the remaining 20 would be invented scope, which is exactly what (f) lists should not be.)*
+_(Stopped at 30 honest items rather than padding to 50 — the remaining 20 would be invented scope, which is exactly what (f) lists should not be.)_
 
 ## g) Questions I can NOT figure out myself
 
@@ -118,4 +118,4 @@ Context: the sibling session (the 12:04 round-8 work continued) cut templ-compon
 
 ---
 
-*Point-in-time snapshot. Anything still-open here routes into TODO_LIST.md/ROADMAP.md via docs-health HARVEST — this file is history, not a queue.*
+_Point-in-time snapshot. Anything still-open here routes into TODO_LIST.md/ROADMAP.md via docs-health HARVEST — this file is history, not a queue._

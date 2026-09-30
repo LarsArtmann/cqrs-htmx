@@ -15,12 +15,12 @@
 
 1. **Corpus census re-measured from scratch** (the prior report's numbers were wrong — it is the source of the corrections below):
 
-   | Shape | Prior claim | **Measured 2026-09-21** |
-   | --- | --- | --- |
-   | Inline `~~` (current convention) | 62 | **62** (now 65 after this run's 3 annotations) |
-   | `ANNOTATED` blockquote (any) | 82 | **119** |
-   | Blockquote-only (no `~~`) | 42 | **72** |
-   | No annotation (`LEGACY`) | 268 | **268** |
+   | Shape                            | Prior claim | **Measured 2026-09-21**                        |
+   | -------------------------------- | ----------- | ---------------------------------------------- |
+   | Inline `~~` (current convention) | 62          | **62** (now 65 after this run's 3 annotations) |
+   | `ANNOTATED` blockquote (any)     | 82          | **119**                                        |
+   | Blockquote-only (no `~~`)        | 42          | **72**                                         |
+   | No annotation (`LEGACY`)         | 268         | **268**                                        |
 
    A quick classification script (`~~` first, else `ANNOTATED`, else none) over `docs/status/archived/*.md` produced these; the prior report's 82/42 pair does not reconcile with any script I could reproduce, so it is superseded.
 
@@ -28,7 +28,7 @@
 
 3. **The one real row-format deviation fixed.** `docs/status/archived/2026-08-05_11-46_binary-untracking-fix-and-self-review.md` had two rows where only the first cell was struck (`~~#~~`-style). Both rows (line 61 §c.1, line 75 §d.3) normalized to full-row strikethrough, matching the established convention (which does strike the `#` cell — confirmed against `2026-09-17_21-04_adminui-…`). Re-run: **0 PARTIAL rows** across the corpus.
 
-4. **Row-gate adjudication recorded.** 19 INCOMPLETE tables across **8 files** remain — all *deliberately mixed* (struck = done, unstruck = open), which is first-class per the convention. Files: `2026-08-05_11-46`, `2026-09-09_06-06`, `2026-09-09_20-09`, `2026-09-14_13-56_otel`, `2026-09-17_13-11_templ-components`, `2026-09-17_13-23_library-deep-dive`, `2026-09-17_18-31_stability`, `2026-09-17_21-04_adminui-migration`. The allowlist is written into `docs/status/README.md`.
+4. **Row-gate adjudication recorded.** 19 INCOMPLETE tables across **8 files** remain — all _deliberately mixed_ (struck = done, unstruck = open), which is first-class per the convention. Files: `2026-08-05_11-46`, `2026-09-09_06-06`, `2026-09-09_20-09`, `2026-09-14_13-56_otel`, `2026-09-17_13-11_templ-components`, `2026-09-17_13-23_library-deep-dive`, `2026-09-17_18-31_stability`, `2026-09-17_21-04_adminui-migration`. The allowlist is written into `docs/status/README.md`.
 
 ### A6 — A repo-owned, runnable presence gate now exists
 
@@ -41,7 +41,7 @@
    - `2026-09-20_15-00_round5-phase4-complete-all-gates-green.md` (22 items struck),
    - `2026-09-20_15-37_docs-health-audit-living-docs-refresh.md` (9 items struck),
    - `2026-09-20_22-02_buildflow-corruption-fix-and-docs-health-sweep.md` (§b 6/6 + §c 4 bullets struck).
-   `docs/status/` now holds exactly the 3 most recent reports + README, matching the README convention.
+     `docs/status/` now holds exactly the 3 most recent reports + README, matching the README convention.
 
 ### README truth (A5 follow-through)
 
@@ -65,7 +65,7 @@
 - **B4** — Harvest surviving open items from the 35+ reports into `TODO_LIST.md`/`ROADMAP.md` with citations; dedupe; header count.
 - **A8** — annotate/archive the unarchived `docs/planning/*` execution plans.
 - **A9** — `docs/DOMAIN_LANGUAGE.md` verified against code.
-- **A10** — AGENTS.md size (decided *split* in annotation but **not executed**).
+- **A10** — AGENTS.md size (decided _split_ in annotation but **not executed**).
 - **B2** — docs-lint gate for `/v4`-less imports; **B3** — FEATURES `FULLY_FUNCTIONAL` re-audit.
 - **C1–C10** — bench-spike, V007 clusters 1+2, ProjectionLayer v5 finalization, SSE remainder, templ-components v1.19 prep, cqrs-lint CI, appkit ADR-001 verdict.
 - **D1–D8** — upstream asks, gate-hardening bundle, bump playbook, blob-purge prep, example smoke tests, ROADMAP triage, datastar-demo rebrand, systemadapter Volume test.
@@ -175,4 +175,4 @@ A second session produced `docs/status/2026-09-21_18-20_round6-decisions-execute
 
 ---
 
-*Session paused pending Q1–Q3 and further instructions. A7/B1/B4/A8–A10/B2–B3 and the C/D tiers remain executable, subject to Q3.*
+_Session paused pending Q1–Q3 and further instructions. A7/B1/B4/A8–A10/B2–B3 and the C/D tiers remain executable, subject to Q3._

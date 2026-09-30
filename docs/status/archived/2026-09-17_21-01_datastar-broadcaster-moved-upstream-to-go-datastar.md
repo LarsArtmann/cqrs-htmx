@@ -9,6 +9,7 @@
 _(Format note: user explicitly requested `.md`; the status-report skill's HTML default was overridden per its own spec.)_
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the cross-repo Broadcaster move is fully closed. The 2026-09-18 follow-up block below finished the docs+gates half; the 2026-09-20 train-lag sweep pushed the go-datastar lockstep tags and stripped the 3 TEMPORARY replaces (zero replaces remain repo-wide).
+>
 > - **§b:** b16/b17/b18 DONE.
 > - **§c:** c19–c23 DONE (docs, gates, tags, replaces stripped).
 > - **§f:** struck rows confirmed done; the only open item is 22 (upstream generic `EventBridge` — future boundary move, demand-gated).

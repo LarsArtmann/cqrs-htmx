@@ -70,58 +70,58 @@
 
 ## f) NEXT (up to 50, ordered by priority)
 
-| # | Pri | Task | Status |
-|---|-----|------|--------|
-| 1 | P1 | Wire `check-css-bundles` into the pre-push hook (the 2a2e2368 gap) | Open |
-| 2 | P1 | BuildFlow CSS step prevention: `.buildflow.yml` mirror/exclude or upstream ask | Open |
-| 3 | P1 | Watch for waves 7+: six upstream publishes in ~3.5h tonight; each reds master until swept (OQ20 decides the posture) | Open |
-| 4 | P2 | OQ20 decision: strict-lag 0 vs bounded tolerance + scheduled alignment job | Open (owner) |
-| 5 | P2 | OQ21 decision: loginpage templ-components adoption vs zero-dep posture | Open (owner) |
-| 6 | P2 | Attribution check: is the dashboardui session done? If yes, HARVEST its Next-50 remainder | Open |
-| 7 | P2 | docs/status/README.md index entries + counts for the 3 new reports | Open |
-| 8 | P2 | AGENTS.md distillations: gitignore per-module-allowlist trap; templ-components root-module layout trap | Open |
-| 9 | P2 | dependabot grouping config (stop solo actions-bump reds mid-train) | Open |
-| 10 | P2 | Codegen guard: fixture proving it fires on fixer-shaped (formatting-only) rewrites | Open |
-| 11 | P2 | Gate-integrity spot checks post-bumps (verify-tag exemptions, GOWORK pin, both-repos push, vcs-cache placement, go.work.sum tidy, e2e lane coverage) | Open |
-| 12 | P2 | Post-adoption exclusion-claims sweep vs v1.19.2 (+ NoThemeScript note check) | Open |
-| 13 | P2 | templ-components upstream asks: CopyButton `var(--text)` override; ListNote X–Y range variant | Open |
-| 14 | P2 | dashboardui: adopt `htmx.PolledRegion` for the projection-health region | Open |
-| 15 | P2 | dashboardui follow-through bundle: `display.Grid` adoption; page-level goldens; error-shell unification survey | Open |
-| 16 | P2 | CopyButton contrast visual check (adminui tables) | Open |
-| 17 | P2 | Screen-reader check of the DLQ count note (role=status announce semantics) | Open |
-| 18 | P2 | Count-notice consistency sweep (audit/commands/queries pages) — design call | Open |
-| 19 | P2 | Dark-mode gray-800/900 pin re-check post-bump (adminui + dashboardui) | Open |
-| 20 | P2 | Human glance at the refreshed dashboard screenshots (templ-migration DOM deltas; nobody has looked) | Open |
-| 21 | P3 | FEATURES.md rows for the round-8 + round-11 gates (CSS bundle gate included) | Open |
-| 22 | P3 | bench-spike quiet-window attempt + OQ16 automate-or-retire decision | Open |
-| 23 | P3 | Orphan `dashboardui/styles.css` churn-rule re-check post-migration | Open |
-| 24 | P3 | verify-tag fixture drift exemption vs v1.19.2 fixtures | Open |
-| 25 | P3 | docs/status README link check post-rename | Open |
-| 26 | P3 | HARVEST this report's §f into TODO_LIST/ROADMAP (next session) | Open |
-| 27 | P3 | OQ15: release-notes posture (GitHub Releases vs tags+CHANGELOG) | Open (owner) |
-| 28 | P3 | OQ18: push/sync policy under concurrent sessions — codify in gotcha 4 | Open (owner) |
-| 29 | P3 | OQ19: heavy-gate policy (full sweep vs targeted+CI per family bump) | Open (owner) |
-| 30 | P3 | OQ5: membership payload ActorID format decision | Open (owner) |
-| 31 | P3 | check-cqrs-lint CI gating (blocked: Nix-only distribution) | Open (blocked) |
-| 32 | P3 | /mnt/buildcache fill-drain watch (recurring; `df -h` first) | Open |
-| 33 | P3 | V007 cluster-1 migration (68 SQLViewStore findings; gated on metaengine layout-planning) | Open (blocked) |
-| 34 | P3 | e2e: full axe-core sweep of all templ pages (beyond landmarks/labels) | Open |
-| 35 | P3 | e2e: per-page `<title>` uniqueness check (HTMX boost relies on it) | Open |
-| 36 | P3 | Investigate BuildFlow `type-check`/`tsc` ambient failure (burns 60s per pre-commit) | Open |
-| 37 | P3 | nix eval-cache SQLite busy errors (pre-commit log) — tuning or relocation | Open |
-| 38 | P3 | `templ generate --watch` guidance in devShell docs (LSP noise) | Open |
-| 39 | P3 | Hybrid-adoption guide HISTORICAL banner (dashboardui migrated; guide is legacy) | Open |
-| 40 | P3 | Sweep docs for stale "dashboardui strings.Builder" claims | Open |
-| 41 | P3 | dashboardui minor-bump decision (templ migration: now vs next family train) | Open (owner) |
-| 42 | P3 | go-health-dashboard v0.10.x adoption notes in the next family-train notes | Open |
-| 43 | P3 | Check go-health-dashboard v0.10.x for health-bridge APIs dashboardui should surface | Open |
-| 44 | P3 | Benchmark templ render vs response streaming for the largest page (DLQ detail) | Open |
-| 45 | P3 | Move `streamListPageConfig`-style page configs into templ components with props | Open |
-| 46 | P3 | `display.Sparkline` evaluation for projection trends (trivially adoptable now) | Open |
-| 47 | P3 | SSE-partial ETag for the polled projection-health partial (caching) | Open |
-| 48 | P3 | Golden-update workflow doc for dashboardui CONTRIBUTING | Open |
-| 49 | P3 | DLQ bulk-replay progress feedback (synchronous replay looks hung) | Open |
-| 50 | P3 | Event-detail next/prev keyboard navigation (match time-travel arrows) | Open |
+| #  | Pri | Task                                                                                                                                                 | Status         |
+| -- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 1  | P1  | Wire `check-css-bundles` into the pre-push hook (the 2a2e2368 gap)                                                                                   | Open           |
+| 2  | P1  | BuildFlow CSS step prevention: `.buildflow.yml` mirror/exclude or upstream ask                                                                       | Open           |
+| 3  | P1  | Watch for waves 7+: six upstream publishes in ~3.5h tonight; each reds master until swept (OQ20 decides the posture)                                 | Open           |
+| 4  | P2  | OQ20 decision: strict-lag 0 vs bounded tolerance + scheduled alignment job                                                                           | Open (owner)   |
+| 5  | P2  | OQ21 decision: loginpage templ-components adoption vs zero-dep posture                                                                               | Open (owner)   |
+| 6  | P2  | Attribution check: is the dashboardui session done? If yes, HARVEST its Next-50 remainder                                                            | Open           |
+| 7  | P2  | docs/status/README.md index entries + counts for the 3 new reports                                                                                   | Open           |
+| 8  | P2  | AGENTS.md distillations: gitignore per-module-allowlist trap; templ-components root-module layout trap                                               | Open           |
+| 9  | P2  | dependabot grouping config (stop solo actions-bump reds mid-train)                                                                                   | Open           |
+| 10 | P2  | Codegen guard: fixture proving it fires on fixer-shaped (formatting-only) rewrites                                                                   | Open           |
+| 11 | P2  | Gate-integrity spot checks post-bumps (verify-tag exemptions, GOWORK pin, both-repos push, vcs-cache placement, go.work.sum tidy, e2e lane coverage) | Open           |
+| 12 | P2  | Post-adoption exclusion-claims sweep vs v1.19.2 (+ NoThemeScript note check)                                                                         | Open           |
+| 13 | P2  | templ-components upstream asks: CopyButton `var(--text)` override; ListNote X–Y range variant                                                        | Open           |
+| 14 | P2  | dashboardui: adopt `htmx.PolledRegion` for the projection-health region                                                                              | Open           |
+| 15 | P2  | dashboardui follow-through bundle: `display.Grid` adoption; page-level goldens; error-shell unification survey                                       | Open           |
+| 16 | P2  | CopyButton contrast visual check (adminui tables)                                                                                                    | Open           |
+| 17 | P2  | Screen-reader check of the DLQ count note (role=status announce semantics)                                                                           | Open           |
+| 18 | P2  | Count-notice consistency sweep (audit/commands/queries pages) — design call                                                                          | Open           |
+| 19 | P2  | Dark-mode gray-800/900 pin re-check post-bump (adminui + dashboardui)                                                                                | Open           |
+| 20 | P2  | Human glance at the refreshed dashboard screenshots (templ-migration DOM deltas; nobody has looked)                                                  | Open           |
+| 21 | P3  | FEATURES.md rows for the round-8 + round-11 gates (CSS bundle gate included)                                                                         | Open           |
+| 22 | P3  | bench-spike quiet-window attempt + OQ16 automate-or-retire decision                                                                                  | Open           |
+| 23 | P3  | Orphan `dashboardui/styles.css` churn-rule re-check post-migration                                                                                   | Open           |
+| 24 | P3  | verify-tag fixture drift exemption vs v1.19.2 fixtures                                                                                               | Open           |
+| 25 | P3  | docs/status README link check post-rename                                                                                                            | Open           |
+| 26 | P3  | HARVEST this report's §f into TODO_LIST/ROADMAP (next session)                                                                                       | Open           |
+| 27 | P3  | OQ15: release-notes posture (GitHub Releases vs tags+CHANGELOG)                                                                                      | Open (owner)   |
+| 28 | P3  | OQ18: push/sync policy under concurrent sessions — codify in gotcha 4                                                                                | Open (owner)   |
+| 29 | P3  | OQ19: heavy-gate policy (full sweep vs targeted+CI per family bump)                                                                                  | Open (owner)   |
+| 30 | P3  | OQ5: membership payload ActorID format decision                                                                                                      | Open (owner)   |
+| 31 | P3  | check-cqrs-lint CI gating (blocked: Nix-only distribution)                                                                                           | Open (blocked) |
+| 32 | P3  | /mnt/buildcache fill-drain watch (recurring; `df -h` first)                                                                                          | Open           |
+| 33 | P3  | V007 cluster-1 migration (68 SQLViewStore findings; gated on metaengine layout-planning)                                                             | Open (blocked) |
+| 34 | P3  | e2e: full axe-core sweep of all templ pages (beyond landmarks/labels)                                                                                | Open           |
+| 35 | P3  | e2e: per-page `<title>` uniqueness check (HTMX boost relies on it)                                                                                   | Open           |
+| 36 | P3  | Investigate BuildFlow `type-check`/`tsc` ambient failure (burns 60s per pre-commit)                                                                  | Open           |
+| 37 | P3  | nix eval-cache SQLite busy errors (pre-commit log) — tuning or relocation                                                                            | Open           |
+| 38 | P3  | `templ generate --watch` guidance in devShell docs (LSP noise)                                                                                       | Open           |
+| 39 | P3  | Hybrid-adoption guide HISTORICAL banner (dashboardui migrated; guide is legacy)                                                                      | Open           |
+| 40 | P3  | Sweep docs for stale "dashboardui strings.Builder" claims                                                                                            | Open           |
+| 41 | P3  | dashboardui minor-bump decision (templ migration: now vs next family train)                                                                          | Open (owner)   |
+| 42 | P3  | go-health-dashboard v0.10.x adoption notes in the next family-train notes                                                                            | Open           |
+| 43 | P3  | Check go-health-dashboard v0.10.x for health-bridge APIs dashboardui should surface                                                                  | Open           |
+| 44 | P3  | Benchmark templ render vs response streaming for the largest page (DLQ detail)                                                                       | Open           |
+| 45 | P3  | Move `streamListPageConfig`-style page configs into templ components with props                                                                      | Open           |
+| 46 | P3  | `display.Sparkline` evaluation for projection trends (trivially adoptable now)                                                                       | Open           |
+| 47 | P3  | SSE-partial ETag for the polled projection-health partial (caching)                                                                                  | Open           |
+| 48 | P3  | Golden-update workflow doc for dashboardui CONTRIBUTING                                                                                              | Open           |
+| 49 | P3  | DLQ bulk-replay progress feedback (synchronous replay looks hung)                                                                                    | Open           |
+| 50 | P3  | Event-detail next/prev keyboard navigation (match time-travel arrows)                                                                                | Open           |
 
 ---
 
@@ -133,4 +133,4 @@
 
 ---
 
-*Evidence: CI runs 35792905362 / 35795038829 / 35795170263 / 35797136646 / 35797581704 (all green), 35796632818 (red — CSS gate live catch). Commits this session: a1cfa41f f969ced7 a2001079 (daemon-split w/ c3d9f962) 0c0b6ae4 4dc205c7 20e2b518 9644e7ca (daemon-split w/ 9fd6400d) 456d85a3 f5112e89 3b52222a 17655d54 2a2e2368 d6132cf3. Playwright 60/60; coverage 15/15; train gate 816/0/0.*
+_Evidence: CI runs 35792905362 / 35795038829 / 35795170263 / 35797136646 / 35797581704 (all green), 35796632818 (red — CSS gate live catch). Commits this session: a1cfa41f f969ced7 a2001079 (daemon-split w/ c3d9f962) 0c0b6ae4 4dc205c7 20e2b518 9644e7ca (daemon-split w/ 9fd6400d) 456d85a3 f5112e89 3b52222a 17655d54 2a2e2368 d6132cf3. Playwright 60/60; coverage 15/15; train gate 816/0/0._

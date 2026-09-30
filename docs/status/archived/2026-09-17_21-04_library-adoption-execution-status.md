@@ -5,6 +5,7 @@
 **Environment reality this session:** a second agent session is working the SAME tree concurrently (templ-components × dashboardui wave, narrative commits `56dcbfdd`, `81088b64`), plus an auto-commit daemon AND an auto-push mechanism. Everything below is written against that backdrop.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the plan's Tier 1%/4% work shipped and the session's partials closed.
+>
 > - **§b:** all five bullets DONE (check-modules green; toolchain resolved; buildflow rebuilt; docs wave landed; commits pushed).
 > - **§c:** M07/M08 DONE (findings gate triaged); M12/M13, M14, the M15–M27 tail, and the phantom `./v4` root-cause remain open → `TODO_LIST.md` / `ROADMAP.md`.
 > - **§f:** struck rows confirmed done; unmarked rows remain open (SSE gauges, ssetest adoption, ETag metrics/etagclient, benchstat, sweeps, upstream tracking, rubric docs).
@@ -15,6 +16,7 @@
 ## a) FULLY DONE
 
 ### Tier 1% (M01+M02) — go-etag correctness fix — 100% ✅
+
 - **F01–F06:** All hand-rolled `If-None-Match` exact-string checks replaced with `etag.ParseETag` + `etag.MatchesIfNoneMatch` (RFC 7232 weak comparison, wildcard, validator lists, lenient malformed handling). Three functions cover all five production sites: `serveImmutableJSON` (event catalog + OpenAPI spec), `serveJS` (htmx.js + extensions + sync-worker + sync-client), `ProjectionStatusHandler`. `adminui/assets.go` deliberately untouched (already RFC-correct via http.ServeContent).
 - **F02:** go-etag v0.3.1 promoted from `// indirect` to direct require in root go.mod (hermetic tidy, verified).
 - **F08–F10:** New `conditional_get_spec_test.go` — a reusable RFC 7232 spec harness (wildcard `*`→304, list→304, weak `W/`→304, mismatch→200, malformed→200) wired into 4 handler families = 25 spec cases, all passing under `-race`.
@@ -22,12 +24,14 @@
 - Committed (content absorbed into daemon commits `f0c7d2ec` + `9a1f025b`, byte-verified intact via rg checks).
 
 ### Tier 4% (M04+M05+M06) — SSE drain, retry hint, httputil currency — 100% ✅
+
 - **M04:** `setup/bundle.go` `Close()` now drains the SSE hub via `Broadcaster.Shutdown(5s ctx)` before the abrupt `Close()` — server restarts no longer drop queued in-flight events. Shared-hub design means the DataStar feed drains with the same call. Timeout path logs a warning and falls through (shutdown never hangs). Two new tests: queued-event delivery across Close; deadline honored under buffer overflow.
 - **M05:** `retry: 5000` reconnect hint now sent before the first event by BOTH `transport.ServeDomainEvents` and `Broadcaster.ServeSSE` (via `sse.WriteRetry`, constant `transport.DefaultRetryHintMillis`). Browsers back off after server restarts instead of stampeding. Wire-order pinned by two tests (transport plain-test + Ginkgo It asserting `HavePrefix("retry: 5000\n\n")`).
 - **M06:** httputil v1.2.0 sweep COMPLETED — the concurrent session had already done all modules except `integration_test` (still v1.1.1); bumped it hermetically (tidy+build+vet green) + hermetic spot-checks on usermgmt/adminui/setup + `check-release-train --refresh-cache` green (0 unpublished requires). The `scripts/testdata/verify-tag` v0.12.0 entry correctly left alone (frozen poison fixture).
 - Committed: `68750ef8` (fix(sse): drain + retry hint) and `361135d5` (chore(deps): httputil sweep) — both with full narrative messages, `--no-verify` + justification (gate still broken), already PUSHED to origin by the auto-push mechanism.
 
 ### Tier 20% partials — 3 items ✅
+
 - **M03:** `ProjectionStatusHandler` now wraps its inner handler in `etag.New(DefaultETagConfig{SkipIfPresent: true})` — the go-etag middleware owns conditional evaluation (buffer → adopt handler ETag → weak-match 304). Inner handler extracted to `serveProjectionStatus`. New test: stale ETag after data change gets a fresh 200 + new ETag. All 8 projection-status tests green under race. (Committed via daemon `372e3271`, verified intact.)
 - **M11 (pulled forward from tail):** systemadapter + examples/system-demo had a WRONG-PATH replace (`cqrs-htmx => ../` instead of `cqrs-htmx/v4 => ../`) — hermetic builds silently resolved root v4 from the proxy instead of the local tree. Fixed in both files.
 - **NEW (unplanned but necessary):** systemadapter's hermetic build was BROKEN by sibling go-cqrs-lite master drift (projectionadapter now calls `metaengine.Store.Reset`, a ResetResult API that published metaengine v4.13.0 lacks). Added temporary sibling-master `metaengine/v4` replaces with removal-condition comments to both modules (matches the existing projectionadapter replace pattern). systemadapter hermetic tidy+build+vet GREEN after the fix.
@@ -78,7 +82,7 @@
 
 ## f) NEXT 50 THINGS TO GET DONE
 
-*Ordered: blockers → remaining Tier 20% → tail (mirrors the plan; new discoveries appended).*
+_Ordered: blockers → remaining Tier 20% → tail (mirrors the plan; new discoveries appended)._
 
 1. ~~Decide + execute the go-directive endgame (see g-Q1): restore 1.26.7 + instant commit, OR accept 1.27.1 if a toolchain bump is coming.~~ done (coordinated 1.27.1 bump landed 2026-09-19)
 2. ~~Write the AGENTS.md gotcha: "workspace tidy/sync propagates go-appkit's 1.27.1 directive into root; all 8 go-appkit submodules are 1.26.7 — its root directive looks accidental; fix at source or bump flake deliberately."~~ done (AGENTS.md toolchain/tug-of-war gotchas recorded)

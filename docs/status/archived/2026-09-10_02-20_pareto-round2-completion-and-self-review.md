@@ -5,6 +5,7 @@
 **Commit range this session:** `d5a94f9d` → `3151b63a` (16 commits, ~6 authored by me with descriptive messages, ~10 absorbed by the auto-commit daemon with heuristic messages — attribution is a mess, see §d/e).
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the round-2 completion session's follow-up gaps are closed.
+>
 > - **§b:** b1–b5 DONE (CI all-green 2026-09-20, gate ladder green); b6 (bench-idle policy) STILL OPEN → `TODO_LIST.md` P1; b7 DONE (`systemadapter/v4.11.0` tagged 2026-09-20).
 > - **§c:** c1/c2/c4/c5 DONE (AGENTS/TODO/FEATURES synced; #25–#28 filed); c3 (V007 spike) STILL OPEN → `TODO_LIST.md` P3.
 > - **§f:** struck rows are confirmed done. Unmarked rows remain open, routed to `TODO_LIST.md` (bench P1; 7 remaining example smokes P2/D5; `verify-tag --build-hermetic` D2; daemon policy; V007 P3; ADR-001 flip C10; dashboardui templ migration; `/sse` C6; dashboard CSRF).

@@ -5,6 +5,7 @@
 **Branch state at report time:** `master`, ahead of origin by 4+ commits, a **concurrent sibling session is actively committing** (heuristic daemon commits + a toolchain tug-of-war, see §d/§e). Deliverable: `docs/research/2026-09-17_go-cqrs-lite-command-deep-dive.html` (1659 lines, committed at `473bbf29`).
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the audit's two headline findings and the top-3 remediation items were implemented 2026-09-18.
+>
 > - **§b:** b2 DONE (bijection scripted); b1/b3/b4/b5 remain partial/notes.
 > - **§c:** c1–c3 DONE (structural `ApplyOptions` fix; built-in audit chain; `CommandMiddleware` seam); c4–c8 remain open.
 > - **§f:** struck rows confirmed done (the audit-trail chain, bijection script, AGENTS gotchas, toolchain fix, train-lag zero, harvest); unmarked rows remain open → `TODO_LIST.md` / `ROADMAP.md` (idempotency, validation, journal producer, prior-art cross-check, BuildFlow upstream asks).
@@ -19,7 +20,7 @@
 3. **Phase 2 — full capability surface of `command/v4` v4.10.0**, read from the local sibling repo (not training data): Dispatcher/RegisterTyped/BasicCommand/PersistedCommand/TypedCommandStore[P]/MemoryBus/MetadataCarrier, 7 metadata options, 13 `Command*` middleware factories. Signatures used in the report's before/after code (`CommandIdempotency`, `CommandValidation`, `ActorEnricher`, `ApplyOptions`) were verified against source before citing.
 4. **Version currency verified:** root go.mod:9 pins `command/v4 v4.10.0`; highest upstream tag = `v4.10.0`. Zero gap — all findings are adoption gaps, not upgrade gaps.
 5. **Gap analysis + weighted scoring:** 4 fully-leveraged / 3 partially-used / 4 missed / 3 not-applicable → **62/100 ("Moderate")** with the rubric's weighting (critical 40 / advanced 25 / config 15 / best-practice 10 / version 10).
-6. **Key discovery (the report's headline):** the upstream audit-trail chain (`middleware.CommandActorContext()` → `decider.WithEnricher(event.ActorEnricher)`, plus `CommandCausalityEnricher`) has **zero call sites** in this repo; commands are constructed without metadata and `repositoryOptions` (usermgmt/snapshot.go:88-91) wires only snapshot+state-cache. Every event the library's own domain emits is anonymous. Second discovery: root's `enrichCommandFromContext` (handler.go:347-351) asserts the *concrete* `*command.BasicCommand`, so every embedded-command wrapper — including all 20 identity-model commands — silently skips HTTP metadata enrichment (the skip is even documented in the comment; upstream's `MetadataCarrier` capability interface exists precisely to avoid this).
+6. **Key discovery (the report's headline):** the upstream audit-trail chain (`middleware.CommandActorContext()` → `decider.WithEnricher(event.ActorEnricher)`, plus `CommandCausalityEnricher`) has **zero call sites** in this repo; commands are constructed without metadata and `repositoryOptions` (usermgmt/snapshot.go:88-91) wires only snapshot+state-cache. Every event the library's own domain emits is anonymous. Second discovery: root's `enrichCommandFromContext` (handler.go:347-351) asserts the _concrete_ `*command.BasicCommand`, so every embedded-command wrapper — including all 20 identity-model commands — silently skips HTTP metadata enrichment (the skip is even documented in the comment; upstream's `MetadataCarrier` capability interface exists precisely to avoid this).
 7. **HTML report written and verified:** 1659 lines, 8 sections, 7 finding cards, 2 tables; automated structural checks (all 8 section IDs present exactly once, div/section/table/tr/pre/code/p tag balance all equal, zero template placeholders); title placeholder fixed.
 8. **Commit integrity verified.** Working tree == HEAD for the report (`git diff HEAD` empty); committed version contains the complete final content (1659 lines, title match, 15 finding/callout markers).
 9. **Concurrent-session hygiene.** 5 foreign dirty files (`go.mod`, `setup/bundle.go`, `systemadapter/go.mod`, `systemadapter/go.sum`, `examples/system-demo/go.mod`) identified and left untouched; the go `1.27.1` vs `go.work 1.26.7` tug-of-war correctly diagnosed from the log (commit `68750ef8` "restore go 1.26.7 directive") and cited as the root cause of the pre-commit failures — not fought, per AGENTS.md guidance.
@@ -49,7 +50,7 @@ Also not started (session follow-through): filing the 8 items into `TODO_LIST.md
 
 ## d) TOTALLY FUCKED UP
 
-1. **Commit attribution lost — a *foreseeable* instance of the documented loss class.** AGENTS.md: "the auto-commit daemon polls faster than a long verification tail … 8+ deliberate narrative commits were lost." I knew the rule, staged the file, launched a 36-second hook, and then fired the retry without re-checking `git status --short` first. Result: the deep-dive — this session's entire deliverable — sits in history under a meaningless heuristic message, and the drafted narrative (which included the `--no-verify` justification) is gone. The failure mode was in my own project memory and I executed it anyway.
+1. **Commit attribution lost — a _foreseeable_ instance of the documented loss class.** AGENTS.md: "the auto-commit daemon polls faster than a long verification tail … 8+ deliberate narrative commits were lost." I knew the rule, staged the file, launched a 36-second hook, and then fired the retry without re-checking `git status --short` first. Result: the deep-dive — this session's entire deliverable — sits in history under a meaningless heuristic message, and the drafted narrative (which included the `--no-verify` justification) is gone. The failure mode was in my own project memory and I executed it anyway.
 2. **One wasted round trip.** The `--no-verify` attempt failed with "nothing staged" — a direct consequence of #1, avoidable with one `git status` before retrying.
 3. **Everything else is intact.** No source code touched, no foreign changes reverted, no force-push, report content byte-verified at HEAD. Nothing needs repair.
 
@@ -69,9 +70,10 @@ Also not started (session follow-through): filing the 8 items into `TODO_LIST.md
 
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT
 
-*A brainstorm sorted by impact — not a commitment list; most items below #8 are ROADMAP/HARVEST fuel.*
+_A brainstorm sorted by impact — not a commitment list; most items below #8 are ROADMAP/HARVEST fuel._
 
 **Implement the audit's findings (highest impact):**
+
 1. ~~Fix `enrichCommandFromContext` to a structural `ApplyOptions` interface + regression test (P20)~~ done (structural ApplyOptions fix landed (enrichment-skip footgun fixed 2026-09-18))
 2. ~~Wire `CommandActorContext` + `decider.WithEnricher(event.ActorEnricher)` + causation enricher into usermgmt (P20)~~ done (audit chain built-in in usermgmt 2026-09-18 (ActorEnricher + CommandActorContext + causation))
 3. ~~Add `CommandMiddleware []command.Middleware` to `ServiceConfig`/`EventSourcedConfig`, thread through `setup.Config` (P16)~~ done (ServiceConfig.CommandMiddleware + setup.Config threading shipped)
@@ -119,7 +121,7 @@ Also not started (session follow-through): filing the 8 items into `TODO_LIST.md
 39. Sweep examples for the manual `CommandOptionsFromContext` pattern (basic/main.go:316) once root enrichment is fixed — they become redundant
 40. Add the report's 12-row capability matrix to the go-cqrs-lite leverage guide as a checklist
 
-*(Stopped at 40 — the remaining space is deliberately left for HARVEST routing decisions rather than padding.)*
+_(Stopped at 40 — the remaining space is deliberately left for HARVEST routing decisions rather than padding.)_
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

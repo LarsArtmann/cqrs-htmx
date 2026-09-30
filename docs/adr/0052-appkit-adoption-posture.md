@@ -22,13 +22,13 @@ assessment examined the default-flip follow-ups.
 (folding appkit into `RunHandler`) is deferred to v5 at the earliest.** Per-item
 verdicts from the assessment:
 
-| Follow-up | Verdict | Rationale |
-| --- | --- | --- |
-| (b) Fold into `RunHandler` | **Defer to v5** | Silently changes the default path's behavior: ~2s drain delay, generic middleware wrapping, `/health/*` reshaped. Needs (c)+(d) settled first; stays behind the DataStar ADR-first sequencing. |
+| Follow-up                         | Verdict                      | Rationale                                                                                                                                                                                                                              |
+| --------------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| (b) Fold into `RunHandler`        | **Defer to v5**              | Silently changes the default path's behavior: ~2s drain delay, generic middleware wrapping, `/health/*` reshaped. Needs (c)+(d) settled first; stays behind the DataStar ADR-first sequencing.                                         |
 | (c) `/health` dedup + LB guidance | **Document, don't automate** | appkit serves `/health`, `/health/live`, `/health/ready` while the bundle's session-gated `HealthPath` mount coexists by design. `HealthPath: "-"` is the existing opt-out; `Mount()` cannot know which run path a consumer will call. |
-| (d) Stacked-chain dedup | **Not safe blindly** | The bundle's inner `RecommendedSecurityMiddleware` owns CSP NONCE generation (appkit's SecurityHeaders do not). The layering (generic outer, domain-aware inner) is documented in `run_appkit.go`. |
-| (e) Logging posture | **No action** | The 2.8× bench delta is isolated by `LogLevelError` in the bench; an appkit LogLevel config seam is marginal (`RunHandler` stays the quiet path). |
-| (f) Expose `Addr()` | **Consumer-demand-gated** | Small (listener captured in appkit's Start) but racy to expose post-Start. Same gate as DataStar Tier 4. |
+| (d) Stacked-chain dedup           | **Not safe blindly**         | The bundle's inner `RecommendedSecurityMiddleware` owns CSP NONCE generation (appkit's SecurityHeaders do not). The layering (generic outer, domain-aware inner) is documented in `run_appkit.go`.                                     |
+| (e) Logging posture               | **No action**                | The 2.8× bench delta is isolated by `LogLevelError` in the bench; an appkit LogLevel config seam is marginal (`RunHandler` stays the quiet path).                                                                                      |
+| (f) Expose `Addr()`               | **Consumer-demand-gated**    | Small (listener captured in appkit's Start) but racy to expose post-Start. Same gate as DataStar Tier 4.                                                                                                                               |
 
 ## Consequences
 

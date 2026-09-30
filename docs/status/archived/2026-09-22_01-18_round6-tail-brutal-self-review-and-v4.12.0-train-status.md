@@ -184,4 +184,4 @@ No poisoned tags, no force-pushes, no lost work, no unverifiable claims left sta
 
 ---
 
-*Report written per explicit user instruction as `.md` (the status-report skill's canonical format is HTML; instruction wins). Not manually committed — the auto-commit daemon absorbs it. Section (f) awaits docs-health HARVEST routing on instruction. **NOW WAITING FOR INSTRUCTIONS.***
+_Report written per explicit user instruction as `.md` (the status-report skill's canonical format is HTML; instruction wins). Not manually committed — the auto-commit daemon absorbs it. Section (f) awaits docs-health HARVEST routing on instruction. **NOW WAITING FOR INSTRUCTIONS.**_

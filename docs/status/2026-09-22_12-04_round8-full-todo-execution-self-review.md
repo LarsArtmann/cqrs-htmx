@@ -82,6 +82,7 @@ Machine context: load 614 → 36 → 889 across the session (external workloads,
 ## f) NEXT — up to 50 (sorted: unblocks verification first)
 
 **Unblock/verify (this session's work):**
+
 1. Owner: push templ-components `master --follow-tags` (v1.19.1 + 6 tags) — after `scripts/ci-repro.sh --lint --website` green-on-tip.
 2. Run that ci-repro on the templ-components tip (the skipped ritual).
 3. Owner: push cqrs-htmx master (will traverse the NEW pre-push gate — by design).
@@ -147,4 +148,4 @@ Machine context: load 614 → 36 → 889 across the session (external workloads,
 
 ---
 
-*Point-in-time snapshot. Living state: [TODO_LIST.md](../../TODO_LIST.md) · [CHANGELOG.md](../../CHANGELOG.md) · [ROADMAP.md](../../ROADMAP.md) · [AGENTS.md](../../AGENTS.md). Report convention: [docs/status/README.md](README.md).*
+_Point-in-time snapshot. Living state: [TODO_LIST.md](../../TODO_LIST.md) · [CHANGELOG.md](../../CHANGELOG.md) · [ROADMAP.md](../../ROADMAP.md) · [AGENTS.md](../../AGENTS.md). Report convention: [docs/status/README.md](README.md)._

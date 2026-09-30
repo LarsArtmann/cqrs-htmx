@@ -7,6 +7,7 @@
 > Written from session memory per instruction; no fresh repo-wide research.
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the broadcast-move follow-up is fully absorbed.
+>
 > - **§a (bullets):** self-declared done with evidence — left unstruck (already clear).
 > - **§b:** the AGENTS cqrs-lint split brain is fixed (now pins 4.11.2); the 5 stale suppressions and the dashboardui `assets.go` informational warning were resolved in later lint sweeps (lint 0/15).
 > - **§c:** tag & push DONE (broadcast/v0.6.0 + datastar/setup in the v4.11.0 train); replace strip + hermetic re-verify DONE (N1.5); e2e DONE (N5–N8); version-drift DONE (train-lag zero); **TODO_LIST harvest** is this sweep (§f → `TODO_LIST.md`).

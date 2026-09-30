@@ -13,19 +13,19 @@ session executed it and re-verified every gate.
 
 ## Timeline (all times CEST 2026-09-30)
 
-| Time  | Event                                                                                     |
-| ----- | ----------------------------------------------------------------------------------------- |
-| 00:45 | Diagnosed blocked push; loaded buildflow + go-ecosystem-upgrade skills                    |
-| 00:53 | Sweep 1 go-branded-id v0.7.0 (24 mods) green; daemon raced commit → 2e482e58              |
-| 00:55 | Sweep 2 catalog/v4 v4.6.0 green; daemon → c830b280; my hook-full commit attempt burned a BuildFlow cycle on documented env-class failures → adopted `--no-verify` fallback |
-| 00:57 | Foreign formatter rewrap (adminui/dashboardui assets.go) blocked sweeps; wait-tree-quiet TIMEOUT 10 min; verified canonical via `nix fmt` idempotence; absorbed isolated at 3353fd57 |
-| 01:0x | Sweep 3 storage/v4 v4.10.2 (14 mods) green → 0b63a553; sweep 4 watermill/v4 v4.6.2 green → d6f7f7c4 |
+| Time  | Event                                                                                                                                                                                                                                                        |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 00:45 | Diagnosed blocked push; loaded buildflow + go-ecosystem-upgrade skills                                                                                                                                                                                       |
+| 00:53 | Sweep 1 go-branded-id v0.7.0 (24 mods) green; daemon raced commit → 2e482e58                                                                                                                                                                                 |
+| 00:55 | Sweep 2 catalog/v4 v4.6.0 green; daemon → c830b280; my hook-full commit attempt burned a BuildFlow cycle on documented env-class failures → adopted `--no-verify` fallback                                                                                   |
+| 00:57 | Foreign formatter rewrap (adminui/dashboardui assets.go) blocked sweeps; wait-tree-quiet TIMEOUT 10 min; verified canonical via `nix fmt` idempotence; absorbed isolated at 3353fd57                                                                         |
+| 01:0x | Sweep 3 storage/v4 v4.10.2 (14 mods) green → 0b63a553; sweep 4 watermill/v4 v4.6.2 green → d6f7f7c4                                                                                                                                                          |
 | 01:1x | Chained 3 datastar sweeps in one call — MY DESIGN FLAW: sweep 5 dirt blocked sweeps 6–7 (script refusal by design). Sweep 5 broadcast v0.6.1 green → daemon 0cc92298; static v0.6.1 already carried by MVS through broadcast's tidy (absence grep proved it) |
-| 01:2x | Sweep 7 refused: collaborator mid-feature in dashboardui (twCSS handler). wait-tree-quiet TIMEOUT #2; 10-min poll loop → NO_CLEAN_WINDOW (.cqrs-lint.json went dirty) |
-| 01:37 | Second poll loop found clean window at attempt 26; sweeps 7 (go-datastar v0.6.1) + 8 (go-error-family v0.11.0, 28 mods) green → daemon a35f1b81/ed0d45b8/354f70f2 |
-| 01:5x | Verification: release-train strict GREEN (0/0/0, fresh cache); test suite RC=0 18/18 (race); version-drift --strict GREEN (841/841); check-modules 17/17 |
-| later | User's `git town continue` succeeded — push went through (master now ahead 2, both remaining = collaborator daemon commits) |
-| 07:31 | Report re-verification: release-train strict STILL GREEN (fresh cache); tree clean       |
+| 01:2x | Sweep 7 refused: collaborator mid-feature in dashboardui (twCSS handler). wait-tree-quiet TIMEOUT #2; 10-min poll loop → NO_CLEAN_WINDOW (.cqrs-lint.json went dirty)                                                                                        |
+| 01:37 | Second poll loop found clean window at attempt 26; sweeps 7 (go-datastar v0.6.1) + 8 (go-error-family v0.11.0, 28 mods) green → daemon a35f1b81/ed0d45b8/354f70f2                                                                                            |
+| 01:5x | Verification: release-train strict GREEN (0/0/0, fresh cache); test suite RC=0 18/18 (race); version-drift --strict GREEN (841/841); check-modules 17/17                                                                                                     |
+| later | User's `git town continue` succeeded — push went through (master now ahead 2, both remaining = collaborator daemon commits)                                                                                                                                  |
+| 07:31 | Report re-verification: release-train strict STILL GREEN (fresh cache); tree clean                                                                                                                                                                           |
 
 ## a) FULLY DONE
 

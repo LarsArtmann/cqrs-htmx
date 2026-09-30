@@ -78,6 +78,7 @@ Nothing shipped broken. The failures, descending:
 ## f) Up to 50 things to get done next (brainstorm, rough impact order; ROADMAP fuel, not commitments)
 
 **NEW — from the forgotten-items audit (top priority):**
+
 1. Write the go-cqrs-lite CHANGELOG entry for the cqrs-lint collector fix (var-alias + EventMetadata collection, 9 tests, verified 0 findings rule-enabled).
 2. Add the go-cqrs-lite AGENTS.md/TODO_LIST note for the same (its own session-context file).
 3. Run `go vet` + golangci-lint on `cmd/cqrs-lint` and fix anything the repo's own linters flag in the new code.
@@ -153,19 +154,19 @@ Nothing shipped broken. The failures, descending:
 
 ## Verification evidence appendix
 
-| Claim | Evidence |
-| --- | --- |
-| C040 root cause | Pre-fix collectors used `StringLit` on arg0; `usermgmt/es_constants.go` var aliases; `EventMetadata{Type: string(const)}` registrations |
-| Fix verified, rule enabled | Fixed binary root walk C040=0/WARN=0/ERR=0 RC=0; all 13 modules RC=0, C040=0 |
-| Zero-delta | Pre-fix worktree `ad1dcd46a`: identical E005=16/V007=41/A016=1/V006 sets |
-| Linter suite | BUILD RC=0, TEST RC=0 (no -race — open item 4); 9 new tests |
-| C009 refactor | Both UI module suites RC=0; fstest.MapFS tests; no `assetHandler` refs remain |
-| C042 verified | Demo seeds: fresh `id.NewStreamID()`, `Version(1)` at expected `Version(0)` |
-| AggregateID deprecated | go-cqrs-lite `event/v3_compat_aliases.go:17` |
-| Builds | Workspace + e2e standalone + vet RC=0 |
-| Gate (handoff window) | `nix run .#check-cqrs-lint` all 14 pass (old system binary, C040 enabled) |
-| User invocation | `GOTOOLCHAIN=auto cqrs-lint` RC=0 (21 stale C040 warnings, non-failing) |
-| Severity semantics | `run.go` source + RC=0-with-21-warnings empirics |
-| Status gates | Gate 1 RC=0, Gate 2 RC=0 |
-| Sweep state | cqrs-htmx tree clean at 08:03 (both reports committed by daemon); go-cqrs-lite tree clean |
-| Known-open | go-cqrs-lite docs + lint/vet/-race (§b1–3); Playwright; residual warning triage; system rebuild |
+| Claim                      | Evidence                                                                                                                                |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| C040 root cause            | Pre-fix collectors used `StringLit` on arg0; `usermgmt/es_constants.go` var aliases; `EventMetadata{Type: string(const)}` registrations |
+| Fix verified, rule enabled | Fixed binary root walk C040=0/WARN=0/ERR=0 RC=0; all 13 modules RC=0, C040=0                                                            |
+| Zero-delta                 | Pre-fix worktree `ad1dcd46a`: identical E005=16/V007=41/A016=1/V006 sets                                                                |
+| Linter suite               | BUILD RC=0, TEST RC=0 (no -race — open item 4); 9 new tests                                                                             |
+| C009 refactor              | Both UI module suites RC=0; fstest.MapFS tests; no `assetHandler` refs remain                                                           |
+| C042 verified              | Demo seeds: fresh `id.NewStreamID()`, `Version(1)` at expected `Version(0)`                                                             |
+| AggregateID deprecated     | go-cqrs-lite `event/v3_compat_aliases.go:17`                                                                                            |
+| Builds                     | Workspace + e2e standalone + vet RC=0                                                                                                   |
+| Gate (handoff window)      | `nix run .#check-cqrs-lint` all 14 pass (old system binary, C040 enabled)                                                               |
+| User invocation            | `GOTOOLCHAIN=auto cqrs-lint` RC=0 (21 stale C040 warnings, non-failing)                                                                 |
+| Severity semantics         | `run.go` source + RC=0-with-21-warnings empirics                                                                                        |
+| Status gates               | Gate 1 RC=0, Gate 2 RC=0                                                                                                                |
+| Sweep state                | cqrs-htmx tree clean at 08:03 (both reports committed by daemon); go-cqrs-lite tree clean                                               |
+| Known-open                 | go-cqrs-lite docs + lint/vet/-race (§b1–3); Playwright; residual warning triage; system rebuild                                         |

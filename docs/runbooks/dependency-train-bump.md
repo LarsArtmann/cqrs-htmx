@@ -35,12 +35,12 @@ GOWORK=off go mod tidy && GOWORK=off go build ./... && GOWORK=off go vet ./...
 
 ## Failure classes seen in the wild
 
-| Symptom | Root cause | Fix |
-| --- | --- | --- |
-| `invalid package name: ""` in unrelated modules | VCS-cache bare repo lost its `origin` remote (GOPRIVATE git resolution) | `git -C /mnt/buildcache/go-mod/cache/vcs/<hash>/ remote add origin https://github.com/larsartmann/<repo>.git` |
-| Phantom `missing go.sum entry` everywhere at once | Cache filesystem full | `df -h` the cache dir; `go-cache-env.sh` fails fast on this |
-| Just-published tag reads UNPUBLISHED | release-train gate's ls-remote tag cache TTL | re-run with `-- --refresh-cache` |
-| go.mod `go` directive creeps up | A 1.27.1-toolchain process ran `go mod tidy` (sibling session / gopls) | restore the floor; `go-cache-env.sh` now aligns `GOTOOLCHAIN` for gate runs |
+| Symptom                                           | Root cause                                                              | Fix                                                                                                           |
+| ------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `invalid package name: ""` in unrelated modules   | VCS-cache bare repo lost its `origin` remote (GOPRIVATE git resolution) | `git -C /mnt/buildcache/go-mod/cache/vcs/<hash>/ remote add origin https://github.com/larsartmann/<repo>.git` |
+| Phantom `missing go.sum entry` everywhere at once | Cache filesystem full                                                   | `df -h` the cache dir; `go-cache-env.sh` fails fast on this                                                   |
+| Just-published tag reads UNPUBLISHED              | release-train gate's ls-remote tag cache TTL                            | re-run with `-- --refresh-cache`                                                                              |
+| go.mod `go` directive creeps up                   | A 1.27.1-toolchain process ran `go mod tidy` (sibling session / gopls)  | restore the floor; `go-cache-env.sh` now aligns `GOTOOLCHAIN` for gate runs                                   |
 
 ## scripts/bump-dep.sh
 

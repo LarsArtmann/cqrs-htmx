@@ -50,20 +50,20 @@ This unlocks 27 production-grade middleware factories covering 9 concerns:
 
 Status: ✅ built into `usermgmt.NewService` (zero consumer code) · 🟡 consumer seam (one `ServiceConfig.CommandMiddleware` / `Config.Commands.Use` entry, proven by test or example) · 📄 documented pattern only.
 
-| #  | Factory / capability                                    | Status | Where proven                                                     |
-| -- | ------------------------------------------------------- | ------ | ---------------------------------------------------------------- |
-| 1  | `CommandActorContext` (actor → command metadata)        | ✅     | `usermgmt/audit_context.go` + e2e `actor_attribution_test.go`     |
-| 2  | `event.ActorEnricher` (actor → event metadata)          | ✅     | same — wired via `CompositeEnricher` on all repositories          |
-| 3  | `event.CommandCausationEnricher` (event → causing cmd)  | ✅     | same                                                              |
-| 4  | Correlation/request-ID enrichment                       | ✅     | local `requestContextEnricher` (upstream ships none — M27 watch)  |
-| 5  | `CommandRecovery`                                        | 🟡     | `examples/middleware-demo`, `command_middleware_test.go`          |
-| 6  | `CommandRetry`                                           | 🟡     | `examples/middleware-demo`                                        |
-| 7  | `CommandCircuitBreaker`                                  | 🟡     | §1 recipe + `dispatch-middleware-ordering.md`                     |
-| 8  | `CommandValidation` (+ shipped `ValidateCommand`)        | 🟡     | `usermgmt/command_validation_test.go`                             |
-| 9  | `CommandIdempotency`                                     | 🟡     | `usermgmt/command_idempotency_test.go`                            |
-| 10 | `CommandTracing` / `CommandTypedMetrics`                 | 🟡     | `examples/observability-demo`, `examples/middleware-demo`         |
-| 11 | `CommandLogging`                                         | 📄     | §1 recipe                                                         |
-| 12 | Query mirrors (`QueryRetry`, `QueryValidation`, …)      | 📄     | same factories, `Config.Queries` dispatcher                       |
+| #  | Factory / capability                                   | Status | Where proven                                                     |
+| -- | ------------------------------------------------------ | ------ | ---------------------------------------------------------------- |
+| 1  | `CommandActorContext` (actor → command metadata)       | ✅     | `usermgmt/audit_context.go` + e2e `actor_attribution_test.go`    |
+| 2  | `event.ActorEnricher` (actor → event metadata)         | ✅     | same — wired via `CompositeEnricher` on all repositories         |
+| 3  | `event.CommandCausationEnricher` (event → causing cmd) | ✅     | same                                                             |
+| 4  | Correlation/request-ID enrichment                      | ✅     | local `requestContextEnricher` (upstream ships none — M27 watch) |
+| 5  | `CommandRecovery`                                      | 🟡     | `examples/middleware-demo`, `command_middleware_test.go`         |
+| 6  | `CommandRetry`                                         | 🟡     | `examples/middleware-demo`                                       |
+| 7  | `CommandCircuitBreaker`                                | 🟡     | §1 recipe + `dispatch-middleware-ordering.md`                    |
+| 8  | `CommandValidation` (+ shipped `ValidateCommand`)      | 🟡     | `usermgmt/command_validation_test.go`                            |
+| 9  | `CommandIdempotency`                                   | 🟡     | `usermgmt/command_idempotency_test.go`                           |
+| 10 | `CommandTracing` / `CommandTypedMetrics`               | 🟡     | `examples/observability-demo`, `examples/middleware-demo`        |
+| 11 | `CommandLogging`                                       | 📄     | §1 recipe                                                        |
+| 12 | Query mirrors (`QueryRetry`, `QueryValidation`, …)     | 📄     | same factories, `Config.Queries` dispatcher                      |
 
 The blank row is deliberate: nothing in the middleware catalog is blocked — every remaining 🟡/📄 entry is a one-line consumer decision, not missing plumbing.
 
@@ -198,14 +198,14 @@ defer otelProvider.Shutdown(context.Background())
 
 Dispatch every usermgmt command (`RegisterUser`, `AddMembership`, …) and these spans appear:
 
-| Span name                            | Emitted around                                  | Evidence (go-cqrs-lite)                            |
-| ------------------------------------ | ----------------------------------------------- | -------------------------------------------------- |
-| `decider.execute`                    | every aggregate command execution               | `decider/decider.go:123`                           |
-| `decider.load`                       | every aggregate load (state cache miss)         | `decider/decider.go:324`                           |
-| `decider.load_at_version`            | snapshot-aware loads                            | `decider/load.go:119`                              |
-| `event.store.save` / `append_batch`  | SQL event-store appends                         | `storage/eventstore/event_store.go:81`             |
-| `event.store.load*`                  | SQL event-store reads (stream, from-version, …) | `storage/eventstore/event_store_load.go:57`        |
-| `command.store.save` / `load`        | SQL command-backed store round-trips            | `storage/command_store_save.go:29`, `command_store_load.go:38` |
+| Span name                           | Emitted around                                  | Evidence (go-cqrs-lite)                                        |
+| ----------------------------------- | ----------------------------------------------- | -------------------------------------------------------------- |
+| `decider.execute`                   | every aggregate command execution               | `decider/decider.go:123`                                       |
+| `decider.load`                      | every aggregate load (state cache miss)         | `decider/decider.go:324`                                       |
+| `decider.load_at_version`           | snapshot-aware loads                            | `decider/load.go:119`                                          |
+| `event.store.save` / `append_batch` | SQL event-store appends                         | `storage/eventstore/event_store.go:81`                         |
+| `event.store.load*`                 | SQL event-store reads (stream, from-version, …) | `storage/eventstore/event_store_load.go:57`                    |
+| `command.store.save` / `load`       | SQL command-backed store round-trips            | `storage/command_store_save.go:29`, `command_store_load.go:38` |
 
 Two scope notes, verified against source:
 
@@ -245,10 +245,10 @@ Runnable proof: `examples/observability-demo/main.go` wraps its handler exactly 
 
 There are two independent correlation mechanisms, and they solve different problems. Know which one you need:
 
-| Mechanism | What it carries | Where it lives | Set by | Read back via |
-| --------- | --------------- | -------------- | ------ | ------------- |
-| **Domain causality** | branded ULID correlation ID + request ID + user/actor chain (which command context produced which event) | event metadata (`correlation_id`, `request_id`, `user_id`, `actor_id`) | `ContextEnrichmentMiddleware` extracts `X-Correlation-ID` into the request context (`middleware.go:15`); handlers stamp every event via `App.EventOptions(ctx)` / `EventOptionsFromContext(ctx)` (`app.go:210`, `context.go:236`) | `event.Metadata()` / audit-log queries |
-| **OTel baggage** | free-form string (typically the W3C trace ID) | W3C `baggage` header + OTel context | `cqrsotel.WithCorrelationID(ctx, traceID.String())` at the trace origin; crosses service boundaries via the W3C propagator ([2.5](#25-http-root-spans-otelhttp)) | `cqrsotel.CorrelationIDFromContext(ctx)`; auto-bridged into event metadata as `otel.correlation_id` by `middleware.OTelCorrelationEnricher` |
+| Mechanism            | What it carries                                                                                          | Where it lives                                                         | Set by                                                                                                                                                                                                                            | Read back via                                                                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Domain causality** | branded ULID correlation ID + request ID + user/actor chain (which command context produced which event) | event metadata (`correlation_id`, `request_id`, `user_id`, `actor_id`) | `ContextEnrichmentMiddleware` extracts `X-Correlation-ID` into the request context (`middleware.go:15`); handlers stamp every event via `App.EventOptions(ctx)` / `EventOptionsFromContext(ctx)` (`app.go:210`, `context.go:236`) | `event.Metadata()` / audit-log queries                                                                                                      |
+| **OTel baggage**     | free-form string (typically the W3C trace ID)                                                            | W3C `baggage` header + OTel context                                    | `cqrsotel.WithCorrelationID(ctx, traceID.String())` at the trace origin; crosses service boundaries via the W3C propagator ([2.5](#25-http-root-spans-otelhttp))                                                                  | `cqrsotel.CorrelationIDFromContext(ctx)`; auto-bridged into event metadata as `otel.correlation_id` by `middleware.OTelCorrelationEnricher` |
 
 Domain causality needs no OTel at all — `ContextEnrichmentMiddleware` + `App.EventOptions(ctx)` in your command handlers is the default audit trail (join `events.correlation_id` across the journal to reconstruct a request's full event chain). Upstream's `event.CommandCausalityEnricher` (a decider `ContextEnricher`) is the store-level alternative when you want the decider to chain command → event automatically instead of per-handler stamping. OTel baggage is the cross-service bridge: a downstream service that only sees your HTTP headers can recover the upstream trace ID and stamp it onto its own events, so a trace↔audit-trail join works across service boundaries.
 

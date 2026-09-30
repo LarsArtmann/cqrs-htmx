@@ -77,6 +77,7 @@ Nothing shipped broken. The session's real failures, descending:
 ## f) Up to 50 things to get done next (brainstorm, rough impact order; ROADMAP fuel, not commitments)
 
 **Direct handoffs from this session:**
+
 1. Rebuild the system cqrs-lint binary; verify `cqrs-lint --strict --verbose .` shows zero C040 on a root walk (TODO_LIST item, exact command recorded).
 2. Triage identity-model 16× E005 — likely a missing fail-open for pure-domain command modules; candidate fix in `go-cqrs-lite/cmd/cqrs-lint` (same collector area as the C040 fix).
 3. Triage usermgmt 41× V007 against ADR-0051/OQ 11: batch-migrate `stack.Materialize` or suppress-with-reason per call site.
@@ -150,19 +151,19 @@ Nothing shipped broken. The session's real failures, descending:
 
 ## Verification evidence appendix
 
-| Claim | Evidence |
-| --- | --- |
-| C040 root cause: literal-only collectors + var aliases | Pre-fix `scanner_calls.go` used `StringLit(call.Args[0])`; `usermgmt/es_constants.go` declares emission aliases as `var`; catalog registrations use `EventMetadata{Type: string(const)}` |
-| Fix works, rule enabled | Fixed binary root walk: C040=0 C038=0 WARN=0 ERR=0 RC=0; all 13 per-module runs RC=0, C040=0 |
-| Zero new warnings | Worktree at pre-fix commit `ad1dcd46a`: identical E005=16 (identity-model), V007=41 + A016=1 (usermgmt) |
-| Linter suite | `cmd/cqrs-lint` BUILD RC=0, TEST RC=0; 9 new scanner regression tests |
-| C009 refactor | dashboardui + adminui suites RC=0; fstest.MapFS missing-asset tests; no `assetHandler` references remain |
-| C042 verified | `examples/dashboard-demo`: `aggID := id.NewStreamID()` per item; `Version(1)` event at expected `Version(0)` |
-| AggregateID deprecated | go-cqrs-lite `event/v3_compat_aliases.go:17` |
-| Builds | Workspace build RC=0; e2e/server standalone build RC=0; vet RC=0 |
-| Gate (handoff window) | `nix run .#check-cqrs-lint` (old system binary, C040 enabled): all 14 pass |
-| User invocation | `GOTOOLCHAIN=auto cqrs-lint`: RC=0 (21 stale C040 warnings printed, non-failing, until rebuild) |
-| Severity semantics | `run.go`: exit on ERROR; `isStrictMode` gates LoadErrors; `resolveMinSeverity` = display floor; empirical RC=0 with 21 warnings |
-| Status gates | Gate 1 RC=0, Gate 2 RC=0 (re-run after both reports) |
-| Commits | cqrs-htmx daemon sweeps (`436e821b`, `fef0da50`, `0b9898a9`, `354f70f2`, `ed0d45b8`, `a35f1b81`, `5114a4b4`…); go-cqrs-lite daemon commits (`775091d1e`, `b2583c334`, `a94aaccf6`, `b63fd8ad2`) carry the linter fix |
-| Known-open | Playwright specs not run; 00-41 report still modified-uncommitted at close |
+| Claim                                                  | Evidence                                                                                                                                                                                                             |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C040 root cause: literal-only collectors + var aliases | Pre-fix `scanner_calls.go` used `StringLit(call.Args[0])`; `usermgmt/es_constants.go` declares emission aliases as `var`; catalog registrations use `EventMetadata{Type: string(const)}`                             |
+| Fix works, rule enabled                                | Fixed binary root walk: C040=0 C038=0 WARN=0 ERR=0 RC=0; all 13 per-module runs RC=0, C040=0                                                                                                                         |
+| Zero new warnings                                      | Worktree at pre-fix commit `ad1dcd46a`: identical E005=16 (identity-model), V007=41 + A016=1 (usermgmt)                                                                                                              |
+| Linter suite                                           | `cmd/cqrs-lint` BUILD RC=0, TEST RC=0; 9 new scanner regression tests                                                                                                                                                |
+| C009 refactor                                          | dashboardui + adminui suites RC=0; fstest.MapFS missing-asset tests; no `assetHandler` references remain                                                                                                             |
+| C042 verified                                          | `examples/dashboard-demo`: `aggID := id.NewStreamID()` per item; `Version(1)` event at expected `Version(0)`                                                                                                         |
+| AggregateID deprecated                                 | go-cqrs-lite `event/v3_compat_aliases.go:17`                                                                                                                                                                         |
+| Builds                                                 | Workspace build RC=0; e2e/server standalone build RC=0; vet RC=0                                                                                                                                                     |
+| Gate (handoff window)                                  | `nix run .#check-cqrs-lint` (old system binary, C040 enabled): all 14 pass                                                                                                                                           |
+| User invocation                                        | `GOTOOLCHAIN=auto cqrs-lint`: RC=0 (21 stale C040 warnings printed, non-failing, until rebuild)                                                                                                                      |
+| Severity semantics                                     | `run.go`: exit on ERROR; `isStrictMode` gates LoadErrors; `resolveMinSeverity` = display floor; empirical RC=0 with 21 warnings                                                                                      |
+| Status gates                                           | Gate 1 RC=0, Gate 2 RC=0 (re-run after both reports)                                                                                                                                                                 |
+| Commits                                                | cqrs-htmx daemon sweeps (`436e821b`, `fef0da50`, `0b9898a9`, `354f70f2`, `ed0d45b8`, `a35f1b81`, `5114a4b4`…); go-cqrs-lite daemon commits (`775091d1e`, `b2583c334`, `a94aaccf6`, `b63fd8ad2`) carry the linter fix |
+| Known-open                                             | Playwright specs not run; 00-41 report still modified-uncommitted at close                                                                                                                                           |

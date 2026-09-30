@@ -11,11 +11,13 @@
 ## a) FULLY DONE (this session, all verified)
 
 ### Interview (design tree, 3 rounds + confirm)
+
 1. All decisions settled via the native questions tool: objective=clear gated tail; theme=**B**; `/sse`=**B** (scoped option); git=**push master + waive force-push rewrites**; workstreams authorized = templ-components fix + V007 spike; `stack` removed in v5 (user's words: "metaengine + system/ in go-cqrs-lite is the new way"); order=tc→theme→sse→V007; release=v4.12.0 after batch.
 2. **cqrs-htmx master pushed** (29 round-5 commits, `0187f46c..e441963f`); force-push backlog routed to ROADMAP "Not Planned" (TODO_LIST items removed, ROADMAP entry added).
 3. **Decision recorded in go-cqrs-lite** ROADMAP §v5 Unification: stack/v4 removed entirely in v5; the old "decouple from metaengine" ask superseded (sibling-repo edit, daemon-absorbed).
 
 ### templ-components v1.19.0 — authored, verified, tagged, PUSHED
+
 4. **Two real popover-positioner defects fixed** in `display/shared.go`: (1) `toggle` listener registered without capture (toggle doesn't bubble → panels at viewport corner); (2) NEW, discovered via the visual suite's nondeterminism: a panel already open when the script executes never got positioned — added attach-time self-heal (`[popover]:popover-open[data-tc-anchor]` positioned at script exec; also fixes HTMX-swapped content).
 5. **`DropdownProps.Trigger` slot added** (custom trigger content inside a functionally-wired button — keeps `popovertarget`/`aria-haspopup`/`data-dropdown-trigger`/`aria-label`, no default classes) + 2 subtests + goldens + FEATURES row + CHANGELOG.
 6. Found cqrs-htmx's "v1.19 = sharp cards" heads-up was **STALE** (sharp cards shipped in v1.18.1, CHANGELOG line 406) — corrected in cqrs-htmx AGENTS.md.
@@ -23,6 +25,7 @@
 8. Full verification: per-module suites, `nix run .#lint` 0 issues, `nix run .#visual` full suite GREEN (open-state goldens unchanged — they were already anchored renders), `ci-repro.sh --lint --website` **VERDICT: PASS**. Master pushed; **v1.19.0 cut** via `release.sh` (bumped requires, stripped replaces, one release commit `53861ccf`) — 7 tags pushed and verified via ls-remote.
 
 ### cqrs-htmx adopts v1.19.0
+
 9. All 12 consuming `go.mod`s bumped (hermetic tidy+build+vet green per module); BOTH CSS bundles rebuilt in the same change (adminui changed; dashboardui byte-identical).
 10. adminui's vendored capture-phase positioner **DELETED** from `admin.js`; identity menu now renders avatar+email INSIDE the trigger via the `Trigger` slot.
 11. **Two real bugs found & fixed on the way:**
@@ -31,21 +34,25 @@
 12. e2e: admin-behavior 9/9, then FULL suite **57/57**.
 
 ### adminui theme Option B (M089 — owner-approved)
+
 13. Implemented with the LIBRARY's own components (less code than the spike's hand-rolled variant): `layout.ThemeScript` in `headExtras` (pre-paint `.dark` + `color-scheme` from `localStorage 'theme'`/system pref) + `layout.ThemeToggle` in `topBar` (`role="switch"`, aria sync).
 14. `tailwind.css`: `@custom-variant dark (&:where(.dark, .dark *))` (all `dark:` utilities follow the class) + dark token block moved to `html.dark` (media-query fallback removed; no-JS degrades to light; gray-800/900 re-pin rides along).
 15. New e2e gate test: toggle flips `.dark`, syncs `aria-checked`, persists across reload — **admin-behavior 10/10**; screenshots **37/37 total, ZERO visual drift** (auto mode byte-identical, exactly as the spike predicted). CHANGELOG + AGENTS + TODO updated.
 
 ### setup `/sse` filter option (endpoint-shape decision RESOLVED)
+
 16. `setup.Config.SSEFilter func(sse.Event) bool` threads `transport.WithSSEFilter` into the SSEPath handler — live + replay scoped, fail-closed; nil keeps the documented full-feed contract; DataStar feed unfiltered. go-sse became a direct setup dep.
 17. `TestBundle_SSEHandlerFilterScopesReplay` green; full setup suite green. Decision one-pager marked RESOLVED (Option B); recipe added to `docs/guides/sse-and-datastar.md` §Scoped Feeds; TODO item updated.
 
 ### V007 spike (clusters 2+3) — done with a pivot
+
 18. Worktree `../cqrs-htmx-v007` (branch `v007-spike`), merged to master (`99be42f7`).
 19. **Key finding: the 2026-09-10 spike plan's premise aged out.** `NewEventSourcedSetup` is ALREADY stack-free; the remaining surface is (a) `MaterializeProjection` — zero in-repo consumers, (b) the `//go:build ignore` SQL setup templates whose value IS ~200 lines of preset wiring (pragmas/schema/durability) whose v5 replacement is the systemadapter declarative path (equivalence-tested), (c) the `Bundle` field.
 20. Executed the established v5-removal pattern instead of a rewrite: `// Deprecated:` markers (adapter family + `eventSourcedSetupCore.Bundle`), deprecation notes in the 3 templates, **ADR-0051** (incl. the cluster-1 go/no-go criterion: metaengine layout-planning must cover secondary-index semantics + declarative hydration), v5-removal-inventory §5b, ADR INDEX row.
 21. Verified in the worktree: usermgmt suite green, lint 0 issues, `check-templates` green.
 
 ### Gate ladder (so far)
+
 22. `.#build` ✓ · `.#test` ✓ (0 fails) · `.#test-race` ✓ · `.#coverage-gate` ✓ · `.#check-codegen` ✓ · `.#check-templates` ✓ · `.#lint` ✓ 0 issues/15 after fixing one real pre-existing finding on sight: `HeaderClientID = "X-Client-ID"` → canonical `"X-Client-Id"` (round-5 leftover; wire-identical).
 23. `check-modules`: broken markdown link fixed (archived status file move — planning doc repointed to `../status/archived/…`); V006 false-positives suppressed in datastar + systemadapter (documented per-module-train rationale) and root's suppression re-anchored for cqrs-lint ≥4.11 (tool drift; second anchor comment added).
 

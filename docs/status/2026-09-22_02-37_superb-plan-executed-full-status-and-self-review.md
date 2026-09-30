@@ -133,4 +133,4 @@
 
 ---
 
-*Report written per explicit user instruction as `.md` (skill canonical is HTML; one-off override, flagged). NOW WAITING FOR INSTRUCTIONS.*
+_Report written per explicit user instruction as `.md` (skill canonical is HTML; one-off override, flagged). NOW WAITING FOR INSTRUCTIONS._

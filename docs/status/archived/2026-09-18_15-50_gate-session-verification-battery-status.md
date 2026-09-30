@@ -5,6 +5,7 @@
 **Environment:** auto-commit daemon absorbed 5 of this session's commits (2 narrative survived: `97ec7574`, `0c3dfa9d`); the sibling session was LIVE during the battery (go-cqrs-lite commits 14:40–14:47, a `flake.nix` `getExe` edit, and the root go.mod re-bump lineage); workspace-mode LSP diagnostics remained phantom noise throughout (40–59 errors at all times, ignored per protocol — hermetic CLI was the only truth).
 
 > **ANNOTATED 2026-09-20** (docs-health sweep): the battery's rigor gap is closed; the wider gate suite is green.
+>
 > - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
 > - **§b:** b1 (atomic final pass) DONE — the whole ladder is green; b2 (wider suite: check-modules/release-train/templates/codegen/fuzz/flake/e2e) DONE; **b3 (M21 tail)** remains open → `TODO_LIST.md`.
 > - **§c (bullets):** bench-spike still deferred → `TODO_LIST.md`; `nix fmt` on the sibling `flake.nix` edit and the LSP restart are moot (tree settled, diagnostics transient).
@@ -40,7 +41,7 @@
 
 ## c) NOT STARTED (this session's scope only — nothing silently dropped)
 
-- `nix run .#bench-spike` — deferred per its idle-machine precondition. Honest miss: I never even CHECKED load to see if it was runnable; I assumed. 
+- `nix run .#bench-spike` — deferred per its idle-machine precondition. Honest miss: I never even CHECKED load to see if it was runnable; I assumed.
 - `nix fmt` on the foreign `flake.nix` `getExe` change (committed by daemon unformatted at `20361091`/`7a1081be` — mid-edit shape, name-lines unindented) — not mine to finish while that session may return to it.
 - LSP restart to clear the phantom workspace diagnostics (59 at session end) — cosmetic, nobody blocked.
 

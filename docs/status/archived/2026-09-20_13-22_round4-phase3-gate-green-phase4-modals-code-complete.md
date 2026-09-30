@@ -6,6 +6,7 @@
 **Plan:** `docs/planning/2026-09-20_09-05_all-todos-pareto-comprehensive-execution-plan.html` + adminui micro-plan M001–M101
 
 > **ANNOTATED 2026-09-20** (docs-health sweep, same day): round 5 closed the Phase-4.1 gate and the whole adminui program.
+>
 > - **§a (fully done):** numbered self-declared done with evidence — left unstruck (already clear).
 > - **§b:** ALL DONE (Phase-4.1 gate, modal flow verified, Phase 4 complete per round 5).
 > - **§c:** c1/c3–c8/c10/c12/c13 DONE; **c2 (ThemeToggle sign-off)**, **c9 (e2e admin screenshot spec)**, **c11 (V007 + appkit ADR-001)** remain open → `TODO_LIST.md`/user call.
@@ -18,6 +19,7 @@
 ## a) FULLY DONE (this session, all verified)
 
 ### Phase-3 gate (M077) — CLOSED GREEN
+
 1. **Tests post-autofix:** hermetic `go test ./... -count=1` — PASS (3.868s).
 2. **Codegen:** `templ generate .` (updates=0) + `nix run .#check-codegen` — PASSED, zero drift.
 3. **CSS rebuild:** `nix run .#build-adminui-css` exit 0; bundle verified to contain the Phase-3 class families via escaped-selector grep: `disabled\:cursor-not-allowed`, `disabled\:opacity-50`, `animate-spin` ×3, `space-x-px`, `sr-only` ×2, `shadow-xs`, `isolate`, `ring-inset`, `px-4` ×3 (Pagination/Spinner/LoadingButton/EmptyState-action all in).
@@ -28,11 +30,13 @@
 8. **verify-p3.mjs: 33/33 PASS** — pagination (50/15 rows, aria-current, clamp p99, q+page compose, ListNote totals), partial-swap contract (fragment sans wrapper, no layout), spinner wiring, LoadingButton (animate-spin, "Adding…" text), hx-disabled-elt on write buttons, empty-state action, **favicon fix verified live (204, not redirected — the cookie-clobber fix works)**.
 
 ### Real bugs found + fixed this session
-9. **Demo default port footgun (REAL):** `examples/admin-demo/main.go` defaulted to `:8097` — the port of a *different project's* running service (bank-sync, never-touch list). Demo now defaults to `:18930` with a comment. A bare `go run` of the demo could previously have collided.
+
+9. **Demo default port footgun (REAL):** `examples/admin-demo/main.go` defaulted to `:8097` — the port of a _different project's_ running service (bank-sync, never-touch list). Demo now defaults to `:18930` with a comment. A bare `go run` of the demo could previously have collided.
 10. **Shot-script extraction bug (harness):** `shot-p2/3.mjs` extracted user-detail/tenant-detail hrefs while the browser sat on the AUDIT page — audit rows carry no links, so with the larger audit top-50 the extraction silently returned null and 2 shots were skipped (first p3 run had 7/9 shots). Fixed: navigate to the LIST page before extracting; added `users-page2` shot. Lesson: silent `if (href)` skips lie.
 11. **Demo seed padding:** 60 filler users (`team01..60@acme.dev`) so the demo visually exercises pagination (65 users → 2 pages) and audit pagination (72+ events → 2 pages). Without it the pager would be dead UI in every screenshot.
 
 ### Phase 4.1 (M078–M084) — CODE COMPLETE (see b for verification debt)
+
 12. **M078 modal spike (DONE, notes below):** library `display.Modal` = native `<dialog>` (focus trap, Esc, top-layer, ::backdrop all native) + per-instance nonce'd script exposing `tcOpenModal/tcCloseModal(id)`, `data-tc-close` buttons, backdrop-click close. **Key finding:** the dialog's component-layer CSS (`dialog.tc-overlay` reset + backdrop dim + `@starting-style` scale animation) lives in the library's compiled `styles.css`, which adminui's utility bundle does NOT include — it must be vendored (done, #14).
 13. **Design decision (documented deviation):** ONE shared confirm modal (`#admin-confirm-modal`, rendered once in `pageFoot`) filled dynamically from `data-confirm`/`data-confirm-title` attributes, driven by the EXISTING `htmx:confirm` listener via `e.detail.issueRequest(true)` — instead of N per-action static dialogs. One dialog, one script, no template duplication; server-side handlers byte-for-byte unchanged. `window.confirm` remains only as no-dialog fallback.
 14. **CSS vendored:** `dialog.tc-overlay`/`tc-modal` block added to `adminui/tailwind.css` (reset, backdrop, scale-in `@starting-style`, reduced-motion guard).
@@ -42,6 +46,7 @@
 18. **M084:** `confirm_modal_test.go` written (render, hook IDs, no inline handlers, data-confirm-title present, no hx-confirm) — rewritten once against the REAL test helpers after the first draft invented helpers that don't exist.
 
 ### Housekeeping
+
 19. Stale pre-Phase-3 demo server killed and replaced. Recon confirmed tree clean (daemon absorbed rounds as `14e9c936`…; no manual commits — per rule). :8097 untouched throughout.
 
 ---
@@ -99,6 +104,7 @@
 ## f) NEXT — up to 50 things, in execution order
 
 **Phase 4.1 closure (do first):**
+
 1. ~~`cd adminui && templ generate .` + `nix run .#check-codegen`~~ done (check-codegen green)
 2. ~~Hermetic build + `go test ./... -count=1` (incl. the 3 new confirm tests)~~ done (tests green)
 3. ~~`golangci-lint run --fix` then plain run to 0 (gci/golines on new attr blocks)~~ done (lint 0)

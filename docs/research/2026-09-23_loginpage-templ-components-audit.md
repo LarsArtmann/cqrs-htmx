@@ -5,13 +5,13 @@
 
 ## Census (21.1)
 
-| Metric | Value | Evidence |
-| --- | --- | --- |
-| templ files | 1 (`page.templ`, 86 lines; generated `_templ.go` committed) | `ls`, `wc -l` |
-| templ-components requires | **0** (zero-dep posture) | `go.mod` |
-| unique `lp-*` classes | 33 | grep census, non-generated sources |
+| Metric                           | Value                                                                   | Evidence                            |
+| -------------------------------- | ----------------------------------------------------------------------- | ----------------------------------- |
+| templ files                      | 1 (`page.templ`, 86 lines; generated `_templ.go` committed)             | `ls`, `wc -l`                       |
+| templ-components requires        | **0** (zero-dep posture)                                                | `go.mod`                            |
+| unique `lp-*` classes            | 33                                                                      | grep census, non-generated sources  |
 | interactive hand-rolled surfaces | 6 (2 email inputs, 1 text input, 2 submit buttons, 1 live error region) | grep `lp-input`/`lp-btn`/`lp-error` |
-| CSS/JS delivery | `go:embed`-inlined, zero external asset requests (README contract) | `assets.go` |
+| CSS/JS delivery                  | `go:embed`-inlined, zero external asset requests (README contract)      | `assets.go`                         |
 
 ## The 4 AGENTS.md opportunities, mapped (21.2)
 

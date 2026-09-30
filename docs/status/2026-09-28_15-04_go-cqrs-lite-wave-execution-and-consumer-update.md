@@ -20,28 +20,28 @@ A parallel "publish-integrity" Crush session worked go-cqrs-lite the entire time
 
 ## 2. (a) FULLY DONE — verified
 
-| Item | Evidence |
-| --- | --- |
-| T01 wave prep: CHANGELOG entries for all 7 trains + smoke manifest | go-cqrs-lite `2d1669f78`; `check-changelog-symbols.sh` 40 citations honest |
-| tursoengine binary-garbage removal (4 SQLite/WAL artifacts, control-char names) | same commit; zip guard would have refused every metaengine tag |
-| T02 dispatcher v4.5.0 cut + push + proxy smoke | tag `dispatcher/v4.5.0` @ `2d1669f78`; smoke attempt 1 |
-| T03 the four hermetic-broken modules repinned to dispatcher v4.5.0 | event/command/query/middleware go.mods; per-module GOWORK=off build+vet+race green; zero `v4.4.1` pins repo-wide |
-| T04 wave 1 released: event v4.12.0, command v4.12.0, query v4.9.0, middleware v4.7.0 | all @ `fc55b7eae`; individually smoke-checked |
-| T05 metaengine v4.15.0 (incl. the parallel session's `QueryPlacements` + `SanitizeIdent`, folded into the CHANGELOG entry) | `ef89991c5` (replace-strip temp commit); proxy-served |
-| T06 system v4.10.0 (dry-run first caught the `QueryPlacements` unpublished-require; fixed by pinning system/systemtest/system-integration to v4.15.0, hermetic green) | `1918a57f2`; proxy-served |
-| T07 end-to-end scratch probe: `go get system/v4@v4.10.0` + compile + run against `NewEngineCheckpointStore` | /tmp module, ran `system/v4.10.0 consumed from proxy OK` |
-| T08 cqrs-htmx direct bumps (systemadapter, examples/system-demo) | `cd2d9f5a` (+ daemon-assisted `e44a29a9`); hermetic green |
-| T09 21-module indirect sweep + absence sweep | `38a6071d`; 23/23 modules GOWORK=off build+vet OK; 0 stale pins |
-| T10 gate battery | build ✅ test -race ✅ lint 0 issues ✅ (after 4 fixes) check-modules ✅ coverage-gate ✅ |
-| 4 standing dashboardui lint findings cleared (mnd ×1→consts, prealloc ×2, unconvert ×1) | `700294ad`; dashboardui hermetic build+vet+test green |
-| check-modules docs-freshness: stale "uniform at v1.19.2" → v1.19.4 | `700294ad` |
-| T11 docs + ship | CHANGELOG wave entry + agents-notes wave record (`e08c7741`); pushed, strict pre-push green |
-| T13 smoke-all (per-tag form) | all 7 tags: `✓ proxy serves … (attempt 1)` |
-| T12/T14 record-keeping | plan annotated EXECUTED TO DONE + deviations (`cefbc387`); TODO_LIST wave entry removed (→ CHANGELOG); ROADMAP 3 raw ideas opened |
-| Upstream wave record | go-cqrs-lite `b9fa125be` (agents-notes: hashes + 3 mechanics lessons); master pushed `bf38388da..b9fa125be` |
-| taskmanager cqrs-lint golden regen (one-line mechanical shift) | `aac95340d` |
-| scheduling/engine go.sum tidy (api-stability cold-cache gate) | `3e0384eb2` + `2e906c3c7` (recurrence re-fixed) |
-| go.work hold/restore discipline in both repos during `go get` | no workspace-masked pins shipped; verified pin persistence after each bump |
+| Item                                                                                                                                                                  | Evidence                                                                                                                          |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| T01 wave prep: CHANGELOG entries for all 7 trains + smoke manifest                                                                                                    | go-cqrs-lite `2d1669f78`; `check-changelog-symbols.sh` 40 citations honest                                                        |
+| tursoengine binary-garbage removal (4 SQLite/WAL artifacts, control-char names)                                                                                       | same commit; zip guard would have refused every metaengine tag                                                                    |
+| T02 dispatcher v4.5.0 cut + push + proxy smoke                                                                                                                        | tag `dispatcher/v4.5.0` @ `2d1669f78`; smoke attempt 1                                                                            |
+| T03 the four hermetic-broken modules repinned to dispatcher v4.5.0                                                                                                    | event/command/query/middleware go.mods; per-module GOWORK=off build+vet+race green; zero `v4.4.1` pins repo-wide                  |
+| T04 wave 1 released: event v4.12.0, command v4.12.0, query v4.9.0, middleware v4.7.0                                                                                  | all @ `fc55b7eae`; individually smoke-checked                                                                                     |
+| T05 metaengine v4.15.0 (incl. the parallel session's `QueryPlacements` + `SanitizeIdent`, folded into the CHANGELOG entry)                                            | `ef89991c5` (replace-strip temp commit); proxy-served                                                                             |
+| T06 system v4.10.0 (dry-run first caught the `QueryPlacements` unpublished-require; fixed by pinning system/systemtest/system-integration to v4.15.0, hermetic green) | `1918a57f2`; proxy-served                                                                                                         |
+| T07 end-to-end scratch probe: `go get system/v4@v4.10.0` + compile + run against `NewEngineCheckpointStore`                                                           | /tmp module, ran `system/v4.10.0 consumed from proxy OK`                                                                          |
+| T08 cqrs-htmx direct bumps (systemadapter, examples/system-demo)                                                                                                      | `cd2d9f5a` (+ daemon-assisted `e44a29a9`); hermetic green                                                                         |
+| T09 21-module indirect sweep + absence sweep                                                                                                                          | `38a6071d`; 23/23 modules GOWORK=off build+vet OK; 0 stale pins                                                                   |
+| T10 gate battery                                                                                                                                                      | build ✅ test -race ✅ lint 0 issues ✅ (after 4 fixes) check-modules ✅ coverage-gate ✅                                         |
+| 4 standing dashboardui lint findings cleared (mnd ×1→consts, prealloc ×2, unconvert ×1)                                                                               | `700294ad`; dashboardui hermetic build+vet+test green                                                                             |
+| check-modules docs-freshness: stale "uniform at v1.19.2" → v1.19.4                                                                                                    | `700294ad`                                                                                                                        |
+| T11 docs + ship                                                                                                                                                       | CHANGELOG wave entry + agents-notes wave record (`e08c7741`); pushed, strict pre-push green                                       |
+| T13 smoke-all (per-tag form)                                                                                                                                          | all 7 tags: `✓ proxy serves … (attempt 1)`                                                                                        |
+| T12/T14 record-keeping                                                                                                                                                | plan annotated EXECUTED TO DONE + deviations (`cefbc387`); TODO_LIST wave entry removed (→ CHANGELOG); ROADMAP 3 raw ideas opened |
+| Upstream wave record                                                                                                                                                  | go-cqrs-lite `b9fa125be` (agents-notes: hashes + 3 mechanics lessons); master pushed `bf38388da..b9fa125be`                       |
+| taskmanager cqrs-lint golden regen (one-line mechanical shift)                                                                                                        | `aac95340d`                                                                                                                       |
+| scheduling/engine go.sum tidy (api-stability cold-cache gate)                                                                                                         | `3e0384eb2` + `2e906c3c7` (recurrence re-fixed)                                                                                   |
+| go.work hold/restore discipline in both repos during `go get`                                                                                                         | no workspace-masked pins shipped; verified pin persistence after each bump                                                        |
 
 ## 3. (b) PARTIALLY DONE
 
@@ -82,58 +82,58 @@ A parallel "publish-integrity" Crush session worked go-cqrs-lite the entire time
 
 ## 7. (f) NEXT 50 — prioritized
 
-| # | Item | Repo | Why now |
-| --- | --- | --- | --- |
-| 1 | Re-run `nix run .#verify-ci` on final master; enumerate exact residual failures | go-cqrs-lite | Closes the unverified end-state gap (§3.1) |
-| 2 | Watch go-cqrs-lite CI: master ci.yml + the 7 release.yml tag runs; triage reds | go-cqrs-lite | Pushes unmonitored (§3.4); GH Releases come from these runs |
-| 3 | Cut the CHANGELOG train section `## [dispatcher/v4.5.0, …] — 2026-09-28`; re-run honesty gate | go-cqrs-lite | Heals the tag-content CI leg; convention compliance |
-| 4 | Verify GitHub Releases exist + bodies render for the 7 tags | go-cqrs-lite | Phase-7 of the release lifecycle, unverified |
-| 5 | Trigger + verify pkg.go.dev rendering for all 7 module@version | go-cqrs-lite | Discoverability; proxy was proven, pkg.go.dev was not |
-| 6 | Resolve the watermill payload-encoding migration (own it or hand it back); cut watermill tag when hermetic green | go-cqrs-lite | The one remaining verify-ci red class (needs owner input — see Q1) |
-| 7 | Run `scripts/pin-sweep.sh` for the 119 advisory stale pins | go-cqrs-lite | Prepares the next dependent wave |
-| 8 | Add a correction note for `609b4449a`'s message in agents-notes | go-cqrs-lite | The revert was obsoleted; history currently misleads |
-| 9 | Tag-content train threshold: confirm the "hard ERROR below 5 tags" leg state after 7-tag wave | go-cqrs-lite | CI-leg hygiene |
-| 10 | `tag-release.sh --audit` post-wave; refresh baseline if new violations | go-cqrs-lite | Standard post-wave check |
-| 11 | `probe-proxy-tags.sh` full pass (weekly leg) incl. the 7 new tags | go-cqrs-lite | Zip-integrity assurance fleet-wide |
-| 12 | Decide retraction/annotation for poisoned historical tursoengine v4.2.0 | go-cqrs-lite | Owner decision; the \006 pair ships in that zip forever otherwise |
-| 13 | Wave 2–6 releases: remaining ~30 drifted modules in dep order | go-cqrs-lite | T12 continuation (see Q3) |
-| 14 | tursoengine v4.2.1 cut timing | go-cqrs-lite | Owner-gated upstream row |
-| 15 | First-tag `testutil/mysqltestcontainer` or fix `queue/mysql v4.0.0`'s require | go-cqrs-lite | Known unpublished-require quirk |
-| 16 | systemtest go.mod: check "temporary sibling replaces strip at next tag wave" — this WAS the wave; strip or re-document | go-cqrs-lite | module-map.md claims may now be stale |
-| 17 | system/integration metaengine pin is `// indirect` while integration tests exercise it — verify directness is correct | go-cqrs-lite | Pin hygiene |
-| 18 | Dependabot alert #122 (1 high, default branch) — identify and fix | go-cqrs-lite | Security; seen during push |
-| 19 | Reconcile the parallel session's ivm-defect campaign harvest (deadline 10:56 CEST passed) | go-cqrs-lite | Its M5/M20 were window-armed; check receipts |
-| 20 | Answer the upstream TODO "stalled 6-tag wave" owner row with this execution's receipt | go-cqrs-lite | Their TODO now has a stale open question |
-| 21 | gomod-check churn root cause: repair step rewriting go.sums (scheduling/engine ×2) | go-cqrs-lite | Recurring class; fix the step or exclude |
-| 22 | Confirm go.work.sum (tracked there) has no post-wave drift | go-cqrs-lite | Hermetic hygiene |
-| 23 | `nix run .#bench-spike` once in a verified-quiet window (dep trains changed) | cqrs-htmx | The AGENTS gate exists for exactly this class of change; baseline untouched is an assumption until measured |
-| 24 | Adopt `middleware.Kind` typed kinds in middleware-demo/observability-demo examples | cqrs-htmx | Consume the new surface; kill deprecated string usage if any |
-| 25 | Adopt the `dispatcher.Middleware[H]` alias unification in middleware-showcase (one value composes everywhere) | cqrs-htmx | Showcase the wave's headline feature |
-| 26 | Use `metaengine.Store.QueryPlacements()` in dashboardui projection-detail introspection | cqrs-htmx | New introspection API is a natural fit |
-| 27 | Refine ROADMAP "durable checkpoints via `NewEngineCheckpointStore`" into a design doc + opt-in `setup.Config` knob | cqrs-htmx | Highest-value exploitation idea |
-| 28 | Evaluate system `query_builders` adoption in systemadapter | cqrs-htmx | Second exploitation idea |
-| 29 | Vector-backed views feasibility spike | cqrs-htmx | Third exploitation idea (needs engine support check) |
-| 30 | e2e/server: replace deprecated `AggregateID` (SA1019) with `StreamID` | cqrs-htmx | Standing staticcheck finding |
-| 31 | datastar-demo: migrate `ds.Broadcaster`/`NewBroadcaster` deprecated aliases to `go-datastar/broadcast` directly | cqrs-htmx | Standing SA1019 pair; v5 removal is bundled |
-| 32 | Prune unused go.work replaces (schema/v4, stack/* family — 20 gomod-check warnings) | cqrs-htmx | Warning noise; possible stale-replace trap |
-| 33 | dependabot.yml 20-entry cap finding — raise cap or restructure groups | cqrs-htmx | Recurring info finding |
-| 34 | flake.nix vendorHash staleness warning after go.sum churn — recompute/verify FOD hash | cqrs-htmx | Buildflow warns hash may be stale post-sweep |
-| 35 | tsc/tsconfig-check noise on Go repos in BuildFlow — skip-step it | cqrs-htmx | Deterministic noise in every hook run |
-| 36 | Update cqrs-htmx AGENTS.md gotchas with this wave's durable lessons | cqrs-htmx | §4 last bullet — the distilled layer is missing them |
-| 37 | Add the two generalizable lessons to crush-config `references/lessons.md` (multi-session oscillation; nested lock refusal) — by commit | crush-config | Cross-project value; in-session writes there are read-only |
-| 38 | Run the e2e axe dark/light sweeps once post-bump | cqrs-htmx | Cheap insurance; UI untouched but bundles/deps moved |
-| 39 | DOMAIN_LANGUAGE.md: add `Kind`, planned tables, checkpoint store, `Middleware[H]` terms | cqrs-htmx | Glossary sync with the consumed surface |
-| 40 | README (sales page): mention durable-checkpoint and vector capability potential if/when adopted | cqrs-htmx | Only after 27–29 decisions; not before |
-| 41 | Behavioral (not just compile) pass: run setup-demo + observability-demo against the new middleware family | cqrs-htmx | Compile-green ≠ behavior-green for the 27-factory middleware family |
-| 42 | integration_test actor-attribution suite re-run highlighted in the wave record (already green in gates; isolate a named run for the record) | cqrs-htmx | Evidence strengthening |
-| 43 | templ-components: check for > v1.19.4 before the next UI change (rides-with rule) | templ-components | Standing follow-through |
-| 44 | Check the dependabot PR queue the sweep may have triggered (28 modules, grouped) | cqrs-htmx | Post-sweep housekeeping |
-| 45 | Archive this report + the 09-27 plan per the status/planning lifecycle once superseded | cqrs-htmx | Tree hygiene (unarchived tail is small by convention) |
-| 46 | go-cqrs-lite: fold this wave's receipts into its TODO_LIST rows (stalled-wave question, batch-release run-log row) | go-cqrs-lite | Honest bookkeeping |
-| 47 | Evaluate a `wait-tree-quiet` equivalent for go-cqrs-lite (cqrs-htmx has one) — multi-session waves need it | go-cqrs-lite | This session's biggest friction source |
-| 48 | Document the daemon-race playbook (pathspec add → expect steal → fast amend/squash) in go-cqrs-lite's gotchas | go-cqrs-lite | It worked once squashing; codify it |
-| 49 | Confirm the 119 advisory pins' example modules still build standalone before their next tag wave | go-cqrs-lite | The pre-flight advisory will keep listing them |
-| 50 | Re-check upstream asks (templ-components TODO #318–321, BuildFlow BF1–BF3) for movement during the next UI/deps pass | cross | Cheap follow-through on recorded asks |
+| #  | Item                                                                                                                                        | Repo             | Why now                                                                                                     |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| 1  | Re-run `nix run .#verify-ci` on final master; enumerate exact residual failures                                                             | go-cqrs-lite     | Closes the unverified end-state gap (§3.1)                                                                  |
+| 2  | Watch go-cqrs-lite CI: master ci.yml + the 7 release.yml tag runs; triage reds                                                              | go-cqrs-lite     | Pushes unmonitored (§3.4); GH Releases come from these runs                                                 |
+| 3  | Cut the CHANGELOG train section `## [dispatcher/v4.5.0, …] — 2026-09-28`; re-run honesty gate                                               | go-cqrs-lite     | Heals the tag-content CI leg; convention compliance                                                         |
+| 4  | Verify GitHub Releases exist + bodies render for the 7 tags                                                                                 | go-cqrs-lite     | Phase-7 of the release lifecycle, unverified                                                                |
+| 5  | Trigger + verify pkg.go.dev rendering for all 7 module@version                                                                              | go-cqrs-lite     | Discoverability; proxy was proven, pkg.go.dev was not                                                       |
+| 6  | Resolve the watermill payload-encoding migration (own it or hand it back); cut watermill tag when hermetic green                            | go-cqrs-lite     | The one remaining verify-ci red class (needs owner input — see Q1)                                          |
+| 7  | Run `scripts/pin-sweep.sh` for the 119 advisory stale pins                                                                                  | go-cqrs-lite     | Prepares the next dependent wave                                                                            |
+| 8  | Add a correction note for `609b4449a`'s message in agents-notes                                                                             | go-cqrs-lite     | The revert was obsoleted; history currently misleads                                                        |
+| 9  | Tag-content train threshold: confirm the "hard ERROR below 5 tags" leg state after 7-tag wave                                               | go-cqrs-lite     | CI-leg hygiene                                                                                              |
+| 10 | `tag-release.sh --audit` post-wave; refresh baseline if new violations                                                                      | go-cqrs-lite     | Standard post-wave check                                                                                    |
+| 11 | `probe-proxy-tags.sh` full pass (weekly leg) incl. the 7 new tags                                                                           | go-cqrs-lite     | Zip-integrity assurance fleet-wide                                                                          |
+| 12 | Decide retraction/annotation for poisoned historical tursoengine v4.2.0                                                                     | go-cqrs-lite     | Owner decision; the \006 pair ships in that zip forever otherwise                                           |
+| 13 | Wave 2–6 releases: remaining ~30 drifted modules in dep order                                                                               | go-cqrs-lite     | T12 continuation (see Q3)                                                                                   |
+| 14 | tursoengine v4.2.1 cut timing                                                                                                               | go-cqrs-lite     | Owner-gated upstream row                                                                                    |
+| 15 | First-tag `testutil/mysqltestcontainer` or fix `queue/mysql v4.0.0`'s require                                                               | go-cqrs-lite     | Known unpublished-require quirk                                                                             |
+| 16 | systemtest go.mod: check "temporary sibling replaces strip at next tag wave" — this WAS the wave; strip or re-document                      | go-cqrs-lite     | module-map.md claims may now be stale                                                                       |
+| 17 | system/integration metaengine pin is `// indirect` while integration tests exercise it — verify directness is correct                       | go-cqrs-lite     | Pin hygiene                                                                                                 |
+| 18 | Dependabot alert #122 (1 high, default branch) — identify and fix                                                                           | go-cqrs-lite     | Security; seen during push                                                                                  |
+| 19 | Reconcile the parallel session's ivm-defect campaign harvest (deadline 10:56 CEST passed)                                                   | go-cqrs-lite     | Its M5/M20 were window-armed; check receipts                                                                |
+| 20 | Answer the upstream TODO "stalled 6-tag wave" owner row with this execution's receipt                                                       | go-cqrs-lite     | Their TODO now has a stale open question                                                                    |
+| 21 | gomod-check churn root cause: repair step rewriting go.sums (scheduling/engine ×2)                                                          | go-cqrs-lite     | Recurring class; fix the step or exclude                                                                    |
+| 22 | Confirm go.work.sum (tracked there) has no post-wave drift                                                                                  | go-cqrs-lite     | Hermetic hygiene                                                                                            |
+| 23 | `nix run .#bench-spike` once in a verified-quiet window (dep trains changed)                                                                | cqrs-htmx        | The AGENTS gate exists for exactly this class of change; baseline untouched is an assumption until measured |
+| 24 | Adopt `middleware.Kind` typed kinds in middleware-demo/observability-demo examples                                                          | cqrs-htmx        | Consume the new surface; kill deprecated string usage if any                                                |
+| 25 | Adopt the `dispatcher.Middleware[H]` alias unification in middleware-showcase (one value composes everywhere)                               | cqrs-htmx        | Showcase the wave's headline feature                                                                        |
+| 26 | Use `metaengine.Store.QueryPlacements()` in dashboardui projection-detail introspection                                                     | cqrs-htmx        | New introspection API is a natural fit                                                                      |
+| 27 | Refine ROADMAP "durable checkpoints via `NewEngineCheckpointStore`" into a design doc + opt-in `setup.Config` knob                          | cqrs-htmx        | Highest-value exploitation idea                                                                             |
+| 28 | Evaluate system `query_builders` adoption in systemadapter                                                                                  | cqrs-htmx        | Second exploitation idea                                                                                    |
+| 29 | Vector-backed views feasibility spike                                                                                                       | cqrs-htmx        | Third exploitation idea (needs engine support check)                                                        |
+| 30 | e2e/server: replace deprecated `AggregateID` (SA1019) with `StreamID`                                                                       | cqrs-htmx        | Standing staticcheck finding                                                                                |
+| 31 | datastar-demo: migrate `ds.Broadcaster`/`NewBroadcaster` deprecated aliases to `go-datastar/broadcast` directly                             | cqrs-htmx        | Standing SA1019 pair; v5 removal is bundled                                                                 |
+| 32 | Prune unused go.work replaces (schema/v4, stack/* family — 20 gomod-check warnings)                                                         | cqrs-htmx        | Warning noise; possible stale-replace trap                                                                  |
+| 33 | dependabot.yml 20-entry cap finding — raise cap or restructure groups                                                                       | cqrs-htmx        | Recurring info finding                                                                                      |
+| 34 | flake.nix vendorHash staleness warning after go.sum churn — recompute/verify FOD hash                                                       | cqrs-htmx        | Buildflow warns hash may be stale post-sweep                                                                |
+| 35 | tsc/tsconfig-check noise on Go repos in BuildFlow — skip-step it                                                                            | cqrs-htmx        | Deterministic noise in every hook run                                                                       |
+| 36 | Update cqrs-htmx AGENTS.md gotchas with this wave's durable lessons                                                                         | cqrs-htmx        | §4 last bullet — the distilled layer is missing them                                                        |
+| 37 | Add the two generalizable lessons to crush-config `references/lessons.md` (multi-session oscillation; nested lock refusal) — by commit      | crush-config     | Cross-project value; in-session writes there are read-only                                                  |
+| 38 | Run the e2e axe dark/light sweeps once post-bump                                                                                            | cqrs-htmx        | Cheap insurance; UI untouched but bundles/deps moved                                                        |
+| 39 | DOMAIN_LANGUAGE.md: add `Kind`, planned tables, checkpoint store, `Middleware[H]` terms                                                     | cqrs-htmx        | Glossary sync with the consumed surface                                                                     |
+| 40 | README (sales page): mention durable-checkpoint and vector capability potential if/when adopted                                             | cqrs-htmx        | Only after 27–29 decisions; not before                                                                      |
+| 41 | Behavioral (not just compile) pass: run setup-demo + observability-demo against the new middleware family                                   | cqrs-htmx        | Compile-green ≠ behavior-green for the 27-factory middleware family                                         |
+| 42 | integration_test actor-attribution suite re-run highlighted in the wave record (already green in gates; isolate a named run for the record) | cqrs-htmx        | Evidence strengthening                                                                                      |
+| 43 | templ-components: check for > v1.19.4 before the next UI change (rides-with rule)                                                           | templ-components | Standing follow-through                                                                                     |
+| 44 | Check the dependabot PR queue the sweep may have triggered (28 modules, grouped)                                                            | cqrs-htmx        | Post-sweep housekeeping                                                                                     |
+| 45 | Archive this report + the 09-27 plan per the status/planning lifecycle once superseded                                                      | cqrs-htmx        | Tree hygiene (unarchived tail is small by convention)                                                       |
+| 46 | go-cqrs-lite: fold this wave's receipts into its TODO_LIST rows (stalled-wave question, batch-release run-log row)                          | go-cqrs-lite     | Honest bookkeeping                                                                                          |
+| 47 | Evaluate a `wait-tree-quiet` equivalent for go-cqrs-lite (cqrs-htmx has one) — multi-session waves need it                                  | go-cqrs-lite     | This session's biggest friction source                                                                      |
+| 48 | Document the daemon-race playbook (pathspec add → expect steal → fast amend/squash) in go-cqrs-lite's gotchas                               | go-cqrs-lite     | It worked once squashing; codify it                                                                         |
+| 49 | Confirm the 119 advisory pins' example modules still build standalone before their next tag wave                                            | go-cqrs-lite     | The pre-flight advisory will keep listing them                                                              |
+| 50 | Re-check upstream asks (templ-components TODO #318–321, BuildFlow BF1–BF3) for movement during the next UI/deps pass                        | cross            | Cheap follow-through on recorded asks                                                                       |
 
 ## 8. (g) Questions for the owner (not answerable from the repos)
 

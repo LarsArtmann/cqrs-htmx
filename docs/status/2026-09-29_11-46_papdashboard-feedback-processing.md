@@ -14,15 +14,15 @@ The feedback file was read, cross-verified against source, and triaged. Of the 7
 
 **Every feedback claim was verified against the tree before acting** — no claim was taken on faith:
 
-| # | Feedback claim | Verification result |
-|---|---|---|
-| 1 | `setup.New` builds usermgmt unconditionally (setup.go:123) | ✅ Confirmed — `buildService` runs whenever `Config.Service` is nil; Disable* flags skip panels only |
-| 2 | No consumer middleware seam | ✅ Confirmed — `Bundle.Middleware()` was security + logging only |
-| 3 | No way to feed checks into `/health` | ✅ Confirmed — `healthHandler()` built only ProjectionReadinessCheck + HubReadinessCheck |
-| 4 | SSE wire contract frozen both sides | ✅ Confirmed — transport envelope golden-pinned here; no encoder seam exists |
-| 5 | Capability floor undocumented | ✅ Confirmed — facts exist in code (`transport/journalsse.go`, `dashboardui/config.go`) but no table in docs |
-| 6 | codec/v4 deleted upstream, requires linger | ✅ Confirmed — go-cqrs-lite ADR-0128 deleted the shim; usermgmt imported it in 11 files |
-| 7 | No setup-vs-hand-wiring decision doc | ✅ Confirmed — no such guide in `docs/guides/` |
+| # | Feedback claim                                             | Verification result                                                                                          |
+| - | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1 | `setup.New` builds usermgmt unconditionally (setup.go:123) | ✅ Confirmed — `buildService` runs whenever `Config.Service` is nil; Disable* flags skip panels only         |
+| 2 | No consumer middleware seam                                | ✅ Confirmed — `Bundle.Middleware()` was security + logging only                                             |
+| 3 | No way to feed checks into `/health`                       | ✅ Confirmed — `healthHandler()` built only ProjectionReadinessCheck + HubReadinessCheck                     |
+| 4 | SSE wire contract frozen both sides                        | ✅ Confirmed — transport envelope golden-pinned here; no encoder seam exists                                 |
+| 5 | Capability floor undocumented                              | ✅ Confirmed — facts exist in code (`transport/journalsse.go`, `dashboardui/config.go`) but no table in docs |
+| 6 | codec/v4 deleted upstream, requires linger                 | ✅ Confirmed — go-cqrs-lite ADR-0128 deleted the shim; usermgmt imported it in 11 files                      |
+| 7 | No setup-vs-hand-wiring decision doc                       | ✅ Confirmed — no such guide in `docs/guides/`                                                               |
 
 One reference could NOT be resolved: the feedback cites "upstream #67/#68" for the codec cleanup — no issues #67/#68 exist in LarsArtmann/go-cqrs-lite (GraphQL lookup failed for both). Likely PapDashboard-internal issue numbers or a different tracker. The underlying work (codec/v4 removal) is real regardless (ADR-0128).
 
@@ -136,6 +136,6 @@ Also noted, not mine but observed: BuildFlow pre-commit fails deterministically 
 
 ---
 
-*Point-in-time snapshot; annotate, never rewrite. Session continues on instruction.*
+_Point-in-time snapshot; annotate, never rewrite. Session continues on instruction._
 
 > ANNOTATED 2026-09-29: closed out same day — see the top blockquote. f22 (RunWithAppkit seam e2e pin) and f23 (feedback-inbox checker) remain the two unexecuted session-derived candidates, both non-blocking.

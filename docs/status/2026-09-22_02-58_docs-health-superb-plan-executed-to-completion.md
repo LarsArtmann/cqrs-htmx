@@ -46,16 +46,16 @@
 
 ### Z: the final battery (all green, 2026-09-22)
 
-| Gate | Result |
-| --- | --- |
-| `nix run .#check-modules` | ✓ all 14 stages (incl. both status gates + both self-tests + docs-freshness self-test) |
-| `nix run .#coverage-gate` | ✓ 15/15 (the sibling's documented ladder gap, closed) |
-| `nix run .#lint` | ✓ 0 issues / 15 modules (the sibling's second gap, closed) |
-| `nix flake check --no-build` | ✓ |
-| actionlint / shellcheck (new+edited scripts) | ✓ |
-| Annotation gate | ✓ 48 gated reports, 413 scanned |
-| Row gate | ✓ 413 files, 0 PARTIAL, 19 mixed (baseline held) |
-| Link gate / freshness gate | ✓ 281 links / ✓ |
+| Gate                                         | Result                                                                                 |
+| -------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `nix run .#check-modules`                    | ✓ all 14 stages (incl. both status gates + both self-tests + docs-freshness self-test) |
+| `nix run .#coverage-gate`                    | ✓ 15/15 (the sibling's documented ladder gap, closed)                                  |
+| `nix run .#lint`                             | ✓ 0 issues / 15 modules (the sibling's second gap, closed)                             |
+| `nix flake check --no-build`                 | ✓                                                                                      |
+| actionlint / shellcheck (new+edited scripts) | ✓                                                                                      |
+| Annotation gate                              | ✓ 48 gated reports, 413 scanned                                                        |
+| Row gate                                     | ✓ 413 files, 0 PARTIAL, 19 mixed (baseline held)                                       |
+| Link gate / freshness gate                   | ✓ 281 links / ✓                                                                        |
 
 Also this session: the corpus was swept — 8 status reports + the superb plan annotated and archived (unarchived tail: this report only), README counts refreshed, and `/mnt/buildcache` hit 100% mid-battery — the go-cache-env fail-fast caught it exactly as designed; build cache cleaned (17G freed), battery re-run green.
 
@@ -97,4 +97,4 @@ Strict-lag split brain + pre-push wiring · post-train consumer-eye smoke · dep
 
 ---
 
-*Superb plan archived with full verdicts. This report is the sole unarchived status file; archive it when its items resolve.*
+_Superb plan archived with full verdicts. This report is the sole unarchived status file; archive it when its items resolve._

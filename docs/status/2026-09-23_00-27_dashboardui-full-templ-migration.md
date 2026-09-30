@@ -59,6 +59,7 @@ dashboardui rendered every page via `strings.Builder` + `fmt.Fprintf` HTML — 4
 ## f) NEXT 50 (prioritized, actionable)
 
 **Immediate (this train)**
+
 1. Re-run `nix run .#check-modules` to full green (release-train already verified; finish the meta-gate).
 2. Watch CI on the pushed range (TODO_LIST P1 carries this for both repos).
 3. Adopt `htmx.PolledRegion` in `overview.templ` for projection-health polling (TODO_LIST, now unblocked).
@@ -128,4 +129,4 @@ dashboardui rendered every page via `strings.Builder` + `fmt.Fprintf` HTML — 4
 
 ---
 
-*Session evidence: module `go test -race` ok; `nix run .#lint` 0 issues/15 modules; `.#coverage-gate` PASSED (dashboardui 72.9%/60); `.#check-codegen` PASSED (covering dashboardui); `.#build`+`.#test` OK; `check-release-train --strict-lag 0` 0/0/0; CSS bundle byte-identical (76,984 bytes, canaries OK).*
+_Session evidence: module `go test -race` ok; `nix run .#lint` 0 issues/15 modules; `.#coverage-gate` PASSED (dashboardui 72.9%/60); `.#check-codegen` PASSED (covering dashboardui); `.#build`+`.#test` OK; `check-release-train --strict-lag 0` 0/0/0; CSS bundle byte-identical (76,984 bytes, canaries OK)._

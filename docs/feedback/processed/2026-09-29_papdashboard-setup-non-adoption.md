@@ -89,6 +89,6 @@ The honest decision tree — including "if you use one symbol, vendor the embed 
 
 ## What would actually flip us
 
-Recorded on our side (ADR 0001 / DECISION-QUEUE AUTH-G1, HTMX-G1): **SaaS/multi-user mode activating** — the day PapDashboard needs real accounts, tenants, or roles, usermgmt becomes a requirement instead of ballast, and setup's one-call wiring is exactly the right shape for that day. Improvement #1 (core/identity split) is what would make us adopt setup-shaped infrastructure *before* that day for the parts we already hand-roll (SSE hub, readiness coordination); #2 and #3 are what would let it live inside our existing stack rather than replacing it.
+Recorded on our side (ADR 0001 / DECISION-QUEUE AUTH-G1, HTMX-G1): **SaaS/multi-user mode activating** — the day PapDashboard needs real accounts, tenants, or roles, usermgmt becomes a requirement instead of ballast, and setup's one-call wiring is exactly the right shape for that day. Improvement #1 (core/identity split) is what would make us adopt setup-shaped infrastructure _before_ that day for the parts we already hand-roll (SSE hub, readiness coordination); #2 and #3 are what would let it live inside our existing stack rather than replacing it.
 
 Until then: not setup's fault, not a quality verdict — a target-audience mismatch with a pin test on our side to keep the dependency honest.

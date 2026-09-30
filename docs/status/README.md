@@ -36,7 +36,7 @@ Each report in this tree captures what someone knew at the end of a work session
 When a historical report is verified against the current tree, it receives:
 
 1. A dated **`> ANNOTATED YYYY-MM-DD`** blockquote at the top of the file, summarizing the verification verdict per section (DONE-SHIPPED / OPEN-TRACKED / OBSOLETE / HARVEST-CATCH, with evidence), and routing the remaining open items to `TODO_LIST.md`/`ROADMAP.md`.
-2. **Inline strikethrough on every resolved item**: `~~original line~~ done at \`hash\``, `~~original line~~ done (evidence)`, `~~original line~~ done (docs-health pass YYYY-MM-DD)`, or `~~original line~~ **Won't implement — reason.**`. **Unmarked items are the "open" signal** — never strike an item you did not verify.
+2. **Inline strikethrough on every resolved item**: `~~original line~~ done at \`hash\``,` ~~original line~~ done (evidence)`,` ~~original line~~ done (docs-health pass YYYY-MM-DD)`, or` ~~original line~~ **Won't implement — reason.**`. **Unmarked items are the "open" signal** — never strike an item you did not verify.
 
 Annotations are **additive only** — the original report text is never deleted. Cross-references in living docs point at the archived paths.
 
@@ -44,11 +44,11 @@ Annotations are **additive only** — the original report text is never deleted.
 
 The inline-strikethrough convention was established on **2026-09-09**. Everything archived before that date predates it and is **exempt from the presence gate**:
 
-| Dialect                          | Dates                     | Files | Marker                                        |
-| -------------------------------- | ------------------------- | ----- | --------------------------------------------- |
-| Inline strikethrough (current)   | 2026-09-09 onward         | 37    | `~~…~~ done (evidence)` + dated blockquote    |
-| Prose blockquote                 | 2026-06-17 → 2026-09-07   | 72    | `> ANNOTATED …` verdict blockquote, no strikes |
-| Unannotated                      | 2026-05-03 → 2026-08-09   | 268   | none                                          |
+| Dialect                        | Dates                   | Files | Marker                                         |
+| ------------------------------ | ----------------------- | ----- | ---------------------------------------------- |
+| Inline strikethrough (current) | 2026-09-09 onward       | 37    | `~~…~~ done (evidence)` + dated blockquote     |
+| Prose blockquote               | 2026-06-17 → 2026-09-07 | 72    | `> ANNOTATED …` verdict blockquote, no strikes |
+| Unannotated                    | 2026-05-03 → 2026-08-09 | 268   | none                                           |
 
 The prose-blockquote and unannotated eras are **historically complete as written** — their still-open items were harvested by later docs-health sweeps (2026-09-09, 2026-09-20, 2026-09-21). Retro-annotating 340 legacy files would be a [Verschlimmbesserung](https://en.wikipedia.org/wiki/Verschlimmbessern) with near-zero information gain, so the gate is deliberately scoped to the current convention era. New reports always use the current convention.
 
