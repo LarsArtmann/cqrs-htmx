@@ -63,11 +63,11 @@ type emptySnapshotStore struct{}
 func (emptySnapshotStore) Save(context.Context, snapshot.Snapshot) error { return nil }
 func (emptySnapshotStore) Delete(context.Context, id.StreamRef) error    { return nil }
 func (emptySnapshotStore) Load(context.Context, id.StreamRef) (*snapshot.Snapshot, error) {
-	return nil, nil
+	return nil, snapshot.ErrSnapshotNotFound
 }
 
 func (emptySnapshotStore) LoadAtVersion(context.Context, id.StreamRef, event.Version) (*snapshot.Snapshot, error) {
-	return nil, nil
+	return nil, snapshot.ErrSnapshotNotFound
 }
 
 //cqrs-lint:ignore-end
