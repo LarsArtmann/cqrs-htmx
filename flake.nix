@@ -130,6 +130,32 @@
               "--max-len"
               "120"
             ];
+            # treefmt-nix's templ module wraps templ with nixpkgs' DEFAULT go
+            # (1.26.x). Since the fleet re-pin moved the module floors to
+            # 1.27.1 (2026-09-19), that go hits a GOTOOLCHAIN=auto download of
+            # go1.27.1 inside the network-free check sandbox — templ fmt
+            # hard-fails and takes the formatting/treefmt checks (and nix
+            # buildflow steps) down with it. Pin the formatter's go to goPkg
+            # + force offline env: 1.27.1 satisfies the floor locally and
+            # GOPROXY=off makes import resolution fail fast so goimports
+            # falls back to stdlib-only fixing (same behavior as pre-re-pin;
+            # validated offline in-module-context: rc=0, changed=0).
+            settings.formatter.templ.command = lib.mkForce (
+              lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "templ-fmt-offline";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.templ
+                  ];
+                  text = ''
+                    export GOTOOLCHAIN=local
+                    export GOPROXY=off
+                    exec templ "$@"
+                  '';
+                }
+              )
+            );
             # shfmt/shellcheck enabled 2026-08-30 after fixing all findings
             # in scripts/*.sh (dead vars, SC2155, SC1091, shfmt layout).
           };
