@@ -8,6 +8,7 @@ import (
 	ds "github.com/larsartmann/cqrs-htmx/datastar/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-datastar/broadcast"
 )
 
 // --- CQRS Setup ---
@@ -17,13 +18,13 @@ type CQRS struct {
 	Queries   *query.Dispatcher
 	Events    *EventStore
 	Read      *Projector
-	Broadcast *ds.Broadcaster
+	Broadcast *broadcast.Broadcaster
 }
 
 func NewCQRS() *CQRS {
 	events := NewEventStore()
 	read := NewProjector()
-	broadcast := ds.NewBroadcaster()
+	hub := broadcast.NewBroadcaster()
 
 	events.Subscribe(read.Apply)
 
@@ -35,7 +36,7 @@ func NewCQRS() *CQRS {
 		Queries:   qryDisp,
 		Events:    events,
 		Read:      read,
-		Broadcast: broadcast,
+		Broadcast: hub,
 	}
 
 	cqrs.registerCommandHandlers()
