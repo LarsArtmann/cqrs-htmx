@@ -125,9 +125,10 @@ func TestDisableAuth_RejectsAuthHandlerConfig(t *testing.T) {
 	t.Parallel()
 
 	_, err := setup.New(setup.Config{
-		Title:        "Nothing To Configure",
-		DisableAuth:  true,
-		DisableLogin: true,
+		Title:             "Nothing To Configure",
+		DisableAuth:       true,
+		DisableLogin:      true,
+		AuthHandlerConfig: &usermgmt.HandlerConfig{},
 	})
 	if err == nil {
 		t.Fatal("expected error for AuthHandlerConfig with DisableAuth — it configures endpoints that will not exist")

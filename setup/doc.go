@@ -123,9 +123,34 @@
 //	    DisableLogin:     true,  // use your own login page
 //	}
 //
+// # Identity-external apps
+//
+// Applications that authenticate against an external authority (a PBX
+// directory, corporate SSO, their own OIDC integration) can adopt the
+// bundle's runtime shell — the serve/drain/close lifecycle, the readiness
+// composition, opt-in liveness, shared Stores — without carrying a dormant
+// second user database (ADR-0054):
+//
+//	setup.Config{
+//	    DisableService:   true, // no usermgmt.Service, no /auth/*, no panels
+//	    DisableAdmin:     true, // required with DisableService
+//	    DisableDashboard: true, // required with DisableService
+//	    DisableLogin:     true, // required with DisableService
+//	    HealthPath:       "/healthz",
+//	    HealthChecks:     []cqrshtmx.NamedCheck{...}, // your readiness checks
+//	    LivePath:         "/livez",
+//	}
+//
+// DisableAuth alone (service stays) is the own-login-endpoint mode: your
+// code mints sessions against the service API, the bundle's panels keep
+// working, and no /auth/* routes mount. The session-gated feeds and machine
+// endpoints are rejected in shell mode (their gate is the bundle session
+// middleware); they return behind an injectable gate in a future release.
+//
 // # Graceful shutdown
 //
 // [Bundle.Close] closes the dashboard's SSE broadcaster and the usermgmt service
 // (projections, eviction goroutines, event bus, event store). Call on server shutdown.
-// Safe to call multiple times.
+// Safe to call multiple times. A shell bundle ([Config.DisableService]) owns
+// neither — Close is a no-op there and stays idempotent.
 package setup
