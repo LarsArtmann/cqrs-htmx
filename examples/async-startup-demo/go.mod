@@ -2,7 +2,7 @@ module github.com/larsartmann/cqrs-htmx/examples/async-startup-demo
 
 go 1.27.1
 
-require github.com/larsartmann/cqrs-htmx/setup/v4 v4.13.0
+require github.com/larsartmann/cqrs-htmx/setup/v4 v4.13.1
 
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
