@@ -26,6 +26,23 @@ import (
 // (pass a full usermgmt.ServiceConfig override), or the flattened
 // convenience fields. See the field docs for the conflict rules.
 func New(cfg Config) (*Bundle, error) {
+	return newBundle(cfg)
+}
+
+// NewShell is the identity-external shell constructor (ADR-0054): the
+// [Config.DisableService] path, direct. Functionally identical to
+// New(Config{DisableService: true, ...}) — the flag is forced true — but
+// because NewShell never references the service path, a shell-only
+// consumer's linker can prune the entire usermgmt dependency tree (auth
+// handler, panels, casbin) that a call to New would otherwise keep
+// reachable. Shell consumers should prefer this constructor.
+func NewShell(cfg Config) (*Bundle, error) {
+	cfg.DisableService = true
+
+	return newBundle(cfg)
+}
+
+func newBundle(cfg Config) (*Bundle, error) {
 	cfg = cfg.withDefaults()
 
 	if err := cfg.validate(); err != nil {

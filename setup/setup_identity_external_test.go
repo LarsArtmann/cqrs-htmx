@@ -425,3 +425,54 @@ func TestDisableService_AcceptsStoreInputs(t *testing.T) {
 	}
 	defer func() { _ = bundle.Close() }()
 }
+
+// --- NewShell: the prunable shell constructor ---
+
+func TestNewShell_ForcesShellSemantics(t *testing.T) {
+	t.Parallel()
+
+	// The caller forgot DisableService — NewShell IS the shell constructor,
+	// the flag is implied (validation still applies).
+	bundle, err := setup.NewShell(setup.Config{Title: "Direct Shell"})
+	if err != nil {
+		t.Fatalf("NewShell: %v", err)
+	}
+	defer func() { _ = bundle.Close() }()
+
+	if bundle.Service != nil || bundle.Auth != nil {
+		t.Error("NewShell must build no service and no auth handler")
+	}
+}
+
+func TestNewShell_ValidationStillApplies(t *testing.T) {
+	t.Parallel()
+
+	// Shell rules hold: panels are rejected exactly as with
+	// New(Config{DisableService: true}).
+	_, err := setup.NewShell(setup.Config{Title: "Panels", DisableAdmin: false})
+	if err == nil || !strings.Contains(err.Error(), "DisableAdmin") {
+		t.Errorf("NewShell must apply the shell validation, got: %v", err)
+	}
+}
+
+func TestNewShell_ParityWithNewDisableService(t *testing.T) {
+	t.Parallel()
+
+	viaFlag, err := setup.New(newShellConfig())
+	if err != nil {
+		t.Fatalf("New(DisableService): %v", err)
+	}
+	defer func() { _ = viaFlag.Close() }()
+
+	viaCtor, err := setup.NewShell(newShellConfig())
+	if err != nil {
+		t.Fatalf("NewShell: %v", err)
+	}
+	defer func() { _ = viaCtor.Close() }()
+
+	if (viaFlag.Service == nil) != (viaCtor.Service == nil) ||
+		(viaFlag.Auth == nil) != (viaCtor.Auth == nil) ||
+		(viaFlag.Stores == nil) != (viaCtor.Stores == nil) {
+		t.Error("NewShell and New(DisableService) must build the same bundle shape")
+	}
+}
