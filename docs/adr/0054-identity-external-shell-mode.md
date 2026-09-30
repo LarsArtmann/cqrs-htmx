@@ -123,11 +123,19 @@ validate explicitly.
 
 - **Split a zero-usermgmt `shell` submodule** — best binary footprint,
   but forks the composition root (two `New`s, two validation sets,
-  double maintenance) for value the linker largely eliminates anyway
-  (a shell bundle never reaches the panel/auth constructors). The
-  footprint question is answered by measurement per consumer;
-  webphone records a go/no-go threshold and falls back to promoting
-  the shell value into the root library if the delta is unacceptable.
+  double maintenance). MEASURED 2026-09-30 by webphone, the first
+  identity-external consumer: importing the setup PACKAGE links its
+  whole import graph (+72 modules — usermgmt, adminui, dashboardui,
+  loginpage, casbin, appkit, datastar) even through `NewShell`, because
+  Go links the init functions and package-level state of every
+  transitively imported package regardless of function reachability.
+  Their shell-mode binary: 15.25 → 25.65 MB, +10.40 MB = +68.2%,
+  against a recorded ≤ +8 MB / ≤ +20% gate — NO-GO; the consumer kept
+  the rejection and took the lifecycle value from `httputil.NewServer`
+  (the primitive `RunHandler` wraps) at +8 KB instead. A future
+  `shell` submodule that imports only event/storage/watermill + root
+  would dodge the graph; build it when a second consumer needs more
+  shell than the lifecycle.
 - **`ShellMode bool` single flag** — one flag is simpler to set but
   cannot express the own-login-endpoint mode (service yes, auth
   routes no), which is a real composition; two orthogonal flags with
