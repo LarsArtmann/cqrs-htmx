@@ -432,8 +432,12 @@ func TestNewShell_ForcesShellSemantics(t *testing.T) {
 	t.Parallel()
 
 	// The caller forgot DisableService — NewShell IS the shell constructor,
-	// the flag is implied (validation still applies).
-	bundle, err := setup.NewShell(setup.Config{Title: "Direct Shell"})
+	// the flag is implied. Panels stay disabled (newShellConfig), so only
+	// the flag itself is unset and validation must still pass.
+	cfg := newShellConfig()
+	cfg.DisableService = false
+
+	bundle, err := setup.NewShell(cfg)
 	if err != nil {
 		t.Fatalf("NewShell: %v", err)
 	}

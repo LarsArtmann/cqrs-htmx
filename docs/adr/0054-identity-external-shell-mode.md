@@ -96,6 +96,15 @@ injectable gate (`Config.SessionGate func(http.Handler) http.Handler`
 or similar) so identity-external apps can mount them with their own
 auth; rejected-now beats a latent-panic endpoint.
 
+### Constructor: `NewShell`
+
+`setup.NewShell(cfg)` is `New` with `DisableService` forced — the shell
+constructor direct. Functionally identical, but a shell-only consumer
+importing only `NewShell` keeps the service path unreachable, so the
+linker prunes the usermgmt/casbin/panels tree a call to `New` would
+retain. Shell consumers should prefer it; webphone's adoption plan
+records the binary-size gate this answers.
+
 ### Composability
 
 `DisableService` implies `DisableAuth` (auth without a service is
