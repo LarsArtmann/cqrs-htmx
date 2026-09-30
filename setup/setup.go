@@ -8,6 +8,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -28,6 +30,14 @@ func New(cfg Config) (*Bundle, error) {
 
 	if err := cfg.validate(); err != nil {
 		return nil, err
+	}
+
+	// Identity-external shell (ADR-0054): no service, no auth handler, no
+	// panels, no session-gated surfaces — validation rejected every config
+	// that would reference them, so the bundle is exactly the lifecycle, the
+	// readiness composition, and the consumer-provided stores.
+	if cfg.DisableService {
+		return newShellBundle(cfg)
 	}
 
 	var (
@@ -59,19 +69,24 @@ func New(cfg Config) (*Bundle, error) {
 
 	bundle := &Bundle{ //nolint:exhaustruct // Admin/Dashboard/Login/SSE assigned conditionally below
 		Service: svc,
-		// The auth handler MUST write the same cookie the session middleware
-		// reads (cfg.CookieName). With both defaulting independently
-		// (handler: "session_token", middleware: "session"), the default
-		// composition silently broke every authenticated request — the
-		// dashboard 401 gate still worked and masked it. Caught by the
-		// bundle-level SQL restart contract test (2026-08-30).
-		Auth:   usermgmt.NewAuthHandler(svc, authCfg),
-		Stores: &Stores{EventStore: store, EventBus: bus},
+		Stores:  &Stores{EventStore: store, EventBus: bus},
 		// Per-bundle copy of the drain deadline — immutable after
 		// construction (see Bundle.sseDrainTimeout).
 		sseDrainTimeout: sseDrainTimeout,
 		ownsService:     ownsService,
 		config:          cfg,
+	}
+
+	// The auth handler MUST write the same cookie the session middleware
+	// reads (cfg.CookieName). With both defaulting independently
+	// (handler: "session_token", middleware: "session"), the default
+	// composition silently broke every authenticated request — the
+	// dashboard 401 gate still worked and masked it. Caught by the
+	// bundle-level SQL restart contract test (2026-08-30).
+	// DisableAuth (ADR-0054) skips the handler entirely: Auth stays nil and
+	// Mount registers no /auth/* routes.
+	if !cfg.DisableAuth {
+		bundle.Auth = usermgmt.NewAuthHandler(svc, authCfg)
 	}
 
 	if err := bundle.attachPanels(store, bus); err != nil {
@@ -93,6 +108,29 @@ func New(cfg Config) (*Bundle, error) {
 	}
 
 	return bundle, nil
+}
+
+// newShellBundle builds the identity-external bundle (ADR-0054): no
+// usermgmt.Service, no auth handler, no panels. Stores comes from the config
+// with the same defaults the service path applies (memory store, watermill
+// bus) — a shell consumer that brings its own event infrastructure passes
+// EventStore/EventBus and gets exactly those back on the bundle.
+func newShellBundle(cfg Config) (*Bundle, error) {
+	store := cfg.EventStore
+	if store == nil {
+		store = memory.NewMemoryStore()
+	}
+
+	bus := cfg.EventBus
+	if bus == nil {
+		bus = watermill.NewEventBus()
+	}
+
+	return &Bundle{ //nolint:exhaustruct // Service/Auth/panels/Broadcaster stay nil by design (ADR-0054)
+		Stores:          &Stores{EventStore: store, EventBus: bus},
+		sseDrainTimeout: sseDrainTimeout,
+		config:          cfg,
+	}, nil
 }
 
 // resolveAuthHandlerConfig builds the usermgmt.HandlerConfig for the bundle's

@@ -447,6 +447,62 @@ type Config struct {
 	DisableAdmin     bool
 	DisableDashboard bool
 	DisableLogin     bool
+
+	// DisableAuth skips the usermgmt auth handler entirely: Bundle.Auth is
+	// nil and Mount registers no /auth/* routes (registration, login,
+	// logout, me, webauthn, oauth2). The service is still built or adopted,
+	// so the panels and SessionMiddleware keep working — this is the
+	// own-login-endpoint mode: your code mints sessions against the service
+	// API, the bundle serves everything else.
+	//
+	// Two combinations are rejected at New (fail-fast, the
+	// validateServiceSources posture):
+	//
+	//   - DisableLogin=false — the login page's form posts to /auth/*;
+	//     without the routes it is a dead form. Set DisableLogin too.
+	//   - AuthHandlerConfig set — it configures endpoints that will not
+	//     exist. Drop it.
+	//
+	// DisableService implies DisableAuth (see [Config.DisableService]).
+	// ADR-0054.
+	DisableAuth bool
+
+	// DisableService builds the identity-external shell (ADR-0054): a bundle
+	// with NO usermgmt.Service at all. Bundle.Service and Bundle.Auth are
+	// nil, no panels are constructed, and Stores comes from EventStore and
+	// EventBus — defaulting to memory.NewMemoryStore() and
+	// watermill.NewEventBus(), the same defaults the service path applies.
+	// What remains is the runtime shell: the serve/drain/close lifecycle
+	// (Run/RunHandler/Close), the readiness composition (HealthPath with
+	// consumer HealthChecks — the built-in projections/sse-hub checks skip
+	// naturally on a nil service and nil hub), opt-in LivePath, and the
+	// Handler/Middleware chain composition. Close is a no-op (and stays
+	// idempotent) on a shell bundle.
+	//
+	// For consumers that authenticate against an EXTERNAL authority (PBX
+	// directory, corporate SSO, their own OIDC integration) and want the
+	// tested lifecycle and readiness composition without carrying a dormant
+	// second user database.
+	//
+	// Every surface whose session gate would dereference the missing
+	// service is rejected at New — usermgmt.NewSessionMiddleware(nil, ...)
+	// panics on the first request carrying the configured cookie, so a
+	// half-mounted gated endpoint would be a latent panic, not a feature:
+	//
+	//   - Service/ServiceConfig and all service-construction fields
+	//     (TOTP, WebAuthn, OAuth2, SessionTTL, Logger, AsyncStartup,
+	//     OnProjectionFailed, Observability, ReadModelDB) — except
+	//     EventStore/EventBus, which become the shell's own inputs.
+	//   - All three panels must be disabled (the dashboard dereferences
+	//     Service.ProjectionHost(); admin and login need the service).
+	//   - The event feeds (SSEPath, DataStarPath) and the machine
+	//     endpoints (EventCatalogPath, ProjectionStatusPath, DebugPath) —
+	//     their gate is the bundle session middleware. They return behind
+	//     an injectable gate in a future release.
+	//   - AuthHandlerConfig — nothing to configure.
+	//
+	// DisableService implies DisableAuth.
+	DisableService bool
 }
 
 func (c Config) withDefaults() Config {
@@ -547,11 +603,19 @@ func trimTrailingSlash(s string) string {
 // validate checks the resolved config for common misconfigurations and returns
 // a rejection error describing the first issue found, or nil if the config is sound.
 func (c Config) validate() error {
+	if err := c.validateDisableService(); err != nil {
+		return err
+	}
+
 	if err := c.validateServiceSources(); err != nil {
 		return err
 	}
 
 	if err := c.validateReadModelDialect(); err != nil {
+		return err
+	}
+
+	if err := c.validateDisableAuth(); err != nil {
 		return err
 	}
 
@@ -694,6 +758,130 @@ func (c Config) validateAuthHandlerConfig() error {
 			"AuthHandlerConfig.CookieName %q does not match Config.CookieName %q — the auth handler must write the same cookie the session middleware reads; leave it empty to inherit",
 			name,
 			c.CookieName,
+		)
+	}
+
+	return nil
+}
+
+// validateDisableService rejects shell-mode configs that still reference the
+// usermgmt world. DisableService builds a bundle with no service (ADR-0054),
+// so every field that describes, configures, or session-gates against one is
+// a silent no-op or a latent panic — both are rejected instead. The two
+// exceptions are EventStore/EventBus: in shell mode they are the bundle's
+// OWN infrastructure inputs (defaults applied in New).
+func (c Config) validateDisableService() error {
+	if !c.DisableService {
+		return nil
+	}
+
+	switch {
+	case c.Service != nil:
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"DisableService builds a bundle without a usermgmt.Service, so Service must be nil — adopt with Service instead of DisableService, or drop Service for the shell",
+		)
+	case c.ServiceConfig != nil:
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"DisableService builds a bundle without a usermgmt.Service, so ServiceConfig must be nil — build one with ServiceConfig instead of DisableService, or drop ServiceConfig for the shell",
+		)
+	}
+
+	var serviceFields []string
+	for _, conflict := range c.serviceConstructionConflicts() {
+		if conflict == "EventStore" || conflict == "EventBus" {
+			continue // the shell's own inputs — consumed, not rejected
+		}
+
+		serviceFields = append(serviceFields, conflict)
+	}
+
+	if len(serviceFields) > 0 {
+		return errorfamily.Newf(
+			errorfamily.Rejection,
+			"setup.invalid_config",
+			"DisableService builds a bundle without a usermgmt.Service, so service-construction fields are ignored — unset them: %s",
+			strings.Join(serviceFields, ", "),
+		)
+	}
+
+	var panels []string
+	if !c.DisableAdmin {
+		panels = append(panels, "DisableAdmin")
+	}
+
+	if !c.DisableDashboard {
+		panels = append(panels, "DisableDashboard")
+	}
+
+	if !c.DisableLogin {
+		panels = append(panels, "DisableLogin")
+	}
+
+	if len(panels) > 0 {
+		return errorfamily.Newf(
+			errorfamily.Rejection,
+			"setup.invalid_config",
+			"DisableService builds a bundle without a usermgmt.Service, so the panels cannot be built — set %s to true",
+			strings.Join(panels, ", "),
+		)
+	}
+
+	var gated []string
+	for _, surface := range []struct{ name, path string }{
+		{"SSEPath", c.SSEPath},
+		{"DataStarPath", c.DataStarPath},
+		{"EventCatalogPath", c.EventCatalogPath},
+		{"ProjectionStatusPath", c.ProjectionStatusPath},
+		{"DebugPath", c.DebugPath},
+	} {
+		if surface.path != "" {
+			gated = append(gated, surface.name)
+		}
+	}
+
+	if len(gated) > 0 {
+		return errorfamily.Newf(
+			errorfamily.Rejection,
+			"setup.invalid_config",
+			"DisableService builds a bundle whose session gate has no service to authenticate against (a cookie-carrying request would panic), so the session-gated surfaces cannot mount — unset %s; they return behind an injectable gate in a future release",
+			strings.Join(gated, ", "),
+		)
+	}
+
+	if c.AuthHandlerConfig != nil {
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"DisableService mounts no auth endpoints, so AuthHandlerConfig has nothing to configure — drop it",
+		)
+	}
+
+	return nil
+}
+
+// validateDisableAuth rejects DisableAuth configs that keep surfaces which
+// require the /auth/* routes. The login page's form posts to /auth/login —
+// without the routes it renders fine and breaks on submit, the exact silent
+// breakage class this validator family exists for (the cookie-name
+// composition bug). AuthHandlerConfig without auth endpoints is a silent
+// no-op the consumer would never discover.
+func (c Config) validateDisableAuth() error {
+	if !c.DisableAuth {
+		return nil
+	}
+
+	if !c.DisableLogin {
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"DisableAuth mounts no /auth/* routes, so the login page's form would post into the void — set DisableLogin too, or drop DisableAuth",
+		)
+	}
+
+	if c.AuthHandlerConfig != nil {
+		return errorfamily.NewRejection(
+			"setup.invalid_config",
+			"DisableAuth builds no auth handler, so AuthHandlerConfig has nothing to configure — drop it",
 		)
 	}
 
