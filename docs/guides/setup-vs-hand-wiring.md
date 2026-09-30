@@ -40,15 +40,26 @@ How much of cqrs-htmx does your app actually use?
 
 ## The truths to weigh before adopting setup
 
-### 1. The identity service is unconditional
+### 1. The identity service is conditional since ADR-0054
 
-`setup.New` always constructs a `usermgmt.Service` — its event store,
+> **ANNOTATED 2026-09-30:** `Config.DisableService` now builds the
+> identity-external shell (no usermgmt.Service, no auth handler, no
+> panels; stores from `Config.EventStore`/`EventBus`), and
+> `Config.DisableAuth` drops the `/auth/*` routes while the service
+> stays (own-login-endpoint mode). The session-gated surfaces (feeds,
+> machine endpoints) are rejected in shell mode until an injectable
+> gate lands — apps needing gated feeds still weigh the original
+> section below.
+
+`setup.New` constructs (or adopts) a `usermgmt.Service` — its event store,
 projections, checkpoints, and eviction goroutines. `DisableAdmin`,
-`DisableDashboard`, and `DisableLogin` skip **panels**, never the service.
-For an app with zero users (single-operator tools, key-authenticated
-services), that stack is permanent idle ballast running beside your real
-domain. A `setup/core` variant without the identity assumption is on the
-ROADMAP; until then, apps without users should stay on Path 0/A.
+`DisableDashboard`, and `DisableLogin` skip **panels**, never the service —
+unless `DisableService` opts out of the identity assumption entirely
+(ADR-0054, `docs/adr/0054-identity-external-shell-mode.md`). For an app
+with zero users (single-operator tools, key-authenticated services) that
+still needs the session-gated feeds or machine endpoints, that stack is
+permanent idle ballast running beside your real domain, and those apps
+should stay on Path 0/A.
 
 ### 2. A composition root competes with yours; it does not compose with one
 

@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
-	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
