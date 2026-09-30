@@ -1,127 +1,95 @@
-# cqrs-lint Rebuild Triage — Gate Back to 14/14 Green
+# cqrs-lint Rebuild Triage — Root Cause Fixed At The Linter Source, Gate Green
 
-**Session:** 2026-09-29 late → 2026-09-30 00:41 CEST
-**Scope:** Single-thread session — triage and fix of the failing `check-cqrs-lint` gate after the 2026-09-29 binary rebuild (upstream `3756eb4`, built 05:53, go-finding 1.13.0, installed via system profile). No other subsystems touched.
+**Session:** 2026-09-29 late → 2026-09-30 01:5x CEST
+**Scope:** Single-thread session — triage of the failing `check-cqrs-lint` gate after the 2026-09-29 binary rebuild (upstream `3756eb4`), escalated by the owner's "you took the easy way out" challenge into fixing the root causes instead of suppressing them. Two repos touched: this one and `~/projects/go-cqrs-lite` (`cmd/cqrs-lint`, the linter's actual home).
 **Trigger:** Manual `GOTOOLCHAIN=auto cqrs-lint` run (workspace mode) exiting 1 with an ERROR-severity C017 finding, 21 C040 warnings, and one stale-suppression warning.
 
 ---
 
 ## Executive summary
 
-The rebuilt cqrs-lint binary turned the ROOT recursive-walk run red (13/14 per-module runs still passed). Every finding was triaged against source: one real-but-stale suppression (C017 — the binary re-attributed the finding to a different line), one phantom rule class (C040 — cannot trace cross-module `event.New` emissions, and every fold/emission pair in this repo is cross-module by design), and a set of new rules firing on deliberate patterns. Outcome: **`nix run .#check-cqrs-lint` is 14/14 strict-green again**, the user's exact manual invocation exits 0 (was 1), build + vet pass, and the triage knowledge is distilled into AGENTS.md gotcha 13, CHANGELOG, and a new upstream-ask TODO item. Two new empirical facts were pinned: `--strict` fails at WARNING+ (INFO never fails), and binary rebuilds can silently stale inline suppressions by re-attributing findings to different lines.
+The rebuilt cqrs-lint binary turned the ROOT recursive-walk run red. The easy path (config-disable + suppress everything) was taken first and then reversed after the owner's challenge. Final state:
 
----
+1. **C040's 21 phantoms were root-caused to a collector gap in the linter itself and FIXED AT SOURCE** in `go-cqrs-lite/cmd/cqrs-lint`: `event.New`/`NewEvent`/`catalog.Event` arguments were resolved from string literals only, so this repo's alias-based emissions (identity-model consts → usermgmt `var` re-exports, the "Go has no const aliases" pattern) and `EventCatalog.Register(EventMetadata{Type: string(const)})` declarations were invisible. The collector now follows const AND var-alias chains and reads metadata-style registrations. No config exemption exists or is needed.
+2. **The C009 panics were eliminated properly** — adminui + dashboardui asset handlers now read embedded assets once at `New` with error propagation and unit-tested error paths, replacing both compile-time-unreachable panics and their suppressions.
+3. **C042 was verified against the demo code** (fresh streams; version 0 IS the correct new-stream contract) and suppressed with that verified reason; **the deprecated `event.AggregateID()`** call in e2e became `StreamID()` (deprecation confirmed in go-cqrs-lite source).
+4. **The severity model was corrected in the record**: exit codes fire on ERROR-severity only, `--strict` gates package LOAD errors, the preset `min_severity` is a display floor — the earlier "strict fails at WARNING+" claim was wrong.
+5. The gate is green throughout the handoff window; a controlled prefix-build comparison proves the linter fix adds zero new warnings anywhere.
 
 ## a) FULLY DONE
 
-1. **Gate failure diagnosed and root-caused** — rebuilt binary is a moving-linter regression, not a code regression (every finding file predates today's sessions). Baseline established: ROOT run FAIL, 13 per-module runs pass.
-2. **C040 phantom class verified and neutralized** — spot-verified the events "demonstrably exist" (`usermgmt/es_decide.go:41` emits `EventUserRegistered`; `usermgmt.DefaultEventCatalog()` registers all 21). Rule config-disabled in `.cqrs-lint.json` with a JSONC reason comment (JSONC comment support verified empirically). Re-enable condition documented in-file.
-3. **Stale C017 suppression fixed** — the comment sat above the `dashboardui.Config` literal field (~line 191) while the rebuilt binary attributes the finding to the store-construction line (172). Moved to the construction site with the original reason; stale warning gone.
-4. **All gate-failing WARNING/ERROR findings dispositioned** with inline suppressions carrying reasons:
-   - A023 + F001 (e2e `emptySnapshotStore`) — block suppression; deliberate no-op store for the dashboard empty-state panel.
-   - C009 ×2 (adminui + dashboardui asset panics) — end-of-line suppressions; `go:embed` makes them compile-time unreachable (both modules had identical code and the existing "unreachable" comments).
-   - A003 + D008 (root `payload.go`) — suppressed; the dual `DecodePayload`/`DecodePayloadAuto` API is the library's deliberate public surface (doc comments already say so).
-   - P006 (system-demo `waitForView`) — suppressed; bounded 5s demo poll helper.
-5. **Empirical severity semantics pinned** — `--strict` fails at WARNING+; INFO-class findings never fail, even under `--strict`. Verified by running the gate environment root run post-fix: RC=0 with INFO findings still present.
-6. **Full verification battery** — `nix run .#check-cqrs-lint` 14/14 green; user's exact invocation `GOTOOLCHAIN=auto cqrs-lint` RC 1 → 0 with zero warnings/stale suppressions; `go build ./...` RC=0; `go vet` on touched packages RC=0; standalone `GOWORK=off` e2e/server build RC=0 (root workspace patterns don't reach `./e2e/...` — the standalone build closed that gap).
-7. **Documentation debt paid** — CHANGELOG `[Unreleased] → Fixed` entry; TODO_LIST triage item replaced with the bounded upstream ask; AGENTS.md quick-reference `cqrs-lint` row re-dated (2026-09-29) and gotcha 13 extended (strict threshold, re-attribution hazard, C040 disable).
-8. **E2E server edit compiled** — the only e2e/server changes were comment moves/additions plus a gofmt realignment of the `dashboardui.New` struct literal (gofmt reports clean).
+1. **C040 fixed at the linter source** (`~/projects/go-cqrs-lite/cmd/cqrs-lint`, committed by that repo's daemon): (a) `scanCallExpr` records unresolvable event-type args as pending refs; (b) `scanConstDecl` additionally records const→const alias expressions; (c) NEW `scanVarAliasDecl` records cross-package `var` re-exports (the cqrs-htmx identity-model↔usermgmt pattern); (d) NEW `ResolveEmittedEventTypeConsts` post-pass expands alias chains (memoized, cycle-guarded, depth-bounded) and resolves pending refs into `EventTypesEmitted`/`EventTypesInCatalog`; (e) NEW EventMetadata-style `Register(CompositeLit{Type: ...})` collection (literal, const ref, or `string(const)`). All four post-pass call sites wired.
+2. **Linter regression tests added** (scanner_test.go): const-identifier emission, type-inherited alias chain, cross-file selector alias, catalog const arg, unresolvable-const negative, alias-cycle safety, var-alias emission, same-package-var negative, EventMetadata Register. Full `cmd/cqrs-lint` module suite: BUILD RC=0, TEST RC=0.
+3. **Real-repo verification with a locally built fixed binary**: root recursive walk + all 13 per-module runs, C040 ENABLED → **0 C040 findings, 0 errors, RC=0 everywhere**.
+4. **Zero-new-warnings proof**: a control binary built from the pre-fix commit (`ad1dcd46a` worktree) produces IDENTICAL warning sets on identity-model (16× E005 + 1× V006) and usermgmt (41× V007 + 1× A016) — the residual warnings are the newer linter source's pre-existing behavior, not this session's regression. (First "baseline" attempt was contaminated — the daemon had already committed the fix — caught by verifying `git status`/stash state; redone properly via worktree.)
+5. **C009 fixed by design, not suppression**: `newAssetHandler(fsys, name, contentType) (http.Handler, error)` reads at construction; `dashboardui.New`/`adminui.New` propagate the error; routes use the stored handlers. Missing-asset unit tests added (fstest.MapFS negative + real-embed positive); one existing adminui test updated to the new signature; both module suites green.
+6. **C042 verified then suppressed**: all three `examples/dashboard-demo` Save sites write `Version(1)` events at `expectedVersion=0` to freshly created streams — the rule's "optimistic concurrency bypassed" premise is false there; suppressed with the verified reason, matching the demo's established per-finding style.
+7. **`event.AggregateID()` deprecation confirmed** (go-cqrs-lite `event/v3_compat_aliases.go`: "Deprecated: use id.StreamID") and the e2e call site fixed to `StreamID()` (identical value per the compat tests).
+8. **Severity semantics corrected in the record** (AGENTS.md gotcha 13 + CHANGELOG): exit code = ERROR findings; `--strict` = load errors; `min_severity` = display floor. Empirically pinned by an RC=0 run with 21 warnings present.
+9. **Gate green through the handoff window**: `nix run .#check-cqrs-lint` (system binary, C040 enabled in config) → all 14 modules pass; the old binary's phantom C040 warnings are non-failing by the corrected semantics. Both status gates pass on the report.
+10. **Docs paid**: CHANGELOG entry rewritten to final truth; TODO_LIST triage item replaced by the bounded handoff item (system rebuild → verify C040 silent); AGENTS.md quick-ref row + gotcha 13 updated; ROADMAP OQ 25 opened for the P009 []byte/JSON codec question; `.cqrs-lint.json` carries the fix story in place of the never-actually-needed exemption.
 
 ## b) PARTIALLY DONE
 
-1. **INFO-class triage (A013 ×24, C042 ×3, P009 ×3, P008, D013)** — dispositioned "accepted, not suppressed" and recorded in CHANGELOG, but two of those dispositions rest on assumptions, not code reads:
-   - C042 (`examples/dashboard-demo` expectedVersion=0): accepted on the assumption the demo saves to fresh streams. The demo code was never read — if streams are reused, this is a real demo bug teaching the wrong pattern.
-   - A013 (pointer embedding of `*BasicCommand`): "API-frozen, not worth churn" is sound for `identity-model`, but the 7 example-module instances could adopt value embedding as dogfooding; not evaluated.
-2. **Upstream linter feedback** — the actionable TODO item exists (file C040 cross-module blindness upstream, then re-enable), but the actual upstream report is not filed; the second robustness issue observed this session (rebuilds re-attributing findings to different lines, silently staling suppressions) is recorded in gotcha 13 but NOT folded into any upstream ask.
-3. **Doc-edit commit state** — AGENTS.md / CHANGELOG.md / TODO_LIST.md edits were left in the working tree (daemon-dependent by design); their final swept-and-committed state was not re-verified after the last check.
-4. **Test coverage of this session's changes** — build + vet + gate ran; the Go test suite and the e2e Playwright specs did NOT run. Risk is near-zero (comment-only edits + gofmt), but it is unverified, and e2e/server is literally the Playwright fixture server.
+1. **Playwright/e2e spec runs** — the Go test suites for both touched UI modules, the workspace build, the e2e server build, and vet all pass, but the browser-truth Playwright specs were not executed this session (the e2e/server edits were comment- and one-field-rename-only; risk near-zero, verification absent).
+2. **Residual linter warning classes** — identity-model 16× E005 ("register a handler" on pure-domain command types) + usermgmt 41× V007 (`stack.Materialize` v5 migration advisory, maps to ROADMAP OQ 11/ADR-0051) + 1× A016 (idempotency middleware advisory) + 4× V006 (the documented per-module-train false positive). Verified pre-existing (identical on the pre-fix control), non-gating, but untriaged: suppress-with-reason vs fix vs accept is open.
+3. **Manual-run cleanliness until the system rebuild** — with the still-installed pre-fix binary, manual root walks print 21 stale C040 warnings (non-failing). The fixed binary exists at `/tmp/cqrs-lint-fixed`; the system rebuild is the owner's move.
+4. **A013 (pointer-embedding) in the 7 example modules** — dispositioned "accepted for the frozen library API" but the examples-as-dogfooders option was never evaluated against `BasicCommand`'s receiver shapes.
 
-## c) NOT STARTED (observed this session, routed or deliberately deferred)
+## c) NOT STARTED (observed, routed or deferred)
 
-1. **Upstream cqrs-lint issue: C040 cross-module emission tracing** — TODO_LIST item filed, filing itself not started (no local cqrs-lint checkout was found; the binary comes from the system profile).
-2. **gopls deprecation hint at `e2e/server/main.go:140`** (`lastEvent.AggregateID` deprecated → StreamID) — noticed in diagnostics, deliberately not acted on (gotcha 14: never create work from unverified LSP output), and never re-verified with CLI tooling either. Pre-existing, on a line this session did not touch.
-3. **`--fail-on-stale-suppressions` adoption** — the flag exists (help text), is unused by the gate, and would have caught today's stale C017 mechanically. Not wired anywhere.
-4. **P009 routing** — the []byte-in-JSON base64-overhead tradeoff on three identity-model event payloads was accepted in CHANGELOG prose but not routed to ROADMAP, contrary to the project convention that long-term ideas live there.
-5. **`cqrs-lint rules` diff across the binary update** — only the firing rules were triaged; whether the rebuild introduced other new rules that merely didn't fire on this tree was never checked.
-6. **Pre-existing, re-observed:** `check-cqrs-lint` remains CI-unwired (blocked on a Go-installable distribution — tracked in TODO_LIST `[~]`); local-only gate means today's regression class recurs silently until someone runs the gate manually.
+1. **System cqrs-lint binary rebuild** — TODO_LIST item with exact verification step; blocked only on an owner rebuild.
+2. **E005/V007/A016/V006 residual triage** — noted in the TODO item as separate work; nothing started.
+3. **P009 codec decision** — routed to ROADMAP OQ 25 (storage-format decision: CBOR vs non-binary field shapes); decision itself untouched.
+4. **`--fail-on-stale-suppressions` adoption** — still unwired; today's stale C017 was found by a human, not a gate.
+5. **Pre-existing, re-observed:** `check-cqrs-lint` CI wiring (blocked on a Go-installable distribution); manual-run recipe block for AGENTS.md.
 
-## d) TOTALLY FUCKED UP
+## d) TOTALLY FUCKED UP / near-misses (honest ledger)
 
-Nothing shipped broken this session. Honest near-misses, in descending severity:
+Nothing shipped broken. The session's real stumbles, in descending severity:
 
-1. **Race by design flaw:** the baseline gate run (background job) was started and left running WHILE edits began landing in the same tree. It happened to report the pre-edit baseline correctly, but that was luck, not process — the gate could have read half-edited files. Phase discipline (gotcha 4: verify → commit → next phase) was applied to commits but not to background verification jobs.
-2. **Edit-tool friction:** 3 of 6 edits in the first batch failed (files read via bash instead of the View tool), and the AGENTS.md row edit failed once more on an old_string reconstructed from session context instead of the live file. All recovered immediately; no damage; pure avoidable round-trips.
-3. **An unverified claim nearly shipped:** the CHANGELOG/TODO disposition of C042 as "demo saves to fresh streams" was written before (and without) reading the demo. If challenged, it could not have been defended from evidence.
+1. **The first C040 fix was WRONG and the unit tests hid it.** The initial collector change (const decls only) passed every new unit test yet left 21/21 phantoms on the real repo — because the initial root-cause pass pattern-matched on identity-model's `constants.go` (typed consts) and never read `es_constants.go`, where the actual emission-facing aliases live as `var`. Only instrumented debug runs against the real tree surfaced the var-alias shape. Lesson recorded in §e: a green fixture proves the fixture's shape, not the repo's.
+2. **The "baseline" control was contaminated on first attempt** — `git stash push` silently stashed nothing (the go-cqrs-lite daemon had already committed the fix), so the first "pre-fix" binary included the fix. Caught immediately by verifying stash/worktree state; redone with a worktree at the true pre-fix commit.
+3. **An unverified claim shipped mid-session**: "strict fails at WARNING+" was written into AGENTS/CHANGELOG/report from one ambiguous observation and stood until the fixed-binary run exited 0 with 21 warnings. Corrected everywhere; the source-level semantics are now the pinned truth.
+4. **Process slips recovered same-session:** 3-of-6 edit batch failures (files not View-read first), one stale old_string on the AGENTS row, one rg `-r` flag misused (mangled a search's output), two background jobs racing tree edits (baselines happened to be valid — luck, not process), and `/tmp` log files vanishing under concurrent sessions (switched to shell-variable capture).
 
 ## e) WHAT WE SHOULD IMPROVE
 
-1. **Make suppression staleness loud, not silent.** Today's C017 staleness was caught only because a human ran the linter manually. `--fail-on-stale-suppressions` should be evaluated for the flake gate (it exists upstream; unknown interaction with `--strict`).
-2. **Pin the manual-run recipe.** The session re-learned that manual root runs mirror the gate's ROOT run (recursive walk), not the 13 per-module runs, and that `GOTOOLCHAIN=auto` + `GOEXPERIMENT=jsonv2` is the outside-devShell invocation. Gotcha 13 now carries the hazard; a copy-paste command block in AGENTS.md would remove the next session's re-derivation.
-3. **Disposition with evidence, not plausibility.** The C042 miss is the pattern to kill: "accepted" must mean "read the code, confirmed the premise," not "looks fine for a demo."
-4. **Diff rule sets across binary updates.** `cqrs-lint rules` output should be diffed on every rebuild so new rules are triaged deliberately instead of discovering them via gate failures.
-5. **Stale-suppression sweep as a routine.** A one-liner (grep all `//cqrs-lint:ignore` comments, run the linter, assert each fires or remove) would have found the C017 drift without the manual run.
-6. **Background jobs and tree mutations don't mix.** Baseline captures must complete (or be killed) before edits start — same discipline as the no-tree-mutation-during-foreign-verification rule in gotcha 4.
-7. **Route "accepted" tradeoffs to ROADMAP.** P009 was accepted in prose but evaporates from tracking; the convention exists precisely for this.
+1. **Verify fixes against the real surface, not just fixtures.** The unit-only green + real-repo red gap (item d1) is the session's core lesson: before believing a root cause, read every file in the failing surface, not just the one that fits the hypothesis.
+2. **Make suppression staleness loud.** `--fail-on-stale-suppressions` remains the mechanical answer to the C017 class.
+3. **Treat daemon-committed trees as the norm.** Check `git status`/`git log` BEFORE any stash/checkout-style isolation — the daemon had already committed the "uncommitted" fix.
+4. **Capture long outputs in shell variables, not /tmp files** under concurrent sessions (two log-file reads failed this session).
+5. **Claims about tool semantics go in only with source-level or controlled-experiment evidence** — both the strict-severity claim and the first root cause failed that bar and both cost a correction cycle.
+6. **Diff rule sets across linter updates** (`cqrs-lint rules` old vs new) so new warning classes (V007/A016 etc.) are triaged deliberately, not discovered as surprise noise.
 
-## f) Next things to get done (brainstorm — up to 50, sorted roughly by impact; ROADMAP fuel, not a commitment list)
+## f) Next things to get done (brainstorm — the earlier 40-item list stands, with these deltas; ROADMAP fuel, not a commitment list)
 
-**Direct follow-ups from this session (high impact, small effort):**
-1. Verify the C042 premise by reading `examples/dashboard-demo` — confirm fresh streams or fix the demo to load-then-save (real optimistic concurrency).
-2. CLI-verify (ignore gopls) the `lastEvent.AggregateID` deprecation at `e2e/server/main.go:140`; fix to StreamID or suppress with evidence.
-3. Run the Go test suite + e2e Playwright specs once over this session's touched modules (comment-only edits, but the verification debt is real).
-4. Wire `--fail-on-stale-suppressions` into the flake gate (after checking its interaction with `--strict` and the deliberate `V006` suppression).
-5. Sweep ALL inline `//cqrs-lint:ignore` comments repo-wide: assert each still fires under the current binary; delete the ones that don't.
-6. Diff `cqrs-lint rules` output against the pre-rebuild binary to enumerate every new rule (fired or silent).
-7. Verify daemon actually swept the three doc edits (AGENTS/CHANGELOG/TODO_LIST) into a commit.
-8. Route P009 (CBOR-for-[]byte-payloads evaluation) to ROADMAP per convention.
-9. Add the copy-paste manual-run command block (env + invocation + expected RC) to AGENTS.md gotcha 13.
-10. Fold the finding-re-attribution robustness issue into the upstream ask (one report, two findings: C040 tracing + attribution stability).
+**Resolved from the earlier list this session:** upstream C040 report (fixed at source instead), re-enable C040 + drop exemption (done — none exists), P009 routing (ROADMAP OQ 25), locate cqrs-lint source (found), C042 verification, AggregateID verification, module test runs.
 
-**Upstream cqrs-lint work (highest leverage — kills the whole phantom class at the source):**
-11. Locate/clone the cqrs-lint source repo (binary is system-installed, commit `3756eb4`; no local checkout found).
-12. File upstream: C040 cross-module emission tracing (constant-aware event-type resolution + workspace-wide catalog scan).
-13. File upstream: stable finding attribution across rebuilds (or a `--check-suppressions` mode that fails on stale).
-14. After fix lands: re-enable C040 in `.cqrs-lint.json`, delete the exemption, delete the TODO item.
-15. Give cqrs-lint a Go-installable distribution — unblocks items 16–17 (pre-existing blocker).
-16. Wire `check-cqrs-lint` into CI (pre-existing `[~]` TODO item; blocked by 15).
-17. Consider cqrs-lint in the pre-push hook next to release-train + version-drift (post-15; watch gate duration).
-18. Evaluate pinning the cqrs-lint binary version in the flake (today's breakage came from an unpinned system-profile rebuild landing mid-week).
+**New/renewed top items:**
+1. System rebuild → verify `cqrs-lint --strict --verbose .` shows zero C040 on a root walk (TODO_LIST item, exact step recorded).
+2. Triage identity-model 16× E005 (likely a missing cross-module fail-open for pure-domain command modules — candidate linter improvement in `~/projects/go-cqrs-lite`).
+3. Triage usermgmt 41× V007 against ADR-0051's migration posture (suppress-with-reason vs batch-migrate `stack.Materialize`).
+4. Suppress or accept A016 (idempotency advisory) + the 4× V006 lockstep warnings per the documented per-module-train policy.
+5. Run the e2e Playwright suite once over this session's UI-module changes.
+6. Diff `cqrs-lint rules` output between binary `3756eb4` and the current source to enumerate every rule that changed.
+7. Wire `--fail-on-stale-suppressions` into the flake gate (after checking interaction with `--strict`).
+8. Sweep ALL inline `//cqrs-lint:ignore` comments: assert each still fires under the current source; delete the rest.
+9. Add the copy-paste manual-run command block (env + invocation) to AGENTS.md gotcha 13.
+10. Decide A013 for examples (value-embed `BasicCommand` in demos if receiver shapes allow).
+11. Upstream-ask: `min_severity`/strict/exit-code semantics in the linter README (this session had to read `run.go` to learn them).
+12. Evaluate `cqrs-lint scorecard` + `--group-by module` for triage ergonomics.
+13. Consider a repo-pinned cqrs-lint build (flake input on go-cqrs-lite) so gate provenance stops depending on system-profile rebuild timing.
+14. Re-verify the corrected severity-semantics facts on the next binary update.
+15. agents-notes narrative: the easy-way-out correction arc — first root cause wrong, unit tests green, real walk red, var-alias discovery, contaminated baseline, prefix-worktree proof.
 
-**Example/demo hygiene (medium):**
-19. Value-embed `BasicCommand` in the 7 example-module commands (A013 dogfooding) — examples are API-free; `identity-model` stays pointer-embedded.
-20. `examples/system-demo` `waitForView`: check whether go-cqrs-lite exposes a channel-based drain/wait that replaces the poll (P006's actual suggestion) and upgrade the demo if so.
-21. Audit all other `store.Save(..., event.Version(0))` call sites repo-wide for expectedVersion=0 correctness (C042-class sweep).
-22. Decide whether examples/e2e deserve their own `.cqrs-lint.json` preset (demo-oriented disables) instead of inheriting the library preset.
-23. Consider a CI lane that runs cqrs-lint on e2e/examples at INFO threshold — demo rot becomes visible without failing the library gate.
-
-**Config/gate hardening (medium):**
-24. Empirically verify config inheritance: confirm each per-module gate run actually applies root's preset + C040 disable (cheap `cqrs-lint doctor` per module; AGENTS.md currently asserts it from docs).
-25. Add a fixture self-test that `.cqrs-lint.json` JSONC comments parse (today's config-with-comments worked; nothing gates that).
-26. Investigate the `exclude` config key's substring semantics (skipped this session as risky); if scoped excludes are safe, excluding e2e/examples from the root walk may beat per-finding suppressions.
-27. Record `--strict`'s threshold semantics (WARNING+) in the cqrs-lint docs/help upstream — this session had to discover it empirically.
-28. Re-verify the "strict fails at WARNING+" fact on the next binary update (empirical finding, could drift).
-29. Run `cqrs-lint scorecard` once — module adoption coverage has never been reviewed this quarter.
-30. Try `cqrs-lint --group-by module` output for triage ergonomics on future multi-module runs.
-31. Check whether the deliberate `V006` lockstep suppression still fires (it's the one blessed suppression; the sweep in item 5 should keep it green-listed explicitly).
-
-**Docs/knowledge (medium-low):**
-32. Write the `docs/agents-notes.md` incident narrative: rebuild triage evening, line-drift stale suppression, strict-threshold discovery, the adminui/dashboardui C009 asymmetry question.
-33. Explain the adminui C009 asymmetry (user's root-run paste showed dashboardui's panic finding only, despite identical adminui code — truncation? dedup? rule ordering?).
-34. Cross-link CHANGELOG entry ↔ this report ↔ the upstream TODO item so the next docs-health sweep routes cleanly.
-35. Consider a `docs/guides/cqrs-lint.md` if gotcha 13 keeps growing (it just doubled; split-brain risk vs AGENTS.md is real — keep the distilled rules in AGENTS, narratives + recipes in the guide).
-36. Register this report per docs/status/README.md expectations (unarchived tail grows; next archive sweep absorbs it).
-
-**Verification-debt sweep (low, batchable):**
-37. `treefmt`/prettier check over this session's markdown edits (AGENTS/CHANGELOG/TODO_LIST/report).
-38. `nix run .#coverage-gate` once — untouched this session, cheap confidence that nothing drifted.
-39. Re-run `GOWORK=off go mod tidy` + vet per touched module as gotcha 2 prescribes after any go.mod-adjacent work (none happened this session; keep the habit documented).
-40. Verify the e2e server still seeds all nine dashboard pages correctly after the struct-literal gofmt realignment (Playwright specs — same run as item 3).
+(The remaining items from the earlier 40 — config-inheritance verification, JSONC fixture gate, exclude-key semantics, CI lane for e2e/examples at INFO threshold, docs cross-links, coverage-gate re-run, treefmt over markdown — stand unchanged.)
 
 ## g) Questions I can NOT figure out myself
 
-1. **Where does cqrs-lint development live, and do you want the upstream ask filed formally?** I found no local checkout (the binary comes from the system profile, commit `3756eb4`), and I won't guess URLs. If you point me at the repo, I'll file the two-finding report (C040 cross-module tracing + attribution stability) in your voice via github-voice, grounded in today's verified evidence.
-2. **Is the dual decode API (`payload.go` A003/D008 suppressions) a permanent public contract, or should explicit-codec `DecodePayload` be deprecated in v5?** The answer decides whether those suppressions are forever or temporary — and whether the CHANGELOG wording ("deliberate public surface") stays true.
-3. **What is your INFO-noise appetite for manual runs?** Manual `cqrs-lint` runs still print ~30 accepted INFO findings (A013, C042, P009, P008, D013). Keep them visible as a standing nudge, or suppress the accepted classes so manual runs print clean (the gate is unaffected either way)?
+1. **When does the system profile rebuild, and should the flake pin cqrs-lint?** Until then the repo is green but manual runs show stale C040 noise. If rebuild timing is owner-controlled, say the word; if you'd rather the gate stop depending on the system binary entirely, I can wire a flake-local cqrs-lint build from `~/projects/go-cqrs-lite`.
+2. **A013 appetite:** should examples adopt value-embedded `BasicCommand` (dogfooding the rule) or is the pointer-embedding pattern canonical everywhere and worth suppressing in examples?
+3. **Advisory-noise appetite:** the newer linter source surfaces E005×16 / V007×41 / A016×1 / V006×4 as non-gating warnings. Suppress-with-reason for clean verbose runs, triage individually, or leave visible as standing nudges?
 
 ---
 
@@ -129,12 +97,15 @@ Nothing shipped broken this session. Honest near-misses, in descending severity:
 
 | Claim | Evidence |
 | --- | --- |
-| Baseline: ROOT run failed, 13/14 passed | `nix run .#check-cqrs-lint` output, pre-fix (background capture): `FAIL: cqrs-lint findings in .` |
-| C040 phantoms | `usermgmt/es_decide.go:41` emits `eventUserRegistered` (= `identitymodel.EventUserRegistered`); `usermgmt/es_event_catalog.go:13` `DefaultEventCatalog()` registers all 21 |
-| Post-fix gate green | `nix run .#check-cqrs-lint` post-fix: `All modules pass cqrs-lint strict.` (14/14) |
-| User's invocation fixed | `GOTOOLCHAIN=auto cqrs-lint` (workspace mode): RC=1 pre-fix → RC=0 post-fix, zero WARNING/ERROR/stale lines |
-| Gate-environment root run clean | `GOWORK=off GOEXPERIMENT=jsonv2 cqrs-lint --strict --verbose .` → RC=0, 0 ERROR/WARNING, INFO only |
-| Builds | `go build ./...` RC=0; `go vet` on touched packages RC=0; standalone `cd e2e/server && GOWORK=off go build ./...` RC=0 |
-| Code changes committed | `436e821b` (6 files: .cqrs-lint.json, adminui, dashboardui, e2e/server, system-demo, payload.go) + `fef0da50` (gofmt realignment) |
-| Binary identity | `cqrs-lint version` → `dev (commit: 3756eb4, built: 20260929055341, go-finding: 1.13.0)` at `/run/current-system/sw/bin/cqrs-lint` |
-| Empirical strict semantics | Post-fix strict root run exits 0 while still printing INFO findings (P009 et al.) → strict fails at WARNING+ |
+| C040 root cause: literal-only collectors | `scanner_calls.go` pre-fix used `StringLit(call.Args[0])` for event.New/NewEvent/catalog.Event; `es_constants.go` declares emission aliases as `var` (gotcha-15 pattern); `catalog` registrations use `EventMetadata{Type: string(const)}` |
+| Fix works with rule ENABLED | Fixed binary root walk: `C040=0 C038=0 WARN=0 ERR=0 RC=0`; all 13 per-module runs RC=0, C040=0 |
+| Fix adds zero new warnings | Pre-fix commit `ad1dcd46a` worktree build vs fixed binary: identical E005=16 (identity-model), V007=41 + A016=1 (usermgmt) |
+| Linter suite | `cmd/cqrs-lint`: BUILD RC=0, TEST RC=0 (9 new regression tests included) |
+| C009 refactor | `newAssetHandler` error propagation in both modules; dashboardui suite RC=0, adminui suite RC=0; missing-asset unit tests (fstest.MapFS) |
+| C042 verified | `examples/dashboard-demo` seeds: `aggID := id.NewStreamID()` per item, first write `Version(1)`/expected `Version(0)` — correct new-stream contract |
+| AggregateID deprecated | go-cqrs-lite `event/v3_compat_aliases.go:17` "Deprecated: use id.StreamID" |
+| Builds | Workspace `go build ./...` RC=0; standalone e2e/server build RC=0 |
+| Gate green (handoff window) | `nix run .#check-cqrs-lint` (system binary): all 14 modules pass |
+| Severity semantics | `run.go`: exit on ERROR findings; `--strict`→`isStrictMode` gates LoadErrors; `resolveMinSeverity` = display floor; empirically RC=0 with 21 warnings |
+| Status gates | `check-status-annotations.sh` RC=0; `check-status-rows.py` RC=0 |
+| Code commits | cqrs-htmx: daemon commits through the session (`436e821b`, `fef0da50`, later sweeps); go-cqrs-lite: daemon commits `775091d1e`/`b2583c334`/`a94aaccf6`/`b63fd8ad2` carry the linter fix |
