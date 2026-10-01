@@ -2,7 +2,7 @@
 
 > **Timestamp:** 2026-09-23 01:38 CEST
 > **Session scope:** library-deep-dive audit of templ-components usage in `dashboardui/`
-> **Deliverable produced:** [`docs/research/2026-09-23_templ-components-deep-dive.html`](../research/2026-09-23_templ-components-deep-dive.html) (corrected same session, see §d)
+> **Deliverable produced:** [`docs/research/2026-09-23_templ-components-deep-dive.html`](../../research/2026-09-23_templ-components-deep-dive.html) (corrected same session, see §d)
 > **Format note:** user explicitly requested `.md`; skill default is HTML — override honored, not propagated.
 
 > ANNOTATED 2026-09-23 (same-day execution session): the §f plan (24 tasks / 66 micro-tasks) was executed end-to-end after the owner's go. Resolved: #1 (`4b1e82aa`), #2 (`ee14dba9`/`e722ddcb`), #3–#18, #20–#22, #24–#26, #28–#34 (each struck inline below; evidence in the audit report §06/§07, ADR-0053, `docs/research/README.md`, loginpage mini-report). Open: #19 (axe pass), #27 (dark-token audit) — routed to TODO_LIST P3; #23 — options memo drafted, owner decision pending. §g answers: Q2 answered by events (toggle shipped, adminui pattern); Q3 remains owner policy (verdicts documented as divergences in ADR-0053 with reopen triggers).

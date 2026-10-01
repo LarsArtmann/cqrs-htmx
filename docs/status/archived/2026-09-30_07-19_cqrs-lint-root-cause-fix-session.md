@@ -1,6 +1,6 @@
 # cqrs-lint Session — Easy-Way Triage Corrected Into Root-Cause Fixes
 
-> ANNOTATED 2026-10-01 (docs-health round 13): **SUPERSEDED-BY [`2026-09-30_08-03_cqrs-lint-session-forgotten-items-audit.md`](archived/2026-09-30_08-03_cqrs-lint-session-forgotten-items-audit.md)** (its own header says so) — this is the close-of-fix report; 08-03 adds the self-audit's four open items (go-cqrs-lite docs debt, cmd/cqrs-lint vet/lint/-race, RULES.md C040, system rebuild). Known-open items are tracked: TODO_LIST P2/P3 + ROADMAP OQ25. Archived per the tail convention.
+> ANNOTATED 2026-10-01 (docs-health round 13): **SUPERSEDED-BY [`2026-09-30_08-03_cqrs-lint-session-forgotten-items-audit.md`](2026-09-30_08-03_cqrs-lint-session-forgotten-items-audit.md)** (its own header says so) — this is the close-of-fix report; 08-03 adds the self-audit's four open items (go-cqrs-lite docs debt, cmd/cqrs-lint vet/lint/-race, RULES.md C040, system rebuild). Known-open items are tracked: TODO_LIST P2/P3 + ROADMAP OQ25. Archived per the tail convention.
 
 **Session:** 2026-09-29 ~23:00 → 2026-09-30 02:00 CEST (report finalized 07:19)
 **Repos touched:** `cqrs-htmx` (this repo) + `go-cqrs-lite` (`cmd/cqrs-lint` — the linter's actual home, discovered mid-session)

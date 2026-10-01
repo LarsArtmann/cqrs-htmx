@@ -3,7 +3,7 @@
 > ANNOTATED 2026-10-01 (docs-health round 13, second pass): the 09-22 same-day annotation's open tail has since closed — real CI executed the templ-components fixes and stayed green (tip `d13c1445` CI + Website green, witnessed 2026-09-22; cqrs-htmx CI 7/7 witnessed 2026-09-28, run 36382941958), pkg.go.dev renders v4.12.0 with full symbol index + the v1.19.2 consumer-eye is done (09-22/23), the pinned-Chromium pixel suite was never adopted — screenshot truth is the e2e Playwright screenshots + axe sweeps (refreshed 09-23/26), bench-spike closed 2026-09-26, the WithChildren spike passed and graduated to production PolledRegion/Grid adoption (round-12), ListNoteCount shipped (09-23), and the owner calls remain tracked (datastar-demo → TODO_LIST P3; OQ14–16 → ROADMAP). Remaining §f rows are adjudicated against the 2026-09-26 round-12 TODO rewrite; absence of a marker = routed or unadopted brainstorm, both covered by the current TODO_LIST. Archived per the tail convention.
 
 **2026-09-22 12:04 CEST** · session-scoped: what THIS session did, noticed, broke, and missed.
-Inputs: the round-7 [TODO_LIST](../../TODO_LIST.md) as found at session start (02:2x), executed end-to-end; cross-repo work in `~/projects/templ-components`.
+Inputs: the round-7 [TODO_LIST](../../../TODO_LIST.md) as found at session start (02:2x), executed end-to-end; cross-repo work in `~/projects/templ-components`.
 Machine context: load 614 → 36 → 889 across the session (external workloads, 32 cores); `/mnt/buildcache` 100% FULL (1.8G free; rust 155G + sccache 20G dominate) — all Go work ran on `/tmp` fallback caches.
 
 > **ANNOTATED 2026-09-22 (follow-up session):** both release/adoption items in (b) resolved the same day — templ-components v1.19.1 (+ 6 sub-module tags + the CI fixes on master) is pushed and verified on origin via `git ls-remote` (root tag `f917cb89`), and the cqrs-htmx adoption was executed end-to-end (`eb6dfc7a` → `5f1d1bca`, verified by the 14:21 adoption session, sync completed by the 13:25 release-train session). pkg.go.dev propagation + real-CI observation on both pushed ranges remain open (routed to TODO_LIST). Unmarked items below are still open.
@@ -150,4 +150,4 @@ Machine context: load 614 → 36 → 889 across the session (external workloads,
 
 ---
 
-_Point-in-time snapshot. Living state: [TODO_LIST.md](../../TODO_LIST.md) · [CHANGELOG.md](../../CHANGELOG.md) · [ROADMAP.md](../../ROADMAP.md) · [AGENTS.md](../../AGENTS.md). Report convention: [docs/status/README.md](README.md)._
+_Point-in-time snapshot. Living state: [TODO_LIST.md](../../../TODO_LIST.md) · [CHANGELOG.md](../../../CHANGELOG.md) · [ROADMAP.md](../../../ROADMAP.md) · [AGENTS.md](../../../AGENTS.md). Report convention: [docs/status/README.md](../README.md)._
