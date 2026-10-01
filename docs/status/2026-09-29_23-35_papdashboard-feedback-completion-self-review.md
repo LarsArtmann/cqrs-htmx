@@ -1,5 +1,7 @@
 # Status Report — PapDashboard Feedback COMPLETION + Brutal Self-Review
 
+> ANNOTATED 2026-10-01 (docs-health round 13): the open tail largely closed — b1's release-train stage went GREEN 2026-09-30 (the 21-lag alignment cleared all 91 upstream lag entries; check-modules 17/17), b2's cqrs-lint gate was triaged to root-cause the same night (the 09-30 arc: C040 fixed at the linter source, gate green), the push happened (09-30), and the CHANGELOG carries the session's work. STILL OPEN, tracked: the usermgmt re-tag (→ TODO_LIST P1), the e2e RunWithAppkit pin + feedback-inbox checker (→ P3 micro-batch), OQ23/24 owner calls, and the PapDashboard reply (owner channel). The erraudit triage this session queued is TODO_LIST P2. §f rows not struck are adjudicated against the round-13 TODO. Archived per the tail convention.
+
 **Date:** 2026-09-29 23:35
 **Session:** evening continuation (~22:30–23:35) of the 2026-09-29 feedback-processing session; executed the entire remaining TODO list from the 11:46 report.
 **Tree state at write time:** clean, 13+ commits ahead of origin/master (NOT pushed — push is owner-gated), auto-commit daemon active throughout.
@@ -28,8 +30,8 @@
 
 ## b) PARTIALLY DONE
 
-1. **check-modules** — every stage verified green INDIVIDUALLY, but the composite run exits 3 at the release-train stage (91 upstream train-lag entries: go-error-family v0.11.0, branded-id v0.7.0, datastar v0.6.1, watermill v4.6.2, appkit v0.7.0, catalog v4.6.0, ssetest v0.4.0). Pre-existing relative to this session (zero go.mod files touched here; the OQ-20 "upstream waves redden master" pattern). The gate prints an exact 9-command fix recipe — executing it is a train-policy decision (g1 below), not a drive-by.
-2. **cqrs-lint gate** — fails on the ROOT run only (all 13 per-module runs pass). Diagnosed: linter binary rebuilt 2026-09-29 05:53 (upstream `3756eb4`) introduced rules that fire on payload.go's deliberate dual decode API + phantom cross-module findings in the recursive `.` walk (fold.go "never emitted" warnings are provably wrong — the events exist). Triaged to TODO_LIST P2 rather than mass-suppressing ~50 findings against a day-old heuristic set. NOT actually fixed.
+1. ~~**check-modules** — every stage verified green INDIVIDUALLY, but the composite run exits 3 at the release-train stage (91 upstream train-lag entries: go-error-family v0.11.0, branded-id v0.7.0, datastar v0.6.1, watermill v4.6.2, appkit v0.7.0, catalog v4.6.0, ssetest v0.4.0). Pre-existing relative to this session (zero go.mod files touched here; the OQ-20 "upstream waves redden master" pattern). The gate prints an exact 9-command fix recipe — executing it is a train-policy decision (g1 below), not a drive-by.~~ RESOLVED 2026-09-30 — the alignment session executed the recipe (8 family sweeps), release-train strict 0 lag / 0 unpublished, check-modules 17/17 (docs-health pass 2026-10-01).
+2. ~~**cqrs-lint gate** — fails on the ROOT run only (all 13 per-module runs pass). Diagnosed: linter binary rebuilt 2026-09-29 05:53 (upstream `3756eb4`) introduced rules that fire on payload.go's deliberate dual decode API + phantom cross-module findings in the recursive `.` walk (fold.go "never emitted" warnings are provably wrong — the events exist). Triaged to TODO_LIST P2 rather than mass-suppressing ~50 findings against a day-old heuristic set. NOT actually fixed.~~ RESOLVED 2026-09-30 — the same-night arc root-caused C040 to a linter collector gap and fixed it at source in go-cqrs-lite (const/var-alias chains + EventMetadata registrations); gate green 14/14 through the handoff window (docs-health pass 2026-10-01).
 
 ## c) NOT STARTED
 
@@ -37,8 +39,8 @@
 2. **Feedback-inbox checker** (f23) — `scripts/check-feedback-inbox.sh` candidate (new/ empty at train time; processed/ carries outcome annotations). Would need the full atomic-gate checklist if built.
 3. **CHANGELOG entry for the lint-fix commit** (`1eb7be83`) — arguably below the changelog bar; unrecorded.
 4. **Verification gaps I did not close:** `nix run .#check-templates`, `nix run .#check-codegen` (templ drift), the errorfamily gate, and the local-only e2e Playwright suite (dashboardui pagination.go changed — CutLast — behavior-identical and unit-tested, but not browser-exercised). None of my changes touch .templ/SQL-setup surfaces; risk assessed low, claims of "full battery" should nonetheless name them.
-5. **Push** — 13+ commits sit local (owner-gated by rule).
-6. **usermgmt re-tag / family train** — codec migration + seams only benefit consumers at published tags (PapDashboard's codec/v4 indirect drop waits on it).
+5. ~~**Push** — 13+ commits sit local (owner-gated by rule).~~ done 2026-09-30 — pushed through after the alignment sweep (git town continue; pre-push strict gates green).
+6. ~~**usermgmt re-tag / family train** — codec migration + seams only benefit consumers at published tags (PapDashboard's codec/v4 indirect drop waits on it).~~ PARTIAL — setup re-tagged (v4.13.0/v4.13.1, 09-30, incl. the ADR-0054 shell ride); the usermgmt re-tag is still pending → TODO_LIST P1 (docs-health pass 2026-10-01).
 
 ## d) TOTALLY FUCKED UP!
 
@@ -60,10 +62,10 @@ Nothing content-wise is broken — every test/lint/coverage gate that can be gre
 
 ## f) Next things to get done (ordered, session-derived + observed)
 
-1. Owner call g1 → then execute the 9-command release-train fix recipe (family alignment sweep to 0 lag).
-2. Cut the usermgmt re-tag (codec migration) + setup re-tag (seams) on the chosen train — `scripts/verify-tag.sh`, wave-ordered per the release playbook.
-3. Post-re-tag absence sweep: `rg 'codec/v4' -g go.mod` expecting zero (drops setup's lingering indirect).
-4. cqrs-lint triage (TODO_LIST P2): per-finding suppress-with-reason vs upstream false-positive reports vs linter version pin.
+1. ~~Owner call g1 → then execute the 9-command release-train fix recipe (family alignment sweep to 0 lag).~~ done 2026-09-30 — the alignment session executed the recipe (8 sweeps, 21 lags cleared, push unblocked).
+2. ~~Cut the usermgmt re-tag (codec migration) + setup re-tag (seams) on the chosen train — `scripts/verify-tag.sh`, wave-ordered per the release playbook.~~ HALF-DONE — setup/v4.13.0+v4.13.1 cut 09-30 (with the ADR-0054 shell ride); usermgmt pending → TODO_LIST P1.
+3. ~~Post-re-tag absence sweep: `rg 'codec/v4' -g go.mod` expecting zero (drops setup's lingering indirect).~~ waits on the usermgmt tag (P1).
+4. ~~cqrs-lint triage (TODO_LIST P2): per-finding suppress-with-reason vs upstream false-positive reports vs linter version pin.~~ done 2026-09-30 — the arc root-caused C040 at source, fixed C009 by design, verified C042, corrected the severity record; residual classes → TODO_LIST P3 consolidated triage.
 5. e2e pin: ExtraMiddleware composes under `RunWithAppkit` (f22).
 6. Feedback-inbox checker (f23) — full atomic-gate checklist if built.
 7. Run the skipped verifications once on the final tree: check-templates, check-codegen, errorfamily gate, e2e Playwright suite.
@@ -74,10 +76,10 @@ Nothing content-wise is broken — every test/lint/coverage gate that can be gre
 12. Restart gopls/golangci_ls (3 stale diagnostics persist on files verified clean — gotcha 14 noise for the next session).
 13. Answer PapDashboard via the resolved channel: codec migration shipped; seams + decision doc live; ask where #67/#68 live.
 14. ROADMAP OQ 23/24 go/no-go decision (second-consumer evidence bar).
-15. Annotate the 11:46 report's f20/f21 as still-open train mechanics if the train decision lands later.
-16. Commit hygiene note in AGENTS gotcha 4: "formatter-clean ≠ lint-clean; pre-commit bar is `golangci-lint run`" (e2 lesson).
-17. Push (after owner go-ahead) — 13+ local commits, pre-push hook will run strict train gates (will FAIL on 91-lag until f1 executes; that ordering is deliberate: sweep first, then push).
-18. Re-run `nix run .#check-modules` end-to-end after the train sweep to see the composite green in one shot.
+15. ~~Annotate the 11:46 report's f20/f21 as still-open train mechanics if the train decision lands later.~~ done 2026-10-01 — the 11:46 report carries the round-13 closing blockquote (setup tagged; usermgmt pending → P1).
+16. ~~Commit hygiene note in AGENTS gotcha 4: "formatter-clean ≠ lint-clean; pre-commit bar is `golangci-lint run`" (e2 lesson).~~ open small — not yet distilled (round-13 adjudication: keep as candidate for the next gotcha-4 touch).
+17. ~~Push (after owner go-ahead) — 13+ local commits, pre-push hook will run strict train gates (will FAIL on 91-lag until f1 executes; that ordering is deliberate: sweep first, then push).~~ done 2026-09-30 — exactly that order executed.
+18. ~~Re-run `nix run .#check-modules` end-to-end after the train sweep to see the composite green in one shot.~~ done 2026-09-30 — 17/17 green at the alignment session's verification (01:5x).
 
 ## g) Questions I can NOT figure out myself
 

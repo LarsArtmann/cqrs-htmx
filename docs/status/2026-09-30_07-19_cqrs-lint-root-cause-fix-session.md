@@ -1,5 +1,7 @@
 # cqrs-lint Session — Easy-Way Triage Corrected Into Root-Cause Fixes
 
+> ANNOTATED 2026-10-01 (docs-health round 13): **SUPERSEDED-BY [`2026-09-30_08-03_cqrs-lint-session-forgotten-items-audit.md`](archived/2026-09-30_08-03_cqrs-lint-session-forgotten-items-audit.md)** (its own header says so) — this is the close-of-fix report; 08-03 adds the self-audit's four open items (go-cqrs-lite docs debt, cmd/cqrs-lint vet/lint/-race, RULES.md C040, system rebuild). Known-open items are tracked: TODO_LIST P2/P3 + ROADMAP OQ25. Archived per the tail convention.
+
 **Session:** 2026-09-29 ~23:00 → 2026-09-30 02:00 CEST (report finalized 07:19)
 **Repos touched:** `cqrs-htmx` (this repo) + `go-cqrs-lite` (`cmd/cqrs-lint` — the linter's actual home, discovered mid-session)
 **Arc:** Two passes. Pass 1 triaged the failing cqrs-lint gate with suppressions and a config disable. The owner challenged it ("you took the easy way out"), and Pass 2 reversed the paper-overs and fixed the actual root causes — including a fix INSIDE the linter itself.
@@ -33,7 +35,7 @@ A rebuilt cqrs-lint binary (upstream `3756eb4`, 2026-09-29 05:53) turned the gat
 12. **Gate green through the handoff window**: `nix run .#check-cqrs-lint` 14/14 with the OLD system binary and C040 re-enabled in config (phantom warnings are non-failing); user's exact invocation exits 0.
 13. **Docs paid in full**: CHANGELOG entry rewritten to final truth; TODO_LIST item replaced with the bounded handoff (system rebuild → verify C040 silent) including the residual-warning inventory; AGENTS.md quick-ref row + gotcha 13 carry the corrected semantics and the linter-fix story; ROADMAP OQ 25 opened (P009 []byte/JSON codec decision); `.cqrs-lint.json` documents the fix and the handoff in place of the never-needed exemption.
 14. **Build/test battery**: workspace `go build ./...` RC=0; standalone e2e/server build RC=0 (root workspace patterns don't reach `./e2e/...`); dashboardui + adminui suites RC=0; go vet on touched packages RC=0; gofmt clean.
-15. **Status-report hygiene**: both repo gates (`check-status-annotations.sh`, `check-status-rows.py`) pass.
+15. ~~**Status-report hygiene**: both repo gates (`check-status-annotations.sh`, `check-status-rows.py`) pass.~~ done (verified standing; re-verified in the round-13 archive pass).
 
 ## b) PARTIALLY DONE
 

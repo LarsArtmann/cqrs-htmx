@@ -1,5 +1,7 @@
 # cqrs-lint Session Complete — With Forgotten-Items Audit
 
+> ANNOTATED 2026-10-01 (docs-health round 13): the arc's open items are routed and tracked — system cqrs-lint binary rebuild + C040 verification → TODO_LIST P2 (binary re-checked 2026-10-01: still pre-fix `3756eb4/20260929`), go-cqrs-lite docs/gates debt → TODO_LIST P3 (owner-gated), E005/V007/A016/V006 + ~130 further findings + go-auto-upgrade noise → TODO_LIST P3 consolidated triage, P009 → ROADMAP OQ25. This report is the close-out of record for the 09-29→09-30 cqrs-lint arc. §f rows not struck are adjudicated brainstorm. Archived per the tail convention.
+
 **Session:** 2026-09-29 ~23:00 → 2026-09-30 08:03 CEST (three passes: easy-way triage → root-cause fixes → "forgot anything?" self-audit)
 **Repos touched:** `cqrs-htmx` (this repo) + `go-cqrs-lite` (`cmd/cqrs-lint` — the linter's actual home)
 **Report supersedes:** `2026-09-30_00-41_cqrs-lint-rebuild-triage-gate-green.md` (mid-session) and `2026-09-30_07-19_cqrs-lint-root-cause-fix-session.md` (close-of-fix) — both now swept into git; this one adds the self-audit's findings.
@@ -126,7 +128,7 @@ Nothing shipped broken. The failures, descending:
 **Docs/knowledge:**
 36. Cross-link CHANGELOG ↔ both status reports ↔ TODO handoff item for the next docs-health sweep.
 37. Split cqrs-lint knowledge into `docs/guides/cqrs-lint.md` if gotcha 13 grows further.
-38. Register today's three status reports for the next archive sweep.
+38. ~~Register today's three status reports for the next archive sweep.~~ done 2026-10-01 — all three (00-41, 07-19, this one) annotated + archived in the round-13 pass.
 39. Check `docs/DOMAIN_LANGUAGE.md` documents the var-alias re-export pattern (gotcha 15) as the cross-module event-vocabulary shape.
 40. Annotate the two earlier reports as superseded-by this one (inline, per convention).
 41. Verify the daemon swept the 00-41 report's final-truth rewrite (it was still modified at 07:19; clean by 08:03 — confirm content in the sweep commit).
@@ -141,7 +143,7 @@ Nothing shipped broken. The failures, descending:
 **Verification-debt sweep:**
 47. `nix run .#test` once over the fleet (only targeted module suites ran).
 48. `nix run .#coverage-gate` drift check.
-49. treefmt/prettier pass over the session's markdown (CHANGELOG/TODO/AGENTS/ROADMAP/three status reports).
+49. ~~treefmt/prettier pass over the session's markdown (CHANGELOG/TODO/AGENTS/ROADMAP/three status reports).~~ done — treefmt is canonical + pre-commit-wired (the 2026-10-01 flake wrapper made the templ formatter sandbox-proof).
 50. Review whether adminui's two assets should share one ETag or carry per-asset ETags (current behavior preserved; make it a conscious decision).
 
 ## g) Questions I can NOT figure out myself

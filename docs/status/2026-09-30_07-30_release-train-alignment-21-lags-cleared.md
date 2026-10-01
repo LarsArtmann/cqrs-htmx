@@ -1,5 +1,7 @@
 # Release-Train Alignment — 21 Lags Cleared, Push Unblocked (2026-09-30 07:30)
 
+> ANNOTATED 2026-10-01 (docs-health round 13): the follow-through landed — the CHANGELOG convention question (g1) resolved by precedent (the 8 family bumps got [Unreleased] entries in this pass), the SA1019 migrations (datastar-demo broadcast, e2e AggregateID→StreamID) + the e2e/server nil-error-return fix all landed 2026-09-30/10-01, the go.work prune happened 10-01 (19 dead replaces dropped, the load-bearing go-etag pin restored + documented), check-cqrs-lint re-verified green with C040 enabled (09-30 arc), the git-town sync state cleared (push succeeded same session), and this HARVEST happened in this pass (survivors → TODO_LIST P2/P3: go mod verify, coverage/bench re-runs, bump-dep `--commit`, runbook notes). §f rows not struck are adjudicated brainstorm. Archived per the tail convention.
+
 > Session: 2026-09-30 ~00:45–02:00 (work) / 07:30 (this report). Series: episode 2 of the
 > push-train-lag genre — see [`2026-09-27_06-39_push-train-lag-fix-dependency-sweeps.md`](2026-09-27_06-39_push-train-lag-fix-dependency-sweeps.md)
 > for episode 1. Report covers THIS session's run only, per instruction.
@@ -54,11 +56,11 @@ session executed it and re-verified every gate.
   the four gates above were the push-blocking set; the rest is follow-up
 - Memory upkeep: lessons for AGENTS.md gotcha 4 / dependency-train-bump runbook
   identified (see e) but not yet written
-- HARVEST of this report's (f) items into TODO_LIST/ROADMAP: pending instruction
+- ~~HARVEST of this report's (f) items into TODO_LIST/ROADMAP: pending instruction~~ — done 2026-10-01 (round-13 pass; survivors tracked in TODO_LIST P2/P3).
 
 ## c) NOT STARTED
 
-- CHANGELOG entries for the 8 family bumps (convention unclear — question g1)
+- ~~CHANGELOG entries for the 8 family bumps (convention unclear — question g1)~~ — done 2026-10-01: entries added to [Unreleased] (round-13); the standing convention for FUTURE dep-only sweeps remains an owner call.
 - `bump-dep.sh --commit` mode (sweep + commit in one process, beats the daemon)
 - BuildFlow pre-commit env-class fixes (go-licenses outside devShell, tsconfig-check on a
   Go repo, samber-linter ~80% failure rate) that force the `--no-verify` fallback

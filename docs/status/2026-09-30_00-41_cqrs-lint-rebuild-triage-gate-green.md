@@ -1,5 +1,7 @@
 # cqrs-lint Rebuild Triage — Root Cause Fixed At The Linter Source, Gate Green
 
+> ANNOTATED 2026-10-01 (docs-health round 13): **SUPERSEDED-BY [`2026-09-30_08-03_cqrs-lint-session-forgotten-items-audit.md`](archived/2026-09-30_08-03_cqrs-lint-session-forgotten-items-audit.md)** (its own header says so) — this is the mid-session triage snapshot; the 07-19 report is the close-of-fix and 08-03 adds the forgotten-items audit. Known-open items here (system rebuild, E005/V007/A016/V006 residual triage, P009 codec decision, `--fail-on-stale-suppressions`) are tracked: TODO_LIST P2/P3 + ROADMAP OQ25. Archived per the tail convention.
+
 **Session:** 2026-09-29 late → 2026-09-30 01:5x CEST
 **Scope:** Single-thread session — triage of the failing `check-cqrs-lint` gate after the 2026-09-29 binary rebuild (upstream `3756eb4`), escalated by the owner's "you took the easy way out" challenge into fixing the root causes instead of suppressing them. Two repos touched: this one and `~/projects/go-cqrs-lite` (`cmd/cqrs-lint`, the linter's actual home).
 **Trigger:** Manual `GOTOOLCHAIN=auto cqrs-lint` run (workspace mode) exiting 1 with an ERROR-severity C017 finding, 21 C040 warnings, and one stale-suppression warning.
@@ -26,7 +28,7 @@ The rebuilt cqrs-lint binary turned the ROOT recursive-walk run red. The easy pa
 6. **C042 verified then suppressed**: all three `examples/dashboard-demo` Save sites write `Version(1)` events at `expectedVersion=0` to freshly created streams — the rule's "optimistic concurrency bypassed" premise is false there; suppressed with the verified reason, matching the demo's established per-finding style.
 7. **`event.AggregateID()` deprecation confirmed** (go-cqrs-lite `event/v3_compat_aliases.go`: "Deprecated: use id.StreamID") and the e2e call site fixed to `StreamID()` (identical value per the compat tests).
 8. **Severity semantics corrected in the record** (AGENTS.md gotcha 13 + CHANGELOG): exit code = ERROR findings; `--strict` = load errors; `min_severity` = display floor. Empirically pinned by an RC=0 run with 21 warnings present.
-9. **Gate green through the handoff window**: `nix run .#check-cqrs-lint` (system binary, C040 enabled in config) → all 14 modules pass; the old binary's phantom C040 warnings are non-failing by the corrected semantics. Both status gates pass on the report.
+9. ~~**Gate green through the handoff window**: `nix run .#check-cqrs-lint` (system binary, C040 enabled in config) → all 14 modules pass; the old binary's phantom C040 warnings are non-failing by the corrected semantics. Both status gates pass on the report.~~ done (verified standing through the 08-03 handoff; docs-health pass 2026-10-01).
 10. **Docs paid**: CHANGELOG entry rewritten to final truth; TODO_LIST triage item replaced by the bounded handoff item (system rebuild → verify C040 silent); AGENTS.md quick-ref row + gotcha 13 updated; ROADMAP OQ 25 opened for the P009 []byte/JSON codec question; `.cqrs-lint.json` carries the fix story in place of the never-actually-needed exemption.
 
 ## b) PARTIALLY DONE

@@ -139,3 +139,5 @@ Also noted, not mine but observed: BuildFlow pre-commit fails deterministically 
 _Point-in-time snapshot; annotate, never rewrite. Session continues on instruction._
 
 > ANNOTATED 2026-09-29: closed out same day — see the top blockquote. f22 (RunWithAppkit seam e2e pin) and f23 (feedback-inbox checker) remain the two unexecuted session-derived candidates, both non-blocking.
+>
+> ANNOTATED 2026-10-01 (docs-health round 13, closing pass): the follow-through state — setup re-tagged (v4.13.0 + v4.13.1, including the ADR-0054 identity-external shell ride), while the usermgmt re-tag (f20/f21's codec-migration publication) is STILL PENDING and is now TODO_LIST P1; f22 + f23 are tracked in TODO_LIST P3 (micro-batch); g1's train policy resolved incrementally (setup shipped 09-30, family train pending); g2 (OQ23/24) stays the recorded owner call in ROADMAP. f20's absence sweep rode the pending tag. Archived per the tail convention — the live state lives in TODO_LIST P1.
