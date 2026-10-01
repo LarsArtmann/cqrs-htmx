@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-sse v0.6.1
@@ -35,7 +35,6 @@ require (
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect

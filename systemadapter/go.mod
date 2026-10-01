@@ -5,7 +5,7 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.0
@@ -48,7 +48,6 @@ require (
 	github.com/larsartmann/go-codec v0.3.0 // indirect
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0 // indirect
 	//cqrs-lint:ignore(V006) v4.0.0 IS the latest published tag for commandlifecycle/projections; per-module release cadences differ
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.0 // indirect

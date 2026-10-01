@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
 	github.com/larsartmann/go-appkit v0.7.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
@@ -65,7 +65,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.0 // indirect

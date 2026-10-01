@@ -150,8 +150,8 @@ github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0 h1:nND/2bnYCVeu6iIYvm
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0/go.mod h1:KI3H5BHbkthEoN3hwuCE4yHLyx6egic6t1yjAcd0e7w=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0 h1:YfVGxEfoAZ3/+GgsMJI55bNKQDY0zfteY0Glwkahpg4=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0/go.mod h1:WFSXzl0mTzO+bmL9M5Jfl6hgv/IHOt0nbptalu6wKak=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.12.0 h1:khohC78S+neC9nNn5GsPPq5kNYBaiafoCZl5L3oko1M=
-github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.12.0/go.mod h1:EsHlkilWbQ7PgDmo4bgm75qn8AMjrTi5S4MCZLCJdxU=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.0 h1:AgejXLBYQRDI71JVNZbUOv7WILyVi6/baqRmS2SuLuM=
+github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.0/go.mod h1:wZm92PfmcBlEoeAHqULKSwhPSI2j2NCtQLhrvX4e2Wk=
 github.com/larsartmann/cqrs-htmx/v4 v4.12.0 h1:3kcgF/OV39nrcUXKusqT7AwtugZfe1pdAFcriVPTh+M=
 github.com/larsartmann/cqrs-htmx/v4 v4.12.0/go.mod h1:ORmIqVOa0hJWDpJfeNd7XXJ5JLsoUDmxCvW4IXuX+1Q=
 github.com/larsartmann/go-appkit v0.7.0 h1:jtqgx3ub+gi0YTeJ7eYhYLoL/BHB1ScHIP7Oy8j9sdA=
@@ -162,8 +162,6 @@ github.com/larsartmann/go-codec v0.3.0 h1:KqwarePns8Xcxg0YEf4NjLnPXIl9i1nvFp2Jax
 github.com/larsartmann/go-codec v0.3.0/go.mod h1:zUkKQzRqGltYF0kBwzrETezAKJDErcs0H2cc1/cY9x0=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 h1:SCI5XMG6TM+H206iCyPbzgmiDEa8ZHBGFO2evxQoZ6k=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0/go.mod h1:OnWKCtO8EnVtYlwsci7UW+FVYxNX9mzJc7E4I2qrZWY=
-github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 h1:PnUN4VdglHJpPJQEhg/seGAw5v7hoPcxFUDjEiu6fKU=
-github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0/go.mod h1:V3O2zg2zp+X831dyEbJByDJU0kVSvMEk3oWsoihHo30=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0 h1:A4apnTeKRBiRRnyPWxf17fT+dpOOoCasWQCj/jvPWpk=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0/go.mod h1:xY7xBfTjFUTIMJjPNb+LRd4qdJ6duBQUGR2KWcbk7mw=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0 h1:OTDCHJ0oG+NTvYl8ZIiYg9o/Ub1ccAyyVreLVJf4+yc=
