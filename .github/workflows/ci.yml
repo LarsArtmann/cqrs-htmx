@@ -759,6 +759,11 @@ jobs:
       - name: Status row normalize self-test
         run: bash scripts/test-normalize-status-rows.sh
 
+      # Advisory tail-budget gate (non-blocking by design; a mid-session
+      # docs/status tail is legitimate) plus its fixture self-test.
+      - name: Docs status tail-budget self-test
+        run: bash scripts/test-check-docs-tail-budget.sh
+
       # Fixture self-test for the /v4-suffix import-path rule inside
       # check-docs-freshness.sh (scripts/lib/docs-import-paths.sh).
       - name: Docs freshness self-test

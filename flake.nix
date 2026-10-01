@@ -268,6 +268,48 @@
               program = pkgs.lib.getExe config.treefmt.build.wrapper;
             };
 
+            bump-dep = {
+              type = "app";
+              meta.description = "Sweep a family dependency to one version across the workspace (tidy + go mod verify + build + vet per module); supports --dry-run / --commit / --no-verify";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "bump-dep";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.git
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/bump-dep.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-bump-dep = {
+              type = "app";
+              meta.description = "Fixture self-test for bump-dep.sh discovery (block + single-line require forms, $ anchor, testdata skip, no-match)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-bump-dep";
+                  runtimeInputs = [
+                    pkgs.findutils
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-bump-dep.sh
+                  '';
+                }
+              );
+            };
+
             test = goApp {
               name = "run-tests";
               description = "Run Go tests with race detector across all workspace modules (auto-discovered, excludes e2e/examples)";
@@ -1124,6 +1166,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/test-normalize-status-rows.sh
+                  '';
+                }
+              );
+            };
+
+            check-docs-tail-budget = {
+              type = "app";
+              meta.description = "ADVISORY: warn when the live docs/status/*.md tail exceeds 3 reports (--strict to exit 1). Deliberately not a blocking check-modules stage";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-docs-tail-budget";
+                  runtimeInputs = [
+                    pkgs.findutils
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-docs-tail-budget.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-docs-tail-budget = {
+              type = "app";
+              meta.description = "Fixture self-test for check-docs-tail-budget.sh (5 cases: within/over/advisory/strict/README-excluded/budget-override)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-docs-tail-budget";
+                  runtimeInputs = [
+                    pkgs.findutils
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-docs-tail-budget.sh
                   '';
                 }
               );
