@@ -38,7 +38,7 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logAuth("totp_setup_failed", userID, "reason", "user_not_found")
-		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.totp.user_not_found", "enable totp")
+		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.totp.user_not_found", "enable totp").WithContextAny("user_id", userID)
 	}
 	if user.TOTPEnabled {
 		s.logAuth("totp_setup_failed", userID, "reason", "already_enabled")
@@ -80,7 +80,7 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 	if err := s.dispatcher.Dispatch(ctx, NewEnableTOTPCmd(aggID, secret)); err != nil {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "dispatch_error")
 		return errorfamily.Wrapf(err, errorfamily.Classify(err),
-			"usermgmt.totp.dispatch_failed", "enable totp dispatch")
+			"usermgmt.totp.dispatch_failed", "enable totp dispatch").WithContextAny("user_id", userID)
 	}
 	s.logAuth(statusTOTPEnabled, userID)
 	return nil
@@ -105,12 +105,12 @@ func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) e
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
 		s.logAuth("totp_disable_failed", userID, "reason", "invalid_user_id")
-		return errorfamily.WrapInfrastructure(err, "usermgmt.totp.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.totp.userid_conversion_failed", "convert userID").WithContextAny("user_id", userID)
 	}
 	if err := s.dispatcher.Dispatch(ctx, NewDisableTOTPCmd(aggID)); err != nil {
 		s.logAuth("totp_disable_failed", userID, "reason", "dispatch_error")
 		return errorfamily.Wrapf(err, errorfamily.Classify(err),
-			"usermgmt.totp.dispatch_failed", "disable totp dispatch")
+			"usermgmt.totp.dispatch_failed", "disable totp dispatch").WithContextAny("user_id", userID)
 	}
 	s.logAuth(statusTOTPDisabled, userID)
 	return nil
@@ -123,7 +123,7 @@ func (s *Service) requireValidTOTP(userID UserID, code, failEvent string) error 
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logAuth(failEvent, userID, "reason", "user_not_found")
-		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.totp.user_not_found", "totp")
+		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.totp.user_not_found", "totp").WithContextAny("user_id", userID)
 	}
 	if !user.TOTPEnabled || len(user.TOTPSecret) == 0 {
 		s.logAuth(failEvent, userID, "reason", "totp_not_enabled")

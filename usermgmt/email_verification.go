@@ -50,7 +50,7 @@ func newVerificationTokenStore() *verificationTokenStore {
 func (s *verificationTokenStore) Save(userID UserID, email string, ttl time.Duration) (string, error) {
 	token, err := generateVerificationToken()
 	if err != nil {
-		return "", err
+		return "", errorfamily.WrapInfrastructure(err, "usermgmt.verification.token_generate", "generate verification token").WithContextAny("user_id", userID)
 	}
 	s.mu.Lock()
 	s.tokens[token] = verificationEntry{
@@ -110,7 +110,7 @@ func (s *Service) SendVerificationEmail(ctx context.Context, userID UserID) (tok
 			ErrUserNotFound,
 			"usermgmt.verification.user_not_found",
 			"send verification email",
-		)
+		).WithContextAny("user_id", userID)
 	}
 	if user.EmailVerified {
 		s.logAuth("verification_email_failed", userID, "reason", "already_verified")
