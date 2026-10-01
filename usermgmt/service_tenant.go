@@ -49,7 +49,7 @@ func (s *Service) CreateTenant(ctx context.Context, req CreateTenantRequest) (*T
 func (s *Service) SuspendTenant(ctx context.Context, tenantID TenantID, reason string) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID").WithContextAny("tenant_id", tenantID)
 	}
 	return s.dispatcher.Dispatch( //nolint:wrapcheck // decider returns typed domain errors
 		ctx,
@@ -61,7 +61,7 @@ func (s *Service) SuspendTenant(ctx context.Context, tenantID TenantID, reason s
 func (s *Service) ReactivateTenant(ctx context.Context, tenantID TenantID) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID").WithContextAny("tenant_id", tenantID)
 	}
 	return s.dispatcher.Dispatch( //nolint:wrapcheck // decider returns typed domain errors
 		ctx,
@@ -75,7 +75,7 @@ func (s *Service) ReactivateTenant(ctx context.Context, tenantID TenantID) error
 func (s *Service) DeleteTenant(ctx context.Context, tenantID TenantID, reason string) error {
 	aggID, err := aggIDFromTenant(tenantID)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.tenant.id_conversion_failed", "convert tenant ID").WithContextAny("tenant_id", tenantID)
 	}
 	//cqrs-lint:ignore(C033) decider returns typed domain errors; wrapping would obscure the family
 	if err := s.dispatcher.Dispatch(ctx, NewDeleteTenantCmd(aggID, reason)); err != nil {

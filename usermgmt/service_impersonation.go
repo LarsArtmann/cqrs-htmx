@@ -29,14 +29,14 @@ func (s *Service) BeginImpersonation(
 		return nil, errorfamily.NewRejection(
 			"usermgmt.impersonation.reason_required",
 			"impersonation reason is required for audit trail",
-		)
+		).WithContextAny("target_id", targetID)
 	}
 
 	if callerID == targetID {
 		return nil, errorfamily.NewRejection(
 			"usermgmt.impersonation.self_impersonation",
 			"cannot impersonate yourself",
-		)
+		).WithContextAny("target_id", targetID)
 	}
 
 	callerAggID, err := aggIDFromUser(callerID)
@@ -44,7 +44,7 @@ func (s *Service) BeginImpersonation(
 		return nil, errorfamily.WrapInfrastructure(
 			err, "usermgmt.impersonation.caller_id_invalid",
 			"convert caller UserID",
-		)
+		).WithContextAny("target_id", targetID)
 	}
 
 	// Verify caller has super_admin role.
@@ -54,13 +54,13 @@ func (s *Service) BeginImpersonation(
 			err, event.Infrastructure,
 			"usermgmt.impersonation.role_check_failed",
 			"check roles for caller %s", callerID,
-		)
+		).WithContextAny("target_id", targetID)
 	}
 	if !slices.Contains(roles, RoleSuperAdmin) {
 		return nil, errorfamily.NewRejection(
 			"usermgmt.impersonation.insufficient_privileges",
 			"caller must have super_admin role to impersonate",
-		)
+		).WithContextAny("target_id", targetID)
 	}
 
 	// Verify target exists.
@@ -69,13 +69,13 @@ func (s *Service) BeginImpersonation(
 		return nil, errorfamily.WrapInfrastructure(
 			err, "usermgmt.impersonation.target_id_invalid",
 			"convert target UserID",
-		)
+		).WithContextAny("target_id", targetID)
 	}
 	if _, ok := s.readModel.FindByID(targetAggID); !ok {
 		return nil, errorfamily.NewRejection(
 			"usermgmt.impersonation.target_not_found",
 			"target user does not exist",
-		)
+		).WithContextAny("target_id", targetID)
 	}
 
 	callerActor := ActorIDFromUser(callerID)
