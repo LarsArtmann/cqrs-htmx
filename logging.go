@@ -169,10 +169,11 @@ type StatusRecorder struct {
 // 0 (unset) — callers should check WroteHeader() before relying on Status().
 func NewStatusRecorder(w http.ResponseWriter) *StatusRecorder {
 	return &StatusRecorder{
-		ResponseWriter: w,
-		ErrorRecorder:  ErrorRecorder{}, //nolint:exhaustruct // zero values are correct
-		status:         0,
-		wrote:          false,
+		//nolint:modernize // exhaustruct_v5 cannot see promoted keys; explicit nested form required
+		delegatingWriter: delegatingWriter{ResponseWriter: w},
+		ErrorRecorder:    ErrorRecorder{}, //nolint:exhaustruct // zero values are correct
+		status:           0,
+		wrote:            false,
 	}
 }
 
