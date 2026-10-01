@@ -21,6 +21,17 @@ import (
 	"github.com/larsartmann/httputil"
 )
 
+// Config-field display names used across the validation tables. They name
+// the field (not the route), so a rejected config names the exact key to
+// change; constants keep the three tables in sync (goconst).
+const (
+	fieldSSEPath              = "SSEPath"
+	fieldDataStarPath         = "DataStarPath"
+	fieldEventCatalogPath     = "EventCatalogPath"
+	fieldProjectionStatusPath = "ProjectionStatusPath"
+	fieldDebugPath            = "DebugPath"
+)
+
 // Config is the single entry point for configuring a full-stack cqrs-htmx application.
 //
 // Only Title is practically required (it defaults to "cqrs-htmx" if empty).
@@ -806,20 +817,7 @@ func (c Config) validateDisableService() error {
 		)
 	}
 
-	var panels []string
-	if !c.DisableAdmin {
-		panels = append(panels, "DisableAdmin")
-	}
-
-	if !c.DisableDashboard {
-		panels = append(panels, "DisableDashboard")
-	}
-
-	if !c.DisableLogin {
-		panels = append(panels, "DisableLogin")
-	}
-
-	if len(panels) > 0 {
+	if panels := c.disableServicePanelConflicts(); len(panels) > 0 {
 		return errorfamily.Newf(
 			errorfamily.Rejection,
 			"setup.invalid_config",
@@ -828,20 +826,7 @@ func (c Config) validateDisableService() error {
 		)
 	}
 
-	var gated []string
-	for _, surface := range []struct{ name, path string }{
-		{"SSEPath", c.SSEPath},
-		{"DataStarPath", c.DataStarPath},
-		{"EventCatalogPath", c.EventCatalogPath},
-		{"ProjectionStatusPath", c.ProjectionStatusPath},
-		{"DebugPath", c.DebugPath},
-	} {
-		if surface.path != "" {
-			gated = append(gated, surface.name)
-		}
-	}
-
-	if len(gated) > 0 {
+	if gated := c.disableServiceGatedSurfaces(); len(gated) > 0 {
 		return errorfamily.Newf(
 			errorfamily.Rejection,
 			"setup.invalid_config",
@@ -858,6 +843,41 @@ func (c Config) validateDisableService() error {
 	}
 
 	return nil
+}
+
+// disableServicePanelConflicts lists the panels a DisableService bundle
+// cannot build (each needs the service for its data and mutations).
+func (c Config) disableServicePanelConflicts() []string {
+	var panels []string
+	if !c.DisableAdmin {
+		panels = append(panels, "DisableAdmin")
+	}
+	if !c.DisableDashboard {
+		panels = append(panels, "DisableDashboard")
+	}
+	if !c.DisableLogin {
+		panels = append(panels, "DisableLogin")
+	}
+	return panels
+}
+
+// disableServiceGatedSurfaces lists the session-gated surfaces whose gate
+// would dereference the missing service — rejected at New so a half-mounted
+// gated endpoint is never a latent panic on the first cookie.
+func (c Config) disableServiceGatedSurfaces() []string {
+	var gated []string
+	for _, surface := range []struct{ name, path string }{
+		{fieldSSEPath, c.SSEPath},
+		{fieldDataStarPath, c.DataStarPath},
+		{fieldEventCatalogPath, c.EventCatalogPath},
+		{fieldProjectionStatusPath, c.ProjectionStatusPath},
+		{fieldDebugPath, c.DebugPath},
+	} {
+		if surface.path != "" {
+			gated = append(gated, surface.name)
+		}
+	}
+	return gated
 }
 
 // validateDisableAuth rejects DisableAuth configs that keep surfaces which
@@ -1019,9 +1039,9 @@ func (c Config) validateOptionalFeedPaths() error {
 		{"ProjectionStatusPath", c.ProjectionStatusPath, false},
 		{"DebugPath", c.DebugPath, false},
 		{"LivePath", c.LivePath, false},
-		{"SSEPath", c.SSEPath, false},
+		{fieldSSEPath, c.SSEPath, false},
 		{"SSEScriptPath", c.SSEScriptPath, true},
-		{"DataStarPath", c.DataStarPath, false},
+		{fieldDataStarPath, c.DataStarPath, false},
 		{"DataStarScriptPath", c.DataStarScriptPath, true},
 	} {
 		if opt.path == "" || (opt.allowDash && opt.path == "-") {
@@ -1064,14 +1084,14 @@ func requireDistinctPaths(c Config) error {
 		{"AdminPath", trimTrailingSlash(c.AdminPath)},
 		{"DashboardPath", trimTrailingSlash(c.DashboardPath)},
 		{"HealthPath", trimTrailingSlash(c.HealthPath)},
-		{"SSEPath", trimTrailingSlash(c.SSEPath)},
+		{fieldSSEPath, trimTrailingSlash(c.SSEPath)},
 		{"SSEScriptPath", trimTrailingSlash(c.SSEScriptPath)},
-		{"DataStarPath", trimTrailingSlash(c.DataStarPath)},
+		{fieldDataStarPath, trimTrailingSlash(c.DataStarPath)},
 		{"DataStarScriptPath", trimTrailingSlash(c.DataStarScriptPath)},
 		{"LivePath", trimTrailingSlash(c.LivePath)},
-		{"EventCatalogPath", trimTrailingSlash(c.EventCatalogPath)},
-		{"ProjectionStatusPath", trimTrailingSlash(c.ProjectionStatusPath)},
-		{"DebugPath", trimTrailingSlash(c.DebugPath)},
+		{fieldEventCatalogPath, trimTrailingSlash(c.EventCatalogPath)},
+		{fieldProjectionStatusPath, trimTrailingSlash(c.ProjectionStatusPath)},
+		{fieldDebugPath, trimTrailingSlash(c.DebugPath)},
 	}
 
 	for i := range paths {
