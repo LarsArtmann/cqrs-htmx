@@ -114,9 +114,36 @@ else
   pass=$((pass + 1))
 fi
 
+# Case 4: the CI-runner shape — a machine-local replace target that does not
+# exist (/nonexistent/...). The gate's consumer-view filter must DROP the
+# local replace so the workspace resolves example.net/a via `use` and BUILDS;
+# without the filter this shape fails (first CI run, 2026-10-01). A
+# version-to-version replace must SURVIVE the filter (case 5).
+case4="$WORK/localreplace"
+write_module_a "$case4"
+write_module_b "$case4"
+cat >"$case4/go.work" <<'EOF'
+go 1.22
+
+use (
+	./a
+	./b
+)
+
+replace example.net/a => /nonexistent/fleet-sibling-checkout/a
+EOF
+if out=$(run_gate "$case4"); then
+  echo "  ok 4: machine-local missing replace target is filtered (consumer view)"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 4: local replace to missing dir should be filtered, not fatal; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
 echo ""
 if [ "$fail" -gt 0 ]; then
-  echo "test-check-workspace-build: $fail of 3 cases FAILED"
+  echo "test-check-workspace-build: $fail of 4 cases FAILED"
   exit 1
 fi
-echo "test-check-workspace-build: all 3 cases green"
+echo "test-check-workspace-build: all 4 cases green"

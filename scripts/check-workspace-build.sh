@@ -16,6 +16,14 @@
 # root) — the fixture self-test uses it to build throwaway workspaces
 # offline (scripts/test-check-workspace-build.sh).
 #
+# CONSUMER VIEW: the tracked go.work carries machine-local replace targets
+# (the fleet's sibling checkouts under /home/lars/projects/...) that cannot
+# exist on a CI runner and are NOT what consumers resolve. The gate builds
+# through a filtered go.work that drops absolute/relative-path replaces;
+# version-to-version replaces (the 373209a7 dropped-pin class) survive the
+# filter and still fire. First CI run (2026-10-01, run 36824785928) proved
+# the unfiltered form fails exactly there.
+#
 # Usage: nix run .#check-workspace-build  OR  bash scripts/check-workspace-build.sh
 set -uo pipefail
 
@@ -33,7 +41,17 @@ if [ ! -f go.work ]; then
 fi
 
 LOG=$(mktemp /tmp/check-workspace-build-XXXXXX.log)
-trap 'rm -f "$LOG"' EXIT
+WORK_GO_WORK=".go.work.check-workspace-build"
+# Drop machine-local replace targets (absolute /paths and relative ../paths);
+# keep every version-to-version replace line.
+grep -v -E '^[[:space:]]*replace[[:space:]]+[^[:space:]]+[[:space:]]+=>[[:space:]]+(\.\./|/)' go.work >"$WORK_GO_WORK" || true
+if [ ! -s "$WORK_GO_WORK" ]; then
+  echo "check-workspace-build: FAILED — filtered go.work is empty (go.work malformed?)" >&2
+  rm -f "$WORK_GO_WORK"
+  exit 1
+fi
+trap 'rm -f "$LOG" "$(pwd)/$WORK_GO_WORK"' EXIT
+export GOWORK="$PWD/$WORK_GO_WORK"
 
 # Workspace members from go.work itself — the artifact whose integrity this
 # gate protects. Handles both `use ./x` and block `use (...)` forms.
