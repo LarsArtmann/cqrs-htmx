@@ -284,7 +284,8 @@ func scanJournalByID[T any](
 		if err != nil {
 			var zero T
 
-			return zero, errorfamily.WrapInfrastructure(err, errCode, errDesc)
+			return zero, errorfamily.WrapInfrastructure(err, errCode, errDesc).
+				WithContext("target_id", targetID)
 		}
 
 		for _, item := range batch {
@@ -303,7 +304,7 @@ func scanJournalByID[T any](
 	var zero T
 
 	return zero, errorfamily.NewRejection(
-		"dashboardui.detail.not_found", notFoundMsg)
+		"dashboardui.detail.not_found", notFoundMsg).WithContext("target_id", targetID)
 }
 
 // findInAll loads all entries and searches linearly for one whose ID matches.
@@ -319,7 +320,8 @@ func findInAll[T any](
 	if err != nil {
 		var zero T
 
-		return zero, errorfamily.WrapInfrastructure(err, errCode, errDesc)
+		return zero, errorfamily.WrapInfrastructure(err, errCode, errDesc).
+			WithContext("target_id", targetID)
 	}
 
 	for _, item := range all {
@@ -331,5 +333,5 @@ func findInAll[T any](
 	var zero T
 
 	return zero, errorfamily.NewRejection(
-		"dashboardui.detail.not_found", notFoundMsg)
+		"dashboardui.detail.not_found", notFoundMsg).WithContext("target_id", targetID)
 }

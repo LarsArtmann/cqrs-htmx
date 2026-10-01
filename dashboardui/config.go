@@ -223,13 +223,15 @@ func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
 	parsedType, err := id.ParseStreamType(streamType)
 	if err != nil {
 		return id.StreamRef{}, errorfamily.WrapRejection(err,
-			"dashboardui.stream_ref.invalid_type", "parse stream type")
+			"dashboardui.stream_ref.invalid_type", "parse stream type").
+			WithContext("stream_type", streamType)
 	}
 
 	sid, err := id.ParseStreamID(streamID)
 	if err != nil {
 		return id.StreamRef{}, errorfamily.WrapRejection(err,
-			"dashboardui.stream_ref.invalid_id", "parse stream ID")
+			"dashboardui.stream_ref.invalid_id", "parse stream ID").
+			WithContext("stream_id", streamID)
 	}
 
 	return id.NewStreamRef(parsedType, sid), nil

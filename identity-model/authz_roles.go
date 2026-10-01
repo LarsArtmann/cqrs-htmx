@@ -28,7 +28,8 @@ func (a *Authz) rolesForUser(
 
 	roles, err := getRoles(userID.Get().String(), domain.Get())
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "casbin_error", "domain="+domain.Get())
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "domain="+domain.Get()).
+			WithContextAny("user_id", userID)
 	}
 
 	return convertRoles(roles), nil
@@ -46,7 +47,7 @@ func (a *Authz) ImplicitPermissionsForUser(userID UserID, domain TenantID) ([][]
 		return nil, errorfamily.WrapTransient(
 			err, "casbin_error",
 			"implicit permissions domain="+domain.Get(),
-		)
+		).WithContextAny("user_id", userID)
 	}
 
 	return p, nil
@@ -60,7 +61,8 @@ func (a *Authz) DomainsForUser(userID UserID) ([]TenantID, error) {
 
 	d, err := a.enforcer.GetDomainsForUser(userID.Get().String())
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "casbin_error", "domains for user")
+		return nil, errorfamily.WrapTransient(err, "casbin_error", "domains for user").
+			WithContextAny("user_id", userID)
 	}
 
 	filtered := make([]TenantID, 0, len(d))

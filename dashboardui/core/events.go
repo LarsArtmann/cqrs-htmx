@@ -135,13 +135,15 @@ func LoadFilteredEvents(
 		raw, err = cfg.SeekableJournal.ReadFrom(ctx, after, rawLimit)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.filtered_events.read_failed", "read events for filtering")
+				"dashboardui.filtered_events.read_failed", "read events for filtering").
+				WithContextAny("page_size", pageSize)
 		}
 	} else if cfg.Journal != nil {
 		raw, err = cfg.Journal.ReadAll(ctx)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err,
-				"dashboardui.filtered_events.read_all_failed", "read all events for filtering")
+				"dashboardui.filtered_events.read_all_failed", "read all events for filtering").
+				WithContextAny("page_size", pageSize)
 		}
 
 		if len(raw) > rawLimit {
@@ -198,7 +200,8 @@ func loadEventByLoader(
 		var zero event.Event
 
 		return zero, errorfamily.WrapInfrastructure(err,
-			"dashboardui.event_detail.load_failed", "load event by ID")
+			"dashboardui.event_detail.load_failed", "load event by ID").
+			WithContextAny("event_id", eventID)
 	}
 
 	return evt, nil
