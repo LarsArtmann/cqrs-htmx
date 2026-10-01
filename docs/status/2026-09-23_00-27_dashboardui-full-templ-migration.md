@@ -1,5 +1,7 @@
 # Status: dashboardui full-templ migration (2026-09-23 00:27)
 
+> ANNOTATED 2026-10-01 (docs-health round 13): the migration's open tail closed — `check-modules` went green (17/17, 2026-09-22/23 sweeps and repeatedly since), the page-level golden gap was closed by round-12 (overview/event-detail/snapshot-detail Ginkgo page goldens + behavior specs, 2026-09-26), and the two unblocked adoptions SHIPPED: `htmx.PolledRegion` (projection-health region, Trigger verbatim incl. `refresh`) + `display.Grid` (both stat grids) landed 2026-09-26 (round-12; CHANGELOG). §f rows not struck are adjudicated brainstorm against the round-12 TODO rewrite; the still-relevant ones (examples test story, BuildFlow noise classes, dependabot cap) are tracked in TODO_LIST P2/P3. Archived per the tail convention.
+
 > Point-in-time report for the session that answered **"dashboardui/ STILL doesn't use templ!?!?!"** by executing the migration end-to-end. All gates green at time of writing (see Verification Matrix). Written per docs-health status-report hygiene: append-only, annotate inline when resolved.
 
 ## Executive Summary
@@ -26,14 +28,14 @@ dashboardui rendered every page via `strings.Builder` + `fmt.Fprintf` HTML — 4
 
 ## b) PARTIALLY DONE
 
-1. **`check-modules` meta-gate** — was red on the go-health-dashboard train lag (now fixed and release-train verified green); final full re-run was in flight at report time. All sub-gates it composes are individually green.
+1. ~~**`check-modules` meta-gate** — was red on the go-health-dashboard train lag (now fixed and release-train verified green); final full re-run was in flight at report time. All sub-gates it composes are individually green.~~ done — 17/17 stages green at the 09-22/23 post-adoption sweeps and repeatedly since (docs-health pass 2026-10-01).
 2. **History hygiene** — the auto-commit daemon shredded the migration into heuristic `chore: auto-commit` commits; the narrative is preserved in `docs/agents-notes.md` + CHANGELOG, but the commit history for the conversion itself is not reviewable as one logical change (daemon behavior is documented in AGENTS gotcha 4; concurrent sessions shared the tree — one of them landed the module-local `.golangci.yml` and the `_templ.go` gitignore fix).
-3. **Golden coverage of page markup** — goldens pin the five library component outputs; page-level HTML remains `strings.Contains`-asserted (pre-existing state, unchanged by this migration). The migration relied on the 155 escaping-equivalence + differential-test argument instead of new page goldens.
+3. ~~**Golden coverage of page markup** — goldens pin the five library component outputs; page-level HTML remains `strings.Contains`-asserted (pre-existing state, unchanged by this migration). The migration relied on the 155 escaping-equivalence + differential-test argument instead of new page goldens.~~ done 2026-09-26 — round-12 shipped page-level Ginkgo goldens (overview / event-detail / snapshot-detail) + PolledRegion/RelativeTime behavior specs, deterministic.
 
 ## c) NOT STARTED (known follow-ups, deliberately out of scope)
 
-1. **`htmx.PolledRegion` adoption** for the projection-health polling region (TODO_LIST has the item) — now unblocked; kept hand-rolled during migration for markup faithfulness.
-2. **`display.Grid` adoption** — same unblocking story.
+1. ~~**`htmx.PolledRegion` adoption** for the projection-health polling region (TODO_LIST has the item) — now unblocked; kept hand-rolled during migration for markup faithfulness.~~ done 2026-09-26 (round-12).
+2. ~~**`display.Grid` adoption** — same unblocking story.~~ done 2026-09-26 (round-12; both stat grids, custom `.stat-grid` CSS retired).
 3. **The 5th templ-components family member** — `datastar` submodule still not required by dashboardui (unchanged, by design).
 4. **bench-spike re-pin** — not needed (no bench-path change to setup), recorded here to preempt the question.
 
