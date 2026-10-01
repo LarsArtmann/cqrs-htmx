@@ -46,7 +46,7 @@ if [ ! -d "$status_dir" ]; then
   exit 1
 fi
 
-mapfile -t reports < <(find "$status_dir" -maxdepth 1 -name '*.md' ! -name 'README.md' -printf '%f\n' | sort)
+mapfile -t reports < <(find "$status_dir" -maxdepth 1 -name '*.md' ! -name 'README.md' | sed 's|.*/||' | sort)
 count="${#reports[@]}"
 
 echo "tail-budget: $count live report(s) in docs/status/ (budget $BUDGET)"
