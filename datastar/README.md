@@ -63,7 +63,7 @@ mux.HandleFunc("POST /todos", func(w http.ResponseWriter, r *http.Request) {
 | `ErrorResponse(stream, msg, code)` | Send an error as a Datastar notification signal |
 
 Fan-out, reconnection replay, and hub sharing live in
-[`go-datastar/broadcast`](https://github.com/LarsArtmann/go-datastar/tree/main/broadcast)
+[`go-datastar/broadcast`](https://github.com/LarsArtmann/go-datastar/tree/master/broadcast)
 (`NewBroadcaster`, `NewBroadcasterWithReplay`, `NewBroadcasterFromHub`, `Hub`).
 The same-named constructors here are deprecated aliases (v5 removal);
 `NewEventBridge` accepts a `*broadcast.Broadcaster` directly.

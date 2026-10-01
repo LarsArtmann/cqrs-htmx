@@ -6,7 +6,7 @@ Thank you for contributing! This guide covers everything you need to write code 
 
 - **Go 1.26+**
 - **Nix** (recommended) — provides `go`, `gopls`, `golangci-lint`, `templ` CLI, `d2` via `nix develop`
-- **golangci-lint v2** — install standalone from [golangci-lint](https://golangci-lint.run/usage/install/) if not using Nix
+- **golangci-lint v2** — install standalone from [golangci-lint](https://golangci-lint.run/docs/welcome/install/) if not using Nix
 - **templ CLI v0.3.x** — only needed when editing `adminui/*.templ` files
 
 ## Quick Start

@@ -225,7 +225,7 @@ The system's `ProjectionTypeDecoder` ensures events are decoded into the right G
 ## See Also
 
 - **Runnable example**: `examples/system-demo/` — full working demo
-- **go-cqrs-lite system/ docs**: `https://github.com/larsartmann/go-cqrs-lite/tree/main/system`
-- **go-cqrs-lite metaengine/ docs**: `https://github.com/larsartmann/go-cqrs-lite/tree/main/metaengine`
+- **go-cqrs-lite system/ docs**: `https://github.com/larsartmann/go-cqrs-lite/tree/master/system`
+- **go-cqrs-lite metaengine/ docs**: `https://github.com/larsartmann/go-cqrs-lite/tree/master/metaengine`
 - **Leveraging go-cqrs-lite guide**: `docs/guides/leveraging-go-cqrs-lite.md`
 - **Full-stack wiring guide**: `docs/guides/fullstack-wiring.md`

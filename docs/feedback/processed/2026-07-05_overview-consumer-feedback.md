@@ -1,6 +1,6 @@
 # cqrs-htmx — SDK Feedback from Overview
 
-**Consumer:** [Overview](https://github.com/larsartmann/overview) — local project dashboard (read-only HTMX + SSE, no CQRS/auth)
+**Consumer:** Overview (`github.com/larsartmann/overview`) — local project dashboard (read-only HTMX + SSE, no CQRS/auth)
 **Date:** 2026-07-05
 **Version used:** v4.1.1
 **Session:** SSE-driven discovery, embedded htmx.js, middleware chain, SecurityHeaders, Broadcaster

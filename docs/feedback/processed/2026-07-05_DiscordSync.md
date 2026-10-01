@@ -1,6 +1,6 @@
 # cqrs-htmx — Consumer Feedback (DiscordSync)
 
-**Consumer:** [DiscordSync](https://github.com/LarsArtmann/DiscordSync) — Discord backup bot
+**Consumer:** DiscordSync (`github.com/LarsArtmann/DiscordSync`) — Discord backup bot
 **Version used:** v3.5.0 (root) + catalog/v3 v3.0.0
 **Version available:** v4.1.1
 **Usage depth:** Moderate — rate limiter, SSE (Broadcaster + JournalSSEStore + SSEStream), MapError, ServerTimingMiddleware, MeasureServerTiming. Deliberately excludes App.Command/Query, usermgmt, adminui, CSRF, HTMXMiddleware.

@@ -1,6 +1,6 @@
 # dashboardui — Architecture Feedback & Improvement Plan
 
-**Consumer:** [DiscordSync](https://github.com/LarsArtmann/DiscordSync) — real-time Discord archiving tool (CQRS event store, 24 projections, SQLite/Turso, templ + templ-components + Tailwind v4)
+**Consumer:** DiscordSync (`github.com/LarsArtmann/DiscordSync`) — real-time Discord archiving tool (CQRS event store, 24 projections, SQLite/Turso, templ + templ-components + Tailwind v4)
 **Module reviewed:** `cqrs-htmx/dashboardui/v4` (dashboardui@latest, ~7,570 LOC across 21 source files)
 **Dashboard version used by DiscordSync:** **None** — DiscordSync reimplements 3 of dashboardui's 9 panels from scratch and is missing 3 more entirely.
 **Date:** 2026-08-05

@@ -1,6 +1,6 @@
 # cqrs-htmx — SDK Feedback from SEC
 
-**Consumer:** [SEC](https://github.com/larsartmann/sec) — dice-based game (CQRS + HTMX)
+**Consumer:** SEC (`github.com/larsartmann/sec`) — dice-based game (CQRS + HTMX)
 **Date:** 2026-07-05
 **Version used:** v3.5.0
 **Session:** Full App builder adoption, Response builder, middleware, HealthHandler, ServerTiming
