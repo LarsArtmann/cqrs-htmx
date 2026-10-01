@@ -4,6 +4,8 @@
 **Prepared:** 2026-08-30 · Blocks: `check-cqrs-lint` in CI (needs a
 CI-installable binary; the Nix flake output is NixOS-only).
 
+> **ANNOTATED 2026-10-01 (docs-health round 14):** the layout premise moved under this draft — the linter source now lives as real Go code in go-cqrs-lite's `cmd/cqrs-lint` (the 2026-09-30 C040 collector fix landed there with regression tests), so "move the analyzer from the nix store build" is obsolete; what remains gated is exactly the publish step (module + `go install` path + tag parity) and the CI flip. Version references (v4.6.0) are stale — the gate now runs a v4.8.x-era binary. The draft's acceptance criteria and CI wiring shape still stand.
+
 ## Why
 
 cqrs-lint (currently v4.6.0) is enforced locally via the nix devShell and

@@ -1,6 +1,8 @@
 # Decision Docs — Gated Work, Prepared 2026-08-30
 
 > **ANNOTATED 2026-09-09 (docs-health):** the appkit row is no longer "gated work" — the ADR-001 fold-in started (RunWithAppkit stable 2026-09-07); its revalidation doc was archived to `archived/` with per-item verdicts. The remaining five rows are still awaiting the user, exactly as listed.
+>
+> **ANNOTATED 2026-10-01 (docs-health round 14):** rows re-verified live. The upstream-asks draft is ARCHIVED (all four go-cqrs-lite asks were filed 2026-09-10 as #25–#28 — purpose served; link updated below). `origin/v4` re-verified still present at `339ce82b` (3-blob census unchanged). The buildcache row's dormancy re-confirmed (disk healthy, 58% used 2026-10-01). The NEW 5-ask fleet upstream bundle (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci-lint TMPDIR lock, BuildFlow go-work-sync union-graph guard, a-h/templ parser) is tracked separately in TODO_LIST P2 — none filed yet.
 
 These are the PREPARED plans for the user-gated long tail. Nothing here has
 been executed; each document contains the exact commands, risks, and the
@@ -12,5 +14,5 @@ decision it awaits.
 | [2026-08-30_setup-demo-blob-purge-plan.md](2026-08-30_setup-demo-blob-purge-plan.md)           | approve master history rewrite                                                                                                                     | force-push          |
 | [2026-08-30_buildcache-hardware-decision.md](2026-08-30_buildcache-hardware-decision.md)       | ~~replace/retire the dead sda1 mount~~ DORMANT — mount healthy since 2026-09-15 (revives only on recurrence)                                       | hardware spend      |
 | [2026-08-30_cqrs-lint-go-distribution-draft.md](2026-08-30_cqrs-lint-go-distribution-draft.md) | approve shipping a Go-installable cqrs-lint                                                                                                        | new artifact        |
-| [2026-08-30_upstream-issue-drafts.md](2026-08-30_upstream-issue-drafts.md)                     | ~~file upstream asks (go-cqrs-lite)~~ 4 drafts FILED 2026-09-10 (#25–#28); templ-components asks + `system.New` injection remain (TODO_LIST P2/P3) | external comms      |
+| [~~2026-08-30_upstream-issue-drafts.md~~](archived/2026-08-30_upstream-issue-drafts.md)        | ~~file upstream asks (go-cqrs-lite)~~ DONE — 4 drafts FILED 2026-09-10 (#25–#28); file archived 2026-10-01 (docs-health round 14)                 | external comms      |
 | [2026-08-30_appkit-foldin-revalidation.md](archived/2026-08-30_appkit-foldin-revalidation.md)  | ~~execute the ADR-001 fold-in (now unblocked)~~ IN PROGRESS — `RunWithAppkit` stable 2026-09-07; items (b)-(f) on TODO_LIST P3                     | architecture change |

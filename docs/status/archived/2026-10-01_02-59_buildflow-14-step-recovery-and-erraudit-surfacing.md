@@ -40,12 +40,12 @@
 ## c) NOT STARTED
 
 1. **e2e Playwright suite re-run** (`nix run .#e2e`) after the snapshot sentinel change — behavior delta is on the unvisited detail route, but the actual browser suite has not proven it.
-2. **`nix run .#check-modules`** (the repo's own composite gate) — not re-run after the flake + go.work changes.
-3. **Workspace-mode tests** — I verified builds everywhere, but `nix run .#test` was not re-run after the go.work change.
-4. **Coverage gate re-run** after the concurrent session's go.mod/go.sum sweeps (webauthn, totp, oauth2, auditlog, samber-do-demo, auditlog sums changed mid-session).
-5. **Release-train gates** (`check-release-train --strict`, `check-require-tags`) after the pin restore + foreign dep sweep.
+2. ~~**`nix run .#check-modules`** (the repo's own composite gate) — not re-run after the flake + go.work changes.~~ done (docs-health round 14: composite green — 25/25 stages incl. the new workspace-build gate this report proposed; W0–W3 §a)
+3. ~~**Workspace-mode tests** — I verified builds everywhere, but `nix run .#test` was not re-run after the go.work change.~~ done (W0–W3 T03: race suite rc=0 across all 28 modules at load 5.9)
+4. ~~**Coverage gate re-run** after the concurrent session's go.mod/go.sum sweeps (webauthn, totp, oauth2, auditlog, samber-do-demo, auditlog sums changed mid-session).~~ done (W0–W3 T03: coverage-gate 15/15 PASSED post-train)
+5. ~~**Release-train gates** (`check-release-train --strict`, `check-require-tags`) after the pin restore + foreign dep sweep.~~ done (the 9-tag v4.13.x family train pushed 2026-10-01; strict gates 0 lag / 0 unpublished at every push — W0–W3 §a)
 6. **Fleet upstreaming** of the three toolchain-shield fixes (treefmt-nix templ go-pin, go-licenses GOROOT, golangci lock location) — all have fleet-wide value, none filed.
-7. **CHANGELOG entry** for this session's fixes (repo convention: completed work lives there).
+7. ~~**CHANGELOG entry** for this session's fixes (repo convention: completed work lives there).~~ done (round-13 pass: the CHANGELOG [v4.13.0] "Fixed — BuildFlow 14-step failure recovery" entry)
 8. **`docs/agents-notes.md` long-form entry** for the go-class-of-2026-09-30 story and the go-work-sync incident.
 
 ## d) TOTALLY FUCKED UP
@@ -69,14 +69,14 @@
 
 ## f) NEXT 50 (brainstorm, sorted by impact — ROADMAP/TODO fuel per docs-health routing)
 
-1. Add `check-workspace-build` gate (plain `go build ./...` at root, workspace mode) to check-modules + CI. *(Catches the 373209a7 class same-day.)*
+1. ~~Add `check-workspace-build` gate (plain `go build ./...` at root, workspace mode) to check-modules + CI. *(Catches the 373209a7 class same-day.)*~~ done at `c85d802f` (T07: checker + fixture + flake apps + stages + CI + AGENTS row; consumer-view hardening `eed53317` after the gate's first CI run caught the machine-local-replace class)
 2. Run `nix run .#e2e` (Playwright) to prove the snapshot sentinel change end-to-end.
-3. Run `nix run .#check-modules` post-flake/go.work changes.
-4. Run `nix run .#test` (workspace tests) post-go.work change.
-5. Re-run coverage-gate after the foreign go.sum sweeps.
-6. Re-run release-train gates (strict) post pin-restore + foreign sweep.
-7. Fix the 1 erraudit `panic` (samber-do-demo `container.go:61`) — smallest of the 57.
-8. Fix/resolve the erraudit `bug:` marker in `e2e/playwright.config.ts:20` (reword the comment).
+3. ~~Run `nix run .#check-modules` post-flake/go.work changes.~~ done (25/25 stages green incl. workspace-build; W0–W3)
+4. ~~Run `nix run .#test` (workspace tests) post-go.work change.~~ done (T03: rc=0 ×28 modules, load 5.9)
+5. ~~Re-run coverage-gate after the foreign go.sum sweeps.~~ done (T03: 15/15 PASSED)
+6. ~~Re-run release-train gates (strict) post pin-restore + foreign sweep.~~ done (0 lag / 0 unpublished at every train push; W0 `--refresh-cache` clean)
+7. ~~Fix the 1 erraudit `panic` (samber-do-demo `container.go:61`) — smallest of the 57.~~ done at `3d9ce553` (T05: WrapInfrastructure error return, signature rippled to main + 2 tests; scoped re-run 1→0)
+8. ~~Fix/resolve the erraudit `bug:` marker in `e2e/playwright.config.ts:20` (reword the comment).~~ done at `3d9ce553` (T05: `Debug:` header reword past the checker's case-insensitive match; scoped re-run 1→0)
 9. Program: triage 55 erraudit `context_loss` sites per-finding (go-error-modernization skill flow); bundle code changes with the next tag train.
 10. Verify the `//nolint:<analyzer>` name erraudit honors; document in AGENTS.md once known.
 11. Rebuild the system cqrs-lint binary (existing TODO item); confirm C040 stays silent.
@@ -94,7 +94,7 @@
 23. BuildFlow question: does `max_concurrency: 1` actually serialize module fan-out leaves? (34 lock hits in one serialized run says something is off — could also be pure external contention; needs a quiet-window measurement.)
 24. Investigate whether nix-checker's vendorHash-stale heuristic can be scoped to the FOD's own source (file with BuildFlow if fleet-wide).
 25. Audit `run.go:` values in all 16 `.golangci.yml` (root says 1.26.7; floor is 1.27.1 — stale or deliberate?).
-26. CHANGELOG entry for this session's fixes.
+26. ~~CHANGELOG entry for this session's fixes.~~ done (round-13 pass: the [v4.13.0] Fixed entry)
 27. `docs/agents-notes.md` long-form: "three tools vs nixpkgs-default Go" + go-work-sync incident narrative.
 28. Sweep other fleet repos for the same go-work-sync foot-gun (go-cqrs-lite sibling carries local family replaces too).
 29. Add a treefmt-templ canary to check-modules (offline templ fmt on one known .templ file) so nixpkgs bumps surface loudly.
@@ -107,15 +107,15 @@
 36. Confirm the foreign session's release train completed cleanly (ls-remote setup/v4.13.1 + family tags) before the next local train.
 37. Confirm gopls' stale `go.mod:24` diagnostic clears on LSP restart; else file upstream.
 38. once 11 lands: retire gotcha 13's "21 stale C040 warnings" caveat.
-39. `docs/status/README.md` "currently 2" unarchived-tail count is stale drift — cosmetic docs-health pass.
+39. ~~`docs/status/README.md` "currently 2" unarchived-tail count is stale drift — cosmetic docs-health pass.~~ done (round-13 refresh; re-verified round 14)
 40. Consider `nix flake check --all-systems` in a scheduled job (darwin arms never checked this session).
 41. Verify no `buildflow-fsprobe-*` blobs after future failed pre-commit runs (gotcha 8; none this session).
 42. Re-check `git log` sweep at session end: confirm the daemon committed every fix (it did — verify final state).
 43. Consider making preflight-tree-check a habit-gate before every full buildflow run (script wrapper or docs note).
 44. erraudit on examples: verify the tool's --type-aware flag in BuildFlow's invocation matches the skill's recommendation.
 45. Evaluate whether TODO_LIST's erraudit entry should split (usermgmt program vs 2 trivial fixes) — the trivial ones are one-session work.
-46. `docs/status` archive pass: 3 unarchived reports + this one exceed the "most recent only" tail convention.
-47. Add CHANGELOG "Fixed" bullets for: templ/treefmt sandbox fix, go-licenses shim, allow-serial-runners, go-etag pin restore.
+46. ~~`docs/status` archive pass: 3 unarchived reports + this one exceed the "most recent only" tail convention.~~ done (round-13 archived the 21-report tail; round 14 archives this file + the round-13 report)
+47. ~~Add CHANGELOG "Fixed" bullets for: templ/treefmt sandbox fix, go-licenses shim, allow-serial-runners, go-etag pin restore.~~ done (all four carried in the [v4.13.0] BuildFlow-recovery entry, items (a)–(d))
 48. Confirm `trash` (not rm) reflex restored — session note, no action beyond discipline.
 49. Review whether `.buildflow.yml` `fail_on: critical` should carry an inline comment pointing at the erraudit TODO (context for future sessions).
 50. Keep `/mnt/buildcache` fill-drain on the radar (58% now; the fill cycle recurs per gotcha 12).
@@ -131,3 +131,5 @@
 *Point-in-time snapshot — 2026-10-01 02:59 CEST. Living state lives in `FEATURES.md` / `TODO_LIST.md` / `AGENTS.md`. Open items above are routed: items 1–6, 11–12, 25–27 → TODO_LIST candidates; 19–24 → upstream asks; the rest → ROADMAP/decisions. Per the status convention, later sessions should ANNOTATE, never rewrite, this file.*
 
 > ANNOTATED 2026-10-01 (docs-health round 13 — same-day follow-through): §c7 DONE (the CHANGELOG [Unreleased] Fixed entry for this session's fixes landed in the round-13 pass, together with the backfilled 09-27/09-30 dependency-sweep entries); §f1 (`check-workspace-build` gate), §f9–22 (upstream asks bundle), §f12–13 (cqrs-lint residual/noise triage), §f45 (erraudit entry split) are ROUTED — TODO_LIST P2 now carries them verbatim with evidence; §f39 DONE (`docs/status/README.md` counts refreshed in this pass — this file is now the 1-report tail); §f46 resolved (the 21-report tail was annotated + archived 2026-10-01); §c2/c3/c5/c6 verification debt is queued as the TODO_LIST P2 battery item (check-modules was re-running at annotation time; load 194 window). §g1's gate-policy question stands; §g2's context-policy question is the erraudit program's first decision.
+>
+> ANNOTATED 2026-10-01 (docs-health round 14 — archive pass): §c2/c3/c4/c5 CLOSED — check-modules composite green (25/25 stages incl. the workspace-build gate this report proposed), `nix run .#test` rc=0 ×28 modules (load 5.9), coverage-gate 15/15 post-train, strict train gates 0 lag / 0 unpublished at every push of the 9-tag v4.13.x family train (W0–W3 report §a, T03). §f1 DONE at `c85d802f` (full atomic-gate checklist; the gate's first CI failure was the machine-local-replace class, fixed by the consumer-view build `eed53317`). §f7/f8 DONE at `3d9ce553` (T05; scoped erraudit re-runs 1→0 both). §f9 (the context_loss program) is IN PROGRESS — the gate now counts 61 unique sites, 36 fixed. Still open in TODO_LIST P2/P3: §c1 (e2e Playwright + bench-spike battery remainder), §c6 (5 upstream asks, none filed — the set grew from 3 to 5), §c8 (agents-notes narratives), §f11 (owner-gated cqrs-lint binary rebuild). Archived same day per the round-13 bar (dated blockquote + evidence strikes + open items routed).

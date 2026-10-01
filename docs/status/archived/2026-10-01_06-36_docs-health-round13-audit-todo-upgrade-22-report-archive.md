@@ -1,6 +1,8 @@
 # Status Report — docs-health Round 13: Full Audit, TODO Upgrade, 22-Report Annotate+Archive Sweep
 
 > ANNOTATED 2026-10-01 (self-check at write time): this is the round-13 pass's own report — its §a claims are gate-verified in the same session (annotations 70/70, rows 0 PARTIAL, links 315 OK, freshness OK, check-modules 17/17 incl. strict release-train), its §b/c open items are routed in TODO_LIST P1–P3 as cited, and §f is the harvest receipt. The live tail is THIS file plus the 10-01 02:59 BuildFlow-recovery report.
+>
+> ANNOTATED 2026-10-01 (docs-health round 14 — same-day archive pass): §c1 DONE hours later — the family train shipped (9 tags: usermgmt v4.13.0 codec migration + v4.13.1, root v4.13.0, setup v4.13.2, adminui/dashboardui/health/loginpage/systemadapter v4.12.1; strict gates 0 lag / 0 unpublished at every push; proxy smoke green; CI green run 36839790817). §c3 DONE at `c85d802f` (T07, full atomic checklist; the gate's first CI run then caught the machine-local-replace class BY DESIGN, fixed via the consumer-view build `eed53317`). §c7's test+coverage half DONE (T03 quiet window: race suite rc=0 ×28 modules at load 5.9, coverage 15/15) — e2e + bench-spike remain the TODO P2 battery remainder. §f1–f4, f9–f11, f50 struck with receipts below. §b3/§b7 and §f40/f42 resolved by THIS pass: the six 2026-08-30 planning files triaged (upstream-issue-drafts archived — its 4 asks were filed 09-10; the gated-work index + cqrs-lint distribution draft annotated; the rest confirmed live gated decisions, leave-in-place) and the 12-file HTML status corpus keep-in-place decision confirmed in `docs/status/README.md`. §c2's erraudit program is IN PROGRESS: trivial pair done at `3d9ce553`, the gate counts 61 unique context_loss sites with 36 fixed; TODO P2 carries the 25-site remainder. §g1–g3 remain owner questions; this archive proceeds on the same bar round 13 used (§g1).
 
 > **Session:** 2026-10-01 ~03:40 → 04:35 CEST (report written 06:36 CEST)
 > **Scope:** this session only — the full docs-health AUDIT (BUILD + HARVEST + VERIFY + ANNOTATE + ARCHIVE) over the living docs and the entire unarchived status tail (2026-09-21 → 2026-10-01). No unrelated research; no code changes (docs-only session by design).
@@ -33,17 +35,17 @@ The docs surface went from "22 unarchived reports, 4-day-stale TODO header, 4 mi
 
 1. **The verification battery's heavy half.** `nix run .#test` (workspace race suite), `.#coverage-gate`, and the e2e Playwright suite (proves the 10-01 snapshot-sentinel change end-to-end) were NOT run — load 51–194 all session; per the repo's own doctrine (identical failures under load > 20 are suspect-contended), running them would have produced noise, not evidence. Tracked as TODO_LIST P2 with the honest header stamp. `check-modules` (the composite) DID run green, which retires its slice of the debt.
 2. **§f mega-table adjudication depth.** The six unharvested 2026-09-22/23 reports carry ~250-row §f brainstorm tables. I struck rows with crisp receipts and adjudicated the remainder at BLOCKQUOTE level ("unadopted brainstorm superseded by the round-12 TODO rewrite") rather than per-row — matching the repo's archived-twin precedent, but short of the skill's per-item ideal. The genuinely-open rows I could name are routed in TODO_LIST P2/P3.
-3. **The six 2026-08-30 planning .md files** (buildcache-hardware-decision, cqrs-lint-go-distribution-draft, gated-work-index, setup-demo-blob-purge-plan, upstream-issue-drafts, v4-branch-purge-plan) — in scope by the "2026-0\*" glob, not triaged (annotate/archive/leave undecided). They predate the annotation epoch but are active-dir clutter.
+3. ~~**The six 2026-08-30 planning .md files** (buildcache-hardware-decision, cqrs-lint-go-distribution-draft, gated-work-index, setup-demo-blob-purge-plan, upstream-issue-drafts, v4-branch-purge-plan) — in scope by the "2026-0\*" glob, not triaged (annotate/archive/leave undecided). They predate the annotation epoch but are active-dir clutter.~~ resolved (docs-health round 14, 2026-10-01): upstream-issue-drafts ARCHIVED (asks filed 09-10, purpose served); gated-work-index top-up annotated (origin/v4 re-verified live at `339ce82b`); cqrs-lint-go-distribution-draft annotated (the linter source now lives in go-cqrs-lite `cmd/cqrs-lint` — what remains gated is only the Go-installable artifact); buildcache/setup-demo-purge/v4-branch-purge confirmed LIVE owner-gated decisions, leave-in-place.
 4. ~~**agents-notes long-form narratives.** The 09-30/10-01 arc narratives (cqrs-lint three-pass story; the three-tools-vs-nixpkgs-Go story) are indexed as TODO_LIST P3 items, not written — I did not witness those sessions and refused to fabricate history prose beyond what the reports state.~~ RESOLVED-BY-ROUTING (docs-health pass 2026-10-01): the distilled layer (AGENTS gotchas 8/13/22) already carries the durable content; the narratives stay a TODO item, which is the honest state.
 5. **Formatting provenance.** `nix fmt` reported "formatted 0 files" over my hand-edits (treefmt-clean), and two multiedit operations applied with "whitespace-equivalent re-indentation" warnings I did not individually re-inspect — covered by the final gate battery, not by per-hunk review.
 6. **Commit attribution.** Per the never-commit rule I left every phase to the auto-commit daemon; several phases landed as heuristic `chore: auto-commit` commits (the daemon was faster than my phase boundaries in two windows — the exact gotcha-4 loss the repo documents). Content is gate-verified; history readability degraded as usual. ~6 files were still dirty at handoff (final TODO/10-01-addendum edits).
-7. **The HTML status corpus** (12 files in docs/status/) — exempt per policy, untouched; no policy decision requested or made.
+7. ~~**The HTML status corpus** (12 files in docs/status/) — exempt per policy, untouched; no policy decision requested or made.~~ resolved (docs-health round 14, 2026-10-01): keep-in-place CONFIRMED as the standing decision — they are generated deliverable artifacts superseded by the living docs, the README policy already exempts them, and archiving would be churn without information gain; decision recorded in `docs/status/README.md`.
 
 ## c) NOT STARTED (deliberately — all routed, none actionable this session)
 
-1. **The family train itself** — the usermgmt re-tag + root publish (TODO P1). This session wrote the item; cutting tags is a separate, verify-tag-gated action.
+1. ~~**The family train itself** — the usermgmt re-tag + root publish (TODO P1). This session wrote the item; cutting tags is a separate, verify-tag-gated action.~~ done (W0–W3 §a: 9 tags published 2026-10-01, wave-ordered, strict gates green at every push, proxy smoke green)
 2. **erraudit triage** — zero of the 57 findings addressed (TODO P2; published-module constraint → rides the next train).
-3. **`check-workspace-build` gate** — not implemented (TODO P2; full atomic-gate checklist applies).
+3. ~~**`check-workspace-build` gate** — not implemented (TODO P2; full atomic-gate checklist applies).~~ done at `c85d802f` (T07: checker + 4-case fixture + flake apps + check-modules stages + CI steps + AGENTS quick-ref row)
 4. **The 4 fleet upstream asks** — none filed (TODO P2).
 5. **go-cqrs-lite cross-repo docs/gates debt** — untouched, owner-gated (TODO P3).
 6. **System cqrs-lint binary rebuild** — owner-side; re-verified still pre-fix (`3756eb4/20260929`) via `cqrs-lint version`.
@@ -74,19 +76,19 @@ The docs surface went from "22 unarchived reports, 4-day-stale TODO header, 4 mi
 ## f) Up to 50 things to get done next (session-derived; impact-sorted; most already tracked in TODO_LIST — listed here as the harvest receipt)
 
 **Release / P1:**
-1. Cut the family train, wave-ordered: usermgmt re-tag (codec migration — PapDashboard's adoption prerequisite; setup v4.13.x already live), then root + consumers for the Unreleased set.
-2. Post-re-tag absence sweep: `rg 'codec/v4' -g go.mod` expecting zero.
-3. Push the backlog + watch CI to green on the new ranges.
+1. ~~Cut the family train, wave-ordered: usermgmt re-tag (codec migration — PapDashboard's adoption prerequisite; setup v4.13.x already live), then root + consumers for the Unreleased set.~~ done (W0–W3 §a: 9 tags — usermgmt v4.13.0/v4.13.1, root v4.13.0, setup v4.13.2, five consumer rides v4.12.1)
+2. ~~Post-re-tag absence sweep: `rg 'codec/v4' -g go.mod` expecting zero.~~ done (W1 consumer sweeps: all codec/v4 indirects dropped, absence sweep zero)
+3. ~~Push the backlog + watch CI to green on the new ranges.~~ done (CI fully green — run 36839790817, first green master after the lint-drift rounds `b66b26f0`/`a56241bf` fixed)
 **erraudit program (P2):**
-4. Fix the trivial pair first: `examples/samber-do-demo/container.go:61` panic; `e2e/playwright.config.ts:20` bug-marker comment.
+4. ~~Fix the trivial pair first: `examples/samber-do-demo/container.go:61` panic; `e2e/playwright.config.ts:20` bug-marker comment.~~ done at `3d9ce553` (T05; scoped erraudit re-runs 1→0 both)
 5. Verify the `//nolint:<analyzer>` name erraudit honors; document in AGENTS once known.
 6. The 55-site `context_loss` program, per-finding (go-error-modernization flow); bundle with the P1 train.
 7. Decide §g1 of the 10-01 report: gate stays honestly red vs temporary documented demotion while the program runs.
 8. Decide the intended error-context policy for read-model decode errors (§g2) — fixes the program's shape (fix sweep vs suppression sweep).
 **Gates/tooling (P2):**
-9. `check-workspace-build` gate (plain workspace `go build ./...`) — full atomic checklist.
-10. `nix run .#test` post go.work/dep changes (quiet window).
-11. `nix run .#coverage-gate` post the 09-30 sweeps + 10-01 changes.
+9. ~~`check-workspace-build` gate (plain workspace `go build ./...`) — full atomic checklist.~~ done at `c85d802f`/`eed53317` (T07)
+10. ~~`nix run .#test` post go.work/dep changes (quiet window).~~ done (T03: rc=0 ×28 modules, load 5.9)
+11. ~~`nix run .#coverage-gate` post the 09-30 sweeps + 10-01 changes.~~ done (T03: 15/15 PASSED post-train)
 12. e2e Playwright run (proves the snapshot sentinel change).
 13. bench-spike quiet-window look after the 09-30 dep bumps.
 14. File the 4 fleet upstream asks: treefmt-nix templ Go-pin; nixpkgs go-licenses GOROOT; golangci-lint TMPDIR lock opt-out; BuildFlow go-work-sync union-graph guard (373209a7 case study).
@@ -116,9 +118,9 @@ The docs surface went from "22 unarchived reports, 4-day-stale TODO header, 4 mi
 37. agents-notes narratives: the cqrs-lint three-pass arc; the three-tools-vs-nixpkgs-Go story.
 38. AGENTS gotcha 4 note: formatter-clean ≠ lint-clean (pre-commit bar is `golangci-lint run`).
 39. Runbook note: never chain bump-dep invocations without committing between.
-40. Triage the six 2026-08-30 planning .md files (annotate/archive/skip).
+40. ~~Triage the six 2026-08-30 planning .md files (annotate/archive/skip).~~ done (docs-health round 14, 2026-10-01: 1 archived, 2 annotated, 3 confirmed live gated decisions — see §b3)
 41. Decide the standing CHANGELOG convention for future dep-only sweeps (this pass set precedent by backfilling; the standing rule is still the owner's — 09-30 g1).
-42. HTML status corpus: confirm the keep-in-place policy or archive the 12 files deliberately.
+42. ~~HTML status corpus: confirm the keep-in-place policy or archive the 12 files deliberately.~~ done (round 14: keep-in-place CONFIRMED, recorded in `docs/status/README.md`)
 **Owner calls / parked (P3):**
 43. OQ26: fleet go-directive policy decision.
 44. OQ23/24 go/no-go (the PapDashboard architectural two).
@@ -127,7 +129,7 @@ The docs surface went from "22 unarchived reports, 4-day-stale TODO header, 4 mi
 47. /mnt/buildcache reclaim decision (rust/ 155G + sccache/ 20G).
 48. Dashboardui snapshot-detail "store errored vs store empty" distinct state (10-01 §f32).
 49. Document the Load contract (nil,nil vs ErrSnapshotNotFound) upstream in go-cqrs-lite store docs.
-50. Verify the daemon swept this session's final ~6 dirty files + spot-check CI on those ranges.
+50. ~~Verify the daemon swept this session's final ~6 dirty files + spot-check CI on those ranges.~~ done (tree clean at `d397d429`; CI fully green — run 36839790817)
 
 ## g) Questions I can NOT figure out myself (max 3)
 
