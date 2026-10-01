@@ -3,7 +3,7 @@
 > Short-term, actionable, bounded work. Open items only.
 > Completed work lives in [CHANGELOG.md](CHANGELOG.md). Long-term vision, v5 plans, and rejected ideas live in [ROADMAP.md](ROADMAP.md).
 
-**Updated:** 2026-10-01 (docs-health round 13: full audit — M18 closed, 20 status reports annotated + archived, the 2026-09-27→10-01 arc harvested) | **Harvest sources:** `docs/status/2026-09-26` → `2026-10-01` (round-12, push-train-lag, go-cqrs-lite wave, PapDashboard ×2, cqrs-lint ×3, release-train alignment, BuildFlow 14-step recovery) | **Version:** root train v4.12.0; `setup/v4.13.1` live; the pending train publishes the usermgmt re-tag (go-codec migration) + root Unreleased (see P1) | **Modules:** 28 in `go.work` | **Coverage:** 15/15 gates green (re-run 2026-09-29 — **NOT re-run** after the 2026-09-30 8-family dep sweep and the 2026-10-01 go.work/flake changes; re-run queued in P2) | **Lint:** 0 issues / 15 modules (re-verified 2026-10-01: every per-module golangci-lint step green in the BuildFlow 601/601 full run) | **check-modules:** 17/17 stages green (re-run 2026-10-01, round-13 — includes the strict release-train stage: 0 lag / 0 unpublished)
+**Updated:** 2026-10-01 (Pareto plan W1 executed: the family train shipped — 9 tags published) | **Version:** root train v4.13.0; `usermgmt/v4.13.0`+`v4.13.1` (go-codec migration published — PapDashboard prerequisite landed), `setup/v4.13.2`, adminui/dashboardui/health/loginpage/systemadapter `v4.12.1` rides all live | **Modules:** 28 in `go.work` | **Coverage:** 15/15 gates green (re-run 2026-09-29 — **NOT re-run** after the 2026-09-30 8-family dep sweep and the 2026-10-01 go.work/flake changes; re-run queued in P2) | **Lint:** 0 issues / 15 modules (re-verified 2026-10-01: every per-module golangci-lint step green in the BuildFlow 601/601 full run) | **check-modules:** 17/17 stages green (re-run 2026-10-01, round-13 — includes the strict release-train stage: 0 lag / 0 unpublished)
 
 ## Status Legend
 
@@ -16,7 +16,7 @@
 
 ## P1 — High impact (release follow-through)
 
-- [ ] **Cut the pending family train, wave-ordered.** Publishes: (1) `usermgmt` re-tag — the go-codec migration (`d8684d5c`, 2026-09-29) is a PapDashboard-recorded adoption prerequisite and only benefits consumers at a published tag; `usermgmt/v4.12.0` is still the newest tag while `setup/v4.13.0`+`v4.13.1` already shipped; (2) root + remaining consumers carrying the `[Unreleased]` set (setup identity-external shell per ADR-0054, `ExtraMiddleware`/`DisableSecurityMiddleware`/`HealthChecks` seams, codec migration, cqrs-lint hardening). `scripts/verify-tag.sh` only; the pre-push gate enforces strict train gates. Evidence: `git tag` (2026-10-01), CHANGELOG [Unreleased], `docs/status/2026-09-29_23-35_papdashboard-feedback-completion-self-review.md` f20–f21.
+_(the family train shipped 2026-10-01: usermgmt v4.13.0 (codec migration, PapDashboard prerequisite) → root v4.13.0 (Unreleased set) → usermgmt v4.13.1 + adminui/dashboardui/health/loginpage/systemadapter v4.12.1 + setup v4.13.2 rides; strict train gates 0 lag / 0 unpublished at every push — recorded in CHANGELOG [v4.13.0] sections)_
 
 ---
 
