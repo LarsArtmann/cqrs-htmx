@@ -119,9 +119,12 @@ replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempote
 // for workspace consistency with local httputil development.
 replace github.com/larsartmann/httputil/server_timing => /home/lars/projects/httputil/server_timing
 
-// LOAD-BEARING shield (see AGENTS.md gotcha 22c): published cqrs-htmx v4.12.x
-// copies (pulled by examples/e2e via the proxy) require go-etag root v0.4.0,
-// whose zip still carries a legacy server/ package -> ambiguous import against
-// go-etag/server v0.6.0. Removal condition: drop when go-appkit > v0.5.1
-// publishes its split-module go.mod (the fix sits on appkit master).
-replace github.com/larsartmann/go-etag => github.com/larsartmann/go-etag v0.6.0
+// (2026-10-01) The formerly LOAD-BEARING `go-etag => v0.6.0` replace is GONE:
+// both of its union-graph edges are dead — go-appkit is at v0.7.0 (the pin's
+// own documented removal condition, met earlier than the comment claimed) and
+// the v4.13.0 train moved every workspace consumer off the published v4.12.x
+// copies whose go.mod required go-etag root v0.4.0 (legacy server/ package,
+// the 373209a7 ambiguous-import shape). `go list -m go-etag` = "not a known
+// dependency" with the pin absent; gomod-check's residual work-replace-dead
+// warning on this line became a TRUE positive and the accepted-false-positive
+// note in AGENTS.md gotcha 22c is retired with the pin.

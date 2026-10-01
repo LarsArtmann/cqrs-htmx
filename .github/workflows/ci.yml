@@ -613,6 +613,20 @@ jobs:
       - name: Go toolchain vs go.work directive check
         run: bash scripts/check-go-toolchain.sh
 
+      # Workspace-mode build in every go.work member — the complement to the
+      # hermetic per-module gates. go.work use/replace mangling (the 373209a7
+      # ambiguous-import class) only assembles the union module graph in
+      # workspace mode, where GOWORK=off gates are blind.
+      - name: Workspace build check
+        run: bash scripts/check-workspace-build.sh
+        env:
+          GOEXPERIMENT: jsonv2
+
+      - name: Workspace build self-test
+        run: bash scripts/test-check-workspace-build.sh
+        env:
+          GOEXPERIMENT: jsonv2
+
       # BLOCKING since 2026-09-09 (was `|| true` advisory): an UNPUBLISHED
       # internal require (phantom-tag class) or train lag beyond the budget
       # fails the build. --strict-lag 0 went live after the 2026-09-09

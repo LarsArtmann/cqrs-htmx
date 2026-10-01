@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Added
+
+- **Workspace-build gate (`scripts/check-workspace-build.sh`, 2026-10-01):** workspace-mode `go build ./...` executed inside EVERY go.work member — the permanent complement to the hermetic (GOWORK=off) per-module gates, which are structurally blind to go.work `use`/`replace` mangling (the 373209a7 class: BuildFlow's go-work-sync dropped the load-bearing go-etag pin and broke every workspace build while per-module gates stayed green, because the union module graph only assembles in workspace mode). Ships complete per the atomic-gate checklist: checker (reads go.work's own `use` list; rc-captured per module) + 3-case fixture self-test (`scripts/test-check-workspace-build.sh`, offline throwaway workspaces: healthy / dropped-`use` mangling / missing go.work) + flake apps (`nix run .#check-workspace-build` / `.#test-workspace-build`) + check-modules stages + CI steps + AGENTS quick-ref. Live proof note: the original 373209a7 shape is unreachable on today's tree (see the pin retirement below) — the fixture's dropped-`use` case carries the class coverage; the gate verified green in all 28 workspace modules.
+
+### Fixed
+
+- **The go-etag go.work resolution shield retired at its natural end (2026-10-01):** the `replace go-etag => v0.6.0` pin (added 2026-09-26 after go-work-sync dropped it and broke the workspace — gotcha 22c) lost its LAST reason to exist when the v4.13.0 train moved every workspace consumer off the published v4.12.x copies whose go.mod required go-etag root v0.4.0. Verified dead both ways: `go list -m go-etag` = "not a known dependency" with the pin absent, and go-appkit sits at v0.7.0 (the pin's own documented removal condition — appkit > v0.5.1 — was already met). Removed with a dated go.work comment; gomod-check's residual `work-replace-dead` warning became a TRUE positive and is gone with it.
 
 ## [v4.13.0] - 2026-10-01
 

@@ -915,6 +915,8 @@
                         "dep-budgets:bash scripts/check-dep-budgets.sh"
                         "dep-budgets-self-test:bash scripts/test-check-dep-budgets.sh"
                         "go-toolchain:bash scripts/check-go-toolchain.sh"
+                        "workspace-build:bash scripts/check-workspace-build.sh"
+                        "workspace-build-self-test:bash scripts/test-check-workspace-build.sh"
                         "version-drift:bash scripts/check-version-drift.sh --strict"
                         "release-train:bash scripts/check-release-train.sh"
                         "release-train-self-test:bash scripts/test-check-release-train.sh"
@@ -959,6 +961,8 @@
                     bash scripts/check-dep-budgets.sh
                     bash scripts/test-check-dep-budgets.sh
                     bash scripts/check-go-toolchain.sh
+                    bash scripts/check-workspace-build.sh
+                    bash scripts/test-check-workspace-build.sh
                     bash scripts/check-version-drift.sh --strict
                     bash scripts/check-release-train.sh
                     bash scripts/check-vcs-cache.sh
@@ -1145,6 +1149,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/test-check-vcs-cache.sh
+                  '';
+                }
+              );
+            };
+
+            check-workspace-build = {
+              type = "app";
+              meta.description = "Workspace-mode go build ./... in every go.work member — the complement to the hermetic per-module gates; catches go.work use/replace mangling (the 373209a7 ambiguous-import class) that GOWORK=off gates are blind to";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-workspace-build";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.coreutils
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    export GOTOOLCHAIN=local
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-workspace-build.sh
+                  '';
+                }
+              );
+            };
+
+            test-workspace-build = {
+              type = "app";
+              meta.description = "Fixture self-test for check-workspace-build.sh (healthy workspace / dropped-use mangling / missing go.work)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-workspace-build";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-workspace-build.sh
                   '';
                 }
               );
