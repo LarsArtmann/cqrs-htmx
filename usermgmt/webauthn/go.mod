@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/go-webauthn/webauthn v0.18.2
@@ -15,7 +15,7 @@ require (
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
-	github.com/tinylib/msgp v1.6.4 // indirect
+	github.com/tinylib/msgp v1.6.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
