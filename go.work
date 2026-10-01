@@ -118,3 +118,5 @@ replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempote
 // of httputil with its own go.mod). Now published (server_timing/v0.10.0) but kept
 // for workspace consistency with local httputil development.
 replace github.com/larsartmann/httputil/server_timing => /home/lars/projects/httputil/server_timing
+
+replace github.com/larsartmann/go-etag => /home/lars/projects/go-etag
