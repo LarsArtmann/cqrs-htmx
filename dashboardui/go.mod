@@ -6,7 +6,7 @@ go 1.27.1
 require (
 	github.com/a-h/templ v0.3.1020
 	github.com/dustin/go-humanize v1.1.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
@@ -26,7 +26,7 @@ require (
 	github.com/larsartmann/templ-components/icons v1.19.4
 	github.com/larsartmann/templ-components/utils v1.19.4
 	github.com/onsi/ginkgo/v2 v2.33.0
-	github.com/onsi/gomega v1.43.1
+	github.com/onsi/gomega v1.44.0
 )
 
 require (
@@ -42,7 +42,7 @@ require (
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
+	github.com/google/pprof v0.0.0-20260926063103-aaccee046517 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect

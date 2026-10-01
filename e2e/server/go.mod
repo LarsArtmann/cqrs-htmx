@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
@@ -49,8 +49,6 @@ require (
 	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
 	github.com/larsartmann/templ-components/utils v1.19.4 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
-	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect

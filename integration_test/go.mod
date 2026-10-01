@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.12.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.1
