@@ -46,19 +46,18 @@ type Container struct {
 // NewContainer creates the injector, registers all providers, and returns a
 // cleanup function that MUST be deferred by the caller (DO-2 rule: every
 // do.New must have a matching Shutdown).
-func NewContainer(cfg AppConfig) (*Container, func()) {
+func NewContainer(cfg AppConfig) (*Container, func(), error) {
 	// The auditlog bridge (auditlog.WithAuditLog) returns injector OPTIONS:
 	// the plugin must be present at construction time to record service
 	// invocations, so it is built first and passed to do.NewWithOpts. This
 	// is the one call that replaces a bare do.New() when an application
 	// wants the audit trail.
 	auditSetup, err := auditlog.WithAuditLog(
-		doauditlog.Config{},           //nolint:exhaustruct // demo defaults; WithAuditLog enables recording
+		doauditlog.Config{},          //nolint:exhaustruct // demo defaults; WithAuditLog enables recording
 		live.Config{Prefix: "/audit"}, //nolint:exhaustruct // demo defaults
 	)
 	if err != nil {
-		slog.Error("failed to build auditlog setup", "error", err)
-		panic(err)
+		return nil, nil, errorfamily.WrapInfrastructure(err, "samber_do_demo.auditlog_setup", "build auditlog setup")
 	}
 
 	injector := do.NewWithOpts(auditSetup.Opts)
