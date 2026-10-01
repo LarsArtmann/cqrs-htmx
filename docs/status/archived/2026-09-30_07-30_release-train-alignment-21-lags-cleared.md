@@ -115,11 +115,11 @@ Nothing landed broken; gates green, push succeeded. Honest near-misses (process,
 2. Clear the stale git-town "unfinished sync" state (`git town continue`/`skip`)
 3. Run `nix build` on the benchstat FOD to settle the vendorHash warning (expected false positive)
 4. Run `go mod verify` across modules (skill checklist item skipped this session)
-5. Run `nix run .#check-cqrs-lint` with C040 re-enabled — confirm collaborator's green claim end-to-end
+5. ~~Run `nix run .#check-cqrs-lint` with C040 re-enabled — confirm collaborator's green claim end-to-end~~ done 2026-09-30 — the cqrs-lint arc verified the root cause at the linter source; gate 14/14 green through the handoff window
 6. Run `nix run .#coverage-gate` post-bumps
 7. Run `nix run .#bench-spike` — confirm no perf drift from storage v4.10.2 / error-family v0.11.0
 8. HARVEST this report's f-items into TODO_LIST.md / ROADMAP.md (docs-health)
-9. CHANGELOG entries for the 8 family bumps if convention requires (question g1)
+9. ~~CHANGELOG entries for the 8 family bumps if convention requires (question g1)~~ done 2026-10-01 (round-13 backfill; precedent set)
 10. Teach `bump-dep.sh` an opt-in commit mode (sweep + `git commit` in one process; wins the daemon race by construction)
 11. Document in `docs/runbooks/dependency-train-bump.md`: never chain bump-dep invocations without committing between; MVS can carry sibling bumps (broadcast tidy carried static)
 12. Update AGENTS.md gotcha 4: "sweep+commit must share one shell invocation; the daemon wins cross-invocation races"
@@ -129,9 +129,9 @@ Nothing landed broken; gates green, push succeeded. Honest near-misses (process,
 16. pytest-test should skip when zero python tests collected
 17. Rebuild BuildFlow binary (doctor: binary e881e96 vs repo bfa3d35)
 18. Investigate golangci-lint timing +800% regressions flagged by BuildFlow (cold cache vs real)
-19. Migrate examples/datastar-demo off deprecated `datastar.Broadcaster`/`NewBroadcaster` → `broadcast.*` (SA1019)
-20. Migrate e2e/server `AggregateID` → `StreamID` (SA1019) and the two nil-error-return findings (main.go:66,70)
-21. gomod-check: 15 go.work replaces "not used by any used module" — prune (schema/v4, stack/* etc.) after verifying they're dead
+19. ~~Migrate examples/datastar-demo off deprecated `datastar.Broadcaster`/`NewBroadcaster` → `broadcast.*` (SA1019)~~ done 2026-10-01 (BuildFlow recovery session)
+20. ~~Migrate e2e/server `AggregateID` → `StreamID` (SA1019) and the two nil-error-return findings (main.go:66,70)~~ done — AggregateID 2026-09-30 (cqrs-lint session); the snapshot-store `nil, nil` → `ErrSnapshotNotFound` 2026-10-01
+21. ~~gomod-check: 15 go.work replaces "not used by any used module" — prune (schema/v4, stack/* etc.) after verifying they're dead~~ done 2026-10-01 — 19 genuinely-dead replaces dropped after union-graph verification; the one load-bearing pin (go-etag) restored + documented; gomod-check 20→1 accepted warning
 22. go-line-flipflop: go.mod `go` line changed 20×/20 commits — pin the floor policy and stop the oscillation
 23. scripts/testdata verify-tag fixtures flagged as needing tidy — exclude testdata from freshness or tidy them
 24. Reconcile go-work-paths doctor warning (13 use-path/module-name /v4 suffix mismatches) — cosmetic but noisy
@@ -142,7 +142,7 @@ Nothing landed broken; gates green, push succeeded. Honest near-misses (process,
 29. Daemon heuristic: absorb untracked docs/status files promptly (00-41 doc sat ~12 min)
 30. Eval-cache-busy nix contention during BuildFlow runs — serialize or add retry
 31. VACUUM or delete the 0.81 GB buildflow cache DB (29% free pages)
-32. Re-check cqrs-lint suppressions after the rebuilt binary settles (gotcha 13: rebuilds re-attribute findings)
+32. ~~Re-check cqrs-lint suppressions after the rebuilt binary settles (gotcha 13: rebuilds re-attribute findings)~~ done 2026-09-30 — the C017 suppression moved to the re-attributed construction site; the arc's regression tests pin the collector
 33. Consider a lockfile (flock) shared by bump-dep.sh and the daemon to serialize tree mutations
 34. Vulture/bandit/mypy/ruff +1000–7000% timing spikes — run `buildflow timings --regressions`
 35. Status-report skill default is HTML but this repo's series convention is .md — feed the convention back to the skill config
