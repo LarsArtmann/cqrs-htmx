@@ -1035,9 +1035,9 @@ func (c Config) validateOptionalFeedPaths() error {
 		name, path string
 		allowDash  bool
 	}{
-		{"EventCatalogPath", c.EventCatalogPath, false},
-		{"ProjectionStatusPath", c.ProjectionStatusPath, false},
-		{"DebugPath", c.DebugPath, false},
+		{fieldEventCatalogPath, c.EventCatalogPath, false},
+		{fieldProjectionStatusPath, c.ProjectionStatusPath, false},
+		{fieldDebugPath, c.DebugPath, false},
 		{"LivePath", c.LivePath, false},
 		{fieldSSEPath, c.SSEPath, false},
 		{"SSEScriptPath", c.SSEScriptPath, true},

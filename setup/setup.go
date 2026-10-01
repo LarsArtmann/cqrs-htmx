@@ -106,22 +106,18 @@ func newBundle(cfg Config) (*Bundle, error) {
 		bundle.Auth = usermgmt.NewAuthHandler(svc, authCfg)
 	}
 
-	if err := bundle.attachPanels(store, bus); err != nil {
-		bundle.cleanup()
+	// Panels, SSE, and machine endpoints mount in order; the first failure
+	// tears the bundle down so a failed New leaves nothing behind.
+	for _, attach := range []func() error{
+		func() error { return bundle.attachPanels(store, bus) },
+		bundle.attachSSE,
+		bundle.attachMachineEndpoints,
+	} {
+		if err := attach(); err != nil {
+			bundle.cleanup()
 
-		return nil, err
-	}
-
-	if err := bundle.attachSSE(); err != nil {
-		bundle.cleanup()
-
-		return nil, err
-	}
-
-	if err := bundle.attachMachineEndpoints(); err != nil {
-		bundle.cleanup()
-
-		return nil, err
+			return nil, err
+		}
 	}
 
 	return bundle, nil
