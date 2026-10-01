@@ -992,6 +992,7 @@
                         "status-rows:python3 scripts/check-status-rows.py"
                         "status-rows-self-test:bash scripts/test-check-status-rows.sh"
                         "status-rows-normalize-self-test:bash scripts/test-normalize-status-rows.sh"
+                        "bump-dep-self-test:bash scripts/test-bump-dep.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -1036,6 +1037,7 @@
                     python3 scripts/check-status-rows.py
                     bash scripts/test-check-status-rows.sh
                     bash scripts/test-normalize-status-rows.sh
+                    bash scripts/test-bump-dep.sh
                     echo ""
                     echo "✓ All module architecture checks passed"
                   '';

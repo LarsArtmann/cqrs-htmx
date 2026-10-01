@@ -80,6 +80,7 @@ fi
 
 # Row 5: the code-span literal must NOT be mistaken for an existing strike —
 # the whole cell is wrapped, and the checker's code-span stripping still sees a strike.
+# shellcheck disable=SC2016  # backticks are literal here (a fixed grep -F pattern)
 if grep -qF '| ~~done item~~ | ~~L~~ | ~~`~~literal~~`~~ |' "$fixture"; then
   echo "  ok 2d: code-span literal cell wrapped exactly once"
   pass=$((pass + 1))

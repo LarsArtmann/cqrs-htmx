@@ -764,6 +764,11 @@ jobs:
       - name: Docs status tail-budget self-test
         run: bash scripts/test-check-docs-tail-budget.sh
 
+      # bump-dep.sh discovery self-test (block + single-line require forms,
+      # $ anchor, testdata skip) — the 9b3c2e18 regex-gap regression guard.
+      - name: bump-dep self-test
+        run: bash scripts/test-bump-dep.sh
+
       # Fixture self-test for the /v4-suffix import-path rule inside
       # check-docs-freshness.sh (scripts/lib/docs-import-paths.sh).
       - name: Docs freshness self-test

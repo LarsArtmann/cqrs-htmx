@@ -92,7 +92,7 @@ out=$(run_bump 'larsartmann/exmod$' v9.9.9 --dry-run)
 if printf '%s' "$out" | grep -q '(dry-run) ./a' &&
   printf '%s' "$out" | grep -q '(dry-run) ./b' &&
   ! printf '%s' "$out" | grep -q '(dry-run) ./e'; then
-  echo "  ok 2: trailing \$ anchors the module path (submodule excluded)"
+  echo '  ok 2: trailing $ anchors the module path (submodule excluded)'
   pass=$((pass + 1))
 else
   echo "  FAIL 2: anchor not honored; output:" >&2
