@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 _(nothing yet)_
 
+## [v4.13.0] - 2026-10-01
+
+### Changed
+
+- **Snapshot codec moved onto `go-codec` direct (2026-09-29):** the snapshot persistence layer no longer routes through go-cqrs-lite's deleted `codec/v4` shim — `go-codec v0.3.0` is the direct dependency (`d8684d5c`). Consumer-facing wire format unchanged; this unblocks consumers that were blocked on the shim's removal. **This tag is the recorded adoption prerequisite for PapDashboard** (their evaluation requires a published usermgmt carrying this migration — `docs/status/2026-09-29_23-35_papdashboard-feedback-completion-self-review.md` f20–f21).
+- **Dependency train alignment:** go-cqrs-lite 2026-09-28 wave (event/command v4.12.0, query v4.9.0, middleware v4.7.0, storage v4.10.2, dispatcher v4.5.0 indirect), go-error-family v0.10.2, httputil v1.3.0.
+
+### Fixed
+
+- **Dedup sweep follow-through (2026-09-22):** `Service` and `OAuth2Service` login paths share one `createAndStoreSession` helper so session-creation failures wrap identically (−duplication, behavior unchanged).
+
 ## [v4.11.0] - 2026-09-19
 
 ### Added
