@@ -37,7 +37,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0 // indirect
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0 // indirect
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.0 // indirect
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.1 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0 // indirect
 	github.com/larsartmann/go-appkit v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
