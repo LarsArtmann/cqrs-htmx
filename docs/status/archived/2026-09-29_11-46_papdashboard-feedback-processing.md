@@ -51,11 +51,11 @@ One reference could NOT be resolved: the feedback cites "upstream #67/#68" for t
 
 > ANNOTATED 2026-09-29: all three resolved — b1 committed as `a3699cd8` (daemon commits rewritten into proper messages; tests included); b2 killed job 02C, formatting done scoped via `golangci-lint fmt` (treefmt's config lives in the flake eval, not a findable toml — documented lesson); b3 shipped in `4ef0f03e`.
 
-1. **Phase-2 commit** — the code is complete and tested but NOT properly committed:
+1. ~~**Phase-2 commit** — the code is complete and tested but NOT properly committed:~~ resolved same evening (`a3699cd8` + the ST1023 follow-up; the top blockquote records it):
    - Daemon committed the 3 source files as heuristic `chore: auto-commit 3 changed file(s)` (`243fd944`) while `nix fmt` was still running.
    - The 2 new test files are still **untracked** (`??`), so the heuristic commit contains seams WITHOUT their tests.
    - Needed: finish format, lint, then a fixup commit of the tests + README/doc.go updates + proper message (or amend `243fd944` if still the tip with no foreign mixing — verify first per the daemon-races runbook).
-2. **`nix fmt`** — started ~20 min ago as a background job, still "running" with no output. Normal treefmt runtime here is ~1-2 min; this smells stuck (eval-cache lock or queue). Must be checked/killed and re-run **scoped to the 5 changed files** (`treefmt <paths>`) instead of whole-tree.
+2. ~~**`nix fmt`** — started ~20 min ago as a background job, still "running" with no output. Normal treefmt runtime here is ~1-2 min; this smells stuck (eval-cache lock or queue). Must be checked/killed and re-run **scoped to the 5 changed files** (`treefmt <paths>`) instead of whole-tree.~~ resolved same evening (job 02C killed; scoped `golangci-lint fmt` used — treefmt's config lives in the flake eval, documented lesson).
 3. **Docs for the new seams** — setup/README.md config table + setup/doc.go customization-ladder mention for `ExtraMiddleware`/`DisableSecurityMiddleware`/`HealthChecks` not yet written (planned as part of the phase-2 commit).
 
 ---
