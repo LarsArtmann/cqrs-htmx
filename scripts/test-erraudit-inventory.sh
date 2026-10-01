@@ -15,10 +15,16 @@ failures=0
 check() { # check <name> <expected-rc> <actual-rc> <required-grep> <output>
   local name="$1" want_rc="$2" got_rc="$3" pattern="$4" out="$5"
   if [ "$want_rc" != "$got_rc" ]; then
-    echo "FAIL $name: rc=$got_rc want=$want_rc"; echo "$out" | head -5; failures=$((failures+1)); return
+    echo "FAIL $name: rc=$got_rc want=$want_rc"
+    echo "$out" | head -5
+    failures=$((failures + 1))
+    return
   fi
   if [ -n "$pattern" ] && ! printf '%s\n' "$out" | grep -q "$pattern"; then
-    echo "FAIL $name: output missing '$pattern'"; echo "$out" | head -5; failures=$((failures+1)); return
+    echo "FAIL $name: output missing '$pattern'"
+    echo "$out" | head -5
+    failures=$((failures + 1))
+    return
   fi
   echo "ok   $name"
 }
@@ -53,8 +59,16 @@ EOF
 
 out=$(ERRAUDIT_BIN="$TMP/fake-erraudit" bash "$INVENTORY" "$TMP/ws" 2>&1)
 check "healthy-sweep candidates+TOTAL" 0 $? 'candidates=2' "$out"
-printf '%s\n' "$out" | grep -q '  ./mod-a: 2' || { echo "FAIL healthy-sweep: mod-a count wrong"; echo "$out"; failures=$((failures+1)); }
-printf '%s\n' "$out" | grep -q 'TOTAL=2' || { echo "FAIL healthy-sweep: TOTAL wrong"; echo "$out"; failures=$((failures+1)); }
+printf '%s\n' "$out" | grep -q '  ./mod-a: 2' || {
+  echo "FAIL healthy-sweep: mod-a count wrong"
+  echo "$out"
+  failures=$((failures + 1))
+}
+printf '%s\n' "$out" | grep -q 'TOTAL=2' || {
+  echo "FAIL healthy-sweep: TOTAL wrong"
+  echo "$out"
+  failures=$((failures + 1))
+}
 
 out=$(ERRAUDIT_BIN="$TMP/fake-erraudit" bash "$INVENTORY" --gate "$TMP/ws" 2>&1)
 check "gate-mode fails on TOTAL>0" 1 $? 'gate mode' "$out"
@@ -89,6 +103,7 @@ out=$(ERRAUDIT_BIN="$TMP/fake-crash" bash "$INVENTORY" "$TMP/ws" 2>&1)
 check "erraudit-failure guard fails" 1 $? 'rc=7' "$out"
 
 if [ "$failures" -gt 0 ]; then
-  echo "erraudit-inventory self-test: $failures FAILURE(S)"; exit 1
+  echo "erraudit-inventory self-test: $failures FAILURE(S)"
+  exit 1
 fi
 echo "erraudit-inventory self-test: all cases green"

@@ -1010,6 +1010,7 @@
                         "status-rows-self-test:bash scripts/test-check-status-rows.sh"
                         "status-rows-normalize-self-test:bash scripts/test-normalize-status-rows.sh"
                         "bump-dep-self-test:bash scripts/test-bump-dep.sh"
+                        "erraudit-inventory-self-test:bash scripts/test-erraudit-inventory.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -1339,6 +1340,41 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/test-check-workspace-build.sh
+                  '';
+                }
+              );
+            };
+
+            erraudit-inventory = {
+              type = "app";
+              meta.description = "Per-module erraudit critical-findings inventory across the whole go.work workspace (report mode; --gate fails on TOTAL>0); prints its candidate count and fails on a zero-module decomposition";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "erraudit-inventory";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.gawk
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/erraudit-inventory.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-erraudit-inventory = {
+              type = "app";
+              meta.description = "Offline fixture self-test for erraudit-inventory.sh (stubbed binary: counting, gate mode, zero-candidate guard, missing-binary guard, erraudit-failure guard)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-erraudit-inventory";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-erraudit-inventory.sh
                   '';
                 }
               );

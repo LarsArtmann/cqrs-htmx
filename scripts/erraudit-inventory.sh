@@ -24,8 +24,8 @@ GATE=0
 ROOT=""
 for arg in "$@"; do
   case "$arg" in
-    --gate) GATE=1 ;;
-    *) ROOT="$arg" ;;
+  --gate) GATE=1 ;;
+  *) ROOT="$arg" ;;
   esac
 done
 ROOT="${ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
@@ -38,7 +38,10 @@ command -v "$ERRAUDIT_BIN" >/dev/null 2>&1 || {
   exit 1
 }
 
-[ -f go.work ] || { echo "erraudit-inventory: FAILED — no go.work at $ROOT" >&2; exit 1; }
+[ -f go.work ] || {
+  echo "erraudit-inventory: FAILED — no go.work at $ROOT" >&2
+  exit 1
+}
 
 # Workspace members from go.work itself (same decomposition as
 # check-workspace-build.sh — the artifact whose integrity matters here).

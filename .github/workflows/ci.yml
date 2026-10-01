@@ -627,6 +627,12 @@ jobs:
         env:
           GOEXPERIMENT: jsonv2
 
+      # Offline fixture self-test for the erraudit inventory sweep (stubbed
+      # binary — no erraudit install needed on runners): pins the candidate
+      # count + fail-on-zero false-green guard for the go.work decomposition.
+      - name: Erraudit inventory self-test
+        run: bash scripts/test-erraudit-inventory.sh
+
       # BLOCKING since 2026-09-09 (was `|| true` advisory): an UNPUBLISHED
       # internal require (phantom-tag class) or train lag beyond the budget
       # fails the build. --strict-lag 0 went live after the 2026-09-09
