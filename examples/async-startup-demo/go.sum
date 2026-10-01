@@ -143,8 +143,8 @@ github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0 h1:rs1ZCUOOWvFn/KEE8fCvgRsa
 github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0/go.mod h1:Rjx/CppoDClLURmhoag8FKs/J7HZZiSBvSvi+3t+5yA=
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0 h1:nND/2bnYCVeu6iIYvmdhm4HT6L1VKXdEhCYsPQWD0d0=
 github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0/go.mod h1:KI3H5BHbkthEoN3hwuCE4yHLyx6egic6t1yjAcd0e7w=
-github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0 h1:YfVGxEfoAZ3/+GgsMJI55bNKQDY0zfteY0Glwkahpg4=
-github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.0/go.mod h1:WFSXzl0mTzO+bmL9M5Jfl6hgv/IHOt0nbptalu6wKak=
+github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.1 h1:fpZF/TIBVGlNhC6j+bDLwVyM/l8MMkMeuGxqwYAXQUM=
+github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.1/go.mod h1:XPplhW5kKPnq7JUW+bImJK++lurIXlE0ZyjOIoGI/Og=
 github.com/larsartmann/cqrs-htmx/setup/v4 v4.13.1 h1:JCAhH51xuxSHf2O/A8FrzfeaU4+gdqCQJSovqbg9FOw=
 github.com/larsartmann/cqrs-htmx/setup/v4 v4.13.1/go.mod h1:LUteVa+g1GxD7+qq2zWthJXcYsSPikqLewgf1v1VA/4=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.1 h1:y8eaRLRJconXdvNRSqwGnuSm8VBqcf44vQ9tlVpX8rw=
