@@ -1,0 +1,67 @@
+# Pareto Plan Execution — W0–W3 (Family Train + Gates + Erraudit) — 2026-10-01 10:30 CEST
+
+> **Session:** execution of `docs/planning/2026-10-01_06-47_pareto-round13-superb-execution-plan.md` from W0. Owner directive: "Execute and Verify one step at a time. Repeat until done." This report covers W0 (hygiene), W1 (the 1% family train — COMPLETE), W2 (proof & prevention — mostly complete), W3 (erraudit — the trivial pair COMPLETE, the 61-site program in progress). Branch `master`, HEAD at report time: `eed53317` (pushed), tree clean.
+
+## a) Fully done
+
+| Item | Evidence |
+|---|---|
+| **W0 hygiene**: preflight-tree-check OK, disk 89G free (58%), tag snapshot, release-train `--refresh-cache` = 0 unpublished / 0 lag, release-playbook §3a wave choreography re-read | gate output at session start |
+| **W1 — THE FAMILY TRAIN (the plan's 1%, 51% of value): 9 tags published** — `usermgmt/v4.13.0` (the go-codec migration `d8684d5c`, PapDashboard's recorded adoption prerequisite), root `v4.13.0` (the whole [Unreleased] set: ADR-0054 shell, ownership seams, BuildFlow recovery, cqrs-lint fix, dedup sweep), `usermgmt/v4.13.1` (root ride), `adminui`/`dashboardui`/`health`/`loginpage`/`systemadapter` `v4.12.1` rides, `setup/v4.13.2` | `git ls-remote` verified per tag by `scripts/verify-tag.sh`; strict train gates green at every push (one documented fresh-tag TTL ghost, resolved via the gate's own `--refresh-cache` recipe — gotcha 5 confirmed live) |
+| **W1 consumer sweeps**: 10 modules → usermgmt v4.13.0 (all `codec/v4` indirects dropped, absence sweep zero); 19 modules → root v4.13.0; 10 modules → usermgmt v4.13.1; 6 tail sweeps (examples/integration_test/e2e) onto the ride tags; every sweep hermetic `GOWORK=off` tidy+build+vet via `bump-dep.sh` | commit `9fa1bbf7`, `7e3f79ff`, `ce3599e4` + per-sweep commits; final train state 0 lag / 0 unpublished |
+| **W1 closeout**: TODO_LIST P1 item struck (train section tombstone), header Version line restamped; proxy smoke green (scratch module `go get` root v4.13.0 + setup v4.13.2 + usermgmt v4.13.1 from the live proxy, tidy+build rc=0) | TODO_LIST.md header; smoke logs |
+| **T07 — `check-workspace-build` gate shipped with the FULL atomic checklist**: checker (`scripts/check-workspace-build.sh` — workspace-mode `go build ./...` in every go.work member, consumer-view filtered) + fixture self-test (4/4: healthy / dropped-use mangling / missing go.work / machine-local-replace CI shape) + flake apps (`.#check-workspace-build`, `.#test-workspace-build`) + check-modules stages (composite 25/25 green) + CI steps + AGENTS quick-ref row | commits `c85d802f`, `9831c04f`, `eed53317` |
+| **go-etag go.work resolution shield retired at its natural end**: the v4.13.0 train removed the last union-graph edge to go-etag root (all consumers now on v4.13.x requiring the split `go-etag/server`; `go list -m go-etag` = "not a known dependency"; appkit already at v0.7.0 so the pin's own removal condition was met) — pin removed with dated comment; gomod-check's residual `work-replace-dead` warning became a TRUE positive and is gone; gotcha 22c updated | commit `c85d802f`, go.work comment |
+| **T03 — heavy verification battery (quiet-window)**: `nix run .#test` workspace race suite **rc=0 across all 28 modules** (load 5.9) + `nix run .#coverage-gate` **15/15 PASSED** (post-train, post-go.work-change) | `/tmp/cqrs-htmx-test-w2-*` log rc line; coverage-gate tail; TODO_LIST coverage line restamped |
+| **T05 — erraudit trivial pair**: `examples/samber-do-demo/container.go` panic → returned `WrapInfrastructure` error (signature `(*Container, func(), error)` rippled to `main.go` + 2 tests, module build+vet+test rc=0); `e2e/playwright.config.ts` `Debug:` header reworded (the todo-checker's case-insensitive `bug:` match). Scoped re-run: **panic findings 1 → 0, bug-marker findings 1 → 0** | commit `3d9ce553` + daemon `d1299cb8`/`7a9e7be5`; buildflow step outputs |
+
+## b) Partially done
+
+| Item | State | Remaining |
+|---|---|---|
+| **T06 — erraudit `context_loss` program (the 61-site inventory; the gate now counts 61 unique sites, up from the 55 the TODO was written against)** | **36/61 sites fixed** across clusters 1–3: es_* read models (6), sql_readmodel (4), sql_readmodel_extra (7 — fixed inside the generic helpers so every call site benefits), sql_session_store (1), totp (5), email_verification (2), service_impersonation (7), service_tenant (3), service_bot (1). usermgmt build+vet green; working note with per-site lost-variable names at `/tmp/cqrs-htmx-context-loss-working-note.txt`; fixes committed via daemon (`8c66e94d`, `c2360dbf`, `938925e8`, `75b14ed0`, pushed) | **25 sites**: `service_oauth2_extracted.go` L191/L281 (the L281 bare propagation wants a `withUserIDContext`-style wrap preserving the error's family), `oauth2/provider.go` L329/L336/L346 — **rawIDToken is a live credential: decision = suppress-with-reason, NOT context** (needs the erraudit nolint analyzer name verified empirically first), identity-model `authz_roles.go` L31/L46/L63 (userID), dashboardui config.go L225/L231/L235 + core/events.go L137/L143/L200 + handlers_audit.go L287/L305/L322/L333 (streamID/streamType/pageSize/eventID/targetID). Then: scoped erraudit → 0, BuildFlow scoped re-run, analyzer name documented in AGENTS, CHANGELOG entry |
+| **T03/T04 battery remainder**: test + coverage green; **e2e Playwright suite + bench-spike NOT run** (load rose to 24.8 before they could start; OQ16 posture = honest refusal over contended numbers) | TODO_LIST battery item moved to `[~]` with the exact remainder | e2e + bench in the next verified-quiet window (load < 6) |
+| **T06 count reconciliation**: the extraction script's unique-ID count (61) vs its per-file table sum (54) disagree by 7 — dedup quirk in the working-note generator to re-derive when the program resumes | noted here honestly | re-run the extractor with strict dedup before the final scoped erraudit verdict |
+
+## c) Not started
+
+T08 (system cqrs-lint rebuild — **owner-gated**, binary still pre-fix `3756eb4/20260929`), T09 (the 5 fleet upstream asks — drafts not started), T10 (cqrs-lint residual triage — now also owns the NEW `sentinel_concrete_type` ×51 class the erraudit step surfaced this session), T11/T12 (go-cqrs-lite cross-repo docs + vet/lint/race on the collector fix), T13–T18 (tooling micro-batch: bump-dep `--commit` + the single-line-require gap fix, lychee 404s, config honesty, suppression hygiene, status-row normalizer, tail-budget + feedback-inbox gates), T19–T26 (docs narratives, planning-corpus triage, scoped-format app, e2e pins, CI-parity path, noise policy, owner packets, v5-window watches), W10 close (round-14 report, plan outcome-annotation).
+
+## d) Fucked up (honest incident log — all recovered)
+
+1. **Red master for ~2 hours (self-inflicted by the new gate, then fixed by the gate's own lesson):** the first CI run of `check-workspace-build` (run 36824785928) failed on the tracked go.work's ~35 machine-local replace targets (`/home/lars/projects/...` — the fleet sibling layout that cannot exist on a CI runner). This is precisely the workspace-only-blind-spot class the gate exists for — it caught a real discrepancy on its first run, but the unfiltered form can never go green on CI. **Fix shipped (`eed53317`): the gate builds the CONSUMER VIEW — absolute/relative-path replaces filtered into a temp go.work (GOWORK override, trap-cleaned); version-to-version replaces survive so the 373209a7 class still fires; fixture case 4 pins the CI shape.** CI verification of the fix was in flight at report time.
+2. **shellcheck broke treefmt (rc=1) on the new gate** (SC1091 unannotated source + SC2164 bare cd): fixed with the sibling gates' canonical directives (`9831c04f`).
+3. **bump-dep.sh single-line-require gap discovered live:** the sweep regex (`^[[:space:]]*github\.com/`) cannot see column-0 `require <mod> <ver>` form — `examples/async-startup-demo`'s setup require stayed at v4.13.1 through the sweep (caught by the train gate, fixed by hand, `9b3c2e18`). Recorded as a T13 work item.
+4. **Pre-commit BuildFlow failed on every commit** (deterministic env-class per gotcha 8: the erraudit criticals layer — now shrinking — plus vulnix crashing on a DEAD upstream NVD feed URL `nvdcve-2.0-modified.json.gz` 404, plus load-flake golangci aborts at load 24–97). Every commit used the sanctioned `--no-verify` + written justification, each with independent verification. The vulnix feed-404 is a new standing-noise item for the T24 posture batch.
+5. **Fresh-tag TTL ghost fired once** (push after cutting `usermgmt/v4.13.1` rejected UNPUBLISHED): resolved exactly per gotcha 5's recipe (`--refresh-cache`, re-push) — no re-tag, no poison.
+6. **Edit-tool syntax slip** in `container.go` (appended `}, nil` after the function's close): caught by build in seconds, fixed immediately.
+7. **Daemon races throughout** (expected per gotcha 4): ~8 heuristic commits carry my verified content; every one was `git show`-inspected before being built upon.
+
+## e) Improvements identified this session
+
+- The **go.work machine-local replaces** are a structural CI-vs-fleet split baked into a tracked file. The gate now tolerates them by design (consumer view), but the deeper cleanup — a `GOWORK`-overridable fleet overlay or documenting the replaces as fleet-only-untracked — is worth an OQ.
+- **erraudit surfaced a new 51-finding class** (`sentinel_concrete_type`: usermgmt `errors.go` sentinels declared with concrete `*errorfamily.Error` type instead of the error interface) — severity below the critical gate, but it is the largest remaining erraudit inventory and belongs in T10's triage scope.
+- **vulnix is dead noise right now** (upstream NVD feed retired) — suppress/document in the noise-policy batch.
+- **The todo-checker `bug:` substring false-positive class** (`Debug:` matches): reworded here, but the checker's pattern is fleet-wide — candidate upstream ask (rides T09).
+- bump-dep.sh: single-line-require gap (above) + the `--commit` mode (T13) would have made the six tail sweeps one-command each.
+
+## f) Next tasks (ordered)
+
+1. Finish T06's remaining 25 sites (oauth2 5 incl. the rawIDToken suppress-with-reason + analyzer-name verification, identity-model 3, dashboardui 10) → scoped erraudit 0 → BuildFlow scoped re-run → CHANGELOG + AGENTS analyzer-name doc (the plan's micro-tasks 26–34 tail).
+2. Watch CI green on `eed53317`; record run id.
+3. T03/T04 remainder in the next quiet window: e2e Playwright suite (snapshot-sentinel proof) + bench-spike (load < 6 verified twice).
+4. Re-derive the 61-vs-54 site count; strike the TODO erraudit item when criticals hit 0.
+5. T13: bump-dep.sh `--commit` mode + single-line-require regex fix + self-test fixtures (the gap this session proved live).
+6. T08: owner rebuilds the system cqrs-lint binary → C040 root-walk verification → retire gotcha-13 caveat.
+7. T09: draft + file the 5 upstream asks (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci TMPDIR, BuildFlow go-work-sync union-graph guard, a-h/templ parser) — verify-before-filing discipline.
+8. T10: cqrs-lint residual triage — now scoped to E005×16, V007×41, A016/V006, ~130 untriaged, PLUS the new sentinel_concrete_type ×51.
+9. T24: noise policy — vulnix dead-feed disposition, "9 tools unavailable", jscpd config dupes.
+10. T11/T12 cross-repo (go-cqrs-lite CHANGELOG + collector vet/lint/race).
+11. T14–T18 tooling batch (lychee 404s, config honesty, suppression hygiene, normalizer promotion, tail-budget + feedback-inbox gates).
+12. T19–T22 docs/corpus/scoped-fmt/pins; T23 CI-parity path; T25 owner packets (incl. the PapDashboard reply — now unblocked: the prerequisite tag is LIVE); T26 v5-window watches; W10 close (round-14 report, plan annotation, CHANGELOG pass).
+
+## g) Questions I cannot answer myself
+
+1. **rawIDToken suppression** (`oauth2/provider.go`): I decided the ID-token must NOT ride error context (live credential; log/audit-leak hygiene). Confirm you agree the three sites get `//nolint` + reason rather than context — and whether you want the analyzer name verified empirically before I rely on it (TODO's standing caveat).
+2. **T09 filing authorization**: the 5 upstream asks need to be FILED as GitHub issues under your identity (treefmt-nix, nixpkgs, golangci-lint, a-h/templ — external; BuildFlow — your own repo). I can draft all five now; do you want them filed this session or drafts-only for review?
+3. **go.work fleet-local replaces (the gate's consumer-view compromise)**: the ~35 `/home/lars/...` replaces stay tracked for fleet dev. Options: (a) keep as-is with the gate filtering (current), (b) move them to an untracked fleet overlay via `GOWORK=<custom>`, (c) an OQ to decide later. Which way do you want the fleet to standardize?
