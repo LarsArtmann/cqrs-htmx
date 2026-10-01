@@ -1,5 +1,7 @@
 # Round 8 — Full TODO-List Execution + templ-components v1.19.1 (local): Status & Self-Review
 
+> ANNOTATED 2026-10-01 (docs-health round 13, second pass): the 09-22 same-day annotation's open tail has since closed — real CI executed the templ-components fixes and stayed green (tip `d13c1445` CI + Website green, witnessed 2026-09-22; cqrs-htmx CI 7/7 witnessed 2026-09-28, run 36382941958), pkg.go.dev renders v4.12.0 with full symbol index + the v1.19.2 consumer-eye is done (09-22/23), the pinned-Chromium pixel suite was never adopted — screenshot truth is the e2e Playwright screenshots + axe sweeps (refreshed 09-23/26), bench-spike closed 2026-09-26, the WithChildren spike passed and graduated to production PolledRegion/Grid adoption (round-12), ListNoteCount shipped (09-23), and the owner calls remain tracked (datastar-demo → TODO_LIST P3; OQ14–16 → ROADMAP). Remaining §f rows are adjudicated against the 2026-09-26 round-12 TODO rewrite; absence of a marker = routed or unadopted brainstorm, both covered by the current TODO_LIST. Archived per the tail convention.
+
 **2026-09-22 12:04 CEST** · session-scoped: what THIS session did, noticed, broke, and missed.
 Inputs: the round-7 [TODO_LIST](../../TODO_LIST.md) as found at session start (02:2x), executed end-to-end; cross-repo work in `~/projects/templ-components`.
 Machine context: load 614 → 36 → 889 across the session (external workloads, 32 cores); `/mnt/buildcache` 100% FULL (1.8G free; rust 155G + sccache 20G dominate) — all Go work ran on `/tmp` fallback caches.
@@ -45,12 +47,12 @@ Machine context: load 614 → 36 → 889 across the session (external workloads,
 
 ## b) PARTIALLY DONE (started, verification incomplete)
 
-1. **templ-components v1.19.1 release** — ~~cut + tagged **locally only**; push pending owner (house rule: never push unconfirmed).~~ pushed 2026-09-22 by the release-train-alignment session — all 7 v1.19.1 tags verified on origin via `git ls-remote` (root `f917cb89`). pkg.go.dev propagation, release-smoke, and real-CI confirmation are still unverified (routed to TODO_LIST consumer-eye/CI-watch).
-2. **templ-components CI repair** — all three fixes implemented and locally verified, but their AGENTS push ritual (`scripts/ci-repro.sh --lint --website` green-on-tip) was **NOT run**; real CI has not executed any of it.
-3. **templ-components visual pixel suite** — locally ran with a non-pinned Chromium: **PASS-count 0** (all pixel tests failed). Attributed to documented renderer/font drift ("a non-Nix Chromium false-fails pixel comparison" — their AGENTS), consistent with the failing set (pure pixel tests), but the claim is asserted, not proven; only `TestSiteSalesCopyButton` was verified green selectively. The pinned-Chromium run is outstanding.
-4. **bench-spike (P1)** — refused under load for the 9th documented time (614→36→889 vs limit 8). Mechanically correct per the guard; the item stays open. OQ16 (automate-or-retire) updated with refusal #9.
+1. **templ-components v1.19.1 release** — ~~cut + tagged **locally only**; push pending owner (house rule: never push unconfirmed).~~ pushed 2026-09-22 by the release-train-alignment session — all 7 v1.19.1 tags verified on origin via `git ls-remote` (root `f917cb89`). ~~pkg.go.dev propagation, release-smoke, and real-CI confirmation are still unverified (routed to TODO_LIST consumer-eye/CI-watch).~~ done — pkg.go.dev verified for cqrs-htmx v4.12.0 (full symbol index) + templ-components v1.19.2 consumer-eye (2026-09-22/23), post-train consumer-eye shipped, real CI green witnessed 2026-09-28 (run 36382941958, 7/7) (docs-health pass 2026-10-01).
+2. ~~**templ-components CI repair** — all three fixes implemented and locally verified, but their AGENTS push ritual (`scripts/ci-repro.sh --lint --website` green-on-tip) was **NOT run**; real CI has not executed any of it.~~ superseded — the v1.19.1 train shipped, upstream tip CI + Website green witnessed (`d13c1445`, 2026-09-22), and this repo consumed v1.19.4 in production (2026-09-27).
+3. ~~**templ-components visual pixel suite** — locally ran with a non-pinned Chromium: **PASS-count 0** (all pixel tests failed). Attributed to documented renderer/font drift ("a non-Nix Chromium false-fails pixel comparison" — their AGENTS), consistent with the failing set (pure pixel tests), but the claim is asserted, not proven; only `TestSiteSalesCopyButton` was verified green selectively. The pinned-Chromium run is outstanding.~~ superseded — the dedicated pixel suite was never adopted upstream or here; screenshot truth = e2e Playwright screenshots + dark/light axe sweeps (refreshed 2026-09-23/26, round-12).
+4. ~~**bench-spike (P1)** — refused under load for the 9th documented time (614→36→889 vs limit 8). Mechanically correct per the guard; the item stays open. OQ16 (automate-or-retire) updated with refusal #9.~~ done 2026-09-26 — round-12 quiet-window pass, no regression, no re-pin.
 5. ~~**templ-components v1.19.1 adoption into cqrs-htmx** — new TODO item created with the full recipe (pins + both CSS bundle rebuilds); not executed (family-train-scale change, owner scheduling).~~ done at `eb6dfc7a`, `650404e1`, `5f1d1bca`
-6. **`templ.WithChildren` exploitation** — discovery documented + pinned upstream; no dashboardui spike yet (SidebarNav criterion (1) noted as now-satisfiable).
+6. ~~**`templ.WithChildren` exploitation** — discovery documented + pinned upstream; no dashboardui spike yet (SidebarNav criterion (1) noted as now-satisfiable).~~ done — spike passed (round-9 session) and graduated to production adoption: PolledRegion + display.Grid in dashboardui (round-12, 2026-09-26).
 
 ## c) NOT STARTED (this session's sweep — legitimately blocked/owner/wait-gated)
 
@@ -83,23 +85,23 @@ Machine context: load 614 → 36 → 889 across the session (external workloads,
 
 **Unblock/verify (this session's work):**
 
-1. Owner: push templ-components `master --follow-tags` (v1.19.1 + 6 tags) — after `scripts/ci-repro.sh --lint --website` green-on-tip.
-2. Run that ci-repro on the templ-components tip (the skipped ritual).
-3. Owner: push cqrs-htmx master (will traverse the NEW pre-push gate — by design).
-4. Watch CI on both repos after push; triage anything red.
-5. templ-components: run the FULL visual suite with the pinned nixpkgs-chromium (`nix run .#visual`) to prove the pixel-drift attribution.
-6. Verify pkg.go.dev picks up templ-components v1.19.1 (consumer-eye, like cqrs-htmx's).
-7. cqrs-htmx: `nix fmt` drift check on this session's md/nix edits (commit any reformat).
-8. cqrs-htmx: full `nix run .#test` (race, 28 modules) on the tip as the pre-push belt-and-braces.
-9. cqrs-htmx: FEATURES.md — add rows for the new gates (vcs-cache, dep-budgets self-test, pre-push hook).
-10. templ-components: TODO_LIST ID-collision audit (+ optional uniqueness gate).
+1. ~~Owner: push templ-components `master --follow-tags` (v1.19.1 + 6 tags) — after `scripts/ci-repro.sh --lint --website` green-on-tip.~~ done 2026-09-22 (all 7 tags on origin, `git ls-remote`-verified).
+2. ~~Run that ci-repro on the templ-components tip (the skipped ritual).~~ superseded — tip CI + Website green witnessed 2026-09-22; v1.19.4 consumed here 2026-09-27.
+3. ~~Owner: push cqrs-htmx master (will traverse the NEW pre-push gate — by design).~~ done — pushed 2026-09-27/28/30 through the pre-push strict gates.
+4. ~~Watch CI on both repos after push; triage anything red.~~ done — cqrs-htmx CI 7/7 witnessed 2026-09-28 (run 36382941958); templ-components tip CI green witnessed 2026-09-22.
+5. ~~templ-components: run the FULL visual suite with the pinned nixpkgs-chromium (`nix run .#visual`) to prove the pixel-drift attribution.~~ superseded — pixel suite never adopted; screenshot truth = e2e screenshots + axe sweeps (09-23/26).
+6. ~~Verify pkg.go.dev picks up templ-components v1.19.1 (consumer-eye, like cqrs-htmx's).~~ done for the family (v1.19.2 consumer-eye 2026-09-23, CHANGELOG Verified); v1.19.4 verified by the 12-module adoption + class-set gate (09-27).
+7. ~~cqrs-htmx: `nix fmt` drift check on this session's md/nix edits (commit any reformat).~~ done — treefmt is canonical and CI-wired; no drift since.
+8. ~~cqrs-htmx: full `nix run .#test` (race, 28 modules) on the tip as the pre-push belt-and-braces.~~ done repeatedly — 18/18 race suite green at the 09-26/09-28/09-30 tips.
+9. ~~cqrs-htmx: FEATURES.md — add rows for the new gates (vcs-cache, dep-budgets self-test, pre-push hook).~~ done — round-8 rows were already present (round-12 verified; the two new CSS gate rows added 09-26).
+10. ~~templ-components: TODO_LIST ID-collision audit (+ optional uniqueness gate).~~ upstream-owned; their tracker.
 
 **Adoption/value:**
-11. Adopt templ-components v1.19.1 into cqrs-htmx (family pins + BOTH CSS bundle rebuilds in the same change).
-12. dashboardui: adopt `display.ListNote` `ListNoteCount` for range/count semantics (exclusion reason gone).
-13. dashboardui: spike `templ.WithChildren` in the hybrid path (Grid/PolledRegion now usable there).
-14. dashboardui: revisit SidebarNav criteria (criterion 1 now satisfiable in principle).
-15. Extract the clipboard permission+focus-emulation pattern into a visualtest helper for future clipboard e2e tests.
+11. ~~Adopt templ-components v1.19.1 into cqrs-htmx (family pins + BOTH CSS bundle rebuilds in the same change).~~ done 2026-09-22 (`eb6dfc7a`→`5f1d1bca`); superseded by the v1.19.4 train (2026-09-27).
+12. ~~dashboardui: adopt `display.ListNote` `ListNoteCount` for range/count semantics (exclusion reason gone).~~ done 2026-09-23 — DLQ count notice shipped with golden; A/B bench in `render_bench_test.go`.
+13. ~~dashboardui: spike `templ.WithChildren` in the hybrid path (Grid/PolledRegion now usable there).~~ done — spike passed (round-9); production PolledRegion/Grid adoption 2026-09-26 (round-12); the module is now full-templ, no hybrid path remains.
+14. ~~dashboardui: revisit SidebarNav criteria (criterion 1 now satisfiable in principle).~~ tracked — TODO_LIST P2; criterion (1) re-verified UNMET in v1.19.2 (2026-09-26), re-check against v1.19.4+.
+15. Extract the clipboard permission+focus-emulation pattern into a visualtest helper for future clipboard e2e tests. — unadopted brainstorm (round-12 rewrite did not pick it up).
 
 **Open TODO items carried forward:**
 16. bench-spike idle re-run (needs load < 8; refusal #9 logged).
