@@ -321,12 +321,16 @@ func (p *initializedProvider) exchangeAndExtractUser(
 	return info, "", err
 }
 
+// extractFromIDToken verifies the provider's id_token and extracts claims.
+// Its errors deliberately carry NO rawIDToken/claim context: the raw token is
+// a live credential that must never be echoed into an error, so the three
+// returns below suppress erraudit (LIVE-SECRET class) instead of enriching.
 func (p *initializedProvider) extractFromIDToken(
 	ctx context.Context, token *oauth2.Token,
 ) (userInfo, string, error) {
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return userInfo{}, "", errorfamily.NewTransient( //nolint:erraudit // rawIDToken is a live credential; never echoed
+		return userInfo{}, "", errorfamily.NewTransient( //nolint:erraudit // LIVE-SECRET: id_token is a live credential
 			"oauth2.id_token_missing",
 			"id_token missing from token response",
 		)
@@ -337,7 +341,7 @@ func (p *initializedProvider) extractFromIDToken(
 			err,
 			"oauth2.verify_id_token",
 			"verify id_token",
-		) //nolint:erraudit // rawIDToken is a live credential; never echoed
+		) //nolint:erraudit // LIVE-SECRET: id_token is a live credential
 	}
 	var claims struct {
 		Sub               string `json:"sub"`
@@ -351,7 +355,7 @@ func (p *initializedProvider) extractFromIDToken(
 			err,
 			"oauth2.extract_claims",
 			"extract id_token claims",
-		) //nolint:erraudit // rawIDToken is a live credential; never echoed
+		) //nolint:erraudit // LIVE-SECRET: id_token is a live credential
 	}
 	return userInfo{
 		Subject:           claims.Sub,

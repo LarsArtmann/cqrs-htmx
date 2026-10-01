@@ -79,7 +79,7 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 	deleted, err := deleteViewOnTombstone(ctx, m.store, evt, eventMemberRemoved, aggID,
 		"usermgmt.sql_readmodel.membership_delete", "delete membership view")
 	if deleted {
-		return err //nolint:erraudit // deleteViewOnTombstone attaches agg_id
+		return err //nolint:erraudit // HELPER: deleteViewOnTombstone attaches agg_id
 	}
 	mem, ok := m.FindByAggregateID(aggID)
 	if !ok {
@@ -176,7 +176,7 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 	deleted, err := deleteViewOnTombstone(ctx, m.store, evt, eventTenantDeleted, tid,
 		"usermgmt.sql_readmodel.tenant_delete", "delete tenant view")
 	if deleted {
-		return err //nolint:erraudit // deleteViewOnTombstone attaches agg_id
+		return err //nolint:erraudit // HELPER: deleteViewOnTombstone attaches agg_id
 	}
 	tenant, ok := m.FindByID(aggID)
 	if !ok {
@@ -267,7 +267,7 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 	deleted, err := deleteViewOnTombstone(ctx, m.store, evt, eventBotDeleted, bid,
 		"usermgmt.sql_readmodel.bot_delete", "delete bot view")
 	if deleted {
-		return err //nolint:erraudit // deleteViewOnTombstone attaches agg_id
+		return err //nolint:erraudit // HELPER: deleteViewOnTombstone attaches agg_id
 	}
 	bot, ok := m.FindByID(aggID)
 	if !ok {

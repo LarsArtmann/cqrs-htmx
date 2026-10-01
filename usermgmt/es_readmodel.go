@@ -83,7 +83,7 @@ func (m *UserReadModel) handleUserRegistered(_ id.StreamID, evt event.Event) err
 	aggID := evt.StreamID()
 	p, err := decodePayload[UserRegisteredPayload](evt, "UserRegistered")
 	if err != nil {
-		return err //nolint:erraudit // decodePayload attaches agg_id
+		return err //nolint:erraudit // HELPER: decodePayload attaches agg_id
 	}
 	m.users[aggID] = &User{
 		ID:          NewUserID(aggID.String()),

@@ -234,7 +234,7 @@ func StreamRefFromID(streamType string, streamID string) (id.StreamRef, error) {
 			WithContext("stream_id", streamID)
 	}
 
-	return id.NewStreamRef(parsedType, sid), nil //nolint:erraudit // success return; nothing lost
+	return id.NewStreamRef(parsedType, sid), nil //nolint:erraudit // FP: success-path return, nothing lost
 }
 
 // journalForReplay returns the best available journal for SSE reconnect replay.
