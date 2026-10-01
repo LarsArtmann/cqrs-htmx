@@ -336,7 +336,8 @@ func (s *SQLSessionStore) Find(ctx context.Context, token string) (*Session, err
 
 	origin, err := unmarshalSessionOrigin(originType.String, originData.String)
 	if err != nil {
-		return nil, err
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_session.origin_decode_failed", "decode session origin").
+			WithContextAny("user_id", dbUserID)
 	}
 
 	return &Session{

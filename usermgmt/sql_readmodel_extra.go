@@ -103,7 +103,7 @@ func (m *SQLMembershipReadModel) FindByActorSQL(ctx context.Context, actorID str
 			err,
 			"usermgmt.sql_readmodel.membership_query",
 			"query membership by actor",
-		)
+		).WithContext("actor_id", actorID)
 	}
 	return views, nil
 }
@@ -302,7 +302,7 @@ func queryViewByName[T any](
 		Conditions: []kv.Condition{{Column: sqlColName, Op: kv.OpEq, Value: name}},
 	})
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, errCode, errMsg)
+		return nil, errorfamily.WrapTransient(err, errCode, errMsg).WithContext("name", name)
 	}
 	return views, nil
 }
@@ -327,7 +327,7 @@ func deleteViewOnTombstone[V any, K fmt.Stringer](
 		return false, nil
 	}
 	if err := store.Delete(ctx, key); err != nil {
-		return true, errorfamily.WrapTransient(err, errCode, errMsg)
+		return true, errorfamily.WrapTransient(err, errCode, errMsg).WithContextAny("agg_id", key)
 	}
 	return true, nil
 }
@@ -344,7 +344,7 @@ func upsertView[V any, K fmt.Stringer](
 	errCode, errMsg string,
 ) error {
 	if err := store.Set(ctx, key, &view); err != nil {
-		return errorfamily.WrapTransient(err, errCode, errMsg)
+		return errorfamily.WrapTransient(err, errCode, errMsg).WithContextAny("agg_id", key)
 	}
 	return nil
 }
