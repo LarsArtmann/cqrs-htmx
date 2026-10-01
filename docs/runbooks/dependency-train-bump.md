@@ -45,8 +45,23 @@ GOWORK=off go mod tidy && GOWORK=off go build ./... && GOWORK=off go vet ./...
 ## scripts/bump-dep.sh
 
 ```bash
-scripts/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0        # sweep a train
-scripts/bump-dep.sh 'larsartmann/cqrs-htmx' v4.12.0 --dry-run # plan only
+scripts/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0          # sweep a train
+scripts/bump-dep.sh 'larsartmann/cqrs-htmx' v4.12.0 --dry-run   # plan only (no network)
+scripts/bump-dep.sh 'larsartmann/httputil$' v1.3.0 --commit      # sweep + commit as one
 ```
 
-Digit-safe module matching, hermetic per-module tidy+build+vet, absence assertion at the end, and a per-module PASS/FAIL table. It refuses to run with a dirty tree (the daemon race makes interleaved sweeps unreviewable).
+Digit-safe module matching (accepts BOTH the block-require form and the
+single-line `require <mod> <ver>` form — the 9b3c2e18 gap), hermetic per-module
+tidy + `go mod verify` + build + vet, absence assertion at the end, and a
+per-module PASS/FAIL table. It refuses to run with a dirty tree (the daemon race
+makes interleaved sweeps unreviewable). `--commit` stages + commits the sweep in
+the same process so the auto-commit daemon cannot shred the sweep and its
+verification into separate commits; `--no-verify` skips the `go mod verify` step.
+`BUMP_DEP_ROOT` overrides the scan root for the fixture self-test
+(`bash scripts/test-bump-dep.sh`).
+
+**Never chain bump-dep invocations without committing between them.** MVS is
+transitive: sweeping dep A can already raise a sibling dep B in the same graph,
+so a second sweep begun before the first is committed can carry B's bump along
+invisibly (the v4.13.x `async-startup-demo` hand-fix class). One sweep → verify →
+commit → next sweep.

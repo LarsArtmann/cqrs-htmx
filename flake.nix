@@ -326,6 +326,19 @@
               '';
             };
 
+            # Race tests over EVERY workspace module, including the e2e/examples
+            # set that #test / #test-race deliberately exclude (8 modules). The
+            # e2e/server module has no Go tests, so it is a clean no-op there.
+            # Added 2026-10-01 (TODO P3 j). On-demand only — not wired into the
+            # default gates because the embedded example servers bind ports.
+            test-all = goApp {
+              name = "run-tests-all";
+              description = "Run ALL workspace-module tests with the race detector, including e2e/examples (the #test/#test-race exclusion set)";
+              text = ''
+                forEachGoModule "go test ./... -count=1 -race"
+              '';
+            };
+
             test-flake = goApp {
               name = "run-tests-flake";
               description = "Run all Go tests 3x with race detector to detect flaky tests (auto-discovered, excludes e2e/examples)";

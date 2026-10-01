@@ -71,14 +71,29 @@ python3 scripts/check-status-rows.py
 # Fixture self-tests for both gates (also CI-wired).
 bash scripts/test-check-status-annotations.sh
 bash scripts/test-check-status-rows.sh
+
+# Fixer for the PARTIAL-row class Gate 2 catches: completes a row by striking
+#   every remaining cell (the whole-row-strike policy above). Idempotent; the
+#   checker and fixer are proven to agree by the self-test. `--dry-run` first.
+python3 scripts/normalize-status-rows.py --dry-run
+bash scripts/test-normalize-status-rows.sh
 ```
 
+A third, **advisory** gate keeps the live tail honest: `scripts/check-docs-tail-budget.sh`
+warns (exit 0) when `docs/status/*.md` (excluding this README) exceeds 3 reports,
+so a growing tail surfaces at sweep boundary instead of being re-discovered.
+It is deliberately **not** a blocking `check-modules` stage — a mid-session tail
+of two or three reports is legitimate. `--strict` exits 1 for a manual/train-time
+check. Fixture self-test: `bash scripts/test-check-docs-tail-budget.sh`.
+
 Ambient `python3` is the contract for Gate 2 (CI runners ship it); the flake apps
-(`nix run .#check-status-rows` / `.#test-status-rows`) additionally pin
-`pkgs.python3` for hermetic use. The docs-health skill's authoring-time
-`check-rows.py` asset remains the annotator's aid — it reports mixed tables as
-`INCOMPLETE` for a human to adjudicate; scope-identity with the repo gate was
-verified per-file and per-line (same 19 mixed tables) on 2026-09-22.
+(`nix run .#check-status-rows` / `.#test-status-rows` / `.#normalize-status-rows`
+/ `.#test-normalize-status-rows` / `.#check-docs-tail-budget` /
+`.#test-check-docs-tail-budget`) additionally pin `pkgs.python3` for hermetic use.
+The docs-health skill's authoring-time `check-rows.py` asset remains the
+annotator's aid — it reports mixed tables as `INCOMPLETE` for a human to
+adjudicate; scope-identity with the repo gate was verified per-file and per-line
+(same 19 mixed tables) on 2026-09-22.
 
 **Adjudication log:** the 8 files above were individually inspected on 2026-09-21; every mixed table pairs verified-done rows with genuinely-open ones, and the two `PARTIAL` rows in `2026-08-05_11-46` (hand-annotated before the tooling existed) were normalized to full-row strikethrough.
 
