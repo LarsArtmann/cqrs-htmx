@@ -3,6 +3,8 @@
 > **Method:** Pareto breakdown over the complete open-work inventory (TODO_LIST round-13 state + the round-13 audit report §f harvest receipt). Every task below traces to a TODO_LIST item; nothing here is invented scope. Plans are point-in-time: TODO_LIST is the living source; HARVEST pulls items back out of this plan.
 > **Verschlimmbesserung guard:** every wave ends with the existing gate battery; no task rewrites a shipped contract (the SSE envelope, the authz posture, the per-module trains) without its recorded decision gate (ADR/OQ). Waves are commit-boundary separated (gotcha 4).
 > **Environment constraints baked in:** shared box, fill-drain disk cycle, hot auto-commit daemon, BuildFlow env-class pre-commit failures outside the devShell (`--no-verify` + justification is the sanctioned fallback after independent verification), quiet-window requirement for bench/coverage-class gates.
+>
+> **PROGRESS 2026-10-01 (W0–W3 executed — see `docs/status/2026-10-01_10-30_pareto-w0-w3-train-gates-erraudit-status.md`):** T01/T02 DONE (the 1% train: 9 tags published, strict gates green, proxy smoke green), T03 DONE for test+coverage (quiet window; e2e+bench remain), T05 DONE (trivial pair, `3d9ce553`), T07 DONE (`check-workspace-build`, `c85d802f`+`eed53317`, full atomic checklist), T06 IN PROGRESS (61-site context_loss inventory, 36 fixed, 25 remain — rawIDToken trio decided suppress-with-reason pending analyzer-name verification). The plan stays ACTIVE until T06 closes and the W10 close-out (round-14 report, this plan's outcome-annotation + archive, CHANGELOG pass) runs.
 
 ---
 
