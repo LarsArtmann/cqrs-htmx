@@ -1011,6 +1011,7 @@
                         "status-rows-normalize-self-test:bash scripts/test-normalize-status-rows.sh"
                         "bump-dep-self-test:bash scripts/test-bump-dep.sh"
                         "erraudit-inventory-self-test:bash scripts/test-erraudit-inventory.sh"
+                        "cqrs-lint-gate-self-test:bash scripts/test-check-cqrs-lint.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -1740,7 +1741,7 @@
 
             check-cqrs-lint = {
               type = "app";
-              meta.description = "Run cqrs-lint --strict on all workspace modules";
+              meta.description = "Run cqrs-lint --strict --fail-on-stale-suppressions on all workspace modules (gate logic in scripts/check-cqrs-lint.sh; local-only — CI has no cqrs-lint until the Go-installable distribution)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-cqrs-lint";
@@ -1750,28 +1751,26 @@
                   # requiring go >= 1.27.1, and EVERY module fails with load errors.
                   runtimeInputs = [ goPkg ];
                   text = ''
-                    set -euo pipefail
-                    # GOWORK=off: load each module from its own go.mod (published tags
-                    # + module-level relative replaces) instead of the workspace —
-                    # workspace-mode loading breaks when go.work's absolute-path
-                    # sibling replaces point at in-flight go-cqrs-lite work.
-                    export GOWORK=off
-                    export GOEXPERIMENT=jsonv2
-                    export GOTOOLCHAIN=local
-                    echo "=== cqrs-lint strict check ==="
-                    fail=0
-                    for mod in . identity-model usermgmt usermgmt/totp usermgmt/webauthn usermgmt/oauth2 adminui loginpage dashboardui datastar systemadapter health auditlog; do
-                      echo "==> $mod"
-                      if ! (cd "$mod" && cqrs-lint --strict . >/dev/null 2>&1); then
-                        echo "FAIL: cqrs-lint findings in $mod (run 'cqrs-lint --strict --verbose .' for details)"
-                        fail=1
-                      fi
-                    done
-                    if [ "$fail" -eq 0 ]; then
-                      echo "All modules pass cqrs-lint strict."
-                    else
-                      exit 1
-                    fi
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/check-cqrs-lint.sh
+                  '';
+                }
+              );
+            };
+
+            test-check-cqrs-lint = {
+              type = "app";
+              meta.description = "Fixture self-test for check-cqrs-lint.sh (offline: clean passes / syntax-broken fails under strict / mixed sweep / candidate count / flag wiring pin)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-cqrs-lint";
+                  runtimeInputs = [
+                    goPkg
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-check-cqrs-lint.sh
                   '';
                 }
               );
