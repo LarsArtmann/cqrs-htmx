@@ -182,8 +182,8 @@ github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.1 h1:0y8L8+ckG7JKEKpJEbNT0Puf1
 github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.1/go.mod h1:9O50K3e+43j7Jjl1/yj2IRe/XDbLode+DzGicn44O7g=
 github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.0 h1:/sGIgOMSmBOSo6v1uTzm5mCOg+86QmK/Dzp7LDP0izU=
 github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.0/go.mod h1:EeaYVVAvmqxUlzNmV/gicsqzluEKAug8NDyWSD5yNJM=
-github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.0 h1:C4l8oNnCLHycze3nHxrvl+6XBbNSnJeKlvH11hn3BcE=
-github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.0/go.mod h1:Jy0HupYpzRp0GjqwK4fws23Aw7AulLQtorZJ+QI24/E=
+github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.1 h1:VRriSKSPC/HqwxtysiquBZwI1FTMFHhXl5dr/DairE4=
+github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.1/go.mod h1:5oSxxBvNHJV4UimOqDji4jwpwI57DZEnSFbWz3rOtEc=
 github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0 h1:rs1ZCUOOWvFn/KEE8fCvgRsaqHD52T7MpQPXNX+q09g=
 github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0/go.mod h1:Rjx/CppoDClLURmhoag8FKs/J7HZZiSBvSvi+3t+5yA=
 github.com/larsartmann/cqrs-htmx/health/v4 v4.12.0 h1:ofBtM6jqTjL9rRbQTAlXFlflZPZM6ETeOPb0lOByFkU=

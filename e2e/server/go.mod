@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/e2e/server
 go 1.27.1
 
 require (
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
@@ -35,12 +35,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.2 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
+	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/httputil v1.4.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.19.4 // indirect
@@ -59,5 +59,5 @@ require (
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	modernc.org/sqlite v1.60.0 // indirect
+	modernc.org/libc v1.77.1 // indirect
 )
