@@ -22,16 +22,23 @@ failures=0
 check() { # check <name> <expected-rc> <actual-rc> <required-grep> <output>
   local name="$1" want_rc="$2" got_rc="$3" pattern="$4" out="$5"
   if [ "$want_rc" != "$got_rc" ]; then
-    echo "FAIL $name: rc=$got_rc want=$want_rc"; printf '%s\n' "$out" | head -8; failures=$((failures+1)); return
+    echo "FAIL $name: rc=$got_rc want=$want_rc"
+    printf '%s\n' "$out" | head -8
+    failures=$((failures + 1))
+    return
   fi
   if [ -n "$pattern" ] && ! printf '%s\n' "$out" | grep -q "$pattern"; then
-    echo "FAIL $name: output missing '$pattern'"; printf '%s\n' "$out" | head -8; failures=$((failures+1)); return
+    echo "FAIL $name: output missing '$pattern'"
+    printf '%s\n' "$out" | head -8
+    failures=$((failures + 1))
+    return
   fi
   echo "ok   $name"
 }
 
 command -v cqrs-lint >/dev/null 2>&1 || {
-  echo "FAIL prerequisite: cqrs-lint not in PATH (local-only gate — run inside the devShell or with the system profile)"; exit 1
+  echo "FAIL prerequisite: cqrs-lint not in PATH (local-only gate — run inside the devShell or with the system profile)"
+  exit 1
 }
 
 # Offline Go env for the scratch modules: GOTOOLCHAIN=local + GOFLAGS=-mod=mod
@@ -50,24 +57,29 @@ mkmod() { # mkmod <dir>
 
 # --- case 1: clean module passes ---
 mkmod "$TMP/clean"
-out=$(bash "$GATE" "$TMP/clean" 2>&1); rc=$?
+out=$(bash "$GATE" "$TMP/clean" 2>&1)
+rc=$?
 check "clean module passes" 0 "$rc" "All modules pass" "$out"
 
 # --- case 2: syntax-broken module fails under --strict (the load-error
 # contract: a broken build must never look green) ---
 mkmod "$TMP/broken"
 printf 'package main\n\nfunc broken( {\n' >>"$TMP/broken/main.go"
-out=$(bash "$GATE" "$TMP/broken" 2>&1); rc=$?
+out=$(bash "$GATE" "$TMP/broken" 2>&1)
+rc=$?
 check "broken module fails" 1 "$rc" "FAIL: cqrs-lint findings" "$out"
 
 # --- case 3: mixed sweep — one failing member fails the sweep ---
-out=$(bash "$GATE" "$TMP/clean" "$TMP/broken" 2>&1); rc=$?
+out=$(bash "$GATE" "$TMP/clean" "$TMP/broken" 2>&1)
+rc=$?
 check "mixed sweep fails on the broken member" 1 "$rc" "candidates=2" "$out"
 
 # --- case 4: candidate count always printed (false-green guard) ---
 out=$(bash "$GATE" "$TMP/clean" 2>&1)
 printf '%s\n' "$out" | grep -q '^candidates=' || {
-  echo "FAIL candidate-count: gate did not print candidates="; printf '%s\n' "$out" | head -5; failures=$((failures+1));
+  echo "FAIL candidate-count: gate did not print candidates="
+  printf '%s\n' "$out" | head -5
+  failures=$((failures + 1))
 }
 echo "ok   candidate-count printed"
 
@@ -75,11 +87,13 @@ echo "ok   candidate-count printed"
 # proven live 2026-10-01 on usermgmt/es_setup.go:221; a stdlib-only fixture
 # cannot reproduce it because the CQRS analyzers never run there) ---
 grep -q -- '--fail-on-stale-suppressions' "$GATE" || {
-  echo "FAIL flag-wiring: gate script lost --fail-on-stale-suppressions"; failures=$((failures+1));
+  echo "FAIL flag-wiring: gate script lost --fail-on-stale-suppressions"
+  failures=$((failures + 1))
 }
 echo "ok   flag wiring present"
 
 if [ "$failures" -gt 0 ]; then
-  echo "check-cqrs-lint self-test: $failures FAILURE(S)"; exit 1
+  echo "check-cqrs-lint self-test: $failures FAILURE(S)"
+  exit 1
 fi
 echo "check-cqrs-lint self-test: all cases green"
