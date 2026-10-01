@@ -17,7 +17,7 @@ Each report in this tree captures what someone knew at the end of a work session
 
 | Path                               | Contents                                                                     |
 | ---------------------------------- | ---------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 1)          |
+| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 2)          |
 | `docs/status/archived/`            | 437 archived session reports (2026-05-03 → 2026-10-01)                       |
 | `docs/status/*.html`               | 12 generated HTML report artifacts (see "HTML corpus" below)                 |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`              |
@@ -88,7 +88,7 @@ The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60
 
 ## File counts
 
-- `docs/status/`: **1 unarchived report** (the 2026-10-01 W0–W3 Pareto-execution report — the live tail) + README + 12 HTML artifacts. The round-13 pass archived the 02:59 BuildFlow-recovery report and its own round-13 audit report (both annotated with same-day round-14 top-up blockquotes + evidence strikes); the round-6 stub anomaly was removed 2026-10-01.
+- `docs/status/`: **2 unarchived reports** (the 2026-10-01 12:30 round-14 report + the 10:30 W0–W3 Pareto-execution report — the live tail) + README + 12 HTML artifacts. The round-13 pass archived the 02:59 BuildFlow-recovery report and its own round-13 audit report (both annotated with same-day round-14 top-up blockquotes + evidence strikes); the round-6 stub anomaly was removed 2026-10-01.
 - `docs/status/archived/`: **437 archived reports** (2026-05-03 → 2026-10-01).
 - The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), 2026-09-21 (the 34-report tail), 2026-09-22 (the 8-report superb-plan tail + the plan itself), 2026-10-01 round-13 (the 22-report 09-22→09-30 tail — every report annotated with a dated blockquote + evidence-backed inline strikes, open items routed to TODO_LIST/ROADMAP, then archived), and **2026-10-01 round-14 (the 10-01 pair — the 02:59 BuildFlow-recovery and 06:36 round-13 reports got W0–W3-receipt top-up blockquotes + inline strikes for everything the train/gate/erraudit sessions then resolved, then archived; the same pass triaged the six 2026-08-30 planning files — upstream-asks draft archived, gated-work index + cqrs-lint distribution draft annotated, three live owner-gated decisions confirmed leave-in-place — and confirmed the HTML corpus keep-in-place decision)**. Of the 437 archived reports, **72 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and the rest predate annotation entirely (legacy-exempt). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
 
