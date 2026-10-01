@@ -31,29 +31,6 @@ use (
 	./usermgmt/webauthn
 )
 
-// REQUIRED: local replaces for go-cqrs-lite master.
-//
-// UPDATE 2026-08-11: The original pseudo-version publish bug is FIXED —
-// published tags (event/v4.4.0, command/v4.4.0, etc.) now have clean go.mod
-// files with real version references. Verified via hermetic GOWORK=off builds.
-//
-// The replaces are STILL required because go-cqrs-lite master has unreleased
-// API changes that cqrs-htmx has migrated to:
-//   - ADR-0114: Tombstone-as-domain-event (event.MarkTombstone removed;
-//     deletion is now signaled by event type + stack.Materialize.DeleteTypes)
-//   - ADR-0111: Branded ActorID (record.CommonMetadata.UserID → ActorID
-//     id.ActorID, a kind-discriminated struct with Kind()/String()/Raw())
-//
-// cqrs-htmx uses meta.ActorID.String() and emits deletion events directly.
-// Published tags (event/v4.4.0, record/v4.0.0) still have the OLD API
-// (UserID string, MarkTombstone). Hermetic GOWORK=off builds of usermgmt
-// and dashboardui will FAIL until go-cqrs-lite publishes tags with these
-// changes (event/v4.5.0+, record/v4.2.0+, command/v4.5.0+, query/v4.4.0+).
-//
-// Removal condition: go-cqrs-lite cuts tags from a tree that includes
-// ADR-0114 + ADR-0111, and cqrs-htmx go.mod files are bumped to reference them.
-replace github.com/larsartmann/go-cqrs-lite => /home/lars/projects/go-cqrs-lite
-
 replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => /home/lars/projects/go-cqrs-lite/catalog
 
 // REMOVED 2026-08-15: codec/, flightrecorder/, and retry/ replaces.
@@ -74,8 +51,6 @@ replace github.com/larsartmann/go-cqrs-lite/decider/v4 => /home/lars/projects/go
 
 replace github.com/larsartmann/go-cqrs-lite/dedup/v4 => /home/lars/projects/go-cqrs-lite/dedup
 
-replace github.com/larsartmann/go-cqrs-lite/deriver/v4 => /home/lars/projects/go-cqrs-lite/deriver
-
 replace github.com/larsartmann/go-cqrs-lite/dispatcher/v4 => /home/lars/projects/go-cqrs-lite/dispatcher
 
 replace github.com/larsartmann/go-cqrs-lite/encryption/v4 => /home/lars/projects/go-cqrs-lite/encryption
@@ -84,11 +59,7 @@ replace github.com/larsartmann/go-cqrs-lite/event/v4 => /home/lars/projects/go-c
 
 replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => /home/lars/projects/go-cqrs-lite/event/v4/eventtest
 
-replace github.com/larsartmann/go-cqrs-lite/graph/v4 => /home/lars/projects/go-cqrs-lite/graph
-
 replace github.com/larsartmann/go-cqrs-lite/id/v4 => /home/lars/projects/go-cqrs-lite/id
-
-replace github.com/larsartmann/go-cqrs-lite/integration/v4 => /home/lars/projects/go-cqrs-lite/integration
 
 replace github.com/larsartmann/go-cqrs-lite/kv/v4 => /home/lars/projects/go-cqrs-lite/kv
 
@@ -112,37 +83,15 @@ replace github.com/larsartmann/go-cqrs-lite/scenario/v4 => /home/lars/projects/g
 
 replace github.com/larsartmann/go-cqrs-lite/scheduling/v4 => /home/lars/projects/go-cqrs-lite/scheduling
 
-replace github.com/larsartmann/go-cqrs-lite/schema/v4 => /home/lars/projects/go-cqrs-lite/schema
-
 replace github.com/larsartmann/go-cqrs-lite/signing/v4 => /home/lars/projects/go-cqrs-lite/signing
 
 replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => /home/lars/projects/go-cqrs-lite/snapshot
 
 replace github.com/larsartmann/go-cqrs-lite/stack/v4 => /home/lars/projects/go-cqrs-lite/stack
 
-replace github.com/larsartmann/go-cqrs-lite/stack/memory/v4 => /home/lars/projects/go-cqrs-lite/stack/memory
-
-replace github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 => /home/lars/projects/go-cqrs-lite/stack/pebble
-
-replace github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 => /home/lars/projects/go-cqrs-lite/stack/postgres
-
-replace github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 => /home/lars/projects/go-cqrs-lite/stack/sqlite
-
-replace github.com/larsartmann/go-cqrs-lite/stack/turso/v4 => /home/lars/projects/go-cqrs-lite/stack/turso
-
 replace github.com/larsartmann/go-cqrs-lite/storage/v4 => /home/lars/projects/go-cqrs-lite/storage
 
 replace github.com/larsartmann/go-cqrs-lite/storage/memory/v4 => /home/lars/projects/go-cqrs-lite/storage/memory
-
-replace github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 => /home/lars/projects/go-cqrs-lite/storage/pebble
-
-replace github.com/larsartmann/go-cqrs-lite/storage/turso/v4 => /home/lars/projects/go-cqrs-lite/storage/turso
-
-replace github.com/larsartmann/go-cqrs-lite/testutil/v4 => /home/lars/projects/go-cqrs-lite/testutil
-
-replace github.com/larsartmann/go-cqrs-lite/transport/grpc/v4 => /home/lars/projects/go-cqrs-lite/transport/grpc
-
-replace github.com/larsartmann/go-cqrs-lite/transport/http/v4 => /home/lars/projects/go-cqrs-lite/transport/http
 
 replace github.com/larsartmann/go-cqrs-lite/watermill/v4 => /home/lars/projects/go-cqrs-lite/watermill
 
@@ -159,14 +108,6 @@ replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => /home/
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => /home/lars/projects/go-cqrs-lite/metaengine/projectionadapter
 
-replace github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/pebbleengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/pgengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 => /home/lars/projects/go-cqrs-lite/metaengine/duckdbengine
-
-replace github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 => /home/lars/projects/go-cqrs-lite/testutil/pgtestcontainer
-
 // Additional replace: go-idempotency is a transitive dep of local
 // go-cqrs-lite middleware/commandlifecycle (the in-repo idempotency/v4 shim
 // was deleted by the ADR-0128 extraction). Published (v0.1.2); replace kept
@@ -177,14 +118,3 @@ replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempote
 // of httputil with its own go.mod). Now published (server_timing/v0.10.0) but kept
 // for workspace consistency with local httputil development.
 replace github.com/larsartmann/httputil/server_timing => /home/lars/projects/httputil/server_timing
-
-// Version-to-version replace (2026-09-26): go-etag split into server/entitytag
-// modules at v0.6.0 while the old monolith tags (<= v0.5.0) still contain a
-// server/ package. Modules that still require the monolith transitively
-// (go-appkit v0.5.1 via setup/examples; the published cqrs-htmx v4.12.0 UI
-// tags) put BOTH shapes in the build list, making the go-etag/server import
-// ambiguous and breaking every workspace build. Replacing the monolith with
-// the v0.6.0 stub (same module path, packages removed) restores a single
-// shape. REMOVAL CONDITION: drop this replace when go-appkit > v0.5.1
-// publishes its split-module go.mod (fix already on appkit master).
-replace github.com/larsartmann/go-etag => github.com/larsartmann/go-etag v0.6.0
