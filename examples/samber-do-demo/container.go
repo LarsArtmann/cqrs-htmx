@@ -97,7 +97,7 @@ func NewContainer(cfg AppConfig) (*Container, func(), error) {
 		if len(report.Services) > 0 {
 			slog.Debug("DI container shut down", "services", len(report.Services))
 		}
-	}
+	}, nil
 }
 
 // registerProviders wires every service into the container. Each registration

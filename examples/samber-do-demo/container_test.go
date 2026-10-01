@@ -21,9 +21,12 @@ import (
 func newTestContainer(t *testing.T) (*Container, func()) {
 	t.Helper()
 
-	container, cleanup := NewContainer(AppConfig{
+	container, cleanup, err := NewContainer(AppConfig{
 		TOTPIssuer: "test",
 	})
+	if err != nil {
+		t.Fatalf("build DI container: %v", err)
+	}
 
 	// Override the TOTP provider with a no-op stub for tests.
 	// This avoids real TOTP secret generation during unit tests.
@@ -139,9 +142,12 @@ func TestContainerOverrideTOTP(t *testing.T) {
 // TestContainerCleanupCallsShutdown verifies that the cleanup function
 // properly shuts down the container without panicking.
 func TestContainerCleanupCallsShutdown(t *testing.T) {
-	container, cleanup := NewContainer(AppConfig{
+	container, cleanup, err := NewContainer(AppConfig{
 		TOTPIssuer: "shutdown-test",
 	})
+	if err != nil {
+		t.Fatalf("build DI container: %v", err)
+	}
 
 	// Force Service creation so the lifecycle wrapper is tracked.
 	if _, err := container.Service(); err != nil {

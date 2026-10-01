@@ -28,10 +28,13 @@ func main() {
 	// 1. Create the DI container. The returned cleanup function MUST be
 	// deferred — it calls injector.Shutdown(), which cascades to every
 	// service implementing do.Shutdowner* (including usermgmt.Service.Close()).
-	container, cleanup := NewContainer(AppConfig{
+	container, cleanup, err := NewContainer(AppConfig{
 		Addr:       ":8098",
 		TOTPIssuer: "cqrs-htmx samber/do Demo",
 	})
+	if err != nil {
+		log.Fatalf("build DI container: %v", err)
+	}
 	defer cleanup()
 
 	// 2. Resolve the cqrshtmx.App — lazy singleton, constructed on first
