@@ -36,20 +36,23 @@ func buildSQLEventSourcedSetupCore(
 ) (eventSourcedSetupCore, error) {
 	repos, err := buildStackRepositories(bundle, snap)
 	if err != nil {
-		return eventSourcedSetupCore{}, err
+		return eventSourcedSetupCore{}, errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"usermgmt.sqlsetup.repositories", "build repositories").WithContext("backend", backendName)
 	}
 
 	db := extractDB(bundle)
 	rm, memRm, tenRm, botRm, err := createReadModels(db)
 	if err != nil {
 		_ = bundle.Close()
-		return eventSourcedSetupCore{}, err
+		return eventSourcedSetupCore{}, errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"usermgmt.sqlsetup.read_models", "create read models").WithContext("backend", backendName)
 	}
 
 	casbinProj, err := createAuthzAndCasbin()
 	if err != nil {
 		_ = bundle.Close()
-		return eventSourcedSetupCore{}, err
+		return eventSourcedSetupCore{}, errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"usermgmt.sqlsetup.authz", "create authz and casbin").WithContext("backend", backendName)
 	}
 
 	host, err := StartProjections(
@@ -59,7 +62,8 @@ func buildSQLEventSourcedSetupCore(
 	)
 	if err != nil {
 		_ = bundle.Close()
-		return eventSourcedSetupCore{}, errorfamily.WrapTransient(err, "usermgmt.projection.start", "start projections")
+		return eventSourcedSetupCore{}, errorfamily.WrapTransient(err, "usermgmt.projection.start", "start projections").
+			WithContext("backend", backendName)
 	}
 
 	return eventSourcedSetupCore{
