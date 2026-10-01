@@ -5,7 +5,7 @@
 > For what exists today, see [FEATURES.md](FEATURES.md).
 > For completed work, see [CHANGELOG.md](CHANGELOG.md).
 
-**Updated:** 2026-09-22 | **Version:** v4.12.0 family train (14 coordinated tags, 2026-09-22, pushed; CI green) | **Train lag:** ZERO (`check-release-train` 0 unpublished / 0 lag; `check-version-drift --strict` green) | **Lint:** 0 issues across 15 modules | **Coverage gates (all green, `nix run .#coverage-gate` 2026-09-20):** root 94.7% (gate 90), usermgmt 84.4% (74), identity-model 77.1% (70), adminui 70.1% (66), setup 86.8% (80), systemadapter 91.9% (70), datastar/health/auditlog 100% (90) | **`*Service` methods:** see `scripts/check-service-methods.sh` (leading v5 indicator)
+**Updated:** 2026-10-01 (docs-health round 14: header restamped for the shipped v4.13.x train; OQ27 opened — go.work fleet-local replaces) | **Version:** v4.13.0 family train (9 coordinated tags, 2026-10-01, pushed — root v4.13.0, usermgmt v4.13.0+v4.13.1, setup v4.13.2, adminui/dashboardui/health/loginpage/systemadapter v4.12.1; CI green run 36839790817) | **Train lag:** ZERO (`check-release-train` 0 unpublished / 0 lag; `check-version-drift --strict` green) | **Lint:** 0 issues across 15 modules | **Coverage gates (15/15 GREEN, `nix run .#coverage-gate` re-run 2026-10-01 post-train; percentages from the 2026-09-29 run):** root 94.7% (gate 90), usermgmt 84.4% (74), identity-model 77.1% (70), adminui 70.1% (66), loginpage 81.8% (79), setup 87.9% (80), systemadapter 91.9% (70), datastar/health/auditlog 100% (90), dashboardui 91.6% (60), dashboardui/core 88.8% (80) | **`*Service` methods:** see `scripts/check-service-methods.sh` (leading v5 indicator)
 
 ## Current State
 
