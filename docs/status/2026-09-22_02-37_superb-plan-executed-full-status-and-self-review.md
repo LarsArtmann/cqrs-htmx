@@ -1,5 +1,7 @@
 # Status Report — Superb-Plan Execution Session: Full Status + Brutal Self-Review (2026-09-22 02:37 CEST)
 
+> ANNOTATED 2026-10-01 (docs-health round 13): the session's work all verified standing (superb-plan executed; the 02:37 fixes hold). Resolved since: the push (three syncs 2026-09-27→30, pre-push strict gates green); bench-spike closed 2026-09-26 (verified-quiet-window pass, no regression — OQ16 stays the policy question); `bump-dep.sh` happy path exercised for real in the 2026-09-27 + 2026-09-30 sweeps (plus the 09-22 hardening); sibling-repo asks verified recorded upstream (round-12 verdict, CHANGELOG 2026-09-26); e2e + integration_test re-run green 2026-09-26 (18/18 race suite + e2e 70/70); examples lint coverage landed via BuildFlow's per-module fan-out (all green in the 2026-10-01 601/601 full run). Still open, tracked: LICENSE posture + flake-check-with-builds (owner-class), the two example test gaps, C9 (cqrs-lint Go distribution) + D7 (datastar-demo owner call) → TODO_LIST P2/P3, runbook cross-link. §f rows not struck are unadopted brainstorm, superseded by the 2026-09-26 round-12 TODO rewrite and this repo's current TODO_LIST — absence of a marker there is not an open work signal.
+
 **Date:** 2026-09-22 02:37 CEST · **Scope:** THIS session only (resume → Q1–Q3 answered by execution → the ENTIRE superb-plan todo list A6→Z → closing report → this review). No new research beyond what this session did and noticed. **Predecessors:** `2026-09-22_02-58_docs-health-superb-plan-executed-to-completion.md` (the closing report), `docs/planning/archived/2026-09-20_15-43_docs-health-completion-and-backlog-superb-plan.md` (the executed plan).
 
 **Format note:** written as `.md` per explicit user instruction (the status-report skill's canonical format is HTML; instruction wins, one-off, not propagated).
@@ -38,18 +40,18 @@
 ## b) PARTIALLY DONE
 
 1. **D2 remainders routed, not done:** per-module LICENSE presence (licensing policy) and `nix flake check` WITH builds (needs a nix-capable CI decision) — both TODO-class, flagged in ROADMAP micro-ideas.
-2. **`bump-dep.sh`:** shipped + shellcheck-clean + refusal verified; happy path unexercised (see forgot-#5).
+2. ~~**`bump-dep.sh`:** shipped + shellcheck-clean + refusal verified; happy path unexercised (see forgot-#5).~~ done — happy path exercised for real in the 2026-09-27 (templ-components v1.19.4, go-health v0.4.1) and 2026-09-30 (8-family alignment) sweeps (docs-health pass 2026-10-01).
 3. **Example coverage:** 8/12 modules have tests; `async-startup-demo` + `middleware-showcase` do not (ROADMAP micro-ideas); admin-demo relies on external e2e specs.
-4. **Sibling-repo tracker appends:** written, not verified-absorbed; go-cqrs-lite section index not updated (forgot-#6).
+4. ~~**Sibling-repo tracker appends:** written, not verified-absorbed; go-cqrs-lite section index not updated (forgot-#6).~~ done — the templ-components asks (#318–321) and BuildFlow asks (BF1–BF3) verified recorded in the owning repos' trackers (round-12 verdict 2026-09-26, CHANGELOG [Unreleased]).
 5. **Narrative commits:** 3 attempted; 1 landed clean (`fe52e1b5`); the rest raced into daemon heuristic commits (content verified intact via stat diffs). The hook now WORKS — the race is purely the daemon's poll frequency.
-6. **`docs/status/README.md` counts:** now accurate again (2 unarchived, 413 archived, sweep list includes 09-22) — but only because this review caught the omission at 02:37.
+6. ~~**`docs/status/README.md` counts:** now accurate again (2 unarchived, 413 archived, sweep list includes 09-22) — but only because this review caught the omission at 02:37.~~ done at 02:37; counts re-refreshed 2026-10-01 (round-13 archive pass).
 
 ## c) NOT STARTED (deliberate, with reasons)
 
 1. **C9** (cqrs-lint Go distribution) + **D7** (datastar-demo rebrand) — explicitly unauthorized; drafts/plans stay active in `docs/planning/`.
-2. **Z.3 push** — not performed (never push unasked); surfaced as Q1 below.
+2. ~~**Z.3 push** — not performed (never push unasked); surfaced as Q1 below.~~ done — pushed through in the 2026-09-27, 2026-09-28 (wave), and 2026-09-30 (21-lag alignment) syncs, every pre-push strict gate green (docs-health pass 2026-10-01).
 3. **`check-templates` / `check-codegen` / `test-fuzz` / `test-flake` / e2e / integration_test** — no templ/SQL-template/fuzzed-code changes this session; NOT run and NOT previously named as gaps (now named; routed in §f).
-4. **Bench-spike run** — refused under load, 9th time (policy); gate's future = OQ16.
+4. ~~**Bench-spike run** — refused under load, 9th time (policy); gate's future = OQ16.~~ done 2026-09-26 — round-12 ran it in a machine-verified quiet window (load < 6): no median ns/op regression, no re-pin; automate-or-retire stays ROADMAP OQ16.
 
 ## d) TOTALLY FUCKED UP (honest, ranked)
 

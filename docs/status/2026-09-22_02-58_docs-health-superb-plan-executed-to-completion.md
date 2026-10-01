@@ -1,5 +1,7 @@
 # Status Report — Docs-Health SUPERB Plan Executed to Completion (session 2026-09-22 ~01:20 → 03:0x CEST)
 
+> ANNOTATED 2026-10-01 (docs-health round 13): closing report of the 09-22 superb-plan session; its work all verified standing. Resolved since: bench-spike closed 2026-09-26 (quiet-window pass); the push (three syncs 2026-09-27→30); §f routing adjudicated — strict-lag split brain fixed by the pre-push hook (09-22), post-train consumer-eye done for v4.12.0/v1.19.2 (09-22/23), dep-budget + VCS-cache self-tests shipped (09-22), cqrs-lint zero-warning state re-confirmed (09-22, re-triaged 09-30), X-Client-Id sweep done (09-23) — while LICENSE policy, flake-check-with-builds CI, and the two example smokes remain genuinely open (owner-class/ROADMAP micro-ideas), and OQ15/OQ16/V007-cluster-1 stay tracked in ROADMAP/TODO_LIST. Archived per the tail convention; this file's own footer instruction ("archive when items resolve") executed here.
+
 **Date:** 2026-09-22
 **Session scope:** resume the paused docs-health run (its §g Q1–Q3), then — per explicit user instruction — execute the ENTIRE superb-plan todo list (`docs/planning/archived/2026-09-20_15-43_docs-health-completion-and-backlog-superb-plan.md`) through Z, deconflicted against the round-6 sibling session.
 **Governing rules honored:** verify before strike; atomic per-gate changes; no repo-wide `--fix`; no destructive git ops; blob purges prep-only; nothing pushed except through existing daemons/hooks.
@@ -66,13 +68,13 @@ Also this session: the corpus was swept — 8 status reports + the superb plan a
 1. **Narrative commits largely lost to the daemon again** — three phase commits attempted; the hook now WORKS (buildflow passes; remaining step failures are the diagnosed env-class), but the daemon's poll frequency still beats multi-minute verification tails. Content landed intact via heuristic commits (verified by stat diffs).
 2. **D2 remainders routed:** per-module LICENSE presence (licensing policy — owner call) and `nix flake check` WITH builds (needs a nix-capable CI decision).
 3. **Example gaps:** async-startup-demo + middleware-showcase still have no `*_test.go` (ROADMAP micro-ideas).
-4. **Bench-spike** remains unrun (9 refusals); the gate's future is OQ16.
+4. ~~**Bench-spike** remains unrun (9 refusals); the gate's future is OQ16.~~ done 2026-09-26 — round-12 quiet-window pass (load < 6), no median ns/op regression, no re-pin; automate-or-retire stays ROADMAP OQ16.
 5. **Sibling's (f)-harvest:** high-value items harvested (see TODO_LIST/ROADMAP); the long tail (mobile-viewport checks, loginpage adoption, GitHub Releases…) stays in their reports/ROADMAP as recorded.
 
 ## c) NOT STARTED (deliberately)
 
 - C9 (cqrs-lint Go distribution) and D7 (datastar-demo rebrand) — explicitly unauthorized; drafts/plans stay active in `docs/planning/`.
-- Z.3 push — no push performed (not requested; daemon owns the origin state).
+- ~~Z.3 push — no push performed (not requested; daemon owns the origin state).~~ done — pushed through 2026-09-27/28/30 with every pre-push strict gate green (docs-health pass 2026-10-01).
 
 ---
 
