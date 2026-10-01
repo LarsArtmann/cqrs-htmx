@@ -1,5 +1,7 @@
 # Session Report: Push Train-Lag Fix — templ-components v1.19.4 + go-health v0.4.1 Sweeps
 
+> ANNOTATED 2026-10-01 (docs-health round 13): the open tail closed — CI on the pushed ranges went green (cqrs-htmx 7/7 witnessed 2026-09-28, run 36382941958), the CHANGELOG convention question resolved by precedent (the 09-27/09-30 sweeps got [Unreleased] entries in the round-13 pass), the pre-commit env-class failures were largely FIXED at source 2026-10-01 (BuildFlow 14-step recovery: treefmt templ wrapper, go-licenses GOROOT shim, allow-serial-runners; residual documented in gotcha 8), the datastar-demo SA1019 pair migrated 2026-10-01, the go-directive policy question is now ROADMAP OQ26, and this HARVEST happened in this pass (per-module example race tests, `go mod verify`, bump-dep `--commit` mode, fsprobe daemon-glob, vulnix policy → TODO_LIST P3 micro-batch). §f rows not struck are adjudicated brainstorm. Archived per the tail convention.
+
 > **Session:** 2026-09-27 ~04:20–06:40 CEST · **Task:** `git push; do fix`
 > **Scope:** This session only — what was done, what was missed, what was noticed in tool output along the way.
 > **Final state:** `master` pushed through `d1c1bf01`; pre-push CI-parity gates green.
@@ -40,15 +42,15 @@ Pushed ranges: `c35cc7a1..47321d7c`, then `47321d7c..d1c1bf01`.
 ## b) PARTIALLY DONE
 
 1. **Behavioral test verification of the 13 swept modules — 5/13 covered.** `nix run .#test` explicitly excludes `^(e2e/|examples/)` (flake.nix:221), so `e2e/server` + 6 swept examples got build+vet only. At least `examples/catalog-demo` and `examples/dashboard-demo` have `*_test.go` files that never ran this session. Remaining: one per-module `go test -count=1 -race` pass over the 8 excluded modules. Effort S. No blocker.
-2. **CHANGELOG.md not updated for either sweep.** Repo CHANGELOG is append-only and maintained via docs commits, but no entry was written for the two dependency bumps (unknown whether dep sweeps conventionally get entries — needs a `git log -S` convention check, then possible backfill). Effort S.
-3. **CI on GitHub unobserved.** Push succeeded; the pre-push hook mirrors CI's strict gates locally, so risk is low — but the actual CI run result for `c35cc7a1..d1c1bf01` was not checked. Effort S (`gh run list`).
+2. ~~**CHANGELOG.md not updated for either sweep.** Repo CHANGELOG is append-only and maintained via docs commits, but no entry was written for the two dependency bumps (unknown whether dep sweeps conventionally get entries — needs a `git log -S` convention check, then possible backfill). Effort S.~~ done 2026-10-01 — both sweeps got CHANGELOG [Unreleased] entries in the round-13 pass (precedent set; the standing policy for FUTURE sweeps stays an owner call, see ROADMAP OQ26's sibling question in the 09-30 report g1).
+3. ~~**CI on GitHub unobserved.** Push succeeded; the pre-push hook mirrors CI's strict gates locally, so risk is low — but the actual CI run result for `c35cc7a1..d1c1bf01` was not checked. Effort S (`gh run list`).~~ done — CI green witnessed 2026-09-28 (run 36382941958, 7/7).
 4. **Commit-message hygiene inconsistent.** templ-components sweep got a proper message via guarded amend (`47321d7c`); the go-health sweep permanently carries the daemon heuristic message (`b4369e64` "auto-commit 7 changed file(s)") because my hook-failing commit attempt lost the race. Content is correct in both; readability of one is degraded.
 
 ## c) NOT STARTED
 
 1. **`go mod verify`** across the 13 touched modules — item 4 of the go-ecosystem-upgrade skill's verification gate; never executed (see d-2).
 2. **docs-health HARVEST** of section (f) below into `TODO_LIST.md`/`ROADMAP.md` — deliberately deferred: the user instructed report-then-wait. This report's (f) is the harvest input.
-3. **BuildFlow doctor warning triage** observed in pre-commit output (19 modules need tidy, stale vendorHash FOD, go-line flipflop) — noticed, logged in (f), not acted on (out of session scope).
+3. ~~**BuildFlow doctor warning triage** observed in pre-commit output (19 modules need tidy, stale vendorHash FOD, go-line flipflop) — noticed, logged in (f), not acted on (out of session scope).~~ resolved — the vendorHash alarm was DISPROVEN 2026-10-01 (it belongs to the external `.#benchstat` package, byte-identical fleet pin); the go-line flipflop is ROADMAP OQ26; the gomod-freshness class is standing noise documented in gotcha 8.
 
 ## d) TOTALLY FUCKED UP
 
@@ -84,11 +86,11 @@ Nothing shipped broken — every gate was green before each push. But the sessio
 | 10 | Stale `vendorHash` FOD (flake.nix:107) — `buildflow -s nix-hash-fix --fix`                                                            | Medium | S      | Quality       |
 | 11 | go-line flipflop warning: `go` directive changed 20× in 20 commits — align go-version-auto-configure vs go-mod-update dispositions    | High   | M      | Quality       |
 | 12 | go-work-paths warning: 13 `use` paths lack the `/v4` suffix their go.mod module names carry — confirm deliberate, then silence or fix | Medium | S      | Cleanup       |
-| 13 | datastar-demo SA1019s: migrate to `go-datastar/broadcast` constructors (deprecated aliases die in v5)                                 | Low    | S      | Cleanup       |
+| 13 | ~~datastar-demo SA1019s: migrate to `go-datastar/broadcast` constructors (deprecated aliases die in v5)~~ done 2026-10-01 (BuildFlow recovery session; direct `broadcast.NewBroadcaster` require)                                                                                                                           | Low    | S      | Cleanup       |
 | 14 | samber-linter fails 80% of runs — exclude from BuildFlow or fix root cause                                                            | Low    | S      | Tooling       |
 | 15 | vulnix: 65 nix-infra CVE findings in pre-commit output — triage real vs noise                                                         | Medium | L      | Security      |
 | 16 | flake.nix missing `mainProgram` (flake-meta-checker)                                                                                  | Low    | S      | Cleanup       |
-| 17 | HARVEST this report's (f) into TODO_LIST/ROADMAP via docs-health                                                                      | Medium | S      | Documentation |
+| 17 | ~~HARVEST this report's (f) into TODO_LIST/ROADMAP via docs-health~~ done 2026-10-01 (round-13: survivors → TODO_LIST P3 micro-batch; go-directive → OQ26)                                                                  | Medium | S      | Documentation |
 | 18 | Orphan `adminui/styles.css` + `dashboardui/styles.css` buildflow outputs (gotcha 9): ignore or delete                                 | Low    | S      | Cleanup       |
 | 19 | Consumer-level golden for PolledRegion interval rendering (library golden re-baselined in v1.19.4; dashboardui polls)                 | Low    | M      | Quality       |
 | 20 | Root-cause the `.config/metadata.yaml` `importance` field removal (foreign change, provenance unknown)                                | Low    | S      | Cleanup       |
