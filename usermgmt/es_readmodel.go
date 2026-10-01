@@ -74,7 +74,7 @@ func decodePayload[T any](evt event.Event, name string) (T, error) {
 			err,
 			"usermgmt.readmodel.decode_failed",
 			"decode "+name+" in read model",
-		)
+		).WithContextAny("agg_id", evt.StreamID())
 	}
 	return p, nil
 }

@@ -59,7 +59,7 @@ func (m *BotReadModel) handleBotRegistered(aggID id.StreamID, evt event.Event) e
 		return errorfamily.WrapCorruption(
 			err, "usermgmt.bot_readmodel.decode_failed",
 			"decode BotRegistered in read model",
-		)
+		).WithContextAny("agg_id", aggID)
 	}
 	scopes := make([]string, len(p.Scopes))
 	copy(scopes, p.Scopes)

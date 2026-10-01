@@ -55,7 +55,7 @@ func (m *TenantReadModel) handleTenantCreated(aggID id.StreamID, evt event.Event
 		return errorfamily.WrapCorruption(
 			err, "usermgmt.tenant_readmodel.decode_failed",
 			"decode TenantCreated in read model",
-		)
+		).WithContextAny("agg_id", aggID)
 	}
 	m.tenants[aggID] = &Tenant{
 		ID:          NewTenantID(aggID.String()),

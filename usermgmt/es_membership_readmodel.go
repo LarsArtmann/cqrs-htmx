@@ -52,7 +52,7 @@ func (m *MembershipReadModel) handleMemberRolesChanged(aggID id.StreamID, evt ev
 			err,
 			"usermgmt.membership_readmodel.decode_failed",
 			"decode MemberRolesChanged in read model",
-		)
+		).WithContextAny("agg_id", aggID)
 	}
 	mem, ok := m.memberships[aggID]
 	if !ok {
@@ -76,7 +76,7 @@ func (m *MembershipReadModel) applyMemberAdded(aggID id.StreamID, evt event.Even
 			err,
 			"usermgmt.membership_readmodel.decode_failed",
 			"decode MemberAdded in read model",
-		)
+		).WithContextAny("agg_id", aggID)
 	}
 	roles := make([]Role, len(p.Roles))
 	copy(roles, p.Roles)
@@ -86,7 +86,7 @@ func (m *MembershipReadModel) applyMemberAdded(aggID id.StreamID, evt event.Even
 			err,
 			"usermgmt.membership_readmodel.unknown_actor_kind",
 			"decode actor kind in MemberAdded",
-		)
+		).WithContextAny("agg_id", aggID)
 	}
 	m.memberships[aggID] = &Membership{
 		ActorID:  NewActorID(kind, p.ActorID),
