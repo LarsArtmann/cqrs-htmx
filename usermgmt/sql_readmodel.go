@@ -117,7 +117,8 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 	if evt.Type() == eventUserDeleted {
 		userID := NewUserID(aggID.String())
 		if err := m.store.Delete(ctx, userID); err != nil {
-			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.delete", "delete user view").WithContextAny("user_id", userID)
+			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.delete", "delete user view").
+				WithContextAny("user_id", userID)
 		}
 		return nil
 	}
@@ -138,7 +139,8 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 	}
 	userID := NewUserID(aggID.String())
 	if err := m.store.Set(ctx, userID, &view); err != nil {
-		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.upsert", "upsert user view").WithContextAny("user_id", userID)
+		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.upsert", "upsert user view").
+			WithContextAny("user_id", userID)
 	}
 	return nil
 }
@@ -146,7 +148,8 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 func (m *SQLUserReadModel) FindByIDSQL(ctx context.Context, userID UserID) (*UserView, error) {
 	view, err := m.store.Get(ctx, userID)
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.get", "get user view by id").WithContextAny("user_id", userID)
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.get", "get user view by id").
+			WithContextAny("user_id", userID)
 	}
 	return view, nil
 }
@@ -156,7 +159,8 @@ func (m *SQLUserReadModel) FindByEmailSQL(ctx context.Context, email string) ([]
 		Conditions: []kv.Condition{{Column: csvColumnEmail, Op: kv.OpEq, Value: email}},
 	})
 	if err != nil {
-		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.query_email", "query user view by email").WithContext("email", email)
+		return nil, errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.query_email", "query user view by email").
+			WithContext("email", email)
 	}
 	return views, nil
 }

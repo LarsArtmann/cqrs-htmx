@@ -50,7 +50,8 @@ func newVerificationTokenStore() *verificationTokenStore {
 func (s *verificationTokenStore) Save(userID UserID, email string, ttl time.Duration) (string, error) {
 	token, err := generateVerificationToken()
 	if err != nil {
-		return "", errorfamily.WrapInfrastructure(err, "usermgmt.verification.token_generate", "generate verification token").WithContextAny("user_id", userID)
+		return "", errorfamily.WrapInfrastructure(err, "usermgmt.verification.token_generate", "generate verification token").
+			WithContextAny("user_id", userID)
 	}
 	s.mu.Lock()
 	s.tokens[token] = verificationEntry{

@@ -22,12 +22,12 @@ fail=0
 
 write_module_a() {
   mkdir -p "$1/a"
-  cat > "$1/a/go.mod" <<'EOF'
+  cat >"$1/a/go.mod" <<'EOF'
 module example.net/a
 
 go 1.22
 EOF
-  cat > "$1/a/a.go" <<'EOF'
+  cat >"$1/a/a.go" <<'EOF'
 package a
 
 func Hello() string { return "hello" }
@@ -36,14 +36,14 @@ EOF
 
 write_module_b() {
   mkdir -p "$1/b"
-  cat > "$1/b/go.mod" <<'EOF'
+  cat >"$1/b/go.mod" <<'EOF'
 module example.net/b
 
 go 1.22
 
 require example.net/a v0.0.0
 EOF
-  cat > "$1/b/main.go" <<'EOF'
+  cat >"$1/b/main.go" <<'EOF'
 package main
 
 import (
@@ -57,14 +57,14 @@ EOF
 }
 
 run_gate() {
-  ( cd "$1" && WORKSPACE_BUILD_ROOT="$1" GOPROXY=off bash "$GATE" 2>&1 )
+  (cd "$1" && WORKSPACE_BUILD_ROOT="$1" GOPROXY=off bash "$GATE" 2>&1)
 }
 
 # Case 1: healthy two-module workspace.
 case1="$WORK/healthy"
 write_module_a "$case1"
 write_module_b "$case1"
-cat > "$case1/go.work" <<'EOF'
+cat >"$case1/go.work" <<'EOF'
 go 1.22
 
 use (
@@ -86,7 +86,7 @@ fi
 case2="$WORK/mangled"
 write_module_a "$case2"
 write_module_b "$case2"
-cat > "$case2/go.work" <<'EOF'
+cat >"$case2/go.work" <<'EOF'
 go 1.22
 
 use ./b

@@ -75,7 +75,8 @@ func (s *Service) RegisterBot(ctx context.Context, req RegisterBotRequest) (*Reg
 func (s *Service) DeleteBot(ctx context.Context, botID BotID, reason string) error {
 	aggID, err := aggIDFromBot(botID)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "usermgmt.bot.id_conversion_failed", "convert bot ID").WithContextAny("bot_id", botID)
+		return errorfamily.WrapInfrastructure(err, "usermgmt.bot.id_conversion_failed", "convert bot ID").
+			WithContextAny("bot_id", botID)
 	}
 	return s.dispatcher.Dispatch( //nolint:wrapcheck // decider returns typed domain errors
 		ctx,
