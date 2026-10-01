@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **v5-window watches refreshed (2026-10-01, T26):** appkit master re-verified live (`048137e90`, tag v0.7.0 present — adoption still v5-window per ADR-0052), the ProjectionLayer v5-removal inventory re-confirmed accurate (equivalence-test note intact), the DataStar Tier-4 demand gate re-verified with no new evidence, and the buildcache watch recorded an intraday 58% → 98% swing (5.5G free) — `df -h` before any gate battery, /tmp fallback expected.
+
 - **agents-notes narratives (2026-10-01, docs micro-batch item (a)):** two dated histories assembled from the source reports — the cqrs-lint three-pass arc (easy-way green → root-cause fix at the linter source → self-audit that caught the fix's home-repo docs debt) and the three-tools-vs-nixpkgs-default-Go story (treefmt templ wrapper, go-licenses GOROOT, go-work-sync's load-bearing replace drop — one floor re-pin, three silent-assumption failures, three shims with queued upstream asks).
 
 - **ExtraMiddleware appkit-path pin (2026-10-01, tooling item (i)):** `TestRunWithAppkit_ExtraMiddlewareComposesInsideSecurity` drives a real appkit listener with a nil handler (the path only `RunWithAppkit` owns — it builds `Mount + Middleware` itself) and asserts the consumer extras' effects and the security layer both reach responses, complementing the `Handler()`-path pins in the middleware-seams test. The appkit serve path and the plain `Handler` share one chain builder, so the seam cannot diverge between serve paths unnoticed.
