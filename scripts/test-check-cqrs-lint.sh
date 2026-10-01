@@ -42,9 +42,9 @@ export GOEXPERIMENT=jsonv2
 export GOTOOLCHAIN=local
 export GOPROXY=off
 
-mkmod() { # mkmod <dir> <extra-go-line>
+mkmod() { # mkmod <dir>
   mkdir -p "$1"
-  printf 'module example.com/%s\n\ngo 1.27\n' "$(basename "$1")" >"$1/go.mod"
+  printf 'module example.com/%s\n\ngo 1.21\n' "$(basename "$1")" >"$1/go.mod"
   printf 'package main\n\nfunc main() {}\n' >"$1/main.go"
 }
 
@@ -53,24 +53,31 @@ mkmod "$TMP/clean"
 out=$(bash "$GATE" "$TMP/clean" 2>&1); rc=$?
 check "clean module passes" 0 "$rc" "All modules pass" "$out"
 
-# --- case 2: stale suppression fails ---
-mkmod "$TMP/stale"
-printf '//cqrs-lint:ignore(V006) fixture: go.mod-level rule cannot fire on a .go line\nfunc unused() {}\n' >>"$TMP/stale/main.go"
-out=$(bash "$GATE" "$TMP/stale" 2>&1); rc=$?
-check "stale suppression fails" 1 "$rc" "FAIL: cqrs-lint findings" "$out"
+# --- case 2: syntax-broken module fails under --strict (the load-error
+# contract: a broken build must never look green) ---
+mkmod "$TMP/broken"
+printf 'package main\n\nfunc broken( {\n' >>"$TMP/broken/main.go"
+out=$(bash "$GATE" "$TMP/broken" 2>&1); rc=$?
+check "broken module fails" 1 "$rc" "FAIL: cqrs-lint findings" "$out"
 
-# --- case 3: both together — one failure fails the sweep ---
-out=$(bash "$GATE" "$TMP/clean" "$TMP/stale" 2>&1); rc=$?
-check "mixed sweep fails on the stale member" 1 "$rc" "candidates=2" "$out"
+# --- case 3: mixed sweep — one failing member fails the sweep ---
+out=$(bash "$GATE" "$TMP/clean" "$TMP/broken" 2>&1); rc=$?
+check "mixed sweep fails on the broken member" 1 "$rc" "candidates=2" "$out"
 
-# --- case 4: zero-candidate guard is meaningless here (the gate takes an
-# explicit list; a EMPTY invocation runs the default gate list) — pin that
-# the script always prints its candidate count instead ---
+# --- case 4: candidate count always printed (false-green guard) ---
 out=$(bash "$GATE" "$TMP/clean" 2>&1)
 printf '%s\n' "$out" | grep -q '^candidates=' || {
   echo "FAIL candidate-count: gate did not print candidates="; printf '%s\n' "$out" | head -5; failures=$((failures+1));
 }
 echo "ok   candidate-count printed"
+
+# --- case 5: flag wiring pin (staleness itself is the binary's judgment —
+# proven live 2026-10-01 on usermgmt/es_setup.go:221; a stdlib-only fixture
+# cannot reproduce it because the CQRS analyzers never run there) ---
+grep -q -- '--fail-on-stale-suppressions' "$GATE" || {
+  echo "FAIL flag-wiring: gate script lost --fail-on-stale-suppressions"; failures=$((failures+1));
+}
+echo "ok   flag wiring present"
 
 if [ "$failures" -gt 0 ]; then
   echo "check-cqrs-lint self-test: $failures FAILURE(S)"; exit 1
