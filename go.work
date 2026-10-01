@@ -119,4 +119,9 @@ replace github.com/larsartmann/go-idempotency => /home/lars/projects/go-idempote
 // for workspace consistency with local httputil development.
 replace github.com/larsartmann/httputil/server_timing => /home/lars/projects/httputil/server_timing
 
+// LOAD-BEARING shield (see AGENTS.md gotcha 22c): published cqrs-htmx v4.12.x
+// copies (pulled by examples/e2e via the proxy) require go-etag root v0.4.0,
+// whose zip still carries a legacy server/ package -> ambiguous import against
+// go-etag/server v0.6.0. Removal condition: drop when go-appkit > v0.5.1
+// publishes its split-module go.mod (the fix sits on appkit master).
 replace github.com/larsartmann/go-etag => github.com/larsartmann/go-etag v0.6.0
