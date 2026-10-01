@@ -7,3 +7,5 @@ linters:
     - unused
   exclusions:
     generated: lax
+run:
+    allow-serial-runners: true # wait for the machine-wide lock instead of aborting (fleet box, concurrent sessions)
