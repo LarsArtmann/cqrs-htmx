@@ -25,7 +25,7 @@ export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
 source "$(dirname "${BASH_SOURCE[0]}")/lib/go-cache-env.sh"
 
 PROJECT_ROOT="${WORKSPACE_BUILD_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT" || exit 1
 
 if [ ! -f go.work ]; then
   echo "check-workspace-build: FAILED — no go.work at $PROJECT_ROOT" >&2
