@@ -4,6 +4,7 @@
 [![CI](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml/badge.svg)](https://github.com/LarsArtmann/cqrs-htmx/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go)](https://go.dev/)
+[![GOTH stack](https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square)](https://github.com/larsartmann/templ-components)
 
 Wire [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) commands and queries to `net/http` in one line per endpoint. HTMX responses, Casbin authorization, CSRF, rate limiting, SSE, and event-sourced user management come built-in — but nothing is forced on you. Bring your own router (`net/http`, [Chi](https://github.com/go-chi/chi), [Gin](https://github.com/gin-gonic/gin), etc.), your own [templ](https://templ.guide) components, your own persistence. The library never picks your stack for you.
 
@@ -16,6 +17,12 @@ mux.Handle("POST /items", app.Command("CreateItem",
 ```
 
 One endpoint, four concerns, in declarative order. The same shape works for queries, form posts, and SSE handlers.
+
+> **Part of the GOTH stack** — pair with
+> [templ-components](https://github.com/larsartmann/templ-components) (UI components
+> for templ + HTMX + Tailwind v4) and
+> [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) (event sourcing core)
+> for a complete server-rendered Go web stack with zero framework lock-in.
 
 ## Features at a Glance
 
