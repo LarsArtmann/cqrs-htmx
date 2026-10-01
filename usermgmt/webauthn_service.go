@@ -85,7 +85,8 @@ func (s *Service) BeginRegistration(ctx context.Context, userID UserID) (*BeginR
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: begin registration failed – user not found", "user_id", userID)
-		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin registration")
+		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "begin registration").
+			WithContextAny("user_id", userID)
 	}
 
 	userJSON, err := marshalWebAuthnUser(user)
@@ -122,7 +123,8 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: finish registration failed – user not found", "user_id", userID)
-		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish registration")
+		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish registration").
+			WithContextAny("user_id", userID)
 	}
 
 	sessionKey := userID.Get().String()
@@ -130,7 +132,7 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 	if err != nil {
 		s.logger.Warn("usermgmt: finish registration failed – session not found",
 			"user_id", userID, "error", err)
-		return err //nolint:wrapcheck // domain sentinel error
+		return err //nolint:wrapcheck,erraudit // sentinel identity stable; user_id logged above
 	}
 
 	body, err := io.ReadAll(io.LimitReader(r.Body, maxWebAuthnBodySize))
@@ -162,14 +164,15 @@ func (s *Service) FinishRegistration(ctx context.Context, userID UserID, r *http
 
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed", "convert userID")
+		return errorfamily.WrapInfrastructure(err, "usermgmt.webauthn.userid_conversion_failed", "convert userID").
+			WithContextAny("user_id", userID)
 	}
 	if err := s.dispatcher.Dispatch(
 		ctx,
 		NewAddCredentialCmd(aggID, WebAuthnCredential{CredentialCore: cred}),
 	); err != nil {
 		return errorfamily.Wrapf(err, errorfamily.Classify(err),
-			"usermgmt.webauthn.dispatch_failed", "finish registration dispatch")
+			"usermgmt.webauthn.dispatch_failed", "finish registration dispatch").WithContextAny("user_id", userID)
 	}
 	s.logger.Info("usermgmt: credential registered",
 		"user_id", userID, "credential_name", credentialName)
@@ -239,7 +242,8 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	user, ok := s.readModel.FindByUserID(userID)
 	if !ok {
 		s.logger.Debug("usermgmt: finish login failed – user not found", "user_id", userID)
-		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish login")
+		return nil, errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.webauthn.user_not_found", "finish login").
+			WithContextAny("user_id", userID)
 	}
 
 	sessionKey := userID.Get().String()
@@ -247,7 +251,7 @@ func (s *Service) FinishLogin(ctx context.Context, userID UserID, r *http.Reques
 	if err != nil {
 		s.logger.Warn("usermgmt: finish login failed – session not found",
 			"user_id", userID, "error", err)
-		return nil, err //nolint:wrapcheck // domain sentinel error
+		return nil, err //nolint:wrapcheck,erraudit // sentinel identity stable; user_id logged above
 	}
 
 	body, err := io.ReadAll(io.LimitReader(r.Body, maxWebAuthnBodySize))

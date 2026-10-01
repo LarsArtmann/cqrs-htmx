@@ -91,7 +91,8 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 // This is used as a second factor during login.
 func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) error {
 	if err := s.requireValidTOTP(userID, code, "totp_verify_failed"); err != nil {
-		return err
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"usermgmt.totp.verify_failed", "totp verify failed").WithContextAny("user_id", userID)
 	}
 	s.logAuth(statusTOTPVerified, userID)
 	return nil
@@ -101,7 +102,8 @@ func (s *Service) VerifyTOTP(ctx context.Context, userID UserID, code string) er
 // A valid TOTP code is required to prevent MFA stripping via session hijack.
 func (s *Service) DisableTOTP(ctx context.Context, userID UserID, code string) error {
 	if err := s.requireValidTOTP(userID, code, "totp_disable_failed"); err != nil {
-		return err
+		return errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"usermgmt.totp.disable_failed", "totp disable failed").WithContextAny("user_id", userID)
 	}
 	aggID, err := aggIDFromUser(userID)
 	if err != nil {

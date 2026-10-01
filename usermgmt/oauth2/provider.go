@@ -326,14 +326,15 @@ func (p *initializedProvider) extractFromIDToken(
 ) (userInfo, string, error) {
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return userInfo{}, "", errorfamily.NewTransient(
+		return userInfo{}, "", errorfamily.NewTransient( //nolint:erraudit // rawIDToken is a live credential; never echoed
 			"oauth2.id_token_missing",
 			"id_token missing from token response",
 		)
 	}
 	idToken, err := p.verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return userInfo{}, "", errorfamily.WrapTransient(err, "oauth2.verify_id_token", "verify id_token")
+		return userInfo{}, "", errorfamily.WrapTransient(err,
+			"oauth2.verify_id_token", "verify id_token") //nolint:erraudit // rawIDToken is a live credential; never echoed
 	}
 	var claims struct {
 		Sub               string `json:"sub"`
@@ -343,7 +344,8 @@ func (p *initializedProvider) extractFromIDToken(
 		PreferredUsername string `json:"preferred_username"`
 	}
 	if err := idToken.Claims(&claims); err != nil {
-		return userInfo{}, "", errorfamily.WrapTransient(err, "oauth2.extract_claims", "extract id_token claims")
+		return userInfo{}, "", errorfamily.WrapTransient(err,
+			"oauth2.extract_claims", "extract id_token claims") //nolint:erraudit // rawIDToken is a live credential; never echoed
 	}
 	return userInfo{
 		Subject:           claims.Sub,

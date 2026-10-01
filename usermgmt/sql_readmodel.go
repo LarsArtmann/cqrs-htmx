@@ -128,7 +128,8 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 	}
 	data, err := marshalUserViewData(user)
 	if err != nil {
-		return err
+		return errorfamily.WrapInfrastructure(err, "usermgmt.sql_readmodel.user_marshal", "marshal user view data").
+			WithContextAny("agg_id", aggID)
 	}
 	view := UserView{
 		Email: user.Email, DisplayName: user.DisplayName,

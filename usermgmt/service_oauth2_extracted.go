@@ -188,7 +188,8 @@ func (o *OAuth2Service) FinishLogin(
 func (o *OAuth2Service) Unlink(ctx context.Context, userID UserID, provider string) error {
 	user, ok := o.readModel.FindByUserID(userID)
 	if !ok {
-		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.service.user_not_found", "unlink external account")
+		return errorfamily.WrapRejection(ErrUserNotFound, "usermgmt.service.user_not_found", "unlink external account").
+			WithContextAny("user_id", userID)
 	}
 
 	var subject string
@@ -278,7 +279,9 @@ func (o *OAuth2Service) matchOrCreateUser(
 	}
 
 	if err := o.linkExternalAccount(ctx, user.ID, provider, info); err != nil {
-		return nil, false, err
+		return nil, false, errorfamily.Wrapf(err, errorfamily.Classify(err),
+			"usermgmt.oauth2.link_failed", "link external account").
+			WithContextAny("user_id", user.ID).WithContext("provider", provider)
 	}
 
 	user, _ = o.readModel.FindByID(aggID)
