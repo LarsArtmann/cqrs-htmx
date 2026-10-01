@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page, type BrowserContext, type Route } from "@playwright/test";
 
 // IndexedDB inspection scripts as string expressions. Using strings avoids
 // Playwright's TypeScript transformer issues with module-level arrow
@@ -63,9 +63,9 @@ const QUEUE_ENTRIES = `(function() {
 // interception (so the XHR fails immediately, triggering htmx:sendError).
 // Using setOffline alone causes the XHR to hang (Chrome does not abort
 // pending XHRs on offline for ~75s TCP timeout).
-async function goOffline(page, context) {
+async function goOffline(page: Page, context: BrowserContext) {
   await context.setOffline(true);
-  await page.route("**/api/items", (route) => {
+  await page.route("**/api/items", (route: Route) => {
     if (route.request().method() === "POST") {
       route.abort("failed");
     } else {
@@ -74,10 +74,21 @@ async function goOffline(page, context) {
   });
 }
 
-async function goOnline(page, context) {
+async function goOnline(page: Page, context: BrowserContext) {
   await page.unroute("**/api/items");
   await context.setOffline(false);
 }
+
+type QueueEntry = {
+  commandId: string;
+  envelope: {
+    verb: string;
+    url: string;
+    headers: Record<string, string>;
+    values: Record<string, string>;
+  };
+  retries: number;
+};
 
 // Test 1: Offline command is enqueued and persisted to IndexedDB.
 // Verifies: htmx:sendError -> sync-client captures envelope -> SharedWorker
@@ -101,7 +112,7 @@ test("offline enqueue persists command envelope to IndexedDB", async ({ page, co
 
   await expect.poll(() => page.evaluate(QUEUE_DEPTH), { timeout: 10000 }).toBe(1);
 
-  const entries = await page.evaluate(QUEUE_ENTRIES);
+  const entries = await page.evaluate<QueueEntry[]>(QUEUE_ENTRIES);
   expect(entries).toHaveLength(1);
   expect(entries[0].commandId).toBeTruthy();
   expect(entries[0].envelope.verb).toBe("POST");
@@ -242,8 +253,8 @@ test("multiple offline commands are queued and delivered on reconnect", async ({
     .poll(
       async () => {
         const resp = await page.request.get("/api/debug/items");
-        const items = await resp.json();
-        return items.filter(function (n) {
+        const items = (await resp.json()) as string[];
+        return items.filter(function (n: string) {
           return names.indexOf(n) >= 0;
         }).length;
       },

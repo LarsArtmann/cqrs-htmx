@@ -7,6 +7,7 @@ test("probe computed styles", async ({ page }) => {
     const span = document.querySelector("span[data-tc-copy-text]");
     if (!span) return "no span";
     const btn = span.closest("[data-tc-copy]");
+    if (!btn) return "no copy button";
     const s = getComputedStyle(span);
     const b = getComputedStyle(btn);
     const label = document.querySelector("label[for='filter-type']");
