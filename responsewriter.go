@@ -18,6 +18,14 @@ type delegatingWriter struct {
 	http.ResponseWriter
 }
 
+// newDelegatingWriter wraps w in the shared delegation struct. Constructors
+// of embedding types call this instead of writing the literal inline so
+// exhaustruct_v5 (which cannot see Go 1.27 promoted keys) and modernize's
+// embedlit (which wants them) never fight inside the caller's literal.
+func newDelegatingWriter(w http.ResponseWriter) delegatingWriter {
+	return delegatingWriter{ResponseWriter: w}
+}
+
 // Flush delegates to the underlying Flusher, if available.
 func (w delegatingWriter) Flush() {
 	if f, ok := w.ResponseWriter.(http.Flusher); ok {
