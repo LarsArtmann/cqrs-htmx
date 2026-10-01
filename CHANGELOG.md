@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.13.0] - 2026-10-01
+
 ### Added
 
 - **setup identity-external shell mode (2026-09-30, ADR-0054):** two composable flags open the bundle to apps that authenticate against an external authority — `Config.DisableAuth` skips the auth handler entirely (no `/auth/*` routes; the service and panels stay, so own-login-endpoint consumers can mint sessions against the service API) and `Config.DisableService` builds the shell: no usermgmt.Service anywhere, `Stores` from `Config.EventStore`/`EventBus` (memory + watermill defaults, same as the service path), the serve/drain/close lifecycle, `HealthPath` with consumer `HealthChecks` (the built-ins skip naturally — nil service, nil hub), opt-in `LivePath`, and an idempotent no-op `Close`. Every surface whose session gate would dereference the missing service is rejected at New (feeds, machine endpoints, panels, service fields — `usermgmt.NewSessionMiddleware(nil, …)` panics on the first cookie-carrying request, so a half-mounted gated endpoint would be a latent panic, not a feature); the feeds/machine endpoints return behind an injectable gate in a future release. First external consumer: webphone (PBX-directory identity; its adoption plan documents why usermgmt can never be its identity). Plus `setup.NewShell(cfg)` — the shell constructor direct: functionally identical to `New(DisableService: true)` but never referencing the service path, so a shell-only consumer's linker prunes the usermgmt/casbin/panels tree New would keep reachable (the binary-footprint answer for the identity-external class). Pinned by 19 tests in `setup/setup_identity_external_test.go`; docs in `setup/doc.go` + `setup/README.md`.
