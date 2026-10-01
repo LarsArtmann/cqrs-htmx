@@ -209,7 +209,22 @@
                 pkgs.treefmt # nix fmt aggregator
                 # BuildFlow pre-commit steps that failed on missing binaries
                 pkgs.typescript # tsc (type-check + tsconfig-check)
-                pkgs.go-licenses # license-check
+                # license-check: the nixpkgs go-licenses wrapper hard-exports
+                # GOROOT of nixpkgs' DEFAULT go (1.26.x). go-webauthn
+                # v0.18.2 imports crypto/mldsa (Go 1.27 std), so go/packages
+                # dies with "package crypto/mldsa is not in std" and the
+                # BuildFlow license-check step fails deterministically.
+                # Bypass the wrapper: exec the wrapped binary with goPkg's
+                # GOROOT and goPkg first on PATH (the go/packages driver
+                # shells out to `go`).
+                (pkgs.writeShellApplication {
+                  name = "go-licenses";
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    export GOROOT="${goPkg}/share/go"
+                    exec "${pkgs.go-licenses}/bin/.go-licenses-wrapped" "$@"
+                  '';
+                })
                 pkgs.vulnix # NixOS vulnerability scan
                 pkgs.deadnix # dead-code linter for .nix files (BuildFlow step)
               ];
