@@ -255,6 +255,19 @@
           };
 
           apps = {
+            # Scoped formatting: `nix run .#fmt -- <paths...>` formats ONLY the
+            # given paths with the repo's generated treefmt config. treefmt's
+            # config is flake-generated into the store, so a bare `treefmt
+            # <paths>` on the host fails ("no treefmt.toml"); this app forwards
+            # the paths to the wrapped treefmt (config + project-root already
+            # baked in). With no paths it behaves like `nix fmt`. Added
+            # 2026-10-01 (TODO P3 h).
+            fmt = {
+              type = "app";
+              meta.description = "Format ONLY the given paths with the repo treefmt config (e.g. `nix run .#fmt -- scripts/x.sh docs/y.md`)";
+              program = pkgs.lib.getExe config.treefmt.build.wrapper;
+            };
+
             test = goApp {
               name = "run-tests";
               description = "Run Go tests with race detector across all workspace modules (auto-discovered, excludes e2e/examples)";
