@@ -1,5 +1,7 @@
 # Status: Pareto Plan Execution — dashboardui templ-components Adoption (T1–T24)
 
+> ANNOTATED 2026-10-01 (docs-health round 13): the session's open tail closed — browser evidence landed (Playwright re-run + screenshot refresh 2026-09-23, then the round-12 dark/light axe sweeps 2026-09-26 which found and fixed three real WCAG failures and verified the toggle persistence + class-flip contract in e2e), golangci-lint ran 0-issues on the module (repeatedly since), the rubric's permanent-estimate labeling shipped (CHANGELOG 2026-09-23: the Capability Adoption Score v1 rubric replaces the never-computed "85"), RelativeTime shipped (round-12), PageHeader resolved as a documented divergence + upstream ask, the CSRF convention fix shipped (default-convention field name), and the owner calls stay parked (OQ22 + the publishing memo, both tracked). The 2026-09-20 spike file's M089 boxes are superseded by the audit §06 outcome record. §f rows not struck are adjudicated brainstorm. Archived per the tail convention.
+
 > **Timestamp:** 2026-09-23 04:29 CEST
 > **Session scope:** execute the full 24-task / 66-micro-task adoption plan (`docs/planning/2026-09-23_01-58_dashboardui-templ-adoption-pareto-plan.md`) end-to-end on the owner's go: theme toggle, CSRF swap, harvest, audit-series reconciliation, rubric, 11 component evaluations, ADR, process guards, loginpage audit, final verification + push.
 > **Format note:** user explicitly requested `.md`; status-skill HTML default overridden, not propagated.
@@ -65,21 +67,21 @@
 
 | Item                                | Works                                                                                        | Open                                                                                                                                                      | Effort |
 | ----------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Theme-toggle verification           | Unit gates, goldens, bundle canaries, CSS class presence all green                           | Zero visual/browser evidence; header DOM restructure unrendered; e2e screenshots stale; toggle persistence + boost-interaction untested in a real browser | S–M    |
-| Post-commit verification discipline | build/vet/test/-race + 5 targeted gates per phase boundary                                   | golangci-lint never run on the touched module (the bypassed hook's job)                                                                                   | S      |
-| Rubric comparability                | Run-1 and Run-4 rows fully derived; provenance correction published                          | Run-2/Run-3 rows are reconstructions with disclosed bands — permanent-estimate labeling not yet written into the report                                   | S      |
-| §g gating                           | Verdicts made with documented assumptions + reopen triggers (ADR-0053); memo drafted for #23 | The three owner questions were never asked; #23 decision, visual-continuity policy, toggle-configurability all still open                                 | —      |
-| Old-report annotation sweep         | 2026-09-17 report annotated; spike outcome recorded in audit §06 + research README           | 2026-09-20 spike file itself still shows unchecked M089 boxes                                                                                             | S      |
+| ~~Theme-toggle verification                           | Unit gates, goldens, bundle canaries, CSS class presence all green                           | Zero visual/browser evidence; header DOM restructure unrendered; e2e screenshots stale; toggle persistence + boost-interaction untested in a real browser~~ closed — screenshots refreshed 2026-09-23; round-12 dark/light axe sweeps + toggle round-trip spec (class flip, aria-checked, persistence) 2026-09-26 | done   |
+| ~~Post-commit verification discipline | build/vet/test/-race + 5 targeted gates per phase boundary                                   | golangci-lint never run on the touched module (the bypassed hook's job)~~ closed — module lint 0 issues at every later gate run | done   |
+| ~~Rubric comparability                | Run-1 and Run-4 rows fully derived; provenance correction published                          | Run-2/Run-3 rows are reconstructions with disclosed bands — permanent-estimate labeling not yet written into the report~~ closed — the Capability Adoption Score v1 rubric shipped 2026-09-23 with the estimate-labeling correction (CHANGELOG) | done   |
+| §g gating                           | Verdicts made with documented assumptions + reopen triggers (ADR-0053); memo drafted for #23 | The three owner questions were never asked; #23 decision, visual-continuity policy, toggle-configurability all still open                                 | — (owner; tracked via OQ22 + the publishing memo)      |
+| ~~Old-report annotation sweep         | 2026-09-17 report annotated; spike outcome recorded in audit §06 + research README           | 2026-09-20 spike file itself still shows unchecked M089 boxes~~ closed — superseded by the audit §06 outcome record; the spike file is a historical artifact whose open boxes the outcome record resolves | done   |
 
 ## c) NOT STARTED
 
-- Playwright e2e re-run + dashboard screenshot refresh for the themed UI (also missing from TODO_LIST — this session should add it; see §f1).
-- golangci-lint pass over dashboardui post-changes (§f2).
-- Dark-token WCAG audit + full axe pass (queued in TODO_LIST, not started — correct routing, honest size: M).
-- `display.RelativeTime` narrow swap (queued; snapshot-detail "Created" first).
-- `display.PageHeader` adoption (appended to the follow-through bundle).
-- OQ22 adopt-or-skip decision, publish-verdict A/B decision, visual-continuity policy — all owner calls, correctly parked.
-- CSRF convention note in dashboardui README (queued this session, §f17).
+- ~~Playwright e2e re-run + dashboard screenshot refresh for the themed UI (also missing from TODO_LIST — this session should add it; see §f1).~~ done 2026-09-23 (screenshots refreshed; round-12 added the axe + toggle specs).
+- ~~golangci-lint pass over dashboardui post-changes (§f2).~~ done — 0 issues at every later module gate run.
+- ~~Dark-token WCAG audit + full axe pass (queued in TODO_LIST, not started — correct routing, honest size: M).~~ done 2026-09-26 (round-12; three real WCAG failures found + fixed).
+- ~~`display.RelativeTime` narrow swap (queued; snapshot-detail "Created" first).~~ done 2026-09-26 (round-12; nonce-carrying wrapper, `<time datetime>` golden).
+- ~~`display.PageHeader` adoption (appended to the follow-through bundle).~~ resolved 2026-09-23 — documented divergence + upstream ask (rich titles; 8/11 headers), CHANGELOG.
+- OQ22 adopt-or-skip decision, publish-verdict A/B decision, visual-continuity policy — all owner calls, correctly parked (tracked: ROADMAP OQ22 + `docs/planning/2026-09-23_audit-verdict-publishing-memo.md`).
+- ~~CSRF convention note in dashboardui README (queued this session, §f17).~~ done 2026-09-23 — all 7 mutation forms emit the library `htmx.CSRFToken` (default-convention field); CHANGELOG + README document it.
 
 ## d) TOTALLY FUCKED UP
 
