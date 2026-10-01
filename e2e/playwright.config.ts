@@ -17,7 +17,7 @@ const GOWORK = path.resolve(__dirname, "../go.work");
  * the cqrs-htmx module to build.
  *
  * Run: pnpm dlx playwright test
- * Debug: pnpm dlx playwright test --headed --debug
+ * Debug session (browser visible): pnpm dlx playwright test --headed --debug
  */
 export default defineConfig({
   testDir: "./tests",
