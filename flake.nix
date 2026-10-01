@@ -949,6 +949,7 @@
                         "status-annotations-self-test:bash scripts/test-check-status-annotations.sh"
                         "status-rows:python3 scripts/check-status-rows.py"
                         "status-rows-self-test:bash scripts/test-check-status-rows.sh"
+                        "status-rows-normalize-self-test:bash scripts/test-normalize-status-rows.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -992,6 +993,7 @@
                     bash scripts/test-check-status-annotations.sh
                     python3 scripts/check-status-rows.py
                     bash scripts/test-check-status-rows.sh
+                    bash scripts/test-normalize-status-rows.sh
                     echo ""
                     echo "✓ All module architecture checks passed"
                   '';
@@ -1084,6 +1086,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/test-check-status-rows.sh
+                  '';
+                }
+              );
+            };
+
+            normalize-status-rows = {
+              type = "app";
+              meta.description = "Fixer for PARTIAL table rows in archived status reports (whole-row strike). Companion to check-status-rows; pass --dry-run to list without writing";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "normalize-status-rows";
+                  runtimeInputs = [
+                    pkgs.python3
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    python3 scripts/normalize-status-rows.py "$@"
+                  '';
+                }
+              );
+            };
+
+            test-normalize-status-rows = {
+              type = "app";
+              meta.description = "Fixture self-test for normalize-status-rows.py (5 cases: whole-row strike, clean/STRUCK untouched, code-span literal, idempotent, dry-run)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-normalize-status-rows";
+                  runtimeInputs = [
+                    pkgs.python3
+                    pkgs.coreutils
+                    pkgs.gnugrep
+                    pkgs.git
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/test-normalize-status-rows.sh
                   '';
                 }
               );

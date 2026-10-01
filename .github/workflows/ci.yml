@@ -753,6 +753,12 @@ jobs:
       - name: Status row gate self-test
         run: bash scripts/test-check-status-rows.sh
 
+      # Fixer-side companion to the row gate: proves the whole-row-strike
+      # normalizer completes PARTIAL rows and that the checker then agrees
+      # (the 2026-10-01 round-13 batch that normalized 72 rows by hand).
+      - name: Status row normalize self-test
+        run: bash scripts/test-normalize-status-rows.sh
+
       # Fixture self-test for the /v4-suffix import-path rule inside
       # check-docs-freshness.sh (scripts/lib/docs-import-paths.sh).
       - name: Docs freshness self-test
