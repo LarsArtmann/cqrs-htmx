@@ -235,6 +235,67 @@ func TestRunWithAppkit_ReadinessAndCleanShutdown(t *testing.T) {
 	}
 }
 
+// TestRunWithAppkit_ExtraMiddlewareComposesInsideSecurity pins the
+// Config.ExtraMiddleware seam under the appkit serve path: with a nil
+// handler the bundle builds its own chain (Mount + Middleware), so the
+// extras' effects must reach responses through a real appkit listener —
+// the same composition the Handler()-path pins hold in
+// setup_middleware_seams_test.go, proven end-to-end here.
+func TestRunWithAppkit_ExtraMiddlewareComposesInsideSecurity(t *testing.T) {
+	bundle := MustNew(Config{
+		Title: "appkit-extra-mw",
+		ExtraMiddleware: []func(http.Handler) http.Handler{
+			func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("X-Extra-Layer", "applied")
+					next.ServeHTTP(w, r)
+				})
+			},
+		},
+	})
+	defer func() { _ = bundle.Close() }()
+
+	addr := freeLocalAddr(t)
+	stop := serveInBackground(t, func(ctx context.Context, addr string, h http.Handler) error {
+		return bundle.runWithAppkit(ctx, addr, h, testDrainDelay, "")
+	}, addr, nil)
+	defer stop()
+
+	client := &http.Client{Timeout: 2 * time.Second}
+
+	var resp *http.Response
+	deadline := time.Now().Add(10 * time.Second)
+
+	for {
+		var err error
+
+		resp, err = client.Get("http://" + addr + "/")
+		if err == nil {
+			if resp.StatusCode == http.StatusOK {
+				break
+			}
+
+			_ = resp.Body.Close()
+		}
+
+		if time.Now().After(deadline) {
+			t.Fatal("login page (bundle chain) never answered 200")
+		}
+
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	defer func() { _ = resp.Body.Close() }()
+
+	if got := resp.Header.Get("X-Extra-Layer"); got != "applied" {
+		t.Errorf("ExtraMiddleware must apply under RunWithAppkit, got X-Extra-Layer=%q", got)
+	}
+
+	if got := resp.Header.Get("X-Content-Type-Options"); got != "nosniff" {
+		t.Errorf("security layer must still wrap the extras under RunWithAppkit, got %q", got)
+	}
+}
+
 // TestRunWithAppkit_ResponseParity: an ordinary handler's response passes
 // through the appkit stack unchanged.
 func TestRunWithAppkit_ResponseParity(t *testing.T) {
