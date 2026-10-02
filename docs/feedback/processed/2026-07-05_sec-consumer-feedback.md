@@ -1,3 +1,5 @@
+> **PROCESSED** (2026-10-01): resolved same-day by the 2026-07-05 session — see the file's own "Resolution Status" section (DecodeJSONWithRequest & friends shipped, tested, documented). Moved from the feedback root into processed/ per gotcha 20; no open work remains.
+
 # cqrs-htmx — SDK Feedback from SEC
 
 **Consumer:** SEC (`github.com/larsartmann/sec`) — dice-based game (CQRS + HTMX)
