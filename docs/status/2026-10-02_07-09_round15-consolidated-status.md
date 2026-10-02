@@ -1,0 +1,74 @@
+# Status Report — Round-15 Consolidated: Round-14 Tail Execution (2026-10-02 07:09 CEST)
+
+> **Session:** 2026-10-01 ~17:05 → 2026-10-02 07:09 CEST (across one machine reboot ~19:00). Owner directive: "NOW GET SHIT DONE! The WHOLE TODO LIST!" — full execution of the round-14 plan's remainder per `docs/planning/2026-10-01_15-04_pareto-round14-gates-green-first.md`. Master pushed at `628da78e` + this report; strict pre-push gates green (release-train 0 unpublished / 0 lag, version-drift). Three prior sessions overlapped this tree (15:05 T06 tail, 17:36 tooling round 2, plus daemon carriers) — attribution below is per-file via `git log -1 -- <path>`.
+
+## a) FULLY DONE
+
+| Item | Evidence |
+|---|---|
+| **A1 — the skipped half of the wave battery** | `nix run .#test` 15/15 modules race rc=0; then the false-green catch: a root-run `go test ./...` showed only the root module's 3 packages (module-scoped `./...` under go.work) — the trap the 17:01 self-critique §d2 formalized, hit live and encoded into AGENTS gotcha 2. Full proof: `nix run .#test-all` **28/28 modules** rc=0. |
+| **A2/A3 — lint + coverage + cqrs-lint re-stamp over the post-erraudit tree** | `nix run .#lint` rc=0; `.#coverage-gate` rc=0 (root 94.8%, datastar 100%; ran on GOCACHE=/tmp fallback when buildcache hit 100%); `.#check-cqrs-lint` 13/13 green. |
+| **e2e TypeScript 7 repair (the M21 finding, fixed at source)** | TS 7.0.2 removed `moduleResolution: node/node10`; tsc died on the config line HIDING 22 real type errors. Removed the option, declared node types, fixed all 22 (null-guard, typed Page/BrowserContext/Route, QueueEntry shape, string[] cast). `tsc --noEmit` rc=0. Commit `0d270638` (pre-commit passed, no `--no-verify`). |
+| **T08 verification (local half)** | Built cqrs-lint from go-cqrs-lite `b06ac8add5e8`; rules diff vs pinned `3756eb4` = exactly ONE added rule (C043, WARNING; zero re-attributions → suppressions safe); strict root walk **0×C040** (was 21 phantoms); 14/14 gate modules green. Fleet swap = owner (packet §8). Gotcha 13 updated with the evidence. |
+| **M8 — `--fail-on-stale-suppressions` WIRED** | Unblocked early: the flag predates the C040 fix (works on the CURRENT system binary). `scripts/check-cqrs-lint.sh` extracted from the inline flake app; offline fixture self-test 5/5 (clean/broken-strict-load/mixed/candidate-count/flag-pin); check-modules stage 28; CI self-test step. It immediately caught a REAL stale B024 at `usermgmt/es_setup.go:221` — removed, verified. Commits `3ddda948`/`c6f61817`-lineage consolidated as `20e81d9f`+carriers. |
+| **Erraudit inventory sweep gate (§f10)** | `scripts/erraudit-inventory.sh` + stub-backed offline self-test (6 cases) + flake apps + check-modules + CI. Live proof: candidates=28, TOTAL=0. The false-green guard (print candidates, fail on zero) is the durable form of the sweep that lied in /tmp. |
+| **Context_loss regeneration caught + fixed same-day** | Today's `79862fb8` refactor (shared SQL setup core) dropped `backendName` from 4 error returns — invisible to the criticals-only gate (ERROR severity). Fixed with family-preserving wraps (`6f837ccc`); scoped erraudit 0; check-templates green. The triage note encodes the standing guard. |
+| **Residual triage (M16–M18) + E005 proposal (M17)** | `docs/research/2026-10-01_cqrs-lint-residual-triage.md` — per-module inventory from the REBUILT binary (the plan's ×51/×16/×41 snapshot numbers were stale on arrival: sentinel_concrete_type = 0 under the current SDK); every class dispositioned; V006 suppressed at all flagged requires (both binaries green); B024 documented FP with the cross-binary re-attribution story. E005×16 = full upstream proposal in `docs/proposals/` (owner-gated). |
+| **T09 upstream asks — executed via verify-before-filing** | FILED: treefmt-nix#545 (templ wrapper hardcodes pkgs.go), a-h/templ#1449 (text-position `@comp` renders its own source as literal text — minimal repro REBUILT and confirmed on v0.3.1020), BuildFlow#29 (union-graph guard, 373209a7 case study). RETIRED at the gates with evidence: nixpkgs go-licenses (`go` input already overridable — override builds + kills the crypto/mldsa fatal), golangci-lint lock (`--allow-parallel-runners` exists, verified on fleet 2.14.0). |
+| **T24 noise policy** | `docs/runbooks/buildflow-noise-policy.md`: all eleven recurring finding classes dispositioned (incl. the tsconfig row kept as a tripwire, vulnix feed-recovery note, go-auto-upgrade acceptance). |
+| **H — T23 prep + T18g** | Distribution simplified: `cmd/cqrs-lint` is a NESTED MODULE → publish = one tag (decision packet). Stray SEC feedback file verified against source, PROCESSED-annotated, moved into processed/. Checker convention proposed (epoch 2026-08-01). |
+| **I — owner packets** | `docs/proposals/2026-10-01_owner-decision-packet-round14-tail.md`: nine decisions with evidence (OQ23 GO-conditional / OQ24 NO-GO, toolchain close, two confirms, rawIDToken close + the NEW pkce_verifier echo observation, disk at 72% post-reboot, exact T08 swap steps, ready-to-send PapDashboard reply — prerequisite verified LIVE on proxy.golang.org). |
+| **J — M24 harvest** | TODO_LIST restamped; standing Owner Decisions index (D1–D10); plan outcome-annotated (append-only); CHANGELOG receipts complete; status gates green on all touched docs (annotation 72 gated / row 437 clean). |
+| **K — push** | `2e44a017..628da78e` pushed, strict pre-push green; advisory train baseline: 831 requires, 0 unpublished, 0 lag. |
+
+## b) PARTIALLY DONE
+
+| Item | State | Remaining |
+|---|---|---|
+| Bench-spike (M10) | Honestly refused twice (load 80–86; then 46–59 post-reboot, checked twice per OQ16) | The ONLY battery leg owed; prep is zero-touch (`nix run .#bench-spike`), re-pin only on idle + path edits. |
+| M6 release train | Deferred deliberately (17:01 decision, re-affirmed): 12 modules require identity-model → a ~9-tag wave; the wave list + clean baseline (0/0) recorded | Execute at the next dedicated window per playbook §3a: identity-model → usermgmt(+submodules) → dashboardui → rides → examples. |
+| check-modules composite with the 2 NEW stages | 27/27 verified 15:50 (pre-new-stages); both new self-tests verified standalone + in CI shape | One composite re-run at the next quiet window converts it. |
+| T08 | Local verification done; fleet pin swap is a system-level owner action | Packet §8 has the exact steps + expected post-swap findings. |
+
+## c) NOT STARTED (routed, not forgotten)
+
+- D1–D10 owner decisions (TODO_LIST index) — OQ23/24 go/no-go, cqrs-lint distribution tag, feedback-checker ratification, T08 swap, disk prune.
+- E005 proposal → file in go-cqrs-lite after owner approval.
+- Upstream watch: treefmt-nix#545, a-h/templ#1449, BuildFlow#29 responses.
+
+## d) TOTALLY FUCKED UP (all caught, all recovered)
+
+1. **The root `go test ./...` false green** — 3 packages, 27 modules silently skipped. Caught by the candidate-count discipline before recording it as a battery result; the full battery then ran. Lesson now in gotcha 2 with the live date.
+2. **Daemon-carrier churn (5× this session)** — detailed commit messages lost to the 30–60s daemon window; every carrier `git show`-verified before building on it, message-only `--amend` where the tip was mine, one `reset --soft` consolidation. Two carriers are PERMANENT on origin (push raced ahead) — the narratives live in the report + CHANGELOG instead.
+3. **The B024 removal paradox** — removing the "stale" suppression (per the system binary) made the NEW binary flag the site again. Root cause: cross-binary re-attribution of a documented FP. Resolved: gate stays green on the system binary, the triage note + gotcha 13 record that the suppression returns AFTER the fleet swap.
+4. **Interrupted-shell commit lost its message** (job_output kill during the C2 commit) — content landed via daemon carriers; consolidated by soft-reset into `20e81d9f` before that push.
+5. **The 61→"34 sites" inventories went stale mid-session twice** — first via a newer erraudit SDK (17:01 lesson), then the rebuilt cqrs-lint binary re-attributed classes. The triage note's standing rule #1 (re-derive after ANY binary swap) is the fix.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **`--amend` the tip the moment a carrier lands** — worked 4/5 times; the one failure was the interrupted shell. A pending-commit message file (like bump-dep's) would make even interruptions recoverable.
+2. **Heavy gates under sustained fleet load**: the 17:36 session refused everything (load 20–51), this session ran the correctness gates under load 8–59 (correct but slow) and refused only the measurement gates. The line "correctness gates are load-insensitive, measurement gates are not" is now the de-facto policy — write it into the runbook.
+3. **Erraudit ERROR-severity blind spot**: `fail_on: critical` never sees ERROR-severity `context_loss` — today's 79862fb8 regeneration proves refactors WILL keep regenerating the class. The inventory tool's `--gate` mode is the ready mechanism; consider wiring a scoped `erraudit-inventory --gate` into the train-time checklist.
+4. **The two permanent daemon-carrier commits on origin** (suppression normalization, T23/T18g packet) argue for the 17:01 §e1 fix at the hook level: a commit-message budget shorter than the daemon window.
+
+## f) NEXT (impact-ordered)
+
+1. Bench-spike at the first verified-quiet window (the last battery leg).
+2. The release train (wave list + 0/0 baseline recorded; ~9 tags).
+3. D1–D10 confirmations from the owner (one table, TODO_LIST).
+4. T08 fleet swap → retire gotcha 13 → re-add the two B024 suppressions.
+5. Post-swap: wire `erraudit-inventory --gate` into the train checklist (e3).
+6. check-modules composite re-run with stages 27+28.
+7. File E005 proposal in go-cqrs-lite after approval; watch the three filed upstream issues.
+8. PapDashboard reply send (draft ready, §9 of the packet).
+9. Feedback-inbox checker after D7 ratification (~45 min, atomic checklist).
+10. Archive pass on the docs/status tail (5 reports > budget 3).
+
+## g) THREE QUESTIONS
+
+1. **D1/D2 (PapDashboard architecture):** GO-conditional on setup/core, NO-GO on the envelope seam — do the recommendations stand, or do you want the split scheduled regardless of their flip trigger?
+2. **D4/D6 (T08 swap + cqrs-lint tag):** authorize the fleet pin bump AND the `cmd/cqrs-lint` submodule tag in the same maintenance window? They are natural companions (tag → pin → swap → verify).
+3. **Train window:** cut the ~9-tag family train at the next quiet window as recorded, or hold until the D-list returns (the erraudit fixes are consumer-visible only after the train)?
+
+---
+_Point-in-time snapshot. Living state: TODO_LIST / CHANGELOG / AGENTS / ROADMAP. ANNOTATE, never rewrite._
