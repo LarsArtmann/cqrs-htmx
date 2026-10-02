@@ -19,6 +19,7 @@
 | "9 tools unavailable (health check failed)" | ambient-shell runs outside the devShell | Environment-class (gotcha 8): run gates via `nix run`/devShell where the tools exist; never mute per-tool. |
 | PostHog 403 "Invalid or missing CSRF token" | BuildFlow telemetry, network-blocked | External telemetry; zero repo impact. |
 | timings "regression verdict" list | first run after reboot/cache-clear shows ms→seconds swings | Measurement artifact of cold caches; ignore unless reproducible warm. |
+| `go-auto-upgrade` ~500 suggestion findings | full-run only (skipped in pre-commit): adopt `lo.*`, testify→stdlib suggestions | Accepted noise for THIS repo's conventions (std-lib-first is deliberate where it is; `lo.*` adoption is a ROADMAP-level style call, not a step finding). Dispositioned 2026-10-01 (T24); revisit only if the step learns a severity model. |
 
 ## Adding a new class
 
