@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-health v0.4.1
-	github.com/larsartmann/go-health-dashboard v0.10.1
+	github.com/larsartmann/go-health-dashboard v0.10.2
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1
 )
@@ -18,21 +18,21 @@ require (
 	github.com/go-playground/form/v4 v4.5.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.9.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-datastar v0.6.1 // indirect
+	github.com/larsartmann/go-codec v0.3.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1 // indirect
+	github.com/larsartmann/go-datastar v0.6.2 // indirect
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
-	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
-	github.com/larsartmann/go-etag/server v0.6.0 // indirect
-	github.com/larsartmann/go-idempotency v0.3.0 // indirect
-	github.com/larsartmann/go-sse v0.6.1 // indirect
-	github.com/larsartmann/httputil v1.4.0 // indirect
+	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
+	github.com/larsartmann/go-etag/server v0.6.1 // indirect
+	github.com/larsartmann/go-idempotency v0.3.1 // indirect
+	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/httputil v1.4.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.19.4 // indirect
 	github.com/larsartmann/templ-components/datastar v1.19.4 // indirect

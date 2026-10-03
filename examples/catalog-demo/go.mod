@@ -3,8 +3,8 @@ module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.6.0
-	github.com/larsartmann/httputil v1.4.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.6.1
+	github.com/larsartmann/httputil v1.4.1
 )
 
 require (
@@ -15,8 +15,8 @@ require (
 	github.com/go-faster/yaml v0.4.6 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
-	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
-	github.com/larsartmann/go-etag/server v0.6.0 // indirect
+	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
+	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/templ-components v1.19.4 // indirect
 	github.com/larsartmann/templ-components/htmx v1.19.4 // indirect
 	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
