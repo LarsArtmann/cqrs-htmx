@@ -1,6 +1,6 @@
 # Pareto Round 16 — Owner-Unlock & v5-Readiness Closeout
 
-**Date:** 2026-10-03 03:49 · **Repo:** cqrs-htmx @ master (ahead 2: `671cb808` docs reconciliation + status-report commit) · **go-cqrs-lite:** `788cd7350` determinism fix unpushed-local
+**Date:** 2026-10-03 03:49 (amended 03:58 — owner requirement: v5 must ship with backwards auto-upgrade) · **Repo:** cqrs-htmx @ master · **go-cqrs-lite:** `788cd7350` determinism fix unpushed-local
 **Baseline:** v4.13.0 family train published (9 tags, 2026-10-01, CI green run 36839790817) · 28 modules · 15/15 coverage gates · lint 0/15 · check-modules 27/27 composite green (28th standalone-verified) · strict train gates 0 lag.
 **Inputs:** `TODO_LIST.md` (25 open items), Owner-decision table D1–D10, ROADMAP OQ11/OQ21/OQ23/OQ24/OQ26, ADR-0051/0052, `docs/guides/v5-removal-inventory.md` §5c, session report `docs/status/2026-10-03_03-30_v007-verification-cqrs-lint-determinism-session.md`.
 
@@ -54,12 +54,60 @@ Everything executable today, ranked by verifiability payoff:
 
 ### The other 20% (to 100%) — LONG/GATED TAIL
 
-17. **Upstream: `system.New` durable-checkpoint option** (L; go-cqrs-lite) — first half of the ADR-0051 cluster-1 AND-gate.
-18. **Upstream: declarative `Hydrator` equivalent** (L; go-cqrs-lite) — second half.
-19. **V007 cluster-1 migration** (multi-session L; usermgmt SQL read models → metaengine) — only after 17+18.
-20. **appkit adoption** (ADR-0052; v5-window; blocked on appkit master push + CI).
-21. **DataStar Tier 4** (demand-gated M11–M16), **loginpage templ-components adoption** (OQ21), **datastar-demo rebrand** (D9), **ProjectionLayer deletion** (v5 bundle), **SidebarNav re-check** (waits on library dark-token shell ≥ v1.19.4), **BuildFlow go-version-auto-configure re-enable** (waits on BF1+BF2).
-22. **Environment investigation** (starship `go` timeout; scorecard 41 s→10 s variance) — Low.
+17. **v5 backwards auto-upgrade workstream** (M26–M28 below — owner requirement 2026-10-03): consumer-code codemod + v4-journal data compatibility.
+18. **Upstream: `system.New` durable-checkpoint option** (L; go-cqrs-lite) — first half of the ADR-0051 cluster-1 AND-gate.
+19. **Upstream: declarative `Hydrator` equivalent** (L; go-cqrs-lite) — second half.
+20. **V007 cluster-1 migration** (multi-session L; usermgmt SQL read models → metaengine) — only after 18+19; upgrade-tool rule R8 ships gated on the same criterion.
+21. **appkit adoption** (ADR-0052; v5-window; blocked on appkit master push + CI).
+22. **DataStar Tier 4** (demand-gated M11–M16), **loginpage templ-components adoption** (OQ21), **datastar-demo rebrand** (D9), **ProjectionLayer deletion** (v5 bundle), **SidebarNav re-check** (waits on library dark-token shell ≥ v1.19.4), **BuildFlow go-version-auto-configure re-enable** (waits on BF1+BF2).
+23. **Environment investigation** (starship `go` timeout; scorecard 41 s→10 s variance) — Low.
+
+---
+
+## v5 Backwards Auto-Upgrade Guarantee (owner requirement, 2026-10-03)
+
+**"Migrate to v5 systems properly with backwards auto upgrade."** The v5 cut must
+not be a hand-migration event. Two tracks make the upgrade mechanical (code) and
+safe (data):
+
+### Track A — consumer code auto-upgrade (`cqrs-htmx-upgrade`)
+
+Modeled on go-cqrs-lite's `cmd/cqrs-upgrade` (dry-run default, `--write` with
+edit+verify, `--workspace` mode). One rewrite rule per v5 removal class (source:
+`docs/guides/v5-removal-inventory.md`):
+
+| Rule | v4 pattern | v5 rewrite | Class |
+|------|-----------|-----------|-------|
+| R1 | `cqrshtmx.CSRF*`/rate-limit/Server-Timing/SecurityHeaders re-exports | direct `httputil.*` imports (+ go.mod bump) | 1 |
+| R2 | `Raw()`/`NewBroadcasterFromRaw`/`RawBroadcaster` | `Hub()` / pass `*sse.Broadcaster[sse.Event]` | 2 |
+| R3 | `usermgmt.<alias>` re-exports (~161 symbols, 22 files) | direct `identity-model/v4` imports | 3 |
+| R4 | `usermgmt.NewUserID(string)` | `ParseUserID`/`SyntheticUserID`/`GenerateUserID` — provenance unknown ⇒ `// v5-upgrade: TODO` marker, never a silent guess | 4 |
+| R5 | stack-based SQL setup templates | `NewEventSourcedSetup` or systemadapter declarative scaffold | 5b |
+| R6 | `MaterializeProjection`/`.Materialize()` | declarative `DomainConfig.Projections` | 5b |
+| R7 | `systemadapter.NewProjectionLayer` | declarative path + checkpoint/DLQ caveat marker | 4 |
+| R8 | SQL read models on `storage/view` | metaengine engines — **gated on M16+M17 (ADR-0051 criterion)** | 5c/1 |
+| R9 | `event/command/query.ParseType` & friends | `record.ParseType(s, sentinel)` | go-cqrs-lite |
+| R10 | tombstone helpers (`DetectTombstone` etc.) | domain-event deletion (ADR-0114) | go-cqrs-lite |
+
+**Tool contract:** dry-run by default (report table); `--write` edits then runs
+`go build ./...` + `go vet ./...` per touched module and ROLLS BACK on failure;
+idempotent (second run = zero edits); non-mechanical judgments (R4 provenance,
+R5 backend choice, R7 durability requirements) become `// v5-upgrade: TODO(...)`
+markers with guide anchors — the tool never guesses semantics. Rules are pinned
+by golden consumer fixtures (v4 shape in → v5 shape out) living in-repo.
+
+### Track B — stored-data backward compatibility (v4 journals must replay in v5)
+
+1. **Decode completeness:** all 21 event types round-trip from a REAL v4
+   journal (recorded via published v4.13.0) through the v5 TypeDecoder; goldens
+   pin v4 payload bytes — drift = test failure.
+2. **Upcaster coverage:** any v5 payload-shape change ships an upcaster via
+   identity-model's registry (`identity-model/upcaster.go`); unchanged events
+   get a pinned no-op golden proving they stay decodable.
+3. **Fold equivalence:** v4-journal → v4 folds vs v5 folds produce identical
+   state snapshots (extends the systemadapter equivalence-test pattern).
+4. **Metadata contract:** actor/causation/correlation keys v4 audit tooling
+   reads survive v5; any removal requires upcaster-side synthesis.
 
 ---
 
@@ -69,7 +117,7 @@ Sorted by importance → impact → effort → customer-value. **Owner** = requi
 
 | # | Task | Tier | Who | Impact | Effort | Cust.value | Depends | Verify |
 |---|------|------|-----|--------|--------|-----------|---------|--------|
-| M1 | Consolidate D1–D10 + OQ11 + D11/D12 into one dated owner-decision sheet; hand off | 1% | Exec→Owner | Critical | 30m | High (unblocks 9 items) | — | sheet exists; every D-row has evidence link |
+| M1 | Consolidate D1–D11 + OQ11 into one dated owner-decision sheet; hand off | 1% | Exec→Owner | Critical | 30m | High (unblocks 9 items) | — | sheet exists; every D-row has evidence link |
 | M2 | T08 fleet cqrs-lint swap: pin bump, rebuild, rules-diff ritual, 2× B024 re-suppression, 14-module strict gate, gotcha-13 retire + CHANGELOG | 4% | Exec | High | 90m | Med (tooling truth) | D4 | `cqrs-lint version` shows new pin; gate rc=0; warnings gone |
 | M3 | Post-swap verification: `.#check-cqrs-lint`, root-walk 0×C040 assert, composite `.#check-modules` (28 stages) | 4% | Exec | High | 30m+60m | Med | M2 | all three green in one quiet window |
 | M4 | File E005 cross-module FP proposal upstream (verify-before-filing + github-voice) | 4% | Exec | Med | 30m | Med | owner OK (M1) | issue URL recorded in proposals/ |
@@ -94,8 +142,11 @@ Sorted by importance → impact → effort → customer-value. **Owner** = requi
 | M23 | SidebarNav criteria re-check vs templ-components ≥ v1.19.4 (cheap check now, full at next UI change) | tail | Exec | Low | 30m | Low | — | criterion-1 verdict recorded |
 | M24 | PapDashboard reply SEND (drafted + proxy-verified; owner channel) | 4% | Owner | High | 12m | High (consumer) | D1/D2 (M1) | sent confirmation |
 | M25 | Composite `.#check-modules` re-run (owed per TODO header) — folds into M3 if post-swap | 20% | Exec | Med | 60m | Med | quiet window | rc=0 all 28 stages |
+| M26 | Upgrade-tool MVP: rules R1–R3 + R9–R10 (pure import/symbol rewrites) + dry-run report mode, modeled on cqrs-upgrade | v5-auto | Exec | High | 100m | **High** | M15 wave lists | all 5 rule fixtures golden-pass |
+| M27 | Upgrade-tool write mode + safety harness: edit+build+vet+rollback, idempotency tests, TODO-markers for R4–R7, end-to-end golden consumer repos | v5-auto | Exec | High | 100m | **High** | M26 | goldens round-trip; 2nd run = 0 edits; red-build rollback proven |
+| M28 | Track B data compatibility: record real v4.13.0 journal fixture; 21-event decode goldens; upcaster coverage matrix; fold-equivalence harness; metadata contract test | v5-auto | Exec | High | 100m | **High** | — (decode side is independent) | goldens green on v4 bytes |
 
-**Counts:** 25 medium tasks · 1%-tier: 1 · 4%-tier: 5 · 20%-tier: 11 · tail: 8.
+**Counts:** 28 medium tasks · 1%-tier: 1 · 4%-tier: 6 · 20%-tier: 12 · v5-auto: 3 · tail: 6.
 
 ---
 
@@ -106,7 +157,7 @@ Sorted by importance → impact → effort → customer-value. **Owner** = requi
 | F# | Micro-task (≤12 min) | Parent | Impact | Effort | Verify |
 |----|----------------------|--------|--------|--------|--------|
 | F01 | Collect the 3 decision packets (round14-tail, T23/T18g, this plan's D11/D12) into one folder view | M1 | High | 8m | all packets openable |
-| F02 | Draft the consolidated decision sheet (one row per D1–D12 + OQ11, each with recommendation + evidence link) | M1 | High | 12m | sheet renders; rows = 13 |
+| F02 | Draft the consolidated decision sheet (one row per D1–D11 + OQ11, each with recommendation + evidence link) | M1 | High | 12m | sheet renders; rows = 12 |
 | F03 | Add OQ11 (v5 timeline) as the headline row with the unlock-list | M1 | High | 6m | unlock list matches §1% table |
 | F04 | Hand off: commit sheet + notify owner channel | M1 | High | 4m | commit hash |
 | F05 | Read packet §8 swap steps; locate the fleet pin (flake/home-manager source) | M2 | High | 10m | pin location noted |
@@ -197,8 +248,30 @@ Sorted by importance → impact → effort → customer-value. **Owner** = requi
 | F90 | Quiet-window check for the composite run | M25 | Med | 2m | go/no-go |
 | F91 | Kick `.#check-modules` (background), monitor | M25 | Med | 10m | rc=0 |
 | F92 | Fold result into M3's battery record (dedup if same window) | M25 | Low | 4m | one record |
+| F93 | Extract full symbol tables from inventory classes 1/2/3 into ruleset data | M26 | High | 12m | tables complete vs §5c |
+| F94 | R1 rule: httputil re-export rewrites + fixture | M26 | High | 12m | golden pass |
+| F95 | R2 rule: Raw→Hub rewrites + fixture | M26 | High | 10m | golden pass |
+| F96 | R3 rule: identity-model alias table (bulk) + fixture | M26 | High | 12m | golden pass |
+| F97 | R9 rule: ParseType family rewrites + fixture | M26 | Med | 12m | golden pass |
+| F98 | R10 rule: tombstone helper rewrites + fixture | M26 | Med | 12m | golden pass |
+| F99 | Dry-run report renderer (modeled on cqrs-upgrade report.go) | M26 | High | 12m | report table renders |
+| F100 | `--workspace` go.mod bump planning output | M26 | Med | 12m | plan table |
+| F101 | `--write` edit engine (AST vs text decision driven by R3 alias mechanics) | M27 | High | 12m | edits apply |
+| F102 | Per-module build+vet verify loop + rollback on red | M27 | High | 12m | rollback proven |
+| F103 | Idempotency test runner (2nd run = 0 edits) | M27 | High | 10m | no-op proven |
+| F104 | TODO-marker emitter for R4/R5/R6/R7 with guide anchors | M27 | High | 12m | markers emitted |
+| F105 | Golden consumer repo A: root-only consumer | M27 | High | 12m | round-trip |
+| F106 | Golden consumer repo B: usermgmt + adminui consumer | M27 | High | 12m | round-trip |
+| F107 | Golden consumer repo C: setup + datastar consumer | M27 | High | 12m | round-trip |
+| F108 | Docs: upgrade-guide section + tool README | M27 | Med | 12m | links pass |
+| F109 | Record a real v4 journal fixture (dispatch all 20 commands via published v4.13.0; capture raw events) | M28 | High | 12m | fixture committed |
+| F110 | Decode-through-v5 golden per event type ×21 | M28 | High | 12m | 21/21 green |
+| F111 | Upcaster registry coverage matrix vs payload diffs | M28 | High | 12m | matrix complete |
+| F112 | Fold-equivalence harness (v4 folds vs v5 folds over the fixture) | M28 | High | 12m | states identical |
+| F113 | Metadata contract test (actor/causation/correlation survive) | M28 | High | 10m | keys present |
+| F114 | Wire Track B as a pinned golden CI lane | M28 | Med | 12m | CI green |
 
-**Counts:** 92 listed micro-tasks (M11's 7 report verifications collapse into F41–F42 batches; M3/M25 share a window). Total estimated execution ≈ 11–12 h agent time + ~45 min owner time.
+**Counts:** 114 micro-tasks (M11's 7 report verifications collapse into F41–F42 batches; M3/M25 share a window). Total ≈ 14 h agent time + ~45 min owner time.
 
 ---
 
@@ -230,6 +303,11 @@ flowchart TD
         M14[M14 CHANGELOG receipts]
         M10[M10 upstream watch]
     end
+    subgraph V5A["v5 backwards auto-upgrade (owner req)"]
+        M26[M26 upgrade-tool MVP<br/>R1-R3,R9,R10 + dry-run]
+        M27[M27 write mode + safety<br/>idempotent, rollback, TODO-markers]
+        M28[M28 v4-journal goldens<br/>decode/upcast/fold-equiv]
+    end
     subgraph TAIL["Other 20% — Long/Gated (100%)"]
         M16[M16 durable-checkpoint spike]
         M17[M17 declarative Hydrator spike]
@@ -250,13 +328,18 @@ flowchart TD
     M4 --> M8
     M16 --> M18
     M17 --> M18
+    M15 --> M26
+    M26 --> M27
+    M16 -->|R8 gate| M27
+    M28 --> V5
+    M27 --> V5
     M18 -.->|v5 window opens| V5((v5 cut))
     M15 -.-> V5
     M8 --> CI[CI parity complete]
     M3 --> BAT[battery 100% green]
 ```
 
-**Sequencing rule:** T1 first (it is pure unlock), then T4 in dependency order, T20 anytime in parallel windows, TAIL spikes only after T4 lands (they consume go-cqrs-lite attention).
+**Sequencing rule:** T1 first (it is pure unlock), then T4 in dependency order, T20 anytime in parallel windows, TAIL spikes after T4. **The v5-auto track (M26–M28) starts NOW** — M28 is fully independent of upstream work; M26 depends only on M15's wave lists; M27's R8 rule stays feature-gated on M16+M17.
 
 ---
 
@@ -267,7 +350,9 @@ flowchart TD
 3. **Machine-pinned gates (bench-spike) refuse under load** — a contended number is worse than no number.
 4. **Every tree-mutating batch step** runs behind `nix run .#preflight-tree-check`; commits at phase boundaries (the daemon is faster than a summary).
 5. **`--no-verify` only with named failing steps** (M13 exists to make that possible next time).
-6. Plans are point-in-time; the living source is TODO_LIST.md/ROADMAP.md — HARVEST (M21) is part of this commit.
+6. **Upgrade-tool contract is non-negotiable:** dry-run default; `--write` = edit + build + vet + rollback-on-red; idempotent; non-mechanical rewrites emit `// v5-upgrade: TODO` markers with guide anchors — the tool NEVER guesses semantics (R4 provenance, R5 backend, R7 durability are human decisions).
+7. **Data contract is non-negotiable:** no v5 event payload/metadata change without an upcaster + pinned golden; v4 journals must decode and fold-equivate in v5 or the cut does not ship.
+8. Plans are point-in-time; the living source is TODO_LIST.md/ROADMAP.md — HARVEST (M21) is part of this commit.
 
 ---
 
