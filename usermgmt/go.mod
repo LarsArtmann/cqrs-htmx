@@ -7,23 +7,23 @@ require (
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
-	github.com/larsartmann/go-codec v0.3.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
+	github.com/larsartmann/go-codec v0.3.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.1
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1
-	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.0
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.9.0
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.2
+	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.1
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.2
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.3
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-idempotency v0.3.0
@@ -36,7 +36,7 @@ require (
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
+	github.com/Azure/go-ansiterm v0.0.0-20260917205352-e937bb47801a // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
@@ -54,7 +54,7 @@ require (
 	github.com/docker/go-connections v0.8.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/ebitengine/purego v0.11.0 // indirect
+	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.8 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
@@ -64,26 +64,26 @@ require (
 	github.com/go-playground/form/v4 v4.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
-	github.com/klauspost/compress v1.20.0 // indirect
+	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.0 // indirect
 	github.com/larsartmann/go-etag/server v0.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
-	github.com/larsartmann/go-sse v0.6.1 // indirect
+	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
-	github.com/magiconair/properties v1.18.11 // indirect
+	github.com/magiconair/properties v1.18.12 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
@@ -101,9 +101,9 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/power-devops/perfstat v0.0.0-20260805114148-88456608a4f6 // indirect
+	github.com/power-devops/perfstat v0.0.0-20260916203055-22a1a467d9f0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/shirou/gopsutil/v4 v4.26.8 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.9 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
