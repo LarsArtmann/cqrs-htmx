@@ -124,6 +124,32 @@ README. v5 is the only breaking window for module-path renames:
     layout-planning to cover secondary-index semantics + a declarative
     hydration equivalent (ADR-0051 cluster-1 criterion).
 
+### 5c. Finding-count reconciliation (re-verified 2026-10-03)
+
+Three counters measure the same removal surface; none is stale — they
+count different file sets:
+
+- **78** — `cqrs-upgrade -dry-run --workspace` per-identifier findings
+  (2026-09-20; ADR-0051's input). Includes test files and the
+  `//go:build ignore` setup templates.
+- **68** — staticcheck SA1019 `storage.SQLViewStore`-family sites including
+  tests (cluster 1).
+- **41** — `cqrs-lint scorecard` "v5-removed API uses" (rule V007:
+  non-test, package-loaded files only; templates are invisible to it).
+  Breakdown: 5 stack findings (clusters 2+3 — `es_materialize_adapter.go`
+  ×3, `es_setup_core.go` ×1, `stack_repositories.go` ×1) + 36 view-tier
+  findings (cluster 1 — `sql_readmodel.go`, `sql_readmodel_extra.go`,
+  `sql_readmodel_mysql.go`). All 41 sit in usermgmt; no other module has
+  any.
+
+Cluster-1 go/no-go criterion re-checked 2026-10-03: upstream
+`metaengine.LayoutPlan.Indexes`/`PlannedIndex` exists (ADR-0124), but the
+second half of the AND-gate is still unmet — `system.New`'s projection
+host uses an internal in-memory checkpoint store
+(`docs/guides/declarative-projections.md` §Custom checkpoint / dead-letter
+stores) and there is no declarative equivalent of the `Hydrator` restart
+contract. The SQL read models therefore stay on the v4 trains unchanged.
+
 ### 6. Already removed (for completeness — do NOT re-plan)
 
 - **WebSocket transport** — ADR-0046 (executed): `WSBroadcaster`,
