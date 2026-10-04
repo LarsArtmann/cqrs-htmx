@@ -1,9 +1,16 @@
 package loginpage
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+)
+
+// Theme values accepted by [Config.Theme] and [Config.ThemeFromRequest].
+const (
+	ThemeDark  = "dark"
+	ThemeLight = "light"
 )
 
 // DefaultAccentColor is the indigo used for buttons and highlights when
@@ -83,9 +90,31 @@ type Config struct {
 	// Default [DefaultAccentColor].
 	AccentColor string
 
-	// CSSPath is an optional URL to a consumer stylesheet, linked after the
-	// built-in inline styles so consumers can override.
+	// CSSPath is the URL of the consumer's compiled Tailwind stylesheet. The
+	// page is built entirely on templ-components, whose classes only exist
+	// after the consumer compiles Tailwind v4 with @source scanning of this
+	// package (see README "Styling"). Default "/app.css".
 	CSSPath string
+
+	// Theme forces a color scheme ("light" or "dark") instead of following
+	// prefers-color-scheme. Only set it when the consumer owns the theme
+	// decision; for cookie-driven theming use [Config.ThemeFromRequest].
+	Theme string
+
+	// ThemeFromRequest resolves the theme per request (e.g. from a cookie).
+	// When set it wins over [Config.Theme]; returning "" falls back to
+	// prefers-color-scheme. A resolved theme is applied SSR-first (body
+	// class, no ThemeScript), so the consumer stays the single source of truth.
+	ThemeFromRequest func(*http.Request) string
+
+	// NonceFromRequest returns the per-request CSP nonce for the page's
+	// inline script tags. Required by consumers whose CSP has no
+	// 'unsafe-inline' for script-src (e.g. a nonce-based middleware); the
+	// value must match the nonce the middleware wrote into the
+	// Content-Security-Policy header, or the browser blocks the scripts.
+	// The value is sanitized to base64url characters before rendering.
+	// Empty (default) renders the scripts without a nonce attribute.
+	NonceFromRequest func(*http.Request) string
 
 	// NoRegistration hides the registration section. By default, registration
 	// is shown when WebAuthn is configured.
@@ -105,6 +134,11 @@ type Config struct {
 	// CredentialName is the label stored with newly registered WebAuthn
 	// credentials (the "credential_name" query parameter). Default "Passkey".
 	CredentialName string
+
+	// RegisterFirst renders the registration section instead of the login
+	// section on load (e.g. when /register is a distinct route). The JS
+	// toggle links still switch between sections.
+	RegisterFirst bool
 }
 
 func (config Config) withDefaults() (Config, error) {
@@ -132,6 +166,27 @@ func (config Config) withDefaults() (Config, error) {
 	if err := validateStylesheetURL(config.CSSPath); err != nil {
 		return config, err
 	}
+	if config.CSSPath == "" {
+		config.CSSPath = "/app.css"
+	}
+	if config.Theme != "" && config.Theme != ThemeLight && config.Theme != ThemeDark {
+		return config, errConfig(`Config.Theme must be "light" or "dark" (or empty to follow prefers-color-scheme)`)
+	}
 	config.AuthPrefix = trimTrailingSlash(config.AuthPrefix)
 	return config, nil
+}
+
+// resolveTheme applies the per-request theme hook over the static theme.
+// Returns "" when neither is set or the value is unrecognized — the page
+// then follows prefers-color-scheme via the library's ThemeScript.
+func (config Config) resolveTheme(r *http.Request) string {
+	if config.ThemeFromRequest != nil && r != nil {
+		if theme := config.ThemeFromRequest(r); theme == ThemeLight || theme == ThemeDark {
+			return theme
+		}
+	}
+	if config.Theme == ThemeLight || config.Theme == ThemeDark {
+		return config.Theme
+	}
+	return ""
 }

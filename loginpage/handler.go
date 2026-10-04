@@ -9,6 +9,8 @@ import (
 	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/httputil"
+	"github.com/larsartmann/templ-components/layout"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // PageData holds everything the templ page needs to render.
@@ -26,14 +28,22 @@ type PageData struct {
 	WebAuthn      bool           // show passkey login form
 	OAuth2Buttons []OAuth2Button // show OAuth2 sign-in buttons
 	ShowReg       bool           // show registration section
+	// RegisterFirst renders the registration section instead of the login
+	// section on load (the JS toggle links still switch between them).
+	RegisterFirst bool
 
-	// --- Security (per-request) ---
+	// --- Security & theming (per-request) ---
 	CSRFMeta  string
 	CSRFField string
+	// Nonce is the per-request CSP nonce rendered on the inline script tags.
+	// Empty renders the scripts without a nonce attribute.
+	Nonce string
+	// Theme is the server-resolved color scheme ("light" or "dark", empty
+	// for prefers-color-scheme). Drives the body class and ThemeScript.
+	Theme string
 
 	// --- Internal assets (consumers ignore these) ---
 	authPrefix string
-	inlineCSS  string
 	inlineJS   string
 	configJSON string
 }
@@ -108,10 +118,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Rebuild CSRF fields per-request (the token is request-scoped under nosurf).
+	// Rebuild the per-request fields (the CSRF token is request-scoped under
+	// nosurf; nonce and theme may come from request hooks or middleware).
 	data := h.data
 	data.CSRFMeta = httputil.CSRFTokenHTMLMeta(r)
 	data.CSRFField = httputil.CSRFTokenFormField(r)
+	if h.config.NonceFromRequest != nil {
+		data.Nonce = sanitizeNonce(h.config.NonceFromRequest(r))
+	}
+	data.Theme = h.config.resolveTheme(r)
 
 	renderPage(w, r, data)
 }
@@ -215,8 +230,8 @@ func buildPageData(config Config, r *http.Request) PageData {
 		WebAuthn:      hasWebAuthn,
 		OAuth2Buttons: oauth2Buttons,
 		ShowReg:       showReg,
+		RegisterFirst: config.RegisterFirst,
 		authPrefix:    config.AuthPrefix,
-		inlineCSS:     loginCSS,
 		inlineJS:      loginJS,
 		configJSON:    string(configJSON),
 	}
@@ -227,4 +242,46 @@ func buildPageData(config Config, r *http.Request) PageData {
 	}
 
 	return data
+}
+
+// pageProps translates PageData into the templ-components layout props: the
+// consumer's compiled Tailwind stylesheet, the brand SVG favicon, noindex,
+// the per-request CSP nonce, and the resolved theme. A resolved theme wins
+// SSR-first (body class + no ThemeScript, so the consumer stays the single
+// source of truth); an empty theme falls back to the library's
+// prefers-color-scheme behavior.
+func pageProps(p PageData) layout.PageProps {
+	props := layout.DefaultPageProps()
+	props.Title = p.Title
+	props.Description = p.Subtitle
+	props.Nonce = p.Nonce
+	props.CSSPath = p.CSSPath
+	props.Favicon = string(p.faviconURI())
+	props.HTMXVersion = "" // the login page ships its own script, no htmx runtime
+	props.HTMXSrc = ""
+	props.SEO.NoIndex = true
+	props.NoThemeScript = p.Theme != ""
+	if p.Theme != "" {
+		props.BodyClass = utils.Class(props.BodyClass, p.Theme)
+	}
+	return props
+}
+
+// scriptTag renders the inline WebAuthn script with an optional nonce. The
+// nonce is sanitized (base64url characters only), so templ.Raw cannot be
+// abused for attribute injection even with a hostile NonceFromRequest.
+func scriptTag(js, nonce string) string {
+	if nonce == "" {
+		return "<script>" + js + "</script>"
+	}
+	return `<script nonce="` + nonce + `">` + js + "</script>"
+}
+
+// jsonScriptTag renders the client-config JSON block with an optional nonce.
+// The JSON itself is already script-safe (see scriptSafeJSON).
+func jsonScriptTag(cfgJSON, nonce string) string {
+	if nonce == "" {
+		return `<script id="loginpage-config" type="application/json">` + cfgJSON + "</script>"
+	}
+	return `<script id="loginpage-config" type="application/json" nonce="` + nonce + `">` + cfgJSON + "</script>"
 }

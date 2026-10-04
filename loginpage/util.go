@@ -14,7 +14,8 @@ func errConfig(msg string) error {
 }
 
 // validateAccentColor rejects values that cannot be safely embedded in the
-// page's raw <style> block or the SVG data-URI favicon. Legitimate CSS colors
+// SVG data-URI favicon (the accent no longer reaches any CSS: styling is
+// Tailwind-only since the templ-components rewrite). Legitimate CSS colors
 // (hex, rgb()/hsl()/color-mix() notation, var() references) never contain
 // markup or quote characters; anything that does would be an injection attempt.
 func validateAccentColor(accent string) error {
@@ -64,4 +65,20 @@ func firstRune(s string) string {
 		}
 	}
 	return "?"
+}
+
+// sanitizeNonce keeps only base64url characters so a hostile or malformed
+// NonceFromRequest value can never break out of the script attribute rendered
+// via templ.Raw. A CSP nonce is always base64url, so legitimate values pass
+// through untouched.
+func sanitizeNonce(nonce string) string {
+	return strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9',
+			r == '-', r == '_':
+			return r
+		default:
+			return -1
+		}
+	}, nonce)
 }

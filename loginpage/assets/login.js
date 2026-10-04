@@ -171,11 +171,11 @@
 
   function showWebAuthnUnsupported() {
     var form = document.getElementById("lp-login-form");
-    if (form) form.classList.add("lp-hidden");
+    if (form) form.classList.add("hidden");
     var regLink = document.getElementById("lp-show-register");
-    if (regLink) regLink.classList.add("lp-hidden");
+    if (regLink) regLink.classList.add("hidden");
     var fallback = document.getElementById("lp-no-webauthn");
-    if (fallback) fallback.classList.remove("lp-hidden");
+    if (fallback) fallback.classList.remove("hidden");
   }
 
   // ── Login flow ──────────────────────────────────────────────────
