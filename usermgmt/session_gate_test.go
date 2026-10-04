@@ -2,6 +2,7 @@ package usermgmt
 
 import (
 	"encoding/base64"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -120,39 +121,30 @@ func TestBareMount_LoginPageFlow_WorksUnderGate(t *testing.T) {
 
 	client := &http.Client{Jar: newJar(t)}
 
-	regResp, err := postJSONTo(t, client, server.URL+"/auth/register",
+	regStatus, regBody := postJSONStatus(t, client, server.URL+"/auth/register",
 		`{"email":"lp-flow@test.com","display_name":"LP Flow"}`)
-	if err != nil {
-		t.Fatalf("register: %v", err)
-	}
-	if regResp.StatusCode != http.StatusCreated {
-		t.Fatalf("register: status = %d, want 201", regResp.StatusCode)
+	if regStatus != http.StatusCreated {
+		t.Fatalf("register: status = %d, want 201", regStatus)
 	}
 	var reg struct {
 		User struct {
 			ID string `json:"id"`
 		} `json:"user"`
 	}
-	if err := decodeJSONBody(t, regResp, &reg); err != nil {
+	if err := json.Unmarshal(regBody, &reg); err != nil {
 		t.Fatalf("decode register response: %v", err)
 	}
 
-	beginResp, err := postJSONTo(t, client, server.URL+"/auth/webauthn/register/begin",
+	beginStatus, _ := postJSONStatus(t, client, server.URL+"/auth/webauthn/register/begin",
 		`{"user_id":"`+reg.User.ID+`"}`)
-	if err != nil {
-		t.Fatalf("begin: %v", err)
-	}
-	if beginResp.StatusCode != http.StatusOK {
-		t.Fatalf("begin under gate with register-issued cookie: status = %d, want 200", beginResp.StatusCode)
+	if beginStatus != http.StatusOK {
+		t.Fatalf("begin under gate with register-issued cookie: status = %d, want 200", beginStatus)
 	}
 
-	finishResp, err := postJSONTo(t, client,
+	finishStatus, _ := postJSONStatus(t, client,
 		server.URL+"/auth/webauthn/register/finish?user_id="+reg.User.ID+"&credential_name=Passkey", "{}")
-	if err != nil {
-		t.Fatalf("finish: %v", err)
-	}
-	if finishResp.StatusCode != http.StatusOK {
-		t.Fatalf("finish under gate: status = %d, want 200", finishResp.StatusCode)
+	if finishStatus != http.StatusOK {
+		t.Fatalf("finish under gate: status = %d, want 200", finishStatus)
 	}
 }
 

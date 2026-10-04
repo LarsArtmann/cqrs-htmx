@@ -73,24 +73,19 @@ func newJar(t *testing.T) http.CookieJar {
 	return jar
 }
 
-// postJSONTo posts a JSON body via a real client (cookie jar attached) and
-// returns the undrained response.
-func postJSONTo(t *testing.T, client *http.Client, url, body string) (*http.Response, error) {
+// postJSONStatus posts a JSON body via a real client (cookie jar attached)
+// and returns the response status and fully-drained body. The body is closed
+// before returning.
+func postJSONStatus(t *testing.T, client *http.Client, url, body string) (int, []byte) {
 	t.Helper()
 	resp, err := client.Post(url, "application/json", strings.NewReader(body))
 	if err != nil {
-		return nil, err
+		t.Fatalf("POST %s: %v", url, err)
 	}
-	t.Cleanup(func() { _ = resp.Body.Close() })
-	return resp, nil
-}
-
-// decodeJSONBody decodes a live *http.Response body into target.
-func decodeJSONBody(t *testing.T, resp *http.Response, target any) error {
-	t.Helper()
-	body, err := io.ReadAll(resp.Body)
+	defer func() { _ = resp.Body.Close() }()
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		t.Fatalf("read body of POST %s: %v", url, err)
 	}
-	return json.Unmarshal(body, target)
+	return resp.StatusCode, data
 }
