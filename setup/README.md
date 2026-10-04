@@ -73,6 +73,46 @@ http.ListenAndServe(":8080", bundle.Middleware()(mux))
 `WriteTimeout` — the dashboard serves SSE streams that outlive any fixed
 deadline.
 
+## Styling
+
+The **admin panel and CQRS dashboard need nothing from you** — both serve their
+own embedded Tailwind bundles (`/-/admin-tw.css`, `/-/dashboard-tw.css`).
+
+The **login page** is different: it renders
+[templ-components](https://github.com/larsartmann/templ-components) Tailwind v4
+utility classes, which only exist after YOU compile a stylesheet that scans the
+loginpage package, and serve it at the login page's `CSSPath`
+(default `/app.css`, configurable via `LoginCSSPath`). Skip this and the page
+renders structurally correct but unstyled HTML.
+
+Minimal consumer stylesheet (Tailwind v4 CSS-first config):
+
+```css
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Scan your own templates too, if they use Tailwind classes: */
+@source "./**/*.{templ,go,js}";
+```
+
+The `@source` scan must include the loginpage module directory
+(`page.templ` and `assets/login.js` — the embedded WebAuthn JS injects
+`lp-spinner`/`animate-spin` classes at runtime) and the templ-components
+packages it imports (`layout`, `forms`, `display`, `feedback`, `utils`). Two
+proven ways to do that:
+
+1. **Copy the demo's build app** — `nix run .#build-setup-demo-css` compiles
+   `examples/setup-demo/tailwind.css` → `assets/app.css` by resolving the
+   module directories with `go list -m` and copying only `.templ` sources into
+   a scan dir (scanning the module cache directly can exhaust RAM; and the
+   variant class maps live in the library's `*_go.go` files, not `.templ`).
+2. **Point `@source` at your module cache paths** (`$(go env GOMODCACHE)/github.com/larsartmann/cqrs-htmx/loginpage/v4@<version>/...`)
+   — simpler, but re-pin the path on every dependency bump.
+
+Then serve the compiled file at `/app.css` (or any URL you pass as
+`LoginCSSPath`). `examples/setup-demo` is the working reference: it embeds
+`assets/app.css` and registers `GET /app.css` next to the bundle's routes.
+
 ## Configuration
 
 Everything is optional; zero-value `Config{}` gives a working in-memory app.
@@ -113,6 +153,7 @@ Everything is optional; zero-value `Config{}` gives a working in-memory app.
 | `DashboardReadOnly`                                       | `*bool`                             | `true`                                  | Set `false` at your own risk (enables reset/DLQ replay)                                                                                                                                                                                                                                                             |
 | `DashboardPageSize`                                       | `int`                               | 50                                      | Rows per dashboard table page (max 200)                                                                                                                                                                                                                                                                             |
 | `LoginNoRegistration`                                     | `bool`                              | `false`                                 | Hide the registration section                                                                                                                                                                                                                                                                                       |
+| `LoginCSSPath`                                            | `string`                            | `"/app.css"`                            | URL of the compiled Tailwind stylesheet the login page loads — the consumer MUST compile one scanning the loginpage package (see [Styling](#styling)); the admin/dashboard panels need nothing (self-contained bundles)                                                                                               |
 | `DisableAdmin` / `DisableDashboard` / `DisableLogin`      | `bool`                              | `false`                                 | Feature flags to shrink the route surface                                                                                                                                                                                                                                                                           |
 | `DisableAuth`                                             | `bool`                              | `false`                                 | Build no auth handler: `Bundle.Auth` is nil, no `/auth/*` routes mount, the service and panels stay (own-login-endpoint mode). Rejects `DisableLogin=false` and `AuthHandlerConfig` at `New` (ADR-0054)                                                                                                             |
 | `DisableService`                                          | `bool`                              | `false`                                 | The identity-external shell (ADR-0054): no usermgmt.Service, no auth, no panels; `Stores` from `EventStore`/`EventBus` (memory + watermill defaults). Session-gated surfaces (feeds, machine endpoints) are rejected at `New` — their gate would dereference the missing service; health = your `HealthChecks` only |

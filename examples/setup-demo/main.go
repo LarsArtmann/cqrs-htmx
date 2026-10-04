@@ -11,7 +11,7 @@ package main
 
 import (
 	"context"
-	"embed"
+	_ "embed" // //go:embed for appCSS
 	"fmt"
 	"log"
 	"net/http"
