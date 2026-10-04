@@ -136,22 +136,27 @@ func TestHandleDeleteCredential_BadEncoding(t *testing.T) {
 
 func TestHandler_DecodeBadBody(t *testing.T) {
 	cases := []struct {
-		name string
-		path string
-		body string
+		name  string
+		path  string
+		body  string
+		token string // webauthn register begin is session-gated: decode runs after the 401 check
 	}{
-		{"register", "/auth/register", "{invalid json"},
-		{"webauthn register begin", "/auth/webauthn/register/begin", "not json"},
-		{"webauthn login begin", "/auth/webauthn/login/begin", "not json"},
+		{"register", "/auth/register", "{invalid json", ""},
+		{"webauthn register begin", "/auth/webauthn/register/begin", "not json", "auth"},
+		{"webauthn login begin", "/auth/webauthn/login/begin", "not json", ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := newTestService(t)
+			token := ""
+			if tc.token != "" {
+				token = registerTestUser(t, svc, "dbb", "dbb@test.com").Session.Token
+			}
 			h := NewAuthHandler(svc)
 			mux := http.NewServeMux()
 			h.RegisterRoutes(mux)
 
-			w := postJSON(t, mux, tc.path, tc.body)
+			w := authenticatedRequest(t, mux, http.MethodPost, tc.path, token, tc.body)
 			if w.Code != http.StatusBadRequest {
 				t.Errorf("status = %d, want %d", w.Code, http.StatusBadRequest)
 			}

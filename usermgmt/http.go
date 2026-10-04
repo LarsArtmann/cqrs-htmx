@@ -102,6 +102,10 @@ type HandlerConfig struct {
 }
 
 // RateLimitConfig configures per-IP rate limiting for any endpoint group.
+// Keys are extracted via httputil.KeyExtractorFromClientIP: X-Forwarded-For
+// (first entry), then X-Real-IP, then the RemoteAddr host. Behind a reverse
+// proxy this yields true per-client budgets; the proxy must strip/overwrite
+// those headers, or a spoofed X-Forwarded-For defeats the limit.
 type RateLimitConfig struct {
 	// Enabled controls whether rate limiting is active.
 	Enabled bool
@@ -116,7 +120,7 @@ func newLimiterFromConfig(config RateLimitConfig) *httputil.KeyedRateLimiter {
 		return httputil.NewKeyedRateLimiter(httputil.KeyedRateLimiterConfig{ //nolint:exhaustruct // consumer defaults
 			Limit:        uint(config.MaxRequests),
 			Window:       config.Window,
-			KeyExtractor: httputil.KeyExtractorFromRemoteAddr(),
+			KeyExtractor: httputil.KeyExtractorFromClientIP(),
 		})
 	}
 	return nil
