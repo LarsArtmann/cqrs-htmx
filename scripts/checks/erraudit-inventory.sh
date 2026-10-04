@@ -28,7 +28,7 @@ for arg in "$@"; do
   *) ROOT="$arg" ;;
   esac
 done
-ROOT="${ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+ROOT="${ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 cd "$ROOT" || exit 1
 
 ERRAUDIT_BIN="${ERRAUDIT_BIN:-erraudit}"

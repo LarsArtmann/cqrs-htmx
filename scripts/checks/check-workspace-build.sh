@@ -32,7 +32,7 @@ export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
 # shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/go-cache-env.sh"
 
-PROJECT_ROOT="${WORKSPACE_BUILD_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+PROJECT_ROOT="${WORKSPACE_BUILD_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 cd "$PROJECT_ROOT" || exit 1
 
 if [ ! -f go.work ]; then

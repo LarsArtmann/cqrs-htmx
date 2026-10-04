@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Integration modes — destination by default, composable by choice (`Autodetect`, `Config.Layout`, `setup.Config.DashboardLayout`):** the dashboard can now be embedded instead of only mounted. `Autodetect(store any) (Config, error)` probes a store for every go-cqrs-lite introspection interface (EventSource, Journal, SeekableJournal, StreamReader, ProjectionHost, DeadLetterStore, command and query journals, SnapshotStore, EventBus, EventByIDLoader) and returns a ready `Config`, eliminating the hand-written type-assertion dance in consumer wiring; `Config.Layout` (`LayoutFunc`) is the embed seam — when set, every full-page render hands the page metadata (`PageMeta`: title, brand, base path, capability-filtered `Nav` as exported `NavLink` values with templ-components icon names, required CSS/script URLs, CSP nonce, capabilities) plus the ready-rendered content to a consumer-owned function whose component becomes the response, so panels render inside the consumer's app chrome instead of a standalone bolt-on page (HTMX partials bypass the shell; nil keeps the built-in standalone document byte-identical); setup exposes the same seam as `DashboardLayout`. Pinned by `autodetect_test.go` + `layout_embed_test.go` (shell replacement, meta/nav/asset URLs, HTMX bypass) and the setup passthrough test.
+- **DLQ table gained a count notice (`display.ListNote` `ListNoteCount`, templ-components v1.19.1):** the dead-letter table for a projection now ends with "Showing N items." (pluralized, `aria-label="Dead letter count"`) — the DLQ page's key question is HOW MANY letters exist, and the count is the blast radius for the Replay All / Purge All confirmations. The hand-rolled `Showing X–Y of Z` pagination info stays (ListNote speaks N-of-M/N-items, not X–Y ranges); the old wholesale `display.ListNote` exclusion is lifted. Markup pinned by `list_note_count.golden` + DLQ handler assertions.
+
 ### Changed
 
 - **Full templ rendering migration (2026-09-22):** every page now renders
@@ -25,10 +30,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `templ.Component`); generated `_templ.go` files are committed (consumers
   run no codegen) and `nix run .#gen` / `.#check-codegen` /
   `.#build-dashboardui-css` now cover dashboardui.
-
-### Added
-
-- **DLQ table gained a count notice (`display.ListNote` `ListNoteCount`, templ-components v1.19.1):** the dead-letter table for a projection now ends with "Showing N items." (pluralized, `aria-label="Dead letter count"`) — the DLQ page's key question is HOW MANY letters exist, and the count is the blast radius for the Replay All / Purge All confirmations. The hand-rolled `Showing X–Y of Z` pagination info stays (ListNote speaks N-of-M/N-items, not X–Y ranges); the old wholesale `display.ListNote` exclusion is lifted. Markup pinned by `list_note_count.golden` + DLQ handler assertions.
 
 ## [v4.11.0] - 2026-09-19
 

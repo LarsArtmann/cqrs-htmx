@@ -26,7 +26,7 @@ set -euo pipefail
 export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
 export GOWORK=off
 
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$PROJECT_ROOT/usermgmt"
 
 TEMPLATE_FILES=(

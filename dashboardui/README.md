@@ -33,6 +33,68 @@ dash.Mount(mux, "/dashboard/")
 Open `/dashboard/` in your browser. The dashboard auto-detects which go-cqrs-lite
 interfaces you wired and shows only relevant panels.
 
+## Integration Modes
+
+The panel meets your app at whatever depth you want — from "give me a URL" to
+"render inside my chrome" to "I'll build the UI myself":
+
+| Mode                          | You own                          | The dashboard owns            | Seam                                             |
+| ----------------------------- | -------------------------------- | ----------------------------- | ------------------------------------------------ |
+| **Destination** (default)     | A mount path + auth middleware   | The whole page, top to bottom | `New` + `Mount`                                  |
+| **Embedded**                  | The app shell (nav, CSS, theme)  | Panel content only            | `Config.Layout`                                  |
+| **Headless data**             | The entire UI                    | Introspection queries         | the `core` sub-package (next section)            |
+
+### Destination (zero-config)
+
+`Autodetect` probes your store for every go-cqrs-lite introspection interface,
+so the hand-written type-assertion dance disappears:
+
+```go
+cfg, err := dashboardui.Autodetect(store) // wires EventSource/Journal/SeekableJournal/
+if err != nil {                           // StreamReader/Host/DLQ/Snapshots/Bus — whatever
+    log.Fatal(err)                        // the store implements
+}
+cfg.Title, cfg.BasePath, cfg.ReadOnly = "InboxClean CQRS", "/cqrs", true
+
+dash := dashboardui.MustNew(cfg)
+dash.Mount(mux, "/cqrs/")
+```
+
+Explicit `Config` field assignment still works (and `New` still enforces the
+same "at least one read interface" rule) — `Autodetect` only removes the
+plumbing, it does not change the contract.
+
+### Embedded (your app shell, our panels)
+
+Set `Config.Layout` and the dashboard stops owning the document. Every
+full-page render calls your function with the page metadata and the
+ready-rendered panel content — your nav, your fonts, your stylesheet, your
+theme wrap it:
+
+```go
+cfg.Layout = func(meta dashboardui.PageMeta, content templ.Component) templ.Component {
+    return appShell(appPage{
+        Title: meta.FullTitle, // "Events · MyApp"
+        Nav:   append(myAppNav, dashboardNavItems(meta)...), // or your own nav
+    }, content)
+}
+```
+
+Contract (full details on `LayoutFunc`):
+
+- Your function owns the **entire document**. Link `meta.CSSURLs` (the panel
+  content is styled by the dashboard stylesheets), and skip
+  `meta.ScriptURLs`' htmx entry if your shell already loads htmx (never twice).
+- `meta.Nav` is the capability-filtered navigation (`NavLink{Href, Label,
+  Icon, Active}`) — render it, merge it into your sidebar, or drop it.
+- `meta.Nonce` carries the per-request CSP nonce for script tags you emit.
+- HTMX partial swaps and polled regions bypass the shell (no work needed);
+  write-action toasts surface via the `dashboardui:toast` HX-Trigger event —
+  include a `feedback.ToastContainer` in your shell to show them.
+- Error/404 responses keep the dashboard's minimal built-in shell.
+
+setup/v4 exposes the same seam as `setup.Config.DashboardLayout`.
+
 ### Using the `core` Sub-Package Directly
 
 The `core/` sub-package contains the pure data layer — capability detection,
