@@ -15,6 +15,7 @@ go run .
 | Route             | Auth    | What it is                                                         |
 | ----------------- | ------- | ------------------------------------------------------------------ |
 | `/`               | public  | Login page (the bundle's catch-all)                                |
+| `/app.css`        | public  | Compiled Tailwind stylesheet the login page loads (see below)      |
 | `/dev-login`      | public  | Demo shortcut: sets the session cookie (dev only, never in prod)   |
 | `/dev-logout`     | public  | Clears the session                                                 |
 | `/auth/*`         | public  | Register / login / logout / me API                                 |
@@ -26,6 +27,21 @@ go run .
 | `/datastar.js`    | public  | DataStar SDK script (auto-mounted with `DataStarPath`)             |
 | `/ds-demo`        | public  | Minimal DataStar client page showing the live broadcast counter    |
 | `POST /broadcast` | public  | ONE action fanned out twice: raw SSE event + DataStar signal patch |
+
+## The login page's stylesheet
+
+The login page renders templ-components Tailwind utilities, so this demo ships
+the CONSUMER-side compiled stylesheet (`assets/app.css`, embedded and served at
+`/app.css`) — the one styling task every real setup consumer must do once:
+
+```sh
+nix run .#build-setup-demo-css   # rebuild after a templ-components family bump
+```
+
+The build resolves the loginpage + templ-components module dirs, scans their
+`.templ` sources (plus `loginpage/assets/login.js`, which injects spinner
+classes at runtime), and fails loudly if the scan comes back empty. See
+[`setup/README.md` § Styling](../../setup/README.md#styling).
 
 ## The dual-transport point
 
