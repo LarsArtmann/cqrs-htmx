@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
@@ -139,6 +140,19 @@ func NewPageData(config Config, r *http.Request) (PageData, error) {
 	return data, nil
 }
 
+// scriptSafeJSON escapes characters that let a JSON string value terminate the
+// enclosing <script> element ("</script>") or start a tag ("<"), using the
+// same \u003c-style escapes encoding/json v1 applied by default. Safe to apply
+// to marshaled JSON: < > & can only occur inside string literals, so the
+// escapes never corrupt structure.
+func scriptSafeJSON(s string) string {
+	return strings.NewReplacer(
+		"<", `\u003c`,
+		">", `\u003e`,
+		"&", `\u0026`,
+	).Replace(s)
+}
+
 // renderPage writes the login page HTML.
 func renderPage(w http.ResponseWriter, r *http.Request, data PageData) {
 	w.Header().Set("Content-Type", cqrshtmx.ContentTypeHTML)
@@ -170,8 +184,13 @@ func buildPageData(config Config, r *http.Request) PageData {
 	if err != nil { // cannot fail for this struct
 		configJSON = []byte(`{"redirect":"/","endpoints":{}}`)
 	}
+	// The JSON is embedded in a raw <script type="application/json"> block;
+	// encoding/json/v2 does not HTML-escape, so escape manually — a config
+	// string containing "</script>" would otherwise break out of the block.
+	configJSON = []byte(scriptSafeJSON(string(configJSON)))
 
 	hasWebAuthn := config.Service.HasWebAuthn()
+
 	// Auto-populate OAuth2 buttons from configured providers when not explicitly set.
 	oauth2Buttons := config.OAuth2Buttons
 	if len(oauth2Buttons) == 0 {

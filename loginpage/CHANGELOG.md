@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
+
+- **Hardened config embedding against HTML injection** (defense-in-depth; all inputs are consumer-controlled `Config` fields, not remote input):
+  - The client config JSON (contains `CredentialName`, `AuthPrefix`) is now escaped before being embedded in the `application/json` script block — `encoding/json/v2` does not HTML-escape, so a value containing `</script>` could previously break out of the block.
+  - `Config.AccentColor` is now validated (`New`/`NewPageData` fail fast) — it is embedded unescaped in the inline `<style>` block and the SVG favicon, so markup/quote characters were previously injectable.
+  - `Config.CSSPath` is now validated to be a root-relative path or absolute http(s) URL, rejecting executable schemes like `javascript:`.
+- Corrected the `Config.OAuth2Buttons` field doc: a nil/empty slice **auto-detects** configured providers (the previous comment claimed an empty slice hides all buttons — it never did).
 
 ## [v4.11.0] - 2026-09-19
 

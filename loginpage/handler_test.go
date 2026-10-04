@@ -631,3 +631,87 @@ func TestRenderPage_RenderError(t *testing.T) {
 	renderPage(w, r, data)
 	// Should not panic, even if render fails due to cancelled context.
 }
+
+func TestNew_MaliciousAccentColorRejected(t *testing.T) {
+	for _, accent := range []string{
+		`#000</style><script>alert(1)</script>`,
+		`red">x`,
+		`a&b`,
+		`back\slash`,
+		"quote'd",
+	} {
+		_, err := New(Config{Service: newTestService(t), AccentColor: accent})
+		if err == nil {
+			t.Errorf("AccentColor %q should be rejected", accent)
+		}
+	}
+}
+
+func TestNew_ValidAccentColorsAccepted(t *testing.T) {
+	for _, accent := range []string{
+		"#4f46e5",
+		"rgb(79 70 229)",
+		"color-mix(in srgb, red 50%, blue)",
+		"var(--brand-accent)",
+		"tomato",
+	} {
+		if _, err := New(Config{Service: newTestService(t), AccentColor: accent}); err != nil {
+			t.Errorf("AccentColor %q should be accepted, got %v", accent, err)
+		}
+	}
+}
+
+func TestNew_MaliciousCSSPathRejected(t *testing.T) {
+	for _, cssPath := range []string{
+		"javascript:alert(1)",
+		"data:text/html,alert(1)",
+		"ftp://example.com/app.css",
+	} {
+		_, err := New(Config{Service: newTestService(t), CSSPath: cssPath})
+		if err == nil {
+			t.Errorf("CSSPath %q should be rejected", cssPath)
+		}
+	}
+}
+
+func TestNew_ValidCSSPathsAccepted(t *testing.T) {
+	for _, cssPath := range []string{"", "/css/app.css", "https://cdn.example.com/app.css", "http://localhost/app.css"} {
+		if _, err := New(Config{Service: newTestService(t), CSSPath: cssPath}); err != nil {
+			t.Errorf("CSSPath %q should be accepted, got %v", cssPath, err)
+		}
+	}
+}
+
+func TestConfigJSON_ScriptBreakoutEscaped(t *testing.T) {
+	h, err := New(Config{
+		Service:        newTestService(t),
+		CredentialName: `</script><script>alert(1)</script>`,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if strings.Contains(h.data.configJSON, "</script>") {
+		t.Errorf("configJSON must not contain a raw </script>, got %q", h.data.configJSON)
+	}
+	if !strings.Contains(h.data.configJSON, `\u003c/script`) {
+		t.Errorf("configJSON should escape < as \\u003c, got %q", h.data.configJSON)
+	}
+}
+
+func TestServeHTTP_MaliciousCredentialNameNotInjected(t *testing.T) {
+	h, err := New(Config{
+		Service:        newTestService(t),
+		CredentialName: `</script><script>alert(1)</script>`,
+		OAuth2Buttons:  []OAuth2Button{{Provider: "google", Label: "Google"}},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	h.ServeHTTP(w, r)
+	body := w.Body.String()
+	if strings.Contains(body, "</script><script>alert(1)</script>") {
+		t.Error("rendered page must not contain the raw injection payload")
+	}
+}
