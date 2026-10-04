@@ -70,18 +70,20 @@ mux := http.NewServeMux()
 auth.RegisterRoutes(mux)   // mutates YOUR mux — you own routing
 ```
 
-Routes registered (Go 1.22+ method patterns):
+Routes registered (Go 1.22+ method patterns). The auth posture is library-enforced (ADR-0055): session-dependent routes self-wrap with an enrich-only session pass (work on a bare mount, 401 without a valid cookie), and the enrollment ceremonies enforce the owner-match rule — no external session middleware required for any of them:
 
 | Method    | Path                                                                 | Notes                                                 |
 | --------- | -------------------------------------------------------------------- | ----------------------------------------------------- |
-| POST      | `/auth/register`                                                     | email-only registration; returns user + session token |
-| POST      | `/auth/webauthn/register/begin` \ `/finish`                          | passkey enrollment ceremony                           |
-| POST      | `/auth/webauthn/login/begin` \ `/finish`                             | passkey login ceremony                                |
+| POST      | `/auth/register`                                                     | email-only registration; returns user + session token (sets the cookie — bootstrap for the enrollment gate) |
+| POST      | `/auth/webauthn/register/begin` \ `/finish`                          | passkey enrollment ceremony — **owner-session-gated**: 401 without session, 403 when `user_id` targets another user |
+| POST      | `/auth/webauthn/login/begin` \ `/finish`                             | passkey login ceremony (public)                        |
 | POST      | `/auth/logout`                                                       | invalidate session                                    |
-| GET       | `/auth/me`                                                           | current user JSON                                     |
-| GET       | `/auth/credentials` \ DELETE `/auth/credentials/{id}`                | manage passkeys                                       |
-| (various) | `/auth/verify/*`, `/auth/totp/*`, `/auth/import/*`, `/auth/export/*` | from `RegisterVerificationTOTPRoutes`                 |
-| GET       | `/auth/oauth/{provider}/begin` \ `/callback`, POST `/unlink`         | OAuth2 (when configured)                              |
+| GET       | `/auth/me`                                                           | current user JSON (session required)                  |
+| GET       | `/auth/credentials` \ DELETE `/auth/credentials/{id}`                | manage passkeys (session required)                     |
+| (various) | `/auth/verify/*`, `/auth/totp/*`, `/auth/import/*`, `/auth/export/*` | from `RegisterVerificationTOTPRoutes` (session required, except token-based `POST /auth/email/verify`) |
+| GET       | `/auth/oauth/{provider}/begin` \ `/callback`, POST `/unlink`         | OAuth2 (when configured; unlink session-required)     |
+
+Headless/administrative enrollment uses the service-level API (`Service.BeginRegistration`/`FinishRegistration`) — there is no HTTP opt-out. For your own session-gated surfaces, setup exports `setup.RequireSession` (401/JSON) and `setup.RequireSessionRedirect(loginURL)` (303/browser), both mounted AFTER the enrich-only `bundle.SessionMiddleware()`.
 
 `HandlerConfig` knobs (all optional): per-endpoint `RateLimitConfig`s, `CookieName`, `Secure *bool` (nil→true; set with a `*bool`), `SessionMaxAge`, `Timeout`, `OAuth2SuccessURL`/`OAuth2ErrorURL`, `ImportExportAuthorizer` (default `RequireAdminRole`).
 
@@ -91,7 +93,7 @@ Routes registered (Go 1.22+ method patterns):
 sessionMW := usermgmt.NewSessionMiddleware(svc, "session")  // (*Service, cookieName)
 ```
 
-Reads the cookie, validates the token, and injects the authenticated `*usermgmt.User` into the request context. Put it **outside** (before) CSRF in your chain. To read the user in a handler: `usermgmt.UserFromContext(r.Context())`.
+Reads the cookie, validates the token, and injects the authenticated `*usermgmt.User` into the request context. Put it **outside** (before) CSRF in your chain. To read the user in a handler: `usermgmt.UserFromContext(r.Context())`. Note: the `/auth/*` routes enrich themselves — this middleware is for YOUR routes (and the enrollment gate reads the same cookie either way).
 
 ## Auth methods
 

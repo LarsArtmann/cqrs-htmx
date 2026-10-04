@@ -498,6 +498,7 @@ These are the highest-frequency mistakes. Read `references/gotchas.md` for the f
 6. **App.Command("") panics.** Empty command/query type strings are rejected at registration.
 7. **Serve htmx.js yourself on Path A/B.** Register `cqrshtmx.HTMXScriptHandler()` on your mux. **Exception:** on Path C (adminui) the panel serves htmx.js internally -- do NOT register it yourself.
 8. **Register your command/query handlers BEFORE building endpoints.** `cmdDisp.Register("CreateItem", handler)` must happen before `app.Command("CreateItem", ...)`.
+9. **The auth posture is library-enforced (ADR-0055).** WebAuthn *enrollment* ceremonies answer 401 without a session and 403 when the target `user_id` is not the session user (loginpage's register-issues-cookie flow passes untouched); every `currentUser`-reading `/auth/*` route self-wraps with an enrich-only session pass, so a bare `RegisterRoutes` mount works and fails closed. Headless enrollment: service-level `BeginRegistration`/`FinishRegistration`. For your own routes: `setup.RequireSession` / `setup.RequireSessionRedirect("/login")` after `bundle.SessionMiddleware()`.
 
 ### Discoverability notes (APIs that are easy to miss)
 

@@ -25,7 +25,11 @@ func TestDisplayName_LadderOrder(t *testing.T) {
 func TestDisplayName_AcceptsBothIdShapes(t *testing.T) {
 	svc := newTestService(t)
 	reg := registerTestUser(t, svc, "dn2", "dn2@test.com")
-	_ = svc.ChangeDisplayName(context.Background(), reg.User.ID, "Grace Hopper") //nolint:errcheck // ladder asserted below
+	_ = svc.ChangeDisplayName(
+		context.Background(),
+		reg.User.ID,
+		"Grace Hopper",
+	) //nolint:errcheck // ladder asserted below
 
 	bare := reg.User.ID.Get().String()
 	if got := svc.DisplayName(context.Background(), bare); got != "Grace Hopper" {

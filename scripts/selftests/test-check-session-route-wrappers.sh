@@ -84,8 +84,8 @@ expect_fail "$F4" "F4 ungated enrollment ceremony fails" "POST /auth/webauthn/re
 # --- F5: empty route files trip the false-green guard -------------------------
 F5="$(mktemp -d)"
 make_fixture "$F5"
-: > "$F5/usermgmt/http.go"
-: > "$F5/usermgmt/verification_totp_http.go"
+: >"$F5/usermgmt/http.go"
+: >"$F5/usermgmt/verification_totp_http.go"
 OUT="$(SESSION_ROUTE_WRAPPERS_ROOT="$F5" bash "$CHECKER" 2>&1)"
 rc=$?
 if [ "$rc" -ne 0 ]; then
