@@ -11,11 +11,11 @@
 # during the v4.13.x train. Ends with the absence assertion the runbook mandates.
 #
 # Usage:
-#   scripts/bump-dep.sh <module-substring-or-regex> <version> \
+#   scripts/tools/bump-dep.sh <module-substring-or-regex> <version> \
 #       [--dry-run] [--commit] [--no-verify]
 # Example:
-#   scripts/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0
-#   scripts/bump-dep.sh 'larsartmann/httputil$' v1.3.0   # $ = exact module only
+#   scripts/tools/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0
+#   scripts/tools/bump-dep.sh 'larsartmann/httputil$' v1.3.0   # $ = exact module only
 # A trailing $ anchors the END of the module path — without it the pattern
 # is a prefix and also sweeps sibling submodules with their own trains
 # (httputil/server_timing and go-cqrs-lite/storage/memory both bit this way:
@@ -39,7 +39,7 @@
 
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 DRY=0
 COMMIT=0
@@ -55,7 +55,7 @@ for arg in "$@"; do
 done
 
 if [ "${#positional[@]}" -lt 2 ]; then
-  echo "usage: scripts/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify]" >&2
+  echo "usage: scripts/tools/bump-dep.sh <module-substring-or-regex> <version> [--dry-run] [--commit] [--no-verify]" >&2
   exit 2
 fi
 

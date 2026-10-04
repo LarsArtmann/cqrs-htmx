@@ -10,11 +10,11 @@
 #   4. non-matching modules are skipped;
 #   5. a pattern with no match exits 0 ("nothing to do").
 #
-# Usage: bash scripts/test-bump-dep.sh
+# Usage: bash scripts/selftests/test-bump-dep.sh
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BUMP="$SCRIPT_DIR/bump-dep.sh"
+BUMP="$SCRIPT_DIR/../tools/bump-dep.sh"
 
 WORK=$(mktemp -d /tmp/test-bump-dep-XXXXXX)
 trap 'rm -rf "$WORK"' EXIT

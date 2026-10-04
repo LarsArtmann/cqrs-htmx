@@ -2,7 +2,7 @@
 # check-version-drift.sh — Detect sibling modules referencing different versions
 # Adapted from go-cqrs-lite's CI version drift detection.
 #
-# DIVISION OF LABOR vs scripts/check-release-train.sh: THIS script answers
+# DIVISION OF LABOR vs scripts/checks/check-release-train.sh: THIS script answers
 # "is every internal dependency referenced at ONE version repo-wide, and do
 # those tags exist?" (--strict = both legs blocking). check-release-train
 # answers "is each require on the LATEST published version (train lag), and
@@ -19,7 +19,7 @@
 # are exempt when that go.mod carries a local `replace` for it (the replace
 # satisfies the build locally; the require version is then not proxy-resolved).
 #
-# Usage: ./scripts/check-version-drift.sh [--strict]
+# Usage: ./scripts/checks/check-version-drift.sh [--strict]
 # Exit: 0 = no drift + all tags exist, 1 = drift or missing tag (strict), 0 + warning otherwise
 # Requires: network access to github.com (git ls-remote).
 
@@ -31,13 +31,13 @@ if [[ ${1:-} == "--strict" ]]; then
   STRICT=true
 fi
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # TEST HOOK: self-tests override the scanned root with a fixture tree.
 REPO_ROOT="${DRIFT_ROOT:-$REPO_ROOT}"
 cd "$REPO_ROOT"
 
 # shellcheck disable=SC1091
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/replace-exemption.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/replace-exemption.sh"
 
 # Collect all internal module paths (from go.mod module declarations)
 declare -A MODULE_VERSIONS

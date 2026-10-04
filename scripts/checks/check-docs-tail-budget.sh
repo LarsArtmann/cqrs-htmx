@@ -14,13 +14,13 @@
 # Counts only non-recursive `docs/status/*.md`, excluding README.md (the
 # convention doc, not a report).
 #
-# Usage: bash scripts/check-docs-tail-budget.sh [--strict] [--budget N]
+# Usage: bash scripts/checks/check-docs-tail-budget.sh [--strict] [--budget N]
 # Env:   TAIL_BUDGET_ROOT  override the scan root (fixture self-test).
 # Exit:  0 always (advisory) unless --strict and the budget is exceeded.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ROOT="${TAIL_BUDGET_ROOT:-$REPO_ROOT}"
 
 BUDGET=3

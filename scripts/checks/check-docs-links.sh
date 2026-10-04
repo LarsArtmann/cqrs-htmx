@@ -7,12 +7,12 @@
 #   - Links inside fenced code blocks (``` ... ```)
 #   - False positives: targets with spaces, commas, or missing file extensions
 #
-# Usage: ./scripts/check-docs-links.sh
+# Usage: ./scripts/checks/check-docs-links.sh
 # Exit: 0 = all links valid, 1 = at least one broken link found
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 broken=0

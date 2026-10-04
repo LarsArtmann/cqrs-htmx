@@ -17,7 +17,7 @@
 # ERRAUDIT_BIN overrides the binary (default: `erraudit` from PATH) — the
 # fixture self-test uses it to run offline with a stub.
 #
-# Usage: bash scripts/erraudit-inventory.sh [--gate] [repo-root]
+# Usage: bash scripts/checks/erraudit-inventory.sh [--gate] [repo-root]
 set -uo pipefail
 
 GATE=0

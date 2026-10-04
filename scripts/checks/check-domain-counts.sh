@@ -11,12 +11,12 @@
 # payload structs", "NN command structs") — NOT aggregate subset counts
 # (e.g. "12 events" for the User aggregate is intentionally a subset).
 #
-# Usage: ./scripts/check-domain-counts.sh
+# Usage: ./scripts/checks/check-domain-counts.sh
 # Exit:  0 = all docs match, 1 = drift detected
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 IDM="$REPO_ROOT/identity-model"
 
 # Count event payload structs (suffix "Payload") and command structs (suffix "Cmd")

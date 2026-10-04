@@ -18,6 +18,8 @@ templ layout(p pageData, content templ.Component) {
 		<main id="main-content" class="content-area">
 			@content
 		</main>
+	} else if p.shell != nil {
+		@p.shell(p.meta(), content)
 	} else {
 		<!DOCTYPE html>
 		<html lang="en">

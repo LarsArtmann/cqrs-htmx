@@ -4,14 +4,14 @@
 # Prevents tracked binaries and oversized assets from entering version control
 # (root cause of the 32 MB binary accident during the httputil migration).
 # Two modes:
-#   ./scripts/check-large-files.sh            → check staged NEW files (pre-commit)
-#   ./scripts/check-large-files.sh --all      → check all git-tracked files (CI/manual)
+#   ./scripts/checks/check-large-files.sh            → check staged NEW files (pre-commit)
+#   ./scripts/checks/check-large-files.sh --all      → check all git-tracked files (CI/manual)
 # Exit: 0 = clean, 1 = violation found
 # Override the size limit via LARGE_FILE_LIMIT (bytes); default 1 MB.
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 MAX_SIZE="${LARGE_FILE_LIMIT:-1048576}" # 1 MB

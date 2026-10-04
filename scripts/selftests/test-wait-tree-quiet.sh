@@ -8,13 +8,13 @@
 #
 # Windows are 2s with 1s polls; total runtime stays well under 30s.
 #
-# Usage: ./scripts/test-wait-tree-quiet.sh
+# Usage: ./scripts/selftests/test-wait-tree-quiet.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
-CHECKER="$SCRIPT_DIR/wait-tree-quiet.sh"
+CHECKER="$SCRIPT_DIR/../tools/wait-tree-quiet.sh"
 
 pass=0
 fail=0
@@ -76,7 +76,7 @@ mkdir -p "$tmp/f4" && cd "$tmp/f4" || exit 1
 bash "$CHECKER" >"$tmp/f4.out" 2>&1
 rc=$?
 report "$([ "$rc" -eq 2 ] && echo 0 || echo 1)" "F4 outside repo exits 2 (got $rc)"
-cd "$SCRIPT_DIR/.." || exit 1
+cd "$SCRIPT_DIR/../.." || exit 1
 
 echo "== $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

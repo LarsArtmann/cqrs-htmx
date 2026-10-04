@@ -16,12 +16,12 @@
 #    targets (outside the repo, e.g. ../go-cqrs-lite) are machine-local and
 #    skipped on CI runners (CI=true); the local `nix run .#check-modules`
 #    gate verifies them.
-# Usage: ./scripts/check-replace-directives.sh
+# Usage: ./scripts/checks/check-replace-directives.sh
 # Exit: 0 = all replaces valid, 1 = invalid replace found
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "=== Replace Directive Check ==="

@@ -8,10 +8,10 @@
 # standalone comment lines inside the block (e.g. //cqrs-lint:ignore(...)
 # suppressions) and `// indirect` entries do NOT count; single-line
 # `require x y` statements count. The comment-line exclusion regressed once
-# (fixed 2026-09-22) — scripts/test-check-dep-budgets.sh pins it with
+# (fixed 2026-09-22) — scripts/selftests/test-check-dep-budgets.sh pins it with
 # fixtures (run it after touching the awk).
 #
-# Usage: ./scripts/check-dep-budgets.sh
+# Usage: ./scripts/checks/check-dep-budgets.sh
 #   DEP_BUDGETS_ROOT=<dir>  TEST HOOK: scan a fixture tree instead of the
 #                           repo (self-test only; budget keys whose
 #                           <dir>/<module>/go.mod is missing are skipped)
@@ -19,7 +19,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="${DEP_BUDGETS_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+REPO_ROOT="${DEP_BUDGETS_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 cd "$REPO_ROOT" || exit 1
 
 # Dependency budgets per module.
@@ -75,7 +75,7 @@ for mod in "${!DEP_BUDGET[@]}"; do
 
   if [[ $dep_count -gt $budget ]]; then
     echo "OVER BUDGET"
-    echo "    Reduce deps or justify increase in scripts/check-dep-budgets.sh"
+    echo "    Reduce deps or justify increase in scripts/checks/check-dep-budgets.sh"
     failed=1
   else
     remaining=$((budget - dep_count))

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Pre-Push Gate Hook — CI parity at the push boundary (added 2026-09-22).
-# TEMPLATE OF TRUTH installed by scripts/install-git-hooks.sh (same protocol
+# TEMPLATE OF TRUTH installed by scripts/tools/install-git-hooks.sh (same protocol
 # as pre-commit.template; restore after any regeneration with:
-#   scripts/install-git-hooks.sh --force).
+#   scripts/tools/install-git-hooks.sh --force).
 #
 # Runs the two BLOCKING CI gates — ci.yml "Release train check (blocking)"
 # (`check-release-train.sh --strict-lag 0`) and "Version drift check
@@ -31,17 +31,17 @@ set -u
 ROOT="$(git rev-parse --show-toplevel)"
 
 train_rc=0
-bash "$ROOT/scripts/check-release-train.sh" || train_rc=$?
+bash "$ROOT/scripts/checks/check-release-train.sh" || train_rc=$?
 if [ "$train_rc" -eq 4 ]; then
   echo "pre-push: WARNING release-train gate offline (cannot reach github.com) — push proceeds"
 elif [ "$train_rc" -ne 0 ]; then
   echo "pre-push: release-train gate FAILED (rc=$train_rc) — CI runs this exact check blocking; push blocked." >&2
-  echo "  (advisory planning mode: scripts/check-release-train.sh --advisory)" >&2
+  echo "  (advisory planning mode: scripts/checks/check-release-train.sh --advisory)" >&2
   exit "$train_rc"
 fi
 
 drift_rc=0
-bash "$ROOT/scripts/check-version-drift.sh" --strict || drift_rc=$?
+bash "$ROOT/scripts/checks/check-version-drift.sh" --strict || drift_rc=$?
 if [ "$drift_rc" -ne 0 ]; then
   if ! git ls-remote https://github.com/larsartmann/cqrs-htmx.git HEAD >/dev/null 2>&1; then
     echo "pre-push: WARNING version-drift gate could not reach github.com — push proceeds, re-check when online" >&2

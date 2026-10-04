@@ -8,11 +8,11 @@
 #      the go-work-sync/373209a7 shape)                        -> gate fails
 #   3. missing go.work                                          -> gate fails
 #
-# Usage: bash scripts/test-check-workspace-build.sh
+# Usage: bash scripts/selftests/test-check-workspace-build.sh
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GATE="$SCRIPT_DIR/check-workspace-build.sh"
+GATE="$SCRIPT_DIR/../checks/check-workspace-build.sh"
 
 WORK=$(mktemp -d /tmp/test-check-workspace-build-XXXXXX)
 trap 'rm -rf "$WORK"' EXIT

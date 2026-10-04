@@ -7,13 +7,13 @@
 #   - ELF magic bytes are detected and rejected
 #   - PE magic bytes are detected and rejected
 #
-# Usage: ./scripts/test-check-large-files.sh
+# Usage: ./scripts/selftests/test-check-large-files.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-large-files.sh"
+CHECKER="$SCRIPT_DIR/../checks/check-large-files.sh"
 
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT

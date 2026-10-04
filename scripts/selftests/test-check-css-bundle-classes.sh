@@ -9,13 +9,13 @@
 #   F4  fixture missing the .fresh file           -> FAIL, names the file
 #   F5  formatting-only difference (same classes) -> PASS (the gate's purpose)
 #
-# Usage: ./scripts/test-check-css-bundle-classes.sh
+# Usage: ./scripts/selftests/test-check-css-bundle-classes.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-css-bundle-classes.sh"
+CHECKER="$SCRIPT_DIR/../checks/check-css-bundle-classes.sh"
 
 pass=0
 fail=0
@@ -49,11 +49,11 @@ echo ""
 # dirname-based resolution lands inside the fixture: copy the checker in.
 run_in_fixture() { # <fixture-dir> — sets OUT + RC via capture files
   local fx="$1"
-  mkdir -p "$fx/scripts"
-  cp "$CHECKER" "$fx/scripts/"
+  mkdir -p "$fx/scripts/checks"
+  cp "$CHECKER" "$fx/scripts/checks/"
   (
     cd "$fx" || exit 1
-    CHECK_CSS_BUNDLE_CLASSES_NO_BUILD=1 bash scripts/check-css-bundle-classes.sh >"$fx/.out" 2>&1
+    CHECK_CSS_BUNDLE_CLASSES_NO_BUILD=1 bash scripts/checks/check-css-bundle-classes.sh >"$fx/.out" 2>&1
     echo "$?" >"$fx/.rc"
   )
   RC="$(cat "$fx/.rc")"

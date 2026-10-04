@@ -6,14 +6,14 @@
 # named with file and line; bare repo mentions (URLs) are NOT flagged;
 # missing files are skipped silently.
 #
-# Usage: ./scripts/test-check-docs-freshness.sh
+# Usage: ./scripts/selftests/test-check-docs-freshness.sh
 # Exit: 0 = all cases pass, 1 = at least one case fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "$SCRIPT_DIR/lib/docs-import-paths.sh"
+source "$SCRIPT_DIR/../lib/docs-import-paths.sh"
 
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT

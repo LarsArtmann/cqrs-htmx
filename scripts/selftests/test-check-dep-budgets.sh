@@ -15,13 +15,13 @@
 #   F2  20 real deps -> OVER BUDGET, exit 1
 #   F3  empty require block + comment lines only -> "0 deps", PASS
 #
-# Usage: ./scripts/test-check-dep-budgets.sh
+# Usage: ./scripts/selftests/test-check-dep-budgets.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-dep-budgets.sh"
+CHECKER="$SCRIPT_DIR/../checks/check-dep-budgets.sh"
 
 pass=0
 fail=0

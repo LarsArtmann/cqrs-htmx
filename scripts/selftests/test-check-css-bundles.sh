@@ -10,14 +10,14 @@
 #   F5  canary-stripped (empty scan, size ok)      -> FAIL, names canaries
 #   F6  empty file                                 -> FAIL, names the file
 #
-# Usage: ./scripts/test-check-css-bundles.sh
+# Usage: ./scripts/selftests/test-check-css-bundles.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-css-bundles.sh"
-REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
+CHECKER="$SCRIPT_DIR/../checks/check-css-bundles.sh"
+REPO="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 pass=0
 fail=0

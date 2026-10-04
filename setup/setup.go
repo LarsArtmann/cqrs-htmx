@@ -374,6 +374,7 @@ func buildDashboardConfig(
 		LogoutURL:            cfg.LogoutURL,
 		AccentColor:          cfg.AccentColor,
 		Authorizer:           cfg.DashboardAuthorizer,
+		Layout:               cfg.DashboardLayout,
 		SSEHeartbeatInterval: cfg.SSEHeartbeatInterval,
 		SSEMaxReplay:         cfg.SSEMaxReplay,
 	}

@@ -3,12 +3,12 @@
 # Adapted from go-cqrs-lite's CI enforcement model.
 #
 # Catches: missing replace directives, version mismatches, stale go.work entries.
-# Usage: ./scripts/check-module-isolation.sh
+# Usage: ./scripts/checks/check-module-isolation.sh
 # Exit: 0 = all modules pass, 1 = at least one module fails
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 # Fall back to /tmp when the ambient build cache is unwritable (e.g. a dead

@@ -9,13 +9,13 @@
 # The count includes BOTH exported and unexported methods (unexported methods
 # are part of the type's complexity too).
 #
-# Usage: ./scripts/check-service-methods.sh
+# Usage: ./scripts/checks/check-service-methods.sh
 # Env:   SERVICE_METHOD_LIMIT  hard ceiling (default 80, per ADR-0038 trigger)
 # Exit:  0 = under limit, 1 = at/over limit
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 LIMIT="${SERVICE_METHOD_LIMIT:-80}"
 
 # Count all methods (exported + unexported) with a *Service receiver in usermgmt.

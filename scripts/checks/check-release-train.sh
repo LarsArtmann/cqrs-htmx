@@ -19,7 +19,7 @@
 # is downgraded to a warning (the require is annotated, e.g. setup's
 # DEV-ONLY usermgmt replace); TRAIN LAG is still reported for planning.
 #
-# Usage: ./scripts/check-release-train.sh [--json] [--strict-lag N]
+# Usage: ./scripts/checks/check-release-train.sh [--json] [--strict-lag N]
 #                                         [--advisory] [--no-cache] [--refresh-cache]
 #   --json           machine-readable summary (stable shape, for tooling)
 #   --strict-lag N   exit 3 when train lag exceeds N (default: 0 — CI parity;
@@ -54,12 +54,12 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 # Shared replace-exemption rule (single-sourced with check-version-drift.sh).
 # shellcheck disable=SC1091
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/replace-exemption.sh"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/replace-exemption.sh"
 
 JSON=0
 # Default 0 = CI parity (see SPLIT-BRAIN FIX above). --advisory restores the
@@ -296,7 +296,7 @@ if [ "$STRICT_LAG" -ge 0 ] && [ "$lags" -gt "$STRICT_LAG" ]; then
         sed 's/^{"module":"\([^"]*\)","required":"[^"]*","latest":"\([^"]*\)".*/\1 \2/' |
         sort -u |
         while read -r lagmod lagver; do
-          echo "  scripts/bump-dep.sh 'larsartmann/${lagmod#github.com/larsartmann/}\$' $lagver"
+          echo "  scripts/tools/bump-dep.sh 'larsartmann/${lagmod#github.com/larsartmann/}\$' $lagver"
         done
       echo "Same-version families (root + submodules at one version) may merge into"
       echo "one prefix sweep. Verify each sweep's PASS table, commit per sweep, then"

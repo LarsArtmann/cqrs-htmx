@@ -17,7 +17,7 @@
 # never trip F on their own; they DO count toward R.
 #
 # Usage:
-#   scripts/preflight-tree-check.sh              # execute checks, exit 0/1
+#   scripts/tools/preflight-tree-check.sh              # execute checks, exit 0/1
 #   PREFLIGHT_RECENCY_SECONDS=0 scripts/...      # disable recency window
 # Exit: 0 = safe to mutate; 1 = abort (reasons listed); 2 = usage/environment
 #

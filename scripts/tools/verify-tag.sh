@@ -2,8 +2,8 @@
 # verify-tag.sh — tag a module the SAFE way (the protocol from the
 # setup/v4.8.1+v4.8.2 poisoned-tag incident).
 #
-# Usage: scripts/verify-tag.sh <module-dir> <version> [--push] [--dry-run] [--allow-replace-exempt]
-#   e.g. scripts/verify-tag.sh setup v4.8.4 --push
+# Usage: scripts/tools/verify-tag.sh <module-dir> <version> [--push] [--dry-run] [--allow-replace-exempt]
+#   e.g. scripts/tools/verify-tag.sh setup v4.8.4 --push
 #
 # Steps:
 #   1. Guard: <module-dir>/go.mod must exist and have NO uncommitted changes
@@ -165,7 +165,7 @@ fi
 git tag -s "$TAGNAME" -m "$MOD $VER" || fail "git tag -s failed (signing key unavailable?); NOT tagging unsigned"
 
 # Tag-message guard: annotated object + "<mod> <ver>" subject (lib is
-# fixture-tested in scripts/test-verify-tag.sh).
+# fixture-tested in scripts/selftests/test-verify-tag.sh).
 # shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/lib/tag-message-guard.sh"
 verify_tag_message "$TAGNAME" "$MOD" "$VER" || fail "tag-message guard rejected $TAGNAME — delete it (git tag -d) and investigate"

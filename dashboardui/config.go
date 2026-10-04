@@ -100,8 +100,18 @@ type Config struct {
 	// consumer MUST wrap the dashboard with their own auth middleware).
 	Authorizer func(*http.Request) error
 
+	// Layout, when set, replaces the dashboard's built-in page shell (sidebar,
+	// header, theme, stylesheet links) with a consumer-owned document: every
+	// full-page render calls it with the page metadata and the ready-rendered
+	// content, and its component becomes the response. This is the embed seam
+	// for apps that want the panels INSIDE their own app chrome — see
+	// [LayoutFunc] for the contract. When nil (default), the dashboard renders
+	// its own complete standalone document (the mount-and-go destination).
+	Layout LayoutFunc
+
 	// LogoutURL, if set, renders a logout link at the bottom of the sidebar.
 	// Typically "/logout" or similar. If empty, no logout link is shown.
+	// Ignored when Layout is set (the consumer shell owns navigation chrome).
 	LogoutURL string
 }
 
@@ -215,6 +225,10 @@ type pageData struct {
 	// link or explicit hx-get). When true, renderLayout returns only the
 	// <main> content, skipping the full HTML shell for faster swaps.
 	HTMX bool
+
+	// shell is the consumer-provided layout ([Config.Layout]); nil when the
+	// built-in document shell should render.
+	shell LayoutFunc
 }
 
 // StreamRefFromID constructs an id.StreamRef from type + ID strings.

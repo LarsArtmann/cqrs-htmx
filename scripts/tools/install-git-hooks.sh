@@ -25,12 +25,12 @@
 # against the repo root.
 #
 # Usage:
-#   scripts/install-git-hooks.sh            install each template if the
+#   scripts/tools/install-git-hooks.sh            install each template if the
 #                                           hook is missing; refuse with a
 #                                           diff if it exists but differs
-#   scripts/install-git-hooks.sh --force    overwrite the hooks with the
+#   scripts/tools/install-git-hooks.sh --force    overwrite the hooks with the
 #                                           templates wholesale
-#   scripts/install-git-hooks.sh --verify   exit 0 if all byte-match, 1
+#   scripts/tools/install-git-hooks.sh --verify   exit 0 if all byte-match, 1
 #                                           with a diff if not, 2 if
 #                                           missing
 
@@ -39,7 +39,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOOKS=(pre-commit pre-push)
 
-ROOT="$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)"
+ROOT="$(git -C "$SCRIPT_DIR/../.." rev-parse --show-toplevel)"
 HOOKPATH="$(git -C "$ROOT" config core.hooksPath || true)"
 if [ -n "$HOOKPATH" ]; then
   case "$HOOKPATH" in
@@ -65,7 +65,7 @@ for arg in "$@"; do
 done
 
 for hook in "${HOOKS[@]}"; do
-  TEMPLATE="$SCRIPT_DIR/hooks/$hook.template"
+  TEMPLATE="$SCRIPT_DIR/../hooks/$hook.template"
   HOOK="$HOOKPATH/$hook"
 
   [ -f "$TEMPLATE" ] || {

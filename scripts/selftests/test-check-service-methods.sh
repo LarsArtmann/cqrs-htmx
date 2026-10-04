@@ -8,13 +8,13 @@
 #   - Threshold at exact count passes
 #   - Threshold below count fails
 #
-# Usage: ./scripts/test-check-service-methods.sh
+# Usage: ./scripts/selftests/test-check-service-methods.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-service-methods.sh"
+CHECKER="$SCRIPT_DIR/../checks/check-service-methods.sh"
 
 pass=0
 fail=0

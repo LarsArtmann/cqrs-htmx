@@ -8,11 +8,11 @@
 #   4. README.md is excluded from the count
 #   5. --budget override honored
 #
-# Usage: bash scripts/test-check-docs-tail-budget.sh
+# Usage: bash scripts/selftests/test-check-docs-tail-budget.sh
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GATE="$SCRIPT_DIR/check-docs-tail-budget.sh"
+GATE="$SCRIPT_DIR/../checks/check-docs-tail-budget.sh"
 
 WORK=$(mktemp -d /tmp/test-docs-tail-budget-XXXXXX)
 trap 'rm -rf "$WORK"' EXIT

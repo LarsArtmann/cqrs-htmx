@@ -10,13 +10,13 @@
 #   - Anchor-only links (#section) are skipped
 #   - Links with query strings are handled
 #
-# Usage: ./scripts/test-check-docs-links.sh
+# Usage: ./scripts/selftests/test-check-docs-links.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-docs-links.sh"
+CHECKER="$SCRIPT_DIR/../checks/check-docs-links.sh"
 
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
@@ -49,7 +49,7 @@ assert_not_contains() {
 }
 
 # Create test fixture files that the links will reference
-mkdir -p "$TMPDIR/docs/guides" "$TMPDIR/scripts"
+mkdir -p "$TMPDIR/docs/guides" "$TMPDIR/scripts/checks"
 touch "$TMPDIR/FEATURES.md"
 touch "$TMPDIR/CHANGELOG.md"
 touch "$TMPDIR/docs/guide.md"
@@ -57,7 +57,7 @@ touch "$TMPDIR/docs/guides/setup.md"
 touch "$TMPDIR/scripts/run.sh"
 
 # Copy the checker into TMPDIR so it uses TMPDIR as REPO_ROOT
-cp "$CHECKER" "$TMPDIR/scripts/check-docs-links.sh"
+cp "$CHECKER" "$TMPDIR/scripts/checks/check-docs-links.sh"
 
 # Remove test-only .md files between tests to prevent accumulation
 clean_test_files() {
@@ -65,7 +65,7 @@ clean_test_files() {
 }
 
 run_checker() {
-  (cd "$TMPDIR" && bash scripts/check-docs-links.sh 2>&1 || true)
+  (cd "$TMPDIR" && bash scripts/checks/check-docs-links.sh 2>&1 || true)
 }
 
 echo ""

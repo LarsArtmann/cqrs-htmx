@@ -8,20 +8,20 @@
 #      published) on 2026-08-17 and poison the whole workspace module
 #      graph for 12 days: workspace mode masks unpublished requires, so
 #      only hermetic builds or this gate see them. The strict drift check
-#      is what enforces it; scripts/check-release-train.sh adds the
+#      is what enforces it; scripts/checks/check-release-train.sh adds the
 #      per-dependency UNPUBLISHED/TRAIN-LAG classification on top.
 #
-# Local (default) mode chains scripts/check-version-drift.sh --strict.
+# Local (default) mode chains scripts/checks/check-version-drift.sh --strict.
 # Under CI=true the drift leg downgrades to advisory: tag existence needs
 # `git ls-remote` auth for the private larsartmann repos, unverified on
 # Actions runners so far.
 #
-# Usage: ./scripts/check-require-tags.sh
+# Usage: ./scripts/checks/check-require-tags.sh
 # Exit:  0 = clean, 1 = phantom version or strict drift failure.
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "=== Require Tag Check ==="
@@ -42,7 +42,7 @@ fi
 # Tag existence: strict locally (fail on unpublished requires), advisory
 # under CI (ls-remote auth unverified there).
 if [ "${CI:-false}" != "true" ]; then
-  bash scripts/check-version-drift.sh --strict
+  bash scripts/checks/check-version-drift.sh --strict
 else
-  bash scripts/check-version-drift.sh || true
+  bash scripts/checks/check-version-drift.sh || true
 fi

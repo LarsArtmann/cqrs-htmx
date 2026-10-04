@@ -598,32 +598,32 @@ jobs:
         run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
       - name: Module isolation check (GOWORK=off build+vet)
-        run: bash scripts/check-module-isolation.sh
+        run: bash scripts/checks/check-module-isolation.sh
         env:
           GONOSUMCHECK: "github.com/larsartmann/*"
 
       - name: Dependency budget check
-        run: bash scripts/check-dep-budgets.sh
+        run: bash scripts/checks/check-dep-budgets.sh
 
       # Fixture self-test pinning the dep-counting awk (standalone comment
       # lines + // indirect must NOT count — the 2026-09-22 regression class).
       - name: Dependency budget self-test
-        run: bash scripts/test-check-dep-budgets.sh
+        run: bash scripts/selftests/test-check-dep-budgets.sh
 
       - name: Go toolchain vs go.work directive check
-        run: bash scripts/check-go-toolchain.sh
+        run: bash scripts/checks/check-go-toolchain.sh
 
       # Workspace-mode build in every go.work member — the complement to the
       # hermetic per-module gates. go.work use/replace mangling (the 373209a7
       # ambiguous-import class) only assembles the union module graph in
       # workspace mode, where GOWORK=off gates are blind.
       - name: Workspace build check
-        run: bash scripts/check-workspace-build.sh
+        run: bash scripts/checks/check-workspace-build.sh
         env:
           GOEXPERIMENT: jsonv2
 
       - name: Workspace build self-test
-        run: bash scripts/test-check-workspace-build.sh
+        run: bash scripts/selftests/test-check-workspace-build.sh
         env:
           GOEXPERIMENT: jsonv2
 
@@ -631,7 +631,7 @@ jobs:
       # binary — no erraudit install needed on runners): pins the candidate
       # count + fail-on-zero false-green guard for the go.work decomposition.
       - name: Erraudit inventory self-test
-        run: bash scripts/test-erraudit-inventory.sh
+        run: bash scripts/selftests/test-erraudit-inventory.sh
 
       # BLOCKING since 2026-09-09 (was `|| true` advisory): an UNPUBLISHED
       # internal require (phantom-tag class) or train lag beyond the budget
@@ -641,10 +641,10 @@ jobs:
       # to warnings when CI=true (exit 4), so a runner network blip cannot
       # spuriously red-master. Public repos confirmed 2026-08-31.
       - name: Release train check (blocking)
-        run: bash scripts/check-release-train.sh --strict-lag 0
+        run: bash scripts/checks/check-release-train.sh --strict-lag 0
 
       - name: Release train self-test
-        run: bash scripts/test-check-release-train.sh
+        run: bash scripts/selftests/test-check-release-train.sh
 
       # GOPRIVATE VCS-cache health (local-machine corruption class: a bare
       # repo under GOMODCACHE/cache/vcs losing its origin breaks hermetic
@@ -653,19 +653,19 @@ jobs:
       # catches nothing, but keeps CI wired to the same gate the fleet runs
       # (atomic-gates rule). The fixture self-test is the real coverage.
       - name: VCS cache health check
-        run: bash scripts/check-vcs-cache.sh
+        run: bash scripts/checks/check-vcs-cache.sh
 
       - name: VCS cache health self-test
-        run: bash scripts/test-check-vcs-cache.sh
+        run: bash scripts/selftests/test-check-vcs-cache.sh
 
       # Committed Tailwind bundles must be the canonical minified builder
       # output (catches the buildflow hook's non-minified rewrite and the
       # 2026-09-22 near-empty staged-bundle incident class).
       - name: CSS bundle sanity check
-        run: bash scripts/check-css-bundles.sh
+        run: bash scripts/checks/check-css-bundles.sh
 
       - name: CSS bundle sanity self-test
-        run: bash scripts/test-check-css-bundles.sh
+        run: bash scripts/selftests/test-check-css-bundles.sh
 
       # Exact-class-set drift gate: the committed bundles' sorted class
       # tokens must equal a fresh canonical build's (mechanizes the
@@ -674,19 +674,19 @@ jobs:
       # self-test below is the coverage; the real check runs locally via
       # nix run .#check-css-bundle-classes and in check-modules.
       - name: CSS bundle class-set drift check
-        run: bash scripts/check-css-bundle-classes.sh
+        run: bash scripts/checks/check-css-bundle-classes.sh
 
       - name: CSS bundle class-set self-test
-        run: bash scripts/test-check-css-bundle-classes.sh
+        run: bash scripts/selftests/test-check-css-bundle-classes.sh
 
       # Concurrency-safety helpers for the shared tree (auto-commit daemon +
       # concurrent sessions, gotcha 4). The self-tests are the coverage; the
       # helpers themselves are session tools, not repo-state checks.
       - name: Preflight tree-check self-test
-        run: bash scripts/test-preflight-tree-check.sh
+        run: bash scripts/selftests/test-preflight-tree-check.sh
 
       - name: Wait-tree-quiet self-test
-        run: bash scripts/test-wait-tree-quiet.sh
+        run: bash scripts/selftests/test-wait-tree-quiet.sh
 
       # BLOCKING since 2026-09-09 (was `|| true` advisory): version drift or
       # a missing internal tag fails the build via --strict. Tag existence
@@ -694,10 +694,10 @@ jobs:
       # (confirmed 2026-08-30), so the old "CI may lack auth" caveat no
       # longer applies.
       - name: Version drift check (blocking)
-        run: bash scripts/check-version-drift.sh --strict
+        run: bash scripts/checks/check-version-drift.sh --strict
 
       - name: Replace directive check
-        run: bash scripts/check-replace-directives.sh
+        run: bash scripts/checks/check-replace-directives.sh
 
   checks:
     runs-on: ubuntu-latest
@@ -712,13 +712,13 @@ jobs:
           go-version-file: go.mod
 
       - name: Binary / large-file guard
-        run: bash scripts/check-large-files.sh --all
+        run: bash scripts/checks/check-large-files.sh --all
 
       - name: "*Service method count guard (ADR-0038)"
-        run: bash scripts/check-service-methods.sh
+        run: bash scripts/checks/check-service-methods.sh
 
       - name: Domain model count drift check
-        run: bash scripts/check-domain-counts.sh
+        run: bash scripts/checks/check-domain-counts.sh
 
       # Shell scripts are load-bearing gates now (verify-tag, train check,
       # isolation...). Lint them in CI; treefmt owns local formatting.
@@ -737,56 +737,56 @@ jobs:
       # Offline fixture self-tests for the release tag protocol + the
       # pre-commit hook installer (git only, no network, no signing keys).
       - name: verify-tag fixture self-test
-        run: bash scripts/test-verify-tag.sh
+        run: bash scripts/selftests/test-verify-tag.sh
 
       - name: install-git-hooks self-test
-        run: bash scripts/test-install-git-hooks.sh
+        run: bash scripts/selftests/test-install-git-hooks.sh
 
       # Presence gate for archived status-report annotations (inline
       # strikethrough + dated blockquote since the 2026-09-09 epoch; older
       # reports are LEGACY-EXEMPT) plus its fixture self-test.
       - name: Status annotation gate
-        run: bash scripts/check-status-annotations.sh
+        run: bash scripts/checks/check-status-annotations.sh
 
       - name: Status annotation gate self-test
-        run: bash scripts/test-check-status-annotations.sh
+        run: bash scripts/selftests/test-check-status-annotations.sh
 
       # Row-integrity gate for annotated status reports (PARTIAL rows fail;
       # deliberately-mixed tables are first-class) plus its fixture self-test.
       - name: Status row gate
-        run: python3 scripts/check-status-rows.py
+        run: python3 scripts/checks/check-status-rows.py
 
       - name: Status row gate self-test
-        run: bash scripts/test-check-status-rows.sh
+        run: bash scripts/selftests/test-check-status-rows.sh
 
       # Fixer-side companion to the row gate: proves the whole-row-strike
       # normalizer completes PARTIAL rows and that the checker then agrees
       # (the 2026-10-01 round-13 batch that normalized 72 rows by hand).
       - name: Status row normalize self-test
-        run: bash scripts/test-normalize-status-rows.sh
+        run: bash scripts/selftests/test-normalize-status-rows.sh
 
       # Advisory tail-budget gate (non-blocking by design; a mid-session
       # docs/status tail is legitimate) plus its fixture self-test.
       - name: Docs status tail-budget self-test
-        run: bash scripts/test-check-docs-tail-budget.sh
+        run: bash scripts/selftests/test-check-docs-tail-budget.sh
 
       # bump-dep.sh discovery self-test (block + single-line require forms,
       # $ anchor, testdata skip) — the 9b3c2e18 regex-gap regression guard.
       - name: bump-dep self-test
-        run: bash scripts/test-bump-dep.sh
+        run: bash scripts/selftests/test-bump-dep.sh
 
       # Fixture self-test for the /v4-suffix import-path rule inside
       # check-docs-freshness.sh (scripts/lib/docs-import-paths.sh).
       - name: Docs freshness self-test
-        run: bash scripts/test-check-docs-freshness.sh
+        run: bash scripts/selftests/test-check-docs-freshness.sh
 
       # The checker itself (was self-test-only — a CI parity gap found in
       # the 2026-09-26 wiring sweep; the gate is offline-capable).
       - name: Docs freshness check
-        run: bash scripts/check-docs-freshness.sh
+        run: bash scripts/checks/check-docs-freshness.sh
 
       - name: Markdown link check
-        run: bash scripts/check-docs-links.sh
+        run: bash scripts/checks/check-docs-links.sh
 
       - name: Codegen drift check (_templ.go)
         env:
@@ -807,7 +807,7 @@ jobs:
 
       - name: SQL setup template compile check
         run: |
-          bash scripts/check-templates.sh
+          bash scripts/checks/check-templates.sh
           if ! git diff --exit-code -- usermgmt/; then
             echo ""
             echo "FAIL: check-templates.sh left usermgmt/ modified."
@@ -832,15 +832,15 @@ jobs:
         with:
           go-version-file: go.mod
 
-      # Canonical zero-pseudo scan (scripts/check-require-tags.sh) replaces
+      # Canonical zero-pseudo scan (scripts/checks/check-require-tags.sh) replaces
       # the former inline grep copy in this job.
       - name: Require tags check (zero-pseudo)
-        run: bash scripts/check-require-tags.sh
+        run: bash scripts/checks/check-require-tags.sh
 
       - name: Error family check
         run: |
           echo "=== Error Family Check ==="
-          go run scripts/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage datastar setup
+          go run scripts/checks/errorfamily_scanner.go . usermgmt adminui identity-model dashboardui loginpage datastar setup
           echo "OK: All modules pass errorfamily check."
         env:
           GOEXPERIMENT: jsonv2

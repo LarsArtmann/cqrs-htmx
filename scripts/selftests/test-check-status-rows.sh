@@ -5,13 +5,13 @@
 # fail; deliberately-mixed tables (struck = done, unstruck = open) are counted
 # but pass; tildes inside inline code spans never count as strikethrough.
 #
-# Usage: ./scripts/test-check-status-rows.sh
+# Usage: ./scripts/selftests/test-check-status-rows.sh
 # Exit: 0 = all cases pass, 1 = at least one case fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-status-rows.py"
+CHECKER="$SCRIPT_DIR/../checks/check-status-rows.py"
 
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT

@@ -21,7 +21,7 @@ to adjudicate; this gate encodes the adjudicated policy so a clean checkout
 can run it green.
 
 Usage:
-  python3 scripts/check-status-rows.py [path...]   # dirs expand to DIR/*.md
+  python3 scripts/checks/check-status-rows.py [path...]   # dirs expand to DIR/*.md
   (no arguments: docs/status/archived/*.md)
 
 Exit: 0 = no PARTIAL rows; 1 = at least one PARTIAL row.

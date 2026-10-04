@@ -17,7 +17,7 @@
 #                        the machine is under load — never bench under load)
 #
 # Usage:
-#   source scripts/lib/go-cache-env.sh && bash scripts/bump-verify.sh [--skip-bench]
+#   source scripts/lib/go-cache-env.sh && bash scripts/tools/bump-verify.sh [--skip-bench]
 # Exit: 0 = all requested stages green, 1 = first failing stage (named).
 # Per-stage full logs: /tmp/bump-verify-<stage>.log
 
@@ -29,7 +29,7 @@ if [[ ${1:-} == "--skip-bench" ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 
 stage() { # <name> <args to nix run .#...>

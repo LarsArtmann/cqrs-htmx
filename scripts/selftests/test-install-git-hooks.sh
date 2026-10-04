@@ -13,14 +13,14 @@
 #     go.work floor when the ambient toolchain is older, and never
 #     downgrades a newer one
 #
-# Usage: ./scripts/test-install-git-hooks.sh
+# Usage: ./scripts/selftests/test-install-git-hooks.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INSTALLER="$SCRIPT_DIR/install-git-hooks.sh"
-TEMPLATE="$SCRIPT_DIR/hooks/pre-commit.template"
+INSTALLER="$SCRIPT_DIR/../tools/install-git-hooks.sh"
+TEMPLATE="$SCRIPT_DIR/../hooks/pre-commit.template"
 
 pass=0
 fail=0
@@ -79,13 +79,13 @@ new_scratch() { # echoes scratch dir; repo-local hooksPath keeps the suite
   git -C "$scratch" config user.name fixture
   git -C "$scratch" config commit.gpgsign false
   git -C "$scratch" config core.hooksPath .githooks
-  mkdir -p "$scratch/scripts/hooks" "$scratch/scripts/lib"
-  cp "$TEMPLATE" "$SCRIPT_DIR/hooks/pre-push.template" "$scratch/scripts/hooks/"
-  cp "$INSTALLER" "$scratch/scripts/"
-  cp "$SCRIPT_DIR/check-large-files.sh" "$SCRIPT_DIR/check-release-train.sh" \
-    "$SCRIPT_DIR/check-version-drift.sh" \
-    "$SCRIPT_DIR/prewarm-gocache.sh" "$scratch/scripts/"
-  cp "$SCRIPT_DIR/lib/go-cache-env.sh" "$SCRIPT_DIR/lib/replace-exemption.sh" \
+  mkdir -p "$scratch/scripts/hooks" "$scratch/scripts/lib" "$scratch/scripts/checks" "$scratch/scripts/tools"
+  cp "$TEMPLATE" "$SCRIPT_DIR/../hooks/pre-push.template" "$scratch/scripts/hooks/"
+  cp "$INSTALLER" "$scratch/scripts/tools/"
+  cp "$SCRIPT_DIR/../checks/check-large-files.sh" "$SCRIPT_DIR/../checks/check-release-train.sh" \
+    "$SCRIPT_DIR/../checks/check-version-drift.sh" \
+    "$SCRIPT_DIR/../tools/prewarm-gocache.sh" "$scratch/scripts/tools/"
+  cp "$SCRIPT_DIR/../lib/go-cache-env.sh" "$SCRIPT_DIR/../lib/replace-exemption.sh" \
     "$scratch/scripts/lib/" 2>/dev/null || true
   printf '%s\n' "$scratch"
 }
@@ -97,7 +97,7 @@ echo ""
 # --- T1: --verify on missing hook -> exit 2 --------------------------------
 S="$(new_scratch)"
 set +e
-bash "$S/scripts/install-git-hooks.sh" --verify >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" --verify >/dev/null 2>&1
 rc=$?
 set -e
 report "$([ "$rc" -eq 2 ] && echo 0 || echo 1)" "T1 --verify missing hook exits 2 (got $rc)"
@@ -109,7 +109,7 @@ HD="$S/.githooks"
 mkdir -p "$HD"
 write_baseline "$HD"
 set +e
-OUT="$(bash "$S/scripts/install-git-hooks.sh" 2>&1)"
+OUT="$(bash "$S/scripts/tools/install-git-hooks.sh" 2>&1)"
 rc=$?
 set -e
 report "$([ "$rc" -eq 1 ] && echo 0 || echo 1)" "T2 refuses diverged hook, exit 1 (got $rc)"
@@ -122,15 +122,15 @@ HD="$S/.githooks"
 mkdir -p "$HD"
 write_baseline "$HD"
 set +e
-bash "$S/scripts/install-git-hooks.sh" --force >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" --force >/dev/null 2>&1
 rc=$?
 set -e
 report "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "T3 --force exits 0"
 report "$(cmp -s "$TEMPLATE" "$HD/pre-commit" && echo 0 || echo 1)" "T3 hook byte-matches template after --force"
 set +e
-bash "$S/scripts/install-git-hooks.sh" >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" >/dev/null 2>&1
 rc=$?
-bash "$S/scripts/install-git-hooks.sh" --verify >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" --verify >/dev/null 2>&1
 rcv=$?
 set -e
 report "$([ "$rc" -eq 0 ] && [ "$rcv" -eq 0 ] && echo 0 || echo 1)" "T4/T5 default idempotent + --verify OK"
@@ -160,12 +160,12 @@ rm -rf "$S"
 S="$(new_scratch)"
 git -C "$S" config core.hooksPath .myhooks
 set +e
-bash "$S/scripts/install-git-hooks.sh" --verify >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" --verify >/dev/null 2>&1
 rc=$?
 set -e
 report "$([ "$rc" -eq 2 ] && echo 0 || echo 1)" "T8 --verify targets core.hooksPath (.myhooks), exits 2 when missing"
 set +e
-bash "$S/scripts/install-git-hooks.sh" >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" >/dev/null 2>&1
 rc=$?
 set -e
 report "$([ "$rc" -eq 0 ] && [ -f "$S/.myhooks/pre-commit" ] && [ -f "$S/.myhooks/pre-push" ] && echo 0 || echo 1)" "T8 default installs BOTH hooks into .myhooks/"
@@ -191,7 +191,7 @@ rm -rf "$S"
 # --- T10: default mode installs BOTH hooks when missing ---------------------
 S="$(new_scratch)"
 set +e
-bash "$S/scripts/install-git-hooks.sh" >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" >/dev/null 2>&1
 rc=$?
 set -e
 report "$([ "$rc" -eq 0 ] && [ -x "$S/.githooks/pre-commit" ] && [ -x "$S/.githooks/pre-push" ] && echo 0 || echo 1)" "T10 default installs pre-commit AND pre-push (executable)"
@@ -204,7 +204,7 @@ mkdir -p "$HD"
 cp "$TEMPLATE" "$HD/pre-commit"
 chmod +x "$HD/pre-commit"
 set +e
-bash "$S/scripts/install-git-hooks.sh" --verify >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" --verify >/dev/null 2>&1
 rc=$?
 set -e
 report "$([ "$rc" -eq 2 ] && echo 0 || echo 1)" "T11 --verify exits 2 with pre-push missing (got $rc)"
@@ -215,7 +215,7 @@ rm -rf "$S"
 # discover modules via `find . -name go.mod`), so a push to a local bare
 # remote must pass THROUGH the installed pre-push hook.
 S="$(new_scratch)"
-bash "$S/scripts/install-git-hooks.sh" >/dev/null 2>&1
+bash "$S/scripts/tools/install-git-hooks.sh" >/dev/null 2>&1
 mkdir -p "$S/bin"
 printf '#!/usr/bin/env bash\nexit 0\n' >"$S/bin/buildflow"
 chmod +x "$S/bin/buildflow"

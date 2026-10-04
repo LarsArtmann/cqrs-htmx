@@ -7,7 +7,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-INVENTORY="$SCRIPT_DIR/erraudit-inventory.sh"
+INVENTORY="$SCRIPT_DIR/../checks/erraudit-inventory.sh"
 TMP=$(mktemp -d /tmp/erraudit-inventory-test-XXXXXX)
 trap 'rm -rf "$TMP"' EXIT
 failures=0

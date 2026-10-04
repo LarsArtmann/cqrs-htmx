@@ -14,7 +14,7 @@
 #
 # WORKSPACE_BUILD_ROOT overrides the tree under test (default: this repo's
 # root) — the fixture self-test uses it to build throwaway workspaces
-# offline (scripts/test-check-workspace-build.sh).
+# offline (scripts/selftests/test-check-workspace-build.sh).
 #
 # CONSUMER VIEW: the tracked go.work carries machine-local replace targets
 # (the fleet's sibling checkouts under /home/lars/projects/...) that cannot
@@ -24,7 +24,7 @@
 # filter and still fire. First CI run (2026-10-01, run 36824785928) proved
 # the unfiltered form fails exactly there.
 #
-# Usage: nix run .#check-workspace-build  OR  bash scripts/check-workspace-build.sh
+# Usage: nix run .#check-workspace-build  OR  bash scripts/checks/check-workspace-build.sh
 set -uo pipefail
 
 export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"

@@ -6,12 +6,12 @@
 # trap: CI and devShells run GOTOOLCHAIN=local, so a too-new directive breaks
 # every local build the moment go.work is ahead of nixpkgs).
 #
-# Usage: ./scripts/check-go-toolchain.sh
+# Usage: ./scripts/checks/check-go-toolchain.sh
 # Exit:  0 = go.work directive <= toolchain version, 1 otherwise.
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 work_go="$(awk '/^go /{print $2; exit}' go.work)"

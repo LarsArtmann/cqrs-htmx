@@ -15,14 +15,14 @@
 # header, byte floor (catches the near-empty class), and canary utility
 # selectors that must survive every legitimate rebuild.
 #
-# Usage: scripts/check-css-bundles.sh
+# Usage: scripts/checks/check-css-bundles.sh
 # Env (TEST HOOK): CHECK_CSS_BUNDLES_ROOT=<dir>  scan a fixture tree
 #                  instead of the repo root.
 # Exit: 0 = all bundles canonical; 1 = corruption-shaped bundle found
 
 set -uo pipefail
 
-REPO_ROOT="${CHECK_CSS_BUNDLES_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+REPO_ROOT="${CHECK_CSS_BUNDLES_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
 # Byte floor per bundle: generous absolute minimum. Legitimate rebuilds
 # move this by a few KB; the corruption class lands 10x lower. If an
@@ -98,7 +98,7 @@ if [ "$failures" -gt 0 ]; then
   echo "    nix run .#build-adminui-css     # adminui/assets/admin-tw.css"
   echo "    nix run .#build-dashboardui-css # dashboardui/assets/dashboard-tw.css"
   echo "  If a rebuild legitimately changes size below the floor, re-pin"
-  echo "  MIN_BYTES in scripts/check-css-bundles.sh in the same change."
+  echo "  MIN_BYTES in scripts/checks/check-css-bundles.sh in the same change."
   exit 1
 fi
 

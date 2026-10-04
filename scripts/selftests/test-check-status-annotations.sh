@@ -11,13 +11,13 @@
 #   - a file without a YYYY-MM-DD prefix fails with NO-DATE
 #   - a missing directory fails with a clear message
 #
-# Usage: ./scripts/test-check-status-annotations.sh
+# Usage: ./scripts/selftests/test-check-status-annotations.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-status-annotations.sh"
+CHECKER="$SCRIPT_DIR/../checks/check-status-annotations.sh"
 
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
@@ -36,8 +36,8 @@ report() { # <ok 0|1> <label...>
   fi
 }
 
-mkdir -p "$TMPDIR/scripts" "$TMPDIR/docs/status/archived"
-cp "$CHECKER" "$TMPDIR/scripts/check-status-annotations.sh"
+mkdir -p "$TMPDIR/scripts/checks" "$TMPDIR/docs/status/archived"
+cp "$CHECKER" "$TMPDIR/scripts/checks/check-status-annotations.sh"
 
 # Fixture dirs are rebuilt per case so cases never leak into each other.
 reset_fixtures() {
@@ -48,7 +48,7 @@ reset_fixtures() {
 # run_gate <extra-arg...>; sets RC and OUTPUT
 run_gate() {
   RC=0
-  OUTPUT="$( (cd "$TMPDIR" && bash scripts/check-status-annotations.sh "$@") 2>&1)" || RC=$?
+  OUTPUT="$( (cd "$TMPDIR" && bash scripts/checks/check-status-annotations.sh "$@") 2>&1)" || RC=$?
 }
 
 assert_rc() { # <label> <expected-rc>

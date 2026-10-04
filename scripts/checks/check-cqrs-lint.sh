@@ -15,7 +15,7 @@
 # REQUIRED or every module fails with load errors (the ambient go cannot load
 # the 1.27.1 workspace).
 #
-# Usage: bash scripts/check-cqrs-lint.sh [module-dir...]   (default: the gate list)
+# Usage: bash scripts/checks/check-cqrs-lint.sh [module-dir...]   (default: the gate list)
 set -uo pipefail
 
 export GOWORK=off

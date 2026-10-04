@@ -18,7 +18,7 @@ checker ignores it), so a cell holding only `~~x~~` literal text is still
 wrapped once.
 
 Usage:
-  python3 scripts/normalize-status-rows.py [--dry-run] [path...]
+  python3 scripts/tools/normalize-status-rows.py [--dry-run] [path...]
   (no paths: docs/status/archived/*.md)
 
 Exit: 0 = normalized (or nothing to do); 1 = a file could not be read.

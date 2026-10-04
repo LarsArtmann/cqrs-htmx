@@ -9,7 +9,7 @@
 #   4. a replace-satisfied require is exempt from drift (no finding)
 #   5. uniform versions are clean in both modes
 #
-# Usage: ./scripts/test-check-version-drift.sh
+# Usage: ./scripts/selftests/test-check-version-drift.sh
 # Exit:  0 = all tests pass, 1 = at least one fails
 # Requires: network for the fixture tag-existence leg (real
 # github.com/larsartmann/templ-components tags are used as fixtures).
@@ -17,8 +17,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DRIFT="$SCRIPT_DIR/check-version-drift.sh"
-LIB="$SCRIPT_DIR/lib/replace-exemption.sh"
+DRIFT="$SCRIPT_DIR/../checks/check-version-drift.sh"
+LIB="$SCRIPT_DIR/../lib/replace-exemption.sh"
 
 pass=0
 fail=0

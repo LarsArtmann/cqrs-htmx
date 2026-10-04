@@ -15,12 +15,12 @@
 # first-class and never flagged here; the row-integrity check lives in the
 # docs-health skill's check-rows.py and is run manually per audit.
 #
-# Usage: bash scripts/check-status-annotations.sh [dir]
+# Usage: bash scripts/checks/check-status-annotations.sh [dir]
 # Exit: 0 = every gated report annotated; 1 = at least one missing marker.
 
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 
 ANNOTATION_EPOCH="2026-09-09"

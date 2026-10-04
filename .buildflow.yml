@@ -8,7 +8,7 @@
 # WRITEs. At concurrency 1 there is only ever ONE writer, so the race is
 # impossible. The speed cost is negligible (~5% on a warm cache) because the
 # bottleneck is per-module compile time, not parallelism.
-# scripts/prewarm-gocache.sh remains a PERFORMANCE optimization and is still
+# scripts/tools/prewarm-gocache.sh remains a PERFORMANCE optimization and is still
 # called from the pre-commit hook; it is no longer load-bearing for correctness.
 max_concurrency: 1
 
@@ -103,7 +103,7 @@ exclude:
 #   2. Its fixer runs `go mod tidy` after every `go mod edit` (pkg/fix
 #      ensureTidyStable). The verify-tag fixtures under scripts/testdata/ are
 #      go.mod-only modules (no .go files), so tidy deleted EVERY require line,
-#      silently disabling scripts/test-verify-tag.sh's 12-case guard (it then
+#      silently disabling scripts/selftests/test-verify-tag.sh's 12-case guard (it then
 #      passed; the rejects had nothing left to reject). The SDK walker skips
 #      only vendor/node_modules/.git/result — NOT testdata, unlike BuildFlow's
 #      own DefaultExcludePatterns.
@@ -115,7 +115,7 @@ exclude:
 # AGENTS gotcha 9), and the step class was the 2026-09-23 pretty-bundle
 # producer (TODO P2). Canonical minified bundles come from the flake apps
 # (nix run .#build-adminui-css / .#build-dashboardui-css) and are gated by
-# scripts/check-css-bundles.sh. Re-enable only if a buildflow-native build
+# scripts/checks/check-css-bundles.sh. Re-enable only if a buildflow-native build
 # can target per-module outputs with --minify AND honor the exclude list.
 skip_steps:
   - templ-generate

@@ -9,7 +9,7 @@
 # Exits 0 once one full window passes clean; exits 1 on --max-wait timeout.
 #
 # Usage:
-#   scripts/wait-tree-quiet.sh [--quiet 90] [--poll 5] [--max-wait 600]
+#   scripts/tools/wait-tree-quiet.sh [--quiet 90] [--poll 5] [--max-wait 600]
 # Environment overrides: WAIT_TREE_QUIET_SECONDS / _POLL / _MAX_WAIT
 # Exit: 0 = quiet window completed; 1 = timeout; 2 = usage/environment
 #

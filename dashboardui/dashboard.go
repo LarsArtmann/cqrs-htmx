@@ -13,9 +13,9 @@ import (
 	"github.com/larsartmann/httputil"
 )
 
-// Dashboard is the CQRS/ES observability panel. Build it with [New] or
-// [FromBundle], then register it on a router with [Dashboard.Mount] or
-// [Dashboard.Handler].
+// Dashboard is the CQRS/ES observability panel. Build it with [New],
+// [MustNew], or a capability-probed [Autodetect] config, then register it on
+// a router with [Dashboard.Mount] or [Dashboard.Handler].
 //
 // The dashboard reads from go-cqrs-lite introspection interfaces.
 // Panels are conditionally active based on which interfaces the consumer
@@ -119,6 +119,7 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 		ReadOnly:  d.config.ReadOnly,
 		Caps:      d.caps,
 		HTMX:      cqrshtmx.IsHTMXRequest(r),
+		shell:     d.config.Layout,
 	}
 }
 

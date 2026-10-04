@@ -7,13 +7,13 @@
 #   - The counts match known totals (21 events, 20 commands)
 #   - Drift is detected using an isolated fake repo (no real files modified)
 #
-# Usage: ./scripts/test-check-domain-counts.sh
+# Usage: ./scripts/selftests/test-check-domain-counts.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-domain-counts.sh"
+CHECKER="$SCRIPT_DIR/../checks/check-domain-counts.sh"
 
 TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT

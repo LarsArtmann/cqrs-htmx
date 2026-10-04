@@ -20,7 +20,7 @@
 #   - stack/mysql/v4 has no v4.2.0+ tag; v4.1.0 is the latest published and
 #     compiles against the current templates.
 #
-# Usage: nix run .#check-templates  OR  bash scripts/check-templates.sh
+# Usage: nix run .#check-templates  OR  bash scripts/checks/check-templates.sh
 set -euo pipefail
 
 export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"

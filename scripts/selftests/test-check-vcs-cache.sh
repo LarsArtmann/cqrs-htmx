@@ -8,13 +8,13 @@
 #       /mnt/buildcache corruption class)        -> FAIL, repair hint shown
 #   F3  missing cache/vcs directory              -> PASS, nothing to do
 #
-# Usage: ./scripts/test-check-vcs-cache.sh
+# Usage: ./scripts/selftests/test-check-vcs-cache.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CHECKER="$SCRIPT_DIR/check-vcs-cache.sh"
+CHECKER="$SCRIPT_DIR/../checks/check-vcs-cache.sh"
 
 pass=0
 fail=0

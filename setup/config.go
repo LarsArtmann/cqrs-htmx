@@ -405,6 +405,13 @@ type Config struct {
 	// deny access. When nil, any authenticated user can view the dashboard.
 	DashboardAuthorizer func(r *http.Request) error
 
+	// DashboardLayout replaces the dashboard's built-in page shell (sidebar,
+	// header, theme, stylesheet links) with a consumer-owned document: every
+	// dashboard page renders INSIDE the app's own chrome instead of as a
+	// standalone destination. See dashboardui.LayoutFunc for the contract.
+	// Nil (the default) keeps the standalone dashboard shell.
+	DashboardLayout dashboardui.LayoutFunc
+
 	// LogoutURL is shown as a link in the admin and dashboard panels (default: "" = hidden).
 	LogoutURL string
 

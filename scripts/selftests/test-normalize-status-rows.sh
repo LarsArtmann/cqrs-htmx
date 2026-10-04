@@ -9,12 +9,12 @@
 #   3. --dry-run writes nothing;
 #   4. the normalizer is idempotent (a second run finds nothing to fix).
 #
-# Usage: bash scripts/test-normalize-status-rows.sh
+# Usage: bash scripts/selftests/test-normalize-status-rows.sh
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NORMALIZER="$SCRIPT_DIR/normalize-status-rows.py"
-CHECKER="$SCRIPT_DIR/check-status-rows.py"
+NORMALIZER="$SCRIPT_DIR/../tools/normalize-status-rows.py"
+CHECKER="$SCRIPT_DIR/../checks/check-status-rows.py"
 
 WORK=$(mktemp -d /tmp/test-normalize-status-rows-XXXXXX)
 trap 'rm -rf "$WORK"' EXIT

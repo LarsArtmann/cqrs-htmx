@@ -19,7 +19,7 @@
 #   - A repo missing its origin remote => FAIL with the repair command.
 #   - TEST HOOK: VCS_CACHE_ROOT overrides the cache/vcs path (self-test).
 #
-# Usage: ./scripts/check-vcs-cache.sh
+# Usage: ./scripts/checks/check-vcs-cache.sh
 # Exit: 0 = cache healthy or absent, 1 = at least one VCS entry is broken
 
 set -uo pipefail

@@ -9,14 +9,14 @@
 # The corpus includes the REAL poisoned go.mod of setup/v4.8.1 — the
 # regression anchor for the incident that produced this protocol.
 #
-# Usage: ./scripts/test-verify-tag.sh
+# Usage: ./scripts/selftests/test-verify-tag.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VERIFY="$SCRIPT_DIR/verify-tag.sh"
-FIXTURES="$SCRIPT_DIR/testdata/verify-tag"
+VERIFY="$SCRIPT_DIR/../tools/verify-tag.sh"
+FIXTURES="$SCRIPT_DIR/../testdata/verify-tag"
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -154,7 +154,7 @@ fi
 
 # --- Tag-message guard (lib/tag-message-guard.sh) ---------------------------
 # shellcheck disable=SC1091
-source "$SCRIPT_DIR/lib/tag-message-guard.sh"
+source "$SCRIPT_DIR/../lib/tag-message-guard.sh"
 git tag -a guard-ok -m "github.com/larsartmann/cqrs-htmx/v4 v4.8.0" HEAD
 if verify_tag_message guard-ok "github.com/larsartmann/cqrs-htmx/v4" "v4.8.0" >/dev/null 2>&1; then
   echo "  PASS: annotated tag with correct subject passes"

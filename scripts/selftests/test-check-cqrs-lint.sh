@@ -14,7 +14,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-GATE="$SCRIPT_DIR/check-cqrs-lint.sh"
+GATE="$SCRIPT_DIR/../checks/check-cqrs-lint.sh"
 TMP=$(mktemp -d /tmp/check-cqrs-lint-test-XXXXXX)
 trap 'rm -rf "$TMP"' EXIT
 failures=0

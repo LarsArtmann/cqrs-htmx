@@ -17,7 +17,7 @@
 # Refuses to run on a dirty bundle (a restore would destroy uncommitted
 # work — commit or rebuild first).
 #
-# Usage: scripts/check-css-bundle-classes.sh
+# Usage: scripts/checks/check-css-bundle-classes.sh
 # Env (TEST HOOK): CHECK_CSS_BUNDLE_CLASSES_NO_BUILD=1
 #                  skip the nix builders; compare <bundle> against
 #                  <bundle>.fresh instead (fixture mode: no mutation,
@@ -26,7 +26,7 @@
 
 set -uo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 NO_BUILD="${CHECK_CSS_BUNDLE_CLASSES_NO_BUILD:-0}"
 
 # module:bundle-path pairs (module name drives the flake builder app)

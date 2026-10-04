@@ -24,8 +24,8 @@ func TestAutodetect_MemoryStoreWiresReadInterfaces(t *testing.T) {
 		t.Error("Journal should be detected on the memory store")
 	}
 
-	if config.SeekableJournal != nil {
-		t.Error("SeekableJournal should stay nil — the memory store does not implement it")
+	if config.SeekableJournal == nil {
+		t.Error("SeekableJournal should be detected — the memory store implements it")
 	}
 
 	if config.ProjectionHost != nil {
@@ -50,17 +50,13 @@ func TestAutodetect_CapabilitiesMatchExplicitConfig(t *testing.T) {
 		t.Fatalf("New(autodetected): %v", err)
 	}
 
-	explicitDash, err := New(Config{EventSource: store, Journal: store})
-	if err != nil {
-		t.Fatalf("New(explicit): %v", err)
+	caps := autoDash.Capabilities()
+	if !caps.EventSource || !caps.Journal || !caps.SeekableJournal {
+		t.Errorf("capabilities = %+v, want all three read interfaces active", caps)
 	}
 
-	if autoDash.Capabilities() != explicitDash.Capabilities() {
-		t.Errorf(
-			"capabilities diverge: autodetect %+v, explicit %+v",
-			autoDash.Capabilities(),
-			explicitDash.Capabilities(),
-		)
+	if !caps.HasEventRead() {
+		t.Error("HasEventRead should be true after autodetect")
 	}
 }
 

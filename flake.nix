@@ -288,7 +288,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/bump-dep.sh "$@"
+                    bash scripts/tools/bump-dep.sh "$@"
                   '';
                 }
               );
@@ -308,7 +308,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-bump-dep.sh
+                    bash scripts/selftests/test-bump-dep.sh
                   '';
                 }
               );
@@ -1023,7 +1023,7 @@
                       local dir="$1"
                       local name="$2"
                       echo "==> $name"
-                      go run scripts/errorfamily_scanner.go "$dir"
+                      go run scripts/checks/errorfamily_scanner.go "$dir"
                       echo "  OK"
                     }
 
@@ -1055,35 +1055,35 @@
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     if [ "''${1:-}" = "--report" ]; then
                       stages=(
-                        "module-isolation:bash scripts/check-module-isolation.sh"
-                        "dep-budgets:bash scripts/check-dep-budgets.sh"
-                        "dep-budgets-self-test:bash scripts/test-check-dep-budgets.sh"
-                        "go-toolchain:bash scripts/check-go-toolchain.sh"
-                        "workspace-build:bash scripts/check-workspace-build.sh"
-                        "workspace-build-self-test:bash scripts/test-check-workspace-build.sh"
-                        "version-drift:bash scripts/check-version-drift.sh --strict"
-                        "release-train:bash scripts/check-release-train.sh"
-                        "release-train-self-test:bash scripts/test-check-release-train.sh"
-                        "vcs-cache:bash scripts/check-vcs-cache.sh"
-                        "vcs-cache-self-test:bash scripts/test-check-vcs-cache.sh"
-                        "css-bundles:bash scripts/check-css-bundles.sh"
-                        "css-bundles-self-test:bash scripts/test-check-css-bundles.sh"
-                        "css-bundle-classes:bash scripts/check-css-bundle-classes.sh"
-                        "css-bundle-classes-self-test:bash scripts/test-check-css-bundle-classes.sh"
-                        "preflight-self-test:bash scripts/test-preflight-tree-check.sh"
-                        "wait-tree-quiet-self-test:bash scripts/test-wait-tree-quiet.sh"
-                        "replace-directives:bash scripts/check-replace-directives.sh"
-                        "docs-freshness:bash scripts/check-docs-freshness.sh"
-                        "docs-freshness-self-test:bash scripts/test-check-docs-freshness.sh"
-                        "docs-links:bash scripts/check-docs-links.sh"
-                        "status-annotations:bash scripts/check-status-annotations.sh"
-                        "status-annotations-self-test:bash scripts/test-check-status-annotations.sh"
-                        "status-rows:python3 scripts/check-status-rows.py"
-                        "status-rows-self-test:bash scripts/test-check-status-rows.sh"
-                        "status-rows-normalize-self-test:bash scripts/test-normalize-status-rows.sh"
-                        "bump-dep-self-test:bash scripts/test-bump-dep.sh"
-                        "erraudit-inventory-self-test:bash scripts/test-erraudit-inventory.sh"
-                        "cqrs-lint-gate-self-test:bash scripts/test-check-cqrs-lint.sh"
+                        "module-isolation:bash scripts/checks/check-module-isolation.sh"
+                        "dep-budgets:bash scripts/checks/check-dep-budgets.sh"
+                        "dep-budgets-self-test:bash scripts/selftests/test-check-dep-budgets.sh"
+                        "go-toolchain:bash scripts/checks/check-go-toolchain.sh"
+                        "workspace-build:bash scripts/checks/check-workspace-build.sh"
+                        "workspace-build-self-test:bash scripts/selftests/test-check-workspace-build.sh"
+                        "version-drift:bash scripts/checks/check-version-drift.sh --strict"
+                        "release-train:bash scripts/checks/check-release-train.sh"
+                        "release-train-self-test:bash scripts/selftests/test-check-release-train.sh"
+                        "vcs-cache:bash scripts/checks/check-vcs-cache.sh"
+                        "vcs-cache-self-test:bash scripts/selftests/test-check-vcs-cache.sh"
+                        "css-bundles:bash scripts/checks/check-css-bundles.sh"
+                        "css-bundles-self-test:bash scripts/selftests/test-check-css-bundles.sh"
+                        "css-bundle-classes:bash scripts/checks/check-css-bundle-classes.sh"
+                        "css-bundle-classes-self-test:bash scripts/selftests/test-check-css-bundle-classes.sh"
+                        "preflight-self-test:bash scripts/selftests/test-preflight-tree-check.sh"
+                        "wait-tree-quiet-self-test:bash scripts/selftests/test-wait-tree-quiet.sh"
+                        "replace-directives:bash scripts/checks/check-replace-directives.sh"
+                        "docs-freshness:bash scripts/checks/check-docs-freshness.sh"
+                        "docs-freshness-self-test:bash scripts/selftests/test-check-docs-freshness.sh"
+                        "docs-links:bash scripts/checks/check-docs-links.sh"
+                        "status-annotations:bash scripts/checks/check-status-annotations.sh"
+                        "status-annotations-self-test:bash scripts/selftests/test-check-status-annotations.sh"
+                        "status-rows:python3 scripts/checks/check-status-rows.py"
+                        "status-rows-self-test:bash scripts/selftests/test-check-status-rows.sh"
+                        "status-rows-normalize-self-test:bash scripts/selftests/test-normalize-status-rows.sh"
+                        "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
+                        "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
+                        "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -1105,30 +1105,30 @@
                       echo "✓ All ''${#stages[@]} module architecture checks passed"
                       exit 0
                     fi
-                    bash scripts/check-module-isolation.sh
-                    bash scripts/check-dep-budgets.sh
-                    bash scripts/test-check-dep-budgets.sh
-                    bash scripts/check-go-toolchain.sh
-                    bash scripts/check-workspace-build.sh
-                    bash scripts/test-check-workspace-build.sh
-                    bash scripts/check-version-drift.sh --strict
-                    bash scripts/check-release-train.sh
-                    bash scripts/check-vcs-cache.sh
-                    bash scripts/test-check-vcs-cache.sh
-                    bash scripts/check-css-bundles.sh
-                    bash scripts/test-check-css-bundles.sh
-                    bash scripts/check-css-bundle-classes.sh
-                    bash scripts/test-check-css-bundle-classes.sh
-                    bash scripts/check-replace-directives.sh
-                    bash scripts/check-docs-freshness.sh
-                    bash scripts/test-check-docs-freshness.sh
-                    bash scripts/check-docs-links.sh
-                    bash scripts/check-status-annotations.sh
-                    bash scripts/test-check-status-annotations.sh
-                    python3 scripts/check-status-rows.py
-                    bash scripts/test-check-status-rows.sh
-                    bash scripts/test-normalize-status-rows.sh
-                    bash scripts/test-bump-dep.sh
+                    bash scripts/checks/check-module-isolation.sh
+                    bash scripts/checks/check-dep-budgets.sh
+                    bash scripts/selftests/test-check-dep-budgets.sh
+                    bash scripts/checks/check-go-toolchain.sh
+                    bash scripts/checks/check-workspace-build.sh
+                    bash scripts/selftests/test-check-workspace-build.sh
+                    bash scripts/checks/check-version-drift.sh --strict
+                    bash scripts/checks/check-release-train.sh
+                    bash scripts/checks/check-vcs-cache.sh
+                    bash scripts/selftests/test-check-vcs-cache.sh
+                    bash scripts/checks/check-css-bundles.sh
+                    bash scripts/selftests/test-check-css-bundles.sh
+                    bash scripts/checks/check-css-bundle-classes.sh
+                    bash scripts/selftests/test-check-css-bundle-classes.sh
+                    bash scripts/checks/check-replace-directives.sh
+                    bash scripts/checks/check-docs-freshness.sh
+                    bash scripts/selftests/test-check-docs-freshness.sh
+                    bash scripts/checks/check-docs-links.sh
+                    bash scripts/checks/check-status-annotations.sh
+                    bash scripts/selftests/test-check-status-annotations.sh
+                    python3 scripts/checks/check-status-rows.py
+                    bash scripts/selftests/test-check-status-rows.sh
+                    bash scripts/selftests/test-normalize-status-rows.sh
+                    bash scripts/selftests/test-bump-dep.sh
                     echo ""
                     echo "✓ All module architecture checks passed"
                   '';
@@ -1145,7 +1145,7 @@
                   runtimeInputs = [ goPkg ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-docs-freshness.sh
+                    bash scripts/checks/check-docs-freshness.sh
                   '';
                 }
               );
@@ -1163,7 +1163,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-docs-links.sh
+                    bash scripts/checks/check-docs-links.sh
                   '';
                 }
               );
@@ -1182,7 +1182,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-status-annotations.sh
+                    bash scripts/checks/check-status-annotations.sh
                   '';
                 }
               );
@@ -1200,7 +1200,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    python3 scripts/check-status-rows.py
+                    python3 scripts/checks/check-status-rows.py
                   '';
                 }
               );
@@ -1220,7 +1220,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-status-rows.sh
+                    bash scripts/selftests/test-check-status-rows.sh
                   '';
                 }
               );
@@ -1238,7 +1238,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    python3 scripts/normalize-status-rows.py "$@"
+                    python3 scripts/tools/normalize-status-rows.py "$@"
                   '';
                 }
               );
@@ -1258,7 +1258,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-normalize-status-rows.sh
+                    bash scripts/selftests/test-normalize-status-rows.sh
                   '';
                 }
               );
@@ -1276,7 +1276,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-docs-tail-budget.sh "$@"
+                    bash scripts/checks/check-docs-tail-budget.sh "$@"
                   '';
                 }
               );
@@ -1296,7 +1296,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-docs-tail-budget.sh
+                    bash scripts/selftests/test-check-docs-tail-budget.sh
                   '';
                 }
               );
@@ -1316,7 +1316,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-status-annotations.sh
+                    bash scripts/selftests/test-check-status-annotations.sh
                   '';
                 }
               );
@@ -1335,7 +1335,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-dep-budgets.sh
+                    bash scripts/selftests/test-check-dep-budgets.sh
                   '';
                 }
               );
@@ -1355,7 +1355,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-vcs-cache.sh
+                    bash scripts/checks/check-vcs-cache.sh
                   '';
                 }
               );
@@ -1374,7 +1374,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-vcs-cache.sh
+                    bash scripts/selftests/test-check-vcs-cache.sh
                   '';
                 }
               );
@@ -1394,7 +1394,7 @@
                   text = ''
                     export GOTOOLCHAIN=local
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-workspace-build.sh
+                    bash scripts/checks/check-workspace-build.sh
                   '';
                 }
               );
@@ -1412,7 +1412,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-workspace-build.sh
+                    bash scripts/selftests/test-check-workspace-build.sh
                   '';
                 }
               );
@@ -1430,7 +1430,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/erraudit-inventory.sh "$@"
+                    bash scripts/checks/erraudit-inventory.sh "$@"
                   '';
                 }
               );
@@ -1447,7 +1447,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-erraudit-inventory.sh
+                    bash scripts/selftests/test-erraudit-inventory.sh
                   '';
                 }
               );
@@ -1465,7 +1465,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-css-bundles.sh
+                    bash scripts/checks/check-css-bundles.sh
                   '';
                 }
               );
@@ -1484,7 +1484,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-css-bundles.sh
+                    bash scripts/selftests/test-check-css-bundles.sh
                   '';
                 }
               );
@@ -1504,7 +1504,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-css-bundle-classes.sh
+                    bash scripts/checks/check-css-bundle-classes.sh
                   '';
                 }
               );
@@ -1522,7 +1522,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-css-bundle-classes.sh
+                    bash scripts/selftests/test-check-css-bundle-classes.sh
                   '';
                 }
               );
@@ -1541,7 +1541,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/preflight-tree-check.sh
+                    bash scripts/tools/preflight-tree-check.sh
                   '';
                 }
               );
@@ -1559,7 +1559,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/wait-tree-quiet.sh "$@"
+                    bash scripts/tools/wait-tree-quiet.sh "$@"
                   '';
                 }
               );
@@ -1580,7 +1580,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-release-train.sh "$@"
+                    bash scripts/checks/check-release-train.sh "$@"
                   '';
                 }
               );
@@ -1595,7 +1595,7 @@
                   runtimeInputs = [ goPkg ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-go-toolchain.sh
+                    bash scripts/checks/check-go-toolchain.sh
                   '';
                 }
               );
@@ -1636,7 +1636,7 @@
                   name = "check-templates";
                   runtimeInputs = [ goPkg ];
                   text = ''
-                    bash scripts/check-templates.sh
+                    bash scripts/checks/check-templates.sh
                   '';
                 }
               );
@@ -1699,7 +1699,7 @@
                   name = "release-checklist";
                   runtimeInputs = [ goPkg ];
                   text = ''
-                    bash scripts/release-checklist.sh
+                    bash scripts/tools/release-checklist.sh
                   '';
                 }
               );
@@ -1789,7 +1789,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-require-tags.sh
+                    bash scripts/checks/check-require-tags.sh
                   '';
                 }
               );
@@ -1805,7 +1805,7 @@
                   text = ''
                     echo "check-phantom-version is deprecated; run .#check-require-tags (the gate enforces tag existence now, not just pseudo-versions)" >&2
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-require-tags.sh
+                    bash scripts/checks/check-require-tags.sh
                   '';
                 }
               );
@@ -1813,7 +1813,7 @@
 
             check-cqrs-lint = {
               type = "app";
-              meta.description = "Run cqrs-lint --strict --fail-on-stale-suppressions on all workspace modules (gate logic in scripts/check-cqrs-lint.sh; local-only — CI has no cqrs-lint until the Go-installable distribution)";
+              meta.description = "Run cqrs-lint --strict --fail-on-stale-suppressions on all workspace modules (gate logic in scripts/checks/check-cqrs-lint.sh; local-only — CI has no cqrs-lint until the Go-installable distribution)";
               program = pkgs.lib.getExe (
                 pkgs.writeShellApplication {
                   name = "check-cqrs-lint";
@@ -1824,7 +1824,7 @@
                   runtimeInputs = [ goPkg ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/check-cqrs-lint.sh
+                    bash scripts/checks/check-cqrs-lint.sh
                   '';
                 }
               );
@@ -1842,7 +1842,7 @@
                   ];
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
-                    bash scripts/test-check-cqrs-lint.sh
+                    bash scripts/selftests/test-check-cqrs-lint.sh
                   '';
                 }
               );

@@ -9,13 +9,13 @@
 #   F5  daemon commit burst within the window            -> exit 1, names "commits within"
 #   F6  run outside a git repository                     -> exit 2
 #
-# Usage: ./scripts/test-preflight-tree-check.sh
+# Usage: ./scripts/selftests/test-preflight-tree-check.sh
 # Exit: 0 = all tests pass, 1 = at least one test fails
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
-CHECKER="$SCRIPT_DIR/preflight-tree-check.sh"
+CHECKER="$SCRIPT_DIR/../tools/preflight-tree-check.sh"
 
 pass=0
 fail=0
@@ -100,7 +100,7 @@ mkdir -p "$tmp/f6" && cd "$tmp/f6" || exit 1
 bash "$CHECKER" >"$tmp/f6.out" 2>&1
 rc=$?
 report "$([ "$rc" -eq 2 ] && echo 0 || echo 1)" "F6 outside repo exits 2 (got $rc)"
-cd "$SCRIPT_DIR/.." || exit 1
+cd "$SCRIPT_DIR/../.." || exit 1
 
 echo "== $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

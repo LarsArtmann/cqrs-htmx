@@ -8,7 +8,7 @@
 // inherently ignores ALL comment types (//, /* */, inline, multi-line).
 // Zero false positives from documentation or migration notes.
 //
-// Usage: go run scripts/errorfamily_scanner.go <dir> [<dir> ...]
+// Usage: go run scripts/checks/errorfamily_scanner.go <dir> [<dir> ...]
 package main
 
 import (
