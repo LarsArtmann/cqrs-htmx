@@ -159,6 +159,13 @@ func (m *SQLUserReadModel) Hydrate(ctx context.Context) error {
 	externalAccounts := make(map[externalAccountKey]id.StreamID)
 
 	for _, view := range views {
+		// Tombstoned users must not come back after a restart: the ES event
+		// path removes them from every map (handleUserDeleted), so hydration
+		// must mirror that or a deleted user would regain lookups.
+		if view.Tombstoned {
+			continue
+		}
+
 		user, err := unmarshalUserViewData(view.Data)
 		if err != nil {
 			return err
@@ -173,10 +180,21 @@ func (m *SQLUserReadModel) Hydrate(ctx context.Context) error {
 		}
 
 		users[aggID] = user
-		emails[user.Email] = aggID
+
+		// Keep-first (oldest registration wins): duplicate users sharing an
+		// email or external subject must never steal the lookup from the
+		// original user. Newest-wins hydration re-pointed every login at an
+		// empty duplicate while the data stayed attributed to the original
+		// (live 2026-10-04: browser-history dashboard showed no data).
+		if _, exists := emails[user.Email]; !exists {
+			emails[user.Email] = aggID
+		}
 
 		for _, ea := range user.ExternalAccounts {
-			externalAccounts[externalAccountKey{provider: ea.Provider, subject: ea.Subject}] = aggID
+			key := externalAccountKey{provider: ea.Provider, subject: ea.Subject}
+			if _, exists := externalAccounts[key]; !exists {
+				externalAccounts[key] = aggID
+			}
 		}
 	}
 

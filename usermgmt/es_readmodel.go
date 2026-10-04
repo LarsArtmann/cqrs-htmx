@@ -92,7 +92,13 @@ func (m *UserReadModel) handleUserRegistered(_ id.StreamID, evt event.Event) err
 		CreatedAt:   evt.OccurredAt(),
 		UpdatedAt:   evt.OccurredAt(),
 	}
-	m.emails[p.Email] = aggID
+	// Keep-first: duplicate registrations sharing an email (historical dupes
+	// exist in live DBs) must never steal the email mapping from the original
+	// user — newest-wins silently re-points every login at an empty user
+	// while the data stays attributed to the original.
+	if _, exists := m.emails[p.Email]; !exists {
+		m.emails[p.Email] = aggID
+	}
 	return nil
 }
 
@@ -108,11 +114,17 @@ func (m *UserReadModel) handleEmailChanged(_ id.StreamID, evt event.Event) error
 		return err
 	}
 	if u, ok := m.users[aggID]; ok {
-		delete(m.emails, u.Email)
+		// Only evict when THIS user owns the mapping (keep-first: a newer
+		// duplicate sharing the email must not remove the original's entry).
+		if m.emails[u.Email] == aggID {
+			delete(m.emails, u.Email)
+		}
 		u.Email = p.Email
 		u.EmailVerified = false
 		u.UpdatedAt = evt.OccurredAt()
-		m.emails[p.Email] = aggID
+		if _, exists := m.emails[p.Email]; !exists {
+			m.emails[p.Email] = aggID
+		}
 	}
 	return nil
 }
@@ -171,9 +183,16 @@ func (m *UserReadModel) handleCredentialRemoved(_ id.StreamID, evt event.Event) 
 
 func (m *UserReadModel) handleUserDeleted(aggID id.StreamID, _ event.Event) error {
 	if u, ok := m.users[aggID]; ok {
-		delete(m.emails, u.Email)
+		// Guarded eviction: under keep-first, a deleted duplicate must not
+		// remove the original user's email / external-account mapping.
+		if m.emails[u.Email] == aggID {
+			delete(m.emails, u.Email)
+		}
 		for _, ea := range u.ExternalAccounts {
-			delete(m.externalAccounts, externalAccountKey{provider: ea.Provider, subject: ea.Subject})
+			key := externalAccountKey{provider: ea.Provider, subject: ea.Subject}
+			if m.externalAccounts[key] == aggID {
+				delete(m.externalAccounts, key)
+			}
 		}
 	}
 	delete(m.users, aggID)
@@ -235,7 +254,12 @@ func (m *UserReadModel) handleExternalAccountLinked(_ id.StreamID, evt event.Eve
 			})
 		}
 		u.UpdatedAt = evt.OccurredAt()
-		m.externalAccounts[externalAccountKey{provider: p.Provider, subject: p.Subject}] = aggID
+		// Keep-first: a duplicate user linking the same provider+subject must
+		// not steal the lookup from the original (one subject = one identity).
+		key := externalAccountKey{provider: p.Provider, subject: p.Subject}
+		if _, exists := m.externalAccounts[key]; !exists {
+			m.externalAccounts[key] = aggID
+		}
 	}
 	return nil
 }
@@ -255,7 +279,10 @@ func (m *UserReadModel) handleExternalAccountUnlinked(_ id.StreamID, evt event.E
 		}
 		u.ExternalAccounts = filtered
 		u.UpdatedAt = evt.OccurredAt()
-		delete(m.externalAccounts, externalAccountKey{provider: p.Provider, subject: p.Subject})
+		key := externalAccountKey{provider: p.Provider, subject: p.Subject}
+		if m.externalAccounts[key] == aggID {
+			delete(m.externalAccounts, key)
+		}
 	}
 	return nil
 }
