@@ -2,7 +2,7 @@
 
 > How to sweep a family dependency (cqrs-htmx, go-cqrs-lite, templ-components, httputil, go-sse, …) to a new published version across this 28-module workspace. Companion to `release-next-train-prep.md` (cutting OUR train) — this runbook is for consuming SOMEONE ELSE'S.
 
-**Automation:** `scripts/bump-dep.sh <module-pattern> <version>` does the mechanical sweep (see below). The verification loop stays manual — it is where the mistakes hide.
+**Automation:** `scripts/tools/bump-dep.sh <module-pattern> <version>` does the mechanical sweep (see below). The verification loop stays manual — it is where the mistakes hide.
 
 ## The wave order (learned the hard way)
 
@@ -42,12 +42,12 @@ GOWORK=off go mod tidy && GOWORK=off go build ./... && GOWORK=off go vet ./...
 | Just-published tag reads UNPUBLISHED              | release-train gate's ls-remote tag cache TTL                            | re-run with `-- --refresh-cache`                                                                              |
 | go.mod `go` directive creeps up                   | A 1.27.1-toolchain process ran `go mod tidy` (sibling session / gopls)  | restore the floor; `go-cache-env.sh` now aligns `GOTOOLCHAIN` for gate runs                                   |
 
-## scripts/bump-dep.sh
+## scripts/tools/bump-dep.sh
 
 ```bash
-scripts/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0          # sweep a train
-scripts/bump-dep.sh 'larsartmann/cqrs-htmx' v4.12.0 --dry-run   # plan only (no network)
-scripts/bump-dep.sh 'larsartmann/httputil$' v1.3.0 --commit      # sweep + commit as one
+scripts/tools/bump-dep.sh 'larsartmann/go-cqrs-lite' v4.14.0          # sweep a train
+scripts/tools/bump-dep.sh 'larsartmann/cqrs-htmx' v4.12.0 --dry-run   # plan only (no network)
+scripts/tools/bump-dep.sh 'larsartmann/httputil$' v1.3.0 --commit      # sweep + commit as one
 ```
 
 Digit-safe module matching (accepts BOTH the block-require form and the
@@ -58,7 +58,7 @@ makes interleaved sweeps unreviewable). `--commit` stages + commits the sweep in
 the same process so the auto-commit daemon cannot shred the sweep and its
 verification into separate commits; `--no-verify` skips the `go mod verify` step.
 `BUMP_DEP_ROOT` overrides the scan root for the fixture self-test
-(`bash scripts/test-bump-dep.sh`).
+(`bash scripts/selftests/test-bump-dep.sh`).
 
 **Never chain bump-dep invocations without committing between them.** MVS is
 transitive: sweeping dep A can already raise a sibling dep B in the same graph,

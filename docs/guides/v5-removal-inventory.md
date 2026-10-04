@@ -167,7 +167,7 @@ contract. The SQL read models therefore stay on the v4 trains unchanged.
    no consumer-invisible behavior changes).
 2. Apply class 4 decisions per item (each has a written rationale).
 3. Run: `nix run .#build`, `.#test`, `.#lint`, `bash
-   scripts/check-module-isolation.sh`, `nix run .#check-release-train`,
+   scripts/checks/check-module-isolation.sh`, `nix run .#check-release-train`,
    `nix run .#check-docs-links` — then a docs sweep for
    `cqrshtmx.CSRF|cqrshtmx.SecurityHeaders|Broadcaster.Raw|usermgmt.User.*Payload`
    references in guides/examples.

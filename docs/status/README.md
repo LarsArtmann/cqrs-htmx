@@ -54,7 +54,7 @@ The prose-blockquote and unannotated eras are **historically complete as written
 
 ### Mixed tables are first-class (not a defect)
 
-A table may mix **struck rows (done)** with **unstruck rows (open)**. That is exactly what "absence of a marker IS the open signal" means at row granularity, and it is how a report records partial completion honestly. The repo gate `scripts/check-status-rows.py` counts such tables and reports them as `deliberately-mixed` — informational, **never** a reason to un-strike a verified-done row. The only row-level failure that matters is a `PARTIAL` row — a single row whose cells disagree (some struck, some not).
+A table may mix **struck rows (done)** with **unstruck rows (open)**. That is exactly what "absence of a marker IS the open signal" means at row granularity, and it is how a report records partial completion honestly. The repo gate `scripts/checks/check-status-rows.py` counts such tables and reports them as `deliberately-mixed` — informational, **never** a reason to un-strike a verified-done row. The only row-level failure that matters is a `PARTIAL` row — a single row whose cells disagree (some struck, some not).
 
 ### Completeness gates
 
@@ -62,29 +62,29 @@ Both gates are repo-owned, CI-wired (the `checks` job), and run inside `nix run 
 
 ```bash
 # Gate 1: presence + dated blockquote for every gated-era report.
-bash scripts/check-status-annotations.sh
+bash scripts/checks/check-status-annotations.sh
 
 # Gate 2: no PARTIAL rows in any struck table; deliberately-mixed tables
 #   are counted and reported (first-class by convention), never failed.
-python3 scripts/check-status-rows.py
+python3 scripts/checks/check-status-rows.py
 
 # Fixture self-tests for both gates (also CI-wired).
-bash scripts/test-check-status-annotations.sh
-bash scripts/test-check-status-rows.sh
+bash scripts/selftests/test-check-status-annotations.sh
+bash scripts/selftests/test-check-status-rows.sh
 
 # Fixer for the PARTIAL-row class Gate 2 catches: completes a row by striking
 #   every remaining cell (the whole-row-strike policy above). Idempotent; the
 #   checker and fixer are proven to agree by the self-test. `--dry-run` first.
-python3 scripts/normalize-status-rows.py --dry-run
-bash scripts/test-normalize-status-rows.sh
+python3 scripts/tools/normalize-status-rows.py --dry-run
+bash scripts/selftests/test-normalize-status-rows.sh
 ```
 
-A third, **advisory** gate keeps the live tail honest: `scripts/check-docs-tail-budget.sh`
+A third, **advisory** gate keeps the live tail honest: `scripts/checks/check-docs-tail-budget.sh`
 warns (exit 0) when `docs/status/*.md` (excluding this README) exceeds 3 reports,
 so a growing tail surfaces at sweep boundary instead of being re-discovered.
 It is deliberately **not** a blocking `check-modules` stage — a mid-session tail
 of two or three reports is legitimate. `--strict` exits 1 for a manual/train-time
-check. Fixture self-test: `bash scripts/test-check-docs-tail-budget.sh`.
+check. Fixture self-test: `bash scripts/selftests/test-check-docs-tail-budget.sh`.
 
 Ambient `python3` is the contract for Gate 2 (CI runners ship it); the flake apps
 (`nix run .#check-status-rows` / `.#test-status-rows` / `.#normalize-status-rows`

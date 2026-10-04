@@ -6,7 +6,7 @@ operator-facing summary; the deep details live in the linked documents.
 ## 0. The three rules
 
 1. **Never raw-`git tag`.** Tag ONLY through
-   `scripts/verify-tag.sh <module-dir> <version> [--push]` — it refuses
+   `scripts/tools/verify-tag.sh <module-dir> <version> [--push]` — it refuses
    uncommitted module trees, existing tag names (the module proxy caches
    version names forever), local-path replaces, pseudo-version requires, and
    unpublished internal requires.
@@ -37,13 +37,13 @@ Then repo-wide gates from the root: `nix run .#check-modules -- --report`,
 ## 2. Tagging
 
 ```sh
-scripts/verify-tag.sh <module-dir> vX.Y.Z --dry-run   # rehearse
-scripts/verify-tag.sh <module-dir> vX.Y.Z             # local tag
-scripts/verify-tag.sh <module-dir> vX.Y.Z --push      # + ls-remote confirm
+scripts/tools/verify-tag.sh <module-dir> vX.Y.Z --dry-run   # rehearse
+scripts/tools/verify-tag.sh <module-dir> vX.Y.Z             # local tag
+scripts/tools/verify-tag.sh <module-dir> vX.Y.Z --push      # + ls-remote confirm
 ```
 
 Self-test of the guard itself (CI runs it too):
-`bash scripts/test-verify-tag.sh` — the fixture corpus includes the REAL
+`bash scripts/selftests/test-verify-tag.sh` — the fixture corpus includes the REAL
 poisoned `setup/v4.8.1` go.mod as a regression anchor.
 
 Version numbers: the cqrs-htmx family cuts ONE coordinated version per train
@@ -75,8 +75,8 @@ tags** — never at a tag you are ABOUT to cut. Concretely:
 - Wave order: (1) leaves with no family dependents, (2) identity-model,
   (3) root + usermgmt + strategies, (4) adminui/dashboardui/loginpage/
   datastar/health/auditlog/systemadapter, (5) setup, (6) examples last.
-- Verify per wave: `scripts/verify-tag.sh` (committed-tree + no-phantom-
-  require checks) + `bash scripts/check-release-train.sh` (strict default =
+- Verify per wave: `scripts/tools/verify-tag.sh` (committed-tree + no-phantom-
+  require checks) + `bash scripts/checks/check-release-train.sh` (strict default =
   CI flags since 2026-09-22) after each wave, BEFORE the next.
 
 Why: the pre-commit release-train gate fails a commit whose requires point
@@ -101,7 +101,7 @@ forever; force-moving a tag makes it WORSE):
 
 ## 5. Post-train hygiene
 
-- `bash scripts/check-module-isolation.sh` — 27 modules hermetic.
+- `bash scripts/checks/check-module-isolation.sh` — 27 modules hermetic.
 - `nix run .#check-modules -- --report` — all stages red/green.
 - Update the runbook's §7 stage floor table + CHANGELOG (append-only;
   TODO_LIST keeps only open `[ ]`/`[~]` items).

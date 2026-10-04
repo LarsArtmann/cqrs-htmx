@@ -102,12 +102,12 @@ type NavLink struct {
 // and scripts regardless of where the panel is mounted.
 func assetURLs(basePath string) ([]string, []string) {
 	return []string{
-			basePath + "/-/dashboard.css",
-			basePath + "/-/dashboard-tw.css",
-		}, []string{
-			basePath + "/-/htmx.js",
-			basePath + "/-/dashboard.js",
-		}
+		basePath + "/-/dashboard.css",
+		basePath + "/-/dashboard-tw.css",
+	}, []string{
+		basePath + "/-/htmx.js",
+		basePath + "/-/dashboard.js",
+	}
 }
 
 // meta converts the internal page data into the exported shape a

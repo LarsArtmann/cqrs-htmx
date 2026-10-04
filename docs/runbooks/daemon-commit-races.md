@@ -2,8 +2,8 @@
 
 Recovery procedure for the shared-tree failure class where the auto-commit
 daemon (or a concurrent session) interleaves with your git operations.
-Prevention lives in `scripts/preflight-tree-check.sh` and
-`scripts/wait-tree-quiet.sh`; this page is what to do AFTER an interleave.
+Prevention lives in `scripts/tools/preflight-tree-check.sh` and
+`scripts/tools/wait-tree-quiet.sh`; this page is what to do AFTER an interleave.
 
 Historical narrative and quantification: `docs/agents-notes.md` ("The
 five-wave evening" and the gotcha-4 history). Standing rules: AGENTS.md

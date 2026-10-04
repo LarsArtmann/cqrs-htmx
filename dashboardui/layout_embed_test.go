@@ -178,7 +178,7 @@ func TestEmbed_HTMXSwapsBypassTheShell(t *testing.T) {
 	d.Mount(mux, "/obs/")
 
 	req := httptest.NewRequest(http.MethodGet, "/obs/", nil)
-	req.Header.Set("HX-Request", "true")
+	req.Header.Set("Hx-Request", "true")
 
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)

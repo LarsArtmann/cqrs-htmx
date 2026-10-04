@@ -97,14 +97,14 @@ they are superseded by v4.8.3 and carry retract directives on master
 ```sh
 # 1. Commit the fix FIRST, then cut a superseding version (never force-move
 #    a pushed tag — the module proxy caches version names forever).
-scripts/verify-tag.sh <module-dir> <next-version> --push
+scripts/tools/verify-tag.sh <module-dir> <next-version> --push
 # 2. Add retract directives to the module's go.mod on master (see
 #    setup/go.mod for the worked example) so the NEXT release retires the
 #    poisoned versions on pkg.go.dev / go get. Upstream precedent:
 #    go-cqrs-lite retracted storage/v4.7.0.
 ```
 
-ALWAYS tag through `scripts/verify-tag.sh <module-dir> <version> [--push]`
+ALWAYS tag through `scripts/tools/verify-tag.sh <module-dir> <version> [--push]`
 instead of raw `git tag`/`git push`. The script enforces: committed module
 tree (tracked changes), no existing local/remote tag of that name, no
 LOCAL-PATH replaces of ANY module in the tagged go.mod (family `../x`,
@@ -114,7 +114,7 @@ refuses the systemadapter/`go-cqrs-lite` sibling class too), no larsartmann
 pseudo-version requires (parsed in BOTH `require x v` single-line and
 block syntax), every internal require published on origin, and (on --push)
 a post-push ls-remote verification. `--dry-run` runs ALL guards and stops
-before tag creation — use it to rehearse; `scripts/test-verify-tag.sh` is
+before tag creation — use it to rehearse; `scripts/selftests/test-verify-tag.sh` is
 the fixture self-test (includes the REAL setup/v4.8.1 poisoned go.mod as
 regression anchor; CI runs it). `--allow-replace-exempt` is the documented
 spike-only escape hatch for deliberately replace-based modules — it prints
@@ -156,14 +156,14 @@ visible only after v4.8.4 is tagged and proxied).
 ```sh
 cd setup
 GOWORK=off GOEXPERIMENT=jsonv2 go build ./... && GOWORK=off GOEXPERIMENT=jsonv2 go vet ./...
-bash scripts/release-checklist.sh   # from repo root; EXPECTED pre-tag lockstep notes are fine
+bash scripts/tools/release-checklist.sh   # from repo root; EXPECTED pre-tag lockstep notes are fine
 ```
 
 2. Tag through the protocol (never raw git tag):
 
 ```sh
-scripts/verify-tag.sh setup v4.8.4          # all guards, local tag
-scripts/verify-tag.sh setup v4.8.4 --push   # push + ls-remote confirmation
+scripts/tools/verify-tag.sh setup v4.8.4          # all guards, local tag
+scripts/tools/verify-tag.sh setup v4.8.4 --push   # push + ls-remote confirmation
 ```
 
 3. Paste-ready CHANGELOG entry (root CHANGELOG.md, under the next release
