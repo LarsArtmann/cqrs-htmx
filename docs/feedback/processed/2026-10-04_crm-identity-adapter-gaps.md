@@ -9,6 +9,8 @@
 > 5. **DONE** — `newLimiterFromConfig` keys on `httputil.ClientIP` (X-Forwarded-For → X-Real-IP → RemoteAddr host); proxy-trust caveat documented on `RateLimitConfig`. Upstream httputil doc note drafted separately.
 >
 > Acceptance path for the CRM ("delete CredentialsGate, nothing reddens"): items 1+2 make the gate redundant — M21 of the execution plan runs the CRM-side check when the repo is reachable (`docs/planning/2026-10-04_12-12_SUPERB-identity-auth-hardening-pareto-plan.md`).
+>
+> **ACCEPTED (2026-10-04, same day):** after the usermgmt v4.14.0 + setup v4.14.0 train, the CRM bumped its pins, deleted `CredentialsGate` (method, `main.go` wiring, and all test chains), and the full `-race` suite passes (11 packages, rc=0; CRM-side commit `c32d1c0`). Two assertions migrated, zero behavior lost: the BDD journey's error-copy pin ("authentication required" → the library's "not authenticated") and the gate test, which now proves the library posture directly — including the 403 mismatched-target guarantee the CRM gate never had. The upstream httputil doc note (item 5) landed directly in that repo (commit `a891f0c`) rather than as a filed issue — it is Lars's own library.
 
 **From:** Ledger CRM (private, event-sourced personal CRM on go-cqrs-lite; single-user, `-auth` opt-in WebAuthn posture)
 **Date:** 2026-10-04
