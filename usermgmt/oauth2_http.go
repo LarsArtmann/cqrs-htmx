@@ -10,11 +10,12 @@ import (
 //
 //	GET  /auth/oauth/{provider}/begin    — redirect to provider's authorization page
 //	GET  /auth/oauth/{provider}/callback — handle the OAuth2 callback redirect
-//	POST /auth/oauth/{provider}/unlink   — unlink an external account (requires session)
+//	POST /auth/oauth/{provider}/unlink   — unlink an external account (session required;
+//	                                       self-wrapped with an enrich-only session pass)
 func (h *AuthHandler) RegisterOAuth2Routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/oauth/{provider}/begin", h.handleOAuth2Begin)
 	mux.HandleFunc("GET /auth/oauth/{provider}/callback", h.handleOAuth2Callback)
-	mux.HandleFunc("POST /auth/oauth/{provider}/unlink", h.handleOAuth2Unlink)
+	mux.HandleFunc("POST /auth/oauth/{provider}/unlink", h.withSession(h.handleOAuth2Unlink))
 }
 
 func (h *AuthHandler) handleOAuth2Begin(w http.ResponseWriter, r *http.Request) {

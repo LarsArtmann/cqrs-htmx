@@ -54,6 +54,7 @@ type AuthHandler struct {
 	oauth2SuccessURL       string
 	oauth2ErrorURL         string
 	importExportAuthorizer AuthorizerFunc
+	sessionMiddleware       func(http.Handler) http.Handler
 }
 
 // HandlerConfig controls cookie and session settings for AuthHandler.
@@ -171,6 +172,7 @@ func NewAuthHandler(service *Service, config ...HandlerConfig) *AuthHandler {
 		sessionMaxAge:          resolved.SessionMaxAge,
 		timeout:                resolved.Timeout,
 		importExportAuthorizer: resolved.ImportExportAuthorizer,
+		sessionMiddleware:      NewSessionMiddleware(service, resolved.CookieName),
 		regLimiter:             newLimiterFromConfig(resolved.RegistrationRateLimit),
 		importLimiter:          newLimiterFromConfig(resolved.ImportRateLimit),
 		totpLimiter:            newLimiterFromConfig(resolved.TOTPRateLimit),
@@ -182,30 +184,36 @@ func NewAuthHandler(service *Service, config ...HandlerConfig) *AuthHandler {
 	}
 }
 
-// RegisterRoutes registers the auth endpoints on the given ServeMux:
+// RegisterRoutes registers the auth endpoints on the given ServeMux.
+// Session-dependent routes (me, credentials, verification/TOTP, import/export,
+// OAuth2 unlink) are wrapped with an enrich-only session pass, so they work
+// without external session middleware; the credential enrollment ceremonies
+// additionally enforce the owner-match rule (see requireSessionUserTarget).
+// Public by nature: register, webauthn login, email token verification, OAuth2
+// begin/callback, and logout (which reads the token directly).
 //
-//	POST /auth/register              — create account (email only, no password)
-//	POST /auth/webauthn/register/begin  — begin passkey registration
-//	POST /auth/webauthn/register/finish — finish passkey registration (user_id via query param)
-//	POST /auth/webauthn/login/begin     — begin passkey login
-//	POST /auth/webauthn/login/finish    — finish passkey login (user_id via query param)
-//	POST /auth/logout                    — clear session
-//	GET  /auth/me                        — return current user
-//	GET  /auth/credentials               — list current user's WebAuthn credentials
-//	DELETE /auth/credentials/{id}        — remove a WebAuthn credential by base64url ID
+// 	POST /auth/register              — create account (email only, no password); sets the session cookie
+// 	POST /auth/webauthn/register/begin  — begin passkey registration (owner-session-gated)
+// 	POST /auth/webauthn/register/finish — finish passkey registration (owner-session-gated; user_id via query param)
+// 	POST /auth/webauthn/login/begin     — begin passkey login
+// 	POST /auth/webauthn/login/finish    — finish passkey login (user_id via query param)
+// 	POST /auth/logout                    — clear session
+// 	GET  /auth/me                        — return current user (session required)
+// 	GET  /auth/credentials               — list current user's WebAuthn credentials (session required)
+// 	DELETE /auth/credentials/{id}        — remove a WebAuthn credential by base64url ID (session required)
 //
 // Verification, TOTP, and import/export routes are also registered; see
 // RegisterVerificationTOTPRoutes for the full list.
 func (h *AuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/register", h.handleRegister)
-	mux.HandleFunc("POST /auth/webauthn/register/begin", h.handleWebAuthnBeginRegistration)
-	mux.HandleFunc("POST /auth/webauthn/register/finish", h.handleWebAuthnFinishRegistration)
+	mux.HandleFunc("POST /auth/webauthn/register/begin", h.withSession(h.handleWebAuthnBeginRegistration))
+	mux.HandleFunc("POST /auth/webauthn/register/finish", h.withSession(h.handleWebAuthnFinishRegistration))
 	mux.HandleFunc("POST /auth/webauthn/login/begin", h.handleWebAuthnBeginLogin)
 	mux.HandleFunc("POST /auth/webauthn/login/finish", h.handleWebAuthnFinishLogin)
 	mux.HandleFunc("POST /auth/logout", h.handleLogout)
-	mux.HandleFunc("GET /auth/me", h.handleMe)
-	mux.HandleFunc("GET /auth/credentials", h.handleListCredentials)
-	mux.HandleFunc("DELETE /auth/credentials/{id}", h.handleDeleteCredential)
+	mux.HandleFunc("GET /auth/me", h.withSession(h.handleMe))
+	mux.HandleFunc("GET /auth/credentials", h.withSession(h.handleListCredentials))
+	mux.HandleFunc("DELETE /auth/credentials/{id}", h.withSession(h.handleDeleteCredential))
 	h.RegisterVerificationTOTPRoutes(mux)
 	h.RegisterOAuth2Routes(mux)
 }
