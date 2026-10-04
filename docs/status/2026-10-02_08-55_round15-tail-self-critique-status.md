@@ -1,5 +1,7 @@
 # Status Report + Self-Critique — Round-15 Tail Execution (2026-10-02 08:55 CEST)
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** §f16 (archive pass) executed today — the full 13-report tail annotated + archived, README counts restamped; §f49's OQ21 went MOOT the same morning (loginpage adoption landed in-tree, scored 95); §f50 superseded by the 10-03/10-04 session reports. Everything else in §b/§c/§f stays open as written and routed — bench-spike + e2e runtime proof (quiet window), the ~9-tag train, D1–D10 ticks, the check-docs-counts gate, T08 fleet swap / T11–T12 owner debt, upstream watch (treefmt-nix#545, a-h/templ#1449, BuildFlow#29). The two permanent daemon-carrier scars (§d2) remain unrecoverable by design (no force-push). Archived this pass.
+
 > **Session:** 2026-10-01 ~17:05 → 2026-10-02 07:15 CEST (one machine reboot ~19:00 in the middle). Owner directive: "NOW GET SHIT DONE! The WHOLE TODO LIST!" — full execution of the round-14 plan remainder. This report covers that run only; the work report is `docs/status/2026-10-02_07-09_round15-consolidated-status.md`, THIS file is the a–g ledger the owner asked for. Master at `4b44b7b0`, pushed, tree clean; CI run 36967975932 was in_progress at last check (docs-heavy push, strict pre-push gates already green). Three prior sessions overlapped this tree (15:05 T06 tail, 17:36 tooling round 2, plus the daemon) — per-file attribution was done before every build-on step.
 
 ## a) FULLY DONE
@@ -99,7 +101,7 @@
 13. **Sweep-script guard audit** across the remaining loop scripts (b-row).
 14. **go-licenses override adoption** in the devShell after the BuildFlow-step proof (b-row).
 15. **Runbook: write the load-policy line** (correctness vs measurement gates) (e4).
-16. **Archive pass on docs/status tail** (6 reports > budget 3; then re-stamp counts).
+~~16. **Archive pass on docs/status tail** (6 reports > budget 3; then re-stamp counts).~~ done — round-17 pass (2026-10-04): the 13-report tail annotated + archived; README counts restamped
 17. **`check-docs-counts` gate** (e7) — kill the stage/count drift class mechanically.
 18. **Cross-project lesson**: root `./...` workspace false-green → crush-config `references/lessons.md` (commit, not in-session write).
 19. **File E005 proposal in go-cqrs-lite** after owner approval; then watch for the fix.
@@ -132,8 +134,8 @@
 46. **Consider `erraudit` SDK pin/note** — two sessions hit SDK-version drift; a `erraudit version` line in the triage note + inventory output would make counts comparable (tool-side, local).
 47. **Session-corpus hygiene**: add "reboot resume checklist" to agents-notes (d5 generalized).
 48. **check-module-isolation / check-version-drift candidate-guards** (part of 13's audit).
-49. **loginpage OQ21 + SidebarNav** — defer-to-next-touch standing entries (D9); no action without a UI change.
-50. **Round-16 consolidated report** after items 1–5 (bench + train + swap) close — or keep this + the harvest as the tail if the owner prefers fewer reports.
+~~49. **loginpage OQ21 + SidebarNav** — defer-to-next-touch standing entries (D9); no action without a UI change.~~ OQ21 MOOT 2026-10-04 — the adoption landed in-tree (scored 95 in the episode-4 audit); SidebarNav criteria stay standing in TODO
+~~50. **Round-16 consolidated report** after items 1–5 (bench + train + swap) close — or keep this + the harvest as the tail if the owner prefers fewer reports.~~ superseded — the 10-03/10-04 session reports + this round-17 pass close the arc
 
 ## g) THREE QUESTIONS I CANNOT ANSWER MYSELF
 

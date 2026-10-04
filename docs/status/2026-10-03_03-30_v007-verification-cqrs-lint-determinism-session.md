@@ -1,5 +1,7 @@
 # Session Status: V007 scorecard verification + cqrs-lint determinism fix
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** the archive pass this report queued (§c5/§f12) executed today. Everything else stands open as routed: the fleet cqrs-lint binary rebuild + swap (TODO D4, with the rules-diff ritual after), the go-cqrs-lite cross-repo debt on the determinism fix's 49 lines (TODO P3), the v5 timeline decision (ROADMAP OQ11) that gates the actual V007 migration, the "Doc-only" hook misclassification (TODO plan M7), and the upstream determinism self-test idea. The V007 disposition itself is settled by ADR-0051 + `docs/guides/v5-removal-inventory.md` §5c. Archived this pass.
+
 **Date:** 2026-10-03 03:30 (session window ~02:00–03:30)
 **Scope:** Decomposition of a pasted `cqrs-lint scorecard` + `cqrs-lint doctor` run
 (41 v5-removed API uses, adoption 13/30 "Fair", suppression inventory, plus a
@@ -106,7 +108,7 @@ same detector run outside rule-config gating.
    commands) — grep showed only `scorecard` consumes `Evidence`, and summary
    lines were spot-checked identical, but a complete command-output diff was
    not run.
-5. **docs-health ARCHIVE pass** for the 7 over-budget status reports the
+~~5. **docs-health ARCHIVE pass** for the 7 over-budget status reports the~~ done — round-17 pass (2026-10-04): the whole 13-report tail annotated + archived
    tail-budget advisory gate flagged (pre-existing debt, noticed mid-session,
    separate workflow).
 
@@ -176,7 +178,7 @@ honest failures are process ones:
 | 9 | Decide evidence policy: smallest path (module root, current fix) vs most-specific subpackage — product taste call | Low | S | Decision |
 | 10 | Add an upstream determinism self-test (double-run byte-identical output) for scorecard/doctor | Medium | M | Quality |
 | 11 | Check cqrs-htmx CHANGELOG convention for docs-only commits; add receipt for `671cb808` if warranted | Low | S | Documentation |
-| 12 | docs-health ARCHIVE pass for the 7 over-budget status reports | Medium | M | Cleanup |
+~~| 12 | docs-health ARCHIVE pass for the 7 over-budget status reports | Medium | M | Cleanup |~~ done — round-17 pass (2026-10-04)
 | 13 | Re-trigger and capture the 3 failing BuildFlow pre-commit step names; append them to the `671cb808` justification trail (follow-up commit or agents-note) | Low | S | Process |
 | 14 | File/land the pending E005 cross-module proposal (owner approval pending, pre-existing) | Medium | S | Documentation |
 | 15 | Examine A012×4 (decided v5-window in the 2026-10-01 triage; never inspected this session) | Low | S | Quality |

@@ -1,5 +1,7 @@
 # Session Status: Pareto round-16 plan + v5 auto-upgrade workstream — push blocked by train lag
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** the push blocker resolved itself the next morning — the go-output/broadcast v0.6.2 alignment executed per the gate's own recipe and the push landed (`606d6186..caeba8e0`, strict pre-push gates green; the 05-51 report §a). The systemadapter lint question is superseded (CI lint green at HEAD). The round-16 plan itself (M1–M28) stays the live plan at `docs/planning/2026-10-03_03-49_pareto-round16-owner-unlock-and-v5-readiness.md` with its execution items routed in TODO_LIST (D-index + P3 rows). Archived this pass.
+
 **Date:** 2026-10-03 04:01 · **Scope:** continuation of the 03:30 session —
 metaengine/system usage question, pareto round-16 planning demand, the v5
 "backwards auto upgrade" requirement, commit + push attempt. Point-in-time
@@ -55,7 +57,7 @@ clean. **PUSH BLOCKED** by the pre-push strict release-train gate.
 
 ## b) PARTIALLY DONE
 
-1. **`git push` — BLOCKED, not done.** Pre-push release-train gate rc=3;
+~~1. **`git push` — BLOCKED, not done.** Pre-push release-train gate rc=3;~~ done 2026-10-04 morning — the broadcast v0.6.2 alignment executed and the push landed (606d6186..caeba8e0, strict pre-push gates green; see the 05-51 report §a)
    manual re-run with `--refresh-cache --strict-lag 0` confirms it is REAL
    (not the fresh-tag cache artifact): **36 internal requires lag** — the
    go-output family sits at v0.38.2 while v0.38.3 is published (required by
@@ -73,11 +75,11 @@ clean. **PUSH BLOCKED** by the pre-push strict release-train gate.
 
 ## c) NOT STARTED
 
-1. **The go-output v0.38.3 family alignment pass** (the push unblocker).
+~~1. **The go-output v0.38.3 family alignment pass** (the push unblocker).~~ done 2026-10-04 morning (broadcast v0.6.2 alignment, sweep PASS)
 2. **Execution of the round-16 plan itself** (M1–M28): decision sheet, fleet
    cqrs-lint swap, E005 filing, ARCHIVE pass, v5 runbook, codemod MVP,
    journal goldens — all planned, none started.
-3. **devShell re-verification of systemadapter lint** (see d2).
+~~3. **devShell re-verification of systemadapter lint** (see d2).~~ superseded — CI lint job green at HEAD (run 37178906141); the loginpage lint findings were fixed by the episode-4 session
 
 ## d) TOTALLY FUCKED UP
 
@@ -113,9 +115,9 @@ clean. **PUSH BLOCKED** by the pre-push strict release-train gate.
 
 | # | Task | Impact | Effort | Category |
 |---|------|--------|--------|----------|
-| 1 | go-output family alignment pass: 12 bump-dep sweeps per the gate recipe, commit per sweep, re-run strict gate | Critical (unblocks push) | M | Dependency |
-| 2 | Re-run `git push` once gate is green | Critical | S | Git |
-| 3 | devShell `nix run .#lint` (or scoped systemadapter run) — verify the 5 pre-commit lint failures are env-only | High | S | Quality |
+~~| 1 | go-output family alignment pass: 12 bump-dep sweeps per the gate recipe, commit per sweep, re-run strict gate | Critical (unblocks push) | M | Dependency |~~ done 2026-10-04 morning (see the 05-51 report §a1–a3)
+~~| 2 | Re-run `git push` once gate is green | Critical | S | Git |~~ done — push landed 2026-10-04
+~~| 3 | devShell `nix run .#lint` (or scoped systemadapter run) — verify the 5 pre-commit lint failures are env-only | High | S | Quality |~~ superseded — CI lint green at HEAD; loginpage lint fixed
 | 4 | Plan M1: consolidated owner-decision sheet (D1–D11 + OQ11) | High | S | Planning |
 | 5 | Plan M28: v4-journal Track B goldens (fully independent — can start now) | High | M | Feature |
 | 6 | Plan M15: v5 cut runbook skeleton | High | M | Documentation |
@@ -128,7 +130,7 @@ clean. **PUSH BLOCKED** by the pre-push strict release-train gate.
 
 ## g) Questions I cannot answer myself
 
-1. **Run the go-output v0.38.3 alignment pass + push now?** The recipe is
+~~1. **Run the go-output v0.38.3 alignment pass + push now?** The recipe is~~ answered by reality — executed 2026-10-04 morning
    mechanical (the gate prints it), but it is tree-mutating version surgery
    across the workspace and you interrupted mid-flow — your call on timing.
 2. **Push go-cqrs-lite too?** It is ahead 11 (my determinism fix + 10 daemon

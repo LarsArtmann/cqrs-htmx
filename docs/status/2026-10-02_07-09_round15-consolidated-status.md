@@ -1,5 +1,7 @@
 # Status Report — Round-15 Consolidated: Round-14 Tail Execution (2026-10-02 07:09 CEST)
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** the still-open §f items remain genuinely open and routed — bench-spike (verified-quiet window), the ~9-tag release train (deferred deliberately), D1–D10 owner ticks, E005 filing (owner-gated), upstream watch, the 28-stage composite re-run. Resolved since: T08 local half (D4 pending), the stale-suppressions wiring (done EARLY — see the f5 strike), and §f10's archive pass (executed today). §g3's e2e runtime proof is still owed (routed via the episode-4 plan T16). Archived this pass.
+
 > **Session:** 2026-10-01 ~17:05 → 2026-10-02 07:09 CEST (across one machine reboot ~19:00). Owner directive: "NOW GET SHIT DONE! The WHOLE TODO LIST!" — full execution of the round-14 plan's remainder per `docs/planning/2026-10-01_15-04_pareto-round14-gates-green-first.md`. Master pushed at `628da78e` + this report; strict pre-push gates green (release-train 0 unpublished / 0 lag, version-drift). Three prior sessions overlapped this tree (15:05 T06 tail, 17:36 tooling round 2, plus daemon carriers) — attribution below is per-file via `git log -1 -- <path>`.
 
 ## a) FULLY DONE
@@ -56,13 +58,13 @@
 1. Bench-spike at the first verified-quiet window (the last battery leg).
 2. The release train (wave list + 0/0 baseline recorded; ~9 tags).
 3. D1–D10 confirmations from the owner (one table, TODO_LIST).
-4. T08 fleet swap → retire gotcha 13 → re-add the two B024 suppressions.
-5. Post-swap: wire `erraudit-inventory --gate` into the train checklist (e3).
+~~4. T08 fleet swap → retire gotcha 13 → re-add the two B024 suppressions.~~ local half done 2026-10-01 evening (rebuilt binary 0×C040, 14/14 modules); fleet swap owner-pending (TODO D4)
+~~5. Post-swap: wire `erraudit-inventory --gate` into the train checklist (e3).~~ done EARLY 2026-10-01 evening — the flag predates the C040 fix; wired with fixture self-test + caught a real stale B024
 6. check-modules composite re-run with stages 27+28.
 7. File E005 proposal in go-cqrs-lite after approval; watch the three filed upstream issues.
 8. PapDashboard reply send (draft ready, §9 of the packet).
 9. Feedback-inbox checker after D7 ratification (~45 min, atomic checklist).
-10. Archive pass on the docs/status tail (5 reports > budget 3).
+~~10. Archive pass on the docs/status tail (5 reports > budget 3).~~ done — round-17 pass (2026-10-04): the 13-report tail annotated + archived
 
 ## g) THREE QUESTIONS
 
