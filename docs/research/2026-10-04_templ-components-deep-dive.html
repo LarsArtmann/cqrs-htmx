@@ -1240,13 +1240,16 @@
           </div>
 
           <div class="card">
-            <div class="card-header"><span class="score-pill">F8 &middot; INFO &middot; stale context (fixed during this audit)</span></div>
-            <h3>AGENTS.md loginpage lines were stale</h3>
+            <div class="card-header"><span class="score-pill">F8 &middot; RESOLVED &middot; verified during this audit</span></div>
+            <h3>AGENTS.md loginpage currency &mdash; already current</h3>
             <p>
-              &ldquo;hand-rolled lp-* CSS, no templ-components&rdquo; and the family-of-5
-              &ldquo;loginpage does not depend on it&rdquo; line contradicted the tree.
-              Updated to &ldquo;family of 6&rdquo; with the CSSPath/Tailwind-consumer note in
-              this session (memory-maintenance rule).
+              The audit briefly flagged &ldquo;hand-rolled lp-* CSS, no
+              templ-components&rdquo; as stale context, but the adoption session had
+              already rewritten AGENTS.md (loginpage built on templ-components since
+              2026-10-04; all three UI modules declared dependents; the adoption
+              inventory consumed). Verified current during this audit &mdash; no action
+              needed. Recorded because the initial stale-read is itself the
+              coordination hazard concurrent sessions must check for.
             </p>
           </div>
         </section>

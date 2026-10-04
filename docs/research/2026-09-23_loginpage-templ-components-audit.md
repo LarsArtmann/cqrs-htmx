@@ -1,5 +1,14 @@
 # loginpage × templ-components — Adoption Audit (mini-report)
 
+> **OUTCOME (2026-10-04):** Verdict overturned in-tree — a concurrent session rebuilt
+> the page on templ-components (`layout.Base`, `forms.Input`, `display.Button`,
+> `feedback.Alert`) with all 8 login.js hooks preserved and the §21.2 pre-scoped swaps
+> in (AuthLayout deliberately NOT adopted — the single-card identity stood; the
+> JS-populated live region stayed hand-rolled per §21.2's pattern distinction).
+> Scored 95/100 (rubric v1) in the episode-4 repo-wide audit:
+> [`2026-10-04_templ-components-deep-dive.html`](2026-10-04_templ-components-deep-dive.html).
+> OQ21 triggers are moot — adoption happened without either firing.
+
 **Date:** 2026-09-23 · **Task:** adoption-plan T21 · **Series:** templ-components consumer audits (dashboardui: 2026-09-17, 2026-09-23)
 **Verdict: KEEP hand-rolled for now** — adoption is mechanically easy (one 86-line templ file) but the cost is infrastructure + identity, not markup. Revisit triggers in ROADMAP OQ21 are unchanged.
 
