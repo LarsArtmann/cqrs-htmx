@@ -17,8 +17,8 @@ Each report in this tree captures what someone knew at the end of a work session
 
 | Path                               | Contents                                                                     |
 | ---------------------------------- | ---------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 5)          |
-| `docs/status/archived/`            | 437 archived session reports (2026-05-03 → 2026-10-01)                       |
+| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 0 after the round-17 pass) |
+| `docs/status/archived/`            | 450 archived session reports (2026-05-03 → 2026-10-04)                       |
 | `docs/status/*.html`               | 12 generated HTML report artifacts (see "HTML corpus" below)                 |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`              |
 | `docs/reviews/archived/`           | Archived review documents                                                    |
@@ -103,9 +103,29 @@ The `*.html` files in `docs/status/` and `docs/architecture-understanding/` (~60
 
 ## File counts
 
-- `docs/status/`: **2 unarchived reports** (the 2026-10-01 12:30 round-14 report + the 10:30 W0–W3 Pareto-execution report — the live tail) + README + 12 HTML artifacts. The round-13 pass archived the 02:59 BuildFlow-recovery report and its own round-13 audit report (both annotated with same-day round-14 top-up blockquotes + evidence strikes); the round-6 stub anomaly was removed 2026-10-01.
-- `docs/status/archived/`: **437 archived reports** (2026-05-03 → 2026-10-01).
-- The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), 2026-09-21 (the 34-report tail), 2026-09-22 (the 8-report superb-plan tail + the plan itself), 2026-10-01 round-13 (the 22-report 09-22→09-30 tail — every report annotated with a dated blockquote + evidence-backed inline strikes, open items routed to TODO_LIST/ROADMAP, then archived), and **2026-10-01 round-14 (the 10-01 pair — the 02:59 BuildFlow-recovery and 06:36 round-13 reports got W0–W3-receipt top-up blockquotes + inline strikes for everything the train/gate/erraudit sessions then resolved, then archived; the same pass triaged the six 2026-08-30 planning files — upstream-asks draft archived, gated-work index + cqrs-lint distribution draft annotated, three live owner-gated decisions confirmed leave-in-place — and confirmed the HTML corpus keep-in-place decision)**. Of the 437 archived reports, **72 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and the rest predate annotation entirely (legacy-exempt). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
+- `docs/status/`: **0 unarchived reports** (the 2026-10-04 round-17 docs-health pass annotated + archived the entire 13-report tail in one sweep) + README + 12 HTML artifacts.
+- `docs/status/archived/`: **450 archived reports** (2026-05-03 → 2026-10-04).
+- The archive tail has been swept repeatedly: 2026-09-09 (full backlog), 2026-09-20 (the 38-report tail), 2026-09-21 (the 34-report tail), 2026-09-22 (the 8-report superb-plan tail + the plan itself), 2026-10-01 round-13 (the 22-report 09-22→09-30 tail — every report annotated with a dated blockquote + evidence-backed inline strikes, open items routed to TODO_LIST/ROADMAP, then archived), 2026-10-01 round-14 (the 10-01 pair — the 02:59 BuildFlow-recovery and 06:36 round-13 reports got W0–W3-receipt top-up blockquotes + inline strikes for everything the train/gate/erraudit sessions then resolved, then archived; the same pass triaged the six 2026-08-30 planning files — upstream-asks draft archived, gated-work index + cqrs-lint distribution draft annotated, three live owner-gated decisions confirmed leave-in-place — and confirmed the HTML corpus keep-in-place decision), and **2026-10-04 round-17 (the 13-report 10-01→10-04 tail — every report annotated with a dated blockquote + evidence strikes, open items verified against the tree (CI run 37178906141: test green on published pins; master red on exactly one job — the loginpage 7/5 dep budget) and routed to TODO_LIST/ROADMAP, then archived; the two `docs/drafts/2026-10-04-signing-cloneevent-encoding*` files got RESOLVED-SHIPPED blockquotes and stay in place)**. Of the 450 archived reports, **85 carry the current inline-strikethrough convention** (gated by `check-status-annotations.sh`), 72 carry the older prose blockquote, and the rest predate annotation entirely (legacy-exempt). Gate 1 enforces the current-convention era; Gate 2 keeps the row shapes honest.
+
+### Round-17 archive manifest (2026-10-04)
+
+All 13 files: classification **ARCHIVE** (dated blockquote + evidence strikes + open items routed), `git mv` → `docs/status/archived/`.
+
+| File | Deciding evidence |
+| --- | --- |
+| `2026-10-01_10-30_pareto-w0-w3-train-gates-erraudit-status.md` | T06 erraudit closed same evening; T13–T25 + W10 shipped 10-01/02; T09 answered (3 filed / 2 retired); go.work → OQ27; rawIDToken executed (D3) |
+| `2026-10-01_12-30_docs-health-round14-full-pass-status.md` | Its own §b/§c debt closed (composite 15:50, D-index exists, LEAVE verdict recorded); §g1 moot; archive bar applied by rounds 15–17 |
+| `2026-10-01_15-55_pareto-t06-close-battery-tail-status.md` | T08 local half + T09 done same evening; open residue (bench, next train, D5) routed |
+| `2026-10-01_17-01_t06-tail-session-self-critique-status.md` | §b breadth closed overnight (test-all 28/28); 25 strikes; owners routed |
+| `2026-10-01_17-36_tooling-round-2-shared-tree-session-status.md` | Heavy gates landed; the report's own ARCHIVE-pass ask executed by this pass |
+| `2026-10-02_07-09_round15-consolidated-status.md` | Open items all routed (bench/train/D-list/E005); T08-half + stale-suppressions + archive-pass strikes |
+| `2026-10-02_08-55_round15-tail-self-critique-status.md` | f16 done by this pass; OQ21 moot; §f50 superseded; the rest routed as written |
+| `2026-10-03_03-30_v007-verification-cqrs-lint-determinism-session.md` | V007 disposition settled (ADR-0051 + inventory §5c); archive ask executed; remainder owner-gated and routed |
+| `2026-10-03_04-01_pareto-plan-v5-autoupgrade-push-blocked.md` | Push blocker resolved next morning (alignment executed, push landed); plan M1–M28 live in TODO |
+| `2026-10-04_05-49_loginpage-critical-review-and-hardening-session.md` | Both filed follow-ups (NoOAuth2, CSP-nonce) shipped; README/AGENTS/CHANGELOG truth-passes verified; review HTML annotated |
+| `2026-10-04_05-51_push-unblock-and-signing-regression.md` | Arc closed: upstream fix landed + re-pinned; patch-tag thread MOOT (only integration_test requires signing); dep-budget = last red |
+| `2026-10-04_06-52_signing-v433-fix-landed-and-verified.md` | CI sharpened to one red job; lifecycle debts closed by this pass; §g questions resolved/MOOT |
+| `2026-10-04_06-54_pareto-plan-episode4-tail-execution.md` | Test failures sharpened (CI green on pins; sibling-tree state; dep-budget is the train blocker); T5–T9 verified still open + routed |
 
 ## Why not "update them all" ad hoc?
 
