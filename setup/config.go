@@ -447,6 +447,14 @@ type Config struct {
 	// LoginNoRegistration hides the registration section on the login page (default: false).
 	LoginNoRegistration bool
 
+	// LoginCSSPath is the URL of the compiled Tailwind stylesheet the login
+	// page loads (default: "/app.css"). The login page renders templ-components
+	// Tailwind utilities, so the consumer MUST compile a stylesheet scanning
+	// github.com/larsartmann/cqrs-htmx/loginpage/v4 (and templ-components) and
+	// serve it at this path — see README "Styling". The admin and dashboard
+	// panels need nothing: they serve their own embedded bundles.
+	LoginCSSPath string
+
 	// Feature flags — control which panels are mounted.
 	// Go zero-value (false) = ENABLED. Set true to disable a panel.
 	//

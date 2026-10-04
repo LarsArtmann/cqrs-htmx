@@ -316,6 +316,7 @@ func (b *Bundle) attachLogin() error {
 		Redirect:       b.config.LoginRedirect,
 		AccentColor:    b.config.AccentColor,
 		NoRegistration: b.config.LoginNoRegistration,
+		CSSPath:        b.config.LoginCSSPath,
 	})
 	if err != nil {
 		return errorfamily.WrapRejection(

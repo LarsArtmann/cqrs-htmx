@@ -11,6 +11,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,6 +33,13 @@ const (
 	adminUserID  = "01JXSETUPDEMO01"
 	dayInSeconds = 86400
 )
+
+// appCSS is the compiled Tailwind v4 stylesheet the login page loads at
+// /app.css (the loginpage CSSPath default). Rebuild it after any
+// templ-components family bump with: nix run .#build-setup-demo-css
+//
+//go:embed assets/app.css
+var appCSS string
 
 func main() {
 	if err := run(); err != nil {
@@ -75,6 +83,14 @@ func run() error {
 	//    routes, then serve with RunHandler: safe timeouts, graceful
 	//    shutdown, and bundle cleanup in one call.
 	mux := http.NewServeMux()
+	// The login page renders templ-components Tailwind utilities, so it needs
+	// a compiled stylesheet at its CSSPath (default "/app.css"). The admin and
+	// dashboard panels need nothing: they serve their own embedded bundles.
+	mux.HandleFunc("GET /app.css", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
+		_, _ = w.Write([]byte(appCSS))
+	})
 	mux.HandleFunc("/dev-login", func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{ //nolint:exhaustruct,gosec // dev-only demo cookie
 			Name: cookieName, Value: token, Path: "/",
