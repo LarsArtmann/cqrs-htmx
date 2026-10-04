@@ -76,7 +76,7 @@ func (b *Bundle) sseHandler() http.Handler {
 		opts = append(opts, transport.WithSSEFilter(b.config.SSEFilter))
 	}
 
-	return b.SessionMiddleware()(requireSession(transport.ServeDomainEvents(
+	return b.SessionMiddleware()(RequireSession(transport.ServeDomainEvents(
 		b.Broadcaster.Hub(),
 		b.sseStore,
 		b.config.SSEHeartbeatInterval,
@@ -88,5 +88,5 @@ func (b *Bundle) sseHandler() http.Handler {
 // the SSE feed (401 without a session — event metadata is not public data),
 // streaming DataStar-encoded patches from the shared hub (ADR-0050).
 func (b *Bundle) datastarHandler() http.Handler {
-	return b.SessionMiddleware()(requireSession(b.DataStarBroadcaster))
+	return b.SessionMiddleware()(RequireSession(b.DataStarBroadcaster))
 }

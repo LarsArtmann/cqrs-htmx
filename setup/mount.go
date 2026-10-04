@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/larsartmann/cqrs-htmx/datastar/v4"
-	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
@@ -78,7 +77,7 @@ func (b *Bundle) Mount(mux *http.ServeMux) {
 
 		mux.Handle(
 			cfg.DashboardPath,
-			sessionMW(requireSession(http.StripPrefix(
+			sessionMW(RequireSession(http.StripPrefix(
 				trimTrailingSlash(cfg.DashboardPath), b.Dashboard.Handler(),
 			))),
 		)
@@ -128,20 +127,6 @@ func (b *Bundle) mountEventFeeds(mux *http.ServeMux) {
 
 		mux.Handle(cfg.DataStarPath, b.datastarHandler())
 	}
-}
-
-// requireSession blocks requests that carry no authenticated user, responding
-// 401 (the admin panel's convention for unauthenticated access).
-func requireSession(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, ok := usermgmt.UserFromContext(r.Context()); !ok {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
-
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }
 
 // healthHandler builds a readiness check handler that verifies all projection

@@ -58,14 +58,14 @@ func (b *Bundle) mountMachineEndpoints(mux *http.ServeMux) {
 	sessionMW := b.SessionMiddleware()
 
 	if cfg.EventCatalogPath != "" {
-		mux.Handle(cfg.EventCatalogPath, sessionMW(requireSession(b.eventCatalog)))
+		mux.Handle(cfg.EventCatalogPath, sessionMW(RequireSession(b.eventCatalog)))
 	}
 
 	if cfg.ProjectionStatusPath != "" {
-		mux.Handle(cfg.ProjectionStatusPath, sessionMW(requireSession(b.projectionStatus)))
+		mux.Handle(cfg.ProjectionStatusPath, sessionMW(RequireSession(b.projectionStatus)))
 	}
 
 	if cfg.DebugPath != "" {
-		mux.Handle(cfg.DebugPath, sessionMW(requireSession(b.debug)))
+		mux.Handle(cfg.DebugPath, sessionMW(RequireSession(b.debug)))
 	}
 }
