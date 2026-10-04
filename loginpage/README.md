@@ -130,9 +130,8 @@ stylesheet that scans this package. With Tailwind v4's CSS-first config:
 
 ```css
 @import "tailwindcss" source(none);
-@source "../go.sum"; /* or the module cache path */
 @source "TEMPL_COMPONENTS_DIR/{layout,forms,display,feedback,utils}/**/*";
-@source "LOGINPAGE_DIR/**/*";  /* page.templ + page_templ.go + assets/login.js */
+@source "LOGINPAGE_DIR/**/*"; /* page.templ, page_templ.go, assets/login.js */
 @custom-variant dark (&:where(.dark, .dark *));
 ```
 
