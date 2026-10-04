@@ -1,86 +1,143 @@
 package loginpage
 
+import (
+	"github.com/a-h/templ"
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/feedback"
+	"github.com/larsartmann/templ-components/forms"
+	"github.com/larsartmann/templ-components/layout"
+	"github.com/larsartmann/templ-components/utils"
+)
+
+// Page renders the login page on the templ-components design system.
+// All styling is Tailwind utility classes compiled by the consumer; the
+// markup is JS-contract compatible with assets/login.js (lp-* IDs, the
+// lp-section/lp-divider hooks, and the "hidden" visibility class).
 templ Page(p PageData) {
-	<!DOCTYPE html>
-	<html lang="en">
-		<head>
-			<meta charset="utf-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<meta name="color-scheme" content="light dark"/>
-			<meta name="robots" content="noindex"/>
-			<link rel="icon" href={ p.faviconURI() }/>
-			if p.CSRFMeta != "" {
-				@templ.Raw(p.CSRFMeta)
-			}
-			<title>{ p.Title }</title>
-			@templ.Raw("<style>:root{--lp-accent:" + p.Accent + ";}" + p.inlineCSS + "</style>")
-			if p.CSSPath != "" {
-				<link rel="stylesheet" href={ p.CSSPath }/>
-			}
-		</head>
-		<body>
-			<main class="lp-container">
-				<div class="lp-card">
-					<div class="lp-header">
-						<div class="lp-favicon">{ firstRune(p.Brand) }</div>
-						<h1 class="lp-brand">{ p.Brand }</h1>
-						<p class="lp-subtitle">{ p.Subtitle }</p>
-					</div>
-					<div id="lp-error" class="lp-error lp-hidden" role="alert" aria-live="polite"></div>
+	@layout.Base(pageProps(p)) {
+		<div class="flex min-h-dvh flex-col items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900">
+			<div class="w-full max-w-sm">
+				<div class="mb-8 text-center">
+					<h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">{ p.Brand }</h1>
+					<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{ p.Subtitle }</p>
+				</div>
+				<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-8 dark:border-gray-700 dark:bg-gray-800 dark:shadow-black/20">
+					<div id="lp-error" class="hidden mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400" role="alert" aria-live="polite"></div>
 					if !p.WebAuthn && len(p.OAuth2Buttons) == 0 {
-						<div class="lp-no-auth">
-							<p>No authentication method is configured.</p>
-							<p class="lp-muted">Login is not available yet. Please contact your administrator.</p>
-						</div>
+						@feedback.Alert(feedback.AlertProps{
+							Type:    feedback.FeedbackError,
+							Title:   "No authentication method is configured.",
+							Message: "Login is not available yet. Please contact your administrator.",
+						})
 					} else {
 						if p.WebAuthn {
-							<section id="lp-login-section" class="lp-section">
-								<form id="lp-login-form" class="lp-form">
-									<label for="lp-email" class="lp-label">Email</label>
-									<input type="email" id="lp-email" name="email" class="lp-input" placeholder="you@example.com" required autocomplete="email" autofocus=""/>
-									<button type="submit" id="lp-login-btn" class="lp-btn lp-btn-primary">Sign in with passkey</button>
+							<section id="lp-login-section" class={ utils.Class("lp-section", utils.Ternary(p.RegisterFirst, "hidden", "")) }>
+								<form id="lp-login-form" class="space-y-4">
+									@forms.Input(forms.InputProps{
+										BaseProps: utils.BaseProps{
+											ID:    "lp-email",
+											Attrs: templ.Attributes{"autocomplete": "email"},
+										},
+										Type:        forms.InputEmail,
+										Name:        "email",
+										Label:       "Email",
+										Required:    true,
+										Placeholder: "you@example.com",
+										AutoFocus:   !p.RegisterFirst,
+									})
+									@display.Button(display.ButtonProps{
+										BaseProps: utils.BaseProps{
+											ID:    "lp-login-btn",
+											Class: "w-full gap-2",
+										},
+										Type:    display.ButtonHTMLSubmit,
+										Text:    "Sign in with passkey",
+										Variant: display.ButtonPrimary,
+										Size:    display.ButtonSizeMD,
+									})
 								</form>
-								<div id="lp-no-webauthn" class="lp-no-auth lp-hidden">
+								<div id="lp-no-webauthn" class="hidden mt-4 text-center">
 									<p>Your browser does not support passkeys.</p>
-									<p class="lp-muted">Use a modern browser (Chrome, Firefox, Safari, or Edge) or try SSO if available.</p>
+									<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Use a modern browser (Chrome, Firefox, Safari, or Edge) or try SSO if available.</p>
 								</div>
 								if p.ShowReg {
-									<p class="lp-toggle">Don't have an account? <a href="#" id="lp-show-register">Create one</a></p>
+									<p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+										Don&#39;t have an account? <a href="#" id="lp-show-register" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Create one</a>
+									</p>
 								}
 							</section>
 						}
 						if len(p.OAuth2Buttons) > 0 {
 							if p.WebAuthn {
-								<div class="lp-divider"><span>or</span></div>
+								<div class="lp-divider my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">
+									<span class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></span>
+									or
+									<span class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></span>
+								</div>
 							}
-							<div class="lp-oauth-section">
+							<div class="space-y-2">
 								for _, btn := range p.OAuth2Buttons {
-									<a class="lp-btn lp-btn-oauth" href={ p.oauthBeginURL(btn.Provider) }>
-										{ btn.Label }
-									</a>
+									@display.Button(display.ButtonProps{
+										BaseProps: utils.BaseProps{
+											Class: "w-full",
+										},
+										Text:    btn.Label,
+										Href:    p.oauthBeginURL(btn.Provider),
+										Variant: display.ButtonSecondary,
+										Size:    display.ButtonSizeMD,
+									})
 								}
 							</div>
 						}
 						if p.ShowReg {
-							<section id="lp-register-section" class="lp-section lp-hidden">
-								<form id="lp-register-form" class="lp-form">
-									<label for="lp-reg-email" class="lp-label">Email</label>
-									<input type="email" id="lp-reg-email" name="email" class="lp-input" placeholder="you@example.com" required autocomplete="email"/>
-									<label for="lp-reg-name" class="lp-label">Display name</label>
-									<input type="text" id="lp-reg-name" name="display_name" class="lp-input" placeholder="Your name"/>
-									<button type="submit" id="lp-register-btn" class="lp-btn lp-btn-primary">Create account</button>
+							<section id="lp-register-section" class={ utils.Class("lp-section", utils.Ternary(p.RegisterFirst, "", "hidden")) }>
+								<form id="lp-register-form" class="space-y-4">
+									@forms.Input(forms.InputProps{
+										BaseProps: utils.BaseProps{
+											ID:    "lp-reg-email",
+											Attrs: templ.Attributes{"autocomplete": "email"},
+										},
+										Type:        forms.InputEmail,
+										Name:        "email",
+										Label:       "Email",
+										Required:    true,
+										Placeholder: "you@example.com",
+										AutoFocus:   p.RegisterFirst,
+									})
+									@forms.Input(forms.InputProps{
+										BaseProps: utils.BaseProps{
+											ID:    "lp-reg-name",
+											Attrs: templ.Attributes{"autocomplete": "name"},
+										},
+										Type:        forms.InputText,
+										Name:        "display_name",
+										Label:       "Display name",
+										Placeholder: "Your name",
+									})
+									@display.Button(display.ButtonProps{
+										BaseProps: utils.BaseProps{
+											ID:    "lp-register-btn",
+											Class: "w-full gap-2",
+										},
+										Type:    display.ButtonHTMLSubmit,
+										Text:    "Create account",
+										Variant: display.ButtonPrimary,
+										Size:    display.ButtonSizeMD,
+									})
 								</form>
-								<p class="lp-toggle">Already have an account? <a href="#" id="lp-show-login">Sign in</a></p>
+								<p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+									Already have an account? <a href="#" id="lp-show-login" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Sign in</a>
+								</p>
 							</section>
 						}
 					}
 				</div>
-			</main>
-			@templ.Raw(p.CSRFField)
-			if p.WebAuthn {
-				@templ.Raw("<script id=\"loginpage-config\" type=\"application/json\">" + p.configJSON + "</script>")
-				@templ.Raw("<script>" + p.inlineJS + "</script>")
-			}
-		</body>
-	</html>
+			</div>
+		</div>
+		@templ.Raw(p.CSRFField)
+		if p.WebAuthn {
+			@templ.Raw(jsonScriptTag(p.configJSON, p.Nonce))
+			@templ.Raw(scriptTag(p.inlineJS, p.Nonce))
+		}
+	}
 }
