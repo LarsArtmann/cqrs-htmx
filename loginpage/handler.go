@@ -172,7 +172,6 @@ func buildPageData(config Config, r *http.Request) PageData {
 	}
 
 	hasWebAuthn := config.Service.HasWebAuthn()
-
 	// Auto-populate OAuth2 buttons from configured providers when not explicitly set.
 	oauth2Buttons := config.OAuth2Buttons
 	if len(oauth2Buttons) == 0 {

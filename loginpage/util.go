@@ -13,6 +13,34 @@ func errConfig(msg string) error {
 	return errorfamily.NewRejection("loginpage.config", msg)
 }
 
+// validateAccentColor rejects values that cannot be safely embedded in the
+// page's raw <style> block or the SVG data-URI favicon. Legitimate CSS colors
+// (hex, rgb()/hsl()/color-mix() notation, var() references) never contain
+// markup or quote characters; anything that does would be an injection attempt.
+func validateAccentColor(accent string) error {
+	if strings.ContainsAny(accent, `<>&"'\`+"`") {
+		return errConfig(
+			"Config.AccentColor must be a CSS color without markup or quote characters (< > & \" ' \\ `)",
+		)
+	}
+	return nil
+}
+
+// validateStylesheetURL ensures Config.CSSPath is a stylesheet reference, not
+// a scheme the browser would execute (e.g. javascript:). Only root-relative
+// paths and absolute http(s) URLs are accepted.
+func validateStylesheetURL(cssPath string) error {
+	if cssPath == "" ||
+		strings.HasPrefix(cssPath, "/") ||
+		strings.HasPrefix(cssPath, "http://") ||
+		strings.HasPrefix(cssPath, "https://") {
+		return nil
+	}
+	return errConfig(
+		`Config.CSSPath must be a root-relative path ("/css/app.css") or an absolute http(s) URL`,
+	)
+}
+
 // trimTrailingSlash removes trailing "/" so prefixes never end with one.
 func trimTrailingSlash(s string) string {
 	return strings.TrimRight(s, "/")

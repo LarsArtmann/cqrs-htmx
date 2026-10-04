@@ -97,7 +97,9 @@ type Config struct {
 
 	// OAuth2Buttons lists the OAuth2 providers to show as sign-in buttons.
 	// Each button links to {AuthPrefix}/auth/oauth/{Provider}/begin.
-	// Empty slice hides all OAuth2 buttons.
+	// A nil or empty slice auto-detects buttons from the providers configured
+	// on [Config.Service]; there is currently no option to force-hide
+	// auto-detected buttons.
 	OAuth2Buttons []OAuth2Button
 
 	// CredentialName is the label stored with newly registered WebAuthn
@@ -123,6 +125,12 @@ func (config Config) withDefaults() (Config, error) {
 	}
 	if config.CredentialName == "" {
 		config.CredentialName = "Passkey"
+	}
+	if err := validateAccentColor(config.AccentColor); err != nil {
+		return config, err
+	}
+	if err := validateStylesheetURL(config.CSSPath); err != nil {
+		return config, err
 	}
 	config.AuthPrefix = trimTrailingSlash(config.AuthPrefix)
 	return config, nil
