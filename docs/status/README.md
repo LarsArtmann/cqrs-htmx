@@ -17,7 +17,7 @@ Each report in this tree captures what someone knew at the end of a work session
 
 | Path                               | Contents                                                                     |
 | ---------------------------------- | ---------------------------------------------------------------------------- |
-| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 2)          |
+| `docs/status/*.md`                 | The most recent session reports only (unarchived tail; currently 5)          |
 | `docs/status/archived/`            | 437 archived session reports (2026-05-03 → 2026-10-01)                       |
 | `docs/status/*.html`               | 12 generated HTML report artifacts (see "HTML corpus" below)                 |
 | `docs/planning/`                   | Active plans; superseded ones move to `docs/planning/archived/`              |
