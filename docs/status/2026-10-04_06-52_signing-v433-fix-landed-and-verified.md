@@ -30,21 +30,21 @@
 
 | # | Item | State |
 |---|------|-------|
-| b1 | Master CI fully green | RED on 2 jobs at the pushed tip `4e1d41f4` (loginpage dep-budget + lint, see a11). The concurrent session has **7 unpushed local commits** (06:37–06:52, incl. `15bee1cf feat(setup): unblock login-page styling for setup consumers`) that plausibly fix part of this — unverifiable until they push. Not my work to push or fix (05-51 g3 policy still unanswered). |
+~~| b1 | Master CI fully green | RED on 2 jobs at the pushed tip `4e1d41f4` (loginpage dep-budget + lint, see a11). The concurrent session has **7 unpushed local commits** (06:37–06:52, incl. `15bee1cf feat(setup): unblock login-page styling for setup consumers`) that plausibly fix part of this — unverifiable until they push. Not my work to push or fix (05-51 g3 policy still unanswered). |~~ UPDATED 2026-10-04 — exactly ONE red job remains (module-architecture: loginpage 7/5 dep budget, run 37178906141); the loginpage lint reds were fixed by the episode-4 session; test green
 | b2 | #52 consumer-side closure | The issue is fixed and closed upstream, but I have not (a) commented with my verification evidence (3/3 PASS + battery green + re-pin commit), nor (b) checked the v4.3.3 tag diff actually contains #52's proposed regression test (fix code confirmed; test presence not). |
-| b3 | Question lifecycle from the 05-51 report | g1 (skip-gate policy) and g2 (fix ownership) became MOOT when the fix landed — never formally annotated in that append-only report. b5 there ("actual fix NOT made") is now stale. One annotation comment closes all three. |
-| b4 | Signing-episode documentation | Gotcha 24 done (05-51). Still missing: `docs/agents-notes.md` long-form narrative, CHANGELOG entry covering broadcast v0.6.2 + the 43-module wave + signing v4.3.3 re-pin + dependabot npm. |
-| b5 | Stale draft artifacts | `docs/drafts/2026-10-04-signing-cloneevent-encoding.md` + `.body.md` describe a fix that has ALREADY shipped and the issue is closed — unannotated; a future session could mistake them for pending work. |
+~~| b3 | Question lifecycle from the 05-51 report | g1 (skip-gate policy) and g2 (fix ownership) became MOOT when the fix landed — never formally annotated in that append-only report. b5 there ("actual fix NOT made") is now stale. One annotation comment closes all three. |~~ done — the 05-51 file carries this pass blockquote (g1/g2 moot, b5 resolved)
+~~| b4 | Signing-episode documentation | Gotcha 24 done (05-51). Still missing: `docs/agents-notes.md` long-form narrative, CHANGELOG entry covering broadcast v0.6.2 + the 43-module wave + signing v4.3.3 re-pin + dependabot npm. |~~ done-half — gotcha 24 + CHANGELOG receipt (this pass); the agents-notes long-form narrative stays OPEN (routed TODO)
+~~| b5 | Stale draft artifacts | `docs/drafts/2026-10-04-signing-cloneevent-encoding.md` + `.body.md` describe a fix that has ALREADY shipped and the issue is closed — unannotated; a future session could mistake them for pending work. |~~ done — both drafts annotated SHIPPED this pass
 
 ## c) NOT STARTED
 
-- HARVEST of BOTH status reports' section (f) into `TODO_LIST.md` / `ROADMAP.md` — mandated by the status-report skill contract ("if the session continues and TODO_LIST.md was not updated, run HARVEST now"); overdue since the session resumed
-- CHANGELOG entry for the full cycle (b4)
-- `docs/agents-notes.md` long-form narrative (b4)
-- Annotation of the 05-51 report (b3) and the two drafts (b5)
+~~- HARVEST of BOTH status reports' section (f) into `TODO_LIST.md` / `ROADMAP.md` — mandated by the status-report skill contract ("if the session continues and TODO_LIST.md was not updated, run HARVEST now"); overdue since the session resumed~~ done — this pass
+~~- CHANGELOG entry for the full cycle (b4)~~ done — added this pass (2026-10-03 wave + signing re-pin)
+~~- `docs/agents-notes.md` long-form narrative (b4)~~ OPEN — routed to TODO_LIST (the only doc debt left from this arc)
+~~- Annotation of the 05-51 report (b3) and the two drafts (b5)~~ done — this pass
 - Upstream comment on #52 + regression-test presence check in the tag diff (b2)
-- cqrs-htmx patch tag so fresh TAG installs stop inheriting signing v4.3.2 (see f2 — master has the fix; the newest published cqrs-htmx tag does not)
-- loginpage dep-budget decision (reduce 7→5 vs justified increase) and lint fixes — the concurrent session's call, untouched by me
+~~- cqrs-htmx patch tag so fresh TAG installs stop inheriting signing v4.3.2 (see f2 — master has the fix; the newest published cqrs-htmx tag does not)~~ MOOT — verified: only integration_test requires signing/v4; published cqrs-htmx tags never pull signing, consumers were never exposed
+~~- loginpage dep-budget decision (reduce 7→5 vs justified increase) and lint fixes — the concurrent session's call, untouched by me~~ done-half — lint fixed (CI green); the 7/5 budget breach is the last red on master (owner call)
 - Everything in section (f) below not already covered above (carried forward from the 05-51 brainstorm; none started)
 
 ## d) TOTALLY FUCKED UP
@@ -72,19 +72,19 @@
 
 | # | Task | Impact | Effort | Category |
 |---|------|--------|--------|----------|
-| 1 | Annotate the 05-51 report append-only: g1/g2 moot (fix landed), b5 done upstream, b1 partially resolved | Medium | S | Documentation |
-| 2 | Patch-tag cqrs-htmx so fresh TAG installs pin signing v4.3.3 — master has the fix (`a4eec94b`), newest published tag still requires v4.3.2 whose CloneEvent drops non-CBOR signed events | High | S | Release |
+~~| 1 | Annotate the 05-51 report append-only: g1/g2 moot (fix landed), b5 done upstream, b1 partially resolved | Medium | S | Documentation |~~ done — this pass
+~~| 2 | Patch-tag cqrs-htmx so fresh TAG installs pin signing v4.3.3 — master has the fix (`a4eec94b`), newest published tag still requires v4.3.2 whose CloneEvent drops non-CBOR signed events | High | S | Release |~~ MOOT — consumers never inherit signing (only integration_test requires it)
 | 3 | Comment on closed #52 with consumer-side verification (3/3 PASS, battery green, re-pin commit `a4eec94b`) | Medium | S | Upstream |
 | 4 | Verify the `signing/v4.3.3` tag diff contains #52's proposed regression test (clone preserves encoding) | High | S | Upstream |
-| 5 | Annotate/move the two `docs/drafts/2026-10-04-signing-cloneevent-encoding*` files (fix shipped, issue closed) | Low | S | Documentation |
-| 6 | HARVEST both reports' (f) sections into `TODO_LIST.md` / `ROADMAP.md` (mandated; coordinate with concurrent session's recent TODO_LIST edits) | High | M | Process |
-| 7 | Watch the next master CI run once the concurrent session pushes their 7 local commits; confirm loginpage lint/budget reds clear | High | S | CI |
-| 8 | CHANGELOG entry: broadcast v0.6.2 alignment + 43-module wave + signing v4.3.3 re-pin + dependabot npm/e2e | Medium | M | Documentation |
+~~| 5 | Annotate/move the two `docs/drafts/2026-10-04-signing-cloneevent-encoding*` files (fix shipped, issue closed) | Low | S | Documentation |~~ done — both drafts annotated SHIPPED this pass
+~~| 6 | HARVEST both reports' (f) sections into `TODO_LIST.md` / `ROADMAP.md` (mandated; coordinate with concurrent session's recent TODO_LIST edits) | High | M | Process |~~ done — this pass
+~~| 7 | Watch the next master CI run once the concurrent session pushes their 7 local commits; confirm loginpage lint/budget reds clear | High | S | CI |~~ done — run 37178906141: lint green (episode-4 fixes), test green, one red job (dep budget)
+~~| 8 | CHANGELOG entry: broadcast v0.6.2 alignment + 43-module wave + signing v4.3.3 re-pin + dependabot npm/e2e | Medium | M | Documentation |~~ done — added this pass
 | 9 | Write the `docs/agents-notes.md` long-form narrative (dates, hashes, the wrong-turn bisect story) | Medium | M | Documentation |
 | 10 | loginpage dep-budget overrun (7 deps / budget 5): reduce deps or justify increase in the budget table — concurrent session's call, needs their intent | High | S | Bug |
 | 11 | loginpage lint: `handler_test.go:733` gocritic offBy1 + `config.go:144` cyclop `withDefaults` 13>12 — concurrent session's call | High | S | Bug |
 | 12 | Consumer-side guard test: signed-event round-trip preserves encoding end-to-end (recurrence guard for the #52 class; fails with a precise message instead of `read_model_missing`) | High | M | Quality |
-| 13 | Fleet grep: which published consumers pin `signing/v4.3.2` (all silently drop non-CBOR signed events today) | Medium | S | Upstream |
+~~| 13 | Fleet grep: which published consumers pin `signing/v4.3.2` (all silently drop non-CBOR signed events today) | Medium | S | Upstream |~~ done — verified: only integration_test/go.mod requires signing; no published cqrs-htmx module pulls it
 | 14 | CHANGELOG-accuracy audit upstream for the 2026-10-03 wave: entries claiming directive-only while carrying code (signing CloneEvent, scheduling submodules) | Medium | M | Upstream |
 | 15 | Document (not retract) v4.3.2 as poisoned-for-non-CBOR-producers; never re-tag same version at a different commit | Medium | S | Upstream |
 | 16 | Upstream API note: `event.New` []byte passthrough stamps codec encoding — intended? Require explicit `WithEncoding` for reconstruction paths? | Medium | S | Upstream |
@@ -94,7 +94,7 @@
 | 20 | Wave-audit gate: after family bumps, diff each new tag's module dir; non-empty diff ⇒ changelog must not claim directive-only (upstream-able) | Medium | M | Tooling |
 | 21 | `.#test` battery: non-short-circuit per-module PASS/FAIL report mode (fail at end) | Medium | M | Tooling |
 | 22 | Shell rc-discipline helper in `scripts/lib/` (run_and_capture) + reference from gotcha 3 | Low | S | Tooling |
-| 23 | Ensure `check-status-rows.py` passes on this report; keep the unarchived-tail convention (README count updated) | Low | S | Documentation |
+~~| 23 | Ensure `check-status-rows.py` passes on this report; keep the unarchived-tail convention (README count updated) | Low | S | Documentation |~~ done — both gates green this pass; README counts restamped
 | 24 | Reconcile Go-floor documentation: AGENTS.md says 1.27.1 floor; wave normalized module directives to `go 1.27`; go.work floor + `.golangci run.go` still 1.27.1 — document intended end-state | Low | S | Documentation |
 | 25 | CI `go-version-file: go.mod` now floats to latest 1.27.x post-normalization — pin-vs-float decision | Low | S | CI |
 | 26 | `go-cache-env.sh`: under `GOWORK=off`, the go.work floor is the wrong resolution source — read the module's own directive | Low | S | Tooling |
@@ -126,13 +126,13 @@
 | 47 | Master-red attribution sentinel: pre-push note of which sessions/modules a push carries (extends preflight-tree-check) | Medium | M | Tooling |
 | 48 | integration_test consuming setup's public composition API only (reduce direct cqrs-lite requires; ties into dep-budget philosophy) | Low | L | Cleanup |
 | 49 | Re-run the full battery once the concurrent session's 7 commits land on origin (my green predates them) | Medium | S | Quality |
-| 50 | Reconcile `docs/status/README.md` "currently 2" unarchived count (now 5) — stale table cell | Low | S | Documentation |
+~~| 50 | Reconcile `docs/status/README.md` "currently 2" unarchived count (now 5) — stale table cell | Low | S | Documentation |~~ done — counts restamped this pass
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
-1. **The 7 unpushed commits + master-green ownership.** The concurrent session's local commits (incl. `15bee1cf feat(setup): unblock login-page styling`) are invisible to CI. Are they push-ready, and who drives master CI green — do I push + watch once the tree is quiet, or does the loginpage session own the push? I can see the commits, not the intent (05-51 g3 ride-along policy is still unanswered).
-2. **HARVEST collision authority.** The skill contract says run HARVEST now (both reports' (f) → TODO_LIST/ROADMAP), but the concurrent session edited `TODO_LIST.md` three times in the last 30 minutes. Harvest now in the shared tree (risking edit collision and daemon shredding), or hold until their session ends — and if held, does the mandate stay mine?
-3. **Patch tag now or ride the next train?** Fresh installs of the newest published cqrs-htmx TAG still get signing v4.3.2 (drops non-CBOR signed events); only master pins v4.3.3. Do you want an out-of-train patch tag for consumer safety now, or does the next family train carry it — and if the former, which version?
+~~1. **The 7 unpushed commits + master-green ownership.** The concurrent session's local commits (incl. `15bee1cf feat(setup): unblock login-page styling`) are invisible to CI. Are they push-ready, and who drives master CI green — do I push + watch once the tree is quiet, or does the loginpage session own the push? I can see the commits, not the intent (05-51 g3 ride-along policy is still unanswered).~~ resolved by reality — the commits landed on origin and CI verified; the remaining red is the single dep-budget breach
+~~2. **HARVEST collision authority.** The skill contract says run HARVEST now (both reports' (f) → TODO_LIST/ROADMAP), but the concurrent session edited `TODO_LIST.md` three times in the last 30 minutes. Harvest now in the shared tree (risking edit collision and daemon shredding), or hold until their session ends — and if held, does the mandate stay mine?~~ resolved — this pass harvested both reports without collision
+~~3. **Patch tag now or ride the next train?** Fresh installs of the newest published cqrs-htmx TAG still get signing v4.3.2 (drops non-CBOR signed events); only master pins v4.3.3. Do you want an out-of-train patch tag for consumer safety now, or does the next family train carry it — and if the former, which version?~~ MOOT — consumers never inherit signing
 
 ---
 

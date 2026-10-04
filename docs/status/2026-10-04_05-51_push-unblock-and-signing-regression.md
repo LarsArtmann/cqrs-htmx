@@ -1,5 +1,7 @@
 # Status: Push Unblock + Signing Regression Root-Cause — 2026-10-04 05:51 CEST
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** the arc closed within the hour — upstream landed the #52 fix themselves (`de2987576`, tag `signing/v4.3.3`, issue closed), the re-pin landed (`a4eec94b`, battery green), and CI now shows the signing class dead (test job green, run 37178906141). The workspace-mode failure set (§b3) is sharpened: it lives in the LOCAL sibling-tree state, not the published pins, and a concurrent session is actively fixing it (uncommitted brand-prefix strip in identity-model/id.go). The "patch-tag cqrs-htmx" thread (§c/§g3/f2) is MOOT — only integration_test requires signing, so published-tag consumers were never exposed. Still open (routed): the loginpage 7/5 dep-budget decision (the last red on master), the agents-notes long-form narrative, the #52 verification comment + tag-diff regression-test check, and the upstream changelog-accuracy mechanism. Archived this pass.
+
 > Point-in-time snapshot (session window ~04:45–05:55 CEST). Append-only per `docs/status/README.md`.
 > Scope: this session's work only — release-train push unblock, the pre-existing `integration_test` red, and its upstream root cause. No unrelated research.
 
@@ -28,19 +30,19 @@
 
 | # | Item | State |
 |---|------|-------|
-| b1 | Master CI green | RED — 3 jobs failed on run `37174506290`: `Test integration_test submodule` (the 3 signing tests, upstream #52), `Dependency budget check` (`loginpage/v4: 7 deps, budget 5`), `golangci-lint (loginpage)` (golines + gocritic offBy1). The latter two are the concurrent session's loginpage work that rode along in the push window — not triaged by me. |
+~~| b1 | Master CI green | RED — 3 jobs failed on run `37174506290`: `Test integration_test submodule` (the 3 signing tests, upstream #52), `Dependency budget check` (`loginpage/v4: 7 deps, budget 5`), `golangci-lint (loginpage)` (golines + gocritic offBy1). The latter two are the concurrent session's loginpage work that rode along in the push window — not triaged by me. |~~ UPDATED 2026-10-04 — exactly ONE red job remains (module-architecture: loginpage 7/5 dep budget, run 37178906141); the lint reds were fixed by the episode-4 session; the test job is green
 | b2 | Wave verification | Only the composite battery + the signing cluster were tested; the other 40+ wave members were never individually exercised. The battery also short-circuits at first failure, so modules after `integration_test` (loginpage, setup, systemadapter, usermgmt) never ran locally. |
-| b3 | Workspace-mode failure set (~16 tests) | Observed and recorded but NOT root-caused — it runs against the live local go-cqrs-lite tree (go.work local replaces); may be #52 plus additional in-flight upstream state. |
-| b4 | Documentation of the episode | Gotcha 24 recorded (condensed); the long-form narrative for `docs/agents-notes.md` (dated-history convention) not written. |
-| b5 | Upstream fix | Issue filed with full fix recipe; the actual `signing/v4.3.3` code change + tag NOT made — go-cqrs-lite had an active session (staged `TODO_LIST.md`, daemon commits minutes earlier); writing there would collide. |
+~~| b3 | Workspace-mode failure set (~16 tests) | Observed and recorded but NOT root-caused — it runs against the live local go-cqrs-lite tree (go.work local replaces); may be #52 plus additional in-flight upstream state. |~~ SHARPENED 2026-10-04 — CI test job GREEN on published pins (run 37178906141), so the failures live in the LOCAL sibling-tree state (go.work replaces); a concurrent session has an uncommitted brand-prefix-strip fix in identity-model/id.go
+~~| b4 | Documentation of the episode | Gotcha 24 recorded (condensed); the long-form narrative for `docs/agents-notes.md` (dated-history convention) not written. |~~ done-half — gotcha 24 recorded; CHANGELOG receipt added this pass; the agents-notes long-form narrative stays OPEN (routed TODO)
+~~| b5 | Upstream fix | Issue filed with full fix recipe; the actual `signing/v4.3.3` code change + tag NOT made — go-cqrs-lite had an active session (staged `TODO_LIST.md`, daemon commits minutes earlier); writing there would collide. |~~ done — upstream landed it themselves (de2987576, tag signing/v4.3.3, issue #52 closed); re-pinned here at a4eec94b
 
 ## c) NOT STARTED
 
-- `signing/v4.3.3` re-pin here (blocked on upstream fix+tag)
-- Upstream PR for #52 (draft not started — coordination question, see g2)
-- CHANGELOG entry for the pushed alignment (broadcast v0.6.2 + wave + dependabot npm)
-- HARVEST of section (f) into `TODO_LIST.md` / `ROADMAP.md`
-- Triage of the two loginpage CI failures (budget + lint)
+~~- `signing/v4.3.3` re-pin here (blocked on upstream fix+tag)~~ done — a4eec94b; regression verified dead against the published pin
+~~- Upstream PR for #52 (draft not started — coordination question, see g2)~~ MOOT — upstream landed the fix themselves and closed #52
+~~- CHANGELOG entry for the pushed alignment (broadcast v0.6.2 + wave + dependabot npm)~~ done — added to CHANGELOG [Unreleased] this pass
+~~- HARVEST of section (f) into `TODO_LIST.md` / `ROADMAP.md`~~ done — this pass
+~~- Triage of the two loginpage CI failures (budget + lint)~~ done-half — lint fixed (CI green); the 7/5 dep-budget breach is the last red on master (owner call)
 - Changelog-accuracy mechanism upstream (directive-wave entries enumerating code deltas)
 
 ## d) TOTALLY FUCKED UP
@@ -67,13 +69,13 @@
 ## f) NEXT (brainstorm — up to 50; extra items are ROADMAP fuel, not commitments)
 
 **Now / this train:**
-1. Triage CI run `37174506290` fully: confirm the 3 test failures are exactly the signing set (no new ones).
+~~1. Triage CI run `37174506290` fully: confirm the 3 test failures are exactly the signing set (no new ones).~~ done — failures attributed precisely; superseded by later runs (37178906141)
 2. Triage `loginpage` dep-budget overrun (7/5): reduce deps or justify increase in `scripts/check-dep-budgets.sh` — concurrent session's call.
-3. Triage `loginpage` lint (golines format + gocritic offBy1 in handler_test.go) — concurrent session's call.
-4. When `signing/v4.3.3` publishes: `bump-dep.sh 'larsartmann/go-cqrs-lite/signing/v4$' v4.3.3` → full battery → commit → push (train ritual).
-5. Watch the next CI run on master after any of the above.
-6. HARVEST this report's (f) into `TODO_LIST.md` (short-term) + `ROADMAP.md` (tail).
-7. CHANGELOG entry: broadcast v0.6.2 alignment + 43-module wave + dependabot npm/e2e.
+~~3. Triage `loginpage` lint (golines format + gocritic offBy1 in handler_test.go) — concurrent session's call.~~ done — fixed by the episode-4 session; CI lint green
+~~4. When `signing/v4.3.3` publishes: `bump-dep.sh 'larsartmann/go-cqrs-lite/signing/v4$' v4.3.3` → full battery → commit → push (train ritual).~~ done — re-pin landed at a4eec94b with the full battery green
+~~5. Watch the next CI run on master after any of the above.~~ done — run 37178906141 observed (lint green, test green, one red job)
+~~6. HARVEST this report's (f) into `TODO_LIST.md` (short-term) + `ROADMAP.md` (tail).~~ done — this pass
+~~7. CHANGELOG entry: broadcast v0.6.2 alignment + 43-module wave + dependabot npm/e2e.~~ done — added this pass
 8. Write the `docs/agents-notes.md` long-form narrative (dates, hashes, the wrong-turn story).
 9. Cross-link this report in `docs/status/README.md` if the index convention requires it.
 10. Verify `examples` pins resolve cleanly post-wave (gate says 0 lag — spot-check one example builds standalone).
@@ -128,9 +130,9 @@
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
-1. **CI-red tolerance policy:** until `signing/v4.3.3` lands, should the 3 signing tests be skipped (reversible `t.Skip` with an #52 link — keeps master green, hides a real regression) or do we tolerate red master as the honest signal?
-2. **Upstream ownership:** is the currently-active go-cqrs-lite session going to own the #52 fix this train, or should I draft the upstream PR (`WithEncoding` + test) for you to review? I cannot see the other session's intent, and writing to that tree while it's mid-flight risks a collision.
-3. **The ride-along commit:** my push carried `2413e551` — a daemon commit of the concurrent session's in-progress loginpage work (now failing CI on dep-budget and lint). Was that state push-ready, or do you want a rule that foreign daemon commits get held/rebased out before I push?
+~~1. **CI-red tolerance policy:** until `signing/v4.3.3` lands, should the 3 signing tests be skipped (reversible `t.Skip` with an #52 link — keeps master green, hides a real regression) or do we tolerate red master as the honest signal?~~ moot — the signing tests PASS now (upstream fix landed + re-pin); no skip policy needed
+~~2. **Upstream ownership:** is the currently-active go-cqrs-lite session going to own the #52 fix this train, or should I draft the upstream PR (`WithEncoding` + test) for you to review? I cannot see the other session's intent, and writing to that tree while it's mid-flight risks a collision.~~ answered by reality — the active upstream session owned the fix (de2987576) and closed #52
+~~3. **The ride-along commit:** my push carried `2413e551` — a daemon commit of the concurrent session's in-progress loginpage work (now failing CI on dep-budget and lint). Was that state push-ready, or do you want a rule that foreign daemon commits get held/rebased out before I push?~~ routed — ROADMAP OQ18 (push/sync policy under concurrent sessions) carries the owner question
 
 ---
 
