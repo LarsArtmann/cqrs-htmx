@@ -5,12 +5,13 @@ module github.com/larsartmann/cqrs-htmx/setup/v4
 go 1.27.1
 
 require (
+	github.com/a-h/templ v0.3.1020
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.12.1
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.13.1
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-appkit v0.7.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
@@ -33,7 +34,6 @@ require (
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
-	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
