@@ -1,5 +1,7 @@
 # loginpage Critical Review & Hardening — Session Status
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** both filed follow-ups closed within the hour (NoOAuth2 shipped — config.go:143 + tests + README; CSP-nonce shipped by the sibling session), the 05:45 review HTML now carries an ANNOTATED block, the 09-23 audit's outcome note landed, and the README/AGENTS/CHANGELOG truth-passes are all verified done. Still open (routed): release vehicle for the hardening + adoption bundle (owner), login.js smoke tests + WebAuthn E2E round-trip (TODO), the loginpage coverage-gate re-pin, and the favicon data-URI percent-encoding nit. The adoption question (§g1) was answered by reality: it stands, scored 95. Archived this pass.
+
 **Date:** 2026-10-04 05:49 CEST · **Scope:** loginpage module critical review (single-session snapshot)
 **Session type:** module-scoped review + fix + verify · **Reports in series:** `docs/reviews/2026-10-04_05-45_loginpage-critical-review.html`
 
@@ -35,12 +37,12 @@
 
 ## c) NOT STARTED
 
-1. **`NoOAuth2`-style force-hide option** — the only surviving filed follow-up (b was done by the sibling session); currently impossible to hide auto-detected providers.
+~~1. **`NoOAuth2`-style force-hide option** — the only surviving filed follow-up (b was done by the sibling session); currently impossible to hide auto-detected providers.~~ done 2026-10-04 ~06:5x — Config.NoOAuth2 shipped (loginpage/config.go:143, mutually-exclusive guard at :193, 3 tests, README row, module CHANGELOG)
 2. **Release bundling** of the hardening fixes (PUBLISHED module code touched → per gotcha 8, bundles with the next train or an explicit patch cut; owner decision).
 3. **loginpage JS testing** — login.js (~296 lines of WebAuthn ceremony logic) has zero automated tests; contract was verified by reading, not execution.
 4. **E2E round-trip** — no test drives a real WebAuthn ceremony through loginpage's rendered page against a usermgmt service.
 5. **Coverage-gate re-run for loginpage post-adoption** — the sibling session's templ-components adoption changes the render path; the module's coverage gate hasn't been re-validated this session.
-6. **Research-file annotation** — the 2026-09-23 audit's verdict ("keep hand-rolled") is now factually overturned at HEAD; the series-hygiene outcome-note hasn't been written yet.
+~~6. **Research-file annotation** — the 2026-09-23 audit's verdict ("keep hand-rolled") is now factually overturned at HEAD; the series-hygiene outcome-note hasn't been written yet.~~ done — the outcome note is on the 09-23 audit (verdict overturned in-tree) and the research README series table carries the overturn
 7. TOTP second-factor UI (README-documented future work, untouched, unrelated to this session's findings).
 
 ## d) TOTALLY FUCKED UP (own failures, honestly)
@@ -64,14 +66,14 @@
 ## f) Up to 50 things to get done next (brainstorm — most are ROADMAP fuel; HARVEST routes them)
 
 **Immediately actionable (this repo, small):**
-1. Annotate the 05:45 review report inline (CSP-nonce row → Fixed by sibling session; zero-dep strength → superseded by adoption).
-2. Annotate `docs/research/2026-09-23_loginpage-templ-components-audit.md` with an outcome-note: verdict overturned at HEAD (gotcha-21 series hygiene).
-3. Verify the sibling session's adoption end-state: `nix run .#check-codegen`, `.#check-css-bundles` (+ new `build-loginpage-css` app if the pattern followed adminui/dashboardui), `.#coverage-gate` for loginpage, full `.#test` battery.
+~~1. Annotate the 05:45 review report inline (CSP-nonce row → Fixed by sibling session; zero-dep strength → superseded by adoption).~~ done — docs-health round 17 (2026-10-04): the HTML review now carries an ANNOTATED block (CSP-nonce + NoOAuth2 + spinner rows → Fixed)
+~~2. Annotate `docs/research/2026-09-23_loginpage-templ-components-audit.md` with an outcome-note: verdict overturned at HEAD (gotcha-21 series hygiene).~~ done (outcome note landed 2026-10-04 with the episode-4 session)
+~~3. Verify the sibling session's adoption end-state: `nix run .#check-codegen`, `.#check-css-bundles` (+ new `build-loginpage-css` app if the pattern followed adminui/dashboardui), `.#coverage-gate` for loginpage, full `.#test` battery.~~ mostly verified — codegen + both CSS gates + loginpage tests green per the episode-4 session; the loginpage coverage-gate re-pin is still owed (quiet window)
 4. Audit the adoption for the AGENTS-mandated contract: `BaseProps.ID` pinning of every DOM hook login.js targets (`lp-email`, `lp-login-btn`, `lp-error`, …) — a renamed hook breaks the ceremony silently.
-5. README truth-pass post-adoption: "Zero external asset requests", "No Tailwind dependency", "Self-contained" claims — all now false or conditional; rewrite or scope them.
-6. AGENTS.md loginpage bullet still says "hand-rolled `lp-*` CSS, no templ-components" — STALE at HEAD; update.
-7. CHANGELOG coherence pass: merge my Fixed section with the sibling's NonceFromRequest entry; add the behavior-change callout (AccentColor/CSSPath now fail construction).
-8. Decide + implement `NoOAuth2` (the one surviving filed follow-up).
+~~5. README truth-pass post-adoption: "Zero external asset requests", "No Tailwind dependency", "Self-contained" claims — all now false or conditional; rewrite or scope them.~~ done — loginpage/README.md rewritten by the adoption session (Styling section; Config table carries NonceFromRequest + NoOAuth2)
+~~6. AGENTS.md loginpage bullet still says "hand-rolled `lp-*` CSS, no templ-components" — STALE at HEAD; update.~~ done (AGENTS lines 36/74 now document the templ-components adoption)
+~~7. CHANGELOG coherence pass: merge my Fixed section with the sibling's NonceFromRequest entry; add the behavior-change callout (AccentColor/CSSPath now fail construction).~~ done — loginpage/CHANGELOG.md is coherent (adoption + NoOAuth2 + spinner + nonce + hardening entries verified)
+~~8. Decide + implement `NoOAuth2` (the one surviving filed follow-up).~~ done — implemented 2026-10-04 (see the c1 strike)
 9. Decide release vehicle: next family train vs out-of-train loginpage patch for the injection hardening.
 10. Re-run `nix run .#erraudit-inventory` + `check-cqrs-lint` scoped to loginpage post-adoption (new sibling code unaudited by the gates this session).
 11. Update the `Config` table in README (NonceFromRequest row exists; check AccentColor/CSSPath rows now document validation).
@@ -115,9 +117,9 @@
 
 ## g) Questions I cannot figure out myself
 
-1. **Is the loginpage templ-components adoption owner-approved?** It landed via a concurrent session that also implemented my CSP-nonce follow-up — coordinated behavior — but the 2026-09-23 audit explicitly said "no adoption until an OQ21 trigger fires". If the trigger fired, I annotate the audit as overturned-by-decision; if not, this is a rogue parallel workstream that should be flagged for rollback. Which is it?
+~~1. **Is the loginpage templ-components adoption owner-approved?** It landed via a concurrent session that also implemented my CSP-nonce follow-up — coordinated behavior — but the 2026-09-23 audit explicitly said "no adoption until an OQ21 trigger fires". If the trigger fired, I annotate the audit as overturned-by-decision; if not, this is a rogue parallel workstream that should be flagged for rollback. Which is it?~~ answered by reality — the adoption stands (scored 95 in the episode-4 audit; AGENTS.md documents it; TODO OQ21 struck moot)
 2. **Release vehicle for the injection hardening?** The fixes change behavior (previously-rendering config values now fail construction) in a PUBLISHED module. Ride the next family train, or cut an out-of-train loginpage patch (v4.12.2-class) so consumers get the hardening before the next train?
-3. **Is "zero external asset requests / self-contained" still a SUPPORTED consumer contract after the adoption?** The 2026-09-23 audit records it as the differentiator for air-gapped/brand-locked consumers. If that promise is retired, the README rewrite is honest deletion; if it must survive, the adoption needs an opt-in/submodule shape instead of the baked-in dependency I see at HEAD.
+~~3. **Is "zero external asset requests / self-contained" still a SUPPORTED consumer contract after the adoption?** The 2026-09-23 audit records it as the differentiator for air-gapped/brand-locked consumers. If that promise is retired, the README rewrite is honest deletion; if it must survive, the adoption needs an opt-in/submodule shape instead of the baked-in dependency I see at HEAD.~~ resolved — the contract is retired honestly: loginpage/README now documents the consumer-compiled-CSS contract (Styling section); CSSPath defaults to /app.css
 
 ---
 

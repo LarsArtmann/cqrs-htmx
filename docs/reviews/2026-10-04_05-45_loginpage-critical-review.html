@@ -845,6 +845,22 @@
       </aside>
 
       <main class="main">
+        <div style="margin:0 0 16px;padding:12px 16px;border:1px solid #ccc;border-left:4px solid #16a34a;background:#f0fdf4;font-size:14px;line-height:1.5">
+          <strong>ANNOTATED 2026-10-04 (docs-health round 17), append-only:</strong>
+          every Open follow-up in this report is now resolved &mdash; CSP-nonce
+          shipped as <code>Config.NonceFromRequest</code> (sanitized base64url,
+          loginpage/CHANGELOG [Unreleased]), <code>Config.NoOAuth2</code> shipped
+          (force-hides auto-detected buttons; mutually exclusive with
+          <code>OAuth2Buttons</code>, rejected at <code>New</code>; 3 tests +
+          README row), and the submit-spinner follow-up shipped as the
+          library-owned hidden <code>feedback.Spinner</code> behind the
+          <code>lp-spinner</code> hook (<code>SPINNER_HTML</code> deleted). The
+          &ldquo;zero-dependency posture&rdquo; strength above is superseded: the
+          module was rebuilt on templ-components the same day (scored 95 in
+          <code>docs/research/2026-10-04_templ-components-deep-dive.html</code>).
+          Still open (routed in TODO_LIST): release vehicle for the hardening +
+          adoption bundle, login.js smoke tests, coverage-gate re-pin.
+        </div>
         <div class="hero">
           <div class="hero-shapes">
             <div class="circle"></div>
