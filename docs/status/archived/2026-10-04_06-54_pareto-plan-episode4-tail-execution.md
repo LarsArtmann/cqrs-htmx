@@ -1,5 +1,7 @@
 # Status Report — Pareto Plan + Episode-4 Tail Execution
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** §b2/§d1 sharpened — the 6 workspace-mode test failures do NOT reproduce in CI's published-pins mode (test job green, run 37178906141); they live in the local sibling-tree state (go.work replaces), a concurrent session is actively fixing them (uncommitted brand-prefix strip in identity-model/id.go), and the LAST red on master is the loginpage 7/5 dep-budget breach (module-architecture job) — the release-train blocker is the budget decision, not the tests. The T9 archive pass (§f6) plus §f23–f25 process items executed in this pass. T5–T9 of Tier 20% remain open as scoped (verified: PageHeader ×8 and statusToBadgeMap still absent from the tree). Archived this pass.
+
 **Date:** 2026-10-04 06:54 CEST · **Branch:** master, pushed to `origin` (`4e1d41f4..c9274e37`, release-train strict green)
 **Session scope:** episode-4 templ-components deep-dive → Pareto plan (26 tasks / 45 micro-tasks) → execution of Tier 1% + 4% (T1–T4)
 **Plan artifact:** [`docs/planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md`](../planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md)
@@ -24,7 +26,7 @@
 ## b) PARTIALLY DONE
 
 1. **Plan execution (T5–T9 of Tier 20% not started)** — dashboardui `PageHeader` ×8 swap, upstream `statusToBadgeMap` issue, RelativeTime swap, status-report archive pass, M12/M13/M14 hygiene: fully scoped in the plan (micro-tasks M021–M037), zero execution this session.
-2. **Setup test regression** — discovered, isolation-verified, recorded in TODO_LIST with error signatures; root-cause NOT attempted (out of plan scope).
+~~2. **Setup test regression** — discovered, isolation-verified, recorded in TODO_LIST with error signatures; root-cause NOT attempted (out of plan scope).~~ SHARPENED 2026-10-04 — CI test job GREEN on published pins (run 37178906141), so the failures live in the LOCAL sibling-tree state (go.work replaces); a concurrent session has an uncommitted brand-prefix-strip fix in identity-model/id.go; the train is NOT blocked by test failures
 3. **Full `.#check-modules` battery** — only module-scoped verifications ran (loginpage/setup/setup-demo build+vet+test, both CSS gates, codegen). The 27-stage composite battery hasn't been re-run since the loginpage cluster landed.
 4. **Directive-8 commit messages** — plan + T1 got detailed messages; the loginpage cluster (T2–T4) was captured by the auto-commit daemon in heuristic `chore:` commits (`b9f340d0`, `b7e94ef0`, `c9274e37`) before a manual phase-boundary commit could land. Content is safe and pushed; message fidelity lost for that batch.
 
@@ -50,12 +52,12 @@ Tier 20% tail (T5–T12), Tier-80% items (T13–T19), and the gated/dormant set 
 
 | # | Item | Tier |
 |---|---|---|
-| 1 | **Root-cause the read_model_missing/bus-subscription regression** (blocks trains; suspects: projection-host subscribe path, go-cqrs-lite bus bump) | 🔥 now |
+~~| 1 | **Root-cause the read_model_missing/bus-subscription regression** (blocks trains; suspects: projection-host subscribe path, go-cqrs-lite bus bump) | 🔥 now |~~ SHARPENED 2026-10-04 — CI test job green on published pins (37178906141): the failures do NOT reproduce off the local sibling trees; the last actual red on master is the loginpage 7/5 dep-budget (module-architecture job). Local workspace-mode failures: sibling-tree state, concurrent session actively fixing (uncommitted identity-model/id.go prefix strip)
 | 2 | Run full `.#check-modules` + `.#test` battery post-loginpage-cluster | 🔥 now |
 | 3 | T5: dashboardui `display.PageHeader` ×8 swap (audit/projections/aggregates/snapshots/dlq) — last full capability gap; goldens + class-set gates decide | 20% |
 | 4 | T6: file upstream `statusToBadgeMap` issue (verify-before-filing + github-voice gates), then adopt `StatusBadge` in adminui on land | 20% |
 | 5 | T7: dashboardui `RelativeTime` narrow swap (snapshot-detail Created) | 20% |
-| 6 | T9: status-report ARCHIVE pass (7 over-budget reports → `docs/status/archived/`) | 20% |
+~~| 6 | T9: status-report ARCHIVE pass (7 over-budget reports → `docs/status/archived/`) | 20% |~~ done — round-17 pass (2026-10-04): the 13-report tail annotated + archived
 | 7 | T10: M13 BuildFlow failing-step-name capture → agents-notes | 20% |
 | 8 | T11: M12 A012×4 per-finding verdicts into residual-triage doc | 20% |
 | 9 | T12: M14 CHANGELOG receipt convention decision | 20% |
@@ -72,9 +74,9 @@ Tier 20% tail (T5–T12), Tier-80% items (T13–T19), and the gated/dormant set 
 | 20 | loginpage: consumer-facing migration note for pre-rewrite consumers (embedded CSS → compiled contract) in next-train notes | idea |
 | 21 | adminui: LoadingButton on mutating forms (09-17 F8 tail) | idea |
 | 22 | dashboardui README adoption table: add ThemeScript/ThemeToggle + CSRFToken rows (adopted post-09-23, table may predate) | idea |
-| 23 | episode-4 report: harvest §f items into TODO_LIST via docs-health HARVEST (skill loop-closure rule) | process |
-| 24 | Annotate the 2026-10-04 review HTML: CSP-nonce + NoOAuth2 + spinner rows → Fixed | process |
-| 25 | TODO_LIST: prune items made stale by the loginpage rewrite (grep for `lp-*`/zero-dep claims) | process |
+~~| 23 | episode-4 report: harvest §f items into TODO_LIST via docs-health HARVEST (skill loop-closure rule) | process |~~ done — this pass
+~~| 24 | Annotate the 2026-10-04 review HTML: CSP-nonce + NoOAuth2 + spinner rows → Fixed | process |~~ done — the 05:45 review now carries an ANNOTATED block (CSP-nonce + NoOAuth2 + spinner → Fixed; zero-dep strength superseded)
+~~| 25 | TODO_LIST: prune items made stale by the loginpage rewrite (grep for `lp-*`/zero-dep claims) | process |~~ done — the moot adoption owner-call was struck 06:5x; this pass updated the episode-4 tail + review follow-up rows
 | 26–50 | *(plan Table A T20–T26 carried verbatim: V007 metaengine-gated migration, appkit v5-window, SidebarNav criteria, BuildFlow BF1–BF3, DataStar Tier-4 demand gate, buildcache human decision, owner-call batch: PapDashboard send / datastar-demo / cqrs-lint tag / cross-repo debt; plus: ROADMAP raw-ideas sweep for OQ21 closure, FEATURES.md loginpage refresh, AGENTS gotcha for the daemon-vs-hook race, loginpage coverage-gate re-pin if spinner adds uncovered branches, setup-demo visual golden for the styled login page, upstream datastar SDKScript vs cqrs-htmx/datastar script-serving comparison note, templ-components Unreleased watch item (typed triggers ADR-0043 → revisit wire adoption at next train), check-css-bundle-classes extension to setup-demo's app.css if it becomes load-bearing, session-cost note: 2 multiedit retries class)* | rest |
 
 ## g) TOP #1 QUESTION I CANNOT ANSWER MYSELF

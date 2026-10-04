@@ -1,5 +1,7 @@
 # Draft: signing/v4.3.2 CloneEvent stamps CBOR encoding onto non-CBOR events
 
+> **RESOLVED 2026-10-04 (docs-health round 17) — SHIPPED, do not file:** upstream landed the exact proposed fix themselves (go-cqrs-lite commit `de2987576` "signing: preserve payload encoding in CloneEvent", tagged `signing/v4.3.3` at `1aec483f`) and closed [go-cqrs-lite#52](https://github.com/LarsArtmann/go-cqrs-lite/issues/52) with it. Consumer side verified: re-pin at `a4eec94b`, all 3 failing signing tests pass against the published pin, full workspace battery green. This draft is historical record only.
+
 Target repo: LarsArtmann/go-cqrs-lite (own repo)
 Kind: body-issue, ai-drafted, unsolicited
 Proposed title: signing v4.3.2 CloneEvent re-stamps encoding to CBOR — signed JSON events decode as garbage

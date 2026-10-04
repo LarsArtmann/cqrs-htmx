@@ -3,6 +3,8 @@
 >
 > - [ ] MANUALLY REVIEWED by `@Lars Artmann` at `[<date-time>]`
 
+> **RESOLVED 2026-10-04 — SHIPPED, do not file:** the fix landed upstream (`de2987576`, tag `signing/v4.3.3`) and [go-cqrs-lite#52](https://github.com/LarsArtmann/go-cqrs-lite/issues/52) is closed; cqrs-htmx re-pinned at `a4eec94b` with the battery green. Kept as historical record only.
+
 TL;DR: `signing/v4.3.2`'s `CloneEvent` migrated from `event.NewEvent` to `event.New` without carrying `WithEncoding` over, so every signed clone gets auto-stamped with the default CBOR encoding while its payload bytes stay whatever the producer wrote — consumers decoding JSON-labeled-as-CBOR fail, and signed events silently never reach read models. Ask: preserve `evt.Encoding()` in `CloneEvent`, add a regression test, tag `signing/v4.3.3`; cqrs-htmx re-pins after that.
 
 ## Symptom

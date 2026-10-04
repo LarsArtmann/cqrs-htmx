@@ -1,5 +1,7 @@
 # Status: signing/v4.3.3 Fix Landed + Verified — 2026-10-04 06:52 CEST
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** §b1 sharpened — master is red on exactly ONE job now (loginpage 7/5 dep budget; the lint reds were fixed by the episode-4 session; the test job is green, run 37178906141). The lifecycle debts this report listed are closed by this pass: the 05-51 report + both drafts annotated, HARVEST executed, the CHANGELOG receipt added. §f2/§g3's consumer-safety patch tag is MOOT — fleet-verified that only integration_test requires signing, so published-tag consumers never inherited the poisoned pin. Still open (routed): the #52 verification comment + tag-diff regression-test check (§b2), the agents-notes long-form narrative, the dep-budget owner call, and the minor upstream/tooling tail (§f14–f50). Archived this pass.
+
 > Point-in-time snapshot (continuation window ~06:05–06:55 CEST). Append-only per `docs/status/README.md`.
 > Scope: this session's run only — the upstream fix landing, the v4.3.3 re-pin, verification, and CI state. No unrelated research.
 > Series: continuation of [`2026-10-04_05-51_push-unblock-and-signing-regression.md`](2026-10-04_05-51_push-unblock-and-signing-regression.md) (root-cause episode). Items there that reality has since resolved are marked below, not rewritten there.
