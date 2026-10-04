@@ -875,6 +875,78 @@
               );
             };
 
+            build-setup-demo-css = {
+              type = "app";
+              meta.description = "Compile the setup-demo consumer stylesheet (tailwind.css → assets/app.css) that the login page loads at /app.css";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "build-setup-demo-css";
+                  runtimeInputs = [
+                    pkgs.tailwindcss_4
+                    goPkg
+                  ];
+                  text = ''
+                    cd examples/setup-demo
+                    # The demo's login page (via setup → loginpage) renders
+                    # templ-components Tailwind utilities. This app compiles
+                    # the CONSUMER-side stylesheet — the same job every real
+                    # setup consumer must do once (README "Styling").
+                    #
+                    # Scan sources (NOT the 3x-larger _templ.go mirrors):
+                    #   - loginpage: page.templ + assets/login.js (the JS
+                    #     injects lp-spinner/animate-spin classes at runtime)
+                    #   - templ-components: the 5 packages loginpage imports,
+                    #     .templ + *_go.go (variant class maps live in the
+                    #     *_go.go sources — the M10 lesson)
+                    LP_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/cqrs-htmx/loginpage/v4 || true)
+                    if [ -z "$LP_DIR" ]; then
+                      echo "ERROR: cannot resolve loginpage via 'go list -m' in examples/setup-demo (run 'go mod download' there first)" >&2
+                      exit 1
+                    fi
+                    TC_DIR=$(GOWORK=off go list -m -f '{{.Dir}}' github.com/larsartmann/templ-components || true)
+                    if [ -z "$TC_DIR" ]; then
+                      echo "ERROR: cannot resolve templ-components via 'go list -m' in examples/setup-demo" >&2
+                      exit 1
+                    fi
+
+                    TMP_CSS=$(mktemp --suffix=.css)
+                    cp tailwind.css "$TMP_CSS"
+                    echo "@source \"$LP_DIR\";" >> "$TMP_CSS"
+
+                    SCAN_DIR=$(mktemp -d)
+                    for pkg in layout forms display feedback utils; do
+                      if [ -d "$TC_DIR/$pkg" ]; then
+                        cp "$TC_DIR/$pkg/"*.templ "$SCAN_DIR/" 2>/dev/null || true
+                        cp "$TC_DIR/$pkg/"*_go.go "$SCAN_DIR/" 2>/dev/null || true
+                      fi
+                    done
+                    if [ -z "$(find "$SCAN_DIR" -name '*.templ' -print -quit)" ]; then
+                      echo "ERROR: zero .templ files copied from $TC_DIR — the @source scan would be empty (false-green guard)" >&2
+                      rm -f "$TMP_CSS"; rm -rf "$SCAN_DIR"
+                      exit 1
+                    fi
+                    echo "@source \"$SCAN_DIR\";" >> "$TMP_CSS"
+
+                    mkdir -p assets
+                    tailwindcss -i "$TMP_CSS" -o assets/app.css --minify
+
+                    rm -f "$TMP_CSS"; rm -rf "$SCAN_DIR"
+
+                    # Canaries: utilities the login page emits at runtime —
+                    # library button/input classes, dark: variants (escaped
+                    # form in minified CSS), and the JS-injected spinner.
+                    for needle in 'animate-spin' 'text-blue-600' 'bg-gray-900' 'dark\\:' 'rounded-md'; do
+                      if ! grep -q "$needle" assets/app.css; then
+                        echo "ERROR: canary '$needle' missing from assets/app.css — Tailwind scanned no loginpage/templ-components source" >&2
+                        exit 1
+                      fi
+                    done
+                    echo "Done: examples/setup-demo/assets/app.css ($(wc -c < assets/app.css) bytes, canaries OK)"
+                  '';
+                }
+              );
+            };
+
             gen = {
               type = "app";
               meta.description = "Regenerate adminui + loginpage + dashboardui templ components (module-dir generation is canonical) and normalize formatting";

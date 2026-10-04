@@ -1,0 +1,20 @@
+/*
+ * setup-demo Tailwind v4 consumer entry point — the login page's stylesheet.
+ *
+ * The login page (mounted by setup at "/") renders templ-components
+ * Tailwind utilities, so it needs a compiled stylesheet at its CSSPath
+ * (default "/app.css"). This file is the demo's consumer-side input; the
+ * build app resolves the library + loginpage module dirs and injects the
+ * @source directives (see `nix run .#build-setup-demo-css`).
+ *
+ * Build: nix run .#build-setup-demo-css
+ * (runs: tailwindcss -i tailwind.css -o assets/app.css --minify)
+ */
+
+@import "tailwindcss";
+
+/* Class-driven dark mode, matching loginpage: layout.ThemeScript flips
+   .dark on <html> before first paint (or the SSR body class carries it),
+   and every dark: utility — the library's and loginpage's own — follows
+   the class instead of prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
