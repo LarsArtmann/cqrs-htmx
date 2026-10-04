@@ -3,8 +3,11 @@ package usermgmt
 import (
 	"encoding/json/v2"
 	"fmt"
+	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -57,4 +60,37 @@ func decodeJSON[T any](t *testing.T, w *httptest.ResponseRecorder) T {
 		t.Fatalf("unmarshal: %v", err)
 	}
 	return result
+}
+
+// newJar returns a cookie jar for real-client flow tests (the HTTP-level
+// equivalent of a browser's credentials: "same-origin" fetch posture).
+func newJar(t *testing.T) http.CookieJar {
+	t.Helper()
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatalf("cookiejar: %v", err)
+	}
+	return jar
+}
+
+// postJSONTo posts a JSON body via a real client (cookie jar attached) and
+// returns the undrained response.
+func postJSONTo(t *testing.T, client *http.Client, url, body string) (*http.Response, error) {
+	t.Helper()
+	resp, err := client.Post(url, "application/json", strings.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	t.Cleanup(func() { _ = resp.Body.Close() })
+	return resp, nil
+}
+
+// decodeJSONBody decodes a live *http.Response body into target.
+func decodeJSONBody(t *testing.T, resp *http.Response, target any) error {
+	t.Helper()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(body, target)
 }

@@ -679,6 +679,16 @@ jobs:
       - name: CSS bundle class-set self-test
         run: bash scripts/selftests/test-check-css-bundle-classes.sh
 
+      # ADR-0055 invariant: every /auth/* route whose handler reads the
+      # session context must be registered behind h.withSession — a bare
+      # context-only mount is a dead route, an ungated ceremony is a
+      # takeover hole. Transitive handler-body scan + fixture self-test.
+      - name: Session route wrapper invariant check
+        run: bash scripts/checks/check-session-route-wrappers.sh
+
+      - name: Session route wrapper self-test
+        run: bash scripts/selftests/test-check-session-route-wrappers.sh
+
       # Concurrency-safety helpers for the shared tree (auto-commit daemon +
       # concurrent sessions, gotcha 4). The self-tests are the coverage; the
       # helpers themselves are session tools, not repo-state checks.

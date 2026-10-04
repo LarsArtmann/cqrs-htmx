@@ -31,6 +31,17 @@ hand-rolled HTML/JS every cqrs-htmx consumer currently writes.
   single source of truth
 - WebAuthn ceremony JS embedded via `go:embed` — zero runtime JS dependencies
 
+### Session-cookie dependency of the registration flow
+
+The 3-step enrollment (`register → registerBegin → registerFinish`) rides the
+session cookie that `POST /auth/register` sets in its response: the embedded
+JS sends every fetch with `credentials: "same-origin"`, and usermgmt's
+enrollment ceremonies enforce the owner-match rule (401 without a session,
+403 for another user's id — ADR-0055). This works unchanged because the
+cookie is set before the ceremonies begin. Constraint for consumers: mount
+the login page and the auth routes on the same origin, and do not strip the
+`session_token` cookie between steps.
+
 ## Quick start
 
 ```go

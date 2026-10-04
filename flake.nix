@@ -1084,6 +1084,8 @@
                         "bump-dep-self-test:bash scripts/selftests/test-bump-dep.sh"
                         "erraudit-inventory-self-test:bash scripts/selftests/test-erraudit-inventory.sh"
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
+                        "session-route-wrappers:bash scripts/checks/check-session-route-wrappers.sh"
+                        "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -1129,6 +1131,8 @@
                     bash scripts/selftests/test-check-status-rows.sh
                     bash scripts/selftests/test-normalize-status-rows.sh
                     bash scripts/selftests/test-bump-dep.sh
+                    bash scripts/checks/check-session-route-wrappers.sh
+                    bash scripts/selftests/test-check-session-route-wrappers.sh
                     echo ""
                     echo "✓ All module architecture checks passed"
                   '';
@@ -1183,6 +1187,25 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-status-annotations.sh
+                  '';
+                }
+              );
+            };
+
+            check-session-route-wrappers = {
+              type = "app";
+              meta.description = "ADR-0055 invariant gate: every /auth/* route whose handler reads the session context must be registered behind h.withSession — a bare context-only mount is a dead route, an ungated ceremony is a takeover hole";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-session-route-wrappers";
+                  runtimeInputs = [
+                    pkgs.gnugrep
+                    pkgs.gawk
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-session-route-wrappers.sh
                   '';
                 }
               );

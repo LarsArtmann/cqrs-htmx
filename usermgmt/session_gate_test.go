@@ -3,6 +3,7 @@ package usermgmt
 import (
 	"encoding/base64"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -106,7 +107,54 @@ func TestSessionGate_RegisterFinish_MirrorsBeginGates(t *testing.T) {
 	}
 }
 
-// --- M5: the formerly-dead session-dependent subset on a bare mount ---
+// TestBareMount_LoginPageFlow_WorksUnderGate proves the first-party
+// constraint from ADR-0055: the login page drives register → begin → finish
+// in one browser flow, and its fetches carry the session cookie
+// (credentials: "same-origin"). A cookie-jar client against the bare mount is
+// the HTTP-level equivalent of that browser behavior — the gate must let the
+// whole dance through.
+func TestBareMount_LoginPageFlow_WorksUnderGate(t *testing.T) {
+	_, mux, _, _ := bareWebAuthnAuthMux(t)
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	client := &http.Client{Jar: newJar(t)}
+
+	regResp, err := postJSONTo(t, client, server.URL+"/auth/register",
+		`{"email":"lp-flow@test.com","display_name":"LP Flow"}`)
+	if err != nil {
+		t.Fatalf("register: %v", err)
+	}
+	if regResp.StatusCode != http.StatusCreated {
+		t.Fatalf("register: status = %d, want 201", regResp.StatusCode)
+	}
+	var reg struct {
+		User struct {
+			ID string `json:"id"`
+		} `json:"user"`
+	}
+	if err := decodeJSONBody(t, regResp, &reg); err != nil {
+		t.Fatalf("decode register response: %v", err)
+	}
+
+	beginResp, err := postJSONTo(t, client, server.URL+"/auth/webauthn/register/begin",
+		`{"user_id":"`+reg.User.ID+`"}`)
+	if err != nil {
+		t.Fatalf("begin: %v", err)
+	}
+	if beginResp.StatusCode != http.StatusOK {
+		t.Fatalf("begin under gate with register-issued cookie: status = %d, want 200", beginResp.StatusCode)
+	}
+
+	finishResp, err := postJSONTo(t, client,
+		server.URL+"/auth/webauthn/register/finish?user_id="+reg.User.ID+"&credential_name=Passkey", "{}")
+	if err != nil {
+		t.Fatalf("finish: %v", err)
+	}
+	if finishResp.StatusCode != http.StatusOK {
+		t.Fatalf("finish under gate: status = %d, want 200", finishResp.StatusCode)
+	}
+}
 
 func TestBareMount_SessionRoutes_ReachableWithCookie(t *testing.T) {
 	_, mux, token := bareFullAuthMux(t)
