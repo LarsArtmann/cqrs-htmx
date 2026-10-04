@@ -1,5 +1,16 @@
 # Upstream Issue Drafts (2026-09-18)
 
+> **OUTCOME (2026-10-04, docs-health round 17):** still NOT filed — and the
+> headline draft (docs-only pre-commit fast-path) is superseded in practice:
+> the repo's standing posture is "docs-only phases go straight to the
+> documented `--no-verify` + written-justification fallback" (gotcha 8; the
+> 2026-10-04 signing-session reports record it as the deliberate habit, since
+> the hook's own runtime is what creates the daemon-race window). A hook
+> feature would optimize a path the fleet no longer walks. Filing any of these
+> remains owner-gated; the OTHER upstream asks drafted later in
+> `docs/proposals/` were dispositioned 2026-10-01 (3 filed: treefmt-nix#545,
+> a-h/templ#1449, BuildFlow#29; 2 retired with evidence — AGENTS gotcha 22).
+
 > Drafts prepared during the command-audit Pareto session (plan M17 + M18).
 > NOT filed — filing goes through the verify-before-filing gate + Lars's voice.
 > Each draft carries its in-repo evidence trail.

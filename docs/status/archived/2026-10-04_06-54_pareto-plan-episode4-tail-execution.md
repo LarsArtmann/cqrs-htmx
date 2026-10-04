@@ -4,7 +4,7 @@
 
 **Date:** 2026-10-04 06:54 CEST · **Branch:** master, pushed to `origin` (`4e1d41f4..c9274e37`, release-train strict green)
 **Session scope:** episode-4 templ-components deep-dive → Pareto plan (26 tasks / 45 micro-tasks) → execution of Tier 1% + 4% (T1–T4)
-**Plan artifact:** [`docs/planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md`](../planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md)
+**Plan artifact:** [`docs/planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md`](../../planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md)
 **Format note:** `.md` per explicit user path demand (status-report skill is HTML-canonical; standing dispatch-report exception applies).
 
 ---
@@ -13,7 +13,7 @@
 
 | # | Item | Evidence |
 |---|---|---|
-| 1 | **Episode-4 repo-wide templ-components audit** — adminui 97 (↑ from 68), dashboardui 94 holds, loginpage 95 (new adoption); zero anti-patterns; v1.19.4 = latest; gates green (codegen, CSS bundles, class-sets, loginpage tests) | [`docs/research/2026-10-04_templ-components-deep-dive.html`](../research/2026-10-04_templ-components-deep-dive.html) |
+| 1 | **Episode-4 repo-wide templ-components audit** — adminui 97 (↑ from 68), dashboardui 94 holds, loginpage 95 (new adoption); zero anti-patterns; v1.19.4 = latest; gates green (codegen, CSS bundles, class-sets, loginpage tests) | [`docs/research/2026-10-04_templ-components-deep-dive.html`](../../research/2026-10-04_templ-components-deep-dive.html) |
 | 2 | **Prior-art annotations (gotcha 21)** — outcome notes on both 09-17 HTML reports + the 09-23 loginpage audit (append-only); research README series table updated to episode 4 | 3 files in `docs/research/` |
 | 3 | **Pareto plan** — 1%→51% (setup styling), 4%→64% (loginpage cluster), 20%→80% (audit tail), remaining 80% enumerated; ALL 32 open TODOs mapped to 26 tasks + 45 micro-tasks + mermaid graph; committed + **pushed** | plan file (see header) |
 | 4 | **T1 (THE 1%): setup styling unblock** — `setup.Config.LoginCSSPath` passthrough; setup/README §Styling (two proven `@source` strategies); setup-demo now ships a real compiled consumer stylesheet (61,023 bytes, canary-guarded) served at `/app.css`; `nix run .#build-setup-demo-css` flake app; CHANGELOG entry | commit `15bee1cf` + daemon commits |
