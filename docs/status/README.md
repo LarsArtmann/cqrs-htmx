@@ -127,6 +127,8 @@ All 13 files: classification **ARCHIVE** (dated blockquote + evidence strikes + 
 | `2026-10-04_06-52_signing-v433-fix-landed-and-verified.md` | CI sharpened to one red job; lifecycle debts closed by this pass; §g questions resolved/MOOT |
 | `2026-10-04_06-54_pareto-plan-episode4-tail-execution.md` | Test failures sharpened (CI green on pins; sibling-tree state; dep-budget is the train blocker); T5–T9 verified still open + routed |
 
+Also archived in the same sweep (planning corpus): `docs/planning/archived/2026-10-01_06-47_pareto-round13-superb-execution-plan.md` and `..._15-04_pareto-round14-gates-green-first.md` — both carry dated OUTCOME blockquotes, every executable item shipped 2026-10-01/02, residue (bench, T08 fleet swap, D-list) routed in TODO_LIST; the round-16 and episode-4 plans stay ACTIVE in `docs/planning/`.
+
 ## Why not "update them all" ad hoc?
 
 Bulk-editing historical files without verification would be a [Verschlimmbesserung](https://en.wikipedia.org/wiki/Verschlimmbessern) — a well-intentioned change that makes things worse. The 2026-09-09 sweep did the verified version of this work once (every report read and checked against CHANGELOG/git/code before annotation). New reports: write them, and route anything still-open into the living docs so the next sweep stays small.
