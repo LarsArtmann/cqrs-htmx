@@ -79,9 +79,6 @@ func TestServeHTTP_PostMethodNotAllowed(t *testing.T) {
 func renderWithWebAuthn(t *testing.T, data PageData) string {
 	t.Helper()
 	data.WebAuthn = true
-	if data.inlineCSS == "" {
-		data.inlineCSS = "/* test */"
-	}
 	if data.inlineJS == "" {
 		data.inlineJS = "/* test */ navigator.credentials"
 	}
@@ -105,7 +102,7 @@ func TestPage_WebAuthnLogin(t *testing.T) {
 	if !strings.Contains(body, "<title>Test App</title>") {
 		t.Error("page missing title")
 	}
-	if !strings.Contains(body, `class="lp-brand">Acme<`) {
+	if !strings.Contains(body, ">Acme</h1>") {
 		t.Error("page missing brand")
 	}
 	if !strings.Contains(body, `id="lp-login-form"`) {
@@ -303,8 +300,10 @@ func TestServeHTTP_AccentColorApplied(t *testing.T) {
 	w := httptest.NewRecorder()
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
-	if !strings.Contains(body, "--lp-accent:#ff0000") {
-		t.Error("accent color not applied in CSS variable")
+	uri := data.faviconURI()
+	_ = uri
+	if !strings.Contains(body, "fill='#ff0000'") {
+		t.Error("accent color not applied in the SVG favicon")
 	}
 }
 
@@ -492,7 +491,7 @@ func TestPage_BrowserUnsupportedFallback(t *testing.T) {
 	if !strings.Contains(body, `id="lp-no-webauthn"`) {
 		t.Error("browser-unsupported fallback div missing")
 	}
-	if !strings.Contains(body, "lp-hidden") {
+	if !strings.Contains(body, `id="lp-no-webauthn" class="hidden`) {
 		t.Error("fallback div should be hidden by default")
 	}
 }

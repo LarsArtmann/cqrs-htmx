@@ -8,9 +8,12 @@ require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/httputil v1.4.1
+	github.com/larsartmann/templ-components v1.19.4
+	github.com/larsartmann/templ-components/utils v1.19.4
 )
 
 require (
+	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
@@ -59,6 +62,8 @@ require (
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
+	github.com/larsartmann/templ-components/htmx v1.19.4 // indirect
+	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect

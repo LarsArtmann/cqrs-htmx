@@ -138,30 +138,41 @@
   }
 
   // ── UI helpers ──────────────────────────────────────────────────
+  // Loading spinner is injected (not CSS-class-driven) so the button works
+  // with any Tailwind build: every class it needs comes from the compiled
+  // stylesheet scanning this file (see README "Styling").
+  var SPINNER_HTML =
+    '<span class="lp-spinner inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>';
+
   function showError(msg) {
     var el = document.getElementById("lp-error");
     if (el) {
       el.textContent = msg;
-      el.classList.remove("lp-hidden");
+      el.classList.remove("hidden");
     }
   }
 
   function hideError() {
     var el = document.getElementById("lp-error");
-    if (el) el.classList.add("lp-hidden");
+    if (el) el.classList.add("hidden");
   }
 
   function setLoading(btnId, loading) {
     var btn = document.getElementById(btnId);
     if (!btn) return;
     btn.disabled = loading;
-    btn.classList.toggle("lp-btn-loading", loading);
+    if (loading) {
+      btn.insertAdjacentHTML("afterbegin", SPINNER_HTML);
+    } else {
+      var spinner = btn.querySelector(".lp-spinner");
+      if (spinner) spinner.remove();
+    }
   }
 
   function showSection(id) {
     var sections = document.querySelectorAll(".lp-section");
     for (var i = 0; i < sections.length; i++) {
-      sections[i].classList.toggle("lp-hidden", sections[i].id !== id);
+      sections[i].classList.toggle("hidden", sections[i].id !== id);
     }
   }
 
