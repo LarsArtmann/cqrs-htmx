@@ -2,11 +2,46 @@ package usermgmt
 
 import (
 	"context"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
+
+// userActorPrefix is the prefixed-string form user ids take in journal and
+// audit surfaces (ActorID.PrefixedString). DisplayName accepts it alongside
+// the bare form.
+const userActorPrefix = "user:"
+
+// DisplayName resolves a human-readable label for rendering: the display name
+// when set, else the email, else "". It is a lookup helper for HTML/API
+// surfaces that must show something for an id, not an existence check.
+//
+// Accepted id shapes (the two that occur across read models and journal
+// entries):
+//
+//   - bare user id: "01JXTENANT0000000000000000B"
+//   - prefixed actor string: "user:01JXTENANT0000000000000000B"
+//
+// Missing, tombstoned (removed), or unparseable ids resolve to "" without
+// error — both read-model backends exclude tombstoned users from lookups.
+// Use GetUser when you need the full user or a not-found error.
+func (s *Service) DisplayName(_ context.Context, userID string) string {
+	bare := strings.TrimPrefix(userID, userActorPrefix)
+	parsed, err := ParseUserID(bare)
+	if err != nil {
+		return ""
+	}
+	user, ok := s.readModel.FindByUserID(parsed)
+	if !ok {
+		return ""
+	}
+	if user.DisplayName != "" {
+		return user.DisplayName
+	}
+	return user.Email
+}
 
 // dispatchUserCommand resolves a userID to its aggregate stream ID, dispatches
 // the command produced by build, and routes the dispatch error through
