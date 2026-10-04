@@ -21,7 +21,15 @@ hand-rolled HTML/JS every cqrs-htmx consumer currently writes.
 - Includes optional registration flow (3-step WebAuthn enrollment)
 - Auto-includes CSRF token (meta tag for JS + hidden form field)
 - Handles all error states with user-friendly messages
-- Zero external asset requests — CSS and JS are inlined via `go:embed`
+- **templ-components design system** — built on `layout.Base`, `forms.Input`,
+  `display.Button`, and `feedback.Alert`; every class is a Tailwind utility
+  compiled by the consumer (see [Styling](#styling))
+- **CSP-nonce support** — set `NonceFromRequest` to have the inline scripts
+  carry the same nonce your middleware wrote into the CSP header
+- **Server-driven theming** — `Theme`/`ThemeFromRequest` render the resolved
+  color scheme SSR-first (body class, no theme script), so a cookie stays the
+  single source of truth
+- WebAuthn ceremony JS embedded via `go:embed` — zero runtime JS dependencies
 
 ## Quick start
 
@@ -56,9 +64,13 @@ mux.Use(httputil.CSRFMiddleware(httputil.CSRFConfig{}))
 | `Title`          | `string`            | `"Sign in"`  | Page `<title>` and heading                        |
 | `Brand`          | `string`            | = Title      | App name shown above the form                     |
 | `Redirect`       | `string`            | `"/"`        | Post-login redirect (root-relative)               |
-| `AccentColor`    | `string`            | `"#4f46e5"`  | Button/highlight color (any CSS color)            |
-| `CSSPath`        | `string`            | `""`         | Optional consumer stylesheet URL                  |
+| `AccentColor`    | `string`            | `"#4f46e5"`  | Accent used only for the SVG favicon (any CSS color) |
+| `CSSPath`        | `string`            | `"/app.css"` | URL of the consumer's compiled Tailwind stylesheet |
+| `Theme`          | `string`            | `""`         | Force `"light"`/`"dark"` (empty = prefers-color-scheme) |
+| `ThemeFromRequest` | `func(*http.Request) string` | `nil` | Per-request theme hook (e.g. cookie); wins over `Theme` |
+| `NonceFromRequest` | `func(*http.Request) string` | `nil` | CSP nonce for the inline scripts (base64url, sanitized) |
 | `NoRegistration` | `bool`              | `false`      | Hide the registration section                     |
+| `RegisterFirst`  | `bool`              | `false`      | Render the registration section on load (e.g. a `/register` route) |
 | `AuthPrefix`     | `string`            | `""`         | URL prefix for auth API (`/api` → `/api/auth/..`) |
 | `OAuth2Buttons`  | `[]OAuth2Button`    | **auto**     | OAuth2 provider buttons (auto-detected if empty)  |
 | `CredentialName` | `string`            | `"Passkey"`  | Label for newly registered credentials            |
@@ -109,19 +121,36 @@ The page adapts to the configured auth strategies:
 Registration section appears only when WebAuthn is configured (since
 registration requires a WebAuthn enrollment ceremony).
 
-## Self-contained
+## Styling
 
-The page inlines all CSS and JavaScript — no external requests, no CDN
-dependencies, no build step. One HTML response contains everything. Consumers
-can optionally link an additional stylesheet via `Config.CSSPath` for branding
-overrides.
+The page is built entirely on [templ-components](https://github.com/larsartmann/templ-components):
+`layout.Base` (page shell), `forms.Input`, `display.Button`, `feedback.Alert`.
+All classes are Tailwind v4 utilities, so the consumer must compile a
+stylesheet that scans this package. With Tailwind v4's CSS-first config:
+
+```css
+@import "tailwindcss" source(none);
+@source "../go.sum"; /* or the module cache path */
+@source "TEMPL_COMPONENTS_DIR/{layout,forms,display,feedback,utils}/**/*";
+@source "LOGINPAGE_DIR/**/*";  /* page.templ + page_templ.go + assets/login.js */
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
+Serve the compiled file and point `Config.CSSPath` at it (default `/app.css`).
+The WebAuthn ceremony JS is still inlined via `go:embed` — the only classes it
+adds at runtime (`lp-spinner`, `animate-spin`, `border-*`) live in this
+package's `assets/login.js`, which the `@source` scan picks up.
 
 ## Theming
 
-- `Config.AccentColor` controls buttons, links, and the favicon
-- Full dark mode via `prefers-color-scheme: dark`
-- No Tailwind dependency — pure CSS variables
-- The favicon is an inline SVG data-URI with the brand initial
+- Empty `Theme`/`ThemeFromRequest` — follows `prefers-color-scheme` via the
+  library's ThemeScript
+- Resolved theme (`"light"`/`"dark"`) — applied SSR-first: the body carries
+  the class on first paint and no theme script is emitted, so cookie-driven
+  consumers keep a single source of truth
+- `Config.AccentColor` colors the generated SVG favicon (brand initial on a
+  rounded square); markup colors come from the Tailwind classes
+- `NoIndex` is always emitted — login pages should stay out of search results
 
 ## Browser support
 

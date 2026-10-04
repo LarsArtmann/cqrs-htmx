@@ -295,7 +295,9 @@ func TestServeHTTP_AccentColorApplied(t *testing.T) {
 	w := httptest.NewRecorder()
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
-	if !strings.Contains(body, "fill='#ff0000'") {
+	// templ HTML-escapes the SafeURL (single quotes become &#39;), so assert
+	// the fragments that survive escaping: the data URI scheme and the color.
+	if !strings.Contains(body, "data:image/svg+xml") || !strings.Contains(body, "#ff0000") {
 		t.Error("accent color not applied in the SVG favicon")
 	}
 }

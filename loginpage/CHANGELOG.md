@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Rebuilt on the templ-components design system.** The hand-rolled `lp-*`
+  CSS card is gone: the page now renders via `layout.Base`, `forms.Input`,
+  `display.Button`, and `feedback.Alert`, and every class is a Tailwind v4
+  utility compiled by the consumer (`@source` this package — see README
+  "Styling"). `Config.CSSPath` now defaults to `/app.css` and is effectively
+  required. `assets/login.css` is deleted; `assets/login.js` remains embedded
+  and its class hooks changed (`hidden` instead of `lp-hidden`, an injected
+  spinner instead of the `.lp-btn-loading` CSS class).
+
+### Added
+
+- **CSP-nonce support** — `Config.NonceFromRequest` renders the inline config
+  JSON and WebAuthn scripts with the consumer's per-request nonce (sanitized
+  to base64url before embedding), for consumers whose CSP has no
+  `'unsafe-inline'` for `script-src`. Closes the 2026-10-04 review follow-up (b).
+- **Server-driven theming** — `Config.Theme` / `Config.ThemeFromRequest`
+  resolve the color scheme per request and render it SSR-first (body class,
+  `NoThemeScript`), keeping cookie-driven consumers the single source of truth.
+- **`Config.RegisterFirst`** — renders the registration section on load, for
+  consumers exposing `/register` as a distinct route (the JS toggle links
+  still switch sections).
+
 ### Fixed
 
 - **Hardened config embedding against HTML injection** (defense-in-depth; all inputs are consumer-controlled `Config` fields, not remote input):
