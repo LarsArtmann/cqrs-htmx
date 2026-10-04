@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Security
+
+- **WebAuthn enrollment ceremonies require the owner's session (2026-10-04, CRM identity-adapter feedback item 1).** `POST /auth/webauthn/register/begin` and `register/finish` used to take the target `user_id` from the request (body / query param) with no session check — an unauthenticated caller could enroll a passkey onto any account (ULIDs are enumerable). Both ceremonies now enforce the owner-match rule: **401** without a session, **403** when the requested `user_id` is not the session user, 200 for the session user's own enrollment. First-user bootstrap is unaffected (`POST /auth/register` sets the session cookie before the login page's ceremony continues; same-origin fetches carry it), and headless/administrative enrollment stays available through the service-level API (`Service.BeginRegistration`/`FinishRegistration`). There is deliberately no HTTP-level opt-out. Decision record: `docs/adr/0055-owner-session-gated-credential-ceremonies.md`.
+
+### Fixed
+
+- **Session-dependent routes work on a bare mount (feedback item 2).** Every `RegisterRoutes` handler that read the current user from the request context (`/auth/me`, `GET /auth/credentials`, `DELETE /auth/credentials/{id}`, `POST /auth/email/verify/send`, the four `POST /auth/totp/*` routes, `GET /auth/export`, `POST /auth/import`, `POST /auth/oauth/{provider}/unlink`) failed 401-forever when the mux was mounted without external session middleware — nothing populated the context. These registrations are now self-wrapped with an enrich-only session pass (same service + cookie the handler already owns), so they are reachable with a valid cookie on any mount and still fail closed (401) without one. An external `NewSessionMiddleware` remains supported and simply becomes a redundant second enrichment.
+- **Rate-limit keys are per client IP, not per TCP connection (feedback item 5).** `newLimiterFromConfig` keyed buckets by `r.RemoteAddr` verbatim (`IP:port`) — every request from a fresh connection got a fresh bucket, defeating the configured limits. Now keys extract via `httputil.KeyExtractorFromClientIP` (X-Forwarded-For → X-Real-IP → RemoteAddr host; the proxy-trust caveat is documented on `RateLimitConfig`).
 
 ## [v4.13.0] - 2026-10-01
 

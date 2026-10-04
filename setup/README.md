@@ -43,14 +43,30 @@ func main() {
 
 ## What you get (default routes)
 
-| Route          | Panel           | Access                       |
-| -------------- | --------------- | ---------------------------- |
-| `/auth/*`      | Auth API        | public                       |
-| `/admin/*`     | Admin panel     | session + CSRF (401 without) |
-| `/dashboard/*` | CQRS dashboard  | session-gated (401 without)  |
-| `/sse`         | Shared SSE feed | session-gated (opt-in)       |
-| `/health`      | Readiness check | public (503 while draining)  |
-| `/`            | Login page      | public                       |
+| Route          | Panel           | Access                                                             |
+| -------------- | --------------- | ------------------------------------------------------------------ |
+| `/auth/*`      | Auth API        | mixed — see the route table below (ceremonies gated, subset session-wrapped) |
+| `/admin/*`     | Admin panel     | session + CSRF (401 without)                                       |
+| `/dashboard/*` | CQRS dashboard  | session-gated (401 without)                                        |
+| `/sse`         | Shared SSE feed | session-gated (opt-in)                                             |
+| `/health`      | Readiness check | public (503 while draining)                                        |
+| `/`            | Login page      | public                                                             |
+
+### Auth route posture
+
+The `/auth/*` surface is mixed, and the library enforces it:
+
+| Route group                          | Posture                                                                       |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| `POST /auth/register`                | public — sets the session cookie (first-user bootstrap)                       |
+| WebAuthn **login** ceremonies        | public — unauthenticated by nature                                            |
+| WebAuthn **enrollment** ceremonies   | **owner-session-gated**: 401 without a session, 403 when the target `user_id` is not the session user |
+| `GET /auth/me`, credentials, TOTP, email-verify/send, import/export, OAuth2 unlink | session required (401 without; self-wrapped with an enrich-only session pass) |
+
+The enrollment gate is why `POST /auth/register` issues the session cookie
+before any ceremony: the login page's register → begin → finish flow rides
+that cookie. Headless or administrative enrollment uses the service-level
+API (`Service.BeginRegistration`) — there is no HTTP opt-out. See ADR-0055.
 
 ## Serving options
 
@@ -361,6 +377,25 @@ If your threat model requires token CSRF on auth mutations anyway (e.g. you
 must support browsers that predate strict SameSite), wrap
 `bundle.Auth.RegisterRoutes` behind `bundle.CSRFMiddleware()` on your own mux
 instead of using `Bundle.Mount` for those routes.
+
+### Credential enrollment requires the owner's session (library-enforced)
+
+`POST /auth/webauthn/register/{begin,finish}` used to accept any `user_id`
+from the request, which let an unauthenticated caller enroll a passkey onto an
+arbitrary (enumerable, time-ordered ULID) account. The library now enforces
+the owner-match rule: **401** without a session, **403** when the requested
+`user_id` is not the session user. First-user bootstrap is unaffected because
+`POST /auth/register` sets the session cookie before the login page continues
+into the ceremony (same-origin fetches carry it), and headless or
+administrative enrollment stays possible through the service-level API
+(`Service.BeginRegistration` / `FinishRegistration`). There is no HTTP-level
+opt-out — this is an authorization invariant, not a default. Decision record:
+`docs/adr/0055-owner-session-gated-credential-ceremonies.md`.
+
+For your own session-gated surfaces, setup exports the two gates it uses
+internally: `setup.RequireSession` (401, JSON/API convention) and
+`setup.RequireSessionRedirect(loginURL)` (303, HTML convention). Mount either
+AFTER `bundle.SessionMiddleware()`, which enriches but never blocks.
 
 ## See also
 

@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Security
+
+- **usermgmt: WebAuthn enrollment requires the owner's session; session-dependent routes self-wrap (2026-10-04, CRM identity-adapter feedback).** The enrollment ceremonies now enforce the owner-match rule (401 without session, 403 mismatched `user_id`), and the eleven `currentUser`-reading routes (`/auth/me`, credentials, TOTP, email-verify/send, import/export, OAuth2 unlink) run behind an enrich-only session pass inside `RegisterRoutes` — the dead-on-bare-mount class is gone. Rate-limit keys switched from per-TCP-connection `RemoteAddr` to per-client-IP. Full entries: `usermgmt/CHANGELOG.md` [Unreleased]; decision record `docs/adr/0055-owner-session-gated-credential-ceremonies.md`.
+
 ### Added
+
+- **setup: `RequireSession` + `RequireSessionRedirect` exported (2026-10-04).** The 401 JSON gate setup uses internally for the dashboard, feeds, and machine endpoints is now exported, plus a browser-facing `RequireSessionRedirect(loginURL)` variant (303 See Other). Both mount after `bundle.SessionMiddleware()` (enrich-only by design); deletes the hand-rolled 15-line-wrapper class for HTML consumers. ADR-0054's identity-external mode keeps working: neither gate is wired when the service is disabled.
 
 - **loginpage rebuilt on templ-components + consumer-controlled hardening options (2026-10-04).** The module renders via `layout.Base`/`forms.Input`/`display.Button`/`feedback.Alert` with Tailwind-v4-compiled consumer CSS (the hand-rolled `lp-*` embed is gone — see loginpage/CHANGELOG for the full entry and `docs/research/2026-10-04_templ-components-deep-dive.html` for the 95/100 audit). New surface: `Config.NoOAuth2` force-hides every OAuth2 button including auto-detected ones (mutually exclusive with `OAuth2Buttons`, rejected at `New`), `Config.NonceFromRequest` renders the inline scripts with the consumer's CSP nonce (sanitized base64url), server-driven theming (`Config.Theme`/`ThemeFromRequest`), `Config.RegisterFirst`, and the submit spinner is the library's hidden `feedback.Spinner` toggled by JS. Injection-class hardening landed same-day: config-JSON script-safe escaping, `AccentColor`/`CSSPath` validation at construction (behavior change: previously-rendering hostile values now fail fast). Styling contract: consumers must compile a stylesheet scanning this package (README §Styling).
 

@@ -52,6 +52,24 @@ svc, _ := usermgmt.NewService(usermgmt.ServiceConfig{
 
 See `docs/adr/0011-event-signing-encryption.md` for the full decision record.
 
+## HTTP route posture
+
+`AuthHandler.RegisterRoutes` (and the `Register*Routes` variants) enforce the
+auth posture themselves — no external middleware required:
+
+- **Public:** `POST /auth/register` (sets the session cookie), the WebAuthn
+  *login* ceremonies, `POST /auth/email/verify` (token is the credential),
+  OAuth2 begin/callback, and logout.
+- **Owner-session-gated:** the WebAuthn *enrollment* ceremonies answer 401
+  without a session and 403 when the target `user_id` is not the session user.
+- **Session-required, self-wrapped:** `/auth/me`, credentials, TOTP,
+  email-verify/send, import/export, and OAuth2 unlink run behind an enrich-only
+  session pass — reachable with a valid cookie even on a bare mount, 401
+  without one.
+
+Full route table: the `RegisterRoutes` godoc and the root README. Decision
+record: `docs/adr/0055-owner-session-gated-credential-ceremonies.md`.
+
 ## Development
 
 ```bash

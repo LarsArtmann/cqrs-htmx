@@ -905,11 +905,15 @@ authHandler := usermgmt.NewAuthHandler(svc, usermgmt.HandlerConfig{
 // Register routes
 mux := http.NewServeMux()
 authHandler.RegisterRoutes(mux)
-// Routes: POST /auth/register, POST /auth/webauthn/register/begin|finish,
+// Routes: POST /auth/register, POST /auth/webauthn/register/begin|finish (owner-session-gated),
 //         POST /auth/webauthn/login/begin|finish, POST /auth/logout, GET /auth/me,
 //         GET /auth/credentials, DELETE /auth/credentials/{id}
+//         (session-dependent routes are self-wrapped: an enrich-only session
+//          pass runs per route, so they work with or without external session
+//          middleware and fail closed with 401 without a valid cookie)
 
-// Session middleware (validates cookie, loads user into context)
+// Optional external session middleware (validates cookie, loads user into
+// context for YOUR handlers; the /auth/* routes above enrich themselves):
 handler := usermgmt.NewSessionMiddleware(svc, "session_token")(mux)
 ```
 
@@ -918,12 +922,18 @@ handler := usermgmt.NewSessionMiddleware(svc, "session_token")(mux)
 Users register with **email only** (no password). Authentication is via WebAuthn/Passkeys:
 
 ```
-1. POST /auth/register              → create account (email only), get session
-2. POST /auth/webauthn/register/begin  → get credential creation challenge
-3. POST /auth/webauthn/register/finish → verify attestation, persist credential
+1. POST /auth/register              → create account (email only), get session cookie
+2. POST /auth/webauthn/register/begin  → get credential creation challenge (owner-session-gated)
+3. POST /auth/webauthn/register/finish → verify attestation, persist credential (owner-session-gated)
 4. POST /auth/webauthn/login/begin     → get assertion challenge
 5. POST /auth/webauthn/login/finish    → verify assertion, create session
 ```
+
+The enrollment ceremonies (2–3) enforce the **owner-match rule**: 401 without
+a session, 403 when the `user_id` they name is not the session user. The
+flow above works because step 1 already set the session cookie (same-origin
+fetches carry it). Headless/admin enrollment uses the service-level API
+(`BeginRegistration`/`FinishRegistration`); there is no HTTP opt-out.
 
 Finish endpoints read `user_id` from the URL query param (`?user_id=...`), since the request body contains the WebAuthn attestation/assertion response.
 
