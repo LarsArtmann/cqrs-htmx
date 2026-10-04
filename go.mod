@@ -1,7 +1,7 @@
 //cqrs-lint:ignore(E003) identity-model is intentionally a cohesive pure-domain package (IDs, events, commands, fold); splitting would break usermgmt's alias/re-export architecture
 module github.com/larsartmann/cqrs-htmx/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/casbin/casbin/v3 v3.11.0
@@ -44,7 +44,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.41.0 // indirect

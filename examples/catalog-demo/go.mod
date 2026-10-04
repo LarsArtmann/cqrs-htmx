@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/examples/catalog-demo
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.6.1
@@ -21,8 +21,6 @@ require (
 	github.com/larsartmann/templ-components/htmx v1.19.4 // indirect
 	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
 	github.com/larsartmann/templ-components/utils v1.19.4 // indirect
-	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
-	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect

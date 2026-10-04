@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/datastar/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
@@ -25,8 +25,6 @@ require (
 	github.com/larsartmann/go-datastar/static v0.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
-	github.com/onsi/gomega v1.44.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 )

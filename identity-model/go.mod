@@ -1,6 +1,6 @@
 module github.com/larsartmann/cqrs-htmx/identity-model/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/casbin/casbin/v3 v3.11.0
@@ -23,7 +23,5 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1 // indirect
-	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
-	github.com/onsi/gomega v1.44.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 )
