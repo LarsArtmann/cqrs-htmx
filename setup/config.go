@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/cqrs-htmx/adminui/v4"
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"

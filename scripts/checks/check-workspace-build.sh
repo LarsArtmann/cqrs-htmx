@@ -30,7 +30,7 @@ set -uo pipefail
 export GOEXPERIMENT="${GOEXPERIMENT:-jsonv2}"
 # Workspace mode deliberately ON — that is the entire point (no GOWORK=off).
 # shellcheck disable=SC1091
-source "$(dirname "${BASH_SOURCE[0]}")/lib/go-cache-env.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/go-cache-env.sh"
 
 PROJECT_ROOT="${WORKSPACE_BUILD_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$PROJECT_ROOT" || exit 1

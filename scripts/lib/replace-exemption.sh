@@ -7,8 +7,8 @@
 # `replace <module_path> => ...` — the replaced source wins at build time, so
 # the recorded version string is cosmetic and cannot drift against siblings.
 #
-# Consumers: scripts/check-version-drift.sh (drift leg),
-# scripts/check-release-train.sh (tag-existence leg). Keep the regex
+# Consumers: scripts/checks/check-version-drift.sh (drift leg),
+# scripts/checks/check-release-train.sh (tag-existence leg). Keep the regex
 # byte-identical across the rule's consumers by importing it here.
 
 # replace_exemption_applies <module_dir> <module_path>

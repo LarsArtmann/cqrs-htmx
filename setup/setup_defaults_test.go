@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/a-h/templ"
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	"github.com/larsartmann/cqrs-htmx/setup/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
@@ -131,7 +133,10 @@ func TestNew_Passthroughs_ReachPanels(t *testing.T) {
 		Title:               "Passthrough Test",
 		AdminAuthorizer:     func(*usermgmt.User) error { return nil },
 		DashboardAuthorizer: func(*http.Request) error { return nil },
-		Logger:              slog.New(slog.DiscardHandler),
+		DashboardLayout: func(_ dashboardui.PageMeta, content templ.Component) templ.Component {
+			return content
+		},
+		Logger: slog.New(slog.DiscardHandler),
 	})
 	defer func() { _ = bundle.Close() }()
 
@@ -141,6 +146,10 @@ func TestNew_Passthroughs_ReachPanels(t *testing.T) {
 
 	if bundle.Dashboard.Config().Authorizer == nil {
 		t.Fatal("DashboardAuthorizer was not passed through to the dashboard")
+	}
+
+	if bundle.Dashboard.Config().Layout == nil {
+		t.Fatal("DashboardLayout was not passed through to the dashboard")
 	}
 }
 

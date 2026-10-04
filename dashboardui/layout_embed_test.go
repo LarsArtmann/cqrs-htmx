@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/a-h/templ"
-	"github.com/larsartmann/templ-components/icons"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // embedShell is a test layout that records the meta it receives and renders

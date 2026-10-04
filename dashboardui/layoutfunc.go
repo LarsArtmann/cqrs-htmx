@@ -100,7 +100,7 @@ type NavLink struct {
 // assetURLs are the per-page asset URLs passed to a custom layout. They are
 // built from BasePath so the consumer shell can link the dashboard styles
 // and scripts regardless of where the panel is mounted.
-func assetURLs(basePath string) (css, scripts []string) {
+func assetURLs(basePath string) ([]string, []string) {
 	return []string{
 			basePath + "/-/dashboard.css",
 			basePath + "/-/dashboard-tw.css",

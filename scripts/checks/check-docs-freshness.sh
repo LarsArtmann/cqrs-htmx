@@ -116,7 +116,7 @@ done
 echo ""
 echo "Checking 'uniform at vX' family claims..."
 # shellcheck disable=SC1091
-source scripts/lib/replace-exemption.sh
+source "$REPO_ROOT/scripts/lib/replace-exemption.sh"
 while IFS=: read -r f lineno line; do
   claimed=$(grep -oP '(?:uniform at|all \w+ modules at) \Kv[0-9]+\.[0-9]+\.[0-9]+' <<<"$line" | head -1 || true)
   if [ -z "$claimed" ]; then
@@ -150,7 +150,7 @@ done < <(grep -nE "(uniform at|all [a-z]+ modules at) v" "${LIVING_DOCS[@]}" 2>/
 echo ""
 echo "Checking cqrs-htmx import paths carry /v4 in living docs..."
 # shellcheck disable=SC1091
-source scripts/lib/docs-import-paths.sh
+source "$REPO_ROOT/scripts/lib/docs-import-paths.sh"
 V4_LIVING_DOCS=()
 for f in "${LIVING_DOCS[@]}"; do
   case "$f" in

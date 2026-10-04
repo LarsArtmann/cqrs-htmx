@@ -140,7 +140,7 @@ templ header(p pageData) {
 templ navIcon(name string) {
 	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16" aria-hidden="true">
 		for _, path := range icons.IconPathData(mapNavIconName(name)) {
-			<path stroke-linecap="round" stroke-linejoin="round" d={ path }/>
+			<path stroke-linecap="round" stroke-linejoin="round" d={ path }></path>
 		}
 	</svg>
 }
