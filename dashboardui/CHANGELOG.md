@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.13.0] - 2026-10-04
+
 ### Added
 
 - **Integration modes — destination by default, composable by choice (`Autodetect`, `Config.Layout`, `setup.Config.DashboardLayout`):** the dashboard can now be embedded instead of only mounted. `Autodetect(store any) (Config, error)` probes a store for every go-cqrs-lite introspection interface (EventSource, Journal, SeekableJournal, StreamReader, ProjectionHost, DeadLetterStore, command and query journals, SnapshotStore, EventBus, EventByIDLoader) and returns a ready `Config`, eliminating the hand-written type-assertion dance in consumer wiring; `Config.Layout` (`LayoutFunc`) is the embed seam — when set, every full-page render hands the page metadata (`PageMeta`: title, brand, base path, capability-filtered `Nav` as exported `NavLink` values with templ-components icon names, required CSS/script URLs, CSP nonce, capabilities) plus the ready-rendered content to a consumer-owned function whose component becomes the response, so panels render inside the consumer's app chrome instead of a standalone bolt-on page (HTMX partials bypass the shell; nil keeps the built-in standalone document byte-identical); setup exposes the same seam as `DashboardLayout`. Pinned by `autodetect_test.go` + `layout_embed_test.go` (shell replacement, meta/nav/asset URLs, HTMX bypass) and the setup passthrough test.

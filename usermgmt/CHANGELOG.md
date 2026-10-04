@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [v4.14.0] - 2026-10-04
+
 ### Security
 
 - **WebAuthn enrollment ceremonies require the owner's session (2026-10-04, CRM identity-adapter feedback item 1).** `POST /auth/webauthn/register/begin` and `register/finish` used to take the target `user_id` from the request (body / query param) with no session check — an unauthenticated caller could enroll a passkey onto any account (ULIDs are enumerable). Both ceremonies now enforce the owner-match rule: **401** without a session, **403** when the requested `user_id` is not the session user, 200 for the session user's own enrollment. First-user bootstrap is unaffected (`POST /auth/register` sets the session cookie before the login page's ceremony continues; same-origin fetches carry it), and headless/administrative enrollment stays available through the service-level API (`Service.BeginRegistration`/`FinishRegistration`). There is deliberately no HTTP-level opt-out. Decision record: `docs/adr/0055-owner-session-gated-credential-ceremonies.md`.
