@@ -141,7 +141,9 @@ def main() -> int:
         if changed and not dry_run:
             path.write_text(updated)
         if changed:
-            print(f"  {'would normalize' if dry_run else 'normalized'} {changed} row(s) in {path}")
+            print(
+                f"  {'would normalize' if dry_run else 'normalized'} {changed} row(s) in {path}"
+            )
             total += changed
 
     if total == 0:
@@ -149,7 +151,9 @@ def main() -> int:
     elif dry_run:
         print(f"· normalize rows (dry-run): {total} row(s) would be fixed")
     else:
-        print(f"✓ normalize rows: {total} row(s) normalized across {len(files)} file(s)")
+        print(
+            f"✓ normalize rows: {total} row(s) normalized across {len(files)} file(s)"
+        )
 
     return 0
 
