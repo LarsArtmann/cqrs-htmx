@@ -8,6 +8,15 @@ as design rationale; those links are the index. Series that span multiple runs
 cross-link via "superseded-by" annotations in the older report's outcome note
 (append-only — never rewrite a published report's findings).
 
+**Corpus verdict (docs-health round 14, 2026-10-01; recorded here 2026-10-04,
+round 17):** `docs/research/`, `docs/benchmarks/`, and `docs/proposals/` are
+classified **LEAVE** — each governed by its own standing convention (this
+README's indexing + append-only outcome notes; the benchmark raw-baseline
+policy with `docs/benchmarks/setup-baseline.raw.txt` as the only
+gate-comparable artifact; proposals as owner-gated decision packets). They are
+point-in-time records, exempt from living-doc freshness sweeps; staleness is
+handled by outcome-note annotations, never rewrites.
+
 ## Load-bearing series
 
 | Series                                            | Runs                                                                                                                                                         | Entry point                                                                                                                                                    |
