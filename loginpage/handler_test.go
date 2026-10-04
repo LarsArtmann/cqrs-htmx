@@ -787,3 +787,80 @@ func TestNew_DefaultCSSPath(t *testing.T) {
 		t.Errorf("CSSPath = %q, want %q", h.config.CSSPath, "/app.css")
 	}
 }
+
+// stubOAuth2WithNames satisfies usermgmt's OAuth2Provider plus the optional
+// Names() the auto-detect path reads, so tests can configure providers
+// without the real oauth2 module.
+type stubOAuth2WithNames struct{ names []string }
+
+func (m *stubOAuth2WithNames) BeginLogin(_ context.Context, _, _ string) (string, string, error) {
+	return "", "", nil
+}
+
+func (m *stubOAuth2WithNames) FinishLogin(_ context.Context, _, _, _ string) ([]byte, error) {
+	return nil, nil
+}
+
+func (m *stubOAuth2WithNames) Names() []string { return m.names }
+
+func TestNew_NoOAuth2_WithExplicitButtons_Rejected(t *testing.T) {
+	_, err := New(Config{
+		Service: newTestService(t),
+		OAuth2Buttons: []OAuth2Button{
+			{Provider: "google", Label: "Sign in with Google"},
+		},
+		NoOAuth2: true,
+	})
+	if err == nil {
+		t.Fatal("NoOAuth2 together with an explicit OAuth2Buttons list must be rejected at New")
+	}
+}
+
+func TestBuildPageData_NoOAuth2_HidesAutoDetectedButtons(t *testing.T) {
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		OAuth2: &stubOAuth2WithNames{names: []string{"google", "github"}},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+
+	auto := buildPageData(Config{Service: svc}, nil)
+	if len(auto.OAuth2Buttons) != 2 {
+		t.Fatalf("auto-detect: want 2 buttons, got %d", len(auto.OAuth2Buttons))
+	}
+
+	hidden := buildPageData(Config{Service: svc, NoOAuth2: true}, nil)
+	if len(hidden.OAuth2Buttons) != 0 {
+		t.Errorf("NoOAuth2: want 0 buttons, got %d", len(hidden.OAuth2Buttons))
+	}
+	if hidden.WebAuthn != false {
+		t.Errorf("NoOAuth2 must not change WebAuthn detection")
+	}
+}
+
+func TestServeHTTP_NoOAuth2_RendersNoButtons(t *testing.T) {
+	svc, err := usermgmt.NewService(usermgmt.ServiceConfig{
+		// WebAuthn off, providers on, NoOAuth2 on: the page renders the
+		// setup notice rather than any sign-in control.
+		OAuth2: &stubOAuth2WithNames{names: []string{"google"}},
+	})
+	if err != nil {
+		t.Fatalf("NewService: %v", err)
+	}
+	h, err := New(Config{Service: svc, NoOAuth2: true})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	body := rec.Body.String()
+	if strings.Contains(body, "/auth/oauth/google/begin") {
+		t.Error("NoOAuth2 must hide auto-detected provider buttons")
+	}
+	if strings.Contains(body, "Sign in with Google") {
+		t.Error("NoOAuth2 must hide provider labels")
+	}
+	if !strings.Contains(body, "No authentication method is configured") {
+		t.Error("page should render the setup notice when every method is hidden")
+	}
+}

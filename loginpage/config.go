@@ -13,8 +13,10 @@ const (
 	ThemeLight = "light"
 )
 
-// DefaultAccentColor is the indigo used for buttons and highlights when
-// [Config.AccentColor] is empty.
+// DefaultAccentColor is the indigo filling the generated SVG favicon's
+// brand square when [Config.AccentColor] is empty. (It no longer colors
+// buttons or highlights: since the templ-components rewrite all page
+// styling is Tailwind.)
 const DefaultAccentColor = "#4f46e5"
 
 // knownProviderLabels maps common provider names to user-friendly display
@@ -86,7 +88,10 @@ type Config struct {
 	// Must be a root-relative path (e.g. "/dashboard"). Default "/".
 	Redirect string
 
-	// AccentColor overrides the button/highlight color (any CSS color).
+	// AccentColor overrides the accent color of the generated SVG favicon
+	// (the brand-initial square; any CSS color without markup or quotes).
+	// It does NOT affect buttons or other page styling — those are Tailwind
+	// classes compiled by the consumer (see README "Styling").
 	// Default [DefaultAccentColor].
 	AccentColor string
 
@@ -127,9 +132,15 @@ type Config struct {
 	// OAuth2Buttons lists the OAuth2 providers to show as sign-in buttons.
 	// Each button links to {AuthPrefix}/auth/oauth/{Provider}/begin.
 	// A nil or empty slice auto-detects buttons from the providers configured
-	// on [Config.Service]; there is currently no option to force-hide
-	// auto-detected buttons.
+	// on [Config.Service]; set [Config.NoOAuth2] to hide them all.
 	OAuth2Buttons []OAuth2Button
+
+	// NoOAuth2 force-hides every OAuth2 sign-in button on the page, including
+	// the buttons auto-detected from [Config.Service]'s configured providers —
+	// for consumers that expose OAuth2 only elsewhere (a dedicated SSO page,
+	// a different route) but still configure providers on the service.
+	// Mutually exclusive with [Config.OAuth2Buttons] (rejected at [New]).
+	NoOAuth2 bool
 
 	// CredentialName is the label stored with newly registered WebAuthn
 	// credentials (the "credential_name" query parameter). Default "Passkey".
@@ -165,6 +176,9 @@ func (config Config) withDefaults() (Config, error) {
 	}
 	if err := validateStylesheetURL(config.CSSPath); err != nil {
 		return config, err
+	}
+	if config.NoOAuth2 && len(config.OAuth2Buttons) > 0 {
+		return config, errConfig("Config.NoOAuth2 and Config.OAuth2Buttons are mutually exclusive: NoOAuth2 hides every OAuth2 button, an explicit list shows specific ones")
 	}
 	if config.CSSPath == "" {
 		config.CSSPath = "/app.css"

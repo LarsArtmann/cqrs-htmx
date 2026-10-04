@@ -96,6 +96,7 @@ func New(config Config) (*Handler, error) {
 		return nil, err
 	}
 	if !config.Service.HasWebAuthn() &&
+		!config.NoOAuth2 &&
 		len(config.OAuth2Buttons) == 0 &&
 		len(config.Service.ConfiguredOAuth2Providers()) == 0 {
 		slog.Warn(
@@ -212,6 +213,9 @@ func buildPageData(config Config, r *http.Request) PageData {
 		for _, name := range config.Service.ConfiguredOAuth2Providers() {
 			oauth2Buttons = append(oauth2Buttons, OAuth2ButtonFromProvider(name))
 		}
+	}
+	if config.NoOAuth2 {
+		oauth2Buttons = nil
 	}
 	hasOAuth2 := len(oauth2Buttons) > 0
 	showReg := !config.NoRegistration && hasWebAuthn
