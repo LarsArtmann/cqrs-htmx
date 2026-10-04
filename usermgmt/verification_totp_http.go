@@ -27,14 +27,14 @@ type totpCodeRequest struct {
 // UserFromContext works without external session middleware; the email token
 // verification route is public (the token IS the credential).
 //
-// 	POST /auth/email/verify/send    — send verification email to current user (session required)
-// 	POST /auth/email/verify         — verify email with token (public)
-// 	POST /auth/totp/setup           — begin TOTP setup (returns secret + QR URI) (session required)
-// 	POST /auth/totp/setup/verify    — confirm TOTP setup with authenticator code (session required)
-// 	POST /auth/totp/verify          — verify a TOTP code (second factor) (session required)
-// 	POST /auth/totp/disable         — disable TOTP for current user (session required)
-// 	GET  /auth/export?format=json|csv — export all users (session + admin role required)
-// 	POST /auth/import?format=json|csv — import users from JSON or CSV (session + admin role required)
+//	POST /auth/email/verify/send    — send verification email to current user (session required)
+//	POST /auth/email/verify         — verify email with token (public)
+//	POST /auth/totp/setup           — begin TOTP setup (returns secret + QR URI) (session required)
+//	POST /auth/totp/setup/verify    — confirm TOTP setup with authenticator code (session required)
+//	POST /auth/totp/verify          — verify a TOTP code (second factor) (session required)
+//	POST /auth/totp/disable         — disable TOTP for current user (session required)
+//	GET  /auth/export?format=json|csv — export all users (session + admin role required)
+//	POST /auth/import?format=json|csv — import users from JSON or CSV (session + admin role required)
 func (h *AuthHandler) RegisterVerificationTOTPRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/email/verify/send", h.withSession(h.handleSendVerificationEmail))
 	mux.HandleFunc("POST /auth/email/verify", h.handleVerifyEmail)

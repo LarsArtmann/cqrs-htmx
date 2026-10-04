@@ -54,7 +54,7 @@ type AuthHandler struct {
 	oauth2SuccessURL       string
 	oauth2ErrorURL         string
 	importExportAuthorizer AuthorizerFunc
-	sessionMiddleware       func(http.Handler) http.Handler
+	sessionMiddleware      func(http.Handler) http.Handler
 }
 
 // HandlerConfig controls cookie and session settings for AuthHandler.
@@ -196,15 +196,15 @@ func NewAuthHandler(service *Service, config ...HandlerConfig) *AuthHandler {
 // Public by nature: register, webauthn login, email token verification, OAuth2
 // begin/callback, and logout (which reads the token directly).
 //
-// 	POST /auth/register              — create account (email only, no password); sets the session cookie
-// 	POST /auth/webauthn/register/begin  — begin passkey registration (owner-session-gated)
-// 	POST /auth/webauthn/register/finish — finish passkey registration (owner-session-gated; user_id via query param)
-// 	POST /auth/webauthn/login/begin     — begin passkey login
-// 	POST /auth/webauthn/login/finish    — finish passkey login (user_id via query param)
-// 	POST /auth/logout                    — clear session
-// 	GET  /auth/me                        — return current user (session required)
-// 	GET  /auth/credentials               — list current user's WebAuthn credentials (session required)
-// 	DELETE /auth/credentials/{id}        — remove a WebAuthn credential by base64url ID (session required)
+//	POST /auth/register              — create account (email only, no password); sets the session cookie
+//	POST /auth/webauthn/register/begin  — begin passkey registration (owner-session-gated)
+//	POST /auth/webauthn/register/finish — finish passkey registration (owner-session-gated; user_id via query param)
+//	POST /auth/webauthn/login/begin     — begin passkey login
+//	POST /auth/webauthn/login/finish    — finish passkey login (user_id via query param)
+//	POST /auth/logout                    — clear session
+//	GET  /auth/me                        — return current user (session required)
+//	GET  /auth/credentials               — list current user's WebAuthn credentials (session required)
+//	DELETE /auth/credentials/{id}        — remove a WebAuthn credential by base64url ID (session required)
 //
 // Verification, TOTP, and import/export routes are also registered; see
 // RegisterVerificationTOTPRoutes for the full list.
