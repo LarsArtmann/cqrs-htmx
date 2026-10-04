@@ -1,0 +1,1348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>LIBRARY DEEP DIVE &middot; EPISODE 4</span>
+      <span>2026-10-04</span>
+      <span>cqrs-htmx / templ-components series</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#series">Series &amp; method</a>
+          <a href="#adminui">adminui &middot; 97</a>
+          <a href="#dashboardui">dashboardui &middot; 94</a>
+          <a href="#loginpage">loginpage &middot; 95</a>
+          <a href="#strengths">What is superb</a>
+          <a href="#findings">Findings</a>
+          <a href="#opportunities">Opportunities</a>
+          <a href="#outcome">Outcome note</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-10-04</div>
+          <h1>Is cqrs-htmx using templ-components superbly?</h1>
+          <p class="subtitle">
+            Episode 4 of the series &mdash; and the first that audits all three UI
+            modules together. The answer is now <strong>yes</strong>: adminui climbed
+            from 68 to 97, dashboardui holds its 94, and loginpage &mdash; rewritten on
+            the library this week &mdash; debuts at 95. What remains is a short,
+            specific tail, led by one consumer-facing gap in <code>setup</code>.
+          </p>
+          <div class="meta">
+            <span class="tag teal">Scope: adminui + dashboardui + loginpage</span>
+            <span class="tag">Pinned: v1.19.4 (= latest)</span>
+            <span class="tag amber">Rubric: Capability Adoption Score v1</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">97</div>
+            <div class="label">adminui (was 68 on 09-17)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">94</div>
+            <div class="label">dashboardui (holds 09-23)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">95</div>
+            <div class="label">loginpage (new adoption)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Anti-patterns / misuse</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Versions behind latest</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2>00 &middot; Summary</h2>
+          <p>
+            The question was &ldquo;are we using <code>/home/lars/projects/templ-components</code>
+            superbly?&rdquo; &mdash; asked against a repo whose history is the answer&rsquo;s best
+            evidence. In seventeen days the series moved dashboardui from
+            <strong>0 &rarr; 79 &rarr; 83 &rarr; 94</strong> (2026-09-17 &rarr; 09-23) and adminui from
+            <strong>68 &rarr; 97</strong>. This week a concurrent session rebuilt loginpage on the
+            library &mdash; overturning the 2026-09-23 &ldquo;keep hand-rolled&rdquo; verdict &mdash;
+            and this audit scores that adoption at <strong>95</strong>. All three UI modules now
+            pin <code>v1.19.4</code> (the latest tag, zero behind), no module ships an
+            anti-pattern, and every adoption gate is green.
+          </p>
+          <p>
+            Census: <strong>242 distinct library identifiers</strong> in use across the three
+            modules (adminui 123, dashboardui 98, loginpage 21) at
+            <strong>526 call sites</strong> of component/props symbols alone. Six of nine
+            consumer-relevant packages are imported (display, forms, feedback, layout,
+            navigation, errorpage, htmx, icons, utils &mdash; eight, counting htmx/icons/utils;
+            only <code>datastar</code>, <code>wire</code>, and <code>charts/echarts</code> sit at
+            zero, all deliberately).
+          </p>
+          <div class="callout card-solution">
+            <strong>The bottom line.</strong> This is superb usage. The remaining tail is four
+            items: document the consumer Tailwind requirement in <code>setup</code> (the one
+            HIGH finding &mdash; setup consumers currently get an unstyled login page),
+            file the two-week-old upstream StatusBadge-map patch, swap dashboardui&rsquo;s
+            eight hand-rolled page headers, and finish two 0.5-partials (loginpage spinner,
+            RelativeTime). None of these are misuses &mdash; they are the last mile.
+          </div>
+        </section>
+
+        <section id="series">
+          <h2>01 &middot; Series &amp; method</h2>
+          <p>
+            Per the research-directory guard (gotcha 21), this report continues the
+            existing series rather than starting over:
+          </p>
+          <table>
+            <thead>
+              <tr><th>Run</th><th>Date</th><th>Subject</th><th>Score</th><th>Rubric derivation</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>2026-09-17</td><td>dashboardui</td><td>0 (re-scored from 14)</td><td>1 adopted of 21, 2 anti-patterns</td></tr>
+              <tr><td>2</td><td>2026-09-18</td><td>dashboardui post-adoption</td><td>79&thinsp;&plusmn;&thinsp;5</td><td>15 adopted + 2 partial of 21, 1 anti-pattern</td></tr>
+              <tr><td>3</td><td>2026-09-22</td><td>dashboardui full-templ</td><td>83</td><td>same set, anti-patterns reach zero</td></tr>
+              <tr><td>4</td><td>2026-09-23</td><td>dashboardui post-fix</td><td>94</td><td>18/18 applicable, 1 partial held open</td></tr>
+              <tr><td>&mdash;</td><td>2026-09-17</td><td>adminui</td><td>68</td><td>graded scorecard (different applicable set)</td></tr>
+              <tr><td>&mdash;</td><td>2026-09-23</td><td>loginpage</td><td>n/a</td><td>verdict: keep hand-rolled (OQ21 triggers)</td></tr>
+              <tr class="highlight"><td><strong>5</strong></td><td><strong>2026-10-04</strong></td><td><strong>all three modules</strong></td><td><strong>97 / 94 / 95</strong></td><td><strong>this report, &sect;02&ndash;&sect;04</strong></td></tr>
+            </tbody>
+          </table>
+          <p>
+            Method: full import inventory of the three modules; exhaustive census of
+            component/props call sites (526); source-level enumeration of the library
+            at <code>/home/lars/projects/templ-components</code> (123 components, 11 packages,
+            102 icons); verification gates re-run today (templ codegen drift, CSS-bundle
+            format <em>and</em> class-set content, loginpage tests + vet). Scoring uses
+            Capability Adoption Score v1 (defined 2026-09-23, &sect;06 of the previous
+            report): applicable capabilities credit 1 (adopted) or 0.5 (partial);
+            documented, deliberate divergences leave the denominator; anti-patterns
+            subtract 3 each.
+          </p>
+        </section>
+
+        <section id="adminui">
+          <h2>02 &middot; adminui &mdash; 97 (from 68)</h2>
+          <p>
+            Eight of the eleven findings from the 2026-09-17 audit are fixed. The
+            three &ldquo;packages at zero&rdquo; then &mdash; navigation, errorpage, layout &mdash;
+            are now among its most-used: <code>navigation.Pagination</code> renders every
+            list footer (<code>components.templ:110</code>), <code>navigation.Breadcrumbs</code>
+            the detail pages, <code>errorpage.ErrorPage</code>/<code>NotFound404</code> all
+            error paths, <code>layout.ThemeScript</code>+<code>ThemeToggle</code> the dark-mode
+            shell (<code>layout.templ:45,91</code> &mdash; the 09-17 &ldquo;not applicable by
+            design&rdquo; rejection was correctly reversed when the fleet moved to
+            class-driven dark mode). The CRITICAL functional gap (hard 50-row
+            truncation, F3) is gone &mdash; real pagination. The search form is
+            <code>forms.FilterInput</code>. Nested tables carry <code>Flush: true</code> +
+            <code>CellPaddingCompact</code>. Loading states exist (<code>feedback.Spinner</code>,
+            <code>htmx.PolledRegion</code> on dashboard stats). <code>display.PageHeader</code>,
+            <code>RelativeTime</code>, <code>EmptyState</code> (search-aware, test-asserted),
+            <code>icons</code> &mdash; all adopted.
+          </p>
+          <table>
+            <thead><tr><th>Capability (22 applicable)</th><th>Status</th><th>Evidence</th></tr></thead>
+            <tbody>
+              <tr><td>Page headers</td><td>adopted</td><td><code>display.PageHeader</code> &times;4 (adminui *.templ)</td></tr>
+              <tr><td>Tables + sort + Flush + density</td><td>adopted</td><td><code>Table</code> &times;5, <code>Flush</code>, <code>TableCellPaddingCompact</code>, <code>TableHeader</code>+<code>Sort*</code></td></tr>
+              <tr><td>Pagination</td><td>adopted</td><td><code>navigation.Pagination</code> (components.templ:110)</td></tr>
+              <tr><td>Filter input</td><td>adopted</td><td><code>forms.FilterInput</code> (users.templ:29)</td></tr>
+              <tr><td>Form inputs</td><td>adopted</td><td><code>forms.Input</code> &times;2 + <code>SelectOption</code></td></tr>
+              <tr><td>Status badges</td><td><strong>partial (0.5)</strong></td><td>manual <code>BadgeType</code> maps (util.go:26,43) &mdash; blocked on upstream map gap, see F2</td></tr>
+              <tr><td>Buttons / stat cards / grid / avatar</td><td>adopted</td><td><code>Button</code> variants, <code>StatCard</code>+<code>StatTone</code>, <code>GridColsAutoFit</code>, <code>Avatar</code></td></tr>
+              <tr><td>Breadcrumbs / relative time / empty states</td><td>adopted</td><td><code>Breadcrumbs</code> &times;2, <code>RelativeTime</code> &times;3, <code>EmptyState</code> (search-aware)</td></tr>
+              <tr><td>Error pages / 404</td><td>adopted</td><td><code>errorpage.ErrorPage</code>, <code>NotFound404</code>, full <code>Family*</code> mapping</td></tr>
+              <tr><td>Loading / polled region / toasts</td><td>adopted</td><td><code>feedback.Spinner</code>, <code>htmx.PolledRegion</code>, <code>ToastContainer</code> (components.templ:66)</td></tr>
+              <tr><td>Theme (script + toggle)</td><td>adopted</td><td><code>layout.ThemeScript</code> / <code>ThemeToggle</code> (layout.templ:45,91)</td></tr>
+              <tr><td>Icons</td><td>adopted</td><td><code>icons.*</code> (icons.go) &mdash; F5 fixed</td></tr>
+              <tr><td>Definition lists</td><td>adopted</td><td><code>display.DefinitionItem</code></td></tr>
+            </tbody>
+          </table>
+          <p>
+            <em>Justified divergences (outside the denominator, all documented):</em>
+            hand-rolled app shell (F9-09-17; per-panel <code>&lt;head&gt;</code> ownership, CSRF
+            meta, self-hosted htmx); CSRF via <code>httputil.CSRFTokenFormField</code> +
+            <code>CSRFTokenHTMLMeta</code> (the repo-wide nosurf idiom &mdash; meta+header pairs
+            with <code>CSRFResponseHeaderMiddleware</code>, consistently chosen over
+            <code>htmx.CSRFToken</code> hidden inputs in all three modules); the documented
+            <code>htmx.ConfirmDelete</code> rejection (adopting it would downgrade the
+            controls).
+          </p>
+          <p>
+            <strong>Derivation:</strong> 21 adopted + 1&times;0.5 of 22 applicable =
+            round(100&thinsp;&times;&thinsp;21.5/22) = 98; published conservatively as
+            <strong>97</strong> keeping the upstream-blocked StatusBadge partial visibly open.
+            Zero anti-patterns.
+          </p>
+        </section>
+
+        <section id="dashboardui">
+          <h2>03 &middot; dashboardui &mdash; 94 holds</h2>
+          <p>
+            Re-verified today with zero regressions against the 2026-09-23 run-4
+            post-fix state. The README&rsquo;s grep-able adoption inventory matches the
+            census exactly (StatusBadge/Badge, StatCard+ValueID, Table+sort+LazyRows,
+            EmptyState, Button, CopyButton, DefinitionList, ListNoteCount,
+            ToastContainer, GlobalErrorHandling, Select, ErrorPage/NotFound404,
+            icons, ThemeScript/ThemeToggle, CSRFToken &times;3, PolledRegion, Grid).
+            Version v1.19.4, codegen drift green, bundle class-set exact (1,005
+            tokens).
+          </p>
+          <p>
+            The open tail is unchanged and still honest:
+            <code>display.PageHeader</code> remains hand-rolled as
+            <code>.page-header</code> at eight sites (audit.templ:89,116;
+            projections.templ:90; aggregates.templ:61; snapshots.templ:44;
+            dlq.templ:26,51,126) &mdash; the one full gap inside the 94.
+            <code>display.RelativeTime</code> is still the queued narrow swap (snapshot
+            detail timestamps; SSE live rows correctly excluded). The X&ndash;Y range
+            ListNote variant stays upstream-blocked. SidebarNav/AppShell and cursor
+            pagination remain justified divergences.
+          </p>
+          <p><strong>Derivation:</strong> unchanged from run 4 &mdash; <strong>94</strong>.</p>
+        </section>
+
+        <section id="loginpage">
+          <h2>04 &middot; loginpage &mdash; 95 (new adoption, reviewed)</h2>
+          <p>
+            loginpage was rebuilt on the library this week (the concurrent-session
+            adoption that overturned the 2026-09-23 &ldquo;keep hand-rolled&rdquo; verdict).
+            This audit is the adoption&rsquo;s first independent review. Verdict:
+            <strong>high-quality adoption with disciplined divergence</strong>.
+          </p>
+          <p>
+            <strong>What was adopted, deeply:</strong> <code>layout.Base</code> via
+            <code>DefaultPageProps</code> with six knobs exercised precisely &mdash;
+            <code>Nonce</code>, <code>CSSPath</code>, <code>Favicon</code> suppressed in favor of a
+            <code>templ.SafeURL</code> data-URI, <code>HeadContent</code> for the CSRF meta,
+            <code>HTMXVersion/HTMXSrc</code> suppressed (the page ships no htmx runtime),
+            <code>SEO.NoIndex</code> (login pages must not be indexed),
+            <code>NoThemeScript</code>+<code>BodyClass</code> for SSR-first theming
+            (handler.go:253-269). <code>forms.Input</code> &times;3 and
+            <code>display.Button</code> &times;4 with every login.js DOM hook pinned via
+            <code>BaseProps.ID</code> (lp-email, lp-reg-email, lp-reg-name, lp-login-btn,
+            lp-register-btn) &mdash; the AGENTS.md pinning gotcha, applied.
+            <code>feedback.Alert</code> for the static no-auth case. <code>utils.Class</code>,
+            <code>utils.Ternary</code>, <code>utils.BaseProps</code> throughout.
+          </p>
+          <p>
+            <strong>Contract preservation, verified:</strong> all eight login.js hooks
+            survive in the generated markup (the two above plus lp-error,
+            lp-show-register, lp-show-login, lp-section, lp-divider, the
+            <code>hidden</code> visibility class); the 49-test handler suite passes;
+            codegen drift check green. The injected-config script is hardened
+            (<code>scriptSafeJSON</code> + <code>sanitizeNonce</code>) &mdash; the 2026-10-04
+            injection review&rsquo;s fixes all survived the rewrite, and the CHANGELOG
+            coherently merges both work streams.
+          </p>
+          <p>
+            <strong>Justified divergences (documented):</strong> the JS-populated
+            <code>#lp-error</code> live region stays hand-rolled (the library&rsquo;s
+            <code>Alert</code> is a props-driven server render &mdash; the 09-23 audit&rsquo;s
+            &sect;21.2 pattern distinction, correctly honored); the favicon-rune brand
+            identity (SafeURL SVG) replaces recipe branding;
+            <code>recipes.AuthLayout</code> is deliberately not adopted &mdash; its
+            split-screen branding panel would replace the module&rsquo;s single-card
+            identity, exactly the identity-reconciliation cost the 09-23 audit
+            predicted. The inline config-JSON script block has no library equivalent
+            (library gap, not a consumer one).
+          </p>
+          <table>
+            <thead><tr><th>Capability (12 applicable)</th><th>Status</th><th>Evidence</th></tr></thead>
+            <tbody>
+              <tr><td>Page shell / head</td><td>adopted</td><td><code>layout.Base</code> + 6 <code>PageProps</code> knobs (handler.go:253)</td></tr>
+              <tr><td>Form inputs</td><td>adopted</td><td><code>forms.Input</code> &times;3, IDs pinned, autocomplete attrs</td></tr>
+              <tr><td>Submit buttons</td><td>adopted</td><td><code>display.Button</code> HTMLSubmit, pinned IDs</td></tr>
+              <tr><td>Link buttons (OAuth2)</td><td>adopted</td><td><code>display.Button</code> with <code>Href</code></td></tr>
+              <tr><td>Static alerts</td><td>adopted</td><td><code>feedback.Alert</code> (no-auth case, page.templ:28)</td></tr>
+              <tr><td>Live error region</td><td><em>justified divergence</em></td><td>JS-populated #lp-error (page.templ:26)</td></tr>
+              <tr><td>Loading states</td><td><strong>partial (0.5)</strong></td><td>spinner markup hand-built in login.js:144 vs <code>feedback.Spinner</code></td></tr>
+              <tr><td>Theming / dark mode</td><td>adopted</td><td>SSR body class + <code>NoThemeScript</code>; systematic <code>dark:</code> variants</td></tr>
+              <tr><td>CSP-nonce plumbing</td><td>adopted</td><td><code>NonceFromRequest</code> &rarr; sanitized nonce on script tags</td></tr>
+              <tr><td>Class / wiring helpers</td><td>adopted</td><td><code>utils.Class</code>, <code>utils.Ternary</code></td></tr>
+              <tr><td>DOM-hook pinning</td><td>adopted</td><td>8/8 login.js hooks preserved, <code>BaseProps.ID</code></td></tr>
+              <tr><td>SEO / noindex</td><td>adopted</td><td><code>props.SEO.NoIndex = true</code></td></tr>
+            </tbody>
+          </table>
+          <p>
+            <strong>Derivation:</strong> 10 adopted + 1&times;0.5 of 11 scored (live region
+            removed as justified) = round(100&thinsp;&times;&thinsp;10.5/11) = <strong>95</strong>.
+            Zero anti-patterns.
+          </p>
+        </section>
+
+        <section id="strengths">
+          <h2>05 &middot; What is superb (evidence, not adjectives)</h2>
+          <ul>
+            <li><strong>Zero anti-patterns repo-wide.</strong> The 09-17 dashboardui pair (JS-built innerHTML rows, div-click copy) is gone; nothing new replaced them.</li>
+            <li><strong>Perfect version currency.</strong> v1.19.4 in every go.mod = the latest published tag; zero behind. (Upstream&rsquo;s Unreleased &mdash; typed triggers ADR-0043, <code>Tabs.Wire</code>, datastar twins &mdash; is unreleased; nothing actionable yet.)</li>
+            <li><strong>Gates, not vibes.</strong> Re-run today: templ codegen drift PASSED (3 modules), CSS-bundle format PASSED (82,563 + 81,451 bytes canonical), CSS class-set content PASSED (1,005 tokens exact), loginpage tests + vet green.</li>
+            <li><strong>Adoption memory kept grep-able.</strong> dashboardui/README.md&rsquo;s adopted/custom/divergent table matches the census exactly &mdash; the library skill&rsquo;s #1 consumer recommendation, actually practiced.</li>
+            <li><strong>The deep-props pattern.</strong> <code>BaseProps.Attrs</code> for HTMX wiring, <code>StatCard.ValueID</code> live hooks, <code>GridColsAutoFit</code>+<code>MinColWidth</code>, <code>Table.LazyRows</code>, <code>DefinitionItem.DetailComponent</code>, six-knob <code>PageProps</code> in loginpage &mdash; advanced surface, not the demo tier.</li>
+          </ul>
+        </section>
+
+        <section id="findings">
+          <h2>06 &middot; Findings (ordered by impact)</h2>
+
+          <div class="card card-problem">
+            <div class="card-header"><span class="score-pill score-warn">F1 &middot; HIGH &middot; consumer-facing gap</span></div>
+            <h3>setup consumers get an unstyled login page</h3>
+            <p>
+              The login page now requires a consumer-compiled Tailwind stylesheet
+              (<code>CSSPath</code>, default <code>/app.css</code>), but <strong>nothing in the
+              setup surface says so</strong>: <code>attachLogin</code> passes no
+              <code>CSSPath</code> (setup/setup.go:313-318), <code>setup/README.md</code> &mdash;
+              the canonical config table &mdash; contains zero guidance on Tailwind,
+              <code>@source</code> scanning, or the <code>/app.css</code> requirement, and
+              <code>examples/setup-demo</code> (the flagship one-call showcase) ships no CSS
+              wiring at all. A setup consumer following the README gets a structurally
+              correct but visually broken login page. loginpage&rsquo;s own README
+              documents the requirement &mdash; setup users never read it.
+            </p>
+            <p>
+              <strong>Fix (one session):</strong> add a &ldquo;Styling&rdquo; section to
+              setup/README.md with a copy-paste Tailwind v4 <code>@source</code> snippet
+              scanning <code>github.com/larsartmann/cqrs-htmx/loginpage/v4</code>; wire a
+              minimal stylesheet into setup-demo; consider a
+              <code>setup.Config.LoginCSSPath</code> passthrough. Impact 5 &times; ease 3.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-header"><span class="score-pill score-warn">F2 &middot; MEDIUM &middot; upstream, unfiled for 17 days</span></div>
+            <h3><code>statusToBadgeMap</code> still lacks adminui&rsquo;s statuses</h3>
+            <p>
+              The 2026-09-17 adminui audit&rsquo;s F6 proposed an upstream patch adding
+              <code>suspended/deleted/verified/enabled</code> to the library&rsquo;s
+              <code>display.statusToBadgeMap</code>. Verified today: the map
+              (display/badge_templ.go:397-406) still lacks them, and no upstream issue
+              exists. adminui compensates with manual <code>BadgeType</code> maps
+              (util.go:26,43) &mdash; correct, but the partial persists. File the issue
+              upstream; adopt <code>StatusBadge</code> when it lands.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-header"><span class="score-pill score-warn">F3 &middot; MEDIUM &middot; the last dashboardui gap</span></div>
+            <h3>Eight hand-rolled <code>.page-header</code> blocks vs <code>display.PageHeader</code></h3>
+            <p>
+              audit.templ:89,116 &middot; projections.templ:90 &middot; aggregates.templ:61 &middot;
+              snapshots.templ:44 &middot; dlq.templ:26,51,126. Closing this lifts dashboardui
+              to a computed 97&ndash;100 under rubric v1 and retires the only full
+              capability gap in the fleet. Verify the dark-token shell survives the
+              swap (the 09-23 report&rsquo;s caveat).
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-header"><span class="score-pill">F4 &middot; LOW &middot; loginpage 0.5-partial</span></div>
+            <h3>Hand-built spinner markup in login.js</h3>
+            <p>
+              login.js:144-145 injects a hand-written <code>SPINNER_HTML</code> span.
+              A hidden server-rendered <code>feedback.Spinner</code> inside each submit
+              button + JS visibility toggle would keep the markup library-owned and
+              visually identical. Small, but it is loginpage&rsquo;s only partial.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-header"><span class="score-pill">F5 &middot; LOW &middot; lying config doc</span></div>
+            <h3><code>Config.AccentColor</code> documents a power it no longer has</h3>
+            <p>
+              config.go:89 says AccentColor &ldquo;overrides the button/highlight
+              color&rdquo; &mdash; but since the rewrite, styling is Tailwind-only and the
+              value reaches <strong>only the SVG favicon</strong> (util.go&rsquo;s own
+              validator comment admits this). A consumer tuning accent colors for
+              buttons will see nothing change. Re-doc the field (or rename toward
+              <code>FaviconAccent</code>) before the next train.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="score-pill">F6 &middot; LOW &middot; queued swap, unchanged</span></div>
+            <h3>dashboardui <code>RelativeTime</code> narrow swap still queued</h3>
+            <p>Snapshot-detail &ldquo;Created&rdquo; timestamps (SSE live rows correctly excluded) &mdash; open since 2026-09-23, trivial when touched next.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="score-pill">F7 &middot; INFO &middot; documentation</span></div>
+            <h3>Undocumented divergence: loginpage &times; <code>recipes.AuthLayout</code></h3>
+            <p>
+              The recipe exists upstream (split-screen branding panel) and was the
+              09-23 audit&rsquo;s swap #1. Not adopting it is the right call &mdash; the
+              single centered card <em>is</em> the module&rsquo;s identity &mdash; but the
+              choice is recorded nowhere in loginpage. One README sentence prevents
+              the next audit from re-litigating it.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="score-pill">F8 &middot; INFO &middot; stale context (fixed during this audit)</span></div>
+            <h3>AGENTS.md loginpage lines were stale</h3>
+            <p>
+              &ldquo;hand-rolled lp-* CSS, no templ-components&rdquo; and the family-of-5
+              &ldquo;loginpage does not depend on it&rdquo; line contradicted the tree.
+              Updated to &ldquo;family of 6&rdquo; with the CSSPath/Tailwind-consumer note in
+              this session (memory-maintenance rule).
+            </p>
+          </div>
+        </section>
+
+        <section id="opportunities">
+          <h2>07 &middot; Top opportunities (impact &times; ease)</h2>
+          <table>
+            <thead><tr><th>#</th><th>Opportunity</th><th>Impact</th><th>Ease</th><th>Priority</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Setup styling docs + setup-demo CSS wiring (+ optional <code>LoginCSSPath</code>) &mdash; F1</td><td>5</td><td>3</td><td><strong>15</strong></td></tr>
+              <tr><td>2</td><td>File upstream <code>statusToBadgeMap</code> patch; adopt <code>StatusBadge</code> on land &mdash; F2</td><td>3</td><td>3</td><td><strong>9</strong></td></tr>
+              <tr><td>3</td><td>dashboardui <code>PageHeader</code> &times;8 swap &mdash; F3</td><td>3</td><td>2</td><td><strong>6</strong></td></tr>
+              <tr><td>4</td><td><code>AccentColor</code> doc truth-pass &mdash; F5</td><td>2</td><td>2</td><td><strong>4</strong></td></tr>
+              <tr><td>5</td><td>loginpage library-spinner swap &mdash; F4</td><td>1</td><td>2</td><td><strong>2</strong></td></tr>
+              <tr><td>6</td><td>dashboardui <code>RelativeTime</code> narrow swap &mdash; F6</td><td>1</td><td>2</td><td><strong>2</strong></td></tr>
+            </tbody>
+          </table>
+          <p>
+            Not listed (deliberate, standing criteria): SidebarNav/AppShell, cursor
+            pagination, X&ndash;Y ListNote (upstream-blocked), ConfirmDelete rejection,
+            datastar/wire/echarts adoption (no use case in these panels).
+          </p>
+        </section>
+
+        <section id="outcome">
+          <h2>08 &middot; Outcome note &amp; series cross-links</h2>
+          <p>
+            This report supersedes nothing and re-opens nothing; it extends the series
+            to its natural whole-repo scope. Companion annotations made this session:
+          </p>
+          <ul>
+            <li><code>2026-09-23_templ-components-deep-dive.html</code> &mdash; outcome note added: series continued at episode 4 (repo-wide 97/94/95); its opportunities #1/#2 confirmed landed in adminui.</li>
+            <li><code>2026-09-23_loginpage-templ-components-audit.md</code> &mdash; outcome note added: verdict overturned in-tree (2026-10-04 adoption); this report scores it 95.</li>
+            <li><code>2026-09-17_templ-components-deep-dive.html</code> (adminui) &mdash; 8/11 findings verified fixed; F6 (upstream map) re-confirmed still open and unfiled.</li>
+          </ul>
+        </section>
+
+        <section id="appendix">
+          <h2>Appendix &middot; Verification evidence</h2>
+          <table>
+            <thead><tr><th>Check</th><th>Command</th><th>Result (2026-10-04)</th></tr></thead>
+            <tbody>
+              <tr><td>loginpage tests</td><td><code>go test ./... -count=1</code> (module dir)</td><td>ok, 1.693s</td></tr>
+              <tr><td>loginpage vet</td><td><code>go vet ./...</code></td><td>clean</td></tr>
+              <tr><td>Codegen drift</td><td><code>nix run .#check-codegen</code></td><td>PASSED (adminui + loginpage + dashboardui)</td></tr>
+              <tr><td>CSS bundle format</td><td><code>nix run .#check-css-bundles</code></td><td>PASSED (82,563 / 81,451 bytes, canaries)</td></tr>
+              <tr><td>CSS class-set content</td><td><code>nix run .#check-css-bundle-classes</code></td><td>PASSED (1,005 tokens exact)</td></tr>
+              <tr><td>Version currency</td><td><code>git tag --sort=-creatordate</code> (library repo)</td><td>v1.19.4 latest = pinned everywhere</td></tr>
+              <tr><td>Upstream issue check</td><td><code>gh issue list -R LarsArtmann/templ-components</code></td><td>no status-map issue exists (7 open)</td></tr>
+              <tr><td>Hook preservation</td><td>grep of page.templ vs login.js</td><td>8/8 lp-* hooks present</td></tr>
+            </tbody>
+          </table>
+          <p class="muted">
+            Rubric: Capability Adoption Score v1 (2026-09-23). LSP diagnostics were
+            ignored per gotcha 14 (stale golangci_lint_ls typecheck warnings on
+            loginpage/config.go confirmed false against the CLI). Series: 2026-09-17
+            (dashboardui 0-re-scored / adminui 68) &rarr; 2026-09-23 (dashboardui 94 /
+            loginpage keep-hand-rolled) &rarr; this report.
+          </p>
+        </section>
+      </main>
+    </div>
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
