@@ -36,23 +36,23 @@ The docs surface went from "3-report tail with a zero-strike report that would f
 
 ## b) PARTIALLY DONE
 
-1. **The heavy-gate confirmation.** The four targeted docs gates are green (a13), but the 25-stage `check-modules` composite did NOT re-run this session: load 33–40 is past the repo's own suspect-contended line (identical failures under load > 20 are noise per the runbook; W0–W3 made the same refusal at 24.8). The two docs gates inside it ran green standalone and a docs-only change touches no Go stage — but "composite proven green today" is unproven. Next quiet window converts this to green.
-2. **Header-claim provenance.** "check-modules 25/25" and "9 tags" now sit in three living-doc headers on the W0–W3 report's authority — same-day, gate-cited, internally consistent, but not independently re-verified by this session (no `git ls-remote` tag spot-check, no flake stage-list count). Reasonable trust, still trust.
-3. **The §g owner-decision harvest gap.** The gate-policy question (`fail_on: critical` honestly red vs a documented temporary demotion while the erraudit program runs) was asked by BOTH archived reports and remains unanswered — and TODO_LIST has no owner-decision index, so the question now lives only inside an archived report plus §f/§g here. The archive-bar question (round-13 §g1) is in the same boat. Deliberately routed to §g of this report rather than invented into a new TODO section — but a standing owner-decisions index would close this class mechanically.
-4. **Research/benchmarks/proposals corpus verdict** — classified LEAVE (each governed by its own standing convention: `docs/research/README.md` indexing, ROADMAP-cited outcomes, benchmark raw-baseline policy), but that verdict is recorded only in this report, not in any standing doc.
-5. **The W0–W3 (10:30) report** is the live tail and correctly unannotated — but its §g1–g3 (rawIDToken confirm, upstream-ask filing authorization, go.work overlay choice) remain open and unanswered, and this session added nothing to their resolution.
+~~1. **The heavy-gate confirmation.** The four targeted docs gates are green (a13), but the 25-stage `check-modules` composite did NOT re-run this session: load 33–40 is past the repo's own suspect-contended line (identical failures under load > 20 are noise per the runbook; W0–W3 made the same refusal at 24.8). The two docs gates inside it ran green standalone and a docs-only change touches no Go stage — but "composite proven green today" is unproven. Next quiet window converts this to green.~~ done 2026-10-01 ~15:50 — the composite re-run landed rc=0 all 27 stages under load 80+ (see the 2026-10-01_15-55 report §a W10)
+~~2. **Header-claim provenance.** "check-modules 25/25" and "9 tags" now sit in three living-doc headers on the W0–W3 report's authority — same-day, gate-cited, internally consistent, but not independently re-verified by this session (no `git ls-remote` tag spot-check, no flake stage-list count). Reasonable trust, still trust.~~ done (docs-health pass 2026-10-04: counts re-derived at this sweep — archived 450, gated convention 85, check-modules stages 28)
+~~3. **The §g owner-decision harvest gap.** The gate-policy question (`fail_on: critical` honestly red vs a documented temporary demotion while the erraudit program runs) was asked by BOTH archived reports and remains unanswered — and TODO_LIST has no owner-decision index, so the question now lives only inside an archived report plus §f/§g here. The archive-bar question (round-13 §g1) is in the same boat. Deliberately routed to §g of this report rather than invented into a new TODO section — but a standing owner-decisions index would close this class mechanically.~~ done 2026-10-01 evening — the standing Owner Decisions index (D1–D11) now lives in TODO_LIST
+~~4. **Research/benchmarks/proposals corpus verdict** — classified LEAVE (each governed by its own standing convention: `docs/research/README.md` indexing, ROADMAP-cited outcomes, benchmark raw-baseline policy), but that verdict is recorded only in this report, not in any standing doc.~~ done (docs-health pass 2026-10-04: the LEAVE verdict is recorded in docs/research/README.md)
+~~5. **The W0–W3 (10:30) report** is the live tail and correctly unannotated — but its §g1–g3 (rawIDToken confirm, upstream-ask filing authorization, go.work overlay choice) remain open and unanswered, and this session added nothing to their resolution.~~ done — annotated + archived in this pass (round 17, 2026-10-04)
 
 ## c) NOT STARTED (all pre-existing, all routed — none belonged to this docs-only session)
 
-1. **erraudit context_loss remainder** — 25 of 61 sites (oauth2 ×5 incl. the rawIDToken suppress trio, identity-model authz ×3, dashboardui ×10+): PUBLISHED-module code → rides the next train. TODO P2.
-2. **e2e Playwright suite + bench-spike quiet-window run** — the battery's last slice (snapshot-sentinel proof; load < 6 twice; OQ16 posture). TODO P2.
-3. **The 5 fleet upstream asks** — none filed (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci TMPDIR lock, BuildFlow go-work-sync union-graph guard, a-h/templ parser). TODO P2; needs filing authorization.
-4. **System cqrs-lint binary rebuild** — owner-gated; still pre-fix (`3756eb4/20260929`); gotcha-13's caveat stays until it lands.
-5. **check-modules composite re-run** in a quiet window (b1).
-6. **go-cqrs-lite cross-repo debt** — CHANGELOG/AGENTS/TODO there + vet/lint/-race on the collector fix. Owner-gated. TODO P3.
-7. **Tooling micro-batch (a)–(m)** — bump-dep `--commit` + single-line-require fix, lychee 404s, run.go audit ×16, dependabot cap, normalizer promotion, tail-budget gate, noise-policy batch. TODO P3.
-8. **Owner calls** — OQ23/24 (PapDashboard go/no-go), OQ26 (go-directive policy), OQ27 (go.work replaces, NEW), loginpage OQ21, datastar-demo keep/remove, /mnt/buildcache reclaim, the PapDashboard reply packet. TODO P3 + ROADMAP.
-9. **agents-notes narratives** — cqrs-lint three-pass arc + three-tools-vs-nixpkgs-Go story. TODO P3 docs micro-batch.
+~~1. **erraudit context_loss remainder** — 25 of 61 sites (oauth2 ×5 incl. the rawIDToken suppress trio, identity-model authz ×3, dashboardui ×10+): PUBLISHED-module code → rides the next train. TODO P2.~~ done 2026-10-01 evening — all 34 sites in the current SDK inventory fixed/suppressed; 0 criticals ×28 modules
+~~2. **e2e Playwright suite + bench-spike quiet-window run** — the battery's last slice (snapshot-sentinel proof; load < 6 twice; OQ16 posture). TODO P2.~~ e2e DONE (70/70 rc=0); bench-spike still owed at a verified-quiet window — routed TODO P2
+~~3. **The 5 fleet upstream asks** — none filed (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci TMPDIR lock, BuildFlow go-work-sync union-graph guard, a-h/templ parser). TODO P2; needs filing authorization.~~ done 2026-10-01 evening (3 FILED: treefmt-nix#545, a-h/templ#1449, BuildFlow#29; 2 RETIRED with evidence)
+~~4. **System cqrs-lint binary rebuild** — owner-gated; still pre-fix (`3756eb4/20260929`); gotcha-13's caveat stays until it lands.~~ local half done 2026-10-01 evening (rebuilt binary 0×C040, 14/14 modules); fleet swap owner-pending (D4)
+~~5. **check-modules composite re-run** in a quiet window (b1).~~ done 2026-10-01 ~15:50 (rc=0, 27/27, load 80+)
+~~6. **go-cqrs-lite cross-repo debt** — CHANGELOG/AGENTS/TODO there + vet/lint/-race on the collector fix. Owner-gated. TODO P3.~~ OPEN — owner-gated (TODO_LIST P3; its f2 lint+race remainder surfaced again in the 2026-10-03 report)
+~~7. **Tooling micro-batch (a)–(m)** — bump-dep `--commit` + single-line-require fix, lychee 404s, run.go audit ×16, dependabot cap, normalizer promotion, tail-budget gate, noise-policy batch. TODO P3.~~ done 2026-10-01 (tooling round 2); (g) feedback checker gated on D7
+~~8. **Owner calls** — OQ23/24 (PapDashboard go/no-go), OQ26 (go-directive policy), OQ27 (go.work replaces, NEW), loginpage OQ21, datastar-demo keep/remove, /mnt/buildcache reclaim, the PapDashboard reply packet. TODO P3 + ROADMAP.~~ routed — standing D-index in TODO_LIST (D1–D11)
+~~9. **agents-notes narratives** — cqrs-lint three-pass arc + three-tools-vs-nixpkgs-Go story. TODO P3 docs micro-batch.~~ done 2026-10-01 (two narratives assembled into docs/agents-notes.md)
 
 ## d) TOTALLY FUCKED UP (honest ledger — nothing shipped broken; all gates green at handoff)
 
@@ -75,21 +75,21 @@ The docs surface went from "3-report tail with a zero-strike report that would f
 ## f) Up to 50 things to get done next (impact-sorted; most pre-existing + this session's deltas; sources: TODO_LIST P1–P3, the live W0–W3 report §f, this session's b/e)
 
 **P1-class (unblocks value or honesty):**
-1. Finish the erraudit `context_loss` program — 25 sites: oauth2 ×5 (rawIDToken trio = suppress-with-reason after owner confirm), identity-model authz ×3, dashboardui ×10+ → scoped erraudit 0 → gate turns green. *(TODO P2; published code → next train.)*
+~~1. Finish the erraudit `context_loss` program — 25 sites: oauth2 ×5 (rawIDToken trio = suppress-with-reason after owner confirm), identity-model authz ×3, dashboardui ×10+ → scoped erraudit 0 → gate turns green. *(TODO P2; published code → next train.)*~~ done 2026-10-01 evening (0 criticals ×28 modules)
 2. Verify the `//nolint:<analyzer>` name erraudit honors — empirically, before the suppressions above rely on it; document in AGENTS. *(W0–W3 §f1.)*
 3. Re-derive the 61-vs-54 site-count discrepancy in the working-note extractor before the final verdict. *(W0–W3 §b.)*
-4. e2e Playwright suite + bench-spike in a verified-quiet window (load < 6 twice) — the battery's last slice; proves the snapshot sentinel change. *(TODO P2.)*
+~~4. e2e Playwright suite + bench-spike in a verified-quiet window (load < 6 twice) — the battery's last slice; proves the snapshot sentinel change. *(TODO P2.)*~~ e2e DONE (70/70); bench-spike routed TODO P2 (quiet window)
 5. Re-run `check-modules` (25 stages) in that same quiet window — converts this session's b1 into green.
 6. Bundle the erraudit code changes with the next tag train (published modules — verify-tag choreography per release-playbook §3a). *(TODO P2.)*
-7. Draft + file the 5 fleet upstream asks (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci TMPDIR lock, BuildFlow go-work-sync union-graph guard with `373209a7` as case study, a-h/templ parser) — verify-before-filing discipline. *(TODO P2.)*
-8. Owner: rebuild the system cqrs-lint binary → `--strict --verbose .` root walk shows zero C040 → retire gotcha-13's caveat. *(TODO P2.)*
-9. CHANGELOG + AGENTS entries once the analyzer name lands (2). *(W0–W3 §f1 tail.)*
-10. Watch CI on the current ranges; record run ids in the next report. *(W0–W3 §f2 pattern.)*
+~~7. Draft + file the 5 fleet upstream asks (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci TMPDIR lock, BuildFlow go-work-sync union-graph guard with `373209a7` as case study, a-h/templ parser) — verify-before-filing discipline. *(TODO P2.)*~~ done 2026-10-01 evening (3 filed / 2 retired with evidence)
+~~8. Owner: rebuild the system cqrs-lint binary → `--strict --verbose .` root walk shows zero C040 → retire gotcha-13's caveat. *(TODO P2.)*~~ local half done 2026-10-01 evening; fleet swap owner-pending (D4)
+~~9. CHANGELOG + AGENTS entries once the analyzer name lands (2). *(W0–W3 §f1 tail.)*~~ done (analyzer semantics source-verified + documented in AGENTS gotcha 8; CHANGELOG receipts added same evening)
+~~10. Watch CI on the current ranges; record run ids in the next report. *(W0–W3 §f2 pattern.)*~~ done (superseded — first fully-green run 36839790817; later runs in the round-15 reports)
 
 **Tooling & gates (P2/P3):**
-11. Build the **owner-decisions index** (e4): a standing TODO_LIST section or ROADMAP table that HARVEST feeds with every §g — the gate-policy, rawIDToken, and archive-bar questions are its founding entries.
-12. Build the **tail-budget gate** (warn `docs/status/*.md` > 3) + a fixture asserting `docs/status/README.md`'s stated counts against reality — both sides of the d4 class, full atomic-gate checklist.
-13. Repo-own the status-row PARTIAL normalizer (checker exists; the round-13 /tmp fixer is throwaway). *(TODO P3 k.)*
+~~11. Build the **owner-decisions index** (e4): a standing TODO_LIST section or ROADMAP table that HARVEST feeds with every §g — the gate-policy, rawIDToken, and archive-bar questions are its founding entries.~~ done 2026-10-01 evening (TODO_LIST D1–D11)
+~~12. Build the **tail-budget gate** (warn `docs/status/*.md` > 3) + a fixture asserting `docs/status/README.md`'s stated counts against reality — both sides of the d4 class, full atomic-gate checklist.~~ done 2026-10-01 (scripts/check-docs-tail-budget.sh + self-test; advisory by design)
+~~13. Repo-own the status-row PARTIAL normalizer (checker exists; the round-13 /tmp fixer is throwaway). *(TODO P3 k.)*~~ done 2026-10-01 (scripts/normalize-status-rows.py + self-test; fixer/checker agreement proven on the real archive)
 14. Codify the coverage-stamp convention (e3) as a docs-freshness rule + fixture.
 15. bump-dep.sh: `--commit` mode + per-module `go mod verify` + the single-line-require regex fix with self-test fixtures (`9b3c2e18` proved the gap live). *(TODO P3 a.)*
 16. Wire `--fail-on-stale-suppressions` into the flake gate. *(TODO P3 b.)*
@@ -136,9 +136,9 @@ The docs surface went from "3-report tail with a zero-strike report that would f
 
 ## g) Questions I can NOT figure out myself (max 3)
 
-1. **Gate policy during the erraudit program:** keep `fail_on: critical` honestly red for every BuildFlow run until the 25 remaining `context_loss` sites land (my default — red = true signal), or a documented temporary demotion in `.buildflow.yml` so runs exit 0 while the program is open? Two prior reports asked; I refuse to pick alone because it redefines what CI red means for everyone else on the box.
-2. **The rawIDToken trio** (`oauth2/provider.go` L329/L336/L346): confirm suppress-with-reason as the standing rule — a live ID-token credential must NOT ride error context (log/audit-leak hygiene) — and confirm you want the `//nolint:<analyzer>` name verified empirically before any suppression relies on it (TODO's standing caveat).
-3. **Archive bar + tail budget, ratified or not:** round 13 archived 22 reports and round 14 archived 2 more on the bar "dated blockquote + evidence strikes + open items routed to TODO/ROADMAP" (not the stricter "every numbered item individually struck"). Do you endorse that as the STANDING bar — and if yes, should the tail-budget gate (f12) be built so sweeps start from a mechanically-enforced tail of 1 instead of re-discovering drift?
+~~1. **Gate policy during the erraudit program:** keep `fail_on: critical` honestly red for every BuildFlow run until the 25 remaining `context_loss` sites land (my default — red = true signal), or a documented temporary demotion in `.buildflow.yml` so runs exit 0 while the program is open? Two prior reports asked; I refuse to pick alone because it redefines what CI red means for everyone else on the box.~~ moot — the program closed 2026-10-01 evening; the gate stayed at fail_on: critical and is green for the erraudit layer
+~~2. **The rawIDToken trio** (`oauth2/provider.go` L329/L336/L346): confirm suppress-with-reason as the standing rule — a live ID-token credential must NOT ride error context (log/audit-leak hygiene) — and confirm you want the `//nolint:<analyzer>` name verified empirically before any suppression relies on it (TODO's standing caveat).~~ executed 2026-10-01 per the recorded decision (suppress-with-reason; LIVE-SECRET class); owner tick = TODO D3
+~~3. **Archive bar + tail budget, ratified or not:** round 13 archived 22 reports and round 14 archived 2 more on the bar "dated blockquote + evidence strikes + open items routed to TODO/ROADMAP" (not the stricter "every numbered item individually struck"). Do you endorse that as the STANDING bar — and if yes, should the tail-budget gate (f12) be built so sweeps start from a mechanically-enforced tail of 1 instead of re-discovering drift?~~ applied de-facto by rounds 13–17 (each pass archived on this bar); formal owner ratification still pending
 
 ---
 
