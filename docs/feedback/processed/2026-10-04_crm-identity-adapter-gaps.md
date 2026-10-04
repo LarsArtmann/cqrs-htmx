@@ -1,5 +1,15 @@
 # Consumer Feedback — What the Ledger CRM's Identity Adapter Has to Reinvent Around `setup`/`usermgmt`
 
+> **PROCESSED** (2026-10-04): all five items acted on in the library; see ADR-0055 and `usermgmt/CHANGELOG.md` [Unreleased].
+>
+> 1. **DONE** — WebAuthn enrollment ceremonies enforce the owner-match rule (401 no session / 403 mismatched `user_id`); no HTTP opt-out; service-level API stays open for headless enrollment. loginpage's register→begin→finish flow verified compatible (cookie set at register; `credentials: "same-origin"`).
+> 2. **DONE (wider than reported)** — ALL `currentUser`-reading routes (`/auth/me`, credentials ×2, verify/send, TOTP ×4, export, import, OAuth2 unlink) are self-wrapped with an enrich-only session pass inside `RegisterRoutes`; setup inherits the fix with zero consumer action. Mechanical invariant gate (`nix run .#check-session-route-wrappers`) keeps the class dead.
+> 3. **DONE** — `setup.RequireSession` (401/JSON) and `setup.RequireSessionRedirect(loginURL)` (303/browser) exported, both mounting after the enrich-only `bundle.SessionMiddleware()`.
+> 4. **DONE** — `Service.DisplayName(ctx, userID string)` with the two-shape contract (bare ULID + `user:`-prefixed actor strings), name→email→"" ladder, tombstone-filtered by both read-model backends.
+> 5. **DONE** — `newLimiterFromConfig` keys on `httputil.ClientIP` (X-Forwarded-For → X-Real-IP → RemoteAddr host); proxy-trust caveat documented on `RateLimitConfig`. Upstream httputil doc note drafted separately.
+>
+> Acceptance path for the CRM ("delete CredentialsGate, nothing reddens"): items 1+2 make the gate redundant — M21 of the execution plan runs the CRM-side check when the repo is reachable (`docs/planning/2026-10-04_12-12_SUPERB-identity-auth-hardening-pareto-plan.md`).
+
 **From:** Ledger CRM (private, event-sourced personal CRM on go-cqrs-lite; single-user, `-auth` opt-in WebAuthn posture)
 **Date:** 2026-10-04
 **Version evaluated:** cqrs-htmx local checkout HEAD (setup/v4 + usermgmt/v4); consumer adapter at `crm/internal/identity/identity.go`
