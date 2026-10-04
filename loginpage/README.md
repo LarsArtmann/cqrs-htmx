@@ -73,6 +73,7 @@ mux.Use(httputil.CSRFMiddleware(httputil.CSRFConfig{}))
 | `RegisterFirst`  | `bool`              | `false`      | Render the registration section on load (e.g. a `/register` route) |
 | `AuthPrefix`     | `string`            | `""`         | URL prefix for auth API (`/api` → `/api/auth/..`) |
 | `OAuth2Buttons`  | `[]OAuth2Button`    | **auto**     | OAuth2 provider buttons (auto-detected if empty)  |
+| `NoOAuth2`       | `bool`              | `false`      | Force-hide every OAuth2 button, including auto-detected ones; mutually exclusive with `OAuth2Buttons` (rejected at `New`) |
 | `CredentialName` | `string`            | `"Passkey"`  | Label for newly registered credentials            |
 
 ## OAuth2 buttons
@@ -136,9 +137,10 @@ stylesheet that scans this package. With Tailwind v4's CSS-first config:
 ```
 
 Serve the compiled file and point `Config.CSSPath` at it (default `/app.css`).
-The WebAuthn ceremony JS is still inlined via `go:embed` — the only classes it
-adds at runtime (`lp-spinner`, `animate-spin`, `border-*`) live in this
-package's `assets/login.js`, which the `@source` scan picks up.
+The WebAuthn ceremony JS is still inlined via `go:embed` and injects NO
+markup at runtime: the loading spinner is the library's `feedback.Spinner`
+server-rendered hidden inside each submit button (the JS only toggles its
+visibility class).
 
 ## Theming
 

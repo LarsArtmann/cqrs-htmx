@@ -138,11 +138,10 @@
   }
 
   // ── UI helpers ──────────────────────────────────────────────────
-  // Loading spinner is injected (not CSS-class-driven) so the button works
-  // with any Tailwind build: every class it needs comes from the compiled
-  // stylesheet scanning this file (see README "Styling").
-  var SPINNER_HTML =
-    '<span class="lp-spinner inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>';
+  // The loading spinner is server-rendered inside each submit button (the
+  // library's feedback.Spinner behind an lp-spinner hook) and starts
+  // hidden — setLoading only toggles visibility, so the JS injects no
+  // markup at runtime.
 
   function showError(msg) {
     var el = document.getElementById("lp-error");
@@ -161,12 +160,8 @@
     var btn = document.getElementById(btnId);
     if (!btn) return;
     btn.disabled = loading;
-    if (loading) {
-      btn.insertAdjacentHTML("afterbegin", SPINNER_HTML);
-    } else {
-      var spinner = btn.querySelector(".lp-spinner");
-      if (spinner) spinner.remove();
-    }
+    var spinner = btn.querySelector(".lp-spinner");
+    if (spinner) spinner.classList.toggle("hidden", !loading);
   }
 
   function showSection(id) {

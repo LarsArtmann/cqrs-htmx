@@ -55,6 +55,7 @@ templ Page(p PageData) {
 										Text:    "Sign in with passkey",
 										Variant: display.ButtonPrimary,
 										Size:    display.ButtonSizeMD,
+										Icon:    buttonSpinner(),
 									})
 								</form>
 								<div id="lp-no-webauthn" class="hidden mt-4 text-center">
@@ -124,6 +125,7 @@ templ Page(p PageData) {
 										Text:    "Create account",
 										Variant: display.ButtonPrimary,
 										Size:    display.ButtonSizeMD,
+										Icon:    buttonSpinner(),
 									})
 								</form>
 								<p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
@@ -141,6 +143,19 @@ templ Page(p PageData) {
 			@templ.Raw(scriptTag(p.inlineJS, p.Nonce))
 		}
 	}
+}
+
+// buttonSpinner is the loading indicator for the submit buttons: the
+// library's feedback.Spinner behind the lp-spinner hook, rendered HIDDEN
+// and revealed by assets/login.js while a ceremony is in flight (the JS
+// toggles the visibility class only — no runtime markup injection).
+templ buttonSpinner() {
+	<span class="hidden lp-spinner" aria-hidden="true">
+		@feedback.Spinner(feedback.SpinnerProps{
+			Size:  feedback.SpinnerSM,
+			Class: "shrink-0",
+		})
+	</span>
 }
 
 // headExtras injects the two <head> items PageProps cannot express: the

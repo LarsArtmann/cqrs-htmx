@@ -864,3 +864,21 @@ func TestServeHTTP_NoOAuth2_RendersNoButtons(t *testing.T) {
 		t.Error("page should render the setup notice when every method is hidden")
 	}
 }
+
+func TestPage_ButtonSpinnerServerRenderedHidden(t *testing.T) {
+	body := renderWithWebAuthn(t, PageData{
+		Title:    "Test",
+		Brand:    "Test",
+		Accent:   "#4f46e5",
+		WebAuthn: true,
+	})
+	if !strings.Contains(body, `class="hidden lp-spinner"`) {
+		t.Error("submit buttons must server-render the hidden lp-spinner hook")
+	}
+	if !strings.Contains(body, "animate-spin") {
+		t.Error("spinner must be the library feedback.Spinner (animate-spin class)")
+	}
+	if strings.Contains(body, "SPINNER_HTML") {
+		t.Error("login.js must no longer carry hand-built spinner markup")
+	}
+}
