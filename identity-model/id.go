@@ -3,6 +3,7 @@ package identitymodel
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 
 	brandid "github.com/larsartmann/go-branded-id"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -29,7 +30,7 @@ func NewUserID(s string) UserID {
 		var zero UserID
 		return zero
 	}
-	if uid, err := id.ParseUserID(s); err == nil {
+	if uid, err := ParseUserID(s); err == nil {
 		return uid
 	}
 	return SyntheticUserID(s)
@@ -47,12 +48,24 @@ func SyntheticUserID(s string) UserID {
 }
 
 // ParseUserID converts a ULID string to a UserID, returning an error for invalid ULIDs.
+// A leading brand prefix ("StreamMarker:<ulid>", as emitted by branded-id String())
+// is tolerated and stripped before the strict parse, mirroring go-crs-lite's
+// ParseStreamID: the prefix carries no identity information. ULIDs never contain
+// colons, so a colon is always a brand separator, never part of the identity.
 func ParseUserID(s string) (UserID, error) {
-	uid, err := id.ParseUserID(s)
+	uid, err := id.ParseUserID(strippedBrandPrefix(s))
 	if err != nil {
 		return uid, errorfamily.Wrapf(err, event.Rejection, "usermgmt.userid.invalid", "invalid user id %q", s)
 	}
 	return uid, nil
+}
+
+// strippedBrandPrefix removes a leading "<Brand>:..." prefix if present.
+func strippedBrandPrefix(s string) string {
+	if i := strings.IndexByte(s, ':'); i >= 0 {
+		return s[i+1:]
+	}
+	return s
 }
 
 // MustParseUserID converts a ULID string to a UserID, panicking on invalid input.
