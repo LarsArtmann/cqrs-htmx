@@ -18,7 +18,9 @@ templ Page(p PageData) {
 			<div class="w-full max-w-sm">
 				<div class="mb-8 text-center">
 					<h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-50">{ p.Brand }</h1>
-					<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{ p.Subtitle }</p>
+					if p.Subtitle != "" {
+						<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{ p.Subtitle }</p>
+					}
 				</div>
 				<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-8 dark:border-gray-700 dark:bg-gray-800 dark:shadow-black/20">
 					<div id="lp-error" class="hidden mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400" role="alert" aria-live="polite"></div>
@@ -138,5 +140,16 @@ templ Page(p PageData) {
 			@templ.Raw(jsonScriptTag(p.configJSON, p.Nonce))
 			@templ.Raw(scriptTag(p.inlineJS, p.Nonce))
 		}
+	}
+}
+
+// headExtras injects the two <head> items PageProps cannot express: the
+// brand favicon (a data: URI, which templ's URL sanitizer rejects in a
+// plain href attribute — SafeURL bypasses that) and the nosurf CSRF meta
+// read by assets/login.js.
+templ headExtras(p PageData) {
+	<link rel="icon" href={ p.faviconURI() }/>
+	if p.CSRFMeta != "" {
+		@templ.Raw(p.CSRFMeta)
 	}
 }

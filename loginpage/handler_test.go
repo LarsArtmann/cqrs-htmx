@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -117,9 +118,6 @@ func TestPage_WebAuthnLogin(t *testing.T) {
 	if !strings.Contains(body, "loginpage-config") {
 		t.Error("page missing config script tag")
 	}
-	if !strings.Contains(body, "--lp-accent") {
-		t.Error("page missing inline CSS")
-	}
 	if !strings.Contains(body, "navigator.credentials") {
 		t.Error("page missing inline JS")
 	}
@@ -193,7 +191,6 @@ func TestPage_OAuth2OnlyNoDivider(t *testing.T) {
 			{Provider: "google", Label: "Sign in with Google"},
 		},
 	}
-	data.inlineCSS = "/* test */"
 	w := httptest.NewRecorder()
 	if err := Page(data).Render(context.Background(), w); err != nil {
 		t.Fatalf("render: %v", err)
@@ -233,7 +230,6 @@ func TestServeHTTP_CSRFTokenIncluded(t *testing.T) {
 		Accent:   "#4f46e5",
 		WebAuthn: true,
 	}
-	data.inlineCSS = "/* test */"
 	data.inlineJS = "/* test */"
 	data.configJSON = `{}`
 	data.CSRFMeta = `<meta name="csrf-token" content="test-csrf-123">`
@@ -294,14 +290,11 @@ func TestServeHTTP_AccentColorApplied(t *testing.T) {
 		Accent:   "#ff0000",
 		WebAuthn: true,
 	}
-	data.inlineCSS = "/* test */"
 	data.inlineJS = "/* test */"
 	data.configJSON = "{}"
 	w := httptest.NewRecorder()
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
-	uri := data.faviconURI()
-	_ = uri
 	if !strings.Contains(body, "fill='#ff0000'") {
 		t.Error("accent color not applied in the SVG favicon")
 	}
@@ -315,7 +308,6 @@ func TestServeHTTP_CustomCSSPath(t *testing.T) {
 		CSSPath:  "/css/app.css",
 		WebAuthn: true,
 	}
-	data.inlineCSS = "/* test */"
 	data.inlineJS = "/* test */"
 	data.configJSON = "{}"
 	w := httptest.NewRecorder()
@@ -482,7 +474,6 @@ func TestPage_BrowserUnsupportedFallback(t *testing.T) {
 		Accent:   "#4f46e5",
 		WebAuthn: true,
 	}
-	data.inlineCSS = "/* test */"
 	data.inlineJS = "/* test */"
 	data.configJSON = "{}"
 	w := httptest.NewRecorder()
@@ -504,7 +495,6 @@ func TestPage_CSSPathLinked(t *testing.T) {
 		CSSPath:  "/css/custom.css",
 		WebAuthn: true,
 	}
-	data.inlineCSS = "/* test */"
 	data.inlineJS = "/* test */"
 	data.configJSON = "{}"
 	w := httptest.NewRecorder()
@@ -522,7 +512,6 @@ func TestPage_NoAuthState(t *testing.T) {
 		Accent:   "#4f46e5",
 		WebAuthn: false,
 	}
-	data.inlineCSS = "/* test */"
 	w := httptest.NewRecorder()
 	_ = Page(data).Render(context.Background(), w)
 	body := w.Body.String()
@@ -571,7 +560,6 @@ func TestServeHTTP_NoRegistration(t *testing.T) {
 	data := h.data
 	data.WebAuthn = true
 	data.ShowReg = false
-	data.inlineCSS = "/* test */"
 	data.inlineJS = "/* test */"
 	data.configJSON = "{}"
 	w := httptest.NewRecorder()
@@ -620,7 +608,6 @@ func TestRenderPage_RenderError(t *testing.T) {
 		Accent:   "#4f46e5",
 		WebAuthn: true,
 	}
-	data.inlineCSS = "/* test */"
 	data.inlineJS = "/* test */"
 	data.configJSON = "{}"
 	ctx, cancel := context.WithCancel(context.Background())
@@ -712,5 +699,86 @@ func TestServeHTTP_MaliciousCredentialNameNotInjected(t *testing.T) {
 	body := w.Body.String()
 	if strings.Contains(body, "</script><script>alert(1)</script>") {
 		t.Error("rendered page must not contain the raw injection payload")
+	}
+}
+
+func TestPage_NonceRenderedOnScripts(t *testing.T) {
+	body := renderWithWebAuthn(t, PageData{
+		Title:  "Test",
+		Brand:  "Test",
+		Accent: "#4f46e5",
+		Nonce:  "abc123_-",
+	})
+	if strings.Count(body, `nonce="abc123_-"`) < 2 {
+		t.Error("config + inline scripts should carry the CSP nonce")
+	}
+}
+
+func TestPage_NonceSanitized(t *testing.T) {
+	if got := sanitizeNonce(`x"><script>`); got != "xscript" {
+		t.Errorf("sanitizeNonce = %q, want %q", got, "xscript")
+	}
+}
+
+func bodyClassTokens(t *testing.T, body string) []string {
+	t.Helper()
+	const marker = `<body class="`
+	i := strings.Index(body, marker)
+	if i < 0 {
+		t.Fatal("body tag with class attribute not found")
+	}
+	rest := body[i+len(marker):]
+	return strings.Fields(rest[:strings.Index(rest, `"`)])
+}
+
+func TestPage_ThemeBodyClass(t *testing.T) {
+	for _, theme := range []string{"dark", "light"} {
+		body := renderWithWebAuthn(t, PageData{Title: "T", Brand: "T", Accent: "#000", Theme: theme})
+		if !slices.Contains(bodyClassTokens(t, body), theme) {
+			t.Errorf("theme %q: body class should contain the theme token", theme)
+		}
+	}
+}
+
+func TestPage_RegisterFirstVisibility(t *testing.T) {
+	loginFirst := renderWithWebAuthn(t, PageData{Title: "T", Brand: "T", Accent: "#000", ShowReg: true})
+	if strings.Contains(loginFirst, `id="lp-login-section" class="hidden`) {
+		t.Error("login section should be visible by default")
+	}
+	if !strings.Contains(loginFirst, `id="lp-register-section" class="hidden`) {
+		t.Error("register section should be hidden by default")
+	}
+	registerFirst := renderWithWebAuthn(t, PageData{Title: "T", Brand: "T", Accent: "#000", ShowReg: true, RegisterFirst: true})
+	if !strings.Contains(registerFirst, `id="lp-login-section" class="hidden`) {
+		t.Error("login section should be hidden when RegisterFirst is set")
+	}
+	if strings.Contains(registerFirst, `id="lp-register-section" class="hidden`) {
+		t.Error("register section should be visible when RegisterFirst is set")
+	}
+}
+
+func TestResolveTheme(t *testing.T) {
+	config := Config{Theme: ThemeDark}
+	if got := config.resolveTheme(nil); got != ThemeDark {
+		t.Errorf("static theme = %q, want %q", got, ThemeDark)
+	}
+	hook := Config{Theme: ThemeDark, ThemeFromRequest: func(*http.Request) string { return ThemeLight }}
+	r := httptest.NewRequest(http.MethodGet, "/login", nil)
+	if got := hook.resolveTheme(r); got != ThemeLight {
+		t.Errorf("hook should win over static theme, got %q", got)
+	}
+	bad := Config{Theme: "purple"}
+	if got := bad.resolveTheme(r); got != "" {
+		t.Errorf("invalid theme should fall back to prefers-color-scheme, got %q", got)
+	}
+}
+
+func TestNew_DefaultCSSPath(t *testing.T) {
+	h, err := New(Config{Service: newTestService(t)})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if h.config.CSSPath != "/app.css" {
+		t.Errorf("CSSPath = %q, want %q", h.config.CSSPath, "/app.css")
 	}
 }

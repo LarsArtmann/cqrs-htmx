@@ -256,13 +256,14 @@ func pageProps(p PageData) layout.PageProps {
 	props.Description = p.Subtitle
 	props.Nonce = p.Nonce
 	props.CSSPath = p.CSSPath
-	props.Favicon = string(p.faviconURI())
+	props.Favicon = "" // favicon renders in headExtras as a templ.SafeURL data: URI
+	props.HeadContent = headExtras(p)
 	props.HTMXVersion = "" // the login page ships its own script, no htmx runtime
 	props.HTMXSrc = ""
 	props.SEO.NoIndex = true
 	props.NoThemeScript = p.Theme != ""
 	if p.Theme != "" {
-		props.BodyClass = utils.Class(props.BodyClass, p.Theme)
+		props.BodyClass = utils.Class(p.Theme, props.BodyClass)
 	}
 	return props
 }
