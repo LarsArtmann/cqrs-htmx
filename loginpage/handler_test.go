@@ -730,7 +730,11 @@ func bodyClassTokens(t *testing.T, body string) []string {
 		t.Fatal("body tag with class attribute not found")
 	}
 	rest := body[i+len(marker):]
-	return strings.Fields(rest[:strings.Index(rest, `"`)])
+	end := strings.Index(rest, `"`)
+	if end < 0 {
+		t.Fatal("unterminated body class attribute")
+	}
+	return strings.Fields(rest[:end])
 }
 
 func TestPage_ThemeBodyClass(t *testing.T) {

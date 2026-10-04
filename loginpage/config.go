@@ -177,17 +177,28 @@ func (config Config) withDefaults() (Config, error) {
 	if err := validateStylesheetURL(config.CSSPath); err != nil {
 		return config, err
 	}
-	if config.NoOAuth2 && len(config.OAuth2Buttons) > 0 {
-		return config, errConfig("Config.NoOAuth2 and Config.OAuth2Buttons are mutually exclusive: NoOAuth2 hides every OAuth2 button, an explicit list shows specific ones")
+	if err := config.validate(); err != nil {
+		return config, err
 	}
 	if config.CSSPath == "" {
 		config.CSSPath = "/app.css"
 	}
-	if config.Theme != "" && config.Theme != ThemeLight && config.Theme != ThemeDark {
-		return config, errConfig(`Config.Theme must be "light" or "dark" (or empty to follow prefers-color-scheme)`)
-	}
 	config.AuthPrefix = trimTrailingSlash(config.AuthPrefix)
 	return config, nil
+}
+
+// validate enforces the cross-field config rules that hold after defaults
+// are applied.
+func (config Config) validate() error {
+	if config.NoOAuth2 && len(config.OAuth2Buttons) > 0 {
+		return errConfig(
+			"Config.NoOAuth2 and Config.OAuth2Buttons are mutually exclusive: NoOAuth2 hides every OAuth2 button, an explicit list shows specific ones",
+		)
+	}
+	if config.Theme != "" && config.Theme != ThemeLight && config.Theme != ThemeDark {
+		return errConfig(`Config.Theme must be "light" or "dark" (or empty to follow prefers-color-scheme)`)
+	}
+	return nil
 }
 
 // resolveTheme applies the per-request theme hook over the static theme.

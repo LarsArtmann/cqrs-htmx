@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **`Config.NoOAuth2`** force-hides every OAuth2 sign-in button — including the ones auto-detected from the service's configured providers — for consumers that expose OAuth2 only elsewhere. Mutually exclusive with `Config.OAuth2Buttons` (rejected at `New`). Closes the 2026-10-04 review follow-up (a).
+- **Library-owned loading spinner.** The submit buttons now server-render the library's `feedback.Spinner` hidden behind the `lp-spinner` hook; `assets/login.js` only toggles its visibility and no longer injects hand-built spinner markup at runtime (the old `SPINNER_HTML` is gone).
+
 - **CSP-nonce support** — `Config.NonceFromRequest` renders the inline config
   JSON and WebAuthn scripts with the consumer's per-request nonce (sanitized
   to base64url before embedding), for consumers whose CSP has no
