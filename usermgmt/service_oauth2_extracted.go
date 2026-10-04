@@ -256,7 +256,7 @@ func (o *OAuth2Service) matchOrCreateUser(
 	}
 
 	aggID := id.NewStreamID()
-	userID := NewUserID(aggID.String())
+	userID := NewUserID(aggID.Get())
 	displayName := info.DisplayName
 	if displayName == "" {
 		displayName = info.Email

@@ -115,7 +115,7 @@ func (m *SQLUserReadModel) Handle(ctx context.Context, evt event.Event) error {
 func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error {
 	aggID := evt.StreamID()
 	if evt.Type() == eventUserDeleted {
-		userID := NewUserID(aggID.String())
+		userID := NewUserID(aggID.Get())
 		if err := m.store.Delete(ctx, userID); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.delete", "delete user view").
 				WithContextAny("user_id", userID)
@@ -138,7 +138,7 @@ func (m *SQLUserReadModel) syncToSQL(ctx context.Context, evt event.Event) error
 		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
 		Data:      data,
 	}
-	userID := NewUserID(aggID.String())
+	userID := NewUserID(aggID.Get())
 	if err := m.store.Set(ctx, userID, &view); err != nil {
 		return errorfamily.WrapTransient(err, "usermgmt.sql_readmodel.upsert", "upsert user view").
 			WithContextAny("user_id", userID)
