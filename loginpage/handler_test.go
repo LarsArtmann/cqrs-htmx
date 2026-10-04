@@ -750,7 +750,10 @@ func TestPage_RegisterFirstVisibility(t *testing.T) {
 	if !strings.Contains(loginFirst, `id="lp-register-section" class="hidden`) {
 		t.Error("register section should be hidden by default")
 	}
-	registerFirst := renderWithWebAuthn(t, PageData{Title: "T", Brand: "T", Accent: "#000", ShowReg: true, RegisterFirst: true})
+	registerFirst := renderWithWebAuthn(
+		t,
+		PageData{Title: "T", Brand: "T", Accent: "#000", ShowReg: true, RegisterFirst: true},
+	)
 	if !strings.Contains(registerFirst, `id="lp-login-section" class="hidden`) {
 		t.Error("login section should be hidden when RegisterFirst is set")
 	}
