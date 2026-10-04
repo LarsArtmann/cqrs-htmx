@@ -1,5 +1,7 @@
 # Round-13 Plan — T06 Close + Battery Tail (2026-10-01 15:55 CEST)
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** §d2 (T08) resolved to its local half the same evening (rebuilt binary: 0×C040 phantoms, 14/14 gate modules — fleet swap owner-pending, TODO D4); §d3 (T09) closed 2026-10-01 evening (3 filed / 2 retired); §e2 rawIDToken executed per the recorded decision (TODO D3 tick pending). Still open (routed): §d1 bench-spike (verified-quiet window), §d4 the next release train carrying the erraudit + loginpage cluster (deferred deliberately in the round-15 reports), §d5 the /mnt/buildcache reclaim (D5, urgency down at 72%). Archived this pass.
+
 > **Session:** continuation of `docs/planning/2026-10-01_06-47_pareto-round13-superb-execution-plan.md` after the W0–W3 (10:30) and round-14 (12:30) reports. Owner directive: execute-and-verify one step at a time. Branch `master`, tree clean, all work committed (daemon-carried heuristic commits throughout — contents verified per commit).
 
 ## a) Fully done
@@ -29,12 +31,12 @@
 ## d) Next tasks (ordered)
 
 1. **Bench-spike** at the next verified-quiet window (load < 6 twice) — the last battery item.
-2. **T08** (owner): rebuild the system cqrs-lint binary → C040 root-walk verification → retires the gotcha-13 caveat and unblocks T10/T16.
-3. **T09** (owner authorization): file the 5 fleet upstream asks (drafts ready per the plan's §2 row).
+~~2. **T08** (owner): rebuild the system cqrs-lint binary → C040 root-walk verification → retires the gotcha-13 caveat and unblocks T10/T16.~~ done 2026-10-01 evening LOCAL HALF (rebuilt binary from b06ac8add5e8: 0×C040, 14/14 gate modules); fleet swap owner-pending (TODO D4)
+~~3. **T09** (owner authorization): file the 5 fleet upstream asks (drafts ready per the plan's §2 row).~~ done 2026-10-01 evening (3 FILED: treefmt-nix#545, a-h/templ#1449, BuildFlow#29; 2 RETIRED with evidence at the verify-before-filing gates)
 4. **Next train** carries the erraudit context fixes (published module code) + everything in CHANGELOG [Unreleased].
 5. **Watch the disk**: 5.5G free on /mnt/buildcache — the /tmp fallback layout is the expected next step; reclaim decision (rust/ 155G + sccache/ 20G) stays with the owner.
 
 ## e) Questions I cannot answer myself
 
 1. **Disk reclaim authorization:** /mnt/buildcache is at 98% (5.5G free). The two reclaim candidates (rust/ 155G, sccache/ 20G) are other ecosystems' caches — deletion needs your call (the 08-30 decision doc carries the analysis).
-2. **rawIDToken suppression executed as decided** (W0–W3 §g1): confirm-and-close, or do you want the three sites re-shaped differently?
+~~2. **rawIDToken suppression executed as decided** (W0–W3 §g1): confirm-and-close, or do you want the three sites re-shaped differently?~~ executed 2026-10-01 (suppress-with-reason, LIVE-SECRET class); owner tick = TODO D3

@@ -1,5 +1,7 @@
 # Status Report — docs-health Round 14: Full 2026-0\* Corpus Pass, Living-Docs Superb Refresh, Archive + Planning Triage — 2026-10-01 12:30 CEST
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** the session's own §b/§c/§f debt is closed — composite re-run landed 15:50 (27/27 under load 80+), erraudit finished same evening (0 criticals ×28), 3 upstream asks filed / 2 retired, the D1–D11 owner-decisions index exists, and the round-13/14 tooling batch (tail-budget gate, normalizer, #fmt, #test-all, stale-suppressions wiring) all shipped 2026-10-01/02. §g1 gate policy is moot (the program closed with the gate honestly green); §g3's archive bar was applied again by rounds 15–17. Still open (routed): bench-spike quiet-window leg, go-cqrs-lite cross-repo debt, feedback checker (D7), cqrs-lint CI gate (D6), coverage-stamp convention gate. Archived this pass.
+
 > **Session:** 2026-10-01 ~11:55 → 12:30 CEST (report written 12:30 CEST)
 > **Scope:** this session only — the owner-directed docs-health AUDIT over the full `**/2026-0*` file corpus and the six living docs: BUILD + HARVEST + VERIFY + ANNOTATE + ARCHIVE. No code changes; docs-only session by design.
 > **Trigger:** owner instruction — "View ALL \*\*/2026-0\* files! Execute the docs-health SKILL! … TODO_LIST.md, CHANGELOG.md, AGENTS.md, README.md, ROADMAP.md, and FEATURES.md must be all SUPERB! … Archive FULLY done and UPDATED (inline strikethrough) .md files!"

@@ -1,5 +1,7 @@
 # Session Status + Self-Critique — Round-13 T06 Tail Execution (2026-10-01 17:01 CEST)
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** the §b verification breadth closed the same evening/overnight (full `.#test` 15/15 + `.#test-all` 28/28 race rc=0, lint 0, coverage 15/15, check-cqrs-lint 13/13 — round-15 reports); §f1–f14/f16/f19–f22/f26–f31 all shipped 2026-10-01/02; §g1/g3 resolved (push landed with strict gates; go.work → OQ27); T09 answered by reality (3 filed / 2 retired). Still open (routed): bench-spike quiet-window leg, the next release train (deferred deliberately), pre-commit `--budget` measurement, T11/T12 cross-repo debt, D-list owner ticks (D3–D7), the upstream erraudit FP candidates (§f32–34, minor). Archived this pass.
+
 > **Session:** continuation of `docs/planning/2026-10-01_06-47_pareto-round13-superb-execution-plan.md` (sessions W0–W3 at 10:30, round-14 docs-health at 12:30, my execution tail 15:05 → 17:00). Owner directive: execute-and-verify one step at a time, then this self-critique. The 15:55 session report covers the work; THIS report adds what the owner asked for explicitly: what I forgot, what could be better, and the a–g ledger. Branch `master`, tree clean, **10 commits ahead of origin — NOTHING pushed this session** (pushes need explicit authorization per standing rule).
 
 ## a) FULLY DONE
@@ -34,7 +36,7 @@
 - **Next release train** carrying the erraudit fixes + the [Unreleased] set (explicitly deferred to the next train window; master now carries published-module changes that only reach consumers at the next tag wave).
 - **Owner-gated set, untouched by design:** T08 (system cqrs-lint rebuild — binary still pre-fix `3756eb4/20260929`), T09 (5 upstream asks — filing authorization pending), T10 + T16 (blocked on T08), T11/T12 (go-cqrs-lite cross-repo owner gate), T18(g) feedback-inbox checker (owner disposition), T23 (CI parity path), T24 (noise policy), T25 (owner packets incl. PapDashboard reply).
 - **T26 SidebarNav re-check** — gated on "next UI change", which did not happen; correctly untouched.
-- **Round-15 consolidated report** — the 15:55 session report serves as the tail; a consolidated round-15 report was not written.
+~~- **Round-15 consolidated report** — the 15:55 session report serves as the tail; a consolidated round-15 report was not written.~~ done — the consolidated round-15 report exists (2026-10-02_07-09) and the whole tail was archived in the round-17 pass
 
 ## d) TOTALLY FUCKED UP (honest incident log — all caught, all recovered)
 
@@ -58,39 +60,39 @@
 ## f) UP TO 50 THINGS TO GET DONE NEXT (ordered by impact; owner-gated items marked)
 
 **Immediate (this repo, unblocked):**
-1. Full workspace `nix run .#test` over the post-erraudit tree — the skipped half of the wave battery.
-2. Full `nix run .#lint` + `.#coverage-gate` re-stamp over the same tree.
-3. `nix run .#check-cqrs-lint` over the new code.
+~~1. Full workspace `nix run .#test` over the post-erraudit tree — the skipped half of the wave battery.~~ done 2026-10-01 evening/overnight — .#test 15/15 + .#test-all 28/28 race rc=0 (round-15 reports)
+~~2. Full `nix run .#lint` + `.#coverage-gate` re-stamp over the same tree.~~ done 2026-10-01 evening (lint 0, coverage 15/15 — round-15 reports)
+~~3. `nix run .#check-cqrs-lint` over the new code.~~ done 2026-10-01 evening (13/13 green over the new code)
 4. Bench-spike at the next verified-quiet window (load < 6 twice; re-pin baseline only on an idle machine).
 5. **Next release train** (wave order per playbook §3a) carrying the erraudit fixes + [Unreleased]; then proxy smoke + CI watch.
-6. Release-train advisory run to baseline the new lag rows before that train.
-7. CHANGELOG reconciliation sweep: every struck TODO item ↔ one CHANGELOG receipt.
-8. Document `buildflow -s 'tool@module'` scoped-step invocation (+ result-cache gotcha) in AGENTS.
-9. Sweep-script guard: candidate-count-print + fail-on-zero, applied to the repo's loop scripts.
-10. Promote a durable erraudit inventory script (per-module counts from the gate's own output) so site counts stop living in /tmp.
-11. Visual review of the 9 refreshed screenshots (accept or investigate the drift).
-12. One-line context-attachment convention note (WithContext vs WithContextAny) in AGENTS or the errorfamily guide.
-13. Short "why suppressed" doc comment atop `extractFromIDToken` covering all three rawIDToken sites.
-14. Normalize the five suppression-reason wordings to one template.
+~~6. Release-train advisory run to baseline the new lag rows before that train.~~ done (baseline 831 requires / 0 unpublished / 0 lag recorded in the round-15 K push)
+~~7. CHANGELOG reconciliation sweep: every struck TODO item ↔ one CHANGELOG receipt.~~ done (round-15 J: receipts complete)
+~~8. Document `buildflow -s 'tool@module'` scoped-step invocation (+ result-cache gotcha) in AGENTS.~~ done (AGENTS gotcha 8 carries the scoped-step primitive + the result-cache gotcha)
+~~9. Sweep-script guard: candidate-count-print + fail-on-zero, applied to the repo's loop scripts.~~ done 2026-10-01/02 (erraudit-inventory + workspace-build gates carry print-candidates/fail-on-zero; the remaining loop-script audit is TODO)
+~~10. Promote a durable erraudit inventory script (per-module counts from the gate's own output) so site counts stop living in /tmp.~~ done (scripts/erraudit-inventory.sh + .#erraudit-inventory + CI)
+~~11. Visual review of the 9 refreshed screenshots (accept or investigate the drift).~~ done 2026-10-01/02 (ACCEPTED — 3 of 9 sampled, drift = live data; recorded round-15-tail)
+~~12. One-line context-attachment convention note (WithContext vs WithContextAny) in AGENTS or the errorfamily guide.~~ done (AGENTS gotcha 8: WithContext strings / WithContextAny non-strings + the FP|HELPER|LIVE-SECRET class template)
+~~13. Short "why suppressed" doc comment atop `extractFromIDToken` covering all three rawIDToken sites.~~ done (CHANGELOG 2026-10-01: extractFromIDToken gained the raw-token secrecy doc comment)
+~~14. Normalize the five suppression-reason wordings to one template.~~ done (AGENTS gotcha 8 class template)
 15. TODO_LIST header restamp (date/coverage lines) after items 1–3 land.
-16. Consider a round-15 consolidated report when the battery completes (or keep the 15:55 report as tail).
+~~16. Consider a round-15 consolidated report when the battery completes (or keep the 15:55 report as tail).~~ done — written 2026-10-02 07:09
 17. Pre-commit window mitigation: measure whether a `--budget` on the hook shortens the daemon-race window without weakening the gate.
 
 **Owner-gated / authorization-needed:**
 18. **Disk reclaim decision — URGENT:** buildcache at 98% (5.5G free); candidates rust/ 155G + sccache/ 20G; or authorize the /tmp fallback layout as standing.
-19. **T09:** authorize filing the 5 upstream asks (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci-lint TMPDIR lock, BuildFlow go-work-sync union-graph guard, a-h/templ parser) — drafts per the plan.
-20. **T08:** rebuild the system cqrs-lint binary → C040 root-walk verify → retire the gotcha-13 caveat.
-21. **T10** (after T08): residual triage — E005×16, V007×41, A016/V006×4, ~130 untriaged, sentinel_concrete_type ×51.
-22. **T16** (after T08): `--fail-on-stale-suppressions` wiring + the rules-diff ritual.
+~~19. **T09:** authorize filing the 5 upstream asks (treefmt-nix templ Go-pin, nixpkgs go-licenses GOROOT, golangci-lint TMPDIR lock, BuildFlow go-work-sync union-graph guard, a-h/templ parser) — drafts per the plan.~~ done 2026-10-01 evening (3 filed / 2 retired with evidence)
+~~20. **T08:** rebuild the system cqrs-lint binary → C040 root-walk verify → retire the gotcha-13 caveat.~~ local half done 2026-10-01 evening (rebuilt binary 0×C040); fleet swap owner-pending (TODO D4)
+~~21. **T10** (after T08): residual triage — E005×16, V007×41, A016/V006×4, ~130 untriaged, sentinel_concrete_type ×51.~~ done (docs/research/2026-10-01_cqrs-lint-residual-triage.md — every class dispositioned from the rebuilt binary)
+~~22. **T16** (after T08): `--fail-on-stale-suppressions` wiring + the rules-diff ritual.~~ done 2026-10-01 evening (--fail-on-stale-suppressions wired + caught a real stale B024; rules-diff ritual in gotcha 23)
 23. **T11/T12:** go-cqrs-lite cross-repo docs + vet/lint/race on the collector fix (owner).
 24. **T18(g):** feedback-inbox checker — owner disposition on 7 legacy processed files + the stray root feedback file.
 25. **T23:** cqrs-lint CI parity path — read the 08-30 draft, pick Go-installable module vs Nix runner.
-26. **T24:** noise policy — go-auto-upgrade (~500), jscpd config dupes, vulnix dead NVD feed, 9 unavailable tools.
-27. **T25:** owner packets — OQ23/24, OQ26 go-directive policy, datastar-demo KEEP confirm, loginpage OQ21, PapDashboard reply.
+~~26. **T24:** noise policy — go-auto-upgrade (~500), jscpd config dupes, vulnix dead NVD feed, 9 unavailable tools.~~ done (docs/runbooks/buildflow-noise-policy.md)
+~~27. **T25:** owner packets — OQ23/24, OQ26 go-directive policy, datastar-demo KEEP confirm, loginpage OQ21, PapDashboard reply.~~ done (owner decision packets in docs/proposals/; PapDashboard reply drafted, send owner-pending)
 28. **PapDashboard reply** — codec shipped v4.13.0 (their recorded prerequisite); where their #67/#68 land.
-29. **Push authorization:** 10 commits on local master (erraudit fixes + docs + screenshots) — push now (CI verifies) or hold for the train window?
-30. g1 confirm: rawIDToken suppression executed as decided — confirm-and-close.
-31. g3 decision: go.work fleet-local replaces — keep gate-filtered (current) vs untracked overlay vs OQ.
+~~29. **Push authorization:** 10 commits on local master (erraudit fixes + docs + screenshots) — push now (CI verifies) or hold for the train window?~~ resolved by the owner directive — the round-15 sessions pushed with strict pre-push gates green
+~~30. g1 confirm: rawIDToken suppression executed as decided — confirm-and-close.~~ executed; owner tick pending as TODO D3
+~~31. g3 decision: go.work fleet-local replaces — keep gate-filtered (current) vs untracked overlay vs OQ.~~ routed — ROADMAP OQ27
 
 **Upstream-candidate discoveries from this session (fold into T09's list):**
 32. erraudit: nil-return (success path) misclassified as an error return → context_loss FP (config.go:237 case).
@@ -114,6 +116,6 @@
 
 ## g) THREE QUESTIONS I CANNOT ANSWER MYSELF
 
-1. **Push the 10 local commits now, or hold for the train?** Master carries the erraudit fixes (published-module code), docs, and refreshed screenshots. Standing rule: pushes need your explicit request. If pushed, CI verifies the wave before the train; if held, the train carries everything at once — which do you want?
+~~1. **Push the 10 local commits now, or hold for the train?** Master carries the erraudit fixes (published-module code), docs, and refreshed screenshots. Standing rule: pushes need your explicit request. If pushed, CI verifies the wave before the train; if held, the train carries everything at once — which do you want?~~ resolved by reality — pushed 2026-10-01/02 with strict pre-push gates green (round-15 K)
 2. **Disk: authorize the reclaim?** `/mnt/buildcache` is at 98% (5.5G free) after swinging 58% → 98% within one day. The candidates (rust/ 155G, sccache/ 20G) belong to other ecosystems — I will not delete another ecosystem's caches without your call. Alternatively: bless the /tmp fallback as the standing layout until a human reclaims space. Which way?
-3. **Upstream asks: drafts-only or file now?** T09's five asks each have a verified repro and a working shim that rots silently. Filing needs your GitHub identity (four external repos + your own BuildFlow). Say the word and I draft all five for review, or file them directly.
+~~3. **Upstream asks: drafts-only or file now?** T09's five asks each have a verified repro and a working shim that rots silently. Filing needs your GitHub identity (four external repos + your own BuildFlow). Say the word and I draft all five for review, or file them directly.~~ answered 2026-10-01 evening — 3 filed, 2 retired at the verification gates

@@ -1,5 +1,7 @@
 # Status Report — Tooling Round 2: scoped format, status-row normalizer, tail-budget, test-all, bump-dep hardening (shared-tree session)
 
+> **ANNOTATED 2026-10-04 (docs-health round 17):** the honest b-section gaps all closed 2026-10-01/02 — heavy batteries ran (`.#test` 15/15, `.#test-all` 28/28, composite 27/27, lint 0, coverage 15/15), the e2e leg was already green when this report shipped, and the ARCHIVE pass this report called for executed today (the 13-report tail annotated + archived). T08/T10/T16/T24/T25 resolved to their non-owner halves; T09 answered (3 filed / 2 retired). Still open (routed): bench-spike, T11/T12 owner debt, D6/D7 ticks, the check-docs-counts mechanical gate, the load-policy runbook line. The stage-count drift class this report coined recurred exactly as predicted — 28 today. Archived this pass.
+
 > **Session:** 2026-10-01 ~14:30 → 17:36 CEST (report written 17:36 CEST)
 > **Scope:** this session only — the Pareto round-13 plan's remaining repo-local tooling items (T13/T14/T15/T17/T18-half/T21/T22-half/T19-partial), executed against the **shared** `cqrs-htmx` tree.
 > **Trigger:** owner pasted `TODO_LIST.md` + "Break this down … execute and verify … get the whole list done", then "write a full status report".
@@ -38,23 +40,23 @@ The repo-local tail of the round-13 plan is largely **shipped with fixture cover
 
 ## b) PARTIALLY DONE
 
-1. **The heavy-gate verification (the honest big one).** All *offline* gates pass: `check-docs-links.sh` (315 OK), `check-status-rows.py` (0 PARTIAL/437), `check-status-annotations.sh` (72/72), `check-docs-freshness.sh` (PASS), and 5 self-tests. **Not run:** `nix run .#test`, `.#coverage-gate`, `.#lint`, and the `check-modules` composite — refused under load 20–51 per the repo's own rule. My changes are docs/config/scripts only (zero `.go` edits) so build-regression risk is near-zero, but the composite is **unproven**. Effort to finish: **S** (one quiet-window run).
-2. **The check-modules stage count is a moving target.** I added 2 stages (25→27) and wrote "27" into TODO/CHANGELOG/AGENTS; a concurrent session then added `erraudit-inventory-self-test` → **28**. My numbers are already stale (shared tree). Effort to reconcile: **S**, but the class recurs (see §e1).
-3. **`#test-all` is built but never executed end-to-end.** The app evaluates and builds, but I did not run it (examples bind ports; load high). So "the 8 excluded modules now have a race path" is a capability claim, not a result. Effort: **S–M** (one run).
-4. **T19(a) agents-notes narratives** — not written (prose assembly of already-recorded facts). Deliberately low priority.
+~~1. **The heavy-gate verification (the honest big one).** All *offline* gates pass: `check-docs-links.sh` (315 OK), `check-status-rows.py` (0 PARTIAL/437), `check-status-annotations.sh` (72/72), `check-docs-freshness.sh` (PASS), and 5 self-tests. **Not run:** `nix run .#test`, `.#coverage-gate`, `.#lint`, and the `check-modules` composite — refused under load 20–51 per the repo's own rule. My changes are docs/config/scripts only (zero `.go` edits) so build-regression risk is near-zero, but the composite is **unproven**. Effort to finish: **S** (one quiet-window run).~~ done 2026-10-01 evening/overnight — .#test 15/15 + .#test-all 28/28 race rc=0, lint 0, coverage 15/15, check-modules 27/27 composite (round-15 reports)
+~~2. **The check-modules stage count is a moving target.** I added 2 stages (25→27) and wrote "27" into TODO/CHANGELOG/AGENTS; a concurrent session then added `erraudit-inventory-self-test` → **28**. My numbers are already stale (shared tree). Effort to reconcile: **S**, but the class recurs (see §e1).~~ superseded — the suite is 28 stages today; the check-docs-counts mechanical gate remains unbuilt (TODO)
+~~3. **`#test-all` is built but never executed end-to-end.** The app evaluates and builds, but I did not run it (examples bind ports; load high). So "the 8 excluded modules now have a race path" is a capability claim, not a result. Effort: **S–M** (one run).~~ done 2026-10-01/02 — executed 28/28 modules rc=0
+~~4. **T19(a) agents-notes narratives** — not written (prose assembly of already-recorded facts). Deliberately low priority.~~ done 2026-10-01 (two narratives in docs/agents-notes.md)
 5. **Feedback-inbox checker (T18 second half)** — deferred with a concrete reason, not abandoned (see §c4).
 
 ## c) NOT STARTED (routed; not this session's scope, or blocked)
 
-1. **T08 — system `cqrs-lint` binary rebuild.** BLOCKED (owner): still the pre-fix build `3756eb4/20260929`; until rebuilt, manual root walks print 21 stale C040 phantoms. Priority: still wanted (it gates T10/T16).
-2. **T10 / T16 — cqrs-lint residual triage + `--fail-on-stale-suppressions` wiring.** BLOCKED on T08 by design (wiring the flag now risks false-failures from the pre-fix binary). Priority: wanted once T08 lands.
-3. **T09 — file the 5 fleet upstream asks.** NOT STARTED — needs filing authorization (owner).
+~~1. **T08 — system `cqrs-lint` binary rebuild.** BLOCKED (owner): still the pre-fix build `3756eb4/20260929`; until rebuilt, manual root walks print 21 stale C040 phantoms. Priority: still wanted (it gates T10/T16).~~ local half done 2026-10-01 evening (rebuilt binary 0×C040, 14/14 modules); fleet swap owner-pending (TODO D4)
+~~2. **T10 / T16 — cqrs-lint residual triage + `--fail-on-stale-suppressions` wiring.** BLOCKED on T08 by design (wiring the flag now risks false-failures from the pre-fix binary). Priority: wanted once T08 lands.~~ done 2026-10-01 evening (residual triage note + --fail-on-stale-suppressions wired with fixture self-test)
+~~3. **T09 — file the 5 fleet upstream asks.** NOT STARTED — needs filing authorization (owner).~~ done 2026-10-01 evening (3 filed / 2 retired at the verification gates)
 4. **T18 feedback-inbox checker.** DEFERRED: 7 legacy `processed/` files predate the `> **PROCESSED**` marker and `docs/feedback/sec-consumer-feedback.md` sits at the feedback root (not `new/`) — a gate would need an epoch exemption + an owner disposition for the stray file. Priority: medium; needs a decision first.
-5. **T24 — BuildFlow noise-policy batch** (vulnix dead NVD feed, "9 tools unavailable", jscpd config dupes). NOT STARTED.
+~~5. **T24 — BuildFlow noise-policy batch** (vulnix dead NVD feed, "9 tools unavailable", jscpd config dupes). NOT STARTED.~~ done (docs/runbooks/buildflow-noise-policy.md)
 6. **T11/T12 — go-cqrs-lite cross-repo docs + vet/lint/-race.** Owner-gated.
 7. **T23 — cqrs-lint Go-installable distribution / strict CI gate.** Blocked on the Nix-only binary.
-8. **T03/T04 remainder — e2e Playwright + bench-spike.** Quiet-window only; NOT run this session.
-9. **T25/T26 — owner-call packets + v5-window watches.** Owner calls; untouched.
+~~8. **T03/T04 remainder — e2e Playwright + bench-spike.** Quiet-window only; NOT run this session.~~ e2e DONE 2026-10-01 (70/70 rc=0); bench-spike still owed at a verified-quiet window — routed TODO P2
+~~9. **T25/T26 — owner-call packets + v5-window watches.** Owner calls; untouched.~~ done (owner decision packets in docs/proposals/; v5-window watches refreshed — appkit, ProjectionLayer, DataStar T4, buildcache)
 
 ## d) TOTALLY FUCKED UP (radical honesty — nothing shipped broken this session; all my gates are green)
 
@@ -75,20 +77,20 @@ The repo-local tail of the round-13 plan is largely **shipped with fixture cover
 ## f) Up to 50 things to get done next (impact-sorted; the top ~15 are this session's harvest)
 
 **P1 — unblocks value/honesty:**
-1. Rebuild the system `cqrs-lint` binary from the fixed `~/projects/go-cqrs-lite` source; verify `cqrs-lint --strict --verbose .` shows 0 C040. *(TODO P2; owner.)*
-2. Quiet-window `nix run .#check-modules -- --report` (now 28 stages) + `#test` race suite + `#coverage-gate` — convert my "offline-green" into composite-green. *(this report §b1.)*
-3. Reconcile the check-modules stage count everywhere it is written (28), or replace the hand-count with a derived `check-docs-counts` gate. *(§e1.)*
-4. Run `nix run .#test-all` once (prove the 8 e2e/examples modules' race path). *(§b3.)*
-5. Run the e2e Playwright suite in a quiet window (the snapshot-sentinel proof still owed from W0–W3). *(TODO P2 battery.)*
+~~1. Rebuild the system `cqrs-lint` binary from the fixed `~/projects/go-cqrs-lite` source; verify `cqrs-lint --strict --verbose .` shows 0 C040. *(TODO P2; owner.)*~~ local half done 2026-10-01 evening; fleet swap owner-pending (D4)
+~~2. Quiet-window `nix run .#check-modules -- --report` (now 28 stages) + `#test` race suite + `#coverage-gate` — convert my "offline-green" into composite-green. *(this report §b1.)*~~ done 2026-10-01 ~15:50 (27/27 under load 80+ — the 15-55 report §a W10)
+~~3. Reconcile the check-modules stage count everywhere it is written (28), or replace the hand-count with a derived `check-docs-counts` gate. *(§e1.)*~~ superseded — 28 stages today; the mechanical check-docs-counts gate remains unbuilt (TODO)
+~~4. Run `nix run .#test-all` once (prove the 8 e2e/examples modules' race path). *(§b3.)*~~ done — 28/28 modules rc=0 (2026-10-01/02)
+~~5. Run the e2e Playwright suite in a quiet window (the snapshot-sentinel proof still owed from W0–W3). *(TODO P2 battery.)*~~ stale on arrival — the 70/70 run landed 2026-10-01 ~15:00 (see the 17-01 report §a T04)
 6. Re-run `bench-spike` after the 09-30/10-01 dep bumps (quiet window; OQ16). *(TODO P2 battery.)*
-7. **HARVEST this report's §f into TODO_LIST/ROADMAP** (docs-health HARVEST) — otherwise these die in a timestamped file. *(skill requirement.)*
+~~7. **HARVEST this report's §f into TODO_LIST/ROADMAP** (docs-health HARVEST) — otherwise these die in a timestamped file. *(skill requirement.)*~~ done (round-15 HARVEST + the round-17 archive pass)
 8. Owner: decide the feedback-inbox convention (epoch for the `> **PROCESSED**` marker + disposition of the stray root file) so the checker (item 12) can be built unambiguously.
-9. File the 5 fleet upstream asks (filing authorization needed). *(TODO P2.)*
+~~9. File the 5 fleet upstream asks (filing authorization needed). *(TODO P2.)*~~ done 2026-10-01 evening (3 filed / 2 retired)
 10. Bundle the erraudit remainder with the next train (published-module code). *(TODO P2.)*
-11. Wire `--fail-on-stale-suppressions` into the `check-cqrs-lint` flake app **after** T08 lands; add the stale-suppression fixture. *(T16.)*
+~~11. Wire `--fail-on-stale-suppressions` into the `check-cqrs-lint` flake app **after** T08 lands; add the stale-suppression fixture. *(T16.)*~~ done 2026-10-01 evening — wired EARLY (the flag predates the C040 fix; caught a real stale B024 at usermgmt/es_setup.go:221)
 12. Build `scripts/check-feedback-inbox.sh` (after item 8): `new/` empty at train time + `processed/` files carry an outcome marker (epoch-exempt for legacy). *(T18 half.)*
-13. Run an ARCHIVE pass on the `docs/status` tail (now 5, over budget 3) before the tail drifts further. *(§d3.)*
-14. Add AGENTS/runbook notes for the new gates' *who-runs-me* status (advisory vs blocking). *(§e3.)*
+~~13. Run an ARCHIVE pass on the `docs/status` tail (now 5, over budget 3) before the tail drifts further. *(§d3.)*~~ done — this pass (round 17, 2026-10-04): the full 13-report tail annotated + archived
+~~14. Add AGENTS/runbook notes for the new gates' *who-runs-me* status (advisory vs blocking). *(§e3.)*~~ done (docs/status/README.md documents the advisory tail-budget; the blocking gates are named in AGENTS quick-ref)
 15. Add a `check-docs-counts` app asserting `docs/status/README.md`'s stated counts (tail/archived/gated) against reality. *(round-14 f12.)*
 
 **Tooling & gates (P2/P3):**
@@ -136,9 +138,9 @@ The repo-local tail of the round-13 plan is largely **shipped with fixture cover
 
 ## g) Questions I can NOT figure out myself (max 3)
 
-1. **Concurrent-session authority over "my" numbers and files.** A concurrent session edited the same tree for the whole session (it did T06 erraudit, T22(i), added an `erraudit-inventory` gate/plan/reports, and struck (i) inside *my* TODO line). When our claims collide (e.g., the stage count, or whether T22(i) is "mine to close"), **whose framing wins?** I default to "merge on evidence, never revert theirs", but I need to know if you want the two sessions' reports reconciled now, or left as independent snapshots.
-2. **The feedback-inbox convention (blocking T18's second half).** Do you want (a) an epoch-exempt checker that accepts any top-of-file resolution marker (`PROCESSED`/`RESOLVED`/`ANNOTATED`) and permits the 7 legacy files, **plus** a one-time `git mv` of `docs/feedback/sec-consumer-feedback.md` into `new/` (making `new/` non-empty until processed), or (b) a stricter rule that first normalizes all legacy markers — and if (b), may I write dispositions for those 7 old files without your per-item review?
-3. **Heavy-gate policy under sustained fleet load.** Load sat at 20–51 for the entire session, so I refused every heavy gate (per the runbook's "load > 20 = noise" rule). If you want composite proof on my config/docs/script-only change despite the load, say so and I'll run it and annotate load-suspect results — otherwise I'll continue defaulting to "offline-green only, composite owed at the next quiet window". Which do you prefer?
+~~1. **Concurrent-session authority over "my" numbers and files.** A concurrent session edited the same tree for the whole session (it did T06 erraudit, T22(i), added an `erraudit-inventory` gate/plan/reports, and struck (i) inside *my* TODO line). When our claims collide (e.g., the stage count, or whether T22(i) is "mine to close"), **whose framing wins?** I default to "merge on evidence, never revert theirs", but I need to know if you want the two sessions' reports reconciled now, or left as independent snapshots.~~ routed — ROADMAP OQ18 (push/sync policy under concurrent sessions) already carries the owner question
+~~2. **The feedback-inbox convention (blocking T18's second half).** Do you want (a) an epoch-exempt checker that accepts any top-of-file resolution marker (`PROCESSED`/`RESOLVED`/`ANNOTATED`) and permits the 7 legacy files, **plus** a one-time `git mv` of `docs/feedback/sec-consumer-feedback.md` into `new/` (making `new/` non-empty until processed), or (b) a stricter rule that first normalizes all legacy markers — and if (b), may I write dispositions for those 7 old files without your per-item review?~~ routed — TODO D7 (epoch 2026-08-01 + SEC move ratified in the packet; checker builds after the tick)
+~~3. **Heavy-gate policy under sustained fleet load.** Load sat at 20–51 for the entire session, so I refused every heavy gate (per the runbook's "load > 20 = noise" rule). If you want composite proof on my config/docs/script-only change despite the load, say so and I'll run it and annotate load-suspect results — otherwise I'll continue defaulting to "offline-green only, composite owed at the next quiet window". Which do you prefer?~~ resolved in practice + recorded as the round-15 e2 recommendation (correctness gates load-insensitive, measurement gates not); the runbook line is still owed (TODO)
 
 ---
 
