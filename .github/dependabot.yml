@@ -1,3 +1,15 @@
+# Posture (reviewed 2026-09-20, TODO_LIST hygiene micro-pack):
+# - Only root, usermgmt, and integration_test are covered ON PURPOSE. The
+#   larsartmann/* family dependencies ride coordinated release trains
+#   (check-release-train gate), so dependabot's job here is the third-party
+#   surface (casbin, templ, ginkgo, ...), which these three modules watch.
+#   The other 24 modules share those deps via the train process; adding them
+#   would duplicate every bump as 24 PRs.
+# - Grouping everywhere (round-12: usermgmt + integration_test join root's
+#   minor-and-patch group; github-actions bumps batch into one PR via the
+#   wildcard group). Automerge for actions is deliberately NOT enabled: this
+#   repo pins action SHAs; a grouped, human-reviewed PR preserves that gate
+#   while still preventing solo-bump reds from interleaving with trains.
 version: 2
 updates:
   - package-ecosystem: gomod
