@@ -258,8 +258,8 @@ github.com/larsartmann/go-idempotency v0.3.1 h1:LzCg+4DI/RrqPJvR6bmmxMUE/jfUK2qu
 github.com/larsartmann/go-idempotency v0.3.1/go.mod h1:cgc4TyjWbLh8qG+7iNgl3qrjfDhvjjzKkfVblVm9cTQ=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=
 github.com/larsartmann/go-ndjson v0.0.1/go.mod h1:ueEJJ39Jei+zfPCEx455kpunYWZf/pkwn7HqETHrQkU=
-github.com/larsartmann/go-output v0.38.3 h1:vmCKLAjqpnkVPasZdblf7Bm1KyHJ8Q+piHSVadOTQW0=
-github.com/larsartmann/go-output v0.38.3/go.mod h1:Wy/b1Z0WO8zw2SKZyYCaQLRuOGaKLPCo4j58nlTwU84=
+github.com/larsartmann/go-output v0.38.4 h1:Acx2TVsJGNrsfiTH4zOac6SsoGG3D67a8f/OlP9zIOo=
+github.com/larsartmann/go-output v0.38.4/go.mod h1:HePc/cmuydQZFJ41ge8EbYec8h2W3hkOm3tvMcjc4Co=
 github.com/larsartmann/go-output/d2 v0.38.3 h1:/RNOtmVbokeoyuHJ04T2bK+UcBdNguGBbF9YcjEsYtk=
 github.com/larsartmann/go-output/d2 v0.38.3/go.mod h1:WJHCuKLU3pJL4E7/w0Puj/GxtzGaUBglagBnTYXIj8E=
 github.com/larsartmann/go-output/daghtml v0.38.3 h1:ox2sxFzcqdiwp8PyPYLbyAEv/2cBXvxewK+SMunDI44=

@@ -81,7 +81,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output v0.38.3 // indirect
+	github.com/larsartmann/go-output v0.38.4 // indirect
 	github.com/larsartmann/go-output/d2 v0.38.3 // indirect
 	github.com/larsartmann/go-output/daghtml v0.38.3 // indirect
 	github.com/larsartmann/go-output/delimited v0.38.3 // indirect
