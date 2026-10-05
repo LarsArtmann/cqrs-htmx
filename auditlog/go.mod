@@ -39,7 +39,7 @@ require (
 	github.com/larsartmann/go-output/plantuml v0.38.4 // indirect
 	github.com/larsartmann/go-output/serialization v0.38.4 // indirect
 	github.com/larsartmann/go-output/table v0.38.4 // indirect
-	github.com/larsartmann/go-output/tree v0.38.3 // indirect
+	github.com/larsartmann/go-output/tree v0.38.4 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.30 // indirect

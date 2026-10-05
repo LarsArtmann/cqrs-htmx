@@ -112,7 +112,7 @@ require (
 	github.com/larsartmann/go-output/plantuml v0.38.4 // indirect
 	github.com/larsartmann/go-output/serialization v0.38.4 // indirect
 	github.com/larsartmann/go-output/table v0.38.4 // indirect
-	github.com/larsartmann/go-output/tree v0.38.3 // indirect
+	github.com/larsartmann/go-output/tree v0.38.4 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
