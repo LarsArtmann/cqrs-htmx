@@ -1,10 +1,10 @@
 module github.com/larsartmann/cqrs-htmx/adminui/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/a-h/templ v0.3.1070
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-error-family v0.11.0

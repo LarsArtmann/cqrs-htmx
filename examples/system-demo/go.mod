@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/system-demo
 go 1.27.1
 
 require (
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 validation_test.go
 	github.com/larsartmann/cqrs-htmx/systemadapter/v4 v4.12.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.2
