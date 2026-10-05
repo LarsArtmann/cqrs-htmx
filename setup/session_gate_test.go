@@ -22,7 +22,7 @@ func newAuthedBundle(t *testing.T) (http.Handler, string) {
 	t.Cleanup(func() { _ = bundle.Close() })
 
 	reg, err := bundle.Service.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("gatem1"), Email: "gatem1@test.com",
+		ID: usermgmt.SyntheticUserID("gatem1"), Email: "gatem1@test.com",
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
@@ -98,7 +98,7 @@ func TestRequireSession_BlocksWithoutUser_PassesWithUser(t *testing.T) {
 	}
 
 	reg, err := bundle.Service.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("gate1"), Email: "gate1@test.com",
+		ID: usermgmt.SyntheticUserID("gate1"), Email: "gate1@test.com",
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
@@ -126,7 +126,7 @@ func TestRequireSessionRedirect_BlocksWithoutUser_PassesWithUser(t *testing.T) {
 	}
 
 	reg, err := bundle.Service.Register(context.Background(), usermgmt.RegisterRequest{
-		ID: usermgmt.NewUserID("gate2"), Email: "gate2@test.com",
+		ID: usermgmt.SyntheticUserID("gate2"), Email: "gate2@test.com",
 	})
 	if err != nil {
 		t.Fatalf("Register: %v", err)
