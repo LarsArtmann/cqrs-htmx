@@ -21,7 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
-	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.3
+	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.4
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
