@@ -31,7 +31,7 @@ require (
 	github.com/larsartmann/go-output v0.38.4 // indirect
 	github.com/larsartmann/go-output/d2 v0.38.4 // indirect
 	github.com/larsartmann/go-output/daghtml v0.38.3 // indirect
-	github.com/larsartmann/go-output/delimited v0.38.3 // indirect
+	github.com/larsartmann/go-output/delimited v0.38.4 // indirect
 	github.com/larsartmann/go-output/escape v0.38.3 // indirect
 	github.com/larsartmann/go-output/graph v0.38.3 // indirect
 	github.com/larsartmann/go-output/markdown v0.38.3 // indirect
