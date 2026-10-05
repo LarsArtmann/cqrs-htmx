@@ -117,6 +117,15 @@ exclude:
 # (nix run .#build-adminui-css / .#build-dashboardui-css) and are gated by
 # scripts/checks/check-css-bundles.sh. Re-enable only if a buildflow-native build
 # can target per-module outputs with --minify AND honor the exclude list.
+# license-check: skipped 2026-10-05 — permanently unpassable by design, not a
+# health signal. go-licenses only recognizes KNOWN OPEN SOURCE licenses, and
+# this repo's dependency graph is dominated by PROPRIETARY LarsArtmann
+# modules (go-cqrs-lite/*, templ-components, httputil, go-sse, ...) relicensed
+# 2026-09-25; additionally go-licenses #128 rejects stdlib packages ("does not
+# have module info"). Every module's license-check therefore fails on the same
+# E1005/F1001 class regardless of tree health (verified: all 29 module steps
+# red with identical errors on a fully-green tree, 2026-10-05). Licensing is
+# enforced by the repos' own LICENSE files + license-sync, not by go-licenses.
 skip_steps:
   - templ-generate
   - tailwind-build
@@ -126,6 +135,7 @@ skip_steps:
   - deadnix
   - dprint-format
   - go-version-auto-configure
+  - license-check
 
 # fail_on: critical — findings gate RESTORED (2026-09-18, task M8 verification).
 # History: demoted 2026-09-17 (task M3) because the gate was always-red on
