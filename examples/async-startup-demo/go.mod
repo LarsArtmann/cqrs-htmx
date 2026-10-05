@@ -35,7 +35,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.1 // indirect
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.0 // indirect
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0 // indirect
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0 // indirect
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1 // indirect
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.1 // indirect
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0 // indirect
@@ -97,7 +97,6 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

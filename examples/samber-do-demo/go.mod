@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/larsartmann/cqrs-htmx/auditlog/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/health/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
@@ -121,7 +121,6 @@ require (
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

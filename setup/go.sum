@@ -146,8 +146,8 @@ github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.0 h1:rf8KE4cRlKalREOd3+G7q
 github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.0/go.mod h1:YGBK5A4NJNdqZhbS9ANX5+/S7pcSV2xka1Su2hoo6jg=
 github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0 h1:rs1ZCUOOWvFn/KEE8fCvgRsaqHD52T7MpQPXNX+q09g=
 github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0/go.mod h1:Rjx/CppoDClLURmhoag8FKs/J7HZZiSBvSvi+3t+5yA=
-github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0 h1:nND/2bnYCVeu6iIYvmdhm4HT6L1VKXdEhCYsPQWD0d0=
-github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0/go.mod h1:KI3H5BHbkthEoN3hwuCE4yHLyx6egic6t1yjAcd0e7w=
+github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1 h1:x0swyz037FIfZYVnXV06Z3d+EvfPd/+JxBFwhlrB5zM=
+github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1/go.mod h1:5BBVKuIRSdWNC9B75fxXmmoZ/zZ09cfxmqyUwiFCr6E=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.1 h1:fpZF/TIBVGlNhC6j+bDLwVyM/l8MMkMeuGxqwYAXQUM=
 github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.1/go.mod h1:XPplhW5kKPnq7JUW+bImJK++lurIXlE0ZyjOIoGI/Og=
 github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0 h1:I1MA9KQU828iB/8tw9ZmSNjQkosWmPLg+KWiSh9qyRU=
@@ -243,6 +243,7 @@ github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykW
 github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
 github.com/larsartmann/go-sse v0.6.2/go.mod h1:PVVDLkzjkTR2MvqcqL3/XmWY8cdSUpEe8YWaouHVVz4=
 github.com/larsartmann/go-sse/sseparse v0.2.1 h1:GHn8SFFZkMJRhLkmusJwtchgSPJV0/b5Keq6z3xop9k=
+github.com/larsartmann/go-sse/sseparse v0.2.1/go.mod h1:1Nql3y1hf9v/IVd4/26AfRilz0/OiDyF7YA2mvwwtHw=
 github.com/larsartmann/go-sse/ssetest v0.4.0 h1:MxkTgUnDhun2/UQURq4iAOENr8mvB6XmPHFowYRU4xE=
 github.com/larsartmann/go-sse/ssetest v0.4.0/go.mod h1:XNwAlmELNm154O4QoNvktGH1DpyxafvMQDOJbLfVFIc=
 github.com/larsartmann/httputil v1.4.1 h1:sTHWwKY4eNmJzRkEmVU4Gi5on7klDqwBMCeEUq8pfsQ=
@@ -354,6 +355,7 @@ github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 h1:8fdv/9y3
 github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0/go.mod h1:CFr2LncGYokw+OKjXcr8ARCKG1SaC2UEnGxFBovE86g=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/gjson v1.20.0 h1:+agJ3rEzKcCXKDKo0ml26UROcpcAlnZyjq+TjbY5Fto=
+github.com/tidwall/gjson v1.20.0/go.mod h1:V37/opeE/JbLUOfH0QTXiNez2l0RUjYUhpT4szFQAfc=
 github.com/tidwall/match v1.1.1/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/match v1.2.0 h1:0pt8FlkOwjN2fPt4bIl4BoNxb98gGHN2ObFEDkrfZnM=
 github.com/tidwall/match v1.2.0/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
