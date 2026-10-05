@@ -15,7 +15,7 @@ templ eventsPage(p pageData, events []event.Event, page paginationState, filter 
 }
 
 templ eventsContent(p pageData, events []event.Event, page paginationState, filter eventFilter, sortBy sortState) {
-	<div class="page-header"><h2>Event Stream</h2></div>
+	@display.PageHeader(display.PageHeaderProps{Title: "Event Stream"})
 	@eventFilterBar(p.BasePath, filter)
 	if len(events) == 0 {
 		if filter.Active() {

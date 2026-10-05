@@ -87,9 +87,10 @@ templ projectionDetailPage(p pageData, proj projectionStat) {
 }
 
 templ projectionDetailContent(p pageData, proj projectionStat) {
-	<div class="page-header">
-		<h2>{ proj.Name } @badge(proj.Status, statusKindToBadgeType(proj.StatusKind))</h2>
-	</div>
+	@display.PageHeader(display.PageHeaderProps{
+		Title:  proj.Name,
+		Action: badge(proj.Status, statusKindToBadgeType(proj.StatusKind)),
+	})
 	{{ slug := strings.ReplaceAll(strings.ToLower(proj.Name), " ", "-") }}
 	@display.Grid(display.GridProps{
 		BaseProps:   utils.BaseProps{Class: "mb-6"},

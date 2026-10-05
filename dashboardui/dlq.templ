@@ -23,10 +23,10 @@ templ dlqIndexContent(p pageData, links []dlqProjectionLink) {
 			"No projections registered. Dead letters will appear here when projection errors occur.",
 		)
 	} else {
-		<div class="page-header">
-			<h2>Dead-Letter Queue</h2>
-			<p class="page-subtitle">Select a projection to view its dead letters.</p>
-		</div>
+		@display.PageHeader(display.PageHeaderProps{
+			Title:    "Dead-Letter Queue",
+			Subtitle: "Select a projection to view its dead letters.",
+		})
 		@rawDataTable(plainHeaders("Projection", "Dead Letters", ""), "", dlqIndexRows(p, links))
 	}
 }
@@ -35,10 +35,12 @@ templ dlqIndexRows(p pageData, links []dlqProjectionLink) {
 	for _, link := range links {
 		<tr>
 			<td class="cell-emph"><a href={ p.BasePath + "/dead-letters/" + link.Name }>{ link.Name }</a></td>
-			<td>@badge(strconv.Itoa(link.Count), countBadgeType(link.Count))
-</td>
-			<td>@buttonLink("View", p.BasePath+"/dead-letters/"+link.Name, "", display.ButtonSecondary, false)
-</td>
+			<td>
+				@badge(strconv.Itoa(link.Count), countBadgeType(link.Count))
+			</td>
+			<td>
+				@buttonLink("View", p.BasePath+"/dead-letters/"+link.Name, "", display.ButtonSecondary, false)
+			</td>
 		</tr>
 	}
 }
@@ -48,9 +50,7 @@ templ dlqPage(p pageData, proj string, entries []projectionhost.DeadLetterEntry)
 }
 
 templ dlqContent(p pageData, proj string, entries []projectionhost.DeadLetterEntry) {
-	<div class="page-header">
-		<h2>Dead Letters: { proj }</h2>
-	</div>
+	@display.PageHeader(display.PageHeaderProps{Title: "Dead Letters: " + proj})
 	if !p.ReadOnly {
 		<div class="filter-bar">
 			if p.Caps.ProjectionHost {
@@ -97,8 +97,9 @@ templ dlqRows(p pageData, proj string, entries []projectionhost.DeadLetterEntry)
 			<td class="mono" title={ e.FailedAt.Format("2006-01-02 15:04:05") }>{ relativeTime(e.FailedAt) }</td>
 			<td><a href={ p.BasePath + "/dead-letters/" + proj + "/" + e.EventID }><code>{ e.EventType }</code></a></td>
 			<td>{ truncate(e.Error, errorDisplayWidth) }</td>
-			<td>@badge(e.ErrorFamily, display.BadgeError)
-</td>
+			<td>
+				@badge(e.ErrorFamily, display.BadgeError)
+			</td>
 			<td>
 				@buttonLink("View", p.BasePath+"/dead-letters/"+proj+"/"+e.EventID, "", display.ButtonSecondary, false)
 				if !p.ReadOnly && p.Caps.DeadLetterStore {
