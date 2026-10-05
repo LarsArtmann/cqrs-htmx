@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cqrs-htmx Status — Maximization Pass 2026-10-05</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>STATUS REPORT</span>
+      <span>2026-10-05 12:39 CEST</span>
+      <span>cqrs-htmx &middot; maximization pass</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#done">Fully Done</a>
+          <a href="#partial">Partially Done</a>
+          <a href="#fucked">Totally Fucked Up</a>
+          <a href="#improve">Improve</a>
+          <a href="#next">Top 25 Next</a>
+          <a href="#question">The Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Status &middot; point-in-time snapshot</div>
+          <h1>cqrs-htmx: maximization pass</h1>
+          <p class="hero-subtitle">
+            P1 root-caused and fixed (it was never the role grant), the CI lint red
+            fixed in-tree, the templ-components tail advanced, #52 closed with
+            consumer evidence &mdash; and every claim below verified in both worlds
+            (workspace + published pins).
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">3/3</div>
+            <div class="stat-label">P1 usermgmt failures fixed</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">1&rarr;0</div>
+            <div class="stat-label">CI lint red jobs (fixed in tree)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">4/11</div>
+            <div class="stat-label">PageHeader sites swapped</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Open P1 items</div>
+          </div>
+        </div>
+
+        <h2 id="done"><span class="num">01</span>Fully done (this session)</h2>
+        <div class="card card-solution">
+          <h4>P1: the 3 "pre-existing usermgmt test failures" &mdash; root-caused, fixed, misdiagnosis corrected</h4>
+          <p>
+            <code>GOWORK=off</code> A/B proved the code green and the go.work replaces the trigger: the
+            in-flight go-cqrs-lite <code>id</code> module brands <code>StreamID.String()</code> as display-form
+            ("StreamMarker:&hellip;"), so every identity derivation via <code>.String()</code> (casbin subject,
+            impersonation domain, materialize keys, migration/read-model IDs) diverged from the bare-string
+            read path. Fixed by moving all identity sites to <code>.Get()</code> &mdash; byte-identical in both
+            worlds. Full usermgmt suite green in workspace mode AND under published pins; vet clean.
+            Enduring rule recorded as AGENTS gotcha 25.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>CI lint red fixed in-tree (run 37213191869's only failure)</h4>
+          <p>
+            <code>dashboardui/layoutfunc.go:105</code> failed gofumpt on origin/master; the treefmt
+            (golines) reformat then tripped gci and nlreturn &mdash; three formatters fighting over one
+            composite-literal shape. Restructured <code>assetURLs</code> into two named slices; gofumpt,
+            gci, golines, and nlreturn all agree; dashboardui lint = 0 issues.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>templ-components episode-4 tail advanced + truth-passed</h4>
+          <p>
+            F6 (RelativeTime) was discovered ALREADY DONE (adopted 2026-09-26, <code>dde7b7a8</code>) &mdash;
+            the report and TODO tail were stale; annotated. F3 (PageHeader): 4 of 11 hand-rolled sites
+            swapped (dlq index, dlq content, events list, projections detail with the status badge moved
+            into the Action slot &mdash; the slot's documented purpose); templ regenerated module-canonical,
+            CSS bundle rebuilt, class-set + bundle gates green, no golden churn (none of the 4 pages is
+            golden-pinned). The 7 remaining detail headers are documented justified divergences (code-chip
+            titles + inline copy buttons that <code>Title string</code> cannot express).
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>#52 closure hygiene (go-cqrs-lite)</h4>
+          <p>
+            Consumer-verification comment posted on the closed issue (voice-check 0 FAIL / 0 WARN; draft
+            receipt in <code>docs/drafts/</code>). Tag diff <code>signing/v4.3.2&rarr;v4.3.3</code> verified to carry
+            BOTH the <code>WithEncoding</code> fix AND the 113-line
+            <code>TestCloneEvent_PreservesPayloadEncoding</code> regression test.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>Documentation debt closed</h4>
+          <p>
+            agents-notes long-form signing narrative written (dated history: the wave-bisect wrong-turn,
+            the <code>$?</code>-capture bug, the silent CBOR stamp, the 3-hour resolution chain &mdash;
+            no invention, sourced from the two 2026-10-04 reports). TODO_LIST truth-pass: P1 done,
+            #52 done, narrative done, F6 done-in-tree, PageHeader partial, new push item.
+            Deep-dive report + both archived status reports annotated inline.
+          </p>
+        </div>
+
+        <h2 id="partial"><span class="num">02</span>Partially done</h2>
+        <div class="card card-warning">
+          <h4>PageHeader adoption &mdash; 4/11 sites</h4>
+          <p>The 7 remaining sites (audit &times;2, aggregates, snapshots, dlq entry, events detail,
+          timetravel) are justified divergences, not backlog debt: swapping them would lose code-chip
+          styling and inline copy affordances. Revisit only if the library grows a component-title slot.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>Post-change verification battery &mdash; bench-spike remains</h4>
+          <p>e2e Playwright 70/70 green (2026-10-01); this session added green runs for usermgmt,
+          dashboardui, setup, integration_test, totp, oauth2 (workspace) + usermgmt/dashboardui
+          (published pins). bench-spike is the last leg &mdash; refused twice under load; retry at the
+          next quiet window per its machine-pinned protocol.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>cqrs-lint fleet swap + CI gate</h4>
+          <p>Local verification done 2026-10-01 (rules diff = one added rule, 14/14 modules green under
+          the rebuilt binary). Owner steps: bump fleet source pin, switch, re-add 2 documented B024
+          suppressions. <code>check-cqrs-lint</code> in CI is gate-ready, blocked on the nested-module-tag
+          decision (T23/T18 packet &sect;1).</p>
+        </div>
+
+        <h2 id="fucked"><span class="num">03</span>Totally fucked up</h2>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Misdiagnosis shipped</span>
+          <h3>The P1 diagnosis was wrong and owner-routed for a day</h3>
+          <div class="where">TODO_LIST.md P1 (2026-10-04 &rarr; fixed 2026-10-05)</div>
+          <p>
+            "The role grant is not taking effect in the test path" sent the owner toward test-helper
+            authz plumbing. Reality: <code>StreamID.String()</code> display-form drift from the in-flight
+            id-module replace. One <code>GOWORK=off</code> run &mdash; the repo's own documented CI-parity
+            mode &mdash; isolated it in seconds. The lesson is now gotcha 25.
+          </p>
+        </div>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">False claims in a scored report</span>
+          <h3>The 2026-10-04 deep-dive said F6 was "still queued"; it shipped 2026-09-26</h3>
+          <div class="where">docs/research/2026-10-04_templ-components-deep-dive.html</div>
+          <p>
+            A 94-scoring report's tail carried an unverified "remaining" claim (adopted 8 days earlier,
+            commit <code>dde7b7a8</code>) and undercounted the .page-header sites (8 listed, 11 in tree).
+            Grepping the tree before publishing the tail would have caught both.
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Stale CI snapshot</span>
+          <h3>TODO header claimed one red job; origin/master was red on a different one</h3>
+          <div class="where">TODO_LIST.md header vs run 37213191869</div>
+          <p>
+            The header's CI line said "red on module-architecture only" while the newest master run
+            failed lint on <code>layoutfunc.go</code>. A snapshot claim inside a living doc needs
+            re-verification at every edit, or it lies quietly.
+          </p>
+        </div>
+
+        <h2 id="improve"><span class="num">04</span>What we should improve</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>GOWORK=off A/B is step zero for any "pre-existing failure"</strong>
+            <span>Workspace mode runs the live sibling trees; the nix battery pins published versions. The delta between the two worlds localizes replace-drift bugs in one command.</span></div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Report tails must be grep-verified against the tree</strong>
+            <span>"Still queued" / "remaining" claims decay in days. Before publishing, run the check the claim implies (grep the site, run the test).</span></div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Identity vs display discipline (gotcha 25)</strong>
+            <span><code>.String()</code> for display/wire/goldens only; <code>.Get()</code> wherever a StreamID becomes a key, subject, or ID derivation. Candidate: a grep-guard script for <code>StreamID().String()</code> in identity positions.</span></div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text"><strong>Formatter fights are resolved by restructuring, not suppressing</strong>
+            <span>When treefmt/golines and golangci's gofumpt+gci+nlreturn disagree on a shape, rewrite the shape. Three nolint-free files beat one suppression dance.</span></div>
+          </div>
+        </div>
+
+        <h2 id="next"><span class="num">05</span>Top 25 next (Pareto-tiered, impact-sorted)</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Tier</th><th>Task</th><th>Impact</th><th>Effort</th><th>Owner</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><span class="badge badge-critical">1%</span></td><td>Push the 2026-10-05 local fixes (clears the CI lint red; ships the P1 fix + docs)</td><td>High</td><td>S</td><td>owner (pre-push gates)</td></tr>
+            <tr><td>2</td><td><span class="badge badge-critical">1%</span></td><td>Land the go-cqrs-lite StreamMarker train (unpushed sibling-tree work): retires 35 go.work replaces, unblocks dashboardui golden regeneration, kills the 2 workspace-mode golden reds</td><td>High</td><td>M</td><td>owning session</td></tr>
+            <tr><td>3</td><td><span class="badge badge-critical">1%</span></td><td>cqrs-lint fleet swap (steps + expected findings in round14 packet &sect;8)</td><td>High</td><td>S</td><td>owner</td></tr>
+            <tr><td>4</td><td><span class="badge badge-high">4%</span></td><td>File upstream statusToBadgeMap patch (suspended/deleted/verified/enabled), then adopt StatusBadge in adminui</td><td>Med</td><td>M</td><td>any session</td></tr>
+            <tr><td>5</td><td><span class="badge badge-high">4%</span></td><td>loginpage test depth: Base64URL property test + ceremony goldens + WebAuthn E2E</td><td>Med</td><td>M</td><td>any session</td></tr>
+            <tr><td>6</td><td><span class="badge badge-high">4%</span></td><td>Re-pin loginpage coverage gate post-adoption (quiet window)</td><td>Med</td><td>S</td><td>any session</td></tr>
+            <tr><td>7</td><td><span class="badge badge-high">4%</span></td><td>bench-spike retry (last battery leg; quiet window, machine-pinned protocol)</td><td>Med</td><td>S</td><td>any session</td></tr>
+            <tr><td>8</td><td><span class="badge badge-high">4%</span></td><td>Release httputil doc fix <code>a891f0c</code> (tag + push on httputil's next version)</td><td>Med</td><td>S</td><td>owner</td></tr>
+            <tr><td>9</td><td><span class="badge badge-low">20%</span></td><td><code>check-cqrs-lint</code> into CI (blocked on nested-tag decision, T23 &sect;1)</td><td>Med</td><td>S</td><td>owner decision</td></tr>
+            <tr><td>10</td><td><span class="badge badge-low">20%</span></td><td>Diagnose go-cqrs-lite pre-commit "Doc-only" misclassification (plan M7)</td><td>Med</td><td>S</td><td>any session</td></tr>
+            <tr><td>11</td><td><span class="badge badge-low">20%</span></td><td>Consumer-side guard test: signed round-trip preserves encoding (#52 class recurrence guard)</td><td>Med</td><td>M</td><td>any session</td></tr>
+            <tr><td>12</td><td><span class="badge badge-low">20%</span></td><td>Upstream changelog-accuracy audit for the 2026-10-03 wave (labels vs tag diffs)</td><td>Med</td><td>M</td><td>owner</td></tr>
+            <tr><td>13</td><td><span class="badge badge-low">20%</span></td><td>Regenerate dashboardui goldens (after #2 lands; <code>-update</code> in that train's commit)</td><td>Med</td><td>S</td><td>owning session</td></tr>
+            <tr><td>14</td><td><span class="badge badge-low">20%</span></td><td>SidebarNav revisit criteria re-check vs templ-components v1.19.4+</td><td>Low</td><td>S</td><td>next UI change</td></tr>
+            <tr><td>15</td><td><span class="badge badge-low">20%</span></td><td>BuildFlow re-enable condition (BF1&ndash;BF3) watch</td><td>Low</td><td>S</td><td>watch</td></tr>
+            <tr><td>16</td><td><span class="badge badge-low">20%</span></td><td>DataStar Tier 4 milestones (demand-gated per ADR-0050 &mdash; no action without signal)</td><td>Low</td><td>&mdash;</td><td>demand-gated</td></tr>
+            <tr><td>17</td><td><span class="badge badge-low">20%</span></td><td>PapDashboard reply send (drafted 2026-10-01; owner channel)</td><td>Med</td><td>S</td><td>owner</td></tr>
+            <tr><td>18</td><td><span class="badge badge-low">20%</span></td><td>V007 usermgmt SQLViewStore migration (v5-window; ADR-0051 criterion unmet)</td><td>Low</td><td>L</td><td>v5-window</td></tr>
+            <tr><td>19</td><td><span class="badge badge-low">20%</span></td><td>appkit as setup server layer (v5-window revisit)</td><td>Low</td><td>L</td><td>v5-window</td></tr>
+            <tr><td>20</td><td><span class="badge badge-low">20%</span></td><td>/mnt/buildcache reclaim decision (rust/ 155G + sccache/ 20G &mdash; human call)</td><td>Med</td><td>S</td><td>human</td></tr>
+            <tr><td>21</td><td><span class="badge badge-low">20%</span></td><td>Ratify examples/datastar-demo keep decision (evidence: KEEP, 2026-09-22)</td><td>Low</td><td>S</td><td>owner</td></tr>
+            <tr><td>22</td><td><span class="badge badge-low">20%</span></td><td>Tooling: wave-audit gate + <code>bump-dep --isolate</code> (mechanizes gotcha 24a)</td><td>Med</td><td>M</td><td>any session</td></tr>
+            <tr><td>23</td><td><span class="badge badge-low">20%</span></td><td>Tooling: non-short-circuit battery report mode (PASS/FAIL table, fail at end)</td><td>Med</td><td>M</td><td>any session</td></tr>
+            <tr><td>24</td><td><span class="badge badge-low">20%</span></td><td>File E005 cross-module-FP proposal in go-cqrs-lite (owner approval queued)</td><td>Low</td><td>S</td><td>owner approval</td></tr>
+            <tr><td>25</td><td><span class="badge badge-low">20%</span></td><td>go-cqrs-lite cross-repo docs debt (CHANGELOG/AGENTS/vet on the linter fix; owner approval g1)</td><td>Low</td><td>S</td><td>owner approval</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="question"><span class="num">06</span>The one question</h2>
+        <div class="card card-problem">
+          <h4>Who drives the StreamMarker train, and when?</h4>
+          <p>
+            The sibling go-cqrs-lite tree carries the unpushed id-module branding (plus an uncommitted
+            brand-prefix strip in identity-model) that is the root cause of BOTH the 3 P1 failures'
+            trigger surface and the 2 dashboardui golden reds. cqrs-htmx is now format-proof either way
+            (gotcha 25), but the 35 go.work local-path replaces stay load-bearing until that train tags.
+            Concurrent-session discipline (gotcha 4) says I must not touch a foreign in-flight tree &mdash;
+            so: is that train owned and mid-flight elsewhere, or should the next cqrs-htmx session drive
+            it to tags (then regenerate the dashboardui goldens and retire the replaces in one commit)?
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-10-05 12:39 CEST &middot; every claim verified against source, both worlds
+          (workspace + <code>GOWORK=off</code> published pins) where noted &middot; append-only per
+          docs/status/README.md
+        </footer>
+      </main>
+    </div>
+
+</html>
+</body>
