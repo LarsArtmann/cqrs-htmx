@@ -43,5 +43,6 @@ func copyButtonComponent(text string) templ.Component {
 		CopiedLabel: "",
 		Icon:        true,
 		Href:        "",
+		LabelClass:  "",
 	})
 }
