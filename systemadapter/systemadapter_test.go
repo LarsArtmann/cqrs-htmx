@@ -121,8 +121,8 @@ func TestProjectionLayer_CustomStores(t *testing.T) {
 		t.Fatal("custom-stores user not found in read model after drain")
 	}
 
-	if user.ID.String() != streamID.String() {
-		t.Errorf("user ID = %q, want %q", user.ID.String(), streamID.String())
+	if user.ID.String() != streamID.Get() {
+		t.Errorf("user ID = %q, want %q", user.ID.String(), streamID.Get())
 	}
 }
 
@@ -403,7 +403,7 @@ func TestDomainConfig_CasbinProjection(t *testing.T) {
 
 	// Admin should be able to read resources in their own domain.
 	// CasbinProjection adds roles with domain=subject (user's own ID).
-	allowed, err := pl.Authz.Enforce(adminID.String(), adminID.String(), "resource", identitymodel.ActionRead)
+	allowed, err := pl.Authz.Enforce(adminID.Get(), adminID.Get(), "resource", identitymodel.ActionRead)
 	if err != nil {
 		t.Fatalf("Enforce(admin) failed: %v", err)
 	}
@@ -413,7 +413,7 @@ func TestDomainConfig_CasbinProjection(t *testing.T) {
 	}
 
 	// Plain user should be denied (no roles assigned).
-	denied, err := pl.Authz.Enforce(plainID.String(), plainID.String(), "resource", identitymodel.ActionRead)
+	denied, err := pl.Authz.Enforce(plainID.Get(), plainID.Get(), "resource", identitymodel.ActionRead)
 	if err != nil {
 		t.Fatalf("Enforce(plain) failed: %v", err)
 	}
