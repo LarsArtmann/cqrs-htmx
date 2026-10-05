@@ -5,6 +5,8 @@
 **Scope:** Run every `branching-flow` analyzer except `phantom` against the whole repo, then triage what is actually worth acting on.
 **Report format note:** The `status-report` skill's canonical output is a styled HTML dashboard; the operator explicitly requested `.md` at `docs/status/<YYYY-MM-DD_HH-MM_WELL-NAMED>.md`, so this report honors that override. The override is recorded here so it is not mistaken for a new default.
 
+> **ANNOTATED 2026-10-05** — Executed across the 2026-10-05 push-unblock + ratchet sessions. The gate SHIPPED (committed SARIF baseline 663 → 659 ratcheted down, `.#check-branching-flow` + check-modules + CI + self-test, `94a92e6f`); all three safe code fixes landed (drift guard `84b7fe3a`; pendingTOTPStore RESCOPED to a documented key contract `9f25f526` — the typed key would break the published seam, v5 candidate; plainBodyWriter options struct, exhaustruct-exempt + baseline re-pin `05213817`); AGENTS gotcha 26 written; HARVEST executed (`471c0933`). Unmarked items below are OPEN, routed: TODO_LIST (consumability pre-flight, bump-dep pre-flight, credential memo, runbook updates, subset tuning, per-module count proof) + ROADMAP residual 2026-10-05 block (strong-id high rows, expiring allowlist proposal, credential data-model review, phantom/mixins re-eval, JSON digest, small-findings bundle) + ROADMAP OQ28 (credential 4× intent).
+
 ---
 
 ## Session Stat Summary (verbatim from `branching-flow stats .`)
@@ -57,20 +59,20 @@
   - `systemadapter/views.go:35` `CredentialView`
   - `usermgmt/webauthn/provider.go:65` `credentialData`
   - `usermgmt/webauthn_service.go:21` `webAuthnUserCred`
-  Shared fields: `AAGUID, AttestationType, BackupEligible, BackupState, ID, PublicKey, SignCount, Transports`. **What works:** identified precisely with line numbers. **Open:** whether any can alias/embed vs redeclare without coupling domain↔adapter. **Blocker:** needs a domain-intent decision (question g2). **Effort:** M.
-- **`strong-id` severity split — partially triaged.** The `stats` line reports 4 high / 5 medium / 67 low, but the finding table carries no severity column, so I could not attribute severity per row and lumped all 76 together before selecting the few real candidates. **Open:** re-run with a severity filter to isolate the 4 high items. **Effort:** S.
-- **Section (f) harvest — not performed.** Per the `status-report` skill + AGENTS.md gotcha 20, the Top-N list must be routed into `TODO_LIST.md`/`ROADMAP.md` via `docs-health` HARVEST. Deferred pending the operator's "wait for instructions". **Effort:** S.
+  Shared fields: `AAGUID, AttestationType, BackupEligible, BackupState, ID, PublicKey, SignCount, Transports`. **What works:** identified precisely with line numbers. **Open:** whether any can alias/embed vs redeclare without coupling domain↔adapter. **Blocker:** needs a domain-intent decision (question g2). **Effort:** M. — **Routed 2026-10-05:** decision memo → TODO_LIST (R11); the intent question → ROADMAP OQ28.
+- **`strong-id` severity split — partially triaged.** The `stats` line reports 4 high / 5 medium / 67 low, but the finding table carries no severity column, so I could not attribute severity per row and lumped all 76 together before selecting the few real candidates. **Open:** re-run with a severity filter to isolate the 4 high items. **Effort:** S. — **Routed 2026-10-05:** ROADMAP (R10).
+- ~~**Section (f) harvest — not performed.** Per the `status-report` skill + AGENTS.md gotcha 20, the Top-N list must be routed into `TODO_LIST.md`/`ROADMAP.md` via `docs-health` HARVEST. Deferred pending the operator's "wait for instructions". **Effort:** S.~~ done at `471c0933`
 
 ---
 
 ## c) NOT STARTED
 
-- **Any code fix.** This was an analysis-only pass; zero source edits.
-- **Gate integration for `branching-flow`.** The tool is not referenced in `flake.nix`, `check-modules`, `.githooks`, or CI. It could become a gate over select analyzers (like `cqrs-lint` did), but no decision made. Priority: operator-dependent.
-- **`plainBodyWriter` options refactor** (`errors.go:236`, two positional bools). Identified, not started. S.
-- **`pendingTOTPStore` typed-ID refactor** (`usermgmt/totp.go:166,177`). Identified, not started. S.
-- **Drift guard for the `commandOptionApplier` split** (shared home or cross-link comment). Identified, not started. S.
-- **Baseline/ratchet config for `branching-flow`** (e.g. an `.branching-flow.yml` if supported, or a suppression baseline). Not started.
+- ~~**Any code fix.** This was an analysis-only pass; zero source edits.~~ done 2026-10-05 — the three safe fixes landed: drift guard `84b7fe3a`, pendingTOTPStore doc contract `9f25f526`, plainBodyWriter options struct (baseline re-pin `05213817`)
+- ~~**Gate integration for `branching-flow`.** The tool is not referenced in `flake.nix`, `check-modules`, `.githooks`, or CI. It could become a gate over select analyzers (like `cqrs-lint` did), but no decision made. Priority: operator-dependent.~~ done at `94a92e6f` (all 14 analyzers, fail-on-NEW; subset tuning is TODO_LIST R15)
+- ~~**`plainBodyWriter` options refactor** (`errors.go:236`, two positional bools). Identified, not started. S.~~ done 2026-10-05 (`plainBodyOptions`; exhaustruct ignore-pattern; baseline −2 FLAG_PARAM/−2 PHANTOM, `05213817`)
+- ~~**`pendingTOTPStore` typed-ID refactor** (`usermgmt/totp.go:166,177`). Identified, not started. S.~~ done-rescoped at `9f25f526` — typed key REJECTED (breaks the published `identitymodel.PendingTOTPStore` seam; v5 candidate); canonical-form key contract documented instead
+- ~~**Drift guard for the `commandOptionApplier` split** (shared home or cross-link comment). Identified, not started. S.~~ done at `84b7fe3a` (SHAPE-LOCKED cross-links + behavioral test)
+- ~~**Baseline/ratchet config for `branching-flow`** (e.g. an `.branching-flow.yml` if supported, or a suppression baseline). Not started.~~ done at `94a92e6f` (native `--baseline` + `--exit-code`; SARIF, minified, committed)
 
 ---
 
