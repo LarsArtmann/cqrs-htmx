@@ -1,0 +1,1 @@
+consumer side confirmed: re-pinned integration_test to v4.3.3 (`a4eec94b`), the 3 signing tests pass against the published pin, full battery green. checked the tag diff too — `TestCloneEvent_PreservesPayloadEncoding` is in the tagged tree
