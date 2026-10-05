@@ -154,10 +154,12 @@ func New(config Config) (*App, error) {
 
 	errorHandler := config.ErrorHandler
 	if errorHandler == nil {
-		includeInternal := config.IncludeInternalDetails
-		includeRequestID := config.IncludeRequestIDInErrors
+		bodyOpts := plainBodyOptions{
+			includeInternal:  config.IncludeInternalDetails,
+			includeRequestID: config.IncludeRequestIDInErrors,
+		}
 		errorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-			handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, includeInternal, includeRequestID))
+			handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, bodyOpts))
 		}
 	}
 

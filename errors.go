@@ -228,18 +228,27 @@ func DefaultErrorHandlerWithRedirect(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, false, false))
+	handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, plainBodyOptions{})) //nolint:exhaustruct_v5 // zero-value is the intent: redact, no prefix
+}
+
+// plainBodyOptions names the two plain-body writer flags so call sites
+// read unambiguously instead of counting positional booleans.
+type plainBodyOptions struct {
+	// includeInternal exposes 5xx detail (Config.IncludeInternalDetails opt-in).
+	includeInternal bool
+	// includeRequestID prefixes the request ID from context onto the body.
+	includeRequestID bool
 }
 
 // plainBodyWriter builds a text/plain response body writer that redacts 5xx
-// detail unless includeInternal is set, optionally prefixing the request ID.
-func plainBodyWriter(r *http.Request, includeInternal, includeRequestID bool) func(http.ResponseWriter, error, int) {
+// detail unless opts.includeInternal is set, optionally prefixing the request ID.
+func plainBodyWriter(r *http.Request, opts plainBodyOptions) func(http.ResponseWriter, error, int) {
 	return func(w http.ResponseWriter, err error, status int) {
 		w.Header().Set("Content-Type", ContentTypePlain)
 		w.WriteHeader(status)
 
-		detail := SafeDetail(err, status, includeInternal)
-		if includeRequestID {
+		detail := SafeDetail(err, status, opts.includeInternal)
+		if opts.includeRequestID {
 			detail = prefixRequestID(r, detail)
 		}
 
@@ -297,7 +306,8 @@ func DefaultErrorHandlerWithRedirectAndRequestID(
 	err error,
 	loginRedirect string,
 ) {
-	handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r, false, true))
+	handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r,
+		plainBodyOptions{includeRequestID: true})) //nolint:exhaustruct_v5 // deliberate partial: only the prefix flag
 }
 
 // JSONErrorHandler writes errors as JSON responses.
