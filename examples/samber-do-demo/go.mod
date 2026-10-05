@@ -24,7 +24,7 @@ require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
 	github.com/a-h/templ v0.3.1070 // indirect
-	github.com/bits-and-blooms/bitset v1.25.0 // indirect
+	github.com/bits-and-blooms/bitset v1.26.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
@@ -97,11 +97,11 @@ require (
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.19.4 // indirect
-	github.com/larsartmann/templ-components/datastar v1.19.4 // indirect
-	github.com/larsartmann/templ-components/htmx v1.19.4 // indirect
-	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
-	github.com/larsartmann/templ-components/utils v1.19.4 // indirect
+	github.com/larsartmann/templ-components v1.20.0 // indirect
+	github.com/larsartmann/templ-components/datastar v1.20.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.20.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.20.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.20.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

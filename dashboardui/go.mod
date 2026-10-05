@@ -4,7 +4,7 @@ module github.com/larsartmann/cqrs-htmx/dashboardui/v4
 go 1.27.1
 
 require (
-	github.com/a-h/templ v0.3.1020
+	github.com/a-h/templ v0.3.1070
 	github.com/dustin/go-humanize v1.1.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-codec v0.3.1
@@ -20,11 +20,11 @@ require (
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-sse v0.6.2
 	github.com/larsartmann/httputil v1.4.1
-	github.com/larsartmann/templ-components v1.19.4
-	github.com/larsartmann/templ-components/errorpage v1.19.4
-	github.com/larsartmann/templ-components/htmx v1.19.4
-	github.com/larsartmann/templ-components/icons v1.19.4
-	github.com/larsartmann/templ-components/utils v1.19.4
+	github.com/larsartmann/templ-components v1.20.0
+	github.com/larsartmann/templ-components/errorpage v1.20.0
+	github.com/larsartmann/templ-components/htmx v1.20.0
+	github.com/larsartmann/templ-components/icons v1.20.0
+	github.com/larsartmann/templ-components/utils v1.20.0
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
 )
@@ -84,7 +84,7 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	golang.org/x/tools v0.50.0 // indirect
+	golang.org/x/tools v0.51.0 // indirect
 )
 
 //cqrs-lint:ignore(F015) dashboard displays data, does not own query planning

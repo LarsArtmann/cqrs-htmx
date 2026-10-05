@@ -13,7 +13,7 @@ require (
 
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
-	github.com/a-h/templ v0.3.1020 // indirect
+	github.com/a-h/templ v0.3.1070 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-playground/form/v4 v4.5.0 // indirect
 	github.com/justinas/nosurf v1.2.0 // indirect
@@ -34,11 +34,11 @@ require (
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/httputil v1.4.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.19.4 // indirect
-	github.com/larsartmann/templ-components/datastar v1.19.4 // indirect
-	github.com/larsartmann/templ-components/htmx v1.19.4 // indirect
-	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
-	github.com/larsartmann/templ-components/utils v1.19.4 // indirect
+	github.com/larsartmann/templ-components v1.20.0 // indirect
+	github.com/larsartmann/templ-components/datastar v1.20.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.20.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.20.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.20.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

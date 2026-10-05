@@ -3,23 +3,23 @@ module github.com/larsartmann/cqrs-htmx/adminui/v4
 go 1.27.1
 
 require (
-	github.com/a-h/templ v0.3.1020
+	github.com/a-h/templ v0.3.1070
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/httputil v1.4.1
-	github.com/larsartmann/templ-components v1.19.4
-	github.com/larsartmann/templ-components/errorpage v1.19.4
-	github.com/larsartmann/templ-components/htmx v1.19.4
-	github.com/larsartmann/templ-components/icons v1.19.4
-	github.com/larsartmann/templ-components/utils v1.19.4
+	github.com/larsartmann/templ-components v1.20.0
+	github.com/larsartmann/templ-components/errorpage v1.20.0
+	github.com/larsartmann/templ-components/htmx v1.20.0
+	github.com/larsartmann/templ-components/icons v1.20.0
+	github.com/larsartmann/templ-components/utils v1.20.0
 )
 
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
-	github.com/bits-and-blooms/bitset v1.25.0 // indirect
+	github.com/bits-and-blooms/bitset v1.26.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect

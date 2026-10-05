@@ -19,7 +19,7 @@ require (
 
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
-	github.com/a-h/templ v0.3.1020 // indirect
+	github.com/a-h/templ v0.3.1070 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
@@ -48,16 +48,16 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.19.4 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.19.4 // indirect
-	github.com/larsartmann/templ-components/htmx v1.19.4 // indirect
-	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
-	github.com/larsartmann/templ-components/utils v1.19.4 // indirect
+	github.com/larsartmann/templ-components v1.20.0 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.20.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.20.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.20.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.20.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
-	github.com/tidwall/gjson v1.19.0 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.2 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect

@@ -5,7 +5,7 @@ module github.com/larsartmann/cqrs-htmx/setup/v4
 go 1.27.1
 
 require (
-	github.com/a-h/templ v0.3.1020
+	github.com/a-h/templ v0.3.1070
 	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0
@@ -35,7 +35,7 @@ require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/bits-and-blooms/bitset v1.25.0 // indirect
+	github.com/bits-and-blooms/bitset v1.26.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/casbin/casbin/v3 v3.11.0 // indirect
 	github.com/casbin/govaluate v1.10.0 // indirect
@@ -88,11 +88,11 @@ require (
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.19.4 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.19.4 // indirect
-	github.com/larsartmann/templ-components/htmx v1.19.4 // indirect
-	github.com/larsartmann/templ-components/icons v1.19.4 // indirect
-	github.com/larsartmann/templ-components/utils v1.19.4 // indirect
+	github.com/larsartmann/templ-components v1.20.0 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.20.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.20.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.20.0 // indirect
+	github.com/larsartmann/templ-components/utils v1.20.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
@@ -125,7 +125,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
+	golang.org/x/exp v0.0.0-20261005173118-76772065c9b0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
