@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-health v0.5.0
 	github.com/larsartmann/go-health-dashboard v0.10.2
 	github.com/larsartmann/httputil v1.4.1
-	github.com/larsartmann/samber-do-auditlog v0.10.0
+	github.com/larsartmann/samber-do-auditlog v0.11.0
 	github.com/samber/do/v2 v2.1.0
 )
 
@@ -23,7 +23,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.6 // indirect
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
-	github.com/a-h/templ v0.3.1020 // indirect
+	github.com/a-h/templ v0.3.1070 // indirect
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
