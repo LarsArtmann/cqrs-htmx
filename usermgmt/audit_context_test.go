@@ -286,76 +286,76 @@ func TestDispatch_ClientIDPropagatesToEventMetadata(t *testing.T) {
 	}
 
 	if got := changed.Metadata().Custom[event.MetadataKeyClientID]; got != clientID.String() {
-			t.Errorf("event client ID = %q, want %q", got, clientID.String())
+		t.Errorf("event client ID = %q, want %q", got, clientID.String())
+	}
+}
+
+// driftGuardCmd mirrors the identity-model command pattern: a thin wrapper
+// embedding *command.BasicCommand, so ApplyOptions is promoted to the wrapper
+// exactly as on all 20 identity-model commands.
+type driftGuardCmd struct {
+	*command.BasicCommand
+}
+
+// Compile-time: usermgmt's commandOptionApplier accepts the promoted method.
+var _ commandOptionApplier = (*driftGuardCmd)(nil)
+
+// TestCommandOptionApplier_RootAndUsermgmtShapesStayIdentical is the drift
+// guard for the deliberately duplicated commandOptionApplier interface
+// (root handler.go + this package's audit_context.go — Go cannot share an
+// unexported structural interface across module boundaries, and root never
+// imports usermgmt). Root's copy is unexported, so shape identity is proven
+// BEHAVIORALLY: driving cqrshtmx's command pipeline with a BasicCommand-
+// wrapping probe must enrich it — the actor from the request context lands
+// on the dispatched command's metadata. If either interface drifts from the
+// promoted ApplyOptions signature, root's type assertion silently skips
+// enrichment and this test fails with a zero actor.
+func TestCommandOptionApplier_RootAndUsermgmtShapesStayIdentical(t *testing.T) {
+	t.Parallel()
+
+	var gotActor id.ActorID
+	disp := command.NewDispatcher()
+	if err := disp.Register("DriftGuard", func(_ context.Context, cmd command.Command) error {
+		meta, ok := cmd.(interface{ Metadata() command.Metadata })
+		if !ok {
+			t.Fatalf("dispatched command (%T) exposes no Metadata", cmd)
 		}
+		gotActor = meta.Metadata().ActorID
+		return nil
+	}); err != nil {
+		t.Fatalf("Register: %v", err)
 	}
 
-	// driftGuardCmd mirrors the identity-model command pattern: a thin wrapper
-	// embedding *command.BasicCommand, so ApplyOptions is promoted to the wrapper
-	// exactly as on all 20 identity-model commands.
-	type driftGuardCmd struct {
-		*command.BasicCommand
+	app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
+	if err != nil {
+		t.Fatalf("cqrshtmx.New: %v", err)
 	}
 
-	// Compile-time: usermgmt's commandOptionApplier accepts the promoted method.
-	var _ commandOptionApplier = (*driftGuardCmd)(nil)
-
-	// TestCommandOptionApplier_RootAndUsermgmtShapesStayIdentical is the drift
-	// guard for the deliberately duplicated commandOptionApplier interface
-	// (root handler.go + this package's audit_context.go — Go cannot share an
-	// unexported structural interface across module boundaries, and root never
-	// imports usermgmt). Root's copy is unexported, so shape identity is proven
-	// BEHAVIORALLY: driving cqrshtmx's command pipeline with a BasicCommand-
-	// wrapping probe must enrich it — the actor from the request context lands
-	// on the dispatched command's metadata. If either interface drifts from the
-	// promoted ApplyOptions signature, root's type assertion silently skips
-	// enrichment and this test fails with a zero actor.
-	func TestCommandOptionApplier_RootAndUsermgmtShapesStayIdentical(t *testing.T) {
-		t.Parallel()
-
-		var gotActor id.ActorID
-		disp := command.NewDispatcher()
-		if err := disp.Register("DriftGuard", func(_ context.Context, cmd command.Command) error {
-			meta, ok := cmd.(interface{ Metadata() command.Metadata })
-			if !ok {
-				t.Fatalf("dispatched command (%T) exposes no Metadata", cmd)
-			}
-			gotActor = meta.Metadata().ActorID
-			return nil
-		}); err != nil {
-			t.Fatalf("Register: %v", err)
-		}
-
-		app, err := cqrshtmx.New(cqrshtmx.Config{Commands: disp})
-		if err != nil {
-			t.Fatalf("cqrshtmx.New: %v", err)
-		}
-
-		base, err := command.New("DriftGuard", id.NewStreamID())
-		if err != nil {
-			t.Fatalf("command.New: %v", err)
-		}
-		probe := &driftGuardCmd{BasicCommand: base}
-
-		// The command handler pipeline decodes the (empty) body, then runs
-		// root's enrichCommandFromContext on the decoded command before dispatch.
-		handler := app.Command("DriftGuard",
-			cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
-				return probe, nil
-			}))
-
-		actor := id.NewUserActor(GenerateUserID())
-		req := httptest.NewRequest(http.MethodPost, "/drift-guard", strings.NewReader("{}")).
-			WithContext(cqrshtmx.WithActorID(t.Context(), actor))
-		rec := httptest.NewRecorder()
-		handler(rec, req)
-
-		if rec.Code/100 != 2 {
-			t.Fatalf("status = %d, want 2xx (body: %s)", rec.Code, rec.Body.String())
-		}
-		if gotActor != actor {
-			t.Fatalf("command metadata actor = %v, want %v — the root-side commandOptionApplier "+
-				"assertion skipped enrichment; the twin interfaces drifted (handler.go vs audit_context.go)",
-				gotActor, actor)
-		}
+	base, err := command.New("DriftGuard", id.NewStreamID())
+	if err != nil {
+		t.Fatalf("command.New: %v", err)
 	}
+	probe := &driftGuardCmd{BasicCommand: base}
+
+	// The command handler pipeline decodes the (empty) body, then runs
+	// root's enrichCommandFromContext on the decoded command before dispatch.
+	handler := app.Command("DriftGuard",
+		cqrshtmx.DecodeJSON(func(_ struct{}) (command.Command, error) {
+			return probe, nil
+		}))
+
+	actor := id.NewUserActor(GenerateUserID())
+	req := httptest.NewRequest(http.MethodPost, "/drift-guard", strings.NewReader("{}")).
+		WithContext(cqrshtmx.WithActorID(t.Context(), actor))
+	rec := httptest.NewRecorder()
+	handler(rec, req)
+
+	if rec.Code/100 != 2 {
+		t.Fatalf("status = %d, want 2xx (body: %s)", rec.Code, rec.Body.String())
+	}
+	if gotActor != actor {
+		t.Fatalf("command metadata actor = %v, want %v — the root-side commandOptionApplier "+
+			"assertion skipped enrichment; the twin interfaces drifted (handler.go vs audit_context.go)",
+			gotActor, actor)
+	}
+}
