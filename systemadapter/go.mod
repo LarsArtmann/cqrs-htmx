@@ -5,7 +5,7 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2
@@ -73,7 +73,6 @@ require (
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/httputil v1.4.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

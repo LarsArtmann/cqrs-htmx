@@ -32,7 +32,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.7 // indirect
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0 // indirect
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1 // indirect
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.1 // indirect
@@ -68,7 +68,6 @@ require (
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/httputil v1.4.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

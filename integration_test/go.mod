@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/oauth2/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/usermgmt/totp/v4 v4.12.0
-	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.0
+	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/webauthn/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.7.1
@@ -115,7 +115,6 @@ require (
 	github.com/larsartmann/go-output/tree v0.38.4 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
-	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/larsartmann/templ-components v1.20.1 // indirect
 	github.com/larsartmann/templ-components/datastar v1.20.1 // indirect
