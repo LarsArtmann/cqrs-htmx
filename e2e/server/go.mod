@@ -1,9 +1,9 @@
 module github.com/larsartmann/cqrs-htmx/e2e/server
 
-go 1.27.1
+go 1.27
 
 require (
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 validation_test.go
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.0.0-00010101000000-000000000000
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
