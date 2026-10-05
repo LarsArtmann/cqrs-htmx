@@ -172,7 +172,7 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 		return err
 	}
 	aggID := evt.StreamID()
-	tid := NewTenantID(aggID.String())
+	tid := NewTenantID(aggID.Get())
 	deleted, err := deleteViewOnTombstone(ctx, m.store, evt, eventTenantDeleted, tid,
 		"usermgmt.sql_readmodel.tenant_delete", "delete tenant view")
 	if deleted {

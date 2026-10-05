@@ -65,7 +65,7 @@ func (m *BotReadModel) handleBotRegistered(aggID id.StreamID, evt event.Event) e
 	copy(scopes, p.Scopes)
 	tokenHashStr := string(p.TokenHash)
 	bot := &Bot{
-		ID:        NewBotID(aggID.String()),
+		ID:        NewBotID(aggID.Get()),
 		Name:      p.Name,
 		OwnerID:   p.OwnerID,
 		TokenHash: p.TokenHash,
