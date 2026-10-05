@@ -149,6 +149,7 @@ github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.3/go.mod h1:GhvoE6K4hpdAHf0b
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 h1:t6+zJntr/N9ah7HEUHab3Xq5cQK5T7Tu7UqGblRZdaw=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3/go.mod h1:RzBMkLnFnOXEx5R5OVj4pRs+cYToWDQbT0BaOFMUutM=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2 h1:WIPGl0GIsQPVSiwbBoGIo7/yy7rt+niZse6IOcFP0cM=
+github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2/go.mod h1:uhUxksEaJtH8tEPhywHXU2qpCaa/XEr03wALiotQSrU=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.0 h1:9XBgItJFuDIq0POheMDhO5Vj5Q81gbEVeCGIPqg+JB0=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.0/go.mod h1:Kp+JWLg3R9C9P1+haMXjhSu6OdUFrG/A/pVYetZNBYY=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1 h1:4lB9dR4SWkrGGhrZplDzZGh7ohE/zT/CMHzCJapluLw=
@@ -165,8 +166,8 @@ github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 h1:TQXQy2GgpoRNiMFWY4ye6sw8
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1/go.mod h1:9u9VxUbAQMTV5c8rAn03Mv7INSAka+VY22UnVxK4tdc=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 h1:YtlkO7+wTXNTzskWbqf2xKAZC+HGe+gp0oejzJahqhg=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2/go.mod h1:JFGAWfaNItRWzmUBog4Q3aZOhSGmtWHeP55pBlPE0g0=
-github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.1 h1:vaKmLxXLpLyJc4fDNN0baqdWyxerhpthHLHbG+f5dOM=
-github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.1/go.mod h1:30gt1r5CTdagGKEc22neO4gIigMYxOQCM8FdPfG08yY=
+github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.2 h1:tGQCEnsaM+p2GDI7kgQ4teYAc8Vx0yUBNxl3EAMKPSA=
+github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.2/go.mod h1:9Huv68KM5rn9qnTN0itord5TVDXQcSnG1tHf0UrZccs=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.0 h1:/3mI7YETlYZoYQsOqiH/iRW7s2mrAsonNm+nwvngURg=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.0/go.mod h1:opj5Zh/iog1SeYI22cBmz6RAnlJOVDttgRQNRIuy1II=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.5.0 h1:0J7hTj8QBrGnxTJjN4dUKHpwSM5oDhK7ilpmJzdrhvU=
@@ -202,6 +203,7 @@ github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykW
 github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
 github.com/larsartmann/go-sse v0.6.2/go.mod h1:PVVDLkzjkTR2MvqcqL3/XmWY8cdSUpEe8YWaouHVVz4=
 github.com/larsartmann/go-sse/sseparse v0.2.1 h1:GHn8SFFZkMJRhLkmusJwtchgSPJV0/b5Keq6z3xop9k=
+github.com/larsartmann/go-sse/sseparse v0.2.1/go.mod h1:1Nql3y1hf9v/IVd4/26AfRilz0/OiDyF7YA2mvwwtHw=
 github.com/larsartmann/go-sse/ssetest v0.4.0 h1:MxkTgUnDhun2/UQURq4iAOENr8mvB6XmPHFowYRU4xE=
 github.com/larsartmann/go-sse/ssetest v0.4.0/go.mod h1:XNwAlmELNm154O4QoNvktGH1DpyxafvMQDOJbLfVFIc=
 github.com/larsartmann/httputil v1.4.1 h1:sTHWwKY4eNmJzRkEmVU4Gi5on7klDqwBMCeEUq8pfsQ=
@@ -297,6 +299,7 @@ github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0/go.mod h1:MSOA
 github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 h1:8fdv/9y3JMxjQ+ULAcOG8RtgeNu5t9XF9LolSXDuTwM=
 github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0/go.mod h1:CFr2LncGYokw+OKjXcr8ARCKG1SaC2UEnGxFBovE86g=
 github.com/tidwall/gjson v1.20.0 h1:+agJ3rEzKcCXKDKo0ml26UROcpcAlnZyjq+TjbY5Fto=
+github.com/tidwall/gjson v1.20.0/go.mod h1:V37/opeE/JbLUOfH0QTXiNez2l0RUjYUhpT4szFQAfc=
 github.com/tidwall/match v1.2.0 h1:0pt8FlkOwjN2fPt4bIl4BoNxb98gGHN2ObFEDkrfZnM=
 github.com/tidwall/match v1.2.0/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/pretty v1.2.2 h1:dz1jrRuE7or/74V490B4/GP1pZm5WKlt2bgCP5A83w8=
