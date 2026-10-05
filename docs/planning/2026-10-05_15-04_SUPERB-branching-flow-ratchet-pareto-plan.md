@@ -6,6 +6,8 @@
 **Tool under plan:** `branching-flow` v0.2.0 (build `05d8209`) — 14 analyzers, ~3.4 s root walk.
 **Format note:** The `pareto-planning` skill's canonical output is a styled HTML report. The operator explicitly requested a `.md` file with a mermaid.js or d2 execution graph, so this plan is `.md` with an inline Mermaid graph. Override recorded here so it is not mistaken for a new default.
 
+> **ANNOTATED 2026-10-05** — Executed across the 2026-10-05 push-unblock + ratchet sessions (verdicts inline; fine-grained §4 rows inherit their parent's verdict; round-2 plan `2026-10-05_15-48_…` carries the same execution). Done: T1+T9 ratchet gate (`94a92e6f`; baseline re-pinned 663→659 `05213817`), T2 ledger, T3 drift guard (`84b7fe3a`), T4 RESCOPED to a documented key contract (`9f25f526`), T5 options struct, T11 AGENTS gotcha 26 (absorbs T23), T12 harvest (`471c0933`), T13 this annotation. T17 CLOSED won't-implement (ledger rejected both remaining flag-param findings). Open items routed: TODO_LIST (T7, T8, T14) + ROADMAP residual block (T6, T10, T15, T16, T18–T22, T24, T25) + ROADMAP OQ28 (credential intent, Q2).
+
 > **GUARD RAIL (operator, verbatim):** *"If you VERSCHLIMMBESSER this system, I will cut off your balls."*
 > Every task below is scoped to **add or document**, never to rip out working code on speculation. The only code-touching tasks (T3–T5) are tiny, local, and reversible. Data-model refactors (credentials) are **decision-only** here — no code until the owner answers Q2.
 
@@ -53,33 +55,33 @@ Each is S, local, reversible, and touches no module boundary. Together they remo
 
 ## 3. COMPREHENSIVE PLAN (medium granularity, 30–100 min each, sorted)
 
-| ID | Task | Impact | Effort | Customer value | Category | Depends on |
+| ID & task (annotated 2026-10-05) | Verdict | Impact | Effort | Customer value | Category | Depends on |
 |---|---|---|---|---|---|---|
-| **T1** | Ratchet foundation: generate + commit SARIF baseline, add `scripts/checks/check-branching-flow.sh` + flake app `.#check-branching-flow` (`--format sarif --baseline … --exclude-generated`), fail-on-NEW | **Critical** | 100m (L) | High (permanent guard) | Tooling | — |
-| **T2** | Triage-decisions ledger: `docs/analysis/triage-decisions.md` recording every rejected class (boolblind, ifacecomplete, anti-patterns, mixins, do, strong-id wire hits) with reason | High | 60m (M) | Medium | Documentation | — |
-| **T3** | `commandOptionApplier` drift guard: cross-link comments in `handler.go:343` + `usermgmt/audit_context.go:19` + a shape-identity test | High | 45m (M) | Medium | Quality | — |
-| **T4** | `pendingTOTPStore` typed key: `Save/Consume(UserID)`, verify display-form-key (gotcha-25 class), update call sites | High | 60m (M) | Medium | Quality | — |
-| **T5** | `plainBodyWriter` options struct (replace 2 positional bools), update callers | High | 45m (M) | Low | Quality | — |
-| **T6** | `strong-id` high rows: isolate the 4 "high" findings, decide, add to baseline/decisions | Medium | 60m (M) | Low | Analysis | T1 |
-| **T7** | Credential 4× duplication **decision memo** (read-only): field sets, usage map, boundary roles | High | 90m (L) | Medium | Quality | — |
-| **T8** | Coverage proof: per-module candidate-count run, record (no more inferred coverage) | Medium | 45m (M) | Low | Analysis | — |
-| **T9** | Wire the gate fully: flake app hardening + `check-modules` stage + CI step + fixture self-test + README line (atomic) | High | 100m (L) | High | Tooling | T1 |
-| **T10** | JSON/SARIF output doc + nightly-digest design proposal | Low | 60m (M) | Low | Tooling | T1 |
-| **T11** | AGENTS.md entry: tool exists, commands, severity-blind-table pitfall, baseline workflow | Medium | 30m (S) | Low | Documentation | T1 |
-| **T12** | HARVEST: route T1–T25 into `TODO_LIST.md` (actionable) / `ROADMAP.md` (speculative) | High | 45m (M) | Low | Documentation | T2 |
-| **T13** | Annotate the source report + this plan (docs-health ANNOTATE) | Low | 30m (S) | Low | Documentation | T12 |
-| **T14** | Analyzer-subset tuning for the gate (pick the stable, low-FP subset) | Medium | 60m (M) | Medium | Tooling | T1 |
-| **T15** | `navItem` dup: add "intentional, two UI modules" comment | Low | 30m (S) | Low | Cleanup | T2 |
-| **T16** | `Capabilities` — consider `Has*()`/bit helpers to shrink the 11-bool surface | Low | 45m (M) | Low | Quality | T2 |
-| **T17** | `flagparam` low item (`buildHandlerConfigChecked typeIsZero`) — move bool to end or options struct | Low | 30m (S) | Low | Quality | — |
-| **T18** | `data-model-review` of the 4 credential DTOs (read-only, informs T7) | Medium | 90m (L) | Medium | Quality | T7 |
-| **T19** | `phantom` re-eval with a tuned baseline (499 raw) | Low | 60m (M) | Low | Analysis | T1 |
-| **T20** | `mixins` re-eval for non-wire structs only (`adminui`, `dashboardui`) | Low | 60m (M) | Low | Quality | T2 |
-| **T21** | Compare `branching-flow` overlaps with `cqrs-lint` (avoid double-gating) | Low | 60m (M) | Low | Analysis | T1 |
-| **T22** | Suppression-reason convention doc (mirror `//nolint:erraudit` classes) | Low | 45m (M) | Low | Convention | T2 |
-| **T23** | Memory note: `branching-flow` v0.2.0 is a known tool + exact commands | Low | 30m (S) | Low | Documentation | — |
-| **T24** | Verdict-table template for future analyzer passes | Low | 45m (M) | Low | Process | T2 |
-| **T25** | FP-rate tracking across runs (tune whitelists over time) | Low | 60m (M) | Low | Process | T1 |
+| ~~**T1** Ratchet foundation: generate + commit SARIF baseline, add `scripts/checks/check-branching-flow.sh` + flake app `.#check-branching-flow` (`--format sarif --baseline … --exclude-generated`), fail-on-NEW~~ | **done** `94a92e6f`; re-pinned 663→659 `05213817` | **Critical** | 100m (L) | High (permanent guard) | Tooling | — |
+| ~~**T2** Triage-decisions ledger: `docs/analysis/triage-decisions.md` recording every rejected class (boolblind, ifacecomplete, anti-patterns, mixins, do, strong-id wire hits) with reason~~ | **done** `94a92e6f` + 2026-10-05 amendment rows | High | 60m (M) | Medium | Documentation | — |
+| ~~**T3** `commandOptionApplier` drift guard: cross-link comments in `handler.go:343` + `usermgmt/audit_context.go:19` + a shape-identity test~~ | **done** `84b7fe3a` (behavioral test driving the root pipeline) | High | 45m (M) | Medium | Quality | — |
+| ~~**T4** `pendingTOTPStore` typed key: `Save/Consume(UserID)`, verify display-form-key (gotcha-25 class), update call sites~~ | **done-RESCOPED** `9f25f526` — typed key breaks the published `identitymodel.PendingTOTPStore` seam (v5 candidate); canonical-form key contract documented instead | High | 60m (M) | Medium | Quality | — |
+| ~~**T5** `plainBodyWriter` options struct (replace 2 positional bools), update callers~~ | **done** 2026-10-05 — `plainBodyOptions` + exhaustruct ignore-pattern; baseline −4 findings | High | 45m (M) | Low | Quality | — |
+| **T6** `strong-id` high rows: isolate the 4 "high" findings, decide, add to baseline/decisions | **OPEN → ROADMAP** (= R10) | Medium | 60m (M) | Low | Analysis | T1 |
+| **T7** Credential 4× duplication **decision memo** (read-only): field sets, usage map, boundary roles | **OPEN → TODO_LIST** (= R11); owner question → ROADMAP OQ28 | High | 90m (L) | Medium | Quality | — |
+| **T8** Coverage proof: per-module candidate-count run, record (no more inferred coverage) | **OPEN → TODO_LIST** (= R12) | Medium | 45m (M) | Low | Analysis | — |
+| ~~**T9** Wire the gate fully: flake app hardening + `check-modules` stage + CI step + fixture self-test + README line (atomic)~~ | **done** `94a92e6f` | High | 100m (L) | High | Tooling | T1 |
+| **T10** JSON/SARIF output doc + nightly-digest design proposal | **OPEN → ROADMAP** (= R23) | Low | 60m (M) | Low | Tooling | T1 |
+| ~~**T11** AGENTS.md entry: tool exists, commands, severity-blind-table pitfall, baseline workflow~~ | **done** — gotcha 26 + Quick Reference row | Medium | 30m (S) | Low | Documentation | T1 |
+| ~~**T12** HARVEST: route T1–T25 into `TODO_LIST.md` (actionable) / `ROADMAP.md` (speculative)~~ | **done** `471c0933` | High | 45m (M) | Low | Documentation | T2 |
+| ~~**T13** Annotate the source report + this plan (docs-health ANNOTATE)~~ | **done** 2026-10-05 (inline markers + blockquotes on report + both plans) | Low | 30m (S) | Low | Documentation | T12 |
+| **T14** Analyzer-subset tuning for the gate (pick the stable, low-FP subset) | **OPEN → TODO_LIST** (= R15) | Medium | 60m (M) | Medium | Tooling | T1 |
+| **T15** `navItem` dup: add "intentional, two UI modules" comment | **OPEN → ROADMAP** (R25 bundle) | Low | 30m (S) | Low | Cleanup | T2 |
+| **T16** `Capabilities` — consider `Has*()`/bit helpers to shrink the 11-bool surface | **OPEN → ROADMAP** (R25 bundle) | Low | 45m (M) | Low | Quality | T2 |
+| ~~**T17** `flagparam` low item (`buildHandlerConfigChecked typeIsZero`) — move bool to end or options struct~~ | **Won't implement** — the triage ledger rejected both remaining flag-param findings (2026-10-05) | Low | 30m (S) | Low | Quality | — |
+| **T18** `data-model-review` of the 4 credential DTOs (read-only, informs T7) | **OPEN → ROADMAP** (= R21) | Medium | 90m (L) | Medium | Quality | T7 |
+| **T19** `phantom` re-eval with a tuned baseline (499 raw) | **OPEN → ROADMAP** (= R22) | Low | 60m (M) | Low | Analysis | T1 |
+| **T20** `mixins` re-eval for non-wire structs only (`adminui`, `dashboardui`) | **OPEN → ROADMAP** (= R22) | Low | 60m (M) | Low | Quality | T2 |
+| **T21** Compare `branching-flow` overlaps with `cqrs-lint` (avoid double-gating) | **OPEN → ROADMAP** (R25 bundle) | Low | 60m (M) | Low | Analysis | T1 |
+| **T22** Suppression-reason convention doc (mirror `//nolint:erraudit` classes) | **OPEN → ROADMAP** (R25 bundle) | Low | 45m (M) | Low | Convention | T2 |
+| ~~**T23** Memory note: `branching-flow` v0.2.0 is a known tool + exact commands~~ | **done — absorbed** into T11 (AGENTS gotcha 26) | Low | 30m (S) | Low | Documentation | — |
+| **T24** Verdict-table template for future analyzer passes | **OPEN → ROADMAP** (R25 bundle) | Low | 45m (M) | Low | Process | T2 |
+| **T25** FP-rate tracking across runs (tune whitelists over time) | **OPEN → ROADMAP** (R25 bundle) | Low | 60m (M) | Low | Process | T1 |
 
 **Task count: 25 (≤27).** All source-report items 1–40 are absorbed: report items 1–6 → T3–T6; 7–11 → T8, T1, T10, T11; 12–15 → T9, T14; 16–19 → T7, T18; 20–25 → T15–T17, T16; 26–28 → T12, T13, T23; 29–40 → T19, T20, T21, T22, T24, T25.
 
@@ -286,9 +288,9 @@ flowchart TD
 
 ## 8. OPEN QUESTIONS (owner-only)
 
-- **Q1 — Gate intent:** Wire `branching-flow` into the repo gates, and which analyzer subset? *(unblocks T1/T9/T14)*
-- **Q2 — Credential duplication:** intentional boundary set, or consolidate? *(unblocks T7/T18 follow-through)*
-- **Q3 — Scope now vs ROADMAP:** execute the act-on shortlist (T3–T5) now, and route the rest? *(unblocks execution order)*
+- ~~**Q1 — Gate intent:** Wire `branching-flow` into the repo gates, and which analyzer subset? *(unblocks T1/T9/T14)*~~ **Answered 2026-10-05:** YES — shipped with all 14 analyzers, fail-on-NEW (`94a92e6f`); subset tuning = TODO_LIST R15.
+- **Q2 — Credential duplication:** intentional boundary set, or consolidate? *(unblocks T7/T18 follow-through)* — **Still OPEN: routed to ROADMAP OQ28; input memo tracked in TODO_LIST (R11).**
+- ~~**Q3 — Scope now vs ROADMAP:** execute the act-on shortlist (T3–T5) now, and route the rest? *(unblocks execution order)*~~ **Answered 2026-10-05:** operator green-lit full execution — T3–T5 done, the rest routed via the 2026-10-05 harvest.
 
 ---
 

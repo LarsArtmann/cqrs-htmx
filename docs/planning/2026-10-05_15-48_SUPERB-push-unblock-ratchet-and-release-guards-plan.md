@@ -45,10 +45,10 @@
 
 ## 2. COMPREHENSIVE PLAN (30–100 min each, 25 tasks, sorted)
 
-| ID | Task | Impact | Effort | Customer value | Category | Depends on |
+| ID & task (annotated 2026-10-05) | Verdict | Impact | Effort | Customer value | Category | Depends on |
 |---|---|---|---|---|---|---|
 | ~~**R1** Push unblock: confirm upstream broken; decide wait / replace-shield / `--no-verify`; execute + record~~ | **done 2026-10-05** — `--no-verify` push with owner approval; CI release-train red from upstream, owner-accepted (15-42 report) | **Critical** | 90m (L) | High | Release | — |
-| **R2** Consumability pre-flight: `scripts/checks/check-family-release-consumable.sh` (rejects `-00010101000000` placeholder versions) + self-test + wire — **OPEN → TODO_LIST** | **Critical** | 100m (L) | High | Tooling | — |
+| **R2** Consumability pre-flight: `scripts/checks/check-family-release-consumable.sh` (rejects `-00010101000000` placeholder versions) + self-test + wire | **OPEN → TODO_LIST** | **Critical** | 100m (L) | High | Tooling | — |
 | ~~**R3** Ratchet foundation (T1): committed SARIF baseline + `.#check-branching-flow` (`--baseline`, fail-on-NEW)~~ | **done** `94a92e6f`; baseline re-pinned 663→659 `05213817` | **High** | 100m (L) | High | Tooling | — |
 | ~~**R4** T3 commandOptionApplier drift guard (cross-links + shape-identity test)~~ | **done** `84b7fe3a` (behavioral test, not reflection) | High | 45m (M) | Medium | Quality | — |
 | ~~**R5** T4 `pendingTOTPStore` typed key + display-form (gotcha-25) check~~ | **done-RESCOPED** `9f25f526` — typed key breaks the published seam (v5 candidate); canonical-form key contract documented instead | High | 60m (M) | Medium | Quality | — |
@@ -56,22 +56,22 @@
 | ~~**R7** Resolve the 12 dep commits: keep (rebasing note) vs revert to docs-only~~ | **done — KEPT**: all 12 on origin, individually verified green (tidy+verify+build+vet); revert = force-push or pointless churn; re-evaluate only if upstream re-releases differently | High | 30m (S) | Low | Release | R1 |
 | ~~**R8** Wire the ratchet: `check-modules` stage + CI step + fixture self-test + README (T9)~~ | **done** `94a92e6f` (atomic gotcha-19 set) | High | 100m (L) | High | Tooling | R3 |
 | ~~**R9** T2 triage-decisions ledger (freeze every rejected analyzer class)~~ | **done** `94a92e6f` + amendment row for the 659 re-pin | Medium | 60m (M) | Medium | Documentation | — |
-| **R10** T6 isolate the 4 high `strong-id` rows — **OPEN → ROADMAP** | Medium | 60m (M) | Low | Analysis | R3 |
-| **R11** T7 credential 4× **decision memo** (no code) — **OPEN → TODO_LIST**; the owner question → ROADMAP OQ28 | High | 90m (L) | Medium | Quality | — |
-| **R12** T8 per-module coverage/candidate-count proof — **OPEN → TODO_LIST** | Medium | 45m (M) | Low | Analysis | — |
+| **R10** T6 isolate the 4 high `strong-id` rows | **OPEN → ROADMAP** | Medium | 60m (M) | Low | Analysis | R3 |
+| **R11** T7 credential 4× **decision memo** (no code); the owner question → ROADMAP OQ28 | **OPEN → TODO_LIST** | High | 90m (L) | Medium | Quality | — |
+| **R12** T8 per-module coverage/candidate-count proof | **OPEN → TODO_LIST** | Medium | 45m (M) | Low | Analysis | — |
 | ~~**R13** T11 AGENTS entry: tool, commands, severity-blind pitfall, baseline workflow~~ | **done** — gotcha 26 + Quick Reference row | Medium | 30m (S) | Low | Documentation | R3 |
 | ~~**R14** T12 HARVEST into `TODO_LIST.md` / `ROADMAP.md`~~ | **done** `471c0933` (4 P2 + 2 P3 + OQ28 + ROADMAP residual block) | High | 45m (M) | Low | Documentation | R9 |
-| **R15** T14 analyzer-subset tuning for the gate — **OPEN → TODO_LIST** | Medium | 60m (M) | Medium | Tooling | R3 |
+| **R15** T14 analyzer-subset tuning for the gate | **OPEN → TODO_LIST** | Medium | 60m (M) | Medium | Tooling | R3 |
 | ~~**R16** T13 annotate round-1 report + both plans (docs-health ANNOTATE)~~ | **done** 2026-10-05 (inline markers + blockquotes) | Low | 30m (S) | Low | Documentation | R14 |
 | ~~**R17** Upstream issue draft for the broken templ-components release (`verify-before-filing` gate first)~~ | **done — FILED** [templ-components#27](https://github.com/LarsArtmann/templ-components/issues/27) (all 5 gates passed; proxy go.mod + ls-remote evidence; voice-checked) | High | 60m (M) | Medium | Bug-report | — |
-| **R18** `bump-dep.sh` pre-flight: refuse on placeholder pseudo-versions with a clear "upstream broken" message — **OPEN → TODO_LIST** | High | 90m (L) | Medium | Tooling | R2 |
-| **R19** Propose an expiring "upstream-broken" allowlist to `check-release-train` — **OPEN → ROADMAP** | Medium | 90m (L) | Medium | Tooling | R2 |
-| **R20** Runbook updates: validate-before-align, rc-capture, moving-target stop-rule — **OPEN → TODO_LIST** | Medium | 60m (M) | Low | Documentation | — |
-| **R21** T18 credential data-model review (read-only, feeds R11) — **OPEN → ROADMAP** | Medium | 90m (L) | Medium | Quality | R11 |
-| **R22** T19/T20 phantom + non-wire mixins re-eval — **OPEN → ROADMAP** | Low | 60m (M) | Low | Analysis | R3 |
-| **R23** T10 JSON/SARIF nightly digest proposal — **OPEN → ROADMAP** | Low | 60m (M) | Low | Tooling | R3 |
+| **R18** `bump-dep.sh` pre-flight: refuse on placeholder pseudo-versions with a clear "upstream broken" message | **OPEN → TODO_LIST** | High | 90m (L) | Medium | Tooling | R2 |
+| **R19** Propose an expiring "upstream-broken" allowlist to `check-release-train` | **OPEN → ROADMAP** | Medium | 90m (L) | Medium | Tooling | R2 |
+| **R20** Runbook updates: validate-before-align, rc-capture, moving-target stop-rule | **OPEN → TODO_LIST** | Medium | 60m (M) | Low | Documentation | — |
+| **R21** T18 credential data-model review (read-only, feeds R11) | **OPEN → ROADMAP** | Medium | 90m (L) | Medium | Quality | R11 |
+| **R22** T19/T20 phantom + non-wire mixins re-eval | **OPEN → ROADMAP** | Low | 60m (M) | Low | Analysis | R3 |
+| **R23** T10 JSON/SARIF nightly digest proposal | **OPEN → ROADMAP** | Low | 60m (M) | Low | Tooling | R3 |
 | ~~**R24** T23 memory note: `branching-flow` v0.2.0 + commands~~ | **done — absorbed** into R13 (AGENTS gotcha 26 documents tool + commands + pitfalls) | Low | 30m (S) | Low | Documentation | — |
-| **R25** Small-findings bundle: T15 navItem · T16 Capabilities Has* · ~~T17 flagparam~~ · T21 overlap · T22 suppression convention · T24 verdict template · T25 FP-rate — **OPEN → ROADMAP** (T17 CLOSED won't-implement per ledger) | Low | 100m (L) | Low | Cleanup | R9 |
+| **R25** Small-findings bundle: T15 navItem · T16 Capabilities Has* · ~~T17 flagparam (CLOSED won't-implement per ledger)~~ · T21 overlap · T22 suppression convention · T24 verdict template · T25 FP-rate | **OPEN → ROADMAP** | Low | 100m (L) | Low | Cleanup | R9 |
 
 **Task count: 25 (≤27).** All round-1 items T1–T25 are absorbed (R3–R25), plus the new release-guard axis (R1, R2, R7, R17–R20).
 
