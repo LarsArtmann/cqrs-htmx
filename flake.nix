@@ -1086,6 +1086,8 @@
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
                         "session-route-wrappers:bash scripts/checks/check-session-route-wrappers.sh"
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
+                        "branching-flow:bash scripts/checks/check-branching-flow.sh"
+                        "branching-flow-self-test:bash scripts/selftests/test-check-branching-flow.sh"
                       )
                       red=0
                       for stage in "''${stages[@]}"; do
@@ -1133,6 +1135,8 @@
                     bash scripts/selftests/test-bump-dep.sh
                     bash scripts/checks/check-session-route-wrappers.sh
                     bash scripts/selftests/test-check-session-route-wrappers.sh
+                    bash scripts/checks/check-branching-flow.sh
+                    bash scripts/selftests/test-check-branching-flow.sh
                     echo ""
                     echo "✓ All module architecture checks passed"
                   '';
@@ -1866,6 +1870,45 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/selftests/test-check-cqrs-lint.sh
+                  '';
+                }
+              );
+            };
+
+            check-branching-flow = {
+              type = "app";
+              meta.description = "branching-flow (go-design-smells) ratchet gate: fail only on NEW findings vs the committed SARIF baseline (docs/analysis/). Local-only — CI runners have no branching-flow binary (self-skips there; the fixture self-test is the CI coverage)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-branching-flow";
+                  # goPkg: the experimental panic linter shells out to `go` for
+                  # package loading — the ambient go (GOTOOLCHAIN=local by
+                  # default here) cannot load the 1.27.1 workspace otherwise
+                  # and every run dies rc=69 (same trap class as cqrs-lint).
+                  runtimeInputs = [ goPkg ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    export GOTOOLCHAIN=local
+                    export GOEXPERIMENT=jsonv2
+                    bash scripts/checks/check-branching-flow.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            test-check-branching-flow = {
+              type = "app";
+              meta.description = "Fixture self-test for check-branching-flow.sh (offline: missing-binary guard local-fail/CI-skip, missing + uncommitted + untracked baseline guards, rc pass-through 0/1/69, --baseline/--exit-code flag wiring pin)";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "test-check-branching-flow";
+                  runtimeInputs = [
+                    pkgs.git
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/selftests/test-check-branching-flow.sh
                   '';
                 }
               );
