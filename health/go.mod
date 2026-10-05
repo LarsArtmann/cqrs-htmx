@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-error-family v0.11.0
-	github.com/larsartmann/go-health v0.4.1
+	github.com/larsartmann/go-health v0.5.0
 	github.com/larsartmann/go-health-dashboard v0.10.2
 	github.com/samber/do/v2 v2.1.0
 	github.com/stretchr/testify v1.12.1

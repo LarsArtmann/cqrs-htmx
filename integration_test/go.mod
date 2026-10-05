@@ -25,7 +25,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.3
 	github.com/larsartmann/go-datastar/broadcast v0.6.2
-	github.com/larsartmann/go-health v0.4.1
+	github.com/larsartmann/go-health v0.5.0
 	github.com/larsartmann/go-sse v0.6.2
 	github.com/larsartmann/httputil v1.4.1
 	github.com/larsartmann/samber-do-auditlog v0.10.0
