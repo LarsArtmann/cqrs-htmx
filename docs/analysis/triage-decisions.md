@@ -14,13 +14,13 @@ Suppression at the finding level: `//nolint:branching-flow` directives (use
 
 | Analyzer | Count | Verdict | Reason |
 |---|---|---|---|
-| phantom | 499 | **Excluded from triage** / frozen in baseline | Operator excluded the analyzer from the one-off analysis scope; overwhelmingly critical-severity noise on primitive struct fields. Re-evaluation with a tuned baseline is a ROADMAP item, not a default. |
+| phantom | 497 in baseline (499 at analysis) | **Excluded from triage** / frozen in baseline | Operator excluded the analyzer from the one-off analysis scope; overwhelmingly critical-severity noise on primitive struct fields. Re-evaluation with a tuned baseline is a ROADMAP item, not a default. |
 | strong-id | 76 (4 high, 5 medium, 67 low) | **Reject ~70** — wire/boundary contracts | Event payload fields, OpenAPI `operationID`, htmx `TriggerID`, JSON `commandId`, engine lookup keys: the string IS the wire contract. The 4 high rows are isolated under TODO (T6) before any exception is granted. |
 | mixins | 51 | **Reject** | Would fragment the flat, golden-pinned 21-event payload structs (`identity-model`); the flatness is the published wire format. |
 | duplicate-types | 21 groups (8 actionable) | **Reject 13** (3 intentional + 10 FP) / **act on 8 → 3 fixed, 5 routed** | `navItem` (two UI modules, no shared dep — intentional, comment T15) + credential-shaped boundary DTOs → decision memo (Q2, owner). The `commandOptionApplier` split brain got a drift guard (T3, 2026-10-05). |
 | anti-patterns | 8 (7 large-struct, 1 base-naming) | **Reject** | `large-struct` fires on configs / composition roots — that is their role; a config struct with many fields is not a smell here. |
 | do (samber) | 5 | **False positive** | Canonical samber/do typed accessors (`examples/samber-do-demo/container.go:308+`) — the detector's heuristic misreads the typed-accessor pattern the fleet standardized on. |
-| flag-param | 4 (2 medium, 2 low) | **Act on 1** (`plainBodyWriter` — fixed T5, 2026-10-05) / **reject 3** | The rest are handler-builder booleans whose call sites are few and named at construction (configs); moving them buys no safety. |
+| flag-param | 2 in baseline (4 at analysis) | **Act on 1** (`plainBodyWriter` — fixed T5, 2026-10-05; both def findings left the baseline with the refresh) / **reject 2** (`app.go`, `usermgmt/es_projection_setup.go`) | Handler-builder booleans whose call sites are few and named at construction (configs); moving them buys no safety. |
 | iface-complete | 3 | **Reject** | Deliberate single-implementation extension seams (`LockoutStore`, `TOTPProvider`, `WebAuthnSessionStore`) — the auth-strategy modules exist to implement them later. |
 | bool-blind | 1 | **Reject** | `dashboardui Capabilities` is a named-field projection of a probe `Config`; bit flags would hurt readability for 11 fields consumed by name. |
 | contextguard | 0 | n/a (clean) | — |
@@ -34,3 +34,4 @@ Suppression at the finding level: `//nolint:branching-flow` directives (use
 | Date | Change | Commit |
 |---|---|---|
 | 2026-10-05 | Ledger created with the full 2026-10-05 verdict set; baseline pinned at 663 findings. | — |
+| 2026-10-05 | Baseline re-pinned 663 → 659 (pure ratchet-down, nothing accepted): the T5 fix turned `plainBodyWriter`'s positional bools into a named options struct — -2 FLAG_PARAM (the def, both findings) and -2 PHANTOM_TYPE (its call-site bool literals). Code + baseline committed together. | this commit |
