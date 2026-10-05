@@ -55,8 +55,9 @@ printf '{"version":"2.1.0"}\n' >"$REPO/docs/analysis/branching-flow-baseline.sar
 git -C "$REPO" add -A
 git -C "$REPO" commit -qm fixture
 
-# 1) Missing binary, local: hard fail.
-out=$(BRANCHING_FLOW_BIN="$TMP/definitely-missing" bash "$GATE" "$REPO" 2>&1)
+# 1) Missing binary, local: hard fail. (env -u CI: GitHub runners export
+# CI=true globally, which would take the gate's runner-skip branch.)
+out=$(env -u CI BRANCHING_FLOW_BIN="$TMP/definitely-missing" bash "$GATE" "$REPO" 2>&1)
 check "missing-binary guard fails locally" 1 $? 'not found' "$out"
 
 # 2) Missing binary, CI=true: SKIP (runner posture).
