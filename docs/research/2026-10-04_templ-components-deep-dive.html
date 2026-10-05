@@ -1285,6 +1285,13 @@
             <li><code>2026-09-23_loginpage-templ-components-audit.md</code> &mdash; outcome note added: verdict overturned in-tree (2026-10-04 adoption); this report scores it 95.</li>
             <li><code>2026-09-17_templ-components-deep-dive.html</code> (adminui) &mdash; 8/11 findings verified fixed; F6 (upstream map) re-confirmed still open and unfiled.</li>
           </ul>
+          <blockquote>
+            <p><strong>ANNOTATED 2026-10-05 (in-repo execution pass):</strong> two corrections against this report's own tail.</p>
+            <ul>
+              <li><strong>F6 (RelativeTime narrow swap) was already closed</strong> when this report was written: <code>snapshots.templ</code>'s "Created" line renders the library component via <code>snapshotRelativeTime</code> since 2026-09-26 (commit <code>dde7b7a8</code>, "RelativeTime adopted; page goldens pinned"). The report's "still queued" phrasing and the matching TODO_LIST tail row were stale; the site-level grep this session confirms <code>display.RelativeTime</code> in the snapshot-detail path, SSE rows excluded as planned.</li>
+              <li><strong>F3 (PageHeader swap) partially closed 2026-10-05:</strong> 4 of the 11 hand-rolled <code>.page-header</code> sites (this report counted 8; <code>events.templ:18</code> and <code>timetravel.templ:78</code> were missed) now render <code>display.PageHeader</code> &mdash; dlq index + dlq project content, events list, and projections detail (status badge moved into the Action slot, the slot's documented purpose). CSS class-set gate, lint (0 issues), and both-world test runs green; goldens untouched (none of the 4 pages is golden-pinned). The 7 remaining detail headers (audit &times;2, aggregates, snapshots, dlq entry, events detail, timetravel) are <strong>justified divergences</strong>: their titles embed <code>&lt;code&gt;</code> chips + inline copy-buttons that <code>PageHeaderProps.Title string</code> cannot express without visual loss. Revisit if the library grows a component-title slot; do not force the swap.</li>
+            </ul>
+          </blockquote>
         </section>
 
         <section id="appendix">
