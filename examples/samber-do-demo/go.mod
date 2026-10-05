@@ -96,12 +96,13 @@ require (
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
-	github.com/larsartmann/templ-components v1.20.0 // indirect
-	github.com/larsartmann/templ-components/datastar v1.20.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.20.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.20.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.20.0 // indirect
+	github.com/larsartmann/templ-components v1.20.1 // indirect
+	github.com/larsartmann/templ-components/datastar v1.20.1 // indirect
+	github.com/larsartmann/templ-components/htmx v1.20.1 // indirect
+	github.com/larsartmann/templ-components/icons v1.20.1 // indirect
+	github.com/larsartmann/templ-components/utils v1.20.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -120,6 +121,7 @@ require (
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -132,6 +134,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/exp v0.0.0-20261005173118-76772065c9b0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/term v0.46.0 // indirect

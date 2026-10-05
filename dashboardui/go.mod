@@ -16,15 +16,15 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-sse v0.6.2
 	github.com/larsartmann/httputil v1.4.1
-	github.com/larsartmann/templ-components v1.20.0
-	github.com/larsartmann/templ-components/errorpage v1.20.0
-	github.com/larsartmann/templ-components/htmx v1.20.0
-	github.com/larsartmann/templ-components/icons v1.20.0
-	github.com/larsartmann/templ-components/utils v1.20.0
+	github.com/larsartmann/templ-components v1.20.1
+	github.com/larsartmann/templ-components/errorpage v1.20.1
+	github.com/larsartmann/templ-components/htmx v1.20.1
+	github.com/larsartmann/templ-components/icons v1.20.1
+	github.com/larsartmann/templ-components/utils v1.20.1
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
 )
@@ -51,20 +51,24 @@ require (
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.4 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
+	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
-	github.com/tidwall/gjson v1.19.0 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.2 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect

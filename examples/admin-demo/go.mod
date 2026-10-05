@@ -63,11 +63,12 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
-	github.com/larsartmann/templ-components v1.20.0 // indirect
-	github.com/larsartmann/templ-components/errorpage v1.20.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.20.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.20.0 // indirect
-	github.com/larsartmann/templ-components/utils v1.20.0 // indirect
+	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
+	github.com/larsartmann/templ-components v1.20.1 // indirect
+	github.com/larsartmann/templ-components/errorpage v1.20.1 // indirect
+	github.com/larsartmann/templ-components/htmx v1.20.1 // indirect
+	github.com/larsartmann/templ-components/icons v1.20.1 // indirect
+	github.com/larsartmann/templ-components/utils v1.20.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -79,6 +80,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
