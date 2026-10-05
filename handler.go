@@ -340,6 +340,12 @@ func handleQueryTypedDispatch[Q query.Query, R any](
 // so enrichCommandFromContext covers both without a concrete-type
 // assertion. Hand-rolled Command implementations that do not expose
 // ApplyOptions pass through unchanged (enrichment is skipped, as before).
+//
+// SHAPE-LOCKED twin: usermgmt/audit_context.go declares the same unexported
+// interface (Go cannot share unexported types across module boundaries and
+// root never imports usermgmt). If either copy drifts, enrichment silently
+// skips — usermgmt.TestCommandOptionApplier_RootAndUsermgmtShapesStayIdentical
+// is the behavioral drift guard.
 type commandOptionApplier interface {
 	ApplyOptions(opts ...command.Option)
 }

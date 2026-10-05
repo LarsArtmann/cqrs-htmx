@@ -97,12 +97,12 @@ templ usersRows(d usersListData) {
 			<td class="px-4 py-2">
 				<div class="flex flex-wrap gap-1">
 					if u.EmailVerified {
-						@statusBadge("verified", "green")
+						@statusBadge("verified", display.BadgeSuccess)
 					} else {
-						@statusBadge("unverified", "")
+						@statusBadge("unverified", display.BadgeNeutral)
 					}
 					if u.TOTPEnabled {
-						@statusBadge("MFA", "blue")
+						@statusBadge("MFA", display.BadgeInfo)
 					}
 				</div>
 			</td>

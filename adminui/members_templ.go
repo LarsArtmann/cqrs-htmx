@@ -283,12 +283,12 @@ func tenantHeaderStatus(d tenantDetailData) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		if d.Tenant != nil {
 			if d.Tenant.Suspended {
-				templ_7745c5c3_Err = badge("suspended", "amber").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = badge("suspended", display.BadgeWarning).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = badge("active", "green").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = badge("active", display.BadgeSuccess).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

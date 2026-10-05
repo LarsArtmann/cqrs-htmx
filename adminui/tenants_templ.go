@@ -230,17 +230,17 @@ func tenantsRows(d tenantsListData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if t.Suspended {
-				templ_7745c5c3_Err = statusBadge("suspended", "amber").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = statusBadge("suspended", display.BadgeWarning).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else if t.Deleted {
-				templ_7745c5c3_Err = statusBadge("deleted", "red").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = statusBadge("deleted", display.BadgeError).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = statusBadge("active", "green").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = statusBadge("active", display.BadgeSuccess).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -436,17 +436,17 @@ func tenantStatusAction(d tenantDetailData) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if d.Tenant.Suspended {
-			templ_7745c5c3_Err = statusBadge("suspended", "amber").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = statusBadge("suspended", display.BadgeWarning).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if d.Tenant.Deleted {
-			templ_7745c5c3_Err = statusBadge("deleted", "red").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = statusBadge("deleted", display.BadgeError).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = statusBadge("active", "green").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = statusBadge("active", display.BadgeSuccess).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

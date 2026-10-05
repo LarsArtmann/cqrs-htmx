@@ -45,7 +45,7 @@ func icon(name string) templ.Component {
 	})
 }
 
-func badge(text, kind string) templ.Component {
+func badge(text string, kind display.BadgeType) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -68,7 +68,7 @@ func badge(text, kind string) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.Badge(display.BadgeProps{
 			Text: text,
-			Type: badgeKindToType(kind),
+			Type: kind,
 			Pill: true,
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -82,7 +82,7 @@ func badge(text, kind string) templ.Component {
 // state-like values (active/suspended, verified, MFA on/off). Accent badges
 // (audit actions) stay dotless on purpose — the dot encodes a STATE, and an
 // action is not a state.
-func statusBadge(text, kind string) templ.Component {
+func statusBadge(text string, kind display.BadgeType) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -105,7 +105,7 @@ func statusBadge(text, kind string) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.Badge(display.BadgeProps{
 			Text: text,
-			Type: badgeKindToType(kind),
+			Type: kind,
 			Pill: true,
 			Dot:  true,
 		}).Render(ctx, templ_7745c5c3_Buffer)
@@ -329,9 +329,9 @@ func dangerZoneHeader() templ.Component {
 }
 
 // stateBadge renders one of two labels depending on a boolean condition. kindIf
-// is the badge kind shown when cond is true; kindElse is used otherwise (empty
-// string means default styling). Shared by verifiedBadge and totpBadge.
-func stateBadge(cond bool, labelIf, kindIf, labelElse, kindElse string) templ.Component {
+// is the badge kind shown when cond is true; kindElse is used otherwise. Shared
+// by verifiedBadge and totpBadge.
+func stateBadge(cond bool, labelIf string, kindIf display.BadgeType, labelElse string, kindElse display.BadgeType) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -388,7 +388,7 @@ func verifiedBadge(verified bool) templ.Component {
 			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = stateBadge(verified, "verified", "green", "unverified", "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = stateBadge(verified, "verified", display.BadgeSuccess, "unverified", display.BadgeNeutral).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -417,7 +417,7 @@ func totpBadge(enabled bool) templ.Component {
 			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = stateBadge(enabled, "enabled", "blue", "disabled", "").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = stateBadge(enabled, "enabled", display.BadgeInfo, "disabled", display.BadgeNeutral).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

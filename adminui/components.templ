@@ -12,10 +12,10 @@ templ icon(name string) {
 	@icons.IconWithStrokeWidth(icons.Name(name), "h-[18px] w-[18px]", 1.8)
 }
 
-templ badge(text, kind string) {
+templ badge(text string, kind display.BadgeType) {
 	@display.Badge(display.BadgeProps{
 		Text: text,
-		Type: badgeKindToType(kind),
+		Type: kind,
 		Pill: true,
 	})
 }
@@ -24,10 +24,10 @@ templ badge(text, kind string) {
 // state-like values (active/suspended, verified, MFA on/off). Accent badges
 // (audit actions) stay dotless on purpose — the dot encodes a STATE, and an
 // action is not a state.
-templ statusBadge(text, kind string) {
+templ statusBadge(text string, kind display.BadgeType) {
 	@display.Badge(display.BadgeProps{
 		Text: text,
-		Type: badgeKindToType(kind),
+		Type: kind,
 		Pill: true,
 		Dot:  true,
 	})
@@ -81,9 +81,9 @@ templ dangerZoneHeader() {
 }
 
 // stateBadge renders one of two labels depending on a boolean condition. kindIf
-// is the badge kind shown when cond is true; kindElse is used otherwise (empty
-// string means default styling). Shared by verifiedBadge and totpBadge.
-templ stateBadge(cond bool, labelIf, kindIf, labelElse, kindElse string) {
+// is the badge kind shown when cond is true; kindElse is used otherwise. Shared
+// by verifiedBadge and totpBadge.
+templ stateBadge(cond bool, labelIf string, kindIf display.BadgeType, labelElse string, kindElse display.BadgeType) {
 	if cond {
 		@statusBadge(labelIf, kindIf)
 	} else {
@@ -92,11 +92,11 @@ templ stateBadge(cond bool, labelIf, kindIf, labelElse, kindElse string) {
 }
 
 templ verifiedBadge(verified bool) {
-	@stateBadge(verified, "verified", "green", "unverified", "")
+	@stateBadge(verified, "verified", display.BadgeSuccess, "unverified", display.BadgeNeutral)
 }
 
 templ totpBadge(enabled bool) {
-	@stateBadge(enabled, "enabled", "blue", "disabled", "")
+	@stateBadge(enabled, "enabled", display.BadgeInfo, "disabled", display.BadgeNeutral)
 }
 
 // listPager renders the pagination footer for a list page. baseURL must

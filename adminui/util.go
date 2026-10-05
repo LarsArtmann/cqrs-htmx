@@ -38,25 +38,6 @@ func roleBadgeType(role string) display.BadgeType {
 	}
 }
 
-// badgeKindToType maps adminui's internal badge kind strings to
-// templ-components BadgeType values.
-func badgeKindToType(kind string) display.BadgeType {
-	switch kind {
-	case "green":
-		return display.BadgeSuccess
-	case "blue":
-		return display.BadgeInfo
-	case "amber":
-		return display.BadgeWarning
-	case "red":
-		return display.BadgeError
-	case "accent":
-		return display.BadgePrimary
-	default:
-		return display.BadgeNeutral
-	}
-}
-
 // initials returns up to two uppercase initials for an email or name.
 func initials(s string) string {
 	s = strings.TrimSpace(s)

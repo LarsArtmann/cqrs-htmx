@@ -32,7 +32,7 @@ templ auditRows(d auditData) {
 	for _, e := range d.Entries {
 		<tr>
 			<td class="px-4 py-2">
-				@badge(e.Action, "accent")
+				@badge(e.Action, display.BadgePrimary)
 			</td>
 			<td class="px-4 py-2">
 				if e.Email != "" {

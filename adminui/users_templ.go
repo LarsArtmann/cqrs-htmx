@@ -293,18 +293,18 @@ func usersRows(d usersListData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if u.EmailVerified {
-				templ_7745c5c3_Err = statusBadge("verified", "green").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = statusBadge("verified", display.BadgeSuccess).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = statusBadge("unverified", "").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = statusBadge("unverified", display.BadgeNeutral).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			if u.TOTPEnabled {
-				templ_7745c5c3_Err = statusBadge("MFA", "blue").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = statusBadge("MFA", display.BadgeInfo).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

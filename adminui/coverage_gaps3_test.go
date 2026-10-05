@@ -42,27 +42,6 @@ func TestRoleBadgeType_AllBranches(t *testing.T) {
 	}
 }
 
-func TestBadgeKindToType_AllBranches(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		kind string
-		want display.BadgeType
-	}{
-		{"green", display.BadgeSuccess},
-		{"blue", display.BadgeInfo},
-		{"amber", display.BadgeWarning},
-		{"red", display.BadgeError},
-		{"accent", display.BadgePrimary},
-		{"unknown", display.BadgeNeutral},
-	}
-	for _, tc := range tests {
-		got := badgeKindToType(tc.kind)
-		if got != tc.want {
-			t.Errorf("badgeKindToType(%q) = %v, want %v", tc.kind, got, tc.want)
-		}
-	}
-}
-
 func TestInitials_EdgeCases(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

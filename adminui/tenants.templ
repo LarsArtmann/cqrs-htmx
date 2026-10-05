@@ -56,11 +56,11 @@ templ tenantsRows(d tenantsListData) {
 			</td>
 			<td class="px-4 py-2">
 				if t.Suspended {
-					@statusBadge("suspended", "amber")
+					@statusBadge("suspended", display.BadgeWarning)
 				} else if t.Deleted {
-					@statusBadge("deleted", "red")
+					@statusBadge("deleted", display.BadgeError)
 				} else {
-					@statusBadge("active", "green")
+					@statusBadge("active", display.BadgeSuccess)
 				}
 			</td>
 			<td class="px-4 py-2 text-right">
@@ -114,11 +114,11 @@ templ tenantNewContent(basePath string) {
 // page: the live tenant status rides on the title row.
 templ tenantStatusAction(d tenantDetailData) {
 	if d.Tenant.Suspended {
-		@statusBadge("suspended", "amber")
+		@statusBadge("suspended", display.BadgeWarning)
 	} else if d.Tenant.Deleted {
-		@statusBadge("deleted", "red")
+		@statusBadge("deleted", display.BadgeError)
 	} else {
-		@statusBadge("active", "green")
+		@statusBadge("active", display.BadgeSuccess)
 	}
 }
 

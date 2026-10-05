@@ -16,6 +16,13 @@ import (
 // to the wrapper, so all 20 domain commands satisfy this interface without
 // knowing about it. Hand-rolled command implementations that do not expose
 // ApplyOptions pass through unchanged.
+//
+// SHAPE-LOCKED twin: the root module (handler.go) declares the same
+// unexported interface for its pipeline enrichment (Go cannot share
+// unexported types across module boundaries). If either copy drifts,
+// enrichment silently skips —
+// TestCommandOptionApplier_RootAndUsermgmtShapesStayIdentical is the
+// behavioral drift guard.
 type commandOptionApplier interface {
 	ApplyOptions(...command.Option)
 }

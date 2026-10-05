@@ -108,9 +108,9 @@ templ tenantHeader(d tenantDetailData) {
 templ tenantHeaderStatus(d tenantDetailData) {
 	if d.Tenant != nil {
 		if d.Tenant.Suspended {
-			@badge("suspended", "amber")
+			@badge("suspended", display.BadgeWarning)
 		} else {
-			@badge("active", "green")
+			@badge("active", display.BadgeSuccess)
 		}
 	}
 }
