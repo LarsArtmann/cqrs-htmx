@@ -50,6 +50,11 @@ func (s *Service) EnableTOTP(ctx context.Context, userID UserID) (*TOTPSetupResp
 		return nil, s.totpTransient("totp_setup_failed", userID, "secret_generation_error",
 			"generate totp key", err)
 	}
+	// Key on the CANONICAL bare form: .Get() returns ulid.ULID, whose String()
+	// is the plain ULID — never userID.String() (brand-prefixed display form,
+	// gotcha 25) — so the key matches the Consume side. A typed-key migration
+	// (PendingTOTPStore.Save(UserID)) is a v5-candidate API change (the seam is
+	// implemented by consumers with Redis/SQL stores).
 	s.pendingTOTP.Save(userID.Get().String(), rawSecret, s.totpPendingTTL)
 	s.logAuth("totp_setup_initiated", userID)
 	return &TOTPSetupResponse{
@@ -64,6 +69,7 @@ func (s *Service) VerifyTOTPSetup(ctx context.Context, userID UserID, code strin
 	if s.totp == nil {
 		return ErrTOTPNotConfigured
 	}
+	// Same canonical-form contract as the Save site above.
 	secret, ok := s.pendingTOTP.Consume(userID.Get().String())
 	if !ok {
 		s.logAuth("totp_setup_verify_failed", userID, "reason", "setup_expired")

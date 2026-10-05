@@ -105,6 +105,11 @@ type LockoutStore interface {
 // PendingTOTPStore manages pending TOTP setup secrets during the enable-TOTP ceremony.
 // The default in-memory implementation is suitable for single-process deployments.
 // Implement this interface with Redis or SQL for multi-instance deployments.
+//
+// Key contract: the userID string is the CANONICAL bare form
+// (userID.Get().String() — the plain ULID), never the brand-prefixed
+// display form userID.String(). Save and Consume see the same bytes by
+// construction on the caller side.
 type PendingTOTPStore interface {
 	Save(userID string, secret []byte, ttl time.Duration)
 	Consume(userID string) ([]byte, bool)
