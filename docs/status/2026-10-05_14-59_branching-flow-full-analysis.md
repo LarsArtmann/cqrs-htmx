@@ -110,25 +110,25 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 ## f) Top next tasks (up to 50; ranked; later items are ROADMAP fuel)
 
 ### Act-on shortlist (the findings worth investigation)
-1. Investigate credential 4× duplication → decide alias/embed vs keep — **High / M / Quality** (g4/g5)
-2. Add drift guard or cross-link comment for `commandOptionApplier` split brain — **Medium / S / Cleanup**
-3. Type `pendingTOTPStore.Save/Consume` with `identitymodel.UserID` — **Medium / S / Quality**
-4. Refactor `plainBodyWriter(includeInternal, includeRequestID bool)` → options struct/enum — **Medium / S / Quality**
-5. Re-run `strong-id` with severity filter; enumerate the 4 high rows — **Medium / S / Analysis**
-6. Whitelist the intentional strong-id wire/boundary hits in a baseline — **Medium / S / Cleanup**
+1. Investigate credential 4× duplication → decide alias/embed vs keep — **High / M / Quality** (g4/g5) — **Routed 2026-10-05:** TODO_LIST (R11 memo) + ROADMAP OQ28 (owner intent)
+2. ~~Add drift guard or cross-link comment for `commandOptionApplier` split brain — **Medium / S / Cleanup**~~ done at `84b7fe3a`
+3. ~~Type `pendingTOTPStore.Save/Consume` with `identitymodel.UserID` — **Medium / S / Quality**~~ done-rescoped at `9f25f526` (typed key breaks the published seam, v5 candidate; key contract documented)
+4. ~~Refactor `plainBodyWriter(includeInternal, includeRequestID bool)` → options struct/enum — **Medium / S / Quality**~~ done 2026-10-05 (`plainBodyOptions`; baseline re-pin `05213817`)
+5. Re-run `strong-id` with severity filter; enumerate the 4 high rows — **Medium / S / Analysis** — **Routed 2026-10-05:** ROADMAP (R10)
+6. ~~Whitelist the intentional strong-id wire/boundary hits in a baseline — **Medium / S / Cleanup**~~ done at `94a92e6f` (the SARIF baseline freezes every adjudicated finding)
 
 ### Analysis hardening
-7. Produce per-module candidate/load counts for a `branching-flow` run — **High / S / Analysis**
-8. Build `.branching-flow` baseline + diff workflow — **High / M / Tooling**
-9. Capture machine-readable (JSON) output for CI consumption — **Medium / M / Tooling**
-10. Add `branching-flow` cross-check to AGENTS.md gotcha list (tool exists, how to run) — **Medium / S / Documentation**
-11. Document the severity-blind-table pitfall in this repo's analysis runbook — **Low / S / Documentation**
+7. Produce per-module candidate/load counts for a `branching-flow` run — **High / S / Analysis** — **Routed 2026-10-05:** TODO_LIST (R12)
+8. ~~Build `.branching-flow` baseline + diff workflow — **High / M / Tooling**~~ done at `94a92e6f` (native `--baseline`; gate + CI + self-test)
+9. Capture machine-readable (JSON) output for CI consumption — **Medium / M / Tooling** — **Routed 2026-10-05:** ROADMAP (T10/R23)
+10. ~~Add `branching-flow` cross-check to AGENTS.md gotcha list (tool exists, how to run) — **Medium / S / Documentation**~~ done (AGENTS gotcha 26 + Quick Reference row)
+11. ~~Document the severity-blind-table pitfall in this repo's analysis runbook — **Low / S / Documentation**~~ done (gotcha 26: "the `stats` severity table is BLIND to triage")
 
 ### Gate / CI integration (decision-gated)
-12. Decide whether `branching-flow` becomes a gate — **High / S / Decision**
-13. If yes: flake app `.#check-branching-flow` with `GOTOOLCHAIN=local` + goPkg — **High / M / Tooling**
-14. If yes: fixture self-test + `check-modules` stage + CI step + README line (atomic) — **High / L / Tooling**
-15. If yes: choose the analyzer subset (likely `contextguard`, `splitbrain`, `dupe`, `strong-id`, `flagparam`, `boolblind`) — **Medium / S / Decision**
+12. ~~Decide whether `branching-flow` becomes a gate — **High / S / Decision**~~ done 2026-10-05: YES, all 14 analyzers, fail-on-NEW (`94a92e6f`)
+13. ~~If yes: flake app `.#check-branching-flow` with `GOTOOLCHAIN=local` + goPkg — **High / M / Tooling**~~ done at `94a92e6f`
+14. ~~If yes: fixture self-test + `check-modules` stage + CI step + README line (atomic) — **High / L / Tooling**~~ done at `94a92e6f` (gotcha-19 atomic set)
+15. If yes: choose the analyzer subset (likely `contextguard`, `splitbrain`, `dupe`, `strong-id`, `flagparam`, `boolblind`) — **Medium / S / Decision** — **Routed 2026-10-05:** TODO_LIST (R15; default = all 14 until tuned)
 
 ### Credential/DTO cleanup
 16. Audit `systemadapter/views.go` views vs identity-model cores for alias opportunities — **Medium / M / Quality**
@@ -142,12 +142,12 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 22. `boolblind` — annotate `Capabilities` as an accepted projection — **Low / S / Cleanup**
 23. `anti-patterns` — annotate the config large-structs as accepted — **Low / S / Cleanup**
 24. Consider `Capabilities.Has*()` helpers to reduce bool reach — **Low / S / Quality**
-25. Re-check `flagparam` `buildHandlerConfigChecked typeIsZero` (low, not-last bool) — **Low / S / Quality**
+25. ~~Re-check `flagparam` `buildHandlerConfigChecked typeIsZero` (low, not-last bool) — **Low / S / Quality**~~ Won't implement — the triage ledger rejected both remaining flag-param findings (2026-10-05, `docs/analysis/triage-decisions.md`)
 
 ### Loop-closing / hygiene
-26. Route items 1-25 into `TODO_LIST.md`/`ROADMAP.md` via docs-health HARVEST — **High / S / Documentation**
-27. Mark this report annotated once harvested — **Low / S / Documentation**
-28. Note `branching-flow` v0.2.0 in memory as a known tool — **Low / S / Documentation**
+26. ~~Route items 1-25 into `TODO_LIST.md`/`ROADMAP.md` via docs-health HARVEST — **High / S / Documentation**~~ done at `471c0933`
+27. ~~Mark this report annotated once harvested — **Low / S / Documentation**~~ done 2026-10-05 (this blockquote + inline markers)
+28. ~~Note `branching-flow` v0.2.0 in memory as a known tool — **Low / S / Documentation**~~ done (absorbed into AGENTS gotcha 26)
 
 ### Speculative / ROADMAP
 29. Evaluate `phantom` findings separately with a tuned baseline (499 raw) — **Low / L / Analysis**
@@ -167,8 +167,8 @@ Honest read: **nothing is broken in the repo.** No test/build harm was done — 
 
 ## g) Questions I cannot answer myself (Top 3)
 
-1. **Gate intent:** Do you want `branching-flow` wired into this repo's gates (flake app + `check-modules` + CI, like `cqrs-lint`), and if so, which analyzer subset? I can't know whether the org wants another analysis gate or whether a Go-installable distribution exists (the same distribution caveat that keeps `cqrs-lint` local-only). I tried to answer it by checking `flake.nix`/CI/hooks — the tool is currently referenced nowhere.
-2. **Credential duplication:** Is the 4× WebAuthn credential shape an intentional anti-corruption/Published-Language boundary set (keep), or unwanted sprawl to consolidate? I can see the field sets and the boundary roles, but the domain intent — "are these the same concept or four facets?" — is yours.
-3. **Scope of action:** Which of the act-on shortlist (items 1-4) should I execute now, and are items 29-40 to be treated as ROADMAP fuel rather than worker tasks? I flagged them but cannot set your priority.
+1. ~~**Gate intent:** Do you want `branching-flow` wired into this repo's gates (flake app + `check-modules` + CI, like `cqrs-lint`), and if so, which analyzer subset?~~ **Answered 2026-10-05:** YES — shipped with all 14 analyzers + fail-on-NEW ratchet (`94a92e6f`); subset tuning is TODO_LIST R15.
+2. **Credential duplication:** Is the 4× WebAuthn credential shape an intentional anti-corruption/Published-Language boundary set (keep), or unwanted sprawl to consolidate? — **Still OPEN: routed to ROADMAP OQ28; input memo tracked in TODO_LIST (R11).**
+3. ~~**Scope of action:** Which of the act-on shortlist (items 1-4) should I execute now, and are items 29-40 to be treated as ROADMAP fuel rather than worker tasks?~~ **Answered 2026-10-05:** operator green-lit the full list — items 2-4 executed, item 1 routed (R11/OQ28), 29-40 confirmed ROADMAP fuel (2026-10-05 harvest).
 
-**Status:** WAITING FOR INSTRUCTIONS.
+**Status:** ~~WAITING FOR INSTRUCTIONS.~~ Superseded 2026-10-05 — operator ordered full-plan execution; outcomes recorded in this annotation.
