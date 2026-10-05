@@ -229,6 +229,12 @@ func DefaultErrorHandlerWithRedirect(
 	loginRedirect string,
 ) {
 	handleErrorCore(
+		w,
+		r,
+		err,
+		loginRedirect,
+		plainBodyWriter(r, plainBodyOptions{}),
+	)
 }
 
 // plainBodyOptions names the two plain-body writer flags so call sites
