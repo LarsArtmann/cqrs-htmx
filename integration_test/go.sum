@@ -47,8 +47,8 @@ github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UF
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/charmbracelet/colorprofile v0.4.3 h1:QPa1IWkYI+AOB+fE+mg/5/4HRMZcaXex9t5KX76i20Q=
 github.com/charmbracelet/colorprofile v0.4.3/go.mod h1:/zT4BhpD5aGFpqQQqw7a+VtHCzu+zrQtt1zhMt9mR4Q=
-github.com/charmbracelet/ultraviolet v0.0.0-20260910203606-6c9e17dc7a16 h1:/hSCZO1puetbGd2JikHKN0nAcb2mFevzxJElFoduhaw=
-github.com/charmbracelet/ultraviolet v0.0.0-20260910203606-6c9e17dc7a16/go.mod h1:JFvmQPZh3uAu7PpSZU91bcR0BrIy24HhW+0EsW1uGxE=
+github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd h1:W0HOPGkwRaAmV20plE/f+Rk6Xn+IdR8G0qHsGXcOnF8=
+github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd/go.mod h1:D9SVXVpAsD1pP6xR6BiERbe4+dUU6EW9US1TFrNutGA=
 github.com/charmbracelet/x/ansi v0.11.8 h1:JMFwp0CgDC2+jcOB162HH5k7I3FVbgFSMMYg7dSPBQQ=
 github.com/charmbracelet/x/ansi v0.11.8/go.mod h1:ZNN+3mXny/516oTQPLMPIBeSINvNJJQ8uQXDgbeJxY0=
 github.com/charmbracelet/x/exp/golden v0.0.0-20260705004817-2cc9a8fe1146 h1:+Gg3H2AVBIiYRUG/ctd7XjvUVbZ11odkbdkOrImmtbg=
@@ -312,8 +312,8 @@ github.com/larsartmann/go-output/plantuml v0.38.4 h1:5oG8gwcpfZ2jQC7TzliggGKXcgP
 github.com/larsartmann/go-output/plantuml v0.38.4/go.mod h1:K2O7WX5oRE8fTApm+rSQKbqSJ6S9eIpgMc+SMus7yKY=
 github.com/larsartmann/go-output/serialization v0.38.4 h1:MZFmq6d/PKE6/eOz9Af6crOdjS5OU65t1IVcX/lPkdA=
 github.com/larsartmann/go-output/serialization v0.38.4/go.mod h1:LwU+P28jOiQXf+OM7FkNtzlHLU1EfO6twdwk7uXxFzM=
-github.com/larsartmann/go-output/table v0.38.3 h1:X93ZetrgIjVBGQIBP1q4f6cdn3RoqMeTIy4opk3StVo=
-github.com/larsartmann/go-output/table v0.38.3/go.mod h1:X51sZHAfUMhsaNR5ASuQJLPF6Zmk1XBKJBXcxPkrKGQ=
+github.com/larsartmann/go-output/table v0.38.4 h1:9N+7LM0ZHBHSMaJegmza5ffhHr73ILKq0364PTBYWI8=
+github.com/larsartmann/go-output/table v0.38.4/go.mod h1:zg2flgNGx2iQRBEj2s9jWxfb2jZh7tFeKsS2biFwsWo=
 github.com/larsartmann/go-output/testhelpers v0.38.3 h1:FU5//pViXoUICcWA8wMor9uHKDWJ9uvGpk8pKvhnZ04=
 github.com/larsartmann/go-output/testhelpers v0.38.3/go.mod h1:wf7eIynDJ5K9ijxlFs7e+ZS2fW2arZcxcUsoD0/mJ7o=
 github.com/larsartmann/go-output/testhelpers/graphtest v0.38.3 h1:4/O76muT2Yi6bDYs4ydNEmp/oInKO8esKTuvgU7D3JI=

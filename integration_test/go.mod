@@ -47,7 +47,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260910203606-6c9e17dc7a16 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
@@ -111,7 +111,7 @@ require (
 	github.com/larsartmann/go-output/markup v0.38.4 // indirect
 	github.com/larsartmann/go-output/plantuml v0.38.4 // indirect
 	github.com/larsartmann/go-output/serialization v0.38.4 // indirect
-	github.com/larsartmann/go-output/table v0.38.3 // indirect
+	github.com/larsartmann/go-output/table v0.38.4 // indirect
 	github.com/larsartmann/go-output/tree v0.38.3 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
