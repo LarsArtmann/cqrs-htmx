@@ -54,8 +54,8 @@ github.com/larsartmann/go-output/escape v0.38.3 h1:dk3WJ3NhQ07gO8kFGcuyDXSRtQm9m
 github.com/larsartmann/go-output/escape v0.38.3/go.mod h1:0iTFd6fhBaMPWf0vtY4fIqTC6K/zpkK8yvVA8gYDck0=
 github.com/larsartmann/go-output/graph v0.38.4 h1:TAQOcGQXXE1TSd01jl/em3wkYuR9W+kKQgHooArkdio=
 github.com/larsartmann/go-output/graph v0.38.4/go.mod h1:5FAwCpE+EUGRyigeMMb0V4LYQ8mUsEcAqMWaXUN3k24=
-github.com/larsartmann/go-output/markdown v0.38.3 h1:gxq116BmvtMLsNi6GK3XPe3FbryUFJHomyvszsTygEE=
-github.com/larsartmann/go-output/markdown v0.38.3/go.mod h1:n+IIYzBJ8REdZ6ASCB4ZtY1cdLAXRuug+mbF1BGplMs=
+github.com/larsartmann/go-output/markdown v0.38.4 h1:93xkTvX7iLPa7C1k/TtQSQGHOrmG70dYVEut/voxPgc=
+github.com/larsartmann/go-output/markdown v0.38.4/go.mod h1:1YP34I53dJYgr5bN6WnTs+XFDiMJAM5JOoBXnDy8VJM=
 github.com/larsartmann/go-output/markup v0.38.3 h1:jr7IvITqrrN6U0lSkeYaTGMBenm55ymiMQVWPESTpo0=
 github.com/larsartmann/go-output/markup v0.38.3/go.mod h1:PsWqoZUOc+YWZn9QZgugvp1wXPpWydi9wk0ueBkW8qw=
 github.com/larsartmann/go-output/plantuml v0.38.3 h1:aKMBjO1G2jMyrr9wQlNiwhr5ZxbtYFlptT0OkulHJBA=
