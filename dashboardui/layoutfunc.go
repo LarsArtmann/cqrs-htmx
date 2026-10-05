@@ -109,6 +109,7 @@ func assetURLs(basePath string) ([]string, []string) {
 		basePath + "/-/htmx.js",
 		basePath + "/-/dashboard.js",
 	}
+
 	return css, js
 }
 
