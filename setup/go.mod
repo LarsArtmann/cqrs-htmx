@@ -6,7 +6,7 @@ go 1.27.1
 
 require (
 	github.com/a-h/templ v0.3.1070
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.0
 	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.0

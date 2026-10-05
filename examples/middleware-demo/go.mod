@@ -3,7 +3,7 @@ module github.com/larsartmann/cqrs-htmx/examples/middleware-demo
 go 1.27.1
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
