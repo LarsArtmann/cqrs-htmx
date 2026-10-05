@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 _(nothing yet)_
 
+## [v4.12.1] - 2026-10-05
+
+### Fixed
+
+- `ParseUserID` (and the `NewUserID` fallback path) now tolerate a leading branded-id prefix (`StreamMarker:<ulid>`, as emitted by branded-id `String()`): the prefix is stripped before the strict ULID parse. Under go-cqrs-lite `id` v4.7+ display-form branding, prefixed strings previously failed the strict parse — or were SHA-256-hashed into a wrong-but-valid user by the deprecated `NewUserID` fallback. ULIDs never contain colons, so a colon is always a brand separator, never part of the identity. Mirrors go-cqrs-lite's `ParseStreamID` round-trip law; narrative: root CHANGELOG § Fixed (2026-10-05) and AGENTS gotcha 25.
+
+## [v4.12.0] - 2026-09-22
+
+_(family v4.12.x train release — the train receipt lives in the root CHANGELOG; no identity-model-specific entry was recorded at cut time.)_
+
 ## [v4.11.0] - 2026-09-19
 
 ### Changed

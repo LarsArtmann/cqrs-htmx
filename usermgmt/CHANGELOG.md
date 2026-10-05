@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 _(nothing yet)_
 
+## [v4.14.1] - 2026-10-05
+
+### Fixed
+
+- All identity-derivation sites now read the bare stream value (`StreamID.Get()`) instead of the display form (`StreamID.String()`): the casbin projection subject (`es_casbin_projection.go`), the impersonation role-check domain (`service_impersonation.go`), the materialize adapter's `KeyFromEvent`, and the migration/bot/tenant read-model ID derivations (`es_migration.go`, `es_bot_readmodel.go`, `es_tenant_readmodel.go`, `sql_readmodel_extra.go`). Under go-cqrs-lite `id` v4.7+ display-form branding, the derived identities diverged from the bare-string read path — breaking impersonation authorization and tenant projection materialization. Zero behavior change while `.String()` is bare; format-proof for the StreamMarker train. Full narrative: root CHANGELOG § Fixed (2026-10-05) and AGENTS gotcha 25.
+
 ## [v4.14.0] - 2026-10-04
 
 ### Security
