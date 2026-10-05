@@ -43,11 +43,11 @@ templ roleBadge(role string) {
 
 templ statCardView(c statCard) {
 	@display.StatCard(display.StatCardProps{
-		Value: c.Value,
-		Label: c.Label,
-		Icon:  icons.Name(c.Icon),
-		Tone:  c.Tone,
-		Href:  c.Href,
+		Value:     c.Value,
+		Label:     c.Label,
+		Icon:      icons.Name(c.Icon),
+		Tone:      c.Tone,
+		Href:      c.Href,
 		BaseProps: utils.BaseProps{Class: statCardClass(c.Href)},
 	})
 }
