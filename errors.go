@@ -229,12 +229,6 @@ func DefaultErrorHandlerWithRedirect(
 	loginRedirect string,
 ) {
 	handleErrorCore(
-		w,
-		r,
-		err,
-		loginRedirect,
-		plainBodyWriter(r, plainBodyOptions{}),
-	) //nolint:exhaustruct_v5 // zero-value is the intent: redact, no prefix
 }
 
 // plainBodyOptions names the two plain-body writer flags so call sites
@@ -313,7 +307,7 @@ func DefaultErrorHandlerWithRedirectAndRequestID(
 	loginRedirect string,
 ) {
 	handleErrorCore(w, r, err, loginRedirect, plainBodyWriter(r,
-		plainBodyOptions{includeRequestID: true})) //nolint:exhaustruct_v5 // deliberate partial: only the prefix flag
+		plainBodyOptions{includeRequestID: true}))
 }
 
 // JSONErrorHandler writes errors as JSON responses.
