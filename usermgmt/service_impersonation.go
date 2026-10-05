@@ -48,7 +48,7 @@ func (s *Service) BeginImpersonation(
 	}
 
 	// Verify caller has super_admin role.
-	roles, err := s.authz.RolesForUser(callerID, NewTenantID(callerAggID.String()))
+	roles, err := s.authz.RolesForUser(callerID, NewTenantID(callerAggID.Get()))
 	if err != nil {
 		return nil, errorfamily.Wrapf(
 			err, event.Infrastructure,

@@ -263,7 +263,7 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 		return err
 	}
 	aggID := evt.StreamID()
-	bid := NewBotID(aggID.String())
+	bid := NewBotID(aggID.Get())
 	deleted, err := deleteViewOnTombstone(ctx, m.store, evt, eventBotDeleted, bid,
 		"usermgmt.sql_readmodel.bot_delete", "delete bot view")
 	if deleted {

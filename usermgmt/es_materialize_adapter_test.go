@@ -32,7 +32,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 	mat := &stack.Materialize[Tenant, TenantID]{
 		Store: store,
 		KeyFromEvent: func(evt event.Event) (TenantID, error) {
-			return NewTenantID(evt.StreamID().String()), nil
+			return NewTenantID(evt.StreamID().Get()), nil
 		},
 		OnCreate: func(_ context.Context, evt event.Event) (*Tenant, error) {
 			p, err := unmarshalPayload[TenantCreatedPayload](evt)
@@ -41,7 +41,7 @@ func TestMaterializeProjection_TenantLifecycle(t *testing.T) {
 					"test.decode_create", "decode TenantCreated")
 			}
 			return &Tenant{
-				ID:          NewTenantID(evt.StreamID().String()),
+				ID:          NewTenantID(evt.StreamID().Get()),
 				Name:        p.Name,
 				DisplayName: p.DisplayName,
 				Suspended:   false,
@@ -155,7 +155,7 @@ func TestMaterializeProjection_SatisfiesEventProjection(t *testing.T) {
 	mat := &stack.Materialize[Tenant, TenantID]{
 		Store: store,
 		KeyFromEvent: func(evt event.Event) (TenantID, error) {
-			return NewTenantID(evt.StreamID().String()), nil
+			return NewTenantID(evt.StreamID().Get()), nil
 		},
 	}
 	proj := NewMaterializeProjection(mat, "test-proj", allTenantEventTypes)

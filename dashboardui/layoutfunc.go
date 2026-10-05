@@ -101,13 +101,15 @@ type NavLink struct {
 // built from BasePath so the consumer shell can link the dashboard styles
 // and scripts regardless of where the panel is mounted.
 func assetURLs(basePath string) ([]string, []string) {
-	return []string{
+	css := []string{
 		basePath + "/-/dashboard.css",
 		basePath + "/-/dashboard-tw.css",
-	}, []string{
+	}
+	js := []string{
 		basePath + "/-/htmx.js",
 		basePath + "/-/dashboard.js",
 	}
+	return css, js
 }
 
 // meta converts the internal page data into the exported shape a
