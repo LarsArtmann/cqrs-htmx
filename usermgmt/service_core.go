@@ -303,6 +303,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 		ReadModelDB:        config.ReadModelDB,
 		ReadModelDialect:   config.ReadModelDialect,
 		AuditLog:           config.AuditLog,
+		Authz:              config.Authz,
 		CheckpointStore:    config.CheckpointStore,
 		OnProjectionFailed: config.OnProjectionFailed,
 		SecurityHooks:      config.SecurityHooks,
@@ -314,17 +315,13 @@ func NewService(config ServiceConfig) (*Service, error) {
 		return nil, err
 	}
 
-	// Use custom Authz if provided (with a fresh projection); otherwise use setup's.
+	// The setup built (and registered on the projection host) exactly one
+	// casbin projection around the effective engine — config.Authz when
+	// provided, the internal default otherwise. Event-derived policies reach
+	// whichever engine is exposed here; there is no second, unregistered
+	// projection to drift out of sync.
 	authz := setup.casbinProjection.authz
 	casbinProjection := setup.casbinProjection
-	if config.Authz != nil {
-		authz = config.Authz
-		casbinProjection, err = NewCasbinProjection(authz)
-		if err != nil {
-			return nil, errorfamily.NewTransient("usermgmt.authz.create_casbin_projection", "create casbin projection").
-				WithCause(err)
-		}
-	}
 
 	if config.SessionStore == nil {
 		config.SessionStore = NewInMemorySessionStore()

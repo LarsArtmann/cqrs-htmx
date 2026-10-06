@@ -58,6 +58,15 @@ type EventSourcedConfig struct {
 	EventStore event.Store
 	EventBus   event.Bus
 
+	// Authz, when set, replaces the internally-constructed authorization
+	// engine: the casbin projection registered on the projection host is
+	// built around THIS engine, so event-derived policies (register,
+	// membership, and role events) reach it through the normal replay and
+	// subscription path. When nil, a fresh engine with default policies is
+	// created. The injected engine must be an empty or pre-seeded engine
+	// from [NewAuthz] — replay applies event policies idempotently.
+	Authz *Authz
+
 	// ReadModelDB, when set, creates SQL-backed read models (User, Membership,
 	// Tenant, Bot) that persist across restarts. Use [OptimizeSQLiteDB] to tune
 	// the connection before passing it here. When nil, in-memory read models
@@ -259,10 +268,13 @@ func NewEventSourcedSetup(config EventSourcedConfig) (*EventSourcedSetup, error)
 		botProj = sqlRMs.bot
 	}
 
-	authz, err := NewAuthz()
-	if err != nil {
-		closeBus(bus)
-		return nil, errorfamily.NewTransient("usermgmt.authz.create", "create authz").WithCause(err)
+	authz := config.Authz
+	if authz == nil {
+		authz, err = NewAuthz()
+		if err != nil {
+			closeBus(bus)
+			return nil, errorfamily.NewTransient("usermgmt.authz.create", "create authz").WithCause(err)
+		}
 	}
 	casbinProjection, err := NewCasbinProjection(authz)
 	if err != nil {
