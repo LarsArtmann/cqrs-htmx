@@ -310,28 +310,40 @@ func FindEventNeighbors(ctx context.Context, cfg Config, eventID id.EventID) (st
 }
 
 // ListStreamsPaged loads a cursor-paginated page of stream listings.
-// Returns the listings and the pagination state for rendering Prev/Next
-// controls.
-func ListStreamsPaged(r *http.Request, cfg Config) ([]listing.StreamListing, PageState) {
+// Returns the listings, the pagination state for rendering Prev/Next
+// controls, and an error when the after cursor is malformed (Rejection) or
+// the stream reader fails (Infrastructure). Callers must surface the error
+// instead of silently rendering an empty table.
+func ListStreamsPaged(r *http.Request, cfg Config) ([]listing.StreamListing, PageState, error) {
 	pageSize := ParsePageSize(r, cfg.PageSize)
 	afterCursor, prevHistory, hasPrev := ParseCursorParams(r)
 
 	if cfg.StreamReader == nil {
-		return nil, PageState{PageSize: pageSize}
+		return nil, PageState{PageSize: pageSize}, nil
 	}
 
 	opts := listing.ListOptions{Limit: uint(pageSize + 1)}
 
 	if afterCursor != "" {
 		parsed, err := id.ParseStreamID(afterCursor)
-		if err == nil {
-			opts.After = parsed
+		if err != nil {
+			return nil, PageState{PageSize: pageSize}, errorfamily.NewRejection(
+				"dashboardui.streams.invalid_cursor", "invalid after cursor").
+				WithContext("after", afterCursor)
 		}
+
+		opts.After = parsed
 	}
 
 	page, err := cfg.StreamReader.List(r.Context(), opts)
-	if err != nil || page == nil {
-		return nil, PageState{PageSize: pageSize}
+	if err != nil {
+		return nil, PageState{PageSize: pageSize}, errorfamily.WrapInfrastructure(err,
+			"dashboardui.streams.list_failed", "list streams")
+	}
+
+	if page == nil {
+		return nil, PageState{PageSize: pageSize}, errorfamily.NewInfrastructure(
+			"dashboardui.streams.nil_page", "stream reader returned no page")
 	}
 
 	hasMore := len(page.Items) > pageSize
@@ -353,5 +365,5 @@ func ListStreamsPaged(r *http.Request, cfg Config) ([]listing.StreamListing, Pag
 		HasPrev:     hasPrev,
 		After:       afterCursor,
 		PrevHistory: prevHistory,
-	}
+	}, nil
 }

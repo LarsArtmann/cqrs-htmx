@@ -175,6 +175,8 @@ func (d *Dashboard) findEventNeighbors(ctx context.Context, eventID id.EventID) 
 	return core.FindEventNeighbors(ctx, d.config.coreConfig(), eventID)
 }
 
-func (d *Dashboard) listStreamsPaged(r *http.Request) ([]listing.StreamListing, paginationState) {
+func (d *Dashboard) listStreamsPaged(
+	r *http.Request,
+) ([]listing.StreamListing, paginationState, error) {
 	return core.ListStreamsPaged(r, d.config.coreConfig())
 }

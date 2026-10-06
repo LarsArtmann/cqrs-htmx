@@ -12,6 +12,7 @@ import (
 	"github.com/a-h/templ"
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/httputil"
 	"github.com/larsartmann/templ-components/errorpage"
 )
@@ -138,6 +139,21 @@ func redirect(w http.ResponseWriter, r *http.Request, path string) {
 	cqrshtmx.HTMXRedirect(w, r, path)
 }
 
+// renderLoadError renders the error page for a load-by-ID failure with the
+// status the error family prescribes: a Rejection means "not found" (404,
+// the loader's not-found contract), anything else is an infrastructure
+// failure (500) with the cause logged.
+func (d *Dashboard) renderLoadError(w http.ResponseWriter, r *http.Request, what string, err error) {
+	if errorfamily.Classify(err) == errorfamily.Rejection {
+		d.renderError(w, r, http.StatusNotFound, what+" not found")
+
+		return
+	}
+
+	slog.ErrorContext(r.Context(), "dashboardui: load failed", "what", what, "error", err)
+	d.renderError(w, r, http.StatusInternalServerError, "failed to load "+what)
+}
+
 // renderStreamIndex renders one of the dashboard's stream-listing pages
 // (aggregates, snapshots, time-travel). It binds the page title and base path,
 // looks up streams via the configured reader with cursor-based pagination,
@@ -149,8 +165,21 @@ func (d *Dashboard) renderStreamIndex(
 	title, basePath string,
 	page func(pageData, []listing.StreamListing, paginationState) templ.Component,
 ) {
+	listings, pageState, err := d.listStreamsPaged(r)
+	if err != nil {
+		if errorfamily.Classify(err) == errorfamily.Rejection {
+			d.renderError(w, r, http.StatusBadRequest, "invalid after cursor")
+
+			return
+		}
+
+		slog.ErrorContext(r.Context(), "dashboardui: stream list failed", "error", err)
+		d.renderError(w, r, http.StatusInternalServerError, "failed to load streams")
+
+		return
+	}
+
 	p := d.page(title, basePath, r)
-	listings, pageState := d.listStreamsPaged(r)
 	pageState = pageState.WithCountInfo(len(listings))
 	renderPage(w, r, page(p, listings, pageState))
 }

@@ -173,7 +173,7 @@ func (d *Dashboard) commandDetailHandler(w http.ResponseWriter, r *http.Request)
 
 	cmd, err := d.loadCommandByID(r.Context(), cmdID)
 	if err != nil {
-		d.renderError(w, r, http.StatusNotFound, "command not found")
+		d.renderLoadError(w, r, "command", err)
 
 		return
 	}
@@ -226,7 +226,7 @@ func (d *Dashboard) queryDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	q, err := d.loadQueryByID(r.Context(), queryID)
 	if err != nil {
-		d.renderError(w, r, http.StatusNotFound, "query not found")
+		d.renderLoadError(w, r, "query", err)
 
 		return
 	}

@@ -56,7 +56,7 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := d.config.SnapshotStore.Delete(r.Context(), ref); err != nil {
-		slog.InfoContext(
+		slog.ErrorContext(
 			r.Context(),
 			"dashboardui.audit",
 			"op",
@@ -67,6 +67,8 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 			ref.ID.String(),
 			"result",
 			"error",
+			"error",
+			err,
 		)
 		triggerToast(w, "err", "Delete failed")
 		w.WriteHeader(http.StatusInternalServerError)

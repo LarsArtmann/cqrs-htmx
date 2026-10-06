@@ -84,7 +84,7 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 
 			result, err := host.ReplayDeadLetters(r.Context(), proj)
 			if err != nil {
-				slog.InfoContext(
+				slog.ErrorContext(
 					r.Context(),
 					"dashboardui.audit",
 					"op",
@@ -93,6 +93,8 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 					proj,
 					"result",
 					"error",
+					"error",
+					err,
 				)
 				triggerToast(w, "err", "Replay failed")
 				w.WriteHeader(http.StatusInternalServerError)
@@ -134,7 +136,7 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 			eventID := r.PathValue("eventID")
 			if err := store.Delete(r.Context(), proj, eventID); err != nil {
-				slog.InfoContext(
+				slog.ErrorContext(
 					r.Context(),
 					"dashboardui.audit",
 					"op",
@@ -145,6 +147,8 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 					eventID,
 					"result",
 					"error",
+					"error",
+					err,
 				)
 				triggerToast(w, "err", "Delete failed")
 				w.WriteHeader(http.StatusInternalServerError)
@@ -176,7 +180,7 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 		func(store projectionhost.DeadLetterStore) { //nolint:contextcheck // handler closure
 			proj := r.PathValue("projection")
 			if err := store.Purge(r.Context(), proj); err != nil {
-				slog.InfoContext(
+				slog.ErrorContext(
 					r.Context(),
 					"dashboardui.audit",
 					"op",
@@ -185,6 +189,8 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 					proj,
 					"result",
 					"error",
+					"error",
+					err,
 				)
 				triggerToast(w, "err", "Purge failed")
 				w.WriteHeader(http.StatusInternalServerError)

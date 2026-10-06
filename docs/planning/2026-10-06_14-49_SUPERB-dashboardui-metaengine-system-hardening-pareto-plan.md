@@ -2,24 +2,6 @@
 
 **Created:** 2026-10-06 14:49 · **Input:** [`docs/research/2026-10-06_dashboardui-metaengine-system-improvements.md`](../research/2026-10-06_dashboardui-metaengine-system-improvements.md) (308 ideas, Appendix A tiers) · **Mode:** plan only — execution starts after approval
 
-## Execution status
-
-Updated 2026-10-06 (SUPERB hardening session — M11–M15 scope).
-
-| Milestones | Status | Evidence |
-|------------|--------|----------|
-| M11 (F35–36) | **Done** 2026-10-06 | go-cqrs-lite `system/cache.go` — invalidate-before-write + never-pruned generation guard, `-race` Load/Save test; CHANGELOG receipt commit `7d77afa33` |
-| M12 (F37–39) | **Done** 2026-10-06 | go-cqrs-lite `system/evolutions.go` (`reifyTo` error + `errorfamily` Corruption panic value), `metaengine/store_folds.go` (chain-preserving recover); poison→DLQ + unit tests green; CHANGELOG receipt commit `a938279f8` |
-| M13 (F40–45) | **Done** 2026-10-06 | cqrs-htmx `dashboardui`: QueryEscape sweep (filter/sort/pagination builders + sort-header hrefs), malformed `after` cursor → 400, ReadAll-fallback pageSize/hasNext fix; hostile-value round-trip tests green; receipt in `dashboardui/CHANGELOG.md` [Unreleased] |
-| M14 (F46–50) | Pending | next up |
-| M15 (F51–53) | Pending | after M14 |
-| M01–M10 | Not started | separate scope (earlier milestones; no evidence in tree — e.g. dashboard.js `esc()` absent) |
-| M16–M27 | Not started | out of this session's scope |
-
-Status report: `docs/status/2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md`.
-
----
-
 **Definition of "result":** exploit-class risk eliminated > silent correctness failures fixed > consumer-trust surface (honest errors, docs, DX) > strategic dashboard value (telemetry panels).
 
 **Guardrails (anti-verschlimmbessern):**

@@ -2,7 +2,6 @@ package dashboardui
 
 import (
 	"encoding/json/v2"
-	"fmt"
 	"net/http"
 	"runtime"
 )
@@ -69,16 +68,20 @@ type versionInfo struct {
 const modulePath = "github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(status)
-
+	// Marshal BEFORE writing the status: a failed marshal must not leave a
+	// 2xx/committed status on the wire with an error body after it.
 	body, err := json.Marshal(v)
 	if err != nil {
-		_, _ = fmt.Fprint(w, `{"error":"marshal_failed"}`)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-store")
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"error":"marshal_failed"}`))
 
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(status)
 	_, _ = w.Write(body)
 }

@@ -95,7 +95,7 @@ func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	evt, err := d.loadEventByID(r.Context(), eventID)
 	if err != nil {
-		d.renderError(w, r, http.StatusNotFound, "event not found")
+		d.renderLoadError(w, r, "event", err)
 
 		return
 	}

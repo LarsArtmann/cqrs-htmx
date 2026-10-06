@@ -69,7 +69,7 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 		func(host *projectionhost.Host) { //nolint:contextcheck // handler closure
 			name := r.PathValue("name")
 			if err := host.Reset(r.Context(), name); err != nil {
-				slog.InfoContext(
+				slog.ErrorContext(
 					r.Context(),
 					"dashboardui.audit",
 					"op",
@@ -78,6 +78,8 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 					name,
 					"result",
 					"error",
+					"error",
+					err,
 				)
 				triggerToast(w, "err", "Reset failed")
 				w.WriteHeader(http.StatusInternalServerError)
