@@ -87,8 +87,7 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 	}
 	data, err := marshalViewJSON(mem, "usermgmt.sql_readmodel.membership_marshal", "marshal membership data")
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "usermgmt.sql_readmodel.membership_marshal", "marshal membership view").
-			WithContextAny("agg_id", aggID)
+		return err.WithContextAny("agg_id", aggID)
 	}
 	view := MembershipView{ActorID: mem.ActorID.String(), TenantID: mem.TenantID.Get(), Data: data}
 	return upsertView(ctx, m.store, aggID, view,
@@ -184,8 +183,7 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 	}
 	data, err := marshalViewJSON(tenant, "usermgmt.sql_readmodel.tenant_marshal", "marshal tenant data")
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "usermgmt.sql_readmodel.tenant_marshal", "marshal tenant view").
-			WithContextAny("agg_id", aggID)
+		return err.WithContextAny("agg_id", aggID)
 	}
 	view := TenantView{
 		Name: tenant.Name, DisplayName: tenant.DisplayName,
@@ -275,8 +273,7 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 	}
 	data, err := marshalViewJSON(bot, "usermgmt.sql_readmodel.bot_marshal", "marshal bot data")
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "usermgmt.sql_readmodel.bot_marshal", "marshal bot view").
-			WithContextAny("agg_id", aggID)
+		return err.WithContextAny("agg_id", aggID)
 	}
 	view := BotView{
 		Name: bot.Name, OwnerID: bot.OwnerID.Get().String(),

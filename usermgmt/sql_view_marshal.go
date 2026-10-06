@@ -7,14 +7,16 @@ import (
 )
 
 // marshalViewJSON marshals an aggregate entity to JSON for inclusion in a SQL
-// view's Data blob. On failure it wraps the encoding error with the
-// infrastructure family so callers can return it directly. errCode is the
-// stable metric/log code (e.g. "usermgmt.sql_readmodel.tenant_marshal"); msg
-// is the human-readable label (e.g. "marshal tenant data").
+// view's Data blob. On failure it returns the wrapped error with its concrete
+// *errorfamily.Error type so callers can attach aggregate context via
+// WithContextAny without re-wrapping (the rewrap used to stack a second
+// Infrastructure layer carrying the same errCode). errCode is the stable
+// metric/log code (e.g. "usermgmt.sql_readmodel.tenant_marshal"); msg is the
+// human-readable label (e.g. "marshal tenant data").
 //
 // Centralises the encode-or-wrap idiom shared by every SQL-backed read model
 // (User, Membership, Tenant, Bot).
-func marshalViewJSON[T any](entity T, errCode, msg string) (string, error) {
+func marshalViewJSON[T any](entity T, errCode, msg string) (string, *errorfamily.Error) {
 	data, err := json.Marshal(entity)
 	if err != nil {
 		return "", errorfamily.WrapInfrastructure(err, errCode, msg)
