@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -46,6 +47,8 @@ func (f EventFilter) Matches(evt event.Event) bool {
 
 // ExtraParams builds a query-string fragment preserving active filters
 // across pagination links (e.g., "type=user.created&streamType=User").
+// Values are percent-encoded so hostile filter input cannot inject extra
+// query parameters into generated links.
 func (f EventFilter) ExtraParams() string {
 	if !f.Active() {
 		return ""
@@ -53,15 +56,15 @@ func (f EventFilter) ExtraParams() string {
 
 	var parts []string
 	if f.Type != "" {
-		parts = append(parts, "type="+f.Type)
+		parts = append(parts, "type="+url.QueryEscape(f.Type))
 	}
 
 	if f.StreamType != "" {
-		parts = append(parts, "streamType="+f.StreamType)
+		parts = append(parts, "streamType="+url.QueryEscape(f.StreamType))
 	}
 
 	if f.StreamID != "" {
-		parts = append(parts, "streamID="+f.StreamID)
+		parts = append(parts, "streamID="+url.QueryEscape(f.StreamID))
 	}
 
 	return strings.Join(parts, "&")

@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"net/http"
+	"net/url"
 	"sort"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -24,12 +25,14 @@ func (s sortState) Active() bool {
 }
 
 // sortParam returns the query-string fragment for this sort state.
+// Values are percent-encoded: the column comes from the request query
+// string, so hostile input must not smuggle extra parameters into links.
 func (s sortState) extraParams() string {
 	if !s.Active() {
 		return ""
 	}
 
-	return "sort=" + s.Column + "&dir=" + s.Direction
+	return "sort=" + url.QueryEscape(s.Column) + "&dir=" + url.QueryEscape(s.Direction)
 }
 
 // parseSort extracts the sort column and direction from query params.
@@ -110,7 +113,7 @@ func eventSortHeader(basePath, label, column string, s sortState, extraParams st
 		}
 	}
 
-	href := basePath + "/events?sort=" + column + "&dir=" + next
+	href := basePath + "/events?sort=" + url.QueryEscape(column) + "&dir=" + url.QueryEscape(next)
 	if extraParams != "" {
 		href += "&" + extraParams
 	}

@@ -2,6 +2,7 @@ package core
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -50,15 +51,17 @@ func PopCursor(history string) (string, string) {
 
 // PaginationQuery builds the query string for a pagination link from the
 // after cursor, prev history, page size, and any extra filter params.
+// Cursor values are percent-encoded (the prev history embeds commas) so
+// they survive a round trip through the next request's query parsing.
 func PaginationQuery(after, prevHistory string, pageSize int, extraParams string) string {
 	var parts []string
 
 	if after != "" {
-		parts = append(parts, "after="+after)
+		parts = append(parts, "after="+url.QueryEscape(after))
 	}
 
 	if prevHistory != "" {
-		parts = append(parts, "prev="+prevHistory)
+		parts = append(parts, "prev="+url.QueryEscape(prevHistory))
 	}
 
 	parts = append(parts, "limit="+strconv.Itoa(pageSize))
