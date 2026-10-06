@@ -1,6 +1,7 @@
 package dashboardui
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
@@ -52,8 +53,8 @@ func TestValidate_RejectsMissingDataSources(t *testing.T) {
 		t.Fatal("Validate() with no event source/journal should fail")
 	}
 
-	if !errorfamily.IsRejection(err) {
-		t.Errorf("Validate error should be Rejection family, got %v", err)
+	if errorfamily.Classify(err) != errorfamily.Rejection {
+		t.Errorf("Validate error family = %v; want Rejection; got %v", errorfamily.Classify(err), err)
 	}
 }
 
@@ -81,7 +82,7 @@ func TestNewMatchesValidate(t *testing.T) {
 	}
 	defer d.Close()
 
-	if d.Config() != normalized {
+	if !reflect.DeepEqual(d.Config(), normalized) {
 		t.Errorf("New-resolved config %+v differs from Validate result %+v", d.Config(), normalized)
 	}
 }

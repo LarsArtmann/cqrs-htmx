@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	memorystorage "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/templ-components/display"
@@ -270,8 +271,8 @@ func TestMustNew_Success(t *testing.T) {
 		t.Fatal("expected non-nil Dashboard")
 	}
 
-	if d.config.PageSize != defaultPageSize {
-		t.Errorf("expected default PageSize %d, got %d", defaultPageSize, d.config.PageSize)
+	if d.config.PageSize != core.DefaultPageSize() {
+		t.Errorf("expected default PageSize %d, got %d", core.DefaultPageSize(), d.config.PageSize)
 	}
 }
 
@@ -391,7 +392,7 @@ func TestConfig_ReturnsWithDefaults(t *testing.T) {
 	d := mustTestDashboard(t)
 	config := d.Config()
 
-	if config.PageSize != defaultPageSize {
+	if config.PageSize != core.DefaultPageSize() {
 		t.Errorf("expected default PageSize, got %d", config.PageSize)
 	}
 
@@ -515,8 +516,8 @@ func TestParsePageSize(t *testing.T) {
 		{"invalid limit", "limit=abc", 50, 50},
 		{"zero limit", "limit=0", 50, 50},
 		{"negative limit", "limit=-5", 50, 50},
-		{"over max", "limit=500", 50, maxPageSize},
-		{"exactly max", "limit=200", 50, maxPageSize},
+		{"over max", "limit=500", 50, core.MaxPageSize()},
+		{"exactly max", "limit=200", 50, core.MaxPageSize()},
 	}
 
 	for _, tc := range cases {
@@ -634,8 +635,8 @@ func TestListStreamsPaged_WithReader(t *testing.T) {
 		t.Fatalf("expected %d streams, got %d", len(expected), len(streams))
 	}
 
-	if page.PageSize != defaultPageSize {
-		t.Errorf("expected page size %d, got %d", defaultPageSize, page.PageSize)
+	if page.PageSize != core.DefaultPageSize() {
+		t.Errorf("expected page size %d, got %d", core.DefaultPageSize(), page.PageSize)
 	}
 }
 
