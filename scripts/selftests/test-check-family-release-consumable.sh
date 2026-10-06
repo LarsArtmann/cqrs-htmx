@@ -83,12 +83,12 @@ else
 fi
 
 # Case 3: missing file is a tool failure (rc 2), not a finding.
-out=$(bash "$GATE" --check-gomod "$WORK/absent.mod")
+out=$(bash "$GATE" --check-gomod "$WORK/absent.mod" 2>&1)
 rc=$?
 check 3 2 "not found" "$rc" "$out"
 
 # Case 4: no arguments is a usage error (rc 2).
-out=$(bash "$GATE")
+out=$(bash "$GATE" 2>&1)
 rc=$?
 check 4 2 "usage" "$rc" "$out"
 

@@ -6,6 +6,22 @@ import (
 	cqrshtmx "github.com/larsartmann/cqrs-htmx/v4"
 )
 
+// Panel names used across the route table and the [Dashboard.Routes] manifest.
+const (
+	panelAssets        = "Assets"
+	panelObservability = "Observability"
+	panelOverview      = "Overview"
+	panelLiveUpdates   = "Live updates"
+	panelEvents        = "Events"
+	panelAggregates    = "Aggregates"
+	panelProjections   = "Projections"
+	panelDeadLetters   = "Dead letters"
+	panelCommands      = "Commands"
+	panelQueries       = "Queries"
+	panelTimeTravel    = "Time travel"
+	panelSnapshots     = "Snapshots"
+)
+
 // Route describes one HTTP route a [Dashboard] serves — the manifest entry
 // behind [Dashboard.Routes].
 type Route struct {
@@ -71,56 +87,43 @@ func serveHTMXScript() http.HandlerFunc {
 	return script.ServeHTTP
 }
 
-// routeTable is the dashboard's complete route surface in registration order.
-// Capabilities gate the conditional rows; write rows additionally require
-// !ReadOnly.
+// routeTable is the dashboard's complete route surface in registration order:
+// the unconditional rows first, then the capability-gated ones. Capabilities
+// gate the conditional rows; write rows additionally require !ReadOnly.
 func (d *Dashboard) routeTable() []routeSpec {
+	return append(d.unconditionalRoutes(), d.capabilityRoutes()...)
+}
+
+// unconditionalRoutes are always registered, whatever the store provides.
+func (d *Dashboard) unconditionalRoutes() []routeSpec {
 	return []routeSpec{
 		// Static assets.
-		{method: http.MethodGet, pattern: "/-/dashboard.css", panel: "Assets", handler: d.serveCSS()},
-		{method: http.MethodGet, pattern: "/-/dashboard-tw.css", panel: "Assets", handler: d.twCSS.ServeHTTP},
-		{method: http.MethodGet, pattern: "/-/dashboard.js", panel: "Assets", handler: d.serveJS()},
-		{
-			method:    http.MethodGet,
-			pattern:   "/-/htmx.js",
-			panel:     "Assets",
-			handler:   serveHTMXScript(),
-			guardMode: guardNever,
-		},
+		{method: http.MethodGet, pattern: "/-/dashboard.css", panel: panelAssets, handler: d.serveCSS()},
+		{method: http.MethodGet, pattern: "/-/dashboard-tw.css", panel: panelAssets, handler: d.twCSS.ServeHTTP},
+		{method: http.MethodGet, pattern: "/-/dashboard.js", panel: panelAssets, handler: d.serveJS()},
+		{method: http.MethodGet, pattern: "/-/htmx.js", panel: panelAssets, handler: serveHTMXScript(), guardMode: guardNever},
 
 		// Observability probes (unguarded: load balancers and k8s need
 		// access; versionz is config-revealing and opts in via
 		// VersionzRequireAuth).
-		{
-			method:    http.MethodGet,
-			pattern:   "/-/healthz",
-			panel:     "Observability",
-			handler:   d.healthzHandler,
-			guardMode: guardNever,
-		},
-		{
-			method:    http.MethodGet,
-			pattern:   "/-/readyz",
-			panel:     "Observability",
-			handler:   d.readyzHandler,
-			guardMode: guardNever,
-		},
-		{
-			method:    http.MethodGet,
-			pattern:   "/-/versionz",
-			panel:     "Observability",
-			handler:   d.versionzHandler,
-			guardMode: guardVersionz,
-		},
+		{method: http.MethodGet, pattern: "/-/healthz", panel: panelObservability, handler: d.healthzHandler, guardMode: guardNever},
+		{method: http.MethodGet, pattern: "/-/readyz", panel: panelObservability, handler: d.readyzHandler, guardMode: guardNever},
+		{method: http.MethodGet, pattern: "/-/versionz", panel: panelObservability, handler: d.versionzHandler, guardMode: guardVersionz},
 
 		// Overview (always available).
-		{method: http.MethodGet, pattern: "/", panel: "Overview", handler: d.overviewHandler},
+		{method: http.MethodGet, pattern: "/", panel: panelOverview, handler: d.overviewHandler},
+	}
+}
 
+// capabilityRoutes light up panel by panel as the configured store implements
+// the matching introspection interface.
+func (d *Dashboard) capabilityRoutes() []routeSpec {
+	return []routeSpec{
 		// SSE live updates.
 		{
 			method:  http.MethodGet,
 			pattern: "/-/events/stream",
-			panel:   "Live updates",
+			panel:   panelLiveUpdates,
 			handler: d.sseHandler(),
 			when:    whenCaps(func(caps Capabilities) bool { return caps.EventBus }),
 		},
@@ -129,14 +132,14 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodGet,
 			pattern: "/events",
-			panel:   "Events",
+			panel:   panelEvents,
 			handler: d.eventsIndexHandler,
 			when:    whenCaps(Capabilities.HasEventRead),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/events/{id}",
-			panel:   "Events",
+			panel:   panelEvents,
 			handler: d.eventDetailHandler,
 			when:    whenCaps(Capabilities.HasEventRead),
 		},
@@ -145,14 +148,14 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodGet,
 			pattern: "/aggregates",
-			panel:   "Aggregates",
+			panel:   panelAggregates,
 			handler: d.aggregatesIndexHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.StreamReader || caps.EventSource }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/aggregates/{type}/{id}",
-			panel:   "Aggregates",
+			panel:   panelAggregates,
 			handler: d.aggregateDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.EventSource }),
 		},
@@ -161,28 +164,28 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodGet,
 			pattern: "/projections",
-			panel:   "Projections",
+			panel:   panelProjections,
 			handler: d.projectionsIndexHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.ProjectionHost }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/projections/{name}",
-			panel:   "Projections",
+			panel:   panelProjections,
 			handler: d.projectionDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.ProjectionHost }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/-/partials/projection-health",
-			panel:   "Projections",
+			panel:   panelProjections,
 			handler: d.projectionHealthPartialHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.ProjectionHost }),
 		},
 		{
 			method:  http.MethodPost,
 			pattern: "/projections/{name}/reset",
-			panel:   "Projections",
+			panel:   panelProjections,
 			handler: d.projectionResetHandler,
 			write:   true,
 			when: func(caps Capabilities, readOnly bool) bool {
@@ -194,28 +197,28 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodGet,
 			pattern: "/dead-letters",
-			panel:   "Dead letters",
+			panel:   panelDeadLetters,
 			handler: d.dlqIndexHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.DeadLetterStore || caps.ProjectionHost }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/dead-letters/{projection}",
-			panel:   "Dead letters",
+			panel:   panelDeadLetters,
 			handler: d.dlqDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.DeadLetterStore || caps.ProjectionHost }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/dead-letters/{projection}/{eventID}",
-			panel:   "Dead letters",
+			panel:   panelDeadLetters,
 			handler: d.dlqEntryDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.DeadLetterStore || caps.ProjectionHost }),
 		},
 		{
 			method:  http.MethodPost,
 			pattern: "/dead-letters/{projection}/replay",
-			panel:   "Dead letters",
+			panel:   panelDeadLetters,
 			handler: d.dlqReplayHandler,
 			write:   true,
 			when: func(caps Capabilities, readOnly bool) bool {
@@ -225,7 +228,7 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodPost,
 			pattern: "/dead-letters/{projection}/{eventID}/delete",
-			panel:   "Dead letters",
+			panel:   panelDeadLetters,
 			handler: d.dlqDeleteHandler,
 			write:   true,
 			when: func(caps Capabilities, readOnly bool) bool {
@@ -235,7 +238,7 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodPost,
 			pattern: "/dead-letters/{projection}/purge",
-			panel:   "Dead letters",
+			panel:   panelDeadLetters,
 			handler: d.dlqPurgeHandler,
 			write:   true,
 			when: func(caps Capabilities, readOnly bool) bool {
@@ -247,14 +250,14 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodGet,
 			pattern: "/commands",
-			panel:   "Commands",
+			panel:   panelCommands,
 			handler: d.commandsIndexHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.CommandJournal }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/commands/{id}",
-			panel:   "Commands",
+			panel:   panelCommands,
 			handler: d.commandDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.CommandJournal }),
 		},
@@ -263,14 +266,14 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodGet,
 			pattern: "/queries",
-			panel:   "Queries",
+			panel:   panelQueries,
 			handler: d.queriesIndexHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.QueryJournal }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/queries/{id}",
-			panel:   "Queries",
+			panel:   panelQueries,
 			handler: d.queryDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.QueryJournal }),
 		},
@@ -279,14 +282,14 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodGet,
 			pattern: "/time-travel",
-			panel:   "Time travel",
+			panel:   panelTimeTravel,
 			handler: d.timeTravelIndexHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.EventSource }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/time-travel/{type}/{id}",
-			panel:   "Time travel",
+			panel:   panelTimeTravel,
 			handler: d.timeTravelDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.EventSource }),
 		},
@@ -295,21 +298,21 @@ func (d *Dashboard) routeTable() []routeSpec {
 		{
 			method:  http.MethodGet,
 			pattern: "/snapshots",
-			panel:   "Snapshots",
+			panel:   panelSnapshots,
 			handler: d.snapshotsIndexHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.SnapshotStore }),
 		},
 		{
 			method:  http.MethodGet,
 			pattern: "/snapshots/{type}/{id}",
-			panel:   "Snapshots",
+			panel:   panelSnapshots,
 			handler: d.snapshotDetailHandler,
 			when:    whenCaps(func(caps Capabilities) bool { return caps.SnapshotStore }),
 		},
 		{
 			method:  http.MethodPost,
 			pattern: "/snapshots/{type}/{id}/delete",
-			panel:   "Snapshots",
+			panel:   panelSnapshots,
 			handler: d.snapshotDeleteHandler,
 			write:   true,
 			when: func(caps Capabilities, readOnly bool) bool {
@@ -369,7 +372,11 @@ func (d *Dashboard) wrapped(spec routeSpec) http.Handler {
 		return d.versionzRoute()
 	case guardNever:
 		return spec.handler
-	default: // guardAlways
+	case guardAlways:
 		return d.guard(spec.handler)
 	}
+
+	// Unreachable — the switch covers every routeGuard — but fails closed
+	// like the guardAlways case above if one is ever added.
+	return d.guard(spec.handler)
 }

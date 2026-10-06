@@ -117,6 +117,38 @@ fi
 echo "bump-dep: sweeping $PATTERN -> $VERSION across ${#mods[@]} module(s)"
 [ "$DRY" -eq 1 ] && printf '  (dry-run) %s\n' "${mods[@]}" && exit 0
 
+# R18 pre-flight: validate the TARGET release is consumable BEFORE touching
+# anything. The templ-components v1.20.0 class — a tag whose go.mod carries
+# placeholder sub-requires (vX.Y.Z-00010101000000-000000000000) — fails every
+# downstream sweep with a misleading "unknown revision"; name the upstream
+# fault instead. Skipped under BUMP_DEP_NO_NETWORK=1 (offline fixtures).
+if [ "${BUMP_DEP_NO_NETWORK:-0}" != "1" ]; then
+  bumped_paths=()
+  for mod in "${mods[@]}"; do
+    while IFS= read -r req; do
+      p="$(echo "$req" | require_path)"
+      [ -n "$p" ] || continue
+      seen=0
+      for b in ${bumped_paths[@]+"${bumped_paths[@]}"}; do
+        [ "$b" = "$p" ] && seen=1
+      done
+      [ "$seen" -eq 0 ] && bumped_paths+=("$p")
+    done < <(grep -E "$MATCH_RE" "$mod/go.mod")
+  done
+  for p in "${bumped_paths[@]}"; do
+    echo "bump-dep: pre-flight $p@$VERSION"
+    bash "$REPO_ROOT/scripts/checks/check-family-release-consumable.sh" "$p" "$VERSION"
+    pfl_rc=$?
+    if [ "$pfl_rc" -eq 1 ]; then
+      echo "bump-dep: ABORT — upstream release $p@$VERSION is unconsumable (see above). Nothing was changed."
+      exit 1
+    fi
+    if [ "$pfl_rc" -ne 0 ]; then
+      echo "bump-dep: WARNING — pre-flight could not reach the module proxy (rc=$pfl_rc); continuing without a consumability verdict (per-module builds remain the backstop)"
+    fi
+  done
+fi
+
 fail=0
 for mod in "${mods[@]}"; do
   log="/tmp/bump-dep-$(basename "$mod")-$$-$(date +%s).log"
@@ -163,8 +195,18 @@ echo "bump-dep: OK — $PATTERN at $VERSION everywhere, all modules tidy+verify+
 if [ "$COMMIT" -eq 1 ]; then
   cd "$REPO_ROOT" || exit 1
   git add -u
-  git commit -m "chore(deps): bump $PATTERN to $VERSION"
-  echo "bump-dep: committed the sweep as one commit"
+  commit_log="/tmp/bump-dep-commit-$$-$(date +%s).log"
+  git commit -m "chore(deps): bump $PATTERN to $VERSION" >"$commit_log" 2>&1
+  commit_rc=$?
+  if [ "$commit_rc" -eq 0 ]; then
+    echo "bump-dep: committed the sweep as one commit"
+    echo "  next: check-release-train --refresh-cache --strict-lag 0 (fresh-tag TTL can read a JUST-pushed tag as UNPUBLISHED)"
+  else
+    echo "bump-dep: WARNING — the sweep commit did NOT land (rc=$commit_rc); the go.mod/go.sum changes remain STAGED"
+    echo "  usual causes: pre-commit hook failure. The auto-commit daemon may absorb the staged content as a heuristic commit — check git log before re-committing."
+    tail -5 "$commit_log" | sed 's/^/    /'
+    exit 1
+  fi
 else
   echo "  next: check-release-train --refresh-cache --strict-lag 0, then commit"
 fi
