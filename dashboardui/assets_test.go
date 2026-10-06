@@ -109,6 +109,7 @@ func TestDashboard_304OnETag(t *testing.T) {
 	// A stale ETag must re-serve the full body, not 304.
 	stale := httptest.NewRequest(http.MethodGet, "/dashboard/-/dashboard-tw.css", nil)
 	stale.Header.Set("If-None-Match", `"dashboardui-dashboard-tw.css-deadbeefdeadbeef"`)
+
 	recStale := httptest.NewRecorder()
 	mux.ServeHTTP(recStale, stale)
 

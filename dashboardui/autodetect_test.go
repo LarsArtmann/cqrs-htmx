@@ -70,7 +70,7 @@ func TestAutodetect_BareValueIsRejection(t *testing.T) {
 		t.Errorf("config should carry no read interfaces on error, got %+v", config)
 	}
 
-	if msg := err.Error(); !strings.Contains(msg, "implements none of the interfaces") {
+	if msg := err.Error(); !strings.Contains(msg, "no source implements any of the interfaces") {
 		t.Errorf("error message %q should name the missing read interfaces", msg)
 	}
 }
@@ -78,6 +78,17 @@ func TestAutodetect_BareValueIsRejection(t *testing.T) {
 func TestAutodetect_NilStoreIsRejection(t *testing.T) {
 	if _, err := Autodetect(nil); err == nil {
 		t.Fatal("Autodetect(nil) should be a rejection")
+	}
+}
+
+func TestAutodetect_NoSourcesIsRejection(t *testing.T) {
+	_, err := Autodetect()
+	if err == nil {
+		t.Fatal("Autodetect() with no sources should be a rejection")
+	}
+
+	if msg := err.Error(); !strings.Contains(msg, "no source implements") {
+		t.Errorf("error message %q should say no source implements a read interface", msg)
 	}
 }
 
@@ -134,5 +145,65 @@ func TestAutodetect_WiresEachImplementedInterface(t *testing.T) {
 func TestAutodetect_BusOnlyValueStillNeedsReadInterface(t *testing.T) {
 	if _, err := Autodetect(probeBus{}); err == nil {
 		t.Fatal("a Bus-only value has no read interface and must be rejected")
+	}
+}
+
+// conflictPrimary and conflictSecondary both implement event.Journal; only
+// the secondary adds event.Bus. Together they exercise the conflict rule.
+type (
+	conflictPrimary struct{ event.Journal }
+	conflictSecondary struct {
+		event.Journal
+		event.Bus
+	}
+)
+
+func TestAutodetect_FirstSourceWinsCapabilityConflicts(t *testing.T) {
+	config, err := Autodetect(conflictPrimary{}, conflictSecondary{})
+	if err != nil {
+		t.Fatalf("Autodetect: %v", err)
+	}
+
+	if _, ok := config.Journal.(conflictPrimary); !ok {
+		t.Error("the first source must win a Journal claim both sources make")
+	}
+
+	if _, ok := config.Journal.(conflictSecondary); ok {
+		t.Error("the second source must not steal a capability the first already claimed")
+	}
+
+	if _, ok := config.EventBus.(conflictSecondary); !ok {
+		t.Error("a capability only the second source implements must still be wired from it")
+	}
+}
+
+func TestAutodetect_MergesComplementarySources(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	snapshots := &fakeSnapshotStore{}
+
+	config, err := Autodetect(store, snapshots)
+	if err != nil {
+		t.Fatalf("Autodetect: %v", err)
+	}
+
+	if config.Journal == nil {
+		t.Error("Journal should come from the primary store")
+	}
+
+	if config.SnapshotStore == snapshots {
+		t.Log("SnapshotStore wired from the auxiliary source")
+	} else {
+		t.Error("SnapshotStore should be wired from the auxiliary source")
+	}
+}
+
+func TestAutodetect_ReadInterfaceMayComeFromLaterSource(t *testing.T) {
+	config, err := Autodetect(&fakeSnapshotStore{}, memorystorage.NewMemoryStore())
+	if err != nil {
+		t.Fatalf("Autodetect: %v", err)
+	}
+
+	if !config.HasEventRead() {
+		t.Error("the read-interface gate is aggregate — a later source satisfies it")
 	}
 }
