@@ -5,6 +5,7 @@
 **End state:** `origin/master @ e2f6be27`, tree clean, git town sync finished, CI run 37392674249 **all 7 jobs green** — first fully-green master after a streak of red runs (37306363289, 37320411299, 37388283354, 37389694933, 37390726699 all failed).
 
 ---
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — end state held and advanced: master stayed green (sustained through the 10-06 hardening sessions), the gotcha-25 golden TODO item is NOW STRUCK (this pass), the stale agents-notes claim was fixed (`7c74307a`), Playwright ran 70/70 in the sweep-train receipt, and the hardening wave (M01–M15) landed on top without reddening CI. Struck below: §b7, §c7, §f1/§f2/§f18. STILL OPEN (routed): §b1/§f9 bump-dep commit rc-check + cache auto-refresh (→ TODO), §b2/§f10 runbook propagation (→ TODO R20), §b3/§f5/§g1 gotcha-24 tag-diffs for the non-family bumps (go-codec especially — → TODO), §b4/§f14 gotcha-25 test-code sweep, §b6/§f16 identity-model CHANGELOG stub, §c1/§c3/§f6 pkg.go.dev + proxy validation, §c4/§f8 ci-parity-check.sh mechanization (→ TODO), §c5/§f3 `.#test-all` (→ TODO battery row), §c8–§c13 + §f11–13/15/17/19–22 (CI fail-fast, env-leak audit, ParseUserID pinning + §g3 policy call, go-codec diff, StreamMarker URL round-trip test + §g2 grammar call, GitHub Releases OQ15, narrative, claims sweep), §f23–30 ROADMAP fuel.
 
 ## 0. Session narrative (60 seconds)
 
@@ -43,7 +44,7 @@ Fix: a wave-ordered patch train — **`identity-model/v4.12.1` + `usermgmt/v4.14
 4. **Gotcha-25 display-form cleanup in tests** — fixed the 3 failing systemadapter sites; the file still has latent `.String()`-into-identity patterns that happen to pass (`identitymodel.NewTenantID(tenantID.String())` ~line 285). No workspace-wide test-code sweep done.
 5. **CHANGELOG receipts for the CI-repair wave** — the LabelClass fix touches *published* dashboardui code; per gotcha 20 it rides the next train, but there is no `dashboardui/CHANGELOG.md` Unreleased entry yet (nor for the go.sum/bundle repairs, though those are arguably build-infra).
 6. **identity-model CHANGELOG v4.12.0 stub** — filled with an honest "no entry was recorded at cut time" placeholder; the real v4.12.0 content (from the tag diff) was never reconstructed.
-7. **TODO_LIST bookkeeping** — the gotcha-25 "regenerate goldens with the train" item was consumed by this session; TODO_LIST was NOT updated/struck, and this report's (f) list has not been HARVESTed into TODO_LIST/ROADMAP (per the status-report skill, the loop is not closed until it is).
+~~7. **TODO_LIST bookkeeping** — the gotcha-25 "regenerate goldens with the train" item was consumed by this session; TODO_LIST was NOT updated/struck, and this report's (f) list has not been HARVESTed into TODO_LIST/ROADMAP (per the status-report skill, the loop is not closed until it is).~~ done (docs-health round 18 — golden item struck, §f routed below)
 
 ## c) NOT STARTED (all discovered in this session, none acted on)
 
@@ -53,7 +54,7 @@ Fix: a wave-ordered patch train — **`identity-model/v4.12.1` + `usermgmt/v4.14
 4. **Mechanizing gotcha 27c**: a `scripts/tools/ci-parity-check.sh` + flake app (`CI=true` self-test battery → `tidy -diff` loop → `.#lint` → `.#test` → `.#check-modules`) — today it exists only as prose.
 5. **`nix run .#test-all`** (race incl. e2e/examples) against the new pin set — never run this session.
 6. **e2e/Playwright suite** — dashboardui's rendered URLs now carry `StreamMarker:` in path segments (`/dashboard/snapshots/user/StreamMarker:<ulid>/delete`); browser specs may pin URL shapes.
-7. **Stale agents-notes claim**: "loginpage does not use it (hand-rolls … custom `lp-*` CSS)" — loginpage ADOPTED templ-components on 2026-10-04. Found while writing this report (I edited the heading directly above it and missed it). `check-docs-freshness` is blind to non-version claims.
+~~7. **Stale agents-notes claim**: "loginpage does not use it (hand-rolls … custom `lp-*` CSS)" — loginpage ADOPTED templ-components on 2026-10-04. Found while writing this report (I edited the heading directly above it and missed it). `check-docs-freshness` is blind to non-version claims.~~ done — `7c74307a` (agents-notes templ-components header now accurate)
 8. **CI lint matrix `fail-fast: false`** — one module's golangci-lint failure skips all later modules in the matrix, hiding multi-red surfaces.
 9. **Self-test env-leak audit** — mechanize a grep/gate for self-test cases asserting local-mode behavior without `env -u CI` (the class that bit branching-flow).
 10. **`ParseUserID` prefix-strip pinning** — the new tolerance strips ANY `<x>:` prefix generically; no fuzz/fixture test was added in this session (the original fix commit `eba45c80` was never opened to confirm its test coverage).
@@ -82,8 +83,8 @@ Fix: a wave-ordered patch train — **`identity-model/v4.12.1` + `usermgmt/v4.14
 ## f) NEXT THINGS (impact-ordered, session-scoped — harvest into TODO_LIST/ROADMAP)
 
 **P1 — protect the green master (this week)**
-1. HARVEST this section into `TODO_LIST.md` (docs-health) — otherwise it's entombed here.
-2. Fix the stale agents-notes claim "loginpage does not use templ-components" (adjacent to the heading I updated — verified false by AGENTS.md + root CHANGELOG).
+~~1. HARVEST this section into `TODO_LIST.md` (docs-health) — otherwise it's entombed here.~~ done (docs-health round 18 — routed per the blockquote above)
+~~2. Fix the stale agents-notes claim "loginpage does not use templ-components" (adjacent to the heading I updated — verified false by AGENTS.md + root CHANGELOG).~~ done — `7c74307a`
 3. `nix run .#test-all` (race incl. e2e/examples) against the new pin set.
 4. e2e/Playwright run; verify the `StreamMarker:`-in-URL grammar against specs and dashboard handlers (round-trip test).
 5. Tag-diff the remaining sweep bumps: templ-components family v1.20.1, go-webauthn v0.18.2, **go-codec v0.3.1** (encoding-critical), per gotcha 24.
@@ -101,7 +102,7 @@ Fix: a wave-ordered patch train — **`identity-model/v4.12.1` + `usermgmt/v4.14
 15. dashboardui handler round-trip test for StreamMarker-prefixed stream refs.
 16. Fill the identity-model CHANGELOG v4.12.0 stub from the real tag diff.
 17. GitHub Releases for the two patch tags — first verify the repo's actual convention.
-18. Strike/annotate the consumed gotcha-25 TODO_LIST item (golden regeneration) — TODO_LIST keeps only open items.
+~~18. Strike/annotate the consumed gotcha-25 TODO_LIST item (golden regeneration) — TODO_LIST keeps only open items.~~ done — struck 2026-10-06 (docs-health round 18; evidence: goldens regenerated `92964591` + tag-level verification in the 19-31 report)
 19. agents-notes long-form narrative: signing→StreamMarker→alignment-push arc with commit hashes.
 20. Sweep agents-notes/README for other dated "verified"/"uniform" claims that may have silently drifted (the freshness gate only pins some patterns).
 21. Verify go.work.sum stayed untracked after the daemon's commits (CI has a step; cheap local re-check).

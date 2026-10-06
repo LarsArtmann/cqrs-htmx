@@ -3,6 +3,7 @@
 > **SUPERSEDED 2026-10-06 21:35:** M13–M15 are DONE, tested, and receipted; the
 > three open questions below were answered by execution (proceeded gated on
 > preflight; took the signature break with a Changed receipt; disabled both
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — fully superseded and closed by the 21:35 completion report: M13, M14, M15 all shipped, tested, and receipted (`44bc4d48`, `7d3eabb6`, `99be51de`); the three open questions below were answered by execution exactly as predicted (proceeded gated on preflight; `core.ListStreamsPaged` shipped as a CHANGELOG-Changed breaking signature; both prev and next disabled in sorted mode). Struck below: §b2, §c1–c3.
 > prev and next in sorted mode). Live picture:
 > [`2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md`](2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md).
 
@@ -29,7 +30,7 @@ concurrently — re-ran standalone, rc=0.
 
 ## b) Partially done
 
-- **M12 CHANGELOG receipt (GCL):** the code+tests are committed, but the
+~~- **M12 CHANGELOG receipt (GCL):** the code+tests are committed, but the~~ done — receipt `a938279f8` (21:35 session)
   planned `[Unreleased] → Fixed` entry for the reify/DLQ fix has NOT been added
   (the commit carrying it raced the daemon twice; only M11's receipt landed).
   Content is ready to re-add.
@@ -42,9 +43,9 @@ concurrently — re-ran standalone, rc=0.
 
 | Item | What remains |
 |------|--------------|
-| **M13/F40–F45 — escaping sweep (CH dashboardui)** | `url.QueryEscape` in `core.EventFilter.ExtraParams`, `sortState.extraParams`, `core.PaginationQuery`, `pageSizeOptionsFor`; invalid `?after=` cursor → 400+log (`handlers_events.go:40`, `handlers_audit.go:47,120`); fallback truncation/hasNext on parsed pageSize (`handlers_audit.go:134-136` — also note the early-truncate makes fallback hasNext always false); hostile-param round-trip test suite |
-| **M14/F46–F50 — error honesty (CH dashboardui)** | errorfamily kind → 404 vs 500 in event/command/query detail handlers; `ListStreamsPaged` error propagation + error panel instead of empty table; `writeJSON` marshal-before-WriteHeader; audit failure logs at Error with detail (`handlers_dlq.go`, `handlers_snapshots.go`); tests |
-| **M15/F51–F53 — sorted-view notice (CH dashboardui)** | truncation chip in `events.templ`; disable next (and prev) pagination in sorted mode; README note that sorted mode is windowed (idea 9 full fix out of scope) |
+~~| **M13/F40–F45 — escaping sweep (CH dashboardui)** | `url.QueryEscape` in `core.EventFilter.ExtraParams`, `sortState.extraParams`, `core.PaginationQuery`, `pageSizeOptionsFor`; invalid `?after=` cursor → 400+log (`handlers_events.go:40`, `handlers_audit.go:47,120`); fallback truncation/hasNext on parsed pageSize (`handlers_audit.go:134-136` — also note the early-truncate makes fallback hasNext always false); hostile-param round-trip test suite |~~ done — `44bc4d48` (21:35 session)
+~~| **M14/F46–F50 — error honesty (CH dashboardui)** | errorfamily kind → 404 vs 500 in event/command/query detail handlers; `ListStreamsPaged` error propagation + error panel instead of empty table; `writeJSON` marshal-before-WriteHeader; audit failure logs at Error with detail (`handlers_dlq.go`, `handlers_snapshots.go`); tests |~~ done — `7d3eabb6` (21:35 session)
+~~| **M15/F51–F53 — sorted-view notice (CH dashboardui)** | truncation chip in `events.templ`; disable next (and prev) pagination in sorted mode; README note that sorted mode is windowed (idea 9 full fix out of scope) |~~ done — `99be51de` (21:35 session)
 
 ## d) Totally fucked up
 
