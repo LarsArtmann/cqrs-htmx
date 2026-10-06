@@ -12,7 +12,7 @@ Updated 2026-10-06 (SUPERB hardening session — M11–M15 scope).
 | M12 (F37–39) | **Done** 2026-10-06 | go-cqrs-lite `system/evolutions.go` (`reifyTo` error + `errorfamily` Corruption panic value), `metaengine/store_folds.go` (chain-preserving recover); poison→DLQ + unit tests green; CHANGELOG receipt commit `a938279f8` |
 | M13 (F40–45) | **Done** 2026-10-06 | cqrs-htmx `dashboardui`: QueryEscape sweep (filter/sort/pagination builders + sort-header hrefs), malformed `after` cursor → 400, ReadAll-fallback pageSize/hasNext fix; hostile-value round-trip tests green; receipt in `dashboardui/CHANGELOG.md` [Unreleased] |
 | M14 (F46–50) | **Done** 2026-10-06 | cqrs-htmx `dashboardui`: detail handlers family→404/500 (`renderLoadError`), `core.ListStreamsPaged` error-returning signature (family-preserving wrap; Rejection→400 at stream pages, else 500 panel), marshal-first `writeJSON`, audit failures → `ErrorContext` + error; root cause fixed in `core.loadEventFromAll` (not-found carried Infrastructure family + wrong message); tests green; receipt in `dashboardui/CHANGELOG.md` [Unreleased] |
-| M15 (F51–53) | Pending | next up |
+| M15 (F51–53) | **Done** 2026-10-06 | cqrs-htmx `dashboardui`: sorted-only view shows the whole 500-event window + truncation badge, pagination/total hidden (cursor paging can't follow a re-sorted order — old Next link looped on the same window); filter+sort still paginates; README § Sorting notes the window semantics + idea-9 link; tests green (`sorted_view_test.go`); receipt in `dashboardui/CHANGELOG.md` [Unreleased] |
 | M01–M10 | Not started | separate scope (earlier milestones; no evidence in tree — e.g. dashboard.js `esc()` absent) |
 | M16–M27 | Not started | out of this session's scope |
 
