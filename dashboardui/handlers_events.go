@@ -42,6 +42,11 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The sorted-only view (no filters) is a WINDOW over the most recent
+	// filterScanLimit events: cursors are ignored, so the whole window is
+	// shown and pagination controls would loop on the same data forever.
+	windowed := sortBy.Active() && !filters.Active()
+
 	var events []event.Event
 
 	var err error
@@ -66,6 +71,12 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		events = events[:pageSize]
 	}
 
+	if windowed {
+		// loadFilteredEvents returns up to limit+1 for HasMore detection;
+		// the window shows exactly filterScanLimit.
+		events = events[:min(len(events), filterScanLimit)]
+	}
+
 	sortEvents(events, sortBy)
 
 	var nextCursor string
@@ -73,14 +84,26 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 		nextCursor = events[len(events)-1].ID().String()
 	}
 
-	renderPage(w, r, eventsPage(p, events, paginationState{
+	state := paginationState{
 		HasNext:     hasNext,
 		NextCursor:  nextCursor,
 		PageSize:    pageSize,
 		HasPrev:     hasPrev,
 		After:       afterCursor,
 		PrevHistory: prevHistory,
-	}.WithCountInfo(len(events)), filters, sortBy))
+	}.WithCountInfo(len(events))
+
+	if windowed {
+		// The window is not the whole journal: no next/prev pages (cursors
+		// are ignored in this branch) and no "of Z" total (the count would
+		// claim completeness for a truncated view).
+		state.HasNext = false
+		state.HasPrev = false
+		state.NextCursor = ""
+		state.TotalCount = ""
+	}
+
+	renderPage(w, r, eventsPage(p, events, state, filters, sortBy))
 }
 
 func (d *Dashboard) eventDetailHandler(w http.ResponseWriter, r *http.Request) {

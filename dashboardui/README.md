@@ -234,6 +234,16 @@ Events table columns are sortable by clicking the column headers:
 - Arrow indicators (▲/▼) show the active sort column and direction
 - Sorting is in-memory (scans up to 500 events)
 
+> **Sorted view is a window, not the whole journal.** Without filters, a
+> sorted view loads the most recent 500 events (`FilterScanLimit`), sorts
+> them in memory, and shows the entire window with a "sorted view: first 500
+> events" badge. Pagination controls are hidden because cursor paging cannot
+> follow a re-sorted order — a next page would re-sort the same window
+> forever. With filters active, sorting applies within each cursor-paged
+> result page instead. Server-side sorted pagination is the full fix
+> (research idea 9 in
+> [`docs/research/2026-10-06_dashboardui-metaengine-system-improvements.md`](../docs/research/2026-10-06_dashboardui-metaengine-system-improvements.md)).
+
 ### Pagination
 
 All list pages support cursor-based pagination:
