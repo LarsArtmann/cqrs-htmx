@@ -104,7 +104,11 @@ func TestDashboardJSInjectionSmoke(t *testing.T) {
 		escaped := html.EscapeString(payload)
 
 		if strings.ContainsAny(escaped, "<>") {
-			t.Errorf("markup payload %q still contains tags after textContent-equivalent rendering: %q", payload, escaped)
+			t.Errorf(
+				"markup payload %q still contains tags after textContent-equivalent rendering: %q",
+				payload,
+				escaped,
+			)
 		}
 		if escaped == payload {
 			t.Errorf("markup payload %q was not neutralized by textContent-equivalent rendering", payload)
@@ -118,7 +122,11 @@ func TestDashboardJSInjectionSmoke(t *testing.T) {
 		encoded := url.QueryEscape(payload)
 
 		if strings.ContainsAny(encoded, `:"/\ ?&=#`) {
-			t.Errorf("href payload %q must lose scheme/quote/separator characters under encodeURIComponent, got %q", payload, encoded)
+			t.Errorf(
+				"href payload %q must lose scheme/quote/separator characters under encodeURIComponent, got %q",
+				payload,
+				encoded,
+			)
 		}
 	}
 }
