@@ -2,6 +2,7 @@ package dashboardui
 
 import (
 	"encoding/json/v2"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -108,5 +109,64 @@ func TestVersionz_ReturnsCapabilities(t *testing.T) {
 
 	if !body.ReadOnly {
 		t.Error("versionz readOnly should be true")
+	}
+}
+
+func TestVersionz_RequireAuthDeniesUnauthorized(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	d, _ := New(Config{
+		EventSource:         store,
+		Journal:             store,
+		Authorizer:          func(*http.Request) error { return errors.New("denied") },
+		VersionzRequireAuth: true,
+	})
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/versionz", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("versionz status = %d; want 403; body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestVersionz_RequireAuthAllowsAuthorized(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	d, _ := New(Config{
+		EventSource:         store,
+		Journal:             store,
+		Authorizer:          func(*http.Request) error { return nil },
+		VersionzRequireAuth: true,
+	})
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/versionz", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("versionz status = %d; want 200; body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestVersionz_DefaultStaysPublicUnderAuthorizer(t *testing.T) {
+	store := memorystorage.NewMemoryStore()
+	d, _ := New(Config{
+		EventSource: store,
+		Journal:     store,
+		Authorizer:  func(*http.Request) error { return errors.New("denied") },
+	})
+	mux := http.NewServeMux()
+	d.Mount(mux, "/dashboard/")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/dashboard/-/versionz", nil)
+	mux.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("versionz status = %d; want 200 (unguarded by default); body=%s", rec.Code, rec.Body.String())
 	}
 }

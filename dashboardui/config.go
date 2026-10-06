@@ -105,6 +105,15 @@ type Config struct {
 	// consumer MUST wrap the dashboard with their own auth middleware).
 	Authorizer func(*http.Request) error
 
+	// VersionzRequireAuth routes the /-/versionz endpoint through Authorizer
+	// (403 on denial). Default false: versionz follows the public-probe
+	// convention (like healthz/readyz) so load balancers can read build
+	// stamps without credentials — but it reveals Title, BasePath,
+	// capabilities, module version, and the binary's VCS revision. Set true
+	// to keep that surface behind the Authorizer; without an Authorizer the
+	// flag has no effect.
+	VersionzRequireAuth bool
+
 	// Layout, when set, replaces the dashboard's built-in page shell (sidebar,
 	// header, theme, stylesheet links) with a consumer-owned document: every
 	// full-page render calls it with the page metadata and the ready-rendered

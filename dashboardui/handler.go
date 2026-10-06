@@ -49,10 +49,11 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	mux.Handle("GET /-/dashboard.js", d.guard(d.serveJS()))
 	mux.Handle("GET /-/htmx.js", cqrshtmx.HTMXScriptHandler())
 
-	// Observability probes (unguarded: load balancers and k8s need access)
+	// Observability probes (unguarded: load balancers and k8s need access).
+	// versionz is config-revealing; VersionzRequireAuth opts it into the guard.
 	mux.HandleFunc("GET /-/healthz", d.healthzHandler)
 	mux.HandleFunc("GET /-/readyz", d.readyzHandler)
-	mux.HandleFunc("GET /-/versionz", d.versionzHandler)
+	mux.HandleFunc("GET /-/versionz", d.versionzRoute())
 
 	// SSE live updates
 	if d.caps.EventBus {
@@ -142,6 +143,18 @@ func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registratio
 	mux.HandleFunc("GET /", d.guard(d.notFoundHandler))
 
 	return mux
+}
+
+// versionzRoute applies the optional versionz auth guard: with
+// VersionzRequireAuth set, the endpoint goes through the configured
+// Authorizer (403 on denial). Without the flag — or without an Authorizer —
+// it stays public like the other observability probes.
+func (d *Dashboard) versionzRoute() http.HandlerFunc {
+	if !d.config.VersionzRequireAuth {
+		return d.versionzHandler
+	}
+
+	return d.guard(d.versionzHandler)
 }
 
 // notFoundHandler renders a styled 404 page (templ-components errorpage):

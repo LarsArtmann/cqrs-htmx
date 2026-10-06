@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"net/http"
 	"runtime"
+	"runtime/debug"
 )
 
 // healthzHandler is a liveness probe. Always returns 200 if the process
@@ -44,11 +45,26 @@ func (d *Dashboard) readyzHandler(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{jsonKeyStatus: "ready", jsonKeyReady: true})
 }
 
-// versionzHandler returns build and configuration metadata.
+// versionzHandler returns build and configuration metadata. The module and
+// version fields identify the dashboardui module (fork-honest via reflection);
+// the vcs* fields identify the binary build the dashboard is served from.
 func (d *Dashboard) versionzHandler(w http.ResponseWriter, _ *http.Request) {
+	module := ownModulePath()
+
+	version := ""
+	stamp := vcsBuildInfo{}
+	if build, ok := debug.ReadBuildInfo(); ok {
+		version = resolveModuleVersion(build, module)
+		stamp = resolveVCS(build.Settings)
+	}
+
 	writeJSON(w, http.StatusOK, versionInfo{
-		Module:       modulePath,
+		Module:       module,
+		Version:      version,
 		GoVersion:    runtime.Version(),
+		VCSRevision:  stamp.Revision,
+		VCSTime:      stamp.Time,
+		VCSModified:  stamp.Modified,
 		Capabilities: d.caps,
 		ReadOnly:     d.config.ReadOnly,
 		BasePath:     d.config.BasePath,
@@ -58,7 +74,11 @@ func (d *Dashboard) versionzHandler(w http.ResponseWriter, _ *http.Request) {
 
 type versionInfo struct {
 	Module       string       `json:"module"`
+	Version      string       `json:"version,omitzero"`
 	GoVersion    string       `json:"goVersion"`
+	VCSRevision  string       `json:"vcsRevision,omitzero"`
+	VCSTime      string       `json:"vcsTime,omitzero"`
+	VCSModified  string       `json:"vcsModified,omitzero"`
 	Capabilities Capabilities `json:"capabilities"`
 	ReadOnly     bool         `json:"readOnly"`
 	BasePath     string       `json:"basePath"`
