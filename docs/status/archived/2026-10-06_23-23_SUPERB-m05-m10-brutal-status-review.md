@@ -4,6 +4,7 @@
 
 **Verdict up front:** the code work is solid, verified, and receipted. But my "lane done" declaration had a real hole — plan fine-task **F22 was never executed nor dispositioned**, and the verification battery I chose (build+vet+tests+gofmt) omitted lint/format/coverage gates and two `-race` runs. None of it is lies; some of it was scoping I chose not to re-audit.
 
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — the honest gaps are now TRACKED, not entombed: F22 (adttest cross-engine pagination conformance), the GCL gate-compliance debt (lint/cqrs-lint/format/coverage + full metaengine `-race`), and the stale `sort_paginate.go` doc comment harvested into TODO_LIST as one P2 row; the flightrecorder v0.2.1 train + push and M16–M27 stand in TODO_LIST. Struck below: §f30/§f31. STILL OPEN (bare below): §f1–9 (the Pareto head, routed), §f10–29/32–50 (ideas/watches), §g1–3 (owner: push authorization incl. GCL's 2 straggler commits, F22 timing, daemon-commit history readability).
 ---
 
 ## Self-review (brutal)
@@ -112,8 +113,8 @@ Strong where I aimed: tie-heavy pagination at 3 levels with exactness+order+once
 27. Check whether dashboardui's pagination surfaces use `ScanPage` cursors — if yes, ties affect users today; verify + maybe adopt compound cursors post-issuance.
 28. GCL hermetic pin refresh wave for the engine modules (claiming/record/dedup/id drift, item c3).
 29. Re-run CH `nix run .#check-modules` once the foreign session's uncommitted dashboardui files settle (`wait-tree-quiet` first).
-30. Verify the foreign dashboardui edits (`handlers_events.go`, `handlers_audit.go`, `error_honesty_test.go`) get committed and tested — do not let them rot dirty.
-31. Annotate the 23-20 completion report with the F22 gap correction (docs-health ANNOTATE, inline, dated).
+~~30. Verify the foreign dashboardui edits (`handlers_events.go`, `handlers_audit.go`, `error_honesty_test.go`) get committed and tested — do not let them rot dirty.~~ done — tree is clean; the M14-session files were committed + receipted (`7d3eabb6`) and dashboardui suites green in the 23:20 battery
+~~31. Annotate the 23-20 completion report with the F22 gap correction (docs-health ANNOTATE, inline, dated).~~ done — the 23:20 report carries the round-18 ANNOTATED blockquote (2026-10-06)
 32. CH `docs/agents-notes.md`: append this session's daemon-race + gate-scope lessons (the AGENTS gotchas already carry the class; add the 117s-hook-vs-daemon datapoint).
 33. Add `TestSystem_WiringDeterministic`-style determinism test for `RegisteredDrivers()` itself (sorted-order pin).
 34. Consider a WARN-once on legacy value-cursor tie-drop (deprecation runway toward compound-only in v5).

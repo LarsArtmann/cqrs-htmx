@@ -4,6 +4,7 @@
 **Assignment:** Pareto plan `docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md` — my lane M01–M10; foreign session's lane M11–M15 (now complete on their side).
 
 ## a) FULLY DONE (this session)
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — Phase 2 closed by the 23:20 completion report: **M06 finished** (mid-edit content had survived as `7584b7a84`; completed + tested at 3 levels), M07 (`77076688b`), M08 (`9ce1367c4`), M10 (`5688d848f`) all landed + receipted; per-lane final battery green both repos. Struck below: §b1, §c M07–M10 row, §f1–6, §g2/§g3. STILL OPEN: the flightrecorder v0.2.1 lag train + push (§c-last/§f7/§g1 — the standing blocker, TODO_LIST), M16–M26 unscheduled, full-gate battery (check-modules/coverage) at the next quiet window (§b2), §e1 GCL concurrent-writer protocol + §e2 api_surface pre-emption (GCL AGENTS candidates).
 
 1. **Alignment pass COMPLETED** (was ~70%): killed the stalled 49-min tidy (1s CPU — futex-waiting on a VCS cache lock; SIGKILL via `/run/current-system/sw/bin/kill` — mvdan/sh's builtin kill rejects `-9`), cleared the stale `shallow.lock` my kill left, reran tidy (rc=0), committed `integration_test/go.sum` churn, hermetically verified BOTH touched modules (`GOWORK=off` build+vet green), and passed the absence assertion (zero `id/v4 v4.7.0` / `scheduling/v4 v4.6.0` requires repo-wide).
 2. **M01 — SSE XSS (dashboardui/layout.go + layout_sse_xss_test.go):** row builder rewritten with createElement/textContent (zero innerHTML in the served JS), href percent-encodes eventId, Stream Type cell emitted (5-column alignment — the wire envelope already carried streamType; no golden bump), `eventCount` resets on `htmx:afterSwap`, `console.warn` replaces the silent `catch{}`. 6 tests green incl. served-JS wire check + hostile-payload smoke (`<img onerror>`, `javascript:`-scheme href neutralization).
@@ -16,12 +17,12 @@
 
 ## b) PARTIALLY DONE
 
-1. **M06 — keyset ties (GCL): ROOT-CAUSED and MID-EDIT.** The bug: `SortPaginate` SORTS with the compound (sortValue, byte-key) order but the CURSOR FILTER compares sort value only — every item TYING the cursor value is skipped (`<= 0`), silently DROPPING unseen rows (the cursor protocol is value-only: `Cursor{Value: lastItemSortField}`). Fix in flight: exported `SortKeyCursor{Sort any, Key []byte}` + compound filter (ties kept iff key > cursorKey; legacy raw-value cursors keep the old semantics, documented tie-lossy). `metaengine/sort_paginate.go` is EDITED but NOT built/tested/committed (report interrupted the phase). REMAINING: build+vet, F21 tie-heavy regression test (no drops, no dupes), consider ScanResult.NextCursor issuance (documented as follow-up if skipped), commit.
+~~1. **M06 — keyset ties (GCL): ROOT-CAUSED and MID-EDIT.** The bug: `SortPaginate` SORTS with the compound (sortValue, byte-key) order but the CURSOR FILTER compares sort value only — every item TYING the cursor value is skipped (`<= 0`), silently DROPPING unseen rows (the cursor protocol is value-only: `Cursor{Value: lastItemSortField}`). Fix in flight: exported `SortKeyCursor{Sort any, Key []byte}` + compound filter (ties kept iff key > cursorKey; legacy raw-value cursors keep the old semantics, documented tie-lossy). `metaengine/sort_paginate.go` is EDITED but NOT built/tested/committed (report interrupted the phase). REMAINING: build+vet, F21 tie-heavy regression test (no drops, no dupes), consider ScanResult.NextCursor issuance (documented as follow-up if skipped), commit.~~ done — content survived (daemon `7584b7a84`); completed + tie-heavy tests at 3 levels (23:20 report)
 2. **Full battery (M27-class):** not run yet — the tree kept moving (foreign session + daemon) all evening; per-module suites are green everywhere I touched.
 
 ## c) NOT STARTED
 
-- M07 (New engine-leak cleanup + goleak), M08 (timers lifecycle), M10 (unknown InstanceRole + engine-name hints) — Phase 2 remainder.
+~~- M07 (New engine-leak cleanup + goleak), M08 (timers lifecycle), M10 (unknown InstanceRole + engine-name hints) — Phase 2 remainder.~~ done — 23:20 session (`77076688b`, `9ce1367c4`/`143cbd589`, `5688d848f`)
 - M16–M26 (Phase 3) per plan ordering.
 - The alignment push itself (owner-gated) + the flightrecorder v0.2.1 bump train (16 lagging requires appeared DURING this session — someone published it today; the strict gate will block the push until that train runs).
 
@@ -41,19 +42,19 @@
 
 ## f) NEXT — ordered
 
-1. Finish M06: build+vet sort_paginate.go; F21 tie-heavy regression (30 items, 6 distinct sort values, page size 5: legacy cursor drops, SortKeyCursor loses neither rows nor dupes); commit + CHANGELOG receipt.
-2. M07: `fail(err)` cleanup helper in system/constructor.go (12+ error returns after engine creation) + goleak test (`go.uber.org/goleak` already in GCL's graph).
-3. M08: `Close` calls `stopTimers` + WaitGroup wait; doc-comment fixes; lifecycle test.
-4. M10: reject unknown InstanceRole at construction; SCREAM advisory on implicit memory SOT fallback; `ErrUnknownEngine` lists configured names + registered drivers.
-5. Final battery: GCL touched-module suites + CH workspace build/test (local go.work replaces see all GCL changes — integration risk is real); `nix run .#lint` scoped; preflight-tree-check before any tree-wide run.
-6. CHANGELOG receipts for M05–M10 (GCL) as they land.
+~~1. Finish M06: build+vet sort_paginate.go; F21 tie-heavy regression (30 items, 6 distinct sort values, page size 5: legacy cursor drops, SortKeyCursor loses neither rows nor dupes); commit + CHANGELOG receipt.~~ done — 23:20 session
+~~2. M07: `fail(err)` cleanup helper in system/constructor.go (12+ error returns after engine creation) + goleak test (`go.uber.org/goleak` already in GCL's graph).~~ done — `77076688b` + receipt `1336857e8`
+~~3. M08: `Close` calls `stopTimers` + WaitGroup wait; doc-comment fixes; lifecycle test.~~ done — `9ce1367c4`/`143cbd589` + receipt `9477b865e`
+~~4. M10: reject unknown InstanceRole at construction; SCREAM advisory on implicit memory SOT fallback; `ErrUnknownEngine` lists configured names + registered drivers.~~ done — authored `5688d848f` + api_surface 7557
+~~5. Final battery: GCL touched-module suites + CH workspace build/test (local go.work replaces see all GCL changes — integration risk is real); `nix run .#lint` scoped; preflight-tree-check before any tree-wide run.~~ done per-lane — 23:20 final battery green both repos; full-gate battery (check-modules/coverage) still owed at a quiet window
+~~6. CHANGELOG receipts for M05–M10 (GCL) as they land.~~ done — GCL CHANGELOG ×4 + dashboardui receipts
 7. Owner lane: flightrecorder train + push (both repos carry unpushed trains: CH ~30 commits, GCL 24+).
 
 ## g) Questions I CANNOT answer myself
 
 1. **Push (carried from the prior report):** gates are per-module green but the strict release-train gate now trips on the NEW flightrecorder lag — do you want me to run that bump train (16 requires, `bump-dep.sh` is the right tool for a real train) and then push, or does the owner take the push lane entirely?
-2. **SortKeyCursor issuance (M06 scope):** the compound cursor fixes the FILTER, but today only value-only cursors are ISSUED (`ScanPage` derives them without the KV key). Full issuance needs `ScanResult.NextCursor` + the three KV engines filling it (protocol addition). Ship the filter fix + type now (consumers can construct compound cursors) and defer issuance, or do the full protocol in this session?
-3. **Session continue-point:** M06 code is sitting UNCOMMITTED in the GCL tree (with the hostile-writer history) — I stopped per your report order. Resume by finishing M06, or do you want the tree state inspected first?
+~~2. **SortKeyCursor issuance (M06 scope):** the compound cursor fixes the FILTER, but today only value-only cursors are ISSUED (`ScanPage` derives them without the KV key). Full issuance needs `ScanResult.NextCursor` + the three KV engines filling it (protocol addition). Ship the filter fix + type now (consumers can construct compound cursors) and defer issuance, or do the full protocol in this session?~~ resolved — plan-faithful (F20+F21 only); issuance queued in GCL TODO_LIST with design notes
+~~3. **Session continue-point:** M06 code is sitting UNCOMMITTED in the GCL tree (with the hostile-writer history) — I stopped per your report order. Resume by finishing M06, or do you want the tree state inspected first?~~ resolved — tree inspected first; the mid-edit content HAD survived (`7584b7a84`)
 
 ---
 *Point-in-time snapshot; annotate, never rewrite. Auto-commit daemon will file this report.*

@@ -4,6 +4,7 @@
 
 **Verdict: M11, M12, M13, M14, M15 all DONE, tested, committed, and receipted.** The session scope (M11–M15) is complete. GCL = go-cqrs-lite repo; CH = cqrs-htmx repo.
 
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — the "not done" column closed the same night: **M01–M10 all shipped** by the sibling lane (22:34 report §a: M01–M03 CH + M04/M05/M09 GCL; 23:20 report: M05–M10), verified + receipted both repos. Struck below: §2-M01–M10, §5 items 1–10, §6-Q1. STILL OPEN: M16–M27 unscheduled (TODO_LIST P1 progress note), the flightrecorder v0.2.1 lag train (the standing push blocker, TODO_LIST), §5.22–24 gotcha-12 amendment + quarantine cleanup + forensics (owner §6-Q3), §6-Q2 release-train versioning call (rides the next train).
 ---
 
 ## 1. Done (evidence per milestone)
@@ -46,16 +47,16 @@
 ## 5. Top of the queue (next ~50, ranked; first 10 actionable now)
 
 **Immediate (high, exploit/correctness class — the plan's own 1% tier):**
-1. M01 (idea 1+54): SSE row-injection XSS → `textContent` row builder (concurrent session may be mid-flight — coordinate via tree state).
-2. M02 (idea 2): AccentColor strict CSS-color validation (style-tag breakout).
-3. M03 (ideas 123+124): metaengine FilterOp enum + jsonPath identifier validation at construction AND SQL-build (GCL).
-4. M04 (idea 230+192): honor single `publish: [x]` + validate bus targets (GCL).
-5. M05 (idea 4): CSV formula neutralization (`=`,`+`,`-`,`@` prefixes) in dashboardui exports.
-6. M06 (idea 114+137): memory-engine mutex coverage + concurrent conformance (GCL).
-7. M07 (idea 115): keyset pagination compound `(sortValue,key)` cursor comparator (GCL).
-8. M08 (idea 187+242): `system.New` engine cleanup on all error paths + goleak test (GCL).
-9. M09 (idea 210+211): `Close()` stops timers; `stopTimers` waits (GCL).
-10. M10 (idea 179+197): reject unknown InstanceRole; ADVISORY on silent memory fallback (GCL).
+~~1. M01 (idea 1+54): SSE row-injection XSS → `textContent` row builder (concurrent session may be mid-flight — coordinate via tree state).~~ done — 22:34 session (`textContent` row builder + Stream Type cell + count reset + hostile-payload smoke)
+~~2. M02 (idea 2): AccentColor strict CSS-color validation (style-tag breakout).~~ done — 22:34 session (`accent_color.go` closed-grammar validator, `fbd044f0`)
+~~3. M03 (ideas 123+124): metaengine FilterOp enum + jsonPath identifier validation at construction AND SQL-build (GCL).~~ done — 22:34 session (`ValidateFilterSpecs` + `ValidateIdentifier` at Scan entry + all builders)
+~~4. M04 (idea 230+192): honor single `publish: [x]` + validate bus targets (GCL).~~ done — 22:34 session (publish fan-out + `ErrUnknownPublishTarget`)
+~~5. M05 (idea 4): CSV formula neutralization (`=`,`+`,`-`,`@` prefixes) in dashboardui exports.~~ done — 22:34 session (OWASP neutralizer in `writeCSV`)
+~~6. M06 (idea 114+137): memory-engine mutex coverage + concurrent conformance (GCL).~~ done — 23:20 session (RWMutexes + `AssertConcurrent*` helpers)
+~~7. M07 (idea 115): keyset pagination compound `(sortValue,key)` cursor comparator (GCL).~~ done — 23:20 session (`SortKeyCursor` compound filter + 6 engine delegations; issuance queued in GCL TODO)
+~~8. M08 (idea 187+242): `system.New` engine cleanup on all error paths + goleak test (GCL).~~ done — 23:20 session (`fail(err)` teardown + goleak tests)
+~~9. M09 (idea 210+211): `Close()` stops timers; `stopTimers` waits (GCL).~~ done — 22:34 session (Close stops timers + waits)
+~~10. M10 (idea 179+197): reject unknown InstanceRole; ADVISORY on silent memory fallback (GCL).~~ done — 23:20 session (`ErrUnknownInstanceRole` + `sot.implicit_memory` ADVISORY + engine-name hints)
 
 **Next wave (consumer trust, M16–M24 as planned):**
 11. M16: content-hash ETags for dashboard.css/js (kill hardcoded v4.9.0). 12. M17: versionz opt-in guard + buildinfo. 13. M18: Authorizer returns actor; audit entries carry actor+correlation. 14. M19: export `Config.Validate()` + single-source page-size constants. 15. M20: variadic `Autodetect`. 16. M21: `Routes()` manifest. 17. M22: systemadapter checkpoint/DLQ wiring. 18. M23: `RecommendedDeployment` presets. 19. M24: docs truth pass (deprecated-path guides, README fixes, IMPROVEMENT_IDEAS prune).
@@ -67,7 +68,7 @@
 
 ## 6. Three questions
 
-1. **M01 ownership:** the concurrent session's `layout_sse_xss_test.go` suggests it took M01 — confirm before anyone else starts it (two sessions editing `layout.go`/`dashboardJS` will collide exactly like §3.2).
+~~1. **M01 ownership:** the concurrent session's `layout_sse_xss_test.go` suggests it took M01 — confirm before anyone else starts it (two sessions editing `layout.go`/`dashboardJS` will collide exactly like §3.2).~~ resolved — the sibling lane took M01–M03 + M04/M05/M09 (22:34) and M05–M10 (23:20); no collision
 2. **Release train:** M13–M15 touch published dashboardui module code incl. a breaking `core.ListStreamsPaged` signature — should the next train be **v4.14.0** (minor, breaking-within-v4 per house style), and does M11/M12 GCL code ride the same wave?
 3. **Cache forensics:** do you want a root-cause hunt for the mass-truncation event (§5.24), or is disk-full-era attribution sufficient to close it?
 
