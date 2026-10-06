@@ -607,7 +607,11 @@ func TestListStreamsPaged_NilReader(t *testing.T) {
 	d := mustTestDashboard(t)
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 
-	streams, _ := d.listStreamsPaged(r)
+	streams, _, err := d.listStreamsPaged(r)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	if streams != nil {
 		t.Fatalf("expected nil for nil StreamReader, got %v", streams)
 	}
@@ -621,7 +625,11 @@ func TestListStreamsPaged_WithReader(t *testing.T) {
 	})
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 
-	streams, page := d.listStreamsPaged(r)
+	streams, page, err := d.listStreamsPaged(r)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	if len(streams) != len(expected) {
 		t.Fatalf("expected %d streams, got %d", len(expected), len(streams))
 	}

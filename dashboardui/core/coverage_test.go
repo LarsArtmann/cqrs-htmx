@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/listing/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func makeStreamListings(n int) []listing.StreamListing {
@@ -31,7 +32,11 @@ func TestListStreamsPaged_NilReader(t *testing.T) {
 
 	r := httptest.NewRequest(http.MethodGet, "/?", nil)
 
-	listings, state := ListStreamsPaged(r, Config{PageSize: 20})
+	listings, state, err := ListStreamsPaged(r, Config{PageSize: 20})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	if listings != nil {
 		t.Errorf("expected nil listings, got %d", len(listings))
 	}
@@ -54,7 +59,11 @@ func TestListStreamsPaged_EmptyResult(t *testing.T) {
 	}
 	r := httptest.NewRequest(http.MethodGet, "/?", nil)
 
-	listings, state := ListStreamsPaged(r, cfg)
+	listings, state, err := ListStreamsPaged(r, cfg)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	if len(listings) != 0 {
 		t.Errorf("expected 0 listings, got %d", len(listings))
 	}
@@ -76,7 +85,11 @@ func TestListStreamsPaged_SinglePage(t *testing.T) {
 	}
 	r := httptest.NewRequest(http.MethodGet, "/?", nil)
 
-	listings, state := ListStreamsPaged(r, cfg)
+	listings, state, err := ListStreamsPaged(r, cfg)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	if len(listings) != 5 {
 		t.Fatalf("expected 5 listings, got %d", len(listings))
 	}
@@ -103,7 +116,11 @@ func TestListStreamsPaged_MultiPage(t *testing.T) {
 	}
 	r := httptest.NewRequest(http.MethodGet, "/?", nil)
 
-	listings, state := ListStreamsPaged(r, cfg)
+	listings, state, err := ListStreamsPaged(r, cfg)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	if len(listings) != pageSize {
 		t.Fatalf("expected %d listings (trimmed to pageSize), got %d", pageSize, len(listings))
 	}
@@ -135,7 +152,11 @@ func TestListStreamsPaged_WithCursor(t *testing.T) {
 	}
 	r := httptest.NewRequest(http.MethodGet, "/?after="+afterID.String(), nil)
 
-	_, state := ListStreamsPaged(r, cfg)
+	_, state, err := ListStreamsPaged(r, cfg)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	if !state.HasPrev {
 		t.Error("HasPrev should be true when after cursor is present")
 	}
@@ -145,7 +166,26 @@ func TestListStreamsPaged_WithCursor(t *testing.T) {
 	}
 }
 
-func TestListStreamsPaged_ErrorReturnsNil(t *testing.T) {
+func TestListStreamsPaged_InvalidCursorIsRejection(t *testing.T) {
+	t.Parallel()
+
+	cfg := Config{
+		PageSize:     20,
+		StreamReader: &fakeStreamReader{page: &listing.Page[listing.StreamListing]{}},
+	}
+	r := httptest.NewRequest(http.MethodGet, "/?after=not-a-stream-id", nil)
+
+	_, _, err := ListStreamsPaged(r, cfg)
+	if err == nil {
+		t.Fatal("expected an error for a malformed after cursor")
+	}
+
+	if errorfamily.Classify(err) != errorfamily.Rejection {
+		t.Errorf("expected Rejection family for bad cursor, got %v", errorfamily.Classify(err))
+	}
+}
+
+func TestListStreamsPaged_ErrorReturnsInfrastructureError(t *testing.T) {
 	t.Parallel()
 
 	cfg := Config{
@@ -154,7 +194,15 @@ func TestListStreamsPaged_ErrorReturnsNil(t *testing.T) {
 	}
 	r := httptest.NewRequest(http.MethodGet, "/?", nil)
 
-	listings, state := ListStreamsPaged(r, cfg)
+	listings, state, err := ListStreamsPaged(r, cfg)
+	if err == nil {
+		t.Fatal("expected the reader error to propagate")
+	}
+
+	if errorfamily.Classify(err) != errorfamily.Infrastructure {
+		t.Errorf("expected Infrastructure family, got %v", errorfamily.Classify(err))
+	}
+
 	if listings != nil {
 		t.Errorf("expected nil listings on error, got %d", len(listings))
 	}
@@ -164,7 +212,7 @@ func TestListStreamsPaged_ErrorReturnsNil(t *testing.T) {
 	}
 }
 
-func TestListStreamsPaged_NilPageReturnsNil(t *testing.T) {
+func TestListStreamsPaged_NilPageReturnsError(t *testing.T) {
 	t.Parallel()
 
 	cfg := Config{
@@ -173,7 +221,11 @@ func TestListStreamsPaged_NilPageReturnsNil(t *testing.T) {
 	}
 	r := httptest.NewRequest(http.MethodGet, "/?", nil)
 
-	listings, _ := ListStreamsPaged(r, cfg)
+	listings, _, err := ListStreamsPaged(r, cfg)
+	if err == nil {
+		t.Fatal("expected an error for a nil page (misbehaving reader)")
+	}
+
 	if listings != nil {
 		t.Errorf("expected nil listings for nil page, got %d", len(listings))
 	}
