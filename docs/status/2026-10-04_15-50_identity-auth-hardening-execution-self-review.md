@@ -5,6 +5,7 @@
 **Scope of this report:** THIS session's run only (12:12 plan → 15:50). No new research beyond what the session touched.
 **Shipped artifacts:** `usermgmt/v4.14.0`, `setup/v4.14.0`, `dashboardui/v4.13.0` (all pushed to origin); CRM gate deletion (committed locally, unpushed); httputil doc fix `a891f0c` (committed locally, unpushed).
 
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — the wave SHIPPED (usermgmt/v4.14.0 + setup/v4.14.0 + dashboardui/v4.13.0; patch train usermgmt/v4.14.1 + identity-model/v4.12.1 on 2026-10-05/06) and the follow-ups largely closed: CI verified green (run 37392674249, then sustained), TODO headers restamped, the 3 "pre-existing" usermgmt failures ROOT-CAUSED (NOT role-grant — StreamID `.String()` display-form drift) and FIXED 2026-10-05 (gotcha 25, `.Get()` at all identity sites), goldens regenerated with the train (`92964591`), the StreamMarker train landed + was consumed by the 11-module sweep train. Struck below: §b4, §c4, §f4/6/9/10/11/13/18/20/21, §g1/§g3. STILL OPEN (routed): post-wave `.#test-all` + coverage-gate + check-cqrs-lint (§f1–3 → TODO battery row), browser-level loginpage ceremony + e2e fixtures (§b2/§c5/§c8/§f14/15 → TODO loginpage test-depth), integration_test gate pin + usermgmt-level RequireSession export (§f16/17 — verified still absent 2026-10-06), httputil `a891f0c` release (§c7/§f12 → TODO P2), CRM-repo items (§b5/§c6/§f5/7/8/35 — owner lane), remaining P3/P4 polish rows bare below.
 ---
 
 ## a) FULLY DONE
@@ -48,7 +49,7 @@
 | 1 | **M10 full battery** | `.#test` 18/18, lint clean, `.#check-modules` rc=0 | `nix run .#test-all` (e2e + examples set) NEVER ran — examples were version-swept (build+vet green) but their TESTS never executed this session. `.#coverage-gate` never ran — new code paths (session_gate.go, DisplayName, 5 test files) unmeasured; thresholds could be red. `.#check-cqrs-lint` never ran on the new files (local-only gate, not in check-modules). `nix flake check` never ran. `.#check-templates` never ran. |
 | 2 | **M22 loginpage verification** | httptest-level proof (22.1) + README note (22.3) | 22.2 browser-level Playwright ceremony scoped down (documented rationale: the e2e harness SIMULATES the app rather than hosting the real auth surface — but I never attempted even a minimal real-page run to confirm the env blocker; the scoped-down is asserted, not demonstrated) |
 | 3 | **M25 harvest** | 3 items into TODO_LIST; status gates green | TODO_LIST header lines (`Updated:` / `Version:` / `CI:`) left STALE — they still describe the v4.13.x train and "CI red on loginpage budget". ROADMAP got nothing (nothing needed rejecting — defensible). Plan file's verification checklist never annotated done. `docs/agents-notes.md` narratives (release-lag discovery, StreamMarker replace diagnosis) not written — those war stories live only in TODO_LIST bullets and this report. |
-| 4 | **CI verification** | local pre-push CI-parity gates green at both pushes | actual GitHub Actions results on the pushed commits/tags NEVER checked (local-green ≠ CI-green is the exact reason the parity gates exist) |
+~~| 4 | **CI verification** | local pre-push CI-parity gates green at both pushes | actual GitHub Actions results on the pushed commits/tags NEVER checked (local-green ≠ CI-green is the exact reason the parity gates exist) |~~ done — run 37392674249 all 7 jobs green on the pushed commits/tags; sustained green through 2026-10-06
 | 5 | **CRM side** | gate deleted, suite green, committed `c32d1c0` | NOT pushed (correct: no push authorization for that repo — but its remote is behind until pushed); CRM's OTHER cqrs-htmx pins (webauthn v4.12.0, indirect family) not aligned; CRM AGENTS.md still carries the now-obsolete standing warning "do NOT remove the gate unless the library starts gating them itself" |
 | 6 | **M19.2 staleness review** | done mentally, adjacent bullets checked | no written evidence/artifact of the review |
 
@@ -95,28 +96,28 @@
 1. Run `nix run .#test-all` (e2e + examples set).
 2. Run `nix run .#coverage-gate`; re-pin thresholds if the new code moved them.
 3. Run `nix run .#check-cqrs-lint` (new files: session_gate.go ×2, display_name_test.go, etc.).
-4. Verify GitHub Actions green on the pushed master + 3 tags (CI results unobserved).
+~~4. Verify GitHub Actions green on the pushed master + 3 tags (CI results unobserved).~~ done — run 37392674249 all 7 jobs green
 5. Push the CRM repo (gate deletion + v4.14.0 bump, commit `c32d1c0`) — needs Lars's go.
-6. Update TODO_LIST header lines (`Updated:`/`Version:`/`CI:`) — still describe the v4.13.x era.
+~~6. Update TODO_LIST header lines (`Updated:`/`Version:`/`CI:`) — still describe the v4.13.x era.~~ done — headers restamped 2026-10-05/06
 7. Remove the CRM AGENTS.md standing "do NOT remove the CredentialsGate" warning (obsolete as of v4.14.0).
 8. Align the CRM's remaining cqrs-htmx pins (webauthn v4.12.0 + indirects) on its next bump.
 
 **P2 — pre-existing/foreign debt (owner decisions):**
-9. Fix `TestBeginImpersonation_Success_CreatesImpersonationSession` + `TestEndImpersonation_DeletesSession` (super_admin role grant not effective in test path).
-10. Fix `TestMaterializeProjection_TenantLifecycle` (kv.typed_store.get not-found after create).
-11. Regenerate dashboardui goldens when the go-cqrs-lite StreamMarker train lands (owning session; retire/keep the replace in the same commit).
+~~9. Fix `TestBeginImpersonation_Success_CreatesImpersonationSession` + `TestEndImpersonation_DeletesSession` (super_admin role grant not effective in test path).~~ done 2026-10-05 — root cause was StreamID display-form drift, NOT the role grant; `.Get()` at all identity sites (gotcha 25); 3/3 pass both worlds
+~~10. Fix `TestMaterializeProjection_TenantLifecycle` (kv.typed_store.get not-found after create).~~ done 2026-10-05 — same root cause, fixed in the `.Get()` sweep
+~~11. Regenerate dashboardui goldens when the go-cqrs-lite StreamMarker train lands (owning session; retire/keep the replace in the same commit).~~ done — `92964591` (2026-10-06 alignment push); goldens carry the StreamMarker display form
 12. Tag+push httputil `a891f0c` (doc-only release).
-13. Monitor the go-cqrs-lite signing/StreamMarker train for replace retirement.
+~~13. Monitor the go-cqrs-lite signing/StreamMarker train for replace retirement.~~ done — train landed (id v4.7.x), consumed by the 11-module sweep train 2026-10-05/06
 
 **P3 — polish and hardening follow-through:**
 14. Browser-level loginpage ceremony E2E through the REAL auth surface (M22.2 done properly; needs an e2e-server mode hosting real usermgmt routes).
 15. Update e2e/server fixtures to model the gated ceremonies (they may still simulate ungated behavior).
 16. integration_test: pin the gate end-to-end through setup (actor-attribution-style).
 17. Export a usermgmt-level RequireSession for Path B consumers without setup (today only setup exports gates).
-18. `RequireSessionRedirect` usage snippet in setup/README (code example, not just prose).
+~~18. `RequireSessionRedirect` usage snippet in setup/README (code example, not just prose).~~ done — usage documented at setup/README:397
 19. skill `references/usermgmt.md`: add DisplayName to the service-method list.
-20. AGENTS.md Quick Reference "Gates" row: add `check-session-route-wrappers`.
-21. AGENTS.md gotcha or agents-notes entry: the local-replace golden-drift class (bare-shell red / nix green).
+~~20. AGENTS.md Quick Reference "Gates" row: add `check-session-route-wrappers`.~~ done — Gates row carries `check-session-route-wrappers`
+~~21. AGENTS.md gotcha or agents-notes entry: the local-replace golden-drift class (bare-shell red / nix green).~~ done — gotcha 25 + gotcha 24c + the signing-arc narrative in docs/agents-notes.md
 22. Write `docs/agents-notes.md` narratives: (a) the release-lag + alignment-sweep war story, (b) the StreamMarker diagnosis.
 23. Annotate the plan file's verification checklist with completion evidence links.
 24. Add a comment cross-linking setup.RequireSession ↔ usermgmt's internal gates (anti "why two?" confusion).
@@ -148,9 +149,9 @@
 
 ## g) Up to 3 questions I CANNOT figure out myself
 
-1. **G1 (still open, shipped under working assumption):** do you know of ANY fleet consumer beyond Ledger CRM and PapDashboard that scripted UNAUTHENTICATED HTTP enrollment (`POST /auth/webauthn/register/*` with an arbitrary `user_id`)? The v4.14.0 tightening (401/403 where 200 was) is correct for every consumer I can see — but I cannot enumerate private consumers.
+~~1. **G1 (still open, shipped under working assumption):** do you know of ANY fleet consumer beyond Ledger CRM and PapDashboard that scripted UNAUTHENTICATED HTTP enrollment (`POST /auth/webauthn/register/*` with an arbitrary `user_id`)? The v4.14.0 tightening (401/403 where 200 was) is correct for every consumer I can see — but I cannot enumerate private consumers.~~ resolved by execution — shipped as minors (v4.14.x live, zero consumer fallout observed); issue watch stands
 2. **Ownership of the 3 pre-existing usermgmt test failures** (impersonation ×2 + TenantLifecycle, verified pre-dating my work): should the NEXT session here fix them, or is a concurrent session already on them? (They redden every bare-shell usermgmt run and will confuse future sessions into mis-attributing them.)
-3. **httputil `a891f0c`:** cut a doc-only tag/push now so the caveat is published, or let it ride the next functional httputil change? (I have no push authorization for that repo and no visibility into its release cadence.)
+~~3. **httputil `a891f0c`:** cut a doc-only tag/push now so the caveat is published, or let it ride the next functional httputil change? (I have no push authorization for that repo and no visibility into its release cadence.)~~ open, tracked — TODO_LIST P2 "Release httputil doc fix"
 
 ---
 

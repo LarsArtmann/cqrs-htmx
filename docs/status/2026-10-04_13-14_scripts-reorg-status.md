@@ -6,6 +6,7 @@
 > unrelated research was done. Per the status-report skill, HTML is the canonical
 > format; the user's explicit `.md` path demand wins for this report.
 
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — the reorg held: every gate/self-test/CI path resolved from the new layout through the 2026-10-05/06 trains (check-modules fully green incl. 33 stages, 20/20 self-tests under the CI=true posture, five pushes through pre-push strict gates, master CI green run 37392674249). The external reds (§b2/§b3) were the in-flight `dashboardui.LayoutFunc` work — shipped in dashboardui/v4.13.0 + setup/v4.14.0. Struck below: §b1–b4, §c1, §f1–4, §f9, §f22–24, §f30. STILL OPEN (routed): §f5 repo-root-resolution guard, §f6 `.#selftests` aggregator, §f7 ci/flake stage-manifest consolidation (all High; land via the atomic-gate checklist when picked up), §c6/§f14 agents-notes reorg war story, remaining Low cleanup rows (§c5/§c7, §f10–13/15–21/25–40) — bare below = open.
 ## Executive Summary
 
 The flat 50-entry `scripts/` directory is now a 6-entry tree (`checks/`, `selftests/`,
@@ -85,32 +86,32 @@ cqrs-lint gate are **proven external** (a concurrent session's in-flight
 
 ## b) PARTIALLY DONE
 
-1. **Full-workspace Go test suite NOT run** (`nix run .#test`, and `.#test-all` with
+~~1. **Full-workspace Go test suite NOT run** (`nix run .#test`, and `.#test-all` with~~ resolved — full CH battery rc=0 ×28 modules repeatedly since (2026-10-06 hardening sessions)
    e2e/examples). What works: zero Go files in this session's diff, so script-scoped
    verification is complete. What remains: the 28-module race suite was never
    executed this session. Blocker: the tree carries a concurrent session's in-flight
    feature (below) — a red suite now would be unattributable noise. Effort: M once
    the tree is quiet.
-2. **check-modules is 27/29** — isolation + workspace-build stages red. What works:
+~~2. **check-modules is 27/29** — isolation + workspace-build stages red. What works:~~ resolved — the LayoutFunc feature shipped (dashboardui/v4.13.0); check-modules fully green since (03-04 + 10-06 batteries)
    every scripts-exercising stage (25 of 29) green, including all 14 self-test
    stages. What remains: 2 stages red with failure signature
    `undefined: dashboardui.LayoutFunc` / `missing go.sum entry for x/tools@v0.51.0`
    under `GOWORK=off` — the concurrent feature is unpublished, so standalone module
    builds resolve stale published deps. Blocker: external session. Effort: S to
    re-verify once they land.
-3. **cqrs-lint gate red** — `--strict` root walk fails with 3 WARNINGs in
+~~3. **cqrs-lint gate red** — `--strict` root walk fails with 3 WARNINGs in~~ resolved — same in-flight work, shipped in setup/v4.14.0; strict gate green in subsequent batteries
    `setup/setup.go` (event-bus recovery, `Close()` ×2). Proven external: a detached
    worktree at pre-reorg commit `1f2daac6` shows **0** such warnings; `setup.go` was
    last modified in `7314bc0f` (concurrent feature work). Not mine to fix (safety
    rule: never touch diffs I didn't author). Effort: S once they land.
-4. **Pre-push hook never live-fired** — the strict release-train + version-drift
+~~4. **Pre-push hook never live-fired** — the strict release-train + version-drift~~ done — five pushes 2026-10-05/06 through the pre-push strict gates
    path in `.githooks/pre-push` is verified by self-tests and byte-identical
    templates, but no `git push` happened this session (none requested). CI parity on
    real runners is therefore unproven for the new paths. Effort: S (next push).
 
 ## c) NOT STARTED (deliberate deferrals, in priority order)
 
-1. **HARVEST of section (f) into TODO_LIST.md/ROADMAP.md** — the skill's post-report
+~~1. **HARVEST of section (f) into TODO_LIST.md/ROADMAP.md** — the skill's post-report~~ done (docs-health round 18 — this annotation; deltas routed as noted)
    rule; awaiting instructions per the session's "then wait" directive.
 2. **Repo-root-resolution guard** — a mechanical check that no script in
    `scripts/{checks,tools}` computes repo root with a single `/..` (today's
@@ -214,15 +215,15 @@ check-modules stages and the 3 cqrs-lint WARNINGs. Evidence trail: worktree prob
 
 | # | Task | Impact | Effort | Category |
 | --- | --- | --- | --- | --- |
-| 1 | Re-run check-modules + cqrs-lint once the concurrent LayoutFunc feature lands/publishes; annotate this report with results | High | S | Quality |
-| 2 | If the concurrent session is abandoned: take over setup.go (3 cqrs-lint WARNINGs: bus recovery, Close ×2) + finish/publish LayoutFunc or revert it | High | M | Bug |
-| 3 | Live-fire the pre-push hook: next `git push` runs strict release-train + version-drift on the new paths (watch the fresh-tag TTL gotcha) | High | S | Quality |
-| 4 | Verify CI green on next push — the shfmt/shellcheck step (`cd scripts && find`) now recurses 3 new dirs; confirm stage count + runner parity | High | S | Quality |
+~~| 1 | Re-run check-modules + cqrs-lint once the concurrent LayoutFunc feature lands/publishes; annotate this report with results | High | S | Quality |~~ done — gates re-ran green post-landing (03-04 + 10-06 batteries)
+~~| 2 | If the concurrent session is abandoned: take over setup.go (3 cqrs-lint WARNINGs: bus recovery, Close ×2) + finish/publish LayoutFunc or revert it | High | M | Bug |~~ moot — the concurrent session shipped LayoutFunc (dashboardui/v4.13.0)
+~~| 3 | Live-fire the pre-push hook: next `git push` runs strict release-train + version-drift on the new paths (watch the fresh-tag TTL gotcha) | High | S | Quality |~~ done — five pushes 2026-10-05/06 through strict pre-push gates
+~~| 4 | Verify CI green on next push — the shfmt/shellcheck step (`cd scripts && find`) now recurses 3 new dirs; confirm stage count + runner parity | High | S | Quality |~~ done — CI green (run 37392674249 all 7 jobs, then sustained green)
 | 5 | Add repo-root-resolution guard: fail if any `scripts/{checks,tools}` script computes root with single `/..` (mechanizes today's incident class) | High | M | Quality |
 | 6 | Single `nix run .#selftests` aggregator app running all 22 test-* scripts with a printed candidate count (kills enumeration drift) | High | M | Quality |
 | 7 | Decide ci.yml/flake stage-list consolidation: generate one stage manifest consumed by both (removes a pre-existing split brain) | High | L | Quality |
 | 8 | Assert error MESSAGE (not just exit code) in test-install-git-hooks negative cases (T7-class false positives) | Medium | S | Quality |
-| 9 | Run `nix run .#test` (28-module race suite) on a quiet tree; then `.#test-all` (incl. e2e/examples) | High | M | Quality |
+~~| 9 | Run `nix run .#test` (28-module race suite) on a quiet tree; then `.#test-all` (incl. e2e/examples) | High | M | Quality |~~ done — 28-module race suite green (2026-10-06 batteries; `.#test-all` still owed at the next quiet window — TODO_LIST battery row)
 | 10 | Regenerate or untrack `reports/jscpd-report.json` (tracked+ignored+stale paths) | Low | S | Cleanup |
 | 11 | Document `.go.work.check-workspace-build.sum` policy (tracked generated artifact; when is it committed vs regenerated) in AGENTS gotchas | Low | S | Documentation |
 | 12 | Taxonomy naming pass: `erraudit-inventory.sh` lives in checks/ but reads like a tool — rename to `check-erraudit-inventory.sh` or document the exception in AGENTS scripts/ row | Low | S | Cleanup |
@@ -235,15 +236,15 @@ check-modules stages and the 3 cqrs-lint WARNINGs. Evidence trail: worktree prob
 | 19 | `nix flake check` full evaluation (heavier than the `show` probe used this session) on a quiet tree | Medium | M | Quality |
 | 20 | Run `buildflow` full mode once the tree is green (fleet-standard quality verdict) | Medium | M | Quality |
 | 21 | Explicit .gitignore/docs note that fresh reports in docs/status/ root are Gate-1-ungated until archived (prevents future surprise at archive time) | Low | S | Documentation |
-| 22 | HARVEST this report's (f) section into TODO_LIST.md/ROADMAP.md (docs-health HARVEST mode) | High | S | Documentation |
-| 23 | Decide whether the reorg warrants a CHANGELOG entry at the next train (repo tooling vs consumer-facing; current convention says no) | Low | S | Documentation |
-| 24 | Annotate this report when items 1–4 resolve (Gate-1 compliance happens at archive time) | Low | S | Documentation |
+~~| 22 | HARVEST this report's (f) section into TODO_LIST.md/ROADMAP.md (docs-health HARVEST mode) | High | S | Documentation |~~ done (docs-health round 18 — this annotation)
+~~| 23 | Decide whether the reorg warrants a CHANGELOG entry at the next train (repo tooling vs consumer-facing; current convention says no) | Low | S | Documentation |~~ decided — no root CHANGELOG receipt: repo tooling, not consumer-visible (AGENTS gotcha 20 convention, recorded 2026-10-05)
+~~| 24 | Annotate this report when items 1–4 resolve (Gate-1 compliance happens at archive time) | Low | S | Documentation |~~ done (docs-health round 18 — this blockquote + strikes)
 | 25 | Verify flake app descriptions mentioning script paths stayed accurate after sed (spot-check 3 apps' meta.description) | Low | S | Documentation |
 | 26 | Consider pinning `shellcheck` directive headers (`source=` hints) in self-tests updated to `../lib/` paths (test-check-version-drift.sh:63 hints at old form) | Low | S | Cleanup |
 | 27 | Add the root-resolution idiom list (BASH_SOURCE, $0, __file__) as a comment header in the new AGENTS scripts/ row for future movers | Low | S | Documentation |
 | 28 | Next train: release-playbook's updated script paths get their first real exercise — walk §6 verify-tag steps verbatim as a dry run | Medium | M | Quality |
 | 29 | Check whether any tooling outside this repo (fleet scripts, BuildFlow providers) invokes cqrs-htmx's scripts by absolute path — reorg is invisible to consumers, but fleet tooling isn't a consumer | Medium | M | Quality |
-| 30 | Consider `git mv`-ing this report to docs/status/archived/ + annotate at next status cycle per convention | Low | S | Documentation |
+~~| 30 | Consider `git mv`-ing this report to docs/status/archived/ + annotate at next status cycle per convention | Low | S | Documentation |~~ done — archived 2026-10-06 (docs-health round 18, manifest in docs/status/README.md)
 | 31 | Evaluate whether `attic/batch-release.sh` (stale path comments, archived) should state its archived-status header explicitly | Low | S | Documentation |
 | 32 | Spot-check 5 random self-tests' scratch trees for OTHER hidden copies of scripts (only 6 known couplings were found; a grep for `cp .*(check-\|lib/)` confirmed the set — re-confirm post-churn) | Medium | S | Quality |
 | 33 | Keep bench discipline: no `--save-baseline` re-pin needed (scripts content-identical, ns/op unaffected) — record as explicit no-op | Low | S | Documentation |
