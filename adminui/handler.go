@@ -2,6 +2,7 @@ package adminui
 
 import (
 	"net/http"
+	"strings"
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
@@ -216,7 +217,15 @@ func (h *Handler) Config() Config { return h.config }
 // method-specific "GET /" catch-all on the same mux. Register any site-root
 // index as "GET /{$}" or "/" (no method) to avoid a ServeMux panic.
 func (h *Handler) Mount(mux *http.ServeMux, pattern string) {
-	mux.Handle(pattern, http.StripPrefix(pattern, h.routes()))
+	// Strip the prefix WITHOUT its trailing slash: StripPrefix("/admin/")
+	// would turn "/admin/users" into the relative path "users", which the
+	// inner ServeMux's path cleaning then answers with a redirect to
+	// "/users" (301 on Go <= 1.21, 307 since) — every panel route would
+	// bounce. Stripping "/admin" keeps the leading slash: "/admin/users"
+	// becomes "/users" and matches the inner patterns directly. The root
+	// mount ("/" pattern) trims to "" and StripPrefix returns the panel
+	// unchanged, which is correct.
+	mux.Handle(pattern, http.StripPrefix(strings.TrimSuffix(pattern, "/"), h.routes()))
 }
 
 // Middleware returns the standard middleware chain the panel recommends:
