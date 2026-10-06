@@ -5,6 +5,7 @@
 **Deliverable shape:** `.md` written at an explicit path demand — an override of the skill's HTML-canonical default (operator instruction wins; flagged per skill contract).
 
 ---
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — the seams SHIPPED: **dashboardui/v4.13.0** (Autodetect + `Config.Layout`) tagged 2026-10-04, consumed by setup v4.14.0/v4.14.1; receipted in dashboardui CHANGELOG + root CHANGELOG [Unreleased]; AGENTS.md § dashboardui documents both integration modes incl. the deliberate built-in error/404 shell. Full workspace battery green repeatedly since (2026-10-06 hardening sessions: CH test rc=0 across 28 modules). Struck below: B1/B2, c3/c6/c7, §f1–5/15/49. STILL OPEN (routed): runnable embed demo + guide (§f6/f7/B4), panels layer + headless JSON (§f8/c1/c2/18 → ROADMAP fuel on first consumer demand), NavLink.Href-style API review (§f45), embed goldens/CSP/toast tests (§f12–14/16–17), adminui Layout parity (§f25, pairs with the SidebarNav TODO row), FEATURES/skill rows for Autodetect (§f20/21 — verified still absent 2026-10-06).
 
 ## a) FULLY DONE
 
@@ -26,8 +27,8 @@ Each item is verifiably complete: committed (auto-commit daemon), tests green, g
 
 | # | Item | Works now | Remains open | Blocker | Effort |
 |---|------|-----------|--------------|---------|--------|
-| B1 | **Cross-module release state** | Workspace-mode build + tests fully green (go.work resolves my new `dashboardui.LayoutFunc` locally) | setup's **hermetic** `GOWORK=off` build resolves the *published* dashboardui and fails on `Layout`/`LayoutFunc` until the next train | Release-train discipline (gotcha 6): tag dashboardui first, then bump setup. Mid-train bump commits fail strict gates **by design** | S (at train time) |
-| B2 | **Full workspace battery `nix run .#test`** | Launched; dashboardui/core/setup-level modules that mattered verified per-module instead | Battery died in the **ROOT module** setup phase: `golang.org/x/tools@v0.51.0: missing go.sum entry` — foreign usermgmt-session go.mod churn mid-flight. Never re-run clean | Foreign session still mutating usermgmt; re-run on a quiet tree (`nix run .#wait-tree-quiet`) | S |
+~~| B1 | **Cross-module release state** | Workspace-mode build + tests fully green (go.work resolves my new `dashboardui.LayoutFunc` locally) | setup's **hermetic** `GOWORK=off` build resolves the *published* dashboardui and fails on `Layout`/`LayoutFunc` until the next train | Release-train discipline (gotcha 6): tag dashboardui first, then bump setup. Mid-train bump commits fail strict gates **by design** | S (at train time) |~~ resolved — dashboardui/v4.13.0 tagged + setup re-pinned (v4.14.x), strict gates green at push
+~~| B2 | **Full workspace battery `nix run .#test`** | Launched; dashboardui/core/setup-level modules that mattered verified per-module instead | Battery died in the **ROOT module** setup phase: `golang.org/x/tools@v0.51.0: missing go.sum entry` — foreign usermgmt-session go.mod churn mid-flight. Never re-run clean | Foreign session still mutating usermgmt; re-run on a quiet tree (`nix run .#wait-tree-quiet`) | S |~~ resolved — full CH battery rc=0 across 28 modules (2026-10-06 hardening sessions)
 | B3 | **Integration-test coverage of the new seams inside this repo** | `TestFullstackUI_DashboardRenders` (setup-wired dashboard, built-in shell) passes | No in-repo integration test mounts the dashboard **with a custom Layout** behind consumer auth (my coverage lives in dashboardui's own suite) | Nothing — just not written this session | M |
 | B4 | **Examples discoverability** | README documents the embed contract with a code sketch | No runnable `examples/` app demonstrating `Config.Layout` against a real consumer shell | Nothing | M |
 | B5 | **Markdown formatting proof** | `nix run .#fmt` on the 4 touched md files emitted 0 changes | "emitted 0" means treefmt scanned nothing — clean-by-absence, not clean-by-check | Unclear which formatter (if any) covers md in this treefmt config; low stakes | S |
@@ -38,13 +39,13 @@ Each item is verifiably complete: committed (auto-commit daemon), tests green, g
 
 Planned/designed during this session, consciously deferred — with the reason, and whether it is still wanted.
 
-1. **Per-panel component exports (the "panels layer")** — the DiscordSync audit's middle layer (export `overviewContent`/`projectionHealthPanel`-grade components with stable data shapes so consumers embed single panels in their own templ pages). Deferred: bigger API-stability decision (exported data shapes = permanent surface); wanted — it is the *structural* integration tier beyond shell injection. **This is the main follow-up design conversation.**
+~~1. **Per-panel component exports (the "panels layer")** — the DiscordSync audit's middle layer (export `overviewContent`/`projectionHealthPanel`-grade components with stable data shapes so consumers embed single panels in their own templ pages). Deferred: bigger API-stability decision (exported data shapes = permanent surface); wanted — it is the *structural* integration tier beyond shell injection. **This is the main follow-up design conversation.**~~ OPEN — routed: ROADMAP fuel on first consumer demand (API-stability decision, see §g2)
 2. **Headless JSON endpoints** (`/-/api/overview`, `/-/api/projections`, `/-/api/events`) — deferred because `core/` (importable pure-data) plus root's `ProjectionStatusHandler` already cover most data-integration needs; PapDashboard-class consumers asked for fragments+data, not REST. Still wanted as a cheap tier-3 add-on.
-3. **Error/404 pages through the custom Layout** — documented as deliberately built-in-shell-only this session; routing `notFoundHandler`/`renderError` through the consumer shell would finish the chrome story. Wanted.
+~~3. **Error/404 pages through the custom Layout** — documented as deliberately built-in-shell-only this session; routing `notFoundHandler`/`renderError` through the consumer shell would finish the chrome story. Wanted.~~ documented deliberately built-in-shell (AGENTS.md dashboardui bullet + README § Integration Modes); reopen on consumer demand
 4. **Toast auto-hosting for embed mode** — embed shells must include `feedback.ToastContainer` themselves (documented); a helper or auto-injection was not built. Nice-to-have.
 5. **Consumer follow-through** — telling InboxClean (and annotating the PapDashboard/DiscordSync feedback files) that the exact pain they filed now has a seam. Not started; zero-risk, high-trust value.
-6. **HARVEST of section (f) into TODO_LIST/ROADMAP** — not run: operator said "THEN WAIT FOR INSTRUCTIONS". Flagged so it is not entombed in this timestamped file.
-7. **Tags/CHANGELOG dates** — no version cut (NEVER-tag discipline; uncommitted-tree rule; train ordering in B1). Intentionally not started.
+~~6. **HARVEST of section (f) into TODO_LIST/ROADMAP** — not run: operator said "THEN WAIT FOR INSTRUCTIONS". Flagged so it is not entombed in this timestamped file.~~ done (docs-health round 18 — this annotation routes §f; deltas above)
+~~7. **Tags/CHANGELOG dates** — no version cut (NEVER-tag discipline; uncommitted-tree rule; train ordering in B1). Intentionally not started.~~ done — dashboardui/v4.13.0 cut with CHANGELOG receipt (root CHANGELOG [Unreleased])
 
 ---
 
@@ -81,11 +82,11 @@ Brainstorm per operator request ("up to 50") — a *brainstorm, not a commitment
 
 | # | Task | Impact | Effort | Category |
 |---|------|--------|--------|----------|
-| 1 | Tag dashboardui via `scripts/verify-tag.sh` carrying Autodetect + Layout seam (train wave 1) | Critical | S | Release |
-| 2 | Bump setup's dashboardui require to the new tag; tag setup (train wave 2) | Critical | S | Release |
-| 3 | Post-train: `GOWORK=off` go build/tidy/vet per touched module (hermetic proof) | High | S | Quality |
-| 4 | Re-run full `nix run .#test` battery after `nix run .#wait-tree-quiet` | High | S | Quality |
-| 5 | HARVEST section (f) into TODO_LIST.md (actionable) + ROADMAP.md (ideas) | High | M | Docs |
+~~| 1 | Tag dashboardui via `scripts/verify-tag.sh` carrying Autodetect + Layout seam (train wave 1) | Critical | S | Release |~~ done — dashboardui/v4.13.0 (2026-10-04)
+~~| 2 | Bump setup's dashboardui require to the new tag; tag setup (train wave 2) | Critical | S | Release |~~ done — setup v4.14.0 + v4.14.1 require dashboardui/v4.13.x, strict release-train 0/0 at push
+~~| 3 | Post-train: `GOWORK=off` go build/tidy/vet per touched module (hermetic proof) | High | S | Quality |~~ done — GOWORK=off hermetic proofs ran across the 2026-10-05/06 trains
+~~| 4 | Re-run full `nix run .#test` battery after `nix run .#wait-tree-quiet` | High | S | Quality |~~ done — CH `nix run .#test` rc=0 ×28 modules (2026-10-06, quiet tree)
+~~| 5 | HARVEST section (f) into TODO_LIST.md (actionable) + ROADMAP.md (ideas) | High | M | Docs |~~ done (docs-health round 18 — this blockquote + strikes)
 | 6 | Build `examples/dashboard-embed-demo`: consumer shell + `Config.Layout` + auth middleware, runnable | High | M | Feature |
 | 7 | Write `docs/guides/dashboard-embed-guide.md` (CSP nonce flow, auth placement, toast contract, CSSURLs pitfalls) | High | M | Documentation |
 | 8 | Design + ship the **panels layer**: export per-panel content components with stable data shapes (overview card, events table, projection health, DLQ list) | High | L | Feature |
@@ -95,7 +96,7 @@ Brainstorm per operator request ("up to 50") — a *brainstorm, not a commitment
 | 12 | Golden-test the embed mode (pin a sample consumer-shell document) | Medium | S | Quality |
 | 13 | CSP test for embed mode: nonce propagates through a consumer shell to panel scripts | Medium | S | Quality |
 | 14 | End-to-end toast test: embed + ReadOnly=false + write action → `dashboardui:toast` HX-Trigger contract | Medium | M | Quality |
-| 15 | Decide `NavLink.Href` relative vs absolute before first tag (breaking-after-tag otherwise) | High | S | Feature |
+~~| 15 | Decide `NavLink.Href` relative vs absolute before first tag (breaking-after-tag otherwise) | High | S | Feature |~~ resolved de facto — shipped relative-to-BasePath hrefs in dashboardui/v4.13.0; full API review before v5 (see §f45)
 | 16 | Route `notFoundHandler`/`renderError` through the custom Layout when set | Medium | S | Feature |
 | 17 | Auto-host or warn on missing `ToastContainer` in embed mode (silent toast loss today) | Medium | S | Feature |
 | 18 | Headless JSON endpoints (`/-/api/overview`, `/-/api/projections`, `/-/api/events`) as tier-3 | Medium | M | Feature |
@@ -129,7 +130,7 @@ Brainstorm per operator request ("up to 50") — a *brainstorm, not a commitment
 | 46 | Add an `Integration Modes` row to the dashboardui ↔ adminui cross-reference block in both READMEs | Low | S | Docs |
 | 47 | Sweep setup `doc.go` for panel descriptions needing the embed mention | Low | S | Docs |
 | 48 | e2e/server: optionally switch its dashboard mount to Autodetect (dogfood the ease claim in-repo) | Medium | S | Feature |
-| 49 | Write the CHANGELOG date + cut notes when the train actually goes (item 1/2) | Medium | S | Release |
+~~| 49 | Write the CHANGELOG date + cut notes when the train actually goes (item 1/2) | Medium | S | Release |~~ done — v4.13.0 receipt in dashboardui CHANGELOG + root CHANGELOG [Unreleased]
 | 50 | After first real consumer adoption: retro the seam API against actual usage (rename/reshape window closes at v5) | Medium | M | Feature |
 
 ---
