@@ -102,7 +102,9 @@ func TestPaginationQuery(t *testing.T) {
 			prevHistory: "abc,def",
 			pageSize:    25,
 			extraParams: "",
-			containsAll: []string{"after=evt123", "prev=abc,def", "limit=25"},
+			// Cursor values are percent-encoded; the comma in the prev
+			// history must not split into separate query parameters.
+			containsAll: []string{"after=evt123", "prev=abc%2Cdef", "limit=25"},
 		},
 		{
 			name:        "with extra params",

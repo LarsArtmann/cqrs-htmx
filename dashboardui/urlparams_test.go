@@ -178,7 +178,10 @@ func TestCommandsIndex_FallbackHonorsParsedPageSize(t *testing.T) {
 	}
 
 	// Journal is NOT seekable, so the ReadAll fallback path runs.
-	d := MustNew(Config{CommandJournal: &readAllCommandJournal{cmds: cmds}})
+	d := MustNew(Config{
+		Journal:        &stubJournal{},
+		CommandJournal: &readAllCommandJournal{cmds: cmds},
+	})
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/commands?limit=10", nil)
@@ -223,7 +226,10 @@ func TestQueriesIndex_FallbackHonorsParsedPageSize(t *testing.T) {
 		queries = append(queries, makeTestQuery(t))
 	}
 
-	d := MustNew(Config{QueryJournal: &readAllQueryJournal{queries: queries}})
+	d := MustNew(Config{
+		Journal:      &stubJournal{},
+		QueryJournal: &readAllQueryJournal{queries: queries},
+	})
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/queries?limit=10", nil)

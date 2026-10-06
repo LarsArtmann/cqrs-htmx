@@ -315,7 +315,9 @@ const dashboardJS = `
       eventCount++;
       updateStatus("open");
       updateCount();
-    } catch (err) {}
+    } catch (err) {
+      console.warn("dashboard: failed to parse SSE event payload", err);
+    }
   }
 
   function connect() {
@@ -347,6 +349,13 @@ const dashboardJS = `
     }
   });
 
+  // Reset the received-events counter whenever HTMX swaps a view so the
+  // badge counts events received on the current page, not since first load.
+  document.addEventListener("htmx:afterSwap", function() {
+    eventCount = 0;
+    updateCount();
+  });
+
   window.addEventListener("beforeunload", function() {
     if (es) es.close();
   });
@@ -373,12 +382,32 @@ document.addEventListener("dashboard:event", function(e) {
   var now = data.occurredAt ? new Date(data.occurredAt) : new Date();
   var row = document.createElement("tr");
   row.className = "new-row";
-  var typeLink = basePath
-    ? '<a href="' + basePath + '/events/' + data.eventId + '"><code>' + (data.type || "") + '</code></a>'
-    : '<code>' + (data.type || "") + '</code>';
-  row.innerHTML = '<td class="mono">' + now.toLocaleTimeString() + '</td><td>' + typeLink + '</td>';
-  if (data.streamId) row.innerHTML += '<td class="mono">' + data.streamId.substring(0, 20) + '</td>';
-  if (data.version) row.innerHTML += '<td>' + data.version + '</td>';
+
+  // Build every cell with createElement/textContent so event metadata from
+  // the SSE feed is rendered as text, never parsed as HTML.
+  function cell(text, className) {
+    var td = document.createElement("td");
+    td.textContent = text == null ? "" : String(text);
+    if (className) td.className = className;
+    return td;
+  }
+
+  row.appendChild(cell(now.toLocaleTimeString(), "mono"));
+  var typeTd = document.createElement("td");
+  var code = document.createElement("code");
+  code.textContent = data.type || "";
+  if (basePath) {
+    var link = document.createElement("a");
+    link.href = basePath + "/events/" + encodeURIComponent(data.eventId);
+    link.appendChild(code);
+    typeTd.appendChild(link);
+  } else {
+    typeTd.appendChild(code);
+  }
+  row.appendChild(typeTd);
+  row.appendChild(cell(String(data.streamId || "").substring(0, 20), "mono"));
+  row.appendChild(cell(data.streamType || ""));
+  row.appendChild(cell(data.version || ""));
   tbody.insertBefore(row, tbody.firstChild);
   while (tbody.children.length > 50) tbody.removeChild(tbody.lastChild);
 });
