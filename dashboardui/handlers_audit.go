@@ -44,7 +44,10 @@ func (d *Dashboard) commandsIndexHandler(
 
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
-	after, _ := id.ParseCommandID(afterCursor)
+	after, okCursor := parseAfterCursor(d, w, r, afterCursor, id.ParseCommandID)
+	if !okCursor {
+		return
+	}
 
 	var (
 		cmds    []*command.PersistedCommand
@@ -58,9 +61,6 @@ func (d *Dashboard) commandsIndexHandler(
 			cmds, err = seekable.ReadFrom(r.Context(), after, pageSize+1)
 		} else {
 			cmds, err = d.config.CommandJournal.ReadAll(r.Context())
-			if err == nil && len(cmds) > pageSize {
-				cmds = cmds[:pageSize]
-			}
 		}
 
 		if err != nil {
@@ -117,7 +117,10 @@ func (d *Dashboard) queriesIndexHandler(
 
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
-	after, _ := id.ParseRequestID(afterCursor)
+	after, okCursor := parseAfterCursor(d, w, r, afterCursor, id.ParseRequestID)
+	if !okCursor {
+		return
+	}
 
 	var (
 		queries []*query.PersistedQuery
@@ -131,9 +134,6 @@ func (d *Dashboard) queriesIndexHandler(
 			queries, err = seekable.ReadQueriesFrom(r.Context(), after, pageSize+1)
 		} else {
 			queries, err = d.config.QueryJournal.ReadAllQueries(r.Context())
-			if err == nil && len(queries) > d.config.PageSize {
-				queries = queries[:d.config.PageSize]
-			}
 		}
 
 		if err != nil {
