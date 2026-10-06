@@ -3,7 +3,7 @@
 > Point-in-time snapshot (session window ~12:00–12:48 CEST). Append-only per `docs/status/README.md`.
 > Scope: THIS session's run only — the P1 root-cause fix, the CI lint red, the templ-components tail
 > advancement, the #52 closure, and the docs debt. Companion HTML dashboard (written mid-session,
-> before this self-review): [`2026-10-05_12-39_maximization-pass-status.html`](2026-10-05_12-39_maximization-pass-status.html).
+> before this self-review): [`2026-10-05_12-39_maximization-pass-status.html`](../2026-10-05_12-39_maximization-pass-status.html).
 
 **TL;DR:** The P1 usermgmt failures were root-caused (NOT the TODO's role-grant theory — `StreamID.String()`
 display-form drift under the in-flight id-module replace) and fixed at 9 sites with a both-worlds-green

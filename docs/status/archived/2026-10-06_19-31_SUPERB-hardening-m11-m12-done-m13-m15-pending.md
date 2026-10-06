@@ -8,7 +8,7 @@
 > [`2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md`](2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md).
 
 **Created:** 2026-10-06 19:31 · **Scope:** execution status of
-[`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md)
+[`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md)
 — this session was assigned **M11–M15 only** (F35–F53). M01–M10 were NOT part of
 this session and their state is unknown here (not researched, per instruction).
 **Repo key:** GCL = go-cqrs-lite, CH = cqrs-htmx.

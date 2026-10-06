@@ -1,6 +1,6 @@
 # SUPERB Hardening M11–M15 — COMPLETE (status report)
 
-**Date:** 2026-10-06 21:35 · **Scope:** M11–M15 (findings F35–F53) of [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md) · **Supersedes:** [`2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md`](2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md)
+**Date:** 2026-10-06 21:35 · **Scope:** M11–M15 (findings F35–F53) of [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md) · **Supersedes:** [`2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md`](2026-10-06_19-31_SUPERB-hardening-m11-m12-done-m13-m15-pending.md)
 
 **Verdict: M11, M12, M13, M14, M15 all DONE, tested, committed, and receipted.** The session scope (M11–M15) is complete. GCL = go-cqrs-lite repo; CH = cqrs-htmx repo.
 

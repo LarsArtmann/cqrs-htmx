@@ -3,7 +3,7 @@
 **Date:** 2026-10-05 15:48 CEST
 **Author:** Crush (round 2 — continuation of the branching-flow analysis + push-unblock session)
 **Predecessor plan:** [`2026-10-05_15-04_SUPERB-branching-flow-ratchet-pareto-plan.md`](./2026-10-05_15-04_SUPERB-branching-flow-ratchet-pareto-plan.md) (tasks T1–T25)
-**Predecessor report:** [`docs/status/2026-10-05_15-42_push-unblock-broken-templ-components-release.md`](../status/2026-10-05_15-42_push-unblock-broken-templ-components-release.md)
+**Predecessor report:** [`docs/status/2026-10-05_15-42_push-unblock-broken-templ-components-release.md`](../../status/archived/2026-10-05_15-42_push-unblock-broken-templ-components-release.md)
 **Format note:** `pareto-planning` is HTML-canonical; the operator explicitly requested `.md` + a Mermaid/d2 graph. Override honored and recorded.
 
 > **ANNOTATED 2026-10-05** — Executed across the 2026-10-05 push-unblock + ratchet sessions (verdicts inline below; fine-grained §3 rows inherit their parent's verdict). Done: R1 push (owner `--no-verify` path, CI release-train red owner-accepted), R3+R8 ratchet gate (`94a92e6f`), R4 drift guard (`84b7fe3a`), R5 rescoped to a documented key contract (`9f25f526`), R6 options struct (+ exhaustruct exemption + baseline re-pin 663→659, `05213817`), R7 KEPT the 12 dep commits, R9 ledger, R13 AGENTS gotcha 26, R14 harvest (`471c0933`), R16 this annotation, R17 upstream issue filed (**templ-components#27**), R24 absorbed into R13. Open items routed: TODO_LIST (R2, R11, R12, R15, R18, R20) + ROADMAP residual block (R10, R19, R21–R23, R25) + ROADMAP OQ28 (Q2).

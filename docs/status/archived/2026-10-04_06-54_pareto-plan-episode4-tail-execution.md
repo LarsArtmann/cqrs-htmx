@@ -4,7 +4,7 @@
 
 **Date:** 2026-10-04 06:54 CEST · **Branch:** master, pushed to `origin` (`4e1d41f4..c9274e37`, release-train strict green)
 **Session scope:** episode-4 templ-components deep-dive → Pareto plan (26 tasks / 45 micro-tasks) → execution of Tier 1% + 4% (T1–T4)
-**Plan artifact:** [`docs/planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md`](../../planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md)
+**Plan artifact:** [`docs/planning/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md`](../../planning/archived/2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md)
 **Format note:** `.md` per explicit user path demand (status-report skill is HTML-canonical; standing dispatch-report exception applies).
 
 ---

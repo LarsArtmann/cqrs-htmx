@@ -1,6 +1,6 @@
 # Status: M05–M10 session — brutal self-review + full state inventory
 
-**Date:** 2026-10-06 23:23 CEST · **Session scope:** finishing lane M06–M10 of the [2026-10-06 hardening plan](../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md) + final battery. Both repos. **Predecessor:** [23-20 completion report](2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md) — this file adds the honest layer that one under-carried.
+**Date:** 2026-10-06 23:23 CEST · **Session scope:** finishing lane M06–M10 of the [2026-10-06 hardening plan](../../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md) + final battery. Both repos. **Predecessor:** [23-20 completion report](2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md) — this file adds the honest layer that one under-carried.
 
 **Verdict up front:** the code work is solid, verified, and receipted. But my "lane done" declaration had a real hole — plan fine-task **F22 was never executed nor dispositioned**, and the verification battery I chose (build+vet+tests+gofmt) omitted lint/format/coverage gates and two `-race` runs. None of it is lies; some of it was scoping I chose not to re-audit.
 

@@ -1,7 +1,7 @@
 # branching-flow Triage Decisions — Verdict Ledger
 
 **Source pass:** 2026-10-05 full-analysis run (`branching-flow` 0.2.0, build
-`05d8209`; report: [`../status/2026-10-05_14-59_branching-flow-full-analysis.md`](../status/2026-10-05_14-59_branching-flow-full-analysis.md)).
+`05d8209`; report: [`../status/2026-10-05_14-59_branching-flow-full-analysis.md`](../status/archived/2026-10-05_14-59_branching-flow-full-analysis.md)).
 **Frozen by:** [`branching-flow-baseline.sarif`](./branching-flow-baseline.sarif)
 — the `.#check-branching-flow` gate fails only on NEW findings.
 

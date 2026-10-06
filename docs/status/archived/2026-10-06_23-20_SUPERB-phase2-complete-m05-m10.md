@@ -1,6 +1,6 @@
 # Status: SUPERB hardening phase 2 complete — M05–M10 executed (dashboardui/metaengine/system wave)
 
-**Date:** 2026-10-06 ~23:20 · **Plan:** [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md) · **Predecessor:** [22-34 phase-1-complete report](2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md)
+**Date:** 2026-10-06 ~23:20 · **Plan:** [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md) · **Predecessor:** [22-34 phase-1-complete report](2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md)
 
 > **ANNOTATED 2026-10-06 (docs-health round 18)** — the F22 gap named by the 23:23 brutal review is tracked (TODO_LIST); open items here stay: flightrecorder v0.2.1 train + push (standing blocker), M16–M27 unscheduled, GCL TODO issuance + engine-pin drift. The 3 "open questions" were resolved as documented: Q2/Q3 struck below; Q1 remains the owner lane.
 **Lane (M01–M10): DONE.** M01–M03 (CH) + M04/M09 (GCL) receipted in the predecessor. This session finished M05–M10. The foreign session completed M11–M15 earlier (21-35 report). M16–M27 remain unscheduled.

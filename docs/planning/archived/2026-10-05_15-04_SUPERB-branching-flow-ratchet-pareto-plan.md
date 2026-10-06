@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-05 15:04 CEST
 **Author:** Crush (session: branching-flow full analysis pass)
-**Source report:** [`docs/status/2026-10-05_14-59_branching-flow-full-analysis.md`](../status/2026-10-05_14-59_branching-flow-full-analysis.md)
+**Source report:** [`docs/status/2026-10-05_14-59_branching-flow-full-analysis.md`](../../status/archived/2026-10-05_14-59_branching-flow-full-analysis.md)
 **Tool under plan:** `branching-flow` v0.2.0 (build `05d8209`) — 14 analyzers, ~3.4 s root walk.
 **Format note:** The `pareto-planning` skill's canonical output is a styled HTML report. The operator explicitly requested a `.md` file with a mermaid.js or d2 execution graph, so this plan is `.md` with an inline Mermaid graph. Override recorded here so it is not mistaken for a new default.
 
