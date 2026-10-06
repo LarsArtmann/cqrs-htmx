@@ -1,0 +1,128 @@
+# Status Report — Release-Train Alignment Push & CI Green Repair
+
+**Generated:** 2026-10-06 03:04 CEST
+**Scope:** This session only — unblocking the release-train-blocked push, the follow-on patch train, and driving master CI from multi-red to fully green.
+**End state:** `origin/master @ e2f6be27`, tree clean, git town sync finished, CI run 37392674249 **all 7 jobs green** — first fully-green master after a streak of red runs (37306363289, 37320411299, 37388283354, 37389694933, 37390726699 all failed).
+
+---
+
+## 0. Session narrative (60 seconds)
+
+The push was blocked by the pre-push release-train gate: 5 go-cqrs-lite pins lagged published tags. A **concurrent session** executed the 5 `bump-dep` sweeps while this session waited (tree-quiet protocol) — those bumps are committed (`87ea8234`, `9a543e1f`, `a63d101e`). This session then verified them (absence assertions, tag-content diffs, gates) and discovered the real trap: publishing go-cqrs-lite **id v4.7.0** (StreamMarker display-form branding) made CI's `GOWORK=off` integration_test job **red against the published cqrs-htmx modules**, because `usermgmt v4.14.0` / `identity-model v4.12.0` on the proxy predate the 2026-10-05 gotcha-25 `.Get()` fixes. Pushing the sweep alone would have landed CI-red.
+
+Fix: a wave-ordered patch train — **`identity-model/v4.12.1` + `usermgmt/v4.14.1`** tagged via `verify-tag.sh`, all consumers re-pinned (21 module edits), full verification in BOTH resolution modes, then push. Four further master-red gates surfaced one CI run at a time (mod-tidy go.sum drift, exhaustruct_v5 `LabelClass`, a `CI=true` env leak in the new branching-flow self-test, a stale docs "uniform at" claim, CSS bundle class-set drift) — all fixed and locally replicated before the final green pushes. Lessons recorded as **AGENTS gotcha 27 (+27c)**.
+
+---
+
+## a) FULLY DONE
+
+| # | Work | Evidence |
+|---|------|----------|
+| 1 | Train-lag fix for the 5 lagged pins (claiming v4.0.2, encryption v4.4.3, sqliteengine v4.5.1, scenario v4.4.2, signing v4.3.4) — executed by the concurrent session, verified here | gate: 878 requires, 0 unpublished / 0 lag; absence assertion clean |
+| 2 | Gotcha-24 tag-content verification for all 5 target tags | tag diffs: import reordering + LICENSE + go.mod/go.sum only — no hidden code migrations |
+| 3 | Root cause of the tag-level integration_test red (`TestSigningEncryption_AuthzProjectionSurvivesCrypto`: roles for carol = `[]`) | published `usermgmt v4.14.0`/`identity-model v4.12.0` predate the `.Get()` fixes; CI runs the submodule with `GOWORK: off` (ci.yml:253) — proven by workspace-green vs tag-red with identical go-cqrs-lite sources |
+| 4 | Empirical isolation: usermgmt-local fixes alone repair the failing test; identity-model fix is complementary hardening | temporary `replace` experiments under `GOWORK=off` |
+| 5 | Patch train, wave-ordered: `identity-model/v4.12.1` + `usermgmt/v4.14.1` tagged & pushed via `scripts/tools/verify-tag.sh` (zero `--no-verify`) | tags on origin, ls-remote confirmed |
+| 6 | CHANGELOG receipts: root annotation, `usermgmt/CHANGELOG.md` [v4.14.1], `identity-model/CHANGELOG.md` [v4.12.1] (+ honest v4.12.0 stub) | commits `bedcb4a4` |
+| 7 | Consumer re-pins: identity-model → 9 direct + 2 indirect modules; usermgmt → 10 modules; all hermetic tidy+verify+build+vet PASS | commits `6e1336e1`, `6cb6da70` |
+| 8 | CI-parity verification battery: `GOWORK=off -race` full suites for integration_test, usermgmt, identity-model; `GOWORK=off` build+vet for e2e/server + all 13 examples | all rc=0 |
+| 9 | dashboardui union-graph repair: go.sum `gjson v1.20.0` entry + golden regeneration for the StreamMarker display form (the CHANGELOG-queued "regenerate with the train" item) | commit `92964591`; class gate + tests green |
+| 10 | systemadapter test repair: 3 sites where `StreamID.String()` (display form) fed identity comparisons and casbin `Enforce` → `Get()` (gotcha-25 rule, test-side corollary) | commit `7eac270e`; full suite `-race` green |
+| 11 | Full workspace battery `nix run .#test` green across all modules | final run clean |
+| 12 | CI repair wave: 13-module `/go.mod` hash repair in go.sums (`79986947`), `CopyButtonProps.LabelClass` literal completeness (`1f05cf5b`), branching-flow self-test `env -u CI` posture fix (pushed in `7c09b036`), docs "uniform at v1.20.1" claim (`7c74307a`), both Tailwind bundles rebuilt (`a34d664d`) | each verified locally before push; CI jobs flipped green in order |
+| 13 | Whole self-test battery swept under `CI=true` (runner posture): all 20 green — the branching-flow case was the only env leak | offline, both postures verified |
+| 14 | `nix run .#check-modules` mega-gate fully green (it caught the CSS drift before the push — the exact failure the next CI run would have shown) | rc=0, "All module architecture checks passed" |
+| 15 | Push complete: `git town continue` finished the interrupted sync; 5 pushes total; `master == origin/master` | e2f6be27; town: "finished successfully" |
+| 16 | Lessons recorded: AGENTS gotcha 27 (fresh-tag cache races the re-pin commit; union-graph go.sum drift; tag-mode = CI reproduction) + 27c (one-pass multi-red replication recipe) | commits `f186e635`, `e2f6be27` |
+
+## b) PARTIALLY DONE
+
+1. **`bump-dep.sh` hardening** — the silent-failure bug is *diagnosed but not fixed*: `--commit` prints "committed the sweep as one commit" without checking the commit's exit code; it also doesn't refresh the tag cache when the pre-commit gate fails on a JUST-pushed tag. Worked around manually twice (daemon raced the commit both times; messages amended). One-line rc check + auto-refresh + retry would close it.
+2. **Runbook propagation** — the fresh-tag-cache race sequence (tag → `check-release-train --refresh-cache` → re-commit) lives only in AGENTS gotcha 27; `docs/runbooks/dependency-train-bump.md` and `release-playbook.md` §3a (where the next train actually executes) don't carry it yet.
+3. **Tag-level content verification coverage** — only the 5 lagged tags got the gotcha-24 diff ritual. The HEAD sweep (`86744015`) also moved templ-components v1.20.1, go-webauthn v0.18.2, go-codec v0.3.1 and ~20 more modules; those tags were verified only at build/test level. `LabelClass` surfaced as an *accidental* catch via lint — there may be more additive/breaking surface nobody diffed. go-codec is **encoding-critical** (the gotcha-24 mechanism).
+4. **Gotcha-25 display-form cleanup in tests** — fixed the 3 failing systemadapter sites; the file still has latent `.String()`-into-identity patterns that happen to pass (`identitymodel.NewTenantID(tenantID.String())` ~line 285). No workspace-wide test-code sweep done.
+5. **CHANGELOG receipts for the CI-repair wave** — the LabelClass fix touches *published* dashboardui code; per gotcha 20 it rides the next train, but there is no `dashboardui/CHANGELOG.md` Unreleased entry yet (nor for the go.sum/bundle repairs, though those are arguably build-infra).
+6. **identity-model CHANGELOG v4.12.0 stub** — filled with an honest "no entry was recorded at cut time" placeholder; the real v4.12.0 content (from the tag diff) was never reconstructed.
+7. **TODO_LIST bookkeeping** — the gotcha-25 "regenerate goldens with the train" item was consumed by this session; TODO_LIST was NOT updated/struck, and this report's (f) list has not been HARVESTed into TODO_LIST/ROADMAP (per the status-report skill, the loop is not closed until it is).
+
+## c) NOT STARTED (all discovered in this session, none acted on)
+
+1. **pkg.go.dev spot-check** for `identity-model/v4.12.1` + `usermgmt/v4.14.1` (license + docs render) — release-playbook §5 post-train hygiene.
+2. **GitHub Release objects** for the two patch tags — convention unverified (did previous trains cut Releases?).
+3. **Proxy fetch validation** — `go get` of both new tags in a clean module (go-ecosystem-upgrade Phase 6 gate).
+4. **Mechanizing gotcha 27c**: a `scripts/tools/ci-parity-check.sh` + flake app (`CI=true` self-test battery → `tidy -diff` loop → `.#lint` → `.#test` → `.#check-modules`) — today it exists only as prose.
+5. **`nix run .#test-all`** (race incl. e2e/examples) against the new pin set — never run this session.
+6. **e2e/Playwright suite** — dashboardui's rendered URLs now carry `StreamMarker:` in path segments (`/dashboard/snapshots/user/StreamMarker:<ulid>/delete`); browser specs may pin URL shapes.
+7. **Stale agents-notes claim**: "loginpage does not use it (hand-rolls … custom `lp-*` CSS)" — loginpage ADOPTED templ-components on 2026-10-04. Found while writing this report (I edited the heading directly above it and missed it). `check-docs-freshness` is blind to non-version claims.
+8. **CI lint matrix `fail-fast: false`** — one module's golangci-lint failure skips all later modules in the matrix, hiding multi-red surfaces.
+9. **Self-test env-leak audit** — mechanize a grep/gate for self-test cases asserting local-mode behavior without `env -u CI` (the class that bit branching-flow).
+10. **`ParseUserID` prefix-strip pinning** — the new tolerance strips ANY `<x>:` prefix generically; no fuzz/fixture test was added in this session (the original fix commit `eba45c80` was never opened to confirm its test coverage).
+11. **go-codec v0.3.0→v0.3.1 content diff** — encoding-critical dep that rode the sweep; never diffed (see b.3).
+12. **agents-notes long-form narrative** for today's arc (the signing→StreamMarker→alignment-push chain; gotcha 4 §6 daemon-attribution reconstruction of the heuristic commits).
+13. **dashboardui handler round-trip test** for StreamMarker-prefixed stream-ref URLs (the delete-form action URL now contains a colon segment).
+
+## d) TOTALLY FUCKED UP
+
+1. **Accidental amend of a PUSHED commit.** I ran `git commit --amend --no-edit || true` opportunistically while HEAD was already-pushed `7c09b036`, rewriting it into `e9242506` and diverging from origin — one careless push away from needing a force-push (a hard safety rule). Recovered cleanly via `git reset --soft origin/master` (identical trees, zero loss) but the root cause is mine: running history-rewriting commands without first checking ahead/behind state. Rule violated: amend only ever on unpushed HEAD, and only deliberately.
+2. **Push-whack-a-mole: 4 consecutive red CI runs on master** (23:24, 23:39, 23:50, +1 final-fix). I verified the gates touching MY changes (train, drift, both test modes) but not the full CI surface, even though (i) master was already multi-red and (ii) the complete replication battery existed: `check-modules` alone would have caught the CSS drift, and the `tidy -diff` loop + `CI=true` self-test sweep + `.#lint` were each only assembled *after* their CI failure. Cost: ~50 min wall time, 4 noisy red runs, and the exact "push can never be greener than CI" spirit inverted — CI became my test suite. Only after the third failure did I build the one-pass recipe (now gotcha 27c) that found every remaining red in a single local pass.
+3. **Dirty baseline + sloppy assertion during the bisect** (near-miss, self-caught): my "old tags" baseline run was MVS-contaminated (go-codec v0.3.1 still resolved transitively), so `rc=1` nearly got mis-read as "pre-existing at old pins, therefore not our problem" — the graph check reversed the conclusion. Same session: my absence-assertion regex was both ambiguous (`4\.2` matched scenario's NEW version) and blind to `// indirect` suffixes — produced one false positive and one false negative before the precise rewrite. The runbook literally warns about digit-safe patterns; I re-learned it live.
+4. **Tool-discipline noise:** three edit-before-read rejections (both CHANGELOGs, AGENTS.md) — the exact failure mode my own instructions call out first. Slow, sloppy, avoidable.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Pre-push = full CI surface, not "my" gates.** On a multi-red master, run the gotcha-27c battery (CI=true self-tests → `tidy -diff` loop → `.#lint` → `.#test` → `.#check-modules`) BEFORE push #1. Every red CI run after a push should be considered a process failure, not bad luck.
+2. **Make `bump-dep --commit` trustworthy**: rc-check the commit, auto-refresh the tag cache on `UNPUBLISHED` failure, retry once, and honestly report "daemon absorbed it" vs "committed". Extend `test-bump-dep.sh` accordingly.
+3. **Propagate lessons to where they execute.** Gotcha-27 lessons belong in the two runbooks that run trains, not only in AGENTS.md.
+4. **Self-test posture hygiene**: any case named "…locally" must `env -u CI`; make it a greppable convention + fixture audit, because runners export `CI=true` globally.
+5. **Daemon-race protocol**: after any sweep, verify commit attribution/message BEFORE pushing; amend heuristic messages only on unpushed commits, and only after `git status -sb` confirms the ahead/behind state.
+6. **Receipt-at-fix-time**: write CHANGELOG Unreleased entries when published-module code changes, even when the train is "later" — at train time nobody remembers (gotcha 20 exists for exactly this).
+7. **Tag-level (`GOWORK=off`) verification as default** for consumer modules of family deps — workspace green proves nothing while go.work replaces the family (gotcha 24 corollary, now lived twice).
+8. **Docs-freshness blind spot**: the gate pins version claims but missed "loginpage does not use templ-components" — a non-version claim that drifted the same day. Either extend the gate's claim patterns or schedule claim audits.
+
+## f) NEXT THINGS (impact-ordered, session-scoped — harvest into TODO_LIST/ROADMAP)
+
+**P1 — protect the green master (this week)**
+1. HARVEST this section into `TODO_LIST.md` (docs-health) — otherwise it's entombed here.
+2. Fix the stale agents-notes claim "loginpage does not use templ-components" (adjacent to the heading I updated — verified false by AGENTS.md + root CHANGELOG).
+3. `nix run .#test-all` (race incl. e2e/examples) against the new pin set.
+4. e2e/Playwright run; verify the `StreamMarker:`-in-URL grammar against specs and dashboard handlers (round-trip test).
+5. Tag-diff the remaining sweep bumps: templ-components family v1.20.1, go-webauthn v0.18.2, **go-codec v0.3.1** (encoding-critical), per gotcha 24.
+6. pkg.go.dev spot-check both new tags; clean-module `go get` validation of both.
+7. Add CHANGELOG Unreleased receipts: dashboardui LabelClass fix (+ go.sum/bundle repairs if judged consumer-visible).
+8. Mechanize gotcha 27c as `scripts/tools/ci-parity-check.sh` + flake app + CI step (atomic-gate checklist: script + self-test + app + stage + CI + README).
+9. `bump-dep.sh`: commit rc-check + tag-cache auto-refresh + retry + honest daemon-absorbed reporting; extend fixture self-test.
+10. Runbooks: add the wave sequence (tag → refresh cache → commit) to `dependency-train-bump.md` + `release-playbook.md` §3a.
+
+**P2 — close the loose ends (next)**
+11. CI lint matrix `fail-fast: false` (stop hiding later modules' findings).
+12. Self-test env-leak audit (mechanized) for all `scripts/selftests/`.
+13. `ParseUserID` prefix-strip: confirm `eba45c80`'s test coverage; add fuzz/fixture pins (multi-colon, non-ULID tails); decide generic-vs-whitelisted (see question 3).
+14. systemadapter test audit: remaining `.String()` identity sites (e.g. `NewTenantID(tenantID.String())`); then a workspace-wide test-code sweep for the gotcha-25 class.
+15. dashboardui handler round-trip test for StreamMarker-prefixed stream refs.
+16. Fill the identity-model CHANGELOG v4.12.0 stub from the real tag diff.
+17. GitHub Releases for the two patch tags — first verify the repo's actual convention.
+18. Strike/annotate the consumed gotcha-25 TODO_LIST item (golden regeneration) — TODO_LIST keeps only open items.
+19. agents-notes long-form narrative: signing→StreamMarker→alignment-push arc with commit hashes.
+20. Sweep agents-notes/README for other dated "verified"/"uniform" claims that may have silently drifted (the freshness gate only pins some patterns).
+21. Verify go.work.sum stayed untracked after the daemon's commits (CI has a step; cheap local re-check).
+22. Confirm no tag-triggered workflows exist that the 2 new tags should have satisfied (tag pushes bypass push-triggered CI).
+
+**P3 — structural (ROADMAP fuel)**
+23. Extend `check-docs-freshness` to non-version claims, or accept + document the blind spot.
+24. Consider bump-dep running consuming modules' TESTS (today build+vet only — failure mode F3).
+25. Consider `GOPROXY=direct` fallback in bump-dep for fresh-tag proxy 404s.
+26. CI job design: run-to-completion failure summaries (several jobs aborted at first failing step, hiding later reds).
+27. A short "master is red" playbook referencing gotcha 27c (on-call entry point).
+28. Golden/display-form contract proposal upstream (go-cqrs-lite): separate URL-safe display form vs branded `.String()` (depends on question 2).
+29. Confirm `crypto/mldsa`/go-webauthn v0.18.2 + other third-party bumps from the sweep got the same tag-level scrutiny as the family (they ride CI, but nobody diffed them).
+30. Post-report state check: daemon activity review (last heuristic commits are all accounted for today, but re-verify at next session start).
+
+## g) QUESTIONS I CANNOT ANSWER MYSELF
+
+1. **Did the concurrent session that ran the 24-module sweep (`86744015`) do gotcha-24 tag-content diffs for the non-go-cqrs-lite bumps** (templ-components v1.20.1, go-webauthn v0.18.2, go-codec v0.3.1)? If it didn't, I should run that ritual now — go-codec especially, given the gotcha-24 mechanism was an encoding change.
+2. **Is the `StreamMarker:`-prefixed URL grammar the intended consumer-facing contract?** The regenerated dashboardui goldens now pin URLs like `/dashboard/snapshots/user/StreamMarker:<ulid>/delete`. If bare IDs are preferred in URLs (labels keep the brand), I should re-pin those goldens with `.Get()`-derived hrefs and possibly propose a URL-safe display form upstream — a design call I can't derive from the repo.
+3. **Should `ParseUserID` strip ANY `<brand>:` prefix generically (current behavior), or whitelist known brand prefixes?** Generic stripping changes acceptance behavior for arbitrary colon-carrying strings (e.g. `"a:b:c"` → parses `"b:c"`, fails ULID → clean error, so it's safe-ish, but it's a semantic choice with security smell I shouldn't make alone).
+
+---
+
+*Point-in-time snapshot; annotate, never rewrite (docs-health ANNOTATE mode). Report file is `.md` per explicit operator demand — skill's HTML default intentionally overridden for this report only.*
