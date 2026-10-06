@@ -85,9 +85,12 @@ func (m *SQLMembershipReadModel) Handle(ctx context.Context, evt event.Event) er
 	if !ok {
 		return nil
 	}
-	data, err := marshalViewJSON(mem, "usermgmt.sql_readmodel.membership_marshal", "marshal membership data")
-	if err != nil {
-		return err.WithContextAny("agg_id", aggID)
+	// marshalErr (not err) so the typed *errorfamily.Error is not boxed into
+	// the error-typed err declared above — WithContextAny needs the concrete
+	// type, and re-wrapping would stack a second Infrastructure layer.
+	data, marshalErr := marshalViewJSON(mem, "usermgmt.sql_readmodel.membership_marshal", "marshal membership data")
+	if marshalErr != nil {
+		return marshalErr.WithContextAny("agg_id", aggID)
 	}
 	view := MembershipView{ActorID: mem.ActorID.String(), TenantID: mem.TenantID.Get(), Data: data}
 	return upsertView(ctx, m.store, aggID, view,
@@ -181,9 +184,9 @@ func (m *SQLTenantReadModel) Handle(ctx context.Context, evt event.Event) error 
 	if !ok {
 		return nil
 	}
-	data, err := marshalViewJSON(tenant, "usermgmt.sql_readmodel.tenant_marshal", "marshal tenant data")
-	if err != nil {
-		return err.WithContextAny("agg_id", aggID)
+	data, marshalErr := marshalViewJSON(tenant, "usermgmt.sql_readmodel.tenant_marshal", "marshal tenant data")
+	if marshalErr != nil {
+		return marshalErr.WithContextAny("agg_id", aggID)
 	}
 	view := TenantView{
 		Name: tenant.Name, DisplayName: tenant.DisplayName,
@@ -271,9 +274,9 @@ func (m *SQLBotReadModel) Handle(ctx context.Context, evt event.Event) error {
 	if !ok {
 		return nil
 	}
-	data, err := marshalViewJSON(bot, "usermgmt.sql_readmodel.bot_marshal", "marshal bot data")
-	if err != nil {
-		return err.WithContextAny("agg_id", aggID)
+	data, marshalErr := marshalViewJSON(bot, "usermgmt.sql_readmodel.bot_marshal", "marshal bot data")
+	if marshalErr != nil {
+		return marshalErr.WithContextAny("agg_id", aggID)
 	}
 	view := BotView{
 		Name: bot.Name, OwnerID: bot.OwnerID.Get().String(),
@@ -310,14 +313,11 @@ func queryViewByName[T any](
 // deleteViewOnTombstone removes a view row when evt carries the aggregate's
 // tombstone event, wrapping any store failure as a Transient error with the
 // caller's error code and human-readable message. It reports whether evt was
-// the tombstone; when true the Handle caller returns immediately. The error
-// returns use the concrete *errorfamily.Error type so the Handle methods'
-// later `data, err := marshalViewJSON(...)` reuses a correctly-typed err
-// (an `error`-typed err would box the marshal helper's typed error and hide
-// WithContextAny). Shared by the per-aggregate Handle methods whose only
-// differences are the tombstone event, the view key, and the error tags. The
-// per-type find/marshal calls keep their inline guard clauses on purpose;
-// only the store/error contract is shared.
+// the tombstone; when true the Handle caller returns immediately. Shared by
+// the per-aggregate Handle methods whose only differences are the tombstone
+// event, the view key, and the error tags. The per-type find/marshal calls
+// keep their inline guard clauses on purpose; only the store/error contract
+// is shared.
 func deleteViewOnTombstone[V any, K fmt.Stringer](
 	ctx context.Context,
 	store *storage.SQLViewStore[V, K], //nolint:staticcheck // ADR-0123 v5
@@ -325,7 +325,7 @@ func deleteViewOnTombstone[V any, K fmt.Stringer](
 	tombstone event.Type,
 	key K,
 	errCode, errMsg string,
-) (bool, *errorfamily.Error) {
+) (bool, error) {
 	if evt.Type() != tombstone {
 		return false, nil
 	}

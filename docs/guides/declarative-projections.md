@@ -90,14 +90,37 @@ test helpers in `systemadapter/declarative_test.go`
 
 ## Custom checkpoint / dead-letter stores
 
-`NewProjectionLayer` takes `WithCheckpointStore`/`WithDeadLetterStore` options.
-The declarative path does not expose custom-store injection yet — the system's
-internal projection host currently uses an in-memory checkpoint store (full
-journal replay on restart) and its own dead-letter handling. If you need
-persistent checkpoints today, stay on ProjectionLayer until go-cqrs-lite's
-`system.New` grows the option (tracked in
-`docs/guides/leveraging-system-metaengine.md`); the equivalence test keeps
-both paths honest in the meantime.
+Both paths take the SAME option vocabulary:
+
+```go
+sys, err := system.New(ctx, systemadapter.DomainConfig(
+    systemadapter.WithCheckpointStore(durableCheckpointStore),
+    systemadapter.WithDeadLetterStore(durableDLQStore),       // replaces the in-memory default
+    systemadapter.WithHostOptions(                            // appended after curated defaults,
+        projectionhost.WithBatchSize(512),                    // per-field consumer options win
+    ),
+), deployment)
+```
+
+- `WithCheckpointStore` becomes `system.DomainConfig.CheckpointStore`. Left
+  nil, `system.New` persists checkpoints as entries of a `system_checkpoints`
+  Map collection on the deployment-declared engine when one carries the Map
+  ADT (ADR-0142); engines without it fall back to in-memory (replay on
+  restart). Passing your own store always wins.
+- `WithDeadLetterStore` replaces systemadapter's default in-memory DLQ
+  (threshold 10) on the declarative path; the legacy
+  `NewProjectionLayer(..., WithDeadLetterStore(...))` call is unchanged.
+- `WithHostOptions` appends `projectionhost.HostOption`s (batch size,
+  restarts, backoff, logger, metrics) after systemadapter's curated defaults —
+  the same tuning the legacy layer ships.
+
+Durability semantics worth knowing: a checkpoint records "everything before me
+is processed", so after a restart the host resumes instead of replaying. Pair
+durable checkpoints with durable read models (or trigger a rebuild) — a fresh
+in-memory read model plus an up-to-date checkpoint processes nothing new and
+stays empty. The restart wiring itself is pinned by
+`TestDeclarative_DurableCheckpointSurvivesRestart`: same SQLite journal, same
+checkpoint store, second `system.New` resumes at exactly the saved positions.
 
 ## Engine support
 

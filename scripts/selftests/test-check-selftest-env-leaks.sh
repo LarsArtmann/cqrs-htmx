@@ -40,7 +40,13 @@ check() { # check <case-no> <expect-rc> <needle> <rc> <output>
 
 mk_checker() { # $1 = dir
   mkdir -p "$1/scripts/checks" "$1/scripts/selftests"
-  printf '#!/usr/bin/env bash\nif [ "${CI:-false}" = "true" ]; then exit 0; fi\nexit 0\n' >"$1/scripts/checks/check-fakegate.sh"
+  # The literal ${CI:-false} is the POINT (SC2016): the fixture checker must
+  # contain the expansion TEXT, not the audit's own CI value.
+  # shellcheck disable=SC2016
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'if [ "${CI:-false}" = "true" ]; then exit 0; fi' \
+    'exit 0' >"$1/scripts/checks/check-fakegate.sh"
 }
 
 # Case 1: guarded self-test passes.

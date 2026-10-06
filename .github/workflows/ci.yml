@@ -604,6 +604,14 @@ jobs:
       - name: Family release consumable self-test
         run: bash scripts/selftests/test-check-family-release-consumable.sh
 
+      # Gotcha-27c mechanized: self-tests of CI-branching checkers must strip
+      # CI (env -u CI) or they cover the wrong branch on GitHub runners.
+      - name: Self-test env-leak audit
+        run: bash scripts/checks/check-selftest-env-leaks.sh
+
+      - name: Self-test env-leak audit self-test
+        run: bash scripts/selftests/test-check-selftest-env-leaks.sh
+
       # branching-flow (go-design-smells) ratchet: fails only on NEW findings
       # vs the committed SARIF baseline (docs/analysis/). Runners have no
       # branching-flow binary — the check self-skips under CI=true and the

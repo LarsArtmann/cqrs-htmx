@@ -36,7 +36,7 @@ scan_gomod() { # <gomod-file> <label> <family-prefix>
 
 walk_family_subs() { # <gomod-file> <candidate-module> <version>
   local file="$1" candidate="$2" version="$3"
-  local family candidate_escaped path submod subfile rc
+  local family candidate_escaped path subfile rc
   family="$(printf '%s' "$candidate" | sed 's|/[^/]*$||')"
   candidate_escaped="$(printf '%s' "$candidate" | sed 's/[^a-zA-Z0-9/._-]/\\&/g')"
   rc=0

@@ -55,7 +55,7 @@ import (
 //	pl.Start(ctx)
 //	sys.Start(ctx)
 func DomainConfig(opts ...DomainOption) system.DomainConfig {
-	var cfg domainOptions
+	var cfg adapterOptions
 	for _, opt := range opts {
 		opt(&cfg)
 	}
@@ -66,7 +66,7 @@ func DomainConfig(opts ...DomainOption) system.DomainConfig {
 		Projections:           DeclarativeProjections(),
 		CheckpointStore:       cfg.checkpointStore,
 		ProjectionHostOptions: append(
-			defaultProjectionHostOptions(),
+			defaultProjectionHostOptions(cfg.deadLetterStore),
 			cfg.hostOptions...,
 		),
 	}
@@ -74,11 +74,17 @@ func DomainConfig(opts ...DomainOption) system.DomainConfig {
 
 // defaultProjectionHostOptions mirrors the curated host tuning the legacy
 // ProjectionLayer applies, so the declarative path inherits the same
-// dead-letter and restart behavior by default. Consumer options passed via
-// [WithHostOptions] land after these and override per-field.
-func defaultProjectionHostOptions() []projectionhost.HostOption {
+// dead-letter and restart behavior by default. A consumer-provided dead-letter
+// store (WithDeadLetterStore) replaces the in-memory default; consumer
+// options passed via [WithHostOptions] land after these and override
+// per-field.
+func defaultProjectionHostOptions(dlqStore projectionhost.DeadLetterStore) []projectionhost.HostOption {
+	if dlqStore == nil {
+		dlqStore = projectionhost.NewMemoryDeadLetterStore()
+	}
+
 	return []projectionhost.HostOption{
-		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), dlqThreshold),
+		projectionhost.WithDeadLetterStore(dlqStore, dlqThreshold),
 		projectionhost.WithMaxRestarts(maxRestarts),
 		projectionhost.WithBackoff(backoffMin, backoffMax),
 		projectionhost.WithBatchSize(projectionBatchSize),

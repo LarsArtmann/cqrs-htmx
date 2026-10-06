@@ -2,6 +2,12 @@
 
 All notable changes to this module are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- **Durable checkpoints + host tuning on the declarative path — `DomainConfig` grows options (M22):** `DomainConfig(opts ...DomainOption)` now accepts `WithCheckpointStore` (becomes `system.DomainConfig.CheckpointStore` — left nil, system.New's engine-backed ADR-0142 default applies), `WithDeadLetterStore` (replaces the in-memory DLQ default), and `WithHostOptions(...)` (projectionhost options appended after systemadapter's curated defaults — memory DLQ threshold 10, 3 restarts, capped backoff, batch 256, the same tuning the legacy ProjectionLayer ships; consumer per-field options win). `DomainOption` and `ProjectionLayerOption` are now the same underlying option type, so the checkpoint/dead-letter vocabulary works at both call sites unchanged. Pinned by `TestDomainConfig_DefaultsAndOverrides` and `TestDeclarative_DurableCheckpointSurvivesRestart` — the restart proof runs a file-backed SQLite journal through two `system.New` boots with one shared checkpoint store and asserts the second boot resumes at exactly the saved positions. Guide § Custom checkpoint / dead-letter stores rewritten accordingly, including the durable-checkpoint + fresh-in-memory-read-model semantics (no replay = stays empty; pair with durable read models or rebuild). Backward compatible: the no-option `DomainConfig()` call is unchanged.
+
 ## [v4.11.0] - 2026-09-20
 
 First published tag, cut in lockstep with the cqrs-htmx v4.11.0 family train (all sibling modules v4.11.0, go-cqrs-lite aligned to the 2026-09-19/20 release wave).

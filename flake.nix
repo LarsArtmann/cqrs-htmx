@@ -1090,6 +1090,8 @@
                         "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
                         "family-release-consumable:bash scripts/checks/check-family-release-consumable.sh"
                         "family-release-consumable-self-test:bash scripts/selftests/test-check-family-release-consumable.sh"
+                        "selftest-env-leaks:bash scripts/checks/check-selftest-env-leaks.sh"
+                        "selftest-env-leaks-self-test:bash scripts/selftests/test-check-selftest-env-leaks.sh"
                         "branching-flow:bash scripts/checks/check-branching-flow.sh"
                         "branching-flow-self-test:bash scripts/selftests/test-check-branching-flow.sh"
                       )
@@ -1252,6 +1254,44 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-family-release-consumable.sh "$@"
+                  '';
+                }
+              );
+            };
+
+            check-selftest-env-leaks = {
+              type = "app";
+              meta.description = "Gotcha-27c audit mechanized: every self-tested checker that branches on CI must strip CI (env -u CI) in its fixture self-test — GitHub runners export CI=true globally, so unguarded self-tests cover the WRONG branch";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-selftest-env-leaks";
+                  runtimeInputs = [
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-selftest-env-leaks.sh
+                  '';
+                }
+              );
+            };
+
+            ci-parity-check = {
+              type = "app";
+              meta.description = "Gotcha-27c as one command: CI=true fixture self-tests + per-go.mod tidy -diff + lint + test + check-modules — the local battery that surfaces ALL reds in one pass before a push";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "ci-parity-check";
+                  runtimeInputs = [
+                    pkgs.coreutils
+                    pkgs.findutils
+                    pkgs.bash
+                    pkgs.nix
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/tools/ci-parity-check.sh "$@"
                   '';
                 }
               );
