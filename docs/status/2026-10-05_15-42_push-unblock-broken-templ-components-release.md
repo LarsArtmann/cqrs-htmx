@@ -5,6 +5,7 @@
 **Scope:** (1) author and commit the Pareto plan for the branching-flow findings; (2) `git commit` + `git push` as instructed; (3) root-cause the push block.
 **Format note:** The `status-report` skill's canonical output is HTML; the operator explicitly requested `.md` at `docs/status/<YYYY-MM-DD_HH-MM_WELL-NAMED>.md`. Override honored and recorded (recurring divergence, see §e-8).
 
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — UNBLOCKED: templ-components shipped the consumable **v1.20.1** (heals the zero-pseudo go.mod poison, per the 21-19 session's #27 fix recipe); the family moved to v1.20.1 across all six submodules in the 2026-10-05/06 sweep train, both Tailwind bundles rebuilt, strict release-train green, and **the push landed** (`e2f6be27`, CI all 7 jobs green 37392674249). The plan executed 2026-10-05 evening (ratchet `94a92e6f`, safe fixes `84b7fe3a`/`9f25f526`/`05213817`, harvest `471c0933`, issue **templ-components#27** filed through all verify-before-filing gates). Struck below: §b1–b4, §c1–c4/c7, §f1–4/9–11/13–16/21/46, §g1–3. STILL OPEN (routed): §f5/§f6 (R18 bump-dep pre-flight + R2 consumability gate — TODO_LIST), §f7 (R19 expiring allowlist — ROADMAP), §f8 broken-release episode narrative (covered by R2/R18 rows + #27 receipt), §f25–28 runbook notes (R20 — TODO_LIST), remaining speculative rows bare below (ROADMAP fuel).
 ---
 
 ## Session outcome in one line
@@ -38,22 +39,22 @@ Evidence = command output in this session; SHAs are local.
 
 ## b) PARTIALLY DONE
 
-- **The push.** Everything is staged/committed locally (16 commits ahead of `origin/master`), but the pre-push `check-release-train --strict-lag 0` gate fails on 64 templ-components lag items. **What works:** docs + valid dep alignments committed. **Blocked by:** upstream broken release. **Effort to finish:** S once upstream re-releases.
-- **Dependency alignment.** go-output/go-health/samber-do-auditlog are aligned (lag for those = 0). **Still open:** templ-components (64 items) — not mechanically alignable. **Effort:** M (blocked).
-- **The 25/84-task plan.** Authored and committed, **not executed** (this was a planning+push session). Effort: the plan itself is the artifact.
-- **Upstream issue for the broken release.** Not filed. **Blocker:** none — just not started; I offered it and awaited the call. Effort: S.
+~~- **The push.** Everything is staged/committed locally (16 commits ahead of `origin/master`), but the pre-push `check-release-train --strict-lag 0` gate fails on 64 templ-components lag items. **What works:** docs + valid dep alignments committed. **Blocked by:** upstream broken release. **Effort to finish:** S once upstream re-releases.~~ resolved — upstream v1.20.1 healed the poison; push landed `e2f6be27` 2026-10-06 with strict gates green
+~~- **Dependency alignment.** go-output/go-health/samber-do-auditlog are aligned (lag for those = 0). **Still open:** templ-components (64 items) — not mechanically alignable. **Effort:** M (blocked).~~ resolved — templ-components v1.20.1 across all six submodules in the sweep train; lag 0 at the push
+~~- **The 25/84-task plan.** Authored and committed, **not executed** (this was a planning+push session). Effort: the plan itself is the artifact.~~ done — executed 2026-10-05 evening (ratchet `94a92e6f`, T3/T4/T5 fixes, harvest `471c0933`)
+~~- **Upstream issue for the broken release.** Not filed. **Blocker:** none — just not started; I offered it and awaited the call. Effort: S.~~ done — templ-components#27 filed 2026-10-05 (all verify-before-filing gates passed)
 
 ---
 
 ## c) NOT STARTED
 
-- **`git push`** — blocked (not a failure of intent; external limit).
-- **File the templ-components upstream issue** (`verify-before-filing` gate first). Still wanted: YES, high value.
-- **HARVEST** of plan items into `TODO_LIST.md`/`ROADMAP.md` (mandated by both `pareto-planning` and `status-report`; deliberately deferred).
-- **All 25 comprehensive plan tasks** (T1–T25) — including the ratchet foundation (T1), the three safe fixes (T3–T5), and the credential decision memo (T7).
-- **templ-components CSS-bundle rebuilds** (`.#build-adminui-css`/`.#build-dashboardui-css`) — only relevant if/when the family becomes consumable.
+~~- **`git push`** — blocked (not a failure of intent; external limit).~~ done — `e2f6be27` (2026-10-06), normal push, no `--no-verify` needed
+~~- **File the templ-components upstream issue** (`verify-before-filing` gate first). Still wanted: YES, high value.~~ done — #27
+~~- **HARVEST** of plan items into `TODO_LIST.md`/`ROADMAP.md` (mandated by both `pareto-planning` and `status-report`; deliberately deferred).~~ done — `471c0933` (R2/R18/R11/R20/R15/R12 + OQ28 + residual ROADMAP block)
+~~- **All 25 comprehensive plan tasks** (T1–T25) — including the ratchet foundation (T1), the three safe fixes (T3–T5), and the credential decision memo (T7).~~ done 2026-10-05 evening — T1/T9 ratchet shipped, T3–T5 landed (T4 rescoped), T2/T11/T23 docs done; remainder routed
+~~- **templ-components CSS-bundle rebuilds** (`.#build-adminui-css`/`.#build-dashboardui-css`) — only relevant if/when the family becomes consumable.~~ done — both bundles rebuilt (`a34d664d` + sweep-train rebuilds), class-set gates green
 - **`nix fmt` on the new planning `.md`** — not run.
-- **The `--no-verify` push decision** — deferred to owner.
+~~- **The `--no-verify` push decision** — deferred to owner.~~ moot — the push landed normally after upstream healed
 
 ---
 
@@ -94,10 +95,10 @@ Nothing in the repo is broken; no working code was damaged; tree is clean.
 ## f) Top next tasks (up to 50; ranked; later items are ROADMAP fuel)
 
 ### Push unblock (highest priority)
-1. File the templ-components upstream issue: root `v1.20.0` go.mod contains workspace placeholder pseudo-versions → unconsumable — **High / S / Bug-report**
-2. Decide push path (wait for re-release vs `--no-verify`) — **High / S / Decision**
-3. When upstream re-releases, re-run the templ sweep + CSS bundles + gate + push — **High / M / Release**
-4. Re-verify go-output/go-health/samber-do-auditlog alignments survive any rebase — **Medium / S / Release**
+~~1. File the templ-components upstream issue: root `v1.20.0` go.mod contains workspace placeholder pseudo-versions → unconsumable — **High / S / Bug-report**~~ done — templ-components#27 (2026-10-05)
+~~2. Decide push path (wait for re-release vs `--no-verify`) — **High / S / Decision**~~ resolved — upstream re-released (v1.20.1); normal push, no `--no-verify`
+~~3. When upstream re-releases, re-run the templ sweep + CSS bundles + gate + push — **High / M / Release**~~ done — family on v1.20.1, CSS bundles rebuilt, gates green, pushed `e2f6be27`
+~~4. Re-verify go-output/go-health/samber-do-auditlog alignments survive any rebase — **Medium / S / Release**~~ done — all on origin, carried through the trains, release-train 0/0 at push
 
 ### Guard against the whole class
 5. Add consumability pre-flight to `bump-dep.sh` (placeholder-version detection) — **High / M / Tooling**
@@ -106,21 +107,21 @@ Nothing in the repo is broken; no working code was damaged; tree is clean.
 8. Record the broken-release episode in `docs/agents-notes.md` (gotcha-24 family) — **Medium / S / Documentation**
 
 ### Harvest + loop-closing
-9. HARVEST plan T1–T14 into `TODO_LIST.md` — **High / S / Documentation**
-10. HARVEST plan T15–T25 into `ROADMAP.md` — **Medium / S / Documentation**
-11. Annotate the branching-flow report + plan with done-markers — **Low / S / Documentation**
+~~9. HARVEST plan T1–T14 into `TODO_LIST.md` — **High / S / Documentation**~~ done — `471c0933`
+~~10. HARVEST plan T15–T25 into `ROADMAP.md` — **Medium / S / Documentation**~~ done — `471c0933` (ROADMAP residual block)
+~~11. Annotate the branching-flow report + plan with done-markers — **Low / S / Documentation**~~ done — 14-59 report + both plans annotated 2026-10-05; this report annotated 2026-10-06 (round 18)
 12. `nix fmt` the planning `.md` — **Low / S / Quality**
 
 ### The plan's own 1% / 4% (executable now, independent of push)
-13. T1 — SARIF baseline + `.#check-branching-flow` gate — **High / L / Tooling**
-14. T3 — `commandOptionApplier` drift guard — **High / S / Quality**
-15. T4 — `pendingTOTPStore` typed key (+ gotcha-25 display-form check) — **High / M / Quality**
-16. T5 — `plainBodyWriter` options struct — **High / S / Quality**
+~~13. T1 — SARIF baseline + `.#check-branching-flow` gate — **High / L / Tooling**~~ done — `94a92e6f`
+~~14. T3 — `commandOptionApplier` drift guard — **High / S / Quality**~~ done — `84b7fe3a`
+~~15. T4 — `pendingTOTPStore` typed key (+ gotcha-25 display-form check) — **High / M / Quality**~~ done-rescoped — `9f25f526` (typed key breaks the published seam; key contract documented, v5 candidate)
+~~16. T5 — `plainBodyWriter` options struct — **High / S / Quality**~~ done — `05213817` (exhaustruct ignore-pattern; baseline ratcheted 663→659)
 17. T2 — triage-decisions ledger — **Medium / M / Documentation**
 18. T6 — isolate the 4 high `strong-id` rows — **Medium / S / Analysis**
 19. T7 — credential 4× decision memo — **High / L / Quality**
 20. T8 — per-module coverage proof — **Medium / S / Analysis**
-21. T9 — wire the gate into `check-modules` + CI — **High / L / Tooling**
+~~21. T9 — wire the gate into `check-modules` + CI — **High / L / Tooling**~~ done — `94a92e6f`
 22. T11 — AGENTS entry for `branching-flow` — **Medium / S / Documentation**
 23. T14 — analyzer-subset tuning — **Medium / M / Tooling**
 24. T23 — memory note (tool + commands) — **Low / S / Documentation**

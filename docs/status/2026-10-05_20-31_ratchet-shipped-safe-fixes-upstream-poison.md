@@ -11,6 +11,7 @@
 The branching-flow ratchet gate is **shipped, wired, and proven** (green on clean tree, red on synthetic new findings — then it immediately caught my own T5 refactor adding 2 findings); T3 and T4 landed (T4 honestly rescoped to a doc contract — the typed key is a breaking published-API change); T5 is functionally green but carries **1 open exhaustruct_v5 lint finding + the baseline refresh it triggered**; HARVEST, annotations, and the upstream issue remain.
 
 ---
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — superseded in part by the 21:19 continuation report; every loose end closed: T5 exhaustruct fixed via the `.golangci.yml` ignore-pattern, baseline ratcheted 663→659 + ledger amended, R7 KEEP rationale recorded, R14/T12 HARVEST executed (`471c0933`), T13/R16 annotations done, **templ-components#27 filed**, CHANGELOG receipts written (`3af81157`), and Q1 resolved end-to-end (v1.20.1 healed → family sweep → bundles rebuilt → strict gates green → **push `e2f6be27`**, CI green). Struck below: §b (all three), §c (all six), §f1–12, §f18, §g2/§g3. STILL OPEN (routed): R2/R18/R19 (§f13–15 → TODO_LIST/ROADMAP), T6 strong-id high rows (§f11 → ROADMAP R10), credential memo (§f12 → TODO R11 + ROADMAP OQ28), T15–T25 ROADMAP-fuel rows (§f16–24), finding-format false-red upstream report (§f22/§e6).
 
 ## a) FULLY DONE
 
@@ -35,20 +36,20 @@ Evidence = this session's command output; SHAs local.
 
 ## b) PARTIALLY DONE
 
-- **T5/R6 plainBodyWriter options struct** — refactor complete and green (build + vet + full root suite `-race`; `plainBodyOptions` named-fields struct; app.go call site builds it once from config), **but two loose ends**:
+~~- **T5/R6 plainBodyWriter options struct** — refactor complete and green (build + vet + full root suite `-race`; `plainBodyOptions` named-fields struct; app.go call site builds it once from config), **but two loose ends**:~~ done 2026-10-05 — `plainBodyOptions` joined the exhaustruct_v5 ignore-patterns; root lint 0 issues (21:19 session)
   1. **1 open exhaustruct_v5 finding** at `errors.go:236`: treefmt/golines reflowed my trailing `//nolint` onto the closing paren line, so it no longer covers the literal. Fix = place the directive on its own line above the statement (gotcha-7 form).
   2. **The ratchet gate went red on it (+2 added / -2 removed)** — first real catch, working as designed: my change REMOVED the `FLAG_PARAM` finding (the fix!) but the new 2-bool struct ADDS ~2 phantom-class findings, plus mass line-shifts (~589 modified, harmless). Needs: baseline refresh + a `triage-decisions.md` amendment row for `plainBodyOptions` (phantom-on-bools is already a frozen rejected class).
-- **R7 (12 dep commits)** — effectively decided **KEEP** (they are already pushed to `origin/master`, individually verified green; reverting would need a force-push or pointless churn commits), but the explicit rationale note is not yet written anywhere.
-- **Ratchet CI posture** — wired, but runner behavior (self-skip) is untested until the next push builds CI.
+~~- **R7 (12 dep commits)** — effectively decided **KEEP** (they are already pushed to `origin/master`, individually verified green; reverting would need a force-push or pointless churn commits), but the explicit rationale note is not yet written anywhere.~~ done — KEEP rationale recorded in the round-2 plan + 21:19 report
+~~- **Ratchet CI posture** — wired, but runner behavior (self-skip) is untested until the next push builds CI.~~ done — 20/20 self-tests green under the CI=true runner posture (03-04 alignment sweep §a13)
 
 ## c) NOT STARTED
 
-- **R14/T12 HARVEST** into `TODO_LIST.md`/`ROADMAP.md` — **blocked on coordination**: a concurrent session is actively modifying `ROADMAP.md` (foreign edits present: v5-cut runbook, templ#1449 closure). Must append-only, re-reading immediately before.
-- **T13/R16 annotations** of the source report + both plans.
-- **R17 upstream templ-components issue** (verify-before-filing + github-voice + `gh issue create`).
-- **Baseline ratchet-down refresh** (folds in T3/T4/T5 line-shifts and the ±2).
-- **CHANGELOG entries** for this session's work.
-- **Q1 follow-through:** when upstream re-releases templ-components: family sweep + CSS-bundle rebuilds + workspace-mode unblock + release-train green + normal push.
+~~- **R14/T12 HARVEST** into `TODO_LIST.md`/`ROADMAP.md` — **blocked on coordination**: a concurrent session is actively modifying `ROADMAP.md` (foreign edits present: v5-cut runbook, templ#1449 closure). Must append-only, re-reading immediately before.~~ done — `471c0933`
+~~- **T13/R16 annotations** of the source report + both plans.~~ done — 14-59 report + both plans annotated 2026-10-05
+~~- **R17 upstream templ-components issue** (verify-before-filing + github-voice + `gh issue create`).~~ done — templ-components#27 filed 2026-10-05
+~~- **Baseline ratchet-down refresh** (folds in T3/T4/T5 line-shifts and the ±2).~~ done — 663→659, pure ratchet-down, gate green
+~~- **CHANGELOG entries** for this session's work.~~ done — `3af81157`
+~~- **Q1 follow-through:** when upstream re-releases templ-components: family sweep + CSS-bundle rebuilds + workspace-mode unblock + release-train green + normal push.~~ done — v1.20.1 healed; family sweep + bundles + strict gates + push `e2f6be27` (2026-10-06)
 
 ## d) TOTALLY FUCKED UP!
 
@@ -71,24 +72,24 @@ Ranked honestly:
 
 ## f) Top next tasks (ranked; later items are ROADMAP fuel)
 
-1. Fix exhaustruct_v5 nolint placement at errors.go:236 (statement-above form) — **S**
-2. Refresh branching-flow baseline (+2/−2) + amend `triage-decisions.md` (plainBodyOptions bools = frozen phantom class) — **S**
-3. Re-run `.#check-branching-flow` + `check-modules --report` → only release-train red — **S**
-4. Write the R7 keep-rationale note (12 dep commits: on origin, green, rebase-if-upstream-rereleases) — **S**
-5. R14/T12 HARVEST both plans into TODO_LIST/ROADMAP (coordinate ROADMAP with the concurrent session) — **M**
-6. T13/R16 annotate the 14-59 report + both plans with done-markers — **S**
-7. R17 file the templ-components upstream issue (verify-before-filing + github-voice) — **M**
-8. CHANGELOG entries for: ratchet gate, codegen fix, T3/T4/T5, lint fix — **S**
-9. Upstream re-release watch → templ sweep + `.#build-adminui-css`/`.#build-dashboardui-css` + workspace-mode unblock + strict release-train + push — **M (blocked)**
-10. Propose the recorded replace-shield for templ-components (owner-gated, expiring) to unblock workspace mode early — **M (owner)**
-11. T6: isolate the 4 high `strong-id` rows, decide fix-vs-baseline — **S**
-12. T7/T18: credential 4× decision memo + data-model review (blocked on Q2) — **L (owner)**
+~~1. Fix exhaustruct_v5 nolint placement at errors.go:236 (statement-above form) — **S**~~ done — ignore-pattern route (21:19 session)
+~~2. Refresh branching-flow baseline (+2/−2) + amend `triage-decisions.md` (plainBodyOptions bools = frozen phantom class) — **S**~~ done — 663→659 + ledger amendment
+~~3. Re-run `.#check-branching-flow` + `check-modules --report` → only release-train red — **S**~~ done — rc 0, +0 added
+~~4. Write the R7 keep-rationale note (12 dep commits: on origin, green, rebase-if-upstream-rereleases) — **S**~~ done — recorded (21:19 session)
+~~5. R14/T12 HARVEST both plans into TODO_LIST/ROADMAP (coordinate ROADMAP with the concurrent session) — **M**~~ done — `471c0933`
+~~6. T13/R16 annotate the 14-59 report + both plans with done-markers — **S**~~ done — 2026-10-05
+~~7. R17 file the templ-components upstream issue (verify-before-filing + github-voice) — **M**~~ done — #27
+~~8. CHANGELOG entries for: ratchet gate, codegen fix, T3/T4/T5, lint fix — **S**~~ done — `3af81157`
+~~9. Upstream re-release watch → templ sweep + `.#build-adminui-css`/`.#build-dashboardui-css` + workspace-mode unblock + strict release-train + push — **M (blocked)**~~ done — v1.20.1 landed 2026-10-05/06; sweep + bundles + push complete
+~~10. Propose the recorded replace-shield for templ-components (owner-gated, expiring) to unblock workspace mode early — **M (owner)**~~ moot — upstream healed; no shield needed
+~~11. T6: isolate the 4 high `strong-id` rows, decide fix-vs-baseline — **S**~~ routed — ROADMAP residual block (R10)
+~~12. T7/T18: credential 4× decision memo + data-model review (blocked on Q2) — **L (owner)**~~ routed — TODO_LIST R11 + ROADMAP OQ28 (owner intent)
 13. R2: `check-family-release-consumable.sh` (placeholder-pseudo-version pre-flight) + self-test + wire — **M**
 14. R18: `bump-dep.sh` pre-flight (refuse on placeholder targets with "upstream broken") — **M**
 15. R19: expiring "upstream-broken" allowlist proposal for check-release-train — **M**
 16. T15: intentional-dup comments on `navItem` (adminui/models.go + dashboardui/config.go) — **S**
 17. T16: `Capabilities` `Has*()` helpers evaluation — **M**
-18. T17: remaining low `flagparam` item (`buildHandlerConfigChecked`) — **S**
+~~18. T17: remaining low `flagparam` item (`buildHandlerConfigChecked`) — **S**~~ closed won't-implement — per the triage ledger verdict (harvest `471c0933`)
 19. R20: runbook updates (validate-before-align, rc-capture, moving-target stop-rule) — **S**
 20. T19/T20: phantom + non-wire mixins re-eval with the baseline workflow — **M**
 21. v5 runbook: add the typed `PendingTOTPStore` key row (coordinate with the concurrent session's release-v5-cut.md) — **S**
@@ -99,7 +100,7 @@ Ranked honestly:
 ## g) Questions I cannot answer myself (Top 3)
 
 1. **Q2 (carried, unanswered):** Is the 4× credential-shape duplication an intentional boundary set (domain core / adapter view / provider DTO / service DTO) or sprawl to consolidate? This gates T7/T18 (memo only, no code without your call).
-2. **Baseline policy on net-even changes:** my T5 removed the flag-param finding but added ~2 phantom-on-bool findings — refresh the baseline now and amend the ledger (my recommendation: phantom-on-bools is already a frozen rejected class), or resolve the 2 additions in code first?
-3. **Upstream communication ownership (R17/Q4):** a concurrent session just recorded a templ#1449 closure row — is templ-components upstream communication already handled elsewhere, or do I file the v1.20.0 broken-release issue as planned?
+~~2. **Baseline policy on net-even changes:** my T5 removed the flag-param finding but added ~2 phantom-on-bool findings — refresh the baseline now and amend the ledger (my recommendation: phantom-on-bools is already a frozen rejected class), or resolve the 2 additions in code first?~~ resolved — ratchet-down chosen and executed (663→659; phantom-on-bools already a frozen rejected class)
+~~3. **Upstream communication ownership (R17/Q4):** a concurrent session just recorded a templ#1449 closure row — is templ-components upstream communication already handled elsewhere, or do I file the v1.20.0 broken-release issue as planned?~~ resolved — #27 filed by the 21:19 session (nobody had filed; the concurrent templ#1449 work is a different repo)
 
 **Status:** WAITING FOR INSTRUCTIONS.

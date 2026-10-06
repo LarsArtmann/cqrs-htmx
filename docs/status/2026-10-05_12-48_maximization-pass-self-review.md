@@ -14,6 +14,7 @@ evidence + tag-diff verification. What I fucked up: skipped the repo's own prefl
 WITHOUT the atomic gate the repo demands, and applied the GOWORK=off A/B late instead of first.
 
 ---
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — the session's outputs all held: P1 fix + gotcha 25 are canon (AGENTS gotcha 25), #52 closed, PageHeader 4/11 + 7 justified divergences stand. The push HAPPENED (2026-10-06 alignment push, `e2f6be27`, CI all-green 37392674249); the StreamMarker train landed and was consumed by the 11-module sweep train; goldens regenerated (`92964591`); statusToBadgeMap closed MOOT+ADOPTED 2026-10-05 (`display.Badge` shipped upstream in v1.19.4; adminui takes `BadgeType` directly — `8cc079f6`+`44e03709`). Struck below: §b3–b5, §f1–4/6/11/12/17/19/33, §g1. STILL OPEN (routed): §b2/§f7–10 post-wave battery legs (test-all, coverage, cqrs-lint, erraudit — TODO battery row), gotcha-25 grep-guard decision (§f5/§g2 → TODO decision table), bench-spike + loginpage coverage re-pin (§f14/15), fleet cqrs-lint swap (§f16, TODO D4), PageHeader title-slot ask (§f18/§g3), remaining watch/owner rows bare below.
 
 ## a) FULLY DONE
 
@@ -41,9 +42,9 @@ WITHOUT the atomic gate the repo demands, and applied the GOWORK=off A/B late in
 |---|------|-------|
 | b1 | PageHeader adoption | 4/11 sites. The 7 detail headers are documented justified divergences, NOT open debt — but the audit's "closing lifts dashboardui to 97–100" stays unfulfilled. Revisit only if the library grows a component-title slot; I did not file that upstream ask. |
 | b2 | Post-change verification battery | 6 modules + 2 published-pin runs green THIS session. NOT re-run after my changes: `.#check-modules` (27 stages), `.#coverage-gate` (15), `.#check-cqrs-lint`, `.#erraudit-inventory`, Playwright e2e (dashboardui templ changed!), adminui/loginpage/examples suites, `.#test-all`. My diff is small and behavior-identical in the pins world, but "small" is a claim, not a gate run. |
-| b3 | The push | All fixes committed by the daemon locally; origin/master still red on lint until the owner pushes through the pre-push gates (release-train strict + version-drift). Routed as a new TODO row with exact contents. |
-| b4 | Module CHANGELOGs | Root [Unreleased] carries both entries; `usermgmt/CHANGELOG.md` + `dashboardui/CHANGELOG.md` rows ride the next train's release sections (matches the wave's pattern — but I decided this alone, no convention citation). |
-| b5 | docs/status/README.md index | Today's two reports are NOT indexed; the README's tail-count cell is now stale. Five-minute habit, skipped. |
+~~| b3 | The push | All fixes committed by the daemon locally; origin/master still red on lint until the owner pushes through the pre-push gates (release-train strict + version-drift). Routed as a new TODO row with exact contents. |~~ done — 2026-10-06 alignment push `e2f6be27`, CI all 7 jobs green (37392674249)
+~~| b4 | Module CHANGELOGs | Root [Unreleased] carries both entries; `usermgmt/CHANGELOG.md` + `dashboardui/CHANGELOG.md` rows ride the next train's release sections (matches the wave's pattern — but I decided this alone, no convention citation). |~~ resolved by the trains — v4.14.x/v4.13.x versioned sections + the 11-module sweep receipts
+~~| b5 | docs/status/README.md index | Today's two reports are NOT indexed; the README's tail-count cell is now stale. Five-minute habit, skipped. |~~ done (docs-health round 18 — tail swept + archived with manifest)
 | b6 | cqrs-lint fleet swap + statusToBadgeMap upstream patch | Untouched this session (owner-gated / external), correctly left standing in the backlog. |
 
 ## c) NOT STARTED (all sighted this session, none begun)
@@ -84,25 +85,25 @@ WITHOUT the atomic gate the repo demands, and applied the GOWORK=off A/B late in
 
 | # | Task | Impact | Effort | Category |
 |---|------|--------|--------|----------|
-| 1 | Push the 2026-10-05 local fixes (P1 fix + lint fix + docs; pre-push gates enforce train strict) | High | S | Release |
-| 2 | Land the go-cqrs-lite StreamMarker train (unpushed sibling tree; retires 35 go.work replaces) | High | M | Upstream |
-| 3 | Regenerate dashboardui goldens (`-update`) in that train's commit | High | S | Quality |
-| 4 | Re-run `.#check-modules` (27 stages) post-push | High | M | Verification |
+~~| 1 | Push the 2026-10-05 local fixes (P1 fix + lint fix + docs; pre-push gates enforce train strict) | High | S | Release |~~ done — `e2f6be27` (2026-10-06), CI green
+~~| 2 | Land the go-cqrs-lite StreamMarker train (unpushed sibling tree; retires 35 go.work replaces) | High | M | Upstream |~~ done — train landed (id v4.7.x); consumed by the 2026-10-05/06 sweep train; replace retirement tracked in the alignment work
+~~| 3 | Regenerate dashboardui goldens (`-update`) in that train's commit | High | S | Quality |~~ done — `92964591`
+~~| 4 | Re-run `.#check-modules` (27 stages) post-push | High | M | Verification |~~ done — fully green in the 03-04 + 10-06 batteries
 | 5 | Ship the gotcha-25 grep-guard ATOMICALLY (checker + fixture self-test + flake app + check-modules stage + CI + README) | High | M | Tooling |
-| 6 | Re-run Playwright e2e suite (dashboardui templ changed this session) | High | M | Verification |
+~~| 6 | Re-run Playwright e2e suite (dashboardui templ changed this session) | High | M | Verification |~~ done — 70/70 green (sweep-train receipt, root CHANGELOG [Unreleased])
 | 7 | Run `.#check-cqrs-lint` on the post-fix tree (my diff is new lint surface) | Med | S | Verification |
 | 8 | Re-run `.#erraudit-inventory` (28 modules) post-push | Med | S | Verification |
 | 9 | Re-run `.#coverage-gate` (15 modules) post-push | Med | M | Verification |
 | 10 | Verify adminui + loginpage + examples suites after today's usermgmt/dashboardui changes | Med | S | Verification |
-| 11 | Re-check the TODO header CI claim after the push (`gh run list`) and restamp | Med | S | Docs |
-| 12 | Index both 2026-10-05 reports in docs/status/README.md + restamp tail count | Low | S | Docs |
+~~| 11 | Re-check the TODO header CI claim after the push (`gh run list`) and restamp | Med | S | Docs |~~ done — headers restamped; master CI green
+~~| 12 | Index both 2026-10-05 reports in docs/status/README.md + restamp tail count | Low | S | Docs |~~ done (docs-health round 18)
 | 13 | Cross-link the 12:39 HTML ↔ this MD report in the HTML's outcome section | Low | S | Docs |
 | 14 | bench-spike retry at the next quiet window (machine-pinned protocol) | Med | S | Quality |
 | 15 | Re-pin loginpage coverage gate post-adoption (quiet window) | Med | S | Quality |
 | 16 | cqrs-lint fleet swap (round14 packet §8; 2 documented B024 re-suppressions) | High | S | Tooling |
-| 17 | File upstream statusToBadgeMap patch (templ-components), then adopt StatusBadge in adminui | Med | M | Upstream |
+~~| 17 | File upstream statusToBadgeMap patch (templ-components), then adopt StatusBadge in adminui | Med | M | Upstream |~~ closed MOOT+ADOPTED 2026-10-05 — `display.Badge`/`Dot`/`Pill` + typed `BadgeType` shipped upstream in v1.19.4; adminui adopts `BadgeType` directly (`8cc079f6`+`44e03709`), stringly adapter deleted
 | 18 | File the templ-components ask: PageHeader component-title slot (unblocks the 7 divergences) | Med | S | Upstream |
-| 19 | Add usermgmt/CHANGELOG + dashboardui/CHANGELOG [Unreleased] rows at train time | Low | S | Docs |
+~~| 19 | Add usermgmt/CHANGELOG + dashboardui/CHANGELOG [Unreleased] rows at train time | Low | S | Docs |~~ resolved by the trains — versioned sections carry the rows
 | 20 | GOWORK=off full `.#test` sweep across all 28 modules once (CI-parity battery) | Med | L | Verification |
 
 **Next train / tooling depth:**
@@ -121,7 +122,7 @@ WITHOUT the atomic gate the repo demands, and applied the GOWORK=off A/B late in
 | 30 | AGENTS gotcha 10 micro-addition: "read the module's lint config before writing code" | Low | S | Docs |
 | 31 | Shared-tree push helper: fetch-before-push + preflight wiring into the push habit | Med | S | Process |
 | 32 | Upstream changelog-accuracy audit for the 2026-10-03 wave (labels vs tag diffs) | Med | M | Upstream |
-| 33 | Spot-check one example builds standalone post-wave | Low | S | Quality |
+~~| 33 | Spot-check one example builds standalone post-wave | Low | S | Quality |~~ done — GOWORK=off build+vet across e2e/server + all 13 examples (03-04 alignment report §a8)
 | 34 | Verify dependabot npm `/e2e` path is real (`e2e/package.json` exists) | Low | S | Bug |
 | 35 | Confirm 831-vs-827 require-count jump documented | Low | S | Docs |
 | 36 | `check-dep-budgets.sh`: inline budget-justification annotations | Low | S | Tooling |
@@ -147,7 +148,7 @@ WITHOUT the atomic gate the repo demands, and applied the GOWORK=off A/B late in
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
-1. **StreamMarker train ownership and timing.** The sibling go-cqrs-lite tree carries the unpushed id-module branding (plus the identity-model prefix-strip work) that triggered the P1 class and still blocks the dashboardui goldens + the retirement of 35 go.work replaces. Concurrent-session discipline says hands off a foreign in-flight tree — so: is that train owned and mid-flight elsewhere (I wait), or should the next cqrs-htmx session drive it to tags? Everything in f2/f3/f20 sequences behind this answer.
+~~1. **StreamMarker train ownership and timing.** The sibling go-cqrs-lite tree carries the unpushed id-module branding (plus the identity-model prefix-strip work) that triggered the P1 class and still blocks the dashboardui goldens + the retirement of 35 go.work replaces. Concurrent-session discipline says hands off a foreign in-flight tree — so: is that train owned and mid-flight elsewhere (I wait), or should the next cqrs-htmx session drive it to tags? Everything in f2/f3/f20 sequences behind this answer.~~ resolved — the train landed (id v4.7.x) and was consumed; the question is moot
 2. **Gate appetite for gotcha 25.** The `.String()`-vs-`.Get()` identity rule is currently prose. Do you want the grep-guard shipped as a BLOCKING check-modules stage (full atomic checklist, one more stage in the 27-stage composite, catches the class mechanically before the StreamMarker train lands) — or advisory-only (README/pattern doc), accepting the residual risk? Blocking is ~1h of guarded work; I chose not to spend it unilaterally mid-session.
 3. **PageHeader end-state preference.** The 7 detail headers keep code-chip titles + inline copy buttons that `PageHeaderProps.Title string` cannot express. Which do you want: (a) keep them as permanent justified divergences (current state, zero upstream dependency), or (b) I file the component-title-slot ask upstream and, on acceptance, swap all 7 in one wave (dashboardui then scores 97–100 on the audit rubric, but every detail page's header look changes)? I can draft the ask either way; the design call is yours.
 

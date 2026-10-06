@@ -1,8 +1,10 @@
 package dashboardui
 
 import (
+	"bytes"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/larsartmann/templ-components/icons"
 )
@@ -60,19 +62,27 @@ func initials(brand string) string {
 
 // serveCSS returns a handler that serves the dashboard stylesheet.
 func (d *Dashboard) serveCSS() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		w.Header().Set("Cache-Control", "public, max-age=86400")
-		_, _ = w.Write([]byte(dashboardCSS))
-	}
+	return serveConstAsset("dashboard.css", "text/css; charset=utf-8", dashboardCSS)
 }
 
 // serveJS returns a handler that serves the dashboard JavaScript.
 func (d *Dashboard) serveJS() http.HandlerFunc {
+	return serveConstAsset("dashboard.js", "text/javascript; charset=utf-8", dashboardJS)
+}
+
+// serveConstAsset serves an in-source constant asset with the same
+// content-hash ETag and immutable caching as the embedded assets
+// ([newAssetHandler]) — one caching rule for every dashboard-served asset.
+func serveConstAsset(name, contentType, body string) http.HandlerFunc {
+	data := []byte(body)
+	tag := contentETag(name, data)
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
-		w.Header().Set("Cache-Control", "public, max-age=86400")
-		_, _ = w.Write([]byte(dashboardJS))
+		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		w.Header().Set("ETag", tag)
+		// Zero modtime disables Last-Modified; the ETag drives 304 responses.
+		http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(data))
 	}
 }
 
