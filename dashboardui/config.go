@@ -85,7 +85,12 @@ type Config struct {
 	// BasePath is the URL prefix the dashboard is mounted under.
 	BasePath string
 
-	// AccentColor is the highlight color (any CSS color value).
+	// AccentColor is the highlight color. Must be a CSS color literal — #hex
+	// (3/4/6/8 digits), rgb()/rgba()/hsl()/hsla() with numeric components, or
+	// a named CSS color (or "transparent"). New rejects anything else: the
+	// value is interpolated into an inline <style> block that HTML escaping
+	// cannot sanitize, so only this closed grammar is accepted.
+	// Default: #4f46e5.
 	AccentColor string
 
 	// ReadOnly disables all write operations: projection reset, DLQ
@@ -133,6 +138,12 @@ func (config Config) withDefaults() (Config, error) {
 	config.BasePath = trimTrailingSlash(config.BasePath)
 	if config.AccentColor == "" {
 		config.AccentColor = defaultAccentColor
+	}
+
+	if !isValidAccentColor(config.AccentColor) {
+		return config, errConfig(
+			"Config.AccentColor must be a CSS color literal (#hex, rgb()/rgba()/hsl()/hsla() with numeric components, or a named color); got " + config.AccentColor,
+		)
 	}
 
 	if config.PageSize == 0 {
