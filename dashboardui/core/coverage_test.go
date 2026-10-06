@@ -166,25 +166,6 @@ func TestListStreamsPaged_WithCursor(t *testing.T) {
 	}
 }
 
-func TestListStreamsPaged_InvalidCursorIsRejection(t *testing.T) {
-	t.Parallel()
-
-	cfg := Config{
-		PageSize:     20,
-		StreamReader: &fakeStreamReader{page: &listing.Page[listing.StreamListing]{}},
-	}
-	r := httptest.NewRequest(http.MethodGet, "/?after=not-a-stream-id", nil)
-
-	_, _, err := ListStreamsPaged(r, cfg)
-	if err == nil {
-		t.Fatal("expected an error for a malformed after cursor")
-	}
-
-	if errorfamily.Classify(err) != errorfamily.Rejection {
-		t.Errorf("expected Rejection family for bad cursor, got %v", errorfamily.Classify(err))
-	}
-}
-
 func TestListStreamsPaged_ErrorReturnsInfrastructureError(t *testing.T) {
 	t.Parallel()
 

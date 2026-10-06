@@ -263,8 +263,8 @@ func loadEventFromAll(
 		}
 	}
 
-	return nil, errorfamily.Newf(event.Infrastructure,
-		"dashboardui.event_detail.no_source", "no event source available to load event %s", eventID)
+	return nil, errorfamily.Newf(event.Rejection,
+		"dashboardui.event_detail.not_found", "event %s not found in journal", eventID)
 }
 
 // FindEventNeighbors scans recent events to find the previous and next event
