@@ -4,6 +4,8 @@
 **Inputs:** `docs/research/2026-10-04_templ-components-deep-dive.html` (repo-wide 97/94/95) · `TODO_LIST.md` (32 open) · `docs/reviews/2026-10-04_05-45_loginpage-critical-review.html`
 **Constraint (directive 5):** no Verschlimmbessern — every change lands behind its existing gate (tests, codegen drift, CSS class-sets, goldens); foreign/concurrent-session diffs are untouchable; PUBLISHED-module code rides the next release train (gotcha 8).
 
+> **OUTCOME (annotated 2026-10-06, docs-health round 18) — EXECUTED; archived.** The episode-4 tail shipped 2026-10-04/05: (1) setup styling unblock (`setup.Config.LoginCSSPath` + README §Styling + setup-demo `/app.css` + `.#build-setup-demo-css`, `15bee1cf`); (4) `Config.AccentColor` doc truth-pass; (5) library-owned spinner swap; (6) RelativeTime verified ALREADY adopted 2026-09-26 (`dde7b7a8` — the plan's row was stale); (3) PageHeader 4/11 swapped, the 7 remaining detail headers documented as justified divergences (code-chip titles `PageHeaderProps.Title string` cannot express); statusToBadgeMap closed MOOT+ADOPTED 2026-10-05 (`display.Badge` upstream v1.19.4; adminui takes `BadgeType` directly, `8cc079f6`+`44e03709`). Residue (quiet-window loginpage coverage re-pin) lives in TODO_LIST. Live picture: TODO_LIST episode-4 tail row (struck) + `docs/research/2026-10-04_templ-components-deep-dive.html` inline annotations.
+
 ---
 
 ## 0. Pareto breakdown — what is "the result"?

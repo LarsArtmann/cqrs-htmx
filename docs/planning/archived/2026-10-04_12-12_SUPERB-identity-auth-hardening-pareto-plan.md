@@ -5,6 +5,8 @@
 **Source feedback:** `docs/feedback/new/2026-10-04_crm-identity-adapter-gaps.md` (Ledger CRM)
 **Verdict driving this plan:** all 5 claims verified; item 1 is a library-wide vulnerability; item 2's dead-route class is WIDER than reported (6 route groups); loginpage is a first-party constraint on the fix design.
 
+> **OUTCOME (annotated 2026-10-06, docs-health round 18) — FULLY EXECUTED (M1–M25); archived.** Shipped as **usermgmt v4.14.0 + setup v4.14.0 + dashboardui v4.13.0** (patch train usermgmt/v4.14.1 + identity-model/v4.12.1): the owner-match gate + 11-route self-wrap (ADR-0055), `setup.RequireSession`/`RequireSessionRedirect`, `Service.DisplayName`, per-IP rate-limit keys, the `check-session-route-wrappers` invariant gate (check-modules + CI), session-gate/dead-route/loginpage-flow tests, README/CHANGELOG/skill/AGENTS truth-passes, CRM acceptance (`c32d1c0`), and the release wave. Execution + self-review receipt: `docs/status/archived/2026-10-04_15-50_identity-auth-hardening-execution-self-review.md`. Residue routed: battery legs (test-all/coverage/cqrs-lint) → TODO battery row; browser-level ceremony → TODO loginpage test-depth; CRM-repo items → owner.
+
 ---
 
 ## Context (what we know, with evidence)

@@ -5,6 +5,8 @@
 **Inputs:** `TODO_LIST.md` (2026-10-04 round-17 state, ~30 open rows + D1–D11) · [`2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md`](2026-10-04_06-27_SUPERB-templ-tail-pareto-execution-plan.md) (T1–T4 DONE; T5–T19 carried) · [`2026-10-03_03-49_pareto-round16-owner-unlock-and-v5-readiness.md`](2026-10-03_03-49_pareto-round16-owner-unlock-and-v5-readiness.md) (M1–M28 open rows) · round-17 harvest (loginpage test-depth, #52 closure, signing narrative)
 **Anti-goal (Verschlimmbesserung):** see §4 — every change lands behind its existing gate; foreign/concurrent-session diffs are untouchable; PUBLISHED-module code rides the train (gotcha 8); measurement gates refuse under load.
 
+> **OUTCOME (annotated 2026-10-06, docs-health round 18) — EXECUTED across two sessions; archived.** A1 loginpage dep-budget resolved (row 5→7 with rationale, `6d6f03ef` — the last red CI job, green since run 37392674249); A2 read_model_missing closure verified; A5 statusToBadgeMap resolved (see the templ-tail plan); A8.2/A8.3 receipts (agents-notes named BuildFlow steps; gotcha-20 CHANGELOG convention `64b113b6`); A10 v5-cut runbook skeleton; A29 upstream watch refreshed (`2908bbd0`). Executed 2026-10-04→05 amid heavy concurrent-session churn — full narrative in `docs/status/archived/2026-10-05_20-32_round17-plan-execution-and-divergence-recovery.md`. Residue (A7/A9/A11–A14, owner A17–A28) routed in TODO_LIST rows.
+
 ---
 
 ## 0. Pareto breakdown — what is "the result"?
