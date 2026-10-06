@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
+
+- **Asset ETags are content-derived and cache headers immutable (dashboardui M16 sweep):** `/-/admin-tw.css` and `/-/admin.js` now carry ETags computed from their own bytes (FNV-1a, `"adminui-<name>-<hash>"`) instead of the hand-bumped `adminui-v3.4.0` constant — the class where the compiled bundle changes but the version const does not, silently diverging every consumer's cached copy. `Cache-Control` moves from `public, max-age=86400` to `public, max-age=31536000, immutable` (the root module's `HTMXScriptHandler` posture). Pinned by a round-trip 304 test and the content-hash assertion in `assets_test.go`; mirrors dashboardui's `assets.go` so both UI modules follow one rule.
 
 ## [v4.11.0] - 2026-09-19
 

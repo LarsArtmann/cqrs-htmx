@@ -11,6 +11,7 @@
 
 All with evidence; session commits `05213817`-era (daemon trio), `47a88a88`, `471c0933`, `ee59ac0b` (+ daemon `c57693dd`/`9f2586ed` carrying 3 annotation files), `3af81157`.
 
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — the session's blocker dissolved end-to-end: templ-components shipped consumable **v1.20.1**, the in-flight sweep completed + was receipted (11-module patch wave), CSS bundles rebuilt, `docs/agents-notes.md` "uniform at" claim fixed (`7c74307a`), check-modules fully green, and the **push landed** (`e2f6be27`, CI green 37392674249). Struck below: §b-final-verification, §f1–6, §f14, §g2/§g3. STILL OPEN (routed): R2/R18/R11/R20/R15/R12 (§f7–12 → TODO_LIST; OQ28 in ROADMAP), T3 drift-guard workspace re-verify (§f13 — first quiet window), standing watches (§f15).
 - **T5 exhaustruct finding FIXED — better than planned.** Instead of re-placing the fragile trailing nolint (golines had already stranded it once), `plainBodyOptions` joined `exhaustruct_v5`'s ignore-patterns in `.golangci.yml` (same precedent class as `readinessDetail` — zero/partial literals ARE the intent). Both nolints deleted; formatter-proof forever. Verified: root module `golangci-lint run` → **0 issues**; root module race tests green (4.06s).
 - **Baseline ratcheted 663 → 659 and gate GREEN.** Regenerated SARIF, class-level diff proved a PURE ratchet-down (-2 FLAG_PARAM at the `plainBodyWriter` def — T5's target; -2 PHANTOM_TYPE at its call sites; zero new findings anywhere), minified to 807 KB, installed, ledger/README/AGENTS counts updated. `nix run .#check-branching-flow` → **rc 0, +0 added** (the gate was RED at session start). The uncommitted-baseline guard fired correctly mid-flow (by design) and was satisfied by committing code + baseline together.
 - **R7: 12 dep commits KEPT + rationale recorded.** Recorded in the round-2 plan annotation (row R7) and open question Q3: all 12 on origin, individually verified green last session; revert = force-push (forbidden) or pointless churn; re-evaluate only if upstream re-releases differently. (Honesty note: see §d — the 7.1 re-enumeration was NOT independently redone.)
@@ -24,7 +25,7 @@ All with evidence; session commits `05213817`-era (daemon trio), `47a88a88`, `47
 
 ## b) PARTIALLY DONE
 
-- **Final verification (attribution complete, closure blocked).** 5 of 33 stages red: `workspace-build`, `version-drift`, `release-train`, `css-bundle-classes`, `docs-freshness`. ALL five trace to the templ-components v1.20.0 situation (the exact break filed as #27) hitting the concurrent session's in-flight family sweep — a daemon commit (`97a6aafb`, 20:37, templ-components v1.20.0 requires across 12+ modules) landed mid-session and a FURTHER uncommitted sweep (28 go.mod/go.sum + setup-demo CSS) was live in the working tree at verification time. Not fixable locally: the only local unblock is a go.work replace-shield (owner-gated by the plan's decision ledger) or upstream v1.20.1. Left untouched per the never-revert-foreign-changes rule.
+~~- **Final verification (attribution complete, closure blocked).** 5 of 33 stages red: `workspace-build`, `version-drift`, `release-train`, `css-bundle-classes`, `docs-freshness`. ALL five trace to the templ-components v1.20.0 situation (the exact break filed as #27) hitting the concurrent session's in-flight family sweep — a daemon commit (`97a6aafb`, 20:37, templ-components v1.20.0 requires across 12+ modules) landed mid-session and a FURTHER uncommitted sweep (28 go.mod/go.sum + setup-demo CSS) was live in the working tree at verification time. Not fixable locally: the only local unblock is a go.work replace-shield (owner-gated by the plan's decision ledger) or upstream v1.20.1. Left untouched per the never-revert-foreign-changes rule.~~ resolved — all five templ-components-attributed reds green after the v1.20.1 heal + sweep completion; push landed
 - **R7 (decision recorded, enumeration skipped).** The verdict and rationale are recorded, but sub-task 7.1 ("enumerate the 12 commits + their content") was not independently re-executed this session — I relied on the prior session's recorded verification. The verdict is robust regardless (revert path is forbidden), but the evidence chain has one inherited link.
 
 ---
@@ -66,12 +67,12 @@ Process (this session's lessons):
 ## f) Top next tasks (ranked; later items are ROADMAP fuel)
 
 ### Unblock / release path
-1. **Watch templ-components#27** → upstream v1.20.1 re-cut (fix: drop the 4 submodule replaces + tidy + tag, per the issue's Fix section).
-2. **Complete (or revert) the in-flight templ-components v1.20.0 sweep** — 28 modified go.mod/go.sum sit uncommitted in the tree (concurrent session owns; do not touch without coordination).
-3. **After the sweep settles: rebuild both CSS bundles** (`.#build-adminui-css` / `.#build-dashboardui-css`) — `css-bundle-classes` red, the family-bump same-change rule.
-4. **After the sweep settles: fix the `docs/agents-notes.md:89` "uniform at v1.19.4" claim** — `docs-freshness` red.
-5. **Re-run `nix run .#check-modules -- --report` on a quiet tree** — this session's run measured a foreign in-flight sweep (version-drift mid-sweep).
-6. **Push decision (owner)** once upstream lands + local gates green — pre-push hook enforces strict release-train.
+~~1. **Watch templ-components#27** → upstream v1.20.1 re-cut (fix: drop the 4 submodule replaces + tidy + tag, per the issue's Fix section).~~ done — v1.20.1 shipped with the issue's fix recipe (drop replaces + tidy + tag)
+~~2. **Complete (or revert) the in-flight templ-components v1.20.0 sweep** — 28 modified go.mod/go.sum sit uncommitted in the tree (concurrent session owns; do not touch without coordination).~~ done — sweep completed + receipted (root CHANGELOG [Unreleased] sweep entry)
+~~3. **After the sweep settles: rebuild both CSS bundles** (`.#build-adminui-css` / `.#build-dashboardui-css`) — `css-bundle-classes` red, the family-bump same-change rule.~~ done — `a34d664d` + sweep-train rebuilds; class-set gates green
+~~4. **After the sweep settles: fix the `docs/agents-notes.md:89` "uniform at v1.19.4" claim** — `docs-freshness` red.~~ done — `7c74307a`; agents-notes header now reads "uniform at v1.20.1, verified 2026-10-05"
+~~5. **Re-run `nix run .#check-modules -- --report` on a quiet tree** — this session's run measured a foreign in-flight sweep (version-drift mid-sweep).~~ done — fully green (03-04 + 10-06 batteries)
+~~6. **Push decision (owner)** once upstream lands + local gates green — pre-push hook enforces strict release-train.~~ done — push landed `e2f6be27` (2026-10-06), pre-push strict gates green
 
 ### TODO_LIST (routed this session)
 7. **R2: family-release consumability pre-flight gate** — checker + self-test + flake app + check-modules + CI + README, atomic (gotcha 19); kills the #27 class at the source.
@@ -83,7 +84,7 @@ Process (this session's lessons):
 
 ### Quality / follow-through
 13. **Re-verify the T3 drift-guard test under workspace mode** once templ-components unblocks — GOWORK=off usermgmt tests pin the PUBLISHED root module, so the behavioral test currently asserts published-root behavior.
-14. **Annotate the 20:31 status report** as superseded by this one (its §g owner questions ①/③ are now resolved: OQ28 filed, #27 filed; ② resolved by the baseline refresh + amendment).
+~~14. **Annotate the 20:31 status report** as superseded by this one (its §g owner questions ①/③ are now resolved: OQ28 filed, #27 filed; ② resolved by the baseline refresh + amendment).~~ done — the 20:31 report annotated 2026-10-06 (docs-health round 18)
 15. **Existing TODO watch items:** loginpage coverage re-pin (quiet window), bench-spike quiet-window retry, treefmt-nix#545 / BuildFlow#29 / templ-components#27 responses.
 
 ### ROADMAP fuel (routed, not worker tasks)
@@ -97,7 +98,7 @@ Process (this session's lessons):
 ## g) Questions I cannot answer myself
 
 1. **OQ28 (credential 4× duplication):** intentional anti-corruption/Published-Language boundary set (keep), or sprawl to consolidate? I can see the four field sets and boundary roles (`CredentialCore` / `CredentialView` / `credentialData` / `webAuthnUserCred`); the domain intent is yours. The R11 memo is queued as your input, but the call itself gates any code.
-2. **Interim replace-shield:** until templ-components ships a consumable v1.20.1, should a go.work `replace templ-components => /home/lars/projects/templ-components` be added (recorded, load-bearing) to unblock workspace builds — or do we hold the line and keep workspace-mode red? The plan's decision ledger says no shield without your approval; the concurrent session's sweep makes this live NOW.
-3. **Historical-doc annotation form:** I renamed both plans' table headers to "ID & task (annotated 2026-10-05)" to carry verdicts inline. Acceptable annotation, or should historical docs keep their original header schema (verdicts in a trailing column instead)? Deciding this wrong either erodes "never rewrite history" or makes every future plan annotation awkward.
+~~2. **Interim replace-shield:** until templ-components ships a consumable v1.20.1, should a go.work `replace templ-components => /home/lars/projects/templ-components` be added (recorded, load-bearing) to unblock workspace builds — or do we hold the line and keep workspace-mode red? The plan's decision ledger says no shield without your approval; the concurrent session's sweep makes this live NOW.~~ moot — upstream v1.20.1 healed; no shield needed
+~~3. **Historical-doc annotation form:** I renamed both plans' table headers to "ID & task (annotated 2026-10-05)" to carry verdicts inline. Acceptable annotation, or should historical docs keep their original header schema (verdicts in a trailing column instead)? Deciding this wrong either erodes "never rewrite history" or makes every future plan annotation awkward.~~ resolved by precedent — the renamed-header + inline-verdict form was used across the 2026-10-05/06 annotations without objection; treat it as accepted
 
 **Status:** WAITING FOR INSTRUCTIONS.

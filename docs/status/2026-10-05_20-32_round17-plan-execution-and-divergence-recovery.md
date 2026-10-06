@@ -8,6 +8,7 @@
 **What changed underneath me:** during the 32 h gap, concurrent sessions landed the identity-auth-hardening wave (usermgmt/setup/dashboardui tags), a dependency sweep (go-output family, go-health, samber-do-auditlog), the scripts/ reorganization (`checks/`/`selftests/`/`tools/`), the branching-flow ratchet (SARIF baseline + gate, R3/R8), the push-unblock diagnosis (templ-components v1.20.0 is an unconsumable release), the P1 StreamID `.String()` drift fix (gotcha 25), the #52 closure comment, the agents-notes signing narrative, and the episode-4 truth-pass (RelativeTime already adopted; PageHeader 4/11 + 7 justified divergences). Several of my plan's tasks were done before I resumed — caught by re-assessment, not duplicated.
 
 ---
+> **ANNOTATED 2026-10-06 (docs-health round 18)** — the blockers named here all dissolved: the templ-components poison healed (v1.20.1), the train RAN (11-module sweep wave: root v4.13.1 + usermgmt v4.14.1 + identity-model v4.12.1 + 8 more patch tags, 2026-10-05/06), the push landed (`e2f6be27`) with **CI all 7 jobs green (37392674249)** — the first fully-green master after the red streak. Struck below: §b2–b5, §f1–5, §f8, §f41, §f47–49. STILL OPEN (routed): A7/A9/A11/A12/A13/A14 (§c1–c6 → TODO_LIST rows: loginpage test-depth, battery remainder, v5 workstream, Doc-only repro), A17–A28 owner-gated (§c8 → TODO decision table D1–D11), R2/R18/R19/R20 (§f18–21), OQ11/OQ24-rename owner calls (§f23/24), remaining watch rows bare below.
 
 ## a) FULLY DONE (this session, evidence-backed)
 
@@ -23,10 +24,10 @@
 ## b) PARTIALLY DONE
 
 1. **v5 runbook (A10)** — skeleton by design: wave mapping + gates are decided; per-class consumer notes are at inventory depth, not copy-paste depth. Remaining: expand notes as the cut approaches (blocked on OQ11 timeline). Effort to finish: M per class.
-2. **A8.2 — BuildFlow step names** — assembled from prior VERIFIED captures (AGENTS gotcha 8) + today's aggregate "86 step(s) failed"; NOT a fresh dry-run+tee re-derivation. Defensible (names are gated content), but the plan text asked for a fresh capture. Effort: S if wanted.
-3. **A1 CI-loop closure** — local gate green, no post-fix CI run id recorded (push blocked by the train gate). Remaining: one push + one CI watch. Effort: S once unblocked.
-4. **The train (A3)** — fully staged (dep-budget fix + badge refactor + R4 drift-guard + R5 TOTP seam fixes all in tree, unpushed), zero tags cut. Blocker: upstream templ-components v1.20.0 unconsumable (see d-4). Everything else is ready.
-5. **This report's (f) list** — brainstorm for HARVEST; not yet routed into TODO_LIST/ROADMAP (deliberate: most items already live there; the delta is listed in f).
+~~2. **A8.2 — BuildFlow step names** — assembled from prior VERIFIED captures (AGENTS gotcha 8) + today's aggregate "86 step(s) failed"; NOT a fresh dry-run+tee re-derivation. Defensible (names are gated content), but the plan text asked for a fresh capture. Effort: S if wanted.~~ done — the named-steps receipt lives in docs/agents-notes.md ("BuildFlow non-devShell step failures")
+~~3. **A1 CI-loop closure** — local gate green, no post-fix CI run id recorded (push blocked by the train gate). Remaining: one push + one CI watch. Effort: S once unblocked.~~ done — CI green on the pushed fix (run 37392674249, all 7 jobs)
+~~4. **The train (A3)** — fully staged (dep-budget fix + badge refactor + R4 drift-guard + R5 TOTP seam fixes all in tree, unpushed), zero tags cut. Blocker: upstream templ-components v1.20.0 unconsumable (see d-4). Everything else is ready.~~ done — the sweep train ran 2026-10-05/06 (11 patch tags incl. root v4.13.1), strict gates green, pushed
+~~5. **This report's (f) list** — brainstorm for HARVEST; not yet routed into TODO_LIST/ROADMAP (deliberate: most items already live there; the delta is listed in f).~~ done (docs-health round 18 — this annotation routes the deltas)
 
 ## c) NOT STARTED (by this session)
 
@@ -61,14 +62,14 @@
 
 ## f) Next 50 (brainstorm — HARVEST fuel; most route to existing rows, new deltas marked *)
 
-1. R1 call: resolve the push unblock (wait / replace-shield / --no-verify) and record it — Critical / M / Release
-2. File the templ-components v1.20.0 unconsumable-release issue upstream (R17, verify-before-filing first) — Critical / S / Bug-report
-3. When upstream re-releases: re-run templ-components family sweeps (bump-dep --commit), strict gates, then push — Critical / M / Release
-4. Cut the release train (A3, wave-ordered; now also carries badge refactor + R4/R5 fixes) — Critical / L / Release
-5. Close A1's CI loop: watch module-architecture green on the pushed dep-budget fix (record run id) — High / S / Release
+~~1. R1 call: resolve the push unblock (wait / replace-shield / --no-verify) and record it — Critical / M / Release~~ resolved — upstream v1.20.1 healed the poison; normal push `e2f6be27`
+~~2. File the templ-components v1.20.0 unconsumable-release issue upstream (R17, verify-before-filing first) — Critical / S / Bug-report~~ done — templ-components#27 (2026-10-05)
+~~3. When upstream re-releases: re-run templ-components family sweeps (bump-dep --commit), strict gates, then push — Critical / M / Release~~ done — family on v1.20.1, bundles rebuilt, gates green, pushed
+~~4. Cut the release train (A3, wave-ordered; now also carries badge refactor + R4/R5 fixes) — Critical / L / Release~~ done — 11-module patch wave 2026-10-05/06 (root v4.13.1 + usermgmt v4.14.1 + identity-model v4.12.1 + 8 more)
+~~5. Close A1's CI loop: watch module-architecture green on the pushed dep-budget fix (record run id) — High / S / Release~~ done — run 37392674249 all green
 6. Proxy smoke: scratch `go get` every new tag post-train — Critical / S / Release
 7. Cut CHANGELOG version headers BEFORE tagging (train step 3.7) — High / S / Release
-8. Run `.#check-modules` composite (28 stages) at the first quiet window — High / M / Quality
+~~8. Run `.#check-modules` composite (28 stages) at the first quiet window — High / M / Quality~~ done — fully green in the 03-04 + 10-06 batteries
 9. Re-pin the loginpage coverage gate post-adoption (quiet window) — Med / S / Quality
 10. A7: loginpage JS smoke tests (node:test, Base64URL property test, serialize goldens, wire into `.#test`) — High / M / Quality
 11. A9: `.#test-all` (28 modules) + `.#bench-spike` under verified quiet (< 6 twice) — High / M / Quality
@@ -101,15 +102,15 @@
 38. * Record the fetch-before-amend refinement into AGENTS gotcha 4 (+ optional wrapper script) — Med / S / Documentation
 39. * Codify the session-resume protocol (step zero: git log + TODO header + newer-plan check) into AGENTS — Med / S / Documentation
 40. * Formalize the race-resistant commit pattern (pre-written message file + one-shot add+commit -F) — Low / S / Tooling
-41. Verify CI green end-to-end on the eventual push (module-architecture + lint + test + the new branching-flow lane) — High / S / CI
+~~41. Verify CI green end-to-end on the eventual push (module-architecture + lint + test + the new branching-flow lane) — High / S / CI~~ done — 37392674249 all 7 jobs
 42. V007 cluster-1 criterion re-check at the next train (upstream metaengine + checkpoint/DLQ option) — Med / S / Watch
 43. appkit v5-window re-check at the next train — Low / S / Watch
 44. SidebarNav revisit trigger check at the next dashboardui UI change — Low / S / Watch
 45. Watch treefmt-nix#545 + BuildFlow#29 responses; retire shims when they land — Low / S / Watch
 46. DataStar Tier-4 demand-gate re-check at the next train — Low / S / Watch
-47. Route this report's (f) deltas into TODO_LIST/ROADMAP via HARVEST (the standing rule: items not already in living docs die here otherwise) — High / S / Documentation
-48. TODO_LIST header restamp: fold in this session's deltas (A5 closure, runbook, templ#1449 watch) — Low / S / Documentation
-49. Post-train: annotate THIS report (docs-health ANNOTATE) with the outcome hashes — Low / S / Documentation
+~~47. Route this report's (f) deltas into TODO_LIST/ROADMAP via HARVEST (the standing rule: items not already in living docs die here otherwise) — High / S / Documentation~~ done (docs-health round 18)
+~~48. TODO_LIST header restamp: fold in this session's deltas (A5 closure, runbook, templ#1449 watch) — Low / S / Documentation~~ done — headers restamped 2026-10-05/06
+~~49. Post-train: annotate THIS report (docs-health ANNOTATE) with the outcome hashes — Low / S / Documentation~~ done — this annotation (2026-10-06)
 50. Reconsider a CI-side "workspace-TEST gate" equivalent (the 06-54 report's observation: the workspace-TEST gap is what let regressions ride trains unnoticed) — Med / L / Quality
 
 ## g) Three questions I cannot answer myself
