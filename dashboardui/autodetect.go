@@ -27,7 +27,7 @@ type fieldProbe[T any] struct {
 }
 
 func (p fieldProbe[T]) probe(config *Config, source any) bool {
-	if *p.field(config) != nil {
+	if any(*p.field(config)) != nil {
 		return false
 	}
 
@@ -44,6 +44,8 @@ func (p fieldProbe[T]) probe(config *Config, source any) bool {
 // readProbes cover the minimum-viable read interfaces: at least one must be
 // wired from any source or Autodetect rejects, mirroring the contract New
 // enforces on hand-written Configs.
+//
+//nolint:gochecknoglobals // immutable capability-probe table
 var readProbes = []capabilityProbe{
 	fieldProbe[event.EventSource]{field: func(c *Config) *event.EventSource { return &c.EventSource }},
 	fieldProbe[event.Journal]{field: func(c *Config) *event.Journal { return &c.Journal }},
@@ -51,6 +53,8 @@ var readProbes = []capabilityProbe{
 }
 
 // optionalProbes light up the extra panels whenever a source implements them.
+//
+//nolint:gochecknoglobals // immutable capability-probe table
 var optionalProbes = []capabilityProbe{
 	fieldProbe[EventByIDLoader]{field: func(c *Config) *EventByIDLoader { return &c.EventByIDLoader }},
 	fieldProbe[listing.StreamReader]{field: func(c *Config) *listing.StreamReader { return &c.StreamReader }},

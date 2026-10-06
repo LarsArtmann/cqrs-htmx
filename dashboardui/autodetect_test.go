@@ -151,7 +151,7 @@ func TestAutodetect_BusOnlyValueStillNeedsReadInterface(t *testing.T) {
 // conflictPrimary and conflictSecondary both implement event.Journal; only
 // the secondary adds event.Bus. Together they exercise the conflict rule.
 type (
-	conflictPrimary struct{ event.Journal }
+	conflictPrimary   struct{ event.Journal }
 	conflictSecondary struct {
 		event.Journal
 		event.Bus
@@ -190,9 +190,7 @@ func TestAutodetect_MergesComplementarySources(t *testing.T) {
 		t.Error("Journal should come from the primary store")
 	}
 
-	if config.SnapshotStore == snapshots {
-		t.Log("SnapshotStore wired from the auxiliary source")
-	} else {
+	if config.SnapshotStore != snapshots {
 		t.Error("SnapshotStore should be wired from the auxiliary source")
 	}
 }
@@ -203,7 +201,7 @@ func TestAutodetect_ReadInterfaceMayComeFromLaterSource(t *testing.T) {
 		t.Fatalf("Autodetect: %v", err)
 	}
 
-	if !config.HasEventRead() {
+	if config.EventSource == nil || config.Journal == nil {
 		t.Error("the read-interface gate is aggregate — a later source satisfies it")
 	}
 }

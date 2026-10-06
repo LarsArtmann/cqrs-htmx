@@ -160,7 +160,7 @@ func seedDemoData(
 		_ = store.Save(ctx, ref, []event.Event{renamed}, event.Version(1))
 
 		// Record a command for this user
-		cmdPayload, _ := json.Marshal(map[string]any{"userId": aggID.String(), "name": name})
+		cmdPayload, _ := json.Marshal(map[string]any{"userId": aggID.Get(), "name": name})
 		cmd, _ := command.NewPersistedCommand("create.user", ref, cmdPayload)
 		//cqrs-lint:ignore(C028) demo seed data: errors are non-critical
 		_ = cmdStore.Save(ctx, ref, cmd)

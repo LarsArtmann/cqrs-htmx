@@ -78,7 +78,7 @@ func (c *CQRS) appendDomainEvent(ctx context.Context, aggID, eventType string, p
 func (c *CQRS) registerCommandHandlers() {
 	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(c.Commands, "CreateTodo", func(ctx context.Context, cmd *CreateTodoCmd) error {
-		todoID := cmd.StreamID().String()
+		todoID := cmd.StreamID().Get()
 		payload, _ := json.Marshal(TodoCreatedPayload{
 			ID:        todoID,
 			Title:     cmd.Title,
@@ -91,7 +91,7 @@ func (c *CQRS) registerCommandHandlers() {
 
 	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(c.Commands, "ToggleTodo", func(ctx context.Context, cmd *ToggleTodoCmd) error {
-		todoID := cmd.StreamID().String()
+		todoID := cmd.StreamID().Get()
 		payload, _ := json.Marshal(TodoToggledPayload{ID: todoID})
 
 		c.appendDomainEvent(ctx, todoID, "TodoToggled", payload)
@@ -100,7 +100,7 @@ func (c *CQRS) registerCommandHandlers() {
 
 	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(c.Commands, "DeleteTodo", func(ctx context.Context, cmd *DeleteTodoCmd) error {
-		todoID := cmd.StreamID().String()
+		todoID := cmd.StreamID().Get()
 		payload, _ := json.Marshal(TodoDeletedPayload{ID: todoID})
 
 		c.appendDomainEvent(ctx, todoID, "TodoDeleted", payload)
@@ -109,7 +109,7 @@ func (c *CQRS) registerCommandHandlers() {
 
 	//cqrs-lint:ignore(C028) example: error handling omitted for brevity
 	_ = command.RegisterTyped(c.Commands, "UpdateTodo", func(ctx context.Context, cmd *UpdateTodoCmd) error {
-		todoID := cmd.StreamID().String()
+		todoID := cmd.StreamID().Get()
 		payload, _ := json.Marshal(TodoUpdatedPayload{ID: todoID, Title: cmd.Title})
 
 		c.appendDomainEvent(ctx, todoID, "TodoUpdated", payload)

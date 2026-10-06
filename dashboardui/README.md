@@ -46,7 +46,7 @@ The panel meets your app at whatever depth you want — from "give me a URL" to
 
 ### Destination (zero-config)
 
-`Autodetect` probes your store for every go-cqrs-lite introspection interface,
+`Autodetect` probes your sources for every go-cqrs-lite introspection interface,
 so the hand-written type-assertion dance disappears:
 
 ```go
@@ -60,6 +60,17 @@ dash := dashboardui.MustNew(cfg)
 dash.Mount(mux, "/cqrs/")
 ```
 
+Passing several sources merges their capabilities first-wins — each capability
+is claimed by the earliest source that implements it, so put the primary store
+first and auxiliary stores (a dedicated snapshot store, a projection host)
+after it:
+
+```go
+cfg, err := dashboardui.Autodetect(store, snapshotStore, projectionHost)
+```
+
+At least one source must implement a read interface (`event.EventSource`,
+`event.Journal`, or `event.SeekableJournal`) — the same rule `New` enforces.
 Explicit `Config` field assignment still works (and `New` still enforces the
 same "at least one read interface" rule) — `Autodetect` only removes the
 plumbing, it does not change the contract.
