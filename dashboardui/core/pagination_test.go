@@ -319,3 +319,30 @@ func TestMaxPageSize(t *testing.T) {
 		t.Errorf("MaxPageSize() = %d, want %d", got, maxPageSize)
 	}
 }
+
+func TestPaginationQuery_EscapesCursorValues(t *testing.T) {
+	t.Parallel()
+
+	hostile := "cur&1=x,cur#2 ü"
+	got := PaginationQuery(hostile, hostile+",cur3", 10, "")
+
+	want := "after=" + url.QueryEscape(hostile) +
+		"&prev=" + url.QueryEscape(hostile+",cur3") +
+		"&limit=10"
+	if got != want {
+		t.Fatalf("PaginationQuery() = %q, want %q", got, want)
+	}
+
+	vals, err := url.ParseQuery(got)
+	if err != nil {
+		t.Fatalf("ParseQuery(%q): %v", got, err)
+	}
+
+	if vals.Get("after") != hostile {
+		t.Errorf("after round-trip = %q, want %q", vals.Get("after"), hostile)
+	}
+
+	if vals.Get("prev") != hostile+",cur3" {
+		t.Errorf("prev round-trip = %q, want %q", vals.Get("prev"), hostile+",cur3")
+	}
+}
