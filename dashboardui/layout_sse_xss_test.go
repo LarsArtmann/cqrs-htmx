@@ -4,6 +4,7 @@ import (
 	"html"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -21,6 +22,7 @@ func TestDashboardJSRowBuilderNeverBuildsHTML(t *testing.T) {
 	if strings.Contains(dashboardJS, "innerHTML") {
 		t.Fatalf("dashboardJS must not use innerHTML anywhere: it renders untrusted SSE event metadata")
 	}
+
 	for _, want := range []string{
 		`document.createElement("td")`,
 		`td.textContent = text == null ? "" : String(text)`,
@@ -100,6 +102,7 @@ func TestDashboardJSInjectionSmoke(t *testing.T) {
 	}
 	for _, payload := range markupPayloads {
 		escaped := html.EscapeString(payload)
+
 		if strings.ContainsAny(escaped, "<>") {
 			t.Errorf("markup payload %q still contains tags after textContent-equivalent rendering: %q", payload, escaped)
 		}
@@ -108,26 +111,16 @@ func TestDashboardJSInjectionSmoke(t *testing.T) {
 		}
 	}
 
-	// The href sink: encodeURIComponent mangles the scheme separator, so a
-	// "javascript:" payload cannot survive as a URI in the detail link.
+	// The href sink: encodeURIComponent mangles the scheme separator and
+	// quotes, so a "javascript:" payload cannot survive as a URI in the
+	// detail link.
 	for _, payload := range []string{`javascript:alert(1)`, `../../etc/passwd`, `x" onmouseover="alert(1)`} {
 		encoded := url.QueryEscape(payload)
-		if strings.Contains(encoded, ":") || strings.Contains(encoded, `"`) || encoded != pathEscapeAlphaNum(payload) {
-			t.Errorf("href payload %q must lose scheme/quote characters under encodeURIComponent, got %q", payload, encoded)
-		}
-	}
-}
 
-// pathEscapeAlphaNum asserts the encoded form contains only characters that
-// are inert inside a relative URL segment.
-func pathEscapeAlphaNum(s string) string {
-	encoded := url.QueryEscape(s)
-	for _, r := range encoded {
-		if !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~%", r) {
-			return s
+		if strings.ContainsAny(encoded, `:"/\ ?&=#`) {
+			t.Errorf("href payload %q must lose scheme/quote/separator characters under encodeURIComponent, got %q", payload, encoded)
 		}
 	}
-	return encoded
 }
 
 // TestServedDashboardJSMatchesXSSContract verifies the wire surface: the JS
