@@ -1,17 +1,17 @@
 //cqrs-lint:ignore(E014) dashboard consumes projections, does not own them
 module github.com/larsartmann/cqrs-htmx/dashboardui/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/a-h/templ v0.3.1070
 	github.com/dustin/go-humanize v1.1.0
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.1
 	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
@@ -62,7 +62,6 @@ require (
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
-	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/a-h/templ v0.3.1070
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.1
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/httputil v1.4.1
 	github.com/larsartmann/templ-components v1.20.1
@@ -37,7 +37,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
@@ -48,7 +48,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1 // indirect

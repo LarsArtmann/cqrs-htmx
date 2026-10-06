@@ -1,19 +1,19 @@
 module github.com/larsartmann/cqrs-htmx/usermgmt/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.3
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.1
 	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
@@ -73,14 +73,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect

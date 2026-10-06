@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2
 	//cqrs-lint:ignore(V003) v4.0.1 IS the latest published tag; detector compares against the core module version — false positive
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1
@@ -43,7 +43,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.7 // indirect
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.0 // indirect
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.1 // indirect
 	//cqrs-lint:ignore(V006) go-cqrs-lite releases per-module version trains, not lockstep tags (indirect pin resolved by MVS; root go.mod carries the same suppression)
@@ -61,7 +61,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.4 // indirect

@@ -1,11 +1,11 @@
 module github.com/larsartmann/cqrs-htmx/examples/basic
 
-go 1.27.1
+go 1.27
 
 require (
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-sse v0.6.2
 	github.com/larsartmann/httputil v1.4.1
@@ -21,16 +21,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
 	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-idempotency v0.3.1 // indirect
-	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/time v0.16.0 // indirect
 )

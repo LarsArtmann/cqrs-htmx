@@ -6,18 +6,18 @@ go 1.27.1
 
 require (
 	github.com/a-h/templ v0.3.1070
-	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.0
-	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.0
+	github.com/larsartmann/cqrs-htmx/adminui/v4 v4.12.2
+	github.com/larsartmann/cqrs-htmx/dashboardui/v4 v4.13.1
+	github.com/larsartmann/cqrs-htmx/datastar/v4 v4.12.1
 	github.com/larsartmann/cqrs-htmx/identity-model/v4 v4.12.1
-	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.1
+	github.com/larsartmann/cqrs-htmx/loginpage/v4 v4.12.2
 	github.com/larsartmann/cqrs-htmx/usermgmt/v4 v4.14.1
-	github.com/larsartmann/cqrs-htmx/v4 v4.13.0
+	github.com/larsartmann/cqrs-htmx/v4 v4.13.1
 	github.com/larsartmann/go-appkit v0.7.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3
@@ -76,7 +76,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3 // indirect
 	github.com/larsartmann/go-datastar v0.6.2 // indirect
