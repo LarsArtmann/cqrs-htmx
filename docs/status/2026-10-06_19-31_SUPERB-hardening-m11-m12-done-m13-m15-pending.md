@@ -1,5 +1,11 @@
 # SUPERB hardening execution — M11+M12 landed (GCL), M13–M15 not started
 
+> **SUPERSEDED 2026-10-06 21:35:** M13–M15 are DONE, tested, and receipted; the
+> three open questions below were answered by execution (proceeded gated on
+> preflight; took the signature break with a Changed receipt; disabled both
+> prev and next in sorted mode). Live picture:
+> [`2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md`](2026-10-06_21-35_SUPERB-hardening-m11-m15-complete.md).
+
 **Created:** 2026-10-06 19:31 · **Scope:** execution status of
 [`docs/planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md`](../planning/2026-10-06_14-49_SUPERB-dashboardui-metaengine-system-hardening-pareto-plan.md)
 — this session was assigned **M11–M15 only** (F35–F53). M01–M10 were NOT part of
