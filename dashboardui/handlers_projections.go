@@ -72,15 +72,16 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 				slog.ErrorContext(
 					r.Context(),
 					"dashboardui.audit",
-					"op",
-					"projection.reset",
-					"projection",
-					name,
-					"result",
-					"error",
-					"error",
-					err,
-					d.auditAttrs(r)...,
+					d.audit(r,
+						"op",
+						"projection.reset",
+						"projection",
+						name,
+						"result",
+						"error",
+						"error",
+						err,
+					)...,
 				)
 				triggerToast(w, "err", "Reset failed")
 				w.WriteHeader(http.StatusInternalServerError)
@@ -91,13 +92,14 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 			slog.InfoContext(
 				r.Context(),
 				"dashboardui.audit",
-				"op",
-				"projection.reset",
-				"projection",
-				name,
-				"result",
-				"ok",
-				d.auditAttrs(r)...,
+				d.audit(r,
+					"op",
+					"projection.reset",
+					"projection",
+					name,
+					"result",
+					"ok",
+				)...,
 			)
 			triggerToast(w, "ok", "Projection reset")
 			redirect(w, r, d.config.BasePath+"/projections")

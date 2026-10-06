@@ -71,15 +71,19 @@ func (d *Dashboard) actorAuthorizer() func(*http.Request) (*Actor, error) {
 	}
 }
 
-// auditAttrs returns the attribution attributes every dashboardui.audit log
-// entry carries: the acting identity (from the request context — set by
-// ActorAuthorizer or consumer middleware) and the request ID (when the
-// consumer runs httputil's request-ID middleware).
-func (d *Dashboard) auditAttrs(r *http.Request) []any {
-	attrs := []any{"actor", "anonymous"}
-
+// audit returns the complete attribute list for a dashboardui.audit log
+// entry: the operation's own key/value pairs followed by the attribution
+// attributes — the acting identity (from the request context, set by
+// ActorAuthorizer or consumer middleware via [WithActor]) and the request ID
+// (when the consumer runs httputil's request-ID middleware). Spread it as
+// the variadic tail of the slog call:
+//
+//	slog.InfoContext(r.Context(), "dashboardui.audit", d.audit(r, "op", "x")...)
+func (d *Dashboard) audit(r *http.Request, attrs ...any) []any {
 	if actor, ok := ActorFromContext(r.Context()); ok && actor.known() {
-		attrs = []any{"actor_id", actor.ID, "actor_name", actor.Name}
+		attrs = append(attrs, "actor_id", actor.ID, "actor_name", actor.Name)
+	} else {
+		attrs = append(attrs, "actor", "anonymous")
 	}
 
 	if requestID := httputil.RequestIDFromContext(r.Context()); requestID != "" {
