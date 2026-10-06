@@ -19,9 +19,9 @@ func TestNeutralizeCSVFormula(t *testing.T) {
 	}{
 		{"", ""},
 		{"plain", "plain"},
-		{"a=b", "a=b"},   // trigger only matters in leading position
-		{"1-2", "1-2"},   // hyphen not leading
-		{"x@y", "x@y"},   // at not leading
+		{"a=b", "a=b"},    // trigger only matters in leading position
+		{"1-2", "1-2"},    // hyphen not leading
+		{"x@y", "x@y"},    // at not leading
 		{"=1+1", "'=1+1"}, // formula
 		{"+cmd|' /C calc'!A0", "'+cmd|' /C calc'!A0"},
 		{"-2+3+cmd|' /C calc'!A0", "'-2+3+cmd|' /C calc'!A0"},
