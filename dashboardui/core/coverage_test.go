@@ -180,8 +180,8 @@ func TestListStreamsPaged_ErrorReturnsInfrastructureError(t *testing.T) {
 		t.Fatal("expected the reader error to propagate")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Infrastructure {
-		t.Errorf("expected Infrastructure family, got %v", errorfamily.Classify(err))
+	if errorfamily.Classify(err) == errorfamily.Rejection {
+		t.Error("an unclassified reader error must not read as a client rejection")
 	}
 
 	if listings != nil {
@@ -190,6 +190,27 @@ func TestListStreamsPaged_ErrorReturnsInfrastructureError(t *testing.T) {
 
 	if state.HasNext {
 		t.Error("HasNext should be false on error")
+	}
+}
+
+func TestListStreamsPaged_PreservesReaderRejectionFamily(t *testing.T) {
+	t.Parallel()
+
+	cfg := Config{
+		PageSize: 20,
+		StreamReader: &fakeStreamReader{
+			err: errorfamily.NewRejection("test.reader.rejected", "no"),
+		},
+	}
+	r := httptest.NewRequest(http.MethodGet, "/?", nil)
+
+	_, _, err := ListStreamsPaged(r, cfg)
+	if err == nil {
+		t.Fatal("expected the reader error to propagate")
+	}
+
+	if errorfamily.Classify(err) != errorfamily.Rejection {
+		t.Errorf("expected the Rejection family to survive the wrap, got %v", errorfamily.Classify(err))
 	}
 }
 

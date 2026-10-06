@@ -6,7 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
+### Fixed
+
+- **URL-parameter injection hardened across every link builder (filter, sort, pagination):** generated links now percent-encode query values at construction time — `core.EventFilter.ExtraParams` (type/streamType/streamID), the sortable-header hrefs and the sort-state fragment (sort/dir), and `core.PaginationQuery` (after/prev — the prev history's embedded commas now travel as one value instead of splitting). Hostile filter input (`&`, `=`, `#`, space, unicode) can no longer smuggle extra parameters into sort headers, page-size options, or Prev/Next links; pinned by round-trip tests at the builder level and a handler-level test whose events literally carry the hostile value as their type.
+- **Malformed `after` cursors are a 400, not a silent page reset:** the events/commands/queries index pages used to swallow cursor-parse failures, quietly dropping the user back to page one (a "Next" that never advanced). They now render a 400 error page and log the raw value.
+- **ReadAll fallback pagination honors the requested page size:** the command/query journals' non-seekable fallback truncated before computing hasNext, hiding the Next link entirely — and the query fallback truncated with the CONFIG default instead of the requested `?limit=`. Both now share the normal truncate-after-hasNext path.
+- **Detail handlers map error family to status (event/command/query):** a not-found (Rejection) is a 404, an infrastructure failure is a 500 with the cause logged — previously every load error read as "404 not found", hiding store outages behind a misleading page. Root cause fixed at the loader: `core.loadEventFromAll`'s terminal not-found error carried the Infrastructure family and a copy-pasted "no event source available" message.
+- **`writeJSON` marshals before committing the status:** a marshal failure after `WriteHeader` used to strand the intended status (often 200) on the wire with an error body appended; it now writes 500 + `{"error":"marshal_failed"}` before any status is committed.
+- **Write-action audit logs carry the error at Error level:** DLQ replay/delete/purge, snapshot delete, and projection reset failures now log `slog.ErrorContext` with the `error` attached (was Info with just `result=error`), so the cause is greppable next to the audit trail.
+
+### Changed
+
+- **`core.ListStreamsPaged` returns an error (breaking signature):** `([]listing.StreamListing, PageState)` → `([]listing.StreamListing, PageState, error)`. Reader failures (and a misbehaving nil page) now surface instead of silently rendering an empty table; the wrap is family-preserving, so a reader that classifies its error as a Rejection still maps to 400 at the stream-listing pages (aggregates/snapshots/time-travel) while everything else renders a 500 error panel.
 
 ## [v4.13.0] - 2026-10-04
 

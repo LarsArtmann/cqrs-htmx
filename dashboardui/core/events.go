@@ -337,7 +337,11 @@ func ListStreamsPaged(r *http.Request, cfg Config) ([]listing.StreamListing, Pag
 
 	page, err := cfg.StreamReader.List(r.Context(), opts)
 	if err != nil {
-		return nil, PageState{PageSize: pageSize}, errorfamily.WrapInfrastructure(err,
+		// Family-preserving wrap: a reader that already classified its
+		// error (e.g. a Rejection for an invalid request) keeps that
+		// family; plain errors classify as Transient.
+		return nil, PageState{PageSize: pageSize}, errorfamily.Wrapf(
+			err, errorfamily.Classify(err),
 			"dashboardui.streams.list_failed", "list streams")
 	}
 

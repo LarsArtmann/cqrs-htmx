@@ -218,6 +218,10 @@ func TestStreamsIndex_InvalidCursorReturns400(t *testing.T) {
 	// so an arbitrary cursor never 400s — it simply matches nothing and the
 	// page renders empty. This pins that contract.
 	if w.Code != http.StatusOK {
-		t.Fatalf("expected 200 for a lenient cursor parse, got %d (%s)", w.Code, w.Body.String()[:min(len(w.Body.String()), 200)])
+		t.Fatalf(
+			"expected 200 for a lenient cursor parse, got %d (%s)",
+			w.Code,
+			w.Body.String()[:min(len(w.Body.String()), 200)],
+		)
 	}
 }
