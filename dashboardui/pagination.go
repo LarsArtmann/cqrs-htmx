@@ -3,6 +3,7 @@ package dashboardui
 import (
 	"strconv"
 
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 	"github.com/larsartmann/templ-components/forms"
 )
 
@@ -50,7 +51,7 @@ func paginationInfoText(state paginationState) string {
 func pageSizeOptionsFor(basePath, path string, state paginationState, extraParams string) []forms.SelectOption {
 	current := state.PageSize
 	if current == 0 {
-		current = defaultPageSize
+		current = core.DefaultPageSize()
 	}
 
 	options := make([]forms.SelectOption, 0, len(pageSizeOptions))

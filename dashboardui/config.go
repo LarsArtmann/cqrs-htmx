@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -18,8 +19,6 @@ const (
 	defaultBasePath             = "/dashboard"
 	defaultTitle                = "CQRS Dashboard"
 	defaultAccentColor          = "#4f46e5"
-	defaultPageSize             = 50
-	maxPageSize                 = 200
 	defaultSSEHeartbeatInterval = 15 * time.Second
 )
 
@@ -138,6 +137,16 @@ type Config struct {
 	LogoutURL string
 }
 
+// Validate checks the configuration and returns the normalized copy with
+// defaults applied (Title, BasePath, AccentColor, PageSize, payload
+// renderer, SSE heartbeat). [New] applies it automatically; consumers can
+// call it directly to fail fast — e.g. at process startup — without
+// constructing a Dashboard. Returns a Rejection-family error describing
+// the first invalid field.
+func (config Config) Validate() (Config, error) {
+	return config.withDefaults()
+}
+
 func (config Config) withDefaults() (Config, error) {
 	if config.EventSource == nil && config.Journal == nil && config.SeekableJournal == nil {
 		return config, errConfig(
@@ -165,11 +174,11 @@ func (config Config) withDefaults() (Config, error) {
 	}
 
 	if config.PageSize == 0 {
-		config.PageSize = defaultPageSize
+		config.PageSize = core.DefaultPageSize()
 	}
 
-	if config.PageSize > maxPageSize {
-		config.PageSize = maxPageSize
+	if config.PageSize > core.MaxPageSize() {
+		config.PageSize = core.MaxPageSize()
 	}
 
 	if config.PayloadRenderer == nil {
