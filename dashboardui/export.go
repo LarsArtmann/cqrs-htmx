@@ -6,6 +6,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -39,18 +40,50 @@ func parseFormat(r *http.Request) responseFormat {
 	}
 }
 
+// csvFormulaTriggers are the leading characters that make Excel, Google
+// Sheets, and LibreOffice interpret a CSV cell as a formula (the OWASP CSV
+// injection set).
+const csvFormulaTriggers = "=+-@\t\r"
+
+// neutralizeCSVFormula defuses spreadsheet formula injection in an exported
+// cell: when the value starts with a formula trigger, a single-quote prefix
+// forces text interpretation. Exported event metadata (types, stream ids) is
+// attacker-influenced data that operators open in spreadsheets, so every CSV
+// cell routed through writeCSV is neutralized.
+func neutralizeCSVFormula(value string) string {
+	if value == "" {
+		return value
+	}
+
+	if strings.ContainsRune(csvFormulaTriggers, rune(value[0])) {
+		return "'" + value
+	}
+
+	return value
+}
+
 func writeCSV(w http.ResponseWriter, filename string, headers []string, rows [][]string) {
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
 
 	writer := csv.NewWriter(w)
-	_ = writer.Write(headers)
+	_ = writer.Write(neutralizeCSVRow(headers))
 
 	for _, row := range rows {
-		_ = writer.Write(row)
+		_ = writer.Write(neutralizeCSVRow(row))
 	}
 
 	writer.Flush()
+}
+
+func neutralizeCSVRow(row []string) []string {
+	neutralized := make([]string, len(row))
+
+	for i, cell := range row {
+		neutralized[i] = neutralizeCSVFormula(cell)
+	}
+
+	return neutralized
 }
 
 func writeJSONResponse(w http.ResponseWriter, data any) {
