@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
@@ -23,7 +24,7 @@ func fullRoutesConfig() Config {
 		CommandJournal:  &fakeCommandJournal{},
 		QueryJournal:    &fakeQueryJournal{},
 		SnapshotStore:   &fakeSnapshotStore{},
-		EventBus:        probeBus{},
+		EventBus:        eventtest.NewFakeBus(),
 	}
 }
 
@@ -133,8 +134,8 @@ func TestRoutes_WriteRoutesMarkedAndDroppedByReadOnly(t *testing.T) {
 		}
 	}
 
-	if got := len(routes); got != 27-wantWriteRoutes {
-		t.Errorf("ReadOnly manifest has %d routes, want %d", got, 27-wantWriteRoutes)
+	if got := len(routes); got != len(writable.Routes())-wantWriteRoutes {
+		t.Errorf("ReadOnly manifest has %d routes, want %d", got, len(writable.Routes())-wantWriteRoutes)
 	}
 }
 

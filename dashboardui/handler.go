@@ -40,103 +40,15 @@ func (d *Dashboard) Middleware() func(http.Handler) http.Handler {
 	return cqrshtmx.RecommendedSecurityMiddleware()
 }
 
-func (d *Dashboard) routes() http.Handler { //nolint:cyclop // route registration is inherently a long switch on capabilities
+func (d *Dashboard) routes() http.Handler {
 	mux := http.NewServeMux()
 
-	// Static assets
-	mux.Handle("GET /-/dashboard.css", d.guard(d.serveCSS()))
-	mux.Handle("GET /-/dashboard-tw.css", d.guard(d.twCSS.ServeHTTP))
-	mux.Handle("GET /-/dashboard.js", d.guard(d.serveJS()))
-	mux.Handle("GET /-/htmx.js", cqrshtmx.HTMXScriptHandler())
-
-	// Observability probes (unguarded: load balancers and k8s need access).
-	// versionz is config-revealing; VersionzRequireAuth opts it into the guard.
-	mux.HandleFunc("GET /-/healthz", d.healthzHandler)
-	mux.HandleFunc("GET /-/readyz", d.readyzHandler)
-	mux.HandleFunc("GET /-/versionz", d.versionzRoute())
-
-	// SSE live updates
-	if d.caps.EventBus {
-		mux.Handle("GET /-/events/stream", d.guard(d.sseHandler()))
-	}
-
-	// Overview (always available)
-	mux.HandleFunc("GET /{$}", d.guard(d.overviewHandler))
-
-	// Event Stream Browser
-	if d.caps.HasEventRead() {
-		mux.HandleFunc("GET /events", d.guard(d.eventsIndexHandler))
-		mux.HandleFunc("GET /events/{id}", d.guard(d.eventDetailHandler))
-	}
-
-	// Aggregate Browser
-	if d.caps.StreamReader || d.caps.EventSource {
-		mux.HandleFunc("GET /aggregates", d.guard(d.aggregatesIndexHandler))
-
-		if d.caps.EventSource {
-			mux.HandleFunc("GET /aggregates/{type}/{id}", d.guard(d.aggregateDetailHandler))
-		}
-	}
-
-	// Projection Dashboard
-	if d.caps.ProjectionHost {
-		mux.HandleFunc("GET /projections", d.guard(d.projectionsIndexHandler))
-		mux.HandleFunc("GET /projections/{name}", d.guard(d.projectionDetailHandler))
-		mux.HandleFunc(
-			"GET /-/partials/projection-health",
-			d.guard(d.projectionHealthPartialHandler),
-		)
-
-		if !d.config.ReadOnly {
-			mux.HandleFunc("POST /projections/{name}/reset", d.guard(d.projectionResetHandler))
-		}
-	}
-
-	// Dead-Letter Queue
-	if d.caps.DeadLetterStore || d.caps.ProjectionHost {
-		mux.HandleFunc("GET /dead-letters", d.guard(d.dlqIndexHandler))
-		mux.HandleFunc("GET /dead-letters/{projection}", d.guard(d.dlqDetailHandler))
-		mux.HandleFunc("GET /dead-letters/{projection}/{eventID}", d.guard(d.dlqEntryDetailHandler))
-
-		if !d.config.ReadOnly && d.caps.ProjectionHost {
-			mux.HandleFunc("POST /dead-letters/{projection}/replay", d.guard(d.dlqReplayHandler))
+	for _, spec := range d.routeTable() {
+		if !spec.enabled(d.caps, d.config.ReadOnly) {
+			continue
 		}
 
-		if !d.config.ReadOnly && d.caps.DeadLetterStore {
-			mux.HandleFunc(
-				"POST /dead-letters/{projection}/{eventID}/delete",
-				d.guard(d.dlqDeleteHandler),
-			)
-			mux.HandleFunc("POST /dead-letters/{projection}/purge", d.guard(d.dlqPurgeHandler))
-		}
-	}
-
-	// Command Audit
-	if d.caps.CommandJournal {
-		mux.HandleFunc("GET /commands", d.guard(d.commandsIndexHandler))
-		mux.HandleFunc("GET /commands/{id}", d.guard(d.commandDetailHandler))
-	}
-
-	// Query Audit
-	if d.caps.QueryJournal {
-		mux.HandleFunc("GET /queries", d.guard(d.queriesIndexHandler))
-		mux.HandleFunc("GET /queries/{id}", d.guard(d.queryDetailHandler))
-	}
-
-	// Time-Travel
-	if d.caps.EventSource {
-		mux.HandleFunc("GET /time-travel", d.guard(d.timeTravelIndexHandler))
-		mux.HandleFunc("GET /time-travel/{type}/{id}", d.guard(d.timeTravelDetailHandler))
-	}
-
-	// Snapshot Inspector
-	if d.caps.SnapshotStore {
-		mux.HandleFunc("GET /snapshots", d.guard(d.snapshotsIndexHandler))
-		mux.HandleFunc("GET /snapshots/{type}/{id}", d.guard(d.snapshotDetailHandler))
-
-		if !d.config.ReadOnly {
-			mux.HandleFunc("POST /snapshots/{type}/{id}/delete", d.guard(d.snapshotDeleteHandler))
-		}
+		mux.Handle(spec.method+" "+registrationPattern(spec.pattern), d.wrapped(spec))
 	}
 
 	// Catch-all: styled 404 for any unmatched GET route under the dashboard.
