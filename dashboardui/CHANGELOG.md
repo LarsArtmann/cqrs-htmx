@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **`/-/versionz` reports real build metadata and can be auth-guarded (M17):** the `module` field is now derived from the binary's build info via reflection instead of a hardcoded constant — a fork reports its own module path — and is joined by `version` (published semver when linked as a tagged dependency, `"(devel)"` in-module, empty for local directory replaces) and the binary's VCS stamp (`vcsRevision`, `vcsTime`, `vcsModified`; omitted when built without VCS metadata). New `Config.VersionzRequireAuth` opts the endpoint into the configured `Authorizer` (403 on denial); the default stays public like healthz/readyz so load-balancer probes need no credentials — the trade-off (Title, BasePath, capabilities, module version, VCS revision are readable unauthenticated) is documented in README § Observability Endpoints. Resolution logic pinned by table tests over synthetic `debug.BuildInfo` (main-module, dependency, versioned replace, directory replace, absent) and endpoint tests for all three guard outcomes.
+
 ### Fixed
 
 - **Asset ETags are content-derived and cache headers immutable (M16):** every served asset (`/-/dashboard-tw.css`, `/-/dashboard.css`, `/-/dashboard.js`) now carries an ETag computed from its own bytes (FNV-1a, `"dashboardui-<name>-<hash>"`) instead of the hand-bumped `dashboardui-v4.9.0` constant — the class of bug where the compiled bundle changes but the version const does not, and every consumer's cached copy silently diverges. `Cache-Control` moves from `public, max-age=86400` to `public, max-age=31536000, immutable` (the root module's `HTMXScriptHandler` posture); the JS route previously had NO ETag at all and now answers `If-None-Match` with 304 like the CSS routes. Pinned by round-trip 304 tests for both assets, a stale-ETag re-serves-full-body case, and a content-hash unit test.

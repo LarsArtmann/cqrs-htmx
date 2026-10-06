@@ -51,8 +51,10 @@ func (d *Dashboard) readyzHandler(w http.ResponseWriter, _ *http.Request) {
 func (d *Dashboard) versionzHandler(w http.ResponseWriter, _ *http.Request) {
 	module := ownModulePath()
 
-	version := ""
-	stamp := vcsBuildInfo{}
+	var version string
+
+	var stamp vcsBuildInfo
+
 	if build, ok := debug.ReadBuildInfo(); ok {
 		version = resolveModuleVersion(build, module)
 		stamp = resolveVCS(build.Settings)

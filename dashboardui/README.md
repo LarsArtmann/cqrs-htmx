@@ -160,6 +160,7 @@ type Config struct {
     ReadOnly         bool                   // disable write ops (default: true)
     PageSize         int                    // rows per page (default: 50, max: 200)
     Authorizer       func(*http.Request) error
+    VersionzRequireAuth bool               // guard /-/versionz behind Authorizer (default: false)
 }
 ```
 
@@ -297,9 +298,36 @@ Three unauthenticated endpoints for load balancers and Kubernetes probes:
 | ------------- | --------------- | ---------------------------------------- | ------------------------------------------- |
 | `/-/healthz`  | Liveness probe  | `{"status":"ok"}`                        | `{"status":"shutting_down"}`                |
 | `/-/readyz`   | Readiness probe | `{"status":"ready","ready":true}`        | `{"status":"no_data_source","ready":false}` |
-| `/-/versionz` | Build metadata  | Module, Go version, capabilities, config | —                                           |
+| `/-/versionz` | Build metadata  | Module, version, Go version, VCS stamp, capabilities, config | —                              |
 
 All return `application/json` with `Cache-Control: no-store`.
+
+### versionz fields and the auth guard
+
+`module` and `version` identify the dashboardui module itself — derived from
+the binary's build info via reflection, so a **fork reports its own module
+path**, not the upstream constant. `version` is the published semver when a
+consumer binary links a tagged dependency, `"(devel)"` when developing
+in-module, and empty for local directory replaces. `goVersion` is the toolchain.
+The `vcsRevision` / `vcsTime` / `vcsModified` fields are the **binary's** VCS
+stamp (the build an operator is talking to) and are omitted when the binary
+was built without VCS metadata.
+
+By default `/-/versionz` is public like the other probes, so load balancers
+can read build stamps without credentials. Note that it reveals `Title`,
+`BasePath`, capabilities, module version, and the VCS revision. When an
+`Authorizer` is configured and that surface should not be public, opt in:
+
+```go
+dashboardui.Config{
+    // ...
+    Authorizer:          myAuthCheck,
+    VersionzRequireAuth: true, // /-/versionz now returns 403 on denial
+}
+```
+
+`healthz` and `readyz` stay public regardless — probes must not depend on
+credentials.
 
 ## Mobile Responsive Design
 

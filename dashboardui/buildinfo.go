@@ -20,7 +20,7 @@ type vcsBuildInfo struct {
 // fork reports the fork's module path. Falls back to the constant when
 // reflection yields nothing (not expected for compiled code).
 func ownModulePath() string {
-	if pkgPath := reflect.TypeOf(Config{}).PkgPath(); pkgPath != "" {
+	if pkgPath := reflect.TypeFor[Config]().PkgPath(); pkgPath != "" {
 		return pkgPath
 	}
 
@@ -47,7 +47,11 @@ func resolveModuleVersion(info *debug.BuildInfo, module string) string {
 			continue
 		}
 
-		if dep.Replace != nil && dep.Replace.Version != "" {
+		// A replaced dependency reports what is actually linked: the
+		// replacement's version, empty for a local directory replace
+		// (there is no published version to report — the stale
+		// pre-replace version would be a lie).
+		if dep.Replace != nil {
 			return dep.Replace.Version
 		}
 
