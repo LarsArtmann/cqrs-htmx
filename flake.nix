@@ -1088,6 +1088,8 @@
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
                         "streamid-identity:bash scripts/checks/check-streamid-identity.sh"
                         "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
+                        "family-release-consumable:bash scripts/checks/check-family-release-consumable.sh"
+                        "family-release-consumable-self-test:bash scripts/selftests/test-check-family-release-consumable.sh"
                         "branching-flow:bash scripts/checks/check-branching-flow.sh"
                         "branching-flow-self-test:bash scripts/selftests/test-check-branching-flow.sh"
                       )
@@ -1231,6 +1233,25 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-streamid-identity.sh
+                  '';
+                }
+              );
+            };
+
+            check-family-release-consumable = {
+              type = "app";
+              meta.description = "R2 guard: reject upstream tags whose go.mod carries placeholder pseudo-version requires (vX.Y.Z-00010101000000-...) — the templ-components v1.20.0 poison class that blocks every consumer push with a misleading unknown revision";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-family-release-consumable";
+                  runtimeInputs = [
+                    pkgs.curl
+                    pkgs.gnugrep
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-family-release-consumable.sh "$@"
                   '';
                 }
               );

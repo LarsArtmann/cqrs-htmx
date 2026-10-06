@@ -78,6 +78,18 @@ tags** — never at a tag you are ABOUT to cut. Concretely:
 - Verify per wave: `scripts/tools/verify-tag.sh` (committed-tree + no-phantom-
   require checks) + `bash scripts/checks/check-release-train.sh` (strict default =
   CI flags since 2026-09-22) after each wave, BEFORE the next.
+- The fresh-tag TTL dance per wave (gotcha 27): `verify-tag.sh --push` confirms
+  a tag via ls-remote, but the release-train gate reads the 15-min
+  `/tmp/cqrs-htmx-tag-cache` — so run
+  `bash scripts/checks/check-release-train.sh --refresh-cache` AFTER tagging and
+  BEFORE re-running the gated commit, or the wave's own commit reads its fresh
+  tag as UNPUBLISHED. `bump-dep --commit` prints this reminder and reports
+  honestly when the commit did not land (rc-checked; the daemon may absorb the
+  staged sweep as a heuristic commit — amend its message, don't re-commit blind).
+- CHANGELOG-before-tag: write the consumer-visible receipts into the module's
+  CHANGELOG `[Unreleased]` section and cut the tag WITH them committed — a tag
+  whose CHANGELOG section is a stub (identity-model v4.12.0 class) ships empty
+  release notes to pkg.go.dev forever, and the proxy caches the name.
 
 Why: the pre-commit release-train gate fails a commit whose requires point
 at unpublished tags — that is the design. A wave-ordered train never trips

@@ -28,6 +28,16 @@ GOWORK=off go mod tidy && GOWORK=off go build ./... && GOWORK=off go vet ./...
 - **Assert absence, never sample presence.** After the sweep:
   `grep -rE '<dep>.*v<old-version>' --include=go.mod .` must print NOTHING.
   (A regex like `[a-z/-]+` that lacks digits silently misses `oauth2`-style names — write the digit-safe pattern.)
+- **Validate the TARGET before aligning (R2/R18, the v1.20.0 lesson).** A tag
+  whose go.mod carries placeholder pseudo-version requires
+  (`vX.Y.Z-00010101000000-000000000000` — templ-components v1.20.0) is
+  UNCONSUMABLE: every downstream sweep dies with a misleading `unknown
+  revision`. bump-dep now pre-flights every module it is about to bump via
+  `scripts/checks/check-family-release-consumable.sh` (proxy fetch, root +
+  same-family submodule walk) and aborts with "upstream release … is
+  unconsumable (placeholder sub-requires)" BEFORE touching anything. Run the
+  checker manually for one-off checks:
+  `nix run .#check-family-release-consumable -- github.com/larsartmann/templ-components v1.20.1`.
 - **Capture exit codes without pipes:** `cmd > /tmp/<repo>-sweep-$$-$(date +%s).log 2>&1; echo $?` — `PIPESTATUS` is broken in mvdan/sh, and a redirect through a nonexistent dir silently skips the command and the rc lies.
 - **No `set -e` in batch loops** — use explicit `rc=$?` checks after every module.
 - **Mirror CI flags before pushing:** `nix run .#check-release-train -- --refresh-cache --strict-lag 0` (CI enforces strict-lag; the local advisory mode exits 0 on train lag).
@@ -58,7 +68,16 @@ makes interleaved sweeps unreviewable). `--commit` stages + commits the sweep in
 the same process so the auto-commit daemon cannot shred the sweep and its
 verification into separate commits; `--no-verify` skips the `go mod verify` step.
 `BUMP_DEP_ROOT` overrides the scan root for the fixture self-test
-(`bash scripts/selftests/test-bump-dep.sh`).
+(`bash scripts/selftests/test-bump-dep.sh`). `BUMP_DEP_NO_NETWORK=1` skips the
+consumability pre-flight (offline fixtures). The consumability pre-flight
+(R18) validates the TARGET release before the first mutation and aborts with
+the named upstream fault.
+
+**Moving-target stop-rule.** If new family tags land WHILE you are aligning
+(the upstream released mid-sweep), STOP after the current module: re-run the
+pre-flight for the new tag, decide explicitly (finish the old train, or restart
+on the new one), and never let one sweep mix two target versions — the absence
+assertion only knows the version you started with.
 
 **Never chain bump-dep invocations without committing between them.** MVS is
 transitive: sweeping dep A can already raise a sibling dep B in the same graph,

@@ -404,6 +404,13 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    # Matrix with fail-fast:false so one red module surfaces ALL red modules
+    # in one run (the sequential form hid every failure after the first —
+    # the gotcha-27c "CI only surfaces the first failure per job" class).
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [".", "usermgmt", "adminui", "identity-model", "dashboardui", "loginpage", "datastar", "setup", "systemadapter", "health", "auditlog"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -420,120 +427,11 @@ jobs:
       - name: Clone go-cqrs-lite sibling (replace target)
         run: git clone --depth 1 https://github.com/LarsArtmann/go-cqrs-lite.git "${GITHUB_WORKSPACE}/../go-cqrs-lite"
 
-      - name: golangci-lint (root)
+      - name: golangci-lint (${{ matrix.module }})
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.13.2
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (usermgmt)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: usermgmt
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (adminui)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: adminui
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (identity-model)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: identity-model
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (dashboardui)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: dashboardui
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (loginpage)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: loginpage
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (datastar)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: datastar
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (setup)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: setup
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (systemadapter)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: systemadapter
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (health)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: health
-          args: "--timeout=5m"
-        env:
-          GOWORK: off
-          GOEXPERIMENT: jsonv2
-          GONOSUMCHECK: "github.com/larsartmann/*"
-
-      - name: golangci-lint (auditlog)
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          version: v2.13.2
-          working-directory: auditlog
+          working-directory: ${{ matrix.module }}
           args: "--timeout=5m"
         env:
           GOWORK: off
@@ -697,6 +595,14 @@ jobs:
 
       - name: StreamID identity-form self-test
         run: bash scripts/selftests/test-check-streamid-identity.sh
+
+      # R2/R18: upstream release consumability — a tag whose go.mod carries
+      # placeholder pseudo-version requires (templ-components v1.20.0 class)
+      # blocks every consumer push with a misleading "unknown revision".
+      # Offline fixture self-test; the live checker runs at bump time
+      # (bump-dep pre-flight).
+      - name: Family release consumable self-test
+        run: bash scripts/selftests/test-check-family-release-consumable.sh
 
       # branching-flow (go-design-smells) ratchet: fails only on NEW findings
       # vs the committed SARIF baseline (docs/analysis/). Runners have no

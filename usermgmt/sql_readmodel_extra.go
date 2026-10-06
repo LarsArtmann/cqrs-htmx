@@ -310,11 +310,14 @@ func queryViewByName[T any](
 // deleteViewOnTombstone removes a view row when evt carries the aggregate's
 // tombstone event, wrapping any store failure as a Transient error with the
 // caller's error code and human-readable message. It reports whether evt was
-// the tombstone; when true the Handle caller returns immediately. Shared by
-// the per-aggregate Handle methods whose only differences are the tombstone
-// event, the view key, and the error tags. The per-type find/marshal calls
-// keep their inline guard clauses on purpose; only the store/error contract
-// is shared.
+// the tombstone; when true the Handle caller returns immediately. The error
+// returns use the concrete *errorfamily.Error type so the Handle methods'
+// later `data, err := marshalViewJSON(...)` reuses a correctly-typed err
+// (an `error`-typed err would box the marshal helper's typed error and hide
+// WithContextAny). Shared by the per-aggregate Handle methods whose only
+// differences are the tombstone event, the view key, and the error tags. The
+// per-type find/marshal calls keep their inline guard clauses on purpose;
+// only the store/error contract is shared.
 func deleteViewOnTombstone[V any, K fmt.Stringer](
 	ctx context.Context,
 	store *storage.SQLViewStore[V, K], //nolint:staticcheck // ADR-0123 v5
@@ -322,7 +325,7 @@ func deleteViewOnTombstone[V any, K fmt.Stringer](
 	tombstone event.Type,
 	key K,
 	errCode, errMsg string,
-) (bool, error) {
+) (bool, *errorfamily.Error) {
 	if evt.Type() != tombstone {
 		return false, nil
 	}

@@ -111,6 +111,49 @@ else
   fail=$((fail + 1))
 fi
 
+# Case 4 (R18): a poisoned upstream target aborts BEFORE any mutation.
+# file:// proxy keeps the fixture offline-deterministic; the .mod carries the
+# templ-components v1.20.0 placeholder signature.
+PROXY_DIR="$WORK/proxy/github.com/larsartmann/exmod/@v"
+mkdir -p "$PROXY_DIR"
+cat >"$PROXY_DIR/v9.9.9.mod" <<'EOF'
+module github.com/larsartmann/exmod
+
+go 1.22
+
+require (
+	github.com/larsartmann/exmod/sub v9.9.9-00010101000000-000000000000
+)
+EOF
+before_a="$(cat "$WORK/a/go.mod")"
+out=$(GOPROXY_BASE="file://$WORK/proxy" run_bump 'larsartmann/exmod' v9.9.9)
+rc=$?
+if [ "$rc" -eq 1 ] &&
+  printf '%s' "$out" | grep -q "pre-flight github.com/larsartmann/exmod@v9.9.9" &&
+  printf '%s' "$out" | grep -q "unconsumable" &&
+  printf '%s' "$out" | grep -q "Nothing was changed" &&
+  [ "$(cat "$WORK/a/go.mod")" = "$before_a" ]; then
+  echo "  ok 4: poisoned upstream aborts pre-sweep; go.mod untouched"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 4: poisoned-target refusal wrong (rc=$rc); output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
+# Case 5 (R18): BUMP_DEP_NO_NETWORK=1 skips the pre-flight (the sweep runs —
+# the per-module go steps fail offline, but the run must get PAST pre-flight).
+out=$(BUMP_DEP_NO_NETWORK=1 run_bump 'larsartmann/exmod' v9.9.9)
+if ! printf '%s' "$out" | grep -q "pre-flight github.com/larsartmann/exmod@v9.9.9" &&
+  printf '%s' "$out" | grep -q "==> \./a"; then
+  echo "  ok 5: BUMP_DEP_NO_NETWORK skips the pre-flight"
+  pass=$((pass + 1))
+else
+  echo "  FAIL 5: NO_NETWORK skip wrong; output:" >&2
+  printf '%s\n' "$out" | sed 's/^/      /' >&2
+  fail=$((fail + 1))
+fi
+
 echo ""
 if [ "$fail" -gt 0 ]; then
   echo "test-bump-dep: $fail case(s) FAILED"

@@ -101,14 +101,38 @@ func (d *Dashboard) unconditionalRoutes() []routeSpec {
 		{method: http.MethodGet, pattern: "/-/dashboard.css", panel: panelAssets, handler: d.serveCSS()},
 		{method: http.MethodGet, pattern: "/-/dashboard-tw.css", panel: panelAssets, handler: d.twCSS.ServeHTTP},
 		{method: http.MethodGet, pattern: "/-/dashboard.js", panel: panelAssets, handler: d.serveJS()},
-		{method: http.MethodGet, pattern: "/-/htmx.js", panel: panelAssets, handler: serveHTMXScript(), guardMode: guardNever},
+		{
+			method:    http.MethodGet,
+			pattern:   "/-/htmx.js",
+			panel:     panelAssets,
+			handler:   serveHTMXScript(),
+			guardMode: guardNever,
+		},
 
 		// Observability probes (unguarded: load balancers and k8s need
 		// access; versionz is config-revealing and opts in via
 		// VersionzRequireAuth).
-		{method: http.MethodGet, pattern: "/-/healthz", panel: panelObservability, handler: d.healthzHandler, guardMode: guardNever},
-		{method: http.MethodGet, pattern: "/-/readyz", panel: panelObservability, handler: d.readyzHandler, guardMode: guardNever},
-		{method: http.MethodGet, pattern: "/-/versionz", panel: panelObservability, handler: d.versionzHandler, guardMode: guardVersionz},
+		{
+			method:    http.MethodGet,
+			pattern:   "/-/healthz",
+			panel:     panelObservability,
+			handler:   d.healthzHandler,
+			guardMode: guardNever,
+		},
+		{
+			method:    http.MethodGet,
+			pattern:   "/-/readyz",
+			panel:     panelObservability,
+			handler:   d.readyzHandler,
+			guardMode: guardNever,
+		},
+		{
+			method:    http.MethodGet,
+			pattern:   "/-/versionz",
+			panel:     panelObservability,
+			handler:   d.versionzHandler,
+			guardMode: guardVersionz,
+		},
 
 		// Overview (always available).
 		{method: http.MethodGet, pattern: "/", panel: panelOverview, handler: d.overviewHandler},
