@@ -95,6 +95,7 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 					"error",
 					"error",
 					err,
+					d.auditAttrs(r)...,
 				)
 				triggerToast(w, "err", "Replay failed")
 				w.WriteHeader(http.StatusInternalServerError)
@@ -115,6 +116,7 @@ func (d *Dashboard) dlqReplayHandler(w http.ResponseWriter, r *http.Request) {
 				len(result.StillFailing),
 				"result",
 				"ok",
+				d.auditAttrs(r)...,
 			)
 
 			msg := fmt.Sprintf(
@@ -149,6 +151,7 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 					"error",
 					"error",
 					err,
+					d.auditAttrs(r)...,
 				)
 				triggerToast(w, "err", "Delete failed")
 				w.WriteHeader(http.StatusInternalServerError)
@@ -167,6 +170,7 @@ func (d *Dashboard) dlqDeleteHandler(w http.ResponseWriter, r *http.Request) {
 				eventID,
 				"result",
 				"ok",
+				d.auditAttrs(r)...,
 			)
 			triggerToast(w, "ok", "Dead letter deleted")
 			redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)
@@ -191,6 +195,7 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 					"error",
 					"error",
 					err,
+					d.auditAttrs(r)...,
 				)
 				triggerToast(w, "err", "Purge failed")
 				w.WriteHeader(http.StatusInternalServerError)
@@ -207,6 +212,7 @@ func (d *Dashboard) dlqPurgeHandler(w http.ResponseWriter, r *http.Request) {
 				proj,
 				"result",
 				"ok",
+				d.auditAttrs(r)...,
 			)
 			triggerToast(w, "ok", "Dead letters purged")
 			redirect(w, r, d.config.BasePath+"/dead-letters/"+proj)

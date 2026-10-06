@@ -101,9 +101,18 @@ type Config struct {
 	// Default: 50. Max: 200.
 	PageSize int
 
-	// Authorizer controls access. If nil, allows all requests (the
-	// consumer MUST wrap the dashboard with their own auth middleware).
+	// Authorizer controls access (legacy form). If nil, allows all requests
+	// (the consumer MUST wrap the dashboard with their own auth middleware);
+	// audit entries then record the actor only when consumer middleware
+	// injects one via [WithActor].
 	Authorizer func(*http.Request) error
+
+	// ActorAuthorizer is the actor-aware form of Authorizer: on success it
+	// returns the [Actor] performing the request, which the dashboard
+	// injects into the request context and records in every
+	// dashboardui.audit log entry (actor_id/actor_name). When set it takes
+	// precedence over Authorizer; the denial path is identical (403).
+	ActorAuthorizer func(*http.Request) (Actor, error)
 
 	// VersionzRequireAuth routes the /-/versionz endpoint through Authorizer
 	// (403 on denial). Default false: versionz follows the public-probe

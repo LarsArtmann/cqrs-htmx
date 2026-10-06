@@ -69,6 +69,7 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 			"error",
 			"error",
 			err,
+			d.auditAttrs(r)...,
 		)
 		triggerToast(w, "err", "Delete failed")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -87,6 +88,7 @@ func (d *Dashboard) snapshotDeleteHandler(w http.ResponseWriter, r *http.Request
 		ref.ID.String(),
 		"result",
 		"ok",
+		d.auditAttrs(r)...,
 	)
 
 	triggerToast(w, "ok", "Snapshot deleted")

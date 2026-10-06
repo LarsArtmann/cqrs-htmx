@@ -123,18 +123,26 @@ func (d *Dashboard) page(title, active string, r *http.Request) pageData {
 	}
 }
 
-// guard wraps a handler with authorization. If Config.Authorizer is nil,
-// all requests are allowed (the consumer must wrap with their own middleware).
+// guard wraps a handler with authorization. With ActorAuthorizer configured,
+// the returned actor is injected into the request context for audit
+// attribution. If neither Authorizer form is configured, all requests are
+// allowed (the consumer must wrap with their own middleware).
 func (d *Dashboard) guard(fn http.HandlerFunc) http.HandlerFunc {
-	if d.config.Authorizer == nil {
+	authorize := d.actorAuthorizer()
+	if authorize == nil {
 		return fn
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := d.config.Authorizer(r); err != nil {
+		actor, err := authorize(r)
+		if err != nil {
 			http.Error(w, "forbidden", http.StatusForbidden)
 
 			return
+		}
+
+		if actor != nil {
+			r = r.WithContext(WithActor(r.Context(), *actor))
 		}
 
 		fn(w, r)

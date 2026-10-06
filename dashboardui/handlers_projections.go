@@ -80,6 +80,7 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 					"error",
 					"error",
 					err,
+					d.auditAttrs(r)...,
 				)
 				triggerToast(w, "err", "Reset failed")
 				w.WriteHeader(http.StatusInternalServerError)
@@ -96,6 +97,7 @@ func (d *Dashboard) projectionResetHandler(w http.ResponseWriter, r *http.Reques
 				name,
 				"result",
 				"ok",
+				d.auditAttrs(r)...,
 			)
 			triggerToast(w, "ok", "Projection reset")
 			redirect(w, r, d.config.BasePath+"/projections")
