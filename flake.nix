@@ -1086,6 +1086,8 @@
                         "cqrs-lint-gate-self-test:bash scripts/selftests/test-check-cqrs-lint.sh"
                         "session-route-wrappers:bash scripts/checks/check-session-route-wrappers.sh"
                         "session-route-wrappers-self-test:bash scripts/selftests/test-check-session-route-wrappers.sh"
+                        "streamid-identity:bash scripts/checks/check-streamid-identity.sh"
+                        "streamid-identity-self-test:bash scripts/selftests/test-check-streamid-identity.sh"
                         "branching-flow:bash scripts/checks/check-branching-flow.sh"
                         "branching-flow-self-test:bash scripts/selftests/test-check-branching-flow.sh"
                       )
@@ -1210,6 +1212,25 @@
                   text = ''
                     cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
                     bash scripts/checks/check-session-route-wrappers.sh
+                  '';
+                }
+              );
+            };
+
+            check-streamid-identity = {
+              type = "app";
+              meta.description = "Gotcha-25/D12 invariant gate: StreamID().String() is display-form (StreamMarker-branded under the in-flight id train), never identity — every occurrence must sit in the pinned display allowlist; identity positions use .Get()";
+              program = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "check-streamid-identity";
+                  runtimeInputs = [
+                    pkgs.gnugrep
+                    pkgs.gawk
+                    pkgs.coreutils
+                  ];
+                  text = ''
+                    cd "''${BUILD_ROOT:-$(git rev-parse --show-toplevel)}"
+                    bash scripts/checks/check-streamid-identity.sh
                   '';
                 }
               );

@@ -689,6 +689,15 @@ jobs:
       - name: Session route wrapper self-test
         run: bash scripts/selftests/test-check-session-route-wrappers.sh
 
+      # Gotcha-25/D12 invariant: StreamID().String() is display-form
+      # (StreamMarker-branded under the in-flight id train), never identity.
+      # Pinned display allowlist; identity positions use .Get().
+      - name: StreamID identity-form check
+        run: bash scripts/checks/check-streamid-identity.sh
+
+      - name: StreamID identity-form self-test
+        run: bash scripts/selftests/test-check-streamid-identity.sh
+
       # branching-flow (go-design-smells) ratchet: fails only on NEW findings
       # vs the committed SARIF baseline (docs/analysis/). Runners have no
       # branching-flow binary — the check self-skips under CI=true and the
