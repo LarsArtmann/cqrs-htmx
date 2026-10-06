@@ -527,3 +527,30 @@ Effort: **S** ≈ hours (same-day), **M** ≈ one to two days, **L** ≈ multi-d
 | 30 | **41/42** Config.Validate + variadic Autodetect | M | Consumer DX at the two hottest seams |
 
 *(Full list above: 308 ideas. Counts by module: dashboardui 82, metaengine 93, system 87, integration 46.)*
+
+---
+
+## Appendix A — Editorial assessment (what the author actually believes)
+
+Recorded 2026-10-06 so the judgment travels with the document, not just the chat it was voiced in. The "100 to 1000" framing manufactured volume; the honest distribution:
+
+| Tier | Share | Representative ideas |
+|------|-------|----------------------|
+| **Load-bearing — act on these** | ~60 (20%) | 1, 2, 114, 115, 123/124, 187, 197, 210, 230, 233, 251, 263–273, 294, 303–305 |
+| **Solid hygiene — do opportunistically** | ~200 (65%) | testing matrices (59–64, 136–140), docs fixes (141–145, 245–248), twin extraction (102–107), DX error messages (191–196) |
+| **Debatable — needs a product decision first** | ~30 (10%) | 37, 47, 71, 81, 82 |
+| **Veto — strategy questions disguised as ideas** | ~15 (5%) | 171 and parts of the 167–175 "serious planner gaps" range |
+
+### Ideas to push back on (veto or demote)
+
+- **171 (distributed engines & placement)** — fights the "lite" philosophy; ADR-0146 (no federated query engine) and ADR-0147 (mesh policy enforcement non-goal) already drew this line. Reopen only as an explicit strategy decision, never as a backlog item.
+- **47 (i18n Localizer interface)** — speculative API surface on a mountable library panel. YAGNI until a consumer asks; a `Labels` map is cheaper than a Localizer abstraction.
+- **166 (decompose the `Store` god object)** — the smell is real, but four mutexes with hand-documented lock-order invariants make this surgery requiring its own ADR plus a race-test harness, not a cleanup chore. The one-line idea undersells the risk.
+- **37, 81, 82 (JSON tree viewer, forced-colors, density toggle)** — individually fine, collectively feature-sprawl gravity on a panel whose core value is cheap mountability. Bundle behind explicit consumer demand.
+- **136 (unify test framework)** — churn-heavy, benefit is reviewer aesthetics; migrate file-by-file only when already touched.
+
+### The ten to do first
+
+1 (SSE XSS), 123/124 (injection surface), 2 (accent CSS), 114 (memory-engine race), 230 (single publish target), 210 (timers on Close), 187 (engine leak), 251 (reifyTo panic), 303–305 (docs telling the truth), 294 (`FromSystem` bridge). Everything else survives a release cycle of waiting.
+
+*Append-only addition per the research-dir convention — no findings above were altered.*
