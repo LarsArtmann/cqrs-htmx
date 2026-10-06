@@ -60,6 +60,7 @@ func TestEventDetail_InfrastructureErrorReturns500(t *testing.T) {
 	evt := hostileEvents(t, 1)[0]
 	r := httptest.NewRequest(http.MethodGet, "/events/"+evt.ID().String(), nil)
 	r.SetPathValue("id", evt.ID().String())
+
 	w := httptest.NewRecorder()
 
 	d.eventDetailHandler(w, r)
@@ -82,6 +83,7 @@ func TestEventDetail_RejectionReturns404(t *testing.T) {
 	evt := hostileEvents(t, 1)[0]
 	r := httptest.NewRequest(http.MethodGet, "/events/"+evt.ID().String(), nil)
 	r.SetPathValue("id", evt.ID().String())
+
 	w := httptest.NewRecorder()
 
 	d.eventDetailHandler(w, r)
@@ -106,6 +108,7 @@ func TestCommandDetail_InfrastructureErrorReturns500(t *testing.T) {
 	cmd := makeTestCommand(t)
 	r := httptest.NewRequest(http.MethodGet, "/commands/"+cmd.ID().String(), nil)
 	r.SetPathValue("id", cmd.ID().String())
+
 	w := httptest.NewRecorder()
 
 	d.commandDetailHandler(w, r)

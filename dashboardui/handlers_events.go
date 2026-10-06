@@ -37,6 +37,7 @@ func (d *Dashboard) eventsIndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
+
 	afterID, okCursor := parseAfterCursor(d, w, r, afterCursor, id.ParseEventID)
 	if !okCursor {
 		return

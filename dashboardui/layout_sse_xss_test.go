@@ -62,6 +62,7 @@ func TestDashboardJSParseErrorIsLogged(t *testing.T) {
 	if !strings.Contains(dashboardJS, `console.warn("dashboard: failed to parse SSE event payload", err)`) {
 		t.Fatalf("dashboardJS must log SSE payload parse failures via console.warn")
 	}
+
 	if strings.Contains(dashboardJS, "catch (err) {}") {
 		t.Fatalf("dashboardJS must not swallow SSE parse errors silently")
 	}
@@ -110,6 +111,7 @@ func TestDashboardJSInjectionSmoke(t *testing.T) {
 				escaped,
 			)
 		}
+
 		if escaped == payload {
 			t.Errorf("markup payload %q was not neutralized by textContent-equivalent rendering", payload)
 		}
@@ -155,6 +157,7 @@ func TestServedDashboardJSMatchesXSSContract(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", rec.Code)
 	}
+
 	if got := rec.Header().Get("Content-Type"); got != "text/javascript; charset=utf-8" {
 		t.Errorf("Content-Type = %q, want text/javascript; charset=utf-8", got)
 	}
@@ -163,6 +166,7 @@ func TestServedDashboardJSMatchesXSSContract(t *testing.T) {
 	if strings.Contains(body, "innerHTML") {
 		t.Errorf("served dashboard.js still uses innerHTML")
 	}
+
 	if !strings.Contains(body, `td.textContent = text == null ? "" : String(text)`) {
 		t.Errorf("served dashboard.js lacks the textContent row builder")
 	}

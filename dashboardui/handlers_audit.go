@@ -44,6 +44,7 @@ func (d *Dashboard) commandsIndexHandler(
 
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
+
 	after, okCursor := parseAfterCursor(d, w, r, afterCursor, id.ParseCommandID)
 	if !okCursor {
 		return
@@ -54,7 +55,7 @@ func (d *Dashboard) commandsIndexHandler(
 		hasNext bool
 	)
 
-	if d.config.CommandJournal != nil { //nolint:nestif // optional data source branching
+	if d.config.CommandJournal != nil {
 		var err error
 
 		if seekable, ok := d.config.CommandJournal.(command.SeekableCommandJournal); ok {
@@ -117,6 +118,7 @@ func (d *Dashboard) queriesIndexHandler(
 
 	pageSize := parsePageSize(r, d.config.PageSize)
 	afterCursor, prevHistory, hasPrev := parseCursorParams(r)
+
 	after, okCursor := parseAfterCursor(d, w, r, afterCursor, id.ParseRequestID)
 	if !okCursor {
 		return
@@ -127,7 +129,7 @@ func (d *Dashboard) queriesIndexHandler(
 		hasNext bool
 	)
 
-	if d.config.QueryJournal != nil { //nolint:nestif // optional data source branching
+	if d.config.QueryJournal != nil {
 		var err error
 
 		if seekable, ok := d.config.QueryJournal.(query.SeekableQueryJournal); ok {
