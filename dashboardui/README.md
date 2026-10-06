@@ -175,6 +175,34 @@ type Config struct {
 Set `ReadOnly: false` to enable write operations. The consumer MUST wrap the
 dashboard with authentication middleware when not read-only.
 
+### Authorization and Audit Attribution
+
+The dashboard itself ships no authentication — access control is a config
+seam with two forms:
+
+- `Authorizer func(*http.Request) error` (legacy): deny by returning an
+  error (403), allow by returning nil.
+- `ActorAuthorizer func(*http.Request) (Actor, error)`: the actor-aware
+  form. On success it returns an `Actor` — `{ID, Name}` — that the
+  dashboard injects into the request context. When both are set,
+  `ActorAuthorizer` takes precedence.
+
+Every write operation (projection reset, DLQ replay/delete/purge, snapshot
+delete) emits a `dashboardui.audit` log line. Attribution is automatic:
+
+```json
+{"msg":"dashboardui.audit","op":"dlq.replay","projection":"user-read-model",
+ "result":"ok","actor_id":"user-42","actor_name":"ops@example.com",
+ "request_id":"req_01HYZ..."}
+```
+
+- **actor_id / actor_name** — from `ActorAuthorizer`, or from your own
+  middleware calling `dashboardui.WithActor(ctx, actor)` (works even with no
+  dashboard Authorizer configured).
+- **request_id** — when you run httputil's `RequestID` middleware.
+- Without either, entries record `"actor":"anonymous"` — authorized but
+  unidentified.
+
 ### Custom Payload Rendering
 
 Implement `PayloadRenderer` to format event payloads for your domain:

@@ -65,7 +65,9 @@ func TestGuard_ActorAuthorizerInjectsActor(t *testing.T) {
 	})
 
 	var got Actor
+
 	var ok bool
+
 	h := d.guard(func(_ http.ResponseWriter, r *http.Request) {
 		got, ok = ActorFromContext(r.Context())
 	})
@@ -84,8 +86,12 @@ func TestGuard_ActorAuthorizerInjectsActor(t *testing.T) {
 func TestGuard_ActorAuthorizerTakesPrecedence(t *testing.T) {
 	legacyCalled := false
 	d := mustTestDashboardWithConfig(t, Config{
-		Journal:   &stubJournal{},
-		Authorizer: func(*http.Request) error { legacyCalled = true; return nil },
+		Journal: &stubJournal{},
+		Authorizer: func(*http.Request) error {
+			legacyCalled = true
+
+			return nil
+		},
 		ActorAuthorizer: func(*http.Request) (Actor, error) {
 			return Actor{ID: "actor"}, nil
 		},
@@ -109,7 +115,9 @@ func (h *recordingHandler) Enabled(context.Context, slog.Level) bool { return tr
 
 func (h *recordingHandler) Handle(_ context.Context, record slog.Record) error {
 	h.mu.Lock()
+
 	defer h.mu.Unlock()
+
 	h.records = append(h.records, record.Clone())
 
 	return nil
@@ -128,8 +136,11 @@ func (h *recordingHandler) auditRecords() []slog.Record {
 
 func TestAudit_RecordsActorAndRequestID(t *testing.T) {
 	recorder := &recordingHandler{}
+
 	previous := slog.Default()
+
 	slog.SetDefault(slog.New(recorder))
+
 	defer slog.SetDefault(previous)
 
 	store := &fakeSnapshotStore{}
@@ -186,8 +197,11 @@ func TestAudit_RecordsActorAndRequestID(t *testing.T) {
 
 func TestAudit_AnonymousWithoutActor(t *testing.T) {
 	recorder := &recordingHandler{}
+
 	previous := slog.Default()
+
 	slog.SetDefault(slog.New(recorder))
+
 	defer slog.SetDefault(previous)
 
 	store := &fakeSnapshotStore{}
@@ -236,6 +250,7 @@ func auditRecords(recorder *recordingHandler) []slog.Record {
 
 func attrMap(record slog.Record) map[string]any {
 	attrs := make(map[string]any)
+
 	record.Attrs(func(a slog.Attr) bool {
 		attrs[a.Key] = a.Value.Any()
 
