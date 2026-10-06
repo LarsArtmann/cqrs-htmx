@@ -113,6 +113,32 @@ func TestEventFilter_ExtraParams(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("hostile values are percent-encoded and round-trip", func(t *testing.T) {
+		t.Parallel()
+
+		hostile := "&=# space ünïcode"
+		f := EventFilter{Type: hostile, StreamType: hostile, StreamID: hostile}
+		got := f.ExtraParams()
+
+		want := "type=" + url.QueryEscape(hostile) +
+			"&streamType=" + url.QueryEscape(hostile) +
+			"&streamID=" + url.QueryEscape(hostile)
+		if got != want {
+			t.Fatalf("ExtraParams() = %q, want %q", got, want)
+		}
+
+		vals, err := url.ParseQuery(got)
+		if err != nil {
+			t.Fatalf("ParseQuery(%q): %v", got, err)
+		}
+
+		for _, key := range []string{"type", "streamType", "streamID"} {
+			if vals.Get(key) != hostile {
+				t.Errorf("round-trip: %s = %q, want %q", key, vals.Get(key), hostile)
+			}
+		}
+	})
 }
 
 func TestParseEventFilter(t *testing.T) {
