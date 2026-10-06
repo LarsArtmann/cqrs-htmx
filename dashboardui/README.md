@@ -186,6 +186,36 @@ type Config struct {
 Set `ReadOnly: false` to enable write operations. The consumer MUST wrap the
 dashboard with authentication middleware when not read-only.
 
+### Route Manifest
+
+`Routes()` returns the exact manifest of HTTP routes this instance serves —
+generated from the same internal route table as the mux registration, so it
+reflects the detected capabilities and `ReadOnly` (write routes disappear in
+read-only mode). Each entry carries the method, the consumer-facing pattern
+(wildcards in braces), the owning panel, and a `Write` flag:
+
+```go
+for _, r := range dash.Routes() {
+    if r.Write {
+        auditLog.Printf("mutating route exposed: %s %s (%s)", r.Method, r.Pattern, r.Panel)
+    }
+}
+```
+
+Typical use: building an allowlist for a reverse proxy or policy engine, or
+diffing the route surface across versions in upgrade tests:
+
+```go
+readOnlyAllowlist := map[string]bool{}
+for _, r := range dash.Routes() {
+    if !r.Write {
+        readOnlyAllowlist[r.Method+" "+r.Pattern] = true
+    }
+}
+```
+
+The styled-404 catch-all is the one served route the manifest omits.
+
 ### Authorization and Audit Attribution
 
 The dashboard itself ships no authentication — access control is a config

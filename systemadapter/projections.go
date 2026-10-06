@@ -58,28 +58,16 @@ type ProjectionLayer struct {
 	AuditLog   *usermgmt.AuditLog
 }
 
-// ProjectionLayerOption customizes NewProjectionLayer.
-type ProjectionLayerOption func(*projectionLayerOptions)
-
-type projectionLayerOptions struct {
-	checkpointStore event.CheckpointStore
-	deadLetterStore projectionhost.DeadLetterStore
-}
-
-// WithCheckpointStore persists projection positions across restarts. Without
-// it, an in-memory store is used and every projection replays the full journal
-// on start — acceptable for demos and tests, not for production.
-func WithCheckpointStore(store event.CheckpointStore) ProjectionLayerOption {
-	return func(o *projectionLayerOptions) {
-		o.checkpointStore = store
-	}
-}
+// ProjectionLayerOption customizes NewProjectionLayer. It is the same
+// underlying option type as [DomainOption], so WithCheckpointStore and
+// WithDeadLetterStore work at both call sites.
+type ProjectionLayerOption = func(*adapterOptions)
 
 // WithDeadLetterStore persists events that exhaust their restart budget so
 // they survive restarts and can be inspected or replayed. Without it, dead
 // letters are held in memory and lost on restart.
 func WithDeadLetterStore(store projectionhost.DeadLetterStore) ProjectionLayerOption {
-	return func(o *projectionLayerOptions) {
+	return func(o *adapterOptions) {
 		o.deadLetterStore = store
 	}
 }
@@ -103,7 +91,7 @@ func WithDeadLetterStore(store projectionhost.DeadLetterStore) ProjectionLayerOp
 // Retirement is scheduled for the v5 removal bundle
 // (docs/guides/v5-removal-inventory.md); keep using this only while migrating.
 func NewProjectionLayer(sys *system.System, opts ...ProjectionLayerOption) (*ProjectionLayer, error) {
-	cfg := projectionLayerOptions{}
+	cfg := adapterOptions{}
 	for _, opt := range opts {
 		opt(&cfg)
 	}

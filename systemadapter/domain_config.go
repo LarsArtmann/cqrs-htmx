@@ -27,6 +27,7 @@ import (
 
 	identitymodel "github.com/larsartmann/cqrs-htmx/identity-model/v4"
 	"github.com/larsartmann/cqrs-htmx/usermgmt/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -38,6 +39,14 @@ import (
 // specifies engines and buses. The system handles repository creation, event
 // store wiring, bus fan-out, and projection host lifecycle automatically.
 //
+// Options customize the projection side: [WithCheckpointStore] supplies the
+// durable checkpoint store and [WithHostOptions] appends projectionhost
+// options (dead-letter store, batch size, restart policy, logger, ...). With
+// no options, the projection host runs on systemadapter's curated defaults —
+// the same tuning the legacy ProjectionLayer ships (in-memory dead-letter
+// store with a threshold of 10, 3 restarts with capped backoff, batch size
+// 256).
+//
 // Additional projections (read models, Casbin authz) can be registered via
 // NewProjectionLayer(sys) between system.New() and sys.Start():
 //
@@ -45,11 +54,34 @@ import (
 //	pl, _ := systemadapter.NewProjectionLayer(sys)
 //	pl.Start(ctx)
 //	sys.Start(ctx)
-func DomainConfig() system.DomainConfig {
+func DomainConfig(opts ...DomainOption) system.DomainConfig {
+	var cfg domainOptions
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	return system.DomainConfig{
 		Commands:              registerAllCommands,
 		ProjectionTypeDecoder: EventTypeDecoder(),
 		Projections:           DeclarativeProjections(),
+		CheckpointStore:       cfg.checkpointStore,
+		ProjectionHostOptions: append(
+			defaultProjectionHostOptions(),
+			cfg.hostOptions...,
+		),
+	}
+}
+
+// defaultProjectionHostOptions mirrors the curated host tuning the legacy
+// ProjectionLayer applies, so the declarative path inherits the same
+// dead-letter and restart behavior by default. Consumer options passed via
+// [WithHostOptions] land after these and override per-field.
+func defaultProjectionHostOptions() []projectionhost.HostOption {
+	return []projectionhost.HostOption{
+		projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), dlqThreshold),
+		projectionhost.WithMaxRestarts(maxRestarts),
+		projectionhost.WithBackoff(backoffMin, backoffMax),
+		projectionhost.WithBatchSize(projectionBatchSize),
 	}
 }
 

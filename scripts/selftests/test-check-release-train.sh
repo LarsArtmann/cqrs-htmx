@@ -54,7 +54,12 @@ seed_tags() { # <repo> <tag lines...>
 run_gate() { # extra args...
   (
     cd "$tree" &&
-      TRAIN_TAG_CACHE_DIR="$tree/cache" bash scripts/checks/check-release-train.sh "$@"
+      # env -u CI: the gate branches on CI (ls-remote advisory under CI=true).
+      # GitHub runners export CI=true globally, so WITHOUT this the self-test
+      # would exercise the advisory branch and never the local-strict one —
+      # the self-test env-leak class (mechanized by
+      # scripts/checks/check-selftest-env-leaks.sh).
+      env -u CI TRAIN_TAG_CACHE_DIR="$tree/cache" bash scripts/checks/check-release-train.sh "$@"
   ) >"$tree/out.txt" 2>&1
   gate_rc=$?
 }
