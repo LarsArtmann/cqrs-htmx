@@ -17,9 +17,41 @@ suppressions:
       a synthetic minimal go.mod with no go.sum is the fixture's whole point.
   - rule: go-version
     reason: >
-      Repo toolchain is deliberately pinned by flake.nix (pkgs.go_1_26) and
-      go.work (1.26.7); scripts/checks/check-go-toolchain.sh OWNS this policy and
-      gates it. The rule's "newer Go available" suggestion (1.27.1) is
-      already decided at TODO_LIST P2 - a coordinated flake+go.work+27-module
-      bump, not a per-go.mod edit. REMOVE this suppression when that P2
-      decision lands (the finding then disappears with the bump).
+      Repo toolchain is deliberately pinned by flake.nix (pkgs.go_1_27) and
+      go.work (1.27.1) since the 2026-09-20 bump; scripts/checks/
+      check-go-toolchain.sh and the flake OWN this policy and gate it. The
+      rule's "newer Go available" suggestion is a coordinated
+      flake+go.work+all-modules decision (TODO_LIST P2 class), never a
+      per-go.mod edit. Kept as a tripwire: if the rule fires again after a Go
+      release, the decision belongs to the coordinated-bump task, not this
+      config.
+  - id: go-structure-linter:assets-directory:assets/:0:0:659f6c84
+    reason: >
+      Multi-module library repo: static assets are per-module and embedded at
+      compile time (adminui/assets/admin-tw.css + admin.js via //go:embed;
+      dashboardui likewise). A root-level assets/ directory would serve no
+      module and imply an application layout this repo does not have.
+      Triaged 2026-10-07.
+  - id: go-structure-linter:internal-directory:internal/:0:0:7fa5a48e
+    reason: >
+      Published library — every module is a public import path
+      (github.com/larsartmann/cqrs-htmx/<module>/v4); moving non-public code
+      under internal/ would break consumer imports. Non-public code is already
+      expressed by unexported identifiers inside the modules. Triaged
+      2026-10-07.
+  - id: go-structure-linter:testdata-directory:usermgmt/oauth2_stub_test.go:0:0:514ddd44
+    reason: >
+      In-package test stub (testOAuth2Provider) compiled into the test binary
+      and consumed by service tests. testdata/ is ignored by the go toolchain,
+      so relocating the file would break the build; the rule's filename
+      heuristic misreads "_stub_test.go" as a fixture. Triaged 2026-10-07.
+  - id: go-structure-linter:testdata-directory:usermgmt/totp_stub_test.go:0:0:1da9c303
+    reason: >
+      In-package test stub (same class as oauth2_stub_test.go): compiled test
+      helper, not a fixture; testdata/ relocation would break compilation.
+      Triaged 2026-10-07.
+  - id: go-structure-linter:testdata-directory:usermgmt/webauthn_stub_test.go:0:0:bbacaf75
+    reason: >
+      In-package test stub (same class as oauth2_stub_test.go): compiled test
+      helper, not a fixture; testdata/ relocation would break compilation.
+      Triaged 2026-10-07.
