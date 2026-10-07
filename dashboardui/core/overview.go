@@ -148,7 +148,7 @@ func FetchOverview( //nolint:gocognit,cyclop // multi-source aggregation
 		}
 	}
 
-	if cfg.SeekableJournal != nil { //nolint:nestif // optional data source branching
+	if cfg.SeekableJournal != nil {
 		events, err := cfg.SeekableJournal.ReadFrom(ctx, id.EventID{}, OverviewCountLimit)
 		if err == nil {
 			stats.RecentEvents = recentEventsFrom(events)
@@ -182,6 +182,7 @@ func recentEventsFrom(events []event.Event) []RecentEvent {
 		if i >= RecentEventsLimit {
 			break
 		}
+
 		recent = append(recent, RecentEvent{
 			Time:       evt.OccurredAt().Format(time.RFC3339),
 			Type:       string(evt.Type()),
@@ -192,6 +193,7 @@ func recentEventsFrom(events []event.Event) []RecentEvent {
 			OccurredAt: evt.OccurredAt(),
 		})
 	}
+
 	return recent
 }
 

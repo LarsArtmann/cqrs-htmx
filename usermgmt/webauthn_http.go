@@ -36,7 +36,7 @@ func (h *AuthHandler) handleWebAuthnBeginRegistration(w http.ResponseWriter, r *
 	if !h.checkRateLimit(w, r, h.webauthnLimiter, "too many WebAuthn requests") {
 		return
 	}
-	if _, ok := h.sessionUserID(w, r); !ok {
+	if _, ok := h.currentUser(w, r); !ok {
 		return
 	}
 	var req webauthnBeginRegRequest

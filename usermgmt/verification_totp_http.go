@@ -46,6 +46,9 @@ func (h *AuthHandler) RegisterVerificationTOTPRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /auth/import", h.withSession(h.handleImportUsers))
 }
 
+// currentUser returns the authenticated user from the request context,
+// writing a 401 Unauthorized response when no session is present.
+// ok=false means the response has been written and the caller must return.
 func (h *AuthHandler) currentUser(w http.ResponseWriter, r *http.Request) (*User, bool) {
 	user, ok := UserFromContext(r.Context())
 	if !ok || user == nil {

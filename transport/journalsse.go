@@ -118,6 +118,15 @@ func (s *JournalSSEStore) EventsAfter(lastID sse.EventID) ([]sse.Event, error) {
 	return s.eventsAfterFullScan(ctx, lastID)
 }
 
+// replayLimit returns the configured replay cap, defaulting to
+// DefaultMaxReplay when unset or non-positive.
+func (s *JournalSSEStore) replayLimit() int {
+	if s.maxReplay <= 0 {
+		return DefaultMaxReplay
+	}
+	return s.maxReplay
+}
+
 // eventsAfterSeekable uses ReadFrom for efficient position-based replay.
 func (s *JournalSSEStore) eventsAfterSeekable(
 	ctx context.Context,
@@ -134,10 +143,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(
 				WithContext("last_id", lastID.Get())
 		}
 
-		limit := s.maxReplay
-		if limit <= 0 {
-			limit = DefaultMaxReplay
-		}
+		limit := s.replayLimit()
 
 		if limit > 0 && len(events) > limit {
 			events = events[len(events)-limit:]
@@ -152,10 +158,7 @@ func (s *JournalSSEStore) eventsAfterSeekable(
 		return nil, nil //nolint:nilerr // intentional: invalid cursor is recoverable, not a store failure
 	}
 
-	limit := s.maxReplay
-	if limit <= 0 {
-		limit = DefaultMaxReplay
-	}
+	limit := s.replayLimit()
 
 	events, err := s.seekable.ReadFrom(ctx, afterID, limit)
 	if err != nil {

@@ -523,15 +523,7 @@ func (s *Service) closeInfra() error {
 			return errorfamily.WrapTransient(err, "usermgmt.service.close_dispatcher", "close command dispatcher")
 		}
 	}
-	if s.projectionHost != nil {
-		if err := s.projectionHost.Stop(); err != nil {
-			slog.Warn(
-				"usermgmt.Service: failed to stop projection host during close",
-				slog.String("error", err.Error()),
-			)
-			_ = errorfamily.WrapTransient(err, "usermgmt.service.stop_projections", "stop projection host")
-		}
-	}
+	stopProjectionHost(s.projectionHost, "usermgmt.Service", "usermgmt.service.stop_projections")
 	if c, ok := s.bus.(interface{ Close() error }); ok {
 		if err := c.Close(); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.service.close_bus", "close event bus")

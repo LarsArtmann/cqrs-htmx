@@ -171,19 +171,26 @@ func closeBus(bus event.Bus) {
 	}
 }
 
+// stopProjectionHost stops the shared projection host during shutdown,
+// logging (not failing) a stop error so the bus and store still close.
+func stopProjectionHost(host *projectionhost.Host, scope, code string) {
+	if host == nil {
+		return
+	}
+	if err := host.Stop(); err != nil {
+		slog.Warn(
+			scope+": failed to stop projection host during close",
+			slog.String("error", err.Error()),
+		)
+		_ = errorfamily.WrapTransient(err, code, "stop projection host")
+	}
+}
+
 // Close stops the event bus and closes the event store (if they implement
 // io.Closer). It is safe to call multiple times. Use this for graceful
 // shutdown of event-sourced infrastructure created by NewEventSourcedSetup.
 func (s *EventSourcedSetup) Close() error {
-	if s.projectionHost != nil {
-		if err := s.projectionHost.Stop(); err != nil {
-			slog.Warn(
-				"usermgmt.EventSourcedSetup: failed to stop projection host during close",
-				slog.String("error", err.Error()),
-			)
-			_ = errorfamily.WrapTransient(err, "usermgmt.es_setup.stop_projections", "stop projection host")
-		}
-	}
+	stopProjectionHost(s.projectionHost, "usermgmt.EventSourcedSetup", "usermgmt.es_setup.stop_projections")
 	if c, ok := s.Bus.(io.Closer); ok {
 		if err := c.Close(); err != nil {
 			return errorfamily.WrapTransient(err, "usermgmt.es_setup.close_bus", "close event bus")
