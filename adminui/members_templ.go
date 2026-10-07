@@ -77,7 +77,7 @@ func membersCard(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(d.AddMemberURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 31, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 31, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
@@ -158,7 +158,7 @@ func membersRows(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(m.Actor.PrefixedString())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 62, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 62, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -171,7 +171,7 @@ func membersRows(d tenantDetailData) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(d.UpdateRoleBase + "/" + m.Actor.PrefixedString())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `adminui/members.templ`, Line: 64, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `members.templ`, Line: 64, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 			if templ_7745c5c3_Err != nil {
