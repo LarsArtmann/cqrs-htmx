@@ -15,6 +15,7 @@ import (
 
 //
 //nolint:cyclop // export branching adds complexity
+//nolint:dupl // deliberate twin of queriesIndexHandler — see the rationale there
 func (d *Dashboard) commandsIndexHandler(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -87,8 +88,18 @@ func (d *Dashboard) commandsIndexHandler(
 	}.WithCountInfo(len(cmds))))
 }
 
+// queriesIndexHandler is a deliberate parallel twin of commandsIndexHandler
+// (accepted duplication, art-dupl round 2026-10-07): the journal interfaces
+// diverge (SeekableCommandJournal.ReadFrom + CommandJournal.ReadAll +
+// id.CommandID vs their query equivalents), as do the persisted types, the
+// exporters (exportCommands*/exportQueries*), and the ID parsers
+// (id.ParseCommandID vs id.ParseRequestID) — a shared template would need
+// ~6 callbacks plus generics over two unrelated persisted types, more
+// machinery than the mirrored lines save. dupl is suppressed on both
+// handlers; change one, then mirror the change deliberately.
 //
 //nolint:cyclop // export branching adds complexity
+//nolint:dupl // deliberate twin of commandsIndexHandler — see the rationale above
 func (d *Dashboard) queriesIndexHandler(
 	w http.ResponseWriter,
 	r *http.Request,
