@@ -341,8 +341,8 @@ func (b *Bundle) cleanup() {
 	}
 
 	if b.ownsService && b.Service != nil {
-		//cqrs-lint:ignore(C023,C015) cleanup on a failed construction path: the creation error is the primary failure; Close errors here are secondary
-		_ = b.Service.Close()
+		//cqrs-lint:ignore(C015) cleanup on a failed construction path: the creation error is the primary failure
+		_ = b.Service.Close() //cqrs-lint:ignore(C023) cleanup on a failed construction path: the creation error is the primary failure; Close errors here are secondary
 	}
 }
 

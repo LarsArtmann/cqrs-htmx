@@ -81,7 +81,7 @@ func DomainConfig(opts ...DomainOption) system.DomainConfig {
 // per-field.
 func defaultProjectionHostOptions(dlqStore projectionhost.DeadLetterStore) []projectionhost.HostOption {
 	if dlqStore == nil {
-		dlqStore = projectionhost.NewMemoryDeadLetterStore()
+		dlqStore = projectionhost.NewMemoryDeadLetterStore() //cqrs-lint:ignore(C017) deliberate zero-config default for a library: the consumer's persistence shape is unknown at this layer, the DLQ is an operator-visibility aid (the event store stays the source of truth and replay rebuilds state), and WithDeadLetterStore is the documented persistent escape hatch — mirrors the legacy ProjectionLayer default
 	}
 
 	return []projectionhost.HostOption{

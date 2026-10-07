@@ -6,10 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-_(nothing yet)_
-
-## [v4.14.0] - 2026-10-07
-
 ### Security
 
 - **usermgmt v4.14.0 + setup v4.14.0 + dashboardui v4.13.0 train: WebAuthn enrollment requires the owner's session; session-dependent routes self-wrap (2026-10-04, CRM identity-adapter feedback).** The enrollment ceremonies now enforce the owner-match rule (401 without session, 403 mismatched `user_id`), and the eleven `currentUser`-reading routes (`/auth/me`, credentials, TOTP, email-verify/send, import/export, OAuth2 unlink) run behind an enrich-only session pass inside `RegisterRoutes` — the dead-on-bare-mount class is gone. Rate-limit keys switched from per-TCP-connection `RemoteAddr` to per-client-IP. The class is mechanized by `nix run .#check-session-route-wrappers` (in check-modules + CI). Full entries: `usermgmt/CHANGELOG.md` [v4.14.0]; decision record `docs/adr/0055-owner-session-gated-credential-ceremonies.md`. The same wave ships dashboardui v4.13.0 (Autodetect/`Config.Layout` embed seam — see `dashboardui/CHANGELOG.md`) and aligns every workspace consumer.
