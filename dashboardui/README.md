@@ -400,8 +400,9 @@ into the rendering layer:
   (samples older than 5 minutes render stale).
 
 Each section renders independently — a failing provider shows its inline
-error without blanking the others. `systemadapter.WireDashboardTelemetry`
-maps a go-cqrs-lite `*system.System` onto all four in one call.
+error without blanking the others. `systembridge.WireTelemetry` maps a
+go-cqrs-lite `*system.System` onto all four in one call (the one dashboardui
+package importing the system packages).
 
 ## Observability Endpoints
 

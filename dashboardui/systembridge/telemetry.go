@@ -1,27 +1,33 @@
-package systemadapter
+// Package systembridge maps a live go-cqrs-lite system onto the dashboard's
+// optional capability and telemetry seams. It is the only dashboardui package
+// importing go-cqrs-lite's system and metaengine packages — consumers that
+// never import it carry none of that dependency weight.
+package systembridge
 
 import (
 	"context"
 
-	dashboardui "github.com/larsartmann/cqrs-htmx/dashboardui/v4"
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4"
 	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/core"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// WireDashboardTelemetry maps a system's read-only introspection surface onto
-// the dashboard's telemetry providers: the topology snapshot feeds the
-// topology table, HealthCheckDetailed feeds the healthz/readyz engine
-// composition, and the metaengine's plan + engine stats feed the placement
-// table and latency cards. Combine with [dashboardui.FromSystem]:
+// WireTelemetry maps a system's read-only introspection surface onto the
+// dashboard's telemetry providers: the topology snapshot feeds the topology
+// table, HealthCheckDetailed feeds the healthz/readyz engine composition,
+// and the metaengine's plan + engine stats feed the placement table and
+// latency cards. Combine with [dashboardui.FromSystem]:
 //
 //	cfg := dashboardui.FromSystem(sys)
-//	systemadapter.WireDashboardTelemetry(&cfg, sys)
+//	systembridge.WireTelemetry(&cfg, sys)
 //	dash := dashboardui.MustNew(cfg)
 //
-// Calling it twice replaces the providers; a nil MetaEngine simply leaves the
-// placements/stats providers emitting empty views.
-func WireDashboardTelemetry(cfg *dashboardui.Config, sys *system.System) {
+// This package is the one place dashboardui touches the system package —
+// consumers who never import it carry no system/metaengine dependency.
+// Calling it twice replaces the providers; a nil MetaEngine simply leaves
+// the placements/stats providers emitting empty views.
+func WireTelemetry(cfg *dashboardui.Config, sys *system.System) {
 	cfg.Topology = func(ctx context.Context) (core.TopologyView, error) {
 		topology, err := sys.Snapshot(ctx)
 		if err != nil {

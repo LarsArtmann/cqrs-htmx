@@ -6,7 +6,6 @@ All notable changes to this module are documented here. Format based on [Keep a 
 
 ### Added
 
-- **`WireDashboardTelemetry(cfg, sys)` — one call from a live system to the dashboard's telemetry providers (M26):** maps `sys.Snapshot` onto the topology table, `sys.HealthCheckDetailed` onto the healthz/readyz engine composition, and the metaengine's `Plan()` + `GetEngineStats` onto the query-placement table and RTT latency cards. Nil-safe on the metaengine (empty views). Pairs with `dashboardui.FromSystem(sys)`; proven by `TestDashboard_TelemetryFromSystem` in integration_test.
 
 - **Deployment presets — the three common topologies as one-liners (M23):** `RecommendedMemoryDeployment()` (dev/test), `RecommendedSQLiteDeployment(dsn)` (single WAL file, every role), and `RecommendedSplitSQLiteDeployment(eventsDSN, projectionsDSN)` (journal and projections on separate files — the production shape where replays never contend with the write path). Each returns a plain `system.DeploymentConfig` to inspect or tweak; SQLite presets set `journal_mode=wal`. The module gets a README (declarative-first quick start, preset table, projection knobs, legacy note), the package doc points at `examples/system-demo/` and the presets, a godoc `ExampleDomainConfig` pins the one-call wiring, and the leveraging-system-metaengine guide's three hand-rolled DeploymentConfig snippets dedupe onto the presets. The memory preset is live-proven — `setupDeclarativeSystem` in the test suite now boots through it.
 

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	dashboardui "github.com/larsartmann/cqrs-htmx/dashboardui/v4"
+	"github.com/larsartmann/cqrs-htmx/dashboardui/v4/systembridge"
 	systemadapter "github.com/larsartmann/cqrs-htmx/systemadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
@@ -75,7 +76,7 @@ func TestDashboard_TelemetryFromSystem(t *testing.T) {
 	t.Cleanup(func() { _ = sys.Close() })
 
 	cfg := dashboardui.FromSystem(sys)
-	systemadapter.WireDashboardTelemetry(&cfg, sys)
+	systembridge.WireTelemetry(&cfg, sys)
 	cfg.Title = "Telemetry integration"
 
 	dash, err := dashboardui.New(cfg)
