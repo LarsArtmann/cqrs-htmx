@@ -149,7 +149,10 @@ templ rawDataTable(headers []display.TableHeader, bodyID string, rows templ.Comp
 
 // definitionList renders the library DefinitionList. Terms/details are
 // escaped by the library; use defItemRaw for pre-rendered detail markup and
-// defItemCopy for copyable values.
+// defItemCopy for copyable values. The h3-heading + definitionList/code-block
+// section idiom shared by the detail pages is deliberate composition, not
+// duplication to unify: sections diverge per page and each is two statements
+// (accepted, art-dupl round 2026-10-07).
 templ definitionList(items []display.DefinitionItem) {
 	@display.DefinitionList(display.DefinitionListProps{
 		BaseProps: utils.BaseProps{ID: "", Class: "", Attrs: nil, AriaLabel: "", Nonce: ""},

@@ -410,7 +410,10 @@ func rawDataTable(headers []display.TableHeader, bodyID string, rows templ.Compo
 
 // definitionList renders the library DefinitionList. Terms/details are
 // escaped by the library; use defItemRaw for pre-rendered detail markup and
-// defItemCopy for copyable values.
+// defItemCopy for copyable values. The h3-heading + definitionList/code-block
+// section idiom shared by the detail pages is deliberate composition, not
+// duplication to unify: sections diverge per page and each is two statements
+// (accepted, art-dupl round 2026-10-07).
 func definitionList(items []display.DefinitionItem) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -612,7 +615,7 @@ func paginationInfo(state paginationState) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(paginationInfoText(state))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 209, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 212, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {

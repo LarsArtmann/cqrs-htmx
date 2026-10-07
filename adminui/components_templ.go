@@ -475,7 +475,12 @@ func listPager(baseURL string, page, totalPages int) templ.Component {
 
 // listNote renders a "showing N of M" hint when a list is truncated by the
 // page window. shown is the rendered count; total is the unfiltered match
-// count. Renders nothing when all rows fit.
+// count. Renders nothing when all rows fit. The card(empty | table +
+// listNote + listPager) skeleton repeating across list pages is deliberate
+// composition of these extracted primitives, not duplication to unify — the
+// pages diverge (search variants, URL building, CTAs), so a page-template
+// abstraction would take more parameters than the skeletons have lines
+// (accepted, art-dupl round 2026-10-07).
 func listNote(shown, total int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
