@@ -75,11 +75,12 @@ func TestAssetFromFS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AssetFromFS: %v", err)
 	}
+
 	if string(data) != "body{}" {
 		t.Errorf("AssetFromFS data = %q, want %q", data, "body{}")
 	}
 
 	if _, err := cqrshtmx.AssetFromFS(fsys, "missing.css"); err == nil {
-		t.Error("AssetFromFS(missing asset) = nil error, want the fs error surfaced")
+		t.Error("AssetFromFS(missing asset) = nil error, want an Infrastructure-family error")
 	}
 }

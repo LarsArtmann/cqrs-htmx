@@ -2,7 +2,6 @@ package dashboardui
 
 import (
 	"embed"
-	"fmt"
 	"io/fs"
 	"net/http"
 
@@ -23,7 +22,7 @@ var assetsFS embed.FS
 func newAssetHandler(fsys fs.FS, name, contentType string) (http.Handler, error) {
 	data, err := cqrshtmx.AssetFromFS(fsys, name)
 	if err != nil {
-		return nil, errConfig(fmt.Sprintf("embedded asset %q: %v", name, err))
+		return nil, errConfig(err.Error())
 	}
 
 	return cqrshtmx.ServeAsset(name, contentType, data), nil

@@ -2,9 +2,12 @@ package cqrshtmx
 
 import (
 	"bytes"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // AssetETag derives the ETag ServeAsset sets for the given asset name and
