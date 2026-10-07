@@ -150,6 +150,10 @@ All 17 files: classification **ARCHIVE** (dated `> ANNOTATED 2026-10-06` blockqu
 | `2026-10-06_22-34_SUPERB-phase1-complete-phase2-m06-midedit.md` | Phase 2 closed by 23:20 (M06 `7584b7a84` completed; M07/M08/M10 landed + receipted); b1 + c-row + f1–6 + g2/g3 struck; push blocker + full-gate battery routed |
 | `2026-10-06_23-20_SUPERB-phase2-complete-m05-m10.md` | Lane M05–M10 verified + receipted; Q2/Q3 confirmed; Q1 (flightrecorder/push) + M16–M27 + GCL TODO items stay open; 1 PARTIAL row normalized |
 | `2026-10-06_23-23_SUPERB-m05-m10-brutal-status-review.md` | The honest gaps (F22, GCL gate compliance, metaengine `-race`, doc comment) harvested into TODO_LIST; f30/f31 struck; push authorization + history-readability owner calls routed |
+| `2026-10-07_02-11_art-dupl-dedup-8-groups-status.md` | Round 1 mid-state (art-dupl `-t 4`); superseded same day by the 03-13 completion report |
+| `2026-10-07_03-13_art-dupl-dedup-round-complete-8-groups-dispositioned.md` | Round 1 complete: 8 groups dispositioned (3 extracted, 5 accepted); release train + 3 owner questions routed forward |
+| `2026-10-07_04-03_art-dupl-t1-round2-status.md` | Round 2 (art-dupl `-t 1`, 113 groups): 7 extracted + verified, 106 accepted; post-round re-run 113 → 91 shown; full per-group triage |
+| `2026-10-07_04-08_art-dupl-t1-round2-comprehensive-status.md` | Round 2 comprehensive status + self-review: honest gaps (skipped gates d1/d2, manifest miss d5, batched-lint d3) + 40 ranked next steps + 3 owner questions |
 
 Also archived in the same sweep (planning corpus): `docs/planning/archived/2026-10-01_06-47_pareto-round13-superb-execution-plan.md` and `..._15-04_pareto-round14-gates-green-first.md` — both carry dated OUTCOME blockquotes, every executable item shipped 2026-10-01/02, residue (bench, T08 fleet swap, D-list) routed in TODO_LIST; the round-16 and episode-4 plans stay ACTIVE in `docs/planning/`.
 
