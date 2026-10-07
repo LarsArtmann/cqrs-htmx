@@ -11,11 +11,7 @@ import (
 
 // copySlice returns a defensive copy of src. Fold payloads alias event
 // bytes, so folded state must never retain payload slices directly.
-func copySlice[T any](src []T) []T {
-	dst := make([]T, len(src))
-	copy(dst, src)
-	return dst
-}
+func copySlice[T any](src []T) []T { return slices.Clone(src) }
 
 // UserState is the aggregate state for the User, reconstructed by folding events.
 type UserState struct {
@@ -242,7 +238,7 @@ func FoldMembership(
 		if err != nil {
 			return state, err
 		}
-		roles := copySlice(p.Roles)
+		roles := slices.Clone(p.Roles)
 		kind, err := ActorKindFromString(p.ActorKind)
 		if err != nil {
 			return state, err
@@ -257,7 +253,7 @@ func FoldMembership(
 		if err != nil {
 			return state, err
 		}
-		roles := copySlice(p.Roles)
+		roles := slices.Clone(p.Roles)
 		next.Roles = roles
 
 	case EventMemberRemoved:
@@ -339,7 +335,7 @@ func FoldBot(
 		if err != nil {
 			return state, err
 		}
-		scopes := copySlice(p.Scopes)
+		scopes := slices.Clone(p.Scopes)
 		next.Name = p.Name
 		next.OwnerID = p.OwnerID
 		next.TokenHash = p.TokenHash
