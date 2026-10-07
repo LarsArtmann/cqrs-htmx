@@ -26,54 +26,10 @@ todo_min_severity: warning
 # script linting is enforced by treefmt + CI. HTML/min.js are generated or
 # vendored artifacts that must not be reformatted.
 #
-# GOTCHA (verified 2026-09-20 via `buildflow config view`): a user `exclude:`
-# list REPLACES BuildFlow's built-in defaults — it does NOT merge. Listing only
-# the three repo-specific patterns silently dropped every default (vendor,
-# testdata, *_templ.go, lock files, ...), so formatters lost their protection
-# against generated/vendored trees. The list below therefore mirrors
-# DefaultExcludePatterns() (BuildFlow domain/file/ignore_dirs.go) explicitly,
-# then adds this repo's patterns. Keep both halves in sync when bumping
-# BuildFlow.
+# A user `exclude:` list ADDS to BuildFlow's built-in defaults (merge
+# semantics since BuildFlow b27f4f05b, 2026-09-30) — vendor/testdata/*_templ.go/
+# lock files stay protected without restating them.
 exclude:
-  # --- BuildFlow defaults (do not drop; see gotcha above) ---
-  - "vendor"
-  - ".git"
-  - "node_modules"
-  - ".next"
-  - ".turbo"
-  - ".nuxt"
-  - ".svelte-kit"
-  - ".direnv"
-  - "dist"
-  - "target"
-  - "testdata"
-  - ".golden"
-  - "generated.go"
-  - "*.pb.go"
-  - "*.gen.go"
-  - "*_templ.go"
-  - "__snapshots__"
-  - "__pycache__"
-  - ".pytest_cache"
-  - ".mypy_cache"
-  - ".tox"
-  - ".venv"
-  - "venv"
-  - ".cache"
-  - "reports/"
-  - "flake.lock"
-  - "package-lock.json"
-  - "yarn.lock"
-  - "pnpm-lock.yaml"
-  - "Cargo.lock"
-  - "composer.lock"
-  - "poetry.lock"
-  - "Gemfile.lock"
-  - "mix.lock"
-  # --- Repo-specific ---
-  - "*.html"
-  - "*.min.js"
-  - "*.sh"
   # Committed Tailwind bundles + buildflow's orphan styles.css outputs are
   # NEVER buildflow's business: the canonical minified bundles are built by
   # the flake apps (nix run .#build-adminui-css / .#build-dashboardui-css)
@@ -84,25 +40,12 @@ exclude:
   - "*-tw.css"
   - "styles.css"
 
-# fail_on: critical — findings gate RESTORED (2026-09-18, task M8 verification).
-# History: demoted 2026-09-17 (task M3) because the gate was always-red on
-# pre-existing findings. TWO root causes were found and fixed 2026-09-18:
-#   1. The suppression config was authored as `.go-structure-linter.yml` but
-#      the linter auto-discovers `.go-structure-linter.yaml` — the file was
-#      NEVER read by any session. Renamed; suppressions now apply.
-#   2. The buildflow binary was stale (built at 42fd89b, repo at 7d3d967).
-#      Rebuilt from BuildFlow HEAD into ~/go/bin (shadows the nix profile;
-#      ~/go/bin precedes ~/.nix-profile/bin on PATH). The old binary's rule
-#      set flagged root-package-files ×50; the current one does not.
-#   Additionally the gomod-checker vendor-consistency ×25 resolved naturally
-#   (examples/middleware-showcase/vendor/ was trashed).
+# fail_on: critical — findings gate restored 2026-09-18 after the always-red
+# causes were fixed (suppression file was misnamed .yml vs auto-discovered
+# .yaml; stale buildflow binary flagged root-package-files x50).
 # Suppressions that keep the gate honest live in .go-structure-linter.yaml
 # (root-package-files, go-version, go-sum fixture ID) — each with a reason
-# and, for go-version, an explicit removal condition (TODO_LIST P2 toolchain
-# decision). CAVEAT: a go-structure-linter build from the v0.10.0 TAG does
-# not carry the suppression feature; machines running only tagged builds
-# would see the raw findings. Current verification: 5 findings (2 warnings
-# + 3 infos, 0 errors) with BUILDFLOW_NO_RESULT_CACHE=1.
+# and a removal condition (TODO_LIST P2 toolchain decision).
 # GOTCHA: buildflow's result cache keys on matched FILES — config/binary
 # changes do NOT invalidate it; use BUILDFLOW_NO_RESULT_CACHE=1 when a
 # finding replays after its cause was fixed.
