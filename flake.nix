@@ -95,8 +95,9 @@
             };
           # benchstat (golang.org/x/perf/cmd/benchstat) is not packaged in
           # nixpkgs; build it from the canonical googlesource repo.
-          # To bump: update `rev` + `version`, then fix src.hash and
-          # vendorHash from the `nix build .#benchstat` error messages.
+          # To bump: update `rev` + `version`, then fix src.hash (hash.nix)
+          # and vendorHash (vendorHash.nix) from the
+          # `nix build .#benchstat` error messages.
           benchstat = pkgs.buildGoModule {
             pname = "benchstat";
             version = "0.0.0-20260825160852";
@@ -104,11 +105,11 @@
             src = pkgs.fetchgit {
               url = "https://go.googlesource.com/perf";
               rev = "19be9d8e6c701dc8ccabaad34bf705f773fd398b";
-              hash = "sha256-CimaQbwjQ5SMl/VTzuMeSciOp7aSomGbT/iyEsguOCg=";
+              hash = import ./hash.nix;
             };
 
             subPackages = [ "cmd/benchstat" ];
-            vendorHash = "sha256-AZx9tPzsPvjc5kpmiBa6eYKtrw0hczYi0sbcd/lkiiA=";
+            vendorHash = import ./vendorHash.nix;
             ldflags = [
               "-s"
               "-w"
